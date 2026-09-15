@@ -74,12 +74,16 @@ class Connection {
   ValueListenable<bool> get standaloneClientConnected => _standaloneClientConnected;
   ValueListenable<bool> _standaloneClientConnected = ValueNotifier(false);
 
+  /// Tests stand in for the emulator here; production only ever assigns it
+  /// once, in [initialize].
+  @visibleForTesting
+  set standaloneClientConnected(ValueListenable<bool> value) => _standaloneClientConnected = value;
+
   /// The connected app's name for the Sensors card ("MyWhoosh connected"),
   /// or null while nothing is subscribed. The standalone peripheral does not
   /// learn who paired it, so the rider's chosen trainer app stands in — the
   /// one app they told BikeControl they would be riding in.
-  String? get standaloneClientName =>
-      _standaloneClientConnected.value ? core.settings.getTrainerApp()?.name : null;
+  String? get standaloneClientName => _standaloneClientConnected.value ? core.settings.getTrainerApp()?.name : null;
 
   /// Whether the shared trainer bridge (the FTMS composite) is currently
   /// advertising. `SensorSinkSync` reads the listenable form
@@ -109,6 +113,7 @@ class Connection {
   final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
+
   /// High-level app events (shifts, ERG targets, mode changes, handled errors)
   /// — the "Logs:" section of the support bundle. Kept in its own buffer so the
   /// verbose wire trace can never evict it (see [lastTraceEntries]).

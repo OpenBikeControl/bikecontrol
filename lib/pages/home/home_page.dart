@@ -395,12 +395,23 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    // A trainer always wins. Sensors-only mode is the answer to "I have no
-    // smart trainer", so the moment one is here — remembered from before or
-    // just found — that answer is stale and the chain goes back to the
-    // trainer, quietly: nothing to announce, the card itself is the news.
-    final sensorsOnly = core.settings.getSensorsOnlyMode();
-    if (trainer != null && sensorsOnly) unawaited(core.settings.setSensorsOnlyMode(false));
+    // A connected trainer always wins. Sensors-only mode is the answer to "I
+    // have no smart trainer", so the moment one is actually bridged — a
+    // remembered one auto-connecting, or a new one the rider paired — that
+    // answer is stale and the chain goes back to the trainer, quietly:
+    // nothing to announce, the card itself is the news. Only *connected*: a
+    // trainer the scanner merely sees may be the neighbour's, and one
+    // remembered from before is exactly what a rider who now rides on
+    // sensors alone has put away — neither may throw them out of the mode.
+    final trainerConnected = trainer?.presence == DevicePresence.connected;
+    if (trainerConnected && core.settings.getSensorsOnlyMode()) {
+      unawaited(
+        core.settings
+            .setSensorsOnlyMode(false)
+            .catchError((Object e, StackTrace s) => recordError(e, s, context: 'HomePage.sensorsOnlyExit')),
+      );
+    }
+    final sensorsOnly = core.settings.getSensorsOnlyMode() && !trainerConnected;
 
     return ChainInputs(
       bluetoothReady: _bluetoothReady,
@@ -430,8 +441,10 @@ class _HomePageState extends State<HomePage> {
                 ClickLogic.keepAwakeStatus.value == ClickKeepAwakeStatus.waitingForLeftSide,
           ),
       ],
-      trainer: trainer,
-      sensors: trainer == null && sensorsOnly ? _readSensors() : null,
+      // The chain builder lets a trainer win over sensors, so in sensors-only
+      // mode the merely-seen or remembered trainer is withheld from it.
+      trainer: sensorsOnly ? null : trainer,
+      sensors: sensorsOnly ? _readSensors() : null,
       app: AppInput(
         name: trainerApp?.name,
         selfHosted: trainerApp is BikeControl,
@@ -874,12 +887,12 @@ class _HomePageState extends State<HomePage> {
           ? context.i18n.chainStepOverlayAction
           : null,
       body: _trainerBody(proxy),
-      // The way out for a rider with no smart trainer at all: the slot stays
-      // useful — it becomes their sensors — instead of sitting there OPTIONAL
-      // forever. Only on the empty slot: a trainer that is merely away is
-      // still a trainer, and offering to replace it would read as giving up
-      // on it.
-      footer: inputs.trainer == null
+      // The way out for a rider with no smart trainer: the slot stays useful —
+      // it becomes their sensors — instead of sitting there OPTIONAL forever.
+      // Offered whenever nothing is actually bridged: a trainer the scanner
+      // merely sees, or one remembered from before, is not a trainer the
+      // rider is on right now.
+      footer: inputs.trainer?.presence != DevicePresence.connected
           ? ChainCardFooterRow(
               question: context.i18n.sensorsUseSensorsOnlyQuestion,
               action: context.i18n.sensorsUseSensorsOnly,
@@ -909,14 +922,12 @@ class _HomePageState extends State<HomePage> {
       statusLabel = context.i18n.sensorsStatusOff;
     }
 
-    // The card has one title line and one status line, so everything beyond
-    // the first source's name rides the status meta: "with Assioma DUO ·
-    // Bluetooth · MyWhoosh connected". The transport only matters once the
-    // broadcast is on — an idle card naming "Network" would be describing a
-    // wire nothing is on.
+    // The first source is the title, the rest ride a sub line ("with Assioma
+    // DUO"); the status meta carries the wire: "Bluetooth · MyWhoosh
+    // connected". The transport only matters once the broadcast is on — an
+    // idle card naming "Network" would be describing a wire nothing is on.
     final rest = sensors.sourceNames.skip(1).toList();
     final meta = [
-      if (rest.isNotEmpty) context.i18n.sensorsWith(rest.join(', ')),
       if (broadcasting)
         sensors.transport == RetrofitMode.wifi
             ? context.i18n.sensorsTransportNetwork
@@ -937,6 +948,7 @@ class _HomePageState extends State<HomePage> {
       ),
       title: link.title.isEmpty ? context.i18n.sensorsNoSensorsYet : link.title,
       statusLabel: statusLabel,
+      subtitle: rest.isEmpty ? null : context.i18n.sensorsWith(rest.join(', ')),
       editLabel: context.i18n.sensorsOpen,
       onEdit: _openSensors,
       onTap: _openSensors,

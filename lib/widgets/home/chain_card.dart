@@ -20,6 +20,7 @@ class ChainCard extends StatefulWidget {
     required this.title,
     required this.statusLabel,
     this.statusBadges = const [],
+    this.subtitle,
     this.appName,
     this.editLabel,
     this.onEdit,
@@ -40,6 +41,10 @@ class ChainCard extends StatefulWidget {
 
   /// Inline warning glyphs beside the status — see [StatusLine.badges].
   final List<Widget> statusBadges;
+
+  /// A quiet line under the status — the Sensors card's "with Assioma DUO",
+  /// naming what the title left out. Null or empty renders nothing.
+  final String? subtitle;
 
   /// Used to fill "{app} is connected" style step wording.
   final String? appName;
@@ -83,6 +88,9 @@ const Key stepTickKey = ValueKey('chain-step-tick');
 
 /// The footer strip's wrapper, when a card has one — see [ChainCard.footer].
 const Key chainCardFooterKey = ValueKey('chain-card-footer');
+
+/// The line under the status, when a card has one — see [ChainCard.subtitle].
+const Key chainCardSubtitleKey = ValueKey('chain-card-subtitle');
 
 /// A one-line offer along a card's bottom edge: a muted question on the left,
 /// the action in brand colour on the right, the whole strip tappable.
@@ -138,7 +146,13 @@ const double _leadingGap = 10;
 /// once a smart trainer is actually connected the card is doing a job, and
 /// labelling working hardware OPTIONAL is noise — the word is there to reassure
 /// a rider looking at an empty slot, not to caption a live one.
-bool _atRest(ChainLink link) => link.optional && link.status == LinkStatus.off;
+///
+/// The Sensors card is optional in the same sense — an idle broadcast must not
+/// block "Ready to ride" — but it is never an empty slot: it stands for the
+/// rider's own sensors, and the kit draws it with a solid border and a plain
+/// SENSORS eyebrow in every state. Tagging it OPTIONAL would tell a rider who
+/// just chose it that they could skip it.
+bool _atRest(ChainLink link) => link.key != ChainLinkKey.sensors && link.optional && link.status == LinkStatus.off;
 
 class _ChainCardState extends State<ChainCard> {
   @override
@@ -253,6 +267,17 @@ class _ChainCardState extends State<ChainCard> {
                   meta: link.subtitleArg,
                   badges: widget.statusBadges,
                 ),
+                if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle,
+                      key: chainCardSubtitleKey,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12.5, color: theme.colorScheme.mutedForeground),
+                    ),
+                  ),
               ],
             ),
           ),

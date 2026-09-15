@@ -13,6 +13,7 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/models/remembered_device.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
@@ -168,6 +169,8 @@ void _sensorsOnlyTests() {
         core.sensors.unregister(source.id);
       }
       await core.settings.setSensorsOnlyMode(false);
+      core.connection.rememberedTrainer = null;
+      core.connection.standaloneClientConnected = ValueNotifier(false);
     });
 
     testWidgets('no trainer: the trainer card offers "Use sensors only", and tapping it swaps in the Sensors card', (
@@ -189,6 +192,10 @@ void _sensorsOnlyTests() {
       expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
       expect(_chainCard(ChainLinkKey.trainer), findsNothing);
       expect(find.byKey(const Key('chain-card-footer')), findsNothing);
+      // The strip's tap is its own — it must not fall through to the card
+      // and open the trainer connect sheet underneath.
+      await tester.pumpAndSettle();
+      expect(find.text(l.close), findsNothing);
     });
 
     testWidgets('nothing selected: titled "No sensors yet", status "Off — tap to set up"', (tester) async {
@@ -253,8 +260,10 @@ void _sensorsOnlyTests() {
       expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
       expect(find.text('Polar H10'), findsOneWidget);
       expect(find.text(l.sensorsStatusBroadcasting), findsOneWidget);
-      // One meta line carries the rest of the sources and the transport.
-      expect(find.text('${l.sensorsWith('Assioma DUO')} · ${l.sensorsTransportBluetooth}'), findsOneWidget);
+      // The other sources ride a sub line; the meta names the transport.
+      expect(find.byKey(chainCardSubtitleKey), findsOneWidget);
+      expect(find.text(l.sensorsWith('Assioma DUO')), findsOneWidget);
+      expect(find.text(l.sensorsTransportBluetooth), findsOneWidget);
       expect(find.byKey(const Key('sensors-chip-heartRate')), findsOneWidget);
       expect(find.byKey(const Key('sensors-chip-power')), findsOneWidget);
       expect(find.byKey(const Key('sensors-chip-cadence')), findsOneWidget);
@@ -263,7 +272,32 @@ void _sensorsOnlyTests() {
       expect(find.text('90'), findsOneWidget);
     });
 
-    testWidgets('a trainer showing up ends sensors-only mode and puts the trainer card back', (tester) async {
+    testWidgets('while broadcasting, the meta names the app holding the peripheral', (tester) async {
+      await core.settings.setSensorsOnlyMode(true);
+      await core.settings.setSensorsTransport(RetrofitMode.wifi);
+      final strap = FakeSensorSource(id: 'strap-1', displayName: 'Polar H10', provides: {SensorQuantity.heartRate});
+      core.sensors.register(strap);
+      core.sensors.select(SensorQuantity.heartRate, strap.id);
+      final broadcast = BroadcastController(
+        hub: core.sensors,
+        settings: core.settings,
+        connectSource: (_) async {},
+        disconnectSource: (_) async {},
+        isBridgeRunning: ValueNotifier(false),
+      );
+      core.connection.broadcast = broadcast;
+      await broadcast.turnOn();
+      core.connection.standaloneClientConnected = ValueNotifier(true);
+
+      await _pumpHome(tester);
+
+      expect(
+        find.text('${l.sensorsTransportNetwork} · ${l.sensorsClientConnected(MyWhoosh().name)}'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a connected trainer ends sensors-only mode and puts the trainer card back', (tester) async {
       await core.settings.setSensorsOnlyMode(true);
       final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-sensors-exit', name: 'Wahoo KICKR'))
         ..debugSetTrainerAppConnected(true);
@@ -274,6 +308,45 @@ void _sensorsOnlyTests() {
       expect(_chainCard(ChainLinkKey.trainer), findsOneWidget);
       expect(_chainCard(ChainLinkKey.sensors), findsNothing);
       expect(core.settings.getSensorsOnlyMode(), isFalse);
+    });
+
+    // A trainer the scanner merely sees may be the neighbour's; one
+    // remembered from before is exactly what a rider on sensors alone has put
+    // away. Neither is a trainer the rider is on, so neither ends the mode.
+    testWidgets('a trainer that is only discovered keeps sensors-only mode', (tester) async {
+      await core.settings.setSensorsOnlyMode(true);
+      core.connection.devices.add(ProxyDevice(BleDevice(deviceId: 'kickr-nearby', name: 'Wahoo KICKR')));
+
+      await _pumpHome(tester);
+
+      expect(core.settings.getSensorsOnlyMode(), isTrue);
+      expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
+      expect(_chainCard(ChainLinkKey.trainer), findsNothing);
+    });
+
+    testWidgets('a remembered but absent trainer keeps sensors-only mode', (tester) async {
+      await core.settings.setSensorsOnlyMode(true);
+      core.connection.rememberedTrainer = RememberedDevice(
+        deviceId: 'kickr-remembered',
+        name: 'Wahoo KICKR',
+        kind: RememberedDeviceKind.trainer,
+        lastConnected: DateTime(2026, 9, 1),
+      );
+
+      await _pumpHome(tester);
+
+      expect(core.settings.getSensorsOnlyMode(), isTrue);
+      expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
+      expect(_chainCard(ChainLinkKey.trainer), findsNothing);
+    });
+
+    testWidgets('a trainer that is only discovered still offers "Use sensors only"', (tester) async {
+      core.connection.devices.add(ProxyDevice(BleDevice(deviceId: 'kickr-nearby', name: 'Wahoo KICKR')));
+
+      await _pumpHome(tester);
+
+      expect(_chainCard(ChainLinkKey.trainer), findsOneWidget);
+      expect(find.byKey(const Key('chain-card-footer')), findsOneWidget);
     });
 
     testWidgets('Open on the Sensors card pushes the Sensors page', (tester) async {

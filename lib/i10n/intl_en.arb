@@ -2119,7 +2119,7 @@
   "networkWatchTitle": "Waiting for your trainer app",
   "networkWatchEndsItself": "The test ends by itself once your app connects.",
   "networkFooterTitle": "Still not connecting?",
-  "networkFooterBody": "Send the full report — it has everything on this page plus the raw logs.",
+  "networkFooterBody": "Send the full report \u2014 it has everything on this page plus the raw logs.",
   "@networkChecksPassedOf": {
     "placeholders": { "total": { "type": "int" } }
   },
