@@ -1537,7 +1537,7 @@ class SelectableCard extends StatelessWidget {
                               ? Theme.of(context).colorScheme.card
                               : Theme.of(context).colorScheme.card.withLuminance(0.97)
                         : Theme.of(context).colorScheme.background,
-                    hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94),
+                    hoverColor: bkCardHover(context),
                   ),
           onPressed: () async {
             if (isProOnly && !isPro) {

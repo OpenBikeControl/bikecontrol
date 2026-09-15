@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SettingTile extends StatelessWidget {
@@ -66,7 +67,7 @@ class SettingTile extends StatelessWidget {
         child: Button.card(
           style: ButtonStyle.card()
               .withPadding(padding: const EdgeInsets.all(16))
-              .withBackgroundColor(hoverColor: cs.border.withLuminance(0.94)),
+              .withBackgroundColor(hoverColor: bkCardHover(context)),
           onPressed: onTap,
           child: content,
         ),

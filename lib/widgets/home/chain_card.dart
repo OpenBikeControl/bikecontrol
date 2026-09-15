@@ -2,6 +2,7 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One link of the setup chain.
@@ -125,7 +126,7 @@ class _ChainCardState extends State<ChainCard> {
       child: Button.ghost(
         style: ButtonStyle.ghost()
             .withPadding(padding: EdgeInsets.zero)
-            .withBackgroundColor(hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94)),
+            .withBackgroundColor(hoverColor: bkCardHover(context)),
         onPressed: widget.onTap,
         child: content,
       ),

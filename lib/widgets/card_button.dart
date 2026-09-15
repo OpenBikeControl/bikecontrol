@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class HoverCardButton extends StatelessWidget {
@@ -22,7 +23,7 @@ class HoverCardButton extends StatelessWidget {
       child: Button.card(
         style: (buttonStyle ?? ButtonStyle.card())
             .withBackgroundColor(
-              hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94),
+              hoverColor: bkCardHover(context),
             )
             .withPadding(
               padding: EdgeInsets.only(left: 16, top: 16, bottom: 16, right: trailing != null ? 10 : 16),
