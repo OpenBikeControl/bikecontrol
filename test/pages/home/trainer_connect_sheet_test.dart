@@ -7,6 +7,7 @@
 // that one selects IntegrationTestWidgetsFlutterBinding, which co-running
 // files poison with a stray app_links platform-stream error (see
 // fulgaz_connection_copy_test).
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/home/home_sheets.dart';
@@ -16,6 +17,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -27,13 +29,20 @@ void main() {
     core.settings.prefs = await SharedPreferences.getInstance();
     core.settings.trainerAppListenable.value = null;
     core.actionHandler = StubActions();
+    core.connection.devices.clear();
   });
 
-  Future<void> pumpAndOpen(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(380, 760) * 3.0;
+  Future<void> pumpAndOpen(WidgetTester tester, {Size logicalSize = const Size(380, 760), FakeViewPadding? padding}) async {
+    tester.view.physicalSize = logicalSize * 3.0;
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    if (padding != null) {
+      tester.view.padding = padding;
+      tester.view.viewPadding = padding;
+      addTearDown(tester.view.resetPadding);
+      addTearDown(tester.view.resetViewPadding);
+    }
 
     await tester.pumpWidget(
       ShadcnApp(
@@ -83,5 +92,38 @@ void main() {
     final l10n = AppLocalizations.current;
     expect(find.text(l10n.onboardingTrainerTitle), findsOneWidget);
     expect(find.text(l10n.onboardingHelpSheetTitle), findsNothing);
+  });
+
+  // Regression: on an iPhone 13 mini the picker — pitch stage, scan card with
+  // a found trainer, blog link, Close — is taller than the screen. The sheet
+  // body was a bare Column, so it overflowed past the sheet's clip: the Close
+  // button was painted at the very bottom edge but could not be tapped, and
+  // nothing scrolled. The body has to scroll instead.
+  testWidgets('Close stays reachable on a short phone with a trainer listed', (tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    core.connection.devices.add(ProxyDevice(BleDevice(deviceId: '00:11:22:33:44:55', name: 'Wahoo KICKR 1EB7')));
+
+    // iPhone 13 mini: 375×812 pt with the notch and home-indicator insets.
+    await pumpAndOpen(
+      tester,
+      logicalSize: const Size(375, 812),
+      padding: const FakeViewPadding(top: 47 * 3.0, bottom: 34 * 3.0),
+    );
+
+    final l10n = AppLocalizations.current;
+    final close = find.widgetWithText(PrimaryButton, l10n.close);
+    expect(close, findsOneWidget);
+
+    // No pumpAndSettle: the stage and radar animate for as long as the sheet
+    // is open.
+    await tester.ensureVisible(close);
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.getBottomLeft(close).dy, lessThanOrEqualTo(812 - 34),
+        reason: 'the Close button must sit inside the screen above the home indicator');
+
+    await tester.tap(close);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text(l10n.onboardingTrainerTitle), findsNothing, reason: 'tapping Close must dismiss the sheet');
   });
 }
