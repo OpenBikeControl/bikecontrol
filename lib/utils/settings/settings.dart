@@ -221,14 +221,15 @@ class Settings {
     await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
   }
 
-  static String _feedbackSubmittedKey(String trainerKey) => 'feedback_submitted_$trainerKey';
-
-  bool getFeedbackSubmitted(String trainerKey) {
-    return prefs.getBool(_feedbackSubmittedKey(trainerKey)) ?? false;
+  /// Global, not per trainer: closing the "Need help?" card on one trainer's
+  /// page means the rider knows where the Help Center lives — re-showing it
+  /// on the next trainer would just be nagging.
+  bool getNeedHelpCardDismissed() {
+    return prefs.getBool('need_help_card_dismissed') ?? false;
   }
 
-  Future<void> setFeedbackSubmitted(String trainerKey, bool submitted) async {
-    await prefs.setBool(_feedbackSubmittedKey(trainerKey), submitted);
+  Future<void> setNeedHelpCardDismissed(bool dismissed) async {
+    await prefs.setBool('need_help_card_dismissed', dismissed);
   }
 
   static String _autoConnectKey(String trainerKey) => 'auto_connect_$trainerKey';
