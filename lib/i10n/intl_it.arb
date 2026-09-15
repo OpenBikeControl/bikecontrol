@@ -2038,5 +2038,9 @@
   "ltwooWrongPinAlert": "Il deragliatore L-TWOO ha rifiutato il PIN. Controlla il PIN del dispositivo nelle preferenze di questo controller.",
   "ltwooPinLabel": "PIN del dispositivo",
   "ltwooAnchorGearTitle": "Mantieni il deragliatore in posizione",
-  "ltwooAnchorGearDescription": "Dopo ogni cambiata, BikeControl riporta il deragliatore in posizione così la catena resta su un solo pignone. Il deragliatore si muoverà brevemente a ogni pressione."
+  "ltwooAnchorGearDescription": "Dopo ogni cambiata, BikeControl riporta il deragliatore in posizione così la catena resta su un solo pignone. Il deragliatore si muoverà brevemente a ogni pressione.",
+  "shiftFeedbackSound": "Riproduci un suono al cambio marcia",
+  "shiftFeedbackSoundSubtitle": "Segnali distinti per salire, scendere e raggiungere l'ultima marcia",
+  "shiftFeedbackHaptics": "Fai vibrare questo dispositivo al cambio marcia",
+  "shiftFeedbackHapticsSubtitle": "Una breve vibrazione su questo telefono o tablet, due volte se non c'è una marcia successiva. La vibrazione del controller si imposta per controller."
 }

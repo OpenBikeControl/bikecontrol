@@ -2242,5 +2242,9 @@
   "sensorValuePower": "{value} W",
   "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
   "ltwooAnchorGearTitle": "Keep derailleur in place",
-  "ltwooAnchorGearDescription": "After each shift, BikeControl shifts the derailleur back so the chain stays on one cog. The derailleur will briefly move with every press."
+  "ltwooAnchorGearDescription": "After each shift, BikeControl shifts the derailleur back so the chain stays on one cog. The derailleur will briefly move with every press.",
+  "shiftFeedbackSound": "Play a sound when shifting",
+  "shiftFeedbackSoundSubtitle": "Distinct cues for shifting up, shifting down and reaching the last gear",
+  "shiftFeedbackHaptics": "Vibrate this device when shifting",
+  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller."
 }

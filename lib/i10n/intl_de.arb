@@ -2038,5 +2038,9 @@
   "ltwooWrongPinAlert": "Das L-TWOO-Schaltwerk hat die PIN abgelehnt. Prüfe die Geräte-PIN in den Einstellungen dieses Controllers.",
   "ltwooPinLabel": "Geräte-PIN",
   "ltwooAnchorGearTitle": "Schaltwerk in Position halten",
-  "ltwooAnchorGearDescription": "Nach jedem Schaltvorgang schaltet BikeControl das Schaltwerk zurück, damit die Kette auf einem Ritzel bleibt. Das Schaltwerk bewegt sich bei jedem Tastendruck kurz."
+  "ltwooAnchorGearDescription": "Nach jedem Schaltvorgang schaltet BikeControl das Schaltwerk zurück, damit die Kette auf einem Ritzel bleibt. Das Schaltwerk bewegt sich bei jedem Tastendruck kurz.",
+  "shiftFeedbackSound": "Ton beim Schalten abspielen",
+  "shiftFeedbackSoundSubtitle": "Unterschiedliche Töne fürs Hoch- und Runterschalten und wenn der letzte Gang erreicht ist",
+  "shiftFeedbackHaptics": "Dieses Gerät beim Schalten vibrieren lassen",
+  "shiftFeedbackHapticsSubtitle": "Ein kurzes Vibrieren auf diesem Handy oder Tablet, zweimal wenn es keinen nächsten Gang gibt. Controller-Vibration wird pro Controller eingestellt."
 }

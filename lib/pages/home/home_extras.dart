@@ -7,6 +7,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
+import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -36,6 +37,12 @@ class _HomeExtrasState extends State<HomeExtras> {
   bool get _showsMediaKeys => !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS);
 
   bool get _showsPhoneSteering => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  /// Phone-side shift feedback. Sound has a backend on every desktop/mobile
+  /// OS we ship; vibration needs a haptics engine, so phones/tablets only.
+  bool get _showsShiftSound => !kIsWeb;
+
+  bool get _showsShiftHaptics => PlatformShiftHaptics.isSupported;
 
   /// Quitting from a menu row is a mobile idiom; desktop windows close
   /// themselves, and SystemNavigator.pop() does nothing useful there anyway.
@@ -139,6 +146,28 @@ class _HomeExtrasState extends State<HomeExtras> {
                   core.settings.setPhoneSteeringEnabled(enable);
                   core.connection.toggleGyroscopeSteering(enable);
                   widget.onUpdate();
+                  if (mounted) setState(() {});
+                },
+              ),
+            if (_showsShiftHaptics)
+              SwitchFeature(
+                isMobile: widget.isMobile,
+                value: core.shiftFeedback.hapticsEnabled,
+                title: context.i18n.shiftFeedbackHaptics,
+                subtitle: context.i18n.shiftFeedbackHapticsSubtitle,
+                onPressed: () async {
+                  await core.shiftFeedback.setHapticsEnabled(!core.shiftFeedback.hapticsEnabled);
+                  if (mounted) setState(() {});
+                },
+              ),
+            if (_showsShiftSound)
+              SwitchFeature(
+                isMobile: widget.isMobile,
+                value: core.shiftFeedback.soundEnabled,
+                title: context.i18n.shiftFeedbackSound,
+                subtitle: context.i18n.shiftFeedbackSoundSubtitle,
+                onPressed: () async {
+                  await core.shiftFeedback.setSoundEnabled(!core.shiftFeedback.soundEnabled);
                   if (mounted) setState(() {});
                 },
               ),

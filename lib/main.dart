@@ -812,6 +812,7 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
 
     core.connection.initialize();
     core.feedbackPromptService.start();
+    unawaited(core.shiftFeedback.prepare());
     WindowsProtocolHandler().registerForOutsideStoreBuild('bikecontrol');
     WidgetsBinding.instance.addObserver(this);
     if (!kIsWeb && !screenshotMode) {

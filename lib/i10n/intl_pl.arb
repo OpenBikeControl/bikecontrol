@@ -2038,5 +2038,9 @@
   "ltwooWrongPinAlert": "Przerzutka L-TWOO odrzuciła PIN. Sprawdź PIN urządzenia w ustawieniach tego kontrolera.",
   "ltwooPinLabel": "PIN urządzenia",
   "ltwooAnchorGearTitle": "Utrzymuj przerzutkę w miejscu",
-  "ltwooAnchorGearDescription": "Po każdej zmianie biegu BikeControl cofa przerzutkę, aby łańcuch pozostał na jednej zębatce. Przerzutka będzie się krótko poruszać przy każdym naciśnięciu."
+  "ltwooAnchorGearDescription": "Po każdej zmianie biegu BikeControl cofa przerzutkę, aby łańcuch pozostał na jednej zębatce. Przerzutka będzie się krótko poruszać przy każdym naciśnięciu.",
+  "shiftFeedbackSound": "Odtwarzaj dźwięk przy zmianie biegu",
+  "shiftFeedbackSoundSubtitle": "Różne sygnały dla zmiany w górę, w dół i osiągnięcia ostatniego biegu",
+  "shiftFeedbackHaptics": "Wibruj tym urządzeniem przy zmianie biegu",
+  "shiftFeedbackHapticsSubtitle": "Krótka wibracja tego telefonu lub tabletu, dwukrotna gdy nie ma kolejnego biegu. Wibracje kontrolera ustawia się osobno dla każdego kontrolera."
 }
