@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/click_v2/click_contours.dart';
 import 'package:flutter/widgets.dart';
@@ -21,6 +22,11 @@ void main() {
     UniversalBle.setInstance(FakeUniversalBlePlatform());
     SharedPreferences.setMockInitialValues({});
     core.settings.prefs = await SharedPreferences.getInstance();
+    // The app assigns this in Settings.init() (initializeActions) before any
+    // page can open, and choosing right-side-only reads it to remap the
+    // keymap. With these empty prefs nothing has been picked yet, which in the
+    // app means StubActions with no trainer app.
+    core.actionHandler = StubActions();
     await AppLocalizations.load(const Locale('en'));
   });
 
@@ -203,11 +209,11 @@ void main() {
 
     // The stagger is a one-shot entrance; once settled every row is opaque and
     // at its resting offset, so the page is never left half-faded.
+    // Every row on page 0: two pros and its one con.
     for (final text in [
       'No Zwift unlock — ever',
       'No restarts, no drop-outs mid-ride',
       'Only the right controller sends button presses',
-      'No D-pad — no steering, no action bar',
     ]) {
       final opacity = tester.widget<FadeTransition>(
         find.ancestor(of: find.text(text), matching: find.byType(FadeTransition)).first,
