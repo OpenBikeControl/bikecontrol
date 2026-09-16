@@ -2150,5 +2150,10 @@
   "proUnregisteredTitle": "Pro est sur ton compte, pas sur cet appareil",
   "proUnregisteredBody": "Le changement de vitesses virtuel reste limité ici tant que tu n'as pas enregistré cet appareil.",
   "registerDeviceFailed": "Impossible d'enregistrer cet appareil : {error}",
-  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}}
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}},
+  "vsModeTrackResistanceDesc": "Simule une pente par vitesse : la résistance suit ta vitesse de déplacement et change dès que tu changes de vitesse, comme sur un vrai vélo. Idéal pour les sorties libres et les courses.",
+  "vsModeTargetPowerDesc": "Maintient une puissance cible par vitesse, comme en mode ERG. Ta cadence compense une partie du changement, ce qui rend les changements de vitesse plus doux et fait grimper la puissance dans les côtes. Pour les home-trainers incapables de simuler une pente.",
+  "vsModeBasicDesc": "Comme Puissance cible, mais avec un palier fixe par vitesse et sans ressenti du terrain. Un dernier recours pour les home-trainers qui ignorent les autres modes.",
+  "vsModeRecommended": "Recommandé",
+  "vsModeUnsupported": "Pas pris en charge par ce home-trainer. "
 }

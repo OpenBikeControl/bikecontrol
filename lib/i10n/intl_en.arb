@@ -2342,5 +2342,10 @@
   "proUnregisteredTitle": "Pro is on your account, not on this device",
   "proUnregisteredBody": "Virtual shifting stays limited here until you register this device.",
   "registerDeviceFailed": "Could not register this device: {error}",
-  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}}
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}},
+  "vsModeTrackResistanceDesc": "Simulates a road grade per gear — resistance follows your speed and changes the moment you shift, like a real bike. Best for free rides and races.",
+  "vsModeTargetPowerDesc": "Holds a target wattage per gear, like ERG. Your cadence cancels part of the change, so shifts feel softer and climbs pull the power up. For trainers that can't simulate grade.",
+  "vsModeBasicDesc": "Like Target Power but with a fixed step per gear and no terrain feel. A last resort for trainers that ignore the other modes.",
+  "vsModeRecommended": "Recommended",
+  "vsModeUnsupported": "Not supported by this trainer. "
 }
