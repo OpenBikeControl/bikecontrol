@@ -22,7 +22,11 @@ enum SubscriptionPageView {
 }
 
 class SubscriptionPage extends StatefulWidget {
-  const SubscriptionPage({super.key});
+  /// The view to open on. Entry points that already know what the rider needs
+  /// (the unregistered-device banner → Registered Devices) skip the main view.
+  final SubscriptionPageView initialView;
+
+  const SubscriptionPage({super.key, this.initialView = SubscriptionPageView.main});
 
   @override
   State<SubscriptionPage> createState() => _SubscriptionPageState();
@@ -30,7 +34,7 @@ class SubscriptionPage extends StatefulWidget {
 
 class _SubscriptionPageState extends State<SubscriptionPage> {
   final IAPManager _iapManager = IAPManager.instance;
-  SubscriptionPageView _currentView = SubscriptionPageView.main;
+  late SubscriptionPageView _currentView = widget.initialView;
   bool? _hasStripeCustomer;
 
   @override

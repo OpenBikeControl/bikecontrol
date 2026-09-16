@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/purchase_done_dialogs.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -15,10 +19,77 @@ enum _PaywallPlan {
   fullVersion,
 }
 
-enum _PaywallCell {
-  unlimited,
-  check,
-  dash,
+/// What a comparison-table cell shows for one plan. [text] is for the one
+/// place a tick or a dash would lie: Base does get BikeControl-driven virtual
+/// shifting, just capped — so its cell says "20 min/day" instead.
+sealed class _PaywallCell {
+  const _PaywallCell();
+
+  static const _PaywallCell unlimited = _PaywallUnlimited();
+  static const _PaywallCell check = _PaywallCheck();
+  static const _PaywallCell dash = _PaywallDash();
+  const factory _PaywallCell.text(String text) = _PaywallText;
+}
+
+class _PaywallUnlimited extends _PaywallCell {
+  const _PaywallUnlimited();
+}
+
+class _PaywallCheck extends _PaywallCell {
+  const _PaywallCheck();
+}
+
+class _PaywallDash extends _PaywallCell {
+  const _PaywallDash();
+}
+
+class _PaywallText extends _PaywallCell {
+  final String text;
+
+  const _PaywallText(this.text);
+}
+
+/// The storefront the one-time Base purchase is bound to, for the note under
+/// the Base card. Store brands stay as-is in every language; only the
+/// outside-store Windows build's [directDownload] wording is translated.
+String paywallStoreName(
+  TargetPlatform platform, {
+  required bool isOutsideStoreWindowsBuild,
+  required String directDownload,
+}) {
+  return switch (platform) {
+    TargetPlatform.android => 'Google Play',
+    TargetPlatform.windows => isOutsideStoreWindowsBuild ? directDownload : 'Microsoft Store',
+    // iOS and macOS — the only other platforms the app ships on.
+    _ => 'App Store',
+  };
+}
+
+/// The confirmation a finished purchase or restore calls for.
+enum PaywallConfirmation {
+  /// Base went through: say what Base covers and what it doesn't.
+  baseDone,
+
+  /// Pro is on the account but this device isn't registered for it.
+  proUnregistered,
+}
+
+/// Decides [PaywallConfirmation] from the IAP state before an attempt and
+/// now. Pure, so the cases can be pinned down without a store.
+/// [isBasePurchase] is true for the Base plan; false for Pro plans and restore.
+PaywallConfirmation? paywallConfirmationFor({
+  required bool isBasePurchase,
+  required bool wasPurchased,
+  required bool wasPro,
+  required bool isPurchased,
+  required bool isPro,
+  required bool isProForDevice,
+}) {
+  // Pro landing on the account outranks a Base receipt: the rider who now
+  // has Pro should not be told Base's limits.
+  if (!wasPro && isPro && !isProForDevice) return PaywallConfirmation.proUnregistered;
+  if (isBasePurchase && !wasPurchased && isPurchased && !isPro) return PaywallConfirmation.baseDone;
+  return null;
 }
 
 class _FeatureLine {
@@ -94,6 +165,10 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
+  // The first three rows answer the question riders bought the wrong plan
+  // over: Base covers pressing the buttons in a trainer app that shifts by
+  // itself; BikeControl shifting the trainer (virtual shifting through the
+  // bridge) is the Pro part, and Base only gets the daily taster of it.
   late final List<_FeatureLine> _features = [
     _FeatureLine(
       icon: Icons.functions,
@@ -103,8 +178,14 @@ class _PaywallState extends State<Paywall> {
     ),
     _FeatureLine(
       icon: Icons.public,
-      label: AppLocalizations.current.paywall_connectToYourTrainer,
+      label: AppLocalizations.current.paywall_shiftInYourApp,
       full: _PaywallCell.check,
+      pro: _PaywallCell.check,
+    ),
+    _FeatureLine(
+      icon: Icons.directions_bike_outlined,
+      label: AppLocalizations.current.paywall_bikeControlShifts,
+      full: _PaywallCell.text(AppLocalizations.current.paywall_twentyMinPerDay),
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
@@ -116,12 +197,6 @@ class _PaywallState extends State<Paywall> {
     _FeatureLine(
       icon: Icons.devices,
       label: AppLocalizations.current.paywall_useBikecontrolOnAllPlatforms,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: Icons.directions_bike_outlined,
-      label: AppLocalizations.current.proxyFeatureAddVirtualShifting,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
@@ -159,6 +234,12 @@ class _PaywallState extends State<Paywall> {
   bool _isPurchasing = false;
   bool _isRestoring = false;
 
+  /// The purchase or restore in flight (or last finished): the IAP state when
+  /// it started and whether it was the Base plan, so the confirmation after
+  /// it reports only what this attempt changed. Null until the first attempt.
+  ({bool wasPurchased, bool wasPro, bool isBasePurchase})? _attempt;
+  bool _confirmed = false;
+
   @override
   void initState() {
     super.initState();
@@ -180,8 +261,67 @@ class _PaywallState extends State<Paywall> {
       return;
     }
     if (_iapManager.isProEnabled || _iapManager.isPurchased.value) {
-      closeDrawer(context);
+      _close();
+      // The store's answer lands here, before the purchase call returns (and
+      // RevenueCat's can take seconds) — confirm now, not when it returns.
+      _confirmOutcome();
     }
+  }
+
+  /// Closes the paywall — once. Entitlement notifications come in pairs after
+  /// a purchase (RevenueCat's customer-info listener, then the entitlements
+  /// refresh), and this widget is still mounted during its exit transition
+  /// when the second one lands; a second pop would take whatever is on top by
+  /// then — the confirmation dialog just pushed, or the route beneath.
+  void _close() {
+    if (_closing) return;
+    _closing = true;
+    // The drawer is the normal host; _showPaywall falls back to a dialog when
+    // no DrawerOverlay is in scope, and closeDrawer has nothing to close there.
+    if (DrawerOverlay.maybeFind(context) != null) {
+      closeDrawer(context);
+      return;
+    }
+    // Pop this route, not whatever happens to be on top.
+    final route = ModalRoute.of(context);
+    if (route != null && route.isCurrent) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  bool _closing = false;
+
+  void _beginAttempt({required bool isBasePurchase}) {
+    _attempt = (
+      wasPurchased: _iapManager.isPurchased.value,
+      wasPro: _iapManager.isProEnabled,
+      isBasePurchase: isBasePurchase,
+    );
+    _confirmed = false;
+  }
+
+  /// Shows the one confirmation the attempt's outcome calls for, at most once
+  /// per attempt. On the root navigator: by the time it runs the paywall is
+  /// usually already closing (see [_onEntitlementsChanged]), so the dialog
+  /// cannot hang off this widget's own context.
+  void _confirmOutcome() {
+    final attempt = _attempt;
+    if (attempt == null || _confirmed) return;
+    final confirmation = paywallConfirmationFor(
+      isBasePurchase: attempt.isBasePurchase,
+      wasPurchased: attempt.wasPurchased,
+      wasPro: attempt.wasPro,
+      isPurchased: _iapManager.isPurchased.value,
+      isPro: _iapManager.isProEnabled,
+      isProForDevice: _iapManager.isProEnabledForCurrentDevice,
+    );
+    final rootContext = navigatorKey.currentContext;
+    if (confirmation == null || rootContext == null || !rootContext.mounted) return;
+    _confirmed = true;
+    unawaited(switch (confirmation) {
+      PaywallConfirmation.baseDone => showPurchaseBaseDoneDialog(rootContext),
+      PaywallConfirmation.proUnregistered => showPurchaseProUnregisteredDialog(rootContext),
+    });
   }
 
   Future<void> _onPurchasePressed() async {
@@ -191,6 +331,7 @@ class _PaywallState extends State<Paywall> {
     setState(() {
       _isPurchasing = true;
     });
+    _beginAttempt(isBasePurchase: _selectedPlan == _PaywallPlan.fullVersion);
 
     try {
       switch (_selectedPlan) {
@@ -215,6 +356,9 @@ class _PaywallState extends State<Paywall> {
           );
           break;
       }
+      // Normally already done from the listener; covers a store that answers
+      // only through the returned call.
+      _confirmOutcome();
     } catch (e, s) {
       // Inner purchase paths toast+log their own failures; this catches anything
       // that escapes them (e.g. loading offerings) so tapping Buy can never fail
@@ -241,9 +385,11 @@ class _PaywallState extends State<Paywall> {
     setState(() {
       _isRestoring = true;
     });
+    _beginAttempt(isBasePurchase: false);
 
     try {
       await _iapManager.restorePurchases();
+      _confirmOutcome();
     } finally {
       if (mounted) {
         setState(() {
@@ -568,8 +714,22 @@ class _PaywallState extends State<Paywall> {
 
   Widget _buildCell(_PaywallCell value, {required bool compact}) {
     return switch (value) {
-      _PaywallCell.unlimited => Text(
-        AppLocalizations.of(context).unlimited,
+      // One word ("Unbegrenzt", "Nieograniczone") — shrink rather than break
+      // it mid-word inside the narrow Base column.
+      _PaywallUnlimited() => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          AppLocalizations.of(context).unlimited,
+          maxLines: 1,
+          style: TextStyle(
+            fontSize: compact ? 12 : 24,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+      ),
+      _PaywallText(:final text) => Text(
+        text,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: compact ? 12 : 24,
@@ -577,12 +737,12 @@ class _PaywallState extends State<Paywall> {
           color: Colors.black,
         ),
       ),
-      _PaywallCell.check => Icon(
+      _PaywallCheck() => Icon(
         Icons.check_rounded,
         size: compact ? 22 : 48,
         color: Colors.black,
       ),
-      _PaywallCell.dash => Container(
+      _PaywallDash() => Container(
         width: compact ? 20 : 40,
         height: 3,
         decoration: BoxDecoration(
@@ -766,7 +926,7 @@ class _PaywallState extends State<Paywall> {
       onTap: () => _selectPlan(_PaywallPlan.fullVersion),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           // The one-time Base plan sits quieter than the Pro cards above it.
           color: Colors.white,
@@ -777,6 +937,9 @@ class _PaywallState extends State<Paywall> {
           ),
         ),
         child: Row(
+          // The store note makes this a three-line card; keep the radio on
+          // the title line rather than floating mid-card.
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildRadioIndicator(selected, compact: true, small: true),
             const SizedBox(width: 10),
@@ -801,6 +964,18 @@ class _PaywallState extends State<Paywall> {
                       color: Color(0xFF6C6D73),
                     ),
                   ),
+                  const SizedBox(height: 3),
+                  // Base is a store receipt, not an account: riders who bought
+                  // it on one store and installed from another wrote in asking
+                  // where their purchase went. Say so before they buy.
+                  Text(
+                    AppLocalizations.of(context).paywall_baseStoreNote(_storeName(context)),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      height: 1.25,
+                      color: Color(0xFF6C6D73),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -809,6 +984,12 @@ class _PaywallState extends State<Paywall> {
       ),
     );
   }
+
+  String _storeName(BuildContext context) => paywallStoreName(
+    defaultTargetPlatform,
+    isOutsideStoreWindowsBuild: _iapManager.isOutsideStoreWindowsBuild,
+    directDownload: AppLocalizations.of(context).paywall_storeDirectDownload,
+  );
 
   Widget _buildRadioIndicator(bool selected, {bool compact = false, bool small = false}) {
     final size = small
