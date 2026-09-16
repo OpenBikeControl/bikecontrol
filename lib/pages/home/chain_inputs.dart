@@ -214,6 +214,7 @@ class AppInput {
     this.trainerBridgedByApp = false,
     this.trainerBridgedOverNetwork = false,
     this.advertisedAddressWarning,
+    this.advertisedAddressWarningAtConnect,
   });
 
   /// The selected trainer app, or null when the rider hasn't picked one.
@@ -227,9 +228,13 @@ class AppInput {
   final bool hasEnabledConnection;
   final bool isConnected;
 
-  /// Whether the app has been connected at any point in this session. One
-  /// that is no longer connected has disconnected — amber, see
-  /// `ChainLink.dropped` — rather than never having been set up.
+  /// Whether this app — the one picked now — has connected at some point in
+  /// this session. One that is no longer connected has disconnected (amber,
+  /// see `ChainLink.dropped`) rather than never having been set up.
+  ///
+  /// Latched per app, so an app picked afterwards starts from scratch, and
+  /// only for a real method: Local reports connected the moment it is
+  /// switched on and says nothing about whether the app is there.
   final bool wasConnectedThisSession;
 
   /// e.g. "Network" — which method is carrying the commands.
@@ -284,6 +289,13 @@ class AppInput {
   /// address rather than a bool because the address is the one thing the
   /// rider can check against their VPN app.
   final String? advertisedAddressWarning;
+
+  /// [advertisedAddressWarning] as it stood when the app connected, or null
+  /// when the address looked fine then. Only read together with
+  /// [wasConnectedThisSession]: the app has reached that address, whatever it
+  /// looks like, so the same verdict after a drop is no warning. Only one
+  /// that is new since then — a VPN that came up — is.
+  final String? advertisedAddressWarningAtConnect;
 }
 
 /// Sensors-only mode's stand-in for a smart trainer: there is nothing to

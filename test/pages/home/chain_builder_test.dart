@@ -996,6 +996,54 @@ void main() {
         expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
       });
 
+      // Two adapters on different subnets flag many a desktop for good, and
+      // the app connects there all the same. What the app has already reached
+      // in this session is proven, whatever it looks like: only a verdict that
+      // changed since it connected — a VPN that came up and took the app with
+      // it — is news after a drop.
+      group('for an app that connected earlier in this session', () {
+        ChainLink linkFor({String? warning, String? warningAtConnect, bool connectedEarlier = true}) {
+          final app = AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: connectedEarlier,
+            advertisedAddressWarning: warning,
+            advertisedAddressWarningAtConnect: warningAtConnect,
+          );
+          return buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+        }
+
+        test('stays away while the flag is the one it connected through', () {
+          final link = linkFor(warning: '192.168.1.50', warningAtConnect: '192.168.1.50');
+          expect(_hasStep(link, SetupStepId.appNetworkAddress), isFalse);
+          expect(link.activeStep?.id, SetupStepId.appConnected);
+          expect(link.dropped, isTrue);
+        });
+
+        test('is back once a flag appears that was not there when it connected', () {
+          final link = linkFor(warning: '10.5.0.2');
+          final step = link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+          expect(step.hintArg, '10.5.0.2');
+          expect(link.activeStep?.id, SetupStepId.appNetworkAddress);
+        });
+
+        test('is back once the flagged address has changed since it connected', () {
+          final link = linkFor(warning: '10.5.0.2', warningAtConnect: '192.168.1.50');
+          expect(link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress).hintArg, '10.5.0.2');
+        });
+
+        test('stays away once the flag has cleared', () {
+          expect(_hasStep(linkFor(warningAtConnect: '192.168.1.50'), SetupStepId.appNetworkAddress), isFalse);
+        });
+
+        // What an address was proven by only vouches for the app that
+        // connected: the page passes it along whichever app is picked now.
+        test('proves nothing for an app that has not connected in this session', () {
+          final link = linkFor(warning: '192.168.1.50', warningAtConnect: '192.168.1.50', connectedEarlier: false);
+          expect(_hasStep(link, SetupStepId.appNetworkAddress), isTrue);
+        });
+      });
+
       test('is absent when the advertised address looks fine', () {
         final chain = buildChain(
           const ChainInputs(
@@ -1137,6 +1185,7 @@ void main() {
         final link = buildChain(const ChainInputs(app: dropped)).byKey(ChainLinkKey.app);
         expect(link.status, LinkStatus.attention);
         expect(link.dropped, isTrue);
+        expect(link.wasConnectedThisSession, isTrue);
       });
 
       test('is never red, whatever else is outstanding on the card', () {
@@ -1156,12 +1205,6 @@ void main() {
             wasConnectedThisSession: true,
             advertisedAddressWarning: '10.5.0.2',
           ),
-          AppInput(
-            name: 'MyWhoosh',
-            hasEnabledConnection: true,
-            wasConnectedThisSession: true,
-            trainerBridgedByApp: true,
-          ),
         ];
         for (final app in apps) {
           final link = buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
@@ -1175,12 +1218,33 @@ void main() {
         expect(link.activeStep?.id, SetupStepId.appConnected);
         expect(link.remainingSteps, 1);
       });
+
+      // With the trainer still held the app is plainly open: only its
+      // controller tile is missing, and the connection step already says so.
+      test('is not dropped while it still holds the trainer, but did connect', () {
+        final link = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              wasConnectedThisSession: true,
+              trainerBridgedByApp: true,
+            ),
+          ),
+        ).byKey(ChainLinkKey.app);
+        expect(link.status, LinkStatus.attention);
+        expect(link.dropped, isFalse);
+        expect(link.wasConnectedThisSession, isTrue);
+        expect(link.activeStep?.id, SetupStepId.appConnected);
+        expect(link.activeStep?.variant, SetupStepVariant.controllerLinkMissing);
+      });
     });
 
     test('an app that has never connected is amber, not red, and not dropped', () {
       final chain = buildChain(const ChainInputs(app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true)));
       expect(chain.byKey(ChainLinkKey.app).status, LinkStatus.attention);
       expect(chain.byKey(ChainLinkKey.app).dropped, isFalse);
+      expect(chain.byKey(ChainLinkKey.app).wasConnectedThisSession, isFalse);
     });
 
     test('a connected app is not dropped', () {
@@ -1197,6 +1261,11 @@ void main() {
       for (final app in apps) {
         expect(buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app).dropped, isFalse, reason: app.name);
       }
+    });
+
+    test('an unpicked app has connected to nothing', () {
+      const app = AppInput(hasEnabledConnection: true, wasConnectedThisSession: true);
+      expect(buildChain(const ChainInputs(app: app)).byKey(ChainLinkKey.app).wasConnectedThisSession, isFalse);
     });
 
     test('a self-hosted app needs no connection method and is ready on selection', () {
@@ -1368,6 +1437,25 @@ void main() {
       expect(banner.appDropped, isTrue);
       expect(banner.targetLinkId, 'app');
       expect(banner.stepsLeft, 1);
+    });
+
+    test('an app that still holds the trainer after a drop gets the controller-tile banner', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(),
+          app: const AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            trainerBridgedByApp: true,
+          ),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.appDropped, isFalse);
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerLinkMissing);
     });
 
     test('a controller that broke still leads over a trainer app that dropped', () {

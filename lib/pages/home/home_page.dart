@@ -86,13 +86,15 @@ ProxyDevice? chainProxy() => core.connection.proxyDevices.sortedBy(proxyChainRan
 /// The app card's active step is "waiting for the app to connect" and the
 /// Network method is the enabled path — the moment troubleshooting helps.
 ///
-/// Only for an app that has not connected in this session. Once the
-/// connection has worked, a drop is almost never something the self-test can
-/// fix — the app was usually just closed — so a dropped app gets its pairing
-/// guide instead (see [ChainLink.dropped]).
+/// Only for an app that has not connected in this session (see
+/// [ChainLink.wasConnectedThisSession]). Once the connection has worked, a
+/// drop is almost never something the self-test can find — the app was
+/// usually just closed — so the card and the banner open its pairing guide
+/// instead. An address warning that is new since then still leads to the
+/// self-test, through its own step.
 bool appCardOffersTroubleshooting(ChainLink link) =>
     link.key == ChainLinkKey.app &&
-    !link.dropped &&
+    !link.wasConnectedThisSession &&
     link.activeStep?.id == SetupStepId.appConnected &&
     core.logic.isObpMdnsEnabled &&
     core.obpMdnsEmulator.isStarted.value;
@@ -173,6 +175,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// never says something that page would not.
   String? _advertisedAddressWarning;
 
+  /// Whether [_advertisedAddressWarning] has been read yet, rather than
+  /// sitting at its starting null.
+  bool _advertisedAddressRead = false;
+
   Future<void> _refreshAdvertisedAddress() async {
     // The store board sells a finished setup, and a VPN on the screenshot
     // machine must not end up in a listing. The web has no interfaces to
@@ -180,7 +186,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
     try {
       final warning = applies ? advertisedAddressWarning(await AdvertisedAddressPicker.report()) : null;
-      if (mounted && warning != _advertisedAddressWarning) setState(() => _advertisedAddressWarning = warning);
+      if (!mounted) return;
+      _advertisedAddressRead = true;
+      if (warning != _advertisedAddressWarning) setState(() => _advertisedAddressWarning = warning);
+      // An app that was already connected before this first reading gets it
+      // as the address it connected through — see [_latchAppConnection].
+      _latchAppConnection();
     } catch (e, s) {
       recordError(e, s, context: 'home advertised address');
     }
@@ -205,6 +216,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ];
 
   void _onAdvertisedAddressChanged() {
+    // A method connecting is the moment to latch, before the address is read
+    // again: the verdict as it stands is the one the app connected through.
+    _latchAppConnection();
     unawaited(_refreshAdvertisedAddress());
   }
 
@@ -529,7 +543,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         selfHosted: trainerApp is BikeControl,
         hasEnabledConnection: core.logic.enabledTrainerConnections.isNotEmpty,
         isConnected: core.logic.appFacingConnections.isNotEmpty,
-        wasConnectedThisSession: _appConnectedThisSession,
+        // Per app: one picked after another connected has connected to nothing.
+        wasConnectedThisSession: trainerApp != null && trainerApp.name == _appConnectedName,
         connectionSummary: core.logic.appFacingConnections.firstOrNull?.title,
         // showLocalControl is already "the rider's target is this device, and
         // this platform can drive it" — see CoreLogic.
@@ -545,6 +560,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         trainerBridgedOverNetwork:
             (trainer?.appHoldsBridge ?? false) && proxy != null && proxy.retrofitMode.value != RetrofitMode.bluetooth,
         advertisedAddressWarning: _advertisedAddressWarning,
+        advertisedAddressWarningAtConnect: _addressWarningAtConnect,
       ),
     );
   }
@@ -606,7 +622,50 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return proxy.fitnessBike != null;
   }
 
-  bool _appConnectedThisSession = false;
+  /// The trainer app that connected in this session, by name: what tells an
+  /// app that disconnected from one that never connected. Per app, so an app
+  /// picked afterwards is never handed a connection it did not make. It lives
+  /// and resets with the page, as it always has.
+  String? _appConnectedName;
+
+  /// [_advertisedAddressWarning] as it stood when [_appConnectedName]
+  /// connected — see [AppInput.advertisedAddressWarningAtConnect].
+  String? _addressWarningAtConnect;
+
+  /// Whether [_addressWarningAtConnect] is a reading. Not when the app was
+  /// already connected before the page had read anything — it is built
+  /// afresh when the rider swipes back to it, mid-ride — and then the first
+  /// reading to land while the app is still connected stands in for it.
+  bool _addressWarningAtConnectRead = false;
+
+  /// Whether the app was connected when the page last looked, so the moment
+  /// it connects can be told apart from it staying connected.
+  bool _appSeenConnected = false;
+
+  /// Latches the moment the trainer app connects: which app it was, and the
+  /// address verdict it connected through.
+  ///
+  /// Only a real method counts. Local reports connected the moment it is
+  /// switched on and says nothing about the app (see
+  /// [CoreLogic.appFacingConnections]), so a session on Local alone must not
+  /// have a network method switched on later start out "disconnected".
+  ///
+  /// Called on every build, and straight from the connection listeners so the
+  /// moment is caught before anything else can change: the host only rebuilds
+  /// the page once the connection alert has gone round.
+  void _latchAppConnection() {
+    final name = core.settings.getTrainerApp()?.name;
+    final connected = name != null && core.logic.connectedNonLocalTrainerConnections.isNotEmpty;
+    if (connected && (!_appSeenConnected || name != _appConnectedName)) {
+      _appConnectedName = name;
+      _addressWarningAtConnect = _advertisedAddressWarning;
+      _addressWarningAtConnectRead = _advertisedAddressRead;
+    } else if (connected && !_addressWarningAtConnectRead && _advertisedAddressRead) {
+      _addressWarningAtConnect = _advertisedAddressWarning;
+      _addressWarningAtConnectRead = true;
+    }
+    _appSeenConnected = connected;
+  }
 
   /// Makes chain cards jump out — see [ChainCard.highlight].
   final ChainHighlightController _highlights = ChainHighlightController();
@@ -630,7 +689,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final inputs = _readInputs();
     // Latch once connected: the app card can then say the app disconnected
     // rather than falling back to "waiting for it" the moment the app quits.
-    if (inputs.app.isConnected) _appConnectedThisSession = true;
+    // A connected app's card does not read the latch, so latching after the
+    // inputs are read changes nothing on this frame.
+    _latchAppConnection();
 
     final links = buildChain(inputs);
     final banner = deriveBanner(links);
@@ -1386,10 +1447,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // "how do I pair this app" guide.
           await context.push(const NetworkTroubleshootingPage());
         } else {
-          // Including an app that dropped after working in this session: it
-          // was almost always closed, and what brings it back is its own
-          // pairing screen — never the network self-test, which has nothing
-          // to find once the connection has worked.
+          // Including any app that connected earlier in this session and has
+          // gone: it was almost always closed, and what brings it back is its
+          // own pairing screen. The network self-test is only reached from
+          // here through the address step above, which a dropped app only
+          // gets for a warning that is new since it connected.
           await openAppGuideSheet(context);
         }
       case ChainLinkKey.sensors:

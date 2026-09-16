@@ -190,6 +190,7 @@ class ChainLink {
     this.subtitleArg,
     this.deviceId,
     this.dismissible = false,
+    this.wasConnectedThisSession = false,
     this.dropped = false,
   });
 
@@ -225,14 +226,25 @@ class ChainLink {
   /// dismissible, or a stray swipe drops a working controller off the screen.
   final bool dismissible;
 
-  /// Whether this link carried commands earlier in this session and has since
-  /// stopped. Only the app link sets it.
+  /// Whether the app behind this link has connected at some point in this
+  /// session — see `AppInput.wasConnectedThisSession`. Only the app link sets
+  /// it. Once it has, the generic network self-test offer is gone for good: a
+  /// connection that worked and went away is almost never something that
+  /// test can find.
+  final bool wasConnectedThisSession;
+
+  /// Whether the app went away after working, and that is the whole story:
+  /// it connected in this session, is not connected now, and does not still
+  /// hold the trainer — then it is plainly open, and only its controller
+  /// tile is missing, which [SetupStepVariant.controllerLinkMissing] says.
+  /// Only the app link sets it.
   ///
   /// A controller or trainer that drops is a break ([LinkStatus.problem]). A
-  /// trainer app that goes away after working has almost always just been
-  /// closed — the ride is over — so its card stays amber and says the app
-  /// disconnected, and nothing sends the rider into the network self-test,
-  /// which has nothing to find once the connection has already worked.
+  /// trainer app that goes away has almost always just been closed — the
+  /// ride is over — so its card stays amber and says the app disconnected,
+  /// and its buttons open the app's pairing guide. The network self-test is
+  /// only reached through an address warning that is new since the app
+  /// connected, which has a step of its own.
   final bool dropped;
 
   /// Whether this link stops the rider being ready.
@@ -280,6 +292,7 @@ class ChainLink {
       subtitleArg: subtitleArg ?? this.subtitleArg,
       deviceId: deviceId,
       dismissible: dismissible ?? this.dismissible,
+      wasConnectedThisSession: wasConnectedThisSession,
       dropped: dropped,
     );
   }
@@ -391,9 +404,10 @@ ChainBanner deriveBanner(List<ChainLink> links) {
 
   // A trainer app that went away after working is not a break — see
   // [ChainLink.dropped] — so it lands here, amber, rather than above. Its own
-  // wording only applies while the connection is all that is left: a
-  // permission or a method still missing on this side keeps the app away
-  // however often the rider re-pairs it, and the card's step says so.
+  // wording only applies while the connection is all that is left: a missing
+  // permission or method, or an address warning that is new since the app
+  // connected, keeps it away however often the rider re-pairs it, and the
+  // card's step says so.
   final only = outstanding.length == 1 ? outstanding.single : null;
   final appDropped =
       only != null && only.key == ChainLinkKey.app && only.dropped && only.activeStep?.id == SetupStepId.appConnected;

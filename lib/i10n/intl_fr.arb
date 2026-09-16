@@ -2173,6 +2173,6 @@
   "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
   "chainStatusAppDisconnected": "{app} s'est déconnecté",
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
-  "chainPendingSubtitleAppDropped": "{app} s'est déconnecté. Reconnecte-le depuis son écran d'appairage à ta prochaine séance.",
+  "chainPendingSubtitleAppDropped": "{app} s'est déconnecté. Reconnecte-le depuis son écran d'association à ta prochaine séance.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}}
 }

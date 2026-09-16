@@ -376,6 +376,7 @@ void main() {
         id: 'app',
         status: LinkStatus.attention,
         title: 'MyWhoosh',
+        wasConnectedThisSession: dropped,
         dropped: dropped,
         steps: steps,
       );
@@ -467,20 +468,24 @@ void main() {
   });
 
   group('ChainLink.copyWith', () {
-    test('keeps the dropped flag', () {
+    test('keeps the connection history', () {
       const l = ChainLink(
         key: ChainLinkKey.app,
         id: 'app',
         status: LinkStatus.attention,
         title: 'MyWhoosh',
+        wasConnectedThisSession: true,
         dropped: true,
         steps: [SetupStep(id: SetupStepId.appConnected, done: false)],
       );
-      expect(l.copyWith(subtitleArg: 'Network').dropped, isTrue);
+      final copy = l.copyWith(subtitleArg: 'Network');
+      expect(copy.dropped, isTrue);
+      expect(copy.wasConnectedThisSession, isTrue);
     });
 
-    test('is not dropped by default', () {
+    test('has no connection history by default', () {
       expect(link(id: 'a').dropped, isFalse);
+      expect(link(id: 'a').wasConnectedThisSession, isFalse);
     });
   });
 

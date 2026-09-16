@@ -65,8 +65,8 @@ class ReadyBanner extends StatelessWidget {
             // The app worked earlier in this session and went away — most
             // often it was closed. Say that, and where it comes back from,
             // rather than "finish the card" about a card that was finished.
-            // Second to the line above: an app still holding the trainer is
-            // plainly open, and the controller tile is what it is missing.
+            // (An app still holding the trainer is never flagged: it is
+            // plainly open, and the line above is its answer.)
             : banner.appDropped
             ? l.chainPendingSubtitleAppDropped(appName ?? l.chainAppTitle)
             : names.length == 1

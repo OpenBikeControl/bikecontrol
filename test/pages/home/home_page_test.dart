@@ -29,10 +29,12 @@ import 'package:bike_control/services/sensors/fake_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
+import 'package:flutter/services.dart' show SystemChannels;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
@@ -42,18 +44,21 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../../widget_snapshot.dart';
 
-ChainLink _appLink({required bool appConnected, bool dropped = false}) => ChainLink(
-  key: ChainLinkKey.app,
-  id: 'app',
-  status: LinkStatus.attention,
-  title: 'MyWhoosh',
-  dropped: dropped,
-  steps: [
-    SetupStep(id: SetupStepId.appSelected, done: true),
-    SetupStep(id: SetupStepId.appConnectionMethod, done: true),
-    SetupStep(id: SetupStepId.appConnected, done: appConnected),
-  ],
-);
+ChainLink _appLink({required bool appConnected, bool wasConnectedThisSession = false, bool dropped = false}) {
+  return ChainLink(
+    key: ChainLinkKey.app,
+    id: 'app',
+    status: LinkStatus.attention,
+    title: 'MyWhoosh',
+    wasConnectedThisSession: wasConnectedThisSession,
+    dropped: dropped,
+    steps: [
+      SetupStep(id: SetupStepId.appSelected, done: true),
+      SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+      SetupStep(id: SetupStepId.appConnected, done: appConnected),
+    ],
+  );
+}
 
 Future<void> main() async {
   await ensureSnapshotHarness();
@@ -82,7 +87,16 @@ Future<void> main() async {
     // Once the connection has worked in this session, a drop is almost never
     // something the network self-test can fix — usually the app was closed.
     testWidgets('false for an app that connected earlier in this session and dropped', (tester) async {
-      expect(appCardOffersTroubleshooting(_appLink(appConnected: false, dropped: true)), isFalse);
+      expect(
+        appCardOffersTroubleshooting(_appLink(appConnected: false, wasConnectedThisSession: true, dropped: true)),
+        isFalse,
+      );
+    });
+
+    // Not "dropped" — it still holds the trainer, so only its controller tile
+    // is missing — but it did connect, and that is what the rule is about.
+    testWidgets('false for an app that connected earlier and still holds the trainer', (tester) async {
+      expect(appCardOffersTroubleshooting(_appLink(appConnected: false, wasConnectedThisSession: true)), isFalse);
     });
 
     testWidgets('false for a link that is not the app link', (tester) async {
@@ -1080,16 +1094,33 @@ void _networkAddressStepTests() {
 // "Fix" — and "Fix" opened the network self-test. Once the connection has
 // worked in this session, a drop is almost always the app being closed, which
 // no network test can fix. The latch lives on the page, so this is where the
-// card, the banner and the banner's button are proven together.
+// card, the banner and their buttons are proven together.
 
-/// The page every [MaterialPageRoute] pushed onto the navigator builds —
-/// `context.push` wraps each page in one.
-class _PushedPages extends NavigatorObserver {
-  final List<Widget> pages = [];
+/// Every route pushed onto the navigator, whatever its type — so "nothing was
+/// pushed" cannot pass just because a route was of a kind this observer does
+/// not know how to read.
+class _PushedRoutes extends NavigatorObserver {
+  final List<Route<dynamic>> routes = [];
 
   @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route is MaterialPageRoute) pages.add(route.builder(navigator!.context));
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => routes.add(route);
+
+  /// The pages behind the routes `context.push` creates.
+  List<Widget> get pages => [
+    for (final route in routes)
+      if (route is MaterialPageRoute) route.builder(navigator!.context),
+  ];
+}
+
+/// The rider leaves BikeControl and comes back — what they do after switching
+/// a VPN on in the system settings.
+Future<void> _leaveAndReturn(WidgetTester tester) async {
+  for (final state in [AppLifecycleState.inactive, AppLifecycleState.resumed]) {
+    await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+      SystemChannels.lifecycle.name,
+      SystemChannels.lifecycle.codec.encodeMessage(state.toString()),
+      (_) {},
+    );
   }
 }
 
@@ -1117,27 +1148,66 @@ void _droppedAppTests() {
       addTearDown(tester.view.resetDevicePixelRatio);
     }
 
-    /// The app connects, the page sees it, then the app goes away: the rider
-    /// quit MyWhoosh.
-    Future<void> pumpDroppedApp(WidgetTester tester, {List<NavigatorObserver> navigatorObservers = const []}) async {
-      useTallSurface(tester);
-      core.obpMdnsEmulator.isConnected.value = true;
-      await _pumpHome(tester, navigatorObservers: navigatorObservers);
-      expect(find.text(l.chainReadyTitle), findsOneWidget);
+    /// Off for real behaviour: the advertised address is only read outside
+    /// screenshot mode. The page's metrics timer runs then, so a test that
+    /// calls this unmounts the page before it ends.
+    void readAddressesFrom(List<NetworkInterface> interfaces) {
+      final wasScreenshotMode = screenshotMode;
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = wasScreenshotMode);
+      _setInterfaces(interfaces);
+      addTearDown(() => AdvertisedAddressPicker.listInterfaces = NetworkInterface.list);
+    }
 
-      core.obpMdnsEmulator.isConnected.value = false;
-      // In the app the host rebuilds the page; here that is done by hand.
+    // In the app the host rebuilds the page on every connection alert; here
+    // that is done by hand.
+    Future<void> rebuild(WidgetTester tester) async {
       tester.element(find.byType(HomePage)).markNeedsBuild();
       await tester.pump();
     }
 
+    /// The trainer app connects over the Network method.
+    Future<void> connectApp(WidgetTester tester) async {
+      core.obpMdnsEmulator.isConnected.value = true;
+      await rebuild(tester);
+      expect(find.text(l.chainReadyTitle), findsOneWidget);
+    }
+
+    /// ... and goes away again: the rider quit it. A frame more, because a
+    /// drop re-reads the advertised address.
+    Future<void> dropApp(WidgetTester tester) async {
+      core.obpMdnsEmulator.isConnected.value = false;
+      await rebuild(tester);
+      await tester.pump();
+    }
+
+    Future<void> pumpDroppedApp(WidgetTester tester, {List<NavigatorObserver> navigatorObservers = const []}) async {
+      useTallSurface(tester);
+      await _pumpHome(tester, navigatorObservers: navigatorObservers);
+      await connectApp(tester);
+      await dropApp(tester);
+    }
+
     Finder inAppCard(Finder finder) => find.descendant(of: _chainCard(ChainLinkKey.app), matching: finder);
+
+    Finder appStatusLine(String text) => find.descendant(
+      of: find.descendant(of: _chainCard(ChainLinkKey.app), matching: find.byType(StatusLine)),
+      matching: find.text(text),
+    );
+
+    Finder bannerButton() => find.descendant(of: find.byType(ReadyBanner), matching: find.byType(PrimaryButton));
+
+    Future<void> tapAndSettleSheet(WidgetTester tester, Finder finder) async {
+      await tester.tap(finder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
 
     testWidgets('the app card is amber and says the app disconnected', (tester) async {
       await pumpDroppedApp(tester);
 
       expect(tester.widget<ChainCard>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.attention);
-      expect(inAppCard(find.text(l.chainStatusAppDisconnected('MyWhoosh'))), findsOneWidget);
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
       expect(inAppCard(find.text(l.notConnected)), findsNothing);
       // Nor does the card itself offer the network check any more.
       expect(inAppCard(find.text(l.networkTroubleshootTroubleshoot)), findsNothing);
@@ -1151,68 +1221,263 @@ void _droppedAppTests() {
       expect(find.text(l.chainBannerFix), findsNothing);
     });
 
-    testWidgets('the banner button opens the app guide, never the network self-test', (tester) async {
-      final pushed = _PushedPages();
+    testWidgets('the banner button opens the app guide, and nothing is pushed', (tester) async {
+      final pushed = _PushedRoutes();
       await pumpDroppedApp(tester, navigatorObservers: [pushed]);
-      pushed.pages.clear();
+      // The observer is attached: it saw the home route go in.
+      expect(pushed.routes, isNotEmpty);
+      pushed.routes.clear();
 
       // Not pumpAndSettle: were the self-test page pushed, its engine keeps
       // polling and never settles.
-      await tester.tap(find.descendant(of: find.byType(ReadyBanner), matching: find.byType(PrimaryButton)));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      await tapAndSettleSheet(tester, bannerButton());
 
-      expect(pushed.pages.whereType<NetworkTroubleshootingPage>(), isEmpty);
-      expect(find.byType(NetworkTroubleshootingPage), findsNothing);
+      // The guide is a sheet, not a page: no route of any kind goes in.
       expect(find.text(l.onboardingThenInApp('MyWhoosh')), findsOneWidget);
+      expect(pushed.routes, isEmpty);
+      expect(find.byType(NetworkTroubleshootingPage), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
     });
 
-    // "Disconnected" is only the whole story once this side is done. A VPN
-    // coming up is a classic reason for an app to drop, and re-pairing the
-    // app cannot get past it: the card names the address step instead, and
-    // the banner keeps its ordinary wording.
-    testWidgets('with an address problem on this side, the card names that step instead', (tester) async {
-      final wasScreenshotMode = screenshotMode;
-      screenshotMode = false;
-      addTearDown(() => screenshotMode = wasScreenshotMode);
-      AdvertisedAddressPicker.listInterfaces = () async => [
-        _FakeNetworkInterface('utun3', ['10.5.0.2']),
-      ];
-      addTearDown(() => AdvertisedAddressPicker.listInterfaces = NetworkInterface.list);
+    // Two adapters on different subnets flag many a desktop for good, and the
+    // app connects there all the same. An address the app has already
+    // reached is no reason to send the rider to the network test once the app
+    // goes away — not from the card, and not from the banner.
+    testWidgets('an address flag the app connected through stays off the card after the drop', (tester) async {
+      readAddressesFrom(_twoAdapters);
+      final pushed = _PushedRoutes();
       useTallSurface(tester);
+      await _pumpHome(tester, navigatorObservers: [pushed]);
+      // The address is read asynchronously in initState; a frame or two lands
+      // it. Not pumpAndSettle: off screenshot mode the amber dot pulses.
+      await tester.pump();
+      await tester.pump();
+      // The flag is real: before the app has connected, the card raises it.
+      expect(inAppCard(find.text(l.chainStepNetworkAddressAction)), findsOneWidget);
 
+      await connectApp(tester);
+      await dropApp(tester);
+
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+      expect(find.text(l.chainStepNetworkAddressAction), findsNothing);
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsOneWidget);
+
+      expect(pushed.routes, isNotEmpty);
+      pushed.routes.clear();
+
+      // The card's button opens the app's pairing guide — a sheet, so no
+      // route of any kind goes in...
+      await tapAndSettleSheet(tester, inAppCard(find.text(l.chainShowMeHow)));
+      expect(find.text(l.onboardingThenInApp('MyWhoosh')), findsOneWidget);
+      expect(pushed.routes, isEmpty);
+
+      await tapAndSettleSheet(tester, find.widgetWithText(PrimaryButton, l.close));
+      expect(find.text(l.onboardingThenInApp('MyWhoosh')), findsNothing);
+
+      // ... and so does the banner's.
+      await tapAndSettleSheet(tester, bannerButton());
+      expect(find.text(l.onboardingThenInApp('MyWhoosh')), findsOneWidget);
+      expect(pushed.routes, isEmpty);
+      expect(find.byType(NetworkTroubleshootingPage), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    // The page is rebuilt from scratch when the rider swipes back to it, and
+    // then the app may already be connected before the address has been read.
+    // The first reading stands in for the moment it connected.
+    testWidgets('an app already connected when the page comes up keeps its address flag quiet too', (tester) async {
+      readAddressesFrom(_twoAdapters);
       core.obpMdnsEmulator.isConnected.value = true;
+      useTallSurface(tester);
       await _pumpHome(tester);
-      // The address is read asynchronously in initState; a frame or two
-      // lands it.
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(l.chainReadyTitle), findsOneWidget);
+
+      await dropApp(tester);
+
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    // What is new since the app connected is news, though: a VPN that comes
+    // up is a classic reason for an app to drop, and the card says so.
+    testWidgets('an address flag that was not there when the app connected brings the step back', (tester) async {
+      readAddressesFrom(_plainLan);
+      useTallSurface(tester);
+      await _pumpHome(tester);
       await tester.pump();
       await tester.pump();
 
-      core.obpMdnsEmulator.isConnected.value = false;
-      tester.element(find.byType(HomePage)).markNeedsBuild();
+      await connectApp(tester);
+      await dropApp(tester);
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+
+      // A VPN comes up in the system settings, and the rider comes back.
+      _setInterfaces(_vpnOnly);
+      await _leaveAndReturn(tester);
+      await tester.pump();
       await tester.pump();
 
-      final statusLine = find.descendant(of: _chainCard(ChainLinkKey.app), matching: find.byType(StatusLine));
-      expect(find.descendant(of: statusLine, matching: find.text(l.chainStepNetworkAddressPending)), findsOneWidget);
+      expect(appStatusLine(l.chainStepNetworkAddressPending), findsOneWidget);
+      expect(find.text(l.chainStepNetworkAddressHint('10.5.0.2', 'MyWhoosh')), findsOneWidget);
+      expect(inAppCard(find.text(l.chainStepNetworkAddressAction)), findsOneWidget);
       expect(find.text(l.chainStatusAppDisconnected('MyWhoosh')), findsNothing);
       expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsNothing);
 
-      // Unmount before the test ends: with screenshot mode off, HomePage's
-      // periodic metrics timer is running, and a pending timer fails the test.
       await tester.pumpWidget(const SizedBox());
     });
 
-    // The other half of the rule: an app that has not connected in this
-    // session keeps the network check, exactly as before.
-    testWidgets('an app that never connected still offers the network check', (tester) async {
+    // The usual order, in fact: the VPN comes up while the app is still
+    // connected over the old path, and the app drops a little later. What the
+    // app connected through is latched when it connected, not whatever the
+    // address turned into while it stayed connected.
+    testWidgets('an address flag that appears while the app is still connected brings the step back', (tester) async {
+      readAddressesFrom(_plainLan);
       useTallSurface(tester);
       await _pumpHome(tester);
+      await tester.pump();
+      await tester.pump();
+      await connectApp(tester);
+
+      _setInterfaces(_vpnOnly);
+      await _leaveAndReturn(tester);
+      await tester.pump();
+      await tester.pump();
+      // Still connected, so still nothing to say.
+      expect(find.text(l.chainReadyTitle), findsOneWidget);
+
+      await dropApp(tester);
+
+      expect(appStatusLine(l.chainStepNetworkAddressPending), findsOneWidget);
+      expect(find.text(l.chainStepNetworkAddressHint('10.5.0.2', 'MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStatusAppDisconnected('MyWhoosh')), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    // The latch is per app: an app picked after the drop has connected to
+    // nothing yet, and gets the same start as any app that never connected.
+    testWidgets('an app picked after the drop is waited for, not "disconnected"', (tester) async {
+      await pumpDroppedApp(tester);
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+
+      final other = TrainingPeaks();
+      core.settings.setTrainerApp(other);
+      await rebuild(tester);
+
+      expect(appStatusLine(l.chainStatusWaitingForApp(other.name)), findsOneWidget);
+      expect(inAppCard(find.text(l.networkTroubleshootTroubleshoot)), findsOneWidget);
+      expect(find.text(l.chainStatusAppDisconnected(other.name)), findsNothing);
+      expect(find.text(l.chainPendingSubtitleAppDropped(other.name)), findsNothing);
+    });
+
+    // Local reports connected the moment it is switched on, and says nothing
+    // about whether the app is there — so a session on Local alone is no
+    // connection, and a network method switched on later is simply waited on.
+    testWidgets('a session on Local alone latches nothing', (tester) async {
+      final previousTarget = core.settings.getLastTarget();
+      addTearDown(() async {
+        if (previousTarget == null) {
+          await core.settings.prefs.remove('last_target');
+        } else {
+          await core.settings.setLastTarget(previousTarget);
+        }
+      });
+      await core.settings.setLastTarget(Target.thisDevice);
+      core.settings.setObpMdnsEnabled(false);
+      core.obpMdnsEmulator.isStarted.value = false;
+      core.settings.setLocalEnabled(true);
+      addTearDown(() => core.settings.setLocalEnabled(false));
+      core.local.isConnected.value = true;
+      addTearDown(() => core.local.isConnected.value = false);
+      useTallSurface(tester);
+
+      await _pumpHome(tester);
+      // On Local alone the app counts as connected.
+      final connectedStep = tester
+          .widget<ChainCard>(_chainCard(ChainLinkKey.app))
+          .link
+          .steps
+          .firstWhere((s) => s.id == SetupStepId.appConnected);
+      expect(connectedStep.done, isTrue);
+
+      // The rider switches the Network method on as well.
+      core.settings.setObpMdnsEnabled(true);
+      core.obpMdnsEmulator.isStarted.value = true;
+      await rebuild(tester);
+
+      expect(appStatusLine(l.chainStatusWaitingForApp('MyWhoosh')), findsOneWidget);
+      expect(inAppCard(find.text(l.networkTroubleshootTroubleshoot)), findsOneWidget);
+      expect(find.text(l.chainStatusAppDisconnected('MyWhoosh')), findsNothing);
+      expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsNothing);
+    });
+
+    // With the trainer still held the app is plainly open: only its
+    // controller tile is missing, and the card and the banner both say that.
+    testWidgets('an app that still holds the trainer is missing its controller tile, not "disconnected"', (
+      tester,
+    ) async {
+      core.connection.devices.add(
+        ProxyDevice(BleDevice(deviceId: 'kickr-held-after-drop', name: 'KICKR CORE 1234'))
+          ..debugSetTrainerAppConnected(true),
+      );
+      await pumpDroppedApp(tester);
+
+      expect(inAppCard(find.text(l.chainStepAppControllerPending('MyWhoosh'))), findsOneWidget);
+      expect(find.text(l.chainPendingSubtitleController('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStatusAppDisconnected('MyWhoosh')), findsNothing);
+      expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsNothing);
+      // It did connect in this session, so the network check stays away too.
+      expect(inAppCard(find.text(l.networkTroubleshootTroubleshoot)), findsNothing);
+    });
+
+    // The other half of the rule: an app that has not connected in this
+    // session keeps the network check, exactly as before. Opening it also
+    // proves the observer above catches that push when it happens.
+    testWidgets('an app that never connected still offers the network check', (tester) async {
+      final pushed = _PushedRoutes();
+      useTallSurface(tester);
+      await _pumpHome(tester, navigatorObservers: [pushed]);
 
       expect(inAppCard(find.text(l.networkTroubleshootTroubleshoot)), findsOneWidget);
-      expect(inAppCard(find.text(l.chainStatusWaitingForApp('MyWhoosh'))), findsOneWidget);
-      expect(inAppCard(find.text(l.chainStatusAppDisconnected('MyWhoosh'))), findsNothing);
+      expect(appStatusLine(l.chainStatusWaitingForApp('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStatusAppDisconnected('MyWhoosh')), findsNothing);
+
+      pushed.routes.clear();
+      // Not pumpAndSettle: the self-test engine keeps polling.
+      await tapAndSettleSheet(tester, inAppCard(find.text(l.networkTroubleshootTroubleshoot)));
+
+      expect(tester.takeException(), isNull);
+      expect(pushed.pages.whereType<NetworkTroubleshootingPage>(), hasLength(1));
+
+      await tester.pumpWidget(const SizedBox());
     });
   });
 }
+
+void _setInterfaces(List<NetworkInterface> interfaces) {
+  AdvertisedAddressPicker.listInterfaces = () async => interfaces;
+}
+
+/// A desktop on two physical networks: flagged for good, and the app connects
+/// all the same.
+final _twoAdapters = <NetworkInterface>[
+  _FakeNetworkInterface('en0', ['192.168.1.50']),
+  _FakeNetworkInterface('en1', ['10.0.0.20']),
+];
+
+final _plainLan = <NetworkInterface>[
+  _FakeNetworkInterface('en0', ['192.168.1.50']),
+];
+
+/// The only routable IPv4 sits on a tunnel.
+final _vpnOnly = <NetworkInterface>[
+  _FakeNetworkInterface('utun3', ['10.5.0.2']),
+];
