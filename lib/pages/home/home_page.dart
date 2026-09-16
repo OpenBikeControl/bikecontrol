@@ -953,7 +953,24 @@ class _HomePageState extends State<HomePage> {
       onEdit: _openSensors,
       onTap: _openSensors,
       body: broadcasting ? _sensorsBody() : null,
+      // The way back: sensors-only mode hid the trainer card, and short of a
+      // trainer auto-connecting there was no other way to reach it — see
+      // _enterSensorsOnlyMode for the entry this mirrors. Broadcast itself is
+      // untouched by leaving the mode (Decision 6): the sink keeps standalone
+      // until a trainer actually bridges.
+      footer: ChainCardFooterRow(
+        question: context.i18n.sensorsConnectTrainerQuestion,
+        action: context.i18n.sensorsConnectTrainer,
+        onPressed: _leaveSensorsOnlyMode,
+      ),
     );
+  }
+
+  Future<void> _leaveSensorsOnlyMode() async {
+    await core.settings.setSensorsOnlyMode(false);
+    if (!mounted) return;
+    _update();
+    await openTrainerConnectSheet(context);
   }
 
   Future<void> _openSensors() async {

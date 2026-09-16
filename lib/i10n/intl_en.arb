@@ -1841,6 +1841,8 @@
   },
   "sensorsUseSensorsOnlyQuestion": "No smart trainer?",
   "sensorsUseSensorsOnly": "Use sensors only",
+  "sensorsConnectTrainerQuestion": "Have a smart trainer?",
+  "sensorsConnectTrainer": "Connect a trainer",
   "sensorsPageTitle": "Sensors",
   "sensorsBroadcastEyebrow": "Broadcast",
   "sensorsBroadcastTitle": "Share sensors",

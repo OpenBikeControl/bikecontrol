@@ -191,11 +191,79 @@ void _sensorsOnlyTests() {
       expect(core.settings.getSensorsOnlyMode(), isTrue);
       expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
       expect(_chainCard(ChainLinkKey.trainer), findsNothing);
-      expect(find.byKey(const Key('chain-card-footer')), findsNothing);
+      // The trainer card's own footer is gone with it — but the Sensors card
+      // that replaced it carries the reverse offer ("Connect a trainer"),
+      // covered by its own tests below.
+      expect(find.text(l.sensorsUseSensorsOnlyQuestion), findsNothing);
+      expect(find.text(l.sensorsConnectTrainerQuestion), findsOneWidget);
       // The strip's tap is its own — it must not fall through to the card
       // and open the trainer connect sheet underneath.
       await tester.pumpAndSettle();
       expect(find.text(l.close), findsNothing);
+    });
+
+    // Task: the reverse affordance — once sensors-only mode has hidden the
+    // trainer card, the only way back was a trainer auto-connecting. The
+    // Sensors card now offers the same footer strip, mirroring the trainer
+    // card's entry into the mode.
+    testWidgets('sensors-only mode: the Sensors card offers "Connect a trainer"', (tester) async {
+      await core.settings.setSensorsOnlyMode(true);
+      await _pumpHome(tester);
+
+      expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
+      final footer = find.byKey(const Key('chain-card-footer'));
+      expect(footer, findsOneWidget);
+      expect(find.text(l.sensorsConnectTrainerQuestion), findsOneWidget);
+      expect(find.text(l.sensorsConnectTrainer), findsOneWidget);
+    });
+
+    testWidgets('tapping "Connect a trainer" leaves sensors-only mode and opens the trainer connect sheet', (
+      tester,
+    ) async {
+      await core.settings.setSensorsOnlyMode(true);
+      await _pumpHome(tester);
+
+      await tester.tap(find.text(l.sensorsConnectTrainer));
+      await tester.pumpAndSettle();
+
+      expect(core.settings.getSensorsOnlyMode(), isFalse);
+      expect(_chainCard(ChainLinkKey.trainer), findsOneWidget);
+      expect(_chainCard(ChainLinkKey.sensors), findsNothing);
+      // The same sheet the trainer card's own Connect opens — its "Close"
+      // button is the marker the sibling test inverts (see the "no trainer"
+      // test above, which asserts this same text is ABSENT).
+      expect(find.text(l.close), findsOneWidget);
+    });
+
+    testWidgets('tapping "Connect a trainer" while Broadcast is on does not tear down the broadcast', (tester) async {
+      await core.settings.setSensorsOnlyMode(true);
+      final strap = FakeSensorSource(id: 'strap-1', displayName: 'Polar H10', provides: {SensorQuantity.heartRate});
+      core.sensors.register(strap);
+      core.sensors.select(SensorQuantity.heartRate, strap.id);
+      var disconnectCalls = 0;
+      final broadcast = BroadcastController(
+        hub: core.sensors,
+        settings: core.settings,
+        connectSource: (_) async {},
+        disconnectSource: (_) async {
+          disconnectCalls++;
+        },
+        isBridgeRunning: ValueNotifier(false),
+        isStandaloneRunning: () => true,
+      );
+      core.connection.broadcast = broadcast;
+      await broadcast.turnOn();
+      expect(broadcast.isOn.value, isTrue);
+
+      await _pumpHome(tester);
+
+      await tester.tap(find.text(l.sensorsConnectTrainer));
+      await tester.pumpAndSettle();
+
+      // Leaving sensors-only mode is not "stop broadcasting" — Decision 6:
+      // the sink keeps standalone until a trainer actually bridges.
+      expect(broadcast.isOn.value, isTrue);
+      expect(disconnectCalls, 0);
     });
 
     testWidgets('nothing selected: titled "No sensors yet", status "Off — tap to set up"', (tester) async {
