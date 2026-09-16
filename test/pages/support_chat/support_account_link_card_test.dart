@@ -247,10 +247,9 @@ void main() {
     UrlLauncherPlatform.instance = fakeLauncher;
     addTearDown(() => UrlLauncherPlatform.instance = previousLauncher);
 
-    // The failure-path tests call recordError, whose real listener gathers
-    // debug diagnostics on a 6s timeout that never completes under the test
-    // clock, leaving a timer pending. Trip the install guard first (it only
-    // assigns once per isolate), then swap in a listener that only collects.
+    // The failure-path tests check that their errors are recorded, not
+    // swallowed. Trip the install guard first (it only assigns once per
+    // isolate), then swap in a listener that only collects.
     installLoggerErrorListener();
     recordedErrors = [];
     Logger.onRecordError = (_, error, _) => recordedErrors.add(error);
