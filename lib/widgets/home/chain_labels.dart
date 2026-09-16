@@ -104,6 +104,13 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.appLocalNetwork => step.done
         ? ChainStepText(l.chainStepAppLocalNetwork)
         : ChainStepText(l.chainStepAppLocalNetworkPending, l.chainStepAppLocalNetworkHint),
+    // Only ever emitted while outstanding — it clears itself the moment the
+    // app connects — so there is no done wording. The hint names the address
+    // because that is the one thing the rider can check against their VPN app.
+    SetupStepId.appNetworkAddress => ChainStepText(
+      l.chainStepNetworkAddressPending,
+      l.chainStepNetworkAddressHint(step.hintArg ?? '', app),
+    ),
     // The trainer app pairs BikeControl twice, as a trainer and as a
     // controller. With the trainer already picked up, the pending copy names
     // the second tile rather than saying "connect the app" about an app that

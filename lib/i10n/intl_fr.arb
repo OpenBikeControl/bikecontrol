@@ -2155,5 +2155,18 @@
   "vsModeTargetPowerDesc": "Maintient une puissance cible par vitesse, comme en mode ERG. Ta cadence compense une partie du changement, ce qui rend les changements de vitesse plus doux et fait grimper la puissance dans les côtes. Pour les home-trainers incapables de simuler une pente.",
   "vsModeBasicDesc": "Comme Puissance cible, mais avec un palier fixe par vitesse et sans ressenti du terrain. Un dernier recours pour les home-trainers qui ignorent les autres modes.",
   "vsModeRecommended": "Recommandé",
-  "vsModeUnsupported": "Pas pris en charge par ce home-trainer. "
+  "vsModeUnsupported": "Pas pris en charge par ce home-trainer. ",
+  "chainStepNetworkAddressPending": "Ton réseau semble inhabituel",
+  "chainStepNetworkAddressHint": "BikeControl annonce l'adresse {address}, qui ressemble à une adresse VPN ou de partage de connexion. {app} risque de ne pas pouvoir l'atteindre. Désactive le VPN, ou utilise la méthode Local sur cet appareil.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Lancer le test réseau"
 }

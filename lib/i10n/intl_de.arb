@@ -2155,5 +2155,18 @@
   "vsModeTargetPowerDesc": "Hält pro Gang eine Zielleistung, wie im ERG-Modus. Deine Trittfrequenz gleicht einen Teil der Änderung aus, wodurch sich Schaltvorgänge weicher anfühlen und Anstiege die Leistung hochziehen. Für Trainer, die keine Steigung simulieren können.",
   "vsModeBasicDesc": "Wie Zielleistung, aber mit einer festen Stufe pro Gang und ohne Geländegefühl. Ein letzter Ausweg für Trainer, die die anderen Modi ignorieren.",
   "vsModeRecommended": "Empfohlen",
-  "vsModeUnsupported": "Nicht unterstützt von diesem Trainer. "
+  "vsModeUnsupported": "Nicht unterstützt von diesem Trainer. ",
+  "chainStepNetworkAddressPending": "Dein Netzwerk sieht ungewöhnlich aus",
+  "chainStepNetworkAddressHint": "BikeControl meldet sich im Netzwerk unter {address}, was nach einer VPN- oder Hotspot-Adresse aussieht. {app} erreicht diese Adresse womöglich nicht. Schalte das VPN aus oder nutze auf diesem Gerät die Methode Lokal.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Netzwerk prüfen"
 }

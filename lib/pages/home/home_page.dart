@@ -37,6 +37,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/services/local_network_access.dart';
+import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show advertisedAddressWarning;
 import 'package:bike_control/utils/requirements/local_network.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
@@ -53,8 +54,11 @@ import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show enableLocalControl, ensureLocalNetworkAccess;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
+import 'package:prop/mdns/service_advertiser.dart' show ServiceAdvertiser;
 import 'package:prop/prop.dart' show ClickKeepAwakeStatus, ClickLogic, LogLevel;
+import 'package:prop/utils/network_address.dart' show AdvertisedAddressPicker;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// How much the chain card wants to talk about a given trainer. Lower wins.
@@ -117,7 +121,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late final StreamSubscription<BaseDevice> _connectionListener;
   late final StreamSubscription<BaseNotification> _actionListener;
   Timer? _metricsTicker;
@@ -156,11 +160,60 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// The advertised address when it is one the trainer app is unlikely to
+  /// reach, else null — see [AppInput.advertisedAddressWarning]. Read off the
+  /// same picker the self-test's "advertised address" row runs, so the card
+  /// never says something that page would not.
+  String? _advertisedAddressWarning;
+
+  Future<void> _refreshAdvertisedAddress() async {
+    // The store board sells a finished setup, and a VPN on the screenshot
+    // machine must not end up in a listing. The web has no interfaces to
+    // list, and without a network method nothing is advertised at all.
+    final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
+    try {
+      final warning = applies ? advertisedAddressWarning(await AdvertisedAddressPicker.report()) : null;
+      if (mounted && warning != _advertisedAddressWarning) setState(() => _advertisedAddressWarning = warning);
+    } catch (e, s) {
+      recordError(e, s, context: 'home advertised address');
+    }
+  }
+
+  /// What can move the advertised address, or make it matter: the responder
+  /// backend re-picking when the machine changes networks (the only place the
+  /// address is actually tracked), and a network method starting, stopping,
+  /// connecting or dropping — a drop is most often the moment a VPN came up.
+  /// None of these is a connection-stream event, so each is watched here.
+  late final List<Listenable> _advertisedAddressListenables = [
+    ServiceAdvertiser.instance.advertisedAddress,
+    for (final connection in [
+      core.obpMdnsEmulator,
+      core.zwiftMdnsEmulator,
+      core.rouvyMdnsEmulator,
+      core.whooshLink,
+    ]) ...[
+      connection.isStarted,
+      connection.isConnected,
+    ],
+  ];
+
+  void _onAdvertisedAddressChanged() {
+    unawaited(_refreshAdvertisedAddress());
+  }
+
   @override
   void initState() {
     super.initState();
 
     unawaited(_refreshLocalNetwork());
+    unawaited(_refreshAdvertisedAddress());
+    for (final listenable in _advertisedAddressListenables) {
+      listenable.addListener(_onAdvertisedAddressChanged);
+    }
+    // A VPN is switched on in the system settings, not in BikeControl — the
+    // rider comes back to the app afterwards, and the card has to be current
+    // when they do.
+    WidgetsBinding.instance.addObserver(this);
 
     _connectionListener = core.connection.connectionStream.listen((_) {
       _syncProxyListeners();
@@ -276,7 +329,16 @@ class _HomePageState extends State<HomePage> {
     for (final listenable in _broadcastListenables) {
       listenable.removeListener(_onBroadcastChanged);
     }
+    for (final listenable in _advertisedAddressListenables) {
+      listenable.removeListener(_onAdvertisedAddressChanged);
+    }
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_refreshAdvertisedAddress());
   }
 
   void _onPurchaseChanged() {
@@ -469,6 +531,12 @@ class _HomePageState extends State<HomePage> {
         // The trainer link's own answer, so the two cards can never disagree
         // about whether the app has picked the trainer up.
         trainerBridgedByApp: trainer?.appHoldsBridge ?? false,
+        // Only Bluetooth mode serves the bridge as a BLE peripheral; proxy and
+        // WiFi mode both serve DirCon from the advertised address. The trainer
+        // input is the same proxy's, so the two answers cannot disagree.
+        trainerBridgedOverNetwork:
+            (trainer?.appHoldsBridge ?? false) && proxy != null && proxy.retrofitMode.value != RetrofitMode.bluetooth,
+        advertisedAddressWarning: _advertisedAddressWarning,
       ),
     );
   }
@@ -612,6 +680,7 @@ class _HomePageState extends State<HomePage> {
   void _update() {
     widget.onUpdate();
     unawaited(_refreshLocalNetwork());
+    unawaited(_refreshAdvertisedAddress());
     if (mounted) setState(() {});
   }
 
@@ -1127,6 +1196,8 @@ class _HomePageState extends State<HomePage> {
       // Local on.
       instructionsLabel: link.activeStep?.id == SetupStepId.appLocalControl
           ? context.i18n.chainStepLocalControlAction
+          : link.activeStep?.id == SetupStepId.appNetworkAddress
+          ? context.i18n.chainStepNetworkAddressAction
           : appLinkOpensConnectionSettings(link)
           ? context.i18n.chainSetUp
           : appCardOffersTroubleshooting(link)
@@ -1228,6 +1299,10 @@ class _HomePageState extends State<HomePage> {
           // stop complaining.
           await ensureLocalNetworkAccess(context);
           await _refreshLocalNetwork();
+        } else if (link.activeStep?.id == SetupStepId.appNetworkAddress) {
+          // The card has already said what looks wrong; the self-test is
+          // where the rider sees every interface, the verdict, and the fixes.
+          await context.push(const NetworkTroubleshootingPage());
         } else if (link.activeStep?.id == SetupStepId.appLocalControl) {
           // enableLocalControl runs the permission sheet itself when the
           // accessibility service or the keyboard grant is still missing, and

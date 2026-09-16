@@ -2155,5 +2155,18 @@
   "vsModeTargetPowerDesc": "Mantiene una potenza target per ogni rapporto, come in modalità ERG. La tua cadenza annulla parte della variazione, quindi i cambi si sentono più morbidi e le salite fanno salire la potenza. Per rulli che non possono simulare la pendenza.",
   "vsModeBasicDesc": "Come Potenza target, ma con uno scatto fisso per ogni rapporto e senza sensazione di terreno. Un'ultima risorsa per rulli che ignorano le altre modalità.",
   "vsModeRecommended": "Consigliato",
-  "vsModeUnsupported": "Non supportato su questo rullo. "
+  "vsModeUnsupported": "Non supportato su questo rullo. ",
+  "chainStepNetworkAddressPending": "La tua rete sembra insolita",
+  "chainStepNetworkAddressHint": "BikeControl annuncia l'indirizzo {address}, che sembra un indirizzo VPN o di hotspot. {app} potrebbe non raggiungerlo. Disattiva la VPN oppure usa il metodo Locale su questo dispositivo.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Esegui il controllo di rete"
 }

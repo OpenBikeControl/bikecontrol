@@ -212,6 +212,8 @@ class AppInput {
     this.localControlEnabled = false,
     this.localNetworkGranted,
     this.trainerBridgedByApp = false,
+    this.trainerBridgedOverNetwork = false,
+    this.advertisedAddressWarning,
   });
 
   /// The selected trainer app, or null when the rider hasn't picked one.
@@ -260,6 +262,26 @@ class AppInput {
   /// and riders go back to re-pair the trainer instead of adding the
   /// controller — see [SetupStepVariant.controllerLinkMissing].
   final bool trainerBridgedByApp;
+
+  /// Whether the trainer the app holds ([trainerBridgedByApp]) is held over
+  /// the network — DirCon, served from the very address BikeControl
+  /// advertises — rather than over Bluetooth. False when it holds nothing.
+  ///
+  /// It exists for one reason: an app that is reading the trainer through
+  /// that address has plainly reached it, so [advertisedAddressWarning] would
+  /// be a false alarm on the same card. A trainer held over Bluetooth proves
+  /// nothing about the network, and the warning stands.
+  final bool trainerBridgedOverNetwork;
+
+  /// The address BikeControl advertises when it is one the trainer app is
+  /// unlikely to reach — a VPN or mesh tunnel, a hotspot bridge, or a pick a
+  /// second adapter could just as well have won — or null when it looks fine.
+  ///
+  /// It is the same verdict the network self-test's "advertised address" row
+  /// gives, so the card and that page can never disagree. Carried as the
+  /// address rather than a bool because the address is the one thing the
+  /// rider can check against their VPN app.
+  final String? advertisedAddressWarning;
 }
 
 /// Sensors-only mode's stand-in for a smart trainer: there is nothing to

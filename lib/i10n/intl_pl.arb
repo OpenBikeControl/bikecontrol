@@ -2155,5 +2155,18 @@
   "vsModeTargetPowerDesc": "Utrzymuje moc docelową dla każdego biegu, jak w trybie ERG. Twoja kadencja częściowo znosi tę zmianę, dzięki czemu zmiana biegów jest łagodniejsza, a podjazdy podciągają moc w górę. Dla trenażerów, które nie potrafią symulować nachylenia.",
   "vsModeBasicDesc": "Jak Moc docelowa, ale ze stałym skokiem dla każdego biegu i bez odczucia terenu. Ostateczność dla trenażerów, które ignorują pozostałe tryby.",
   "vsModeRecommended": "Zalecane",
-  "vsModeUnsupported": "Nieobsługiwane przez ten trenażer. "
+  "vsModeUnsupported": "Nieobsługiwane przez ten trenażer. ",
+  "chainStepNetworkAddressPending": "Twoja sieć wygląda nietypowo",
+  "chainStepNetworkAddressHint": "BikeControl ogłasza adres {address}, który wygląda na adres VPN lub hotspotu. {app} może nie być w stanie się z nim połączyć. Wyłącz VPN albo użyj metody Lokalnej na tym urządzeniu.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Sprawdź sieć"
 }

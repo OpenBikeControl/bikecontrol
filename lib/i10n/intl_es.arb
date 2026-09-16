@@ -2155,5 +2155,18 @@
   "vsModeTargetPowerDesc": "Mantiene una potencia objetivo por marcha, como en modo ERG. Tu cadencia anula parte del cambio, por lo que los cambios de marcha se sienten más suaves y las subidas hacen que la potencia aumente. Para rodillos que no pueden simular pendiente.",
   "vsModeBasicDesc": "Como Potencia objetivo, pero con un escalón fijo por marcha y sin sensación de terreno. Un último recurso para rodillos que ignoran los demás modos.",
   "vsModeRecommended": "Recomendado",
-  "vsModeUnsupported": "No compatible con este rodillo. "
+  "vsModeUnsupported": "No compatible con este rodillo. ",
+  "chainStepNetworkAddressPending": "Tu red parece inusual",
+  "chainStepNetworkAddressHint": "BikeControl anuncia la dirección {address}, que parece una dirección de VPN o de punto de acceso. Puede que {app} no llegue a ella. Desactiva la VPN o usa el método Local en este dispositivo.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Comprobar la red"
 }
