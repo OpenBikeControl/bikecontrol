@@ -190,6 +190,8 @@ class ChainLink {
     this.subtitleArg,
     this.deviceId,
     this.dismissible = false,
+    this.wasConnectedThisSession = false,
+    this.dropped = false,
   });
 
   final ChainLinkKey key;
@@ -223,6 +225,27 @@ class ChainLink {
   /// remembered but not currently connected — a live device must not be
   /// dismissible, or a stray swipe drops a working controller off the screen.
   final bool dismissible;
+
+  /// Whether the app behind this link has connected at some point in this
+  /// session — see `AppInput.wasConnectedThisSession`. Only the app link sets
+  /// it. While it is set, the card does not offer the generic network
+  /// self-test for that app: a connection that worked and went away is almost
+  /// never something that test can find.
+  final bool wasConnectedThisSession;
+
+  /// Whether the app went away after working, and that is the whole story:
+  /// it connected in this session, is not connected now, and does not still
+  /// hold the trainer — then it is plainly open, and only its controller
+  /// tile is missing, which [SetupStepVariant.controllerLinkMissing] says.
+  /// Only the app link sets it.
+  ///
+  /// A controller or trainer that drops is a break ([LinkStatus.problem]). A
+  /// trainer app that goes away has almost always just been closed — the
+  /// ride is over — so its card stays amber and says the app disconnected,
+  /// and its buttons open the app's pairing guide. The network self-test is
+  /// only reached through an address warning that is new since the app
+  /// connected, which has a step of its own.
+  final bool dropped;
 
   /// Whether this link stops the rider being ready.
   bool get isBlocking {
@@ -269,6 +292,8 @@ class ChainLink {
       subtitleArg: subtitleArg ?? this.subtitleArg,
       deviceId: deviceId,
       dismissible: dismissible ?? this.dismissible,
+      wasConnectedThisSession: wasConnectedThisSession,
+      dropped: dropped,
     );
   }
 
@@ -287,12 +312,17 @@ class ChainBanner {
     this.outstandingKeys = const [],
     this.outstandingLinkIds = const [],
     this.soleStep,
+    this.appDropped = false,
   });
 
   final ChainBannerKind kind;
   final LinkStatus status;
 
   /// Total unfinished steps across every blocking link. Zero when ready.
+  ///
+  /// Except that a trainer app that dropped counts once, even with the trainer
+  /// card waiting for it too ([appDropped]): one cause, one step left. The
+  /// cards themselves keep their own counts.
   final int stepsLeft;
 
   /// The link the action button jumps to, or null when there is no action.
@@ -314,8 +344,9 @@ class ChainBanner {
   /// With several cards unfinished, the target is only first in render order,
   /// and opening its fix ("2 steps left" → the controller search) reads as
   /// arbitrary. A break keeps its button: it has one fix, and "Fix" goes
-  /// straight to it.
-  bool get revealsOutstandingCards => kind == ChainBannerKind.pending && outstandingLinkIds.length >= 2;
+  /// straight to it. So does a trainer app that dropped, when the trainer card
+  /// only waits for that same app ([appDropped]): two cards, one cause.
+  bool get revealsOutstandingCards => kind == ChainBannerKind.pending && outstandingLinkIds.length >= 2 && !appDropped;
 
   /// The one required step still outstanding across the whole chain, or null
   /// when there are none or several. With exactly one thing left the banner
@@ -323,6 +354,17 @@ class ChainBanner {
   /// controller tile" instead of "finish the Trainer app card", which sends
   /// a rider back to a screen they have already been on once.
   final SetupStep? soleStep;
+
+  /// Whether the whole story is a trainer app that went away after working —
+  /// see [ChainLink.dropped]. Only ever set on a pending banner, and only when
+  /// the connection is the one thing left on the app card and nothing else is
+  /// outstanding but the trainer card waiting for that same app to pick the
+  /// bridge up — what quitting the app with a bridged trainer leaves behind.
+  /// The banner then says the app disconnected and that it comes back from
+  /// its pairing screen, and its button opens that app's card
+  /// ([targetLinkId]). With anything else outstanding that sentence would
+  /// point past it, so the ordinary wording stays.
+  final bool appDropped;
 
   bool get hasAction => targetLinkId != null;
 
@@ -368,14 +410,45 @@ ChainBanner deriveBanner(List<ChainLink> links) {
     );
   }
 
+  // A trainer app that went away after working is not a break — see
+  // [ChainLink.dropped] — so it lands here, amber, rather than above. Its own
+  // wording only applies while the connection is all that is left on its
+  // card: a missing permission or method, or an address warning that is new
+  // since the app connected, keeps it away however often the rider re-pairs
+  // it, and the card's step says so.
+  //
+  // And while nothing else is outstanding — except the trainer card waiting
+  // for that same app to pick the bridge up again. Quitting the app with a
+  // bridged trainer leaves both cards open, but it is one cause with one fix,
+  // and two cards to go and find would say otherwise. Anything else on any
+  // card is a second cause, and the banner reveals the cards as usual.
+  final appLink = outstanding.where((l) => l.key == ChainLinkKey.app).firstOrNull;
+  final appDropped =
+      appLink != null &&
+      appLink.dropped &&
+      appLink.activeStep?.id == SetupStepId.appConnected &&
+      outstanding.every((l) => l.key == ChainLinkKey.app || _onlyWaitsForTheApp(l));
+  final target = appDropped ? appLink : outstanding.first;
+
   return ChainBanner(
     kind: ChainBannerKind.pending,
     status: LinkStatus.attention,
-    stepsLeft: stepsLeft,
-    targetLinkId: outstanding.first.id,
-    targetKey: outstanding.first.key,
+    // One cause is one step left, however many cards it keeps open: "2 steps
+    // left" would read as two things to do. The cards keep their own counts.
+    stepsLeft: appDropped ? 1 : stepsLeft,
+    targetLinkId: target.id,
+    targetKey: target.key,
     outstandingKeys: outstandingKeys,
     outstandingLinkIds: outstandingLinkIds,
     soleStep: soleStep,
+    appDropped: appDropped,
   );
+}
+
+/// Whether [link] is the trainer card with nothing left to do but have the
+/// trainer app pick the bridge up — the one app there is.
+bool _onlyWaitsForTheApp(ChainLink link) {
+  if (link.key != ChainLinkKey.trainer) return false;
+  final open = link.requiredSteps.where((s) => !s.done).toList();
+  return open.isNotEmpty && open.every((s) => s.id == SetupStepId.trainerAppBridged);
 }

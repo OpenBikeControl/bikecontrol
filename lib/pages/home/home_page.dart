@@ -85,8 +85,16 @@ ProxyDevice? chainProxy() => core.connection.proxyDevices.sortedBy(proxyChainRan
 
 /// The app card's active step is "waiting for the app to connect" and the
 /// Network method is the enabled path — the moment troubleshooting helps.
+///
+/// Only for an app that has not connected in this session (see
+/// [ChainLink.wasConnectedThisSession]). Once the connection has worked, a
+/// drop is almost never something the self-test can find — the app was
+/// usually just closed — so the card and the banner open its pairing guide
+/// instead. An address warning that is new since then still leads to the
+/// self-test, through its own step.
 bool appCardOffersTroubleshooting(ChainLink link) =>
     link.key == ChainLinkKey.app &&
+    !link.wasConnectedThisSession &&
     link.activeStep?.id == SetupStepId.appConnected &&
     core.logic.isObpMdnsEnabled &&
     core.obpMdnsEmulator.isStarted.value;
@@ -174,6 +182,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
     try {
       final warning = applies ? advertisedAddressWarning(await AdvertisedAddressPicker.report()) : null;
+      // The session keeps the reading an app connected through, whether or
+      // not this page is still around to show it.
+      core.appConnectionLatch.noteAddressWarning(warning);
       if (mounted && warning != _advertisedAddressWarning) setState(() => _advertisedAddressWarning = warning);
     } catch (e, s) {
       recordError(e, s, context: 'home advertised address');
@@ -523,7 +534,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         selfHosted: trainerApp is BikeControl,
         hasEnabledConnection: core.logic.enabledTrainerConnections.isNotEmpty,
         isConnected: core.logic.appFacingConnections.isNotEmpty,
-        wasConnectedThisSession: _appConnectedThisSession,
+        // Kept for the session, not the page — see [AppConnectionLatch].
+        wasConnectedThisSession: core.appConnectionLatch.wasConnected(trainerApp?.name),
         connectionSummary: core.logic.appFacingConnections.firstOrNull?.title,
         // showLocalControl is already "the rider's target is this device, and
         // this platform can drive it" — see CoreLogic.
@@ -539,6 +551,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         trainerBridgedOverNetwork:
             (trainer?.appHoldsBridge ?? false) && proxy != null && proxy.retrofitMode.value != RetrofitMode.bluetooth,
         advertisedAddressWarning: _advertisedAddressWarning,
+        advertisedAddressWarningAtConnect: core.appConnectionLatch.addressWarningAtConnect,
       ),
     );
   }
@@ -600,8 +613,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return proxy.fitnessBike != null;
   }
 
-  bool _appConnectedThisSession = false;
-
   /// Makes chain cards jump out — see [ChainCard.highlight].
   final ChainHighlightController _highlights = ChainHighlightController();
 
@@ -621,10 +632,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // The session watches every method on its own (see
+    // [Connection.initialize]); looking once more here keeps the card right
+    // wherever nothing else has looked yet.
+    core.appConnectionLatch.sync();
     final inputs = _readInputs();
-    // Latch once connected: the app card can then say "lost connection" rather
-    // than falling back to "never set up" the moment the app quits.
-    if (inputs.app.isConnected) _appConnectedThisSession = true;
 
     final links = buildChain(inputs);
     final banner = deriveBanner(links);
@@ -1198,13 +1210,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final String statusLabel;
     if (link.status == LinkStatus.ready) {
       statusLabel = context.i18n.chainStatusReceivingCommands;
-    } else if (link.status == LinkStatus.problem) {
-      statusLabel = context.i18n.notConnected;
     } else if (app != null) {
       // Name what is actually outstanding. Reporting "waiting for the app"
-      // while a permission is missing points the rider at the wrong device.
+      // while a permission is missing points the rider at the wrong device,
+      // and so would "disconnected". Once this side is done, an app that
+      // worked earlier in the session has simply disconnected — most often
+      // it was closed — rather than lost its connection.
       statusLabel = appStatusFollowsActiveStep(link)
           ? chainStepText(context, link.activeStep!, appName: app.name).label
+          : link.dropped
+          ? context.i18n.chainStatusAppDisconnected(app.name)
           : context.i18n.chainStatusWaitingForApp(app.name);
     } else {
       statusLabel = context.i18n.chainStatusNotSetUp;
@@ -1377,6 +1392,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // "how do I pair this app" guide.
           await context.push(const NetworkTroubleshootingPage());
         } else {
+          // Including any app that connected earlier in this session and has
+          // gone: it was almost always closed, and what brings it back is its
+          // own pairing screen. The network self-test is only reached from
+          // here through the address step above, which a dropped app only
+          // gets for a warning that is new since it connected.
           await openAppGuideSheet(context);
         }
       case ChainLinkKey.sensors:

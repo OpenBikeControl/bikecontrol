@@ -360,6 +360,252 @@ void main() {
         expect(banner.soleStep?.id, SetupStepId.appConnected);
       });
     });
+
+    // A trainer app that went away after it worked was almost always closed:
+    // not a break to fix, and not a network fault. The banner stays amber and
+    // says the app disconnected — but only when that is the whole story.
+    group('a trainer app that dropped after working', () {
+      const waitingForApp = [
+        SetupStep(id: SetupStepId.appSelected, done: true),
+        SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+        SetupStep(id: SetupStepId.appConnected, done: false),
+      ];
+
+      ChainLink appLink({bool dropped = true, List<SetupStep> steps = waitingForApp}) => ChainLink(
+        key: ChainLinkKey.app,
+        id: 'app',
+        status: LinkStatus.attention,
+        title: 'MyWhoosh',
+        wasConnectedThisSession: dropped,
+        dropped: dropped,
+        steps: steps,
+      );
+
+      test('is pending with the dropped marker when it is the only thing outstanding', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.ready),
+          link(id: 'trainer', key: ChainLinkKey.trainer, status: LinkStatus.off, optional: true),
+          appLink(),
+        ]);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.status, LinkStatus.attention);
+        expect(banner.appDropped, isTrue);
+        expect(banner.targetLinkId, 'app');
+        expect(banner.stepsLeft, 1);
+      });
+
+      test('an app that simply has not connected yet carries no marker', () {
+        final banner = deriveBanner([link(id: 'c', status: LinkStatus.ready), appLink(dropped: false)]);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.appDropped, isFalse);
+      });
+
+      test('with another card outstanding too, the ordinary pending rules apply', () {
+        final banner = deriveBanner([
+          link(id: 'c', key: ChainLinkKey.controller, status: LinkStatus.attention, steps: [false]),
+          appLink(),
+        ]);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.appDropped, isFalse);
+        expect(banner.targetLinkId, 'c');
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+
+      // Quitting the app with a bridged trainer: the trainer card now waits
+      // for the app to pick the bridge up again, but that is the same app
+      // going away — one cause, with one fix, not two cards to go and find.
+      group('with the trainer card waiting for the same app', () {
+        ChainLink trainerLink(List<SetupStep> steps) => ChainLink(
+          key: ChainLinkKey.trainer,
+          id: 'trainer',
+          status: LinkStatus.attention,
+          title: 'KICKR CORE',
+          optional: true,
+          steps: steps,
+        );
+
+        const waitingForPickUp = [
+          SetupStep(id: SetupStepId.trainerPaired, done: true),
+          SetupStep(id: SetupStepId.trainerAppBridged, done: false),
+        ];
+
+        test('is one cause: the dropped marker, aimed at the app card, nothing to reveal', () {
+          final banner = deriveBanner([
+            link(id: 'c', status: LinkStatus.ready),
+            trainerLink(waitingForPickUp),
+            appLink(),
+          ]);
+          expect(banner.kind, ChainBannerKind.pending);
+          expect(banner.appDropped, isTrue);
+          expect(banner.targetLinkId, 'app');
+          expect(banner.targetKey, ChainLinkKey.app);
+          expect(banner.revealsOutstandingCards, isFalse);
+          // Both cards are still outstanding...
+          expect(banner.outstandingLinkIds, ['trainer', 'app']);
+        });
+
+        // "2 steps left" for one app going away would read as two things to
+        // do. The banner counts the cause once; each card keeps its own step.
+        test('counts the cause once, while each card keeps its own step', () {
+          final trainer = trainerLink(waitingForPickUp);
+          final app = appLink();
+          final banner = deriveBanner([link(id: 'c', status: LinkStatus.ready), trainer, app]);
+          expect(banner.stepsLeft, 1);
+          expect(trainer.remainingSteps, 1);
+          expect(app.remainingSteps, 1);
+        });
+
+        test('an optional offer on the trainer card does not change that', () {
+          final banner = deriveBanner([
+            trainerLink(const [
+              ...waitingForPickUp,
+              SetupStep(id: SetupStepId.trainerGearOverlay, done: false, optional: true),
+            ]),
+            appLink(),
+          ]);
+          expect(banner.appDropped, isTrue);
+          expect(banner.revealsOutstandingCards, isFalse);
+        });
+
+        test('any other step on the trainer card keeps the cards to reveal', () {
+          final banner = deriveBanner([
+            trainerLink(const [
+              ...waitingForPickUp,
+              SetupStep(id: SetupStepId.trainerGearOverlay, done: false),
+            ]),
+            appLink(),
+          ]);
+          expect(banner.appDropped, isFalse);
+          expect(banner.targetLinkId, 'trainer');
+          expect(banner.revealsOutstandingCards, isTrue);
+          // Two causes: every step counts.
+          expect(banner.stepsLeft, 3);
+        });
+
+        test('a trainer that is not bridged at all keeps the cards to reveal', () {
+          final banner = deriveBanner([
+            trainerLink(const [
+              SetupStep(id: SetupStepId.trainerPaired, done: false),
+              SetupStep(id: SetupStepId.trainerAppBridged, done: false),
+            ]),
+            appLink(),
+          ]);
+          expect(banner.appDropped, isFalse);
+          expect(banner.revealsOutstandingCards, isTrue);
+        });
+
+        test('a third card outstanding keeps the cards to reveal', () {
+          final banner = deriveBanner([
+            link(id: 'c', key: ChainLinkKey.controller, status: LinkStatus.attention, steps: [false]),
+            trainerLink(waitingForPickUp),
+            appLink(),
+          ]);
+          expect(banner.appDropped, isFalse);
+          expect(banner.targetLinkId, 'c');
+          expect(banner.revealsOutstandingCards, isTrue);
+        });
+
+        test('an app that never connected keeps the cards to reveal', () {
+          final banner = deriveBanner([trainerLink(waitingForPickUp), appLink(dropped: false)]);
+          expect(banner.appDropped, isFalse);
+          expect(banner.targetLinkId, 'trainer');
+          expect(banner.revealsOutstandingCards, isTrue);
+        });
+
+        test('an app with something still to do on this side keeps the cards to reveal', () {
+          final banner = deriveBanner([
+            trainerLink(waitingForPickUp),
+            appLink(
+              steps: const [
+                SetupStep(id: SetupStepId.appSelected, done: true),
+                SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+                SetupStep(id: SetupStepId.appNetworkAddress, done: false),
+                SetupStep(id: SetupStepId.appConnected, done: false),
+              ],
+            ),
+          ]);
+          expect(banner.appDropped, isFalse);
+          expect(banner.revealsOutstandingCards, isTrue);
+        });
+      });
+
+      // "Reconnect it from its pairing screen" is only the next thing to do
+      // once everything on this side is done — a missing permission would
+      // keep the app away however often the rider re-pairs it.
+      test('with something still to do on this side, the card leads instead', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.ready),
+          appLink(
+            steps: const [
+              SetupStep(id: SetupStepId.appSelected, done: true),
+              SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+              SetupStep(id: SetupStepId.appLocalNetwork, done: false),
+              SetupStep(id: SetupStepId.appConnected, done: false),
+            ],
+          ),
+        ]);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.appDropped, isFalse);
+      });
+
+      test('an optional offer on the card does not hide the marker', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.ready),
+          appLink(
+            steps: const [
+              ...waitingForApp,
+              SetupStep(id: SetupStepId.appLocalControl, done: false, optional: true),
+            ],
+          ),
+        ]);
+        expect(banner.appDropped, isTrue);
+      });
+
+      test('a break elsewhere still outranks it', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.problem, steps: [false]),
+          appLink(),
+        ]);
+        expect(banner.kind, ChainBannerKind.broken);
+        expect(banner.appDropped, isFalse);
+      });
+
+      test('only the app link can carry it', () {
+        final banner = deriveBanner([
+          ChainLink(
+            key: ChainLinkKey.trainer,
+            id: 'trainer',
+            status: LinkStatus.attention,
+            title: 'KICKR',
+            dropped: true,
+            steps: const [SetupStep(id: SetupStepId.appConnected, done: false)],
+          ),
+        ]);
+        expect(banner.appDropped, isFalse);
+      });
+    });
+  });
+
+  group('ChainLink.copyWith', () {
+    test('keeps the connection history', () {
+      const l = ChainLink(
+        key: ChainLinkKey.app,
+        id: 'app',
+        status: LinkStatus.attention,
+        title: 'MyWhoosh',
+        wasConnectedThisSession: true,
+        dropped: true,
+        steps: [SetupStep(id: SetupStepId.appConnected, done: false)],
+      );
+      final copy = l.copyWith(subtitleArg: 'Network');
+      expect(copy.dropped, isTrue);
+      expect(copy.wasConnectedThisSession, isTrue);
+    });
+
+    test('has no connection history by default', () {
+      expect(link(id: 'a').dropped, isFalse);
+      expect(link(id: 'a').wasConnectedThisSession, isFalse);
+    });
   });
 
   group('SetupStep', () {

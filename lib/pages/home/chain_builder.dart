@@ -249,6 +249,9 @@ ChainLink _appLink(ChainInputs inputs) {
   // check: both connection steps are satisfied by definition.
   final hasMethod = app.selfHosted || app.hasEnabledConnection;
   final connected = app.selfHosted || app.isConnected;
+  // This very app connected earlier in this session, over a real method —
+  // the session latches that per app, see [AppInput.wasConnectedThisSession].
+  final connectedEarlier = selected && app.wasConnectedThisSession;
 
   final steps = <SetupStep>[
     SetupStep(id: SetupStepId.appSelected, done: selected),
@@ -272,10 +275,18 @@ ChainLink _appLink(ChainInputs inputs) {
     // rides on this very address, so the app has plainly reached it, and the
     // only thing left is the controller tile — which the connected step
     // below says. A trainer held over Bluetooth proves nothing here.
+    //
+    // Nor after the app has connected through this same verdict earlier in
+    // the session: it reached the address then, whatever it looks like. Two
+    // adapters on different subnets flag many a desktop for good while the
+    // app connects there just fine, and a drop there is no network news.
+    // Only a verdict that is new since the app connected — a VPN that came up
+    // and took the app with it — brings the step back.
     if (app.hasEnabledConnection &&
         !connected &&
         !app.trainerBridgedOverNetwork &&
-        app.advertisedAddressWarning != null)
+        app.advertisedAddressWarning != null &&
+        !(connectedEarlier && app.advertisedAddressWarning == app.advertisedAddressWarningAtConnect))
       SetupStep(id: SetupStepId.appNetworkAddress, done: false, hintArg: app.advertisedAddressWarning),
     SetupStep(
       id: SetupStepId.appConnected,
@@ -302,15 +313,21 @@ ChainLink _appLink(ChainInputs inputs) {
       ),
   ];
 
+  // It was carrying commands earlier in this session and has stopped. Unlike a
+  // controller or a trainer, that is not a break: a trainer app that goes
+  // away has almost always just been closed, and red with "Fix" sent riders
+  // into a network test that had nothing to find. So it stays amber, like any
+  // other wait for the app, and the card says it disconnected — see
+  // [ChainLink.dropped]. Not while it still holds the trainer: then it is
+  // plainly open, only its controller tile is missing, and the connection
+  // step already says exactly that. A self-hosted app has no wire to lose.
+  final dropped = connectedEarlier && !connected && !app.trainerBridgedByApp;
+
   final LinkStatus status;
   if (steps.every((s) => s.done || s.optional)) {
     status = LinkStatus.ready;
   } else if (!selected) {
     status = LinkStatus.off;
-  } else if (app.wasConnectedThisSession && !app.isConnected) {
-    // It was carrying commands a moment ago and stopped — that is a break, not
-    // an unfinished setup.
-    status = LinkStatus.problem;
   } else {
     status = LinkStatus.attention;
   }
@@ -322,5 +339,7 @@ ChainLink _appLink(ChainInputs inputs) {
     title: app.name ?? '',
     steps: steps,
     subtitleArg: status == LinkStatus.ready ? app.connectionSummary : null,
+    wasConnectedThisSession: connectedEarlier,
+    dropped: dropped,
   );
 }

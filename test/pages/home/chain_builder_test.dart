@@ -996,6 +996,54 @@ void main() {
         expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
       });
 
+      // Two adapters on different subnets flag many a desktop for good, and
+      // the app connects there all the same. What the app has already reached
+      // in this session is proven, whatever it looks like: only a verdict that
+      // changed since it connected — a VPN that came up and took the app with
+      // it — is news after a drop.
+      group('for an app that connected earlier in this session', () {
+        ChainLink linkFor({String? warning, String? warningAtConnect, bool connectedEarlier = true}) {
+          final app = AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: connectedEarlier,
+            advertisedAddressWarning: warning,
+            advertisedAddressWarningAtConnect: warningAtConnect,
+          );
+          return buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+        }
+
+        test('stays away while the flag is the one it connected through', () {
+          final link = linkFor(warning: '192.168.1.50', warningAtConnect: '192.168.1.50');
+          expect(_hasStep(link, SetupStepId.appNetworkAddress), isFalse);
+          expect(link.activeStep?.id, SetupStepId.appConnected);
+          expect(link.dropped, isTrue);
+        });
+
+        test('is back once a flag appears that was not there when it connected', () {
+          final link = linkFor(warning: '10.5.0.2');
+          final step = link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+          expect(step.hintArg, '10.5.0.2');
+          expect(link.activeStep?.id, SetupStepId.appNetworkAddress);
+        });
+
+        test('is back once the flagged address has changed since it connected', () {
+          final link = linkFor(warning: '10.5.0.2', warningAtConnect: '192.168.1.50');
+          expect(link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress).hintArg, '10.5.0.2');
+        });
+
+        test('stays away once the flag has cleared', () {
+          expect(_hasStep(linkFor(warningAtConnect: '192.168.1.50'), SetupStepId.appNetworkAddress), isFalse);
+        });
+
+        // What an address was proven by only vouches for the app that
+        // connected: the page passes it along whichever app is picked now.
+        test('proves nothing for an app that has not connected in this session', () {
+          final link = linkFor(warning: '192.168.1.50', warningAtConnect: '192.168.1.50', connectedEarlier: false);
+          expect(_hasStep(link, SetupStepId.appNetworkAddress), isTrue);
+        });
+      });
+
       test('is absent when the advertised address looks fine', () {
         final chain = buildChain(
           const ChainInputs(
@@ -1127,18 +1175,97 @@ void main() {
       expect(link.activeStep!.id, SetupStepId.appConnectionMethod);
     });
 
-    test('an app that was connected and dropped is red', () {
-      final chain = buildChain(
-        const ChainInputs(
-          app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true),
-        ),
-      );
-      expect(chain.byKey(ChainLinkKey.app).status, LinkStatus.problem);
+    // A trainer app that goes away after it worked has almost always just been
+    // closed. Red with "Fix" sent riders into a network test with nothing to
+    // find, so the card goes amber and simply says the app disconnected.
+    group('an app that was connected and dropped', () {
+      const dropped = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true);
+
+      test('is amber and flagged as dropped', () {
+        final link = buildChain(const ChainInputs(app: dropped)).byKey(ChainLinkKey.app);
+        expect(link.status, LinkStatus.attention);
+        expect(link.dropped, isTrue);
+        expect(link.wasConnectedThisSession, isTrue);
+      });
+
+      test('is never red, whatever else is outstanding on the card', () {
+        const apps = [
+          dropped,
+          // The method was switched off after the app had connected.
+          AppInput(name: 'MyWhoosh', wasConnectedThisSession: true),
+          AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            localNetworkGranted: false,
+          ),
+          AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            advertisedAddressWarning: '10.5.0.2',
+          ),
+        ];
+        for (final app in apps) {
+          final link = buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+          expect(link.status, LinkStatus.attention, reason: '${link.activeStep}');
+          expect(link.dropped, isTrue, reason: '${link.activeStep}');
+        }
+      });
+
+      test('still waits on the connection step, as before', () {
+        final link = buildChain(const ChainInputs(app: dropped)).byKey(ChainLinkKey.app);
+        expect(link.activeStep?.id, SetupStepId.appConnected);
+        expect(link.remainingSteps, 1);
+      });
+
+      // With the trainer still held the app is plainly open: only its
+      // controller tile is missing, and the connection step already says so.
+      test('is not dropped while it still holds the trainer, but did connect', () {
+        final link = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              wasConnectedThisSession: true,
+              trainerBridgedByApp: true,
+            ),
+          ),
+        ).byKey(ChainLinkKey.app);
+        expect(link.status, LinkStatus.attention);
+        expect(link.dropped, isFalse);
+        expect(link.wasConnectedThisSession, isTrue);
+        expect(link.activeStep?.id, SetupStepId.appConnected);
+        expect(link.activeStep?.variant, SetupStepVariant.controllerLinkMissing);
+      });
     });
 
-    test('an app that has never connected is amber, not red', () {
+    test('an app that has never connected is amber, not red, and not dropped', () {
       final chain = buildChain(const ChainInputs(app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true)));
       expect(chain.byKey(ChainLinkKey.app).status, LinkStatus.attention);
+      expect(chain.byKey(ChainLinkKey.app).dropped, isFalse);
+      expect(chain.byKey(ChainLinkKey.app).wasConnectedThisSession, isFalse);
+    });
+
+    test('a connected app is not dropped', () {
+      expect(buildChain(const ChainInputs(app: _readyApp)).byKey(ChainLinkKey.app).dropped, isFalse);
+    });
+
+    // Nothing to drop: no app is picked, or BikeControl runs the workout
+    // itself and there is no wire to it at all.
+    test('neither an unpicked nor a self-hosted app is ever dropped', () {
+      const apps = [
+        AppInput(hasEnabledConnection: true, wasConnectedThisSession: true),
+        AppInput(name: 'BikeControl', selfHosted: true, wasConnectedThisSession: true),
+      ];
+      for (final app in apps) {
+        expect(buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app).dropped, isFalse, reason: app.name);
+      }
+    });
+
+    test('an unpicked app has connected to nothing', () {
+      const app = AppInput(hasEnabledConnection: true, wasConnectedThisSession: true);
+      expect(buildChain(const ChainInputs(app: app)).byKey(ChainLinkKey.app).wasConnectedThisSession, isFalse);
     });
 
     test('a self-hosted app needs no connection method and is ready on selection', () {
@@ -1295,6 +1422,116 @@ void main() {
       expect(banner.stepsLeft, 5);
       expect(banner.targetLinkId, 'controller');
       expect(banner.outstandingKeys, [ChainLinkKey.controller, ChainLinkKey.app]);
+    });
+
+    test('a trainer app that dropped after working is pending, not broken', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          app: const AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.status, LinkStatus.attention);
+      expect(banner.appDropped, isTrue);
+      expect(banner.targetLinkId, 'app');
+      expect(banner.stepsLeft, 1);
+    });
+
+    // Quitting the app with Virtual Shifting on: the bridge keeps running,
+    // nothing holds it any more, and the app is gone. The trainer card waits
+    // for that same app — one cause, and the banner treats it as one.
+    group('quitting the app with a bridged trainer', () {
+      const quitApp = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true);
+
+      test('is one cause: the dropped banner, aimed at the app, with nothing to reveal', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller()],
+            trainer: trainer(appHoldsBridge: false),
+            app: quitApp,
+          ),
+        );
+        expect(
+          chain.byKey(ChainLinkKey.trainer).pendingSteps.map((s) => s.id),
+          [SetupStepId.trainerAppBridged],
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.appDropped, isTrue);
+        expect(banner.targetLinkId, 'app');
+        expect(banner.revealsOutstandingCards, isFalse);
+        // One cause, counted once — each card still carries its own step.
+        expect(banner.stepsLeft, 1);
+        expect(chain.byKey(ChainLinkKey.trainer).remainingSteps, 1);
+        expect(chain.byKey(ChainLinkKey.app).remainingSteps, 1);
+      });
+
+      // The overlay question is still open on the trainer card: that is a
+      // second thing to do, whatever the app does.
+      test('keeps the cards to reveal while the trainer card asks for something else too', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller()],
+            trainer: trainer(appHoldsBridge: false, overlayOffered: true),
+            app: quitApp,
+          ),
+        );
+        expect(
+          chain.byKey(ChainLinkKey.trainer).pendingSteps.map((s) => s.id),
+          [SetupStepId.trainerAppBridged, SetupStepId.trainerGearOverlay],
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.appDropped, isFalse);
+        expect(banner.revealsOutstandingCards, isTrue);
+        expect(banner.stepsLeft, 3);
+      });
+
+      test('keeps the cards to reveal while a controller is outstanding too', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller(presence: DevicePresence.remembered)],
+            trainer: trainer(appHoldsBridge: false),
+            app: quitApp,
+          ),
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.appDropped, isFalse);
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+    });
+
+    test('an app that still holds the trainer after a drop gets the controller-tile banner', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(),
+          app: const AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            trainerBridgedByApp: true,
+          ),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.appDropped, isFalse);
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerLinkMissing);
+    });
+
+    test('a controller that broke still leads over a trainer app that dropped', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller(presence: DevicePresence.lost)],
+          app: const AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.broken);
+      expect(banner.targetKey, ChainLinkKey.controller);
+      expect(banner.appDropped, isFalse);
     });
 
     test('a bridged trainer waiting only on the controller link hands the banner that one step', () {

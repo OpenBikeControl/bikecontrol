@@ -2170,5 +2170,9 @@
       }
     }
   },
-  "chainStepNetworkAddressAction": "Netzwerk prüfen"
+  "chainStepNetworkAddressAction": "Netzwerk prüfen",
+  "chainStatusAppDisconnected": "{app} hat die Verbindung getrennt",
+  "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAppDropped": "{app} hat die Verbindung getrennt. Wenn du wieder fährst, verbinde die App über ihren Kopplungsbildschirm erneut.",
+  "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}}
 }
