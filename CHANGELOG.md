@@ -6,10 +6,16 @@
 - Better virtual shifting from a real cadence sensor: an external cadence sensor feeds virtual shifting directly, which sharpens it on trainers with a poor cadence signal and makes it work on trainers that report none at all.
 - Shift feedback: optional sound and vibration on this phone or tablet on every shift, with a distinct cue when you reach the last gear.
 - A "Need help?" card on the trainer page takes you straight to the Help Center with your setup attached.
+- L-TWOO eRX / eR9 electronic shifting (beta): the derailleur pairs as a controller, with an optional "Keep derailleur in place" mode so the chain stays on one cog while your virtual gears move.
+- Virtual shifting defaults to Track Resistance on trainers that can do grade, and control writes are paced so shifts land without latency.
+- Support: the composer says what it attaches (now including the Bluetooth wire trace), and you can delete a conversation or your account and all its data from the chat menu.
 
 Read more in our blog!
 
 **Fixes**:
+- Smart trainers: trainers with no cadence signal (ThinkRider XX Pro and others) get a felt step on every gear with the grade restated every second; the ThinkRider ramp follows your gear ratios; Tacx Neo appears on Windows despite its empty advertisement; FTMS control recovers when a trainer refuses the handshake; a trainer that refuses grade simulation is switched to power automatically and the trainer page tells you.
+- Resistance self-test runs on trainers that report no cadence and keeps its step-by-step log in the support bundle.
+- Zwift: actions you renamed are sent instead of dropped. Biketerra connects again. Desktop sign-in completes from a cold start. Android: the gear overlay survives release builds.
 - TrainerRoad: the Bridge now pairs with and is controlled by TrainerRoad over the network.
 - Android network self-test: two false alarms (own-hostname lookup, multicast lock) no longer flag a healthy setup.
 - Small phones: the home sheets scroll so Close stays reachable, and the Virtual Shifting profile buttons no longer squeeze the profile dropdown.
