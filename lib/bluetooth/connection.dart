@@ -769,8 +769,6 @@ class Connection {
       core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();
     }
 
-    ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
-
     // Rider metrics BikeControl itself sourced (currently just heart rate) are
     // served through their own definition, which lives either on the bridge's
     // composite or on a standalone emulator — never both. Isolated in its own
@@ -779,12 +777,10 @@ class Connection {
     try {
       final sensorDefinition = SensorDefinition();
       final standaloneSensorEmulator = DirconEmulator();
-      // Mirrors ftmsEmulator's own wiring above: without this, a lapsed
-      // subscriber's standalone heart rate monitor keeps advertising forever,
-      // untrialled and unlabelled — the bridge path already refuses to
-      // advertise once the trial's spent (`shouldAdvertise`) and marks
-      // itself while it still can (`isTrial`); the standalone path must too.
-      standaloneSensorEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+      // Without this, a lapsed subscriber's standalone heart rate monitor
+      // keeps advertising forever; the bridge path already refuses to
+      // advertise once the trial's spent (`shouldAdvertise`), so the
+      // standalone path must too.
       standaloneSensorEmulator.shouldAdvertise = () => IAPManager.instance.isProEnabledForCurrentDevice;
       // Never the trainer-app name (e.g. "Zwift Hub"): unlike ftmsEmulator,
       // which impersonates whatever trainer app the rider picked, this
