@@ -10,6 +10,7 @@ import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -156,14 +157,25 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       _loadError = null;
     });
     try {
-      final chat = await _service.openChat();
+      // Get-only: opening the page must never create a chat by itself (that
+      // was 135 of 444 chat rows in 30 days — someone merely looked, then
+      // left). A brand-new rider with a session but no messages yet gets
+      // chat: null here and stays that way until _send()'s lazy create
+      // (openChat()) runs on the first message.
       final fetched = await _service.fetchChat(skipLastSeen: false);
       if (!mounted) return;
       setState(() {
-        _chat = fetched.chat ?? chat;
+        _chat = fetched.chat;
         _messages = fetched.messages;
         _loading = false;
       });
+      // A returning rider's chat already exists server-side — flip the sticky
+      // "has a support chat" flag now, same as openChat() does for the
+      // lazy-create-on-send path, so HelpButton's unread-reply poll picks it
+      // up without waiting for another message.
+      if (fetched.chat != null) {
+        await core.settings.setSupportChatActive(true);
+      }
     } on SupportChatException catch (e) {
       if (!mounted) return;
       setState(() {
