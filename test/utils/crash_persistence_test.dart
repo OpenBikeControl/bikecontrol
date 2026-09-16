@@ -15,6 +15,29 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/utils/shared.dart' show Logger;
 
+/// A gather whose time limit never fires, standing in for an await in
+/// debugText that has no limit of its own.
+class _IgnoresTimeLimit implements Future<DebugDiagnostics> {
+  final _never = Completer<DebugDiagnostics>().future;
+
+  @override
+  Future<DebugDiagnostics> timeout(Duration timeLimit, {FutureOr<DebugDiagnostics> Function()? onTimeout}) => this;
+
+  @override
+  Future<R> then<R>(FutureOr<R> Function(DebugDiagnostics value) onValue, {Function? onError}) =>
+      _never.then(onValue, onError: onError);
+
+  @override
+  Future<DebugDiagnostics> catchError(Function onError, {bool Function(Object error)? test}) =>
+      _never.catchError(onError, test: test);
+
+  @override
+  Future<DebugDiagnostics> whenComplete(FutureOr<void> Function() action) => _never.whenComplete(action);
+
+  @override
+  Stream<DebugDiagnostics> asStream() => _never.asStream();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -25,15 +48,6 @@ void main() {
   setUp(() {
     core.connection.startLogCapture();
     logLinesBefore = core.connection.lastLogEntries.length;
-
-    // A diagnostics gather that never completes (a stuck interface lookup or
-    // platform call), so only debugText's own 6 s timeout ends it.
-    gathers = 0;
-    debugDiagnosticsGatherOverride = ({bool includeDiscovery = true}) {
-      gathers++;
-      return Completer<DebugDiagnostics>().future;
-    };
-    addTearDown(() => debugDiagnosticsGatherOverride = null);
 
     // The real pipeline stays in place; this only counts what reaches it.
     installLoggerErrorListener();
@@ -46,43 +60,97 @@ void main() {
     addTearDown(() => Logger.onRecordError = pipeline);
   });
 
+  /// Routes this test's diagnostics gathers through [gather], counting them.
+  void gatherVia(Future<DebugDiagnostics> Function() gather) {
+    final previous = debugDiagnosticsGatherOverride;
+    addTearDown(() => debugDiagnosticsGatherOverride = previous);
+    gathers = 0;
+    debugDiagnosticsGatherOverride = ({bool includeDiscovery = true}) {
+      gathers++;
+      return gather();
+    };
+  }
+
+  /// Records [message] through the real pipeline. Its listener prints every
+  /// error with a stack trace, so that output is kept for failing runs only.
+  /// Everything the record sets off later (timeouts, nested records) runs in
+  /// this zone too.
+  void record(String message, {required String context}) {
+    runZoned(
+      () => recordError(Exception(message), StackTrace.current, context: context),
+      zoneSpecification: ZoneSpecification(print: (_, _, _, line) => printOnFailure(line)),
+    );
+  }
+
   List<String> newLogLinesContaining(String text) => core.connection.lastLogEntries
       .skip(logLinesBefore)
       .map((e) => e.entry)
       .where((entry) => entry.contains(text))
       .toList();
 
-  test('a diagnostics timeout while persisting a crash is recorded once and never starts another gather', () {
-    fakeAsync((async) {
-      recordError(Exception('original failure'), StackTrace.current, context: 'test.original');
-      async.flushMicrotasks();
-      expect(gathers, 1, reason: 'the original error is persisted with a full debug text');
+  // Each test advances fake time before its first expectation. A failed
+  // expectation then can't leave a persist mid-gather, holding the guard for
+  // the tests after it.
+  group('with a diagnostics gather that never completes', () {
+    setUp(() => gatherVia(() => Completer<DebugDiagnostics>().future));
 
-      // Ten timeouts' worth of time: the old pipeline gathered again after each.
-      async.elapse(const Duration(minutes: 1));
+    test('a diagnostics timeout while persisting a crash is recorded once and never starts another gather', () {
+      fakeAsync((async) {
+        record('original failure', context: 'test.original');
+        async.flushMicrotasks();
+        final gathersOnRecord = gathers;
+        // Ten timeouts' worth of time: the old pipeline gathered again after each.
+        async.elapse(const Duration(minutes: 1));
 
-      expect(gathers, 1, reason: 'the timeout recorded inside the persist must not gather again');
-      expect(recordedContexts, ['test.original', 'debugText.diagnostics']);
-      expect(async.pendingTimers, isEmpty, reason: 'nothing may re-arm once the one timeout has fired');
-      // Recorded, not swallowed: each error reaches the support log exactly once.
-      expect(newLogLinesContaining('original failure'), hasLength(1));
-      expect(newLogLinesContaining('TimeoutException'), hasLength(1));
+        expect(gathersOnRecord, 1, reason: 'the original error is persisted with a full debug text');
+        expect(gathers, 1, reason: 'the timeout recorded inside the persist must not gather again');
+        expect(recordedContexts, ['test.original', 'debugText.diagnostics']);
+        expect(async.pendingTimers, isEmpty, reason: 'nothing may re-arm once the one timeout has fired');
+        // Recorded, not swallowed: each error reaches the support log exactly once.
+        expect(newLogLinesContaining('original failure'), hasLength(1));
+        expect(newLogLinesContaining('TimeoutException'), hasLength(1));
+      });
+    });
+
+    test('a later error, recorded after that persist finished, still gets its own diagnostics gather', () {
+      fakeAsync((async) {
+        record('first failure', context: 'test.first');
+        async.elapse(const Duration(seconds: 7));
+        final gathersAfterFirst = gathers;
+
+        record('second failure', context: 'test.second');
+        async.flushMicrotasks();
+        final gathersOnSecond = gathers;
+        async.elapse(const Duration(seconds: 7));
+
+        expect(gathersAfterFirst, 1);
+        expect(gathersOnSecond, 2, reason: 'the guard only covers the persist that is still gathering');
+        expect(gathers, 2);
+        expect(async.pendingTimers, isEmpty);
+      });
     });
   });
 
-  test('a later error, recorded after that persist finished, still gets its own diagnostics gather', () {
-    fakeAsync((async) {
-      recordError(Exception('first failure'), StackTrace.current, context: 'test.first');
-      async.elapse(const Duration(seconds: 7));
-      expect(gathers, 1);
+  group('with a debug text that never returns', () {
+    setUp(() => gatherVia(_IgnoresTimeLimit.new));
 
-      recordError(Exception('second failure'), StackTrace.current, context: 'test.second');
-      async.flushMicrotasks();
-      expect(gathers, 2, reason: 'the guard only covers the persist that is still gathering');
+    test('the persist stops waiting, records that once, and frees the guard for the next error', () {
+      fakeAsync((async) {
+        record('stalled failure', context: 'test.stalled');
+        async.elapse(const Duration(minutes: 1));
+        final contextsAfterFirst = [...recordedContexts];
 
-      async.elapse(const Duration(seconds: 7));
-      expect(gathers, 2);
-      expect(async.pendingTimers, isEmpty);
+        record('next failure', context: 'test.next');
+        async.flushMicrotasks();
+        final gathersOnNext = gathers;
+        async.elapse(const Duration(minutes: 1));
+
+        expect(contextsAfterFirst, ['test.stalled', 'persistCrash.debugText']);
+        expect(gathersOnNext, 2, reason: 'a debug text that never returns must not hold the guard for good');
+        expect(recordedContexts, ['test.stalled', 'persistCrash.debugText', 'test.next', 'persistCrash.debugText']);
+        expect(async.pendingTimers, isEmpty);
+        expect(newLogLinesContaining('TimeoutException'), hasLength(2));
+      });
     });
   });
 }

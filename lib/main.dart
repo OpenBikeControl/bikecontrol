@@ -301,7 +301,9 @@ Future<void> _persistCrash({
     } else {
       _gatheringCrashDebugText = true;
       try {
-        debugTextValue = await debugText(includeDiscovery: false);
+        // A limit of its own, above debugText's 3 s + 6 s, so the guard is
+        // released even if debugText ever awaits something without one.
+        debugTextValue = await debugText(includeDiscovery: false).timeout(const Duration(seconds: 12));
       } catch (e, s) {
         // The guard is still set, so this entry is persisted without a gather.
         recordError(e, s, context: 'persistCrash.debugText');
@@ -345,8 +347,10 @@ Future<void> _persistCrash({
     if (kDebugMode) {
       print('Failed to write crash log: $error');
     }
-    // Avoid throwing from the crash logger. Never recordError here either: a
-    // write that keeps failing would re-enter this function once per failure.
+    // Avoid throwing from the crash logger. A plain recordError here would
+    // loop: a write that keeps failing re-enters this function once per
+    // failure. Forwarding it behind a guard, like the debug-text one above,
+    // is a possible follow-up.
   }
 }
 
