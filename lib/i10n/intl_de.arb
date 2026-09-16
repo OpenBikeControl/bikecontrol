@@ -2050,9 +2050,17 @@
   "sensorsStatusBroadcasting": "Sendet als „BikeControl“",
   "sensorsClientConnected": "{client} verbunden",
   "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
-  "sensorsUseSensorsOnlyQuestion": "Kein Smart-Trainer?",
-  "sensorsUseSensorsOnly": "Nur Sensoren nutzen",
-  "sensorsConnectTrainerQuestion": "Smart-Trainer vorhanden?",
+  "sensorsUseSensorsOnlyQuestionApp": "Trainer direkt in {app} gekoppelt?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Trainer läuft nicht über BikeControl?",
+  "sensorsUseSensorsOnly": "Stattdessen Sensoren teilen",
+  "sensorsConnectTrainerQuestion": "Soll BikeControl den Trainer verbinden?",
   "sensorsConnectTrainer": "Trainer verbinden",
   "sensorsPageTitle": "Sensoren",
   "sensorsBroadcastEyebrow": "Übertragung",
