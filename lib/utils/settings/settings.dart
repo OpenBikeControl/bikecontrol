@@ -1022,24 +1022,31 @@ class Settings {
   bool getOverlayEnabled() => prefs.getBool('overlay_enabled') ?? false;
 
   Future<void> setOverlayEnabled(bool enabled) async {
+    // Read before the write: an overlay that is on counts as answered even
+    // without the flag (see [getOverlayAnswered]), and switching it off has to
+    // carry that answer forward — or a rider who enabled the overlay before
+    // the flag existed would be asked again the first time it goes off.
+    final wasAnswered = getOverlayAnswered();
     await prefs.setBool('overlay_enabled', enabled);
     // Turning the overlay on — from the home screen's step or the trainer
     // page's switch — answers the step, and is the rider changing their mind
     // about "Not now", so both are recorded here rather than at every call
-    // site. Turning it off records nothing: it is not an answer, and the step
-    // must not become required again over it — the Live Activity's "stop
-    // ride" switches the overlay off on every ride end.
-    if (enabled) {
-      await setOverlayAnswered(true);
-      await setOverlayDeclined(false);
-    }
+    // site. Turning it off is not an answer in itself, and the step must not
+    // become required again over it — the Live Activity's "stop ride"
+    // switches the overlay off on every ride end.
+    if (enabled || wasAnswered) await setOverlayAnswered(true);
+    if (enabled) await setOverlayDeclined(false);
   }
 
   /// Whether the rider has ever answered the home screen's gear-overlay step,
   /// either way. The step is required only until then; afterwards an overlay
   /// that is off is an offer, not outstanding work. Set by [setOverlayEnabled]
   /// and [setOverlayDeclined], never cleared.
-  bool getOverlayAnswered() => prefs.getBool('overlay_answered') ?? false;
+  ///
+  /// An overlay that is on is an answer whether or not it was recorded as
+  /// one: riders who turned it on before this flag existed carry no flag, and
+  /// have answered all the same.
+  bool getOverlayAnswered() => (prefs.getBool('overlay_answered') ?? false) || getOverlayEnabled();
 
   Future<void> setOverlayAnswered(bool answered) async {
     await prefs.setBool('overlay_answered', answered);

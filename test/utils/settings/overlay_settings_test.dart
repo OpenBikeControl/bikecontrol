@@ -71,6 +71,24 @@ void main() {
     expect(settings.getOverlayAnswered(), isFalse);
   });
 
+  // Riders who turned the overlay on before the flag existed have answered
+  // just as surely: an installed build with the overlay on carries no
+  // `overlay_answered`, and must not be asked again — not while it is on, and
+  // not the first time it goes off (the Live Activity's "stop ride" does that
+  // on every ride end).
+  test('enabled overlay counts as answered even without the flag', () async {
+    await settings.prefs.setBool('overlay_enabled', true);
+    expect(settings.prefs.getBool('overlay_answered'), isNull);
+    expect(settings.getOverlayAnswered(), isTrue);
+  });
+
+  test('switching off an overlay that predates the flag keeps it answered', () async {
+    await settings.prefs.setBool('overlay_enabled', true);
+    await settings.setOverlayEnabled(false);
+    expect(settings.getOverlayEnabled(), isFalse);
+    expect(settings.getOverlayAnswered(), isTrue);
+  });
+
   test('overlay fields default to {power, cadence}', () {
     expect(settings.getOverlayFields(),
         {OverlayField.power, OverlayField.cadence});
