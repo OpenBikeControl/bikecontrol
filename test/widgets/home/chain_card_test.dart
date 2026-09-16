@@ -38,12 +38,15 @@ Future<void> pumpCard(
   WidgetTester tester,
   ChainLink l, {
   VoidCallback? onInstructions,
+  VoidCallback? onSecondaryAction,
+  String? secondaryActionLabel,
   VoidCallback? onDismissed,
   VoidCallback? onTap,
   VoidCallback? onEdit,
   List<Widget> statusBadges = const [],
   Widget? footer,
   String? subtitle,
+  String? appName,
 }) async {
   await tester.pumpWidget(
     ShadcnApp(
@@ -63,7 +66,10 @@ Future<void> pumpCard(
                     title: l.title,
                     statusLabel: 'status',
                     statusBadges: statusBadges,
+                    appName: appName,
                     onInstructions: onInstructions,
+                    onSecondaryAction: onSecondaryAction,
+                    secondaryActionLabel: secondaryActionLabel,
                     onTap: onTap,
                     onEdit: onEdit,
                   ),
@@ -74,7 +80,10 @@ Future<void> pumpCard(
                   title: l.title,
                   statusLabel: 'status',
                   statusBadges: statusBadges,
+                  appName: appName,
                   onInstructions: onInstructions,
+                  onSecondaryAction: onSecondaryAction,
+                  secondaryActionLabel: secondaryActionLabel,
                   onTap: onTap,
                   onEdit: onEdit,
                   footer: footer,
@@ -149,6 +158,56 @@ void main() async {
     });
   });
 
+  // A required step that is really an offer — the gear overlay — needs a
+  // second answer, or "required" turns into "demanded". The second answer
+  // rides the active step beside its primary action, and only there: like
+  // the instructions button, it is part of the one next action on the card.
+  group('a secondary action', () {
+    testWidgets('sits beside the primary action on the active step and fires its own callback', (tester) async {
+      var primary = 0;
+      var secondary = 0;
+      await pumpCard(
+        tester,
+        link(status: LinkStatus.attention, steps: [true, false, false]),
+        onInstructions: () => primary++,
+        onSecondaryAction: () => secondary++,
+        secondaryActionLabel: 'Not now',
+      );
+
+      expect(find.text('Not now'), findsOneWidget);
+      // Beside, not below: the two answers read as one choice.
+      final primaryRect = tester.getRect(find.text(l.chainShowMeHow));
+      final secondaryRect = tester.getRect(find.text('Not now'));
+      expect(secondaryRect.left, greaterThan(primaryRect.right));
+      expect(secondaryRect.center.dy, moreOrLessEquals(primaryRect.center.dy, epsilon: 1));
+
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+      expect(secondary, 1);
+      expect(primary, 0);
+    });
+
+    testWidgets('is absent without a callback, and never rides a non-active step', (tester) async {
+      await pumpCard(
+        tester,
+        link(status: LinkStatus.attention, steps: [true, false, false]),
+        onInstructions: () {},
+        secondaryActionLabel: 'Not now',
+      );
+      expect(find.text('Not now'), findsNothing);
+
+      await pumpCard(
+        tester,
+        link(status: LinkStatus.attention, steps: [true, false, false]),
+        onInstructions: () {},
+        onSecondaryAction: () {},
+        secondaryActionLabel: 'Not now',
+      );
+      final rows = tester.widgetList<StepRow>(find.byType(StepRow)).toList();
+      expect(rows.map((r) => r.onSecondaryAction != null), [true, false]);
+    });
+  });
+
   testWidgets('an unfilled optional card is tagged as such', (tester) async {
     await pumpCard(tester, link(status: LinkStatus.off, optional: true, steps: []));
     expect(find.text(l.chainOptional.toUpperCase()), findsOneWidget);
@@ -170,46 +229,78 @@ void main() async {
     }
   });
 
-  // The gear overlay: an offer that lives in the checklist rather than in a
+  // Local control: an offer that lives in the checklist rather than in a
   // toast that scrolls away. It has to read as an offer on the line itself,
   // otherwise a rider who doesn't want it sees a card that is never finished.
+  // (The gear overlay used to be this fixture; it is a required step now.)
   group('an optional step', () {
-    ChainLink overlayLink({bool alone = true}) => ChainLink(
-      key: ChainLinkKey.trainer,
-      id: 'trainer',
+    ChainLink localControlLink({bool alone = true}) => ChainLink(
+      key: ChainLinkKey.app,
+      id: 'app',
       status: LinkStatus.ready,
-      title: 'KICKR CORE',
-      optional: true,
+      title: 'MyWhoosh',
       steps: [
-        const SetupStep(id: SetupStepId.trainerPaired, done: true),
-        SetupStep(id: SetupStepId.trainerAppBridged, done: alone),
-        const SetupStep(id: SetupStepId.trainerGearOverlay, done: false, optional: true),
+        const SetupStep(id: SetupStepId.appSelected, done: true),
+        const SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+        SetupStep(id: SetupStepId.appConnected, done: alone),
+        const SetupStep(id: SetupStepId.appLocalControl, done: false, optional: true),
       ],
     );
 
     testWidgets('is tagged optional on its own line', (tester) async {
-      await pumpCard(tester, overlayLink());
+      await pumpCard(tester, localControlLink());
 
-      expect(find.text(l.chainStepOverlay), findsOneWidget);
+      expect(find.text(l.chainStepLocalControl), findsOneWidget);
       // The card is connected, so its header has dropped the tag — the only one
       // left is the step's own, sitting beside the step rather than in the
       // title row.
       expect(find.text(l.chainOptional.toUpperCase()), findsOneWidget);
       expect(
         tester.getTopLeft(find.text(l.chainOptional.toUpperCase())).dy,
-        greaterThan(tester.getTopLeft(find.text(l.chainStepOverlay)).dy - 1),
+        greaterThan(tester.getTopLeft(find.text(l.chainStepLocalControl)).dy - 1),
       );
     });
 
     testWidgets('states why it exists before it is the active step', (tester) async {
-      await pumpCard(tester, overlayLink(alone: false));
+      await pumpCard(tester, localControlLink(alone: false));
 
       final rows = tester.widgetList<StepRow>(find.byType(StepRow)).toList();
-      expect(rows.map((r) => r.step.id), [SetupStepId.trainerAppBridged, SetupStepId.trainerGearOverlay]);
+      expect(rows.map((r) => r.step.id), [SetupStepId.appConnected, SetupStepId.appLocalControl]);
       // Not the active step, so no button — but the reason is on screen anyway:
       // it is the whole content of the offer.
       expect(rows.last.active, isFalse);
-      expect(find.text(l.chainStepOverlayHint(l.chainAppTitle)), findsOneWidget);
+      expect(find.text(l.chainStepLocalControlHint(l.chainAppTitle)), findsOneWidget);
+    });
+  });
+
+  // The gear overlay's pending line names the consequence for the rider's
+  // app; a card with no app chosen gets a sentence of its own instead of the
+  // generic "Trainer app" glued into the placeholder.
+  group('the gear overlay step', () {
+    ChainLink overlayLink() => const ChainLink(
+      key: ChainLinkKey.trainer,
+      id: 'trainer',
+      status: LinkStatus.attention,
+      title: 'KICKR CORE',
+      optional: true,
+      steps: [
+        SetupStep(id: SetupStepId.trainerPaired, done: true),
+        SetupStep(id: SetupStepId.trainerAppBridged, done: true),
+        SetupStep(id: SetupStepId.trainerGearOverlay, done: false),
+      ],
+    );
+
+    testWidgets('names the app that will keep showing its own gear', (tester) async {
+      await pumpCard(tester, overlayLink(), appName: 'MyWhoosh');
+      expect(find.text(l.chainStepOverlayPending('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStepOverlayHint('MyWhoosh')), findsOneWidget);
+      // Required now: no OPTIONAL tag on the line.
+      expect(find.text(l.chainOptional.toUpperCase()), findsNothing);
+    });
+
+    testWidgets('falls back to a whole sentence when no app is chosen', (tester) async {
+      await pumpCard(tester, overlayLink());
+      expect(find.text(l.chainStepOverlayPendingNoApp), findsOneWidget);
     });
   });
 

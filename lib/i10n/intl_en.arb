@@ -1891,7 +1891,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl already stops the right side switching itself off. Its lights still go dark on their own, though — switching the left side on nearby keeps them lit. It only needs to be in range, not paired.",
   "chainStepTrainerPaired": "Trainer connected",
   "chainStepTrainerPairedPending": "Connect your trainer",
-  "chainStepOverlay": "Show your gear on screen",
   "chainStepOverlayDone": "Gear overlay is on",
   "chainStepOverlayHint": "{appName} can't display BikeControl's virtual gears. Enable the gear overlay to see your current gear during the ride.",
   "@chainStepOverlayHint": {
@@ -2294,5 +2293,15 @@
   "shiftFeedbackSound": "Play a sound when shifting",
   "shiftFeedbackSoundSubtitle": "Distinct cues for shifting up, shifting down and reaching the last gear",
   "shiftFeedbackHaptics": "Vibrate this device when shifting",
-  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller."
+  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller.",
+  "chainStepOverlayPending": "{appName} will keep showing its own gear",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Your trainer app will keep showing its own gear",
+  "chainStepOverlayDecline": "Not now"
 }

@@ -1624,7 +1624,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl empêche déjà le côté droit de s'éteindre. Ses voyants s'éteignent malgré tout d'eux-mêmes — allumer le côté gauche à proximité les garde allumés. Il suffit qu'il soit à portée, sans être connecté.",
   "chainStepTrainerPaired": "Home trainer connecté",
   "chainStepTrainerPairedPending": "Connecte ton home trainer",
-  "chainStepOverlay": "Affiche ta vitesse à l'écran",
   "chainStepOverlayDone": "L'Overlay de vitesse est activé",
   "chainStepOverlayHint": "{appName} ne peut pas afficher les vitesses virtuelles de BikeControl. Active l'Overlay pour voir ta vitesse actuelle pendant la séance.",
   "@chainStepOverlayHint": {
@@ -2102,5 +2101,15 @@
   "sensorValueCadence": "{value} tr/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "chainStepOverlayPending": "{appName} continuera d’afficher sa propre vitesse",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Ton application d’entraînement continuera d’afficher sa propre vitesse",
+  "chainStepOverlayDecline": "Pas maintenant"
 }

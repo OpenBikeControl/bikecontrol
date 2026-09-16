@@ -90,11 +90,14 @@ class SetupStep {
   /// does not colour its card, does not count towards the banner's steps, and
   /// never stops a rider being ready to ride.
   ///
-  /// It exists because the single most common support question — "why does
-  /// MyWhoosh show the wrong gear?" — has an answer no rider is *required* to
-  /// act on (turn the gear overlay on), and a toast that scrolls away was not
-  /// reaching them. A permanent line on the card is, precisely because it does
-  /// not expire.
+  /// Today that is the SRAM restore, the Click V2 keep-awake and Local
+  /// control: things a rider may genuinely never want. It was introduced for
+  /// the gear overlay, and the gear overlay is exactly where it failed —
+  /// riders walked past the optional line as they had walked past the toast
+  /// before it, and "why does MyWhoosh show the wrong gear?" stayed the most
+  /// common support question. That step is required now, with an explicit
+  /// "not now" as its way off the card; see [SetupStepId.trainerGearOverlay]
+  /// in the chain builder.
   final bool optional;
 
   /// Whether [done] is a best guess rather than a fact. Only

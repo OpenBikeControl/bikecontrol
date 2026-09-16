@@ -30,8 +30,8 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
   final ProxyDevice device;
 
   /// Scrolls to the Overlay section after the first frame. Used by the home
-  /// screen's optional "Show your gear on screen" step so its button lands the
-  /// rider directly on the "Show overlay during ride" switch.
+  /// screen's gear-overlay step so its button lands the rider directly on the
+  /// "Show overlay during ride" switch.
   final bool revealOverlaySection;
 
   const ProxyDeviceDetailsPage({super.key, required this.device, this.revealOverlaySection = false});

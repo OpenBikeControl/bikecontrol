@@ -136,6 +136,7 @@ class TrainerInput {
     this.metrics,
     this.overlayOffered = false,
     this.overlayEnabled = false,
+    this.overlayDeclined = false,
   });
 
   final String deviceId;
@@ -173,8 +174,15 @@ class TrainerInput {
   final bool overlayOffered;
 
   /// Whether the rider already turned the overlay on, which is what ticks the
-  /// optional step off the card.
+  /// step off the card.
   final bool overlayEnabled;
+
+  /// Whether the rider answered the overlay step with "Not now". The step is
+  /// required — it holds the card amber until it is answered — so a rider who
+  /// has said no must be able to make it go away; this is that answer, and it
+  /// takes the step off the card until the overlay is turned on (which clears
+  /// it — see `Settings.setOverlayEnabled`).
+  final bool overlayDeclined;
 }
 
 class AppInput {

@@ -19,6 +19,28 @@ void main() {
     expect(settings.getOverlayEnabled(), isTrue);
   });
 
+  test('overlay declined defaults to false and round-trips', () async {
+    expect(settings.getOverlayDeclined(), isFalse);
+    await settings.setOverlayDeclined(true);
+    expect(settings.getOverlayDeclined(), isTrue);
+  });
+
+  // "Not now" on the home screen's step must not outlive the rider changing
+  // their mind: turning the overlay on anywhere — the step's own button or the
+  // trainer page's switch — is that change of mind, so the setter clears it
+  // rather than leaving every call site to remember.
+  test('turning the overlay on clears a decline', () async {
+    await settings.setOverlayDeclined(true);
+    await settings.setOverlayEnabled(true);
+    expect(settings.getOverlayDeclined(), isFalse);
+  });
+
+  test('turning the overlay off leaves a decline alone', () async {
+    await settings.setOverlayDeclined(true);
+    await settings.setOverlayEnabled(false);
+    expect(settings.getOverlayDeclined(), isTrue);
+  });
+
   test('overlay fields default to {power, cadence}', () {
     expect(settings.getOverlayFields(),
         {OverlayField.power, OverlayField.cadence});

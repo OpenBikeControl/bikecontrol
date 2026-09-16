@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 /// [enableTrainerOverlay] — the one path that turns the gear overlay on, run by
-/// both the Overlay section's switch and the home screen's optional step.
+/// both the Overlay section's switch and the home screen's gear-overlay step.
 ///
 /// The rule worth pinning down is that the persisted flag follows the platform
 /// rather than the intent: a rider who declines Android's draw-over prompt must

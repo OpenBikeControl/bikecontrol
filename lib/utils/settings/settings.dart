@@ -1023,6 +1023,19 @@ class Settings {
 
   Future<void> setOverlayEnabled(bool enabled) async {
     await prefs.setBool('overlay_enabled', enabled);
+    // Turning the overlay on — from the home screen's step or the trainer
+    // page's switch — is the rider changing their mind about "Not now", so the
+    // decline is cleared here rather than at every call site.
+    if (enabled) await setOverlayDeclined(false);
+  }
+
+  /// Whether the rider answered the home screen's gear-overlay step with
+  /// "Not now". Keeps the step off the trainer card until the overlay is
+  /// turned on somewhere, which clears it again — see [setOverlayEnabled].
+  bool getOverlayDeclined() => prefs.getBool('overlay_declined') ?? false;
+
+  Future<void> setOverlayDeclined(bool declined) async {
+    await prefs.setBool('overlay_declined', declined);
   }
 
   /// iOS only: whether to use the floating Picture-in-Picture overlay.

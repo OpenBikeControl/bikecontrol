@@ -179,18 +179,19 @@ ChainLink _trainerLink(ChainInputs inputs) {
             done: trainer.appHoldsBridge,
             hintArg: trainer.bridgeName,
           ),
-          // Last, and optional: the trainer app shows its own gear, not the one
-          // BikeControl computes, so a bridged rider who has not turned the
-          // overlay on is looking at a number that will disagree with their
-          // shifter. That is the single most common support question, and it
-          // outlived a toast — so it lives on the card until it is acted on.
-          // Only offered once the bridge is up: before that there is no gear.
-          if (paired && trainer.overlayOffered)
-            SetupStep(
-              id: SetupStepId.trainerGearOverlay,
-              done: trainer.overlayEnabled,
-              optional: true,
-            ),
+          // Last, and required until answered: the trainer app shows its own
+          // gear, not the one BikeControl computes, so a bridged rider who has
+          // not turned the overlay on is looking at a number that will disagree
+          // with their shifter. That is the single most common support
+          // question, and it outlived a toast *and* an optional line on this
+          // card — so the step now blocks "Ready to ride" until the rider
+          // either turns the overlay on or says "not now". A decline takes the
+          // step off the card entirely (a greyed-out offer would still read as
+          // unfinished) until the overlay is switched on somewhere, which
+          // clears it. Only offered once the bridge is up: before that there
+          // is no gear.
+          if (paired && trainer.overlayOffered && (trainer.overlayEnabled || !trainer.overlayDeclined))
+            SetupStep(id: SetupStepId.trainerGearOverlay, done: trainer.overlayEnabled),
         ]
       : const <SetupStep>[];
 

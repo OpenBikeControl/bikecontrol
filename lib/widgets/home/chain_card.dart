@@ -26,6 +26,8 @@ class ChainCard extends StatefulWidget {
     this.onEdit,
     this.onInstructions,
     this.instructionsLabel,
+    this.onSecondaryAction,
+    this.secondaryActionLabel,
     this.body,
     this.onTap,
     this.footer,
@@ -56,6 +58,13 @@ class ChainCard extends StatefulWidget {
   /// there is exactly one next action visible per card.
   final VoidCallback? onInstructions;
   final String? instructionsLabel;
+
+  /// A second answer to the active step, beside [onInstructions] — "Not now"
+  /// on the gear overlay. Only for a required step that is really an offer:
+  /// without a way to say no, "required" reads as "demanded". Rendered only
+  /// when both the callback and [secondaryActionLabel] are given.
+  final VoidCallback? onSecondaryAction;
+  final String? secondaryActionLabel;
 
   /// Extra content between the header and the checklist — the controller
   /// contour, for instance.
@@ -328,6 +337,8 @@ class _ChainCardState extends State<ChainCard> {
               appName: widget.appName,
               onInstructions: index == 0 ? widget.onInstructions : null,
               instructionsLabel: widget.instructionsLabel,
+              onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
+              secondaryActionLabel: widget.secondaryActionLabel,
             ),
         ],
       ),
@@ -374,6 +385,8 @@ class StepRow extends StatelessWidget {
     this.appName,
     this.onInstructions,
     this.instructionsLabel,
+    this.onSecondaryAction,
+    this.secondaryActionLabel,
   });
 
   final SetupStep step;
@@ -381,6 +394,10 @@ class StepRow extends StatelessWidget {
   final String? appName;
   final VoidCallback? onInstructions;
   final String? instructionsLabel;
+
+  /// See [ChainCard.onSecondaryAction]. Only ever set on the active row.
+  final VoidCallback? onSecondaryAction;
+  final String? secondaryActionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -393,6 +410,7 @@ class StepRow extends StatelessWidget {
         ? theme.colorScheme.primary
         : theme.colorScheme.mutedForeground.withAlpha(120);
     final hint = text.hint;
+    final showSecondary = onSecondaryAction != null && secondaryActionLabel != null;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -461,13 +479,30 @@ class StepRow extends StatelessWidget {
                     style: TextStyle(fontSize: 12, height: 1.4, color: theme.colorScheme.mutedForeground),
                   ),
                 ],
-                if (active && onInstructions != null) ...[
+                if (active && (onInstructions != null || showSecondary)) ...[
                   const Gap(8),
-                  PrimaryButton(
-                    size: ButtonSize.small,
-                    onPressed: onInstructions,
-                    leading: const Icon(LucideIcons.bookOpen, size: 13),
-                    child: Text(instructionsLabel ?? context.i18n.chainShowMeHow),
+                  // The second answer rides the same line as the first so the
+                  // two read as one choice — a Wrap rather than a Row, so a
+                  // long translation drops it underneath instead of clipping.
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (onInstructions != null)
+                        PrimaryButton(
+                          size: ButtonSize.small,
+                          onPressed: onInstructions,
+                          leading: const Icon(LucideIcons.bookOpen, size: 13),
+                          child: Text(instructionsLabel ?? context.i18n.chainShowMeHow),
+                        ),
+                      if (showSecondary)
+                        Button.ghost(
+                          style: const ButtonStyle.ghost(size: ButtonSize.small),
+                          onPressed: onSecondaryAction,
+                          child: Text(secondaryActionLabel!),
+                        ),
+                    ],
                   ),
                 ],
               ],
