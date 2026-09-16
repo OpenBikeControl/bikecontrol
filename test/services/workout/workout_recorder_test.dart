@@ -69,4 +69,88 @@ void main() {
       expect(result.activeDuration.inMilliseconds, inInclusiveRange(400, 600));
     });
   });
+
+  group('health export bookkeeping', () {
+    DateTime base() => DateTime.utc(2026, 4, 24, 10, 0, 0);
+
+    test('pause intervals and end time are reported; a pause open at stop closes at the end', () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(fake.metrics);
+        async.elapse(const Duration(seconds: 10));
+        rec.pause();
+        async.elapse(const Duration(seconds: 5));
+        rec.resume();
+        async.elapse(const Duration(seconds: 10));
+        rec.pause();
+        async.elapse(const Duration(seconds: 3));
+
+        final result = rec.stop();
+        expect(result.endedAt, base().add(const Duration(seconds: 28)));
+        expect(result.pauses, hasLength(2));
+        expect(result.pauses[0].start, base().add(const Duration(seconds: 10)));
+        expect(result.pauses[0].end, base().add(const Duration(seconds: 15)));
+        expect(result.pauses[1].start, base().add(const Duration(seconds: 25)));
+        expect(result.pauses[1].end, base().add(const Duration(seconds: 28)));
+        expect(result.activeDuration, const Duration(seconds: 20));
+      });
+    });
+
+    test('a backdated pause excludes the coast from active time', () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(fake.metrics);
+        async.elapse(const Duration(seconds: 30));
+        // Pedalling stopped at 20 s; the pause is only detected at 30 s.
+        rec.pause(at: base().add(const Duration(seconds: 20)));
+        async.elapse(const Duration(seconds: 60));
+
+        // Stopping at the pause start drops the trailing pause entirely.
+        final result = rec.stop(at: base().add(const Duration(seconds: 20)));
+        expect(result.activeDuration, const Duration(seconds: 20));
+        expect(result.endedAt, base().add(const Duration(seconds: 20)));
+        expect(result.pauses, isEmpty);
+      });
+    });
+
+    test('samples carry whether heart rate came from Apple Health', () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        var fromHealth = true;
+        final metrics = TrainerMetrics(
+          powerW: fake.power,
+          cadenceRpm: fake.cadence,
+          speedKph: fake.speed,
+          heartRateBpm: fake.hr,
+          isHeartRateFromHealth: () => fromHealth,
+        );
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        fake.hr.value = 120;
+        rec.start(metrics);
+        async.elapse(const Duration(seconds: 1));
+        fromHealth = false;
+        async.elapse(const Duration(seconds: 1));
+
+        final result = rec.stop();
+        expect(result.samples.map((s) => s.heartRateFromHealth), [true, false]);
+      });
+    });
+
+    test('updateMetrics swaps the source mid-recording (trainer reconnected)', () {
+      fakeAsync((async) {
+        final first = _Fake()..power.value = 100;
+        final second = _Fake()..power.value = 250;
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(first.metrics);
+        async.elapse(const Duration(seconds: 1));
+        rec.updateMetrics(second.metrics);
+        async.elapse(const Duration(seconds: 1));
+
+        expect(rec.samples.map((s) => s.powerW), [100, 250]);
+        expect(rec.startedAt, base());
+      });
+    });
+  });
 }
