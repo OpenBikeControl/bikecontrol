@@ -34,7 +34,7 @@ Future<bool> registerThisDevice(BuildContext context) async {
     return false;
   } catch (e, s) {
     recordError(e, s, context: 'Register this device');
-    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: 'Could not register device: $e');
+    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailed('$e'));
     return false;
   }
   return iap.isProEnabledForCurrentDevice;

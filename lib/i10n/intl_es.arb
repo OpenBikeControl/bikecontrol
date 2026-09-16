@@ -525,7 +525,6 @@
   "paywall_billedAtPricemo": "Se cobra {price}/mes",
   "paywall_billedAtYearly": "Se cobra {cost}/año",
   "paywall_configure3ActionsPerButton": "Configurar 3 acciones por botón",
-  "paywall_connectToYourTrainer": "Conéctate con tu entrenador",
   "paywall_controlYourDeviceMusic": "Controla tu dispositivo/música",
   "paywall_createScreenshots": "Crear capturas de pantalla",
   "paywall_monthly": "Mensual",
@@ -2115,5 +2114,7 @@
   "purchaseProUnregisteredBody": "Este dispositivo aún no está registrado, así que las funciones Pro siguen desactivadas aquí.",
   "registerThisDevice": "Registrar este dispositivo",
   "proUnregisteredTitle": "Pro está en tu cuenta, no en este dispositivo",
-  "proUnregisteredBody": "El cambio de marchas virtual sigue limitado aquí hasta que registres este dispositivo."
+  "proUnregisteredBody": "El cambio de marchas virtual sigue limitado aquí hasta que registres este dispositivo.",
+  "registerDeviceFailed": "No se pudo registrar este dispositivo: {error}",
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}}
 }

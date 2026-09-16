@@ -3,8 +3,8 @@ import 'package:bike_control/widgets/register_this_device.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// After a Base purchase: what Base covers and, above all, what it doesn't.
-/// Twelve "bought Base, still 20-min trial" chats, refund demands and a
-/// one-star review came from riders who found out the hard way.
+/// Riders who bought Base for BikeControl-driven virtual shifting found out
+/// about the daily limit the hard way — say it at the moment of purchase.
 Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
   return showDialog<void>(
     context: context,

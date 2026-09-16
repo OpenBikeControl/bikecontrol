@@ -1,5 +1,5 @@
-// Support-UX: nine "Pro (unregistered device)" chats where the only hint was
-// the title bar's status line. Riders in that state (Pro on the account, this
+// Support-UX: "Pro (unregistered device)" in the title bar's status line was
+// the only hint. Riders in that state (Pro on the account, this
 // device not registered) now get a banner on Home that says so and carries
 // the fix — "Register this device" — and it stays until the state clears.
 import 'package:bike_control/gen/l10n.dart';

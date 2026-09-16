@@ -86,7 +86,7 @@ class IAPManager {
   /// "Pro (unregistered device)" in the title bar and wrote in believing Pro
   /// was broken — the home banner, the virtual-shifting notice and the
   /// post-purchase dialog all key off this.
-  bool get isProButDeviceUnregistered => isProEnabled && !isProEnabledForCurrentDevice;
+  bool get isProButDeviceUnregistered => _isInitialized && isProEnabled && !isProEnabledForCurrentDevice;
 
   bool get isProEnabledForCurrentDeviceOrDidPurchaseOld {
     if (!_isInitialized) return false;

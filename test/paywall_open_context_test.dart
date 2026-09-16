@@ -96,8 +96,8 @@ Future<void> main() async {
     expect(find.byType(SheetPullToDismiss), findsOneWidget);
   });
 
-  // Support-UX: twelve "bought Base, still 20-min trial" chats. The moment the
-  // store confirms Base, the paywall closes itself (the entitlement listener)
+  // Support-UX: riders bought Base and were surprised by the 20-min limit. The
+  // moment the store confirms Base, the paywall closes itself (the listener)
   // — so the confirmation has to outlive the paywall: it is shown on the root
   // navigator, and it must fire off the state change, not off the purchase
   // call returning (RevenueCat's call can take seconds to come back).
@@ -141,6 +141,57 @@ Future<void> main() async {
     expect(find.byType(Paywall), findsNothing, reason: 'the drawer closes on the entitlement change');
 
     // Nothing is left running once the rider has read it.
+    await tester.tap(find.text('Got it!'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('You now have Base'), findsNothing);
+  });
+
+  // Entitlement notifications come in pairs after a purchase (RevenueCat's
+  // customer-info listener, then the entitlements refresh), and the paywall is
+  // still mounted during its exit transition when the second one lands. In
+  // the dialog host a second pop would take whatever is on top by then — the
+  // confirmation dialog just pushed, or the route beneath it.
+  testWidgets('dialog host: a second entitlement notify during the close does not pop again', (tester) async {
+    // No Scaffold → no DrawerOverlay → _showPaywall's dialog fallback.
+    final context = await pumpApp(tester, (capture) => Builder(builder: (c) {
+          capture(c);
+          return const SizedBox.expand();
+        }));
+    await tapGoPro(tester, context);
+    expect(find.byType(Paywall), findsOneWidget);
+    expect(find.byType(SheetPullToDismiss), findsNothing, reason: 'must be the dialog host');
+
+    final baseCard = find.textContaining('One-time purchase for the');
+    await tester.ensureVisible(baseCard);
+    await tester.pump();
+    await tester.tap(baseCard);
+    await tester.pump();
+    final purchase = find.text('Purchase');
+    await tester.ensureVisible(purchase);
+    await tester.pump();
+    await tester.tap(purchase);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // First notify: the paywall route starts closing, the confirmation is pushed.
+    IAPManager.instance.isPurchased.value = true;
+    await tester.pump();
+    expect(find.text('You now have Base'), findsOneWidget);
+
+    // Second notify, mid-transition (the paywall is still mounted).
+    expect(find.byType(Paywall), findsOneWidget, reason: 'the test must land the second notify mid-transition');
+    IAPManager.instance.isPurchased.value = false;
+    IAPManager.instance.isPurchased.value = true;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    // The navigator drops a finished route's widgets a frame after finalizing.
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('You now have Base'), findsOneWidget, reason: 'the second notify must not pop the confirmation');
+    expect(find.byType(Paywall), findsNothing);
+
     await tester.tap(find.text('Got it!'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));

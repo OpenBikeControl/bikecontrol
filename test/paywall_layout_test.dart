@@ -95,8 +95,8 @@ Future<void> main() async {
     expect(cellRect.right, lessThanOrEqualTo(proCheckInRow.left));
   });
 
-  // 23 cross-store restore chats: Base is bound to the storefront it was bought
-  // on. The note names that storefront under the Base card.
+  // Cross-store restores: Base is bound to the storefront it was bought on.
+  // The note names that storefront under the Base card.
   testWidgets('Base card names the store its one-time purchase is bound to', (tester) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);

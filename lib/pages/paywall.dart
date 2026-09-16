@@ -268,15 +268,28 @@ class _PaywallState extends State<Paywall> {
     }
   }
 
+  /// Closes the paywall — once. Entitlement notifications come in pairs after
+  /// a purchase (RevenueCat's customer-info listener, then the entitlements
+  /// refresh), and this widget is still mounted during its exit transition
+  /// when the second one lands; a second pop would take whatever is on top by
+  /// then — the confirmation dialog just pushed, or the route beneath.
   void _close() {
+    if (_closing) return;
+    _closing = true;
     // The drawer is the normal host; _showPaywall falls back to a dialog when
     // no DrawerOverlay is in scope, and closeDrawer has nothing to close there.
     if (DrawerOverlay.maybeFind(context) != null) {
       closeDrawer(context);
-    } else {
-      Navigator.of(context).maybePop();
+      return;
+    }
+    // Pop this route, not whatever happens to be on top.
+    final route = ModalRoute.of(context);
+    if (route != null && route.isCurrent) {
+      Navigator.of(context).pop();
     }
   }
+
+  bool _closing = false;
 
   void _beginAttempt({required bool isBasePurchase}) {
     _attempt = (

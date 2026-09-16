@@ -952,7 +952,6 @@
   "paywall_billedAtPricemo": "Billed at {price}/mo.",
   "paywall_billedAtYearly": "Billed at {cost}/yr.",
   "paywall_configure3ActionsPerButton": "Configure 3 actions per button",
-  "paywall_connectToYourTrainer": "Connect to your trainer",
   "paywall_controlYourDeviceMusic": "Control your device / music",
   "paywall_createScreenshots": "Create screenshots",
   "paywall_monthly": "Monthly",
@@ -2307,5 +2306,7 @@
   "purchaseProUnregisteredBody": "This device isn't registered yet, so Pro features stay off here.",
   "registerThisDevice": "Register this device",
   "proUnregisteredTitle": "Pro is on your account, not on this device",
-  "proUnregisteredBody": "Virtual shifting stays limited here until you register this device."
+  "proUnregisteredBody": "Virtual shifting stays limited here until you register this device.",
+  "registerDeviceFailed": "Could not register this device: {error}",
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}}
 }

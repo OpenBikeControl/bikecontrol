@@ -7,7 +7,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Home banner for the rider whose account has Pro but whose device is not
 /// registered for it — until now signalled only by "Pro (unregistered
-/// device)" in the title bar, which nine support chats show nobody reads.
+/// device)" in the title bar, which riders do not read.
 /// Says what is going on and carries the fix. Not dismissible: the state
 /// itself is what clears it. Renders nothing (no gap either) otherwise, and
 /// follows the IAP notifiers so a restore or a registration moves it without

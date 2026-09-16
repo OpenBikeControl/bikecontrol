@@ -525,7 +525,6 @@
   "paywall_billedAtPricemo": "Facturé {price}/mois",
   "paywall_billedAtYearly": "Facturé {cost}/an",
   "paywall_configure3ActionsPerButton": "Configurer 3 actions par bouton",
-  "paywall_connectToYourTrainer": "Connecte-toi avec ton entraîneur",
   "paywall_controlYourDeviceMusic": "Contrôle ton appareil / musique",
   "paywall_createScreenshots": "Créer des captures d'écran",
   "paywall_monthly": "Mensuel",
@@ -2115,5 +2114,7 @@
   "purchaseProUnregisteredBody": "Cet appareil n'est pas encore enregistré, les fonctions Pro restent donc désactivées ici.",
   "registerThisDevice": "Enregistrer cet appareil",
   "proUnregisteredTitle": "Pro est sur ton compte, pas sur cet appareil",
-  "proUnregisteredBody": "Le changement de vitesses virtuel reste limité ici tant que tu n'as pas enregistré cet appareil."
+  "proUnregisteredBody": "Le changement de vitesses virtuel reste limité ici tant que tu n'as pas enregistré cet appareil.",
+  "registerDeviceFailed": "Impossible d'enregistrer cet appareil : {error}",
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}}
 }
