@@ -274,6 +274,11 @@ Future<void> main() async {
       final field = tester.widget<TextArea>(find.byType(TextArea));
       expect(field.controller!.text, 'please help', reason: 'composer keeps the typed text so the rider can retry');
       expect(tester.takeException(), isNull);
+
+      // The recorded sign-in failure is persisted with a debug text whose
+      // diagnostics gather never completes under the test clock. Let its one
+      // 6 s timeout fire so no timer is still pending when the test ends.
+      await tester.pump(const Duration(seconds: 7));
     });
   });
 

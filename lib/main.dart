@@ -272,6 +272,14 @@ void installLoggerErrorListener() {
   };
 }
 
+/// True while [_persistCrash] is gathering [debugText] for an entry. An error
+/// recorded in that window — above all `debugText.diagnostics` timing out
+/// because the diagnostics gather hangs — is still logged and persisted, but
+/// without a debug text of its own: gathering again would hang and time out
+/// the same way, record the next timeout, and repeat every 6 s for the rest of
+/// the process.
+bool _gatheringCrashDebugText = false;
+
 Future<void> _persistCrash({
   required String type,
   required String error,
@@ -288,10 +296,19 @@ Future<void> _persistCrash({
 
     final timestamp = DateTime.now().toIso8601String();
     String debugTextValue;
-    try {
-      debugTextValue = await debugText(includeDiscovery: false);
-    } catch (e, s) {
-      debugTextValue = 'Exception $e';
+    if (_gatheringCrashDebugText) {
+      debugTextValue = 'Debug text: skipped (recorded while another crash entry was gathering it)';
+    } else {
+      _gatheringCrashDebugText = true;
+      try {
+        debugTextValue = await debugText(includeDiscovery: false);
+      } catch (e, s) {
+        // The guard is still set, so this entry is persisted without a gather.
+        recordError(e, s, context: 'persistCrash.debugText');
+        debugTextValue = 'Exception $e';
+      } finally {
+        _gatheringCrashDebugText = false;
+      }
     }
     final crashData = StringBuffer()
       ..writeln('--- $timestamp ---')
@@ -328,7 +345,8 @@ Future<void> _persistCrash({
     if (kDebugMode) {
       print('Failed to write crash log: $error');
     }
-    // Avoid throwing from the crash logger
+    // Avoid throwing from the crash logger. Never recordError here either: a
+    // write that keeps failing would re-enter this function once per failure.
   }
 }
 

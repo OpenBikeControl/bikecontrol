@@ -249,7 +249,7 @@ void main() {
 
     // The failure-path tests call recordError, whose real listener gathers
     // debug diagnostics on a 6s timeout that never completes under the test
-    // clock and re-arms itself. Trip the install guard first (it only
+    // clock, leaving a timer pending. Trip the install guard first (it only
     // assigns once per isolate), then swap in a listener that only collects.
     installLoggerErrorListener();
     recordedErrors = [];

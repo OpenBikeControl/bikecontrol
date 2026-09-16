@@ -36,6 +36,9 @@ class _FakeMdnsSocket implements MdnsSocket {
   InternetAddress? egressInterfaceFor(InternetAddress source) => null;
 
   @override
+  List<InternetAddress> reachableEgressInterfaces() => const [];
+
+  @override
   Future<void> setAdvertisedAddress(InternetAddress address) async {}
 
   @override

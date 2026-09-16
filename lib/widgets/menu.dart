@@ -112,6 +112,11 @@ List<Widget> buildMenuButtons(BuildContext context) {
   ];
 }
 
+/// Test seam: stands in for [DebugDiagnostics.gather] inside [debugText], so a
+/// test can model a gather that hangs. Null outside tests.
+@visibleForTesting
+Future<DebugDiagnostics> Function({bool includeDiscovery})? debugDiagnosticsGatherOverride;
+
 Future<String> debugText({bool includeDiscovery = true}) async {
   // Every value here is read defensively. debugText also runs on the
   // startup-failure path (the recovery screen's "won't start" support mail),
@@ -144,7 +149,8 @@ Future<String> debugText({bool includeDiscovery = true}) async {
 
   String diagnostics;
   try {
-    final diag = await DebugDiagnostics.gather(includeDiscovery: includeDiscovery).timeout(const Duration(seconds: 6));
+    final gather = debugDiagnosticsGatherOverride ?? DebugDiagnostics.gather;
+    final diag = await gather(includeDiscovery: includeDiscovery).timeout(const Duration(seconds: 6));
     diagnostics = diag.toText();
   } catch (e, s) {
     recordError(e, s, context: 'debugText.diagnostics');
