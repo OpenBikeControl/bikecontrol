@@ -56,19 +56,30 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   /// Resolves which concrete Virtual Shifting [RetrofitMode] a fresh connect
-  /// should start in: the last saved VS transport if there is one, otherwise the
-  /// transport mirrored from the active Trainer Connections (BT wins over WiFi,
-  /// WiFi when nothing is enabled).
+  /// should start in: the last saved VS transport if there is one (already
+  /// folded into WiFi on a same-device setup, see
+  /// [ProxyDevice.savedRetrofitMode]), otherwise the transport mirrored from
+  /// the active Trainer Connections (BT wins over WiFi, WiFi when nothing is
+  /// enabled).
   RetrofitMode get _initialVsTransport {
-    final saved = core.settings.getRetrofitMode(
-      widget.device.trainerKey,
-      fallback: widget.device.defaultRetrofitMode,
-    );
+    final saved = widget.device.savedRetrofitMode;
     if (saved == RetrofitMode.bluetooth || saved == RetrofitMode.wifi) {
       return _vsTransports.contains(saved) ? saved : _vsTransports.first;
     }
     return _resolvedVirtualShiftingMode;
   }
+
+  /// Whether the trainer app runs on this same device. A Bluetooth bridge can
+  /// never be found from the device advertising it — a BLE peripheral is
+  /// invisible to a central on the same adapter — so Bluetooth is not a
+  /// Virtual Shifting transport here. (Only WiFi loops back.)
+  bool get _isSameDevice => core.settings.getLastTarget() == Target.thisDevice;
+
+  /// Whether a Bluetooth resolution for this trainer is being folded into WiFi
+  /// by [_isSameDevice] (see [ProxyDevice.sameDeviceFoldsBluetooth]). Read
+  /// fresh on every build: it clears the moment a WiFi connect persists WiFi,
+  /// or the target moves off this device.
+  bool get _sameDeviceOverridesBluetooth => widget.device.sameDeviceFoldsBluetooth;
 
   /// The Virtual Shifting transports the selected trainer app can actually find
   /// our trainer on, in the order the toggle offers them. Both for nearly every
@@ -81,7 +92,12 @@ class _ConnectionCardState extends State<ConnectionCard> {
     ];
     // An app declaring no transport at all would leave the rider with no way to
     // connect; offer both rather than render an empty toggle.
-    return modes.isEmpty ? const [RetrofitMode.wifi, RetrofitMode.bluetooth] : modes;
+    if (modes.isEmpty) modes.addAll(const [RetrofitMode.wifi, RetrofitMode.bluetooth]);
+    // Same device: Bluetooth is a dead end whatever the app declares — even an
+    // app that only pairs over Bluetooth (FulGaz) leaves WiFi as the one
+    // transport this card can honestly offer.
+    if (_isSameDevice) modes.remove(RetrofitMode.bluetooth);
+    return modes.isEmpty ? const [RetrofitMode.wifi] : modes;
   }
 
   /// Mirrors the active Trainer Connections — BT wins over WiFi, WiFi as the
@@ -275,10 +291,14 @@ class _ConnectionCardState extends State<ConnectionCard> {
   /// Bridge (trainer-app-side) connection status used as the accordion trigger.
   /// Green dot when the trainer app has connected to our advertised bridge,
   /// a spinner while connecting/switching, muted otherwise.
+  ///
+  /// Reads this device's own state wrappers, not `emulator.*`: in the VS
+  /// modes the emulator is the one shared bridge, and a twin entry (the same
+  /// trainer over the other transport) released in a path switch keeps
+  /// pointing at it — its page would light up with the live twin's bridge.
   Widget _bridgeStatusRow(RetrofitMode mode, _ConnectSelection selection, bool connecting) {
-    final emulator = widget.device.emulator;
-    final connected = emulator.isConnected.value;
-    final started = emulator.isStarted.value;
+    final connected = widget.device.isConnectedListenable.value;
+    final started = widget.device.isStartedListenable.value;
     final IconData icon = switch (mode) {
       RetrofitMode.bluetooth => LucideIcons.bluetooth,
       RetrofitMode.wifi => LucideIcons.wifi,
@@ -355,6 +375,15 @@ class _ConnectionCardState extends State<ConnectionCard> {
     ColorScheme cs,
   ) {
     final bool showToggle = s == _ConnectSelection.virtualShifting && active == _ConnectSelection.virtualShifting;
+    // The rider chose Bluetooth for this trainer, but the toggle no longer
+    // offers it: say why the row runs over WiFi instead of silently dropping
+    // their choice. Plain muted text — nothing to dismiss, it goes away on its
+    // own once WiFi is persisted or the app moves to another device. Not
+    // while a Bluetooth bridge is actually live (see [_transportToggle]) —
+    // "using WiFi" would be untrue.
+    final bool liveOverBluetooth = active == _ConnectSelection.virtualShifting && mode == RetrofitMode.bluetooth;
+    final bool showSameDeviceNote =
+        s == _ConnectSelection.virtualShifting && _sameDeviceOverridesBluetooth && !liveOverBluetooth;
     return RadioCard<_ConnectSelection>(
       value: s,
       child: Row(
@@ -374,6 +403,11 @@ class _ConnectionCardState extends State<ConnectionCard> {
                   _selectionHint(s),
                   style: TextStyle(fontSize: 11, color: cs.mutedForeground),
                 ),
+                if (showSameDeviceNote)
+                  Text(
+                    AppLocalizations.of(context).vsTransportSameDeviceNote,
+                    style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                  ),
               ],
             ),
           ),
@@ -384,32 +418,31 @@ class _ConnectionCardState extends State<ConnectionCard> {
   }
 
   /// Inline WiFi/Bluetooth toggle shown inside the active Virtual Shifting row.
-  /// Collapses to a plain label when the trainer app only takes one transport
-  /// (see [SupportedApp.virtualShiftingTransports]) — there is nothing to pick.
+  /// Collapses to a plain label when only one transport is on offer (an app
+  /// that takes a single one, see [SupportedApp.virtualShiftingTransports], or
+  /// a same-device setup) — there is nothing to pick.
+  ///
+  /// The transport actually running is always shown, even when it is not on
+  /// offer (the target moved to this device while a Bluetooth bridge was
+  /// live): the toggle never claims a transport the bridge is not on, and the
+  /// offered one stays tappable as the way out.
   Widget _transportToggle(RetrofitMode active) {
     final l10n = AppLocalizations.of(context);
-    final transports = _vsTransports;
-    if (transports.length < 2) {
-      final only = transports.first;
-      return _transportButton(
-        only,
-        only == RetrofitMode.bluetooth ? LucideIcons.bluetooth : LucideIcons.wifi,
-        only == RetrofitMode.bluetooth ? l10n.connectionBluetooth : l10n.connectionWifi,
-        true,
-      );
-    }
+    final offered = _vsTransports;
+    final shown = [
+      for (final t in const [RetrofitMode.wifi, RetrofitMode.bluetooth])
+        if (offered.contains(t) || t == active) t,
+    ];
+    Widget button(RetrofitMode t) => _transportButton(
+      t,
+      t == RetrofitMode.bluetooth ? LucideIcons.bluetooth : LucideIcons.wifi,
+      t == RetrofitMode.bluetooth ? l10n.connectionBluetooth : l10n.connectionWifi,
+      shown.length < 2 || t == active,
+    );
+    if (shown.length < 2) return button(shown.first);
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        _transportButton(RetrofitMode.wifi, LucideIcons.wifi, l10n.connectionWifi, active == RetrofitMode.wifi),
-        const SizedBox(width: 6),
-        _transportButton(
-          RetrofitMode.bluetooth,
-          LucideIcons.bluetooth,
-          l10n.connectionBluetooth,
-          active == RetrofitMode.bluetooth,
-        ),
-      ],
+      children: [button(shown.first), const SizedBox(width: 6), button(shown.last)],
     );
   }
 

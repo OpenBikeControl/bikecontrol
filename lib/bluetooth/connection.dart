@@ -105,6 +105,16 @@ class Connection {
     ...devices.whereType<HidDevice>(),
   ];
 
+  /// The same physical trainer listed a second time over the other transport
+  /// — the WiFi (DirCon) entry of a Bluetooth-discovered trainer, or vice
+  /// versa. Twins share one [ProxyDevice.trainerKey], so one tap's consent and
+  /// settings cover both; what must never be shared is a live upstream, or the
+  /// two paths fight over resistance. Null when the trainer is listed once.
+  ProxyDevice? twinOf(ProxyDevice device) => proxyDevices.firstOrNullWhere(
+    (other) =>
+        !identical(other, device) && other.trainerKey == device.trainerKey && other.isWifiUpstream != device.isWifiUpstream,
+  );
+
   var _androidNotificationsSetup = false;
 
   final _connectionQueue = <BaseDevice>[];
@@ -1461,12 +1471,75 @@ class Connection {
   /// [ProxyDevice.startProxy] would reconnect the BLE upstream but leave
   /// `isConnected` stuck — the listener that flips it is torn down on
   /// disconnect and only [_connect] re-establishes it.
-  Future<void> connectDevice(BaseDevice device) {
+  Future<void> connectDevice(BaseDevice device) async {
     // An explicit reconnect (e.g. the device picker) clears any battery-saver
     // suppression so the controller auto-reconnects normally again afterwards.
     if (device is BluetoothDevice) _suppressedAutoReconnect.remove(device.device.deviceId);
+    // A twin that would not let go is refused here, by the manual path itself
+    // — not left to the auto-connect gate inside ProxyDevice.connect(), which
+    // would decline silently and leave the rider staring at a picker that
+    // snapped back to "No connection".
+    if (device is ProxyDevice && !await _releaseTwin(device)) return;
     return _connect(device);
   }
+
+  /// A trainer listed over both transports is one trainer: connecting its
+  /// WiFi entry while the Bluetooth entry holds it (or vice versa) is a path
+  /// switch, not a second connection. The sibling is torn down — and awaited —
+  /// before this entry's connect starts, so at no point are two upstreams
+  /// live. It stays listed as the way back; while this entry holds the
+  /// trainer, [ProxyDevice.shouldAutoConnect] keeps the queue from bringing
+  /// the sibling back on its own.
+  ///
+  /// Returns whether [device] may go ahead: true when no twin held the
+  /// trainer or the twin is idle now; false when it is still not — then the
+  /// rider has been told (alert) and the caller must not connect.
+  ///
+  /// The shared consent (`auto_connect_<trainerKey>`) and saved mode are
+  /// deliberately left as the picker wrote them on a refusal: consent is the
+  /// one key under which the sibling is still holding the trainer, so
+  /// clearing it would strip the sibling's own reconnect too, and the saved
+  /// mode is simply the rider's latest pick, taken up by whichever entry
+  /// connects next.
+  Future<bool> _releaseTwin(ProxyDevice device) async {
+    final twin = twinOf(device);
+    if (twin == null || !twin.isConnectedOrConnecting) return true;
+    _actionStreams.add(
+      LogNotification(
+        '${device.trainerKey}: switching from ${twin.isWifiUpstream ? 'WiFi' : 'Bluetooth'} '
+        'to ${device.isWifiUpstream ? 'WiFi' : 'Bluetooth'}',
+      ),
+    );
+    // dropped: a sibling still mid-connect has no link to report yet, but its
+    // teardown must run anyway or the in-flight connect lands next to ours.
+    await disconnect(twin, forget: false, persistForget: false, keepInList: true, dropped: !twin.isConnected);
+    // The sibling reports idle a moment after its teardown, not during it:
+    // BaseDevice.disconnect() clears `isConnected` a microtask after
+    // BluetoothDevice.disconnect() returns, and a connect still in flight only
+    // unwinds — through its own failure on the torn-down transport — later
+    // still, `isStarting` holding until it does. Wait it out, bounded, on the
+    // whole held-state predicate rather than any one flag.
+    final deadline = DateTime.now().add(twinReleaseTimeout);
+    while (twin.isConnectedOrConnecting && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    if (!twin.isConnectedOrConnecting) return true;
+    final l10n = AppLocalizations.current;
+    _actionStreams.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_WARNING,
+        l10n.trainerTwinStillConnecting(
+          device.toString(),
+          twin.isWifiUpstream ? l10n.connectionWifi : l10n.connectionBluetooth,
+        ),
+      ),
+    );
+    return false;
+  }
+
+  /// How long a path switch waits for the released sibling to report idle
+  /// (see [_releaseTwin]). Mutable as a test seam.
+  Duration twinReleaseTimeout = const Duration(seconds: 5);
 
   Future<void> _connect(BaseDevice device) async {
     // Cancel any stale subscriptions from a previous connect attempt so a retry

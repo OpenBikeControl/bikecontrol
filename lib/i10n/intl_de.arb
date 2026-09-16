@@ -2131,5 +2131,10 @@
   "chainPendingSubtitleController": "Dein Trainer ist über die Bridge verbunden, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Warte darauf, dass {app} ihn erkennt",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "Bluetooth erreicht keine App auf diesem Gerät — WLAN wird verwendet.",
+  "trainerTwinSubtitle": "Derselbe Trainer über {transport} — Verbinden wechselt auf diesen Weg",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} verbindet sich noch über {transport}. Warte kurz und versuch es dann noch einmal.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

@@ -2131,5 +2131,10 @@
   "chainPendingSubtitleController": "Twój trenażer działa przez mostek, ale Twoje przyciski nie dotrą do {app}, dopóki nie połączysz też kontrolera BikeControl na jego ekranie parowania.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Czekam, aż {app} go wykryje",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "Bluetooth nie dotrze do aplikacji na tym samym urządzeniu — używane jest Wi-Fi.",
+  "trainerTwinSubtitle": "Ten sam trenażer przez {transport} — połączenie przełącza na tę ścieżkę",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} wciąż łączy się przez {transport}. Odczekaj chwilę i spróbuj ponownie.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

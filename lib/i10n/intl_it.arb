@@ -2131,5 +2131,10 @@
   "chainPendingSubtitleController": "Il tuo rullo passa dal bridge, ma i tuoi pulsanti non raggiungeranno {app} finché non colleghi anche il controller BikeControl nella sua schermata di associazione.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "In attesa che {app} lo rilevi",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "Il Bluetooth non può raggiungere un'app su questo stesso dispositivo — viene usato il Wi-Fi.",
+  "trainerTwinSubtitle": "Stesso rullo via {transport} — connettersi passa a questo percorso",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} si sta ancora connettendo via {transport}. Attendi un momento, poi riprova.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

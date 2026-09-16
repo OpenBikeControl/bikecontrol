@@ -2131,5 +2131,10 @@
   "chainPendingSubtitleController": "Tu rodillo ya pasa por el puente, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Esperando a que {app} lo detecte",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "El Bluetooth no puede llegar a una app en este mismo dispositivo — se usa Wifi.",
+  "trainerTwinSubtitle": "Mismo rodillo por {transport} — conectar cambia a esta vía",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} todavía se está conectando por {transport}. Espera un momento y vuelve a intentarlo.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

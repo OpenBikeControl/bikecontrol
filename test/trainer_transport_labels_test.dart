@@ -362,6 +362,53 @@ Future<void> main() async {
     });
   });
 
+  group('twin subtitle in the trainer list', () {
+    // The list entry is BaseDevice.showInformation (ProxyPage renders exactly
+    // that), whose meta line comes from ProxyDevice.showMetaInformation.
+    Future<void> pumpEntry(WidgetTester tester, ProxyDevice device) =>
+        pump(tester, (c) => device.showInformation(c, showFull: false));
+
+    testWidgets('the idle entry names its own transport as the path a tap switches to', (tester) async {
+      final ble = bleTrainer()..isConnected = true;
+      final wifi = wifiTrainer();
+      core.connection.devices.addAll([ble, wifi]);
+
+      await pumpEntry(tester, wifi);
+
+      // The row carries a WiFi badge; "this path" must be that same transport,
+      // or badge and sentence contradict each other.
+      expect(find.text('Same trainer over WiFi — connecting switches to this path'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.wifi), findsOneWidget);
+      // …in place of the "Connect for:" feature pitch, which the live sibling
+      // is already delivering.
+      expect(find.textContaining('Connect'), findsNothing);
+    });
+
+    testWidgets('the Bluetooth entry says Bluetooth while the WiFi twin is live', (tester) async {
+      final ble = bleTrainer();
+      final wifi = wifiTrainer()..debugSetTrainerAppConnected(true);
+      core.connection.devices.addAll([ble, wifi]);
+
+      await pumpEntry(tester, ble);
+
+      expect(find.text('Same trainer over Bluetooth — connecting switches to this path'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.bluetooth), findsOneWidget);
+    });
+
+    testWidgets('no subtitle while the twin is idle, or for a lone entry', (tester) async {
+      final ble = bleTrainer();
+      final wifi = wifiTrainer();
+      core.connection.devices.addAll([ble, wifi]);
+
+      await pumpEntry(tester, wifi);
+      expect(find.textContaining('Same trainer over'), findsNothing);
+
+      core.connection.devices.remove(ble);
+      await pumpEntry(tester, wifi);
+      expect(find.textContaining('Same trainer over'), findsNothing);
+    });
+  });
+
   group('chain card picks the live trainer', () {
     test('a bridged duplicate beats an idle one whatever the discovery order', () {
       final idle = wifiTrainer();

@@ -2131,5 +2131,10 @@
   "chainPendingSubtitleController": "Ton home trainer passe par le pont, mais tes boutons n'atteindront pas {app} tant que tu n'auras pas aussi connecté le contrôleur BikeControl sur son écran d'association.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "En attente que {app} le détecte",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "Le Bluetooth ne peut pas atteindre une appli sur ce même appareil — le Wi-Fi est utilisé.",
+  "trainerTwinSubtitle": "Même home trainer via {transport} — se connecter bascule sur cette voie",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} est encore en train de se connecter via {transport}. Patiente un instant, puis réessaie.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }
