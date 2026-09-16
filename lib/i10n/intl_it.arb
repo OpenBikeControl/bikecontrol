@@ -2050,10 +2050,18 @@
   "sensorsStatusBroadcasting": "In trasmissione come “BikeControl”",
   "sensorsClientConnected": "{client} connesso",
   "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
-  "sensorsUseSensorsOnlyQuestion": "Nessuno smart trainer?",
-  "sensorsUseSensorsOnly": "Usa solo i sensori",
-  "sensorsConnectTrainerQuestion": "Hai uno smart trainer?",
-  "sensorsConnectTrainer": "Collega un trainer",
+  "sensorsUseSensorsOnlyQuestionApp": "Trainer associato direttamente in {app}?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Il trainer non passa da BikeControl?",
+  "sensorsUseSensorsOnly": "Condividi invece i sensori",
+  "sensorsConnectTrainerQuestion": "Vuoi che BikeControl faccia da ponte al trainer?",
+  "sensorsConnectTrainer": "Collega il trainer",
   "sensorsPageTitle": "Sensori",
   "sensorsBroadcastEyebrow": "Trasmissione",
   "sensorsBroadcastTitle": "Condividi i sensori",

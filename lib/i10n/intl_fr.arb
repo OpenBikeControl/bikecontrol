@@ -2050,10 +2050,18 @@
   "sensorsStatusBroadcasting": "Diffusion en tant que « BikeControl »",
   "sensorsClientConnected": "{client} connecté",
   "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
-  "sensorsUseSensorsOnlyQuestion": "Pas de home trainer connecté ?",
-  "sensorsUseSensorsOnly": "Utiliser seulement les capteurs",
-  "sensorsConnectTrainerQuestion": "Vous avez un home trainer connecté ?",
-  "sensorsConnectTrainer": "Connecter un home trainer",
+  "sensorsUseSensorsOnlyQuestionApp": "Home trainer associé directement dans {app} ?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Le home trainer ne passe pas par BikeControl ?",
+  "sensorsUseSensorsOnly": "Partager les capteurs à la place",
+  "sensorsConnectTrainerQuestion": "BikeControl doit-il relayer le home trainer ?",
+  "sensorsConnectTrainer": "Connecter le home trainer",
   "sensorsPageTitle": "Capteurs",
   "sensorsBroadcastEyebrow": "Diffusion",
   "sensorsBroadcastTitle": "Partager les capteurs",

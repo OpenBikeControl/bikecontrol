@@ -1839,10 +1839,18 @@
       }
     }
   },
-  "sensorsUseSensorsOnlyQuestion": "No smart trainer?",
-  "sensorsUseSensorsOnly": "Use sensors only",
-  "sensorsConnectTrainerQuestion": "Have a smart trainer?",
-  "sensorsConnectTrainer": "Connect a trainer",
+  "sensorsUseSensorsOnlyQuestionApp": "Trainer paired directly in {app}?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Trainer not going through BikeControl?",
+  "sensorsUseSensorsOnly": "Share sensors instead",
+  "sensorsConnectTrainerQuestion": "Want BikeControl to bridge the trainer?",
+  "sensorsConnectTrainer": "Connect trainer",
   "sensorsPageTitle": "Sensors",
   "sensorsBroadcastEyebrow": "Broadcast",
   "sensorsBroadcastTitle": "Share sensors",

@@ -2050,10 +2050,18 @@
   "sensorsStatusBroadcasting": "Emitiendo como “BikeControl”",
   "sensorsClientConnected": "{client} conectado",
   "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
-  "sensorsUseSensorsOnlyQuestion": "¿Sin rodillo inteligente?",
-  "sensorsUseSensorsOnly": "Usar solo sensores",
-  "sensorsConnectTrainerQuestion": "¿Tienes un rodillo inteligente?",
-  "sensorsConnectTrainer": "Conectar un rodillo",
+  "sensorsUseSensorsOnlyQuestionApp": "¿Rodillo emparejado directamente en {app}?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "¿El rodillo no pasa por BikeControl?",
+  "sensorsUseSensorsOnly": "Compartir sensores en su lugar",
+  "sensorsConnectTrainerQuestion": "¿Quieres que BikeControl haga de puente con el rodillo?",
+  "sensorsConnectTrainer": "Conectar rodillo",
   "sensorsPageTitle": "Sensores",
   "sensorsBroadcastEyebrow": "Emisión",
   "sensorsBroadcastTitle": "Compartir sensores",

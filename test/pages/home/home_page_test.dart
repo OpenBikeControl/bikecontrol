@@ -173,16 +173,19 @@ void _sensorsOnlyTests() {
       core.connection.standaloneClientConnected = ValueNotifier(false);
     });
 
-    testWidgets('no trainer: the trainer card offers "Use sensors only", and tapping it swaps in the Sensors card', (
+    testWidgets('no trainer: the trainer card offers "Share sensors instead", and tapping it swaps in the Sensors card', (
       tester,
     ) async {
+      // setUp above selects MyWhoosh as the trainer app, so the footer's
+      // question names it rather than asking the app-agnostic question —
+      // covered separately below for the no-app-selected case.
       await _pumpHome(tester);
 
       expect(_chainCard(ChainLinkKey.trainer), findsOneWidget);
       expect(_chainCard(ChainLinkKey.sensors), findsNothing);
       final footer = find.byKey(const Key('chain-card-footer'));
       expect(footer, findsOneWidget);
-      expect(find.text(l.sensorsUseSensorsOnlyQuestion), findsOneWidget);
+      expect(find.text(l.sensorsUseSensorsOnlyQuestionApp('MyWhoosh')), findsOneWidget);
       expect(find.text(l.sensorsUseSensorsOnly), findsOneWidget);
 
       await tester.tap(find.text(l.sensorsUseSensorsOnly));
@@ -194,12 +197,24 @@ void _sensorsOnlyTests() {
       // The trainer card's own footer is gone with it — but the Sensors card
       // that replaced it carries the reverse offer ("Connect a trainer"),
       // covered by its own tests below.
-      expect(find.text(l.sensorsUseSensorsOnlyQuestion), findsNothing);
+      expect(find.text(l.sensorsUseSensorsOnlyQuestionApp('MyWhoosh')), findsNothing);
       expect(find.text(l.sensorsConnectTrainerQuestion), findsOneWidget);
       // The strip's tap is its own — it must not fall through to the card
       // and open the trainer connect sheet underneath.
       await tester.pumpAndSettle();
       expect(find.text(l.close), findsNothing);
+    });
+
+    testWidgets('no trainer, no app selected: the trainer card asks the app-agnostic question', (tester) async {
+      // Unlike the test above, no trainer app is selected here — the footer
+      // falls back to the app-agnostic phrasing instead of naming one.
+      await core.settings.prefs.remove('trainer_app');
+      await _pumpHome(tester);
+
+      final footer = find.byKey(const Key('chain-card-footer'));
+      expect(footer, findsOneWidget);
+      expect(find.text(l.sensorsUseSensorsOnlyQuestion), findsOneWidget);
+      expect(find.text(l.sensorsUseSensorsOnly), findsOneWidget);
     });
 
     // Task: the reverse affordance — once sensors-only mode has hidden the

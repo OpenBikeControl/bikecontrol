@@ -894,7 +894,9 @@ class _HomePageState extends State<HomePage> {
       // rider is on right now.
       footer: inputs.trainer?.presence != DevicePresence.connected
           ? ChainCardFooterRow(
-              question: context.i18n.sensorsUseSensorsOnlyQuestion,
+              question: inputs.app.name != null
+                  ? context.i18n.sensorsUseSensorsOnlyQuestionApp(inputs.app.name!)
+                  : context.i18n.sensorsUseSensorsOnlyQuestion,
               action: context.i18n.sensorsUseSensorsOnly,
               onPressed: _enterSensorsOnlyMode,
             )

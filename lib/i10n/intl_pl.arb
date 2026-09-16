@@ -2050,9 +2050,17 @@
   "sensorsStatusBroadcasting": "Nadaje jako „BikeControl”",
   "sensorsClientConnected": "{client} połączono",
   "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
-  "sensorsUseSensorsOnlyQuestion": "Nie masz smart trenażera?",
-  "sensorsUseSensorsOnly": "Używaj tylko czujników",
-  "sensorsConnectTrainerQuestion": "Masz smart trenażer?",
+  "sensorsUseSensorsOnlyQuestionApp": "Trenażer sparowany bezpośrednio w {app}?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Trenażer nie działa przez BikeControl?",
+  "sensorsUseSensorsOnly": "Zamiast tego udostępnij czujniki",
+  "sensorsConnectTrainerQuestion": "Chcesz, aby BikeControl łączył trenażer?",
   "sensorsConnectTrainer": "Połącz trenażer",
   "sensorsPageTitle": "Czujniki",
   "sensorsBroadcastEyebrow": "Nadawanie",
