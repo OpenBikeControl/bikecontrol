@@ -49,7 +49,12 @@ class ReadyBanner extends StatelessWidget {
       case ChainBannerKind.pending:
         title = l.chainStepsLeftTitle(banner.stepsLeft);
         final names = banner.outstandingKeys.map((k) => chainLinkName(context, k)).toList();
-        subtitle = names.length == 1
+        // With the trainer already picked up and only the controller tile
+        // left, "finish the Trainer app card" points back at a screen the
+        // rider has already been on. Name the missing pairing instead.
+        subtitle = banner.soleStep?.variant == SetupStepVariant.controllerLinkMissing
+            ? l.chainPendingSubtitleController(appName ?? l.chainAppTitle)
+            : names.length == 1
             ? l.chainPendingSubtitleSingle(names.single)
             // "A, B and C" — the last name joined with "and", the rest with commas.
             : l.chainPendingSubtitleMultiple('${names.take(names.length - 1).join(', ')} & ${names.last}');

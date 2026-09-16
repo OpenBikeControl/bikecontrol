@@ -2121,5 +2121,15 @@
     }
   },
   "chainStepOverlayPendingNoApp": "Ton application d’entraînement continuera d’afficher sa propre vitesse",
-  "chainStepOverlayDecline": "Pas maintenant"
+  "chainStepOverlayDecline": "Pas maintenant",
+  "chainStepAppControllerPending": "{app} n'est pas encore connecté à tes boutons",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} lit déjà ton home trainer via BikeControl. Tes boutons ont besoin d'un second lien : sur l'écran d'association de {app}, touche la tuile BikeControl sous « Contrôleurs » — c'est une tuile distincte de celle du home trainer.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "Sur l'écran d'association de {app}, choisis « {bridge} » comme home trainer — pas « {trainer} » sous son propre nom, cela contourne BikeControl.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Ton home trainer passe par le pont, mais tes boutons n'atteindront pas {app} tant que tu n'auras pas aussi connecté le contrôleur BikeControl sur son écran d'association.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "En attente que {app} le détecte",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
 }

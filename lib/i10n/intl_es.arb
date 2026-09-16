@@ -2121,5 +2121,15 @@
     }
   },
   "chainStepOverlayPendingNoApp": "Tu app de entrenamiento seguirá mostrando su propia marcha",
-  "chainStepOverlayDecline": "Ahora no"
+  "chainStepOverlayDecline": "Ahora no",
+  "chainStepAppControllerPending": "{app} aún no está conectada a tus botones",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} ya lee tu rodillo a través de BikeControl. Tus botones necesitan un segundo enlace: en la pantalla de emparejamiento de {app}, toca la ficha de BikeControl en «Controladores» — es una ficha distinta de la del rodillo.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "En la pantalla de emparejamiento de {app}, elige «{bridge}» como rodillo — no «{trainer}» con su propio nombre, eso deja a BikeControl fuera.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Tu rodillo ya pasa por el puente, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "Esperando a que {app} lo detecte",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
 }

@@ -70,12 +70,16 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
         ? ChainStepText(l.chainStepTrainerPaired)
         : ChainStepText(l.chainStepTrainerPairedPending),
     // Whether the trainer app has actually picked the bridge up. The hint names
-    // the exact entry to look for, which is the thing riders miss.
+    // the exact entry to look for, which is the thing riders miss — and, when
+    // the trainer's own name is known, the entry right beside it that they
+    // pick instead, which bypasses BikeControl altogether.
     SetupStepId.trainerAppBridged => step.done
         ? ChainStepText(l.chainStepTrainerBridged(app))
         : ChainStepText(
             l.chainStepTrainerBridgedPending(app),
-            l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app),
+            step.secondaryHintArg != null
+                ? l.chainStepTrainerBridgedHint2(app, step.hintArg ?? 'BikeControl', step.secondaryHintArg!)
+                : l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app),
           ),
     // The label names the consequence rather than the feature — "MyWhoosh
     // will keep showing its own gear" — because "show your gear on screen" was
@@ -100,8 +104,14 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.appLocalNetwork => step.done
         ? ChainStepText(l.chainStepAppLocalNetwork)
         : ChainStepText(l.chainStepAppLocalNetworkPending, l.chainStepAppLocalNetworkHint),
+    // The trainer app pairs BikeControl twice, as a trainer and as a
+    // controller. With the trainer already picked up, the pending copy names
+    // the second tile rather than saying "connect the app" about an app that
+    // is, in the rider's eyes, already connected.
     SetupStepId.appConnected => step.done
         ? ChainStepText(l.chainStepAppConnected(app))
+        : step.variant == SetupStepVariant.controllerLinkMissing
+        ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app))
         : ChainStepText(l.chainStepAppConnectedPending(app), l.chainStepAppConnectedHint),
     // Like the overlay step, the hint is the offer: "Local control" means
     // nothing on its own, and what it buys — keyboard and mouse actions on a

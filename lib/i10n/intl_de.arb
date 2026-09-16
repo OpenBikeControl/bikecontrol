@@ -2121,5 +2121,15 @@
     }
   },
   "chainStepOverlayPendingNoApp": "Deine Trainer-App zeigt weiterhin ihren eigenen Gang an",
-  "chainStepOverlayDecline": "Jetzt nicht"
+  "chainStepOverlayDecline": "Jetzt nicht",
+  "chainStepAppControllerPending": "{app} ist noch nicht mit deinen Tasten verbunden",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} liest deinen Trainer bereits über BikeControl. Deine Tasten brauchen eine zweite Verbindung: Tippe im Kopplungsbildschirm von {app} unter „Controller“ auf die BikeControl-Kachel — das ist eine eigene Kachel, getrennt vom Trainer.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "Wähle im Kopplungsbildschirm von {app} „{bridge}“ als Trainer — nicht „{trainer}“ unter seinem eigenen Namen, das umgeht BikeControl.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Dein Trainer ist über die Bridge verbunden, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "Warte darauf, dass {app} ihn erkennt",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
 }

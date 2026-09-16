@@ -52,6 +52,7 @@ TrainerInput trainer({
   bool overlayEnabled = false,
   bool overlayAnswered = false,
   bool overlayDeclined = false,
+  String? rawTrainerName,
 }) {
   return TrainerInput(
     deviceId: 'trainer-1',
@@ -59,6 +60,7 @@ TrainerInput trainer({
     presence: presence,
     appHoldsBridge: appHoldsBridge,
     bridgeName: 'KICKR CORE - BikeControl',
+    rawTrainerName: rawTrainerName,
     metrics: metrics,
     overlayOffered: overlayOffered,
     overlayEnabled: overlayEnabled,
@@ -658,6 +660,22 @@ void main() {
       expect(step.hintArg, 'KICKR CORE - BikeControl');
     });
 
+    // The trainer app lists the trainer twice: once under its own name and
+    // once as the bridge. Riders pick the first, which bypasses BikeControl
+    // entirely — so the step carries the wrong entry as well as the right one.
+    test("the pick-up step also names the entry under the trainer's own name", () {
+      final chain = buildChain(ChainInputs(trainer: trainer(rawTrainerName: 'KICKR CORE 1234'), app: _readyApp));
+      final step = chain.byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+      expect(step.hintArg, 'KICKR CORE - BikeControl');
+      expect(step.secondaryHintArg, 'KICKR CORE 1234');
+    });
+
+    test('an unknown trainer name leaves the entry to avoid out', () {
+      final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
+      final step = chain.byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+      expect(step.secondaryHintArg, isNull);
+    });
+
     test('gear ratios are a preference, never a setup step', () {
       final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
       expect(
@@ -974,6 +992,43 @@ void main() {
       expect(link.status, LinkStatus.ready);
       expect(link.remainingSteps, 0);
     });
+
+    // The trainer app's pairing screen has two BikeControl tiles — the trainer
+    // and the controller — and the most common support case is a rider who
+    // paired one and not the other. Once the app is reading the trainer through
+    // BikeControl, "waiting for the app to connect" is only half true, so the
+    // step says which half is missing.
+    group('with the trainer already picked up by the app', () {
+      const app = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, trainerBridgedByApp: true);
+
+      SetupStep connectedStep(ChainInputs inputs) =>
+          buildChain(inputs).byKey(ChainLinkKey.app).steps.firstWhere((s) => s.id == SetupStepId.appConnected);
+
+      test('the connection step is flagged as the controller link being the missing one', () {
+        final step = connectedStep(const ChainInputs(app: app));
+        expect(step.done, isFalse);
+        expect(step.variant, SetupStepVariant.controllerLinkMissing);
+      });
+
+      test('no other step on the card is flagged', () {
+        final others = buildChain(
+          const ChainInputs(app: app),
+        ).byKey(ChainLinkKey.app).steps.where((s) => s.id != SetupStepId.appConnected);
+        expect(others, isNotEmpty);
+        expect(others.every((s) => s.variant == SetupStepVariant.standard), isTrue);
+      });
+
+      test('the plain connection step keeps its ordinary wording', () {
+        final step = connectedStep(const ChainInputs(app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true)));
+        expect(step.done, isFalse);
+        expect(step.variant, SetupStepVariant.standard);
+      });
+
+      test('a held bridge with no app picked flags nothing — there is no app to name', () {
+        final step = connectedStep(const ChainInputs(app: AppInput(trainerBridgedByApp: true)));
+        expect(step.variant, SetupStepVariant.standard);
+      });
+    });
   });
 
   // Local control is not a way to reach the trainer app, it is a way to do more
@@ -1085,6 +1140,21 @@ void main() {
       expect(banner.stepsLeft, 5);
       expect(banner.targetLinkId, 'controller');
       expect(banner.outstandingKeys, [ChainLinkKey.controller, ChainLinkKey.app]);
+    });
+
+    test('a bridged trainer waiting only on the controller link hands the banner that one step', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(),
+          app: const AppInput(name: 'MyWhoosh', hasEnabledConnection: true, trainerBridgedByApp: true),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.stepsLeft, 1);
+      expect(banner.soleStep?.id, SetupStepId.appConnected);
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerLinkMissing);
     });
   });
 }

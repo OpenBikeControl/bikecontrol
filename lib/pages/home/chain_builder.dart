@@ -178,6 +178,9 @@ ChainLink _trainerLink(ChainInputs inputs) {
             id: SetupStepId.trainerAppBridged,
             done: trainer.appHoldsBridge,
             hintArg: trainer.bridgeName,
+            // The entry NOT to pick, when known: the trainer under its own
+            // name sits right beside the bridge in the app's list.
+            secondaryHintArg: trainer.rawTrainerName,
           ),
           // Last, and required until answered once: the trainer app shows its
           // own gear, not the one BikeControl computes, so a bridged rider who
@@ -256,7 +259,17 @@ ChainLink _appLink(ChainInputs inputs) {
     // cannot ride past this one.
     if (selected && app.localNetworkGranted != null)
       SetupStep(id: SetupStepId.appLocalNetwork, done: app.localNetworkGranted!),
-    SetupStep(id: SetupStepId.appConnected, done: selected && connected),
+    SetupStep(
+      id: SetupStepId.appConnected,
+      done: selected && connected,
+      // Once the app is reading the trainer through BikeControl, the
+      // trainer half of its pairing screen is done and only the controller
+      // tile is missing — say that, not "waiting for the app". Only with an
+      // app to name: the sentence is about a specific app's pairing screen.
+      variant: selected && app.trainerBridgedByApp
+          ? SetupStepVariant.controllerLinkMissing
+          : SetupStepVariant.standard,
+    ),
     // Last, and optional: Local is not a way to reach the app, it is a way to
     // do *more* to it — keystrokes and clicks the button editor only offers
     // once it is on. Nobody has to have it, so it never colours the card; but

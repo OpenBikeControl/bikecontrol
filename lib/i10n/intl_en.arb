@@ -2313,5 +2313,15 @@
     }
   },
   "chainStepOverlayPendingNoApp": "Your trainer app will keep showing its own gear",
-  "chainStepOverlayDecline": "Not now"
+  "chainStepOverlayDecline": "Not now",
+  "chainStepAppControllerPending": "{app} isn't connected to your buttons yet",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} is already reading your trainer through BikeControl. Your buttons need a second link: in {app}'s pairing screen, tap the BikeControl tile under Controllers — it's a separate tile from the trainer.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "In {app}'s pairing screen choose “{bridge}” as the trainer — not “{trainer}” under its own name, that bypasses BikeControl.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Your trainer is bridged, but your buttons won't reach {app} until you also connect the BikeControl controller in its pairing screen.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "Waiting for {app} to pick it up",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
 }

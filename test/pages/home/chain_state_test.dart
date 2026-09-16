@@ -226,6 +226,97 @@ void main() {
       final banner = deriveBanner(links);
       expect(links.map((l) => l.id), contains(banner.targetLinkId));
     });
+
+    // The trainer app's pairing screen has two BikeControl tiles. When the
+    // trainer one is already done and the controller one is all that is left,
+    // the banner can say exactly that instead of "finish the Trainer app
+    // card" — but only when it really is the one thing left across the chain.
+    group('the sole outstanding step', () {
+      ChainLink appLink(List<SetupStep> steps) => ChainLink(
+        key: ChainLinkKey.app,
+        id: 'app',
+        status: LinkStatus.attention,
+        title: 'MyWhoosh',
+        steps: steps,
+      );
+
+      const controllerLinkMissing = SetupStep(
+        id: SetupStepId.appConnected,
+        done: false,
+        variant: SetupStepVariant.controllerLinkMissing,
+      );
+
+      test('is handed to the banner when exactly one required step is outstanding', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.ready),
+          link(id: 'trainer', key: ChainLinkKey.trainer, optional: true),
+          appLink(const [
+            SetupStep(id: SetupStepId.appSelected, done: true),
+            SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+            controllerLinkMissing,
+          ]),
+        ]);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.soleStep?.id, SetupStepId.appConnected);
+        expect(banner.soleStep?.variant, SetupStepVariant.controllerLinkMissing);
+      });
+
+      test('is null while several required steps are outstanding', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.attention, steps: [true, false]),
+          appLink(const [SetupStep(id: SetupStepId.appConnectionMethod, done: true), controllerLinkMissing]),
+        ]);
+        expect(banner.stepsLeft, 2);
+        expect(banner.soleStep, isNull);
+      });
+
+      test('an outstanding optional step does not stop the one required step being sole', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.ready),
+          appLink(const [
+            SetupStep(id: SetupStepId.appConnectionMethod, done: true),
+            controllerLinkMissing,
+            SetupStep(id: SetupStepId.appLocalControl, done: false, optional: true),
+          ]),
+        ]);
+        expect(banner.soleStep?.id, SetupStepId.appConnected);
+      });
+
+      test('is null when nothing is outstanding', () {
+        final banner = deriveBanner([link(id: 'c', status: LinkStatus.ready)]);
+        expect(banner.soleStep, isNull);
+      });
+
+      test('a break still outranks it, but the step is still reported', () {
+        final banner = deriveBanner([
+          link(id: 'c', status: LinkStatus.problem, steps: [true]),
+          appLink(const [controllerLinkMissing]),
+        ]);
+        expect(banner.kind, ChainBannerKind.broken);
+        expect(banner.soleStep?.id, SetupStepId.appConnected);
+      });
+    });
+  });
+
+  group('SetupStep', () {
+    test('defaults to the standard wording', () {
+      expect(const SetupStep(id: SetupStepId.appConnected, done: false).variant, SetupStepVariant.standard);
+    });
+
+    test('copyWith keeps the variant and the secondary hint argument', () {
+      const step = SetupStep(
+        id: SetupStepId.trainerAppBridged,
+        done: false,
+        hintArg: 'KICKR CORE - BikeControl',
+        secondaryHintArg: 'KICKR CORE 1234',
+        variant: SetupStepVariant.controllerLinkMissing,
+      );
+      final copy = step.copyWith(done: true);
+      expect(copy.done, isTrue);
+      expect(copy.hintArg, 'KICKR CORE - BikeControl');
+      expect(copy.secondaryHintArg, 'KICKR CORE 1234');
+      expect(copy.variant, SetupStepVariant.controllerLinkMissing);
+    });
   });
 
   group('app link "Show me how"', () {
