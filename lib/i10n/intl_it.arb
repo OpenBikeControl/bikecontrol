@@ -1625,7 +1625,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl impedisce già al lato destro di spegnersi. Le sue luci però si spengono comunque da sole: con il lato sinistro acceso nelle vicinanze restano accese. Basta che sia a portata, non collegato.",
   "chainStepTrainerPaired": "Rullo collegato",
   "chainStepTrainerPairedPending": "Collega il tuo rullo",
-  "chainStepOverlay": "Mostra la marcia sullo schermo",
   "chainStepOverlayDone": "L'Overlay marce è attivo",
   "chainStepOverlayHint": "{appName} non può mostrare le marce virtuali di BikeControl. Attiva l'Overlay per vedere la marcia attuale durante la sessione.",
   "@chainStepOverlayHint": {
@@ -2112,5 +2111,15 @@
   "supportDescribeProblemHint": "Un risultato del test da solo non ci dice cosa è andato storto: basta una frase.",
   "networkFooterPassTitle": "Su questo dispositivo è tutto a posto",
   "networkFooterPassBody": "Se la tua app di allenamento continua a non connettersi, il problema è dalla sua parte o nella rete tra i due. Dicci esattamente cosa vedi e ci daremo un'occhiata.",
-  "networkFooterGetHelp": "Chiedi aiuto"
+  "networkFooterGetHelp": "Chiedi aiuto",
+  "chainStepOverlayPending": "{appName} continuerà a mostrare la propria marcia",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "La tua app di allenamento continuerà a mostrare la propria marcia",
+  "chainStepOverlayDecline": "Non ora"
 }

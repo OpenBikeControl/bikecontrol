@@ -136,6 +136,8 @@ class TrainerInput {
     this.metrics,
     this.overlayOffered = false,
     this.overlayEnabled = false,
+    this.overlayAnswered = false,
+    this.overlayDeclined = false,
   });
 
   final String deviceId;
@@ -173,8 +175,20 @@ class TrainerInput {
   final bool overlayOffered;
 
   /// Whether the rider already turned the overlay on, which is what ticks the
-  /// optional step off the card.
+  /// step off the card.
   final bool overlayEnabled;
+
+  /// Whether the rider has ever answered the overlay step — turned the
+  /// overlay on, or said "Not now". The step is required only until then: it
+  /// holds the card amber once, not after every ride. An overlay that was on
+  /// and has since been switched off (the trainer page's switch, the Live
+  /// Activity's "stop ride") is an offer again, never outstanding work.
+  final bool overlayAnswered;
+
+  /// Whether the rider's answer was "Not now". Takes the step off the card
+  /// until the overlay is turned on (which clears it — see
+  /// `Settings.setOverlayEnabled`).
+  final bool overlayDeclined;
 }
 
 class AppInput {

@@ -18,13 +18,17 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
+import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/services/sensors/broadcast_controller.dart';
 import 'package:bike_control/services/sensors/fake_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
+import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -126,6 +130,7 @@ Future<void> main() async {
   });
 
   _sensorsOnlyTests();
+  _overlayStepTests();
 }
 
 // ── Sensors-only mode (Task 7) ─────────────────────────────────────────────
@@ -445,5 +450,141 @@ void _sensorsOnlyTests() {
       expect(find.byType(SensorsPage), findsOneWidget);
       expect(find.text(l.sensorsPageTitle), findsOneWidget);
     });
+  });
+}
+
+// ── The gear overlay step ──────────────────────────────────────────────────
+
+/// The step that answers "why does MyWhoosh show the wrong gear?" — required
+/// now, with an explicit "Not now" as the way off the card. The builder's
+/// rules (when it is offered, that it blocks, that a decline hides it) live
+/// in chain_builder_test.dart; this pins the two things only the page can
+/// prove: that the second button persists the decline and takes the step
+/// away, and that the trainer card shows the live gear beside its numbers.
+void _overlayStepTests() {
+  group('the gear overlay step', () {
+    late AppLocalizations l;
+    late ProxyDevice trainer;
+    late FitnessBikeDefinition definition;
+
+    setUp(() async {
+      l = AppLocalizations.current;
+      // Off for real behaviour: under the harness's screenshot mode the
+      // overlay is never offered and the metrics line is a fixture.
+      screenshotMode = false;
+      // The overlay is only offered when the trainer app runs on this device.
+      await core.settings.setLastTarget(Target.thisDevice);
+      await core.settings.setOverlayEnabled(false);
+      await core.settings.setOverlayDeclined(false);
+
+      trainer = ProxyDevice(
+        BleDevice(
+          deviceId: 'kickr-vs-home',
+          name: 'Wahoo KICKR CORE',
+          services: const [FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID],
+        ),
+      )..services = [BleService(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID, [])];
+      definition = FitnessBikeDefinition(
+        connectedDevice: trainer.scanResult,
+        connectedDeviceServices: trainer.services!,
+        data: ValueNotifier(''),
+      );
+      // What a Virtual Shifting session leaves behind: the Bluetooth link up,
+      // the definition on the device (the card's body and the overlay offer
+      // key on it) and on its emulator (the live readout reads it there), and
+      // the trainer app holding the bridge.
+      trainer.isConnected = true;
+      trainer.emulator.debugSetActiveDefinition(definition);
+      trainer.debugAttachFitnessBike(definition);
+      trainer.debugSetTrainerAppConnected(true);
+      core.connection.devices.add(trainer);
+    });
+
+    tearDown(() async {
+      screenshotMode = true;
+      await core.settings.setOverlayDeclined(false);
+      await core.settings.setOverlayEnabled(false);
+    });
+
+    // Not a platform that can draw an overlay (a Linux test host, say): the
+    // step is never offered, so there is nothing here to prove.
+    final unsupported = !TrainerOverlayService.isSupportedPlatform;
+
+    // A phone-shaped surface tall enough for the whole chain: the trainer
+    // card's buttons sit below the default 600px viewport, where a tap lands
+    // on nothing.
+    Future<void> pumpTallHome(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(430, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await _pumpHome(tester);
+    }
+
+    testWidgets('"Not now" persists the decline and takes the step off the card', (tester) async {
+      await pumpTallHome(tester);
+
+      final card = _chainCard(ChainLinkKey.trainer);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)), findsOneWidget);
+
+      await tester.tap(find.text(l.chainStepOverlayDecline));
+      await tester.pump();
+      // Let the checklist's collapse run out before looking for what is left.
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(core.settings.getOverlayDeclined(), isTrue);
+      expect(find.text(l.chainStepOverlayPending('MyWhoosh')), findsNothing);
+      expect(find.text(l.chainStepOverlayDecline), findsNothing);
+      // The rider said no, and the overlay itself stayed off.
+      expect(core.settings.getOverlayEnabled(), isFalse);
+
+      // Unmount before the test ends: with screenshotMode off, the page's
+      // periodic metrics timer is running, and flutter_test fails a test that
+      // leaves a pending timer behind — State.dispose() cancels it.
+      await tester.pumpWidget(const SizedBox());
+    }, skip: unsupported);
+
+    // The review's regression: the Live Activity's "stop ride" switches the
+    // overlay off on every ride end, and the trainer page's switch does the
+    // same on purpose. Neither may put the amber card and "1 step left" back
+    // on a rider who has already answered — the line goes back to being the
+    // offer it was, with nothing to decline.
+    testWidgets('an overlay switched off after being answered is an optional offer without "Not now"', (
+      tester,
+    ) async {
+      await core.settings.setOverlayEnabled(true);
+      await core.settings.setOverlayEnabled(false);
+      await pumpTallHome(tester);
+
+      final card = _chainCard(ChainLinkKey.trainer);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainOptional.toUpperCase())), findsOneWidget);
+      expect(find.text(l.chainStepOverlayDecline), findsNothing);
+      final link = tester.widget<ChainCard>(card).link;
+      expect(link.status, LinkStatus.ready);
+      expect(link.isBlocking, isFalse);
+
+      await tester.pumpWidget(const SizedBox());
+    }, skip: unsupported);
+
+    testWidgets('the trainer card shows the live gear in its metrics line', (tester) async {
+      definition.setTargetGear(12);
+      await pumpTallHome(tester);
+
+      // Gear 12 of 24 on the trainer card's status line — the number the
+      // rider's shifter is on, beside the trainer's own watts and cadence
+      // (the drivetrain in the card's body draws the gear too, so this asks
+      // the status line itself rather than any text on the card).
+      final status = tester.widget<StatusLine>(
+        find.descendant(of: _chainCard(ChainLinkKey.trainer), matching: find.byType(StatusLine)),
+      );
+      expect(status.meta, contains('12/24'));
+      expect(find.text(status.meta!), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+    }, skip: unsupported);
   });
 }

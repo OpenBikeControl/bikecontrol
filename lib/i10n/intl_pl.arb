@@ -1625,7 +1625,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl już zapobiega wyłączaniu się prawej strony. Jej światła i tak gasną same — gdy lewa strona jest włączona w pobliżu, pozostają zapalone. Musi być tylko w zasięgu, nie sparowana.",
   "chainStepTrainerPaired": "Trenażer połączony",
   "chainStepTrainerPairedPending": "Połącz swój trenażer",
-  "chainStepOverlay": "Pokaż swój bieg na ekranie",
   "chainStepOverlayDone": "Overlay biegów jest włączony",
   "chainStepOverlayHint": "{appName} nie może wyświetlać wirtualnych biegów BikeControl. Włącz Overlay, aby widzieć aktualny bieg podczas jazdy.",
   "@chainStepOverlayHint": {
@@ -2112,5 +2111,15 @@
   "supportDescribeProblemHint": "Sam wynik testu nie mówi nam, co poszło nie tak — wystarczy jedno zdanie.",
   "networkFooterPassTitle": "Na tym urządzeniu wszystko jest w porządku",
   "networkFooterPassBody": "Jeśli aplikacja treningowa nadal się nie łączy, problem leży po jej stronie lub w sieci między nimi. Napisz nam dokładnie, co widzisz, a przyjrzymy się temu.",
-  "networkFooterGetHelp": "Uzyskaj pomoc"
+  "networkFooterGetHelp": "Uzyskaj pomoc",
+  "chainStepOverlayPending": "{appName} nadal będzie pokazywać własny bieg",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Twoja aplikacja treningowa nadal będzie pokazywać własny bieg",
+  "chainStepOverlayDecline": "Nie teraz"
 }

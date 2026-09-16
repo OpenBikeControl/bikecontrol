@@ -385,6 +385,8 @@ class _HomePageState extends State<HomePage> {
         metrics: proxy.liveReadout,
         overlayOffered: _overlayOffered(proxy),
         overlayEnabled: core.settings.getOverlayEnabled(),
+        overlayAnswered: core.settings.getOverlayAnswered(),
+        overlayDeclined: core.settings.getOverlayDeclined(),
       );
     } else if (remembered != null) {
       trainer = TrainerInput(
@@ -863,9 +865,18 @@ class _HomePageState extends State<HomePage> {
       statusLabel = context.i18n.notConnected;
     }
 
+    final activeStep = link.activeStep;
+    final offersOverlay = activeStep?.id == SetupStepId.trainerGearOverlay;
+    // "Not now" belongs to the step while it is required — the one time it
+    // asks for an answer. Once answered and switched off again it is an
+    // optional offer, and an offer has nothing to decline.
+    final overlayAsksForAnswer = offersOverlay && !activeStep!.optional;
+
     return ChainCard(
       link: link,
-      appName: appName,
+      // Nullable on purpose: the step wording falls back to "Trainer app"
+      // itself, and the overlay step has a sentence of its own for that case.
+      appName: inputs.app.name,
       tile: Icon(
         LucideIcons.bike,
         size: 22,
@@ -882,10 +893,12 @@ class _HomePageState extends State<HomePage> {
       onTap: () => _openTrainer(proxy, bridged: bridged),
       onInstructions: () => _openInstructions(link),
       // The overlay step is an offer, not a puzzle: its button turns the thing
-      // on rather than explaining how it works.
-      instructionsLabel: link.activeStep?.id == SetupStepId.trainerGearOverlay
-          ? context.i18n.chainStepOverlayAction
-          : null,
+      // on rather than explaining how it works. And while the step is
+      // required, the offer needs a second answer — "Not now" — or a rider who
+      // doesn't want the overlay is stuck with an amber card forever.
+      instructionsLabel: offersOverlay ? context.i18n.chainStepOverlayAction : null,
+      secondaryActionLabel: overlayAsksForAnswer ? context.i18n.chainStepOverlayDecline : null,
+      onSecondaryAction: overlayAsksForAnswer ? _declineOverlay : null,
       body: _trainerBody(proxy),
       // The way out for a rider with no smart trainer: the slot stays useful —
       // it becomes their sensors — instead of sitting there OPTIONAL forever.
@@ -1249,6 +1262,16 @@ class _HomePageState extends State<HomePage> {
       );
     }
     await context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true));
+  }
+
+  /// "Not now" on the overlay step: the rider has answered, so the step leaves
+  /// the card and stays away. There is no undo here on purpose — the trainer
+  /// page's Overlay switch is the way back, and turning the overlay on there
+  /// (or anywhere) clears the decline again; see `Settings.setOverlayEnabled`.
+  /// The decline also records the answer, so the step is never required again.
+  Future<void> _declineOverlay() async {
+    await core.settings.setOverlayDeclined(true);
+    _update();
   }
 
   Future<void> _forget(ChainLink link) async {

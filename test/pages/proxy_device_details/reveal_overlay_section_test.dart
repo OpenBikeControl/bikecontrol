@@ -10,13 +10,14 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-/// The deep-link target of the home screen's optional "Show your gear on
-/// screen" step: the trainer detail page, scrolled to the Overlay section.
+/// The deep-link target of the home screen's gear-overlay step ("{app} will
+/// keep showing its own gear"): the trainer detail page, scrolled to the
+/// Overlay section.
 ///
-/// The step itself — when it is offered, and that it never blocks the rider —
-/// is covered by chain_builder_test.dart; this pins down the other end of the
-/// link, so the button cannot land the rider on a page where the switch is off
-/// screen.
+/// The step itself — when it is offered, that it blocks until answered, and
+/// that "Not now" takes it off the card — is covered by chain_builder_test.dart
+/// and home_page_test.dart; this pins down the other end of the link, so the
+/// button cannot land the rider on a page where the switch is off screen.
 Future<void> main() async {
   await AppLocalizations.load(const Locale('en'));
 

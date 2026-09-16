@@ -50,6 +50,8 @@ TrainerInput trainer({
   String? metrics = '250 W · 90 rpm',
   bool overlayOffered = false,
   bool overlayEnabled = false,
+  bool overlayAnswered = false,
+  bool overlayDeclined = false,
 }) {
   return TrainerInput(
     deviceId: 'trainer-1',
@@ -60,6 +62,8 @@ TrainerInput trainer({
     metrics: metrics,
     overlayOffered: overlayOffered,
     overlayEnabled: overlayEnabled,
+    overlayAnswered: overlayAnswered,
+    overlayDeclined: overlayDeclined,
   );
 }
 
@@ -714,18 +718,106 @@ void main() {
 
   // The trainer app draws its own gear, not the one BikeControl computes, so a
   // bridged rider without the overlay is looking at a number that disagrees
-  // with their shifter — the single most common support question. It used to be
-  // a toast, which scrolled away before anyone read it; now it is a line on the
-  // card that stays until it is acted on.
+  // with their shifter — the single most common support question. It was a
+  // toast, then an optional line on the card, and riders walked past both
+  // (most of the chats came from a build that already showed the line). So
+  // it is now a step the rider has to answer once — turn the overlay on, or
+  // say "not now" — the way the Local Network step is required, whose chats
+  // fell away the day it started gating. Once answered it is never required
+  // again: an overlay switched off later is an offer, as it was before.
   group('the gear overlay step', () {
-    test('a bridged trainer that can show the overlay offers it', () {
-      final chain = buildChain(ChainInputs(trainer: trainer(overlayOffered: true), app: _readyApp));
+    test('a bridged trainer that can show the overlay asks for an answer', () {
+      final chain = buildChain(
+        ChainInputs(controllers: [controller()], trainer: trainer(overlayOffered: true), app: _readyApp),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerGearOverlay);
+      expect(step.done, isFalse);
+      expect(step.optional, isFalse);
+      // Last, so it never displaces the work that actually blocks the rider.
+      expect(link.steps.last.id, SetupStepId.trainerGearOverlay);
+      // Required: the card goes amber and the banner counts it, exactly like
+      // any other unfinished step.
+      expect(link.status, LinkStatus.attention);
+      expect(link.isBlocking, isTrue);
+      expect(link.remainingSteps, 1);
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.stepsLeft, 1);
+      expect(banner.targetKey, ChainLinkKey.trainer);
+    });
+
+    // "Not now" is a real answer: the step leaves the card entirely rather
+    // than lingering as a greyed-out offer, and the rider is ready to ride.
+    test('a declined overlay takes the step off the card and lets the rider ride', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(overlayOffered: true, overlayAnswered: true, overlayDeclined: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      expect(_hasStep(link, SetupStepId.trainerGearOverlay), isFalse);
+      expect(link.status, LinkStatus.ready);
+      expect(link.isBlocking, isFalse);
+      expect(deriveBanner(chain).kind, ChainBannerKind.ready);
+    });
+
+    test('ticks off once the rider has turned the overlay on', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(overlayOffered: true, overlayEnabled: true, overlayAnswered: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      expect(_stepDone(link, SetupStepId.trainerGearOverlay), isTrue);
+      expect(link.status, LinkStatus.ready);
+      // Done steps leave the checklist, so the card is back to its header.
+      expect(link.pendingSteps, isEmpty);
+    });
+
+    // The regression the review caught: an overlay the rider had on and then
+    // switched off — the trainer page's switch, or the Live Activity's "stop
+    // ride" on every ride end — must not put the amber card and "1 step left"
+    // back. They have answered; from here on the line is an offer again.
+    test('an overlay switched off after being answered is an optional offer', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(overlayOffered: true, overlayAnswered: true),
+          app: _readyApp,
+        ),
+      );
       final link = chain.byKey(ChainLinkKey.trainer);
       final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerGearOverlay);
       expect(step.done, isFalse);
       expect(step.optional, isTrue);
-      // Last, so it never displaces the work that actually blocks the rider.
-      expect(link.steps.last.id, SetupStepId.trainerGearOverlay);
+      expect(link.status, LinkStatus.ready);
+      expect(link.isBlocking, isFalse);
+      expect(link.remainingSteps, 0);
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.ready);
+      expect(banner.stepsLeft, 0);
+    });
+
+    // Turning the overlay on clears a decline at the settings layer, but the
+    // builder must not lean on that: an overlay that is on is a ticked step
+    // whatever a stale decline flag says.
+    test('an enabled overlay outranks a stale decline', () {
+      final chain = buildChain(
+        ChainInputs(
+          trainer: trainer(overlayOffered: true, overlayEnabled: true, overlayAnswered: true, overlayDeclined: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerGearOverlay);
+      expect(step.done, isTrue);
+      expect(step.optional, isFalse);
+      expect(link.status, LinkStatus.ready);
     });
 
     // Riding from another device, on a platform that can't draw one, or without
@@ -734,35 +826,6 @@ void main() {
     test('is absent when the overlay is not on offer', () {
       final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
       expect(_hasStep(chain.byKey(ChainLinkKey.trainer), SetupStepId.trainerGearOverlay), isFalse);
-    });
-
-    test('ticks off once the rider has turned the overlay on', () {
-      final chain = buildChain(
-        ChainInputs(trainer: trainer(overlayOffered: true, overlayEnabled: true), app: _readyApp),
-      );
-      final link = chain.byKey(ChainLinkKey.trainer);
-      expect(_stepDone(link, SetupStepId.trainerGearOverlay), isTrue);
-      // Done steps leave the checklist, so the card is back to its header.
-      expect(link.pendingSteps, isEmpty);
-    });
-
-    // The regression this guards: an offer that turns the card amber and stops
-    // "Ready to ride" is not an offer, it is a demand.
-    test('never blocks the rider or colours the card', () {
-      final chain = buildChain(
-        ChainInputs(
-          controllers: [controller()],
-          trainer: trainer(overlayOffered: true),
-          app: _readyApp,
-        ),
-      );
-      final link = chain.byKey(ChainLinkKey.trainer);
-      expect(link.status, LinkStatus.ready);
-      expect(link.isBlocking, isFalse);
-      expect(link.remainingSteps, 0);
-      final banner = deriveBanner(chain);
-      expect(banner.kind, ChainBannerKind.ready);
-      expect(banner.stepsLeft, 0);
     });
 
     // Before the bridge is up BikeControl computes no gear, so there is nothing
@@ -778,7 +841,7 @@ void main() {
     });
 
     // Ordering, stated as the thing that matters: while the app has not picked
-    // the bridge up, that is still the next action — the offer waits its turn.
+    // the bridge up, that is still the next action — the overlay waits its turn.
     test('waits behind the pick-up step', () {
       final chain = buildChain(
         ChainInputs(trainer: trainer(appHoldsBridge: false, overlayOffered: true), app: _readyApp),

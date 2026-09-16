@@ -1634,7 +1634,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl verhindert bereits, dass sich die rechte Seite abschaltet. Ihre Lichter gehen trotzdem von allein aus – mit eingeschalteter linker Seite in der Nähe bleiben sie an. Sie muss nur in Reichweite sein, nicht verbunden.",
   "chainStepTrainerPaired": "Trainer verbunden",
   "chainStepTrainerPairedPending": "Verbinde deinen Trainer",
-  "chainStepOverlay": "Zeig deinen Gang auf dem Bildschirm",
   "chainStepOverlayDone": "Gang-Overlay ist aktiv",
   "chainStepOverlayHint": "{appName} kann BikeControls virtuelle Gänge nicht anzeigen. Aktiviere das Gang-Overlay, um deinen aktuellen Gang während der Fahrt zu sehen.",
   "@chainStepOverlayHint": {
@@ -2112,5 +2111,15 @@
   "supportDescribeProblemHint": "Ein Testergebnis allein sagt uns nicht, was schiefgeht — ein Satz reicht.",
   "networkFooterPassTitle": "Auf diesem Gerät ist alles in Ordnung",
   "networkFooterPassBody": "Wenn sich deine Trainer-App trotzdem nicht verbindet, liegt das Problem auf ihrer Seite oder im Netzwerk dazwischen. Beschreib uns genau, was du siehst, und wir schauen es uns an.",
-  "networkFooterGetHelp": "Hilfe holen"
+  "networkFooterGetHelp": "Hilfe holen",
+  "chainStepOverlayPending": "{appName} zeigt weiterhin den eigenen Gang an",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Deine Trainer-App zeigt weiterhin ihren eigenen Gang an",
+  "chainStepOverlayDecline": "Jetzt nicht"
 }

@@ -1625,7 +1625,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl ya evita que el lado derecho se apague. Aun así, sus luces se apagan solas: con el lado izquierdo encendido cerca, se mantienen encendidas. Solo tiene que estar al alcance, no emparejado.",
   "chainStepTrainerPaired": "Rodillo conectado",
   "chainStepTrainerPairedPending": "Conecta tu rodillo",
-  "chainStepOverlay": "Muestra tu marcha en pantalla",
   "chainStepOverlayDone": "El Overlay de marchas está activo",
   "chainStepOverlayHint": "{appName} no puede mostrar las marchas virtuales de BikeControl. Activa el Overlay para ver tu marcha actual durante la sesión.",
   "@chainStepOverlayHint": {
@@ -2112,5 +2111,15 @@
   "supportDescribeProblemHint": "Un resultado de prueba por sí solo no nos dice qué ha fallado: con una frase basta.",
   "networkFooterPassTitle": "Todo está en orden en este dispositivo",
   "networkFooterPassBody": "Si tu app de entrenamiento sigue sin conectar, el problema está de su lado o en la red entre ambos. Cuéntanos exactamente qué ves y lo revisaremos.",
-  "networkFooterGetHelp": "Obtener ayuda"
+  "networkFooterGetHelp": "Obtener ayuda",
+  "chainStepOverlayPending": "{appName} seguirá mostrando su propia marcha",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Tu app de entrenamiento seguirá mostrando su propia marcha",
+  "chainStepOverlayDecline": "Ahora no"
 }
