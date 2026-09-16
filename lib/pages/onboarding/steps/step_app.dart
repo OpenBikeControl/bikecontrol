@@ -9,6 +9,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 const _success = Color(0xFF22C55E);
 
+/// 10 padding + 40 logo + 9 gap + two xSmall caption lines + 10 padding, with
+/// a little slack.
+const _tileHeight = 108.0;
+
 /// One app tile per the design: white card, logo (or monogram), dark caption,
 /// blue 1.5px border + top-right blue check dot when selected. Public so the
 /// grid-uniformity test can measure the rendered tiles.
@@ -96,13 +100,18 @@ Widget onboardingAppBody(BuildContext context,
 
   Widget grid(List<SupportedApp> apps) => LayoutBuilder(builder: (context, constraints) {
         final cols = constraints.maxWidth >= 560 ? 5 : 3;
-        return GridView.count(
-          crossAxisCount: cols,
+        return GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 1.15,
+          // Fixed tile height: the content (padding, logo, gap, two caption
+          // lines) doesn't shrink with the column width, so an aspect ratio
+          // would let two-line captions spill out of narrow tiles.
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            mainAxisExtent: _tileHeight,
+          ),
           children: [
             for (final app in apps)
               OnboardingAppTile(app: app, selected: selected?.name == app.name, onTap: () => onSelect(app)),
