@@ -2105,5 +2105,7 @@
   "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
   "vsTransportSameDeviceNote": "Le Bluetooth ne peut pas atteindre une appli sur ce même appareil — le Wi-Fi est utilisé.",
   "trainerTwinSubtitle": "Même home trainer via {transport} — se connecter bascule sur cette voie",
-  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} est encore en train de se connecter via {transport}. Patiente un instant, puis réessaie.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

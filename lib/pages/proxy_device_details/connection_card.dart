@@ -75,12 +75,11 @@ class _ConnectionCardState extends State<ConnectionCard> {
   /// Virtual Shifting transport here. (Only WiFi loops back.)
   bool get _isSameDevice => core.settings.getLastTarget() == Target.thisDevice;
 
-  /// Whether the rider's saved Bluetooth choice for this trainer is being
-  /// overridden by [_isSameDevice]. Read fresh on every build: it clears the
-  /// moment a WiFi connect persists WiFi, or the target moves off this device.
-  bool get _sameDeviceOverridesBluetooth =>
-      _isSameDevice &&
-      core.settings.getRetrofitMode(widget.device.trainerKey, fallback: RetrofitMode.proxy) == RetrofitMode.bluetooth;
+  /// Whether a Bluetooth resolution for this trainer is being folded into WiFi
+  /// by [_isSameDevice] (see [ProxyDevice.sameDeviceFoldsBluetooth]). Read
+  /// fresh on every build: it clears the moment a WiFi connect persists WiFi,
+  /// or the target moves off this device.
+  bool get _sameDeviceOverridesBluetooth => widget.device.sameDeviceFoldsBluetooth;
 
   /// The Virtual Shifting transports the selected trainer app can actually find
   /// our trainer on, in the order the toggle offers them. Both for nearly every

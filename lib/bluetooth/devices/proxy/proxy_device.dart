@@ -730,23 +730,27 @@ class ProxyDevice extends BluetoothDevice {
     };
   }
 
-  /// The mode a fresh connect starts in: the rider's saved choice for this
-  /// trainer, else [defaultRetrofitMode] — with Bluetooth folded into WiFi
-  /// while the trainer app runs on this same device ([Target.thisDevice]).
-  ///
+  /// The rider's saved mode for this trainer, else [defaultRetrofitMode] —
+  /// as stored, before the same-device rule below.
+  RetrofitMode get _storedRetrofitMode => core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+
+  /// Whether [savedRetrofitMode] is folding a Bluetooth resolution into WiFi
+  /// because the trainer app runs on this same device ([Target.thisDevice]).
   /// A Bluetooth bridge can never be found from the device advertising it: a
-  /// BLE peripheral is invisible to a central on the same adapter. The choice
-  /// itself is left in the settings so it comes back when the rider moves the
-  /// app to another device again. Shared by the auto-connect path and the
+  /// BLE peripheral is invisible to a central on the same adapter. The
+  /// connection card shows its same-device note exactly when this is true.
+  bool get sameDeviceFoldsBluetooth =>
+      _storedRetrofitMode == RetrofitMode.bluetooth && core.settings.getLastTarget() == Target.thisDevice;
+
+  /// The mode a fresh connect starts in: [_storedRetrofitMode], with Bluetooth
+  /// folded into WiFi on a same-device setup ([sameDeviceFoldsBluetooth]).
+  ///
+  /// Nothing is rewritten here — the auto-connect path starts over WiFi and
+  /// leaves the setting alone; only a connect from the picker persists the
+  /// transport it actually used. Shared by the auto-connect path and the
   /// connection card so neither can start a transport the other would not
   /// offer.
-  RetrofitMode get savedRetrofitMode {
-    final saved = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
-    if (saved == RetrofitMode.bluetooth && core.settings.getLastTarget() == Target.thisDevice) {
-      return RetrofitMode.wifi;
-    }
-    return saved;
-  }
+  RetrofitMode get savedRetrofitMode => sameDeviceFoldsBluetooth ? RetrofitMode.wifi : _storedRetrofitMode;
 
   void applyTrainerSettings() {
     // This device's own FBD first, for the same reason describeProxyDevice
@@ -1043,14 +1047,15 @@ class ProxyDevice extends BluetoothDevice {
 
   /// The list subtitle for this entry while its twin holds the trainer: this
   /// is not a second trainer, and connecting here switches paths (see
-  /// [Connection.connectDevice]). Names the transport currently in use — the
-  /// one the rider would be switching away from. Null when the trainer is not
-  /// held through its twin, or this entry holds it itself.
+  /// [Connection.connectDevice]). Names this entry's own transport — the row
+  /// already carries that transport's badge ([nameBadge]), and "this path" is
+  /// what a tap switches to. Null when the trainer is not held through its
+  /// twin, or this entry holds it itself.
   String? twinSubtitle(AppLocalizations l10n) {
     if (isConnectedOrConnecting) return null;
     final twin = core.connection.twinOf(this);
     if (twin == null || !twin.isConnectedOrConnecting) return null;
-    return l10n.trainerTwinSubtitle(twin.isWifiUpstream ? l10n.connectionWifi : l10n.connectionBluetooth);
+    return l10n.trainerTwinSubtitle(isWifiUpstream ? l10n.connectionWifi : l10n.connectionBluetooth);
   }
 
   @override

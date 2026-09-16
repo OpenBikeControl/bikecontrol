@@ -2105,5 +2105,7 @@
   "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
   "vsTransportSameDeviceNote": "Bluetooth erreicht keine App auf diesem Gerät — WLAN wird verwendet.",
   "trainerTwinSubtitle": "Derselbe Trainer über {transport} — Verbinden wechselt auf diesen Weg",
-  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} verbindet sich noch über {transport}. Warte kurz und versuch es dann noch einmal.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

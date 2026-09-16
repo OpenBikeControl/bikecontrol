@@ -7,6 +7,7 @@
 // first, then connect) instead of doubling up.
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -38,16 +40,33 @@ class _FakeLocalNotificationsPlatform extends FlutterLocalNotificationsPlatform 
 /// the rule under test is Connection's orchestration — who is started, who is
 /// torn down, in which order — not the transport underneath.
 class _FakeTrainer extends ProxyDevice {
-  _FakeTrainer(super.scanResult, {required this.events, required this.tag});
+  _FakeTrainer(super.scanResult, {required this.events, required this.tag, this.unwindsAfterTeardown = true});
 
   _FakeTrainer.wifi(super.scanResult, {required this.events, required this.tag, required super.host, required super.port})
-    : super.wifi();
+    : unwindsAfterTeardown = true,
+      super.wifi();
 
   final List<String> events;
   final String tag;
 
+  /// Whether a connect still in flight when [disconnect] runs fails through
+  /// the torn-down transport a moment later (the normal case — startProxy's
+  /// finally then clears `isStarting`), or hangs on forever (pathological).
+  final bool unwindsAfterTeardown;
+
+  /// Times Connection's connect path reached this device at all — the probe
+  /// for "was `_connect` skipped", which has no other observable side effect
+  /// on a device whose own `connect()` declines.
+  int connectCalls = 0;
+
   int get startCalls => events.where((e) => e == '$tag.start').length;
   int get disconnectCalls => events.where((e) => e == '$tag.disconnect').length;
+
+  @override
+  Future<void> connect() {
+    connectCalls++;
+    return super.connect();
+  }
 
   @override
   Future<void> startProxy() async {
@@ -59,9 +78,7 @@ class _FakeTrainer extends ProxyDevice {
   Future<void> disconnect() async {
     events.add('$tag.disconnect');
     isConnected = false;
-    // A connect still in flight fails through the torn-down transport a
-    // moment later; startProxy's finally then clears the flag.
-    if (isStarting.value) {
+    if (isStarting.value && unwindsAfterTeardown) {
       Future<void>.delayed(const Duration(milliseconds: 120)).then((_) => isStarting.value = false);
     }
   }
@@ -98,6 +115,10 @@ void main() {
     UniversalBle.setInstance(FakeUniversalBlePlatform());
     FlutterLocalNotificationsPlatform.instance = _FakeLocalNotificationsPlatform();
     IAPManager.instance.setProForTesting(enabled: true);
+    // The path switch waits (bounded) for a sibling's in-flight connect to
+    // unwind — long enough for the fake's 120 ms unwind, short enough that
+    // the refused path below does not stall the suite.
+    core.connection.twinReleaseTimeout = const Duration(milliseconds: 400);
     events = [];
     // One tap's consent — stored under the shared key, so it covers both
     // entries of the twin. That is exactly how both used to auto-connect.
@@ -106,6 +127,7 @@ void main() {
 
   tearDown(() async {
     core.connection.devices.clear();
+    core.connection.twinReleaseTimeout = const Duration(seconds: 5);
     await core.connection.stop();
   });
 
@@ -238,6 +260,38 @@ void main() {
       expect(events, ['ble.disconnect', 'wifi.start']);
       expect(ble.isStarting.value, isFalse);
       expect(wifi.isConnected, isTrue);
+    });
+
+    test('a sibling that never unwinds: the switch is refused, out loud, before this entry connects', () async {
+      final ble = _FakeTrainer(scan('AA:BB:CC:DD:EE:FF'), events: events, tag: 'ble', unwindsAfterTeardown: false)
+        ..isStarting.value = true;
+      final wifi = wifiTrainer();
+      core.connection.devices.addAll([ble, wifi]);
+      final alerts = <AlertNotification>[];
+      final sub = core.connection.actionStream.listen((n) {
+        if (n is AlertNotification) alerts.add(n);
+      });
+      addTearDown(sub.cancel);
+
+      await core.connection.connectDevice(wifi);
+      // The action stream is a plain broadcast stream: it hands the alert to
+      // its listeners a turn later.
+      await pumpEventQueue();
+
+      // Torn down, but still "connecting" past the bound: refused, not
+      // doubled up — and refused by connectDevice itself, before the connect
+      // path ever reaches this entry (its own auto-connect gate is not what
+      // a manual connect may rely on).
+      expect(events, ['ble.disconnect']);
+      expect(wifi.connectCalls, 0);
+      expect(wifi.isConnected, isFalse);
+      // The rider is told, not left staring at a radio that snapped back.
+      expect(alerts, hasLength(1));
+      expect(alerts.single.level, LogLevel.LOGLEVEL_WARNING);
+      expect(alerts.single.alertMessage, contains(trainerName));
+      // Consent stays: it is the one shared key under which the sibling is
+      // still holding the trainer. Clearing it would strip that one too.
+      expect(core.settings.getAutoConnect(trainerName), isTrue);
     });
 
     test('switching back is symmetric', () async {

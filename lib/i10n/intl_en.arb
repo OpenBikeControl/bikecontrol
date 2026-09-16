@@ -2297,5 +2297,7 @@
   "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller.",
   "vsTransportSameDeviceNote": "Bluetooth can't reach an app on this same device — using WiFi.",
   "trainerTwinSubtitle": "Same trainer over {transport} — connecting switches to this path",
-  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} is still connecting over {transport}. Wait a moment, then try again.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }

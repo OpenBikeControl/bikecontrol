@@ -2105,5 +2105,7 @@
   "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
   "vsTransportSameDeviceNote": "Bluetooth nie dotrze do aplikacji na tym samym urządzeniu — używane jest Wi-Fi.",
   "trainerTwinSubtitle": "Ten sam trenażer przez {transport} — połączenie przełącza na tę ścieżkę",
-  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} wciąż łączy się przez {transport}. Odczekaj chwilę i spróbuj ponownie.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}}
 }
