@@ -749,7 +749,7 @@ class Connection {
     // A trainer app attaching/leaving any non-Local connection method drives
     // the battery saver. These emulator singletons live for the app lifetime,
     // so the listeners never need removing.
-    for (final connection in [
+    final appConnections = [
       core.zwiftEmulator,
       core.zwiftMdnsEmulator,
       core.rouvyMdnsEmulator,
@@ -759,9 +759,16 @@ class Connection {
       core.whooshLink,
       core.remotePairing,
       core.remoteKeyboardPairing,
-    ]) {
+    ];
+    for (final connection in appConnections) {
       connection.isConnected.addListener(() => _inactivityDisconnector?.onTrainerConnectionChanged());
     }
+    // It is also what tells the home screen an app that disconnected from one
+    // that never connected — whichever tab the rider was on at the time.
+    core.appConnectionLatch.watch([
+      for (final connection in appConnections) connection.isConnected,
+      core.settings.trainerAppListenable,
+    ]);
 
     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) {
       core.mediaKeyHandler.initialize();

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/app_connection_latch.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -63,6 +64,13 @@ class Core {
   late final shiftingConfigs = ShiftingConfigsController(settings.prefs);
   late final rememberedDevices = RememberedDevicesRepository(settings.prefs);
   final connection = Connection();
+
+  /// Which trainer app connected in this session, next to [Connection]'s own
+  /// record of the devices that did. Kept current by [Connection.initialize].
+  late final appConnectionLatch = AppConnectionLatch(
+    pickedApp: () => settings.getTrainerApp()?.name,
+    connectedOverRealMethod: () => logic.connectedNonLocalTrainerConnections.isNotEmpty,
+  );
   late final workoutRecorder = WorkoutRecorder();
   ScreenRecordingService screenRecording = ScreenRecordingService(backend: createScreenRecorderBackend());
   late final workoutRepository = WorkoutRepository();

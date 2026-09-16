@@ -250,7 +250,7 @@ ChainLink _appLink(ChainInputs inputs) {
   final hasMethod = app.selfHosted || app.hasEnabledConnection;
   final connected = app.selfHosted || app.isConnected;
   // This very app connected earlier in this session, over a real method —
-  // the page latches that per app, see [AppInput.wasConnectedThisSession].
+  // the session latches that per app, see [AppInput.wasConnectedThisSession].
   final connectedEarlier = selected && app.wasConnectedThisSession;
 
   final steps = <SetupStep>[

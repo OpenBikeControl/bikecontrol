@@ -206,6 +206,37 @@ void main() async {
       expect(find.text(l.chainBannerFix), findsNothing);
     });
 
+    // Quitting the app with a bridged trainer leaves the trainer card waiting
+    // for the same app: two cards, one cause — so "Show" opens the fix.
+    testWidgets('with the trainer card waiting for the same app, opens the fix rather than revealing', (
+      tester,
+    ) async {
+      var opened = 0;
+      var revealed = 0;
+      await pumpBanner(
+        tester,
+        const ChainBanner(
+          kind: ChainBannerKind.pending,
+          status: LinkStatus.attention,
+          stepsLeft: 2,
+          targetLinkId: 'app',
+          targetKey: ChainLinkKey.app,
+          outstandingKeys: [ChainLinkKey.trainer, ChainLinkKey.app],
+          outstandingLinkIds: ['trainer', 'app'],
+          appDropped: true,
+        ),
+        onAction: () => opened++,
+        onRevealOutstanding: () => revealed++,
+      );
+
+      expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsOneWidget);
+      await tester.tap(find.text(l.chainBannerShow));
+      await tester.pump();
+
+      expect(opened, 1);
+      expect(revealed, 0);
+    });
+
     // With the trainer still held, the app is plainly open — "when you ride
     // again" would be wrong, and the missing controller tile is the answer.
     testWidgets('the missing controller tile still wins when the app holds the trainer', (tester) async {

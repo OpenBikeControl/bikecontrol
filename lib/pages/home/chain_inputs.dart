@@ -232,9 +232,10 @@ class AppInput {
   /// this session. One that is no longer connected has disconnected (amber,
   /// see `ChainLink.dropped`) rather than never having been set up.
   ///
-  /// Latched per app, so an app picked afterwards starts from scratch, and
-  /// only for a real method: Local reports connected the moment it is
-  /// switched on and says nothing about whether the app is there.
+  /// Latched for the session, not for the page that shows it, and per app: an
+  /// app picked after a drop starts from scratch. Only a real method counts —
+  /// Local reports connected the moment it is switched on and says nothing
+  /// about whether the app is there. See `AppConnectionLatch`.
   final bool wasConnectedThisSession;
 
   /// e.g. "Network" — which method is carrying the commands.
@@ -290,11 +291,14 @@ class AppInput {
   /// rider can check against their VPN app.
   final String? advertisedAddressWarning;
 
-  /// [advertisedAddressWarning] as it stood when the app connected, or null
-  /// when the address looked fine then. Only read together with
-  /// [wasConnectedThisSession]: the app has reached that address, whatever it
-  /// looks like, so the same verdict after a drop is no warning. Only one
-  /// that is new since then — a VPN that came up — is.
+  /// [advertisedAddressWarning] as it stood when the app connected: the first
+  /// reading after it connected or, when none landed before it dropped, the
+  /// last one from before. Null when that reading found the address fine, and
+  /// when there was no reading at all.
+  ///
+  /// Only read together with [wasConnectedThisSession]: the app has reached
+  /// that address, whatever it looks like, so the same verdict after a drop is
+  /// no warning. Only one that is new since then — a VPN that came up — is.
   final String? advertisedAddressWarningAtConnect;
 }
 

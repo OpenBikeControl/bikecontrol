@@ -64,6 +64,9 @@ Future<void> main() async {
   await ensureSnapshotHarness();
 
   setUp(() {
+    // Session-scoped, and `core` outlives every test: a connection one test
+    // made must not read as "disconnected" in the next.
+    core.appConnectionLatch.reset();
     core.settings.setTrainerApp(MyWhoosh());
     core.settings.setObpMdnsEnabled(true);
     core.obpMdnsEmulator.isStarted.value = true;
@@ -1093,8 +1096,9 @@ void _networkAddressStepTests() {
 // Quitting MyWhoosh turned the banner red — "MyWhoosh lost connection" with
 // "Fix" — and "Fix" opened the network self-test. Once the connection has
 // worked in this session, a drop is almost always the app being closed, which
-// no network test can fix. The latch lives on the page, so this is where the
-// card, the banner and their buttons are proven together.
+// no network test can fix. The rules themselves are unit-tested with the
+// chain and with the session's latch; this is where the card, the banner and
+// their buttons are proven together, on a page that comes and goes.
 
 /// Every route pushed onto the navigator, whatever its type — so "nothing was
 /// pushed" cannot pass just because a route was of a kind this observer does
@@ -1186,6 +1190,22 @@ void _droppedAppTests() {
       await _pumpHome(tester, navigatorObservers: navigatorObservers);
       await connectApp(tester);
       await dropApp(tester);
+    }
+
+    /// The page, with its first address reading in. The address is read
+    /// asynchronously in initState, and a frame or two lands it. Not
+    /// pumpAndSettle: off screenshot mode the amber dot pulses.
+    Future<void> pumpAndRead(WidgetTester tester) async {
+      await _pumpHome(tester);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    /// The rider swipes to another tab and back: the page is disposed and
+    /// built again from scratch, the way the shell's tab pager does it.
+    Future<void> swipeAwayAndBack(WidgetTester tester) async {
+      await tester.pumpWidget(const SizedBox());
+      await pumpAndRead(tester);
     }
 
     Finder inAppCard(Finder finder) => find.descendant(of: _chainCard(ChainLinkKey.app), matching: finder);
@@ -1285,22 +1305,95 @@ void _droppedAppTests() {
       await tester.pumpWidget(const SizedBox());
     });
 
-    // The page is rebuilt from scratch when the rider swipes back to it, and
-    // then the app may already be connected before the address has been read.
-    // The first reading stands in for the moment it connected.
-    testWidgets('an app already connected when the page comes up keeps its address flag quiet too', (tester) async {
+    // The page is built from scratch every time the rider swipes back to it,
+    // so what it knows about the app has to outlive it: swiped away mid-ride
+    // and back, the app quits, away and back once more — still an app that
+    // disconnected, and still through an address it had reached.
+    testWidgets('the page being rebuilt forgets neither the app nor the address it connected through', (tester) async {
       readAddressesFrom(_twoAdapters);
-      core.obpMdnsEmulator.isConnected.value = true;
       useTallSurface(tester);
-      await _pumpHome(tester);
-      await tester.pump();
-      await tester.pump();
+      await pumpAndRead(tester);
+      await connectApp(tester);
+
+      await swipeAwayAndBack(tester);
       expect(find.text(l.chainReadyTitle), findsOneWidget);
 
+      await dropApp(tester);
+      await swipeAwayAndBack(tester);
+
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+      expect(inAppCard(find.text(l.networkTroubleshootTroubleshoot)), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    // The last reading can be stale by the time the app connects — the
+    // network changed and nothing read it again — so it only stands in until
+    // the next reading lands.
+    testWidgets('a reading that went stale before the app connected gives way to the next one', (tester) async {
+      readAddressesFrom(_plainLan);
+      useTallSurface(tester);
+      await pumpAndRead(tester);
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+
+      // A second network comes up, and nothing reads the address again until
+      // the app connects.
+      _setInterfaces(_twoAdapters);
+      await connectApp(tester);
+      await tester.pump();
       await dropApp(tester);
 
       expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
       expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    // Quitting MyWhoosh with Virtual Shifting on: the bridge keeps running and
+    // nothing holds it, so the trainer card waits for MyWhoosh too. That is
+    // still the one app going away, not two cards to go and find.
+    testWidgets('quitting the app with a bridged trainer is one cause with one fix', (tester) async {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-quit-with-bridge', name: 'KICKR CORE 1234'));
+      trainer.emulator.isStarted.value = true;
+      core.connection.devices.add(trainer);
+      final pushed = _PushedRoutes();
+      useTallSurface(tester);
+      await _pumpHome(tester, navigatorObservers: [pushed]);
+
+      // Riding: the app holds the trainer and receives the buttons.
+      trainer.debugSetTrainerAppConnected(true);
+      await connectApp(tester);
+
+      // The app quits and lets go of both.
+      trainer.debugSetTrainerAppConnected(false);
+      await dropApp(tester);
+
+      // Both cards wait for the app, and the banner names the one reason.
+      final trainerStatus = find.descendant(
+        of: _chainCard(ChainLinkKey.trainer),
+        matching: find.byType(StatusLine),
+      );
+      expect(
+        find.descendant(of: trainerStatus, matching: find.text(l.onboardingSummaryWaitingFor('MyWhoosh'))),
+        findsOneWidget,
+      );
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsOneWidget);
+
+      expect(pushed.routes, isNotEmpty);
+      pushed.routes.clear();
+      await tester.tap(bannerButton());
+      await tester.pump();
+      // No card is sent for...
+      expect(find.byKey(chainCardHighlightKey('trainer')), findsNothing);
+      expect(find.byKey(chainCardHighlightKey('app')), findsNothing);
+      await tester.pump(const Duration(milliseconds: 400));
+      // ... the button opens the app's pairing guide, and no page goes in.
+      expect(find.text(l.onboardingThenInApp('MyWhoosh')), findsOneWidget);
+      expect(pushed.routes, isEmpty);
+      expect(find.byType(NetworkTroubleshootingPage), findsNothing);
 
       await tester.pumpWidget(const SizedBox());
     });

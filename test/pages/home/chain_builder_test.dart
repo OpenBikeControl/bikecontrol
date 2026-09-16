@@ -1439,6 +1439,64 @@ void main() {
       expect(banner.stepsLeft, 1);
     });
 
+    // Quitting the app with Virtual Shifting on: the bridge keeps running,
+    // nothing holds it any more, and the app is gone. The trainer card waits
+    // for that same app — one cause, and the banner treats it as one.
+    group('quitting the app with a bridged trainer', () {
+      const quitApp = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true);
+
+      test('is one cause: the dropped banner, aimed at the app, with nothing to reveal', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller()],
+            trainer: trainer(appHoldsBridge: false),
+            app: quitApp,
+          ),
+        );
+        expect(
+          chain.byKey(ChainLinkKey.trainer).pendingSteps.map((s) => s.id),
+          [SetupStepId.trainerAppBridged],
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.appDropped, isTrue);
+        expect(banner.targetLinkId, 'app');
+        expect(banner.revealsOutstandingCards, isFalse);
+      });
+
+      // The overlay question is still open on the trainer card: that is a
+      // second thing to do, whatever the app does.
+      test('keeps the cards to reveal while the trainer card asks for something else too', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller()],
+            trainer: trainer(appHoldsBridge: false, overlayOffered: true),
+            app: quitApp,
+          ),
+        );
+        expect(
+          chain.byKey(ChainLinkKey.trainer).pendingSteps.map((s) => s.id),
+          [SetupStepId.trainerAppBridged, SetupStepId.trainerGearOverlay],
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.appDropped, isFalse);
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+
+      test('keeps the cards to reveal while a controller is outstanding too', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller(presence: DevicePresence.remembered)],
+            trainer: trainer(appHoldsBridge: false),
+            app: quitApp,
+          ),
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.appDropped, isFalse);
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+    });
+
     test('an app that still holds the trainer after a drop gets the controller-tile banner', () {
       final chain = buildChain(
         ChainInputs(
