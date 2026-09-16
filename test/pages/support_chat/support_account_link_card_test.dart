@@ -27,12 +27,14 @@
 import 'dart:convert';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/pages/support_chat/widgets/support_account_link_card.dart';
 import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:prop/utils/shared.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -53,6 +55,7 @@ class _FakeAuthHttp extends http.BaseClient {
   final List<http.Request> userUpdateRequests = [];
 
   bool authorizeError = false;
+  bool idTokenAlreadyLinked = false;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -65,6 +68,13 @@ class _FakeAuthHttp extends http.BaseClient {
     }
     if (path.endsWith('/auth/v1/token') && request.url.queryParameters['grant_type'] == 'id_token') {
       idTokenRequests.add(req);
+      if (idTokenAlreadyLinked) {
+        return _json({
+          'code': 422,
+          'error_code': 'identity_already_exists',
+          'msg': 'Identity is already linked to another user',
+        }, status: 422);
+      }
       // Same user id as every other fixture here — linking must not swap it
       // out for a different one (that would be the orphaning bug).
       return _json(_sessionJson(anonymous: false, email: 'rider@gmail.com'));
@@ -220,6 +230,14 @@ void main() {
     final previousLauncher = UrlLauncherPlatform.instance;
     UrlLauncherPlatform.instance = fakeLauncher;
     addTearDown(() => UrlLauncherPlatform.instance = previousLauncher);
+
+    // The failure-path tests call recordError, whose real listener gathers
+    // debug diagnostics on a 6s timeout that never completes under the test
+    // clock and re-arms itself. Trip the install guard first (it only
+    // assigns once per isolate), then swap in a no-op listener.
+    installLoggerErrorListener();
+    Logger.onRecordError = (_, _, _) {};
+    addTearDown(() => Logger.onRecordError = null);
   });
 
   tearDown(() {
@@ -368,6 +386,27 @@ void main() {
         expect(find.byKey(const ValueKey('support-account-linked')), findsOneWidget);
         expect(fakeHttp.signupRequests, hasLength(1), reason: 'ensureSession creates the anonymous session first');
         expect(fakeHttp.idTokenRequests, hasLength(1));
+      });
+    });
+
+    testWidgets('an Apple ID owned by another account shows the sign-in-instead hint', (tester) async {
+      await withPlatform(TargetPlatform.iOS, () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.idTokenAlreadyLinked = true;
+
+        await pumpCard(
+          tester,
+          appleIdTokenFetcher: () async => const AppleIdTokenResult(idToken: 'fake-apple-id-token', rawNonce: 'nonce'),
+        );
+        await tester.pump();
+
+        await tester.tap(signInButtonFor(Buttons.apple));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('support-account-linked')), findsNothing);
+        expect(find.text(l10n.supportAccountAlreadyLinked), findsOneWidget);
+        expect(find.text(l10n.supportAccountLinkFailed), findsNothing);
       });
     });
 

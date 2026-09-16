@@ -93,6 +93,10 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
   bool _busy = false;
   bool _failed = false;
 
+  /// Set alongside [_failed] when the identity already belongs to another
+  /// account, so the card can tell the rider to sign in with it instead.
+  bool _alreadyLinked = false;
+
   /// Watches for a browser-redirect link (see [_linkViaOAuthRedirect])
   /// completing asynchronously once the deep link brings the app back.
   StreamSubscription<AuthState>? _authStateSub;
@@ -132,6 +136,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       await widget.accountService.beginEmailLink(email);
@@ -157,6 +162,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       await widget.accountService.confirmEmailLink(email: email, token: code);
@@ -198,6 +204,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       final fetch = widget.googleIdTokenFetcher ?? fetchGoogleIdToken;
@@ -215,6 +222,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
       setState(() {
         _busy = false;
         _failed = true;
+        _alreadyLinked = e is IdentityAlreadyLinkedException;
       });
     }
   }
@@ -224,6 +232,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       final fetch = widget.appleIdTokenFetcher ?? fetchAppleIdToken;
@@ -241,6 +250,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
       setState(() {
         _busy = false;
         _failed = true;
+        _alreadyLinked = e is IdentityAlreadyLinkedException;
       });
     }
   }
@@ -256,6 +266,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       await widget.accountService.linkOAuthIdentity(provider);
@@ -371,7 +382,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
             if (_failed) ...[
               const Gap(8),
               Text(
-                l10n.supportAccountLinkFailed,
+                _alreadyLinked ? l10n.supportAccountAlreadyLinked : l10n.supportAccountLinkFailed,
                 style: TextStyle(color: cs.destructive, fontSize: 12),
               ),
             ],

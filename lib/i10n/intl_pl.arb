@@ -928,6 +928,7 @@
   "supportAccountLinkAddButton": "Dodaj",
   "supportAccountLinkedNote": "Zalogowano — ten czat jest teraz powiązany z Twoim kontem.",
   "supportAccountLinkFailed": "Coś poszło nie tak. Spróbuj ponownie.",
+  "supportAccountAlreadyLinked": "To konto jest już powiązane z innym kontem BikeControl. Wyloguj się i zaloguj się nim.",
   "retry": "Spróbuj ponownie",
   "supportChatEmpty": "Wyślij wiadomość, aby rozpocząć rozmowę.",
   "supportChatIntro": "Będziesz rozmawiać z Jonasem z BikeControl",

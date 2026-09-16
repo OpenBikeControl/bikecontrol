@@ -69,7 +69,11 @@ class _FakeSupabaseHttp extends http.BaseClient {
     if (path.endsWith('/auth/v1/token') && request.url.queryParameters['grant_type'] == 'id_token') {
       idTokenRequests.add(req);
       if (idTokenLinkError) {
-        return _json({'msg': 'Identity is already linked to another user'}, status: 422);
+        return _json({
+          'code': 422,
+          'error_code': 'identity_already_exists',
+          'msg': 'Identity is already linked to another user',
+        }, status: 422);
       }
       // Same user id as every other fixture here — a real link response
       // keeps the id unchanged; only `is_anonymous`/`email` flip.
@@ -376,6 +380,19 @@ void main() {
       await expectLater(
         service.linkGoogleIdentity(idToken: 'fake-google-id-token'),
         throwsA(isA<FeedbackSubmissionException>()),
+      );
+    });
+
+    test('an identity owned by another user surfaces as IdentityAlreadyLinkedException', () async {
+      fakeHttp.idTokenLinkError = true;
+
+      await expectLater(
+        service.linkAppleIdentity(idToken: 'fake-apple-id-token', nonce: 'raw-nonce'),
+        throwsA(isA<IdentityAlreadyLinkedException>()),
+      );
+      await expectLater(
+        service.linkGoogleIdentity(idToken: 'fake-google-id-token'),
+        throwsA(isA<IdentityAlreadyLinkedException>()),
       );
     });
   });

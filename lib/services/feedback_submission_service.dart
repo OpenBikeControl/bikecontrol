@@ -24,6 +24,20 @@ class FeedbackSubmissionException implements Exception {
   String toString() => 'FeedbackSubmissionException: $message';
 }
 
+/// The Google/Apple identity being linked already belongs to a different
+/// BikeControl account (GoTrue `identity_already_exists`). The rider has to
+/// sign in with that identity instead of linking it, so the UI shows a
+/// specific hint rather than the generic "try again".
+class IdentityAlreadyLinkedException extends FeedbackSubmissionException {
+  const IdentityAlreadyLinkedException(super.message);
+}
+
+/// GoTrue's error code for linking an identity that another user owns.
+const _identityAlreadyExistsCode = 'identity_already_exists';
+
+bool _isIdentityAlreadyLinked(Object error) =>
+    error is AuthException && error.code == _identityAlreadyExistsCode;
+
 /// Submits rider feedback to the `submit-feedback` edge function, creating an
 /// anonymous Supabase session on demand, and offers a follow-up flow that
 /// links an email address to that session.
@@ -117,6 +131,9 @@ class FeedbackSubmissionService {
       );
     } catch (e, s) {
       await recordError(e, s, context: 'FeedbackSubmissionService.linkGoogleIdentity');
+      if (_isIdentityAlreadyLinked(e)) {
+        throw const IdentityAlreadyLinkedException('This Google account is already linked to another user');
+      }
       throw const FeedbackSubmissionException('Failed to link your Google account');
     }
   }
@@ -135,6 +152,9 @@ class FeedbackSubmissionService {
       );
     } catch (e, s) {
       await recordError(e, s, context: 'FeedbackSubmissionService.linkAppleIdentity');
+      if (_isIdentityAlreadyLinked(e)) {
+        throw const IdentityAlreadyLinkedException('This Apple account is already linked to another user');
+      }
       throw const FeedbackSubmissionException('Failed to link your Apple account');
     }
   }

@@ -928,6 +928,7 @@
   "supportAccountLinkAddButton": "Ajouter",
   "supportAccountLinkedNote": "Connecté — cette discussion suit désormais ton compte.",
   "supportAccountLinkFailed": "Un problème est survenu. Réessaie.",
+  "supportAccountAlreadyLinked": "Ce compte appartient déjà à un autre compte BikeControl. Déconnecte-toi, puis connecte-toi avec celui-ci.",
   "retry": "Réessayer",
   "supportChatEmpty": "Envoie un message pour démarrer la conversation.",
   "supportChatIntro": "Tu vas parler avec Jonas de BikeControl",

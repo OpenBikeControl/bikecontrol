@@ -1510,6 +1510,7 @@
   "supportAccountLinkAddButton": "Add",
   "supportAccountLinkedNote": "Signed in — this chat now follows your account.",
   "supportAccountLinkFailed": "Something went wrong. Try again.",
+  "supportAccountAlreadyLinked": "This account already belongs to another BikeControl account. Sign out and sign in with it instead.",
   "retry": "Retry",
   "supportChatEmpty": "Send a message to start the conversation.",
   "supportChatIntro": "You'll be talking to Jonas from BikeControl",
