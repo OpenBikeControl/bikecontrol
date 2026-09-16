@@ -199,7 +199,7 @@ Future<void> main() async {
 
     expect(device.fitnessBike!.controlProtocol, TrainerControlProtocol.ftms);
     expect(reconnects, 1);
-    await tester.pump(const Duration(seconds: 1));
+    await letControlWritePacingWindowClose(tester);
   });
 
   testWidgets('an inert selection (same effective protocol) does not cycle the connection', (tester) async {

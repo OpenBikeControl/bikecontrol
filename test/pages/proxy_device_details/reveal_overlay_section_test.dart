@@ -85,6 +85,10 @@ Future<void> main() async {
 
     expect(find.byType(OverlaySettingsSection), findsOneWidget);
     expect(find.text(AppLocalizations.current.overlayEnabled), findsOneWidget);
+    // Being in the tree isn't enough: the page builds the section either way,
+    // just far below the fold when nothing scrolls to it. Hit-testable means
+    // the switch's label is on screen and nothing covers it.
+    expect(find.text(AppLocalizations.current.overlayEnabled).hitTestable(), findsOneWidget);
 
     // Mounting the Virtual Shifting settings pushes the active shifting config
     // to the definition, and that write opens its one-shot control-write
