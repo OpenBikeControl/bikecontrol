@@ -302,15 +302,19 @@ ChainLink _appLink(ChainInputs inputs) {
       ),
   ];
 
+  // It was carrying commands earlier in this session and has stopped. Unlike a
+  // controller or a trainer, that is not a break: a trainer app that goes
+  // away has almost always just been closed, and red with "Fix" sent riders
+  // into a network test that had nothing to find. So it stays amber, like any
+  // other wait for the app, and the card says it disconnected — see
+  // [ChainLink.dropped]. A self-hosted app has no wire to lose.
+  final dropped = selected && !connected && app.wasConnectedThisSession;
+
   final LinkStatus status;
   if (steps.every((s) => s.done || s.optional)) {
     status = LinkStatus.ready;
   } else if (!selected) {
     status = LinkStatus.off;
-  } else if (app.wasConnectedThisSession && !app.isConnected) {
-    // It was carrying commands a moment ago and stopped — that is a break, not
-    // an unfinished setup.
-    status = LinkStatus.problem;
   } else {
     status = LinkStatus.attention;
   }
@@ -322,5 +326,6 @@ ChainLink _appLink(ChainInputs inputs) {
     title: app.name ?? '',
     steps: steps,
     subtitleArg: status == LinkStatus.ready ? app.connectionSummary : null,
+    dropped: dropped,
   );
 }

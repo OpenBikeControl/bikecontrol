@@ -227,7 +227,9 @@ class AppInput {
   final bool hasEnabledConnection;
   final bool isConnected;
 
-  /// Drives the red "lost connection" state, same rule as devices.
+  /// Whether the app has been connected at any point in this session. One
+  /// that is no longer connected has disconnected — amber, see
+  /// `ChainLink.dropped` — rather than never having been set up.
   final bool wasConnectedThisSession;
 
   /// e.g. "Network" — which method is carrying the commands.

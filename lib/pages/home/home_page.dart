@@ -85,8 +85,14 @@ ProxyDevice? chainProxy() => core.connection.proxyDevices.sortedBy(proxyChainRan
 
 /// The app card's active step is "waiting for the app to connect" and the
 /// Network method is the enabled path — the moment troubleshooting helps.
+///
+/// Only for an app that has not connected in this session. Once the
+/// connection has worked, a drop is almost never something the self-test can
+/// fix — the app was usually just closed — so a dropped app gets its pairing
+/// guide instead (see [ChainLink.dropped]).
 bool appCardOffersTroubleshooting(ChainLink link) =>
     link.key == ChainLinkKey.app &&
+    !link.dropped &&
     link.activeStep?.id == SetupStepId.appConnected &&
     core.logic.isObpMdnsEnabled &&
     core.obpMdnsEmulator.isStarted.value;
@@ -622,8 +628,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final inputs = _readInputs();
-    // Latch once connected: the app card can then say "lost connection" rather
-    // than falling back to "never set up" the moment the app quits.
+    // Latch once connected: the app card can then say the app disconnected
+    // rather than falling back to "waiting for it" the moment the app quits.
     if (inputs.app.isConnected) _appConnectedThisSession = true;
 
     final links = buildChain(inputs);
@@ -1198,13 +1204,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final String statusLabel;
     if (link.status == LinkStatus.ready) {
       statusLabel = context.i18n.chainStatusReceivingCommands;
-    } else if (link.status == LinkStatus.problem) {
-      statusLabel = context.i18n.notConnected;
     } else if (app != null) {
       // Name what is actually outstanding. Reporting "waiting for the app"
-      // while a permission is missing points the rider at the wrong device.
+      // while a permission is missing points the rider at the wrong device,
+      // and so would "disconnected". Once this side is done, an app that
+      // worked earlier in the session has simply disconnected — most often
+      // it was closed — rather than lost its connection.
       statusLabel = appStatusFollowsActiveStep(link)
           ? chainStepText(context, link.activeStep!, appName: app.name).label
+          : link.dropped
+          ? context.i18n.chainStatusAppDisconnected(app.name)
           : context.i18n.chainStatusWaitingForApp(app.name);
     } else {
       statusLabel = context.i18n.chainStatusNotSetUp;
@@ -1377,6 +1386,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // "how do I pair this app" guide.
           await context.push(const NetworkTroubleshootingPage());
         } else {
+          // Including an app that dropped after working in this session: it
+          // was almost always closed, and what brings it back is its own
+          // pairing screen — never the network self-test, which has nothing
+          // to find once the connection has worked.
           await openAppGuideSheet(context);
         }
       case ChainLinkKey.sensors:

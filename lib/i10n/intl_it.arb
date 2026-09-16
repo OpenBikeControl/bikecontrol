@@ -2170,5 +2170,9 @@
   },
   "chainStepNetworkAddressAction": "Esegui il controllo di rete",
   "supportAccountLinkEmailTaken": "{email} ha già un account BikeControl, quindi non può essere aggiunto a questa chat. Per usare quell'account, accedi da Pro → Account. Questa conversazione non verrà trasferita, quindi invia di nuovo il tuo messaggio da lì. Oppure inserisci un'altra email.",
-  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}}
+  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
+  "chainStatusAppDisconnected": "{app} si è disconnessa",
+  "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAppDropped": "{app} si è disconnessa. Ricollegala dalla sua schermata di associazione quando torni a pedalare.",
+  "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}}
 }

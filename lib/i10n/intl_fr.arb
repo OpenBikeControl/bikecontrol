@@ -2170,5 +2170,9 @@
   },
   "chainStepNetworkAddressAction": "Lancer le test réseau",
   "supportAccountLinkEmailTaken": "{email} a déjà un compte BikeControl, cette adresse ne peut donc pas être ajoutée à ce chat. Pour utiliser ce compte, connecte-toi dans Pro → Compte. Cette conversation ne sera pas transférée, renvoie donc ton message depuis là-bas. Ou saisis une autre adresse e-mail.",
-  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}}
+  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
+  "chainStatusAppDisconnected": "{app} s'est déconnecté",
+  "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAppDropped": "{app} s'est déconnecté. Reconnecte-le depuis son écran d'appairage à ta prochaine séance.",
+  "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}}
 }

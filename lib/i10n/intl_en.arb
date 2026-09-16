@@ -2362,5 +2362,9 @@
       }
     }
   },
-  "chainStepNetworkAddressAction": "Run network check"
+  "chainStepNetworkAddressAction": "Run network check",
+  "chainStatusAppDisconnected": "{app} disconnected",
+  "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAppDropped": "{app} disconnected. Reconnect it from its pairing screen when you ride again.",
+  "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}}
 }

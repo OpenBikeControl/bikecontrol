@@ -190,6 +190,7 @@ class ChainLink {
     this.subtitleArg,
     this.deviceId,
     this.dismissible = false,
+    this.dropped = false,
   });
 
   final ChainLinkKey key;
@@ -223,6 +224,16 @@ class ChainLink {
   /// remembered but not currently connected — a live device must not be
   /// dismissible, or a stray swipe drops a working controller off the screen.
   final bool dismissible;
+
+  /// Whether this link carried commands earlier in this session and has since
+  /// stopped. Only the app link sets it.
+  ///
+  /// A controller or trainer that drops is a break ([LinkStatus.problem]). A
+  /// trainer app that goes away after working has almost always just been
+  /// closed — the ride is over — so its card stays amber and says the app
+  /// disconnected, and nothing sends the rider into the network self-test,
+  /// which has nothing to find once the connection has already worked.
+  final bool dropped;
 
   /// Whether this link stops the rider being ready.
   bool get isBlocking {
@@ -269,6 +280,7 @@ class ChainLink {
       subtitleArg: subtitleArg ?? this.subtitleArg,
       deviceId: deviceId,
       dismissible: dismissible ?? this.dismissible,
+      dropped: dropped,
     );
   }
 
@@ -287,6 +299,7 @@ class ChainBanner {
     this.outstandingKeys = const [],
     this.outstandingLinkIds = const [],
     this.soleStep,
+    this.appDropped = false,
   });
 
   final ChainBannerKind kind;
@@ -323,6 +336,14 @@ class ChainBanner {
   /// controller tile" instead of "finish the Trainer app card", which sends
   /// a rider back to a screen they have already been on once.
   final SetupStep? soleStep;
+
+  /// Whether the whole story is a trainer app that went away after working —
+  /// see [ChainLink.dropped]. Only ever set on a pending banner, and only when
+  /// the app card is the one card outstanding and the connection is the one
+  /// thing left on it: the banner then says the app disconnected and that it
+  /// comes back from its pairing screen. With anything else outstanding that
+  /// sentence would point past it, so the ordinary wording stays.
+  final bool appDropped;
 
   bool get hasAction => targetLinkId != null;
 
@@ -368,6 +389,15 @@ ChainBanner deriveBanner(List<ChainLink> links) {
     );
   }
 
+  // A trainer app that went away after working is not a break — see
+  // [ChainLink.dropped] — so it lands here, amber, rather than above. Its own
+  // wording only applies while the connection is all that is left: a
+  // permission or a method still missing on this side keeps the app away
+  // however often the rider re-pairs it, and the card's step says so.
+  final only = outstanding.length == 1 ? outstanding.single : null;
+  final appDropped =
+      only != null && only.key == ChainLinkKey.app && only.dropped && only.activeStep?.id == SetupStepId.appConnected;
+
   return ChainBanner(
     kind: ChainBannerKind.pending,
     status: LinkStatus.attention,
@@ -377,5 +407,6 @@ ChainBanner deriveBanner(List<ChainLink> links) {
     outstandingKeys: outstandingKeys,
     outstandingLinkIds: outstandingLinkIds,
     soleStep: soleStep,
+    appDropped: appDropped,
   );
 }
