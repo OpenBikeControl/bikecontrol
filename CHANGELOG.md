@@ -1,3 +1,20 @@
+### 7.0.0 (18-09-2026)
+**Features**:
+- Sensors: pair a heart-rate strap, cadence sensor or power meter and choose, per signal, whether your trainer app gets the trainer's reading or the sensor's, over the one Bridge connection you already have.
+- AirPods Pro 3 & Apple Watch heart rate (iOS 26) flows from Apple Health into your trainer app. No strap needed.
+- No smart trainer? The new Sensors page broadcasts "BikeControl" over Bluetooth or Wi-Fi, so Zwift on an Apple TV or MyWhoosh on a PC pairs it like a strap.
+- Better virtual shifting from a real cadence sensor: an external cadence sensor feeds virtual shifting directly, which sharpens it on trainers with a poor cadence signal and makes it work on trainers that report none at all.
+- Shift feedback: optional sound and vibration on this phone or tablet on every shift, with a distinct cue when you reach the last gear.
+- A "Need help?" card on the trainer page takes you straight to the Help Center with your setup attached.
+
+Read more in our blog!
+
+**Fixes**:
+- TrainerRoad: the Bridge now pairs with and is controlled by TrainerRoad over the network.
+- Android network self-test: two false alarms (own-hostname lookup, multicast lock) no longer flag a healthy setup.
+- Small phones: the home sheets scroll so Close stays reachable, and the Virtual Shifting profile buttons no longer squeeze the profile dropdown.
+- Connect opens the trainer picker even when no trainer app has been chosen yet.
+
 ### 6.6.0 (31-08-2026)
 **Features**:
 - FulGaz & Tacx Training apps are now supported: BikeControl acts as a Bluetooth smart trainer to it on a second device and provides the virtual shifting.
