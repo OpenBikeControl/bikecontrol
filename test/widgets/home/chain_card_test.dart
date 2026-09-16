@@ -485,12 +485,18 @@ void main() async {
     const linkId = 'controller:test';
     final highlight = find.byKey(chainCardHighlightKey(linkId));
 
+    /// [accessibility] is the platform's own setting, the way a phone reports
+    /// it — not a MediaQuery override, which animation controllers never see.
     Future<ValueNotifier<int>> pumpHighlightable(
       WidgetTester tester, {
       ChainLink? card,
-      bool disableAnimations = false,
+      FakeAccessibilityFeatures? accessibility,
       VoidCallback? onTap,
     }) async {
+      if (accessibility != null) {
+        tester.platformDispatcher.accessibilityFeaturesTestValue = accessibility;
+        addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      }
       final tick = ValueNotifier(0);
       addTearDown(tick.dispose);
       final l = card ?? link(status: LinkStatus.attention, steps: [true, false]);
@@ -499,20 +505,15 @@ void main() async {
           localizationsDelegates: const [AppLocalizations.delegate],
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
-          home: Builder(
-            builder: (context) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
-              child: Scaffold(
-                child: SingleChildScrollView(
-                  child: ChainCard(
-                    link: l,
-                    tile: const Icon(LucideIcons.gamepad),
-                    title: l.title,
-                    statusLabel: 'status',
-                    onTap: onTap,
-                    highlight: tick,
-                  ),
-                ),
+          home: Scaffold(
+            child: SingleChildScrollView(
+              child: ChainCard(
+                link: l,
+                tile: const Icon(LucideIcons.gamepad),
+                title: l.title,
+                statusLabel: 'status',
+                onTap: onTap,
+                highlight: tick,
               ),
             ),
           ),
@@ -572,15 +573,15 @@ void main() async {
       expect(motionMatrix(tester).isIdentity(), isTrue);
     });
 
-    testWidgets('with animations turned off, only the border flashes — the card never moves', (tester) async {
-      final tick = await pumpHighlightable(tester, disableAnimations: true);
-
+    /// Plays a highlight and expects the border alone, for its whole length.
+    Future<void> expectBorderOnly(WidgetTester tester, ValueNotifier<int> tick) async {
       tick.value++;
       await tester.pump();
       expect(highlight, findsOneWidget);
       expect(motion(), findsNothing);
 
-      // Where the pulse and the shake would be.
+      // Where the pulse and the shake would be — and the border is still
+      // there, not squeezed into a single frame.
       for (final step in const [125, 250, 200]) {
         await tester.pump(Duration(milliseconds: step));
         expect(highlight, findsOneWidget);
@@ -590,6 +591,30 @@ void main() async {
       await tester.pump(const Duration(milliseconds: 700));
       expect(highlight, findsNothing);
       expect(motion(), findsNothing);
+    }
+
+    // Android's "Remove animations": the platform reports it to MediaQuery and
+    // to every animation controller alike.
+    testWidgets('with animations turned off, only the border flashes — the card never moves', (tester) async {
+      final tick = await pumpHighlightable(
+        tester,
+        accessibility: const FakeAccessibilityFeatures(disableAnimations: true),
+      );
+      expect(MediaQuery.disableAnimationsOf(tester.element(find.byType(ChainCard))), isTrue);
+
+      await expectBorderOnly(tester, tick);
+    });
+
+    // iOS's Reduce Motion arrives on its own flag, which MediaQuery knows
+    // nothing about.
+    testWidgets('with Reduce Motion on, only the border flashes — the card never moves', (tester) async {
+      final tick = await pumpHighlightable(
+        tester,
+        accessibility: const FakeAccessibilityFeatures(reduceMotion: true),
+      );
+      expect(MediaQuery.disableAnimationsOf(tester.element(find.byType(ChainCard))), isFalse);
+
+      await expectBorderOnly(tester, tick);
     });
 
     testWidgets('every tick plays it again', (tester) async {

@@ -46,6 +46,7 @@ import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
 import 'package:bike_control/widgets/home/accessory_card.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
+import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
@@ -609,6 +610,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// kind, and a global key can only sit on one of them.
   final Map<String, GlobalKey> _cardKeys = {};
 
+  /// The outstanding cards as last built — the chain as it is on screen.
+  List<String> _outstandingLinkIds = const [];
+
   /// The bridged trainer's own name, which the pairing instructions use to
   /// spell out the entry to look for ("KICKR CORE - BikeControl").
   String? get _bridgedTrainerName => core.connection.proxyDevices.firstOrNullWhere((p) => p.isBridged)?.name;
@@ -624,11 +628,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     final links = buildChain(inputs);
     final banner = deriveBanner(links);
+    _outstandingLinkIds = banner.outstandingLinkIds;
     final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
     final trial = _trialState();
-    // A global key may sit on one card only. Ids are unique by design, but a
-    // duplicate must cost the banner its scroll target, not the page.
+
+    final cards = <Widget>[];
     final keyedIds = <String>{};
+    for (final link in links) {
+      // A global key may sit on one card only. Ids are unique by design, but a
+      // duplicate must cost the banner its scroll target, not the page.
+      final firstWithId = keyedIds.add(link.id);
+      cards.add(
+        KeyedSubtree(
+          key: firstWithId ? _cardKeys.putIfAbsent(link.id, GlobalKey.new) : null,
+          child: _card(link, devicesById[link.deviceId], inputs),
+        ),
+      );
+    }
 
     return Padding(
       // No horizontal inset on mobile: the shell's scroll view already pads the
@@ -659,11 +675,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ],
           // Pro on the account, not on this device: carries its own gap.
           const ProUnregisteredBanner(),
-          for (final link in links) ...[
-            KeyedSubtree(
-              key: keyedIds.add(link.id) ? _cardKeys.putIfAbsent(link.id, GlobalKey.new) : null,
-              child: _card(link, devicesById[link.deviceId], inputs),
-            ),
+          for (final card in cards) ...[
+            card,
             const Gap(10),
           ],
           ..._accessorySection(),
@@ -1275,13 +1288,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         first,
         // Near the top, with a little room above the card.
         alignment: 0.05,
-        duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 300),
+        duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
       );
     }
     if (!mounted) return;
-    // Once the cards have arrived, so the pulse is not spent mid-scroll.
-    _highlights.play(linkIds);
+    // Once the cards have arrived, so the pulse is not spent mid-scroll — and
+    // only on those still outstanding by then: a card the rider finished
+    // meanwhile has nothing left to point at.
+    _highlights.play(linkIds.where(_outstandingLinkIds.contains));
   }
 
   /// Instruction sheets are routed on the card and its state, never on the

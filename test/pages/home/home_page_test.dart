@@ -167,15 +167,20 @@ void _bannerShowTests() {
     Finder highlighted(String linkId) => find.byKey(chainCardHighlightKey(linkId));
 
     // The shell's mobile layout: the chain in its own scroll view, inset 12 a
-    // side, on the first page of the tab pager.
+    // side, on the first page of the tab pager. [accessibility] is the
+    // platform's own setting, the way a phone reports it.
     Future<({PageController pager, ScrollController chain})> pumpPagedHome(
       WidgetTester tester, {
-      bool disableAnimations = false,
+      FakeAccessibilityFeatures? accessibility,
     }) async {
       tester.view.physicalSize = const Size(400, 520);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+      if (accessibility != null) {
+        tester.platformDispatcher.accessibilityFeaturesTestValue = accessibility;
+        addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      }
       final pager = PageController();
       final chain = ScrollController();
       addTearDown(pager.dispose);
@@ -188,22 +193,17 @@ void _bannerShowTests() {
             AppLocalizations.delegate,
           ],
           supportedLocales: const [Locale('en')],
-          home: Builder(
-            builder: (context) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
-              child: Scaffold(
-                child: PageView(
-                  controller: pager,
-                  children: [
-                    SingleChildScrollView(
-                      controller: chain,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: HomePage(isMobile: true, onUpdate: () {}),
-                    ),
-                    const SizedBox(),
-                  ],
+          home: Scaffold(
+            child: PageView(
+              controller: pager,
+              children: [
+                SingleChildScrollView(
+                  controller: chain,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: HomePage(isMobile: true, onUpdate: () {}),
                 ),
-              ),
+                const SizedBox(),
+              ],
             ),
           ),
         ),
@@ -220,15 +220,16 @@ void _bannerShowTests() {
 
       await tester.tap(showButton());
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
 
-      // Not the controller search the first card would have opened ...
-      expect(find.text(l.connectControllers), findsNothing);
-      // ... but both outstanding cards, and only those: the empty trainer
+      // Both outstanding cards jump out, and only those: the empty trainer
       // slot is optional and blocks nothing.
       expect(highlighted('controller'), findsOneWidget);
       expect(highlighted('app'), findsOneWidget);
       expect(highlighted('trainer'), findsNothing);
+
+      // The controller search the first card would have opened never does.
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text(l.connectControllers), findsNothing);
 
       // A highlight is a moment, not a state.
       await tester.pump(const Duration(milliseconds: 1500));
@@ -255,32 +256,95 @@ void _bannerShowTests() {
       expect(chain.offset, 0);
 
       await tester.tap(showButton());
-      await tester.pump();
-      for (var i = 0; i < 10; i++) {
+      // What the highlights did is noted inside the loop, so a slow machine
+      // cannot pump past one that has already come and gone.
+      double? offsetWhenHighlighted;
+      var sawApp = false;
+      for (var i = 0; i < 20; i++) {
         await tester.pump(const Duration(milliseconds: 40));
         // Revealing the card goes through every scrollable above it, the tab
         // pager included — and the rider must stay on the page they are on.
         expect(pager.position.pixels, 0, reason: 'the tab pager must not move');
+        if (offsetWhenHighlighted == null && tester.any(highlighted('controller'))) {
+          offsetWhenHighlighted = chain.offset;
+        }
+        sawApp |= tester.any(highlighted('app'));
       }
 
       expect(chain.offset, greaterThan(0));
       final viewportTop = tester.getTopLeft(find.byType(PageView)).dy;
       final cardTop = tester.getTopLeft(_chainCard(ChainLinkKey.controller)).dy;
       expect(cardTop - viewportTop, inInclusiveRange(0, 40), reason: 'the first outstanding card sits near the top');
-      // The highlight plays once the card has arrived.
+      // Both cards jumped out — the first one only once it had arrived.
+      expect(offsetWhenHighlighted, isNotNull, reason: 'the controller card was never highlighted');
+      expect(offsetWhenHighlighted, moreOrLessEquals(chain.offset, epsilon: 0.5));
+      expect(sawApp, isTrue, reason: 'the app card was never highlighted');
+    });
+
+    // Android's "Remove animations" reaches MediaQuery and every animation
+    // controller alike.
+    testWidgets('with animations turned off, the chain jumps and the border still flashes', (tester) async {
+      final (:pager, :chain) = await pumpPagedHome(
+        tester,
+        accessibility: const FakeAccessibilityFeatures(disableAnimations: true),
+      );
+
+      await tester.tap(showButton());
+      // A jump has landed before the next frame; a glide would not have
+      // started yet.
+      expect(chain.offset, greaterThan(0));
+
+      await tester.pump();
+      expect(pager.position.pixels, 0);
+      expect(highlighted('controller'), findsOneWidget);
+      expect(highlighted('app'), findsOneWidget);
+
+      // Still there a few frames later: the setting must not squeeze the
+      // flash into a single frame.
+      await tester.pump(const Duration(milliseconds: 125));
       expect(highlighted('controller'), findsOneWidget);
       expect(highlighted('app'), findsOneWidget);
     });
 
-    testWidgets('with animations turned off, the chain jumps instead of gliding', (tester) async {
-      final (:pager, :chain) = await pumpPagedHome(tester, disableAnimations: true);
+    // iOS's Reduce Motion arrives on its own flag, which MediaQuery does not
+    // carry.
+    testWidgets('with Reduce Motion on, the chain jumps too', (tester) async {
+      final (:pager, :chain) = await pumpPagedHome(
+        tester,
+        accessibility: const FakeAccessibilityFeatures(reduceMotion: true),
+      );
 
       await tester.tap(showButton());
-      await tester.pump();
+      expect(chain.offset, greaterThan(0), reason: 'a jump lands before the next frame, a glide has not started');
 
-      expect(chain.offset, greaterThan(0));
+      await tester.pump();
       expect(pager.position.pixels, 0);
       expect(highlighted('controller'), findsOneWidget);
+      expect(highlighted('app'), findsOneWidget);
+    });
+
+    // The highlight plays once the chain has arrived, and by then the rider
+    // may have finished one of the cards.
+    testWidgets('a card that is done by the time the chain arrives is not highlighted', (tester) async {
+      await pumpPagedHome(tester);
+
+      await tester.tap(showButton());
+      // MyWhoosh connects while the chain is still gliding, and the page
+      // redraws with it.
+      core.obpMdnsEmulator.isConnected.value = true;
+      tester.element(find.byType(HomePage)).markNeedsBuild();
+
+      var sawController = false;
+      var sawApp = false;
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 40));
+        sawController |= tester.any(highlighted('controller'));
+        sawApp |= tester.any(highlighted('app'));
+      }
+
+      expect(tester.widget<ChainCard>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.ready);
+      expect(sawController, isTrue, reason: 'the controller card is still outstanding');
+      expect(sawApp, isFalse, reason: 'the app card was done before the highlight played');
     });
   });
 }
