@@ -147,18 +147,40 @@ void main() {
     });
   });
   group('mDNS queries received', () {
-    DebugDiagnostics withQueries(List<MdnsQueryLogEntry> queries) => DebugDiagnostics(
-      advertised: const [],
-      backend: 'responder',
-      hostLabel: 'BikeControl',
-      holdsMulticastLock: false,
-      discovered: const [],
-      discoveryRan: false,
-      addressReport: const AddressPickReport(chosen: null, candidates: []),
-      servers: const [],
-      permissions: const PermissionsSnapshot(localNetwork: null),
-      recentQueries: queries,
-    );
+    // What this fixture "advertises" — the two service types BikeControl
+    // actually registers. Queries naming these are BikeControl-relevant and
+    // stay listed; everything else in this group is either the generic
+    // enumeration query or a third-party query that must be dropped.
+    final ourAdvertised = [
+      AdvertisedRecord(
+        name: 'BikeControl',
+        type: '_wahoo-fitness-tnp._tcp',
+        port: 36867,
+        address: '192.168.1.9',
+        txt: const {},
+      ),
+      AdvertisedRecord(
+        name: 'BikeControl',
+        type: '_openbikecontrol._tcp',
+        port: 36867,
+        address: '192.168.1.9',
+        txt: const {},
+      ),
+    ];
+
+    DebugDiagnostics withQueries(List<MdnsQueryLogEntry> queries, {List<AdvertisedRecord>? advertised}) =>
+        DebugDiagnostics(
+          advertised: advertised ?? ourAdvertised,
+          backend: 'responder',
+          hostLabel: 'BikeControl',
+          holdsMulticastLock: false,
+          discovered: const [],
+          discoveryRan: false,
+          addressReport: const AddressPickReport(chosen: null, candidates: []),
+          servers: const [],
+          permissions: const PermissionsSnapshot(localNetwork: null),
+          recentQueries: queries,
+        );
 
     test('renders each query with its source, QU bit and how it was answered', () {
       final text = withQueries([
@@ -181,13 +203,18 @@ void main() {
     });
 
     test('marks a folded entry with its repeat count', () {
+      // Uses one of our own advertised types (not a third-party one, e.g. the
+      // real-world '_oculusal_sp._tcp' Meta headsets poll non-stop) — this
+      // test is about the repeat-count marker, and only a kept entry renders
+      // one; an unrelated query this repetitive would instead be folded into
+      // the dropped-queries summary.
       final text = withQueries([
         MdnsQueryLogEntry(
           at: DateTime(2026, 7, 30, 20, 32, 33),
           source: '172.20.176.1',
           sourcePort: 5353,
           wantsUnicast: false,
-          questions: const ['PTR _oculusal_sp._tcp.local'],
+          questions: const ['PTR _openbikecontrol._tcp.local'],
           answeredUnicast: false,
           answeredMulticast: false,
           count: 17,
@@ -227,6 +254,146 @@ void main() {
       final text = withQueries(const []).toText();
       expect(text.indexOf('VPN:'), lessThan(text.indexOf('mDNS queries received:')));
       expect(text.indexOf('mDNS queries received:'), lessThan(text.indexOf('TCP servers:')));
+    });
+
+    // Privacy: support bundles leave the device, so third-party hostnames
+    // and IPs a browsing neighbour's device happened to log must not appear
+    // in the exported text — only queries that name something BikeControl
+    // itself advertises are listed verbatim.
+    test('lists only BikeControl-relevant queries and summarises the rest', () {
+      final text = withQueries([
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 41, 12),
+          source: '192.168.178.92',
+          sourcePort: 5353,
+          wantsUnicast: true,
+          questions: const ['PTR _wahoo-fitness-tnp._tcp.local'],
+          answeredUnicast: true,
+          answeredMulticast: true,
+        ),
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 42, 0),
+          source: '192.168.178.44',
+          sourcePort: 5353,
+          wantsUnicast: false,
+          questions: const ['A someones-macbook.local'],
+          answeredUnicast: false,
+          answeredMulticast: false,
+        ),
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 43, 0),
+          source: '192.168.178.44',
+          sourcePort: 5353,
+          wantsUnicast: false,
+          questions: const ['PTR _airplay._tcp.local'],
+          answeredUnicast: false,
+          answeredMulticast: false,
+          count: 3,
+        ),
+      ]).toText();
+
+      expect(text, contains('192.168.178.92:5353'));
+      expect(text, isNot(contains('someones-macbook')));
+      expect(text, isNot(contains('_airplay')));
+      // Folded count (1) + repeats (3) from the one distinct dropped host.
+      expect(text, contains('(+4 unrelated queries from 1 hosts, not listed)'));
+    });
+
+    test('keeps the generic service-enumeration query and does not count it as dropped', () {
+      final text = withQueries([
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 41, 12),
+          source: '192.168.178.92',
+          sourcePort: 5353,
+          wantsUnicast: false,
+          questions: const ['PTR _services._dns-sd._udp.local'],
+          answeredUnicast: false,
+          answeredMulticast: true,
+        ),
+      ]).toText();
+
+      expect(text, contains('_services._dns-sd._udp.local'));
+      expect(text, isNot(contains('unrelated queries')));
+    });
+
+    test('a host query is not matched when no hostLabel is set', () {
+      final text = DebugDiagnostics(
+        advertised: const [],
+        backend: 'responder',
+        hostLabel: null,
+        holdsMulticastLock: false,
+        discovered: const [],
+        discoveryRan: false,
+        addressReport: const AddressPickReport(chosen: null, candidates: []),
+        servers: const [],
+        permissions: const PermissionsSnapshot(localNetwork: null),
+        recentQueries: [
+          MdnsQueryLogEntry(
+            at: DateTime(2026, 7, 30, 9, 41, 12),
+            source: '192.168.178.92',
+            sourcePort: 5353,
+            wantsUnicast: false,
+            questions: const ['A bikecontrol-1a2b.local'],
+            answeredUnicast: false,
+            answeredMulticast: true,
+          ),
+        ],
+      ).toText();
+
+      expect(text, isNot(contains('bikecontrol-1a2b')));
+      expect(text, contains('unrelated queries'));
+    });
+
+    test('kept lines come before the dropped-queries summary, which comes before TCP servers', () {
+      final text = withQueries([
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 41, 12),
+          source: '192.168.178.92',
+          sourcePort: 5353,
+          wantsUnicast: true,
+          questions: const ['PTR _wahoo-fitness-tnp._tcp.local'],
+          answeredUnicast: true,
+          answeredMulticast: true,
+        ),
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 42, 0),
+          source: '192.168.178.44',
+          sourcePort: 5353,
+          wantsUnicast: false,
+          questions: const ['A someones-macbook.local'],
+          answeredUnicast: false,
+          answeredMulticast: false,
+        ),
+      ]).toText();
+
+      expect(text.indexOf('192.168.178.92:5353'), lessThan(text.indexOf('unrelated queries')));
+      expect(text.indexOf('unrelated queries'), lessThan(text.indexOf('TCP servers:')));
+    });
+
+    test('a kept entry renders only its BikeControl-relevant questions, noting how many were hidden', () {
+      // The real-world case: an Apple TV bundles several PTR questions (and
+      // sometimes an unrelated A query) into one packet. The entry is kept
+      // because one question is ours, but the other two must not leak.
+      final text = withQueries([
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 41, 12),
+          source: '192.168.178.92',
+          sourcePort: 5353,
+          wantsUnicast: true,
+          questions: const [
+            'PTR _airplay._tcp.local',
+            'PTR _wahoo-fitness-tnp._tcp.local',
+            'A neighbour.local',
+          ],
+          answeredUnicast: true,
+          answeredMulticast: true,
+        ),
+      ]).toText();
+
+      expect(text, contains('PTR _wahoo-fitness-tnp._tcp.local'));
+      expect(text, contains('(+2 other questions)'));
+      expect(text, isNot(contains('airplay')));
+      expect(text, isNot(contains('neighbour')));
     });
   });
 }
