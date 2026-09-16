@@ -472,15 +472,21 @@ class _SelfTestCardState extends State<SelfTestCard> {
   }
 
   /// NO_CONTROL / ERG_OK_VS_FAIL / NO_DATA CTA: hands the verdict to support
-  /// pre-filled, mirroring what the smart-trainer intake branch itself would
-  /// have produced for a "no resistance change" report.
+  /// pinned below the composer (the rider still has to describe what they
+  /// see before they can send), with the intake mirroring what the
+  /// smart-trainer branch itself would have produced for a "no resistance
+  /// change" report.
   void _openSupport(BuildContext context, SelfTestResult result) {
     final debugFuture = debugText();
+    // The composer only knows it carries *a* pinned line; what kind — and so
+    // what its chip calls it — is this card's knowledge, resolved here.
+    final label = AppLocalizations.of(context).supportPinnedResistanceTest;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SupportChatPage(
           diagnosticPreviewFuture: debugFuture,
-          initialText: 'Resistance self-test: ${result.toBundleString()}',
+          pinnedContext: 'Resistance self-test: ${result.toBundleString()}',
+          pinnedContextLabel: label,
           // Matches what the intake form itself produces for this branch
           // (smart-trainer answers go into subcategoryValue with subcategory
           // 'issue').
