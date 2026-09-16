@@ -2121,5 +2121,15 @@
     }
   },
   "chainStepOverlayPendingNoApp": "La tua app di allenamento continuerà a mostrare la propria marcia",
-  "chainStepOverlayDecline": "Non ora"
+  "chainStepOverlayDecline": "Non ora",
+  "chainStepAppControllerPending": "{app} non è ancora collegata ai tuoi pulsanti",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} legge già il tuo rullo tramite BikeControl. I tuoi pulsanti hanno bisogno di un secondo collegamento: nella schermata di associazione di {app}, tocca il riquadro BikeControl sotto «Controller» — è un riquadro separato da quello del rullo.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "Nella schermata di associazione di {app} scegli «{bridge}» come rullo — non «{trainer}» con il suo nome, così BikeControl viene saltato.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Il tuo rullo passa dal bridge, ma i tuoi pulsanti non raggiungeranno {app} finché non colleghi anche il controller BikeControl nella sua schermata di associazione.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "In attesa che {app} lo rilevi",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
 }

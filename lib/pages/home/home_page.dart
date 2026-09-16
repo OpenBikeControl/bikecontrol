@@ -373,6 +373,10 @@ class _HomePageState extends State<HomePage> {
       } else {
         presence = DevicePresence.discovered;
       }
+      // The trainer's own advertised name — not [name], which falls back to
+      // the class name when there is none. An empty one counts as none too,
+      // or the hint would warn against picking “”.
+      final rawName = proxy.scanResult.name;
       trainer = TrainerInput(
         deviceId: proxy.uniqueId,
         name: proxy.toString(),
@@ -382,6 +386,8 @@ class _HomePageState extends State<HomePage> {
         appHoldsBridge: proxy.isConnectedListenable.value,
         // The exact entry to look for in the trainer app's device list.
         bridgeName: proxy.advertisementName,
+        // And the one beside it not to pick: the trainer under its own name.
+        rawTrainerName: rawName == null || rawName.isEmpty ? null : rawName,
         metrics: proxy.liveReadout,
         overlayOffered: _overlayOffered(proxy),
         overlayEnabled: core.settings.getOverlayEnabled(),
@@ -459,6 +465,9 @@ class _HomePageState extends State<HomePage> {
         localControlOffered: core.logic.showLocalControl,
         localControlEnabled: core.settings.getLocalEnabled(),
         localNetworkGranted: _localNetworkGranted,
+        // The trainer link's own answer, so the two cards can never disagree
+        // about whether the app has picked the trainer up.
+        trainerBridgedByApp: trainer?.appHoldsBridge ?? false,
       ),
     );
   }
@@ -854,6 +863,11 @@ class _HomePageState extends State<HomePage> {
     } else if (bridged) {
       statusLabel = appHoldsBridge
           ? context.i18n.chainStatusBridged
+          // "Waiting for the app" is wrong once the app is already here over
+          // the controller link: it has connected, it just hasn't picked the
+          // trainer entry up — the other half of its pairing screen.
+          : appReady
+          ? context.i18n.chainStatusWaitingForPickup(appName)
           : context.i18n.onboardingSummaryWaitingFor(appName);
     } else if (appReady && inputs.app.name != null) {
       // Only vouch for the app handling shifting when the app is actually

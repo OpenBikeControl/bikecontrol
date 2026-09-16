@@ -138,6 +138,7 @@ class TrainerInput {
     this.overlayEnabled = false,
     this.overlayAnswered = false,
     this.overlayDeclined = false,
+    this.rawTrainerName,
   });
 
   final String deviceId;
@@ -189,6 +190,14 @@ class TrainerInput {
   /// until the overlay is turned on (which clears it — see
   /// `Settings.setOverlayEnabled`).
   final bool overlayDeclined;
+
+  /// The trainer's own name as it advertises itself, e.g. "KICKR CORE 1234"
+  /// — the entry the trainer app lists right beside [bridgeName], and the one
+  /// riders pick instead, which bypasses BikeControl. Distinct from [name],
+  /// which is a display title and may be a localized fallback; null when the
+  /// trainer never told us its name, so the hint doesn't name a wrong entry
+  /// that doesn't exist.
+  final String? rawTrainerName;
 }
 
 class AppInput {
@@ -202,6 +211,7 @@ class AppInput {
     this.localControlOffered = false,
     this.localControlEnabled = false,
     this.localNetworkGranted,
+    this.trainerBridgedByApp = false,
   });
 
   /// The selected trainer app, or null when the rider hasn't picked one.
@@ -239,6 +249,17 @@ class AppInput {
   /// has never been measured. Null keeps the step out of the checklist
   /// entirely, so a rider is never shown work that isn't theirs to do.
   final bool? localNetworkGranted;
+
+  /// Whether the trainer app already holds BikeControl's virtual trainer —
+  /// the trainer link's [TrainerInput.appHoldsBridge], repeated here because
+  /// the app card's wording depends on it.
+  ///
+  /// The trainer and the controller are two separate pairings in the trainer
+  /// app, and [isConnected] only speaks for the second. With the first already
+  /// made, "waiting for the app to connect" reads as if nothing had worked,
+  /// and riders go back to re-pair the trainer instead of adding the
+  /// controller — see [SetupStepVariant.controllerLinkMissing].
+  final bool trainerBridgedByApp;
 }
 
 /// Sensors-only mode's stand-in for a smart trainer: there is nothing to

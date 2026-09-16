@@ -131,6 +131,106 @@ Future<void> main() async {
 
   _sensorsOnlyTests();
   _overlayStepTests();
+  _twoPairingsTests();
+}
+
+// ── Two pairings in the trainer app (Task 3) ───────────────────────────────
+//
+// The trainer app's pairing screen has two BikeControl tiles — the trainer
+// and the controller — and riders regularly pair one without the other, or
+// pair the trainer under its own name and bypass BikeControl entirely. Each
+// state has to say which of the two is missing and which entry to pick.
+
+void _twoPairingsTests() {
+  group('two pairings in the trainer app', () {
+    late AppLocalizations l;
+
+    setUp(() {
+      l = AppLocalizations.current;
+    });
+
+    tearDown(() {
+      core.obpMdnsEmulator.isConnected.value = false;
+    });
+
+    /// A trainer whose bridge is running. [heldByApp] is whether the trainer
+    /// app has already picked the virtual trainer up.
+    ProxyDevice bridgedTrainer({required bool heldByApp}) {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-two-pairings', name: 'KICKR CORE 1234'));
+      if (heldByApp) {
+        trainer.debugSetTrainerAppConnected(true);
+      } else {
+        trainer.emulator.isStarted.value = true;
+      }
+      core.connection.devices.add(trainer);
+      return trainer;
+    }
+
+    testWidgets('app card: once the app holds the trainer, the hint names the controller tile', (tester) async {
+      bridgedTrainer(heldByApp: true);
+
+      await _pumpHome(tester);
+
+      expect(find.text(l.chainStepAppControllerPending('MyWhoosh')), findsOneWidget);
+      expect(find.textContaining('separate tile from the trainer'), findsOneWidget);
+      expect(find.text(l.chainStepAppConnectedPending('MyWhoosh')), findsNothing);
+    });
+
+    testWidgets('app card: while the bridge is not picked up yet, the ordinary wording stays', (tester) async {
+      bridgedTrainer(heldByApp: false);
+
+      await _pumpHome(tester);
+
+      expect(find.text(l.chainStepAppConnectedPending('MyWhoosh')), findsOneWidget);
+      expect(find.textContaining('separate tile from the trainer'), findsNothing);
+    });
+
+    testWidgets('trainer card: the pick-up hint names the bridge entry and the one to avoid', (tester) async {
+      final trainer = bridgedTrainer(heldByApp: false);
+
+      await _pumpHome(tester);
+
+      expect(
+        find.text(l.chainStepTrainerBridgedHint2('MyWhoosh', trainer.advertisementName, 'KICKR CORE 1234')),
+        findsOneWidget,
+      );
+      expect(find.text(l.chainStepTrainerBridgedHint(trainer.advertisementName, 'MyWhoosh')), findsNothing);
+    });
+
+    // The status line only: the pick-up step's own label reads the same as
+    // the new status, so a bare text finder would match the checklist too.
+    Finder statusText(String text) => find.descendant(of: find.byType(StatusLine), matching: find.text(text));
+
+    testWidgets('trainer card: with the app already connected, the status says it has not picked the trainer up', (
+      tester,
+    ) async {
+      bridgedTrainer(heldByApp: false);
+      core.obpMdnsEmulator.isConnected.value = true;
+
+      await _pumpHome(tester);
+
+      expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh')), findsOneWidget);
+      expect(statusText(l.onboardingSummaryWaitingFor('MyWhoosh')), findsNothing);
+    });
+
+    testWidgets('trainer card: with the app not connected at all, the status keeps waiting for it', (tester) async {
+      bridgedTrainer(heldByApp: false);
+
+      await _pumpHome(tester);
+
+      expect(statusText(l.onboardingSummaryWaitingFor('MyWhoosh')), findsOneWidget);
+      expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh')), findsNothing);
+    });
+
+    testWidgets('trainer card: once the app holds the trainer, the status is simply bridged', (tester) async {
+      bridgedTrainer(heldByApp: true);
+
+      await _pumpHome(tester);
+
+      expect(statusText(l.chainStatusBridged), findsOneWidget);
+      expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh')), findsNothing);
+    });
+  });
 }
 
 // ── Sensors-only mode (Task 7) ─────────────────────────────────────────────

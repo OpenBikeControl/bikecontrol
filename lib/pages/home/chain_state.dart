@@ -72,6 +72,22 @@ enum ChainBannerKind {
   pending,
 }
 
+/// Which wording a step reads out while it is pending, when that depends on
+/// what the *other* links are doing. The step's identity is still its
+/// [SetupStepId]; the variant only picks the sentence.
+enum SetupStepVariant {
+  /// The step's ordinary copy.
+  standard,
+
+  /// [SetupStepId.appConnected] while the trainer app already holds the
+  /// bridge. The app is reading the trainer through BikeControl, so "waiting
+  /// for the app to connect" is only half true — the trainer half of its
+  /// pairing screen is done. What is missing is the controller tile, a second
+  /// pairing on the same screen, and the most common support case is a rider
+  /// who never learned there were two.
+  controllerLinkMissing,
+}
+
 /// One line of a card's checklist.
 class SetupStep {
   const SetupStep({
@@ -80,6 +96,8 @@ class SetupStep {
     this.hintArg,
     this.uncertain = false,
     this.optional = false,
+    this.secondaryHintArg,
+    this.variant = SetupStepVariant.standard,
   });
 
   final SetupStepId id;
@@ -113,12 +131,24 @@ class SetupStep {
   /// localized sentence is assembled in the widget layer.
   final String? hintArg;
 
+  /// A second runtime detail for hints that name two things. Only
+  /// [SetupStepId.trainerAppBridged] uses it: [hintArg] is the bridge entry
+  /// to pick, this is the trainer's own name — the entry right beside it in
+  /// the trainer app's list that riders pick instead, bypassing BikeControl.
+  /// Null when the name isn't known, and the hint then names only the bridge.
+  final String? secondaryHintArg;
+
+  /// See [SetupStepVariant].
+  final SetupStepVariant variant;
+
   SetupStep copyWith({bool? done, String? hintArg, bool? uncertain, bool? optional}) => SetupStep(
     id: id,
     done: done ?? this.done,
     hintArg: hintArg ?? this.hintArg,
     uncertain: uncertain ?? this.uncertain,
     optional: optional ?? this.optional,
+    secondaryHintArg: secondaryHintArg,
+    variant: variant,
   );
 
   @override
@@ -253,6 +283,7 @@ class ChainBanner {
     this.targetLinkId,
     this.targetKey,
     this.outstandingKeys = const [],
+    this.soleStep,
   });
 
   final ChainBannerKind kind;
@@ -268,6 +299,13 @@ class ChainBanner {
   /// The distinct link kinds still outstanding, in render order. Drives the
   /// banner's sub-copy ("Controller and MyWhoosh still need setting up").
   final List<ChainLinkKey> outstandingKeys;
+
+  /// The one required step still outstanding across the whole chain, or null
+  /// when there are none or several. With exactly one thing left the banner
+  /// can speak to that step rather than to its card — "connect the
+  /// controller tile" instead of "finish the Trainer app card", which sends
+  /// a rider back to a screen they have already been on once.
+  final SetupStep? soleStep;
 
   bool get hasAction => targetLinkId != null;
 
@@ -293,6 +331,10 @@ ChainBanner deriveBanner(List<ChainLink> links) {
   for (final link in outstanding) {
     if (!outstandingKeys.contains(link.key)) outstandingKeys.add(link.key);
   }
+  // Required steps only, same as [stepsLeft]: an outstanding offer does not
+  // stop the one real step from being the one real step.
+  final remaining = [for (final link in outstanding) ...link.requiredSteps.where((s) => !s.done)];
+  final soleStep = remaining.length == 1 ? remaining.single : null;
 
   final broken = outstanding.where((l) => l.status == LinkStatus.problem).toList();
   if (broken.isNotEmpty) {
@@ -303,6 +345,7 @@ ChainBanner deriveBanner(List<ChainLink> links) {
       targetLinkId: broken.first.id,
       targetKey: broken.first.key,
       outstandingKeys: outstandingKeys,
+      soleStep: soleStep,
     );
   }
 
@@ -313,5 +356,6 @@ ChainBanner deriveBanner(List<ChainLink> links) {
     targetLinkId: outstanding.first.id,
     targetKey: outstanding.first.key,
     outstandingKeys: outstandingKeys,
+    soleStep: soleStep,
   );
 }
