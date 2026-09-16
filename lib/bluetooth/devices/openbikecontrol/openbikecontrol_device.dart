@@ -66,6 +66,12 @@ class OpenBikeControlDevice extends BluetoothDevice {
 }
 
 class OpenBikeControlConstants {
+  /// The TCP port the OpenBikeControl network server prefers. It walks up
+  /// under contention and the mDNS SRV record carries the port actually
+  /// bound, so companion apps must read it from there — but the self-test
+  /// treats anything else as a symptom worth a restart.
+  static const int TCP_PORT = 36867;
+
   // OpenBikeControl BLE service and characteristic UUIDs (see BLE.md)
   static const String SERVICE_UUID = 'd273f680-d548-419d-b9d1-fa0472345229';
 

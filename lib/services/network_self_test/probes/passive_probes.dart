@@ -1,6 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:prop/utils/network_address.dart';
 
+import '../../../bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
 import '../../../bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import '../../debug_diagnostics.dart';
 import '../network_check.dart';
@@ -54,10 +55,21 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
     );
   }
   final port = server.port;
+  if (port == OpenBikeControlConstants.TCP_PORT) {
+    return NetworkCheck(id: NetworkCheckId.methodListening, verdict: NetworkVerdict.pass, detail: {'port': '$port'});
+  }
+  // Off the preferred port: something else held it when this server bound —
+  // historically a previous instance of ours that was never stopped (an
+  // un-awaited stop racing the next start), so every restart walked one port
+  // further up. A restart now supersedes any leak of ours and lands back on
+  // the preferred port, so offer it instead of leaving the rider to discover
+  // that only force-closing the app helps. Only a foreign holder (another
+  // process on this host) leaves the warning standing afterwards.
   return NetworkCheck(
     id: NetworkCheckId.methodListening,
-    verdict: port == 36867 ? NetworkVerdict.pass : NetworkVerdict.warn,
+    verdict: NetworkVerdict.warn,
     detail: {'port': '$port'},
+    fixes: const [NetworkFixId.restartMethod],
   );
 }
 
