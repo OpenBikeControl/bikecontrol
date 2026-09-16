@@ -369,5 +369,31 @@ void main() {
       expect(text.indexOf('192.168.178.92:5353'), lessThan(text.indexOf('unrelated queries')));
       expect(text.indexOf('unrelated queries'), lessThan(text.indexOf('TCP servers:')));
     });
+
+    test('a kept entry renders only its BikeControl-relevant questions, noting how many were hidden', () {
+      // The real-world case: an Apple TV bundles several PTR questions (and
+      // sometimes an unrelated A query) into one packet. The entry is kept
+      // because one question is ours, but the other two must not leak.
+      final text = withQueries([
+        MdnsQueryLogEntry(
+          at: DateTime(2026, 7, 30, 9, 41, 12),
+          source: '192.168.178.92',
+          sourcePort: 5353,
+          wantsUnicast: true,
+          questions: const [
+            'PTR _airplay._tcp.local',
+            'PTR _wahoo-fitness-tnp._tcp.local',
+            'A neighbour.local',
+          ],
+          answeredUnicast: true,
+          answeredMulticast: true,
+        ),
+      ]).toText();
+
+      expect(text, contains('PTR _wahoo-fitness-tnp._tcp.local'));
+      expect(text, contains('(+2 other questions)'));
+      expect(text, isNot(contains('airplay')));
+      expect(text, isNot(contains('neighbour')));
+    });
   });
 }

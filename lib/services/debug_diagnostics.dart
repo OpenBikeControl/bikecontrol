@@ -262,9 +262,15 @@ class DebugDiagnostics {
         // Repeats are folded; the count keeps a continuous poller visible as
         // one line instead of hiding that it fired hundreds of times.
         final repeats = q.count > 1 ? ' ×${q.count}' : '';
+        // A kept entry can still bundle third-party questions in the same
+        // packet (a real browser like an Apple TV asks for several services,
+        // or an unrelated host, in one query) — show only ours.
+        final shown = ourQuestions(q, advertised: advertised, hostLabel: hostLabel);
+        final hidden = q.questions.length - shown.length;
+        final hiddenNote = hidden > 0 ? ' (+$hidden other questions)' : '';
         b.writeln(
           '    $at ${q.source}:${q.sourcePort} ${q.wantsUnicast ? 'QU' : 'QM'} '
-          '${q.questions.join(', ')} → ${q.reply}$repeats',
+          '${shown.join(', ')}$hiddenNote → ${q.reply}$repeats',
         );
       }
       if (relevant.droppedQueries > 0) {

@@ -118,4 +118,34 @@ void main() {
     expect(result.droppedQueries, 5);
     expect(result.droppedHosts, 2);
   });
+
+  group('ourQuestions', () {
+    test('narrows a bundled query down to only the questions that are ours', () {
+      final entry = query('192.168.1.50', const [
+        'PTR _airplay._tcp.local',
+        'PTR _wahoo-fitness-tnp._tcp.local',
+        'A neighbour.local',
+      ]);
+
+      expect(
+        ourQuestions(entry, advertised: advertised),
+        ['PTR _wahoo-fitness-tnp._tcp.local'],
+      );
+    });
+
+    test('keeps every question when all of them are ours', () {
+      final entry = query('192.168.1.50', const [
+        'PTR _wahoo-fitness-tnp._tcp.local',
+        'PTR _services._dns-sd._udp.local',
+      ]);
+
+      expect(ourQuestions(entry, advertised: advertised), entry.questions);
+    });
+
+    test('returns an empty list when none of a (dropped) entry\'s questions are ours', () {
+      final entry = query('192.168.1.50', const ['PTR _airplay._tcp.local']);
+
+      expect(ourQuestions(entry, advertised: advertised), isEmpty);
+    });
+  });
 }
