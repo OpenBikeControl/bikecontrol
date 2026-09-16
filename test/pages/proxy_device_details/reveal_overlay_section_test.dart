@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 /// The deep-link target of the home screen's gear-overlay step ("{app} will
@@ -20,6 +21,27 @@ import 'package:universal_ble/universal_ble.dart';
 /// button cannot land the rider on a page where the switch is off screen.
 Future<void> main() async {
   await AppLocalizations.load(const Locale('en'));
+
+  // Without Pro on this device, the page mounts the Virtual Shifting Pro
+  // notice, whose IAPManager state reads `core.supabase`. The app initializes
+  // Supabase at startup; give the test the same offline instance
+  // proxy_device_details_need_help_test.dart uses (a loopback port nothing
+  // listens on, no stored session, so no request goes out).
+  setUpAll(() async {
+    // Supabase.initialize reads SharedPreferences; the per-test setUp that
+    // mocks them runs after this setUpAll.
+    SharedPreferences.setMockInitialValues({});
+    await Supabase.initialize(
+      url: 'http://127.0.0.1:9',
+      anonKey: 'reveal-overlay-section-test-anon-key',
+      debug: false,
+      authOptions: const FlutterAuthClientOptions(
+        localStorage: EmptyLocalStorage(),
+        detectSessionInUri: false,
+        autoRefreshToken: false,
+      ),
+    );
+  });
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -63,5 +85,16 @@ Future<void> main() async {
 
     expect(find.byType(OverlaySettingsSection), findsOneWidget);
     expect(find.text(AppLocalizations.current.overlayEnabled), findsOneWidget);
+    // Being in the tree isn't enough: the page builds the section either way,
+    // just far below the fold when nothing scrolls to it. Hit-testable means
+    // the switch's label is on screen and nothing covers it.
+    expect(find.text(AppLocalizations.current.overlayEnabled).hitTestable(), findsOneWidget);
+
+    // Mounting the Virtual Shifting settings pushes the active shifting config
+    // to the definition, and that write opens its one-shot control-write
+    // pacing window (FitnessBikeDefinition.minControlWriteInterval). In plain
+    // SIM nothing is deferred into the window, so it just closes; let it close
+    // rather than leave the timer pending when the test ends.
+    await tester.pump(FitnessBikeDefinition.minControlWriteInterval);
   });
 }
