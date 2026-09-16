@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
@@ -112,7 +113,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   void _handleLoggedInFeature(VoidCallback action) {
-    if (_isPro && core.supabase.auth.currentSession != null) {
+    if (_isPro && hasAccount(core.supabase.auth.currentSession?.user)) {
       action();
     } else {
       _handleProFeature(() {
@@ -396,8 +397,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
   /// Get the account subtitle with Windows-specific messaging
   String _getAccountSubtitle(Session? session) {
-    if (session != null) {
-      return AppLocalizations.of(context).loggedInAsMail(session.user.email ?? '?');
+    // The support chat's anonymous session is not an account.
+    if (session != null && hasAccount(session.user)) {
+      return AppLocalizations.of(context).loggedInAsMail(accountLabel(session.user));
     }
 
     if (_iapManager.isWindows) {

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -48,15 +49,9 @@ class FeedbackSubmissionService {
 
   final SupabaseClient _client;
 
-  /// True when the current session has no confirmed email — either there is
-  /// no session yet, or the signed-in user is anonymous.
-  bool get isAnonymous {
-    final user = _client.auth.currentSession?.user;
-    if (user == null) return true;
-    if (user.isAnonymous) return true;
-    final email = user.email;
-    return email == null || email.isEmpty;
-  }
+  /// True when the current session is not a real account — either there is
+  /// no session yet, or the signed-in user is anonymous. See [hasAccount].
+  bool get isAnonymous => !hasAccount(_client.auth.currentSession?.user);
 
   /// Ensures a session (anonymous if none), then invokes the submit-feedback
   /// edge function. Throws [FeedbackSubmissionException] on any failure so
