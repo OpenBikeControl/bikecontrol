@@ -153,4 +153,31 @@ void main() {
       });
     });
   });
+
+  // test/flutter_test_config.dart fakes the gather for every test. The first
+  // test records the way any widget test does; flutter_test fails it if a
+  // timeout is still pending at the end. The second test depends on running
+  // after the first: if the first had abandoned a gather, the guard would
+  // still be set and this error would get no gather at all.
+  group('under the shared test harness', () {
+    testWidgets('a widget test that records an error ends with nothing pending', (tester) async {
+      record('recorded by a widget test', context: 'test.widget');
+      await tester.pump();
+
+      expect(recordedContexts, ['test.widget']);
+      expect(newLogLinesContaining('recorded by a widget test'), hasLength(1));
+    });
+
+    testWidgets('the next test still gathers diagnostics for its own error', (tester) async {
+      // The real gather is only reached if the harness is missing, and then
+      // the first test has already failed.
+      final harnessGather = debugDiagnosticsGatherOverride ?? DebugDiagnostics.gather;
+      gatherVia(() => harnessGather(includeDiscovery: false));
+      record('recorded by the next test', context: 'test.next');
+      await tester.pump();
+
+      expect(gathers, 1, reason: 'an earlier test must not leave the crash pipeline unable to gather');
+      expect(recordedContexts, ['test.next']);
+    });
+  });
 }
