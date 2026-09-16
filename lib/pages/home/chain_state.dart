@@ -69,7 +69,8 @@ enum ChainBannerKind {
   /// Something that was working has broken — jump to the fix.
   broken,
 
-  /// Setup is incomplete — jump to the next thing to do.
+  /// Setup is incomplete — jump to the next thing to do, or, with several
+  /// cards unfinished, to the cards (see [ChainBanner.revealsOutstandingCards]).
   pending,
 }
 
@@ -284,6 +285,7 @@ class ChainBanner {
     this.targetLinkId,
     this.targetKey,
     this.outstandingKeys = const [],
+    this.outstandingLinkIds = const [],
     this.soleStep,
   });
 
@@ -300,6 +302,20 @@ class ChainBanner {
   /// The distinct link kinds still outstanding, in render order. Drives the
   /// banner's sub-copy ("Controller and MyWhoosh still need setting up").
   final List<ChainLinkKey> outstandingKeys;
+
+  /// Every outstanding card, by [ChainLink.id], in render order. Counts cards
+  /// where [outstandingKeys] counts kinds: two controllers that both need work
+  /// are one name in the sub-copy but two cards to show the rider.
+  final List<String> outstandingLinkIds;
+
+  /// Whether the action button takes the rider to the outstanding cards
+  /// instead of into one of them.
+  ///
+  /// With several cards unfinished, the target is only first in render order,
+  /// and opening its fix ("2 steps left" → the controller search) reads as
+  /// arbitrary. A break keeps its button: it has one fix, and "Fix" goes
+  /// straight to it.
+  bool get revealsOutstandingCards => kind == ChainBannerKind.pending && outstandingLinkIds.length >= 2;
 
   /// The one required step still outstanding across the whole chain, or null
   /// when there are none or several. With exactly one thing left the banner
@@ -332,6 +348,7 @@ ChainBanner deriveBanner(List<ChainLink> links) {
   for (final link in outstanding) {
     if (!outstandingKeys.contains(link.key)) outstandingKeys.add(link.key);
   }
+  final outstandingLinkIds = [for (final link in outstanding) link.id];
   // Required steps only, same as [stepsLeft]: an outstanding offer does not
   // stop the one real step from being the one real step.
   final remaining = [for (final link in outstanding) ...link.requiredSteps.where((s) => !s.done)];
@@ -346,6 +363,7 @@ ChainBanner deriveBanner(List<ChainLink> links) {
       targetLinkId: broken.first.id,
       targetKey: broken.first.key,
       outstandingKeys: outstandingKeys,
+      outstandingLinkIds: outstandingLinkIds,
       soleStep: soleStep,
     );
   }
@@ -357,6 +375,7 @@ ChainBanner deriveBanner(List<ChainLink> links) {
     targetLinkId: outstanding.first.id,
     targetKey: outstanding.first.key,
     outstandingKeys: outstandingKeys,
+    outstandingLinkIds: outstandingLinkIds,
     soleStep: soleStep,
   );
 }

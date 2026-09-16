@@ -4,13 +4,26 @@ import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-Future<void> pumpBanner(WidgetTester tester, ChainBanner banner) async {
+Future<void> pumpBanner(
+  WidgetTester tester,
+  ChainBanner banner, {
+  VoidCallback? onAction,
+  VoidCallback? onRevealOutstanding,
+}) async {
   await tester.pumpWidget(
     ShadcnApp(
       localizationsDelegates: const [AppLocalizations.delegate],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
-      home: Scaffold(child: ReadyBanner(banner: banner, brokenLinkName: null, appName: 'MyWhoosh')),
+      home: Scaffold(
+        child: ReadyBanner(
+          banner: banner,
+          brokenLinkName: null,
+          appName: 'MyWhoosh',
+          onAction: onAction,
+          onRevealOutstanding: onRevealOutstanding,
+        ),
+      ),
     ),
   );
   await tester.pump();
@@ -81,5 +94,89 @@ void main() async {
 
     expect(find.text(l.chainPendingSubtitleController('MyWhoosh')), findsNothing);
     expect(find.text(l.chainPendingSubtitleSingle(l.chainAppTitle)), findsOneWidget);
+  });
+
+  // "2 steps left" across two cards: opening whichever card happens to come
+  // first reads as arbitrary, so the button takes the rider to the cards.
+  group('the action button', () {
+    testWidgets('with several outstanding cards reads Show and reveals them instead of opening the first', (
+      tester,
+    ) async {
+      var opened = 0;
+      var revealed = 0;
+      await pumpBanner(
+        tester,
+        const ChainBanner(
+          kind: ChainBannerKind.pending,
+          status: LinkStatus.attention,
+          stepsLeft: 2,
+          targetLinkId: 'controller',
+          targetKey: ChainLinkKey.controller,
+          outstandingKeys: [ChainLinkKey.controller, ChainLinkKey.app],
+          outstandingLinkIds: ['controller', 'app'],
+        ),
+        onAction: () => opened++,
+        onRevealOutstanding: () => revealed++,
+      );
+
+      expect(find.text(l.chainBannerShow), findsOneWidget);
+      await tester.tap(find.text(l.chainBannerShow));
+      await tester.pump();
+
+      expect(revealed, 1);
+      expect(opened, 0);
+    });
+
+    testWidgets('with one outstanding card keeps opening that card', (tester) async {
+      var opened = 0;
+      var revealed = 0;
+      await pumpBanner(
+        tester,
+        const ChainBanner(
+          kind: ChainBannerKind.pending,
+          status: LinkStatus.attention,
+          stepsLeft: 2,
+          targetLinkId: 'app',
+          targetKey: ChainLinkKey.app,
+          outstandingKeys: [ChainLinkKey.app],
+          outstandingLinkIds: ['app'],
+        ),
+        onAction: () => opened++,
+        onRevealOutstanding: () => revealed++,
+      );
+
+      expect(find.text(l.chainBannerShow), findsOneWidget);
+      await tester.tap(find.text(l.chainBannerShow));
+      await tester.pump();
+
+      expect(opened, 1);
+      expect(revealed, 0);
+    });
+
+    testWidgets('a break keeps Fix and goes straight to it, however many cards are outstanding', (tester) async {
+      var opened = 0;
+      var revealed = 0;
+      await pumpBanner(
+        tester,
+        const ChainBanner(
+          kind: ChainBannerKind.broken,
+          status: LinkStatus.problem,
+          stepsLeft: 2,
+          targetLinkId: 'controller',
+          targetKey: ChainLinkKey.controller,
+          outstandingKeys: [ChainLinkKey.controller, ChainLinkKey.app],
+          outstandingLinkIds: ['controller', 'app'],
+        ),
+        onAction: () => opened++,
+        onRevealOutstanding: () => revealed++,
+      );
+
+      expect(find.text(l.chainBannerShow), findsNothing);
+      await tester.tap(find.text(l.chainBannerFix));
+      await tester.pump();
+
+      expect(opened, 1);
+      expect(revealed, 0);
+    });
   });
 }

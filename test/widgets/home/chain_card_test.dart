@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
@@ -474,6 +476,193 @@ void main() async {
     expect(find.text('with Assioma DUO'), findsOneWidget);
     expect(subtitle.dy, greaterThan(status.dy));
     expect(subtitle.dx, status.dx);
+  });
+
+  // The banner's "Show" takes the rider to every outstanding card, and each of
+  // them has to jump out once it is on screen: a short pulse, a shake, and an
+  // accent border that outlasts the movement.
+  group('the highlight', () {
+    const linkId = 'controller:test';
+    final highlight = find.byKey(chainCardHighlightKey(linkId));
+
+    /// [accessibility] is the platform's own setting, the way a phone reports
+    /// it — not a MediaQuery override, which animation controllers never see.
+    Future<ValueNotifier<int>> pumpHighlightable(
+      WidgetTester tester, {
+      ChainLink? card,
+      FakeAccessibilityFeatures? accessibility,
+      VoidCallback? onTap,
+    }) async {
+      if (accessibility != null) {
+        tester.platformDispatcher.accessibilityFeaturesTestValue = accessibility;
+        addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      }
+      final tick = ValueNotifier(0);
+      addTearDown(tick.dispose);
+      final l = card ?? link(status: LinkStatus.attention, steps: [true, false]);
+      await tester.pumpWidget(
+        ShadcnApp(
+          localizationsDelegates: const [AppLocalizations.delegate],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
+          home: Scaffold(
+            child: SingleChildScrollView(
+              child: ChainCard(
+                link: l,
+                tile: const Icon(LucideIcons.gamepad),
+                title: l.title,
+                statusLabel: 'status',
+                onTap: onTap,
+                highlight: tick,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return tick;
+    }
+
+    /// A transform between the card and its own surface: the pulse and the
+    /// shake. Anything the card draws inside its surface does not count.
+    Finder motion() {
+      final card = find.byType(ChainCard);
+      final surface = find.descendant(of: card, matching: find.byType(AnimatedContainer)).first;
+      return find.descendant(
+        of: card,
+        matching: find.ancestor(of: surface, matching: find.byType(Transform)),
+      );
+    }
+
+    Matrix4 motionMatrix(WidgetTester tester) => tester.widget<Transform>(motion()).transform;
+
+    testWidgets('is not shown until asked for', (tester) async {
+      await pumpHighlightable(tester);
+      expect(highlight, findsNothing);
+    });
+
+    testWidgets('pulses, shakes, then fades its border out', (tester) async {
+      final tick = await pumpHighlightable(tester);
+
+      tick.value++;
+      await tester.pump();
+      expect(highlight, findsOneWidget);
+
+      // Mid-pulse the card is a touch bigger than at rest.
+      await tester.pump(const Duration(milliseconds: 125));
+      expect(motionMatrix(tester).getMaxScaleOnAxis(), greaterThan(1.02));
+      expect(motionMatrix(tester).getMaxScaleOnAxis(), lessThanOrEqualTo(1.03 + 1e-6));
+
+      // Then it shakes sideways, never further than 4 px.
+      var widest = 0.0;
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 10));
+        widest = max(widest, motionMatrix(tester).getTranslation().x.abs());
+      }
+      expect(widest, greaterThan(3));
+      expect(widest, lessThanOrEqualTo(4 + 1e-6));
+
+      // The movement is over while the border is still there ...
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(highlight, findsOneWidget);
+      expect(motionMatrix(tester).isIdentity(), isTrue);
+
+      // ... and then the border is gone too.
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(highlight, findsNothing);
+      expect(motionMatrix(tester).isIdentity(), isTrue);
+    });
+
+    /// Plays a highlight and expects the border alone, for its whole length.
+    Future<void> expectBorderOnly(WidgetTester tester, ValueNotifier<int> tick) async {
+      tick.value++;
+      await tester.pump();
+      expect(highlight, findsOneWidget);
+      expect(motion(), findsNothing);
+
+      // Where the pulse and the shake would be — and the border is still
+      // there, not squeezed into a single frame.
+      for (final step in const [125, 250, 200]) {
+        await tester.pump(Duration(milliseconds: step));
+        expect(highlight, findsOneWidget);
+        expect(motion(), findsNothing);
+      }
+
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(highlight, findsNothing);
+      expect(motion(), findsNothing);
+    }
+
+    // Android's "Remove animations": the platform reports it to MediaQuery and
+    // to every animation controller alike.
+    testWidgets('with animations turned off, only the border flashes — the card never moves', (tester) async {
+      final tick = await pumpHighlightable(
+        tester,
+        accessibility: const FakeAccessibilityFeatures(disableAnimations: true),
+      );
+      expect(MediaQuery.disableAnimationsOf(tester.element(find.byType(ChainCard))), isTrue);
+
+      await expectBorderOnly(tester, tick);
+    });
+
+    // iOS's Reduce Motion arrives on its own flag, which MediaQuery knows
+    // nothing about.
+    testWidgets('with Reduce Motion on, only the border flashes — the card never moves', (tester) async {
+      final tick = await pumpHighlightable(
+        tester,
+        accessibility: const FakeAccessibilityFeatures(reduceMotion: true),
+      );
+      expect(MediaQuery.disableAnimationsOf(tester.element(find.byType(ChainCard))), isFalse);
+
+      await expectBorderOnly(tester, tick);
+    });
+
+    testWidgets('every tick plays it again', (tester) async {
+      final tick = await pumpHighlightable(tester);
+
+      tick.value++;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1200));
+      expect(highlight, findsNothing);
+
+      tick.value++;
+      await tester.pump();
+      expect(highlight, findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1200));
+    });
+
+    // An empty controller slot is grey — a grey flash would not jump out of
+    // anything. The banner is amber, and so is what it points at.
+    testWidgets('a card that was never set up flashes amber, not its own grey', (tester) async {
+      final tick = await pumpHighlightable(
+        tester,
+        card: link(status: LinkStatus.off, steps: [false, false]),
+      );
+
+      tick.value++;
+      await tester.pump();
+
+      final box = tester.widget<DecoratedBox>(highlight);
+      final side = ((box.decoration as ShapeDecoration).shape as RoundedRectangleBorder).side;
+      final amber = AmpelStyle.of(tester.element(highlight), LinkStatus.attention).color;
+      expect(side.color, isSameColorAs(amber));
+      await tester.pump(const Duration(milliseconds: 1200));
+    });
+
+    testWidgets('the card still takes its tap while it is highlighted', (tester) async {
+      var opened = 0;
+      final tick = await pumpHighlightable(tester, onTap: () => opened++);
+
+      tick.value++;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(highlight, findsOneWidget);
+
+      await tester.tap(find.text('Zwift Click V2'));
+      await tester.pump();
+      expect(opened, 1);
+      await tester.pump(const Duration(milliseconds: 1200));
+    });
   });
 
   group('footer', () {

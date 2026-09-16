@@ -212,6 +212,70 @@ void main() {
       expect(banner.outstandingKeys, [ChainLinkKey.controller, ChainLinkKey.app]);
     });
 
+    // "2 steps left" spread over two cards has no single next thing to do:
+    // which card comes first is render order, not priority. The banner then
+    // takes the rider to the cards instead of into the first one's fix, so it
+    // has to know which cards those are — per card, because two controllers
+    // are one kind but two cards.
+    group('outstanding cards', () {
+      test('two outstanding links: listed by kind and by card, in render order', () {
+        final banner = deriveBanner([
+          link(id: 'controller:a', status: LinkStatus.attention, steps: [false]),
+          link(id: 'trainer', key: ChainLinkKey.trainer, status: LinkStatus.off, optional: true, steps: [false]),
+          link(id: 'app', key: ChainLinkKey.app, status: LinkStatus.attention, steps: [false]),
+        ]);
+        expect(banner.outstandingKeys, [ChainLinkKey.controller, ChainLinkKey.app]);
+        expect(banner.outstandingLinkIds, ['controller:a', 'app']);
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+
+      test('one outstanding link: a single entry, and the button keeps opening it', () {
+        final banner = deriveBanner([
+          link(id: 'controller:a', status: LinkStatus.ready),
+          link(id: 'app', key: ChainLinkKey.app, status: LinkStatus.attention, steps: [false, false]),
+        ]);
+        // Two steps, but both on one card: that card is the next thing to do.
+        expect(banner.stepsLeft, 2);
+        expect(banner.outstandingKeys, [ChainLinkKey.app]);
+        expect(banner.outstandingLinkIds, ['app']);
+        expect(banner.revealsOutstandingCards, isFalse);
+        expect(banner.targetLinkId, 'app');
+      });
+
+      test('a ready chain lists nothing', () {
+        final banner = deriveBanner([
+          link(id: 'controller:a'),
+          link(id: 'app', key: ChainLinkKey.app),
+        ]);
+        expect(banner.outstandingKeys, isEmpty);
+        expect(banner.outstandingLinkIds, isEmpty);
+        expect(banner.revealsOutstandingCards, isFalse);
+      });
+
+      test('two controllers are one kind but two cards', () {
+        final banner = deriveBanner([
+          link(id: 'controller:a', status: LinkStatus.attention, steps: [false]),
+          link(id: 'controller:b', status: LinkStatus.attention, steps: [false]),
+        ]);
+        // The sub-copy names each kind once ...
+        expect(banner.outstandingKeys, [ChainLinkKey.controller]);
+        // ... but there are still two cards to take the rider to.
+        expect(banner.outstandingLinkIds, ['controller:a', 'controller:b']);
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+
+      test('a break still goes straight to its fix, however many cards are outstanding', () {
+        final banner = deriveBanner([
+          link(id: 'app', key: ChainLinkKey.app, status: LinkStatus.attention, steps: [false]),
+          link(id: 'controller:a', status: LinkStatus.problem, steps: [false]),
+        ]);
+        expect(banner.kind, ChainBannerKind.broken);
+        expect(banner.outstandingLinkIds, ['app', 'controller:a']);
+        expect(banner.revealsOutstandingCards, isFalse);
+        expect(banner.targetLinkId, 'controller:a');
+      });
+    });
+
     test('an empty chain is treated as ready rather than crashing', () {
       final banner = deriveBanner([]);
       expect(banner.kind, ChainBannerKind.ready);

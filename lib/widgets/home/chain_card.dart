@@ -1,8 +1,10 @@
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
+import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One link of the setup chain.
@@ -31,6 +33,7 @@ class ChainCard extends StatefulWidget {
     this.body,
     this.onTap,
     this.footer,
+    this.highlight,
   });
 
   final ChainLink link;
@@ -82,6 +85,11 @@ class ChainCard extends StatefulWidget {
   /// wash on it still takes the card's rounded corners.
   final Widget? footer;
 
+  /// Makes the card jump out once every time its value changes — see
+  /// [ChainHighlightController], which the page owns. Null for a card nothing
+  /// ever points at.
+  final ValueListenable<int>? highlight;
+
   @override
   State<ChainCard> createState() => _ChainCardState();
 }
@@ -95,6 +103,10 @@ const double _rowInset = 14;
 
 /// The tick circle, so a test can assert the steps share a left edge.
 const Key stepTickKey = ValueKey('chain-step-tick');
+
+/// Carried by the accent border a card draws while its highlight runs, so a
+/// test can tell which cards are highlighted without reading animation values.
+Key chainCardHighlightKey(String linkId) => ValueKey('chain-card-highlight-$linkId');
 
 /// The footer strip's wrapper, when a card has one — see [ChainCard.footer].
 const Key chainCardFooterKey = ValueKey('chain-card-footer');
@@ -164,7 +176,42 @@ const double _leadingGap = 10;
 /// just chose it that they could skip it.
 bool _atRest(ChainLink link) => link.key != ChainLinkKey.sensors && link.optional && link.status == LinkStatus.off;
 
-class _ChainCardState extends State<ChainCard> {
+class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _highlight = AnimationController(
+    vsync: this,
+    duration: chainHighlightDuration,
+    // Reduced motion is handled in [_highlighted]: the card keeps still and
+    // the border still flashes. Left at the default, Android's "Remove
+    // animations" would also squeeze the flash into a single frame.
+    animationBehavior: AnimationBehavior.preserve,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.highlight?.addListener(_playHighlight);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChainCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.highlight != widget.highlight) {
+      oldWidget.highlight?.removeListener(_playHighlight);
+      widget.highlight?.addListener(_playHighlight);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.highlight?.removeListener(_playHighlight);
+    _highlight.dispose();
+    super.dispose();
+  }
+
+  void _playHighlight() {
+    _highlight.forward(from: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final link = widget.link;
@@ -175,7 +222,7 @@ class _ChainCardState extends State<ChainCard> {
       width: 1.5,
     );
 
-    return AnimatedContainer(
+    final surface = AnimatedContainer(
       duration: _statusChangeDuration,
       curve: Curves.easeOut,
       decoration: ShapeDecoration(
@@ -189,6 +236,61 @@ class _ChainCardState extends State<ChainCard> {
       ),
       clipBehavior: Clip.antiAlias,
       child: _tappable(context, _content(context)),
+    );
+
+    return _highlighted(context, surface);
+  }
+
+  /// The highlight, around the card's [surface]: the pulse and the shake move
+  /// the whole card, and the accent border is drawn over the card's own.
+  ///
+  /// Only the border comes and goes, as the last child of a stack that is
+  /// always there. Wrapping the card only while a highlight runs would build
+  /// its content from scratch each time — the live drivetrain, the Ampel's
+  /// pulse, a press mid-animation.
+  Widget _highlighted(BuildContext context, Widget surface) {
+    // An empty slot is grey, and a grey flash jumps out of nothing. The banner
+    // pointing at these cards is amber — red only when something broke.
+    final accent = AmpelStyle.of(
+      context,
+      widget.link.status == LinkStatus.problem ? LinkStatus.problem : LinkStatus.attention,
+    ).color;
+
+    return AnimatedBuilder(
+      animation: _highlight,
+      child: surface,
+      builder: (context, surface) {
+        final progress = _highlight.value;
+        final card = Stack(
+          fit: StackFit.passthrough,
+          children: [
+            surface!,
+            if (_highlight.isAnimating)
+              Positioned.fill(
+                // The card underneath keeps every tap.
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: chainCardHighlightKey(widget.link.id),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: accent.withValues(alpha: chainHighlightBorderOpacity(progress)),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+        // No movement for a rider who asked for less: the border alone still
+        // says "this one". Read here, so a highlight follows the setting as it
+        // is when it plays.
+        if (prefersReducedMotion(context)) return card;
+        return Transform(transform: chainHighlightMotion(progress), alignment: Alignment.center, child: card);
+      },
     );
   }
 
