@@ -8,6 +8,8 @@ import 'package:bike_control/pages/device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/click_v2/onboarding_card.dart';
 import 'package:flutter/services.dart';
+// ignore: depend_on_referenced_packages
+import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -30,6 +32,22 @@ ZwiftClickV2LeftSide _leftSide() =>
 
 ZwiftClickV2RightSide _rightSide() =>
     BluetoothDevice.fromScanResult(_clickV2(ZwiftConstants.CLICK_V2_RIGHT_SIDE)) as ZwiftClickV2RightSide;
+
+/// No-op local-notifications backend, the same fake
+/// test/integration/harness/test_env.dart installs. Only real plugin
+/// registration sets the plugin's static platform instance, and
+/// `resolvePlatformSpecificImplementation` reads it on every call, including
+/// the notification permission check ScanWidget runs.
+class _FakeLocalNotificationsPlatform extends FlutterLocalNotificationsPlatform {
+  @override
+  Future<void> show({required int id, String? title, String? body, String? payload}) async {}
+
+  @override
+  Future<void> cancel({required int id}) async {}
+
+  @override
+  Future<void> cancelAll() async {}
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -56,17 +74,14 @@ void main() {
 
     // DevicePage always renders ScanWidget, whose initState synchronously
     // fires core.permissions.getScanRequirements(). Unmocked, that reaches
-    // real platform channels -- universal_ble's Bluetooth-availability check
-    // and flutter_local_notifications' checkPermissions -- that hang/throw in
-    // a plain widget test and trip flutter_test's "no pending timers" /
-    // "no unhandled exceptions" invariants at teardown. Neutralize both, the
-    // same way test/integration/harness/test_env.dart does for the
-    // integration suite.
+    // real platform code -- universal_ble's Bluetooth-availability check
+    // and flutter_local_notifications' permission check -- that hangs or
+    // throws in a plain widget test and trips flutter_test's "no pending
+    // timers" / "no unhandled exceptions" invariants at teardown. Neutralize
+    // both with the fakes test/integration/harness/test_env.dart installs for
+    // the integration suite.
     UniversalBle.setInstance(FakeUniversalBlePlatform());
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('dexterous.com/flutter/local_notifications'),
-      (call) async => null,
-    );
+    FlutterLocalNotificationsPlatform.instance = _FakeLocalNotificationsPlatform();
   });
 
   tearDown(() {
