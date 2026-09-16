@@ -259,6 +259,16 @@ ChainLink _appLink(ChainInputs inputs) {
     // cannot ride past this one.
     if (selected && app.localNetworkGranted != null)
       SetupStep(id: SetupStepId.appLocalNetwork, done: app.localNetworkGranted!),
+    // The address being advertised is one the app is unlikely to reach — a
+    // VPN, a mesh, a hotspot, a second adapter. Only once a method is on
+    // (before that nothing is advertised) and only until the app connects:
+    // a connected app has reached it, whatever it looks like, and the warning
+    // would contradict the tick right under it. So it is only ever emitted
+    // while outstanding, and required: this is the most common reason
+    // "waiting for the app" never ends, and the self-test that would say so
+    // sits on a page the rider has to know to look for.
+    if (app.hasEnabledConnection && !connected && app.advertisedAddressWarning != null)
+      SetupStep(id: SetupStepId.appNetworkAddress, done: false, hintArg: app.advertisedAddressWarning),
     SetupStep(
       id: SetupStepId.appConnected,
       done: selected && connected,

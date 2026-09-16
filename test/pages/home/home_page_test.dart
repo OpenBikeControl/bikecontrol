@@ -10,12 +10,16 @@
 // `ProxyDeviceDetailsPage` — see that page's own test file — so the one test
 // below proves Home renders none of it even in a scenario the deleted
 // predicate used to treat as "show the grid".
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/models/remembered_device.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_page.dart';
+import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
@@ -30,6 +34,7 @@ import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
+import 'package:prop/utils/network_address.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -132,6 +137,7 @@ Future<void> main() async {
   _sensorsOnlyTests();
   _overlayStepTests();
   _twoPairingsTests();
+  _networkAddressStepTests();
 }
 
 // ── Two pairings in the trainer app (Task 3) ───────────────────────────────
@@ -686,5 +692,143 @@ void _overlayStepTests() {
 
       await tester.pumpWidget(const SizedBox());
     }, skip: unsupported);
+  });
+}
+
+// ── The advertised-address step ────────────────────────────────────────────
+
+/// One entry of `NetworkInterface.list()`: a named interface carrying the
+/// given IPv4s. `addresses` is typed `List<InterfaceAddress>`, so the wrapped
+/// address has to be that subtype rather than a plain [InternetAddress].
+class _FakeNetworkInterface implements NetworkInterface {
+  _FakeNetworkInterface(this.name, List<String> ips) : addresses = ips.map(_FakeInterfaceAddress.new).toList();
+
+  @override
+  final String name;
+
+  @override
+  final List<InterfaceAddress> addresses;
+
+  @override
+  int get index => 0;
+}
+
+class _FakeInterfaceAddress implements InterfaceAddress {
+  _FakeInterfaceAddress(String ip) : _inner = InternetAddress(ip);
+
+  final InternetAddress _inner;
+
+  @override
+  int get prefixLength => 24;
+
+  @override
+  InternetAddress? get broadcast => null;
+
+  @override
+  InternetAddressType get type => _inner.type;
+
+  @override
+  String get address => _inner.address;
+
+  @override
+  String get host => _inner.host;
+
+  @override
+  Uint8List get rawAddress => _inner.rawAddress;
+
+  @override
+  bool get isLoopback => _inner.isLoopback;
+
+  @override
+  bool get isLinkLocal => _inner.isLinkLocal;
+
+  @override
+  bool get isMulticast => _inner.isMulticast;
+
+  @override
+  Future<InternetAddress> reverse() => _inner.reverse();
+}
+
+void _networkAddressStepTests() {
+  group('network address step', () {
+    late AppLocalizations l;
+
+    setUp(() {
+      l = AppLocalizations.current;
+      // The harness leaves screenshot mode on, and the step stays off the
+      // store board — a VPN on the screenshot machine must not end up in a
+      // listing. Off here so the page reads the interfaces for real.
+      screenshotMode = false;
+    });
+
+    tearDown(() {
+      screenshotMode = true;
+      AdvertisedAddressPicker.listInterfaces = NetworkInterface.list;
+    });
+
+    testWidgets('a VPN-looking advertised address puts the step on the app card, naming the address', (tester) async {
+      // The only routable IPv4 sits on a tunnel: the picker has no better
+      // choice, and the self-test would flag exactly this pick.
+      AdvertisedAddressPicker.listInterfaces = () async => [
+        _FakeNetworkInterface('utun3', ['10.5.0.2']),
+      ];
+
+      await _pumpHome(tester);
+      // The address is read asynchronously in initState; a frame or two lands
+      // it. Not pumpAndSettle: off screenshot mode the amber dot pulses for
+      // eight seconds, and settling would wait out the whole burst.
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(l.chainStepNetworkAddressPending), findsWidgets);
+      expect(find.text(l.chainStepNetworkAddressHint('10.5.0.2', 'MyWhoosh')), findsOneWidget);
+      expect(find.text(l.chainStepNetworkAddressAction), findsOneWidget);
+
+      // Unmount before the test ends: with screenshot mode off, HomePage's
+      // periodic metrics timer is running, and a pending timer fails the test.
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('its action opens the network troubleshooting page', (tester) async {
+      AdvertisedAddressPicker.listInterfaces = () async => [
+        _FakeNetworkInterface('utun3', ['10.5.0.2']),
+      ];
+      // The app card is the last in the chain and its button sits below the
+      // default 600px test surface; the real host scrolls, _pumpHome does not.
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await _pumpHome(tester);
+      await tester.pump();
+      await tester.pump();
+
+      // Not pumpAndSettle: NetworkTroubleshootingPage kicks off a self-test
+      // engine with its own timers/polling, which never settles.
+      await tester.tap(find.text(l.chainStepNetworkAddressAction));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(NetworkTroubleshootingPage), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('a plain LAN address puts no such step on the card', (tester) async {
+      AdvertisedAddressPicker.listInterfaces = () async => [
+        _FakeNetworkInterface('en0', ['192.168.1.50']),
+      ];
+
+      await _pumpHome(tester);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+      expect(find.text(l.chainStepNetworkAddressAction), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+    });
   });
 }

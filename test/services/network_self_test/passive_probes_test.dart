@@ -194,6 +194,64 @@ void main() {
     });
   });
 
+  // The home card's "your network looks unusual" step reads the same rule as
+  // check 2, so the two can never disagree about which address is suspect.
+  group('advertisedAddressWarning', () {
+    test('null when no address was chosen — that is "no network", not this', () {
+      expect(advertisedAddressWarning(const AddressPickReport(chosen: null, candidates: [])), isNull);
+    });
+
+    test('the address when the chosen candidate is flagged virtual', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('10.8.0.5'),
+        candidates: const [AddressCandidate(interfaceName: 'docker0', address: '10.8.0.5', score: 10, isVirtual: true)],
+      );
+      expect(advertisedAddressWarning(report), '10.8.0.5');
+    });
+
+    test('the address when the chosen candidate is a VPN tunnel by name', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('10.5.0.2'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'NordLynx', address: '10.5.0.2', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), '10.5.0.2');
+    });
+
+    test('the address when a second physical interface on another subnet could just as well be it', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.5'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'en0', address: '192.168.1.5', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'en1', address: '10.0.0.5', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), '192.168.1.5');
+    });
+
+    test('null for a single physical LAN candidate', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.5'),
+        candidates: const [AddressCandidate(interfaceName: 'en0', address: '192.168.1.5', score: 40, isVirtual: false)],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+    });
+
+    test('null when the LAN wins over an idle tunnel', () {
+      // The picker demoted the tunnel; the rider is advertising the right
+      // address and must not be told otherwise.
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.5'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'en0', address: '192.168.1.5', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'utun3', address: '10.5.0.2', score: -70, isVirtual: true),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+    });
+  });
+
   group('vpnCheck', () {
     test('pass: no tunnel candidates', () {
       final check = vpnCheck(

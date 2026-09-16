@@ -212,6 +212,7 @@ class AppInput {
     this.localControlEnabled = false,
     this.localNetworkGranted,
     this.trainerBridgedByApp = false,
+    this.advertisedAddressWarning,
   });
 
   /// The selected trainer app, or null when the rider hasn't picked one.
@@ -260,6 +261,16 @@ class AppInput {
   /// and riders go back to re-pair the trainer instead of adding the
   /// controller — see [SetupStepVariant.controllerLinkMissing].
   final bool trainerBridgedByApp;
+
+  /// The address BikeControl advertises when it is one the trainer app is
+  /// unlikely to reach — a VPN or mesh tunnel, a hotspot bridge, or a pick a
+  /// second adapter could just as well have won — or null when it looks fine.
+  ///
+  /// It is the same verdict the network self-test's "advertised address" row
+  /// gives, so the card and that page can never disagree. Carried as the
+  /// address rather than a bool because the address is the one thing the
+  /// rider can check against their VPN app.
+  final String? advertisedAddressWarning;
 }
 
 /// Sensors-only mode's stand-in for a smart trainer: there is nothing to

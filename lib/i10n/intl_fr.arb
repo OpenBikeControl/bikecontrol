@@ -2131,5 +2131,18 @@
   "chainPendingSubtitleController": "Ton home trainer passe par le pont, mais tes boutons n'atteindront pas {app} tant que tu n'auras pas aussi connecté le contrôleur BikeControl sur son écran d'association.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "En attente que {app} le détecte",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressPending": "Ton réseau semble inhabituel",
+  "chainStepNetworkAddressHint": "BikeControl annonce l'adresse {address}, qui ressemble à une adresse VPN ou de partage de connexion. {app} risque de ne pas pouvoir l'atteindre. Désactive le VPN, ou utilise la méthode Local sur cet appareil.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Lancer le test réseau"
 }

@@ -2323,5 +2323,18 @@
   "chainPendingSubtitleController": "Your trainer is bridged, but your buttons won't reach {app} until you also connect the BikeControl controller in its pairing screen.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Waiting for {app} to pick it up",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressPending": "Your network looks unusual",
+  "chainStepNetworkAddressHint": "BikeControl is advertising {address}, which looks like a VPN or hotspot address. {app} may not reach it. Turn the VPN off, or use the Local method on this device.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Run network check"
 }

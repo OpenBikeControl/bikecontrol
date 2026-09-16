@@ -55,6 +55,7 @@ enum SetupStepId {
   appSelected,
   appConnectionMethod,
   appLocalNetwork,
+  appNetworkAddress,
   appConnected,
   appLocalControl,
 }

@@ -2131,5 +2131,18 @@
   "chainPendingSubtitleController": "Twój trenażer działa przez mostek, ale Twoje przyciski nie dotrą do {app}, dopóki nie połączysz też kontrolera BikeControl na jego ekranie parowania.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Czekam, aż {app} go wykryje",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressPending": "Twoja sieć wygląda nietypowo",
+  "chainStepNetworkAddressHint": "BikeControl ogłasza adres {address}, który wygląda na adres VPN lub hotspotu. {app} może nie być w stanie się z nim połączyć. Wyłącz VPN albo użyj metody Lokalnej na tym urządzeniu.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Sprawdź sieć"
 }

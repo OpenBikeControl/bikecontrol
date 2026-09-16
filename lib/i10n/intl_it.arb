@@ -2131,5 +2131,18 @@
   "chainPendingSubtitleController": "Il tuo rullo passa dal bridge, ma i tuoi pulsanti non raggiungeranno {app} finché non colleghi anche il controller BikeControl nella sua schermata di associazione.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "In attesa che {app} lo rilevi",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressPending": "La tua rete sembra insolita",
+  "chainStepNetworkAddressHint": "BikeControl annuncia l'indirizzo {address}, che sembra un indirizzo VPN o di hotspot. {app} potrebbe non raggiungerlo. Disattiva la VPN oppure usa il metodo Locale su questo dispositivo.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Esegui il controllo di rete"
 }

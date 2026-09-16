@@ -175,9 +175,13 @@ class DebugDiagnostics {
   /// Private Relay, Continuity, Wi-Fi Calling, content filters). Those carry
   /// only an IPv6 link-local, so they never become an [AddressCandidate] in
   /// the first place — which is what stops this from firing on every iPhone.
-  List<AddressCandidate> get tunnelCandidates => addressReport.candidates
-      .where((c) => _tunnelNamePattern.hasMatch(c.interfaceName) && _isRoutable(c.address))
-      .toList();
+  List<AddressCandidate> get tunnelCandidates => tunnelCandidatesIn(addressReport.candidates);
+
+  /// [tunnelCandidates] over a bare picker report, for callers that have one
+  /// without a full snapshot — the home card re-reads the address on its own,
+  /// and must apply the same rule the self-test does.
+  static List<AddressCandidate> tunnelCandidatesIn(List<AddressCandidate> candidates) =>
+      candidates.where((c) => _tunnelNamePattern.hasMatch(c.interfaceName) && _isRoutable(c.address)).toList();
 
   String _txt(Map<String, String> txt) {
     final entries = txt.entries.toList()..sort((a, b) => a.key.compareTo(b.key));

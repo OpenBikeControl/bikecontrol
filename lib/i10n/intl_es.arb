@@ -2131,5 +2131,18 @@
   "chainPendingSubtitleController": "Tu rodillo ya pasa por el puente, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Esperando a que {app} lo detecte",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressPending": "Tu red parece inusual",
+  "chainStepNetworkAddressHint": "BikeControl anuncia la dirección {address}, que parece una dirección de VPN o de punto de acceso. Puede que {app} no llegue a ella. Desactiva la VPN o usa el método Local en este dispositivo.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Comprobar la red"
 }

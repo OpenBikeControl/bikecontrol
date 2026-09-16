@@ -2131,5 +2131,18 @@
   "chainPendingSubtitleController": "Dein Trainer ist über die Bridge verbunden, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Warte darauf, dass {app} ihn erkennt",
-  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}}
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressPending": "Dein Netzwerk sieht ungewöhnlich aus",
+  "chainStepNetworkAddressHint": "BikeControl meldet sich im Netzwerk unter {address}, was nach einer VPN- oder Hotspot-Adresse aussieht. {app} erreicht diese Adresse womöglich nicht. Schalte das VPN aus oder nutze auf diesem Gerät die Methode Lokal.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Netzwerk prüfen"
 }

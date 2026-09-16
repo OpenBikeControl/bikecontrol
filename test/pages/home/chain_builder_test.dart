@@ -965,6 +965,110 @@ void main() {
       });
     });
 
+    // A VPN, a mesh network or a second adapter can leave BikeControl
+    // advertising an address the trainer app cannot reach. The self-test
+    // already says so — but only to a rider who has found that page. The
+    // card says it first, and only while it is still the problem.
+    group('network address step', () {
+      test('is present and required while a flagged address is advertised and the app has not connected', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: '10.5.0.2', isConnected: false, hasEnabledConnection: true),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        final step = link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+        expect(step.done, isFalse);
+        expect(step.optional, isFalse);
+        expect(step.hintArg, '10.5.0.2');
+        expect(link.requiredSteps, contains(step));
+        expect(link.status, isNot(LinkStatus.ready));
+      });
+
+      test('disappears once the app connects', () {
+        // A connected app has reached the address, whatever it looks like —
+        // the warning would contradict the tick right under it.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: '10.5.0.2', isConnected: true, hasEnabledConnection: true),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('is absent when the advertised address looks fine', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: null, isConnected: false, hasEnabledConnection: true),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('is absent while no connection method is enabled', () {
+        // Nothing is advertised yet, so there is no address to warn about;
+        // switching a method on is the step that is actually outstanding.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: '10.5.0.2', isConnected: false, hasEnabledConnection: false),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('is absent for a self-hosted app, which has no wire to reach', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'BikeControl',
+              selfHosted: true,
+              advertisedAddressWarning: '10.5.0.2',
+              hasEnabledConnection: true,
+            ),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        expect(_hasStep(link, SetupStepId.appNetworkAddress), isFalse);
+        expect(link.status, LinkStatus.ready);
+      });
+
+      test('is the active step once the method and the permission are done, ahead of the connection', () {
+        // It explains why "connected" is not happening, so it has to come
+        // before that step — and after the ones it depends on.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              localNetworkGranted: true,
+              advertisedAddressWarning: '100.101.102.103',
+            ),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        expect(link.activeStep!.id, SetupStepId.appNetworkAddress);
+        final ids = link.steps.map((s) => s.id).toList();
+        expect(ids.indexOf(SetupStepId.appNetworkAddress), greaterThan(ids.indexOf(SetupStepId.appLocalNetwork)));
+        expect(ids.indexOf(SetupStepId.appNetworkAddress), lessThan(ids.indexOf(SetupStepId.appConnected)));
+      });
+
+      test('a denied Local Network permission still comes first', () {
+        // Without the permission nothing leaves the device at all, so which
+        // address is advertised is not yet the rider's problem.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              localNetworkGranted: false,
+              advertisedAddressWarning: '10.5.0.2',
+            ),
+          ),
+        );
+        expect(chain.byKey(ChainLinkKey.app).activeStep!.id, SetupStepId.appLocalNetwork);
+      });
+    });
+
     test('selected but with no connection method is amber', () {
       final chain = buildChain(const ChainInputs(app: AppInput(name: 'MyWhoosh')));
       final link = chain.byKey(ChainLinkKey.app);

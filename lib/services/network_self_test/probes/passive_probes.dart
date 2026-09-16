@@ -1,4 +1,5 @@
 import 'package:dartx/dartx.dart';
+import 'package:prop/utils/network_address.dart';
 
 import '../../../bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import '../../debug_diagnostics.dart';
@@ -60,6 +61,39 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
   );
 }
 
+/// Whether the picker's choice sits on an interface other devices are unlikely
+/// to reach: one the picker itself flagged virtual (tunnels, bridges,
+/// cellular), or a VPN tunnel by name — see [DebugDiagnostics.tunnelCandidates].
+bool _chosenLooksUnreachable(AddressPickReport report, String chosen) {
+  final chosenCandidate = report.candidates.firstOrNullWhere((c) => c.address == chosen);
+  final chosenIsTunnel = DebugDiagnostics.tunnelCandidatesIn(report.candidates).any((c) => c.address == chosen);
+  return (chosenCandidate?.isVirtual ?? false) || chosenIsTunnel;
+}
+
+/// The physical candidates when they are spread over more than one subnet —
+/// a second adapter that could just as well be the one the trainer app is on,
+/// so whichever the picker chose is a coin toss. Empty when the pick is
+/// unambiguous.
+List<AddressCandidate> _competingPhysical(AddressPickReport report) {
+  final physical = report.candidates.where((c) => !c.isVirtual).toList();
+  final subnets = physical.map((c) => _subnetPrefix(c.address)).toSet();
+  return physical.length >= 2 && subnets.length >= 2 ? physical : const [];
+}
+
+/// The advertised address [advertisedAddressCheck] would flag, or null when
+/// the pick looks reachable. Also null when nothing was picked at all: that
+/// is "no network", a different problem the self-test reports on its own.
+///
+/// The home card's "your network looks unusual" step reads this, so a rider
+/// hears about a VPN address before they ever find the self-test page — and
+/// hears the same verdict, because it is the same rule.
+String? advertisedAddressWarning(AddressPickReport report) {
+  final chosen = report.chosen?.address;
+  if (chosen == null) return null;
+  final suspect = _chosenLooksUnreachable(report, chosen) || _competingPhysical(report).isNotEmpty;
+  return suspect ? chosen : null;
+}
+
 /// Check 2: is the address picked for the mDNS advertisement one that other
 /// devices on the LAN can actually reach?
 NetworkCheck advertisedAddressCheck(NetworkProbeContext ctx) {
@@ -71,7 +105,8 @@ NetworkCheck advertisedAddressCheck(NetworkProbeContext ctx) {
       detail: {'error': ctx.snapshotError.toString()},
     );
   }
-  final chosen = snapshot.addressReport.chosen;
+  final report = snapshot.addressReport;
+  final chosen = report.chosen;
   if (chosen == null) {
     return const NetworkCheck(
       id: NetworkCheckId.advertisedAddress,
@@ -80,10 +115,7 @@ NetworkCheck advertisedAddressCheck(NetworkProbeContext ctx) {
     );
   }
 
-  final candidates = snapshot.addressReport.candidates;
-  final chosenCandidate = candidates.firstOrNullWhere((c) => c.address == chosen.address);
-  final chosenIsTunnel = snapshot.tunnelCandidates.any((c) => c.address == chosen.address);
-  if ((chosenCandidate?.isVirtual ?? false) || chosenIsTunnel) {
+  if (_chosenLooksUnreachable(report, chosen.address)) {
     return NetworkCheck(
       id: NetworkCheckId.advertisedAddress,
       verdict: NetworkVerdict.warn,
@@ -92,10 +124,9 @@ NetworkCheck advertisedAddressCheck(NetworkProbeContext ctx) {
     );
   }
 
-  final physical = candidates.where((c) => !c.isVirtual).toList();
-  final subnets = physical.map((c) => _subnetPrefix(c.address)).toSet();
-  if (physical.length >= 2 && subnets.length >= 2) {
-    final detail = <String, String>{for (final c in physical) c.interfaceName: '${c.address}=${c.score}'};
+  final competing = _competingPhysical(report);
+  if (competing.isNotEmpty) {
+    final detail = <String, String>{for (final c in competing) c.interfaceName: '${c.address}=${c.score}'};
     return NetworkCheck(id: NetworkCheckId.advertisedAddress, verdict: NetworkVerdict.warn, detail: detail);
   }
 
