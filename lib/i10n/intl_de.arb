@@ -937,6 +937,8 @@
   "supportAccountLinkedNote": "Angemeldet — dieser Chat ist jetzt mit deinem Konto verknüpft.",
   "supportAccountLinkFailed": "Etwas ist schiefgelaufen. Versuch es erneut.",
   "supportAccountAlreadyLinked": "Dieses Konto gehört bereits zu einem anderen BikeControl-Konto. Melde dich ab und stattdessen damit an.",
+  "supportAccountLinkEmailTaken": "Für {email} gibt es schon ein BikeControl-Konto, deshalb kann die Adresse nicht zu diesem Chat hinzugefügt werden. Um dieses Konto zu nutzen, melde dich unter Pro → Konto an. Diese Unterhaltung wird dabei nicht übernommen, schick deine Nachricht also von dort noch einmal. Oder gib eine andere E-Mail-Adresse ein.",
+  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
   "retry": "Erneut versuchen",
   "supportChatEmpty": "Sende eine Nachricht, um die Unterhaltung zu starten.",
   "supportChatIntro": "Du schreibst mit Jonas von BikeControl",

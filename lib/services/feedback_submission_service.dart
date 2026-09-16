@@ -17,12 +17,27 @@ enum FeedbackSentiment { up, down }
 enum FeedbackKind { suggestion, complaint }
 
 class FeedbackSubmissionException implements Exception {
-  const FeedbackSubmissionException(this.message);
+  const FeedbackSubmissionException(this.message, {this.code});
 
   final String message;
 
+  /// The Supabase Auth error code behind the failure (e.g. `email_exists`),
+  /// when there is one.
+  final String? code;
+
   @override
-  String toString() => 'FeedbackSubmissionException: $message';
+  String toString() => 'FeedbackSubmissionException: $message${code == null ? '' : ' ($code)'}';
+}
+
+/// [FeedbackSubmissionService.beginEmailLink] was given an address that
+/// already belongs to another account, so it can't be attached to this
+/// session. Signing in with that address instead would switch to that
+/// account and leave this session's support chat behind.
+class EmailAlreadyInUseException extends FeedbackSubmissionException {
+  const EmailAlreadyInUseException(this.email, {super.code})
+    : super('This email address already belongs to another account');
+
+  final String email;
 }
 
 /// The Google/Apple identity being linked already belongs to a different
@@ -46,6 +61,9 @@ class FeedbackSubmissionService {
   FeedbackSubmissionService({SupabaseClient? client}) : _client = client ?? core.supabase;
 
   static const _submitFunction = 'submit-feedback';
+
+  /// GoTrue error codes meaning "this address belongs to another account".
+  static const _emailTakenCodes = {'email_exists', 'user_already_exists'};
 
   final SupabaseClient _client;
 
@@ -93,7 +111,11 @@ class FeedbackSubmissionService {
       await _client.auth.updateUser(UserAttributes(email: email));
     } catch (e, s) {
       await recordError(e, s, context: 'FeedbackSubmissionService.beginEmailLink');
-      throw const FeedbackSubmissionException('Failed to start email verification');
+      final code = e is AuthException ? e.code : null;
+      if (_emailTakenCodes.contains(code)) {
+        throw EmailAlreadyInUseException(email, code: code);
+      }
+      throw FeedbackSubmissionException('Failed to start email verification', code: code);
     }
   }
 
