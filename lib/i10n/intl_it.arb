@@ -2102,5 +2102,10 @@
   "sensorValueCadence": "{value} rpm",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsModeTrackResistanceDesc": "Simula una pendenza per ogni rapporto: la resistenza segue la tua velocità e cambia nel momento in cui cambi rapporto, come su una bici vera. Ideale per uscite libere e gare.",
+  "vsModeTargetPowerDesc": "Mantiene una potenza target per ogni rapporto, come in modalità ERG. La tua cadenza annulla parte della variazione, quindi i cambi si sentono più morbidi e le salite fanno salire la potenza. Per rulli che non possono simulare la pendenza.",
+  "vsModeBasicDesc": "Come Potenza target, ma con uno scatto fisso per ogni rapporto e senza sensazione di terreno. Un'ultima risorsa per rulli che ignorano le altre modalità.",
+  "vsModeRecommended": "Consigliato",
+  "vsModeUnsupported": "Non supportato su questo rullo. "
 }

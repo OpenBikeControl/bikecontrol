@@ -2102,5 +2102,10 @@
   "sensorValueCadence": "{value} rpm",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsModeTrackResistanceDesc": "Simula una pendiente por marcha: la resistencia sigue tu velocidad y cambia en el momento en que cambias de marcha, como en una bici real. Ideal para salidas libres y carreras.",
+  "vsModeTargetPowerDesc": "Mantiene una potencia objetivo por marcha, como en modo ERG. Tu cadencia anula parte del cambio, por lo que los cambios de marcha se sienten más suaves y las subidas hacen que la potencia aumente. Para rodillos que no pueden simular pendiente.",
+  "vsModeBasicDesc": "Como Potencia objetivo, pero con un escalón fijo por marcha y sin sensación de terreno. Un último recurso para rodillos que ignoran los demás modos.",
+  "vsModeRecommended": "Recomendado",
+  "vsModeUnsupported": "No compatible con este rodillo. "
 }

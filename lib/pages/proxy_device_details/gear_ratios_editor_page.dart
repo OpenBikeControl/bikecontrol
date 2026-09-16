@@ -502,20 +502,56 @@ class VirtualShiftingModeCard extends StatelessWidget {
     await core.shiftingConfigs.upsert(mutate(current));
   }
 
-  Widget _vsRadioCard(String label, VirtualShiftingMode value) {
+  // Fixed so a "Recommended" tag on one card never makes it taller than its
+  // two siblings — see the ambiguity resolution in task-8-brief.md.
+  static const double _radioCardContentHeight = 44;
+
+  Widget _vsRadioCard(
+    BuildContext context,
+    String label,
+    VirtualShiftingMode value, {
+    required bool recommended,
+  }) {
     final supported = definition.supportsVirtualShiftingMode(value);
     return Expanded(
       child: RadioCard<VirtualShiftingMode>(
         value: value,
         enabled: supported,
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        child: SizedBox(
+          height: _radioCardContentHeight,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              if (recommended) ...[
+                const Gap(2),
+                Text(AppLocalizations.of(context).vsModeRecommended).xSmall.muted,
+              ],
+            ],
           ),
         ),
       ),
     );
+  }
+
+  /// The description for [mode], prefixed with a "not supported" notice when
+  /// the connected trainer can't actually carry it (e.g. a saved preference
+  /// that survived a reconnect onto a lesser trainer).
+  String _descriptionFor(BuildContext context, VirtualShiftingMode mode) {
+    final l10n = AppLocalizations.of(context);
+    final desc = switch (mode) {
+      VirtualShiftingMode.trackResistance => l10n.vsModeTrackResistanceDesc,
+      VirtualShiftingMode.targetPower => l10n.vsModeTargetPowerDesc,
+      VirtualShiftingMode.basicResistance => l10n.vsModeBasicDesc,
+    };
+    if (!definition.supportsVirtualShiftingMode(mode)) {
+      return '${l10n.vsModeUnsupported}$desc';
+    }
+    return desc;
   }
 
   @override
@@ -524,23 +560,46 @@ class VirtualShiftingModeCard extends StatelessWidget {
       animation: Listenable.merge([definition.virtualShiftingMode, definition.trainerFeature]),
       builder: (context, _) {
         final mode = definition.virtualShiftingMode.value;
+        final defaultMode = definition.defaultVirtualShiftingMode;
         return SettingTile(
           title: AppLocalizations.of(context).virtualShiftingMode,
           subtitle: AppLocalizations.of(context).virtualShiftingModeDesc,
-          child: RadioGroup<VirtualShiftingMode>(
-            value: mode,
-            onChanged: (v) async {
-              definition.setVirtualShiftingMode(v);
-              await _updateActive((c) => c.copyWith(mode: v));
-            },
-            child: Row(
-              spacing: 6,
-              children: [
-                _vsRadioCard(AppLocalizations.of(context).targetPowerMode, VirtualShiftingMode.targetPower),
-                _vsRadioCard(AppLocalizations.of(context).trackResistanceMode, VirtualShiftingMode.trackResistance),
-                _vsRadioCard(AppLocalizations.of(context).basicMode, VirtualShiftingMode.basicResistance),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RadioGroup<VirtualShiftingMode>(
+                value: mode,
+                onChanged: (v) async {
+                  definition.setVirtualShiftingMode(v);
+                  await _updateActive((c) => c.copyWith(mode: v));
+                },
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    _vsRadioCard(
+                      context,
+                      AppLocalizations.of(context).targetPowerMode,
+                      VirtualShiftingMode.targetPower,
+                      recommended: defaultMode == VirtualShiftingMode.targetPower,
+                    ),
+                    _vsRadioCard(
+                      context,
+                      AppLocalizations.of(context).trackResistanceMode,
+                      VirtualShiftingMode.trackResistance,
+                      recommended: defaultMode == VirtualShiftingMode.trackResistance,
+                    ),
+                    _vsRadioCard(
+                      context,
+                      AppLocalizations.of(context).basicMode,
+                      VirtualShiftingMode.basicResistance,
+                      recommended: defaultMode == VirtualShiftingMode.basicResistance,
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(8),
+              Text(_descriptionFor(context, mode)).xSmall.muted,
+            ],
           ),
         );
       },

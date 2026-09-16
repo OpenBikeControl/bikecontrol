@@ -2102,5 +2102,10 @@
   "sensorValueCadence": "{value} U/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsModeTrackResistanceDesc": "Simuliert pro Gang eine Steigung – der Widerstand folgt deiner Geschwindigkeit und ändert sich in dem Moment, in dem du schaltest, genau wie bei einem echten Fahrrad. Ideal für freies Fahren und Rennen.",
+  "vsModeTargetPowerDesc": "Hält pro Gang eine Zielleistung, wie im ERG-Modus. Deine Trittfrequenz gleicht einen Teil der Änderung aus, wodurch sich Schaltvorgänge weicher anfühlen und Anstiege die Leistung hochziehen. Für Trainer, die keine Steigung simulieren können.",
+  "vsModeBasicDesc": "Wie Zielleistung, aber mit einer festen Stufe pro Gang und ohne Geländegefühl. Ein letzter Ausweg für Trainer, die die anderen Modi ignorieren.",
+  "vsModeRecommended": "Empfohlen",
+  "vsModeUnsupported": "Nicht unterstützt von diesem Trainer. "
 }
