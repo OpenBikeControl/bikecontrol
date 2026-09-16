@@ -13,6 +13,7 @@ import UIKit
   private var actionChannel: FlutterMethodChannel?
   private var pipChannel: FlutterMethodChannel?
   private var healthKit: HealthKitHeartRate?
+  private var healthKitWorkouts: HealthKitWorkoutWriter?
 
   override func application(
     _ application: UIApplication,
@@ -89,6 +90,12 @@ import UIKit
       let shim = HealthKitHeartRate()
       shim.register(with: engineBridge.pluginRegistry)
       healthKit = shim
+    }
+
+    if healthKitWorkouts == nil {
+      let writer = HealthKitWorkoutWriter()
+      writer.register(with: engineBridge.pluginRegistry)
+      healthKitWorkouts = writer
     }
   }
 
