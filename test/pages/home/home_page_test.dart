@@ -830,5 +830,27 @@ void _networkAddressStepTests() {
 
       await tester.pumpWidget(const SizedBox());
     });
+
+    testWidgets('a trainer the app already holds over the network silences the step', (tester) async {
+      AdvertisedAddressPicker.listInterfaces = () async => [
+        _FakeNetworkInterface('utun3', ['10.5.0.2']),
+      ];
+      // A fresh proxy rests in proxy mode — DirCon over the network, served
+      // from the very address the picker just chose — and the app holds it.
+      // That is proof the address is reachable, whatever it looks like.
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-held-over-network', name: 'KICKR CORE 1234'))
+        ..debugSetTrainerAppConnected(true);
+      expect(trainer.retrofitMode.value, isNot(RetrofitMode.bluetooth));
+      core.connection.devices.add(trainer);
+
+      await _pumpHome(tester);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(l.chainStepNetworkAddressPending), findsNothing);
+      expect(find.text(l.chainStepNetworkAddressAction), findsNothing);
+
+      await tester.pumpWidget(const SizedBox());
+    });
   });
 }

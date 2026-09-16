@@ -1052,6 +1052,57 @@ void main() {
         expect(ids.indexOf(SetupStepId.appNetworkAddress), lessThan(ids.indexOf(SetupStepId.appConnected)));
       });
 
+      // The trainer app reaches BikeControl twice — once for the trainer, once
+      // for the controller — and a trainer held over the network is proof the
+      // advertised address is reachable, whatever it looks like. A trainer
+      // held over Bluetooth proves nothing about the network.
+      test('is absent while the app already holds the trainer over the network', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              advertisedAddressWarning: '10.5.0.2',
+              trainerBridgedByApp: true,
+              trainerBridgedOverNetwork: true,
+            ),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('stays while the app holds the trainer over Bluetooth only', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              advertisedAddressWarning: '10.5.0.2',
+              trainerBridgedByApp: true,
+              trainerBridgedOverNetwork: false,
+            ),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        expect(_hasStep(link, SetupStepId.appNetworkAddress), isTrue);
+        expect(link.activeStep!.id, SetupStepId.appNetworkAddress);
+      });
+
+      test('stays while the app holds no trainer at all', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              advertisedAddressWarning: '10.5.0.2',
+              trainerBridgedByApp: false,
+              trainerBridgedOverNetwork: false,
+            ),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isTrue);
+      });
+
       test('a denied Local Network permission still comes first', () {
         // Without the permission nothing leaves the device at all, so which
         // address is advertised is not yet the rider's problem.

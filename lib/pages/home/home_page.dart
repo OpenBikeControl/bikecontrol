@@ -530,6 +530,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // The trainer link's own answer, so the two cards can never disagree
         // about whether the app has picked the trainer up.
         trainerBridgedByApp: trainer?.appHoldsBridge ?? false,
+        // Only Bluetooth mode serves the bridge as a BLE peripheral; proxy and
+        // WiFi mode both serve DirCon from the advertised address. The trainer
+        // input is the same proxy's, so the two answers cannot disagree.
+        trainerBridgedOverNetwork:
+            (trainer?.appHoldsBridge ?? false) && proxy != null && proxy.retrofitMode.value != RetrofitMode.bluetooth,
         advertisedAddressWarning: _advertisedAddressWarning,
       ),
     );

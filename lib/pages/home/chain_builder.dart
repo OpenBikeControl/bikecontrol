@@ -267,7 +267,15 @@ ChainLink _appLink(ChainInputs inputs) {
     // while outstanding, and required: this is the most common reason
     // "waiting for the app" never ends, and the self-test that would say so
     // sits on a page the rider has to know to look for.
-    if (app.hasEnabledConnection && !connected && app.advertisedAddressWarning != null)
+    //
+    // Never while the app already holds the trainer over the network: that
+    // rides on this very address, so the app has plainly reached it, and the
+    // only thing left is the controller tile — which the connected step
+    // below says. A trainer held over Bluetooth proves nothing here.
+    if (app.hasEnabledConnection &&
+        !connected &&
+        !app.trainerBridgedOverNetwork &&
+        app.advertisedAddressWarning != null)
       SetupStep(id: SetupStepId.appNetworkAddress, done: false, hintArg: app.advertisedAddressWarning),
     SetupStep(
       id: SetupStepId.appConnected,
