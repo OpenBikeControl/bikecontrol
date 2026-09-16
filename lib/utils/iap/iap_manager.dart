@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/pages/paywall.dart';
@@ -59,7 +60,32 @@ class IAPManager {
 
   IAPManager._();
 
-  bool get isLoggedIn => core.supabase.auth.currentSession != null;
+  /// Signed into a real account. The anonymous session the support chat
+  /// creates on demand doesn't count, so a store-bought Pro user who never
+  /// signed in keeps the local (RevenueCat) entitlement path.
+  bool get isLoggedIn => hasAccount(core.supabase.auth.currentSession?.user);
+
+  /// The Supabase user id RevenueCat was last logged in as by
+  /// [_handleAuthStateChange]; null while there's no account.
+  String? _revenueCatUserId;
+
+  /// Pure decision behind the RevenueCat login in [_handleAuthStateChange]:
+  /// who to log in as and whether to run `sync-subscriptions`, or null to
+  /// leave RevenueCat alone. Anonymous users are never used as a RevenueCat
+  /// identity. Syncs on a fresh sign-in or launch, and whenever the account
+  /// differs from [previousUserId] — e.g. an anonymous session that just
+  /// became an account by linking an email keeps its id but only fires
+  /// `userUpdated`.
+  @visibleForTesting
+  static ({String userId, bool performSync})? revenueCatLogin({
+    required AuthChangeEvent event,
+    required User? user,
+    required String? previousUserId,
+  }) {
+    if (user == null || !hasAccount(user)) return null;
+    final freshSession = event == AuthChangeEvent.initialSession || event == AuthChangeEvent.signedIn;
+    return (userId: user.id, performSync: freshSession || user.id != previousUserId);
+  }
 
   /// Whether the logged-in user is flagged for the Shorebird beta update
   /// track (a manual `beta_access` entitlement granted from the admin
@@ -460,12 +486,10 @@ class IAPManager {
       case AuthChangeEvent.tokenRefreshed:
       case AuthChangeEvent.userUpdated:
       case AuthChangeEvent.mfaChallengeVerified:
-        final userId = session?.user.id;
-        if (userId != null) {
-          await _revenueCatService?.logInWithSupabaseUserId(
-            userId,
-            performSync: [AuthChangeEvent.initialSession, AuthChangeEvent.signedIn].contains(event),
-          );
+        final login = revenueCatLogin(event: event, user: session?.user, previousUserId: _revenueCatUserId);
+        if (login != null) {
+          _revenueCatUserId = login.userId;
+          await _revenueCatService?.logInWithSupabaseUserId(login.userId, performSync: login.performSync);
         }
         await _revenueCatService?.setAttributes();
         await entitlements.refresh(force: true);
@@ -474,13 +498,14 @@ class IAPManager {
         // sent to the login gate; a genuine `signedIn` is our cue to finish the
         // checkout they started. Skip token refreshes / the initial session,
         // which are not a fresh login and would fire on every launch.
-        if (event == AuthChangeEvent.signedIn) {
+        if (event == AuthChangeEvent.signedIn && isLoggedIn) {
           await _windowsIapService?.resumePendingPurchaseAfterLogin(isAlreadyPro: isProEnabled);
         }
         return;
       case AuthChangeEvent.signedOut:
       // ignore: deprecated_member_use
       case AuthChangeEvent.userDeleted:
+        _revenueCatUserId = null;
         await _revenueCatService?.logOut();
         await entitlements.clearCache();
         // reset isPurchased value
