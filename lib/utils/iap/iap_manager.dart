@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
 import 'package:bike_control/services/device_identity_service.dart';
@@ -15,6 +16,7 @@ import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -74,20 +76,36 @@ class IAPManager {
 
   bool get isProEnabledForCurrentDevice {
     if (!_isInitialized) return false;
+    if (_unregisteredDeviceForTesting) return false;
     return hasActiveSubscription &&
         ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
   }
+
+  /// Pro is on the account but this device is not registered for it, so the
+  /// Pro-gated features stay off here. Riders in this state used to see only
+  /// "Pro (unregistered device)" in the title bar and wrote in believing Pro
+  /// was broken — the home banner, the virtual-shifting notice and the
+  /// post-purchase dialog all key off this.
+  bool get isProButDeviceUnregistered => isProEnabled && !isProEnabledForCurrentDevice;
 
   bool get isProEnabledForCurrentDeviceOrDidPurchaseOld {
     if (!_isInitialized) return false;
     return isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
   }
 
+  /// Test-only: makes [isProEnabledForCurrentDevice] report false while
+  /// [isProEnabled] holds — the state a logged-in rider lands in when the
+  /// device could not be registered (platform limit reached). Nothing in the
+  /// production paths sets it.
+  bool _unregisteredDeviceForTesting = false;
+
   /// Test-only: force the Pro entitlement state so Pro-gated actions/UI can be
   /// exercised without a live subscription or device registration.
+  /// [registeredDevice] false yields "Pro on the account, not on this device".
   @visibleForTesting
-  void setProForTesting({required bool enabled}) {
+  void setProForTesting({required bool enabled, bool registeredDevice = true}) {
     _isInitialized = true;
+    _unregisteredDeviceForTesting = enabled && !registeredDevice;
     isLocalPro.value = enabled;
   }
 
@@ -487,6 +505,22 @@ class IAPManager {
     } else if (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)) {
       isPurchased.value = true;
     }
+  }
+
+  /// Registers this device for the account's Pro subscription and refreshes
+  /// the entitlements, so [isProEnabledForCurrentDevice] reflects the result.
+  /// One call shared by the Registered Devices view, the home banner, the
+  /// virtual-shifting notice and the post-purchase dialog. Throws
+  /// [DeviceLimitReachedError] when the platform's device limit is reached —
+  /// the rider then has to pick a device to revoke.
+  Future<void> registerCurrentDevice() async {
+    final platform = await deviceManagement.currentPlatform();
+    final package = await PackageInfo.fromPlatform();
+    await deviceManagement.registerCurrentDevice(
+      deviceName: 'BikeControl ${platform?.toUpperCase() ?? ''}',
+      appVersion: package.version,
+    );
+    await entitlements.refresh(force: true);
   }
 
   /// [featureName] names the gated feature in the upgrade dialog — see

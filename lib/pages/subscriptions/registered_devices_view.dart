@@ -6,7 +6,6 @@ import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class RegisteredDevicesView extends StatefulWidget {
@@ -205,17 +204,9 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
 
   Future<void> _registerCurrentDevice() async {
     try {
-      final platform = await _iapManager.deviceManagement.currentPlatform();
-      final deviceName = 'BikeControl ${platform?.toUpperCase() ?? ''}';
-
-      final package = await PackageInfo.fromPlatform();
-      final version = package.version;
-
-      await _iapManager.deviceManagement.registerCurrentDevice(
-        deviceName: deviceName,
-        appVersion: version,
-      );
-      await _iapManager.entitlements.refresh(force: true);
+      // Shared with the home banner / virtual-shifting notice / post-purchase
+      // dialog, so every "register this device" entry point does the same.
+      await _iapManager.registerCurrentDevice();
       await _loadDevices();
       if (!mounted) return;
       setState(() {});

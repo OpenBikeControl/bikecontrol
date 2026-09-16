@@ -24,6 +24,7 @@ import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_extras.dart';
 import 'package:bike_control/pages/home/home_sheets.dart';
+import 'package:bike_control/pages/home/pro_unregistered_banner.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
@@ -564,6 +565,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const Gap(10),
           ],
+          // Pro on the account, not on this device: carries its own gap.
+          const ProUnregisteredBanner(),
           for (final link in links) ...[
             _card(link, devicesById[link.deviceId], inputs),
             const Gap(10),

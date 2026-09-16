@@ -521,7 +521,7 @@
   "pairingInstructionsIOS": "Sur ton iPad, va dans Réglages > Accessibilité > Toucher > AssistiveTouch > Périphériques de pointage > Périphériques et appaire ton appareil. Vérifie que la fonction AssistiveTouch est activée.",
   "pasteExportedJsonData": "Collez ci-dessous les données JSON exportées :",
   "pathCopiedToClipboard": "Le chemin a été copié dans le presse-papiers.",
-  "paywall_amountOfActions": "Nombre d'actions",
+  "paywall_amountOfActions": "Commandes de boutons par jour",
   "paywall_billedAtPricemo": "Facturé {price}/mois",
   "paywall_billedAtYearly": "Facturé {cost}/an",
   "paywall_configure3ActionsPerButton": "Configurer 3 actions par bouton",
@@ -1007,7 +1007,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Temps d'essai du Bridge écoulé",
-  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 min d'essai quotidien du Bridge. Passe à Pro pour débloquer le changement de vitesses virtuel sans limite.",
+  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 minutes de changement de vitesses virtuel par BikeControl pour aujourd'hui. C'est une fonction Pro – l'achat de Base ne l'étend pas. Sans Pro, laisse ton appli d'entraînement passer les vitesses : associe le home trainer directement dans l'appli et BikeControl envoie tes boutons de vitesse.",
   "connect": "Connecter",
   "smartTrainerAndAccessories": "Home trainer & accessoires",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} ne le prend pas encore en charge",
@@ -2102,5 +2102,18 @@
   "sensorValueCadence": "{value} tr/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "paywall_shiftInYourApp": "Changer de vitesse et diriger dans ton appli d'entraînement (c'est l'appli qui passe les vitesses)",
+  "paywall_bikeControlShifts": "BikeControl passe lui-même les vitesses de ton home trainer – vitesses personnalisées, plateau avant, tout home trainer",
+  "paywall_twentyMinPerDay": "20 min/jour",
+  "paywall_baseStoreNote": "Achat unique pour la version {store}. Il n'est pas transférable vers d'autres stores ou plateformes – Pro l'est.",
+  "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
+  "paywall_storeDirectDownload": "téléchargement direct",
+  "purchaseBaseDoneTitle": "Tu as maintenant Base",
+  "purchaseBaseDoneBody": "Commandes de boutons illimitées dans ton appli d'entraînement. Laisser BikeControl passer lui-même les vitesses de ton home trainer reste limité à 20 min/jour – cette partie est Pro.",
+  "purchaseProDoneTitle": "Pro est actif sur ton compte",
+  "purchaseProUnregisteredBody": "Cet appareil n'est pas encore enregistré, les fonctions Pro restent donc désactivées ici.",
+  "registerThisDevice": "Enregistrer cet appareil",
+  "proUnregisteredTitle": "Pro est sur ton compte, pas sur cet appareil",
+  "proUnregisteredBody": "Le changement de vitesses virtuel reste limité ici tant que tu n'as pas enregistré cet appareil."
 }

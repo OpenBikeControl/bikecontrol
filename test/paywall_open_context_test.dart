@@ -7,7 +7,7 @@
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, navigatorKey;
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
@@ -31,6 +31,8 @@ Future<void> main() async {
     late BuildContext captured;
     await tester.pumpWidget(
       ShadcnApp(
+        // Toasts and the post-purchase dialogs go through the root navigator.
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         localizationsDelegates: [
           ...ShadcnLocalizations.localizationsDelegates,
@@ -92,5 +94,76 @@ Future<void> main() async {
     expect(tester.takeException(), isNull);
     expect(find.byType(Paywall), findsOneWidget);
     expect(find.byType(SheetPullToDismiss), findsOneWidget);
+  });
+
+  // Support-UX: twelve "bought Base, still 20-min trial" chats. The moment the
+  // store confirms Base, the paywall closes itself (the entitlement listener)
+  // — so the confirmation has to outlive the paywall: it is shown on the root
+  // navigator, and it must fire off the state change, not off the purchase
+  // call returning (RevenueCat's call can take seconds to come back).
+  testWidgets('a Base purchase landing while the paywall is open closes it and confirms what Base covers', (
+    tester,
+  ) async {
+    final context = await pumpApp(tester, (capture) => Scaffold(
+          child: Builder(builder: (c) {
+            capture(c);
+            return const SizedBox.expand();
+          }),
+        ));
+    await tapGoPro(tester, context);
+    expect(find.byType(Paywall), findsOneWidget);
+
+    // Pick Base (tap its card — the store note sits inside it) and press
+    // Purchase; both sit below the fold of a phone-sized drawer. There is no
+    // store behind the test, so the purchase call fails and toasts; the
+    // confirmation must not depend on it succeeding in-line.
+    final baseCard = find.textContaining('One-time purchase for the');
+    await tester.ensureVisible(baseCard);
+    await tester.pump();
+    await tester.tap(baseCard);
+    await tester.pump();
+    final purchase = find.text('Purchase');
+    await tester.ensureVisible(purchase);
+    await tester.pump();
+    await tester.tap(purchase);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('You now have Base'), findsNothing);
+
+    // The store's answer arrives through the purchase flag.
+    IAPManager.instance.isPurchased.value = true;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('You now have Base'), findsOneWidget);
+    expect(find.textContaining('that part is Pro'), findsOneWidget);
+    expect(find.byType(Paywall), findsNothing, reason: 'the drawer closes on the entitlement change');
+
+    // Nothing is left running once the rider has read it.
+    await tester.tap(find.text('Got it!'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('You now have Base'), findsNothing);
+  });
+
+  testWidgets('a purchase flag that flips without a purchase attempt only closes the paywall', (tester) async {
+    final context = await pumpApp(tester, (capture) => Scaffold(
+          child: Builder(builder: (c) {
+            capture(c);
+            return const SizedBox.expand();
+          }),
+        ));
+    await tapGoPro(tester, context);
+    expect(find.byType(Paywall), findsOneWidget);
+
+    // e.g. an entitlement refresh on resume, or a purchase made elsewhere.
+    IAPManager.instance.isPurchased.value = true;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Paywall), findsNothing);
+    expect(find.text('You now have Base'), findsNothing);
   });
 }

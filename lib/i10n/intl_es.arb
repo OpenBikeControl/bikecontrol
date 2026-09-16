@@ -521,7 +521,7 @@
   "pairingInstructionsIOS": "En tu iPad, ve a Ajustes > Accesibilidad > Táctil > AssistiveTouch > Dispositivos de puntero > Dispositivos y vincula tu dispositivo. Asegúrate de que AssistiveTouch esté activado.",
   "pasteExportedJsonData": "Pega abajo los datos JSON exportados:",
   "pathCopiedToClipboard": "La ruta se ha copiado al portapapeles",
-  "paywall_amountOfActions": "Cantidad de acciones",
+  "paywall_amountOfActions": "Comandos de botones al día",
   "paywall_billedAtPricemo": "Se cobra {price}/mes",
   "paywall_billedAtYearly": "Se cobra {cost}/año",
   "paywall_configure3ActionsPerButton": "Configurar 3 acciones por botón",
@@ -1007,7 +1007,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Tiempo de prueba del Bridge agotado",
-  "bridgeTrialTimeOverBody": "Has usado tus 20 min diarios de prueba del Bridge. Hazte Pro para desbloquear el cambio de marchas virtual sin límites.",
+  "bridgeTrialTimeOverBody": "Has usado los 20 minutos de hoy de cambio de marchas virtual por BikeControl. Es una función Pro; la compra de Base no la amplía. Sin Pro, deja que tu app de entrenamiento haga el cambio: empareja el rodillo directamente en la app y BikeControl envía tus botones de cambio.",
   "connect": "Conectar",
   "smartTrainerAndAccessories": "Smart trainer y accesorios",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} todavía no admite esto",
@@ -2102,5 +2102,18 @@
   "sensorValueCadence": "{value} rpm",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "paywall_shiftInYourApp": "Cambia de marcha y dirige en tu app de entrenamiento (la app hace el cambio)",
+  "paywall_bikeControlShifts": "BikeControl cambia las marchas de tu rodillo por sí mismo: marchas personalizadas, cambio delantero, cualquier rodillo",
+  "paywall_twentyMinPerDay": "20 min/día",
+  "paywall_baseStoreNote": "Compra única para la versión de {store}. No se transfiere a otras tiendas ni plataformas; Pro sí.",
+  "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
+  "paywall_storeDirectDownload": "descarga directa",
+  "purchaseBaseDoneTitle": "Ya tienes Base",
+  "purchaseBaseDoneBody": "Comandos de botones ilimitados en tu app de entrenamiento. Que BikeControl cambie las marchas de tu rodillo por sí mismo sigue limitado a 20 min/día; esa parte es Pro.",
+  "purchaseProDoneTitle": "Pro está activo en tu cuenta",
+  "purchaseProUnregisteredBody": "Este dispositivo aún no está registrado, así que las funciones Pro siguen desactivadas aquí.",
+  "registerThisDevice": "Registrar este dispositivo",
+  "proUnregisteredTitle": "Pro está en tu cuenta, no en este dispositivo",
+  "proUnregisteredBody": "El cambio de marchas virtual sigue limitado aquí hasta que registres este dispositivo."
 }
