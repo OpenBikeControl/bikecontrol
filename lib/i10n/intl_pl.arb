@@ -2168,5 +2168,7 @@
       }
     }
   },
-  "chainStepNetworkAddressAction": "Sprawdź sieć"
+  "chainStepNetworkAddressAction": "Sprawdź sieć",
+  "supportAccountLinkEmailTaken": "{email} ma już konto BikeControl, więc nie można go dodać do tego czatu. Aby użyć tego konta, zaloguj się w Pro → Konto. Ta rozmowa nie zostanie przeniesiona, więc wyślij swoją wiadomość ponownie stamtąd. Możesz też podać inny adres e-mail.",
+  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}}
 }
