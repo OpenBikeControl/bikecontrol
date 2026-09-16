@@ -2,7 +2,7 @@
 **Features**:
 - Sensors: pair a heart-rate strap, cadence sensor or power meter and choose, per signal, whether your trainer app gets the trainer's reading or the sensor's, over the one Bridge connection you already have.
 - AirPods Pro 3 & Apple Watch heart rate (iOS 26) flows from Apple Health into your trainer app. No strap needed.
-- No smart trainer? The new Sensors page broadcasts "BikeControl" over Bluetooth or Wi-Fi, so Zwift on an Apple TV or MyWhoosh on a PC pairs it like a strap.
+- New Sensors page: broadcast "BikeControl" over Bluetooth or Wi-Fi, so Zwift on an Apple TV or MyWhoosh on a PC pairs it like a strap, trainer or not.
 - Better virtual shifting from a real cadence sensor: an external cadence sensor feeds virtual shifting directly, which sharpens it on trainers with a poor cadence signal and makes it work on trainers that report none at all.
 - Shift feedback: optional sound and vibration on this phone or tablet on every shift, with a distinct cue when you reach the last gear.
 - A "Need help?" card on the trainer page takes you straight to the Help Center with your setup attached.
