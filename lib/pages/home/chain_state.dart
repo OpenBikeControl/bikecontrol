@@ -95,9 +95,10 @@ class SetupStep {
   /// the gear overlay, and the gear overlay is exactly where it failed —
   /// riders walked past the optional line as they had walked past the toast
   /// before it, and "why does MyWhoosh show the wrong gear?" stayed the most
-  /// common support question. That step is required now, with an explicit
-  /// "not now" as its way off the card; see [SetupStepId.trainerGearOverlay]
-  /// in the chain builder.
+  /// common support question. That step is now required until the rider has
+  /// answered it once (turned the overlay on, or "not now"); only afterwards,
+  /// with the overlay switched off again, is it optional in this sense. See
+  /// [SetupStepId.trainerGearOverlay] in the chain builder.
   final bool optional;
 
   /// Whether [done] is a best guess rather than a fact. Only

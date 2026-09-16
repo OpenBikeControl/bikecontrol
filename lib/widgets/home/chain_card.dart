@@ -55,7 +55,8 @@ class ChainCard extends StatefulWidget {
   final VoidCallback? onEdit;
 
   /// Opens the guide for the active step. Only the active step offers it, so
-  /// there is exactly one next action visible per card.
+  /// the card has exactly one next thing to do — [onSecondaryAction] is the
+  /// other answer to that same thing, never a second thing.
   final VoidCallback? onInstructions;
   final String? instructionsLabel;
 
@@ -347,8 +348,8 @@ class _ChainCardState extends State<ChainCard> {
 }
 
 /// The "OPTIONAL" tag, worn by a whole card (a trainer nobody has to own) and
-/// by a single step (the gear overlay). Same words, same weight, so a rider
-/// reads the two the same way.
+/// by a single step (Local control, say — see [SetupStep.optional]). Same
+/// words, same weight, so a rider reads the two the same way.
 class OptionalTag extends StatelessWidget {
   const OptionalTag({super.key});
 
@@ -375,8 +376,8 @@ class OptionalTag extends StatelessWidget {
 }
 
 /// A single checklist line. The first unfinished step is the "active" one and
-/// is the only place an instructions button appears — so there is exactly one
-/// next action on the card.
+/// is the only place any button appears — so there is exactly one next thing
+/// to do on the card, even where it offers two answers to it.
 class StepRow extends StatelessWidget {
   const StepRow({
     super.key,

@@ -1024,9 +1024,25 @@ class Settings {
   Future<void> setOverlayEnabled(bool enabled) async {
     await prefs.setBool('overlay_enabled', enabled);
     // Turning the overlay on — from the home screen's step or the trainer
-    // page's switch — is the rider changing their mind about "Not now", so the
-    // decline is cleared here rather than at every call site.
-    if (enabled) await setOverlayDeclined(false);
+    // page's switch — answers the step, and is the rider changing their mind
+    // about "Not now", so both are recorded here rather than at every call
+    // site. Turning it off records nothing: it is not an answer, and the step
+    // must not become required again over it — the Live Activity's "stop
+    // ride" switches the overlay off on every ride end.
+    if (enabled) {
+      await setOverlayAnswered(true);
+      await setOverlayDeclined(false);
+    }
+  }
+
+  /// Whether the rider has ever answered the home screen's gear-overlay step,
+  /// either way. The step is required only until then; afterwards an overlay
+  /// that is off is an offer, not outstanding work. Set by [setOverlayEnabled]
+  /// and [setOverlayDeclined], never cleared.
+  bool getOverlayAnswered() => prefs.getBool('overlay_answered') ?? false;
+
+  Future<void> setOverlayAnswered(bool answered) async {
+    await prefs.setBool('overlay_answered', answered);
   }
 
   /// Whether the rider answered the home screen's gear-overlay step with
@@ -1036,6 +1052,8 @@ class Settings {
 
   Future<void> setOverlayDeclined(bool declined) async {
     await prefs.setBool('overlay_declined', declined);
+    // A "no" is an answer too; clearing the decline is not.
+    if (declined) await setOverlayAnswered(true);
   }
 
   /// iOS only: whether to use the floating Picture-in-Picture overlay.

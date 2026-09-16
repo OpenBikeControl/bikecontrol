@@ -546,6 +546,30 @@ void _overlayStepTests() {
       await tester.pumpWidget(const SizedBox());
     }, skip: unsupported);
 
+    // The review's regression: the Live Activity's "stop ride" switches the
+    // overlay off on every ride end, and the trainer page's switch does the
+    // same on purpose. Neither may put the amber card and "1 step left" back
+    // on a rider who has already answered — the line goes back to being the
+    // offer it was, with nothing to decline.
+    testWidgets('an overlay switched off after being answered is an optional offer without "Not now"', (
+      tester,
+    ) async {
+      await core.settings.setOverlayEnabled(true);
+      await core.settings.setOverlayEnabled(false);
+      await pumpTallHome(tester);
+
+      final card = _chainCard(ChainLinkKey.trainer);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainOptional.toUpperCase())), findsOneWidget);
+      expect(find.text(l.chainStepOverlayDecline), findsNothing);
+      final link = tester.widget<ChainCard>(card).link;
+      expect(link.status, LinkStatus.ready);
+      expect(link.isBlocking, isFalse);
+
+      await tester.pumpWidget(const SizedBox());
+    }, skip: unsupported);
+
     testWidgets('the trainer card shows the live gear in its metrics line', (tester) async {
       definition.setTargetGear(12);
       await pumpTallHome(tester);

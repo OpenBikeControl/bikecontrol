@@ -41,6 +41,36 @@ void main() {
     expect(settings.getOverlayDeclined(), isTrue);
   });
 
+  // The step is only required until the rider has answered it once, either
+  // way. Both answers record that — and switching the overlay off later (the
+  // trainer page's switch, the Live Activity's "stop ride") must not un-answer
+  // it, or every ride end would put the amber card back.
+  test('overlay answered defaults to false', () {
+    expect(settings.getOverlayAnswered(), isFalse);
+  });
+
+  test('turning the overlay on counts as an answer', () async {
+    await settings.setOverlayEnabled(true);
+    expect(settings.getOverlayAnswered(), isTrue);
+  });
+
+  test('declining counts as an answer', () async {
+    await settings.setOverlayDeclined(true);
+    expect(settings.getOverlayAnswered(), isTrue);
+  });
+
+  test('turning the overlay off keeps the answer', () async {
+    await settings.setOverlayEnabled(true);
+    await settings.setOverlayEnabled(false);
+    expect(settings.getOverlayAnswered(), isTrue);
+    expect(settings.getOverlayDeclined(), isFalse);
+  });
+
+  test('clearing a decline does not count as an answer', () async {
+    await settings.setOverlayDeclined(false);
+    expect(settings.getOverlayAnswered(), isFalse);
+  });
+
   test('overlay fields default to {power, cadence}', () {
     expect(settings.getOverlayFields(),
         {OverlayField.power, OverlayField.cadence});
