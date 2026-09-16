@@ -48,6 +48,8 @@ import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/home/health_ride_card.dart';
+import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
@@ -677,6 +679,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 : null,
             onRevealOutstanding: () => _revealOutstanding(banner.outstandingLinkIds),
           ),
+          HealthRideChip(service: core.healthRide),
           if (trial != null) ...[
             TrialCard(
               state: trial,
@@ -687,6 +690,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ],
           // Pro on the account, not on this device: carries its own gap.
           const ProUnregisteredBanner(),
+          HealthRideCard(service: core.healthRide),
           for (final card in cards) ...[
             card,
             const Gap(10),
