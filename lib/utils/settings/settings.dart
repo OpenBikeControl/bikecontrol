@@ -301,6 +301,23 @@ class Settings {
     await prefs.setString(_sensorSelectionKey(quantityName), sourceId);
   }
 
+  static const _sensorsTransportKey = 'sensors_transport';
+  static const _sensorsOnlyModeKey = 'sensors_only_mode';
+
+  /// Standalone sensor broadcast transport — `bluetooth` or `wifi`. Never
+  /// `proxy`; an unknown stored value degrades to the default rather than
+  /// throwing at the read site.
+  RetrofitMode getSensorsTransport() {
+    final raw = prefs.getString(_sensorsTransportKey);
+    return raw == RetrofitMode.wifi.name ? RetrofitMode.wifi : RetrofitMode.bluetooth;
+  }
+
+  Future<void> setSensorsTransport(RetrofitMode mode) => prefs.setString(_sensorsTransportKey, mode.name);
+
+  bool getSensorsOnlyMode() => prefs.getBool(_sensorsOnlyModeKey) ?? false;
+
+  Future<void> setSensorsOnlyMode(bool value) => prefs.setBool(_sensorsOnlyModeKey, value);
+
   static String _selfTestKey(String trainerKey) => 'self_test_$trainerKey';
 
   String? getSelfTestResultJson(String trainerKey) {

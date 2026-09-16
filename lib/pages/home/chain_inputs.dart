@@ -6,6 +6,8 @@
 /// and never touch Bluetooth.
 library;
 
+import 'package:prop/emulators/dircon_emulator.dart';
+
 /// How present a known device is right now.
 ///
 /// The distinction between [lost] and [remembered] is the whole reason this
@@ -225,11 +227,36 @@ class AppInput {
   final bool? localNetworkGranted;
 }
 
+/// Sensors-only mode's stand-in for a smart trainer: there is nothing to
+/// bridge, only readings to broadcast to whatever app is listening.
+class SensorsInput {
+  const SensorsInput({
+    required this.sourceNames,
+    required this.broadcasting,
+    required this.transport,
+    this.clientName,
+  });
+
+  /// Names of the sensors feeding the broadcast, in display order. The first
+  /// one is the card's title.
+  final List<String> sourceNames;
+
+  /// Whether the broadcast is actually live right now.
+  final bool broadcasting;
+
+  /// How the broadcast reaches the app — proxy, Wi-Fi or Bluetooth.
+  final RetrofitMode transport;
+
+  /// The connected app's name, when known.
+  final String? clientName;
+}
+
 class ChainInputs {
   const ChainInputs({
     this.bluetoothReady = true,
     this.controllers = const [],
     this.trainer,
+    this.sensors,
     this.app = const AppInput(),
   });
 
@@ -243,6 +270,11 @@ class ChainInputs {
   /// The smart trainer, when one is known. Null renders the optional
   /// placeholder card.
   final TrainerInput? trainer;
+
+  /// Non-null in sensors-only mode: replaces the trainer link with a sensors
+  /// link. Ignored when [trainer] is also set — a rider with a trainer is no
+  /// longer in sensors-only mode, and the trainer link wins.
+  final SensorsInput? sensors;
 
   final AppInput app;
 }

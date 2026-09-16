@@ -1818,6 +1818,45 @@
   },
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Smart Trainer",
+  "sensorsChainEyebrow": "Sensors",
+  "sensorsNoSensorsYet": "No sensors yet",
+  "sensorsWith": "with {names}",
+  "@sensorsWith": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsStatusOff": "Off",
+  "sensorsStatusOffSetup": "Off — tap to set up",
+  "sensorsStatusBroadcasting": "Broadcasting as “BikeControl”",
+  "sensorsClientConnected": "{client} connected",
+  "@sensorsClientConnected": {
+    "placeholders": {
+      "client": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "No smart trainer?",
+  "sensorsUseSensorsOnly": "Use sensors only",
+  "sensorsConnectTrainerQuestion": "Have a smart trainer?",
+  "sensorsConnectTrainer": "Connect a trainer",
+  "sensorsPageTitle": "Sensors",
+  "sensorsBroadcastEyebrow": "Broadcast",
+  "sensorsBroadcastTitle": "Share sensors",
+  "sensorsBroadcastLive": "Live as “BikeControl”",
+  "sensorsBroadcastPickSource": "Pick a source below first",
+  "sensorsTransportBluetooth": "Bluetooth",
+  "sensorsTransportNetwork": "Network",
+  "sensorsTransportBluetoothHint": "Pair “BikeControl” like a heart-rate strap in any app on a phone, tablet or Apple TV nearby.",
+  "sensorsTransportNetworkHint": "Apps on this Wi-Fi find “BikeControl” by themselves — Zwift, MyWhoosh or Rouvy on a PC or Apple TV.",
+  "sensorsEmptyTitle": "Looking for sensors…",
+  "sensorsEmptyBody": "Wake a heart-rate strap, cadence sensor or power meter nearby — it shows up here by itself.",
+  "sensorsOffHint": "Sources connect when you switch Broadcast on — nothing runs until then.",
+  "sensorsSignalsHeader": "Signals",
+  "sensorsOpen": "Open",
   "chainAppTitle": "Trainer app",
   "chainStepBluetoothReady": "Bluetooth is on",
   "chainStepBluetoothReadyPending": "Turn on Bluetooth",

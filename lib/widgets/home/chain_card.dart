@@ -20,6 +20,7 @@ class ChainCard extends StatefulWidget {
     required this.title,
     required this.statusLabel,
     this.statusBadges = const [],
+    this.subtitle,
     this.appName,
     this.editLabel,
     this.onEdit,
@@ -27,6 +28,7 @@ class ChainCard extends StatefulWidget {
     this.instructionsLabel,
     this.body,
     this.onTap,
+    this.footer,
   });
 
   final ChainLink link;
@@ -39,6 +41,10 @@ class ChainCard extends StatefulWidget {
 
   /// Inline warning glyphs beside the status — see [StatusLine.badges].
   final List<Widget> statusBadges;
+
+  /// A quiet line under the status — the Sensors card's "with Assioma DUO",
+  /// naming what the title left out. Null or empty renders nothing.
+  final String? subtitle;
 
   /// Used to fill "{app} is connected" style step wording.
   final String? appName;
@@ -60,6 +66,12 @@ class ChainCard extends StatefulWidget {
   /// looks like. Buttons inside the card still win the tap they sit under.
   final VoidCallback? onTap;
 
+  /// A strip along the card's bottom edge, below everything else and behind
+  /// its own divider — the "No smart trainer? Use sensors only" offer on an
+  /// empty trainer slot. Rendered inside the card's clip, so a full-width
+  /// wash on it still takes the card's rounded corners.
+  final Widget? footer;
+
   @override
   State<ChainCard> createState() => _ChainCardState();
 }
@@ -74,6 +86,55 @@ const double _rowInset = 14;
 /// The tick circle, so a test can assert the steps share a left edge.
 const Key stepTickKey = ValueKey('chain-step-tick');
 
+/// The footer strip's wrapper, when a card has one — see [ChainCard.footer].
+const Key chainCardFooterKey = ValueKey('chain-card-footer');
+
+/// The line under the status, when a card has one — see [ChainCard.subtitle].
+const Key chainCardSubtitleKey = ValueKey('chain-card-subtitle');
+
+/// A one-line offer along a card's bottom edge: a muted question on the left,
+/// the action in brand colour on the right, the whole strip tappable.
+///
+/// Same bones as the trial card's "Already bought it? Restore purchases" row,
+/// which is the strip a rider has already learnt to read this way.
+class ChainCardFooterRow extends StatelessWidget {
+  const ChainCardFooterRow({super.key, required this.question, required this.action, required this.onPressed});
+
+  final String question;
+  final String action;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      child: Button.ghost(
+        style: ButtonStyle.ghost()
+            .withPadding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10))
+            .withBorderRadius(borderRadius: BorderRadius.zero)
+            .withBackgroundColor(color: theme.colorScheme.muted.withAlpha(110), hoverColor: bkCardHover(context)),
+        onPressed: onPressed,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                question,
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: theme.colorScheme.mutedForeground),
+              ),
+            ),
+            const Gap(8),
+            Text(
+              action,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 const double _leadingSize = 17;
 const double _leadingGap = 10;
 
@@ -85,7 +146,13 @@ const double _leadingGap = 10;
 /// once a smart trainer is actually connected the card is doing a job, and
 /// labelling working hardware OPTIONAL is noise — the word is there to reassure
 /// a rider looking at an empty slot, not to caption a live one.
-bool _atRest(ChainLink link) => link.optional && link.status == LinkStatus.off;
+///
+/// The Sensors card is optional in the same sense — an idle broadcast must not
+/// block "Ready to ride" — but it is never an empty slot: it stands for the
+/// rider's own sensors, and the kit draws it with a solid border and a plain
+/// SENSORS eyebrow in every state. Tagging it OPTIONAL would tell a rider who
+/// just chose it that they could skip it.
+bool _atRest(ChainLink link) => link.key != ChainLinkKey.sensors && link.optional && link.status == LinkStatus.off;
 
 class _ChainCardState extends State<ChainCard> {
   @override
@@ -150,6 +217,14 @@ class _ChainCardState extends State<ChainCard> {
           alignment: Alignment.topCenter,
           child: link.pendingSteps.isEmpty ? const SizedBox(width: double.infinity) : _checklist(context),
         ),
+        if (widget.footer case final footer?)
+          Container(
+            key: chainCardFooterKey,
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
+            ),
+            child: footer,
+          ),
       ],
     );
   }
@@ -192,6 +267,17 @@ class _ChainCardState extends State<ChainCard> {
                   meta: link.subtitleArg,
                   badges: widget.statusBadges,
                 ),
+                if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle,
+                      key: chainCardSubtitleKey,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12.5, color: theme.colorScheme.mutedForeground),
+                    ),
+                  ),
               ],
             ),
           ),

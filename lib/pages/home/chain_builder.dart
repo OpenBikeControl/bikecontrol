@@ -11,7 +11,11 @@ import 'package:bike_control/pages/home/chain_state.dart';
 List<ChainLink> buildChain(ChainInputs inputs) {
   return [
     ..._controllerLinks(inputs),
-    _trainerLink(inputs),
+    // A sensors link only takes the trainer's slot in sensors-only mode. A
+    // trainer input, when present, always wins: the home page is the one
+    // that enforces exiting sensors-only mode once a trainer shows up, but
+    // the builder stays safe even if it is ever called with both set.
+    if (inputs.trainer == null && inputs.sensors != null) _sensorsLink(inputs) else _trainerLink(inputs),
     _appLink(inputs),
   ];
 }
@@ -210,6 +214,20 @@ ChainLink _trainerLink(ChainInputs inputs) {
     subtitleArg: trainer.metrics,
     deviceId: trainer.deviceId,
     dismissible: !paired && trainer.presence != DevicePresence.resetting,
+  );
+}
+
+/// Sensors-only mode's trainer-slot card: no bridge to set up, no checklist —
+/// just whether the broadcast is actually live.
+ChainLink _sensorsLink(ChainInputs inputs) {
+  final sensors = inputs.sensors!;
+  return ChainLink(
+    key: ChainLinkKey.sensors,
+    id: 'sensors',
+    status: sensors.broadcasting ? LinkStatus.ready : LinkStatus.off,
+    title: sensors.sourceNames.isEmpty ? '' : sensors.sourceNames.first,
+    optional: true,
+    steps: const [],
   );
 }
 

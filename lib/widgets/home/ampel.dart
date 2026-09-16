@@ -48,12 +48,18 @@ class AmpelStyle {
 }
 
 /// The status dot. Pulses on [LinkStatus.attention] — the one state that means
-/// "this is changing, or waiting on you" — and sits still otherwise.
+/// "this is changing, or waiting on you" — and sits still otherwise, unless
+/// [pulse] says different.
 class Ampel extends StatefulWidget {
-  const Ampel({super.key, required this.status, this.size = 13, this.ringColor});
+  const Ampel({super.key, required this.status, this.size = 13, this.ringColor, this.pulse});
 
   final LinkStatus status;
   final double size;
+
+  /// Overrides the status-driven pulse. The Sensors page's Broadcast tile is
+  /// the one green dot that means "transmitting right now" rather than
+  /// "healthy and done", so it pulses while live; null keeps the default.
+  final bool? pulse;
 
   /// The colour the dot is punched out of, so it reads cleanly when it overlaps
   /// a tile. Defaults to the card surface.
@@ -79,7 +85,8 @@ class _AmpelState extends State<Ampel> with SingleTickerProviderStateMixin {
 
   bool _animationsAllowed = true;
 
-  bool get _shouldPulse => widget.status == LinkStatus.attention && _animationsAllowed && !screenshotMode;
+  bool get _shouldPulse =>
+      (widget.pulse ?? widget.status == LinkStatus.attention) && _animationsAllowed && !screenshotMode;
 
   @override
   void didChangeDependencies() {
@@ -91,7 +98,7 @@ class _AmpelState extends State<Ampel> with SingleTickerProviderStateMixin {
   @override
   void didUpdateWidget(covariant Ampel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _syncPulse(statusChanged: oldWidget.status != widget.status);
+    _syncPulse(statusChanged: oldWidget.status != widget.status || oldWidget.pulse != widget.pulse);
   }
 
   void _syncPulse({required bool statusChanged}) {
@@ -138,11 +145,14 @@ class _AmpelState extends State<Ampel> with SingleTickerProviderStateMixin {
 
 /// A card's visual tile — an icon or a logo — carrying its Ampel in the corner.
 class TileWithAmpel extends StatelessWidget {
-  const TileWithAmpel({super.key, required this.status, required this.child, this.size = 46});
+  const TileWithAmpel({super.key, required this.status, required this.child, this.size = 46, this.pulse});
 
   final LinkStatus status;
   final Widget child;
   final double size;
+
+  /// Forwarded to [Ampel.pulse].
+  final bool? pulse;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +177,11 @@ class TileWithAmpel extends StatelessWidget {
               child: Center(child: child),
             ),
           ),
-          Positioned(right: 0, top: 0, child: Ampel(status: status)),
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Ampel(status: status, pulse: pulse),
+          ),
         ],
       ),
     );

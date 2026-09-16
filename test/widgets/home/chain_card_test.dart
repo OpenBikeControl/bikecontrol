@@ -42,6 +42,8 @@ Future<void> pumpCard(
   VoidCallback? onTap,
   VoidCallback? onEdit,
   List<Widget> statusBadges = const [],
+  Widget? footer,
+  String? subtitle,
 }) async {
   await tester.pumpWidget(
     ShadcnApp(
@@ -75,6 +77,8 @@ Future<void> pumpCard(
                   onInstructions: onInstructions,
                   onTap: onTap,
                   onEdit: onEdit,
+                  footer: footer,
+                  subtitle: subtitle,
                 ),
         ),
       ),
@@ -357,4 +361,64 @@ void main() async {
     });
   });
 
+  // The Sensors card is optional in the model — an idle broadcast must not
+  // block "Ready to ride" — but it is never an empty slot: the kit draws it
+  // with a solid border and a plain SENSORS eyebrow in every state.
+  testWidgets('an idle sensors card is not drawn as an empty optional slot', (tester) async {
+    await pumpCard(
+      tester,
+      ChainLink(key: ChainLinkKey.sensors, id: 'sensors', status: LinkStatus.off, title: '', optional: true, steps: []),
+    );
+    expect(find.text(l.chainOptional.toUpperCase()), findsNothing);
+    final container = tester.widget<AnimatedContainer>(find.byType(AnimatedContainer).first);
+    final shape = (container.decoration as ShapeDecoration).shape as RoundedRectangleBorder;
+    final theme = Theme.of(tester.element(find.byType(ChainCard)));
+    expect(shape.side.color, theme.colorScheme.border);
+  });
+
+  testWidgets('a subtitle sits under the status line', (tester) async {
+    await pumpCard(tester, link(steps: []), subtitle: 'with Assioma DUO');
+    final status = tester.getTopLeft(find.text('status'));
+    final subtitle = tester.getTopLeft(find.byKey(chainCardSubtitleKey));
+    expect(find.text('with Assioma DUO'), findsOneWidget);
+    expect(subtitle.dy, greaterThan(status.dy));
+    expect(subtitle.dx, status.dx);
+  });
+
+  group('footer', () {
+    testWidgets('is rendered last, under everything else', (tester) async {
+      await pumpCard(
+        tester,
+        link(status: LinkStatus.attention, steps: [true, false, false]),
+        onTap: () {},
+        footer: ChainCardFooterRow(question: 'No smart trainer?', action: 'Use sensors only', onPressed: () {}),
+      );
+      final footer = find.byKey(chainCardFooterKey);
+      expect(footer, findsOneWidget);
+      final card = tester.getRect(find.byType(ChainCard));
+      final strip = tester.getRect(footer);
+      // Flush with the card's bottom edge, inside its 1.5 border.
+      expect(strip.bottom, closeTo(card.bottom, 2));
+      expect(strip.top, greaterThan(tester.getRect(find.byKey(stepTickKey).last).bottom));
+    });
+
+    testWidgets('tapping it fires its own action, not the card underneath', (tester) async {
+      var opened = 0;
+      var pressed = 0;
+      await pumpCard(
+        tester,
+        link(steps: []),
+        onTap: () => opened++,
+        footer: ChainCardFooterRow(
+          question: 'No smart trainer?',
+          action: 'Use sensors only',
+          onPressed: () => pressed++,
+        ),
+      );
+      await tester.tap(find.text('Use sensors only'));
+      await tester.pumpAndSettle();
+      expect(pressed, 1);
+      expect(opened, 0);
+    });
+  });
 }

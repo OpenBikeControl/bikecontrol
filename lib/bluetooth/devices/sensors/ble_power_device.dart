@@ -4,7 +4,6 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 /// A standards-compliant BLE power meter (Cycling Power Service) paired
@@ -64,7 +63,7 @@ class BlePowerDevice extends BluetoothDevice with Accessory, BleSensorDevice {
   /// `SensorHub.register`'s doc comment) — the flag is keyed by the stable
   /// BLE device id, not the object.
   @override
-  bool get shouldAutoConnect => core.settings.getSensorAutoConnect(device.deviceId);
+  bool get shouldAutoConnect => sensorAutoConnectAllowed;
 
   @override
   Future<void> connect() async {

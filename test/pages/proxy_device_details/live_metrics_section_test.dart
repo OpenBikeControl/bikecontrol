@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_heart_rate_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_power_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show navigatorKey;
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
+import 'package:bike_control/services/sensors/broadcast_controller.dart';
 import 'package:bike_control/services/sensors/fake_health_kit_channel.dart';
 import 'package:bike_control/services/sensors/fake_sensor_source.dart';
 import 'package:bike_control/services/sensors/health_kit_channel.dart';
@@ -85,6 +87,12 @@ void main() {
     // see their own comment on why it has to happen there.
     core.connection.devices.clear();
     IAPManager.instance.setProForTesting(enabled: false);
+    // Belt-and-braces reset — the serve-gating tests below assign their own
+    // `BroadcastController` and clear it via their own `addTearDown`, but a
+    // stray one left behind by a failing test must not leak `isOn: true`
+    // (or any other state) into a later, unrelated test's "not served"
+    // assumptions.
+    core.connection.broadcast = null;
   });
 
   Future<void> pump(WidgetTester tester, {ProxyDevice? device, bool hideWhenDeviceHasNoMetrics = false}) async {
@@ -106,6 +114,20 @@ void main() {
       ),
     );
     await tester.pump();
+  }
+
+  /// Forces `core.connection.isBridgeRunning` true for exactly one test —
+  /// Task 5 gates `_select`'s `authorize`/`connect` calls on "would this
+  /// source be served" (`isBridgeRunning || broadcast.isOn`), so every test
+  /// below that drives a real connect through a tap now needs ONE of the two
+  /// to be true. Flipping the shared `ftmsEmulator` global's `isStarted`
+  /// directly is the cheapest stand-in for "a trainer is bridged" — standing
+  /// up the whole FTMS composite is out of scope for these tests. Always
+  /// paired with a teardown reset so it cannot leak into a later test (this
+  /// global lives for the whole test process, not per-widget).
+  void bridgeOn() {
+    ftmsEmulator.isStarted.value = true;
+    addTearDown(() => ftmsEmulator.isStarted.value = false);
   }
 
   Finder controlIn(String quantityName) => find.descendant(
@@ -662,6 +684,7 @@ void main() {
       'tapping a not-yet-connected sensor\'s segment persists consent BEFORE connecting, '
       'then drives the device to a real connected state',
       (tester) async {
+        bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
         IAPManager.instance.setProForTesting(enabled: true);
         final ble = FakeUniversalBlePlatform();
         UniversalBle.setInstance(ble);
@@ -719,6 +742,7 @@ void main() {
       'long-pressing the selected, connected segment clears the consent flag BEFORE disconnecting, '
       'and the selection falls back to Trainer',
       (tester) async {
+        bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
         IAPManager.instance.setProForTesting(enabled: true);
         final ble = FakeUniversalBlePlatform();
         UniversalBle.setInstance(ble);
@@ -784,6 +808,7 @@ void main() {
     testWidgets(
       'a sensor serving only this quantity: selecting Trainer disconnects it and clears its consent flag',
       (tester) async {
+        bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
         IAPManager.instance.setProForTesting(enabled: true);
         final ble = FakeUniversalBlePlatform();
         UniversalBle.setInstance(ble);
@@ -825,6 +850,7 @@ void main() {
     testWidgets(
       'the disconnected sensor stays listed and selectable — it must not vanish while out of range',
       (tester) async {
+        bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
         IAPManager.instance.setProForTesting(enabled: true);
         final ble = FakeUniversalBlePlatform();
         UniversalBle.setInstance(ble);
@@ -873,6 +899,7 @@ void main() {
     testWidgets(
       'a sensor selected for TWO quantities stays connected when only ONE switches back to Trainer',
       (tester) async {
+        bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
         IAPManager.instance.setProForTesting(enabled: true);
         final ble = FakeUniversalBlePlatform();
         UniversalBle.setInstance(ble);
@@ -1011,6 +1038,7 @@ void main() {
     });
 
     testWidgets('tapping it authorizes, registers, starts, and selects it', (tester) async {
+      bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
       await pump(tester);
       await tester.tap(segmentIn('heartRate', 'healthkit'));
       await tester.pumpAndSettle();
@@ -1030,6 +1058,7 @@ void main() {
         previousOnSelectionChanged?.call();
       };
       addTearDown(() => core.sensors.onSelectionChanged = previousOnSelectionChanged);
+      bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
 
       await pump(tester);
       await tester.tap(segmentIn('heartRate', 'healthkit'));
@@ -1055,6 +1084,7 @@ void main() {
       'authorization is requested BEFORE the selection changes '
       '(the sheet must not race the transport restart)',
       (tester) async {
+        bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
         await pump(tester);
 
         // Gated so `authorize()` does not resolve synchronously — without
@@ -1103,6 +1133,7 @@ void main() {
     );
 
     testWidgets('connected + session mode: green dot and the live value', (tester) async {
+      bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
       await pump(tester);
       await tester.tap(segmentIn('heartRate', 'healthkit'));
       await tester.pumpAndSettle();
@@ -1114,6 +1145,7 @@ void main() {
     });
 
     testWidgets('connected + passive mode: explains that a Fitness workout is needed', (tester) async {
+      bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
       await pump(tester);
       await tester.tap(segmentIn('heartRate', 'healthkit'));
       await tester.pumpAndSettle();
@@ -1124,6 +1156,7 @@ void main() {
     });
 
     testWidgets('selecting Trainer again stops the session and unregisters', (tester) async {
+      bridgeOn(); // Task 5: authorize/connect on tap now require `served`.
       await pump(tester);
       await tester.tap(segmentIn('heartRate', 'healthkit'));
       await tester.pumpAndSettle();
@@ -1147,6 +1180,125 @@ void main() {
       expect(core.sensors.selectionFor(SensorQuantity.heartRate), isNull);
       // Still selectable afterwards.
       expect(segmentIn('heartRate', 'healthkit'), findsOneWidget);
+    });
+
+    group('Task 5 — served gating: a tap only connects a source that will actually be served', () {
+      testWidgets('no trainer, Broadcast off: tapping a source records the selection but connects nothing', (
+        tester,
+      ) async {
+        core.connection.broadcast = BroadcastController(
+          hub: core.sensors,
+          settings: core.settings,
+          connectSource: (_) async {},
+          disconnectSource: (_) async {},
+          isBridgeRunning: ValueNotifier(false),
+          isStandaloneRunning: () => true,
+        );
+        addTearDown(() => core.connection.broadcast = null);
+
+        await pump(tester); // device: null — no trainer bridged either.
+        await tester.tap(segmentIn('heartRate', 'healthkit'));
+        await tester.pumpAndSettle();
+
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
+        expect(channel.authorizeCalls, 0);
+        expect(channel.startCalls, 0);
+        expect(core.connection.isHealthKitConnected, isFalse);
+        // Now the hub's OWN selection (not merely a nearby candidate) but
+        // still unregistered — the ghost "Connecting…" state, same as any
+        // other selected-but-not-yet-linked source (see the "a selected
+        // source not yet registered" group above), never the green
+        // "connected" subtitle: the tap only recorded intent, nothing
+        // actually started.
+        expect(
+          find.descendant(
+            of: segmentIn('heartRate', 'healthkit'),
+            matching: find.text(AppLocalizations.current.sensorConnecting),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('no trainer, Broadcast on: tapping connects (authorize + start)', (tester) async {
+        core.connection.broadcast = BroadcastController(
+          hub: core.sensors,
+          settings: core.settings,
+          connectSource: (_) async {},
+          disconnectSource: (_) async {},
+          isBridgeRunning: ValueNotifier(false),
+          isStandaloneRunning: () => true,
+        );
+        addTearDown(() => core.connection.broadcast = null);
+        // Switch it on first — `turnOn` requires at least one existing
+        // selection, so anchor it on a quantity this test never otherwise
+        // touches (SPEED never grows a source control of its own — see the
+        // SPEED group above — so this cannot collide with the heartRate
+        // assertions below).
+        core.sensors.select(SensorQuantity.speed, 'broadcast-anchor');
+        addTearDown(() => core.sensors.select(SensorQuantity.speed, null));
+        await core.connection.broadcast!.turnOn();
+        expect(core.connection.broadcast!.isOn.value, isTrue);
+
+        await pump(tester); // device: null — Broadcast alone is what's serving.
+        await tester.tap(segmentIn('heartRate', 'healthkit'));
+        await tester.pumpAndSettle();
+
+        expect(channel.authorizeCalls, 1);
+        expect(channel.startCalls, 1);
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
+        expect(core.connection.isHealthKitConnected, isTrue);
+      });
+
+      testWidgets('trainer bridged: unchanged — tapping connects', (tester) async {
+        bridgeOn(); // core.connection.isBridgeRunning == true, Broadcast untouched (null).
+
+        await pump(tester);
+        await tester.tap(segmentIn('heartRate', 'healthkit'));
+        await tester.pumpAndSettle();
+
+        expect(channel.authorizeCalls, 1);
+        expect(channel.startCalls, 1);
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
+        expect(core.connection.isHealthKitConnected, isTrue);
+      });
+
+      // The strap variant of the same gating — proves it is not
+      // HealthKit-specific: a BLE candidate's `connect` (`_connectDevice`,
+      // which persists the per-device auto-connect consent flag) must be
+      // skipped just as `authorize` is above.
+      testWidgets('no trainer, Broadcast off: tapping a strap records the selection but connects nothing', (
+        tester,
+      ) async {
+        IAPManager.instance.setProForTesting(enabled: true);
+        core.connection.broadcast = BroadcastController(
+          hub: core.sensors,
+          settings: core.settings,
+          connectSource: (_) async {},
+          disconnectSource: (_) async {},
+          isBridgeRunning: ValueNotifier(false),
+          isStandaloneRunning: () => true,
+        );
+        addTearDown(() => core.connection.broadcast = null);
+        final ble = FakeUniversalBlePlatform();
+        UniversalBle.setInstance(ble);
+        final peripheral = strapPeripheral(deviceId: 'hr-not-served-1');
+        ble.addPeripheral(peripheral);
+        final device = BleHeartRateDevice(peripheral.scanResult);
+        core.connection.devices.add(device);
+        addTearDown(() {
+          core.sensors.unregister(device.source.id);
+          core.sensors.select(SensorQuantity.heartRate, null);
+        });
+
+        await pump(tester);
+        await tester.ensureVisible(segmentIn('heartRate', device.source.id));
+        await tester.tap(segmentIn('heartRate', device.source.id));
+        await tester.pumpAndSettle();
+
+        expect(core.sensors.selectionFor(SensorQuantity.heartRate), device.source.id);
+        expect(device.isConnected, isFalse);
+        expect(core.settings.getSensorAutoConnect(device.device.deviceId), isFalse);
+      });
     });
 
     testWidgets('a BLE strap and Apple Health are listed together, each selectable', (tester) async {

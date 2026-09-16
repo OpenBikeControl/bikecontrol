@@ -22,6 +22,23 @@ ChainLink link({
 }
 
 void main() {
+  group('ChainLinkKey', () {
+    // The sensors link takes the trainer's slot in sensors-only mode.
+    // Asserting it is in [ChainLinkKey.values] pins down the enum member;
+    // the real exhaustiveness guard is that every `switch (ChainLinkKey ...)`
+    // in the widget layer (chain_labels.dart, home_page.dart) fails to
+    // compile without a `sensors` arm, which this file's own import already
+    // exercises.
+    test('includes sensors, between trainer and app', () {
+      expect(ChainLinkKey.values, [
+        ChainLinkKey.controller,
+        ChainLinkKey.trainer,
+        ChainLinkKey.sensors,
+        ChainLinkKey.app,
+      ]);
+    });
+  });
+
   group('ChainLink step counting', () {
     test('counts done and remaining steps', () {
       final l = link(id: 'a', steps: [true, false, false]);

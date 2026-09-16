@@ -421,7 +421,12 @@ class ProxyDevice extends BluetoothDevice {
   /// Rouvy needs an IPv4-only listener; the controller endpoint has bound one
   /// for it for a while. Reasoning in `prop` ([DirconEmulator.forceIPv4]).
   @visibleForTesting
-  bool rouvyNeedsIPv4() => core.settings.getTrainerApp() is Rouvy;
+  bool rouvyNeedsIPv4() => needsIPv4For(core.settings.getTrainerApp());
+
+  /// The app-keyed half of [rouvyNeedsIPv4], shared with the standalone
+  /// sensor advertisement (`Connection.initialize`) so both DIRCON listeners
+  /// bind the same way for the same app.
+  static bool needsIPv4For(SupportedApp? app) => app is Rouvy;
 
   /// Mirrors `emulator.advertisementName`. Exposed on ProxyDevice for the UI
   /// so it doesn't have to dereference through the contextual `emulator`
@@ -433,20 +438,20 @@ class ProxyDevice extends BluetoothDevice {
     serialNumber: mdnsSerialNumber(scanResult.deviceId),
   );
 
+  /// Whether the bridge advertises 16-bit services bare (`1826`) or in the
+  /// `0x1826` form. Rouvy (and Zwift, MyWhoosh, TPV) parse the `0x` form and
+  /// silently drop a bare one; Tacx Training does the opposite. So it follows
+  /// the selected trainer app, re-evaluated on every advertisement. Shared
+  /// with the standalone sensor advertisement (`Connection.initialize`).
+  static bool bareShortServiceUuidsFor(SupportedApp? app) => app is Tacx;
+
+  bool _bareShortServiceUuids() => bareShortServiceUuidsFor(core.settings.getTrainerApp());
+
   /// TXT record for the Bridge's `_wahoo-fitness-tnp._tcp` advertisement.
   ///
   /// [SupportedApp.trainerMdnsTxt] contributes whatever fields the selected app
   /// needs on top of these. It is applied last so an app can also correct one
   /// of the defaults if it ever has to.
-  @visibleForTesting
-  /// Whether the bridge advertises 16-bit services bare (`1826`) or in the
-  /// `0x1826` form. Rouvy (and Zwift, MyWhoosh, TPV) parse the `0x` form and
-  /// silently drop a bare one; Tacx Training does the opposite. So it follows
-  /// the selected trainer app, re-evaluated on every advertisement.
-  static bool bareShortServiceUuidsFor(SupportedApp? app) => app is Tacx;
-
-  bool _bareShortServiceUuids() => bareShortServiceUuidsFor(core.settings.getTrainerApp());
-
   static Map<String, Uint8List> trainerMdnsTxtFor(SupportedApp? app, {required String serialNumber}) => {
     'mac-address': Uint8List.fromList(BikeControlMdnsMarkers.macAddress.codeUnits),
     'serial-number': Uint8List.fromList(serialNumber.codeUnits),

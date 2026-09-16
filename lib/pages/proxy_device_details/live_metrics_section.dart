@@ -518,7 +518,17 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
         }
       }
 
-      final authorize = candidate?.authorize;
+      // Connection is gated on "would this source be served": with no
+      // trainer bridged and Broadcast off, a tap only records intent — the
+      // Broadcast switch is the one thing that starts sessions and links
+      // (spec, Decision 4). `BroadcastController.turnOn` → `connectSourceById`
+      // → `authorizeHealthKit` handles the permission sheet later on that
+      // path, and that already runs BEFORE any selection change, so the
+      // sheet-starvation bug this method's own ordering guards against
+      // cannot return here.
+      final served = core.connection.isBridgeRunning || (core.connection.broadcast?.isOn.value ?? false);
+
+      final authorize = served ? candidate?.authorize : null;
       if (authorize != null) {
         try {
           await authorize();
@@ -557,7 +567,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
       // `on HealthKitDeniedException` catch here any more; any other failure
       // falls through to this method's own outer `catch`, which records and
       // rethrows.
-      final connect = candidate?.connect;
+      final connect = served ? candidate?.connect : null;
       if (connect != null) await connect();
 
       // Direct author feedback: "when using 'Trainer' again, it should

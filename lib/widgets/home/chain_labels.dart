@@ -113,6 +113,7 @@ String chainLinkName(BuildContext context, ChainLinkKey key) {
   return switch (key) {
     ChainLinkKey.controller => context.i18n.chainControllerTitle,
     ChainLinkKey.trainer => context.i18n.chainTrainerTitle,
+    ChainLinkKey.sensors => context.i18n.sensorsChainEyebrow,
     ChainLinkKey.app => context.i18n.chainAppTitle,
   };
 }

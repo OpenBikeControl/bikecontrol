@@ -1,4 +1,5 @@
 import 'package:prop/emulators/definitions/sensor_definition.dart';
+import 'package:prop/emulators/dircon_emulator.dart';
 
 /// Sequences a standalone emulator's attach/start and stop/detach.
 ///
@@ -26,13 +27,13 @@ class StandaloneSensorLifecycle {
   });
 
   final Future<void> Function(SensorDefinition) attachDefinition;
-  final Future<void> Function() startServer;
+  final Future<void> Function(RetrofitMode) startServer;
   final Future<void> Function() stopServer;
   final Future<void> Function(SensorDefinition) detachDefinition;
 
-  Future<void> start(SensorDefinition definition) async {
+  Future<void> start(SensorDefinition definition, RetrofitMode transport) async {
     await attachDefinition(definition);
-    await startServer();
+    await startServer(transport);
   }
 
   Future<void> stop(SensorDefinition definition) async {
