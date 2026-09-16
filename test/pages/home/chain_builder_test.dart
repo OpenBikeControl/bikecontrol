@@ -1462,6 +1462,10 @@ void main() {
         expect(banner.appDropped, isTrue);
         expect(banner.targetLinkId, 'app');
         expect(banner.revealsOutstandingCards, isFalse);
+        // One cause, counted once — each card still carries its own step.
+        expect(banner.stepsLeft, 1);
+        expect(chain.byKey(ChainLinkKey.trainer).remainingSteps, 1);
+        expect(chain.byKey(ChainLinkKey.app).remainingSteps, 1);
       });
 
       // The overlay question is still open on the trainer card: that is a
@@ -1481,6 +1485,7 @@ void main() {
         final banner = deriveBanner(chain);
         expect(banner.appDropped, isFalse);
         expect(banner.revealsOutstandingCards, isTrue);
+        expect(banner.stepsLeft, 3);
       });
 
       test('keeps the cards to reveal while a controller is outstanding too', () {

@@ -440,9 +440,19 @@ void main() {
           expect(banner.targetLinkId, 'app');
           expect(banner.targetKey, ChainLinkKey.app);
           expect(banner.revealsOutstandingCards, isFalse);
-          // Both cards are still outstanding, and both steps are still open.
+          // Both cards are still outstanding...
           expect(banner.outstandingLinkIds, ['trainer', 'app']);
-          expect(banner.stepsLeft, 2);
+        });
+
+        // "2 steps left" for one app going away would read as two things to
+        // do. The banner counts the cause once; each card keeps its own step.
+        test('counts the cause once, while each card keeps its own step', () {
+          final trainer = trainerLink(waitingForPickUp);
+          final app = appLink();
+          final banner = deriveBanner([link(id: 'c', status: LinkStatus.ready), trainer, app]);
+          expect(banner.stepsLeft, 1);
+          expect(trainer.remainingSteps, 1);
+          expect(app.remainingSteps, 1);
         });
 
         test('an optional offer on the trainer card does not change that', () {
@@ -468,6 +478,8 @@ void main() {
           expect(banner.appDropped, isFalse);
           expect(banner.targetLinkId, 'trainer');
           expect(banner.revealsOutstandingCards, isTrue);
+          // Two causes: every step counts.
+          expect(banner.stepsLeft, 3);
         });
 
         test('a trainer that is not bridged at all keeps the cards to reveal', () {

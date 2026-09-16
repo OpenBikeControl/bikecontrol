@@ -319,6 +319,10 @@ class ChainBanner {
   final LinkStatus status;
 
   /// Total unfinished steps across every blocking link. Zero when ready.
+  ///
+  /// Except that a trainer app that dropped counts once, even with the trainer
+  /// card waiting for it too ([appDropped]): one cause, one step left. The
+  /// cards themselves keep their own counts.
   final int stepsLeft;
 
   /// The link the action button jumps to, or null when there is no action.
@@ -429,7 +433,9 @@ ChainBanner deriveBanner(List<ChainLink> links) {
   return ChainBanner(
     kind: ChainBannerKind.pending,
     status: LinkStatus.attention,
-    stepsLeft: stepsLeft,
+    // One cause is one step left, however many cards it keeps open: "2 steps
+    // left" would read as two things to do. The cards keep their own counts.
+    stepsLeft: appDropped ? 1 : stepsLeft,
     targetLinkId: target.id,
     targetKey: target.key,
     outstandingKeys: outstandingKeys,

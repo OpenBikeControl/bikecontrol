@@ -218,7 +218,7 @@ void main() async {
         const ChainBanner(
           kind: ChainBannerKind.pending,
           status: LinkStatus.attention,
-          stepsLeft: 2,
+          stepsLeft: 1,
           targetLinkId: 'app',
           targetKey: ChainLinkKey.app,
           outstandingKeys: [ChainLinkKey.trainer, ChainLinkKey.app],
@@ -229,6 +229,7 @@ void main() async {
         onRevealOutstanding: () => revealed++,
       );
 
+      expect(find.text(l.chainStepsLeftTitle(1)), findsOneWidget);
       expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsOneWidget);
       await tester.tap(find.text(l.chainBannerShow));
       await tester.pump();

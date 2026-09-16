@@ -10,6 +10,7 @@
 // `ProxyDeviceDetailsPage` — see that page's own test file — so the one test
 // below proves Home renders none of it even in a scenario the deleted
 // predicate used to treat as "show the grid".
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -1329,6 +1330,39 @@ void _droppedAppTests() {
       await tester.pumpWidget(const SizedBox());
     });
 
+    // Whatever the card shows as connected, the session knows about: the page
+    // looks for itself on every build. The connection events the session
+    // watches only cover the methods themselves, not the settings that decide
+    // whether a method counts. Here every other way the session could hear of
+    // the connection is held back: nothing watches the methods in a widget
+    // test, and the address reading the connection sets off only lands once
+    // the app has dropped again.
+    testWidgets('an app the card showed connected is latched before anything else tells the session', (tester) async {
+      final heldReading = Completer<void>();
+      var holdReadings = false;
+      final wasScreenshotMode = screenshotMode;
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = wasScreenshotMode);
+      AdvertisedAddressPicker.listInterfaces = () async {
+        if (holdReadings) await heldReading.future;
+        return _plainLan;
+      };
+      addTearDown(() => AdvertisedAddressPicker.listInterfaces = NetworkInterface.list);
+      useTallSurface(tester);
+      await pumpAndRead(tester);
+
+      holdReadings = true;
+      await connectApp(tester);
+      await dropApp(tester);
+      heldReading.complete();
+      await tester.pump();
+      await tester.pump();
+
+      expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
     // The last reading can be stale by the time the app connects — the
     // network changed and nothing read it again — so it only stands in until
     // the next reading lands.
@@ -1381,6 +1415,16 @@ void _droppedAppTests() {
       );
       expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
       expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsOneWidget);
+      // One cause, counted once — while the trainer card keeps its own step.
+      expect(find.text(l.chainStepsLeftTitle(1)), findsOneWidget);
+      expect(find.text(l.chainStepsLeftTitle(2)), findsNothing);
+      expect(
+        find.descendant(
+          of: _chainCard(ChainLinkKey.trainer),
+          matching: find.text(l.chainStepTrainerBridgedPending('MyWhoosh')),
+        ),
+        findsOneWidget,
+      );
 
       expect(pushed.routes, isNotEmpty);
       pushed.routes.clear();
