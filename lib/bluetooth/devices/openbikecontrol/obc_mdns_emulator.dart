@@ -149,7 +149,38 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
   bool get _useDirCon => core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpDirCon) ?? false;
 
-  Future<void> startServer() async {
+  /// The lifecycle operation running or queued last — see [_serialized].
+  Future<void> _lifecycle = Future<void>.value();
+
+  /// Runs [op] after every lifecycle operation already running or queued.
+  ///
+  /// [startServer] and [stopServer] each span several awaits (address pick,
+  /// bind, mDNS register / unregister, socket close). Callers fire them
+  /// without awaiting — the trainer-app switch stops and the enabled-method
+  /// pass starts, the unlock page stops and its dispose starts, a fast
+  /// double toggle — and the two used to interleave: the start bound a second
+  /// server one port up (the first still held 36867 while its close was in
+  /// flight), then the stop's tail nulled the handle of that NEW server, so
+  /// it kept listening and advertising with nothing left to stop it. Every
+  /// switch walked 36867 → 36868 → … → 36871 until the rider force-closed the
+  /// app. Queueing keeps each operation whole.
+  ///
+  /// An error in [op] reaches that operation's caller through the returned
+  /// future exactly as before; the queue itself only ignores it so the next
+  /// operation still runs.
+  Future<T> _serialized<T>(Future<T> Function() op) {
+    final run = _lifecycle.then((_) => op());
+    _lifecycle = run.then<void>((_) {}, onError: (Object _) {});
+    return run;
+  }
+
+  Future<void> startServer() => _serialized(_startServerNow);
+
+  Future<void> _startServerNow() async {
+    // Idempotent: a previous start's server and advertisement — one this
+    // start raced, or one that failed after binding — go first, so this one
+    // rebinds the preferred port with exactly one advertisement behind it.
+    await _teardown();
     print('Starting mDNS server...');
     isStarted.value = true;
 
@@ -206,21 +237,49 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       _registeredEntry = (name: 'BikeControl', port: boundPort);
       SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: boundPort);
       print('Server started - advertising service at ${localIP.address}:$boundPort!');
-    } catch (e, s) {
+    } catch (e) {
       // Keep the flag honest so the UI doesn't show a phantom-running server
-      // and the user can cleanly retry.
+      // and the user can cleanly retry. Rethrown with its stack intact for
+      // the caller to record.
       isStarted.value = false;
       core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start mDNS server: $e'));
       rethrow;
     }
   }
 
-  Future<void> stopServer() async {
+  /// Flips [isStarted] synchronously, so a caller that does not await (the
+  /// trainer-app switch, which then decides whether to start again on the
+  /// flag) observes stopped right away; the unregister and socket close
+  /// complete in the returned future, queued behind any start in flight.
+  Future<void> stopServer() {
+    isStarted.value = false;
+    return _serialized(_stopServerNow);
+  }
+
+  Future<void> _stopServerNow() async {
     if (kDebugMode) {
       print('Stopping OpenBikeControl mDNS server...');
     }
+    isStarted.value = false;
+    await _teardown();
+  }
+
+  /// Withdraws the advertisement and stops the server, if any, and forgets
+  /// the client it served. Handles are nulled before the first await, so a
+  /// teardown can never clobber a successor's. Shared by [stopServer] and —
+  /// for idempotence — [startServer].
+  Future<void> _teardown() async {
     final reg = _mdnsRegistration;
     _mdnsRegistration = null;
+    final entry = _registeredEntry;
+    _registeredEntry = null;
+    final server = _server;
+    _server = null;
+    isConnected.value = false;
+    connectedApp.value = null;
+    _activeBackend = ObpMdnsBackend.platformDefault;
+    _activeAdvertiser = null;
+    _stopWatchingAdvertisedAddress();
     if (reg != null) {
       try {
         await reg.unregister();
@@ -228,19 +287,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         recordError(e, s, context: 'ObcMdnsEmulator.unregister');
       }
     }
-    final entry = _registeredEntry;
     if (entry != null) {
       SelfAdvertisementRegistry.instance.remove(name: entry.name, port: entry.port);
-      _registeredEntry = null;
     }
-    isStarted.value = false;
-    isConnected.value = false;
-    await _server?.stop();
-    _server = null;
-    connectedApp.value = null;
-    _activeBackend = ObpMdnsBackend.platformDefault;
-    _activeAdvertiser = null;
-    _stopWatchingAdvertisedAddress();
+    await server?.stop();
   }
 
   /// Watch [advertiser] for a mid-session address move (Wi-Fi switch, Ethernet
@@ -282,13 +332,20 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     _lastAdvertisedAddress = null;
   }
 
-  /// Binds the OpenBikeControl TCP server. The preferred port is 36867 but it
-  /// walks to the next free port under contention (ResilientTcpServer's default
-  /// fallback); [startServer] advertises whichever port was actually bound, so
-  /// companion apps must read the port from the mDNS SRV record.
+  /// Binds the OpenBikeControl TCP server. The preferred port is
+  /// [OpenBikeControlConstants.TCP_PORT] but it walks to the next free port
+  /// under contention (ResilientTcpServer's default fallback); [startServer]
+  /// advertises whichever port was actually bound, so companion apps must
+  /// read the port from the mDNS SRV record.
   Future<void> _createTcpServer() async {
     final server = ResilientTcpServer(
-      preferredPort: 36867,
+      preferredPort: OpenBikeControlConstants.TCP_PORT,
+      // This emulator is the owner: a (re)start supersedes any server of ours
+      // still registered — one whose stop is still closing, or one a
+      // previous start lost track of — so it rebinds the preferred port
+      // instead of walking past it. Only a foreign process still forces the
+      // walk, and the self-test then offers the restart.
+      owner: this,
       label: 'OpenBikeControl',
       onClientConnected: (socket) {
         SharedLogic.keepAlive();

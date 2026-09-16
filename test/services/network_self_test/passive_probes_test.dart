@@ -90,16 +90,20 @@ void main() {
       expect(check.fixes, [NetworkFixId.restartMethod]);
     });
 
-    test('warn: listening on a non-standard port', () {
+    test('warn: listening on a non-standard port offers the restart fix', () {
+      // The classic leak: a previous server instance kept 36867, so this one
+      // walked up. A restart supersedes the leak and lands back on 36867 —
+      // the rider should be offered exactly that instead of "force-close".
       final check = methodListeningCheck(
         ctx(
           snapshot: _diag(
-            servers: const [TcpServerInfo(label: 'OpenBikeControl', port: 12345, listening: true, hasClient: false)],
+            servers: const [TcpServerInfo(label: 'OpenBikeControl', port: 36869, listening: true, hasClient: false)],
           ),
         ),
       );
       expect(check.verdict, NetworkVerdict.warn);
-      expect(check.detail['port'], '12345');
+      expect(check.detail['port'], '36869');
+      expect(check.fixes, [NetworkFixId.restartMethod]);
     });
 
     test('unknown: snapshot is null because gather() threw (shared rule)', () {
