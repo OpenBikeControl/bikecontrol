@@ -170,7 +170,7 @@ Future<void> main() async {
   late SupportChatService chatService;
   late FeedbackSubmissionService accountService;
 
-  Widget app() {
+  Widget app({String? pinnedContext, String? pinnedContextLabel}) {
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [AppLocalizations.delegate],
@@ -180,6 +180,8 @@ Future<void> main() async {
           telemetryBuilder: () async => const TelemetrySnapshot(freetext: 'test'),
           service: chatService,
           accountService: accountService,
+          pinnedContext: pinnedContext,
+          pinnedContextLabel: pinnedContextLabel,
         ),
       ),
     );
@@ -323,6 +325,34 @@ Future<void> main() async {
       expect(find.byKey(const ValueKey('support-account-linked')), findsOneWidget);
       expect(find.text(l10n.supportAccountStatusSignedIn), findsOneWidget);
       expect(find.byKey(const ValueKey('support-header-sign-in')), findsNothing);
+    });
+  });
+
+  // The self-test pages hand their result to the chat as `pinnedContext`
+  // rather than `initialText`: it rides along with the first message, but the
+  // rider has to say what is wrong before they can send it.
+  group('pinnedContext', () {
+    testWidgets('is forwarded to the composer and sent below the description', (tester) async {
+      await tester.pumpWidget(
+        app(pinnedContext: 'Network self-test: NETWORK PASS', pinnedContextLabel: l10n.supportPinnedNetworkTest),
+      );
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+
+      expect(find.text(l10n.supportPinnedContextChip(l10n.supportPinnedNetworkTest)), findsOneWidget);
+      // Not prefilled: the composer starts empty, with the describe-the-problem placeholder.
+      expect(tester.widget<TextArea>(find.byType(TextArea)).controller!.text, isEmpty);
+      expect(find.text(l10n.supportDescribeProblemPlaceholder), findsOneWidget);
+
+      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not find BikeControl');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+
+      expect(fakeHttp.sendMessageRequests, hasLength(1));
+      final sentBody = jsonDecode(fakeHttp.sendMessageRequests.single.body) as Map<String, dynamic>;
+      expect(sentBody['body'], 'MyWhoosh does not find BikeControl\n\nNetwork self-test: NETWORK PASS');
+      expect(tester.takeException(), isNull);
     });
   });
 

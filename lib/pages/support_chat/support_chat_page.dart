@@ -40,6 +40,14 @@ class SupportChatPage extends StatefulWidget {
   /// directly onto a smart-trainer intake branch.
   final IntakeAnswers? initialIntake;
 
+  /// A self-test result line to send along with the first message. Unlike
+  /// [initialText] it is not prefilled into the composer: the rider has to
+  /// describe the problem in their own words before they can send (see
+  /// [SupportComposer.pinnedContext]). [pinnedContextLabel] names it in the
+  /// composer's "Attached: …" chip and must be set alongside it.
+  final String? pinnedContext;
+  final String? pinnedContextLabel;
+
   /// Test-only injection point for the chat's Supabase-backed service.
   /// Production call sites never pass this and get the default
   /// `SupportChatService()`, which talks to `core.supabase`.
@@ -57,9 +65,11 @@ class SupportChatPage extends StatefulWidget {
     this.initialText,
     this.initialAttachment,
     this.initialIntake,
+    this.pinnedContext,
+    this.pinnedContextLabel,
     this.service,
     this.accountService,
-  });
+  }) : assert(pinnedContext == null || pinnedContextLabel != null, 'pinnedContext needs a pinnedContextLabel');
 
   @override
   State<SupportChatPage> createState() => _SupportChatPageState();
@@ -515,6 +525,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             diagnosticPreview: _diagnosticPreview,
             initialText: widget.initialText,
             initialAttachment: widget.initialAttachment,
+            pinnedContext: widget.pinnedContext,
+            pinnedContextLabel: widget.pinnedContextLabel,
           ),
       ],
     );
