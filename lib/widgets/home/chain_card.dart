@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One link of the setup chain.
@@ -31,6 +34,7 @@ class ChainCard extends StatefulWidget {
     this.body,
     this.onTap,
     this.footer,
+    this.highlight,
   });
 
   final ChainLink link;
@@ -82,6 +86,11 @@ class ChainCard extends StatefulWidget {
   /// wash on it still takes the card's rounded corners.
   final Widget? footer;
 
+  /// Makes the card jump out once every time its value changes — see
+  /// [ChainHighlightController], which the page owns. Null for a card nothing
+  /// ever points at.
+  final ValueListenable<int>? highlight;
+
   @override
   State<ChainCard> createState() => _ChainCardState();
 }
@@ -95,6 +104,52 @@ const double _rowInset = 14;
 
 /// The tick circle, so a test can assert the steps share a left edge.
 const Key stepTickKey = ValueKey('chain-step-tick');
+
+/// Carried by the accent border a card draws while its highlight runs, so a
+/// test can tell which cards are highlighted without reading animation values.
+Key chainCardHighlightKey(String linkId) => ValueKey('chain-card-highlight-$linkId');
+
+/// The highlight's three beats: the card pulses, then shakes, and its accent
+/// border fades out once the movement has stopped.
+const Duration _highlightPulse = Duration(milliseconds: 250);
+const Duration _highlightShake = Duration(milliseconds: 250);
+const Duration _highlightFade = Duration(milliseconds: 600);
+
+/// How much bigger the card gets at the top of the pulse.
+const double _highlightPulseGrowth = 0.03;
+
+/// How far the shake goes to either side, and how often.
+const double _highlightShakeOffset = 4;
+const int _highlightShakeCycles = 3;
+
+/// Tells chain cards to jump out — see [ChainCard.highlight].
+///
+/// One tick per card, keyed by [ChainLink.id]: bumping a card's tick plays its
+/// highlight once. The page owns it, because only the page knows why a card
+/// should jump out — the banner's "Show" for every outstanding card, or a
+/// single card with something to say.
+class ChainHighlightController {
+  final Map<String, ValueNotifier<int>> _ticks = {};
+
+  /// What the card for [linkId] listens to.
+  ValueListenable<int> tickFor(String linkId) => _tick(linkId);
+
+  /// Plays the highlight once on the card of every id in [linkIds].
+  void play(Iterable<String> linkIds) {
+    for (final id in linkIds) {
+      _tick(id).value++;
+    }
+  }
+
+  ValueNotifier<int> _tick(String linkId) => _ticks.putIfAbsent(linkId, () => ValueNotifier(0));
+
+  void dispose() {
+    for (final tick in _ticks.values) {
+      tick.dispose();
+    }
+    _ticks.clear();
+  }
+}
 
 /// The footer strip's wrapper, when a card has one — see [ChainCard.footer].
 const Key chainCardFooterKey = ValueKey('chain-card-footer');
@@ -164,7 +219,38 @@ const double _leadingGap = 10;
 /// just chose it that they could skip it.
 bool _atRest(ChainLink link) => link.key != ChainLinkKey.sensors && link.optional && link.status == LinkStatus.off;
 
-class _ChainCardState extends State<ChainCard> {
+class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _highlight = AnimationController(
+    vsync: this,
+    duration: _highlightPulse + _highlightShake + _highlightFade,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.highlight?.addListener(_playHighlight);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChainCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.highlight != widget.highlight) {
+      oldWidget.highlight?.removeListener(_playHighlight);
+      widget.highlight?.addListener(_playHighlight);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.highlight?.removeListener(_playHighlight);
+    _highlight.dispose();
+    super.dispose();
+  }
+
+  void _playHighlight() {
+    _highlight.forward(from: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final link = widget.link;
@@ -175,7 +261,7 @@ class _ChainCardState extends State<ChainCard> {
       width: 1.5,
     );
 
-    return AnimatedContainer(
+    final surface = AnimatedContainer(
       duration: _statusChangeDuration,
       curve: Curves.easeOut,
       decoration: ShapeDecoration(
@@ -189,6 +275,58 @@ class _ChainCardState extends State<ChainCard> {
       ),
       clipBehavior: Clip.antiAlias,
       child: _tappable(context, _content(context)),
+    );
+
+    return _highlighted(context, surface);
+  }
+
+  /// The highlight, around the card's [surface]: the pulse and the shake move
+  /// the whole card, and the accent border is drawn over the card's own.
+  ///
+  /// Only the border comes and goes, as the last child of a stack that is
+  /// always there. Wrapping the card only while a highlight runs would build
+  /// its content from scratch each time — the live drivetrain, the Ampel's
+  /// pulse, a press mid-animation.
+  Widget _highlighted(BuildContext context, Widget surface) {
+    // No movement for a rider who asked for none: the border alone still says
+    // "this one".
+    final still = MediaQuery.disableAnimationsOf(context);
+    // An empty slot is grey, and a grey flash jumps out of nothing. The banner
+    // pointing at these cards is amber — red only when something broke.
+    final accent = AmpelStyle.of(
+      context,
+      widget.link.status == LinkStatus.problem ? LinkStatus.problem : LinkStatus.attention,
+    ).color;
+
+    return AnimatedBuilder(
+      animation: _highlight,
+      child: surface,
+      builder: (context, surface) {
+        final ms = _highlight.value * _highlight.duration!.inMilliseconds;
+        final card = Stack(
+          fit: StackFit.passthrough,
+          children: [
+            surface!,
+            if (_highlight.isAnimating)
+              Positioned.fill(
+                // The card underneath keeps every tap.
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: chainCardHighlightKey(widget.link.id),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: accent.withValues(alpha: _highlightBorderOpacity(ms)), width: 2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+        if (still) return card;
+        return Transform(transform: _highlightMotion(ms), alignment: Alignment.center, child: card);
+      },
     );
   }
 
@@ -345,6 +483,36 @@ class _ChainCardState extends State<ChainCard> {
       ),
     );
   }
+}
+
+/// The pulse, then the shake, [ms] into a highlight; no movement at all once
+/// the border starts fading.
+Matrix4 _highlightMotion(double ms) {
+  final pulse = _highlightPulse.inMilliseconds;
+  final shake = _highlightShake.inMilliseconds;
+  if (ms < pulse) {
+    // Up and back down in one arc.
+    final scale = 1 + _highlightPulseGrowth * math.sin(math.pi * ms / pulse);
+    return Matrix4.diagonal3Values(scale, scale, 1);
+  }
+  if (ms < pulse + shake) {
+    final progress = (ms - pulse) / shake;
+    return Matrix4.translationValues(
+      _highlightShakeOffset * math.sin(2 * math.pi * _highlightShakeCycles * progress),
+      0,
+      0,
+    );
+  }
+  return Matrix4.identity();
+}
+
+/// The accent border's strength [ms] into a highlight: full while the card
+/// moves, then fading out.
+double _highlightBorderOpacity(double ms) {
+  final moving = (_highlightPulse + _highlightShake).inMilliseconds;
+  if (ms <= moving) return 1;
+  final progress = ((ms - moving) / _highlightFade.inMilliseconds).clamp(0.0, 1.0);
+  return 1 - Curves.easeOut.transform(progress);
 }
 
 /// The "OPTIONAL" tag, worn by a whole card (a trainer nobody has to own) and

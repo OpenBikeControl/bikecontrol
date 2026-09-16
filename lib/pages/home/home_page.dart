@@ -333,6 +333,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       listenable.removeListener(_onAdvertisedAddressChanged);
     }
     WidgetsBinding.instance.removeObserver(this);
+    _highlights.dispose();
     super.dispose();
   }
 
@@ -600,6 +601,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   bool _appConnectedThisSession = false;
 
+  /// Makes chain cards jump out — see [ChainCard.highlight].
+  final ChainHighlightController _highlights = ChainHighlightController();
+
+  /// One key per card, by [ChainLink.id], so the banner can bring a card into
+  /// view. By id rather than by [ChainLinkKey]: several controllers share a
+  /// kind, and a global key can only sit on one of them.
+  final Map<String, GlobalKey> _cardKeys = {};
+
   /// The bridged trainer's own name, which the pairing instructions use to
   /// spell out the entry to look for ("KICKR CORE - BikeControl").
   String? get _bridgedTrainerName => core.connection.proxyDevices.firstOrNullWhere((p) => p.isBridged)?.name;
@@ -617,6 +626,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final banner = deriveBanner(links);
     final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
     final trial = _trialState();
+    // A global key may sit on one card only. Ids are unique by design, but a
+    // duplicate must cost the banner its scroll target, not the page.
+    final keyedIds = <String>{};
 
     return Padding(
       // No horizontal inset on mobile: the shell's scroll view already pads the
@@ -635,6 +647,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             onAction: banner.hasAction
                 ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId))
                 : null,
+            onRevealOutstanding: () => _revealOutstanding(banner.outstandingLinkIds),
           ),
           if (trial != null) ...[
             TrialCard(
@@ -647,7 +660,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // Pro on the account, not on this device: carries its own gap.
           const ProUnregisteredBanner(),
           for (final link in links) ...[
-            _card(link, devicesById[link.deviceId], inputs),
+            KeyedSubtree(
+              key: keyedIds.add(link.id) ? _cardKeys.putIfAbsent(link.id, GlobalKey.new) : null,
+              child: _card(link, devicesById[link.deviceId], inputs),
+            ),
             const Gap(10),
           ],
           ..._accessorySection(),
@@ -755,6 +771,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     return ChainCard(
       link: link,
+      highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       tile: Icon(
         placeholder ? LucideIcons.gamepad : device.icon,
@@ -960,6 +977,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     return ChainCard(
       link: link,
+      highlight: _highlights.tickFor(link.id),
       // Nullable on purpose: the step wording falls back to "Trainer app"
       // itself, and the overlay step has a sentence of its own for that case.
       appName: inputs.app.name,
@@ -1039,6 +1057,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     return ChainCard(
       link: link.copyWith(subtitleArg: meta),
+      highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       tile: Icon(
         LucideIcons.heartPulse,
@@ -1180,6 +1199,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     return ChainCard(
       link: link,
+      highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       tile: logo != null
           ? ClipRRect(borderRadius: BorderRadius.circular(7), child: Image.asset(logo, width: 30, height: 30))
@@ -1242,6 +1262,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   // ── Actions ───────────────────────────────────────────────────────────
+
+  /// The banner's "Show" with several cards outstanding: bring the rider to
+  /// them and make each one jump out. Which of two unfinished cards comes first
+  /// is render order, not priority, so opening the first one's fix — what the
+  /// button used to do — reads as arbitrary.
+  Future<void> _revealOutstanding(List<String> linkIds) async {
+    if (linkIds.isEmpty) return;
+    final first = _cardKeys[linkIds.first]?.currentContext;
+    if (first != null) {
+      await Scrollable.ensureVisible(
+        first,
+        // Near the top, with a little room above the card.
+        alignment: 0.05,
+        duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    if (!mounted) return;
+    // Once the cards have arrived, so the pulse is not spent mid-scroll.
+    _highlights.play(linkIds);
+  }
 
   /// Instruction sheets are routed on the card and its state, never on the
   /// wording of the active step — so a never-paired controller gets the pairing

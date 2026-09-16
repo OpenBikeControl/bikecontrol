@@ -31,6 +31,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
+import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
@@ -138,6 +139,150 @@ Future<void> main() async {
   _overlayStepTests();
   _twoPairingsTests();
   _networkAddressStepTests();
+  _bannerShowTests();
+}
+
+// ── The banner's "Show" with several cards outstanding (Task 11) ───────────
+//
+// "2 steps left" across two cards used to open whichever card came first —
+// the controller search, say — which reads as arbitrary. With several cards
+// outstanding the button now takes the rider to them and makes them jump out.
+
+void _bannerShowTests() {
+  group('the banner with several cards outstanding', () {
+    late AppLocalizations l;
+
+    setUp(() {
+      l = AppLocalizations.current;
+    });
+
+    tearDown(() {
+      core.obpMdnsEmulator.isConnected.value = false;
+      // The controller setup sheet's scan widget starts a (screenshot-mode)
+      // scan, and `core` outlives the test.
+      core.connection.isScanning.value = false;
+    });
+
+    Finder showButton() => find.descendant(of: find.byType(ReadyBanner), matching: find.text(l.chainBannerShow));
+    Finder highlighted(String linkId) => find.byKey(chainCardHighlightKey(linkId));
+
+    // The shell's mobile layout: the chain in its own scroll view, inset 12 a
+    // side, on the first page of the tab pager.
+    Future<({PageController pager, ScrollController chain})> pumpPagedHome(
+      WidgetTester tester, {
+      bool disableAnimations = false,
+    }) async {
+      tester.view.physicalSize = const Size(400, 520);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final pager = PageController();
+      final chain = ScrollController();
+      addTearDown(pager.dispose);
+      addTearDown(chain.dispose);
+
+      await tester.pumpWidget(
+        ShadcnApp(
+          localizationsDelegates: [
+            ...ShadcnLocalizations.localizationsDelegates,
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en')],
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
+              child: Scaffold(
+                child: PageView(
+                  controller: pager,
+                  children: [
+                    SingleChildScrollView(
+                      controller: chain,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: HomePage(isMobile: true, onUpdate: () {}),
+                    ),
+                    const SizedBox(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return (pager: pager, chain: chain);
+    }
+
+    testWidgets('"Show" highlights every outstanding card instead of opening the first one', (tester) async {
+      // A fresh install: no controller yet, and MyWhoosh waiting for its
+      // connection — two outstanding cards.
+      await _pumpHome(tester);
+      expect(showButton(), findsOneWidget);
+
+      await tester.tap(showButton());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Not the controller search the first card would have opened ...
+      expect(find.text(l.connectControllers), findsNothing);
+      // ... but both outstanding cards, and only those: the empty trainer
+      // slot is optional and blocks nothing.
+      expect(highlighted('controller'), findsOneWidget);
+      expect(highlighted('app'), findsOneWidget);
+      expect(highlighted('trainer'), findsNothing);
+
+      // A highlight is a moment, not a state.
+      await tester.pump(const Duration(milliseconds: 1500));
+      expect(highlighted('controller'), findsNothing);
+      expect(highlighted('app'), findsNothing);
+    });
+
+    testWidgets('with one card outstanding, "Show" still opens that card', (tester) async {
+      // MyWhoosh is receiving, so the empty controller slot is all that is left.
+      core.obpMdnsEmulator.isConnected.value = true;
+      await _pumpHome(tester);
+      expect(tester.widget<ChainCard>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.ready);
+
+      await tester.tap(showButton());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text(l.connectControllers), findsOneWidget);
+      expect(highlighted('controller'), findsNothing);
+    });
+
+    testWidgets('"Show" scrolls the chain to the first outstanding card, and only the chain', (tester) async {
+      final (:pager, :chain) = await pumpPagedHome(tester);
+      expect(chain.offset, 0);
+
+      await tester.tap(showButton());
+      await tester.pump();
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 40));
+        // Revealing the card goes through every scrollable above it, the tab
+        // pager included — and the rider must stay on the page they are on.
+        expect(pager.position.pixels, 0, reason: 'the tab pager must not move');
+      }
+
+      expect(chain.offset, greaterThan(0));
+      final viewportTop = tester.getTopLeft(find.byType(PageView)).dy;
+      final cardTop = tester.getTopLeft(_chainCard(ChainLinkKey.controller)).dy;
+      expect(cardTop - viewportTop, inInclusiveRange(0, 40), reason: 'the first outstanding card sits near the top');
+      // The highlight plays once the card has arrived.
+      expect(highlighted('controller'), findsOneWidget);
+      expect(highlighted('app'), findsOneWidget);
+    });
+
+    testWidgets('with animations turned off, the chain jumps instead of gliding', (tester) async {
+      final (:pager, :chain) = await pumpPagedHome(tester, disableAnimations: true);
+
+      await tester.tap(showButton());
+      await tester.pump();
+
+      expect(chain.offset, greaterThan(0));
+      expect(pager.position.pixels, 0);
+      expect(highlighted('controller'), findsOneWidget);
+    });
+  });
 }
 
 // ── Two pairings in the trainer app (Task 3) ───────────────────────────────
