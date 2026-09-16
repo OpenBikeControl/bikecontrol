@@ -25,6 +25,7 @@ import 'package:prop/utils/self_advertisement_registry.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 import 'package:prop/utils/network_address.dart';
 import 'package:prop/utils/resilient_tcp_server.dart';
+import 'package:prop/utils/serialized_lifecycle.dart';
 
 class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
   ResilientTcpServer? _server;
@@ -149,32 +150,16 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
   bool get _useDirCon => core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpDirCon) ?? false;
 
-  /// The lifecycle operation running or queued last — see [_serialized].
-  Future<void> _lifecycle = Future<void>.value();
-
-  /// Runs [op] after every lifecycle operation already running or queued.
-  ///
   /// [startServer] and [stopServer] each span several awaits (address pick,
-  /// bind, mDNS register / unregister, socket close). Callers fire them
+  /// bind, mDNS register / unregister, socket close) and callers fire them
   /// without awaiting — the trainer-app switch stops and the enabled-method
-  /// pass starts, the unlock page stops and its dispose starts, a fast
-  /// double toggle — and the two used to interleave: the start bound a second
-  /// server one port up (the first still held 36867 while its close was in
-  /// flight), then the stop's tail nulled the handle of that NEW server, so
-  /// it kept listening and advertising with nothing left to stop it. Every
-  /// switch walked 36867 → 36868 → … → 36871 until the rider force-closed the
-  /// app. Queueing keeps each operation whole.
-  ///
-  /// An error in [op] reaches that operation's caller through the returned
-  /// future exactly as before; the queue itself only ignores it so the next
-  /// operation still runs.
-  Future<T> _serialized<T>(Future<T> Function() op) {
-    final run = _lifecycle.then((_) => op());
-    _lifecycle = run.then<void>((_) {}, onError: (Object _) {});
-    return run;
-  }
+  /// pass starts, the unlock page stops and its dispose starts, a fast double
+  /// toggle. They run one at a time so the two can no longer interleave; see
+  /// [SerializedLifecycle] for what that used to leave behind (here: the
+  /// 36867 → 36871 walk).
+  final _lifecycle = SerializedLifecycle();
 
-  Future<void> startServer() => _serialized(_startServerNow);
+  Future<void> startServer() => _lifecycle.run(_startServerNow);
 
   Future<void> _startServerNow() async {
     // Idempotent: a previous start's server and advertisement — one this
@@ -253,7 +238,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   /// complete in the returned future, queued behind any start in flight.
   Future<void> stopServer() {
     isStarted.value = false;
-    return _serialized(_stopServerNow);
+    return _lifecycle.run(_stopServerNow);
   }
 
   Future<void> _stopServerNow() async {
