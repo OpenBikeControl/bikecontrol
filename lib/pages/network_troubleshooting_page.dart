@@ -198,13 +198,19 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     await _start();
   }
 
+  /// Hands the result to the chat pinned below the composer, not prefilled
+  /// into it: the rider has to say what they see before they can send.
   void _openSupport(BuildContext context, NetworkSelfTestResult result) {
     final debugFuture = debugText();
+    // The composer only knows it carries *a* pinned line; what kind — and so
+    // what its chip calls it — is this page's knowledge, resolved here.
+    final label = context.i18n.supportPinnedNetworkTest;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SupportChatPage(
           diagnosticPreviewFuture: debugFuture,
-          initialText: 'Network self-test: ${result.toBundleString()}',
+          pinnedContext: 'Network self-test: ${result.toBundleString()}',
+          pinnedContextLabel: label,
           telemetryBuilder: () async => TelemetrySnapshot.general(freetext: await debugText()),
         ),
       ),
@@ -589,9 +595,19 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
 
   /// The design's closing card: one line naming the way out when the checks
   /// have not settled it, and the two things support actually needs.
+  ///
+  /// Never a `Button.primary`: the loudest thing on this page is the
+  /// recommended fix, not the hand-off. A primary "Send to support" was what
+  /// riders tapped straight after the run — a third of all support chats
+  /// opened with the bare bundle and no description. On a pass the card
+  /// says so outright and offers "Get help" rather than a report to send:
+  /// there is nothing on this device left to report, what support needs is
+  /// what the rider sees in their trainer app.
   Widget _footer(BuildContext context, AppLocalizations l10n, NetworkSelfTestResult result) {
     final cs = Theme.of(context).colorScheme;
+    final passed = result.verdict == NetworkVerdict.pass;
     return _Panel(
+      key: const ValueKey('network-footer'),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
         // Deliberately two arrangements rather than one Flex that flips axis:
@@ -603,9 +619,15 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
           leading: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.networkFooterTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(
+                    passed ? l10n.networkFooterPassTitle : l10n.networkFooterTitle,
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
                   const Gap(2),
-                  Text(l10n.networkFooterBody, style: TextStyle(fontSize: 13, color: cs.mutedForeground)),
+                  Text(
+                    passed ? l10n.networkFooterPassBody : l10n.networkFooterBody,
+                    style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+                  ),
                 ],
               ),
           trailing: Wrap(
@@ -620,10 +642,18 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
                   },
                   child: Text(l10n.networkTroubleshootCopyResults),
                 ),
-                Button.primary(
-                  onPressed: () => _openSupport(context, result),
-                  child: Text(l10n.networkTroubleshootSendToSupport),
-                ),
+                if (passed)
+                  Button.outline(
+                    key: const ValueKey('network-get-help'),
+                    onPressed: () => _openSupport(context, result),
+                    child: Text(l10n.networkFooterGetHelp),
+                  )
+                else
+                  Button.outline(
+                    key: const ValueKey('network-send-support'),
+                    onPressed: () => _openSupport(context, result),
+                    child: Text(l10n.networkTroubleshootSendToSupport),
+                  ),
                 Button.ghost(
                   onPressed: () => context.push(const LogViewer()),
                   child: Text(l10n.logs),
@@ -695,7 +725,7 @@ enum NetworkCheckGroup { thisDevice, onTheNetwork, reaching, liveTest }
 
 /// A white card with the design's border, radius and one-step shadow.
 class _Panel extends StatelessWidget {
-  const _Panel({required this.child});
+  const _Panel({super.key, required this.child});
 
   final Widget child;
 

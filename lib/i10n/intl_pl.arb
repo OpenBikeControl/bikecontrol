@@ -1924,7 +1924,7 @@
   "networkWatchTitle": "Oczekiwanie na aplikację treningową",
   "networkWatchEndsItself": "Test kończy się sam, gdy tylko aplikacja się połączy.",
   "networkFooterTitle": "Nadal brak połączenia?",
-  "networkFooterBody": "Wyślij pełny raport — zawiera wszystko z tej strony oraz surowe dzienniki.",
+  "networkFooterBody": "Najpierw wypróbuj powyższe rozwiązania. Jeśli nadal nie działa, napisz nam, co widzisz w aplikacji treningowej — pełny raport zostanie dołączony automatycznie.",
   "networkTroubleshootingTitle": "Rozwiązywanie problemów z siecią",
   "networkTroubleshootRun": "Uruchom kontrole",
   "networkTroubleshootRunAgain": "Uruchom ponownie",
@@ -2103,5 +2103,14 @@
   "sensorValueCadence": "{value} obr./min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "supportPinnedContextChip": "Załączono: {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "wynik testu sieci",
+  "supportPinnedResistanceTest": "wynik testu oporu",
+  "supportDescribeProblemPlaceholder": "Co próbujesz zrobić i co dzieje się zamiast tego?",
+  "supportDescribeProblemHint": "Sam wynik testu nie mówi nam, co poszło nie tak — wystarczy jedno zdanie.",
+  "networkFooterPassTitle": "Na tym urządzeniu wszystko jest w porządku",
+  "networkFooterPassBody": "Jeśli aplikacja treningowa nadal się nie łączy, problem leży po jej stronie lub w sieci między nimi. Napisz nam dokładnie, co widzisz, a przyjrzymy się temu.",
+  "networkFooterGetHelp": "Uzyskaj pomoc"
 }

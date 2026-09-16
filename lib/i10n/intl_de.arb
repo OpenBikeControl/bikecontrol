@@ -1933,7 +1933,7 @@
   "networkWatchTitle": "Warten auf deine Trainer-App",
   "networkWatchEndsItself": "Der Test endet von selbst, sobald deine App sich verbindet.",
   "networkFooterTitle": "Verbindet sich immer noch nicht?",
-  "networkFooterBody": "Sende den vollständigen Bericht — er enthält alles auf dieser Seite plus die Rohprotokolle.",
+  "networkFooterBody": "Probier zuerst die Lösungen oben. Wenn es weiterhin nicht klappt, beschreib uns, was du in deiner Trainer-App siehst — der vollständige Bericht wird automatisch angehängt.",
   "networkTroubleshootingTitle": "Netzwerk-Fehlerbehebung",
   "networkTroubleshootRun": "Prüfungen starten",
   "networkTroubleshootRunAgain": "Erneut starten",
@@ -2103,5 +2103,14 @@
   "sensorValueCadence": "{value} U/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "supportPinnedContextChip": "Angehängt: {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "Ergebnis des Netzwerk-Checks",
+  "supportPinnedResistanceTest": "Ergebnis des Widerstandstests",
+  "supportDescribeProblemPlaceholder": "Was möchtest du tun, und was passiert stattdessen?",
+  "supportDescribeProblemHint": "Ein Testergebnis allein sagt uns nicht, was schiefgeht — ein Satz reicht.",
+  "networkFooterPassTitle": "Auf diesem Gerät ist alles in Ordnung",
+  "networkFooterPassBody": "Wenn sich deine Trainer-App trotzdem nicht verbindet, liegt das Problem auf ihrer Seite oder im Netzwerk dazwischen. Beschreib uns genau, was du siehst, und wir schauen es uns an.",
+  "networkFooterGetHelp": "Hilfe holen"
 }

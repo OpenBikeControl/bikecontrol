@@ -1924,7 +1924,7 @@
   "networkWatchTitle": "Esperando a tu app de entrenamiento",
   "networkWatchEndsItself": "La prueba termina sola en cuanto tu app se conecta.",
   "networkFooterTitle": "¿Sigue sin conectar?",
-  "networkFooterBody": "Envía el informe completo: incluye todo lo de esta página más los registros sin procesar.",
+  "networkFooterBody": "Prueba primero las soluciones de arriba. Si sigue fallando, cuéntanos qué ves en tu app de entrenamiento: el informe completo se adjunta automáticamente.",
   "networkTroubleshootingTitle": "Solución de problemas de red",
   "networkTroubleshootRun": "Ejecutar comprobaciones",
   "networkTroubleshootRunAgain": "Ejecutar de nuevo",
@@ -2103,5 +2103,14 @@
   "sensorValueCadence": "{value} rpm",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "supportPinnedContextChip": "Adjunto: {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "resultado de la comprobación de red",
+  "supportPinnedResistanceTest": "resultado de la prueba de resistencia",
+  "supportDescribeProblemPlaceholder": "¿Qué intentas hacer y qué ocurre en su lugar?",
+  "supportDescribeProblemHint": "Un resultado de prueba por sí solo no nos dice qué ha fallado: con una frase basta.",
+  "networkFooterPassTitle": "Todo está en orden en este dispositivo",
+  "networkFooterPassBody": "Si tu app de entrenamiento sigue sin conectar, el problema está de su lado o en la red entre ambos. Cuéntanos exactamente qué ves y lo revisaremos.",
+  "networkFooterGetHelp": "Obtener ayuda"
 }

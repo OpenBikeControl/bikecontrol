@@ -1924,7 +1924,7 @@
   "networkWatchTitle": "En attente de ton appli d'entraînement",
   "networkWatchEndsItself": "Le test se termine tout seul dès que ton appli se connecte.",
   "networkFooterTitle": "Toujours pas de connexion ?",
-  "networkFooterBody": "Envoie le rapport complet — il contient tout ce qui est sur cette page plus les journaux bruts.",
+  "networkFooterBody": "Essaie d'abord les solutions ci-dessus. Si ça ne marche toujours pas, dis-nous ce que tu vois dans ton appli d'entraînement — le rapport complet est joint automatiquement.",
   "networkTroubleshootingTitle": "Dépannage réseau",
   "networkTroubleshootRun": "Lancer les vérifications",
   "networkTroubleshootRunAgain": "Relancer",
@@ -2103,5 +2103,14 @@
   "sensorValueCadence": "{value} tr/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "supportPinnedContextChip": "Joint : {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "résultat du test réseau",
+  "supportPinnedResistanceTest": "résultat du test de résistance",
+  "supportDescribeProblemPlaceholder": "Qu'essaies-tu de faire, et que se passe-t-il à la place ?",
+  "supportDescribeProblemHint": "Un résultat de test seul ne nous dit pas ce qui ne va pas — une phrase suffit.",
+  "networkFooterPassTitle": "Tout est en ordre sur cet appareil",
+  "networkFooterPassBody": "Si ton appli d'entraînement ne se connecte toujours pas, le problème vient de son côté ou du réseau entre les deux. Dis-nous exactement ce que tu vois et on regarde.",
+  "networkFooterGetHelp": "Obtenir de l'aide"
 }

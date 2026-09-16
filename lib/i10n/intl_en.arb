@@ -2131,7 +2131,7 @@
   "networkWatchTitle": "Waiting for your trainer app",
   "networkWatchEndsItself": "The test ends by itself once your app connects.",
   "networkFooterTitle": "Still not connecting?",
-  "networkFooterBody": "Send the full report \u2014 it has everything on this page plus the raw logs.",
+  "networkFooterBody": "Try the fixes above first. If it still fails, tell us what you see in your trainer app — the full report is attached automatically.",
   "@networkChecksPassedOf": {
     "placeholders": { "total": { "type": "int" } }
   },
@@ -2295,5 +2295,14 @@
   "shiftFeedbackSound": "Play a sound when shifting",
   "shiftFeedbackSoundSubtitle": "Distinct cues for shifting up, shifting down and reaching the last gear",
   "shiftFeedbackHaptics": "Vibrate this device when shifting",
-  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller."
+  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller.",
+  "supportPinnedContextChip": "Attached: {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "network check result",
+  "supportPinnedResistanceTest": "resistance test result",
+  "supportDescribeProblemPlaceholder": "What are you trying to do, and what happens instead?",
+  "supportDescribeProblemHint": "A test result alone doesn't tell us what went wrong — one sentence is enough.",
+  "networkFooterPassTitle": "Everything checks out on this device",
+  "networkFooterPassBody": "If your trainer app still won't connect, the problem is on its side or the network between you. Tell us exactly what you see and we'll look at it.",
+  "networkFooterGetHelp": "Get help"
 }

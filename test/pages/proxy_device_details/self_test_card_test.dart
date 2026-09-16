@@ -1,14 +1,19 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/pages/proxy_device_details/self_test_card.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/trainer_self_test/self_test_engine.dart';
 import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/utils/shared.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../services/trainer_self_test/fake_self_test_harness.dart';
@@ -434,5 +439,70 @@ Future<void> main() async {
     expect(find.text('Test stopped'), findsOneWidget);
     // Aborted runs measured nothing worth keeping.
     expect(core.settings.getSelfTestResultJson('KICKR CORE'), isNull);
+  });
+
+  // The hand-off itself: a real SupportChatPage gets pushed, so this needs
+  // the same scaffolding proxy_device_details_need_help_test.dart uses — the
+  // page's default SupportChatService() reads `core.supabase`, which has to
+  // exist (pointed at a loopback port nothing listens on, so the intake
+  // form's known-issues fetch is refused at once), and _openSupport's
+  // debugText() gather ends in a recordError whose crash-persist path would
+  // start a second 6 s gather under fake async; swapped for a plain print.
+  group('hand-off to support', () {
+    setUpAll(() async {
+      installLoggerErrorListener();
+      Logger.onRecordError = (message, error, _) => debugPrint('recordError($message): $error');
+      // Supabase.initialize reads SharedPreferences; the per-test setUp that
+      // mocks them runs after this setUpAll.
+      SharedPreferences.setMockInitialValues({});
+      await Supabase.initialize(
+        url: 'http://127.0.0.1:9',
+        anonKey: 'self-test-card-test-anon-key',
+        debug: false,
+        authOptions: const FlutterAuthClientOptions(
+          localStorage: EmptyLocalStorage(),
+          detectSessionInUri: false,
+          autoRefreshToken: false,
+        ),
+      );
+    });
+
+    testWidgets('"Send result to support" pins the result below an empty composer, intake kept', (tester) async {
+      final harness = FakeSelfTestHarness()
+        ..obeysErg = false
+        ..obeysShift = false;
+      await pumpCard(tester, connectedTrainer(), harness);
+      await tester.tap(find.text('Test resistance control'));
+      await tester.pumpAndSettle();
+      final l10n = AppLocalizations.of(tester.element(find.byType(SelfTestCard)));
+
+      await tester.tap(find.text('Send result to support'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.byType(SupportChatPage), findsOneWidget);
+      final chat = tester.widget<SupportChatPage>(find.byType(SupportChatPage));
+      expect(chat.initialText, isNull, reason: 'the bundle must never be the whole message');
+      expect(chat.pinnedContext, startsWith('Resistance self-test: NO_CONTROL,'));
+      expect(chat.pinnedContextLabel, l10n.supportPinnedResistanceTest);
+      expect(
+        chat.initialIntake?.toJson(),
+        const IntakeAnswers(
+          category: IntakeCategory.smartTrainer,
+          subcategory: 'issue',
+          subcategoryValue: 'no_resistance_change',
+        ).toJson(),
+        reason: 'the intake still rides along',
+      );
+      // The intake is pre-answered, so the composer is right there: chip on,
+      // input empty, send off until the rider says what they see.
+      expect(find.text(l10n.supportPinnedContextChip(l10n.supportPinnedResistanceTest)), findsOneWidget);
+      expect(tester.widget<TextArea>(find.byType(TextArea)).controller!.text, isEmpty);
+      final send = find.ancestor(of: find.byIcon(LucideIcons.send), matching: find.byType(IconButton));
+      expect(tester.widget<IconButton>(send).onPressed, isNull);
+
+      // Drain debugText()'s 6 s diagnostics timeout so nothing is left pending.
+      await tester.pump(const Duration(seconds: 7));
+    });
   });
 }
