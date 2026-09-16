@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/entitlements_service.dart';
@@ -117,8 +118,11 @@ class RevenueCatService {
 
       // Configure RevenueCat
       final configuration = PurchasesConfiguration(apiKey);
+      // Only a real account becomes the RevenueCat identity, never the
+      // support chat's anonymous session. Without one, RevenueCat keeps its
+      // cached (or anonymous) app user id.
       final session = core.supabase.auth.currentSession;
-      if (session != null) {
+      if (session != null && hasAccount(session.user)) {
         configuration.appUserID = session.user.id;
       }
 
@@ -570,7 +574,7 @@ class RevenueCatService {
     // attributes are fully anonymous
     await Purchases.setAttributes({
       ...campaign,
-      if (session?.user.id != null) "bikecontrol_user": session!.user.id,
+      if (session != null && hasAccount(session.user)) "bikecontrol_user": session.user.id,
       "bikecontrol_trainer": core.settings.getTrainerApp()?.name ?? '-',
       "bikecontrol_target": core.settings.getLastTarget()?.name ?? '-',
       if (core.connection.controllerDevices.isNotEmpty)
@@ -590,6 +594,10 @@ class RevenueCatService {
       await logOut();
       return;
     }
+    // Anonymous support-chat session: leave the RevenueCat identity as it is.
+    // Logging out would drop a store purchase made without an account from
+    // view, logging in would tie it to a throwaway user.
+    if (!hasAccount(session.user)) return;
     await logInWithSupabaseUserId(session.user.id, performSync: false);
   }
 

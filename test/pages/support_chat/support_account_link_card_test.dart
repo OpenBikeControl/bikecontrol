@@ -57,6 +57,10 @@ class _FakeAuthHttp extends http.BaseClient {
   bool authorizeError = false;
   bool idTokenAlreadyLinked = false;
 
+  /// When true, `updateUser(email:)` fails the way GoTrue does for an address
+  /// that already belongs to another account.
+  bool emailTaken = false;
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final req = request as http.Request;
@@ -102,6 +106,17 @@ class _FakeAuthHttp extends http.BaseClient {
       // onAuthStateChange event, both of which a real updateUser call does
       // too.
       final body = jsonDecode(req.body) as Map<String, dynamic>;
+      if (emailTaken && body['email'] != null) {
+        return http.StreamedResponse(
+          Stream.value(
+            utf8.encode(
+              jsonEncode({'code': 'email_exists', 'message': 'Email address already registered by another user'}),
+            ),
+          ),
+          422,
+          headers: const {'content-type': 'application/json', 'x-supabase-api-version': '2024-01-01'},
+        );
+      }
       final isRedirectCompletion = (body['data'] as Map<String, dynamic>?)?['linked_via'] == 'oauth-redirect';
       return _json(
         _sessionJson(
@@ -208,6 +223,7 @@ void main() {
   late _FakeUrlLauncher fakeLauncher;
   late SupabaseClient client;
   late FeedbackSubmissionService accountService;
+  late List<Object> recordedErrors;
 
   setUpAll(() async {
     l10n = await AppLocalizations.load(const Locale('en'));
@@ -234,9 +250,10 @@ void main() {
     // The failure-path tests call recordError, whose real listener gathers
     // debug diagnostics on a 6s timeout that never completes under the test
     // clock and re-arms itself. Trip the install guard first (it only
-    // assigns once per isolate), then swap in a no-op listener.
+    // assigns once per isolate), then swap in a listener that only collects.
     installLoggerErrorListener();
-    Logger.onRecordError = (_, _, _) {};
+    recordedErrors = [];
+    Logger.onRecordError = (_, error, _) => recordedErrors.add(error);
     addTearDown(() => Logger.onRecordError = null);
   });
 
@@ -557,6 +574,54 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'never swallowed — recordError catches it, not a rethrow');
         expect(find.text(l10n.supportAccountLinkFailed), findsOneWidget);
         expect(fakeLauncher.launchedUrls, isEmpty);
+      });
+    });
+  });
+
+  group('email already belongs to another account', () {
+    Future<void> sendEmail(WidgetTester tester, String email) async {
+      await tester.enterText(find.byKey(const ValueKey('support-account-email-field')), email);
+      await tester.tap(find.byKey(const ValueKey('support-account-email-send')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('explains that the address already has an account instead of a generic failure', (tester) async {
+      await withPlatform(TargetPlatform.windows, () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.emailTaken = true;
+
+        await pumpCard(tester);
+        await tester.pump();
+        await sendEmail(tester, 'taken@example.com');
+
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('support-account-email-taken')), findsOneWidget);
+        expect(find.text(l10n.supportAccountLinkFailed), findsNothing);
+        // Still on the email step: no code was sent, so no code field.
+        expect(find.byKey(const ValueKey('support-account-code-field')), findsNothing);
+        expect(find.byKey(const ValueKey('support-account-email-field')), findsOneWidget);
+        expect(recordedErrors, isNotEmpty, reason: 'the failure is still recorded, not swallowed');
+        // The anonymous session, and with it the chat, is left untouched.
+        expect(client.auth.currentSession!.user.isAnonymous, isTrue);
+        expect(client.auth.currentSession!.user.id, 'user-id');
+      });
+    });
+
+    testWidgets('a different address afterwards clears the message and moves on to the code step', (tester) async {
+      await withPlatform(TargetPlatform.windows, () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.emailTaken = true;
+
+        await pumpCard(tester);
+        await tester.pump();
+        await sendEmail(tester, 'taken@example.com');
+        expect(find.byKey(const ValueKey('support-account-email-taken')), findsOneWidget);
+
+        fakeHttp.emailTaken = false;
+        await sendEmail(tester, 'new@example.com');
+
+        expect(find.byKey(const ValueKey('support-account-email-taken')), findsNothing);
+        expect(find.byKey(const ValueKey('support-account-code-field')), findsOneWidget);
       });
     });
   });
