@@ -12,6 +12,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -132,10 +133,19 @@ Future<void> main() async {
     return device;
   }
 
-  Future<void> pumpCard(WidgetTester tester, ProxyDevice device) async {
+  Future<void> pumpCard(WidgetTester tester, ProxyDevice device, {Locale locale = const Locale('en')}) async {
     await tester.pumpWidget(
       ShadcnApp(
-        localizationsDelegates: const [AppLocalizations.delegate],
+        locale: locale,
+        // Mirrors lib/main.dart's own ShadcnApp construction: shadcn_flutter's
+        // bundled locales plus OtherLocalizationsDelegate (which reports every
+        // BikeControl-supported language as covered, falling back to English
+        // for shadcn's own internal widget strings) — without it, a non-English
+        // `locale` here trips WidgetsApp's "not supported by all of its
+        // localization delegates" debug warning, which a plain
+        // `localizationsDelegates: [AppLocalizations.delegate]` (fine for the
+        // English-only tests above) doesn't satisfy.
+        localizationsDelegates: [...ShadcnLocalizations.localizationsDelegates, OtherLocalizationsDelegate(), AppLocalizations.delegate],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         home: Scaffold(
           child: VirtualShiftingModeCard(definition: device.fitnessBike!, device: device),
@@ -162,6 +172,10 @@ Future<void> main() async {
       find.descendant(of: trackResistanceCard, matching: find.text(AppLocalizations.current.vsModeRecommended)),
       findsOneWidget,
     );
+    // And nowhere else: the previous check only proves the tag is present
+    // *inside* the right card, not that Target Power/Basic don't also grow
+    // one — a global count of exactly one closes that gap.
+    expect(find.text(AppLocalizations.current.vsModeRecommended), findsOneWidget);
     expect(find.text(AppLocalizations.current.vsModeTrackResistanceDesc), findsOneWidget);
   });
 
@@ -198,10 +212,73 @@ Future<void> main() async {
       find.text('${AppLocalizations.current.vsModeUnsupported}${AppLocalizations.current.vsModeTrackResistanceDesc}'),
       findsOneWidget,
     );
+    // The description prefix is the rider-visible half of "unsupported"; the
+    // card itself must also actually be disabled (RadioCard.enabled == false)
+    // so the rider can't select the very mode the description just warned
+    // them about.
+    final trackResistanceCard = tester.widget<RadioCard<VirtualShiftingMode>>(
+      find.byWidgetPredicate(
+        (w) => w is RadioCard<VirtualShiftingMode> && w.value == VirtualShiftingMode.trackResistance,
+      ),
+    );
+    expect(trackResistanceCard.enabled, isFalse);
 
     // Drain the control-write bookkeeping timer (generic 1s) plus the FTMS
     // control-point handshake's own fallback timer (400ms) that this fixture's
     // write additionally parks — both must clear before teardown.
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('translated labels wrap at a phone width without overflowing, and cards stay equal height', (
+    tester,
+  ) async {
+    // iPhone-class width (390 logical px @3x): three ~100px-wide card
+    // columns is tight enough that a longer translated label ("Resistencia
+    // del recorrido", "Résistance terrain", "Opór trasy") wraps to 2 lines —
+    // exactly the case a fixed card height can't accommodate without
+    // clipping against RadioCard's ancestor Card (Clip.antiAlias).
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await AppLocalizations.load(const Locale('es'));
+    addTearDown(() => AppLocalizations.load(const Locale('en')));
+
+    final device = fecTrainer();
+    expect(device.fitnessBike!.defaultVirtualShiftingMode, VirtualShiftingMode.trackResistance);
+
+    await pumpCard(tester, device, locale: const Locale('es'));
+
+    // (a) No RenderFlex (or other) overflow exception from the wrapped ES
+    // labels at this width.
+    expect(tester.takeException(), isNull);
+
+    // (c) All three cards share the tallest card's height — IntrinsicHeight +
+    // CrossAxisAlignment.stretch, not a guess sized for the English labels.
+    final cardFinder = find.byType(RadioCard<VirtualShiftingMode>);
+    expect(cardFinder, findsNWidgets(3));
+    final heights = tester.renderObjectList<RenderBox>(cardFinder).map((box) => box.size.height).toSet();
+    expect(heights, hasLength(1));
+
+    // (b) The "Recomendado" tag's box is fully inside its own card's box —
+    // the point of dropping the hard-coded SizedBox height.
+    final trackResistanceCard = find.byWidgetPredicate(
+      (w) => w is RadioCard<VirtualShiftingMode> && w.value == VirtualShiftingMode.trackResistance,
+    );
+    final tagFinder = find.descendant(
+      of: trackResistanceCard,
+      matching: find.text(AppLocalizations.current.vsModeRecommended),
+    );
+    expect(tagFinder, findsOneWidget);
+
+    final cardBox = tester.renderObject<RenderBox>(trackResistanceCard);
+    final cardRect = cardBox.localToGlobal(Offset.zero) & cardBox.size;
+    final tagBox = tester.renderObject<RenderBox>(tagFinder);
+    final tagRect = tagBox.localToGlobal(Offset.zero) & tagBox.size;
+
+    expect(tagRect.left, greaterThanOrEqualTo(cardRect.left));
+    expect(tagRect.top, greaterThanOrEqualTo(cardRect.top));
+    expect(tagRect.right, lessThanOrEqualTo(cardRect.right));
+    expect(tagRect.bottom, lessThanOrEqualTo(cardRect.bottom));
   });
 }

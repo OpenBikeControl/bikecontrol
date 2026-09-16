@@ -502,10 +502,15 @@ class VirtualShiftingModeCard extends StatelessWidget {
     await core.shiftingConfigs.upsert(mutate(current));
   }
 
-  // Fixed so a "Recommended" tag on one card never makes it taller than its
-  // two siblings — see the ambiguity resolution in task-8-brief.md.
-  static const double _radioCardContentHeight = 44;
-
+  // The three cards must stay the same height regardless of which one (if
+  // any) shows the "Recommended" tag, and a translated label must never be
+  // clipped instead of wrapping. A hard-coded height can't satisfy both at
+  // once (translated labels like "Resistencia del recorrido" wrap to 2 lines
+  // at phone widths, and a fixed height sized for English clips them against
+  // RadioCard's ancestor Card, which paints with Clip.antiAlias). Callers
+  // wrap the Row of cards in IntrinsicHeight with CrossAxisAlignment.stretch
+  // instead (see build()), so every card is stretched to the tallest card's
+  // own natural content height — never less than any card actually needs.
   Widget _vsRadioCard(
     BuildContext context,
     String label,
@@ -517,22 +522,21 @@ class VirtualShiftingModeCard extends StatelessWidget {
       child: RadioCard<VirtualShiftingMode>(
         value: value,
         enabled: supported,
-        child: SizedBox(
-          height: _radioCardContentHeight,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              if (recommended) ...[
-                const Gap(2),
-                Text(AppLocalizations.of(context).vsModeRecommended).xSmall.muted,
-              ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            if (recommended) ...[
+              const Gap(2),
+              Text(AppLocalizations.of(context).vsModeRecommended).xSmall.muted,
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -573,28 +577,35 @@ class VirtualShiftingModeCard extends StatelessWidget {
                   definition.setVirtualShiftingMode(v);
                   await _updateActive((c) => c.copyWith(mode: v));
                 },
-                child: Row(
-                  spacing: 6,
-                  children: [
-                    _vsRadioCard(
-                      context,
-                      AppLocalizations.of(context).targetPowerMode,
-                      VirtualShiftingMode.targetPower,
-                      recommended: defaultMode == VirtualShiftingMode.targetPower,
-                    ),
-                    _vsRadioCard(
-                      context,
-                      AppLocalizations.of(context).trackResistanceMode,
-                      VirtualShiftingMode.trackResistance,
-                      recommended: defaultMode == VirtualShiftingMode.trackResistance,
-                    ),
-                    _vsRadioCard(
-                      context,
-                      AppLocalizations.of(context).basicMode,
-                      VirtualShiftingMode.basicResistance,
-                      recommended: defaultMode == VirtualShiftingMode.basicResistance,
-                    ),
-                  ],
+                // IntrinsicHeight + stretch: all three cards take the height
+                // of whichever one actually needs the most room (a wrapped
+                // 2-line label, the Recommended tag, or both) — never a
+                // fixed guess that a translated label could outgrow.
+                child: IntrinsicHeight(
+                  child: Row(
+                    spacing: 6,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _vsRadioCard(
+                        context,
+                        AppLocalizations.of(context).targetPowerMode,
+                        VirtualShiftingMode.targetPower,
+                        recommended: defaultMode == VirtualShiftingMode.targetPower,
+                      ),
+                      _vsRadioCard(
+                        context,
+                        AppLocalizations.of(context).trackResistanceMode,
+                        VirtualShiftingMode.trackResistance,
+                        recommended: defaultMode == VirtualShiftingMode.trackResistance,
+                      ),
+                      _vsRadioCard(
+                        context,
+                        AppLocalizations.of(context).basicMode,
+                        VirtualShiftingMode.basicResistance,
+                        recommended: defaultMode == VirtualShiftingMode.basicResistance,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const Gap(8),
