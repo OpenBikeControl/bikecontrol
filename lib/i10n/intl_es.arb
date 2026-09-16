@@ -2102,5 +2102,8 @@
   "sensorValueCadence": "{value} rpm",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsTransportSameDeviceNote": "El Bluetooth no puede llegar a una app en este mismo dispositivo — se usa Wifi.",
+  "trainerTwinSubtitle": "Mismo rodillo por {transport} — conectar cambia a esta vía",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
 }

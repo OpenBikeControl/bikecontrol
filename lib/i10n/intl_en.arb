@@ -2294,5 +2294,8 @@
   "shiftFeedbackSound": "Play a sound when shifting",
   "shiftFeedbackSoundSubtitle": "Distinct cues for shifting up, shifting down and reaching the last gear",
   "shiftFeedbackHaptics": "Vibrate this device when shifting",
-  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller."
+  "shiftFeedbackHapticsSubtitle": "A short buzz on this phone or tablet, twice when there is no next gear. Controller vibration is set per controller.",
+  "vsTransportSameDeviceNote": "Bluetooth can't reach an app on this same device — using WiFi.",
+  "trainerTwinSubtitle": "Same trainer over {transport} — connecting switches to this path",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
 }

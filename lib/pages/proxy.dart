@@ -70,11 +70,7 @@ class _DevicePageState extends State<ProxyPage> {
                           await showGoProDialog(context);
                           return;
                         }
-                        final savedMode = core.settings.getRetrofitMode(
-                          device.trainerKey,
-                          fallback: device.defaultRetrofitMode,
-                        );
-                        device.setRetrofitMode(savedMode);
+                        device.setRetrofitMode(device.savedRetrofitMode);
                         await core.settings.setAutoConnect(device.trainerKey, true);
                         // Fire-and-forget — details page opens immediately and
                         // renders a "Connecting…" state via device.isStarting.

@@ -2102,5 +2102,8 @@
   "sensorValueCadence": "{value} tr/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsTransportSameDeviceNote": "Le Bluetooth ne peut pas atteindre une appli sur ce même appareil — le Wi-Fi est utilisé.",
+  "trainerTwinSubtitle": "Même home trainer via {transport} — se connecter bascule sur cette voie",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
 }

@@ -1,10 +1,13 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/status_icon.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -186,6 +189,35 @@ Future<void> main() async {
     final after = tester.state(find.byType(ConnectionCard));
 
     expect(identical(before, after), isTrue);
+  });
+
+  // Twins (the same trainer listed over Bluetooth and WiFi) both bridge through
+  // the one shared ftmsEmulator. The bridge status row used to read that
+  // emulator's state directly, so the page of the entry that was released in a
+  // path switch showed the *other* entry's green "connected" dot next to its
+  // own "No connection" radio — two trainer pages both claiming the bridge.
+  testWidgets('a released twin does not show the live twin\'s bridge as its own', (tester) async {
+    // A Virtual Shifting session over WiFi, then released in place (the path
+    // switch): wrappers reset and detached, the mode left as it was. The
+    // teardown awaits real transport/emulator futures, hence runAsync.
+    final released = smartTrainer()..setRetrofitMode(RetrofitMode.wifi);
+    await tester.runAsync(() => released.disconnect());
+    expect(released.isBridged, isFalse);
+
+    // The other entry's bridge is live on the shared emulator.
+    ftmsEmulator.isStarted.value = true;
+    ftmsEmulator.isConnected.value = true;
+    addTearDown(() {
+      ftmsEmulator.isStarted.value = false;
+      ftmsEmulator.isConnected.value = false;
+    });
+
+    await pumpCard(tester, released);
+
+    final status = tester.widget<StatusIcon>(find.byType(StatusIcon));
+    expect(status.status, isFalse, reason: 'the green dot belongs to the other entry');
+    expect(status.started, isFalse);
+    expect(find.text('Not connected'), findsOneWidget);
   });
 
   // The virtual-shifting takeover explainer that used to gate this tap is gone:

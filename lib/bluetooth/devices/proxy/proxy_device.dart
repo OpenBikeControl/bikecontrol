@@ -17,6 +17,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart' show Supporte
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -729,6 +730,24 @@ class ProxyDevice extends BluetoothDevice {
     };
   }
 
+  /// The mode a fresh connect starts in: the rider's saved choice for this
+  /// trainer, else [defaultRetrofitMode] — with Bluetooth folded into WiFi
+  /// while the trainer app runs on this same device ([Target.thisDevice]).
+  ///
+  /// A Bluetooth bridge can never be found from the device advertising it: a
+  /// BLE peripheral is invisible to a central on the same adapter. The choice
+  /// itself is left in the settings so it comes back when the rider moves the
+  /// app to another device again. Shared by the auto-connect path and the
+  /// connection card so neither can start a transport the other would not
+  /// offer.
+  RetrofitMode get savedRetrofitMode {
+    final saved = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+    if (saved == RetrofitMode.bluetooth && core.settings.getLastTarget() == Target.thisDevice) {
+      return RetrofitMode.wifi;
+    }
+    return saved;
+  }
+
   void applyTrainerSettings() {
     // This device's own FBD first, for the same reason describeProxyDevice
     // prefers it: [emulator] is contextual (proxy vs. the *shared* global
@@ -827,6 +846,13 @@ class ProxyDevice extends BluetoothDevice {
           },
         ),
       ];
+    }
+    // The other-transport entry of a trainer that is already held: the pitch
+    // below would sell features the live sibling is delivering right now.
+    // Say what this entry is instead, and what a tap does.
+    final twin = twinSubtitle(AppLocalizations.of(context));
+    if (twin != null) {
+      return [Text(twin, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground))];
     }
     return [buildFeatureList(context)];
   }
@@ -998,8 +1024,34 @@ class ProxyDevice extends BluetoothDevice {
   /// (scan-time / app-launch). Requires an explicit prior connect intent
   /// (`getAutoConnect`) — tapping Connect once is the whole consent story now
   /// that the virtual-shifting takeover dialog is gone.
+  ///
+  /// Never while the trainer's other-transport entry ([Connection.twinOf])
+  /// holds it: the consent is stored under the shared [trainerKey], so it
+  /// covers both entries, and honouring it twice opened two upstream paths to
+  /// one trainer that fought over resistance. Read live rather than parked in
+  /// a cooldown — the twin may hold the trainer for the whole ride.
   @override
-  bool get shouldAutoConnect => core.settings.getAutoConnect(trainerKey);
+  bool get shouldAutoConnect => core.settings.getAutoConnect(trainerKey) && !twinHoldsTrainer;
+
+  /// True while this entry holds the trainer: the upstream link is up, the
+  /// bridge is running for it, or a connect is in flight.
+  bool get isConnectedOrConnecting => isConnected || isStarting.value || isBridged;
+
+  /// Whether the same trainer is currently held through its other-transport
+  /// entry (see [Connection.twinOf]).
+  bool get twinHoldsTrainer => core.connection.twinOf(this)?.isConnectedOrConnecting ?? false;
+
+  /// The list subtitle for this entry while its twin holds the trainer: this
+  /// is not a second trainer, and connecting here switches paths (see
+  /// [Connection.connectDevice]). Names the transport currently in use — the
+  /// one the rider would be switching away from. Null when the trainer is not
+  /// held through its twin, or this entry holds it itself.
+  String? twinSubtitle(AppLocalizations l10n) {
+    if (isConnectedOrConnecting) return null;
+    final twin = core.connection.twinOf(this);
+    if (twin == null || !twin.isConnectedOrConnecting) return null;
+    return l10n.trainerTwinSubtitle(twin.isWifiUpstream ? l10n.connectionWifi : l10n.connectionBluetooth);
+  }
 
   @override
   Future<void> connect() async {
@@ -1009,8 +1061,7 @@ class ProxyDevice extends BluetoothDevice {
     // honour that intent by kicking off startProxy() here (fire-and-forget).
     if (isStarting.value || _proxyEmulator.isStarted.value) return;
     if (!shouldAutoConnect) return;
-    final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
-    setRetrofitMode(savedMode);
+    setRetrofitMode(savedRetrofitMode);
     await startProxy();
   }
 

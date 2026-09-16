@@ -2102,5 +2102,8 @@
   "sensorValueCadence": "{value} U/min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsTransportSameDeviceNote": "Bluetooth erreicht keine App auf diesem Gerät — WLAN wird verwendet.",
+  "trainerTwinSubtitle": "Derselbe Trainer über {transport} — Verbinden wechselt auf diesen Weg",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
 }

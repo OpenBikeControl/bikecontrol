@@ -2102,5 +2102,8 @@
   "sensorValueCadence": "{value} obr./min",
   "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
   "sensorValuePower": "{value} W",
-  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}}
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "vsTransportSameDeviceNote": "Bluetooth nie dotrze do aplikacji na tym samym urządzeniu — używane jest Wi-Fi.",
+  "trainerTwinSubtitle": "Ten sam trenażer przez {transport} — połączenie przełącza na tę ścieżkę",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}}
 }
