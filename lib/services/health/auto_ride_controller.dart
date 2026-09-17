@@ -107,6 +107,18 @@ class AutoRideController {
     onRideFinished(result);
   }
 
+  /// The rider stopped the running recording by hand (automatic or not); the
+  /// caller takes over the result. Like [finishNow], an automatic ride waits
+  /// for a break before the next one starts.
+  WorkoutResult stop() {
+    final result = recorder.stop();
+    if (_isAutoRecording.value) {
+      _endAutoRide(waitForBreak: true);
+      log('ride ended reason=manualStop activeDuration=${result.activeDuration}');
+    }
+    return result;
+  }
+
   /// Throws the automatic ride away.
   void discard() {
     if (!_isAutoRecording.value) return;

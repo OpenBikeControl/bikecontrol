@@ -394,6 +394,52 @@ void main() {
     });
   });
 
+  group('stopRide (the workout card Stop button)', () {
+    test('a hand-started ride is stopped, returned and written to Health', () {
+      run((rig) {
+        rig.prefs.setExplicitChoice(true);
+        rig.recorder.start(rig.trainer.metrics);
+        rig.trainer.cadence.value = 90;
+        rig.async.elapse(const Duration(minutes: 6));
+        final result = rig.service.stopRide();
+        rig.async.flushMicrotasks();
+        expect(result.activeDuration, greaterThanOrEqualTo(const Duration(minutes: 5)));
+        expect(rig.recorder.state.value, WorkoutState.idle);
+        expect(rig.channel.saved, hasLength(1));
+        // The card saves its own FIT.
+        expect(rig.fitSaves, isEmpty);
+      });
+    });
+
+    test('an auto ride is written once and does not restart while still pedalling', () {
+      run((rig) {
+        rig.prefs.setExplicitChoice(true);
+        rig.trainer.cadence.value = 90;
+        rig.async.elapse(const Duration(minutes: 6));
+        expect(rig.service.isAutoRecording.value, isTrue);
+        rig.service.stopRide();
+        rig.async.elapse(const Duration(seconds: 5));
+        expect(rig.service.isAutoRecording.value, isFalse);
+        expect(rig.recorder.state.value, WorkoutState.idle);
+        expect(rig.channel.saved, hasLength(1));
+        expect(rig.fitSaves, isEmpty);
+      });
+    });
+
+    test('undecided: an auto ride stopped by hand is held for the prompt', () {
+      run((rig) {
+        rig.trainer.cadence.value = 90;
+        rig.async.elapse(const Duration(minutes: 6));
+        expect(rig.service.isAutoRecording.value, isTrue);
+        rig.service.stopRide();
+        rig.async.flushMicrotasks();
+        expect(rig.channel.saved, isEmpty);
+        expect(rig.service.pendingRide.value, isNotNull);
+        expect(rig.service.showsPrompt, isTrue);
+      });
+    });
+  });
+
   test('payload sanity: what reaches the channel is the ride', () {
     run((rig) {
       rig.prefs.setExplicitChoice(true);

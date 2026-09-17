@@ -188,10 +188,24 @@ class HealthRideService {
 
   void discard() => _controller.discard();
 
+  /// The workout card's Stop button: stops the running ride (automatic or
+  /// manual) and hands it to Health. The card saves the FIT itself.
+  WorkoutResult stopRide() {
+    final result = _controller.stop();
+    unawaited(onManualRideFinished(result));
+    return result;
+  }
+
   /// A ride stopped from the workout card; its FIT is already saved.
   Future<void> onManualRideFinished(WorkoutResult result) async {
-    if (result.activeDuration >= minRide) _onRideDetected();
-    if (_writes) await _write(result);
+    if (result.activeDuration < minRide) return;
+    _onRideDetected();
+    if (_writes) {
+      await _write(result);
+    } else if (_undecided) {
+      log('ride stopped by hand: held pending for the prompt, activeDuration=${result.activeDuration}');
+      _pendingRide.value = result;
+    }
   }
 
   Future<void> openHealthSettings() async {
