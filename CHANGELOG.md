@@ -6,20 +6,13 @@
 - New Sensors page: broadcast "BikeControl" over Bluetooth or Wi-Fi, so Zwift on an Apple TV or MyWhoosh on a PC pairs it like a strap, trainer or not.
 - Better virtual shifting from a real cadence sensor: an external cadence sensor feeds virtual shifting directly, which sharpens it on trainers with a poor cadence signal and makes it work on trainers that report none at all.
 - Shift feedback: optional sound and vibration on this phone or tablet on every shift, with a distinct cue when you reach the last gear.
-- A "Need help?" card on the trainer page takes you straight to the Help Center with your setup attached.
-- Support: the composer says what it attaches (now including the Bluetooth wire trace), and you can delete a conversation or your account and all its data from the chat menu.
 
-Read more in our blog!
+Read more in our blog at https://bikecontrol.app/blog/bikecontrol-7-0-one-connection-for-everything/
 
 **Fixes**:
 - Smart trainers: trainers with no cadence signal (ThinkRider XX Pro and others) get a felt step on every gear that holds; the ThinkRider ramp follows your gear ratios; Tacx Neo appears on Windows; improved compatibility with more FTMS and Zwift Ready trainers under virtual shifting.
 - Resistance self-test runs on trainers that report no cadence and keeps its step-by-step log in the support bundle.
-- Zwift: actions you renamed are sent instead of dropped. Biketerra connects again. Desktop sign-in completes from a cold start. Android: the gear overlay survives release builds.
 - TrainerRoad: the Bridge now pairs with and is controlled by TrainerRoad over the network.
-- Android network self-test: two false alarms (own-hostname lookup, multicast lock) no longer flag a healthy setup.
-- Small phones: the home sheets scroll so Close stays reachable, and the Virtual Shifting profile buttons no longer squeeze the profile dropdown.
-- Connect opens the trainer picker even when no trainer app has been chosen yet.
-- Shift feedback: new, deeper shift sounds — the same click as in the BikeControl ad.
 
 ### 6.6.0 (31-08-2026)
 **Features**:
