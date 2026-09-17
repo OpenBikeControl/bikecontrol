@@ -22,6 +22,7 @@
 		F02276C52FEC278C00C2B6F1 /* DeviceCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */; };
 		F02276C62FEC278C00C2B6F1 /* PipGearController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C42FEC278C00C2B6F1 /* PipGearController.swift */; };
 		35EE8D2A70938666CB1AB614 /* HealthKitHeartRate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58D6DB90644C125994AED4A /* HealthKitHeartRate.swift */; };
+		A7C3E1B25D0F4A6B8C9D0E1F /* HealthKitWorkoutWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8D4F2C36E1A5B7C9DAE1F20 /* HealthKitWorkoutWriter.swift */; };
 		F02276F12FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276F02FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift */; };
 		F02277062FEC2B6500C2B6F1 /* GearSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */; };
 		F068794F2FAF1F5700395E5C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F068794E2FAF1F5700395E5C /* WidgetKit.framework */; };
@@ -100,6 +101,7 @@
 		F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeviceCapabilities.swift; path = Runner/DeviceCapabilities.swift; sourceTree = "<group>"; };
 		F02276C42FEC278C00C2B6F1 /* PipGearController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PipGearController.swift; path = Runner/PipGearController.swift; sourceTree = "<group>"; };
 		E58D6DB90644C125994AED4A /* HealthKitHeartRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitHeartRate.swift; path = Runner/HealthKitHeartRate.swift; sourceTree = "<group>"; };
+		B8D4F2C36E1A5B7C9DAE1F20 /* HealthKitWorkoutWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitWorkoutWriter.swift; path = Runner/HealthKitWorkoutWriter.swift; sourceTree = "<group>"; };
 		F02276F02FEC2ADC00C2B6F1 /* GearSnapshot+LiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "GearSnapshot+LiveActivity.swift"; path = "Shared/GearSnapshot+LiveActivity.swift"; sourceTree = "<group>"; };
 		F068794D2FAF1F5700395E5C /* TrainerActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TrainerActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F068794E2FAF1F5700395E5C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -214,6 +216,7 @@
 				F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */,
 				F02276C42FEC278C00C2B6F1 /* PipGearController.swift */,
 				E58D6DB90644C125994AED4A /* HealthKitHeartRate.swift */,
+				B8D4F2C36E1A5B7C9DAE1F20 /* HealthKitWorkoutWriter.swift */,
 				F02276C02FEC277800C2B6F1 /* GearReadoutView.swift */,
 				F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */,
 				F068796C2FAF203C00395E5C /* TrainerActivityExtension.entitlements */,
@@ -526,6 +529,7 @@
 				F02276C52FEC278C00C2B6F1 /* DeviceCapabilities.swift in Sources */,
 				F02276C62FEC278C00C2B6F1 /* PipGearController.swift in Sources */,
 				35EE8D2A70938666CB1AB614 /* HealthKitHeartRate.swift in Sources */,
+				A7C3E1B25D0F4A6B8C9D0E1F /* HealthKitWorkoutWriter.swift in Sources */,
 				F02276C12FEC277800C2B6F1 /* GearSnapshot.swift in Sources */,
 				F02276C22FEC277800C2B6F1 /* GearReadoutView.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,

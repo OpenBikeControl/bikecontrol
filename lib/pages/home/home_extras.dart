@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -43,6 +44,9 @@ class _HomeExtrasState extends State<HomeExtras> {
   bool get _showsShiftSound => !kIsWeb;
 
   bool get _showsShiftHaptics => PlatformShiftHaptics.isSupported;
+
+  /// "Save rides to Apple Health": iOS/iPadOS with Health on the device.
+  bool get _showsHealthRide => core.healthRide.isSupported;
 
   /// Quitting from a menu row is a mobile idiom; desktop windows close
   /// themselves, and SystemNavigator.pop() does nothing useful there anyway.
@@ -170,6 +174,41 @@ class _HomeExtrasState extends State<HomeExtras> {
                   await core.shiftFeedback.setSoundEnabled(!core.shiftFeedback.soundEnabled);
                   if (mounted) setState(() {});
                 },
+              ),
+            if (_showsHealthRide)
+              ListenableBuilder(
+                listenable: core.healthRide.changes,
+                builder: (context, _) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SwitchFeature(
+                      isMobile: widget.isMobile,
+                      value: core.healthRide.isEnabled,
+                      isProOnly: true,
+                      title: context.i18n.healthRideToggleTitle,
+                      subtitle: context.i18n.healthRideToggleSubtitle,
+                      onPressed: () async {
+                        try {
+                          await core.healthRide.setEnabled(!core.healthRide.isEnabled);
+                        } catch (e, s) {
+                          await recordError(e, s, context: 'HomeExtras.setHealthRideEnabled');
+                        }
+                      },
+                    ),
+                    if (core.healthRide.showsDuplicateHint)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                        child: Text(
+                          context.i18n.healthRideDuplicateHint(core.healthRide.trainerApp()?.name ?? ''),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            height: 1.4,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             if (_showsQuit)
               _row(
