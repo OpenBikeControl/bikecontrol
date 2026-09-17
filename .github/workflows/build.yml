@@ -280,6 +280,11 @@ jobs:
           }
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
+      # Shorebird checks out its Flutter fork under a long temp path; without
+      # this a cold cache fails with "Filename too long" (Windows MAX_PATH).
+      - name: Enable git long paths
+        run: git config --system core.longpaths true
+
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
         with:
