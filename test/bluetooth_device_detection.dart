@@ -4,6 +4,8 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:bike_control/bluetooth/devices/ltwoo/ltwoo_erx.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
@@ -127,13 +129,57 @@ void main() {
     });
   });
 
-  group('Skip powermeters', () {
-    test('Skip Favero Assioma', () {
+  // sensor-sources-phase2: `fromScanResult` used to hide ANY scan result
+  // whose name matched a known power-meter brand — Favero Assioma, Quarq,
+  // PowerCrank — universally, before any service-based dispatch ran at all
+  // (hence these fixtures deliberately advertising an unrelated SRAM AXS
+  // service, to prove the old hide applied regardless of what else the
+  // device advertised). Selecting a source in the Sensors UI is the rider's
+  // consent now (see `SensorQuantitySelector`), so there is no name-based
+  // hide left anywhere in `fromScanResult` — a device with one of these
+  // names resolves exactly like any other device, via whatever it actually
+  // advertises.
+  group('formerly-hidden power-meter names have no special effect any more', () {
+    test('a Favero Assioma-named device is detected via its actual service, not hidden', () {
       final device = _createBleDevice(name: 'Assioma 133', services: [SramAxsConstants.SERVICE_UUID]);
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<SramAxs>());
+    });
+    test('a QUARQ-named device is detected via its actual service, not hidden', () {
+      final device = _createBleDevice(name: 'QUARQ 133', services: [SramAxsConstants.SERVICE_UUID]);
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<SramAxs>());
+    });
+  });
+
+  group('Detect L-TWOO eRX/eR9', () {
+    test('eRX/eR9 derailleur by name', () {
+      final device = _createBleDevice(name: 'LTOED2501AB12');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<LtwooErx>());
+    });
+    test('lowercase advertised name still matches', () {
+      final device = _createBleDevice(name: 'ltoed2501ab12');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<LtwooErx>());
+    });
+    test('legacy LTOED00 model is excluded', () {
+      final device = _createBleDevice(name: 'LTOED001234');
       expect(BluetoothDevice.fromScanResult(device), isNull);
     });
-    test('Skip QUARQ', () {
-      final device = _createBleDevice(name: 'QUARQ 133', services: [SramAxsConstants.SERVICE_UUID]);
+  });
+
+  group('Detect Tacx Neo (name-only, empty advertisement)', () {
+    test('Tacx Neo 2T with empty services/serviceData still detected as proxy', () {
+      // Windows' universal_ble surfaces the Neo with an empty advertisement —
+      // no services, no serviceData — so only the name is usable.
+      final device = _createBleDevice(name: 'Tacx Neo 2T 48844');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ProxyDevice>());
+    });
+
+    test('lowercase advertised name still matches (case-insensitive)', () {
+      final device = _createBleDevice(name: 'tacx neo 2t');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ProxyDevice>());
+    });
+
+    test('unrelated unknown name with empty services stays null', () {
+      final device = _createBleDevice(name: 'Some Random Trainer');
       expect(BluetoothDevice.fromScanResult(device), isNull);
     });
   });

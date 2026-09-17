@@ -502,20 +502,60 @@ class VirtualShiftingModeCard extends StatelessWidget {
     await core.shiftingConfigs.upsert(mutate(current));
   }
 
-  Widget _vsRadioCard(String label, VirtualShiftingMode value) {
+  // The three cards must stay the same height regardless of which one (if
+  // any) shows the "Recommended" tag, and a translated label must never be
+  // clipped instead of wrapping. A hard-coded height can't satisfy both at
+  // once (translated labels like "Resistencia del recorrido" wrap to 2 lines
+  // at phone widths, and a fixed height sized for English clips them against
+  // RadioCard's ancestor Card, which paints with Clip.antiAlias). Callers
+  // wrap the Row of cards in IntrinsicHeight with CrossAxisAlignment.stretch
+  // instead (see build()), so every card is stretched to the tallest card's
+  // own natural content height — never less than any card actually needs.
+  Widget _vsRadioCard(
+    BuildContext context,
+    String label,
+    VirtualShiftingMode value, {
+    required bool recommended,
+  }) {
     final supported = definition.supportsVirtualShiftingMode(value);
     return Expanded(
       child: RadioCard<VirtualShiftingMode>(
         value: value,
         enabled: supported,
-        child: Center(
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            if (recommended) ...[
+              const Gap(2),
+              Text(AppLocalizations.of(context).vsModeRecommended).xSmall.muted,
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  /// The description for [mode], prefixed with a "not supported" notice when
+  /// the connected trainer can't actually carry it (e.g. a saved preference
+  /// that survived a reconnect onto a lesser trainer).
+  String _descriptionFor(BuildContext context, VirtualShiftingMode mode) {
+    final l10n = AppLocalizations.of(context);
+    final desc = switch (mode) {
+      VirtualShiftingMode.trackResistance => l10n.vsModeTrackResistanceDesc,
+      VirtualShiftingMode.targetPower => l10n.vsModeTargetPowerDesc,
+      VirtualShiftingMode.basicResistance => l10n.vsModeBasicDesc,
+    };
+    if (!definition.supportsVirtualShiftingMode(mode)) {
+      return '${l10n.vsModeUnsupported}$desc';
+    }
+    return desc;
   }
 
   @override
@@ -524,23 +564,53 @@ class VirtualShiftingModeCard extends StatelessWidget {
       animation: Listenable.merge([definition.virtualShiftingMode, definition.trainerFeature]),
       builder: (context, _) {
         final mode = definition.virtualShiftingMode.value;
+        final defaultMode = definition.defaultVirtualShiftingMode;
         return SettingTile(
           title: AppLocalizations.of(context).virtualShiftingMode,
           subtitle: AppLocalizations.of(context).virtualShiftingModeDesc,
-          child: RadioGroup<VirtualShiftingMode>(
-            value: mode,
-            onChanged: (v) async {
-              definition.setVirtualShiftingMode(v);
-              await _updateActive((c) => c.copyWith(mode: v));
-            },
-            child: Row(
-              spacing: 6,
-              children: [
-                _vsRadioCard(AppLocalizations.of(context).targetPowerMode, VirtualShiftingMode.targetPower),
-                _vsRadioCard(AppLocalizations.of(context).trackResistanceMode, VirtualShiftingMode.trackResistance),
-                _vsRadioCard(AppLocalizations.of(context).basicMode, VirtualShiftingMode.basicResistance),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RadioGroup<VirtualShiftingMode>(
+                value: mode,
+                onChanged: (v) async {
+                  definition.setVirtualShiftingMode(v);
+                  await _updateActive((c) => c.copyWith(mode: v));
+                },
+                // IntrinsicHeight + stretch: all three cards take the height
+                // of whichever one actually needs the most room (a wrapped
+                // 2-line label, the Recommended tag, or both) — never a
+                // fixed guess that a translated label could outgrow.
+                child: IntrinsicHeight(
+                  child: Row(
+                    spacing: 6,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _vsRadioCard(
+                        context,
+                        AppLocalizations.of(context).targetPowerMode,
+                        VirtualShiftingMode.targetPower,
+                        recommended: defaultMode == VirtualShiftingMode.targetPower,
+                      ),
+                      _vsRadioCard(
+                        context,
+                        AppLocalizations.of(context).trackResistanceMode,
+                        VirtualShiftingMode.trackResistance,
+                        recommended: defaultMode == VirtualShiftingMode.trackResistance,
+                      ),
+                      _vsRadioCard(
+                        context,
+                        AppLocalizations.of(context).basicMode,
+                        VirtualShiftingMode.basicResistance,
+                        recommended: defaultMode == VirtualShiftingMode.basicResistance,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Gap(8),
+              Text(_descriptionFor(context, mode)).xSmall.muted,
+            ],
           ),
         );
       },

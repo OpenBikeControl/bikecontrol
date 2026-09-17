@@ -11,7 +11,11 @@ import 'package:bike_control/pages/home/chain_state.dart';
 List<ChainLink> buildChain(ChainInputs inputs) {
   return [
     ..._controllerLinks(inputs),
-    _trainerLink(inputs),
+    // A sensors link only takes the trainer's slot in sensors-only mode. A
+    // trainer input, when present, always wins: the home page is the one
+    // that enforces exiting sensors-only mode once a trainer shows up, but
+    // the builder stays safe even if it is ever called with both set.
+    if (inputs.trainer == null && inputs.sensors != null) _sensorsLink(inputs) else _trainerLink(inputs),
     _appLink(inputs),
   ];
 }
@@ -174,18 +178,29 @@ ChainLink _trainerLink(ChainInputs inputs) {
             id: SetupStepId.trainerAppBridged,
             done: trainer.appHoldsBridge,
             hintArg: trainer.bridgeName,
+            // The entry NOT to pick, when known: the trainer under its own
+            // name sits right beside the bridge in the app's list.
+            secondaryHintArg: trainer.rawTrainerName,
           ),
-          // Last, and optional: the trainer app shows its own gear, not the one
-          // BikeControl computes, so a bridged rider who has not turned the
-          // overlay on is looking at a number that will disagree with their
-          // shifter. That is the single most common support question, and it
-          // outlived a toast — so it lives on the card until it is acted on.
-          // Only offered once the bridge is up: before that there is no gear.
-          if (paired && trainer.overlayOffered)
+          // Last, and required until answered once: the trainer app shows its
+          // own gear, not the one BikeControl computes, so a bridged rider who
+          // has not turned the overlay on is looking at a number that will
+          // disagree with their shifter. That is the single most common
+          // support question, and it outlived a toast *and* an optional line
+          // on this card — so the step blocks "Ready to ride" until the rider
+          // either turns the overlay on or says "not now". Either answer is
+          // final for the blocking: an overlay switched off afterwards (the
+          // trainer page's switch, the Live Activity's "stop ride" on every
+          // ride end) leaves the line as the offer it used to be, never as
+          // work outstanding. A decline takes the step off the card entirely
+          // (a greyed-out offer would still read as unfinished) until the
+          // overlay is switched on somewhere, which clears it. Only offered
+          // once the bridge is up: before that there is no gear.
+          if (paired && trainer.overlayOffered && (trainer.overlayEnabled || !trainer.overlayDeclined))
             SetupStep(
               id: SetupStepId.trainerGearOverlay,
               done: trainer.overlayEnabled,
-              optional: true,
+              optional: !trainer.overlayEnabled && trainer.overlayAnswered,
             ),
         ]
       : const <SetupStep>[];
@@ -213,6 +228,20 @@ ChainLink _trainerLink(ChainInputs inputs) {
   );
 }
 
+/// Sensors-only mode's trainer-slot card: no bridge to set up, no checklist —
+/// just whether the broadcast is actually live.
+ChainLink _sensorsLink(ChainInputs inputs) {
+  final sensors = inputs.sensors!;
+  return ChainLink(
+    key: ChainLinkKey.sensors,
+    id: 'sensors',
+    status: sensors.broadcasting ? LinkStatus.ready : LinkStatus.off,
+    title: sensors.sourceNames.isEmpty ? '' : sensors.sourceNames.first,
+    optional: true,
+    steps: const [],
+  );
+}
+
 ChainLink _appLink(ChainInputs inputs) {
   final app = inputs.app;
   final selected = app.name != null;
@@ -220,6 +249,9 @@ ChainLink _appLink(ChainInputs inputs) {
   // check: both connection steps are satisfied by definition.
   final hasMethod = app.selfHosted || app.hasEnabledConnection;
   final connected = app.selfHosted || app.isConnected;
+  // This very app connected earlier in this session, over a real method —
+  // the session latches that per app, see [AppInput.wasConnectedThisSession].
+  final connectedEarlier = selected && app.wasConnectedThisSession;
 
   final steps = <SetupStep>[
     SetupStep(id: SetupStepId.appSelected, done: selected),
@@ -230,7 +262,43 @@ ChainLink _appLink(ChainInputs inputs) {
     // cannot ride past this one.
     if (selected && app.localNetworkGranted != null)
       SetupStep(id: SetupStepId.appLocalNetwork, done: app.localNetworkGranted!),
-    SetupStep(id: SetupStepId.appConnected, done: selected && connected),
+    // The address being advertised is one the app is unlikely to reach — a
+    // VPN, a mesh, a hotspot, a second adapter. Only once a method is on
+    // (before that nothing is advertised) and only until the app connects:
+    // a connected app has reached it, whatever it looks like, and the warning
+    // would contradict the tick right under it. So it is only ever emitted
+    // while outstanding, and required: this is the most common reason
+    // "waiting for the app" never ends, and the self-test that would say so
+    // sits on a page the rider has to know to look for.
+    //
+    // Never while the app already holds the trainer over the network: that
+    // rides on this very address, so the app has plainly reached it, and the
+    // only thing left is the controller tile — which the connected step
+    // below says. A trainer held over Bluetooth proves nothing here.
+    //
+    // Nor after the app has connected through this same verdict earlier in
+    // the session: it reached the address then, whatever it looks like. Two
+    // adapters on different subnets flag many a desktop for good while the
+    // app connects there just fine, and a drop there is no network news.
+    // Only a verdict that is new since the app connected — a VPN that came up
+    // and took the app with it — brings the step back.
+    if (app.hasEnabledConnection &&
+        !connected &&
+        !app.trainerBridgedOverNetwork &&
+        app.advertisedAddressWarning != null &&
+        !(connectedEarlier && app.advertisedAddressWarning == app.advertisedAddressWarningAtConnect))
+      SetupStep(id: SetupStepId.appNetworkAddress, done: false, hintArg: app.advertisedAddressWarning),
+    SetupStep(
+      id: SetupStepId.appConnected,
+      done: selected && connected,
+      // Once the app is reading the trainer through BikeControl, the
+      // trainer half of its pairing screen is done and only the controller
+      // tile is missing — say that, not "waiting for the app". Only with an
+      // app to name: the sentence is about a specific app's pairing screen.
+      variant: selected && app.trainerBridgedByApp
+          ? SetupStepVariant.controllerLinkMissing
+          : SetupStepVariant.standard,
+    ),
     // Last, and optional: Local is not a way to reach the app, it is a way to
     // do *more* to it — keystrokes and clicks the button editor only offers
     // once it is on. Nobody has to have it, so it never colours the card; but
@@ -245,15 +313,21 @@ ChainLink _appLink(ChainInputs inputs) {
       ),
   ];
 
+  // It was carrying commands earlier in this session and has stopped. Unlike a
+  // controller or a trainer, that is not a break: a trainer app that goes
+  // away has almost always just been closed, and red with "Fix" sent riders
+  // into a network test that had nothing to find. So it stays amber, like any
+  // other wait for the app, and the card says it disconnected — see
+  // [ChainLink.dropped]. Not while it still holds the trainer: then it is
+  // plainly open, only its controller tile is missing, and the connection
+  // step already says exactly that. A self-hosted app has no wire to lose.
+  final dropped = connectedEarlier && !connected && !app.trainerBridgedByApp;
+
   final LinkStatus status;
   if (steps.every((s) => s.done || s.optional)) {
     status = LinkStatus.ready;
   } else if (!selected) {
     status = LinkStatus.off;
-  } else if (app.wasConnectedThisSession && !app.isConnected) {
-    // It was carrying commands a moment ago and stopped — that is a break, not
-    // an unfinished setup.
-    status = LinkStatus.problem;
   } else {
     status = LinkStatus.attention;
   }
@@ -265,5 +339,7 @@ ChainLink _appLink(ChainInputs inputs) {
     title: app.name ?? '',
     steps: steps,
     subtitleArg: status == LinkStatus.ready ? app.connectionSummary : null,
+    wasConnectedThisSession: connectedEarlier,
+    dropped: dropped,
   );
 }

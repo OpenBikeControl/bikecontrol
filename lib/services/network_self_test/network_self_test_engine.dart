@@ -229,6 +229,13 @@ class NetworkSelfTestEngine {
   /// Windows-only shell checks (skipped entirely off Windows, rather than
   /// left to self-skip, so the list itself already reflects what actually
   /// ran on this platform).
+  ///
+  /// `resolveOwnHostname` additionally sits out Android on its own: it
+  /// resolves through the platform DNS resolver, which never does mDNS
+  /// there, so it fails almost every run even when discovery genuinely
+  /// works — a false negative that single-handedly flips `overallVerdict`
+  /// to fail. `tcpSelfConnect` and `guidedWatch` don't share that flaw and
+  /// keep running, so real Android discovery problems still get caught.
   static List<ProbeSpec> defaultProbes(String platform, {bool Function()? watchCancelled}) {
     // The paired profile+firewall probe pays for one `powershell.exe`
     // start-up; both ProbeSpecs below share that single call via this
@@ -249,8 +256,10 @@ class NetworkSelfTestEngine {
       ),
       ProbeSpec(id: NetworkCheckId.backend, timeout: const Duration(seconds: 1), run: (ctx) async => backendCheck(ctx)),
       ProbeSpec(id: NetworkCheckId.multicastLock, timeout: const Duration(seconds: 1), run: (ctx) async => multicastLockCheck(ctx)),
-      if (platform != 'ios') ...[
+      if (platform != 'ios' && platform != 'android') ...[
         ProbeSpec(id: NetworkCheckId.resolveOwnHostname, timeout: const Duration(seconds: 4), run: resolveOwnHostnameCheck),
+      ],
+      if (platform != 'ios') ...[
         ProbeSpec(id: NetworkCheckId.tcpSelfConnect, timeout: const Duration(seconds: 6), run: tcpSelfConnectCheck),
         ProbeSpec(
           id: NetworkCheckId.guidedWatch,

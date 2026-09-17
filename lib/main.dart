@@ -172,6 +172,65 @@ Future<void> _recordFlutterError(FlutterErrorDetails details) async {
 /// label: a handled error must not read as "App crashed" in support logs.
 bool isFatalErrorContext(String context) => const {'Zone', 'PlatformDispatcher', 'Isolate'}.contains(context);
 
+/// Whether [uri] is a Supabase OAuth callback that must be exchanged into a
+/// session. Mirrors supabase_flutter's private `_isAuthCallbackDeeplink`
+/// (without its auth-flow-type gating): the browser hands "Sign in with Apple"
+/// (and Google / GitHub / Facebook) back as `bikecontrol://login/` carrying
+/// either a PKCE `code` query param, an implicit `access_token` fragment, or an
+/// `error_description` fragment.
+///
+/// Used by the desktop cold-start path in [_StarterState]: supabase_flutter
+/// exchanges the *live* callback (app already running) on all non-web
+/// platforms, but its cold-start `_handleInitialUri` is gated to `kIsWeb`, so
+/// on Windows/macOS/Linux a callback that arrives as the initial deep link —
+/// the exact repro when the user closes the app before completing sign-in — is
+/// otherwise dropped and the session never established.
+bool isSupabaseAuthCallbackUri(Uri uri) {
+  return uri.fragment.contains('access_token') ||
+      uri.queryParameters.containsKey('code') ||
+      uri.fragment.contains('error_description');
+}
+
+/// Desktop cold-start handler for the OAuth callback deep link.
+///
+/// Closes the supabase_flutter gap described on [isSupabaseAuthCallbackUri] by
+/// exchanging the *initial* link ourselves — exactly once — when the app was
+/// NOT already running. The PKCE `code_verifier` persists in Supabase's local
+/// storage, so a freshly launched instance can complete the exchange.
+///
+/// Deliberately does NOT touch the live `uriLinkStream` handler:
+/// supabase_flutter already exchanges the live callback on non-web platforms,
+/// and calling [exchangeSession] a second time would try to redeem an
+/// already-consumed `code` and error.
+///
+/// Dependencies are injected as callbacks so the decision (exchange vs skip)
+/// is unit-testable without booting Flutter or Supabase.
+Future<void> handleDesktopColdStartAuthCallback({
+  required Future<Uri?> Function() getInitialLink,
+  required Future<void> Function(Uri uri) exchangeSession,
+  required Future<void> Function() onSessionEstablished,
+  Future<void> Function(Object error, StackTrace stack)? onError,
+}) async {
+  Uri? uri;
+  try {
+    uri = await getInitialLink();
+  } catch (e, s) {
+    await onError?.call(e, s);
+    return;
+  }
+
+  if (uri == null || uri.scheme != 'bikecontrol' || !isSupabaseAuthCallbackUri(uri)) {
+    return;
+  }
+
+  try {
+    await exchangeSession(uri);
+    await onSessionEstablished();
+  } catch (e, s) {
+    await onError?.call(e, s);
+  }
+}
+
 /// Record a handled error. Funnels through [Logger.recordError]; the listener
 /// installed by [installLoggerErrorListener] prints and persists the entry
 /// (which also feeds the debug log support chats attach).
@@ -213,6 +272,14 @@ void installLoggerErrorListener() {
   };
 }
 
+/// True while [_persistCrash] is gathering [debugText] for an entry. An error
+/// recorded in that window — above all `debugText.diagnostics` timing out
+/// because the diagnostics gather hangs — is still logged and persisted, but
+/// without a debug text of its own: gathering again would hang and time out
+/// the same way, record the next timeout, and repeat every 6 s for the rest of
+/// the process.
+bool _gatheringCrashDebugText = false;
+
 Future<void> _persistCrash({
   required String type,
   required String error,
@@ -229,10 +296,21 @@ Future<void> _persistCrash({
 
     final timestamp = DateTime.now().toIso8601String();
     String debugTextValue;
-    try {
-      debugTextValue = await debugText(includeDiscovery: false);
-    } catch (e, s) {
-      debugTextValue = 'Exception $e';
+    if (_gatheringCrashDebugText) {
+      debugTextValue = 'Debug text: skipped (recorded while another crash entry was gathering it)';
+    } else {
+      _gatheringCrashDebugText = true;
+      try {
+        // A limit of its own, above debugText's 3 s + 6 s, so the guard is
+        // released even if debugText ever awaits something without one.
+        debugTextValue = await debugText(includeDiscovery: false).timeout(const Duration(seconds: 12));
+      } catch (e, s) {
+        // The guard is still set, so this entry is persisted without a gather.
+        recordError(e, s, context: 'persistCrash.debugText');
+        debugTextValue = 'Exception $e';
+      } finally {
+        _gatheringCrashDebugText = false;
+      }
     }
     final crashData = StringBuffer()
       ..writeln('--- $timestamp ---')
@@ -244,8 +322,7 @@ Future<void> _persistCrash({
       ..writeln()
       ..writeln();
 
-    final directory = await _getLogDirectory();
-    final file = File('${directory.path}/app.log');
+    final file = await crashLogFile();
     if (file.existsSync()) {
       final fileLength = await file.length();
       if (fileLength > 5 * 1024 * 1024) {
@@ -269,15 +346,20 @@ Future<void> _persistCrash({
     if (kDebugMode) {
       print('Failed to write crash log: $error');
     }
-    // Avoid throwing from the crash logger
+    // Avoid throwing from the crash logger. A plain recordError here would
+    // loop: a write that keeps failing re-enters this function once per
+    // failure. Forwarding it behind a guard, like the debug-text one above,
+    // is a possible follow-up.
   }
 }
 
-// Minimal implementation; customize per platform if needed.
-Future<Directory> _getLogDirectory() async {
-  // On mobile, you might choose applicationDocumentsDirectory via platform channel,
-  // but staying pure Dart, use currentDirectory as a placeholder.
-  return Directory.current;
+/// The persisted crash log ([_persistCrash] appends to it; the log viewer
+/// shows its path). Lives in the app support directory: the process cwd is
+/// `/` inside an iOS sandbox (and unwritable for sandboxed macOS / MSIX
+/// installs), so `Directory.current` produced `//app.log` and EPERM there.
+Future<File> crashLogFile() async {
+  final directory = await getApplicationSupportDirectory();
+  return File('${directory.path}/app.log');
 }
 
 enum ConnectionType {
@@ -753,6 +835,8 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
 
     core.connection.initialize();
     core.feedbackPromptService.start();
+    unawaited(core.shiftFeedback.prepare());
+    unawaited(core.healthRide.start());
     WindowsProtocolHandler().registerForOutsideStoreBuild('bikecontrol');
     WidgetsBinding.instance.addObserver(this);
     if (!kIsWeb && !screenshotMode) {
@@ -774,6 +858,23 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
           recordError(err, stackTrace, context: 'DeepLink');
         },
       );
+
+      // Cold-start OAuth callback: on desktop, supabase_flutter only exchanges
+      // the initial deep link on web, so a callback that arrives while the app
+      // was closed (user shut the app before completing "Sign in with Apple")
+      // never becomes a session. Exchange it ourselves. The live stream above
+      // is left untouched — supabase_flutter handles the app-already-running
+      // case, and a second exchange would redeem an already-consumed code.
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        unawaited(
+          handleDesktopColdStartAuthCallback(
+            getInitialLink: _appLinks.getInitialLink,
+            exchangeSession: (uri) => core.supabase.auth.getSessionFromUrl(uri),
+            onSessionEstablished: IAPManager.instance.refreshEntitlementsOnAppStart,
+            onError: (e, s) => recordError(e, s, context: 'Desktop cold-start auth callback'),
+          ),
+        );
+      }
     }
     unawaited(IAPManager.instance.refreshEntitlementsOnAppStart());
   }

@@ -143,6 +143,16 @@ Future<void> main() async {
     await tester.pump();
   }
 
+  /// Ends a test whose pick reached [FitnessBikeDefinition.setControlProtocolOverride].
+  /// An accepted pick re-issues the control state at once, and that write
+  /// opens the definition's one-shot control-write pacing window (a
+  /// [FitnessBikeDefinition.minControlWriteInterval] timer). These trainers
+  /// are in plain SIM, where nothing is deferred into the window, so it just
+  /// closes; let it close rather than leave the timer pending when the test
+  /// ends.
+  Future<void> letControlWritePacingWindowClose(WidgetTester tester) =>
+      tester.pump(FitnessBikeDefinition.minControlWriteInterval);
+
   testWidgets('selector hidden for single-protocol trainer', (tester) async {
     final device = trainer(singleProtocolServices());
     expect(device.fitnessBike!.supportedControlProtocols, {TrainerControlProtocol.ftms});
@@ -173,6 +183,7 @@ Future<void> main() async {
 
     expect(def.controlProtocolOverride, TrainerControlProtocol.zwiftHub);
     expect(core.settings.getControlProtocolOverride(device.trainerKey), 'zwiftHub');
+    await letControlWritePacingWindowClose(tester);
   });
 
   testWidgets('switching to a different effective protocol cycles the connection', (tester) async {
@@ -188,7 +199,7 @@ Future<void> main() async {
 
     expect(device.fitnessBike!.controlProtocol, TrainerControlProtocol.ftms);
     expect(reconnects, 1);
-    await tester.pump(const Duration(seconds: 1));
+    await letControlWritePacingWindowClose(tester);
   });
 
   testWidgets('an inert selection (same effective protocol) does not cycle the connection', (tester) async {
@@ -205,6 +216,7 @@ Future<void> main() async {
 
     expect(device.fitnessBike!.controlProtocol, TrainerControlProtocol.zwiftHub);
     expect(reconnects, 0);
+    await letControlWritePacingWindowClose(tester);
   });
 
   testWidgets('picking Auto again clears the stored override', (tester) async {
@@ -224,6 +236,7 @@ Future<void> main() async {
     // Removed, not stored as the string 'null' — a stale key would out-live the
     // rider's decision to go back to auto.
     expect(core.settings.getControlProtocolOverride(device.trainerKey), isNull);
+    await letControlWritePacingWindowClose(tester);
   });
 
   test('applyTrainerSettings applies a stored override', () async {

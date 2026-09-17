@@ -498,6 +498,16 @@ abstract class BaseActions {
     } else {
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
+      // The trainer app owns the gears on this path, so all we know is that
+      // the press was delivered — report it on the key-down only, else a
+      // press/release pair would cue twice.
+      if (directConnectHandled is Success && isKeyDown) {
+        if (keyPair.inGameAction == InGameAction.shiftUp) {
+          unawaited(core.shiftFeedback.shifted(up: true));
+        } else if (keyPair.inGameAction == InGameAction.shiftDown) {
+          unawaited(core.shiftFeedback.shifted(up: false));
+        }
+      }
     }
     return directConnectHandled;
   }

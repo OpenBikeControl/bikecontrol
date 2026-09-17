@@ -70,19 +70,28 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
         ? ChainStepText(l.chainStepTrainerPaired)
         : ChainStepText(l.chainStepTrainerPairedPending),
     // Whether the trainer app has actually picked the bridge up. The hint names
-    // the exact entry to look for, which is the thing riders miss.
+    // the exact entry to look for, which is the thing riders miss — and, when
+    // the trainer's own name is known, the entry right beside it that they
+    // pick instead, which bypasses BikeControl altogether.
     SetupStepId.trainerAppBridged => step.done
         ? ChainStepText(l.chainStepTrainerBridged(app))
         : ChainStepText(
             l.chainStepTrainerBridgedPending(app),
-            l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app),
+            step.secondaryHintArg != null
+                ? l.chainStepTrainerBridgedHint2(app, step.hintArg ?? 'BikeControl', step.secondaryHintArg!)
+                : l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app),
           ),
-    // The hint carries the whole reason this step exists — that the number the
-    // trainer app draws is its own, not the one BikeControl computes — so it
-    // shows even before the step is the active one.
+    // The label names the consequence rather than the feature — "MyWhoosh
+    // will keep showing its own gear" — because "show your gear on screen" was
+    // an offer riders walked past; the hint then says why and what to do. The
+    // rare card with no app chosen gets a whole sentence of its own rather
+    // than "Trainer app" glued into the placeholder, so every language reads.
     SetupStepId.trainerGearOverlay => step.done
         ? ChainStepText(l.chainStepOverlayDone)
-        : ChainStepText(l.chainStepOverlay, l.chainStepOverlayHint(app)),
+        : ChainStepText(
+            appName == null ? l.chainStepOverlayPendingNoApp : l.chainStepOverlayPending(appName),
+            l.chainStepOverlayHint(app),
+          ),
     SetupStepId.appSelected => step.done
         ? ChainStepText(l.chainStepAppSelected)
         : ChainStepText(l.chainStepAppSelectedPending, l.chainStepAppSelectedHint),
@@ -95,8 +104,21 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.appLocalNetwork => step.done
         ? ChainStepText(l.chainStepAppLocalNetwork)
         : ChainStepText(l.chainStepAppLocalNetworkPending, l.chainStepAppLocalNetworkHint),
+    // Only ever emitted while outstanding — it clears itself the moment the
+    // app connects — so there is no done wording. The hint names the address
+    // because that is the one thing the rider can check against their VPN app.
+    SetupStepId.appNetworkAddress => ChainStepText(
+      l.chainStepNetworkAddressPending,
+      l.chainStepNetworkAddressHint(step.hintArg ?? '', app),
+    ),
+    // The trainer app pairs BikeControl twice, as a trainer and as a
+    // controller. With the trainer already picked up, the pending copy names
+    // the second tile rather than saying "connect the app" about an app that
+    // is, in the rider's eyes, already connected.
     SetupStepId.appConnected => step.done
         ? ChainStepText(l.chainStepAppConnected(app))
+        : step.variant == SetupStepVariant.controllerLinkMissing
+        ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app))
         : ChainStepText(l.chainStepAppConnectedPending(app), l.chainStepAppConnectedHint),
     // Like the overlay step, the hint is the offer: "Local control" means
     // nothing on its own, and what it buys — keyboard and mouse actions on a
@@ -113,6 +135,7 @@ String chainLinkName(BuildContext context, ChainLinkKey key) {
   return switch (key) {
     ChainLinkKey.controller => context.i18n.chainControllerTitle,
     ChainLinkKey.trainer => context.i18n.chainTrainerTitle,
+    ChainLinkKey.sensors => context.i18n.sensorsChainEyebrow,
     ChainLinkKey.app => context.i18n.chainAppTitle,
   };
 }

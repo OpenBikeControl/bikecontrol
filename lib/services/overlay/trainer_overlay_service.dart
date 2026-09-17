@@ -50,8 +50,8 @@ class TrainerOverlayService {
 /// Puts the gear overlay on screen for [device] and persists the choice.
 ///
 /// The one enable path in the app: the Overlay section's switch and the home
-/// screen's optional step both run it, so they cannot drift on what "enabled"
-/// means. The persisted flag is written only when the platform actually put
+/// screen's gear-overlay step both run it, so they cannot drift on what
+/// "enabled" means. The persisted flag is written only when the platform actually put
 /// something on screen — on Android [TrainerOverlayController.show] asks for
 /// the draw-over permission first, and a rider who declines must not end up
 /// with a setting that claims an overlay they cannot see.

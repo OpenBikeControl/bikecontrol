@@ -62,6 +62,10 @@
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>BikeControl uses Bluetooth to connect to accessories.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>BikeControl reads your heart rate from Apple Health so AirPods Pro 3 or Apple Watch can be used as a heart rate monitor.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>BikeControl runs a workout session so your AirPods measure heart rate continuously, and, if you turn on "Save rides to Apple Health", saves your indoor rides with power, cadence, speed, distance, heart rate and active energy.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_wahoo-fitness-tnp._tcp</string>

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -23,8 +24,11 @@ import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_extras.dart';
 import 'package:bike_control/pages/home/home_sheets.dart';
+import 'package:bike_control/pages/home/pro_unregistered_banner.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/sensors/sensors_page.dart';
+import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
@@ -33,6 +37,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/services/local_network_access.dart';
+import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show advertisedAddressWarning;
 import 'package:bike_control/utils/requirements/local_network.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
@@ -41,7 +46,10 @@ import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
 import 'package:bike_control/widgets/home/accessory_card.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
+import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/home/health_ride_card.dart';
+import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
@@ -49,7 +57,11 @@ import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show enableLocalControl, ensureLocalNetworkAccess;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
+import 'package:prop/mdns/service_advertiser.dart' show ServiceAdvertiser;
 import 'package:prop/prop.dart' show ClickKeepAwakeStatus, ClickLogic, LogLevel;
+import 'package:prop/utils/network_address.dart' show AdvertisedAddressPicker;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// How much the chain card wants to talk about a given trainer. Lower wins.
@@ -75,8 +87,16 @@ ProxyDevice? chainProxy() => core.connection.proxyDevices.sortedBy(proxyChainRan
 
 /// The app card's active step is "waiting for the app to connect" and the
 /// Network method is the enabled path — the moment troubleshooting helps.
+///
+/// Only for an app that has not connected in this session (see
+/// [ChainLink.wasConnectedThisSession]). Once the connection has worked, a
+/// drop is almost never something the self-test can find — the app was
+/// usually just closed — so the card and the banner open its pairing guide
+/// instead. An address warning that is new since then still leads to the
+/// self-test, through its own step.
 bool appCardOffersTroubleshooting(ChainLink link) =>
     link.key == ChainLinkKey.app &&
+    !link.wasConnectedThisSession &&
     link.activeStep?.id == SetupStepId.appConnected &&
     core.logic.isObpMdnsEnabled &&
     core.obpMdnsEmulator.isStarted.value;
@@ -112,7 +132,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late final StreamSubscription<BaseDevice> _connectionListener;
   late final StreamSubscription<BaseNotification> _actionListener;
   Timer? _metricsTicker;
@@ -151,11 +171,63 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  /// The advertised address when it is one the trainer app is unlikely to
+  /// reach, else null — see [AppInput.advertisedAddressWarning]. Read off the
+  /// same picker the self-test's "advertised address" row runs, so the card
+  /// never says something that page would not.
+  String? _advertisedAddressWarning;
+
+  Future<void> _refreshAdvertisedAddress() async {
+    // The store board sells a finished setup, and a VPN on the screenshot
+    // machine must not end up in a listing. The web has no interfaces to
+    // list, and without a network method nothing is advertised at all.
+    final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
+    try {
+      final warning = applies ? advertisedAddressWarning(await AdvertisedAddressPicker.report()) : null;
+      // The session keeps the reading an app connected through, whether or
+      // not this page is still around to show it.
+      core.appConnectionLatch.noteAddressWarning(warning);
+      if (mounted && warning != _advertisedAddressWarning) setState(() => _advertisedAddressWarning = warning);
+    } catch (e, s) {
+      recordError(e, s, context: 'home advertised address');
+    }
+  }
+
+  /// What can move the advertised address, or make it matter: the responder
+  /// backend re-picking when the machine changes networks (the only place the
+  /// address is actually tracked), and a network method starting, stopping,
+  /// connecting or dropping — a drop is most often the moment a VPN came up.
+  /// None of these is a connection-stream event, so each is watched here.
+  late final List<Listenable> _advertisedAddressListenables = [
+    ServiceAdvertiser.instance.advertisedAddress,
+    for (final connection in [
+      core.obpMdnsEmulator,
+      core.zwiftMdnsEmulator,
+      core.rouvyMdnsEmulator,
+      core.whooshLink,
+    ]) ...[
+      connection.isStarted,
+      connection.isConnected,
+    ],
+  ];
+
+  void _onAdvertisedAddressChanged() {
+    unawaited(_refreshAdvertisedAddress());
+  }
+
   @override
   void initState() {
     super.initState();
 
     unawaited(_refreshLocalNetwork());
+    unawaited(_refreshAdvertisedAddress());
+    for (final listenable in _advertisedAddressListenables) {
+      listenable.addListener(_onAdvertisedAddressChanged);
+    }
+    // A VPN is switched on in the system settings, not in BikeControl — the
+    // rider comes back to the app afterwards, and the card has to be current
+    // when they do.
+    WidgetsBinding.instance.addObserver(this);
 
     _connectionListener = core.connection.connectionStream.listen((_) {
       _syncProxyListeners();
@@ -190,8 +262,25 @@ class _HomePageState extends State<HomePage> {
     // is not a connection event — without this the offer would linger on the
     // card after it had already been taken up.
     ClickLogic.keepAwakeStatus.addListener(_onKeepAwakeChanged);
+    // The Sensors card's status is the Broadcast switch and whoever is
+    // subscribed to the standalone peripheral — neither is a connection
+    // event, so without these the card would sit on "Off" after the rider
+    // switched Broadcast on from its own page.
+    _broadcastListenables = [
+      if (core.connection.broadcast case final broadcast?) ...[broadcast.isOn, broadcast.transport],
+      core.connection.standaloneClientConnected,
+    ];
+    for (final listenable in _broadcastListenables) {
+      listenable.addListener(_onBroadcastChanged);
+    }
 
     _maybeShowRideFirmwareDialog();
+  }
+
+  List<Listenable> _broadcastListenables = const [];
+
+  void _onBroadcastChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onKeepAwakeChanged() {
@@ -251,7 +340,20 @@ class _HomePageState extends State<HomePage> {
     _metricsTicker?.cancel();
     IAPManager.instance.isPurchased.removeListener(_onPurchaseChanged);
     ClickLogic.keepAwakeStatus.removeListener(_onKeepAwakeChanged);
+    for (final listenable in _broadcastListenables) {
+      listenable.removeListener(_onBroadcastChanged);
+    }
+    for (final listenable in _advertisedAddressListenables) {
+      listenable.removeListener(_onAdvertisedAddressChanged);
+    }
+    WidgetsBinding.instance.removeObserver(this);
+    _highlights.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_refreshAdvertisedAddress());
   }
 
   void _onPurchaseChanged() {
@@ -349,6 +451,10 @@ class _HomePageState extends State<HomePage> {
       } else {
         presence = DevicePresence.discovered;
       }
+      // The trainer's own advertised name — not [name], which falls back to
+      // the class name when there is none. An empty one counts as none too,
+      // or the hint would warn against picking “”.
+      final rawName = proxy.scanResult.name;
       trainer = TrainerInput(
         deviceId: proxy.uniqueId,
         name: proxy.toString(),
@@ -358,9 +464,13 @@ class _HomePageState extends State<HomePage> {
         appHoldsBridge: proxy.isConnectedListenable.value,
         // The exact entry to look for in the trainer app's device list.
         bridgeName: proxy.advertisementName,
+        // And the one beside it not to pick: the trainer under its own name.
+        rawTrainerName: rawName == null || rawName.isEmpty ? null : rawName,
         metrics: proxy.liveReadout,
         overlayOffered: _overlayOffered(proxy),
         overlayEnabled: core.settings.getOverlayEnabled(),
+        overlayAnswered: core.settings.getOverlayAnswered(),
+        overlayDeclined: core.settings.getOverlayDeclined(),
       );
     } else if (remembered != null) {
       trainer = TrainerInput(
@@ -370,6 +480,24 @@ class _HomePageState extends State<HomePage> {
         appHoldsBridge: false,
       );
     }
+
+    // A connected trainer always wins. Sensors-only mode is the answer to "I
+    // have no smart trainer", so the moment one is actually bridged — a
+    // remembered one auto-connecting, or a new one the rider paired — that
+    // answer is stale and the chain goes back to the trainer, quietly:
+    // nothing to announce, the card itself is the news. Only *connected*: a
+    // trainer the scanner merely sees may be the neighbour's, and one
+    // remembered from before is exactly what a rider who now rides on
+    // sensors alone has put away — neither may throw them out of the mode.
+    final trainerConnected = trainer?.presence == DevicePresence.connected;
+    if (trainerConnected && core.settings.getSensorsOnlyMode()) {
+      unawaited(
+        core.settings
+            .setSensorsOnlyMode(false)
+            .catchError((Object e, StackTrace s) => recordError(e, s, context: 'HomePage.sensorsOnlyExit')),
+      );
+    }
+    final sensorsOnly = core.settings.getSensorsOnlyMode() && !trainerConnected;
 
     return ChainInputs(
       bluetoothReady: _bluetoothReady,
@@ -399,21 +527,75 @@ class _HomePageState extends State<HomePage> {
                 ClickLogic.keepAwakeStatus.value == ClickKeepAwakeStatus.waitingForLeftSide,
           ),
       ],
-      trainer: trainer,
+      // The chain builder lets a trainer win over sensors, so in sensors-only
+      // mode the merely-seen or remembered trainer is withheld from it.
+      trainer: sensorsOnly ? null : trainer,
+      sensors: sensorsOnly ? _readSensors() : null,
       app: AppInput(
         name: trainerApp?.name,
         selfHosted: trainerApp is BikeControl,
         hasEnabledConnection: core.logic.enabledTrainerConnections.isNotEmpty,
         isConnected: core.logic.appFacingConnections.isNotEmpty,
-        wasConnectedThisSession: _appConnectedThisSession,
+        // Kept for the session, not the page — see [AppConnectionLatch].
+        wasConnectedThisSession: core.appConnectionLatch.wasConnected(trainerApp?.name),
         connectionSummary: core.logic.appFacingConnections.firstOrNull?.title,
         // showLocalControl is already "the rider's target is this device, and
         // this platform can drive it" — see CoreLogic.
         localControlOffered: core.logic.showLocalControl,
         localControlEnabled: core.settings.getLocalEnabled(),
         localNetworkGranted: _localNetworkGranted,
+        // The trainer link's own answer, so the two cards can never disagree
+        // about whether the app has picked the trainer up.
+        trainerBridgedByApp: trainer?.appHoldsBridge ?? false,
+        // Only Bluetooth mode serves the bridge as a BLE peripheral; proxy and
+        // WiFi mode both serve DirCon from the advertised address. The trainer
+        // input is the same proxy's, so the two answers cannot disagree.
+        trainerBridgedOverNetwork:
+            (trainer?.appHoldsBridge ?? false) && proxy != null && proxy.retrofitMode.value != RetrofitMode.bluetooth,
+        advertisedAddressWarning: _advertisedAddressWarning,
+        advertisedAddressWarningAtConnect: core.appConnectionLatch.addressWarningAtConnect,
       ),
     );
+  }
+
+  /// The sensors-only slot: which sources the rider picked, whether the
+  /// broadcast is live, and over what.
+  ///
+  /// `broadcast` is built in `Connection.initialize`, so it is only ever null
+  /// in a test that did not assign one; the fallbacks then read the same
+  /// selection and persisted transport the controller itself would.
+  SensorsInput _readSensors() {
+    final broadcast = core.connection.broadcast;
+    final ids =
+        broadcast?.selectedSourceIds ??
+        {
+          for (final q in SensorQuantity.values)
+            if (core.sensors.selectionFor(q) case final id?) id,
+        };
+    return SensorsInput(
+      sourceNames: [
+        for (final id in ids)
+          if (_sensorSourceName(id) case final name?) name,
+      ].distinct().toList(),
+      broadcasting: broadcast?.isOn.value ?? false,
+      transport: broadcast?.transport.value ?? core.settings.getSensorsTransport(),
+      clientName: core.connection.standaloneClientName,
+    );
+  }
+
+  /// A selected source's display name, wherever it currently lives: registered
+  /// with the hub (connected), merely nearby (a strap the scanner has seen but
+  /// Broadcast has not connected yet), or Apple Health. Null for a persisted
+  /// id nothing answers to any more — a source the rider carried off — which
+  /// the card then simply does not name.
+  String? _sensorSourceName(String id) {
+    final registered = core.sensors.sources.firstOrNullWhere((s) => s.id == id);
+    if (registered != null) return registered.displayName;
+    final nearby = core.connection.devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    if (nearby != null) return nearby.source.displayName;
+    final healthKit = core.connection.healthKitSource;
+    if (healthKit != null && healthKit.id == id) return healthKit.displayName;
+    return null;
   }
 
   /// Whether the trainer card should offer the gear overlay.
@@ -433,7 +615,16 @@ class _HomePageState extends State<HomePage> {
     return proxy.fitnessBike != null;
   }
 
-  bool _appConnectedThisSession = false;
+  /// Makes chain cards jump out — see [ChainCard.highlight].
+  final ChainHighlightController _highlights = ChainHighlightController();
+
+  /// One key per card, by [ChainLink.id], so the banner can bring a card into
+  /// view. By id rather than by [ChainLinkKey]: several controllers share a
+  /// kind, and a global key can only sit on one of them.
+  final Map<String, GlobalKey> _cardKeys = {};
+
+  /// The outstanding cards as last built — the chain as it is on screen.
+  List<String> _outstandingLinkIds = const [];
 
   /// The bridged trainer's own name, which the pairing instructions use to
   /// spell out the entry to look for ("KICKR CORE - BikeControl").
@@ -443,15 +634,31 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // The session watches every method on its own (see
+    // [Connection.initialize]); looking once more here keeps the card right
+    // wherever nothing else has looked yet.
+    core.appConnectionLatch.sync();
     final inputs = _readInputs();
-    // Latch once connected: the app card can then say "lost connection" rather
-    // than falling back to "never set up" the moment the app quits.
-    if (inputs.app.isConnected) _appConnectedThisSession = true;
 
     final links = buildChain(inputs);
     final banner = deriveBanner(links);
+    _outstandingLinkIds = banner.outstandingLinkIds;
     final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
     final trial = _trialState();
+
+    final cards = <Widget>[];
+    final keyedIds = <String>{};
+    for (final link in links) {
+      // A global key may sit on one card only. Ids are unique by design, but a
+      // duplicate must cost the banner its scroll target, not the page.
+      final firstWithId = keyedIds.add(link.id);
+      cards.add(
+        KeyedSubtree(
+          key: firstWithId ? _cardKeys.putIfAbsent(link.id, GlobalKey.new) : null,
+          child: _card(link, devicesById[link.deviceId], inputs),
+        ),
+      );
+    }
 
     return Padding(
       // No horizontal inset on mobile: the shell's scroll view already pads the
@@ -467,8 +674,12 @@ class _HomePageState extends State<HomePage> {
             banner: banner,
             appName: inputs.app.name,
             brokenLinkName: _linkName(links, banner.targetLinkId),
-            onAction: banner.hasAction ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId)) : null,
+            onAction: banner.hasAction
+                ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId))
+                : null,
+            onRevealOutstanding: () => _revealOutstanding(banner.outstandingLinkIds),
           ),
+          HealthRideChip(service: core.healthRide),
           if (trial != null) ...[
             TrialCard(
               state: trial,
@@ -477,8 +688,11 @@ class _HomePageState extends State<HomePage> {
             ),
             const Gap(10),
           ],
-          for (final link in links) ...[
-            _card(link, devicesById[link.deviceId], inputs),
+          // Pro on the account, not on this device: carries its own gap.
+          const ProUnregisteredBanner(),
+          HealthRideCard(service: core.healthRide),
+          for (final card in cards) ...[
+            card,
             const Gap(10),
           ],
           ..._accessorySection(),
@@ -511,6 +725,7 @@ class _HomePageState extends State<HomePage> {
   void _update() {
     widget.onUpdate();
     unawaited(_refreshLocalNetwork());
+    unawaited(_refreshAdvertisedAddress());
     if (mounted) setState(() {});
   }
 
@@ -554,6 +769,7 @@ class _HomePageState extends State<HomePage> {
     final card = switch (link.key) {
       ChainLinkKey.controller => _controllerCard(link, device, inputs),
       ChainLinkKey.trainer => _trainerCard(link, inputs),
+      ChainLinkKey.sensors => _sensorsCard(link, inputs),
       ChainLinkKey.app => _appCard(link, inputs),
     };
 
@@ -584,6 +800,7 @@ class _HomePageState extends State<HomePage> {
 
     return ChainCard(
       link: link,
+      highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       tile: Icon(
         placeholder ? LucideIcons.gamepad : device.icon,
@@ -645,8 +862,7 @@ class _HomePageState extends State<HomePage> {
     final rssi = device.rssi;
     return [
       // Same threshold the device page already paints red at.
-      if (battery != null && battery < 20)
-        Icon(LucideIcons.batteryWarning, size: 14, color: scheme.destructive),
+      if (battery != null && battery < 20) Icon(LucideIcons.batteryWarning, size: 14, color: scheme.destructive),
       if (device is ZwiftDevice && (device as ZwiftDevice).hasNewerFirmwareVersion)
         Icon(LucideIcons.circleArrowUp, size: 13, color: scheme.mutedForeground),
       // -70 dBm is where the device page stops calling the link "Good".
@@ -765,6 +981,11 @@ class _HomePageState extends State<HomePage> {
     } else if (bridged) {
       statusLabel = appHoldsBridge
           ? context.i18n.chainStatusBridged
+          // "Waiting for the app" is wrong once the app is already here over
+          // the controller link: it has connected, it just hasn't picked the
+          // trainer entry up — the other half of its pairing screen.
+          : appReady
+          ? context.i18n.chainStatusWaitingForPickup(appName)
           : context.i18n.onboardingSummaryWaitingFor(appName);
     } else if (appReady && inputs.app.name != null) {
       // Only vouch for the app handling shifting when the app is actually
@@ -776,9 +997,19 @@ class _HomePageState extends State<HomePage> {
       statusLabel = context.i18n.notConnected;
     }
 
+    final activeStep = link.activeStep;
+    final offersOverlay = activeStep?.id == SetupStepId.trainerGearOverlay;
+    // "Not now" belongs to the step while it is required — the one time it
+    // asks for an answer. Once answered and switched off again it is an
+    // optional offer, and an offer has nothing to decline.
+    final overlayAsksForAnswer = offersOverlay && !activeStep!.optional;
+
     return ChainCard(
       link: link,
-      appName: appName,
+      highlight: _highlights.tickFor(link.id),
+      // Nullable on purpose: the step wording falls back to "Trainer app"
+      // itself, and the overlay step has a sentence of its own for that case.
+      appName: inputs.app.name,
       tile: Icon(
         LucideIcons.bike,
         size: 22,
@@ -795,11 +1026,133 @@ class _HomePageState extends State<HomePage> {
       onTap: () => _openTrainer(proxy, bridged: bridged),
       onInstructions: () => _openInstructions(link),
       // The overlay step is an offer, not a puzzle: its button turns the thing
-      // on rather than explaining how it works.
-      instructionsLabel: link.activeStep?.id == SetupStepId.trainerGearOverlay
-          ? context.i18n.chainStepOverlayAction
-          : null,
+      // on rather than explaining how it works. And while the step is
+      // required, the offer needs a second answer — "Not now" — or a rider who
+      // doesn't want the overlay is stuck with an amber card forever.
+      instructionsLabel: offersOverlay ? context.i18n.chainStepOverlayAction : null,
+      secondaryActionLabel: overlayAsksForAnswer ? context.i18n.chainStepOverlayDecline : null,
+      onSecondaryAction: overlayAsksForAnswer ? _declineOverlay : null,
       body: _trainerBody(proxy),
+      // The way out for a rider with no smart trainer: the slot stays useful —
+      // it becomes their sensors — instead of sitting there OPTIONAL forever.
+      // Offered whenever nothing is actually bridged: a trainer the scanner
+      // merely sees, or one remembered from before, is not a trainer the
+      // rider is on right now.
+      footer: inputs.trainer?.presence != DevicePresence.connected
+          ? ChainCardFooterRow(
+              question: inputs.app.name != null
+                  ? context.i18n.sensorsUseSensorsOnlyQuestionApp(inputs.app.name!)
+                  : context.i18n.sensorsUseSensorsOnlyQuestion,
+              action: context.i18n.sensorsUseSensorsOnly,
+              onPressed: _enterSensorsOnlyMode,
+            )
+          : null,
+    );
+  }
+
+  Future<void> _enterSensorsOnlyMode() async {
+    await core.settings.setSensorsOnlyMode(true);
+    _update();
+  }
+
+  /// Sensors-only mode's card in the trainer's slot: what is being broadcast,
+  /// to whom, and — while it is live — the readings themselves.
+  Widget _sensorsCard(ChainLink link, ChainInputs inputs) {
+    final sensors = inputs.sensors!;
+    final broadcasting = sensors.broadcasting;
+
+    final String statusLabel;
+    if (broadcasting) {
+      statusLabel = context.i18n.sensorsStatusBroadcasting;
+    } else if (sensors.sourceNames.isEmpty) {
+      statusLabel = context.i18n.sensorsStatusOffSetup;
+    } else {
+      statusLabel = context.i18n.sensorsStatusOff;
+    }
+
+    // The first source is the title, the rest ride a sub line ("with Assioma
+    // DUO"); the status meta carries the wire: "Bluetooth · MyWhoosh
+    // connected". The transport only matters once the broadcast is on — an
+    // idle card naming "Network" would be describing a wire nothing is on.
+    final rest = sensors.sourceNames.skip(1).toList();
+    final meta = [
+      if (broadcasting)
+        sensors.transport == RetrofitMode.wifi
+            ? context.i18n.sensorsTransportNetwork
+            : context.i18n.sensorsTransportBluetooth,
+      if (broadcasting)
+        if (sensors.clientName case final client?) context.i18n.sensorsClientConnected(client),
+    ].join(' · ');
+
+    return ChainCard(
+      link: link.copyWith(subtitleArg: meta),
+      highlight: _highlights.tickFor(link.id),
+      appName: inputs.app.name,
+      tile: Icon(
+        LucideIcons.heartPulse,
+        size: 22,
+        color: link.status == LinkStatus.ready
+            ? Theme.of(context).colorScheme.foreground
+            : Theme.of(context).colorScheme.mutedForeground,
+      ),
+      title: link.title.isEmpty ? context.i18n.sensorsNoSensorsYet : link.title,
+      statusLabel: statusLabel,
+      subtitle: rest.isEmpty ? null : context.i18n.sensorsWith(rest.join(', ')),
+      editLabel: context.i18n.sensorsOpen,
+      onEdit: _openSensors,
+      onTap: _openSensors,
+      body: broadcasting ? _sensorsBody() : null,
+      // The way back: sensors-only mode hid the trainer card, and short of a
+      // trainer auto-connecting there was no other way to reach it — see
+      // _enterSensorsOnlyMode for the entry this mirrors. Broadcast itself is
+      // untouched by leaving the mode (Decision 6): the sink keeps standalone
+      // until a trainer actually bridges.
+      footer: ChainCardFooterRow(
+        question: context.i18n.sensorsConnectTrainerQuestion,
+        action: context.i18n.sensorsConnectTrainer,
+        onPressed: _leaveSensorsOnlyMode,
+      ),
+    );
+  }
+
+  Future<void> _leaveSensorsOnlyMode() async {
+    await core.settings.setSensorsOnlyMode(false);
+    if (!mounted) return;
+    _update();
+    await openTrainerConnectSheet(context);
+  }
+
+  Future<void> _openSensors() async {
+    await context.push(const SensorsPage());
+    _update();
+  }
+
+  /// The live readings, one chip per quantity the rider has a source for.
+  /// Only what is actually selected: a "--" chip for a quantity nobody feeds
+  /// would be the empty grid the design kit keeps off the home page.
+  Widget _sensorsBody() {
+    final selected = core.connection.broadcast?.selectedQuantities ?? const <SensorQuantity>{};
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        if (selected.contains(SensorQuantity.heartRate))
+          _MetricChip(
+            quantity: SensorQuantity.heartRate,
+            icon: LucideIcons.heart,
+            color: const Color(0xFFEF4444),
+            unit: 'bpm',
+          ),
+        if (selected.contains(SensorQuantity.cadence))
+          _MetricChip(
+            quantity: SensorQuantity.cadence,
+            icon: LucideIcons.rotateCw,
+            color: const Color(0xFF8B5CF6),
+            unit: 'rpm',
+          ),
+        if (selected.contains(SensorQuantity.power))
+          _MetricChip(quantity: SensorQuantity.power, icon: LucideIcons.zap, color: const Color(0xFFF59E0B), unit: 'W'),
+      ],
     );
   }
 
@@ -821,15 +1174,20 @@ class _HomePageState extends State<HomePage> {
   /// never been connected gets the bridging pitch instead — that rider has
   /// never seen what bridging one does, so the card makes the case rather than
   /// sitting empty. In between, nothing.
+  ///
+  /// A rider's connected, selected external sensors used to be echoed here
+  /// too (a compact read-only grid). `LiveMetricsSection` — mounted on a
+  /// trainer's own `ProxyDeviceDetailsPage`, not here — supersedes it: that
+  /// grid also owns picking a source, which this card never did, so echoing
+  /// a second, read-only copy of the same data on Home would just be noise.
   Widget? _trainerBody(ProxyDevice? proxy) {
     final definition = proxy?.fitnessBike;
-    if (proxy != null && definition != null) {
-      // Paired and shifting, but the trainer app is not on the bridge yet — the
-      // gears are real, they are just not carrying anything. The buttons come
-      // with it: a rider on the home screen can shift without opening the page.
-      return DrivetrainControls(definition: definition, compact: true, dim: !proxy.isConnected);
-    }
-    return _trainerFeatureList(proxy);
+    // Paired and shifting, but the trainer app is not on the bridge yet — the
+    // gears are real, they are just not carrying anything. The buttons come
+    // with it: a rider on the home screen can shift without opening the page.
+    return proxy != null && definition != null
+        ? DrivetrainControls(definition: definition, compact: true, dim: !proxy.isConnected)
+        : _trainerFeatureList(proxy);
   }
 
   /// The bridging pitch, but only for a trainer that is here and has never
@@ -856,13 +1214,16 @@ class _HomePageState extends State<HomePage> {
     final String statusLabel;
     if (link.status == LinkStatus.ready) {
       statusLabel = context.i18n.chainStatusReceivingCommands;
-    } else if (link.status == LinkStatus.problem) {
-      statusLabel = context.i18n.notConnected;
     } else if (app != null) {
       // Name what is actually outstanding. Reporting "waiting for the app"
-      // while a permission is missing points the rider at the wrong device.
+      // while a permission is missing points the rider at the wrong device,
+      // and so would "disconnected". Once this side is done, an app that
+      // worked earlier in the session has simply disconnected — most often
+      // it was closed — rather than lost its connection.
       statusLabel = appStatusFollowsActiveStep(link)
           ? chainStepText(context, link.activeStep!, appName: app.name).label
+          : link.dropped
+          ? context.i18n.chainStatusAppDisconnected(app.name)
           : context.i18n.chainStatusWaitingForApp(app.name);
     } else {
       statusLabel = context.i18n.chainStatusNotSetUp;
@@ -870,6 +1231,7 @@ class _HomePageState extends State<HomePage> {
 
     return ChainCard(
       link: link,
+      highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       tile: logo != null
           ? ClipRRect(borderRadius: BorderRadius.circular(7), child: Image.asset(logo, width: 30, height: 30))
@@ -886,6 +1248,8 @@ class _HomePageState extends State<HomePage> {
       // Local on.
       instructionsLabel: link.activeStep?.id == SetupStepId.appLocalControl
           ? context.i18n.chainStepLocalControlAction
+          : link.activeStep?.id == SetupStepId.appNetworkAddress
+          ? context.i18n.chainStepNetworkAddressAction
           : appLinkOpensConnectionSettings(link)
           ? context.i18n.chainSetUp
           : appCardOffersTroubleshooting(link)
@@ -930,6 +1294,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   // ── Actions ───────────────────────────────────────────────────────────
+
+  /// The banner's "Show" with several cards outstanding: bring the rider to
+  /// them and make each one jump out. Which of two unfinished cards comes first
+  /// is render order, not priority, so opening the first one's fix — what the
+  /// button used to do — reads as arbitrary.
+  Future<void> _revealOutstanding(List<String> linkIds) async {
+    if (linkIds.isEmpty) return;
+    final first = _cardKeys[linkIds.first]?.currentContext;
+    if (first != null) {
+      await Scrollable.ensureVisible(
+        first,
+        // Near the top, with a little room above the card.
+        alignment: 0.05,
+        duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    if (!mounted) return;
+    // Once the cards have arrived, so the pulse is not spent mid-scroll — and
+    // only on those still outstanding by then: a card the rider finished
+    // meanwhile has nothing left to point at.
+    _highlights.play(linkIds.where(_outstandingLinkIds.contains));
+  }
 
   /// Instruction sheets are routed on the card and its state, never on the
   /// wording of the active step — so a never-paired controller gets the pairing
@@ -987,6 +1374,10 @@ class _HomePageState extends State<HomePage> {
           // stop complaining.
           await ensureLocalNetworkAccess(context);
           await _refreshLocalNetwork();
+        } else if (link.activeStep?.id == SetupStepId.appNetworkAddress) {
+          // The card has already said what looks wrong; the self-test is
+          // where the rider sees every interface, the verdict, and the fixes.
+          await context.push(const NetworkTroubleshootingPage());
         } else if (link.activeStep?.id == SetupStepId.appLocalControl) {
           // enableLocalControl runs the permission sheet itself when the
           // accessibility service or the keyboard grant is still missing, and
@@ -1005,8 +1396,17 @@ class _HomePageState extends State<HomePage> {
           // "how do I pair this app" guide.
           await context.push(const NetworkTroubleshootingPage());
         } else {
+          // Including any app that connected earlier in this session and has
+          // gone: it was almost always closed, and what brings it back is its
+          // own pairing screen. The network self-test is only reached from
+          // here through the address step above, which a dropped app only
+          // gets for a warning that is new since it connected.
           await openAppGuideSheet(context);
         }
+      case ChainLinkKey.sensors:
+        // No checklist to explain: everything about the sensors lives on
+        // their page, so any "show me" lands there.
+        await context.push(const SensorsPage());
     }
     _update();
   }
@@ -1036,6 +1436,16 @@ class _HomePageState extends State<HomePage> {
     await context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true));
   }
 
+  /// "Not now" on the overlay step: the rider has answered, so the step leaves
+  /// the card and stays away. There is no undo here on purpose — the trainer
+  /// page's Overlay switch is the way back, and turning the overlay on there
+  /// (or anywhere) clears the decline again; see `Settings.setOverlayEnabled`.
+  /// The decline also records the answer, so the step is never required again.
+  Future<void> _declineOverlay() async {
+    await core.settings.setOverlayDeclined(true);
+    _update();
+  }
+
   Future<void> _forget(ChainLink link) async {
     final deviceId = link.deviceId;
     if (deviceId == null) return;
@@ -1063,5 +1473,46 @@ class _HomePageState extends State<HomePage> {
   Future<void> _restore(RememberedDevice device, int? index) async {
     await core.connection.restoreRemembered(device, atIndex: index);
     if (mounted) setState(() {});
+  }
+}
+
+/// One live reading on the Sensors card: icon, the number in bold, its unit
+/// muted — the same icon and colour the signals grid uses for that quantity,
+/// so a rider recognises the tile this chip is a summary of.
+class _MetricChip extends StatelessWidget {
+  const _MetricChip({required this.quantity, required this.icon, required this.color, required this.unit});
+
+  final SensorQuantity quantity;
+  final IconData icon;
+  final Color color;
+  final String unit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ValueListenableBuilder<int?>(
+      valueListenable: core.sensors.resolved(quantity),
+      builder: (context, value, _) => Container(
+        key: Key('sensors-chip-${quantity.name}'),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.muted,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const Gap(6),
+            Text(
+              value?.toString() ?? '--',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            const Gap(4),
+            Text(unit, style: TextStyle(fontSize: 11.5, color: theme.colorScheme.mutedForeground)),
+          ],
+        ),
+      ),
+    );
   }
 }

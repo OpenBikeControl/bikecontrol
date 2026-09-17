@@ -10,6 +10,7 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/proxy_device_details/need_help_card.dart';
 import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/self_test_card.dart';
 import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
@@ -17,13 +18,11 @@ import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_not
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/lazy_async.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -31,8 +30,8 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
   final ProxyDevice device;
 
   /// Scrolls to the Overlay section after the first frame. Used by the home
-  /// screen's optional "Show your gear on screen" step so its button lands the
-  /// rider directly on the "Show overlay during ride" switch.
+  /// screen's gear-overlay step so its button lands the rider directly on the
+  /// "Show overlay during ride" switch.
   final bool revealOverlaySection;
 
   const ProxyDeviceDetailsPage({super.key, required this.device, this.revealOverlaySection = false});
@@ -46,15 +45,10 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   final GlobalKey _overlaySectionKey = GlobalKey();
   final GlobalKey _settingsSectionKey = GlobalKey();
 
-  /// True once "Works" has been tapped in this view of the page — collapses
-  /// _provideFeedbackBox to a plain acknowledgement instead of continuing to
-  /// show the button row (which, thanks to the persisted `hasSubmitted`
-  /// flag any tap sets, would otherwise reveal "No difference" right next to
-  /// a positive confirmation — reading as if the app doubts what the rider
-  /// just said). Deliberately local, ephemeral state: a returning rider who
-  /// already submitted feedback in an earlier session should still see the
-  /// full button row, just not immediately after tapping "Works" themselves.
-  bool _justConfirmedWorks = false;
+  /// Mirrors the persisted flag so the x tap hides the card in the same
+  /// frame instead of waiting on the prefs write; read once at init because
+  /// the flag only ever flips here.
+  late bool _needHelpDismissed = core.settings.getNeedHelpCardDismissed();
 
   void _onEmulatorStateChanged() => setState(() {});
 
@@ -150,10 +144,18 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   // toggling siblings lands in the reconciliation middle and is
                   // re-inflated, which would reset ConnectionCard's accordion.
                   ConnectionCard(key: const ValueKey('connection-card'), device: device),
-                  SizedBox(height: 2),
+                  SizedBox(height: 12),
+                  // Keyed for the same reason: dismissing it toggles a sibling
+                  // right next to ConnectionCard.
+                  if (!_needHelpDismissed) ...[
+                    NeedHelpCard(
+                      key: const ValueKey('need-help'),
+                      onOpenHelp: _routeToHelpCenter,
+                      onDismiss: _dismissNeedHelp,
+                    ),
+                    SizedBox(height: 12),
+                  ],
                 ],
-                if (!screenshotMode) _provideFeedbackBox(),
-                SizedBox(height: 12),
                 _gearSection(),
                 SizedBox(height: 20),
                 if (!IAPManager.instance.isProEnabledForCurrentDevice &&
@@ -178,7 +180,11 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 // Virtual Shifting settings — the thing that board is about —
                 // off the bottom of the phone.
                 if (!screenshotMode) ...[
-                  LiveMetricsSection(key: const ValueKey('live-metrics'), device: device),
+                  LiveMetricsSection(
+                    key: const ValueKey('live-metrics'),
+                    device: device,
+                    hideWhenDeviceHasNoMetrics: true,
+                  ),
                   SizedBox(height: 20),
                 ],
                 if (!screenshotMode && device.fitnessBike != null) ...[
@@ -202,111 +208,27 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     );
   }
 
-  Widget _provideFeedbackBox() {
-    final cs = Theme.of(context).colorScheme;
-    // Collapsed once "Works" was just tapped — see _justConfirmedWorks.
-    if (_justConfirmedWorks) {
-      return Card(
-        key: const ValueKey('feedback-works-acknowledged'),
-        padding: const EdgeInsets.all(12),
-        fillColor: cs.secondary,
-        filled: true,
-        child: Row(
-          children: [
-            const Icon(LucideIcons.circleCheck, size: 18, color: Color(0xFF22C55E)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                context.i18n.thanksForFeedback,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-      );
+  Future<void> _dismissNeedHelp() async {
+    setState(() => _needHelpDismissed = true);
+    try {
+      await core.settings.setNeedHelpCardDismissed(true);
+    } catch (e, s) {
+      recordError(e, s, context: 'need-help card dismiss persist');
     }
-    final hasSubmitted = core.settings.getFeedbackSubmitted(widget.device.trainerKey);
-    return Card(
-      padding: const EdgeInsets.all(12),
-      fillColor: cs.secondary,
-      filled: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            context.i18n.provideFeedback,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Button(
-                  key: const ValueKey('feedback-works'),
-                  style: ButtonStyle.outline(),
-                  onPressed: _submitWorks,
-                  leading: const Icon(LucideIcons.thumbsUp, size: 16),
-                  child: Text(context.i18n.feedbackWorks),
-                ),
-              ),
-              if (hasSubmitted) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Button(
-                    key: const ValueKey('feedback-no-difference'),
-                    style: ButtonStyle.outline(),
-                    onPressed: () => _routeToHelpCenter('feedbackNoDifference'),
-                    leading: const Icon(LucideIcons.minus, size: 16),
-                    child: Text(context.i18n.feedbackNoDifference),
-                  ),
-                ),
-              ],
-              const SizedBox(width: 8),
-              Expanded(
-                child: Button(
-                  key: const ValueKey('feedback-not-working'),
-                  style: ButtonStyle.outline(),
-                  onPressed: () => _routeToHelpCenter('feedbackNotWorking'),
-                  leading: const Icon(LucideIcons.thumbsDown, size: 16),
-                  child: Text(context.i18n.feedbackNotWorking),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
-  /// "Works": nothing to diagnose, so there is nothing a support chat could
-  /// answer — chats opened for this tap used to arrive content-free by
-  /// construction. Record the feedback, collapse the box to a plain
-  /// acknowledgement (see _justConfirmedWorks) and toast the same
-  /// confirmation; this never opens a chat.
-  Future<void> _submitWorks() async {
-    await core.settings.setFeedbackSubmitted(widget.device.trainerKey, true);
-    if (!mounted) return;
-    setState(() => _justConfirmedWorks = true);
-    buildToast(title: context.i18n.thanksForFeedback);
-  }
-
-  /// "No difference"/"Not working": routes into the Help Center's "Your
-  /// setup" section — the gear overlay, controller-disconnect and
-  /// network-test explainers these riders usually need — instead of
-  /// straight into a support chat. The same rich diagnostic payload the chat
-  /// used to get up front (a screenshot, trainer-specific telemetry) still
-  /// rides along via [HelpCenterSupportContext], so it isn't lost if the
-  /// rider continues from there into "Tell us what's wrong". The composer is
-  /// deliberately left empty — no prefilled label — the feedback key still
-  /// reaches support, folded into the telemetry's freetext below instead.
-  Future<void> _routeToHelpCenter(String key) async {
+  /// The "Need help?" CTA: routes into the Help Center's "Your setup"
+  /// section — the gear overlay, controller-disconnect and network-test
+  /// explainers these riders usually need — instead of straight into a
+  /// support chat. The same rich diagnostic payload the chat used to get up
+  /// front (a screenshot, trainer-specific telemetry) still rides along via
+  /// [HelpCenterSupportContext], so it isn't lost if the rider continues
+  /// from there into "Tell us what's wrong". The composer is deliberately
+  /// left empty — no prefilled label — a fixed origin marker still reaches
+  /// support, folded into the telemetry's freetext below, so a chat that
+  /// started from this card is recognisable as such.
+  Future<void> _routeToHelpCenter() async {
     final device = widget.device;
-    await core.settings.setFeedbackSubmitted(device.trainerKey, true);
-    if (!mounted) return;
-    setState(() {});
     // Cheap, local (RepaintBoundary → PNG) — unlike debugText() below, worth
     // paying up front rather than deferring.
     final screenshot = await captureOverviewScreenshot(context: context);
@@ -323,7 +245,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     // attach it instead of just the services snippet.
     final buildSnapshot = memoizeAsync(() async {
       final debug = await debugText();
-      return TelemetrySnapshot.fromDevice(device: device, freetextOverride: '$key\n$debug');
+      return TelemetrySnapshot.fromDevice(device: device, freetextOverride: 'needHelp\n$debug');
     });
     await Navigator.of(context).push(
       MaterialPageRoute(

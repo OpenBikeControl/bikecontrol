@@ -1,6 +1,7 @@
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/local_network_access.dart';
 import 'package:bike_control/services/mdns_discovery_scan.dart';
+import 'package:bike_control/services/mdns_query_privacy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_network_permission/local_network_permission.dart';
 import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
@@ -174,9 +175,13 @@ class DebugDiagnostics {
   /// Private Relay, Continuity, Wi-Fi Calling, content filters). Those carry
   /// only an IPv6 link-local, so they never become an [AddressCandidate] in
   /// the first place — which is what stops this from firing on every iPhone.
-  List<AddressCandidate> get tunnelCandidates => addressReport.candidates
-      .where((c) => _tunnelNamePattern.hasMatch(c.interfaceName) && _isRoutable(c.address))
-      .toList();
+  List<AddressCandidate> get tunnelCandidates => tunnelCandidatesIn(addressReport.candidates);
+
+  /// [tunnelCandidates] over a bare picker report, for callers that have one
+  /// without a full snapshot — the home card re-reads the address on its own,
+  /// and must apply the same rule the self-test does.
+  static List<AddressCandidate> tunnelCandidatesIn(List<AddressCandidate> candidates) =>
+      candidates.where((c) => _tunnelNamePattern.hasMatch(c.interfaceName) && _isRoutable(c.address)).toList();
 
   String _txt(Map<String, String> txt) {
     final entries = txt.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
@@ -251,15 +256,29 @@ class DebugDiagnostics {
     if (recentQueries.isEmpty) {
       b.writeln('    (none)');
     } else {
-      for (final q in recentQueries) {
+      // Support bundles leave the device, so third-party hostnames/IPs a
+      // neighbouring device's browse happened to log are not ours to send —
+      // only queries naming something BikeControl itself advertises are
+      // listed verbatim; the rest is summarised as counts, no identifiers.
+      final relevant = relevantMdnsQueries(recentQueries, advertised: advertised, hostLabel: hostLabel);
+      for (final q in relevant.kept) {
         final at = q.at.toIso8601String().split('T').last.split('.').first;
         // Repeats are folded; the count keeps a continuous poller visible as
         // one line instead of hiding that it fired hundreds of times.
         final repeats = q.count > 1 ? ' ×${q.count}' : '';
+        // A kept entry can still bundle third-party questions in the same
+        // packet (a real browser like an Apple TV asks for several services,
+        // or an unrelated host, in one query) — show only ours.
+        final shown = ourQuestions(q, advertised: advertised, hostLabel: hostLabel);
+        final hidden = q.questions.length - shown.length;
+        final hiddenNote = hidden > 0 ? ' (+$hidden other questions)' : '';
         b.writeln(
           '    $at ${q.source}:${q.sourcePort} ${q.wantsUnicast ? 'QU' : 'QM'} '
-          '${q.questions.join(', ')} → ${q.reply}$repeats',
+          '${shown.join(', ')}$hiddenNote → ${q.reply}$repeats',
         );
+      }
+      if (relevant.droppedQueries > 0) {
+        b.writeln('    (+${relevant.droppedQueries} unrelated queries from ${relevant.droppedHosts} hosts, not listed)');
       }
     }
 

@@ -6,6 +6,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
@@ -98,8 +99,7 @@ class RouvyMdnsEmulator extends TrainerConnection {
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     // Resolve mapped app-specific actions (e.g. Rouvy's kudos) back to Zwift Click V2 actions
-    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
-    final action = mapping?.entries.firstOrNullWhere((e) => e.value == keyPair.inGameAction) ?? keyPair.inGameAction;
+    final action = resolveControllerAction(keyPair.inGameAction);
 
     final button = switch (action) {
       InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,

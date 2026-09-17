@@ -1,11 +1,17 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
+import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_fixes.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
 import 'package:nsd_platform_interface/nsd_platform_interface.dart';
 import 'package:prop/mdns/service_advertiser.dart';
+import 'package:prop/utils/resilient_tcp_server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../integration/harness/fake_nsd_platform.dart';
@@ -45,6 +51,10 @@ Future<void> main() async {
   tearDown(() async {
     core.obpMdnsEmulator.isConnected.value = false;
     await core.obpMdnsEmulator.stopServer();
+    // Anything the emulator lost track of must not bleed into the next test.
+    for (final leaked in ResilientTcpServer.activeServers.where((s) => s.label == 'OpenBikeControl').toList()) {
+      await leaked.stop();
+    }
     ServiceAdvertiser.instance = NsdServiceAdvertiser();
     NsdPlatformInterface.instance = env.mdns;
     core.obpMdnsEmulator.debugBonjourFactory = null;
@@ -114,6 +124,97 @@ Future<void> main() async {
       expect(core.obpMdnsEmulator.activeBackend, ObpMdnsBackend.platformDefault);
       expect(instanceAdvertiser.services, equals(registeredBefore), reason: 'the running registration was not touched');
       expect(env.mdns.registrations, isEmpty);
+    });
+  });
+
+  group('restartMethod', () {
+    List<ResilientTcpServer> obcServers() =>
+        ResilientTcpServer.activeServers.where((s) => s.label == 'OpenBikeControl').toList();
+
+    // The one-tap fix the methodListening row offers once the server sits on
+    // a port other than 36867. Real sockets, so the body runs under runAsync.
+    testWidgets('after two starts raced each other, the restart lands back on 36867 with one server', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        // The un-awaited toggle / trainer-app-switch pattern: a second start
+        // arrives while the first is still coming up. This used to leave the
+        // first server leaked on 36867 and the emulator on 36868.
+        final first = core.obpMdnsEmulator.startServer();
+        await core.obpMdnsEmulator.startServer();
+        await first;
+
+        final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+
+        expect(ok, isTrue);
+        expect(core.obpMdnsEmulator.isStarted.value, isTrue);
+        expect(obcServers(), hasLength(1), reason: 'the leaked server is superseded, not left behind');
+        expect(obcServers().single.boundPort, 36867, reason: 'back on the preferred port');
+        expect(instanceAdvertiser.services.map((s) => s.port), [36867], reason: 'exactly one advertisement');
+      });
+    });
+
+    testWidgets('a stop arriving while a start is still coming up wins: nothing is left running', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+
+      await tester.runAsync(() async {
+        final starting = core.obpMdnsEmulator.startServer();
+        final stopping = core.obpMdnsEmulator.stopServer();
+        await Future.wait([starting, stopping]);
+
+        expect(core.obpMdnsEmulator.isStarted.value, isFalse);
+        expect(obcServers(), isEmpty, reason: 'the start\'s server was torn down by the queued stop');
+        expect(instanceAdvertiser.services, isEmpty);
+      });
+    });
+
+    testWidgets('an un-awaited start that fails still reports its error instead of vanishing', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+
+      await tester.runAsync(() async {
+        // A foreign holder on every port the server may walk to makes the
+        // bind fail — the toggle callers fire startServer() without awaiting.
+        final blockers = <ServerSocket>[];
+        for (var port = 36867; port <= 36871; port++) {
+          blockers.add(await ServerSocket.bind(InternetAddress.anyIPv6, port, v6Only: false));
+        }
+        final uncaught = <Object>[];
+        try {
+          await runZonedGuarded(() async {
+            core.obpMdnsEmulator.startServer();
+            await Future<void>.delayed(const Duration(milliseconds: 200));
+          }, (error, stack) => uncaught.add(error));
+        } finally {
+          for (final b in blockers) {
+            await b.close();
+          }
+        }
+
+        expect(uncaught, [isA<SocketException>()], reason: 'the dropped future\'s error reached the zone');
+        expect(core.obpMdnsEmulator.isStarted.value, isFalse);
+      });
+    });
+
+    testWidgets('a restart right after an un-awaited stop lands back on 36867', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        await core.obpMdnsEmulator.startServer();
+        // stopServer() fired without awaiting (the trainer-app switch), the
+        // restart follows while the socket is still releasing.
+        final stopping = core.obpMdnsEmulator.stopServer();
+
+        final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+        await stopping;
+
+        expect(ok, isTrue);
+        expect(core.obpMdnsEmulator.isStarted.value, isTrue);
+        expect(obcServers(), hasLength(1));
+        expect(obcServers().single.boundPort, 36867);
+        expect(instanceAdvertiser.services.map((s) => s.port), [36867]);
+      });
     });
   });
 }

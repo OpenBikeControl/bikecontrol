@@ -16,6 +16,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../bluetooth/devices/base_device.dart';
 import '../actions/base_actions.dart';
 import 'apps/custom_app.dart';
+import 'apps/supported_app.dart';
 
 enum AndroidSystemAction {
   back('Back', Icons.arrow_back_ios, GlobalAction.back),
@@ -392,14 +393,19 @@ class KeyPair {
           core.logic.showMyWhooshLink &&
           core.settings.getMyWhooshLinkEnabled() &&
           core.whooshLink.supportedActions.contains(inGameAction)) ||
+      // The Zwift emulators resolve the selected app's renamed actions (Rouvy's
+      // Kudos/Pause) back to the controller action before looking up a button,
+      // and the button editor offers the renamed names — so match on the
+      // resolved action here too, or an action the editor lists reads as doing
+      // nothing.
       (inGameAction != null &&
           core.logic.showZwiftBleEmulator &&
           core.settings.getZwiftBleEmulatorEnabled() &&
-          core.zwiftEmulator.supportedActions.contains(inGameAction)) ||
+          core.zwiftEmulator.supportedActions.contains(resolveControllerAction(inGameAction))) ||
       (inGameAction != null &&
           core.logic.showZwiftMsdnEmulator &&
           core.settings.getZwiftMdnsEmulatorEnabled() &&
-          core.zwiftMdnsEmulator.supportedActions.contains(inGameAction)) ||
+          core.zwiftMdnsEmulator.supportedActions.contains(resolveControllerAction(inGameAction))) ||
       (inGameAction != null &&
           core.logic.isDi2BleEnabled &&
           core.di2Emulator.supportedActions.contains(inGameAction)) ||

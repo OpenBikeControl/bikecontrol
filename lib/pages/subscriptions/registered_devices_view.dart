@@ -1,4 +1,5 @@
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -6,7 +7,6 @@ import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class RegisteredDevicesView extends StatefulWidget {
@@ -205,28 +205,22 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
 
   Future<void> _registerCurrentDevice() async {
     try {
-      final platform = await _iapManager.deviceManagement.currentPlatform();
-      final deviceName = 'BikeControl ${platform?.toUpperCase() ?? ''}';
-
-      final package = await PackageInfo.fromPlatform();
-      final version = package.version;
-
-      await _iapManager.deviceManagement.registerCurrentDevice(
-        deviceName: deviceName,
-        appVersion: version,
-      );
-      await _iapManager.entitlements.refresh(force: true);
+      // Shared with the home banner / virtual-shifting notice / post-purchase
+      // dialog, so every "register this device" entry point does the same.
+      await _iapManager.registerCurrentDevice();
       await _loadDevices();
       if (!mounted) return;
       setState(() {});
-    } on DeviceLimitReachedError catch (error) {
+    } on DeviceLimitReachedError catch (error, stack) {
+      recordError(error, stack, context: 'Register current device: limit reached');
       if (!mounted) return;
       buildToast(
         title: AppLocalizations.of(context).deviceLimitReached(error.platform.capitalize().replaceAll('os', 'OS')),
       );
-    } catch (error) {
+    } catch (error, stack) {
+      recordError(error, stack, context: 'Register current device');
       if (!mounted) return;
-      buildToast(title: 'Could not register device: $error');
+      buildToast(title: AppLocalizations.of(context).registerDeviceFailed('$error'));
     }
   }
 }

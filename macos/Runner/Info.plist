@@ -9,7 +9,7 @@
 	     shipped with. See flutter/flutter#150525 and the merged-threads
 	     breaking-change note. -->
 	<key>FLTEnableMergedPlatformUIThread</key>
-	<false/>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-peripheral</string>

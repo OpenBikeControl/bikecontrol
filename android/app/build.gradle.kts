@@ -53,6 +53,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("config")
+            // R8 minifies the release build and renames/removes members it
+            // sees no static use of. OverlayActionBridge reaches the
+            // flutter_overlay_window OverlayService fields by reflection, which
+            // R8 cannot see, so keep them (see proguard-rules.pro) or the
+            // overlay re-top and keep-screen-on calls throw at runtime.
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
 }

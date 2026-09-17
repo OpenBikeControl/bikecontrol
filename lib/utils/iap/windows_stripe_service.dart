@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,8 +23,9 @@ class WindowsStripeService {
 
   WindowsStripeService(this._supabase);
 
-  /// Check if the user is logged in
-  bool get isLoggedIn => _supabase.auth.currentSession != null;
+  /// Check if the user is signed into a real account. An anonymous
+  /// support-chat session doesn't count: a checkout must never be tied to it.
+  bool get isLoggedIn => hasAccount(_supabase.auth.currentSession?.user);
 
   /// Get the current session
   Session? get _session => _supabase.auth.currentSession;

@@ -31,6 +31,10 @@ class _FakeSupabaseHttp extends http.BaseClient {
   bool idTokenLinkError = false;
   bool authorizeError = false;
 
+  /// When set, `PUT /auth/v1/user` fails with this status and GoTrue error
+  /// code, in the current (2024-01-01) API error format.
+  ({int status, String? code})? userUpdateError;
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final req = request as http.Request;
@@ -60,6 +64,14 @@ class _FakeSupabaseHttp extends http.BaseClient {
     }
     if (path.endsWith('/auth/v1/user')) {
       userRequests.add(req);
+      final error = userUpdateError;
+      if (error != null) {
+        return _json(
+          {'code': ?error.code, 'message': 'Email address already registered by another user'},
+          status: error.status,
+          headers: const {'x-supabase-api-version': '2024-01-01'},
+        );
+      }
       return _json(_sessionJson(anonymous: false, email: 'rider@example.com')['user'] as Map<String, dynamic>);
     }
     if (path.endsWith('/auth/v1/verify')) {
@@ -69,7 +81,11 @@ class _FakeSupabaseHttp extends http.BaseClient {
     if (path.endsWith('/auth/v1/token') && request.url.queryParameters['grant_type'] == 'id_token') {
       idTokenRequests.add(req);
       if (idTokenLinkError) {
-        return _json({'msg': 'Identity is already linked to another user'}, status: 422);
+        return _json({
+          'code': 422,
+          'error_code': 'identity_already_exists',
+          'msg': 'Identity is already linked to another user',
+        }, status: 422);
       }
       // Same user id as every other fixture here — a real link response
       // keeps the id unchanged; only `is_anonymous`/`email` flip.
@@ -78,11 +94,15 @@ class _FakeSupabaseHttp extends http.BaseClient {
     return _json(<String, dynamic>{}, status: 404);
   }
 
-  http.StreamedResponse _json(Map<String, dynamic> body, {int status = 200}) {
+  http.StreamedResponse _json(
+    Map<String, dynamic> body, {
+    int status = 200,
+    Map<String, String> headers = const {},
+  }) {
     return http.StreamedResponse(
       Stream.value(utf8.encode(jsonEncode(body))),
       status,
-      headers: const {'content-type': 'application/json'},
+      headers: {'content-type': 'application/json', ...headers},
     );
   }
 }
@@ -268,6 +288,32 @@ void main() {
       expect(payload['email'], 'rider@example.com');
     });
 
+    test('an address that already belongs to another account throws EmailAlreadyInUseException', () async {
+      fakeHttp.userUpdateError = (status: 422, code: 'email_exists');
+
+      await expectLater(
+        service.beginEmailLink('taken@example.com'),
+        throwsA(
+          isA<EmailAlreadyInUseException>()
+              .having((e) => e.email, 'email', 'taken@example.com')
+              .having((e) => e.code, 'code', 'email_exists'),
+        ),
+      );
+    });
+
+    test('any other updateUser failure stays a plain FeedbackSubmissionException, keeping the code', () async {
+      fakeHttp.userUpdateError = (status: 429, code: 'over_email_send_rate_limit');
+
+      await expectLater(
+        service.beginEmailLink('rider@example.com'),
+        throwsA(
+          isA<FeedbackSubmissionException>()
+              .having((e) => e, 'type', isNot(isA<EmailAlreadyInUseException>()))
+              .having((e) => e.code, 'code', 'over_email_send_rate_limit'),
+        ),
+      );
+    });
+
     test('confirmEmailLink verifies the OTP against the emailChange type', () async {
       await service.confirmEmailLink(email: 'rider@example.com', token: '123456');
 
@@ -378,6 +424,19 @@ void main() {
         throwsA(isA<FeedbackSubmissionException>()),
       );
     });
+
+    test('an identity owned by another user surfaces as IdentityAlreadyLinkedException', () async {
+      fakeHttp.idTokenLinkError = true;
+
+      await expectLater(
+        service.linkAppleIdentity(idToken: 'fake-apple-id-token', nonce: 'raw-nonce'),
+        throwsA(isA<IdentityAlreadyLinkedException>()),
+      );
+      await expectLater(
+        service.linkGoogleIdentity(idToken: 'fake-google-id-token'),
+        throwsA(isA<IdentityAlreadyLinkedException>()),
+      );
+    });
   });
 
   group('linkOAuthIdentity (browser-redirect linking — GitHub/Facebook, and Google/Apple with no native path)', () {
@@ -441,16 +500,19 @@ void main() {
       await noSessionClient.dispose();
     });
 
-    test('a rejected authorize request is wrapped in FeedbackSubmissionException, never reaching the browser', () async {
-      await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
-      fakeHttp.authorizeError = true;
+    test(
+      'a rejected authorize request is wrapped in FeedbackSubmissionException, never reaching the browser',
+      () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.authorizeError = true;
 
-      await expectLater(
-        service.linkOAuthIdentity(OAuthProvider.github),
-        throwsA(isA<FeedbackSubmissionException>()),
-      );
-      expect(fakeLauncher.launchedUrls, isEmpty);
-    });
+        await expectLater(
+          service.linkOAuthIdentity(OAuthProvider.github),
+          throwsA(isA<FeedbackSubmissionException>()),
+        );
+        expect(fakeLauncher.launchedUrls, isEmpty);
+      },
+    );
   });
 }
 

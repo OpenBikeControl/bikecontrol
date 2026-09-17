@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_climb.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -19,15 +20,26 @@ import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/remembered_device.dart';
+import 'package:bike_control/services/sensors/broadcast_controller.dart';
+import 'package:bike_control/services/sensors/health_kit_channel.dart';
+import 'package:bike_control/services/sensors/health_kit_sensor_source.dart';
+import 'package:bike_control/services/sensors/sensor_bridge_binding.dart';
+import 'package:bike_control/services/sensors/sensor_quantity.dart';
+import 'package:bike_control/services/sensors/sensor_sink_controller.dart';
+import 'package:bike_control/services/sensors/sensor_sink_sync.dart';
+import 'package:bike_control/services/sensors/sensor_source.dart';
+import 'package:bike_control/services/sensors/standalone_sensor_lifecycle.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/emulators/definitions/sensor_definition.dart';
 import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -37,6 +49,47 @@ import 'messages/notification.dart';
 
 class Connection {
   final devices = <BaseDevice>[];
+
+  /// Apple Health as a heart-rate source. Non-null only on iOS with Health
+  /// data available (see the SensorHub wiring in [initialize]); tests inject
+  /// one over a fake channel. Its existence IS the "is HealthKit supported"
+  /// signal the signals grid reads — there is deliberately no second flag.
+  HealthKitSensorSource? healthKitSource;
+
+  bool get isHealthKitConnected =>
+      core.sensors.sources.any((s) => s.id == HealthKitSensorSource.sourceId);
+
+  /// The Broadcast switch for the no-trainer path. Constructed in
+  /// [initialize] (this file cannot be built in a unit test — see
+  /// `SensorSinkSync`'s own doc comment for why that class was pulled out
+  /// instead), so it is null only in the brief window before `initialize`
+  /// runs; tests assign their own directly.
+  BroadcastController? broadcast;
+
+  /// Whether a trainer app is actually subscribed to the standalone sensor
+  /// peripheral (the "BikeControl" advertisement the no-trainer path stands
+  /// up). Mirrors the standalone emulator's own `isConnected` — assigned in
+  /// [initialize], so the field itself is stable and can be listened to
+  /// before then; the placeholder it starts as simply never flips.
+  ValueListenable<bool> get standaloneClientConnected => _standaloneClientConnected;
+  ValueListenable<bool> _standaloneClientConnected = ValueNotifier(false);
+
+  /// Tests stand in for the emulator here; production only ever assigns it
+  /// once, in [initialize].
+  @visibleForTesting
+  set standaloneClientConnected(ValueListenable<bool> value) => _standaloneClientConnected = value;
+
+  /// The connected app's name for the Sensors card ("MyWhoosh connected"),
+  /// or null while nothing is subscribed. The standalone peripheral does not
+  /// learn who paired it, so the rider's chosen trainer app stands in — the
+  /// one app they told BikeControl they would be riding in.
+  String? get standaloneClientName => _standaloneClientConnected.value ? core.settings.getTrainerApp()?.name : null;
+
+  /// Whether the shared trainer bridge (the FTMS composite) is currently
+  /// advertising. `SensorSinkSync` reads the listenable form
+  /// (`ftmsEmulator.isStarted`) directly; this plain getter is for callers
+  /// that just need the current value (Task 5's Broadcast UI gating).
+  bool get isBridgeRunning => ftmsEmulator.isStarted.value;
 
   List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
   List<ProxyDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
@@ -52,6 +105,16 @@ class Connection {
     ...devices.whereType<HidDevice>(),
   ];
 
+  /// The same physical trainer listed a second time over the other transport
+  /// — the WiFi (DirCon) entry of a Bluetooth-discovered trainer, or vice
+  /// versa. Twins share one [ProxyDevice.trainerKey], so one tap's consent and
+  /// settings cover both; what must never be shared is a live upstream, or the
+  /// two paths fight over resistance. Null when the trainer is listed once.
+  ProxyDevice? twinOf(ProxyDevice device) => proxyDevices.firstOrNullWhere(
+    (other) =>
+        !identical(other, device) && other.trainerKey == device.trainerKey && other.isWifiUpstream != device.isWifiUpstream,
+  );
+
   var _androidNotificationsSetup = false;
 
   final _connectionQueue = <BaseDevice>[];
@@ -60,6 +123,7 @@ class Connection {
   final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
+
   /// High-level app events (shifts, ERG targets, mode changes, handled errors)
   /// — the "Logs:" section of the support bundle. Kept in its own buffer so the
   /// verbose wire trace can never evict it (see [lastTraceEntries]).
@@ -67,22 +131,16 @@ class Connection {
   List<({DateTime date, String entry})> get lastLogEntries => _appLog.entries;
 
   /// Verbose DirCon/trainer wire trace (`IN>`/`OUT<`/`trainer>`/`trainer<`),
-  /// beta only. Separate from [lastLogEntries] so a few dozen frames per second
-  /// can't flush the high-level events a support bundle needs — a beta bundle
-  /// used to arrive as pure wire trace with every shift/ERG/control line gone.
+  /// recorded for everyone from [startLogCapture] on. Separate from
+  /// [lastLogEntries] so a few dozen frames per second can't flush the
+  /// high-level events a support bundle needs — a beta bundle used to arrive
+  /// as pure wire trace with every shift/ERG/control line gone. Deliberately
+  /// not gated on any entitlement: the beta gate this used to have only
+  /// resolved once IAP/Supabase finished initialising — minutes into a session
+  /// on a cold start — and silently dropped exactly the
+  /// connect/handshake/first-ride window a support bundle exists to show.
   final SupportLogBuffer _traceLog = SupportLogBuffer(2000);
   List<({DateTime date, String entry})> get lastTraceEntries => _traceLog.entries;
-
-  /// Beta status, guarded: the log path runs from the very first notification,
-  /// which can be before IAP / Supabase have initialised — and reading
-  /// [IAPManager.isBetaTester] then throws. Treat "not ready yet" as not-beta.
-  bool get _isBetaTester {
-    try {
-      return IAPManager.instance.isBetaTester;
-    } catch (_) {
-      return false;
-    }
-  }
 
   void _appendLogEntry(String entry) => _appLog.add(entry);
 
@@ -99,17 +157,14 @@ class Connection {
 
     actionStream.listen((log) => _appendLogEntry(log.toString()));
 
-    // Beta testers also get the verbose DirCon/trainer wire trace — but in its
-    // OWN buffer ([_traceLog]), so a high-rate trace never evicts the
-    // high-level events in [lastLogEntries]. A release build (e.g. a tester's)
-    // has no console to read `IN>`/`OUT<`/`trainer<` from, so this is the only
-    // way that traffic reaches a support bundle. The gate is re-checked per
-    // line so it starts working the moment the beta_access entitlement loads,
-    // and stays a cheap no-op for everyone else.
-    Logger.onTrace = (message) {
-      if (!_isBetaTester) return;
-      _traceLog.add(message);
-    };
+    // The verbose DirCon/trainer wire trace, in its OWN buffer ([_traceLog])
+    // so a high-rate trace never evicts the high-level events in
+    // [lastLogEntries]. A release build has no console to read
+    // `IN>`/`OUT<`/`trainer<` from, so this is the only way that traffic
+    // reaches a support bundle. The string is already built for every trace
+    // call once this sink is set, so recording it costs nothing beyond the
+    // bounded buffer.
+    Logger.onTrace = _traceLog.add;
   }
 
   final Map<BaseDevice, StreamSubscription<bool>> _connectionSubscriptions = {};
@@ -273,6 +328,281 @@ class Connection {
   void _noteConnected(BaseDevice device) {
     _connectedThisSession.add(device.uniqueId);
     unawaited(_rememberConnectedDevice(device));
+    _registerSensorSource(device);
+  }
+
+  /// Gives the hub a live [SensorSource] the moment a sensor actually reaches
+  /// connected state — never at construction, since `fromScanResult` builds
+  /// one object per scan result whether or not the rider ever connects it.
+  ///
+  /// Gated on [BleSensorDevice] rather than a concrete type: a strap, a
+  /// cadence sensor and a power meter all own a [BleSensorSource] the same
+  /// way, and dispatching on the shared interface means the NEXT sensor type
+  /// only has to mix it in, not earn a third `is` check here.
+  ///
+  /// Called from [_noteConnected], so it inherits the same "arriving twice is
+  /// harmless" contract: `SensorHub.register` re-keys a map entry and rebinds
+  /// only the quantities that already point at this id, so registering the
+  /// same instance again is a no-op in every observable way.
+  void _registerSensorSource(BaseDevice device) {
+    if (device is! BleSensorDevice) return;
+    try {
+      core.sensors.register(device.source);
+      unawaited(device.source.start());
+    } catch (e, s) {
+      recordError(e, s, context: 'Connection._registerSensorSource ${device.source.id}');
+    }
+  }
+
+  /// The disconnect-side counterpart of [_registerSensorSource]: drops the
+  /// hub's registration and stops the source so its retained reading is
+  /// cleared rather than left to be served stale past its TTL. A rediscovered
+  /// sensor arrives as a brand new device and source object (see
+  /// `SensorHub.register`'s doc comment), so there is nothing here worth
+  /// keeping around once this one is gone.
+  ///
+  /// Gated on [BleSensorDevice] for the same reason as
+  /// [_registerSensorSource] — see its doc comment. Delegates the actual
+  /// teardown to [_unregisterSource], shared with [disconnectHealthKit].
+  Future<void> _unregisterSensorSource(BaseDevice device, {required bool forget}) async {
+    if (device is! BleSensorDevice) return;
+    await _unregisterSource(device.source, forget: forget, context: 'Connection._unregisterSensorSource');
+  }
+
+  /// Shared by the BLE path above and [disconnectHealthKit]: drop the hub
+  /// registration, optionally clear every selection pointing at this id, and
+  /// stop the source so its retained reading is cleared rather than served
+  /// stale past its TTL.
+  ///
+  /// `SensorHub.unregister` deliberately leaves the rider's selection
+  /// pointing at this id (see its own doc comment) — it cannot tell a
+  /// transient drop from the rider being done with the device, so it always
+  /// assumes the former. Only [forget] means the latter: [Connection] is the
+  /// one place that actually knows the rider forgot this source (as opposed
+  /// to it merely dropping out — BLE range, or a transient HealthKit hiccup —
+  /// to be rediscovered a moment later), so clearing the selection for good
+  /// is done here, explicitly, and only then — a transient drop must leave it
+  /// alone so `register`'s rebind loop still matches when the source
+  /// reappears.
+  Future<void> _unregisterSource(SensorSource source, {required bool forget, required String context}) async {
+    try {
+      core.sensors.unregister(source.id);
+      if (forget) {
+        for (final quantity in source.provides) {
+          if (core.sensors.selectionFor(quantity) == source.id) {
+            core.sensors.select(quantity, null);
+          }
+        }
+      }
+      await source.stop();
+    } catch (e, s) {
+      recordError(e, s, context: '$context ${source.id}');
+    }
+  }
+
+  /// Ask for Health permission — split out of what used to be
+  /// `connectHealthKit` so a caller can authorize BEFORE the hub selection
+  /// changes. `SensorHub.select` fires `onSelectionChanged` synchronously
+  /// (see `SensorSinkSync`), which restarts the BLE/DIRCON bridge transport
+  /// (`DirconEmulator._restartTransportAfterChildChange`) — if that restart
+  /// races healthd presenting the permission sheet in this process, the
+  /// authorization session itself times out and the sheet never appears
+  /// (device-confirmed: first tap on Apple Health always failed this way).
+  /// `LiveMetricsSection._select` now calls this before touching
+  /// `core.sensors.select` at all, for exactly this reason.
+  ///
+  /// No-op when [healthKitSource] is null (every non-iOS platform). `unknown`
+  /// proceeds — HealthKit hides read denials, so refusing on anything but an
+  /// explicit share denial would refuse riders who actually said yes.
+  Future<void> authorizeHealthKit() async {
+    final source = healthKitSource;
+    if (source == null) return;
+    final verdict = await source.authorize();
+    if (verdict == HealthKitAuthorization.denied) throw HealthKitDeniedException();
+  }
+
+  /// The HealthKit analogue of a strap connect: register so `SensorHub`
+  /// calls `start()` and the native session/query begins. Deliberately does
+  /// NOT authorize — that must already have happened via
+  /// [authorizeHealthKit] before the caller ever changed the hub selection
+  /// (see that method's doc comment for why the ordering matters); this is
+  /// purely the register-and-start half.
+  Future<void> connectHealthKit() async {
+    final source = healthKitSource;
+    if (source == null) return;
+    try {
+      core.sensors.register(source);
+      unawaited(source.start());
+    } catch (e, s) {
+      recordError(e, s, context: 'Connection.connectHealthKit');
+      rethrow;
+    }
+  }
+
+  /// Mirrors [_unregisterSensorSource]'s `forget` semantics exactly —
+  /// `true` only when the rider is done with Apple Health, never for a
+  /// transient failure.
+  Future<void> disconnectHealthKit({required bool forget}) async {
+    final source = healthKitSource;
+    if (source == null || !isHealthKitConnected) return;
+    await _unregisterSource(source, forget: forget, context: 'Connection.disconnectHealthKit');
+  }
+
+  /// TXT record for the standalone sensor advertisement — the same identity
+  /// keys the bridge's `_wahoo-fitness-tnp._tcp` record carries for the
+  /// selected app (`mac-address`, `serial-number`, plus the app's own; see
+  /// [ProxyDevice.trainerMdnsTxtFor]). Seeded from a fixed string rather
+  /// than a trainer id: this peripheral IS BikeControl, there is no trainer,
+  /// and a stable serial is what lets a client recognise it across rides.
+  Map<String, Uint8List> standaloneMdnsTxt() => ProxyDevice.trainerMdnsTxtFor(
+    core.settings.getTrainerApp(),
+    serialNumber: mdnsSerialNumber('bikecontrol-sensors'),
+  );
+
+  /// Cold launch with Apple Health persisted as the heart-rate source:
+  /// re-register without a tap. iOS remembers the authorization, so this
+  /// shows no sheet. A denial here (the rider revoked access in Settings
+  /// meanwhile) is swallowed on purpose: the tile then shows the persisted
+  /// pick as "Connecting…" and a tap re-prompts.
+  ///
+  /// Calls [authorizeHealthKit] then [connectHealthKit] explicitly, in that
+  /// order — same ordering requirement as the tap path, even though the
+  /// selection here is already persisted from a previous session and does
+  /// not change again: keeping both call sites symmetrical means the two
+  /// methods never drift out of sync with each other.
+  ///
+  /// Also swallows a native `PlatformException(code: 'authorize')` here —
+  /// this UI-less launch path is exactly where healthd can fail to present
+  /// the sheet at all for reasons that have nothing to do with the rider
+  /// (e.g. the app launched into the background), an expected environmental
+  /// outcome logged like the denied case rather than sent to `recordError`.
+  /// Any OTHER exception still propagates to `_probeHealthKit`'s own catch.
+  Future<void> restoreHealthKitSelection() async {
+    if (healthKitSource == null) return;
+    if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
+    // Sensors-only mode has no bridge to restore for — in that mode Apple
+    // Health only ever connects via the Broadcast switch (`turnOn` →
+    // `connectSourceById`), so a launch-time restore here would connect a
+    // source nothing is serving yet (spec Decision 4, "relaunch starts
+    // nothing"). Trainer mode is unaffected: the bridge genuinely relies on
+    // this restore running at launch.
+    if (core.settings.getSensorsOnlyMode()) {
+      _appendLogEntry('HealthKit: sensors-only mode — Apple Health connects when Broadcast is switched on');
+      return;
+    }
+    try {
+      await authorizeHealthKit();
+      await connectHealthKit();
+    } on HealthKitDeniedException {
+      _appendLogEntry('HealthKit: persisted Apple Health selection not restored — permission denied');
+    } on PlatformException catch (e) {
+      if (e.code != 'authorize') rethrow;
+      _appendLogEntry('HealthKit: authorization at launch failed — ${e.message}');
+    }
+  }
+
+  /// Builds the source only where it can work. `isAvailable` is a cheap
+  /// synchronous check on the native side; keeping it async here keeps
+  /// `initialize` free of a platform round-trip on the critical path.
+  Future<void> _probeHealthKit() async {
+    try {
+      final channel = MethodChannelHealthKit();
+      if (!await channel.isAvailable()) return;
+      healthKitSource = HealthKitSensorSource(channel: channel);
+      await restoreHealthKitSelection();
+    } catch (e, s) {
+      recordError(e, s, context: 'Connection._probeHealthKit');
+    }
+  }
+
+  /// [BroadcastController]'s `connectSource` hook: a source id from the hub
+  /// resolved to an actual connect. HealthKit routes through
+  /// [authorizeHealthKit] + [connectHealthKit] (same ordering requirement as
+  /// every other HealthKit call site — see [authorizeHealthKit]'s doc
+  /// comment); every other id is a BLE sensor device id — `BleSensorSource
+  /// .id` IS the BLE `deviceId` it was built from (see e.g.
+  /// `BleHeartRateDevice`'s constructor) — so there is no third, "unknown
+  /// kind of id" case to handle here.
+  ///
+  /// Consent is persisted UNCONDITIONALLY, before the device is even looked
+  /// up in [devices]: a strap the rider just selected may not have been
+  /// discovered by the scanner yet, and setting consent now is what lets the
+  /// auto-connect queue pick it up the moment it is (`shouldAutoConnect`
+  /// reads this flag) — not finding it in [devices] here is "not yet in
+  /// range," not a failure, so it logs and returns rather than throwing.
+  ///
+  /// A genuine [connectDevice] failure, though, DOES rethrow after clearing
+  /// consent back off and recording — [BroadcastController.turnOn]'s
+  /// per-id rollback only ever learns about ids `connectSource` returned
+  /// successfully for, so an id that fails here has to clear its own
+  /// consent; nothing downstream will do it.
+  Future<void> connectSourceById(String id) async {
+    if (id == HealthKitSensorSource.sourceId) {
+      try {
+        await authorizeHealthKit();
+        await connectHealthKit();
+      } catch (e, s) {
+        await recordError(e, s, context: 'Connection.connectSourceById healthkit');
+        rethrow;
+      }
+      return;
+    }
+    await core.settings.setSensorAutoConnect(id, true);
+    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    if (device == null) {
+      _appendLogEntry('Broadcast: source "$id" not yet discovered — will auto-connect once found');
+      return;
+    }
+    try {
+      await connectDevice(device);
+    } catch (e, s) {
+      await core.settings.setSensorAutoConnect(id, false);
+      await recordError(e, s, context: 'Connection.connectSourceById $id');
+      rethrow;
+    }
+  }
+
+  /// The disconnect-side counterpart of [connectSourceById] — same id
+  /// routing. HealthKit goes through [disconnectHealthKit] with `forget:
+  /// false` (this is Broadcast turning off, not the rider forgetting the
+  /// source — mirrors [disconnectHealthKit]'s own `forget` semantics doc
+  /// comment).
+  ///
+  /// For a BLE id, consent is cleared FIRST — before the device is even
+  /// looked up — and keyed on [id] directly (`BleSensorSource.id` IS the
+  /// BLE `deviceId`, see [connectSourceById]'s doc comment). A strap that
+  /// dropped mid-broadcast is already gone from [devices] by the time this
+  /// runs (the drop listener's `disconnect(..., dropped: true)` uses
+  /// `keepInList: false`): looking the device up FIRST and bailing when it's
+  /// missing would leave consent stuck at `true`, and that strap would
+  /// auto-connect on rediscovery with the switch off — a Decision 4
+  /// violation. A missing device here is therefore expected, not
+  /// exceptional: logged, not [recordError]'d. When the device IS still
+  /// present, it disconnects with `keepInList: true` so it stays selectable
+  /// the moment the rider flips Broadcast back on (same as
+  /// `LiveMetricsSection._disconnect`'s own reasoning).
+  Future<void> disconnectSourceById(String id) async {
+    if (id == HealthKitSensorSource.sourceId) {
+      try {
+        await disconnectHealthKit(forget: false);
+      } catch (e, s) {
+        await recordError(e, s, context: 'Connection.disconnectSourceById healthkit');
+        rethrow;
+      }
+      return;
+    }
+    await core.settings.setSensorAutoConnect(id, false);
+    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    if (device == null) {
+      _appendLogEntry('Broadcast: source "$id" already disconnected — consent cleared');
+      return;
+    }
+    try {
+      await disconnect(device, forget: false, persistForget: false, keepInList: true);
+    } catch (e, s) {
+      await recordError(e, s, context: 'Connection.disconnectSourceById $id');
+      rethrow;
+    }
   }
 
   /// Records a device we just connected to. Accessories are skipped — they are
@@ -419,7 +749,7 @@ class Connection {
     // A trainer app attaching/leaving any non-Local connection method drives
     // the battery saver. These emulator singletons live for the app lifetime,
     // so the listeners never need removing.
-    for (final connection in [
+    final appConnections = [
       core.zwiftEmulator,
       core.zwiftMdnsEmulator,
       core.rouvyMdnsEmulator,
@@ -429,9 +759,16 @@ class Connection {
       core.whooshLink,
       core.remotePairing,
       core.remoteKeyboardPairing,
-    ]) {
+    ];
+    for (final connection in appConnections) {
       connection.isConnected.addListener(() => _inactivityDisconnector?.onTrainerConnectionChanged());
     }
+    // It is also what tells the home screen an app that disconnected from one
+    // that never connected — whichever tab the rider was on at the time.
+    core.appConnectionLatch.watch([
+      for (final connection in appConnections) connection.isConnected,
+      core.settings.trainerAppListenable,
+    ]);
 
     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) {
       core.mediaKeyHandler.initialize();
@@ -439,7 +776,146 @@ class Connection {
       core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();
     }
 
-    ftmsEmulator.isTrial = () => !IAPManager.instance.isProEnabledForCurrentDevice;
+    // Rider metrics BikeControl itself sourced (currently just heart rate) are
+    // served through their own definition, which lives either on the bridge's
+    // composite or on a standalone emulator — never both. Isolated in its own
+    // try/catch so a failure here (e.g. a bad persisted sensor selection)
+    // cannot take the rest of connection setup down with it.
+    try {
+      final sensorDefinition = SensorDefinition();
+      final standaloneSensorEmulator = DirconEmulator();
+      // Without this, a lapsed subscriber's standalone heart rate monitor
+      // keeps advertising forever; the bridge path already refuses to
+      // advertise once the trial's spent (`shouldAdvertise`), so the
+      // standalone path must too.
+      standaloneSensorEmulator.shouldAdvertise = () => IAPManager.instance.isProEnabledForCurrentDevice;
+      // Never the trainer-app name (e.g. "Zwift Hub"): unlike ftmsEmulator,
+      // which impersonates whatever trainer app the rider picked, this
+      // standalone peripheral is BikeControl itself — a rider pairing a
+      // heart rate/cadence/power source in Zwift's own pairing screen should
+      // see it identified as what it is.
+      standaloneSensorEmulator.advertisementNameOverride = () => 'BikeControl';
+      _standaloneClientConnected = standaloneSensorEmulator.isConnected;
+      // Attach-before-start / stop-before-detach: DirconEmulator.startServer
+      // advertises whatever is already on its composite, so calling it
+      // before the definition is attached leaves nothing to serve. See
+      // StandaloneSensorLifecycle's doc comment for exactly what that fails
+      // with.
+      // Same identity/transport quirks the bridge applies per selected app
+      // (`ProxyDevice.handleServices`): without the TXT record MyWhoosh
+      // throws on the missing `serial-number` and Tacx drops the peripheral
+      // for lack of a `mac-address`; the bare/`0x` 16-bit service form and
+      // the IPv4-only listener follow the app the same way.
+      standaloneSensorEmulator.bareShortServiceUuids = () =>
+          ProxyDevice.bareShortServiceUuidsFor(core.settings.getTrainerApp());
+      standaloneSensorEmulator.forceIPv4 = () => ProxyDevice.needsIPv4For(core.settings.getTrainerApp());
+      final standaloneSensorLifecycle = StandaloneSensorLifecycle(
+        attachDefinition: standaloneSensorEmulator.attachDefinition,
+        startServer: (mode) => standaloneSensorEmulator.startServer(mode: mode, mdnsTxt: standaloneMdnsTxt()),
+        stopServer: standaloneSensorEmulator.stop,
+        detachDefinition: standaloneSensorEmulator.detachDefinition,
+      );
+      final sensorSink = SensorSinkController(
+        definition: sensorDefinition,
+        // attachDefinition/detachDefinition (not composite.attach/detach
+        // directly) so a mid-ride source selection restarts the live bridge
+        // transport in place when it needs to — composite.attach alone only
+        // updates the composite's bookkeeping.
+        attach: ftmsEmulator.attachDefinition,
+        detach: ftmsEmulator.detachDefinition,
+        startStandalone: (def, transport) => standaloneSensorLifecycle.start(def, transport),
+        stopStandalone: () => standaloneSensorLifecycle.stop(sensorDefinition),
+      );
+
+      // The buffer this attaches to lives on Connection, built after `core`,
+      // which is why `log` is a settable field rather than a constructor arg.
+      core.sensors.log = _appLog;
+      // Runtime callback, not a one-shot: re-evaluated on every publish (see
+      // SensorHub.isProEnabled's doc comment), so a subscription lapsing
+      // mid-ride stops resolving on the next tick without the rider ever
+      // reselecting anything.
+      core.sensors.isProEnabled = () => IAPManager.instance.isProEnabledForCurrentDevice;
+      core.sensors.loadSelections(core.settings);
+      if (!kIsWeb && Platform.isIOS) {
+        unawaited(_probeHealthKit());
+      }
+      Timer.periodic(const Duration(seconds: 1), (_) => core.sensors.tick());
+
+      // The Broadcast switch itself: owns connecting/disconnecting sources
+      // and deciding whether a standalone stint is even wanted
+      // (`wantsStandalone`). Constructed before `sinkSync` below since the
+      // sink needs a live reference to read `wantsStandalone`/`transport`
+      // from — but STARTED after it; see the ordering note on `sinkSync
+      // .start()` vs `broadcast.start()` below.
+      broadcast = BroadcastController(
+        hub: core.sensors,
+        settings: core.settings,
+        isBridgeRunning: ftmsEmulator.isStarted,
+        // `_apply` swallows a failed standalone start into recordError, so
+        // the switch has to ask the sink itself whether anything came up.
+        isStandaloneRunning: () => sensorSink.standaloneRunning,
+        connectSource: connectSourceById,
+        disconnectSource: disconnectSourceById,
+      );
+
+      // Keeps the sink synced to the bridge's isStarted, whether the rider
+      // has picked a source at all, AND now the Broadcast switch — a cold
+      // launch with nothing selected (or Broadcast left off) must not stand
+      // up an empty "BikeControl" advertisement (see SensorSinkSync's own
+      // doc comment). Also the retry path for a standalone start that failed
+      // at launch: any later selection change re-syncs, not just a bridge
+      // transition.
+      final sinkSync = SensorSinkSync(
+        hub: core.sensors,
+        isBridgeRunning: ftmsEmulator.isStarted,
+        sink: sensorSink,
+        broadcast: broadcast!,
+      );
+      // Re-sync whenever the switch itself changes (on/off/transport) — the
+      // hub's own selection-change hook (below) covers a source being picked
+      // or dropped, but not the switch flipping with the same selection
+      // still in place.
+      broadcast!.onChanged = sinkSync.sync;
+      // Order matters: `sinkSync.start()` is what first assigns
+      // `hub.onSelectionChanged`; `broadcast.start()` CHAINS onto whatever is
+      // already installed there (see BroadcastController.start's own doc
+      // comment) rather than replacing it. Starting broadcast first would
+      // instead have `sinkSync.start()` clobber broadcast's hook outright —
+      // a selection change would then connect/disconnect sources but never
+      // re-sync the sink.
+      sinkSync.start();
+      broadcast!.start();
+
+      SensorBridgeBinding(
+        hub: core.sensors,
+        onHeartRate: (bpm) {
+          ftmsEmulator.fitnessBike?.setExternalHeartRate(bpm);
+          sensorDefinition.setHeartRate(bpm);
+        },
+        // Cadence and power are NOT unconditionally forwarded to
+        // sensorDefinition the way heart rate is. FTMS Indoor Bike Data
+        // already carries both while a trainer is bridged
+        // (setExternalCadence/setExternalPower feed that packet directly), so
+        // the standalone-only definition must never be told about them while
+        // bridged — doing so would newly expose CSC/Cycling Power on the
+        // bridge's own GATT table. sensorDefinition advertises CSC/Cycling
+        // Power unconditionally, the same as heart rate always has;
+        // SensorSinkController is what keeps them off the bridge, by calling
+        // sensorDefinition.exposeServices(heartRate: true, cadence: false,
+        // power: false) before every bridge attach (see that method's doc
+        // comment for the defect this guards against).
+        onCadence: (rpm) {
+          ftmsEmulator.fitnessBike?.setExternalCadence(rpm);
+          if (!ftmsEmulator.isStarted.value) sensorDefinition.setCadence(rpm);
+        },
+        onPower: (watts) {
+          ftmsEmulator.fitnessBike?.setExternalPower(watts);
+          if (!ftmsEmulator.isStarted.value) sensorDefinition.setPower(watts);
+        },
+      ).start();
+    } catch (e, s) {
+      recordError(e, s, context: 'SensorHub wiring');
+    }
 
     // The advertised name depends on the selected trainer app (e.g. Rouvy →
     // "Zwift Hub"). Restart the transport on every change so the new name
@@ -645,7 +1121,14 @@ class Connection {
       UniversalBle.getSystemDevices(
         withServices: BluetoothDevice.servicesToScan,
       ).then((devices) async {
-        final baseDevices = devices.mapNotNull(BluetoothDevice.fromScanResult).toList();
+        // getSystemDevices reports OS-connected/bonded devices, not live
+        // advertisements — isEligibleSystemDevice keeps that query from
+        // grabbing another app's power meter as if it were a trainer (see
+        // its doc comment; fix-wave-C).
+        final baseDevices = devices
+            .mapNotNull(BluetoothDevice.fromScanResult)
+            .where(BluetoothDevice.isEligibleSystemDevice)
+            .toList();
         if (baseDevices.isNotEmpty) {
           addDevices(baseDevices);
         }
@@ -991,12 +1474,75 @@ class Connection {
   /// [ProxyDevice.startProxy] would reconnect the BLE upstream but leave
   /// `isConnected` stuck — the listener that flips it is torn down on
   /// disconnect and only [_connect] re-establishes it.
-  Future<void> connectDevice(BaseDevice device) {
+  Future<void> connectDevice(BaseDevice device) async {
     // An explicit reconnect (e.g. the device picker) clears any battery-saver
     // suppression so the controller auto-reconnects normally again afterwards.
     if (device is BluetoothDevice) _suppressedAutoReconnect.remove(device.device.deviceId);
+    // A twin that would not let go is refused here, by the manual path itself
+    // — not left to the auto-connect gate inside ProxyDevice.connect(), which
+    // would decline silently and leave the rider staring at a picker that
+    // snapped back to "No connection".
+    if (device is ProxyDevice && !await _releaseTwin(device)) return;
     return _connect(device);
   }
+
+  /// A trainer listed over both transports is one trainer: connecting its
+  /// WiFi entry while the Bluetooth entry holds it (or vice versa) is a path
+  /// switch, not a second connection. The sibling is torn down — and awaited —
+  /// before this entry's connect starts, so at no point are two upstreams
+  /// live. It stays listed as the way back; while this entry holds the
+  /// trainer, [ProxyDevice.shouldAutoConnect] keeps the queue from bringing
+  /// the sibling back on its own.
+  ///
+  /// Returns whether [device] may go ahead: true when no twin held the
+  /// trainer or the twin is idle now; false when it is still not — then the
+  /// rider has been told (alert) and the caller must not connect.
+  ///
+  /// The shared consent (`auto_connect_<trainerKey>`) and saved mode are
+  /// deliberately left as the picker wrote them on a refusal: consent is the
+  /// one key under which the sibling is still holding the trainer, so
+  /// clearing it would strip the sibling's own reconnect too, and the saved
+  /// mode is simply the rider's latest pick, taken up by whichever entry
+  /// connects next.
+  Future<bool> _releaseTwin(ProxyDevice device) async {
+    final twin = twinOf(device);
+    if (twin == null || !twin.isConnectedOrConnecting) return true;
+    _actionStreams.add(
+      LogNotification(
+        '${device.trainerKey}: switching from ${twin.isWifiUpstream ? 'WiFi' : 'Bluetooth'} '
+        'to ${device.isWifiUpstream ? 'WiFi' : 'Bluetooth'}',
+      ),
+    );
+    // dropped: a sibling still mid-connect has no link to report yet, but its
+    // teardown must run anyway or the in-flight connect lands next to ours.
+    await disconnect(twin, forget: false, persistForget: false, keepInList: true, dropped: !twin.isConnected);
+    // The sibling reports idle a moment after its teardown, not during it:
+    // BaseDevice.disconnect() clears `isConnected` a microtask after
+    // BluetoothDevice.disconnect() returns, and a connect still in flight only
+    // unwinds — through its own failure on the torn-down transport — later
+    // still, `isStarting` holding until it does. Wait it out, bounded, on the
+    // whole held-state predicate rather than any one flag.
+    final deadline = DateTime.now().add(twinReleaseTimeout);
+    while (twin.isConnectedOrConnecting && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    if (!twin.isConnectedOrConnecting) return true;
+    final l10n = AppLocalizations.current;
+    _actionStreams.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_WARNING,
+        l10n.trainerTwinStillConnecting(
+          device.toString(),
+          twin.isWifiUpstream ? l10n.connectionWifi : l10n.connectionBluetooth,
+        ),
+      ),
+    );
+    return false;
+  }
+
+  /// How long a path switch waits for the released sibling to report idle
+  /// (see [_releaseTwin]). Mutable as a test seam.
+  Duration twinReleaseTimeout = const Duration(seconds: 5);
 
   Future<void> _connect(BaseDevice device) async {
     // Cancel any stale subscriptions from a previous connect attempt so a retry
@@ -1162,6 +1708,8 @@ class Connection {
     }
 
     if (device is BluetoothDevice) {
+      await _unregisterSensorSource(device, forget: forget);
+
       if (persistForget) {
         // Add device to ignored list when forgetting
         await core.settings.addIgnoredDevice(device.device.deviceId, device.toString());
@@ -1217,15 +1765,27 @@ class Connection {
 
   Future<void> disconnectAll() async {
     _actionStreams.add(LogNotification(AppLocalizations.current.disconnectingAllDevices));
+    // Collected rather than awaited inline: this loop is otherwise fully
+    // synchronous, and awaiting per-device here would open a re-entrancy
+    // window between devices during a global teardown for no benefit —
+    // `bluetoothDevices` is already a `.toList()` snapshot, so nothing else
+    // needs the sensor-source teardown to have landed before the next
+    // device's turn, only before disconnectAll() itself returns.
+    final sensorSourceTeardowns = <Future<void>>[];
     for (var device in bluetoothDevices) {
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();
       _connectionSubscriptions.remove(device);
+      // Not a "forget": Bluetooth going away in bulk is a transient global
+      // drop, not the rider individually forgetting every device, so the
+      // selection is left alone the same way a single transient drop is.
+      sensorSourceTeardowns.add(_unregisterSensorSource(device, forget: false));
       device.disconnect();
       signalChange(device);
       devices.remove(device);
     }
+    await Future.wait(sensorSourceTeardowns);
     _gamePadSearchTimer?.cancel();
     _lastScanResult.clear();
     // Everything is gone, so the battery-saver suppression is moot — a later

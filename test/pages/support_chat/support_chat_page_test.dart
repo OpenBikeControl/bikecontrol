@@ -55,6 +55,14 @@ class _FakeSupportChatHttp extends http.BaseClient {
   final List<http.Request> sendMessageRequests = [];
   final List<http.Request> deleteRequests = [];
 
+  /// Whether a chat already exists server-side. Defaults to `true` so every
+  /// existing test (which never cared about this distinction) keeps seeing a
+  /// chat back from get-support-chat immediately, same as before. Tests for
+  /// the lazy-create behaviour flip this to `false` first to model a
+  /// signed-in rider who has never sent a message — get-support-chat must
+  /// then report `chat: null`, exactly like the real get-only edge function.
+  bool chatAlreadyExists = true;
+
   Object? signInAnonymouslyError;
 
   @override
@@ -64,11 +72,12 @@ class _FakeSupportChatHttp extends http.BaseClient {
 
     if (path.endsWith('/functions/v1/create-or-get-support-chat')) {
       openChatRequests.add(req);
+      chatAlreadyExists = true;
       return _json({'chat': _chatJson()});
     }
     if (path.endsWith('/functions/v1/get-support-chat')) {
       getChatRequests.add(req);
-      return _json({'chat': _chatJson(), 'messages': <dynamic>[]});
+      return _json({'chat': chatAlreadyExists ? _chatJson() : null, 'messages': <dynamic>[]});
     }
     if (path.endsWith('/functions/v1/send-support-message')) {
       sendMessageRequests.add(req);
@@ -170,7 +179,7 @@ Future<void> main() async {
   late SupportChatService chatService;
   late FeedbackSubmissionService accountService;
 
-  Widget app() {
+  Widget app({String? pinnedContext, String? pinnedContextLabel}) {
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [AppLocalizations.delegate],
@@ -180,6 +189,8 @@ Future<void> main() async {
           telemetryBuilder: () async => const TelemetrySnapshot(freetext: 'test'),
           service: chatService,
           accountService: accountService,
+          pinnedContext: pinnedContext,
+          pinnedContextLabel: pinnedContextLabel,
         ),
       ),
     );
@@ -266,6 +277,51 @@ Future<void> main() async {
     });
   });
 
+  // The fix for the 135-of-444-empty-rows problem: opening the page must
+  // never create a chat by itself. Only a rider who actually sends a message
+  // should get a row in support_chats.
+  group('lazy chat creation', () {
+    testWidgets('a session with no existing chat is not enough to create one; only sending a message does', (
+      tester,
+    ) async {
+      fakeHttp.chatAlreadyExists = false;
+      await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: false, email: 'rider@example.com')));
+
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+
+      // Bootstrap used the get-only function and found nothing to load — it
+      // must not have fallen back to creating a chat just to view the page.
+      expect(fakeHttp.getChatRequests, hasLength(1));
+      expect(fakeHttp.openChatRequests, isEmpty, reason: 'opening the page alone must never create a chat row');
+      expect(core.settings.getSupportChatActive(), isFalse);
+
+      await selectSomethingElseAndContinue(tester);
+      await tester.enterText(find.byType(TextArea), 'trainer will not pair');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+
+      // The first message is what finally creates the chat — exactly once.
+      expect(fakeHttp.openChatRequests, hasLength(1));
+      expect(fakeHttp.sendMessageRequests, hasLength(1));
+      expect(core.settings.getSupportChatActive(), isTrue);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a session with an existing chat loads it via the get function alone', (tester) async {
+      await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: false, email: 'rider@example.com')));
+
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+
+      expect(fakeHttp.getChatRequests, hasLength(1));
+      expect(fakeHttp.openChatRequests, isEmpty, reason: 'a chat that already exists is loaded, never re-created');
+      expect(find.byKey(const ValueKey('support-overflow-menu')), findsOneWidget);
+      expect(core.settings.getSupportChatActive(), isTrue);
+    });
+  });
+
   group('post-send account-link prompt', () {
     testWidgets('appears after a successful send while anonymous', (tester) async {
       await tester.pumpWidget(app());
@@ -323,6 +379,34 @@ Future<void> main() async {
       expect(find.byKey(const ValueKey('support-account-linked')), findsOneWidget);
       expect(find.text(l10n.supportAccountStatusSignedIn), findsOneWidget);
       expect(find.byKey(const ValueKey('support-header-sign-in')), findsNothing);
+    });
+  });
+
+  // The self-test pages hand their result to the chat as `pinnedContext`
+  // rather than `initialText`: it rides along with the first message, but the
+  // rider has to say what is wrong before they can send it.
+  group('pinnedContext', () {
+    testWidgets('is forwarded to the composer and sent below the description', (tester) async {
+      await tester.pumpWidget(
+        app(pinnedContext: 'Network self-test: NETWORK PASS', pinnedContextLabel: l10n.supportPinnedNetworkTest),
+      );
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+
+      expect(find.text(l10n.supportPinnedContextChip(l10n.supportPinnedNetworkTest)), findsOneWidget);
+      // Not prefilled: the composer starts empty, with the describe-the-problem placeholder.
+      expect(tester.widget<TextArea>(find.byType(TextArea)).controller!.text, isEmpty);
+      expect(find.text(l10n.supportDescribeProblemPlaceholder), findsOneWidget);
+
+      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not find BikeControl');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+
+      expect(fakeHttp.sendMessageRequests, hasLength(1));
+      final sentBody = jsonDecode(fakeHttp.sendMessageRequests.single.body) as Map<String, dynamic>;
+      expect(sentBody['body'], 'MyWhoosh does not find BikeControl\n\nNetwork self-test: NETWORK PASS');
+      expect(tester.takeException(), isNull);
     });
   });
 

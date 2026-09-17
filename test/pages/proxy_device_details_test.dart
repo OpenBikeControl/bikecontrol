@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
+import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -63,6 +64,23 @@ Future<void> main() async {
     // of a sibling above it.
     final stateAfter = tester.state(find.byType(ConnectionCard));
     expect(identical(stateBefore, stateAfter), isTrue);
+  });
+
+  // Sensor sourcing now lives inside the signals grid itself (each tile's
+  // optional source row — see `live_metrics_section_test.dart`), not a
+  // separate section. This page still has to wire `LiveMetricsSection` in
+  // unconditionally, with `hideWhenDeviceHasNoMetrics: true` so a trainer
+  // with nothing to report yet (no FBD at all, exactly this fixture) renders
+  // it as nothing rather than a "--"-filled grid — see that flag's own doc
+  // comment for why this page needs it and the home page does not.
+  testWidgets('wires LiveMetricsSection in regardless of whether the trainer has virtual shifting', (tester) async {
+    final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
+    expect(device.fitnessBike, isNull);
+
+    await pumpPage(tester, device);
+
+    final section = tester.widget<LiveMetricsSection>(find.byKey(const ValueKey('live-metrics')));
+    expect(section.hideWhenDeviceHasNoMetrics, isTrue);
   });
 
   testWidgets('ConnectionCard carries a stable key so connection-state reflows cannot remount it', (tester) async {

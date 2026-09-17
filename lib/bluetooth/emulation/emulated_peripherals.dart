@@ -5,8 +5,10 @@ import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:bike_control/bluetooth/devices/wheeltop/wheeltop_eds.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart' show RideButtonMask;
+import 'package:bike_control/services/sensors/ble_sensor_source.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
+import 'package:prop/utils/csc_measurement.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'emulated_ble_platform.dart';
@@ -36,6 +38,105 @@ List<BleService> deviceInfoServices(FakePeripheral peripheral, {String firmware 
       ]),
     ]),
   ];
+}
+
+/// An emulated heart rate strap, so the whole BLE sensor path can be exercised
+/// in the running app without hardware. The heart rate strap is notify-only:
+/// testers choose the BPM via EmulatedAction inputs on the profile, not via
+/// peripheral builder parameters.
+FakePeripheral heartRateStrapPeripheral({String name = 'Emulated HRM'}) {
+  // advertisedServices is what a filtered scan matches on — without it the
+  // strap is built but never discovered, which looks exactly like a bug in
+  // the scan filter.
+  final peripheral = FakePeripheral(
+    deviceId: 'emulated:hrm',
+    name: name,
+    advertisedServices: [lcUuid(BleSensorSource.heartRateServiceUuid)],
+  );
+  peripheral.services.addAll([
+    BleService(lcUuid(BleSensorSource.heartRateServiceUuid), [
+      bleChar(BleSensorSource.heartRateMeasurementUuid, [CharacteristicProperty.notify]),
+    ]),
+    ...deviceInfoServices(peripheral),
+  ]);
+  return peripheral;
+}
+
+/// An emulated cadence sensor (Cycling Speed and Cadence Service, crank data
+/// only), so the cadence path can be exercised without owning one. Same
+/// notify-only shape as [heartRateStrapPeripheral]: testers pick an rpm via
+/// EmulatedAction inputs on the profile.
+FakePeripheral cadenceSensorPeripheral({String name = 'Emulated Cadence'}) {
+  // advertisedServices is what a filtered scan matches on — without it the
+  // sensor is built but never discovered, which looks exactly like a bug in
+  // the scan filter.
+  final peripheral = FakePeripheral(
+    deviceId: 'emulated:csc',
+    name: name,
+    advertisedServices: [lcUuid(BleSensorSource.cscServiceUuid)],
+  );
+  peripheral.services.addAll([
+    BleService(lcUuid(BleSensorSource.cscServiceUuid), [
+      bleChar(BleSensorSource.cscMeasurementUuid, [CharacteristicProperty.notify]),
+    ]),
+    ...deviceInfoServices(peripheral),
+  ]);
+  return peripheral;
+}
+
+/// An emulated power meter (Cycling Power Service). Same notify-only shape
+/// as [heartRateStrapPeripheral].
+///
+/// The default name deliberately matches one of the families
+/// `BluetoothDevice._isKnownPowerMeterName` recognises (Favero Assioma):
+/// `BluetoothDevice.fromScanResult`'s narrow rule only classifies a
+/// Cycling-Power advertiser as `BlePowerDevice` when its name is on that
+/// list AND it does not also advertise a trainer service — otherwise it
+/// falls through to the broader (name-unaware) rule below it. A fixture
+/// named anything else would still reach BlePowerDevice today, but naming it
+/// after a recognised brand keeps this fixture exercising the narrow,
+/// trainer-protecting rule specifically rather than the broad fallback.
+FakePeripheral powerMeterPeripheral({String name = 'ASSIOMA DUO'}) {
+  // advertisedServices is what a filtered scan matches on — without it the
+  // meter is built but never discovered, which looks exactly like a bug in
+  // the scan filter.
+  final peripheral = FakePeripheral(
+    deviceId: 'emulated:cps',
+    name: name,
+    advertisedServices: [lcUuid(BleSensorSource.cyclingPowerServiceUuid)],
+  );
+  peripheral.services.addAll([
+    BleService(lcUuid(BleSensorSource.cyclingPowerServiceUuid), [
+      bleChar(BleSensorSource.cyclingPowerMeasurementUuid, [CharacteristicProperty.notify]),
+    ]),
+    ...deviceInfoServices(peripheral),
+  ]);
+  return peripheral;
+}
+
+/// Session-scoped mutable state for the emulated cadence/power profiles: a
+/// cumulative crank-revolution counter and its paired 1/1024s event clock.
+/// [advance] delegates to the shared, pure `advanceCrankCounter`
+/// (`package:prop/utils/csc_measurement.dart`) — the exact wrap-safe scheme
+/// `SensorDefinition` uses for the standalone sink — so this fixture and
+/// that sink can never encode the same rpm two different ways. See
+/// `advanceCrankCounter`'s doc comment for why two consecutive frames built
+/// from consecutive [advance] calls always decode back to the intended rpm
+/// via `cscCadenceRpm`/`cpsCadenceRpm`, and why a fixture that reused a
+/// single constant frame instead would encode no cadence at all.
+class CrankCounter {
+  int _revs = 0;
+  int _eventTime1024 = 0;
+
+  int get revs => _revs;
+  int get eventTime1024 => _eventTime1024;
+
+  /// Advances the counters by [rpm] revolutions over one fixed quantum.
+  void advance(int rpm) {
+    final next = advanceCrankCounter(crankRevs: _revs, eventTime1024: _eventTime1024, rpm: rpm);
+    _revs = next.crankRevs;
+    _eventTime1024 = next.eventTime1024;
+  }
 }
 
 /// A Zwift Click (v1) controller. Detected through the Zwift custom service
@@ -148,6 +249,22 @@ FakePeripheral buildFtmsTrainer({String deviceId = 'fake-kickr', String name = '
     ]),
     ...deviceInfoServices(peripheral, firmware: '4.2.0'),
   ]);
+  return peripheral;
+}
+
+/// A Zwift-Cog smart trainer (KICKR CORE Zwift One / Elite Direto Zwift-ready):
+/// FTMS + Cycling Power like [buildFtmsTrainer], plus its own Zwift custom
+/// service, so the definition classifies it as a grade-native trainer.
+FakePeripheral buildZwiftCogTrainer({String deviceId = 'fake-cog', String name = 'KICKR CORE 5775'}) {
+  final peripheral = buildFtmsTrainer(deviceId: deviceId, name: name);
+  peripheral.advertisedServices.add(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase());
+  peripheral.services.add(
+    BleService(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID, [
+      bleChar(ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID, [CharacteristicProperty.notify]),
+      bleChar(ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID, [CharacteristicProperty.write]),
+      bleChar(ZwiftConstants.ZWIFT_SYNC_TX_CHARACTERISTIC_UUID, [CharacteristicProperty.indicate]),
+    ]),
+  );
   return peripheral;
 }
 

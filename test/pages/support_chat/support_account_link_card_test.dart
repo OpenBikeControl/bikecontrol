@@ -27,12 +27,14 @@
 import 'dart:convert';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/pages/support_chat/widgets/support_account_link_card.dart';
 import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:prop/utils/shared.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -53,6 +55,11 @@ class _FakeAuthHttp extends http.BaseClient {
   final List<http.Request> userUpdateRequests = [];
 
   bool authorizeError = false;
+  bool idTokenAlreadyLinked = false;
+
+  /// When true, `updateUser(email:)` fails the way GoTrue does for an address
+  /// that already belongs to another account.
+  bool emailTaken = false;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -65,6 +72,13 @@ class _FakeAuthHttp extends http.BaseClient {
     }
     if (path.endsWith('/auth/v1/token') && request.url.queryParameters['grant_type'] == 'id_token') {
       idTokenRequests.add(req);
+      if (idTokenAlreadyLinked) {
+        return _json({
+          'code': 422,
+          'error_code': 'identity_already_exists',
+          'msg': 'Identity is already linked to another user',
+        }, status: 422);
+      }
       // Same user id as every other fixture here — linking must not swap it
       // out for a different one (that would be the orphaning bug).
       return _json(_sessionJson(anonymous: false, email: 'rider@gmail.com'));
@@ -92,6 +106,17 @@ class _FakeAuthHttp extends http.BaseClient {
       // onAuthStateChange event, both of which a real updateUser call does
       // too.
       final body = jsonDecode(req.body) as Map<String, dynamic>;
+      if (emailTaken && body['email'] != null) {
+        return http.StreamedResponse(
+          Stream.value(
+            utf8.encode(
+              jsonEncode({'code': 'email_exists', 'message': 'Email address already registered by another user'}),
+            ),
+          ),
+          422,
+          headers: const {'content-type': 'application/json', 'x-supabase-api-version': '2024-01-01'},
+        );
+      }
       final isRedirectCompletion = (body['data'] as Map<String, dynamic>?)?['linked_via'] == 'oauth-redirect';
       return _json(
         _sessionJson(
@@ -198,6 +223,7 @@ void main() {
   late _FakeUrlLauncher fakeLauncher;
   late SupabaseClient client;
   late FeedbackSubmissionService accountService;
+  late List<Object> recordedErrors;
 
   setUpAll(() async {
     l10n = await AppLocalizations.load(const Locale('en'));
@@ -220,6 +246,14 @@ void main() {
     final previousLauncher = UrlLauncherPlatform.instance;
     UrlLauncherPlatform.instance = fakeLauncher;
     addTearDown(() => UrlLauncherPlatform.instance = previousLauncher);
+
+    // The failure-path tests check that their errors are recorded, not
+    // swallowed. Trip the install guard first (it only assigns once per
+    // isolate), then swap in a listener that only collects.
+    installLoggerErrorListener();
+    recordedErrors = [];
+    Logger.onRecordError = (_, error, _) => recordedErrors.add(error);
+    addTearDown(() => Logger.onRecordError = null);
   });
 
   tearDown(() {
@@ -371,6 +405,27 @@ void main() {
       });
     });
 
+    testWidgets('an Apple ID owned by another account shows the sign-in-instead hint', (tester) async {
+      await withPlatform(TargetPlatform.iOS, () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.idTokenAlreadyLinked = true;
+
+        await pumpCard(
+          tester,
+          appleIdTokenFetcher: () async => const AppleIdTokenResult(idToken: 'fake-apple-id-token', rawNonce: 'nonce'),
+        );
+        await tester.pump();
+
+        await tester.tap(signInButtonFor(Buttons.apple));
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('support-account-linked')), findsNothing);
+        expect(find.text(l10n.supportAccountAlreadyLinked), findsOneWidget);
+        expect(find.text(l10n.supportAccountLinkFailed), findsNothing);
+      });
+    });
+
     testWidgets('a failed Google token fetch records the error and shows the generic failure message', (
       tester,
     ) async {
@@ -518,6 +573,54 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'never swallowed — recordError catches it, not a rethrow');
         expect(find.text(l10n.supportAccountLinkFailed), findsOneWidget);
         expect(fakeLauncher.launchedUrls, isEmpty);
+      });
+    });
+  });
+
+  group('email already belongs to another account', () {
+    Future<void> sendEmail(WidgetTester tester, String email) async {
+      await tester.enterText(find.byKey(const ValueKey('support-account-email-field')), email);
+      await tester.tap(find.byKey(const ValueKey('support-account-email-send')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('explains that the address already has an account instead of a generic failure', (tester) async {
+      await withPlatform(TargetPlatform.windows, () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.emailTaken = true;
+
+        await pumpCard(tester);
+        await tester.pump();
+        await sendEmail(tester, 'taken@example.com');
+
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('support-account-email-taken')), findsOneWidget);
+        expect(find.text(l10n.supportAccountLinkFailed), findsNothing);
+        // Still on the email step: no code was sent, so no code field.
+        expect(find.byKey(const ValueKey('support-account-code-field')), findsNothing);
+        expect(find.byKey(const ValueKey('support-account-email-field')), findsOneWidget);
+        expect(recordedErrors, isNotEmpty, reason: 'the failure is still recorded, not swallowed');
+        // The anonymous session, and with it the chat, is left untouched.
+        expect(client.auth.currentSession!.user.isAnonymous, isTrue);
+        expect(client.auth.currentSession!.user.id, 'user-id');
+      });
+    });
+
+    testWidgets('a different address afterwards clears the message and moves on to the code step', (tester) async {
+      await withPlatform(TargetPlatform.windows, () async {
+        await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: true)));
+        fakeHttp.emailTaken = true;
+
+        await pumpCard(tester);
+        await tester.pump();
+        await sendEmail(tester, 'taken@example.com');
+        expect(find.byKey(const ValueKey('support-account-email-taken')), findsOneWidget);
+
+        fakeHttp.emailTaken = false;
+        await sendEmail(tester, 'new@example.com');
+
+        expect(find.byKey(const ValueKey('support-account-email-taken')), findsNothing);
+        expect(find.byKey(const ValueKey('support-account-code-field')), findsOneWidget);
       });
     });
   });

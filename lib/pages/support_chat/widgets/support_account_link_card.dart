@@ -93,6 +93,16 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
   bool _busy = false;
   bool _failed = false;
 
+  /// Set alongside [_failed] when the identity already belongs to another
+  /// account, so the card can tell the rider to sign in with it instead.
+  bool _alreadyLinked = false;
+
+  /// Set when [_sendLink] was refused because the address already belongs to
+  /// another account. Deliberately no in-card sign-in for it: support chats
+  /// are owned one-per-user, so switching to that account would leave the
+  /// chat this rider is writing in behind under the anonymous session.
+  String? _emailTaken;
+
   /// Watches for a browser-redirect link (see [_linkViaOAuthRedirect])
   /// completing asynchronously once the deep link brings the app back.
   StreamSubscription<AuthState>? _authStateSub;
@@ -132,6 +142,8 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
+      _emailTaken = null;
     });
     try {
       await widget.accountService.beginEmailLink(email);
@@ -139,6 +151,13 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
       setState(() {
         _codeSentTo = email;
         _busy = false;
+      });
+    } on EmailAlreadyInUseException catch (e, s) {
+      await recordError(e, s, context: 'SupportAccountLinkCard.beginEmailLink.emailExists');
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _emailTaken = e.email;
       });
     } catch (e, s) {
       await recordError(e, s, context: 'SupportAccountLinkCard.beginEmailLink');
@@ -157,6 +176,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       await widget.accountService.confirmEmailLink(email: email, token: code);
@@ -198,6 +218,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       final fetch = widget.googleIdTokenFetcher ?? fetchGoogleIdToken;
@@ -215,6 +236,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
       setState(() {
         _busy = false;
         _failed = true;
+        _alreadyLinked = e is IdentityAlreadyLinkedException;
       });
     }
   }
@@ -224,6 +246,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       final fetch = widget.appleIdTokenFetcher ?? fetchAppleIdToken;
@@ -241,6 +264,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
       setState(() {
         _busy = false;
         _failed = true;
+        _alreadyLinked = e is IdentityAlreadyLinkedException;
       });
     }
   }
@@ -256,6 +280,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
     setState(() {
       _busy = true;
       _failed = false;
+      _alreadyLinked = false;
     });
     try {
       await widget.accountService.linkOAuthIdentity(provider);
@@ -368,10 +393,18 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
                 ),
               ],
             ),
+            if (_emailTaken case final taken?) ...[
+              const Gap(8),
+              Text(
+                l10n.supportAccountLinkEmailTaken(taken),
+                key: const ValueKey('support-account-email-taken'),
+                style: TextStyle(color: cs.destructive, fontSize: 12),
+              ),
+            ],
             if (_failed) ...[
               const Gap(8),
               Text(
-                l10n.supportAccountLinkFailed,
+                _alreadyLinked ? l10n.supportAccountAlreadyLinked : l10n.supportAccountLinkFailed,
                 style: TextStyle(color: cs.destructive, fontSize: 12),
               ),
             ],

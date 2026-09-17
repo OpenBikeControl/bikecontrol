@@ -18,11 +18,19 @@ class ShiftingConfigsController extends ChangeNotifier {
       _configs.where((c) => c.trainerKey == trainerKey).toList(growable: false);
 
   ShiftingConfig activeFor(String trainerKey) {
+    return storedActiveFor(trainerKey) ?? ShiftingConfig.defaults(trainerKey: trainerKey);
+  }
+
+  /// The rider's active config for [trainerKey], or null when they have never
+  /// saved one. Lets callers tell "the rider chose this" apart from "these are
+  /// just the defaults" — e.g. to pick a capability-based default mode instead
+  /// of the generic one without overriding a real choice.
+  ShiftingConfig? storedActiveFor(String trainerKey) {
     final forTrainer = configsFor(trainerKey);
     final active = forTrainer.where((c) => c.isActive);
     if (active.isNotEmpty) return active.first;
     if (forTrainer.isNotEmpty) return forTrainer.first;
-    return ShiftingConfig.defaults(trainerKey: trainerKey);
+    return null;
   }
 
   Future<void> init() async {

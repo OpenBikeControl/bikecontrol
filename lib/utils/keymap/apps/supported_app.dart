@@ -9,6 +9,7 @@ import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/wahoo_element.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 
 import '../buttons.dart';
@@ -166,4 +167,21 @@ abstract class SupportedApp {
   String toString() {
     return runtimeType.toString();
   }
+}
+
+/// Reverse of [SupportedApp.inGameActionsMapping]: resolves an app-specific
+/// action back to the Zwift controller action the emulators speak.
+///
+/// The forward mapping renames controller actions for the selected app — Rouvy
+/// calls the Y button Kudos and the Z button Pause. Buttons are listed, stored
+/// and delivered under the renamed action, so everything that reasons in
+/// controller actions (the Zwift emulators' `sendAction`, and
+/// [KeyPair.hasActiveAction]) has to undo the rename first.
+///
+/// Returns [action] unchanged when the selected app maps nothing onto it, which
+/// covers both the apps without a mapping and the raw controller actions that
+/// are the mapping's own keys.
+InGameAction? resolveControllerAction(InGameAction? action) {
+  final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
+  return mapping?.entries.firstOrNullWhere((e) => e.value == action)?.key ?? action;
 }

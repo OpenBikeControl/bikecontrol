@@ -112,6 +112,11 @@ List<Widget> buildMenuButtons(BuildContext context) {
   ];
 }
 
+/// Test seam: stands in for [DebugDiagnostics.gather] inside [debugText], so a
+/// test can model a gather that hangs. Null outside tests.
+@visibleForTesting
+Future<DebugDiagnostics> Function({bool includeDiscovery})? debugDiagnosticsGatherOverride;
+
 Future<String> debugText({bool includeDiscovery = true}) async {
   // Every value here is read defensively. debugText also runs on the
   // startup-failure path (the recovery screen's "won't start" support mail),
@@ -144,7 +149,8 @@ Future<String> debugText({bool includeDiscovery = true}) async {
 
   String diagnostics;
   try {
-    final diag = await DebugDiagnostics.gather(includeDiscovery: includeDiscovery).timeout(const Duration(seconds: 6));
+    final gather = debugDiagnosticsGatherOverride ?? DebugDiagnostics.gather;
+    final diag = await gather(includeDiscovery: includeDiscovery).timeout(const Duration(seconds: 6));
     diagnostics = diag.toText();
   } catch (e, s) {
     recordError(e, s, context: 'debugText.diagnostics');
@@ -167,8 +173,8 @@ Status: ${guard(() => IAPManager.instance.getStatusMessage())}${userId != null ?
 $diagnostics
 ${networkTest.isEmpty ? '' : '$networkTest\n'}Logs:
 ${guard(() => core.connection.lastLogEntries.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}'))}${guard(() {
-    // Verbose DirCon/trainer wire trace (beta only), in its own section so it
-    // never crowds out the high-level Logs above. Empty for everyone else.
+    // Verbose DirCon/trainer wire trace, in its own section so it never
+    // crowds out the high-level Logs above.
     final trace = core.connection.lastTraceEntries;
     return trace.isEmpty
         ? ''
@@ -264,6 +270,10 @@ String describeProxyDevice(ProxyDevice device) {
     // the native path; `missed·N` shows a verdict building up.
     final gearAck = def.gearEchoSummary;
     if (gearAck != 'n/a') parts.add('zwiftGearAck=$gearAck');
+    // The trainer refused to start grade simulation and virtual shifting was
+    // switched to power — the line that explains vsMode=targetPower on a
+    // bundle whose rider picked Track Resistance.
+    if (def.trackResistanceRefused.value) parts.add('simGrade=refused→power');
     final ctl = def.lastControlWrite;
     if (ctl != null) {
       final age = DateTime.now().difference(ctl.at).inSeconds;

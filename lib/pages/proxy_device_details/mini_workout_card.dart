@@ -50,7 +50,9 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
     );
     if (confirmed != true || !mounted) return;
 
-    final result = _recorder.stop();
+    // Through healthRide so the ride also reaches Apple Health, and an
+    // automatic ride is released rather than restarted on the next tick.
+    final result = core.healthRide.stopRide();
     WakelockPlus.disable();
     if (result.activeDuration.inSeconds < 10) {
       buildToast(title: l10n.miniWorkoutRecordingTooShort);

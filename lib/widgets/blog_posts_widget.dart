@@ -11,7 +11,7 @@ class BlogPostsWidget extends StatefulWidget {
   final ValueChanged<bool>? onHasNewPosts;
 
   /// Test seam: replaces the default `BlogService().fetchPosts()` call —
-  /// see help_center_sections_test.dart.
+  /// see blog_posts_widget_test.dart.
   final Future<List<BlogPost>>? postsFutureOverride;
 
   const BlogPostsWidget({
@@ -93,14 +93,20 @@ class _BlogPostRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Follow the app's active language (OS locale or the in-app override from
+    // the settings language switcher — see units.dart for the same lookup).
+    // German posts live at their own /de/blog/<german-slug>/ URL; posts
+    // without a translation fall back to the English one.
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     return Button.ghost(
-      onPressed: () => launchUrl(Uri.parse(post.url)),
+      onPressed: () => launchUrl(Uri.parse(post.urlForLanguage(languageCode))),
       child: SizedBox(
         width: double.infinity,
         child: Basic(
           leading: post.isNew ? _newBadge(context) : null,
           title: Text(
-            post.title,
+            post.titleForLanguage(languageCode),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground),

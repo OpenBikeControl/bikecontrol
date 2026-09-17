@@ -3,8 +3,9 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, navigatorKey;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, installLoggerErrorListener, navigatorKey;
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_fixes.dart';
@@ -14,7 +15,9 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/network_check_row.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/mdns/service_advertiser.dart';
+import 'package:prop/utils/shared.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/network_self_test/fake_bonjour_api.dart';
 import '../services/network_self_test/recording_advertiser.dart';
@@ -61,6 +64,34 @@ NetworkProbeContext _ctx() => NetworkProbeContext(
 );
 
 AppLocalizations _l10n(WidgetTester tester) => AppLocalizations.of(tester.element(find.byType(NetworkTroubleshootingPage)));
+
+/// The variant a [Button] was built with — `Button.primary(...)` stores
+/// `ButtonVariance.primary` directly, `Button(style: ButtonStyle.primary())`
+/// wraps it; both must count.
+AbstractButtonStyle _varianceOf(Button button) {
+  final style = button.style;
+  return style is ButtonStyle ? style.variance : style;
+}
+
+/// Every [Button.primary] under [root].
+Iterable<Button> _primaryButtonsIn(WidgetTester tester, Finder root) => tester
+    .widgetList<Button>(find.descendant(of: root, matching: find.byType(Button)))
+    .where((b) => identical(_varianceOf(b), ButtonVariance.primary));
+
+ProbeSpec _probe(NetworkCheckId id, NetworkVerdict verdict, {List<NetworkFixId> fixes = const []}) => ProbeSpec(
+  id: id,
+  timeout: const Duration(seconds: 1),
+  run: (ctx) async => NetworkCheck(id: id, verdict: verdict, fixes: fixes),
+);
+
+/// Pumps the page over the given probes and lets the (instant) run finish.
+Future<void> _pumpFinished(WidgetTester tester, List<ProbeSpec> probes) async {
+  final engine = NetworkSelfTestEngine(contextBuilder: _ctx, probes: probes);
+  await _pump(tester, NetworkTroubleshootingPage(engineFactory: () => engine));
+  await tester.pump();
+  await tester.pump();
+  expect(engine.state.value.result, isNotNull, reason: 'the run should have finished');
+}
 
 Future<void> main() async {
   await ensureSnapshotHarness();
@@ -296,6 +327,122 @@ Future<void> main() async {
 
     expect(engine.state.value.result, isNotNull);
     expect(engine.state.value.result!.completed, isFalse);
+  });
+
+  // The closing card hands the result to support. It used to be a primary
+  // "Send to support" that riders tapped straight after the run, sending the
+  // bare bundle with no description — a third of all chats. Now it is never
+  // the loudest thing on the page, and on a pass it stops pretending there
+  // is a report worth sending: the chat asks what the rider sees instead.
+  group('footer', () {
+    final footer = find.byKey(const ValueKey('network-footer'));
+
+    testWidgets('pass: "Get help" outline button, pass copy, no primary button anywhere', (tester) async {
+      await _pumpFinished(tester, [_probe(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+      final l10n = _l10n(tester);
+
+      expect(footer, findsOneWidget);
+      expect(find.text(l10n.networkFooterPassTitle), findsOneWidget);
+      expect(find.text(l10n.networkFooterPassBody), findsOneWidget);
+      expect(find.text(l10n.networkFooterTitle), findsNothing);
+
+      final getHelp = find.byKey(const ValueKey('network-get-help'));
+      expect(find.descendant(of: footer, matching: getHelp), findsOneWidget);
+      expect(_varianceOf(tester.widget<Button>(getHelp)), same(ButtonVariance.outline));
+      expect(find.byKey(const ValueKey('network-send-support')), findsNothing);
+
+      // Still there: the two things support actually needs.
+      expect(find.descendant(of: footer, matching: find.byKey(const ValueKey('network-copy'))), findsOneWidget);
+      expect(find.descendant(of: footer, matching: find.text(l10n.logs)), findsOneWidget);
+
+      expect(_primaryButtonsIn(tester, footer), isEmpty);
+      // With nothing to fix, there is no recommended-fix primary either: on a
+      // clean pass nothing on the page shouts.
+      expect(_primaryButtonsIn(tester, find.byType(NetworkTroubleshootingPage)), isEmpty);
+    });
+
+    testWidgets('fail: "Send to support" is an outline button, never primary', (tester) async {
+      await _pumpFinished(tester, [
+        _probe(NetworkCheckId.resolveOwnHostname, NetworkVerdict.fail, fixes: [NetworkFixId.useOsResponderForObc]),
+      ]);
+      final l10n = _l10n(tester);
+
+      expect(find.text(l10n.networkFooterTitle), findsOneWidget);
+      expect(find.text(l10n.networkFooterBody), findsOneWidget);
+      expect(find.text(l10n.networkFooterPassTitle), findsNothing);
+
+      final send = find.byKey(const ValueKey('network-send-support'));
+      expect(find.descendant(of: footer, matching: send), findsOneWidget);
+      expect(tester.widget<Button>(send).child, isA<Text>().having((t) => t.data, 'label', l10n.networkTroubleshootSendToSupport));
+      expect(_varianceOf(tester.widget<Button>(send)), same(ButtonVariance.outline));
+      expect(find.byKey(const ValueKey('network-get-help')), findsNothing);
+
+      expect(_primaryButtonsIn(tester, footer), isEmpty);
+      // The one primary on the page is the recommended fix in the verdict
+      // card — the thing a rider should try before writing in.
+      expect(find.byKey(const ValueKey('network-recommended-fix')), findsOneWidget);
+    });
+
+    for (final verdict in [NetworkVerdict.warn, NetworkVerdict.unknown]) {
+      testWidgets('$verdict: same footer as fail', (tester) async {
+        await _pumpFinished(tester, [_probe(NetworkCheckId.advertisedAddress, verdict)]);
+        final l10n = _l10n(tester);
+
+        expect(find.text(l10n.networkFooterTitle), findsOneWidget);
+        expect(find.descendant(of: footer, matching: find.byKey(const ValueKey('network-send-support'))), findsOneWidget);
+        expect(find.byKey(const ValueKey('network-get-help')), findsNothing);
+        expect(_primaryButtonsIn(tester, footer), isEmpty);
+      });
+    }
+  });
+
+  // The tap itself: a real SupportChatPage gets pushed. Its default
+  // SupportChatService() reads `core.supabase`, which ensureSnapshotHarness()
+  // has already set up (core.settings.init() runs Supabase.initialize); with
+  // no session and no pre-answered intake the page makes no request. What
+  // does need taming is _openSupport's debugText(): its diagnostics gather
+  // ends in a recordError whose crash-persist path starts another gather —
+  // under this file's live binding an endless background chain of 6 s
+  // timers — so it is swapped for a plain print, the way
+  // proxy_device_details_need_help_test.dart does it.
+  group('hand-off to support', () {
+    setUpAll(() {
+      expect(Supabase.instance.client, isNotNull, reason: 'the harness already initialised Supabase');
+      installLoggerErrorListener();
+      Logger.onRecordError = (message, error, _) => debugPrint('recordError($message): $error');
+    });
+
+    Future<SupportChatPage> tapThrough(WidgetTester tester, String key) async {
+      await tester.tap(find.byKey(ValueKey(key)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(SupportChatPage), findsOneWidget);
+      return tester.widget<SupportChatPage>(find.byType(SupportChatPage));
+    }
+
+    testWidgets('"Get help" on a pass pins the result instead of prefilling it', (tester) async {
+      await _pumpFinished(tester, [_probe(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+      final label = _l10n(tester).supportPinnedNetworkTest;
+
+      final chat = await tapThrough(tester, 'network-get-help');
+
+      expect(chat.initialText, isNull, reason: 'the bundle must never be the whole message');
+      expect(chat.pinnedContext, startsWith('Network self-test: NETWORK PASS,'));
+      expect(chat.pinnedContext, contains('methodListening=pass'));
+      expect(chat.pinnedContextLabel, label);
+      expect(chat.diagnosticPreviewFuture, isNotNull);
+    });
+
+    testWidgets('"Send to support" on a fail hands over the same way', (tester) async {
+      await _pumpFinished(tester, [_probe(NetworkCheckId.resolveOwnHostname, NetworkVerdict.fail)]);
+      final label = _l10n(tester).supportPinnedNetworkTest;
+
+      final chat = await tapThrough(tester, 'network-send-support');
+
+      expect(chat.initialText, isNull);
+      expect(chat.pinnedContext, startsWith('Network self-test: NETWORK FAIL,'));
+      expect(chat.pinnedContextLabel, label);
+    });
   });
 
   group('runNetworkFix toasts', () {

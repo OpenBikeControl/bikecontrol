@@ -15,6 +15,17 @@ class BKColor {
 Color bkAccent(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4DA9E8) : Theme.of(context).colorScheme.primary;
 
+/// Hover wash for tappable card surfaces. The light theme's soft grey (`border`
+/// pushed to 94% lightness) turns near-white over the dark theme's navy cards,
+/// so dark mode lifts the card colour slightly instead.
+Color bkCardHover(BuildContext context) {
+  final theme = Theme.of(context);
+  final cs = theme.colorScheme;
+  return theme.brightness == Brightness.dark
+      ? Color.lerp(cs.card, cs.foreground, 0.08)!
+      : cs.border.withLuminance(0.94);
+}
+
 /// One step firmer than `colorScheme.border` — the design's `border-strong`,
 /// for hairlines that have to stay readable against an inset fill.
 Color bkStrongBorder(BuildContext context) {

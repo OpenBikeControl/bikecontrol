@@ -221,14 +221,15 @@ class Settings {
     await prefs.setString(_retrofitModeKey(trainerKey), mode.name);
   }
 
-  static String _feedbackSubmittedKey(String trainerKey) => 'feedback_submitted_$trainerKey';
-
-  bool getFeedbackSubmitted(String trainerKey) {
-    return prefs.getBool(_feedbackSubmittedKey(trainerKey)) ?? false;
+  /// Global, not per trainer: closing the "Need help?" card on one trainer's
+  /// page means the rider knows where the Help Center lives — re-showing it
+  /// on the next trainer would just be nagging.
+  bool getNeedHelpCardDismissed() {
+    return prefs.getBool('need_help_card_dismissed') ?? false;
   }
 
-  Future<void> setFeedbackSubmitted(String trainerKey, bool submitted) async {
-    await prefs.setBool(_feedbackSubmittedKey(trainerKey), submitted);
+  Future<void> setNeedHelpCardDismissed(bool dismissed) async {
+    await prefs.setBool('need_help_card_dismissed', dismissed);
   }
 
   static String _autoConnectKey(String trainerKey) => 'auto_connect_$trainerKey';
@@ -263,6 +264,59 @@ class Settings {
     }
     await prefs.setString(_controlProtocolKey(trainerKey), name);
   }
+
+  static String _sensorAutoConnectKey(String deviceId) => 'sensor_auto_connect_$deviceId';
+
+  /// Whether the rider has explicitly asked to connect this BLE sensor (a
+  /// heart rate strap, a cadence sensor, or a power meter). Mirrors
+  /// [getAutoConnect]'s per-trainer consent flag, keyed by BLE device id
+  /// instead of trainer key — a sensor must never auto-connect on its own
+  /// (see `BleHeartRateDevice.shouldAutoConnect`'s doc comment, shared by its
+  /// cadence/power equivalents: most only allow one simultaneous BLE link),
+  /// so this stays false until the rider taps Connect on a discovered
+  /// sensor, and from then on it reconnects automatically like every other
+  /// remembered device.
+  bool getSensorAutoConnect(String deviceId) {
+    return prefs.getBool(_sensorAutoConnectKey(deviceId)) ?? false;
+  }
+
+  Future<void> setSensorAutoConnect(String deviceId, bool autoConnect) async {
+    await prefs.setBool(_sensorAutoConnectKey(deviceId), autoConnect);
+  }
+
+  static String _sensorSelectionKey(String quantityName) => 'sensor_selection_$quantityName';
+
+  /// The rider's chosen source id for a quantity, or null for the trainer
+  /// (the default). Stored as the raw source id so an id that no longer
+  /// resolves degrades to "trainer" at the read site instead of throwing.
+  String? getSensorSelection(String quantityName) {
+    return prefs.getString(_sensorSelectionKey(quantityName));
+  }
+
+  Future<void> setSensorSelection(String quantityName, String? sourceId) async {
+    if (sourceId == null) {
+      await prefs.remove(_sensorSelectionKey(quantityName));
+      return;
+    }
+    await prefs.setString(_sensorSelectionKey(quantityName), sourceId);
+  }
+
+  static const _sensorsTransportKey = 'sensors_transport';
+  static const _sensorsOnlyModeKey = 'sensors_only_mode';
+
+  /// Standalone sensor broadcast transport — `bluetooth` or `wifi`. Never
+  /// `proxy`; an unknown stored value degrades to the default rather than
+  /// throwing at the read site.
+  RetrofitMode getSensorsTransport() {
+    final raw = prefs.getString(_sensorsTransportKey);
+    return raw == RetrofitMode.wifi.name ? RetrofitMode.wifi : RetrofitMode.bluetooth;
+  }
+
+  Future<void> setSensorsTransport(RetrofitMode mode) => prefs.setString(_sensorsTransportKey, mode.name);
+
+  bool getSensorsOnlyMode() => prefs.getBool(_sensorsOnlyModeKey) ?? false;
+
+  Future<void> setSensorsOnlyMode(bool value) => prefs.setBool(_sensorsOnlyModeKey, value);
 
   static String _selfTestKey(String trainerKey) => 'self_test_$trainerKey';
 
@@ -454,6 +508,24 @@ class Settings {
 
   Future<void> setVibrationEnabled(bool enabled) async {
     await prefs.setBool('vibration_enabled', enabled);
+  }
+
+  /// Phone-side shift feedback (haptics / sounds). Distinct from
+  /// [getVibrationEnabled], which buzzes the Zwift controller hardware.
+  bool getShiftHapticsEnabled() {
+    return prefs.getBool('shift_haptics_enabled') ?? false;
+  }
+
+  Future<void> setShiftHapticsEnabled(bool enabled) async {
+    await prefs.setBool('shift_haptics_enabled', enabled);
+  }
+
+  bool getShiftSoundEnabled() {
+    return prefs.getBool('shift_sound_enabled') ?? false;
+  }
+
+  Future<void> setShiftSoundEnabled(bool enabled) async {
+    await prefs.setBool('shift_sound_enabled', enabled);
   }
 
   bool getMyWhooshLinkEnabled() {
@@ -785,6 +857,29 @@ class Settings {
     return prefs.getInt('phone_steering_threshold')?.toDouble() ?? GyroscopeSteering.STEERING_THRESHOLD;
   }
 
+  // L-TWOO eRX/eR9 Settings
+
+  /// 3-digit ASCII PIN sent in every request frame; "000" is the factory default.
+  String getLtwooPin(String deviceId) => prefs.getString('ltwoo_pin_$deviceId') ?? '000';
+
+  Future<void> setLtwooPin(String deviceId, String pin) async => prefs.setString('ltwoo_pin_$deviceId', pin);
+
+  /// Anchor-gear mode: after each rider shift, the derailleur is shifted back
+  /// so the chain stays on one cog while the levers drive virtual shifting.
+  bool getLtwooAnchorGearEnabled(String deviceId) => prefs.getBool('ltwoo_anchor_gear_$deviceId') ?? false;
+
+  Future<void> setLtwooAnchorGearEnabled(String deviceId, bool enabled) async =>
+      prefs.setBool('ltwoo_anchor_gear_$deviceId', enabled);
+
+  /// Learned orientation of the rear remote-shift opcodes: true when this
+  /// derailleur moves opposite to the default mapping (LtwooErx verifies the
+  /// mapping at runtime and persists the result here).
+  bool getLtwooShiftOrientationInverted(String deviceId) =>
+      prefs.getBool('ltwoo_shift_orientation_inverted_$deviceId') ?? false;
+
+  Future<void> setLtwooShiftOrientationInverted(String deviceId, bool inverted) async =>
+      prefs.setBool('ltwoo_shift_orientation_inverted_$deviceId', inverted);
+
   // SRAM AXS Settings
 
   String? getSramKey(String serial) => prefs.getString('sram_key_$serial');
@@ -927,7 +1022,45 @@ class Settings {
   bool getOverlayEnabled() => prefs.getBool('overlay_enabled') ?? false;
 
   Future<void> setOverlayEnabled(bool enabled) async {
+    // Read before the write: an overlay that is on counts as answered even
+    // without the flag (see [getOverlayAnswered]), and switching it off has to
+    // carry that answer forward — or a rider who enabled the overlay before
+    // the flag existed would be asked again the first time it goes off.
+    final wasAnswered = getOverlayAnswered();
     await prefs.setBool('overlay_enabled', enabled);
+    // Turning the overlay on — from the home screen's step or the trainer
+    // page's switch — answers the step, and is the rider changing their mind
+    // about "Not now", so both are recorded here rather than at every call
+    // site. Turning it off is not an answer in itself, and the step must not
+    // become required again over it — the Live Activity's "stop ride"
+    // switches the overlay off on every ride end.
+    if (enabled || wasAnswered) await setOverlayAnswered(true);
+    if (enabled) await setOverlayDeclined(false);
+  }
+
+  /// Whether the rider has ever answered the home screen's gear-overlay step,
+  /// either way. The step is required only until then; afterwards an overlay
+  /// that is off is an offer, not outstanding work. Set by [setOverlayEnabled]
+  /// and [setOverlayDeclined], never cleared.
+  ///
+  /// An overlay that is on is an answer whether or not it was recorded as
+  /// one: riders who turned it on before this flag existed carry no flag, and
+  /// have answered all the same.
+  bool getOverlayAnswered() => (prefs.getBool('overlay_answered') ?? false) || getOverlayEnabled();
+
+  Future<void> setOverlayAnswered(bool answered) async {
+    await prefs.setBool('overlay_answered', answered);
+  }
+
+  /// Whether the rider answered the home screen's gear-overlay step with
+  /// "Not now". Keeps the step off the trainer card until the overlay is
+  /// turned on somewhere, which clears it again — see [setOverlayEnabled].
+  bool getOverlayDeclined() => prefs.getBool('overlay_declined') ?? false;
+
+  Future<void> setOverlayDeclined(bool declined) async {
+    await prefs.setBool('overlay_declined', declined);
+    // A "no" is an answer too; clearing the decline is not.
+    if (declined) await setOverlayAnswered(true);
   }
 
   /// iOS only: whether to use the floating Picture-in-Picture overlay.

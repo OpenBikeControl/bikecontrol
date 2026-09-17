@@ -2,6 +2,7 @@ import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/dircon_emulator.dart';
 
 const _readyApp = AppInput(
   name: 'MyWhoosh',
@@ -49,6 +50,9 @@ TrainerInput trainer({
   String? metrics = '250 W · 90 rpm',
   bool overlayOffered = false,
   bool overlayEnabled = false,
+  bool overlayAnswered = false,
+  bool overlayDeclined = false,
+  String? rawTrainerName,
 }) {
   return TrainerInput(
     deviceId: 'trainer-1',
@@ -56,9 +60,26 @@ TrainerInput trainer({
     presence: presence,
     appHoldsBridge: appHoldsBridge,
     bridgeName: 'KICKR CORE - BikeControl',
+    rawTrainerName: rawTrainerName,
     metrics: metrics,
     overlayOffered: overlayOffered,
     overlayEnabled: overlayEnabled,
+    overlayAnswered: overlayAnswered,
+    overlayDeclined: overlayDeclined,
+  );
+}
+
+SensorsInput sensors({
+  List<String> sourceNames = const ['Heart Rate Monitor'],
+  bool broadcasting = true,
+  RetrofitMode transport = RetrofitMode.bluetooth,
+  String? clientName,
+}) {
+  return SensorsInput(
+    sourceNames: sourceNames,
+    broadcasting: broadcasting,
+    transport: transport,
+    clientName: clientName,
   );
 }
 
@@ -639,6 +660,22 @@ void main() {
       expect(step.hintArg, 'KICKR CORE - BikeControl');
     });
 
+    // The trainer app lists the trainer twice: once under its own name and
+    // once as the bridge. Riders pick the first, which bypasses BikeControl
+    // entirely — so the step carries the wrong entry as well as the right one.
+    test("the pick-up step also names the entry under the trainer's own name", () {
+      final chain = buildChain(ChainInputs(trainer: trainer(rawTrainerName: 'KICKR CORE 1234'), app: _readyApp));
+      final step = chain.byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+      expect(step.hintArg, 'KICKR CORE - BikeControl');
+      expect(step.secondaryHintArg, 'KICKR CORE 1234');
+    });
+
+    test('an unknown trainer name leaves the entry to avoid out', () {
+      final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
+      final step = chain.byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+      expect(step.secondaryHintArg, isNull);
+    });
+
     test('gear ratios are a preference, never a setup step', () {
       final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
       expect(
@@ -648,20 +685,157 @@ void main() {
     });
   });
 
+  group('sensors link', () {
+    test('sensors-only mode replaces the trainer link with a sensors link', () {
+      final chain = buildChain(ChainInputs(controllers: [controller()], sensors: sensors(), app: _readyApp));
+      expect(chain.map((l) => l.key), [ChainLinkKey.controller, ChainLinkKey.sensors, ChainLinkKey.app]);
+      expect(chain.any((l) => l.key == ChainLinkKey.trainer), isFalse);
+    });
+
+    test('is optional with no checklist', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(), app: _readyApp));
+      final link = chain.byKey(ChainLinkKey.sensors);
+      expect(link.optional, isTrue);
+      expect(link.steps, isEmpty);
+      expect(link.isBlocking, isFalse);
+    });
+
+    test('is ready while broadcasting', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(broadcasting: true), app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.sensors).status, LinkStatus.ready);
+    });
+
+    test('is off while not broadcasting', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(broadcasting: false), app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.sensors).status, LinkStatus.off);
+    });
+
+    test('titles itself after the first source', () {
+      final chain = buildChain(
+        ChainInputs(sensors: sensors(sourceNames: const ['Power Meter', 'Cadence Sensor']), app: _readyApp),
+      );
+      expect(chain.byKey(ChainLinkKey.sensors).title, 'Power Meter');
+    });
+
+    test('titles itself blank with no sources', () {
+      final chain = buildChain(ChainInputs(sensors: sensors(sourceNames: const []), app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.sensors).title, '');
+    });
+
+    // A trainer showing up is how a rider leaves sensors-only mode. The home
+    // page is what actually drops the sensors input when that happens, but
+    // the builder has to be safe even if it is ever called with both set.
+    test('a trainer input present alongside sensors makes the trainer link win', () {
+      final chain = buildChain(
+        ChainInputs(controllers: [controller()], trainer: trainer(), sensors: sensors(), app: _readyApp),
+      );
+      expect(chain.map((l) => l.key), [ChainLinkKey.controller, ChainLinkKey.trainer, ChainLinkKey.app]);
+      expect(chain.any((l) => l.key == ChainLinkKey.sensors), isFalse);
+    });
+  });
+
   // The trainer app draws its own gear, not the one BikeControl computes, so a
   // bridged rider without the overlay is looking at a number that disagrees
-  // with their shifter — the single most common support question. It used to be
-  // a toast, which scrolled away before anyone read it; now it is a line on the
-  // card that stays until it is acted on.
+  // with their shifter — the single most common support question. It was a
+  // toast, then an optional line on the card, and riders walked past both
+  // (most of the chats came from a build that already showed the line). So
+  // it is now a step the rider has to answer once — turn the overlay on, or
+  // say "not now" — the way the Local Network step is required, whose chats
+  // fell away the day it started gating. Once answered it is never required
+  // again: an overlay switched off later is an offer, as it was before.
   group('the gear overlay step', () {
-    test('a bridged trainer that can show the overlay offers it', () {
-      final chain = buildChain(ChainInputs(trainer: trainer(overlayOffered: true), app: _readyApp));
+    test('a bridged trainer that can show the overlay asks for an answer', () {
+      final chain = buildChain(
+        ChainInputs(controllers: [controller()], trainer: trainer(overlayOffered: true), app: _readyApp),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerGearOverlay);
+      expect(step.done, isFalse);
+      expect(step.optional, isFalse);
+      // Last, so it never displaces the work that actually blocks the rider.
+      expect(link.steps.last.id, SetupStepId.trainerGearOverlay);
+      // Required: the card goes amber and the banner counts it, exactly like
+      // any other unfinished step.
+      expect(link.status, LinkStatus.attention);
+      expect(link.isBlocking, isTrue);
+      expect(link.remainingSteps, 1);
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.stepsLeft, 1);
+      expect(banner.targetKey, ChainLinkKey.trainer);
+    });
+
+    // "Not now" is a real answer: the step leaves the card entirely rather
+    // than lingering as a greyed-out offer, and the rider is ready to ride.
+    test('a declined overlay takes the step off the card and lets the rider ride', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(overlayOffered: true, overlayAnswered: true, overlayDeclined: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      expect(_hasStep(link, SetupStepId.trainerGearOverlay), isFalse);
+      expect(link.status, LinkStatus.ready);
+      expect(link.isBlocking, isFalse);
+      expect(deriveBanner(chain).kind, ChainBannerKind.ready);
+    });
+
+    test('ticks off once the rider has turned the overlay on', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(overlayOffered: true, overlayEnabled: true, overlayAnswered: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      expect(_stepDone(link, SetupStepId.trainerGearOverlay), isTrue);
+      expect(link.status, LinkStatus.ready);
+      // Done steps leave the checklist, so the card is back to its header.
+      expect(link.pendingSteps, isEmpty);
+    });
+
+    // The regression the review caught: an overlay the rider had on and then
+    // switched off — the trainer page's switch, or the Live Activity's "stop
+    // ride" on every ride end — must not put the amber card and "1 step left"
+    // back. They have answered; from here on the line is an offer again.
+    test('an overlay switched off after being answered is an optional offer', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(overlayOffered: true, overlayAnswered: true),
+          app: _readyApp,
+        ),
+      );
       final link = chain.byKey(ChainLinkKey.trainer);
       final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerGearOverlay);
       expect(step.done, isFalse);
       expect(step.optional, isTrue);
-      // Last, so it never displaces the work that actually blocks the rider.
-      expect(link.steps.last.id, SetupStepId.trainerGearOverlay);
+      expect(link.status, LinkStatus.ready);
+      expect(link.isBlocking, isFalse);
+      expect(link.remainingSteps, 0);
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.ready);
+      expect(banner.stepsLeft, 0);
+    });
+
+    // Turning the overlay on clears a decline at the settings layer, but the
+    // builder must not lean on that: an overlay that is on is a ticked step
+    // whatever a stale decline flag says.
+    test('an enabled overlay outranks a stale decline', () {
+      final chain = buildChain(
+        ChainInputs(
+          trainer: trainer(overlayOffered: true, overlayEnabled: true, overlayAnswered: true, overlayDeclined: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerGearOverlay);
+      expect(step.done, isTrue);
+      expect(step.optional, isFalse);
+      expect(link.status, LinkStatus.ready);
     });
 
     // Riding from another device, on a platform that can't draw one, or without
@@ -670,35 +844,6 @@ void main() {
     test('is absent when the overlay is not on offer', () {
       final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
       expect(_hasStep(chain.byKey(ChainLinkKey.trainer), SetupStepId.trainerGearOverlay), isFalse);
-    });
-
-    test('ticks off once the rider has turned the overlay on', () {
-      final chain = buildChain(
-        ChainInputs(trainer: trainer(overlayOffered: true, overlayEnabled: true), app: _readyApp),
-      );
-      final link = chain.byKey(ChainLinkKey.trainer);
-      expect(_stepDone(link, SetupStepId.trainerGearOverlay), isTrue);
-      // Done steps leave the checklist, so the card is back to its header.
-      expect(link.pendingSteps, isEmpty);
-    });
-
-    // The regression this guards: an offer that turns the card amber and stops
-    // "Ready to ride" is not an offer, it is a demand.
-    test('never blocks the rider or colours the card', () {
-      final chain = buildChain(
-        ChainInputs(
-          controllers: [controller()],
-          trainer: trainer(overlayOffered: true),
-          app: _readyApp,
-        ),
-      );
-      final link = chain.byKey(ChainLinkKey.trainer);
-      expect(link.status, LinkStatus.ready);
-      expect(link.isBlocking, isFalse);
-      expect(link.remainingSteps, 0);
-      final banner = deriveBanner(chain);
-      expect(banner.kind, ChainBannerKind.ready);
-      expect(banner.stepsLeft, 0);
     });
 
     // Before the bridge is up BikeControl computes no gear, so there is nothing
@@ -714,7 +859,7 @@ void main() {
     });
 
     // Ordering, stated as the thing that matters: while the app has not picked
-    // the bridge up, that is still the next action — the offer waits its turn.
+    // the bridge up, that is still the next action — the overlay waits its turn.
     test('waits behind the pick-up step', () {
       final chain = buildChain(
         ChainInputs(trainer: trainer(appHoldsBridge: false, overlayOffered: true), app: _readyApp),
@@ -820,6 +965,209 @@ void main() {
       });
     });
 
+    // A VPN, a mesh network or a second adapter can leave BikeControl
+    // advertising an address the trainer app cannot reach. The self-test
+    // already says so — but only to a rider who has found that page. The
+    // card says it first, and only while it is still the problem.
+    group('network address step', () {
+      test('is present and required while a flagged address is advertised and the app has not connected', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: '10.5.0.2', isConnected: false, hasEnabledConnection: true),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        final step = link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+        expect(step.done, isFalse);
+        expect(step.optional, isFalse);
+        expect(step.hintArg, '10.5.0.2');
+        expect(link.requiredSteps, contains(step));
+        expect(link.status, isNot(LinkStatus.ready));
+      });
+
+      test('disappears once the app connects', () {
+        // A connected app has reached the address, whatever it looks like —
+        // the warning would contradict the tick right under it.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: '10.5.0.2', isConnected: true, hasEnabledConnection: true),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      // Two adapters on different subnets flag many a desktop for good, and
+      // the app connects there all the same. What the app has already reached
+      // in this session is proven, whatever it looks like: only a verdict that
+      // changed since it connected — a VPN that came up and took the app with
+      // it — is news after a drop.
+      group('for an app that connected earlier in this session', () {
+        ChainLink linkFor({String? warning, String? warningAtConnect, bool connectedEarlier = true}) {
+          final app = AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: connectedEarlier,
+            advertisedAddressWarning: warning,
+            advertisedAddressWarningAtConnect: warningAtConnect,
+          );
+          return buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+        }
+
+        test('stays away while the flag is the one it connected through', () {
+          final link = linkFor(warning: '192.168.1.50', warningAtConnect: '192.168.1.50');
+          expect(_hasStep(link, SetupStepId.appNetworkAddress), isFalse);
+          expect(link.activeStep?.id, SetupStepId.appConnected);
+          expect(link.dropped, isTrue);
+        });
+
+        test('is back once a flag appears that was not there when it connected', () {
+          final link = linkFor(warning: '10.5.0.2');
+          final step = link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+          expect(step.hintArg, '10.5.0.2');
+          expect(link.activeStep?.id, SetupStepId.appNetworkAddress);
+        });
+
+        test('is back once the flagged address has changed since it connected', () {
+          final link = linkFor(warning: '10.5.0.2', warningAtConnect: '192.168.1.50');
+          expect(link.steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress).hintArg, '10.5.0.2');
+        });
+
+        test('stays away once the flag has cleared', () {
+          expect(_hasStep(linkFor(warningAtConnect: '192.168.1.50'), SetupStepId.appNetworkAddress), isFalse);
+        });
+
+        // What an address was proven by only vouches for the app that
+        // connected: the page passes it along whichever app is picked now.
+        test('proves nothing for an app that has not connected in this session', () {
+          final link = linkFor(warning: '192.168.1.50', warningAtConnect: '192.168.1.50', connectedEarlier: false);
+          expect(_hasStep(link, SetupStepId.appNetworkAddress), isTrue);
+        });
+      });
+
+      test('is absent when the advertised address looks fine', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: null, isConnected: false, hasEnabledConnection: true),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('is absent while no connection method is enabled', () {
+        // Nothing is advertised yet, so there is no address to warn about;
+        // switching a method on is the step that is actually outstanding.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(advertisedAddressWarning: '10.5.0.2', isConnected: false, hasEnabledConnection: false),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('is absent for a self-hosted app, which has no wire to reach', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'BikeControl',
+              selfHosted: true,
+              advertisedAddressWarning: '10.5.0.2',
+              hasEnabledConnection: true,
+            ),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        expect(_hasStep(link, SetupStepId.appNetworkAddress), isFalse);
+        expect(link.status, LinkStatus.ready);
+      });
+
+      test('is the active step once the method and the permission are done, ahead of the connection', () {
+        // It explains why "connected" is not happening, so it has to come
+        // before that step — and after the ones it depends on.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              localNetworkGranted: true,
+              advertisedAddressWarning: '100.101.102.103',
+            ),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        expect(link.activeStep!.id, SetupStepId.appNetworkAddress);
+        final ids = link.steps.map((s) => s.id).toList();
+        expect(ids.indexOf(SetupStepId.appNetworkAddress), greaterThan(ids.indexOf(SetupStepId.appLocalNetwork)));
+        expect(ids.indexOf(SetupStepId.appNetworkAddress), lessThan(ids.indexOf(SetupStepId.appConnected)));
+      });
+
+      // The trainer app reaches BikeControl twice — once for the trainer, once
+      // for the controller — and a trainer held over the network is proof the
+      // advertised address is reachable, whatever it looks like. A trainer
+      // held over Bluetooth proves nothing about the network.
+      test('is absent while the app already holds the trainer over the network', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              advertisedAddressWarning: '10.5.0.2',
+              trainerBridgedByApp: true,
+              trainerBridgedOverNetwork: true,
+            ),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isFalse);
+      });
+
+      test('stays while the app holds the trainer over Bluetooth only', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              advertisedAddressWarning: '10.5.0.2',
+              trainerBridgedByApp: true,
+              trainerBridgedOverNetwork: false,
+            ),
+          ),
+        );
+        final link = chain.byKey(ChainLinkKey.app);
+        expect(_hasStep(link, SetupStepId.appNetworkAddress), isTrue);
+        expect(link.activeStep!.id, SetupStepId.appNetworkAddress);
+      });
+
+      test('stays while the app holds no trainer at all', () {
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              advertisedAddressWarning: '10.5.0.2',
+              trainerBridgedByApp: false,
+              trainerBridgedOverNetwork: false,
+            ),
+          ),
+        );
+        expect(_hasStep(chain.byKey(ChainLinkKey.app), SetupStepId.appNetworkAddress), isTrue);
+      });
+
+      test('a denied Local Network permission still comes first', () {
+        // Without the permission nothing leaves the device at all, so which
+        // address is advertised is not yet the rider's problem.
+        final chain = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              localNetworkGranted: false,
+              advertisedAddressWarning: '10.5.0.2',
+            ),
+          ),
+        );
+        expect(chain.byKey(ChainLinkKey.app).activeStep!.id, SetupStepId.appLocalNetwork);
+      });
+    });
+
     test('selected but with no connection method is amber', () {
       final chain = buildChain(const ChainInputs(app: AppInput(name: 'MyWhoosh')));
       final link = chain.byKey(ChainLinkKey.app);
@@ -827,18 +1175,97 @@ void main() {
       expect(link.activeStep!.id, SetupStepId.appConnectionMethod);
     });
 
-    test('an app that was connected and dropped is red', () {
-      final chain = buildChain(
-        const ChainInputs(
-          app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true),
-        ),
-      );
-      expect(chain.byKey(ChainLinkKey.app).status, LinkStatus.problem);
+    // A trainer app that goes away after it worked has almost always just been
+    // closed. Red with "Fix" sent riders into a network test with nothing to
+    // find, so the card goes amber and simply says the app disconnected.
+    group('an app that was connected and dropped', () {
+      const dropped = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true);
+
+      test('is amber and flagged as dropped', () {
+        final link = buildChain(const ChainInputs(app: dropped)).byKey(ChainLinkKey.app);
+        expect(link.status, LinkStatus.attention);
+        expect(link.dropped, isTrue);
+        expect(link.wasConnectedThisSession, isTrue);
+      });
+
+      test('is never red, whatever else is outstanding on the card', () {
+        const apps = [
+          dropped,
+          // The method was switched off after the app had connected.
+          AppInput(name: 'MyWhoosh', wasConnectedThisSession: true),
+          AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            localNetworkGranted: false,
+          ),
+          AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            advertisedAddressWarning: '10.5.0.2',
+          ),
+        ];
+        for (final app in apps) {
+          final link = buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+          expect(link.status, LinkStatus.attention, reason: '${link.activeStep}');
+          expect(link.dropped, isTrue, reason: '${link.activeStep}');
+        }
+      });
+
+      test('still waits on the connection step, as before', () {
+        final link = buildChain(const ChainInputs(app: dropped)).byKey(ChainLinkKey.app);
+        expect(link.activeStep?.id, SetupStepId.appConnected);
+        expect(link.remainingSteps, 1);
+      });
+
+      // With the trainer still held the app is plainly open: only its
+      // controller tile is missing, and the connection step already says so.
+      test('is not dropped while it still holds the trainer, but did connect', () {
+        final link = buildChain(
+          const ChainInputs(
+            app: AppInput(
+              name: 'MyWhoosh',
+              hasEnabledConnection: true,
+              wasConnectedThisSession: true,
+              trainerBridgedByApp: true,
+            ),
+          ),
+        ).byKey(ChainLinkKey.app);
+        expect(link.status, LinkStatus.attention);
+        expect(link.dropped, isFalse);
+        expect(link.wasConnectedThisSession, isTrue);
+        expect(link.activeStep?.id, SetupStepId.appConnected);
+        expect(link.activeStep?.variant, SetupStepVariant.controllerLinkMissing);
+      });
     });
 
-    test('an app that has never connected is amber, not red', () {
+    test('an app that has never connected is amber, not red, and not dropped', () {
       final chain = buildChain(const ChainInputs(app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true)));
       expect(chain.byKey(ChainLinkKey.app).status, LinkStatus.attention);
+      expect(chain.byKey(ChainLinkKey.app).dropped, isFalse);
+      expect(chain.byKey(ChainLinkKey.app).wasConnectedThisSession, isFalse);
+    });
+
+    test('a connected app is not dropped', () {
+      expect(buildChain(const ChainInputs(app: _readyApp)).byKey(ChainLinkKey.app).dropped, isFalse);
+    });
+
+    // Nothing to drop: no app is picked, or BikeControl runs the workout
+    // itself and there is no wire to it at all.
+    test('neither an unpicked nor a self-hosted app is ever dropped', () {
+      const apps = [
+        AppInput(hasEnabledConnection: true, wasConnectedThisSession: true),
+        AppInput(name: 'BikeControl', selfHosted: true, wasConnectedThisSession: true),
+      ];
+      for (final app in apps) {
+        expect(buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app).dropped, isFalse, reason: app.name);
+      }
+    });
+
+    test('an unpicked app has connected to nothing', () {
+      const app = AppInput(hasEnabledConnection: true, wasConnectedThisSession: true);
+      expect(buildChain(const ChainInputs(app: app)).byKey(ChainLinkKey.app).wasConnectedThisSession, isFalse);
     });
 
     test('a self-hosted app needs no connection method and is ready on selection', () {
@@ -846,6 +1273,43 @@ void main() {
       final link = chain.byKey(ChainLinkKey.app);
       expect(link.status, LinkStatus.ready);
       expect(link.remainingSteps, 0);
+    });
+
+    // The trainer app's pairing screen has two BikeControl tiles — the trainer
+    // and the controller — and the most common support case is a rider who
+    // paired one and not the other. Once the app is reading the trainer through
+    // BikeControl, "waiting for the app to connect" is only half true, so the
+    // step says which half is missing.
+    group('with the trainer already picked up by the app', () {
+      const app = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, trainerBridgedByApp: true);
+
+      SetupStep connectedStep(ChainInputs inputs) =>
+          buildChain(inputs).byKey(ChainLinkKey.app).steps.firstWhere((s) => s.id == SetupStepId.appConnected);
+
+      test('the connection step is flagged as the controller link being the missing one', () {
+        final step = connectedStep(const ChainInputs(app: app));
+        expect(step.done, isFalse);
+        expect(step.variant, SetupStepVariant.controllerLinkMissing);
+      });
+
+      test('no other step on the card is flagged', () {
+        final others = buildChain(
+          const ChainInputs(app: app),
+        ).byKey(ChainLinkKey.app).steps.where((s) => s.id != SetupStepId.appConnected);
+        expect(others, isNotEmpty);
+        expect(others.every((s) => s.variant == SetupStepVariant.standard), isTrue);
+      });
+
+      test('the plain connection step keeps its ordinary wording', () {
+        final step = connectedStep(const ChainInputs(app: AppInput(name: 'MyWhoosh', hasEnabledConnection: true)));
+        expect(step.done, isFalse);
+        expect(step.variant, SetupStepVariant.standard);
+      });
+
+      test('a held bridge with no app picked flags nothing — there is no app to name', () {
+        final step = connectedStep(const ChainInputs(app: AppInput(trainerBridgedByApp: true)));
+        expect(step.variant, SetupStepVariant.standard);
+      });
     });
   });
 
@@ -958,6 +1422,131 @@ void main() {
       expect(banner.stepsLeft, 5);
       expect(banner.targetLinkId, 'controller');
       expect(banner.outstandingKeys, [ChainLinkKey.controller, ChainLinkKey.app]);
+    });
+
+    test('a trainer app that dropped after working is pending, not broken', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          app: const AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.status, LinkStatus.attention);
+      expect(banner.appDropped, isTrue);
+      expect(banner.targetLinkId, 'app');
+      expect(banner.stepsLeft, 1);
+    });
+
+    // Quitting the app with Virtual Shifting on: the bridge keeps running,
+    // nothing holds it any more, and the app is gone. The trainer card waits
+    // for that same app — one cause, and the banner treats it as one.
+    group('quitting the app with a bridged trainer', () {
+      const quitApp = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true);
+
+      test('is one cause: the dropped banner, aimed at the app, with nothing to reveal', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller()],
+            trainer: trainer(appHoldsBridge: false),
+            app: quitApp,
+          ),
+        );
+        expect(
+          chain.byKey(ChainLinkKey.trainer).pendingSteps.map((s) => s.id),
+          [SetupStepId.trainerAppBridged],
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.kind, ChainBannerKind.pending);
+        expect(banner.appDropped, isTrue);
+        expect(banner.targetLinkId, 'app');
+        expect(banner.revealsOutstandingCards, isFalse);
+        // One cause, counted once — each card still carries its own step.
+        expect(banner.stepsLeft, 1);
+        expect(chain.byKey(ChainLinkKey.trainer).remainingSteps, 1);
+        expect(chain.byKey(ChainLinkKey.app).remainingSteps, 1);
+      });
+
+      // The overlay question is still open on the trainer card: that is a
+      // second thing to do, whatever the app does.
+      test('keeps the cards to reveal while the trainer card asks for something else too', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller()],
+            trainer: trainer(appHoldsBridge: false, overlayOffered: true),
+            app: quitApp,
+          ),
+        );
+        expect(
+          chain.byKey(ChainLinkKey.trainer).pendingSteps.map((s) => s.id),
+          [SetupStepId.trainerAppBridged, SetupStepId.trainerGearOverlay],
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.appDropped, isFalse);
+        expect(banner.revealsOutstandingCards, isTrue);
+        expect(banner.stepsLeft, 3);
+      });
+
+      test('keeps the cards to reveal while a controller is outstanding too', () {
+        final chain = buildChain(
+          ChainInputs(
+            controllers: [controller(presence: DevicePresence.remembered)],
+            trainer: trainer(appHoldsBridge: false),
+            app: quitApp,
+          ),
+        );
+        final banner = deriveBanner(chain);
+        expect(banner.appDropped, isFalse);
+        expect(banner.revealsOutstandingCards, isTrue);
+      });
+    });
+
+    test('an app that still holds the trainer after a drop gets the controller-tile banner', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(),
+          app: const AppInput(
+            name: 'MyWhoosh',
+            hasEnabledConnection: true,
+            wasConnectedThisSession: true,
+            trainerBridgedByApp: true,
+          ),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.appDropped, isFalse);
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerLinkMissing);
+    });
+
+    test('a controller that broke still leads over a trainer app that dropped', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller(presence: DevicePresence.lost)],
+          app: const AppInput(name: 'MyWhoosh', hasEnabledConnection: true, wasConnectedThisSession: true),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.broken);
+      expect(banner.targetKey, ChainLinkKey.controller);
+      expect(banner.appDropped, isFalse);
+    });
+
+    test('a bridged trainer waiting only on the controller link hands the banner that one step', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(),
+          app: const AppInput(name: 'MyWhoosh', hasEnabledConnection: true, trainerBridgedByApp: true),
+        ),
+      );
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.stepsLeft, 1);
+      expect(banner.soleStep?.id, SetupStepId.appConnected);
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerLinkMissing);
     });
   });
 }

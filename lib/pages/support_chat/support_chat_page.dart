@@ -10,6 +10,7 @@ import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -40,6 +41,14 @@ class SupportChatPage extends StatefulWidget {
   /// directly onto a smart-trainer intake branch.
   final IntakeAnswers? initialIntake;
 
+  /// A self-test result line to send along with the first message. Unlike
+  /// [initialText] it is not prefilled into the composer: the rider has to
+  /// describe the problem in their own words before they can send (see
+  /// [SupportComposer.pinnedContext]). [pinnedContextLabel] names it in the
+  /// composer's "Attached: …" chip and must be set alongside it.
+  final String? pinnedContext;
+  final String? pinnedContextLabel;
+
   /// Test-only injection point for the chat's Supabase-backed service.
   /// Production call sites never pass this and get the default
   /// `SupportChatService()`, which talks to `core.supabase`.
@@ -57,9 +66,11 @@ class SupportChatPage extends StatefulWidget {
     this.initialText,
     this.initialAttachment,
     this.initialIntake,
+    this.pinnedContext,
+    this.pinnedContextLabel,
     this.service,
     this.accountService,
-  });
+  }) : assert(pinnedContext == null || pinnedContextLabel != null, 'pinnedContext needs a pinnedContextLabel');
 
   @override
   State<SupportChatPage> createState() => _SupportChatPageState();
@@ -156,21 +167,41 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       _loadError = null;
     });
     try {
-      final chat = await _service.openChat();
+      // Get-only: opening the page must never create a chat by itself (that
+      // was 135 of 444 chat rows in 30 days — someone merely looked, then
+      // left). A brand-new rider with a session but no messages yet gets
+      // chat: null here and stays that way until _send()'s lazy create
+      // (openChat()) runs on the first message.
       final fetched = await _service.fetchChat(skipLastSeen: false);
       if (!mounted) return;
       setState(() {
-        _chat = fetched.chat ?? chat;
+        _chat = fetched.chat;
         _messages = fetched.messages;
         _loading = false;
       });
-    } on SupportChatException catch (e) {
+      // A returning rider's chat already exists server-side — flip the sticky
+      // "has a support chat" flag now, same as openChat() does for the
+      // lazy-create-on-send path, so HelpButton's unread-reply poll picks it
+      // up without waiting for another message. This gets its own try/catch:
+      // the chat and its messages already loaded successfully above, so a
+      // failure writing this local flag must not turn that into a full-page
+      // "failed to open chat" screen.
+      if (fetched.chat != null) {
+        try {
+          await core.settings.setSupportChatActive(true);
+        } catch (e, s) {
+          recordError(e, s, context: 'support.chat.bootstrap.setActive');
+        }
+      }
+    } on SupportChatException catch (e, s) {
+      recordError(e, s, context: 'support.chat.bootstrap');
       if (!mounted) return;
       setState(() {
         _loading = false;
         _loadError = e.message;
       });
-    } catch (_) {
+    } catch (e, s) {
+      recordError(e, s, context: 'support.chat.bootstrap');
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -515,6 +546,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             diagnosticPreview: _diagnosticPreview,
             initialText: widget.initialText,
             initialAttachment: widget.initialAttachment,
+            pinnedContext: widget.pinnedContext,
+            pinnedContextLabel: widget.pinnedContextLabel,
           ),
       ],
     );

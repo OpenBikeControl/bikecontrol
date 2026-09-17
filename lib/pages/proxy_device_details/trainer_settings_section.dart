@@ -70,17 +70,91 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 10,
-      children: [
-        ShiftingConfigPicker(trainerKey: widget.device.trainerKey),
-        _gearSettingsCard(),
-        _bikeWeightCard(),
-        _riderWeightCard(),
-        if (def.supportedControlProtocols.length > 1) _controlProtocolCard(),
-      ],
+    // Listening at the Column rather than around the notice alone: the Column
+    // spaces its children, so a hidden notice returning SizedBox.shrink would
+    // still leave a 10px gap under the protocol card on every healthy trainer.
+    return ValueListenableBuilder<ZwiftGearEchoVerdict?>(
+      valueListenable: def.gearEchoVerdict,
+      builder: (context, verdict, _) {
+        final verdictMessage = _gearEchoMessage(verdict);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 10,
+          children: [
+            ShiftingConfigPicker(trainerKey: widget.device.trainerKey),
+            _gearSettingsCard(),
+            _bikeWeightCard(),
+            _riderWeightCard(),
+            if (def.supportedControlProtocols.length > 1) _controlProtocolCard(),
+            if (verdictMessage != null) _gearEchoVerdictNotice(verdict, verdictMessage),
+          ],
+        );
+      },
     );
+  }
+
+  /// The watchdog's verdict, for the two outcomes that leave the rider stuck.
+  ///
+  /// A trainer that takes native gear commands and acknowledges none of them
+  /// is moved to FTMS by the definition — unless the rider forced a protocol
+  /// by hand, which it deliberately leaves alone. That is the right call and
+  /// the wrong silence: it pins them to a wire the trainer ignores, and until
+  /// this notice the only trace was one line in the support log. A beta tester
+  /// found it by cycling transports at random. [fellBackToFtms] is not shown:
+  /// it already fixed itself and needs nothing from the rider.
+  String? _gearEchoMessage(ZwiftGearEchoVerdict? verdict) => switch (verdict) {
+    ZwiftGearEchoVerdict.riderOverrideKept => context.i18n.controlProtocolIgnored,
+    ZwiftGearEchoVerdict.noFtmsToFallBackTo => context.i18n.controlProtocolIgnoredNoFallback,
+    ZwiftGearEchoVerdict.fellBackToFtms || null => null,
+  };
+
+  Widget _gearEchoVerdictNotice(ZwiftGearEchoVerdict? verdict, String message) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      decoration: BoxDecoration(
+        color: cs.muted,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.destructive),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Icon(LucideIcons.triangleAlert, size: 15, color: cs.destructive),
+              Expanded(
+                child: Text(message, style: TextStyle(fontSize: 12, color: cs.destructive)),
+              ),
+            ],
+          ),
+          // Only where there is something to undo: with no protocol to fall
+          // back to, clearing the override would change nothing.
+          if (verdict == ZwiftGearEchoVerdict.riderOverrideKept)
+            Button.outline(
+              onPressed: _clearProtocolOverride,
+              child: Text(context.i18n.controlProtocolUseAuto),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Hands the trainer back to auto-detection, which is what the rider wanted
+  /// when they picked a protocol by hand — a wire that works. Mirrors the
+  /// select's own onChanged, reconnect included: the trainer latches its
+  /// control session at connect time.
+  Future<void> _clearProtocolOverride() async {
+    final before = def.controlProtocol;
+    def.setControlProtocolOverride(null);
+    await core.settings.setControlProtocolOverride(widget.device.trainerKey, null);
+    if (mounted) setState(() {});
+    if (def.controlProtocol != before) {
+      await (widget.reconnectDevice ?? widget.device.reconnectUpstream)();
+    }
   }
 
   /// Escape hatch for trainers auto-detection talks to over the wrong wire.

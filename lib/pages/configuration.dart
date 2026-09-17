@@ -105,20 +105,15 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     ],
                   ],
 
-                  if (core.settings.getLastTarget() == Target.otherDevice &&
-                      !core.logic.hasRecommendedConnectionMethods &&
-                      // Nothing to install alongside an app that takes no
-                      // controller input — it only ever sees us as a trainer.
-                      core.settings.getTrainerApp()?.receivesButtonEvents != false &&
-                      core.settings.getTrainerApp() is! BikeControl) ...[
+                  if (core.settings.getTrainerApp() case final app?
+                      when core.settings.getLastTarget() == Target.otherDevice &&
+                          !core.logic.hasRecommendedConnectionMethods &&
+                          // Nothing to install alongside an app that takes no
+                          // controller input — it only ever sees us as a trainer.
+                          app.receivesButtonEvents &&
+                          app is! BikeControl) ...[
                     SizedBox(height: 8),
-                    Warning(
-                      children: [
-                        Text(
-                          'BikeControl is available on iOS, Android, Windows and macOS. For proper support for ${core.settings.getTrainerApp()?.name} please download BikeControl on that device.',
-                        ).small,
-                      ],
-                    ),
+                    installOnTargetDeviceWarning(context, app),
                   ],
                   if (core.settings.getTrainerApp()?.star == true && !screenshotMode && !widget.onboardingMode)
                     Row(
@@ -154,6 +149,28 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 /// [ConfigurationPage] so it can be rendered standalone (e.g. golden
 /// snapshots). Behaviour is unchanged — it mutates the same `core.*`
 /// singletons and notifies via [onUpdate].
+/// Tells the rider to put BikeControl on the device their trainer app runs on.
+///
+/// Apps that speak no controller protocol at all (Tacx Training) get two more
+/// lines. For them the Local method — keystrokes typed into the app on the very
+/// device it runs on — is not one option among several, it is the only way a
+/// button press ever reaches them, so "install it over there" on its own reads
+/// as a promise we can't keep. And Local doesn't exist on iOS: we can't tell
+/// what the other device is, so rather than leave an iPad rider chasing a
+/// method their device will never show, the second line names the platforms and
+/// points at what still does work there — the Bridge and its virtual shifting.
+Widget installOnTargetDeviceWarning(BuildContext context, SupportedApp app) {
+  return Warning(
+    children: [
+      Text(context.i18n.warningInstallOnTargetDevice(app.name)).small,
+      if (app.connections.isEmpty) ...[
+        Text(context.i18n.warningAppLocalControlOnly(app.name)).small,
+        Text(context.i18n.warningAppLocalControlIosNote(app.name)).small,
+      ],
+    ],
+  );
+}
+
 class TrainerAppSelect extends StatelessWidget {
   /// Called after the trainer app changes so the host can rebuild.
   final VoidCallback onUpdate;

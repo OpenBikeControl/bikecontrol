@@ -25,4 +25,7 @@ List<EmulationProfile> get allEmulationProfiles => [
       eliteRizerProfile,
       wahooKickrClimbProfile,
       wahooKickrHeadwindProfile,
+      heartRateStrapProfile,
+      cadenceSensorProfile,
+      powerMeterProfile,
     ];

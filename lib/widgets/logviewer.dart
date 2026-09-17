@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/main.dart' show crashLogFile;
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -165,7 +166,12 @@ class _LogviewerState extends State<LogViewer> {
                 child: Row(
                   children: [
                     Text('Logs file: '),
-                    Expanded(child: SelectableText('${Directory.current.path}/app.log').inlineCode),
+                    Expanded(
+                      child: FutureBuilder<File>(
+                        future: crashLogFile(),
+                        builder: (context, snapshot) => SelectableText(snapshot.data?.path ?? '').inlineCode,
+                      ),
+                    ),
                   ],
                 ).small,
               ),

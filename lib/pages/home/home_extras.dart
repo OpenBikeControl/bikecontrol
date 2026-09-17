@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
+import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -36,6 +38,15 @@ class _HomeExtrasState extends State<HomeExtras> {
   bool get _showsMediaKeys => !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS);
 
   bool get _showsPhoneSteering => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  /// Phone-side shift feedback. Sound has a backend on every desktop/mobile
+  /// OS we ship; vibration needs a haptics engine, so phones/tablets only.
+  bool get _showsShiftSound => !kIsWeb;
+
+  bool get _showsShiftHaptics => PlatformShiftHaptics.isSupported;
+
+  /// "Save rides to Apple Health": iOS/iPadOS with Health on the device.
+  bool get _showsHealthRide => core.healthRide.isSupported;
 
   /// Quitting from a menu row is a mobile idiom; desktop windows close
   /// themselves, and SystemNavigator.pop() does nothing useful there anyway.
@@ -141,6 +152,63 @@ class _HomeExtrasState extends State<HomeExtras> {
                   widget.onUpdate();
                   if (mounted) setState(() {});
                 },
+              ),
+            if (_showsShiftHaptics)
+              SwitchFeature(
+                isMobile: widget.isMobile,
+                value: core.shiftFeedback.hapticsEnabled,
+                title: context.i18n.shiftFeedbackHaptics,
+                subtitle: context.i18n.shiftFeedbackHapticsSubtitle,
+                onPressed: () async {
+                  await core.shiftFeedback.setHapticsEnabled(!core.shiftFeedback.hapticsEnabled);
+                  if (mounted) setState(() {});
+                },
+              ),
+            if (_showsShiftSound)
+              SwitchFeature(
+                isMobile: widget.isMobile,
+                value: core.shiftFeedback.soundEnabled,
+                title: context.i18n.shiftFeedbackSound,
+                subtitle: context.i18n.shiftFeedbackSoundSubtitle,
+                onPressed: () async {
+                  await core.shiftFeedback.setSoundEnabled(!core.shiftFeedback.soundEnabled);
+                  if (mounted) setState(() {});
+                },
+              ),
+            if (_showsHealthRide)
+              ListenableBuilder(
+                listenable: core.healthRide.changes,
+                builder: (context, _) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SwitchFeature(
+                      isMobile: widget.isMobile,
+                      value: core.healthRide.isEnabled,
+                      isProOnly: true,
+                      title: context.i18n.healthRideToggleTitle,
+                      subtitle: context.i18n.healthRideToggleSubtitle,
+                      onPressed: () async {
+                        try {
+                          await core.healthRide.setEnabled(!core.healthRide.isEnabled);
+                        } catch (e, s) {
+                          await recordError(e, s, context: 'HomeExtras.setHealthRideEnabled');
+                        }
+                      },
+                    ),
+                    if (core.healthRide.showsDuplicateHint)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                        child: Text(
+                          context.i18n.healthRideDuplicateHint(core.healthRide.trainerApp()?.name ?? ''),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            height: 1.4,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             if (_showsQuit)
               _row(

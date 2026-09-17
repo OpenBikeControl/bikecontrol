@@ -95,3 +95,7 @@ a clear error rather than corrupt it.
   captures of the *same* version/build, stop and investigate — the binary baseline itself
   moved, not just the zip wrapper.
 - Re-run `register-baseline` for every new macOS store release before its first patch.
+- App Store Connect keeps the marketing version exactly as it was typed there (`6.6`),
+  while Shorebird and the app bundle use the three-part pubspec version (`6.6.0`). The
+  script matches those spellings semantically and then uses Shorebird's, so
+  `RELEASE_VERSION` accepts either.

@@ -14,6 +14,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
@@ -324,8 +325,7 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
   @override
   Future<ActionResult> sendAction(KeyPair keyPair, {required bool isKeyDown, required bool isKeyUp}) async {
     // Resolve mapped app-specific actions (e.g. Rouvy's kudos) back to Zwift Click V2 actions
-    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping;
-    var action = mapping?.entries.firstOrNullWhere((e) => e.value == keyPair.inGameAction) ?? keyPair.inGameAction;
+    final action = resolveControllerAction(keyPair.inGameAction);
 
     if (action == InGameAction.frontShift) {
       return _sendFrontShift(keyPair);

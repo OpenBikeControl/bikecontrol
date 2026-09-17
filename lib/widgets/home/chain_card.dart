@@ -1,7 +1,10 @@
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
+import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One link of the setup chain.
@@ -19,13 +22,18 @@ class ChainCard extends StatefulWidget {
     required this.title,
     required this.statusLabel,
     this.statusBadges = const [],
+    this.subtitle,
     this.appName,
     this.editLabel,
     this.onEdit,
     this.onInstructions,
     this.instructionsLabel,
+    this.onSecondaryAction,
+    this.secondaryActionLabel,
     this.body,
     this.onTap,
+    this.footer,
+    this.highlight,
   });
 
   final ChainLink link;
@@ -39,6 +47,10 @@ class ChainCard extends StatefulWidget {
   /// Inline warning glyphs beside the status — see [StatusLine.badges].
   final List<Widget> statusBadges;
 
+  /// A quiet line under the status — the Sensors card's "with Assioma DUO",
+  /// naming what the title left out. Null or empty renders nothing.
+  final String? subtitle;
+
   /// Used to fill "{app} is connected" style step wording.
   final String? appName;
 
@@ -46,9 +58,17 @@ class ChainCard extends StatefulWidget {
   final VoidCallback? onEdit;
 
   /// Opens the guide for the active step. Only the active step offers it, so
-  /// there is exactly one next action visible per card.
+  /// the card has exactly one next thing to do — [onSecondaryAction] is the
+  /// other answer to that same thing, never a second thing.
   final VoidCallback? onInstructions;
   final String? instructionsLabel;
+
+  /// A second answer to the active step, beside [onInstructions] — "Not now"
+  /// on the gear overlay. Only for a required step that is really an offer:
+  /// without a way to say no, "required" reads as "demanded". Rendered only
+  /// when both the callback and [secondaryActionLabel] are given.
+  final VoidCallback? onSecondaryAction;
+  final String? secondaryActionLabel;
 
   /// Extra content between the header and the checklist — the controller
   /// contour, for instance.
@@ -58,6 +78,17 @@ class ChainCard extends StatefulWidget {
   /// a card that is entirely about one device should behave like the row it
   /// looks like. Buttons inside the card still win the tap they sit under.
   final VoidCallback? onTap;
+
+  /// A strip along the card's bottom edge, below everything else and behind
+  /// its own divider — the "No smart trainer? Use sensors only" offer on an
+  /// empty trainer slot. Rendered inside the card's clip, so a full-width
+  /// wash on it still takes the card's rounded corners.
+  final Widget? footer;
+
+  /// Makes the card jump out once every time its value changes — see
+  /// [ChainHighlightController], which the page owns. Null for a card nothing
+  /// ever points at.
+  final ValueListenable<int>? highlight;
 
   @override
   State<ChainCard> createState() => _ChainCardState();
@@ -73,6 +104,59 @@ const double _rowInset = 14;
 /// The tick circle, so a test can assert the steps share a left edge.
 const Key stepTickKey = ValueKey('chain-step-tick');
 
+/// Carried by the accent border a card draws while its highlight runs, so a
+/// test can tell which cards are highlighted without reading animation values.
+Key chainCardHighlightKey(String linkId) => ValueKey('chain-card-highlight-$linkId');
+
+/// The footer strip's wrapper, when a card has one — see [ChainCard.footer].
+const Key chainCardFooterKey = ValueKey('chain-card-footer');
+
+/// The line under the status, when a card has one — see [ChainCard.subtitle].
+const Key chainCardSubtitleKey = ValueKey('chain-card-subtitle');
+
+/// A one-line offer along a card's bottom edge: a muted question on the left,
+/// the action in brand colour on the right, the whole strip tappable.
+///
+/// Same bones as the trial card's "Already bought it? Restore purchases" row,
+/// which is the strip a rider has already learnt to read this way.
+class ChainCardFooterRow extends StatelessWidget {
+  const ChainCardFooterRow({super.key, required this.question, required this.action, required this.onPressed});
+
+  final String question;
+  final String action;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: double.infinity,
+      child: Button.ghost(
+        style: ButtonStyle.ghost()
+            .withPadding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10))
+            .withBorderRadius(borderRadius: BorderRadius.zero)
+            .withBackgroundColor(color: theme.colorScheme.muted.withAlpha(110), hoverColor: bkCardHover(context)),
+        onPressed: onPressed,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                question,
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: theme.colorScheme.mutedForeground),
+              ),
+            ),
+            const Gap(8),
+            Text(
+              action,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 const double _leadingSize = 17;
 const double _leadingGap = 10;
 
@@ -84,9 +168,50 @@ const double _leadingGap = 10;
 /// once a smart trainer is actually connected the card is doing a job, and
 /// labelling working hardware OPTIONAL is noise — the word is there to reassure
 /// a rider looking at an empty slot, not to caption a live one.
-bool _atRest(ChainLink link) => link.optional && link.status == LinkStatus.off;
+///
+/// The Sensors card is optional in the same sense — an idle broadcast must not
+/// block "Ready to ride" — but it is never an empty slot: it stands for the
+/// rider's own sensors, and the kit draws it with a solid border and a plain
+/// SENSORS eyebrow in every state. Tagging it OPTIONAL would tell a rider who
+/// just chose it that they could skip it.
+bool _atRest(ChainLink link) => link.key != ChainLinkKey.sensors && link.optional && link.status == LinkStatus.off;
 
-class _ChainCardState extends State<ChainCard> {
+class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMixin {
+  late final AnimationController _highlight = AnimationController(
+    vsync: this,
+    duration: chainHighlightDuration,
+    // Reduced motion is handled in [_highlighted]: the card keeps still and
+    // the border still flashes. Left at the default, Android's "Remove
+    // animations" would also squeeze the flash into a single frame.
+    animationBehavior: AnimationBehavior.preserve,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.highlight?.addListener(_playHighlight);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChainCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.highlight != widget.highlight) {
+      oldWidget.highlight?.removeListener(_playHighlight);
+      widget.highlight?.addListener(_playHighlight);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.highlight?.removeListener(_playHighlight);
+    _highlight.dispose();
+    super.dispose();
+  }
+
+  void _playHighlight() {
+    _highlight.forward(from: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final link = widget.link;
@@ -97,7 +222,7 @@ class _ChainCardState extends State<ChainCard> {
       width: 1.5,
     );
 
-    return AnimatedContainer(
+    final surface = AnimatedContainer(
       duration: _statusChangeDuration,
       curve: Curves.easeOut,
       decoration: ShapeDecoration(
@@ -112,6 +237,61 @@ class _ChainCardState extends State<ChainCard> {
       clipBehavior: Clip.antiAlias,
       child: _tappable(context, _content(context)),
     );
+
+    return _highlighted(context, surface);
+  }
+
+  /// The highlight, around the card's [surface]: the pulse and the shake move
+  /// the whole card, and the accent border is drawn over the card's own.
+  ///
+  /// Only the border comes and goes, as the last child of a stack that is
+  /// always there. Wrapping the card only while a highlight runs would build
+  /// its content from scratch each time — the live drivetrain, the Ampel's
+  /// pulse, a press mid-animation.
+  Widget _highlighted(BuildContext context, Widget surface) {
+    // An empty slot is grey, and a grey flash jumps out of nothing. The banner
+    // pointing at these cards is amber — red only when something broke.
+    final accent = AmpelStyle.of(
+      context,
+      widget.link.status == LinkStatus.problem ? LinkStatus.problem : LinkStatus.attention,
+    ).color;
+
+    return AnimatedBuilder(
+      animation: _highlight,
+      child: surface,
+      builder: (context, surface) {
+        final progress = _highlight.value;
+        final card = Stack(
+          fit: StackFit.passthrough,
+          children: [
+            surface!,
+            if (_highlight.isAnimating)
+              Positioned.fill(
+                // The card underneath keeps every tap.
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    key: chainCardHighlightKey(widget.link.id),
+                    decoration: ShapeDecoration(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: accent.withValues(alpha: chainHighlightBorderOpacity(progress)),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+        // No movement for a rider who asked for less: the border alone still
+        // says "this one". Read here, so a highlight follows the setting as it
+        // is when it plays.
+        if (prefersReducedMotion(context)) return card;
+        return Transform(transform: chainHighlightMotion(progress), alignment: Alignment.center, child: card);
+      },
+    );
   }
 
   /// Wraps the card in its own tap target when there is somewhere to go.
@@ -125,7 +305,7 @@ class _ChainCardState extends State<ChainCard> {
       child: Button.ghost(
         style: ButtonStyle.ghost()
             .withPadding(padding: EdgeInsets.zero)
-            .withBackgroundColor(hoverColor: Theme.of(context).colorScheme.border.withLuminance(0.94)),
+            .withBackgroundColor(hoverColor: bkCardHover(context)),
         onPressed: widget.onTap,
         child: content,
       ),
@@ -149,6 +329,14 @@ class _ChainCardState extends State<ChainCard> {
           alignment: Alignment.topCenter,
           child: link.pendingSteps.isEmpty ? const SizedBox(width: double.infinity) : _checklist(context),
         ),
+        if (widget.footer case final footer?)
+          Container(
+            key: chainCardFooterKey,
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border, width: 0.5)),
+            ),
+            child: footer,
+          ),
       ],
     );
   }
@@ -191,6 +379,17 @@ class _ChainCardState extends State<ChainCard> {
                   meta: link.subtitleArg,
                   badges: widget.statusBadges,
                 ),
+                if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      subtitle,
+                      key: chainCardSubtitleKey,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12.5, color: theme.colorScheme.mutedForeground),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -241,6 +440,8 @@ class _ChainCardState extends State<ChainCard> {
               appName: widget.appName,
               onInstructions: index == 0 ? widget.onInstructions : null,
               instructionsLabel: widget.instructionsLabel,
+              onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
+              secondaryActionLabel: widget.secondaryActionLabel,
             ),
         ],
       ),
@@ -249,8 +450,8 @@ class _ChainCardState extends State<ChainCard> {
 }
 
 /// The "OPTIONAL" tag, worn by a whole card (a trainer nobody has to own) and
-/// by a single step (the gear overlay). Same words, same weight, so a rider
-/// reads the two the same way.
+/// by a single step (Local control, say — see [SetupStep.optional]). Same
+/// words, same weight, so a rider reads the two the same way.
 class OptionalTag extends StatelessWidget {
   const OptionalTag({super.key});
 
@@ -277,8 +478,8 @@ class OptionalTag extends StatelessWidget {
 }
 
 /// A single checklist line. The first unfinished step is the "active" one and
-/// is the only place an instructions button appears — so there is exactly one
-/// next action on the card.
+/// is the only place any button appears — so there is exactly one next thing
+/// to do on the card, even where it offers two answers to it.
 class StepRow extends StatelessWidget {
   const StepRow({
     super.key,
@@ -287,6 +488,8 @@ class StepRow extends StatelessWidget {
     this.appName,
     this.onInstructions,
     this.instructionsLabel,
+    this.onSecondaryAction,
+    this.secondaryActionLabel,
   });
 
   final SetupStep step;
@@ -294,6 +497,10 @@ class StepRow extends StatelessWidget {
   final String? appName;
   final VoidCallback? onInstructions;
   final String? instructionsLabel;
+
+  /// See [ChainCard.onSecondaryAction]. Only ever set on the active row.
+  final VoidCallback? onSecondaryAction;
+  final String? secondaryActionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +513,7 @@ class StepRow extends StatelessWidget {
         ? theme.colorScheme.primary
         : theme.colorScheme.mutedForeground.withAlpha(120);
     final hint = text.hint;
+    final showSecondary = onSecondaryAction != null && secondaryActionLabel != null;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -374,13 +582,30 @@ class StepRow extends StatelessWidget {
                     style: TextStyle(fontSize: 12, height: 1.4, color: theme.colorScheme.mutedForeground),
                   ),
                 ],
-                if (active && onInstructions != null) ...[
+                if (active && (onInstructions != null || showSecondary)) ...[
                   const Gap(8),
-                  PrimaryButton(
-                    size: ButtonSize.small,
-                    onPressed: onInstructions,
-                    leading: const Icon(LucideIcons.bookOpen, size: 13),
-                    child: Text(instructionsLabel ?? context.i18n.chainShowMeHow),
+                  // The second answer rides the same line as the first so the
+                  // two read as one choice — a Wrap rather than a Row, so a
+                  // long translation drops it underneath instead of clipping.
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (onInstructions != null)
+                        PrimaryButton(
+                          size: ButtonSize.small,
+                          onPressed: onInstructions,
+                          leading: const Icon(LucideIcons.bookOpen, size: 13),
+                          child: Text(instructionsLabel ?? context.i18n.chainShowMeHow),
+                        ),
+                      if (showSecondary)
+                        Button.ghost(
+                          style: const ButtonStyle.ghost(size: ButtonSize.small),
+                          onPressed: onSecondaryAction,
+                          child: Text(secondaryActionLabel!),
+                        ),
+                    ],
                   ),
                 ],
               ],

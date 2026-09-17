@@ -521,11 +521,10 @@
   "pairingInstructionsIOS": "Gehe auf Deinem iPad zu „Einstellungen“ > „Bedienungshilfen“ > „Berühren“ > „AssistiveTouch“ > „Zeigergeräte“ > „Geräte“ und koppel Dein Gerät. Stelle sicher, dass AssistiveTouch aktiviert ist.",
   "pasteExportedJsonData": "Füge die exportierten JSON-Daten unten ein:",
   "pathCopiedToClipboard": "Der Pfad wurde in die Zwischenablage kopiert.",
-  "paywall_amountOfActions": "Anzahl der Aktionen",
+  "paywall_amountOfActions": "Tastenbefehle pro Tag",
   "paywall_billedAtPricemo": "Abrechnung {price}/Mon.",
   "paywall_billedAtYearly": "Abrechnung {cost}/Jahr",
   "paywall_configure3ActionsPerButton": "3 Aktionen pro Schaltfläche",
-  "paywall_connectToYourTrainer": "Verbinden mit Trainer",
   "paywall_controlYourDeviceMusic": "Steuere dein Gerät / deine Musik",
   "paywall_createScreenshots": "Screenshots erstellen",
   "paywall_monthly": "Monatlich",
@@ -634,6 +633,30 @@
   "selectKeymap": "Tastaturbelegung auswählen",
   "selectTargetWhereAppRuns": "Ziel auswählen, auf dem {appName} läuft",
   "@selectTargetWhereAppRuns": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningInstallOnTargetDevice": "BikeControl ist auch für iOS, Android, Windows und macOS verfügbar. Für die volle Unterstützung von {appName} lade BikeControl bitte auf jenem Gerät herunter.",
+  "@warningInstallOnTargetDevice": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningAppLocalControlOnly": "{appName} akzeptiert keine externen Controller — Tasten erreichen die App nur über die Methode „Lokal“, und dafür muss BikeControl auf demselben Gerät wie {appName} laufen.",
+  "@warningAppLocalControlOnly": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningAppLocalControlIosNote": "Die Methode „Lokal“ gibt es nur unter macOS, Windows und Android. Auf einem iPhone oder iPad erreichen Tasten {appName} gar nicht — BikeControl kann deinen Trainer trotzdem dorthin bridgen, Virtual Shifting funktioniert also weiterhin.",
+  "@warningAppLocalControlIosNote": {
     "placeholders": {
       "appName": {
         "type": "String"
@@ -750,10 +773,9 @@
   "zwiftControllerAction": "Zwift Controller-Aktion",
   "zwiftControllerDescription": "Ermöglicht es BikeControl, als Zwift-kompatibler Controller zu fungieren.",
   "smartTrainer": "Smart Trainer",
-  "provideFeedback": "Feedback geben",
-  "feedbackWorks": "Funktioniert",
-  "feedbackNoDifference": "Kein Unterschied",
-  "feedbackNotWorking": "Funktioniert nicht",
+  "needHelpTitle": "Hilfe benötigt?",
+  "needHelpBody": "Funktioniert etwas nicht wie erwartet? Das Hilfe-Center hat Schritt-für-Schritt-Anleitungen für dein Setup und einen direkten Draht zum Support.",
+  "needHelpOpen": "Hilfe-Center öffnen",
   "virtualShiftingSettings": "Virtual Shifting Einstellungen",
   "yourTrainerApp": "deine Trainer-App",
   "proxyMode": "Proxy",
@@ -834,7 +856,6 @@
   "diagnosticDataTitle": "Mitgesendete Diagnosedaten",
   "diagnosticDataSubtitle": "Schreibgeschützt — automatisch erfasst",
   "sendFeedback": "Feedback senden",
-  "thanksForFeedback": "Danke für dein Feedback!",
   "feedbackSubmitFailed": "Feedback konnte nicht gesendet werden",
   "diagBluetoothName": "Bluetooth-Name",
   "diagManufacturer": "Hersteller",
@@ -915,6 +936,9 @@
   "supportAccountLinkAddButton": "Hinzufügen",
   "supportAccountLinkedNote": "Angemeldet — dieser Chat ist jetzt mit deinem Konto verknüpft.",
   "supportAccountLinkFailed": "Etwas ist schiefgelaufen. Versuch es erneut.",
+  "supportAccountAlreadyLinked": "Dieses Konto gehört bereits zu einem anderen BikeControl-Konto. Melde dich ab und stattdessen damit an.",
+  "supportAccountLinkEmailTaken": "Für {email} gibt es schon ein BikeControl-Konto, deshalb kann die Adresse nicht zu diesem Chat hinzugefügt werden. Um dieses Konto zu nutzen, melde dich unter Pro → Konto an. Diese Unterhaltung wird dabei nicht übernommen, schick deine Nachricht also von dort noch einmal. Oder gib eine andere E-Mail-Adresse ein.",
+  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
   "retry": "Erneut versuchen",
   "supportChatEmpty": "Sende eine Nachricht, um die Unterhaltung zu starten.",
   "supportChatIntro": "Du schreibst mit Jonas von BikeControl",
@@ -994,7 +1018,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Bridge-Testzeit ist vorbei",
-  "bridgeTrialTimeOverBody": "Du hast deine 20 Min. Bridge-Testzeit für heute aufgebraucht. Upgrade auf Pro für unbegrenztes virtuelles Schalten.",
+  "bridgeTrialTimeOverBody": "Du hast die 20 Minuten virtuelles Schalten durch BikeControl für heute aufgebraucht. Das ist eine Pro-Funktion – der Kauf der Basis-Version erweitert sie nicht. Ohne Pro lässt du deine Trainer-App schalten: Kopple den Trainer direkt in der App, und BikeControl sendet deine Schalttasten.",
   "connect": "Verbinden",
   "smartTrainerAndAccessories": "Smart-Trainer & Zubehör",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} unterstützt das noch nicht",
@@ -1611,7 +1635,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl verhindert bereits, dass sich die rechte Seite abschaltet. Ihre Lichter gehen trotzdem von allein aus – mit eingeschalteter linker Seite in der Nähe bleiben sie an. Sie muss nur in Reichweite sein, nicht verbunden.",
   "chainStepTrainerPaired": "Trainer verbunden",
   "chainStepTrainerPairedPending": "Verbinde deinen Trainer",
-  "chainStepOverlay": "Zeig deinen Gang auf dem Bildschirm",
   "chainStepOverlayDone": "Gang-Overlay ist aktiv",
   "chainStepOverlayHint": "{appName} kann BikeControls virtuelle Gänge nicht anzeigen. Aktiviere das Gang-Overlay, um deinen aktuellen Gang während der Fahrt zu sehen.",
   "@chainStepOverlayHint": {
@@ -1799,6 +1822,9 @@
   "@selfTestCtaTryProtocol": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolLabel": "Steuerungsprotokoll",
   "controlProtocolHint": "Wie BikeControl mit diesem Trainer spricht. Automatisch ist richtig, solange ein Test nichts anderes sagt.",
+  "controlProtocolIgnored": "Dein Trainer bestätigt die Schaltbefehle über das gewählte Protokoll nicht. BikeControl würde normalerweise wechseln, behält aber deine manuelle Auswahl bei.",
+  "controlProtocolIgnoredNoFallback": "Dein Trainer bestätigt die Schaltbefehle nicht und bietet kein anderes Protokoll als Ausweichweg an.",
+  "controlProtocolUseAuto": "Auf Automatisch umstellen",
   "controlProtocolAuto": "Automatisch (empfohlen)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
@@ -1907,7 +1933,7 @@
   "networkWatchTitle": "Warten auf deine Trainer-App",
   "networkWatchEndsItself": "Der Test endet von selbst, sobald deine App sich verbindet.",
   "networkFooterTitle": "Verbindet sich immer noch nicht?",
-  "networkFooterBody": "Sende den vollständigen Bericht — er enthält alles auf dieser Seite plus die Rohprotokolle.",
+  "networkFooterBody": "Probier zuerst die Lösungen oben. Wenn es weiterhin nicht klappt, beschreib uns, was du in deiner Trainer-App siehst — der vollständige Bericht wird automatisch angehängt.",
   "networkTroubleshootingTitle": "Netzwerk-Fehlerbehebung",
   "networkTroubleshootRun": "Prüfungen starten",
   "networkTroubleshootRunAgain": "Erneut starten",
@@ -2005,5 +2031,169 @@
   "networkOverallUnknown": "Einige Prüfungen konnten nicht ausgeführt werden",
   "networkHintBonjourService": "MyWhoosh benötigt Apples Bonjour-Dienst. Starte ihn und starte dann MyWhoosh neu.",
   "networkHintBonjourNsp": "Der Resolver-Hook von Bonjour fehlt. Installiere Bonjour neu — ohne ihn kann die Schaltfläche BikeControl in MyWhoosh nicht funktionieren.",
-  "networkHintResolveFail": "Dieser Computer konnte die Adresse von BikeControl nicht auflösen — genau der Schritt, an dem die Trainer-App scheitert. Unter Windows kann eine defekte Bonjour-Installation das verursachen, selbst wenn der Dienst läuft; eine saubere Neuinstallation behebt es."
+  "networkHintResolveFail": "Dieser Computer konnte die Adresse von BikeControl nicht auflösen — genau der Schritt, an dem die Trainer-App scheitert. Unter Windows kann eine defekte Bonjour-Installation das verursachen, selbst wenn der Dienst läuft; eine saubere Neuinstallation behebt es.",
+  "ltwooHintCloseApp": "Schließe die LTWOO-App während der Fahrt — das Schaltwerk erlaubt nur eine Bluetooth-Verbindung gleichzeitig.",
+  "ltwooHintCassetteEnds": "Am Ende der Kassette sendet das Schaltwerk kein Signal mehr — es kann nicht weiter schalten.",
+  "ltwooWrongPinAlert": "Das L-TWOO-Schaltwerk hat die PIN abgelehnt. Prüfe die Geräte-PIN in den Einstellungen dieses Controllers.",
+  "ltwooPinLabel": "Geräte-PIN",
+  "ltwooAnchorGearTitle": "Schaltwerk in Position halten",
+  "ltwooAnchorGearDescription": "Nach jedem Schaltvorgang schaltet BikeControl das Schaltwerk zurück, damit die Kette auf einem Ritzel bleibt. Das Schaltwerk bewegt sich bei jedem Tastendruck kurz.",
+  "shiftFeedbackSound": "Ton beim Schalten abspielen",
+  "shiftFeedbackSoundSubtitle": "Unterschiedliche Töne fürs Hoch- und Runterschalten und wenn der letzte Gang erreicht ist",
+  "shiftFeedbackHaptics": "Dieses Gerät beim Schalten vibrieren lassen",
+  "shiftFeedbackHapticsSubtitle": "Ein kurzes Vibrieren auf diesem Handy oder Tablet, zweimal wenn es keinen nächsten Gang gibt. Controller-Vibration wird pro Controller eingestellt.",
+  "sensorsChainEyebrow": "Sensoren",
+  "sensorsNoSensorsYet": "Noch keine Sensoren",
+  "sensorsWith": "mit {names}",
+  "@sensorsWith": {"placeholders": {"names": {"type": "String"}}},
+  "sensorsStatusOff": "Aus",
+  "sensorsStatusOffSetup": "Aus — zum Einrichten tippen",
+  "sensorsStatusBroadcasting": "Sendet als „BikeControl“",
+  "sensorsClientConnected": "{client} verbunden",
+  "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
+  "sensorsUseSensorsOnlyQuestionApp": "Trainer direkt in {app} gekoppelt?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Trainer läuft nicht über BikeControl?",
+  "sensorsUseSensorsOnly": "Stattdessen Sensoren teilen",
+  "sensorsConnectTrainerQuestion": "Soll BikeControl den Trainer verbinden?",
+  "sensorsConnectTrainer": "Trainer verbinden",
+  "sensorsPageTitle": "Sensoren",
+  "sensorsBroadcastEyebrow": "Übertragung",
+  "sensorsBroadcastTitle": "Sensoren teilen",
+  "sensorsBroadcastLive": "Live als „BikeControl“",
+  "sensorsBroadcastPickSource": "Wähle zuerst unten eine Quelle",
+  "sensorsTransportBluetooth": "Bluetooth",
+  "sensorsTransportNetwork": "Netzwerk",
+  "sensorsTransportBluetoothHint": "Koppel „BikeControl“ wie einen Brustgurt in jeder App auf einem Handy, Tablet oder Apple TV in der Nähe.",
+  "sensorsTransportNetworkHint": "Apps in diesem WLAN finden „BikeControl“ von selbst — Zwift, MyWhoosh oder Rouvy am PC oder Apple TV.",
+  "sensorsEmptyTitle": "Suche nach Sensoren…",
+  "sensorsEmptyBody": "Wecke einen Brustgurt, Trittfrequenz- oder Leistungssensor in der Nähe — er erscheint hier von selbst.",
+  "sensorsOffHint": "Quellen verbinden sich, sobald du die Übertragung einschaltest — bis dahin läuft nichts.",
+  "sensorsSignalsHeader": "Signale",
+  "sensorsOpen": "Öffnen",
+  "sensorSourceListHeader": "QUELLE",
+  "sensorSourceTrainer": "Trainer",
+  "sensorSourceTrainerSubtitle": "Der eingebaute Messwert des Trainers.",
+  "sensorSourceNotConnectedSubtitle": "Externer Sensor.",
+  "sensorSourceConnectedSubtitle": "Sendet seinen eigenen Messwert.",
+  "sensorSourceConnectedElsewhereSubtitle": "Verbunden — auch hier nutzbar.",
+  "sensorSourceConnectingGhostSubtitle": "Wartet, bis er wieder in Reichweite ist.",
+  "sensorQuantityHeartRate": "Herzfrequenz",
+  "sensorQuantityCadence": "Trittfrequenz",
+  "sensorQuantityPower": "Leistung",
+  "sensorQuantitySpeed": "Geschwindigkeit",
+  "sensorConnecting": "Verbinde…",
+  "sensorAwaitingFirstReading": "Warte auf ersten Messwert…",
+  "sensorDroppedOut": "Signal verloren — Trainer wird verwendet.",
+  "sensorConnectFailed": "Verbindung fehlgeschlagen",
+  "sensorDisconnectFailed": "Trennen fehlgeschlagen",
+  "sensorSourceHealthKitSubtitle": "AirPods Pro 3 oder Apple Watch.",
+  "sensorSourceHealthKitPassiveSubtitle": "Braucht ein laufendes Training in Fitness auf diesem iPhone.",
+  "sensorHealthKitDenied": "Erlaube Herzfrequenz unter Einstellungen › Health › Datenzugriff.",
+  "sensorKindHeartRateMonitor": "Herzfrequenzmesser",
+  "sensorKindCadenceSensor": "Trittfrequenzsensor",
+  "sensorKindPowerMeter": "Leistungsmesser",
+  "sensorValueHeartRate": "{value} bpm",
+  "@sensorValueHeartRate": {"placeholders": {"value": {"type": "int"}}},
+  "sensorValueCadence": "{value} U/min",
+  "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
+  "sensorValuePower": "{value} W",
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "supportPinnedContextChip": "Angehängt: {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "Ergebnis des Netzwerk-Checks",
+  "supportPinnedResistanceTest": "Ergebnis des Widerstandstests",
+  "supportDescribeProblemPlaceholder": "Was möchtest du tun, und was passiert stattdessen?",
+  "supportDescribeProblemHint": "Ein Testergebnis allein sagt uns nicht, was schiefgeht — ein Satz reicht.",
+  "networkFooterPassTitle": "Auf diesem Gerät ist alles in Ordnung",
+  "networkFooterPassBody": "Wenn sich deine Trainer-App trotzdem nicht verbindet, liegt das Problem auf ihrer Seite oder im Netzwerk dazwischen. Beschreib uns genau, was du siehst, und wir schauen es uns an.",
+  "networkFooterGetHelp": "Hilfe holen",
+  "chainStepOverlayPending": "{appName} zeigt weiterhin den eigenen Gang an",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Deine Trainer-App zeigt weiterhin ihren eigenen Gang an",
+  "chainStepOverlayDecline": "Jetzt nicht",
+  "chainStepAppControllerPending": "{app} ist noch nicht mit deinen Tasten verbunden",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} liest deinen Trainer bereits über BikeControl. Deine Tasten brauchen eine zweite Verbindung: Tippe im Kopplungsbildschirm von {app} unter „Controller“ auf die BikeControl-Kachel — das ist eine eigene Kachel, getrennt vom Trainer.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "Wähle im Kopplungsbildschirm von {app} „{bridge}“ als Trainer — nicht „{trainer}“ unter seinem eigenen Namen, das umgeht BikeControl.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Dein Trainer ist über die Bridge verbunden, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "Warte darauf, dass {app} ihn erkennt",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "Bluetooth erreicht keine App auf diesem Gerät — WLAN wird verwendet.",
+  "trainerTwinSubtitle": "Derselbe Trainer über {transport} — Verbinden wechselt auf diesen Weg",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} verbindet sich noch über {transport}. Warte kurz und versuch es dann noch einmal.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
+  "paywall_shiftInYourApp": "Schalten & Lenken in deiner Trainer-App (die App schaltet)",
+  "paywall_bikeControlShifts": "BikeControl schaltet deinen Trainer selbst – eigene Gänge, vorne schalten, jeder Trainer",
+  "paywall_twentyMinPerDay": "20 Min/Tag",
+  "paywall_baseStoreNote": "Einmalkauf für die {store}-Version. Er gilt nicht in anderen Stores oder auf anderen Plattformen – Pro schon.",
+  "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
+  "paywall_storeDirectDownload": "Direktdownload",
+  "purchaseBaseDoneTitle": "Du hast jetzt die Basis-Version",
+  "purchaseBaseDoneBody": "Unbegrenzt viele Tastenbefehle in deiner Trainer-App. Dass BikeControl deinen Trainer selbst schaltet, bleibt auf 20 Min/Tag begrenzt – das ist Teil von Pro.",
+  "purchaseProDoneTitle": "Pro ist auf deinem Konto aktiv",
+  "purchaseProUnregisteredBody": "Dieses Gerät ist noch nicht registriert, deshalb bleiben die Pro-Funktionen hier aus.",
+  "registerThisDevice": "Dieses Gerät registrieren",
+  "proUnregisteredTitle": "Pro ist auf deinem Konto, nicht auf diesem Gerät",
+  "proUnregisteredBody": "Virtuelles Schalten bleibt hier begrenzt, bis du dieses Gerät registrierst.",
+  "registerDeviceFailed": "Dieses Gerät konnte nicht registriert werden: {error}",
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}},
+  "vsModeTrackResistanceDesc": "Simuliert pro Gang eine Steigung – der Widerstand folgt deiner Geschwindigkeit und ändert sich in dem Moment, in dem du schaltest, genau wie bei einem echten Fahrrad. Ideal für freies Fahren und Rennen.",
+  "vsModeTargetPowerDesc": "Hält pro Gang eine Zielleistung, wie im ERG-Modus. Deine Trittfrequenz gleicht einen Teil der Änderung aus, wodurch sich Schaltvorgänge weicher anfühlen und Anstiege die Leistung hochziehen. Für Trainer, die keine Steigung simulieren können.",
+  "vsModeBasicDesc": "Wie Zielleistung, aber mit einer festen Stufe pro Gang und ohne Geländegefühl. Ein letzter Ausweg für Trainer, die die anderen Modi ignorieren.",
+  "vsModeRecommended": "Empfohlen",
+  "vsModeUnsupported": "Nicht unterstützt von diesem Trainer. ",
+  "chainStepNetworkAddressPending": "Dein Netzwerk sieht ungewöhnlich aus",
+  "chainStepNetworkAddressHint": "BikeControl meldet sich im Netzwerk unter {address}, was nach einer VPN- oder Hotspot-Adresse aussieht. {app} erreicht diese Adresse womöglich nicht. Schalte das VPN aus oder nutze auf diesem Gerät die Methode Lokal.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Netzwerk prüfen",
+  "chainStatusAppDisconnected": "{app} hat die Verbindung getrennt",
+  "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAppDropped": "{app} hat die Verbindung getrennt. Wenn du wieder fährst, verbinde die App über ihren Kopplungsbildschirm erneut.",
+  "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "healthRideToggleTitle": "Fahrten in Apple Health speichern",
+  "healthRideToggleSubtitle": "Zeichnet Fahrten automatisch auf und speichert Leistung, Trittfrequenz, Herzfrequenz und Kalorien in Health.",
+  "healthRideDuplicateHint": "{app} speichert diese Fahrt möglicherweise bereits in Apple Health, sie könnte also doppelt erscheinen.",
+  "@healthRideDuplicateHint": {"placeholders": {"app": {"type": "String"}}},
+  "healthRideCardTitle": "Diese Fahrt in Apple Health speichern?",
+  "healthRideCardBody": "BikeControl hat eine Fahrt mit verbundenem Trainer erkannt. Aktiviere dies, um deine Fahrten ab jetzt automatisch zu speichern – inklusive Leistung, Herzfrequenz und Kalorien.",
+  "healthRideCardEnable": "Aktivieren",
+  "healthRideCardDismiss": "Nicht jetzt",
+  "healthRideChipLabel": "Aufzeichnung für Apple Health",
+  "healthRideFinishNow": "Jetzt beenden",
+  "healthRideDiscard": "Verwerfen",
+  "healthRideDiscardConfirmTitle": "Diese Fahrt verwerfen?",
+  "healthRideDiscardConfirmBody": "Die Aufzeichnung wird verworfen, es wird nichts in Apple Health gespeichert.",
+  "healthRideDiscardConfirmAction": "Fahrt verwerfen",
+  "healthRideSavedTitle": "Fahrt in Apple Health gespeichert",
+  "healthRideSavedSubtitle": "{duration} · {power} W ø · {kcal} kcal",
+  "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
+  "healthRideFailedTitle": "Fahrt konnte nicht in Apple Health gespeichert werden",
+  "healthRideDeniedTitle": "Zugriff auf Apple Health ist deaktiviert",
+  "healthRideOpenSettings": "Health-Einstellungen öffnen"
 }

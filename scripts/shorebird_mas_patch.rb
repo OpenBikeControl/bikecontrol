@@ -149,6 +149,29 @@ def parse_release_version!(value)
   [version, build_number]
 end
 
+# App Store Connect keeps the marketing version exactly as it was typed there ("6.6"),
+# while Flutter, Shorebird and the built app bundle all use the three-part pubspec
+# version ("6.6.0"). Compare the two spellings semantically instead of by string.
+def semantic_version(value)
+  Gem::Version.new(value.to_s.strip)
+rescue ArgumentError
+  nil
+end
+
+def same_version?(left, right)
+  left_version = semantic_version(left)
+  right_version = semantic_version(right)
+  return left.to_s.strip == right.to_s.strip if left_version.nil? || right_version.nil?
+
+  left_version == right_version
+end
+
+def same_release_version?(left, right)
+  left_version, left_build = left.to_s.strip.split("+", 2)
+  right_version, right_build = right.to_s.strip.split("+", 2)
+  left_build.to_s == right_build.to_s && same_version?(left_version, right_version)
+end
+
 def shorebird_app_id
   YAML.load_file(SHOREBIRD_YAML_PATH).fetch("app_id")
 rescue Errno::ENOENT
@@ -221,9 +244,21 @@ end
 
 def shorebird_release_for_version(value)
   body = shorebird_api(Net::HTTP::Get, "/api/v1/apps/#{shorebird_app_id}/releases")
-  release = (body["releases"] || []).find { |record| record["version"] == value }
+  releases = body["releases"] || []
+  release = releases.find { |record| record["version"] == value } ||
+            releases.find { |record| same_release_version?(record["version"], value) }
   die("No Shorebird release found for #{value}. Run `shorebird release macos` for this version before registering the MAS baseline.") unless release
   release
+end
+
+# Shorebird's spelling of the version is the one the installed app bundle and
+# `shorebird patch` agree on, so everything downstream uses it rather than the
+# App Store Connect string.
+def resolve_release_version!(value)
+  release = shorebird_release_for_version(value)
+  resolved = release["version"].to_s
+  say("App Store version #{value} maps to Shorebird release #{resolved}.") unless resolved == value
+  [release, resolved]
 end
 
 def shorebird_release_artifacts(release_id:, arch:, platform:)
@@ -236,11 +271,11 @@ def shorebird_release_artifacts(release_id:, arch:, platform:)
 end
 
 def ensure_shorebird_release_artifact!(value)
-  release = shorebird_release_for_version(value)
+  release, resolved = resolve_release_version!(value)
   artifacts = shorebird_release_artifacts(release_id: release.fetch("id"), arch: MAS_ARTIFACT_ARCH, platform: "macos")
-  die("Shorebird release #{value} has no macos/#{MAS_ARTIFACT_ARCH} artifact. Run `ruby #{$PROGRAM_NAME} register-baseline` first.") if artifacts.empty?
-  say("Shorebird release #{value} has #{artifacts.size} macos/#{MAS_ARTIFACT_ARCH} artifact(s).")
-  artifacts.first
+  die("Shorebird release #{resolved} has no macos/#{MAS_ARTIFACT_ARCH} artifact. Run `ruby #{$PROGRAM_NAME} register-baseline` first.") if artifacts.empty?
+  say("Shorebird release #{resolved} has #{artifacts.size} macos/#{MAS_ARTIFACT_ARCH} artifact(s).")
+  resolved
 end
 
 def upload_shorebird_release_artifact!(release_id:, artifact_path:, arch:, platform:)
@@ -299,7 +334,7 @@ def mas_signed_app_matches?(version:, build_number:)
   info = macos_app_bundle_info(MACOS_APP_PATH) rescue nil
   authorities = File.directory?(MACOS_APP_PATH) ? macos_app_signing_authorities(MACOS_APP_PATH) : []
   info &&
-    info[:version] == version &&
+    same_version?(info[:version], version) &&
     info[:build_number] == build_number &&
     authorities.any? { |authority| authority.include?("Apple Mac OS Application Signing") }
 end
@@ -329,7 +364,7 @@ end
 def capture_macos_installed_app_artifact!(value)
   version, build_number = parse_release_version!(value)
   info = macos_app_bundle_info(MACOS_APP_PATH)
-  die("Installed app is #{info[:version]}+#{info[:build_number]}, expected #{value}.") unless info[:version] == version && info[:build_number] == build_number
+  die("Installed app is #{info[:version]}+#{info[:build_number]}, expected #{value}.") unless same_version?(info[:version], version) && info[:build_number] == build_number
   die("Missing Flutter executable at #{info[:flutter_executable]}. The zip must contain Contents/Frameworks/App.framework/App.") unless File.exist?(info[:flutter_executable])
   die("Missing main executable at #{info[:app_executable]}.") unless File.exist?(info[:app_executable])
 
@@ -386,9 +421,8 @@ ensure
 end
 
 def register_mas_baseline!
-  value = release_version
+  release, value = resolve_release_version!(release_version)
   version, build_number = parse_release_version!(value)
-  release = shorebird_release_for_version(value)
 
   install_or_update_mas_app!(version: version, build_number: build_number)
   artifact = capture_macos_installed_app_artifact!(value)
@@ -425,8 +459,7 @@ def register_mas_baseline!
 end
 
 def patch_mas_release!
-  value = release_version
-  ensure_shorebird_release_artifact!(value)
+  value = ensure_shorebird_release_artifact!(release_version)
 
   patch_args = Shellwords.split(PATCH_ARGS)
   patch_args << "--dry-run" if ENV["DRY_RUN"] == "true" && !patch_args.include?("--dry-run")
@@ -444,8 +477,7 @@ def patch_mas_release!
 end
 
 def baseline_status!
-  value = release_version
-  ensure_shorebird_release_artifact!(value)
+  ensure_shorebird_release_artifact!(release_version)
 end
 
 def usage!

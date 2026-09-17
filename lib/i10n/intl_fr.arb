@@ -521,11 +521,10 @@
   "pairingInstructionsIOS": "Sur ton iPad, va dans Réglages > Accessibilité > Toucher > AssistiveTouch > Périphériques de pointage > Périphériques et appaire ton appareil. Vérifie que la fonction AssistiveTouch est activée.",
   "pasteExportedJsonData": "Collez ci-dessous les données JSON exportées :",
   "pathCopiedToClipboard": "Le chemin a été copié dans le presse-papiers.",
-  "paywall_amountOfActions": "Nombre d'actions",
+  "paywall_amountOfActions": "Commandes de boutons par jour",
   "paywall_billedAtPricemo": "Facturé {price}/mois",
   "paywall_billedAtYearly": "Facturé {cost}/an",
   "paywall_configure3ActionsPerButton": "Configurer 3 actions par bouton",
-  "paywall_connectToYourTrainer": "Connecte-toi avec ton entraîneur",
   "paywall_controlYourDeviceMusic": "Contrôle ton appareil / musique",
   "paywall_createScreenshots": "Créer des captures d'écran",
   "paywall_monthly": "Mensuel",
@@ -634,6 +633,30 @@
   "selectKeymap": "Sélectionner le clavier",
   "selectTargetWhereAppRuns": "Sélectionne la cible où {appName} fonctionne sur",
   "@selectTargetWhereAppRuns": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningInstallOnTargetDevice": "BikeControl est aussi disponible sur iOS, Android, Windows et macOS. Pour une prise en charge complète de {appName}, téléchargez BikeControl sur l’appareil en question.",
+  "@warningInstallOnTargetDevice": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningAppLocalControlOnly": "{appName} n’accepte aucune manette externe : les boutons ne l’atteignent qu’avec la méthode Local, qui nécessite que BikeControl s’exécute sur le même appareil que {appName}.",
+  "@warningAppLocalControlOnly": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningAppLocalControlIosNote": "La méthode Local n’existe que sur macOS, Windows et Android. Sur un iPhone ou un iPad, les boutons n’atteignent pas du tout {appName} — BikeControl peut toujours y relayer votre home trainer, le passage de vitesses virtuel continue donc de fonctionner.",
+  "@warningAppLocalControlIosNote": {
     "placeholders": {
       "appName": {
         "type": "String"
@@ -750,10 +773,9 @@
   "zwiftControllerAction": "Action du contrôleur Zwift",
   "zwiftControllerDescription": "Permet à BikeControl de fonctionner comme une manette compatible avec Zwift.",
   "smartTrainer": "Smart Trainer",
-  "provideFeedback": "Envoyer un avis",
-  "feedbackWorks": "Fonctionne",
-  "feedbackNoDifference": "Aucune différence",
-  "feedbackNotWorking": "Ne fonctionne pas",
+  "needHelpTitle": "Besoin d'aide ?",
+  "needHelpBody": "Quelque chose ne fonctionne pas comme prévu ? Le Centre d'aide propose des guides pas à pas pour ta configuration et un accès direct au support.",
+  "needHelpOpen": "Ouvrir le Centre d'aide",
   "virtualShiftingSettings": "Réglages Virtual Shifting",
   "yourTrainerApp": "ton appli d'entraînement",
   "proxyMode": "Proxy",
@@ -834,7 +856,6 @@
   "diagnosticDataTitle": "Données de diagnostic envoyées",
   "diagnosticDataSubtitle": "Lecture seule — collectées automatiquement",
   "sendFeedback": "Envoyer l'avis",
-  "thanksForFeedback": "Merci pour ton avis !",
   "feedbackSubmitFailed": "Impossible d'envoyer l'avis",
   "diagBluetoothName": "Nom Bluetooth",
   "diagManufacturer": "Fabricant",
@@ -906,6 +927,7 @@
   "supportAccountLinkAddButton": "Ajouter",
   "supportAccountLinkedNote": "Connecté — cette discussion suit désormais ton compte.",
   "supportAccountLinkFailed": "Un problème est survenu. Réessaie.",
+  "supportAccountAlreadyLinked": "Ce compte appartient déjà à un autre compte BikeControl. Déconnecte-toi, puis connecte-toi avec celui-ci.",
   "retry": "Réessayer",
   "supportChatEmpty": "Envoie un message pour démarrer la conversation.",
   "supportChatIntro": "Tu vas parler avec Jonas de BikeControl",
@@ -985,7 +1007,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Temps d'essai du Bridge écoulé",
-  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 min d'essai quotidien du Bridge. Passe à Pro pour débloquer le changement de vitesses virtuel sans limite.",
+  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 minutes de changement de vitesses virtuel par BikeControl pour aujourd'hui. C'est une fonction Pro – l'achat de Base ne l'étend pas. Sans Pro, laisse ton appli d'entraînement passer les vitesses : associe le home trainer directement dans l'appli et BikeControl envoie tes boutons de vitesse.",
   "connect": "Connecter",
   "smartTrainerAndAccessories": "Home trainer & accessoires",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} ne le prend pas encore en charge",
@@ -1602,7 +1624,6 @@
   "chainStepClickV2KeepAwakeHint": "BikeControl empêche déjà le côté droit de s'éteindre. Ses voyants s'éteignent malgré tout d'eux-mêmes — allumer le côté gauche à proximité les garde allumés. Il suffit qu'il soit à portée, sans être connecté.",
   "chainStepTrainerPaired": "Home trainer connecté",
   "chainStepTrainerPairedPending": "Connecte ton home trainer",
-  "chainStepOverlay": "Affiche ta vitesse à l'écran",
   "chainStepOverlayDone": "L'Overlay de vitesse est activé",
   "chainStepOverlayHint": "{appName} ne peut pas afficher les vitesses virtuelles de BikeControl. Active l'Overlay pour voir ta vitesse actuelle pendant la séance.",
   "@chainStepOverlayHint": {
@@ -1790,6 +1811,9 @@
   "@selfTestCtaTryProtocol": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolLabel": "Protocole de commande",
   "controlProtocolHint": "La façon dont BikeControl parle à ce home-trainer. Auto est le bon choix, sauf si un test t'a dit le contraire.",
+  "controlProtocolIgnored": "Ton home-trainer n'accuse pas réception des commandes de vitesses sur le protocole choisi. BikeControl changerait normalement, mais ton choix manuel est conservé.",
+  "controlProtocolIgnoredNoFallback": "Ton home-trainer n'accuse pas réception des commandes de vitesses et n'offre aucun autre protocole de repli.",
+  "controlProtocolUseAuto": "Passer en Auto",
   "controlProtocolAuto": "Auto (recommandé)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
@@ -1898,7 +1922,7 @@
   "networkWatchTitle": "En attente de ton appli d'entraînement",
   "networkWatchEndsItself": "Le test se termine tout seul dès que ton appli se connecte.",
   "networkFooterTitle": "Toujours pas de connexion ?",
-  "networkFooterBody": "Envoie le rapport complet — il contient tout ce qui est sur cette page plus les journaux bruts.",
+  "networkFooterBody": "Essaie d'abord les solutions ci-dessus. Si ça ne marche toujours pas, dis-nous ce que tu vois dans ton appli d'entraînement — le rapport complet est joint automatiquement.",
   "networkTroubleshootingTitle": "Dépannage réseau",
   "networkTroubleshootRun": "Lancer les vérifications",
   "networkTroubleshootRunAgain": "Relancer",
@@ -2005,5 +2029,171 @@
   "supportDeleteAccountTitle": "Supprimer le compte et toutes les données ?",
   "supportDeleteAccountBody": "Cela supprime définitivement ta conversation avec le support et ton compte BikeControl, y compris ton adresse e-mail. Un achat unique reste dans le store où tu l'as effectué, et un abonnement Pro continue d'y fonctionner aussi, mais cet appareil sera déconnecté. Cette action est irréversible.",
   "supportDeleteSuccess": "Tes données ont été supprimées.",
-  "supportDeleteFailed": "Impossible de supprimer tes données. Réessaie."
+  "supportDeleteFailed": "Impossible de supprimer tes données. Réessaie.",
+  "ltwooHintCloseApp": "Fermez l'application LTWOO pendant la sortie — le dérailleur n'accepte qu'une seule connexion Bluetooth à la fois.",
+  "ltwooHintCassetteEnds": "En bout de cassette, le dérailleur n'envoie aucun signal — il ne peut pas aller plus loin.",
+  "ltwooWrongPinAlert": "Le dérailleur L-TWOO a refusé le PIN. Vérifiez le PIN de l'appareil dans les préférences de ce contrôleur.",
+  "ltwooPinLabel": "PIN de l'appareil",
+  "ltwooAnchorGearTitle": "Maintenir le dérailleur en place",
+  "ltwooAnchorGearDescription": "Après chaque changement de vitesse, BikeControl ramène le dérailleur en position pour que la chaîne reste sur un seul pignon. Le dérailleur bouge brièvement à chaque pression.",
+  "shiftFeedbackSound": "Jouer un son lors du changement de vitesse",
+  "shiftFeedbackSoundSubtitle": "Sons distincts pour monter, descendre et atteindre la dernière vitesse",
+  "shiftFeedbackHaptics": "Faire vibrer cet appareil lors du changement de vitesse",
+  "shiftFeedbackHapticsSubtitle": "Une courte vibration sur ce téléphone ou cette tablette, deux fois s'il n'y a pas de vitesse suivante. La vibration du contrôleur se règle par contrôleur.",
+  "sensorsChainEyebrow": "Capteurs",
+  "sensorsNoSensorsYet": "Aucun capteur pour l'instant",
+  "sensorsWith": "avec {names}",
+  "@sensorsWith": {"placeholders": {"names": {"type": "String"}}},
+  "sensorsStatusOff": "Désactivé",
+  "sensorsStatusOffSetup": "Désactivé — touchez pour configurer",
+  "sensorsStatusBroadcasting": "Diffusion en tant que « BikeControl »",
+  "sensorsClientConnected": "{client} connecté",
+  "@sensorsClientConnected": {"placeholders": {"client": {"type": "String"}}},
+  "sensorsUseSensorsOnlyQuestionApp": "Home trainer associé directement dans {app} ?",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "Le home trainer ne passe pas par BikeControl ?",
+  "sensorsUseSensorsOnly": "Partager les capteurs à la place",
+  "sensorsConnectTrainerQuestion": "BikeControl doit-il relayer le home trainer ?",
+  "sensorsConnectTrainer": "Connecter le home trainer",
+  "sensorsPageTitle": "Capteurs",
+  "sensorsBroadcastEyebrow": "Diffusion",
+  "sensorsBroadcastTitle": "Partager les capteurs",
+  "sensorsBroadcastLive": "En direct en tant que « BikeControl »",
+  "sensorsBroadcastPickSource": "Choisissez d'abord une source ci-dessous",
+  "sensorsTransportBluetooth": "Bluetooth",
+  "sensorsTransportNetwork": "Réseau",
+  "sensorsTransportBluetoothHint": "Associez « BikeControl » comme une ceinture cardio dans n'importe quelle app sur un téléphone, une tablette ou une Apple TV à proximité.",
+  "sensorsTransportNetworkHint": "Les apps de ce Wi-Fi trouvent « BikeControl » toutes seules — Zwift, MyWhoosh ou Rouvy sur PC ou Apple TV.",
+  "sensorsEmptyTitle": "Recherche de capteurs…",
+  "sensorsEmptyBody": "Réveillez une ceinture cardio, un capteur de cadence ou un capteur de puissance à proximité — il apparaîtra ici tout seul.",
+  "sensorsOffHint": "Les sources se connectent quand vous activez la diffusion — rien ne tourne avant.",
+  "sensorsSignalsHeader": "Signaux",
+  "sensorsOpen": "Ouvrir",
+  "sensorSourceListHeader": "SOURCE",
+  "sensorSourceTrainer": "Home trainer",
+  "sensorSourceTrainerSubtitle": "La mesure intégrée du home trainer.",
+  "sensorSourceNotConnectedSubtitle": "Capteur externe.",
+  "sensorSourceConnectedSubtitle": "Transmet sa propre mesure.",
+  "sensorSourceConnectedElsewhereSubtitle": "Connecté — utilisable ici aussi.",
+  "sensorSourceConnectingGhostSubtitle": "En attente de son retour à portée.",
+  "sensorQuantityHeartRate": "Fréquence cardiaque",
+  "sensorQuantityCadence": "Cadence",
+  "sensorQuantityPower": "Puissance",
+  "sensorQuantitySpeed": "Vitesse",
+  "sensorConnecting": "Connexion…",
+  "sensorAwaitingFirstReading": "En attente de la première mesure…",
+  "sensorDroppedOut": "Signal perdu — home trainer utilisé.",
+  "sensorConnectFailed": "Connexion impossible",
+  "sensorDisconnectFailed": "Déconnexion impossible",
+  "sensorSourceHealthKitSubtitle": "AirPods Pro 3 ou Apple Watch.",
+  "sensorSourceHealthKitPassiveSubtitle": "Nécessite un entraînement en cours dans Fitness sur cet iPhone.",
+  "sensorHealthKitDenied": "Autorisez la fréquence cardiaque dans Réglages › Santé › Accès aux données.",
+  "sensorKindHeartRateMonitor": "Cardiofréquencemètre",
+  "sensorKindCadenceSensor": "Capteur de cadence",
+  "sensorKindPowerMeter": "Capteur de puissance",
+  "sensorValueHeartRate": "{value} bpm",
+  "@sensorValueHeartRate": {"placeholders": {"value": {"type": "int"}}},
+  "sensorValueCadence": "{value} tr/min",
+  "@sensorValueCadence": {"placeholders": {"value": {"type": "int"}}},
+  "sensorValuePower": "{value} W",
+  "@sensorValuePower": {"placeholders": {"value": {"type": "int"}}},
+  "supportPinnedContextChip": "Joint : {label}",
+  "@supportPinnedContextChip": {"placeholders": {"label": {"type": "String"}}},
+  "supportPinnedNetworkTest": "résultat du test réseau",
+  "supportPinnedResistanceTest": "résultat du test de résistance",
+  "supportDescribeProblemPlaceholder": "Qu'essaies-tu de faire, et que se passe-t-il à la place ?",
+  "supportDescribeProblemHint": "Un résultat de test seul ne nous dit pas ce qui ne va pas — une phrase suffit.",
+  "networkFooterPassTitle": "Tout est en ordre sur cet appareil",
+  "networkFooterPassBody": "Si ton appli d'entraînement ne se connecte toujours pas, le problème vient de son côté ou du réseau entre les deux. Dis-nous exactement ce que tu vois et on regarde.",
+  "networkFooterGetHelp": "Obtenir de l'aide",
+  "chainStepOverlayPending": "{appName} continuera d’afficher sa propre vitesse",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "Ton application d’entraînement continuera d’afficher sa propre vitesse",
+  "chainStepOverlayDecline": "Pas maintenant",
+  "chainStepAppControllerPending": "{app} n'est pas encore connecté à tes boutons",
+  "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepAppControllerHint": "{app} lit déjà ton home trainer via BikeControl. Tes boutons ont besoin d'un second lien : sur l'écran d'association de {app}, touche la tuile BikeControl sous « Contrôleurs » — c'est une tuile distincte de celle du home trainer.",
+  "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedHint2": "Sur l'écran d'association de {app}, choisis « {bridge} » comme home trainer — pas « {trainer} » sous son propre nom, cela contourne BikeControl.",
+  "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
+  "chainPendingSubtitleController": "Ton home trainer passe par le pont, mais tes boutons n'atteindront pas {app} tant que tu n'auras pas aussi connecté le contrôleur BikeControl sur son écran d'association.",
+  "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
+  "chainStatusWaitingForPickup": "En attente que {app} le détecte",
+  "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
+  "vsTransportSameDeviceNote": "Le Bluetooth ne peut pas atteindre une appli sur ce même appareil — le Wi-Fi est utilisé.",
+  "trainerTwinSubtitle": "Même home trainer via {transport} — se connecter bascule sur cette voie",
+  "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
+  "trainerTwinStillConnecting": "{trainer} est encore en train de se connecter via {transport}. Patiente un instant, puis réessaie.",
+  "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
+  "paywall_shiftInYourApp": "Changer de vitesse et diriger dans ton appli d'entraînement (c'est l'appli qui passe les vitesses)",
+  "paywall_bikeControlShifts": "BikeControl passe lui-même les vitesses de ton home trainer – vitesses personnalisées, plateau avant, tout home trainer",
+  "paywall_twentyMinPerDay": "20 min/jour",
+  "paywall_baseStoreNote": "Achat unique pour la version {store}. Il n'est pas transférable vers d'autres stores ou plateformes – Pro l'est.",
+  "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
+  "paywall_storeDirectDownload": "téléchargement direct",
+  "purchaseBaseDoneTitle": "Tu as maintenant Base",
+  "purchaseBaseDoneBody": "Commandes de boutons illimitées dans ton appli d'entraînement. Laisser BikeControl passer lui-même les vitesses de ton home trainer reste limité à 20 min/jour – cette partie est Pro.",
+  "purchaseProDoneTitle": "Pro est actif sur ton compte",
+  "purchaseProUnregisteredBody": "Cet appareil n'est pas encore enregistré, les fonctions Pro restent donc désactivées ici.",
+  "registerThisDevice": "Enregistrer cet appareil",
+  "proUnregisteredTitle": "Pro est sur ton compte, pas sur cet appareil",
+  "proUnregisteredBody": "Le changement de vitesses virtuel reste limité ici tant que tu n'as pas enregistré cet appareil.",
+  "registerDeviceFailed": "Impossible d'enregistrer cet appareil : {error}",
+  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}},
+  "vsModeTrackResistanceDesc": "Simule une pente par vitesse : la résistance suit ta vitesse de déplacement et change dès que tu changes de vitesse, comme sur un vrai vélo. Idéal pour les sorties libres et les courses.",
+  "vsModeTargetPowerDesc": "Maintient une puissance cible par vitesse, comme en mode ERG. Ta cadence compense une partie du changement, ce qui rend les changements de vitesse plus doux et fait grimper la puissance dans les côtes. Pour les home-trainers incapables de simuler une pente.",
+  "vsModeBasicDesc": "Comme Puissance cible, mais avec un palier fixe par vitesse et sans ressenti du terrain. Un dernier recours pour les home-trainers qui ignorent les autres modes.",
+  "vsModeRecommended": "Recommandé",
+  "vsModeUnsupported": "Pas pris en charge par ce home-trainer. ",
+  "chainStepNetworkAddressPending": "Ton réseau semble inhabituel",
+  "chainStepNetworkAddressHint": "BikeControl annonce l'adresse {address}, qui ressemble à une adresse VPN ou de partage de connexion. {app} risque de ne pas pouvoir l'atteindre. Désactive le VPN, ou utilise la méthode Local sur cet appareil.",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "Lancer le test réseau",
+  "supportAccountLinkEmailTaken": "{email} a déjà un compte BikeControl, cette adresse ne peut donc pas être ajoutée à ce chat. Pour utiliser ce compte, connecte-toi dans Pro → Compte. Cette conversation ne sera pas transférée, renvoie donc ton message depuis là-bas. Ou saisis une autre adresse e-mail.",
+  "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
+  "chainStatusAppDisconnected": "{app} s'est déconnecté",
+  "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAppDropped": "{app} s'est déconnecté. Reconnecte-le depuis son écran d'association à ta prochaine séance.",
+  "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "healthRideToggleTitle": "Enregistrer les sorties dans Apple Santé",
+  "healthRideToggleSubtitle": "Enregistre automatiquement les sorties et sauvegarde la puissance, la cadence, la fréquence cardiaque et les calories dans Santé.",
+  "healthRideDuplicateHint": "{app} enregistre peut-être déjà cette sortie dans Apple Santé, elle pourrait donc apparaître en double.",
+  "@healthRideDuplicateHint": {"placeholders": {"app": {"type": "String"}}},
+  "healthRideCardTitle": "Enregistrer cette sortie dans Apple Santé ?",
+  "healthRideCardBody": "BikeControl a détecté une sortie avec un home trainer connecté. Activez cette option pour enregistrer vos sorties automatiquement à partir de maintenant, avec la puissance, la fréquence cardiaque et les calories.",
+  "healthRideCardEnable": "Activer",
+  "healthRideCardDismiss": "Pas maintenant",
+  "healthRideChipLabel": "Enregistrement pour Apple Santé",
+  "healthRideFinishNow": "Terminer maintenant",
+  "healthRideDiscard": "Ignorer",
+  "healthRideDiscardConfirmTitle": "Ignorer cette sortie ?",
+  "healthRideDiscardConfirmBody": "L'enregistrement sera abandonné et rien ne sera sauvegardé dans Apple Santé.",
+  "healthRideDiscardConfirmAction": "Ignorer la sortie",
+  "healthRideSavedTitle": "Sortie enregistrée dans Apple Santé",
+  "healthRideSavedSubtitle": "{duration} · {power} W moy. · {kcal} kcal",
+  "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
+  "healthRideFailedTitle": "Impossible d'enregistrer la sortie dans Apple Santé",
+  "healthRideDeniedTitle": "L'accès à Apple Santé est désactivé",
+  "healthRideOpenSettings": "Ouvrir les réglages Santé"
 }

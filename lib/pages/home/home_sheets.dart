@@ -20,12 +20,18 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// help sheets and the per-app setup guides — rather than growing a second,
 /// parallel help system that would drift out of sync with the first.
 
+/// Scrolls rather than overflows: the sheet bounds its content to the screen,
+/// and the trainer picker (pitch stage + scan card + Close) is taller than an
+/// iPhone mini — without the scroll view the Close button ended up painted
+/// past the sheet's clip, visible but untappable.
 Widget _frame(BuildContext context, Widget child) {
   return Center(
     heightFactor: 1,
     child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 520),
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
+      child: SingleChildScrollView(
+        child: Padding(padding: const EdgeInsets.all(20), child: child),
+      ),
     ),
   );
 }
@@ -178,21 +184,24 @@ Future<void> openPairAsTrainerSheet(BuildContext context, {required String? trai
 /// from the home screen's trainer card. Riders who skipped the trainer during
 /// setup, or bought one later, get the same list and the same explanation of
 /// what bridging buys them.
+///
+/// The picker deliberately does not require a trainer app: a rider who skipped
+/// onboarding has none selected yet, but the trainer card already lists a
+/// discovered trainer with a Connect button — that tap must open the list,
+/// not a generic help sheet. The app only refines the copy (next-step note,
+/// MyWhoosh-on-Android caveat), so it is passed through as optional.
 Future<void> openTrainerConnectSheet(BuildContext context) {
-  final app = core.settings.getTrainerApp();
-  if (app == null) return openOnboardingHelpSheet(context, OnboardingStep.virtualShifting);
-
   return openSheet<void>(
     context: context,
     position: OverlayPosition.bottom,
-    builder: (sheetContext) => _frame(sheetContext, _TrainerPicker(app: app)),
+    builder: (sheetContext) => _frame(sheetContext, _TrainerPicker(app: core.settings.getTrainerApp())),
   );
 }
 
 class _TrainerPicker extends StatefulWidget {
   const _TrainerPicker({required this.app});
 
-  final SupportedApp app;
+  final SupportedApp? app;
 
   @override
   State<_TrainerPicker> createState() => _TrainerPickerState();
@@ -220,13 +229,14 @@ class _TrainerPickerState extends State<_TrainerPicker> {
 
   @override
   Widget build(BuildContext context) {
+    final app = widget.app;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         onboardingTrainerBody(
           context,
-          app: widget.app,
+          app: app,
           trainers: core.connection.proxyDevices,
           onPick: (device) async {
             await connectTrainerFromPicker(context, device);
@@ -236,7 +246,9 @@ class _TrainerPickerState extends State<_TrainerPicker> {
             core.connection.performScanning();
             setState(() {});
           },
-          virtualShiftingBlocked: onboardingVirtualShiftingBlocked(widget.app),
+          // The block is a MyWhoosh-specific caveat — with no app chosen yet
+          // there is nothing to block on.
+          virtualShiftingBlocked: app != null && onboardingVirtualShiftingBlocked(app),
         ),
         const Gap(16),
         SizedBox(

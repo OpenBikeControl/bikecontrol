@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
@@ -16,13 +17,42 @@ enum FeedbackSentiment { up, down }
 enum FeedbackKind { suggestion, complaint }
 
 class FeedbackSubmissionException implements Exception {
-  const FeedbackSubmissionException(this.message);
+  const FeedbackSubmissionException(this.message, {this.code});
 
   final String message;
 
+  /// The Supabase Auth error code behind the failure (e.g. `email_exists`),
+  /// when there is one.
+  final String? code;
+
   @override
-  String toString() => 'FeedbackSubmissionException: $message';
+  String toString() => 'FeedbackSubmissionException: $message${code == null ? '' : ' ($code)'}';
 }
+
+/// [FeedbackSubmissionService.beginEmailLink] was given an address that
+/// already belongs to another account, so it can't be attached to this
+/// session. Signing in with that address instead would switch to that
+/// account and leave this session's support chat behind.
+class EmailAlreadyInUseException extends FeedbackSubmissionException {
+  const EmailAlreadyInUseException(this.email, {super.code})
+    : super('This email address already belongs to another account');
+
+  final String email;
+}
+
+/// The Google/Apple identity being linked already belongs to a different
+/// BikeControl account (GoTrue `identity_already_exists`). The rider has to
+/// sign in with that identity instead of linking it, so the UI shows a
+/// specific hint rather than the generic "try again".
+class IdentityAlreadyLinkedException extends FeedbackSubmissionException {
+  const IdentityAlreadyLinkedException(super.message);
+}
+
+/// GoTrue's error code for linking an identity that another user owns.
+const _identityAlreadyExistsCode = 'identity_already_exists';
+
+bool _isIdentityAlreadyLinked(Object error) =>
+    error is AuthException && error.code == _identityAlreadyExistsCode;
 
 /// Submits rider feedback to the `submit-feedback` edge function, creating an
 /// anonymous Supabase session on demand, and offers a follow-up flow that
@@ -32,17 +62,14 @@ class FeedbackSubmissionService {
 
   static const _submitFunction = 'submit-feedback';
 
+  /// GoTrue error codes meaning "this address belongs to another account".
+  static const _emailTakenCodes = {'email_exists', 'user_already_exists'};
+
   final SupabaseClient _client;
 
-  /// True when the current session has no confirmed email — either there is
-  /// no session yet, or the signed-in user is anonymous.
-  bool get isAnonymous {
-    final user = _client.auth.currentSession?.user;
-    if (user == null) return true;
-    if (user.isAnonymous) return true;
-    final email = user.email;
-    return email == null || email.isEmpty;
-  }
+  /// True when the current session is not a real account — either there is
+  /// no session yet, or the signed-in user is anonymous. See [hasAccount].
+  bool get isAnonymous => !hasAccount(_client.auth.currentSession?.user);
 
   /// Ensures a session (anonymous if none), then invokes the submit-feedback
   /// edge function. Throws [FeedbackSubmissionException] on any failure so
@@ -84,7 +111,11 @@ class FeedbackSubmissionService {
       await _client.auth.updateUser(UserAttributes(email: email));
     } catch (e, s) {
       await recordError(e, s, context: 'FeedbackSubmissionService.beginEmailLink');
-      throw const FeedbackSubmissionException('Failed to start email verification');
+      final code = e is AuthException ? e.code : null;
+      if (_emailTakenCodes.contains(code)) {
+        throw EmailAlreadyInUseException(email, code: code);
+      }
+      throw FeedbackSubmissionException('Failed to start email verification', code: code);
     }
   }
 
@@ -117,6 +148,9 @@ class FeedbackSubmissionService {
       );
     } catch (e, s) {
       await recordError(e, s, context: 'FeedbackSubmissionService.linkGoogleIdentity');
+      if (_isIdentityAlreadyLinked(e)) {
+        throw const IdentityAlreadyLinkedException('This Google account is already linked to another user');
+      }
       throw const FeedbackSubmissionException('Failed to link your Google account');
     }
   }
@@ -135,6 +169,9 @@ class FeedbackSubmissionService {
       );
     } catch (e, s) {
       await recordError(e, s, context: 'FeedbackSubmissionService.linkAppleIdentity');
+      if (_isIdentityAlreadyLinked(e)) {
+        throw const IdentityAlreadyLinkedException('This Apple account is already linked to another user');
+      }
       throw const FeedbackSubmissionException('Failed to link your Apple account');
     }
   }

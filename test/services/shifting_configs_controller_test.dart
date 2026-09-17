@@ -30,6 +30,21 @@ void main() {
       expect(active.mode, VirtualShiftingMode.targetPower);
     });
 
+    test('storedActiveFor returns null when the trainer has no saved config', () async {
+      final c = await fresh();
+      expect(c.storedActiveFor('KICKR'), isNull);
+    });
+
+    test('storedActiveFor returns the active config once one is saved', () async {
+      final c = await fresh();
+      await c.upsert(
+        ShiftingConfig.defaults(trainerKey: 'KICKR').copyWith(name: 'Race', isActive: true),
+      );
+      final stored = c.storedActiveFor('KICKR');
+      expect(stored, isNotNull);
+      expect(stored!.name, 'Race');
+    });
+
     test('save persists and reload returns the saved config', () async {
       final c = await fresh();
       await c.upsert(

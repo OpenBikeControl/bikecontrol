@@ -1,3 +1,19 @@
+### 7.0.0 (18-09-2026)
+**Features**:
+- Sensors: pair a heart-rate strap, cadence sensor or power meter and choose, per signal, whether your trainer app gets the trainer's reading or the sensor's, over the one Bridge connection you already have.
+- AirPods Pro 3 & Apple Watch heart rate (iOS 26) flows from Apple Health into your trainer app. No strap needed.
+- Save rides to Apple Health (iOS, Pro): with a smart trainer connected, BikeControl records your ride on its own and saves it to Apple Health as an indoor cycling workout with power, cadence, speed, distance, heart rate and energy — for MyWhoosh, TrainingPeaks Virtual, Apple TV setups and any other app that doesn't write to Health itself.
+- New Sensors page: broadcast "BikeControl" over Bluetooth or Wi-Fi, so Zwift on an Apple TV or MyWhoosh on a PC pairs it like a strap, trainer or not.
+- Better virtual shifting from a real cadence sensor: an external cadence sensor feeds virtual shifting directly, which sharpens it on trainers with a poor cadence signal and makes it work on trainers that report none at all.
+- Shift feedback: optional sound and vibration on this phone or tablet on every shift, with a distinct cue when you reach the last gear.
+
+Read more in our blog at https://bikecontrol.app/blog/bikecontrol-7-0-one-connection-for-everything/
+
+**Fixes**:
+- Smart trainers: trainers with no cadence signal (ThinkRider XX Pro and others) get a felt step on every gear that holds; the ThinkRider ramp follows your gear ratios; Tacx Neo appears on Windows; improved compatibility with more FTMS and Zwift Ready trainers under virtual shifting.
+- Resistance self-test runs on trainers that report no cadence and keeps its step-by-step log in the support bundle.
+- TrainerRoad: the Bridge now pairs with and is controlled by TrainerRoad over the network.
+
 ### 6.6.0 (31-08-2026)
 **Features**:
 - FulGaz & Tacx Training apps are now supported: BikeControl acts as a Bluetooth smart trainer to it on a second device and provides the virtual shifting.

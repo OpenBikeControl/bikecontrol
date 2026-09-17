@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/subscriptions/email_login_form.dart';
+import 'package:bike_control/services/email_otp_auth_service.dart';
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -21,7 +23,11 @@ import 'package:url_launcher/url_launcher_string.dart';
 class LoginPage extends StatefulWidget {
   final bool pushed;
   final VoidCallback? onBack;
-  const LoginPage({super.key, required this.pushed, this.onBack});
+
+  /// Test seam; defaults to the app's Supabase client.
+  final SupabaseClient? client;
+
+  const LoginPage({super.key, required this.pushed, this.onBack, this.client});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -30,15 +36,20 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final IAPManager _iapManager = IAPManager.instance;
 
+  SupabaseClient get _client => widget.client ?? core.supabase;
+
   @override
   Widget build(BuildContext context) {
-    final session = core.supabase.auth.currentSession;
+    // An anonymous session (created on demand by the support chat) is not an
+    // account — offer the sign-in options; signing in replaces that session.
+    final session = _client.auth.currentSession;
+    final signedIn = session != null && hasAccount(session.user);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 820),
-          child: session == null ? _buildSignedOut(context) : _buildSignedIn(context, session),
+          child: signedIn ? _buildSignedIn(context, session) : _buildSignedOut(context),
         ),
       ),
     );
@@ -96,7 +107,10 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _signInWithFacebook,
                 ),
                 Divider(child: Text(context.i18n.orSeparator).small.muted),
-                EmailLoginForm(onSignedIn: _afterSignIn),
+                EmailLoginForm(
+                  auth: SupabaseEmailOtpAuth(supabase: _client),
+                  onSignedIn: _afterSignIn,
+                ),
               ],
             ),
           ),
@@ -170,15 +184,15 @@ class _LoginPageState extends State<LoginPage> {
                     child: Icon(Icons.check_circle, size: 28, color: Colors.green),
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    session.user.email ?? session.user.id,
-                  ).small.bold,
+                  Flexible(
+                    child: Text(accountLabel(session.user)).small.bold,
+                  ),
                 ],
               ),
               Button.secondary(
                 child: Text(AppLocalizations.of(context).logout),
                 onPressed: () async {
-                  await core.supabase.auth.signOut();
+                  await _client.auth.signOut();
                 },
               ),
             ],
@@ -203,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<AuthResponse?> _nativeGoogleSignIn() async {
     if (supportsNativeGoogleSignIn) {
       final token = await fetchGoogleIdToken();
-      final response = await core.supabase.auth.signInWithIdToken(
+      final response = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: token.idToken,
         accessToken: token.accessToken,
@@ -212,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
       _afterSignIn();
       return response;
     } else {
-      await core.supabase.auth.signInWithOAuth(
+      await _client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: kIsWeb ? null : 'bikecontrol://login/',
         authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
@@ -225,7 +239,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<AuthResponse?> _signInWithApple() async {
     if (supportsNativeAppleSignIn) {
       final token = await fetchAppleIdToken();
-      final authResponse = await core.supabase.auth.signInWithIdToken(
+      final authResponse = await _client.auth.signInWithIdToken(
         provider: OAuthProvider.apple,
         idToken: token.idToken,
         nonce: token.rawNonce,
@@ -234,7 +248,7 @@ class _LoginPageState extends State<LoginPage> {
       _afterSignIn();
       return authResponse;
     } else {
-      await core.supabase.auth.signInWithOAuth(
+      await _client.auth.signInWithOAuth(
         OAuthProvider.apple,
         redirectTo: kIsWeb ? null : 'bikecontrol://login/',
         authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
@@ -245,7 +259,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signInWithGithub() async {
-    await core.supabase.auth.signInWithOAuth(
+    await _client.auth.signInWithOAuth(
       OAuthProvider.github,
       redirectTo: kIsWeb ? null : 'bikecontrol://login/',
       authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
@@ -253,7 +267,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signInWithFacebook() async {
-    await core.supabase.auth.signInWithOAuth(
+    await _client.auth.signInWithOAuth(
       OAuthProvider.facebook,
       redirectTo: kIsWeb ? null : 'bikecontrol://login/',
       authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,

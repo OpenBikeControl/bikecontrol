@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
 import 'package:bike_control/services/device_identity_service.dart';
@@ -15,6 +17,7 @@ import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -57,7 +60,32 @@ class IAPManager {
 
   IAPManager._();
 
-  bool get isLoggedIn => core.supabase.auth.currentSession != null;
+  /// Signed into a real account. The anonymous session the support chat
+  /// creates on demand doesn't count, so a store-bought Pro user who never
+  /// signed in keeps the local (RevenueCat) entitlement path.
+  bool get isLoggedIn => hasAccount(core.supabase.auth.currentSession?.user);
+
+  /// The Supabase user id RevenueCat was last logged in as by
+  /// [_handleAuthStateChange]; null while there's no account.
+  String? _revenueCatUserId;
+
+  /// Pure decision behind the RevenueCat login in [_handleAuthStateChange]:
+  /// who to log in as and whether to run `sync-subscriptions`, or null to
+  /// leave RevenueCat alone. Anonymous users are never used as a RevenueCat
+  /// identity. Syncs on a fresh sign-in or launch, and whenever the account
+  /// differs from [previousUserId] — e.g. an anonymous session that just
+  /// became an account by linking an email keeps its id but only fires
+  /// `userUpdated`.
+  @visibleForTesting
+  static ({String userId, bool performSync})? revenueCatLogin({
+    required AuthChangeEvent event,
+    required User? user,
+    required String? previousUserId,
+  }) {
+    if (user == null || !hasAccount(user)) return null;
+    final freshSession = event == AuthChangeEvent.initialSession || event == AuthChangeEvent.signedIn;
+    return (userId: user.id, performSync: freshSession || user.id != previousUserId);
+  }
 
   /// Whether the logged-in user is flagged for the Shorebird beta update
   /// track (a manual `beta_access` entitlement granted from the admin
@@ -74,20 +102,36 @@ class IAPManager {
 
   bool get isProEnabledForCurrentDevice {
     if (!_isInitialized) return false;
+    if (_unregisteredDeviceForTesting) return false;
     return hasActiveSubscription &&
         ((isLoggedIn && entitlements.isRegisteredDevice) || (!isLoggedIn && isLocalPro.value));
   }
+
+  /// Pro is on the account but this device is not registered for it, so the
+  /// Pro-gated features stay off here. Riders in this state used to see only
+  /// "Pro (unregistered device)" in the title bar and wrote in believing Pro
+  /// was broken — the home banner, the virtual-shifting notice and the
+  /// post-purchase dialog all key off this.
+  bool get isProButDeviceUnregistered => _isInitialized && isProEnabled && !isProEnabledForCurrentDevice;
 
   bool get isProEnabledForCurrentDeviceOrDidPurchaseOld {
     if (!_isInitialized) return false;
     return isProEnabledForCurrentDevice || hasPurchasedBefore50RVC;
   }
 
+  /// Test-only: makes [isProEnabledForCurrentDevice] report false while
+  /// [isProEnabled] holds — the state a logged-in rider lands in when the
+  /// device could not be registered (platform limit reached). Nothing in the
+  /// production paths sets it.
+  bool _unregisteredDeviceForTesting = false;
+
   /// Test-only: force the Pro entitlement state so Pro-gated actions/UI can be
   /// exercised without a live subscription or device registration.
+  /// [registeredDevice] false yields "Pro on the account, not on this device".
   @visibleForTesting
-  void setProForTesting({required bool enabled}) {
+  void setProForTesting({required bool enabled, bool registeredDevice = true}) {
     _isInitialized = true;
+    _unregisteredDeviceForTesting = enabled && !registeredDevice;
     isLocalPro.value = enabled;
   }
 
@@ -442,12 +486,10 @@ class IAPManager {
       case AuthChangeEvent.tokenRefreshed:
       case AuthChangeEvent.userUpdated:
       case AuthChangeEvent.mfaChallengeVerified:
-        final userId = session?.user.id;
-        if (userId != null) {
-          await _revenueCatService?.logInWithSupabaseUserId(
-            userId,
-            performSync: [AuthChangeEvent.initialSession, AuthChangeEvent.signedIn].contains(event),
-          );
+        final login = revenueCatLogin(event: event, user: session?.user, previousUserId: _revenueCatUserId);
+        if (login != null) {
+          _revenueCatUserId = login.userId;
+          await _revenueCatService?.logInWithSupabaseUserId(login.userId, performSync: login.performSync);
         }
         await _revenueCatService?.setAttributes();
         await entitlements.refresh(force: true);
@@ -456,13 +498,14 @@ class IAPManager {
         // sent to the login gate; a genuine `signedIn` is our cue to finish the
         // checkout they started. Skip token refreshes / the initial session,
         // which are not a fresh login and would fire on every launch.
-        if (event == AuthChangeEvent.signedIn) {
+        if (event == AuthChangeEvent.signedIn && isLoggedIn) {
           await _windowsIapService?.resumePendingPurchaseAfterLogin(isAlreadyPro: isProEnabled);
         }
         return;
       case AuthChangeEvent.signedOut:
       // ignore: deprecated_member_use
       case AuthChangeEvent.userDeleted:
+        _revenueCatUserId = null;
         await _revenueCatService?.logOut();
         await entitlements.clearCache();
         // reset isPurchased value
@@ -487,6 +530,22 @@ class IAPManager {
     } else if (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)) {
       isPurchased.value = true;
     }
+  }
+
+  /// Registers this device for the account's Pro subscription and refreshes
+  /// the entitlements, so [isProEnabledForCurrentDevice] reflects the result.
+  /// One call shared by the Registered Devices view, the home banner, the
+  /// virtual-shifting notice and the post-purchase dialog. Throws
+  /// [DeviceLimitReachedError] when the platform's device limit is reached —
+  /// the rider then has to pick a device to revoke.
+  Future<void> registerCurrentDevice() async {
+    final platform = await deviceManagement.currentPlatform();
+    final package = await PackageInfo.fromPlatform();
+    await deviceManagement.registerCurrentDevice(
+      deviceName: 'BikeControl ${platform?.toUpperCase() ?? ''}',
+      appVersion: package.version,
+    );
+    await entitlements.refresh(force: true);
   }
 
   /// [featureName] names the gated feature in the upgrade dialog — see

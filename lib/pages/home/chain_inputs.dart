@@ -6,6 +6,8 @@
 /// and never touch Bluetooth.
 library;
 
+import 'package:prop/emulators/dircon_emulator.dart';
+
 /// How present a known device is right now.
 ///
 /// The distinction between [lost] and [remembered] is the whole reason this
@@ -134,6 +136,9 @@ class TrainerInput {
     this.metrics,
     this.overlayOffered = false,
     this.overlayEnabled = false,
+    this.overlayAnswered = false,
+    this.overlayDeclined = false,
+    this.rawTrainerName,
   });
 
   final String deviceId;
@@ -171,8 +176,28 @@ class TrainerInput {
   final bool overlayOffered;
 
   /// Whether the rider already turned the overlay on, which is what ticks the
-  /// optional step off the card.
+  /// step off the card.
   final bool overlayEnabled;
+
+  /// Whether the rider has ever answered the overlay step — turned the
+  /// overlay on, or said "Not now". The step is required only until then: it
+  /// holds the card amber once, not after every ride. An overlay that was on
+  /// and has since been switched off (the trainer page's switch, the Live
+  /// Activity's "stop ride") is an offer again, never outstanding work.
+  final bool overlayAnswered;
+
+  /// Whether the rider's answer was "Not now". Takes the step off the card
+  /// until the overlay is turned on (which clears it — see
+  /// `Settings.setOverlayEnabled`).
+  final bool overlayDeclined;
+
+  /// The trainer's own name as it advertises itself, e.g. "KICKR CORE 1234"
+  /// — the entry the trainer app lists right beside [bridgeName], and the one
+  /// riders pick instead, which bypasses BikeControl. Distinct from [name],
+  /// which is a display title and may be a localized fallback; null when the
+  /// trainer never told us its name, so the hint doesn't name a wrong entry
+  /// that doesn't exist.
+  final String? rawTrainerName;
 }
 
 class AppInput {
@@ -186,6 +211,10 @@ class AppInput {
     this.localControlOffered = false,
     this.localControlEnabled = false,
     this.localNetworkGranted,
+    this.trainerBridgedByApp = false,
+    this.trainerBridgedOverNetwork = false,
+    this.advertisedAddressWarning,
+    this.advertisedAddressWarningAtConnect,
   });
 
   /// The selected trainer app, or null when the rider hasn't picked one.
@@ -199,7 +228,14 @@ class AppInput {
   final bool hasEnabledConnection;
   final bool isConnected;
 
-  /// Drives the red "lost connection" state, same rule as devices.
+  /// Whether this app — the one picked now — has connected at some point in
+  /// this session. One that is no longer connected has disconnected (amber,
+  /// see `ChainLink.dropped`) rather than never having been set up.
+  ///
+  /// Latched for the session, not for the page that shows it, and per app: an
+  /// app picked after a drop starts from scratch. Only a real method counts —
+  /// Local reports connected the moment it is switched on and says nothing
+  /// about whether the app is there. See `AppConnectionLatch`.
   final bool wasConnectedThisSession;
 
   /// e.g. "Network" — which method is carrying the commands.
@@ -223,6 +259,71 @@ class AppInput {
   /// has never been measured. Null keeps the step out of the checklist
   /// entirely, so a rider is never shown work that isn't theirs to do.
   final bool? localNetworkGranted;
+
+  /// Whether the trainer app already holds BikeControl's virtual trainer —
+  /// the trainer link's [TrainerInput.appHoldsBridge], repeated here because
+  /// the app card's wording depends on it.
+  ///
+  /// The trainer and the controller are two separate pairings in the trainer
+  /// app, and [isConnected] only speaks for the second. With the first already
+  /// made, "waiting for the app to connect" reads as if nothing had worked,
+  /// and riders go back to re-pair the trainer instead of adding the
+  /// controller — see [SetupStepVariant.controllerLinkMissing].
+  final bool trainerBridgedByApp;
+
+  /// Whether the trainer the app holds ([trainerBridgedByApp]) is held over
+  /// the network — DirCon, served from the very address BikeControl
+  /// advertises — rather than over Bluetooth. False when it holds nothing.
+  ///
+  /// It exists for one reason: an app that is reading the trainer through
+  /// that address has plainly reached it, so [advertisedAddressWarning] would
+  /// be a false alarm on the same card. A trainer held over Bluetooth proves
+  /// nothing about the network, and the warning stands.
+  final bool trainerBridgedOverNetwork;
+
+  /// The address BikeControl advertises when it is one the trainer app is
+  /// unlikely to reach — a VPN or mesh tunnel, a hotspot bridge, or a pick a
+  /// second adapter could just as well have won — or null when it looks fine.
+  ///
+  /// It is the same verdict the network self-test's "advertised address" row
+  /// gives, so the card and that page can never disagree. Carried as the
+  /// address rather than a bool because the address is the one thing the
+  /// rider can check against their VPN app.
+  final String? advertisedAddressWarning;
+
+  /// [advertisedAddressWarning] as it stood when the app connected: the first
+  /// reading after it connected or, when none landed before it dropped, the
+  /// last one from before. Null when that reading found the address fine, and
+  /// when there was no reading at all.
+  ///
+  /// Only read together with [wasConnectedThisSession]: the app has reached
+  /// that address, whatever it looks like, so the same verdict after a drop is
+  /// no warning. Only one that is new since then — a VPN that came up — is.
+  final String? advertisedAddressWarningAtConnect;
+}
+
+/// Sensors-only mode's stand-in for a smart trainer: there is nothing to
+/// bridge, only readings to broadcast to whatever app is listening.
+class SensorsInput {
+  const SensorsInput({
+    required this.sourceNames,
+    required this.broadcasting,
+    required this.transport,
+    this.clientName,
+  });
+
+  /// Names of the sensors feeding the broadcast, in display order. The first
+  /// one is the card's title.
+  final List<String> sourceNames;
+
+  /// Whether the broadcast is actually live right now.
+  final bool broadcasting;
+
+  /// How the broadcast reaches the app — proxy, Wi-Fi or Bluetooth.
+  final RetrofitMode transport;
+
+  /// The connected app's name, when known.
+  final String? clientName;
 }
 
 class ChainInputs {
@@ -230,6 +331,7 @@ class ChainInputs {
     this.bluetoothReady = true,
     this.controllers = const [],
     this.trainer,
+    this.sensors,
     this.app = const AppInput(),
   });
 
@@ -243,6 +345,11 @@ class ChainInputs {
   /// The smart trainer, when one is known. Null renders the optional
   /// placeholder card.
   final TrainerInput? trainer;
+
+  /// Non-null in sensors-only mode: replaces the trainer link with a sensors
+  /// link. Ignored when [trainer] is also set — a rider with a trainer is no
+  /// longer in sensors-only mode, and the trainer link wins.
+  final SensorsInput? sensors;
 
   final AppInput app;
 }

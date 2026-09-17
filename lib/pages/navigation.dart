@@ -178,39 +178,38 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: overviewScreenshotKey,
-      child: Scaffold(
-        headers: [
-          Stack(
-            children: [
-              AppBar(
-                padding:
-                    const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
-                    (screenshotMode ? 2 : Theme.of(context).scaling),
-                title: AppTitle(),
-                backgroundColor: Theme.of(context).colorScheme.background,
-                trailing: buildMenuButtons(context),
-              ),
-              if (!_isMobile && !screenshotMode)
-                Container(
-                  alignment: Alignment.topCenter,
-                  child: HelpButton(isMobile: false),
-                ),
-            ],
-          ),
-          Divider(),
-        ],
-        footers: [
-          if (_isMobile)
-            Container(
-              alignment: Alignment.bottomCenter,
-              child: HelpButton(isMobile: true),
+    // Not a plain Scaffold: the support screenshot must not show the sheet or
+    // toast a rider opens support from, and shadcn paints those inside it.
+    return ScreenshotScaffold(
+      headers: [
+        Stack(
+          children: [
+            AppBar(
+              padding:
+                  const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
+                  (screenshotMode ? 2 : Theme.of(context).scaling),
+              title: AppTitle(),
+              backgroundColor: Theme.of(context).colorScheme.background,
+              trailing: buildMenuButtons(context),
             ),
-        ],
-        floatingFooter: true,
-        child: OverviewPage(isMobile: _isMobile),
-      ),
+            if (!_isMobile && !screenshotMode)
+              Container(
+                alignment: Alignment.topCenter,
+                child: HelpButton(isMobile: false),
+              ),
+          ],
+        ),
+        Divider(),
+      ],
+      footers: [
+        if (_isMobile)
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: HelpButton(isMobile: true),
+          ),
+      ],
+      floatingFooter: true,
+      child: OverviewPage(isMobile: _isMobile),
     );
   }
 }

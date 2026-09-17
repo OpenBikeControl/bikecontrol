@@ -8,6 +8,7 @@ import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/material.dart' as m;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart'; // tester.loadAssets()
@@ -74,6 +75,20 @@ Future<void> _runBootstrap() async {
   // core.settings.init() can call core.actionHandler.init(); stub the `late`
   // field so that path never NPEs.
   core.actionHandler = StubActions();
+
+  // core.settings.init() runs Supabase.initialize(), and supabase_flutter
+  // subscribes to app_links' deep-link stream for detectSessionInUri. With no
+  // platform behind it that `listen` fails with an asynchronous
+  // MissingPluginException which the binding pins on whichever test happens
+  // to be running — the "stray app_links platform-stream error" that used to
+  // fail the first test of a harness file whenever files ran in parallel.
+  // Answer the stream's `listen`/`cancel` method calls with success and never
+  // emit anything. (setMockStreamHandler would do the same but registers an
+  // addTearDown, which is not allowed here, outside a test.)
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    const MethodChannel('com.llfbandit.app_links/events'),
+    (_) async => null,
+  );
 
   // Some bootstrap reads AppLocalizations.current before a delegate has loaded.
   await AppLocalizations.load(const Locale('en'));

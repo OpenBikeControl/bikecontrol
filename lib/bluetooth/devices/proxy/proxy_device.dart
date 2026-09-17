@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
@@ -16,6 +17,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart' show Supporte
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/units.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -38,7 +40,10 @@ class ProxyDevice extends BluetoothDevice {
 
   /// Per-instance emulator used exclusively in proxy mode. Each proxy-mode
   /// trainer needs its own mDNS identity / peripheral so they are independent.
-  final DirconEmulator _proxyEmulator = DirconEmulator();
+  // Serve DirCon on the standard Wahoo port so clients that hard-dial it
+  // (ignoring the mDNS SRV port) can connect — TrainerRoad's desktop app is the
+  // motivating case. Reasoning in `prop` ([kWahooDirconStandardPort]).
+  final DirconEmulator _proxyEmulator = DirconEmulator(preferredPort: kWahooDirconStandardPort);
 
   /// Active emulator for this device. In proxy mode → own per-instance
   /// emulator; in VS modes → shared global [ftmsEmulator].
@@ -240,8 +245,14 @@ class ProxyDevice extends BluetoothDevice {
 
   /// Stop the shared FTMS emulator once this device's definitions are detached
   /// and nothing else is using it.
+  ///
+  /// Checks [DirconEmulator.hasNothingToServe] rather than
+  /// `composite.children.isEmpty` directly: a `SensorDefinition` (rider
+  /// metrics BikeControl sourced itself) can still be riding along after the
+  /// trainer it shared the bridge with is gone, and nothing this feature owns
+  /// may ever be the reason the shared composite looks in use.
   Future<void> _stopFtmsEmulatorIfUnused() async {
-    if (ftmsEmulator.composite.children.isEmpty && ftmsEmulator.isStarted.value) {
+    if (ftmsEmulator.hasNothingToServe && ftmsEmulator.isStarted.value) {
       await ftmsEmulator.stop();
     }
   }
@@ -411,7 +422,12 @@ class ProxyDevice extends BluetoothDevice {
   /// Rouvy needs an IPv4-only listener; the controller endpoint has bound one
   /// for it for a while. Reasoning in `prop` ([DirconEmulator.forceIPv4]).
   @visibleForTesting
-  bool rouvyNeedsIPv4() => core.settings.getTrainerApp() is Rouvy;
+  bool rouvyNeedsIPv4() => needsIPv4For(core.settings.getTrainerApp());
+
+  /// The app-keyed half of [rouvyNeedsIPv4], shared with the standalone
+  /// sensor advertisement (`Connection.initialize`) so both DIRCON listeners
+  /// bind the same way for the same app.
+  static bool needsIPv4For(SupportedApp? app) => app is Rouvy;
 
   /// Mirrors `emulator.advertisementName`. Exposed on ProxyDevice for the UI
   /// so it doesn't have to dereference through the contextual `emulator`
@@ -423,20 +439,20 @@ class ProxyDevice extends BluetoothDevice {
     serialNumber: mdnsSerialNumber(scanResult.deviceId),
   );
 
+  /// Whether the bridge advertises 16-bit services bare (`1826`) or in the
+  /// `0x1826` form. Rouvy (and Zwift, MyWhoosh, TPV) parse the `0x` form and
+  /// silently drop a bare one; Tacx Training does the opposite. So it follows
+  /// the selected trainer app, re-evaluated on every advertisement. Shared
+  /// with the standalone sensor advertisement (`Connection.initialize`).
+  static bool bareShortServiceUuidsFor(SupportedApp? app) => app is Tacx;
+
+  bool _bareShortServiceUuids() => bareShortServiceUuidsFor(core.settings.getTrainerApp());
+
   /// TXT record for the Bridge's `_wahoo-fitness-tnp._tcp` advertisement.
   ///
   /// [SupportedApp.trainerMdnsTxt] contributes whatever fields the selected app
   /// needs on top of these. It is applied last so an app can also correct one
   /// of the defaults if it ever has to.
-  @visibleForTesting
-  /// Whether the bridge advertises 16-bit services bare (`1826`) or in the
-  /// `0x1826` form. Rouvy (and Zwift, MyWhoosh, TPV) parse the `0x` form and
-  /// silently drop a bare one; Tacx Training does the opposite. So it follows
-  /// the selected trainer app, re-evaluated on every advertisement.
-  static bool bareShortServiceUuidsFor(SupportedApp? app) => app is Tacx;
-
-  bool _bareShortServiceUuids() => bareShortServiceUuidsFor(core.settings.getTrainerApp());
-
   static Map<String, Uint8List> trainerMdnsTxtFor(SupportedApp? app, {required String serialNumber}) => {
     'mac-address': Uint8List.fromList(BikeControlMdnsMarkers.macAddress.codeUnits),
     'serial-number': Uint8List.fromList(serialNumber.codeUnits),
@@ -445,18 +461,60 @@ class ProxyDevice extends BluetoothDevice {
   };
 
   void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
-    final cfg = core.shiftingConfigs.activeFor(trainerKey);
+    final stored = core.shiftingConfigs.storedActiveFor(trainerKey);
+    final cfg = stored ?? core.shiftingConfigs.activeFor(trainerKey);
     def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
-    def.setVirtualShiftingMode(cfg.mode);
+    // A rider who saved a config chose their mode; honour it. With no saved
+    // config, let the definition manage the capability-based default (Track
+    // Resistance on a grade-capable trainer) rather than the generic Target
+    // Power, which runs virtual shifting like ERG and reads as "shifting does
+    // nothing"; it re-derives once the FTMS feature probe lands.
+    if (stored != null) {
+      def.setVirtualShiftingMode(stored.mode);
+    } else {
+      def.useDefaultVirtualShiftingMode();
+    }
     def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
     def.setFrontShiftEnabled(cfg.frontShiftEnabled);
     if (cfg.gearRatios != null) {
       def.setGearRatios(cfg.gearRatios!);
     }
+
+    // Seed whatever external heart rate is already resolved right now — this
+    // is the single funnel every fresh FBD goes through (initial connect,
+    // proxy→VS switch, and applyTrainerSettings re-seeding the current one),
+    // so a trainer that connects mid-ride, after the rider already picked a
+    // steady external source, doesn't sit with no heart rate on the wire
+    // until SensorBridgeBinding's next change-driven push happens to fire.
+    // Harmless no-op (re-sets the same value) on the applyTrainerSettings
+    // path, which re-seeds an already-live FBD rather than a fresh one.
+    def.setExternalHeartRate(core.sensors.resolved(SensorQuantity.heartRate).value);
+    // Cadence and power get the same treatment — same funnel, same gap
+    // (Phase 1 fixed it for heart rate above; this closes it for the other
+    // two) — but GUARDED on a non-null value rather than passed through
+    // unconditionally like heart rate is. Unlike _relayedHeartRateBpm
+    // (nullable), FitnessBikeDefinition's trainer-side cadence/power fields
+    // are non-nullable ints defaulting to 0, so an unconditional
+    // setExternalCadence(null)/setExternalPower(null) here would latch the
+    // resolved cadenceRpm/powerW notifiers at 0 for EVERY rider on every
+    // connect — including one with no external source selected at all —
+    // which would both regress the "nothing selected → byte-identical
+    // behaviour" guarantee and silently disable
+    // FitnessBikeDefinition.trainerReportsNoCadence's cadence-less-trainer
+    // fallback (see that getter's doc comment for the full mechanism).
+    // Calling this only when there is an actual reading to seed leaves a
+    // no-external-source rider's fresh FBD completely untouched, while still
+    // fixing the same drop as heart rate: an already-flowing external
+    // cadence/power source no longer sits unseeded on a fresh FBD until the
+    // hub's resolved value next happens to change.
+    final resolvedCadence = core.sensors.resolved(SensorQuantity.cadence).value;
+    if (resolvedCadence != null) def.setExternalCadence(resolvedCadence);
+    final resolvedPower = core.sensors.resolved(SensorQuantity.power).value;
+    if (resolvedPower != null) def.setExternalPower(resolvedPower);
     // The control-protocol override lives on the definition, and every
     // connect (and every proxy→VS switch) builds a fresh one — so re-applying
     // it belongs here, in the single funnel all three rebuild paths share,
@@ -471,13 +529,34 @@ class ProxyDevice extends BluetoothDevice {
     final storedProtocol = core.settings.getControlProtocolOverride(trainerKey);
     def.setControlProtocolOverride(TrainerControlProtocol.values.asNameMap()[storedProtocol]);
 
-    // A trainer that accepts our gear commands but never acknowledges them
-    // is switched to FTMS by the definition itself. Put that in the support
-    // log for every rider — the definition's own logging only reaches debug
-    // consoles and beta traces, and "why is proto=ftms on a native trainer"
-    // is the first question on any shifting report. The definition is
-    // rebuilt per connection, so the listener dies with it.
-    def.gearEchoVerdict.addListener(() {
+    _wireGearEchoLog(def);
+    _wireSimRefusalLog(def);
+  }
+
+  /// The definition [_gearEchoLogListener] is attached to, and the listener
+  /// itself — so re-seeding can't stack a second one on the same notifier.
+  FitnessBikeDefinition? _gearEchoLoggedDef;
+  VoidCallback? _gearEchoLogListener;
+
+  /// Puts the gear-echo verdict in the support log for every rider: the
+  /// definition's own logging only reaches debug consoles and beta traces, and
+  /// "why is proto=ftms on a native trainer" is the first question on any
+  /// shifting report.
+  ///
+  /// Idempotent per definition. [_seedFitnessBikeDefinition] is not only a
+  /// connect-time path — [applyTrainerSettings] re-seeds the *existing*
+  /// definition on every settings change — so a plain `addListener` there
+  /// accumulated one listener per seed, and a single verdict then fanned out
+  /// into that many identical notifications. A real bundle showed five.
+  void _wireGearEchoLog(FitnessBikeDefinition def) {
+    if (identical(_gearEchoLoggedDef, def)) return;
+    final previous = _gearEchoLogListener;
+    if (previous != null) {
+      // Safe on a disposed notifier by contract, and the definition we are
+      // moving off may well have been disposed with the last connection.
+      _gearEchoLoggedDef?.gearEchoVerdict.removeListener(previous);
+    }
+    void onVerdict() {
       final verdict = def.gearEchoVerdict.value;
       if (verdict == null) return;
       core.connection.signalNotification(
@@ -490,7 +569,41 @@ class ProxyDevice extends BluetoothDevice {
             '${scanResult.name}: trainer did not acknowledge gear changes — keeping the manually chosen control protocol',
         }),
       );
-    });
+    }
+
+    def.gearEchoVerdict.addListener(onVerdict);
+    _gearEchoLoggedDef = def;
+    _gearEchoLogListener = onVerdict;
+  }
+
+  /// Same idempotency contract as [_wireGearEchoLog], for the SIM-grade
+  /// refusal verdict: a trainer that spends the whole handshake retry budget
+  /// refusing Start/Resume ACKs every grade write and applies none, so the
+  /// definition switches itself to Target Power — and the support log has to
+  /// say so, or "vsMode says power but I picked Track Resistance" becomes the
+  /// next unanswerable report.
+  FitnessBikeDefinition? _simRefusalLoggedDef;
+  VoidCallback? _simRefusalLogListener;
+
+  void _wireSimRefusalLog(FitnessBikeDefinition def) {
+    if (identical(_simRefusalLoggedDef, def)) return;
+    final previous = _simRefusalLogListener;
+    if (previous != null) {
+      _simRefusalLoggedDef?.trackResistanceRefused.removeListener(previous);
+    }
+    void onRefused() {
+      if (!def.trackResistanceRefused.value) return;
+      core.connection.signalNotification(
+        LogNotification(
+          '${scanResult.name}: trainer refuses to start grade simulation — '
+          'virtual shifting switched to Target Power',
+        ),
+      );
+    }
+
+    def.trackResistanceRefused.addListener(onRefused);
+    _simRefusalLoggedDef = def;
+    _simRefusalLogListener = onRefused;
   }
 
   /// Is the connected trainer reporting any sign of riding right now? Used to
@@ -617,6 +730,28 @@ class ProxyDevice extends BluetoothDevice {
     };
   }
 
+  /// The rider's saved mode for this trainer, else [defaultRetrofitMode] —
+  /// as stored, before the same-device rule below.
+  RetrofitMode get _storedRetrofitMode => core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+
+  /// Whether [savedRetrofitMode] is folding a Bluetooth resolution into WiFi
+  /// because the trainer app runs on this same device ([Target.thisDevice]).
+  /// A Bluetooth bridge can never be found from the device advertising it: a
+  /// BLE peripheral is invisible to a central on the same adapter. The
+  /// connection card shows its same-device note exactly when this is true.
+  bool get sameDeviceFoldsBluetooth =>
+      _storedRetrofitMode == RetrofitMode.bluetooth && core.settings.getLastTarget() == Target.thisDevice;
+
+  /// The mode a fresh connect starts in: [_storedRetrofitMode], with Bluetooth
+  /// folded into WiFi on a same-device setup ([sameDeviceFoldsBluetooth]).
+  ///
+  /// Nothing is rewritten here — the auto-connect path starts over WiFi and
+  /// leaves the setting alone; only a connect from the picker persists the
+  /// transport it actually used. Shared by the auto-connect path and the
+  /// connection card so neither can start a transport the other would not
+  /// offer.
+  RetrofitMode get savedRetrofitMode => sameDeviceFoldsBluetooth ? RetrofitMode.wifi : _storedRetrofitMode;
+
   void applyTrainerSettings() {
     // This device's own FBD first, for the same reason describeProxyDevice
     // prefers it: [emulator] is contextual (proxy vs. the *shared* global
@@ -716,6 +851,13 @@ class ProxyDevice extends BluetoothDevice {
         ),
       ];
     }
+    // The other-transport entry of a trainer that is already held: the pitch
+    // below would sell features the live sibling is delivering right now.
+    // Say what this entry is instead, and what a tap does.
+    final twin = twinSubtitle(AppLocalizations.of(context));
+    if (twin != null) {
+      return [Text(twin, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground))];
+    }
     return [buildFeatureList(context)];
   }
 
@@ -801,6 +943,7 @@ class ProxyDevice extends BluetoothDevice {
   /// game-set target down.
   ActionResult _stepErg(FitnessBikeDefinition def, AppLocalizations l10n, ControllerButton button, {required bool up}) {
     final next = def.stepManualErgPower(up: up);
+    _reportShift(up: up, didChange: next != null);
     if (next != null) {
       return Success(l10n.trainerErgTarget(next), button: button);
     }
@@ -808,6 +951,14 @@ class ProxyDevice extends BluetoothDevice {
     return current == null
         ? Ignored(l10n.trainerErgTargetGameControlled, button: button)
         : Ignored(l10n.trainerErgTarget(current), button: button);
+  }
+
+  /// Phone feedback for a shifter press handled here. This is the only place
+  /// that knows whether the drivetrain actually moved — the result type
+  /// doesn't (a successful VS shift is `Ignored`), so the outcome is reported
+  /// explicitly rather than derived by the caller.
+  void _reportShift({required bool up, required bool didChange}) {
+    unawaited(didChange ? core.shiftFeedback.shifted(up: up) : core.shiftFeedback.atLimit());
   }
 
   ActionResult handleTrainerAction(ControllerButton button, InGameAction action) {
@@ -823,6 +974,7 @@ class ProxyDevice extends BluetoothDevice {
           return _stepErg(def, l10n, button, up: true);
         } else {
           final didChange = def.shiftUp();
+          _reportShift(up: true, didChange: didChange);
           return didChange
               ? Ignored(l10n.trainerShiftedUp(def.currentGear.value), button: button)
               : Ignored(l10n.trainerAlreadyHighestGear, button: button);
@@ -832,6 +984,7 @@ class ProxyDevice extends BluetoothDevice {
           return _stepErg(def, l10n, button, up: false);
         } else {
           final didChange = def.shiftDown();
+          _reportShift(up: false, didChange: didChange);
           return didChange
               ? Ignored(l10n.trainerShiftedDown(def.currentGear.value), button: button)
               : Ignored(l10n.trainerAlreadyLowestGear, button: button);
@@ -875,8 +1028,35 @@ class ProxyDevice extends BluetoothDevice {
   /// (scan-time / app-launch). Requires an explicit prior connect intent
   /// (`getAutoConnect`) — tapping Connect once is the whole consent story now
   /// that the virtual-shifting takeover dialog is gone.
+  ///
+  /// Never while the trainer's other-transport entry ([Connection.twinOf])
+  /// holds it: the consent is stored under the shared [trainerKey], so it
+  /// covers both entries, and honouring it twice opened two upstream paths to
+  /// one trainer that fought over resistance. Read live rather than parked in
+  /// a cooldown — the twin may hold the trainer for the whole ride.
   @override
-  bool get shouldAutoConnect => core.settings.getAutoConnect(trainerKey);
+  bool get shouldAutoConnect => core.settings.getAutoConnect(trainerKey) && !twinHoldsTrainer;
+
+  /// True while this entry holds the trainer: the upstream link is up, the
+  /// bridge is running for it, or a connect is in flight.
+  bool get isConnectedOrConnecting => isConnected || isStarting.value || isBridged;
+
+  /// Whether the same trainer is currently held through its other-transport
+  /// entry (see [Connection.twinOf]).
+  bool get twinHoldsTrainer => core.connection.twinOf(this)?.isConnectedOrConnecting ?? false;
+
+  /// The list subtitle for this entry while its twin holds the trainer: this
+  /// is not a second trainer, and connecting here switches paths (see
+  /// [Connection.connectDevice]). Names this entry's own transport — the row
+  /// already carries that transport's badge ([nameBadge]), and "this path" is
+  /// what a tap switches to. Null when the trainer is not held through its
+  /// twin, or this entry holds it itself.
+  String? twinSubtitle(AppLocalizations l10n) {
+    if (isConnectedOrConnecting) return null;
+    final twin = core.connection.twinOf(this);
+    if (twin == null || !twin.isConnectedOrConnecting) return null;
+    return l10n.trainerTwinSubtitle(isWifiUpstream ? l10n.connectionWifi : l10n.connectionBluetooth);
+  }
 
   @override
   Future<void> connect() async {
@@ -886,8 +1066,7 @@ class ProxyDevice extends BluetoothDevice {
     // honour that intent by kicking off startProxy() here (fire-and-forget).
     if (isStarting.value || _proxyEmulator.isStarted.value) return;
     if (!shouldAutoConnect) return;
-    final savedMode = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
-    setRetrofitMode(savedMode);
+    setRetrofitMode(savedRetrofitMode);
     await startProxy();
   }
 

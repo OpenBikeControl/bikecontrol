@@ -7,11 +7,16 @@ class WorkoutSample {
   final double? speedKph;
   final int? heartRateBpm;
 
+  /// Whether [heartRateBpm] was read from Apple Health. Such samples must not
+  /// be written back to Health with the ride — they are already there.
+  final bool heartRateFromHealth;
+
   const WorkoutSample({
     required this.timestamp,
     this.powerW,
     this.cadenceRpm,
     this.speedKph,
     this.heartRateBpm,
+    this.heartRateFromHealth = false,
   });
 }
