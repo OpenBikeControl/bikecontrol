@@ -135,6 +135,7 @@ class Core {
     onError: (e, s, context) => recordError(e, s, context: context),
     // Debug builds: quick on-device testing without a real 5-min ride.
     minRide: kDebugMode ? const Duration(seconds: 20) : HealthRideService.defaultMinRide,
+    log: (message) => connection.signalNotification(LogNotification('HealthRide: $message')),
   );
 
   /// The first BLE-connected trainer's live metrics, for [healthRide] to

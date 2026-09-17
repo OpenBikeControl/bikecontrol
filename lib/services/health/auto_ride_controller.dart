@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import '../workout/trainer_metrics.dart';
 import '../workout/workout_recorder.dart';
 
+void _noopLog(String message) {}
+
 /// Starts, pauses, resumes and ends rides on its own from what the trainer
 /// reports, so a ride lands in Apple Health without the rider touching
 /// BikeControl.
@@ -25,6 +27,7 @@ class AutoRideController {
     DateTime Function()? now,
     this.tick = const Duration(seconds: 1),
     this.minRide = defaultMinRide,
+    this.log = _noopLog,
   }) : _now = now ?? DateTime.now;
 
   /// TUNABLE. Standstill before an automatic pause.
@@ -64,6 +67,9 @@ class AutoRideController {
   final Duration tick;
   final DateTime Function() _now;
 
+  /// Diagnostic logging, one concise line per decision. No-op unless wired.
+  final void Function(String message) log;
+
   final ValueNotifier<bool> _isAutoRecording = ValueNotifier(false);
 
   /// True while the running recording is one this controller started.
@@ -97,14 +103,16 @@ class AutoRideController {
     final result = recorder.stop();
     _endAutoRide(waitForBreak: true);
     _reportIfLongEnough(result.activeDuration);
+    log('ride ended reason=finishNow activeDuration=${result.activeDuration}');
     onRideFinished(result);
   }
 
   /// Throws the automatic ride away.
   void discard() {
     if (!_isAutoRecording.value) return;
-    recorder.stop();
+    final result = recorder.stop();
     _endAutoRide(waitForBreak: true);
+    log('ride ended reason=discard activeDuration=${result.activeDuration}');
   }
 
   void _onTick() {
@@ -133,6 +141,7 @@ class AutoRideController {
         _isAutoRecording.value = true;
         _lastPedalAt = now;
         _disconnectedSince = null;
+        log('ride started cadence=${trainer.cadenceRpm.value} power=${trainer.powerW.value}');
       }
       return;
     }
@@ -154,7 +163,10 @@ class AutoRideController {
 
     if (pedalling) {
       _lastPedalAt = now;
-      if (recorder.state.value == WorkoutState.paused) recorder.resume();
+      if (recorder.state.value == WorkoutState.paused) {
+        recorder.resume();
+        log('ride resumed');
+      }
       return;
     }
 
@@ -162,6 +174,7 @@ class AutoRideController {
     final idle = now.difference(lastPedal);
     if (recorder.state.value == WorkoutState.recording && idle >= pauseAfter) {
       recorder.pause(at: lastPedal);
+      log('ride paused');
     }
 
     final disconnectedSince = _disconnectedSince;
@@ -170,6 +183,7 @@ class AutoRideController {
       final result = recorder.stop(at: lastPedal);
       _endAutoRide(waitForBreak: false);
       _reportIfLongEnough(result.activeDuration);
+      log('ride ended reason=${goneTooLong ? 'disconnect' : 'idle'} activeDuration=${result.activeDuration}');
       onRideFinished(result);
     }
   }

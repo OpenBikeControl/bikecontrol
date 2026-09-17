@@ -13,6 +13,8 @@ import 'health_ride_preferences.dart';
 import 'health_workout_channel.dart';
 import 'health_workout_payload.dart';
 
+void _noopLog(String message) {}
+
 /// What the rider is told after a ride was written.
 class HealthRideSaved {
   final Duration activeDuration;
@@ -53,6 +55,7 @@ class HealthRideService {
     DateTime Function()? now,
     String Function()? newSyncId,
     this.minRide = defaultMinRide,
+    this.log = _noopLog,
   }) : _newSyncId = newSyncId ?? newRideSyncId {
     _controller = AutoRideController(
       recorder: recorder,
@@ -63,6 +66,7 @@ class HealthRideService {
       onRideDetected: _onRideDetected,
       now: now,
       minRide: minRide,
+      log: log,
     );
   }
 
@@ -86,6 +90,9 @@ class HealthRideService {
   final Future<void> Function(WorkoutResult result) saveFit;
 
   final void Function(Object error, StackTrace stack, String context) onError;
+
+  /// Diagnostic logging, one concise line per decision. No-op unless wired.
+  final void Function(String message) log;
 
   final String Function() _newSyncId;
   late final AutoRideController _controller;
@@ -123,13 +130,21 @@ class HealthRideService {
   bool get showsDuplicateHint => isSupported && mayAlreadySaveToHealth(trainerApp());
 
   Future<void> start() async {
-    if (!isPlatformSupported()) return;
+    final platformSupported = isPlatformSupported();
+    if (!platformSupported) {
+      log('start: platformSupported=false');
+      return;
+    }
     try {
       _healthAvailable = await channel.isAvailable();
     } catch (e, s) {
       onError(e, s, 'HealthRideService.isAvailable');
       return;
     }
+    log(
+      'start: health=$_healthAvailable platformSupported=$platformSupported isEnabled=$isEnabled '
+      '(${prefs.explicitChoice != null ? "explicitChoice" : "per-app default"}) minRide=$minRide',
+    );
     if (_healthAvailable) _controller.start();
   }
 
@@ -144,10 +159,12 @@ class HealthRideService {
     if (!enabled) {
       await prefs.setExplicitChoice(false);
       _pendingRide.value = null;
+      log('setEnabled(false) -> isEnabled=$isEnabled');
       return false;
     }
     if (!await _authorize()) return false;
     await prefs.setExplicitChoice(true);
+    log('setEnabled(true) -> isEnabled=$isEnabled');
     return isEnabled;
   }
 
@@ -191,7 +208,10 @@ class HealthRideService {
 
   Future<void> _onAutoRideFinished(WorkoutResult result) async {
     // Too short to be a ride: not worth a FIT file or a Health workout.
-    if (result.activeDuration < minRide) return;
+    if (result.activeDuration < minRide) {
+      log('ride finished: skipped, activeDuration=${result.activeDuration} < minRide=$minRide');
+      return;
+    }
     try {
       await saveFit(result);
     } catch (e, s) {
@@ -200,6 +220,7 @@ class HealthRideService {
     if (_writes) {
       await _write(result);
     } else if (_undecided) {
+      log('ride finished: held pending for the prompt, activeDuration=${result.activeDuration}');
       _pendingRide.value = result;
     }
   }
@@ -207,6 +228,7 @@ class HealthRideService {
   Future<bool> _authorize() async {
     try {
       final verdict = await channel.authorize();
+      log('authorize verdict=$verdict');
       if (verdict == HealthKitAuthorization.denied) {
         feedback.onFailed(denied: true);
         return false;
@@ -226,6 +248,7 @@ class HealthRideService {
     if (payload == null) return;
     try {
       await channel.saveWorkout(payload);
+      log('ride finished: written to Health, workout=${payload.syncId}');
       feedback.onSaved(
         HealthRideSaved(
           activeDuration: result.activeDuration,
@@ -235,6 +258,7 @@ class HealthRideService {
       );
     } catch (e, s) {
       onError(e, s, 'HealthRideService.saveWorkout');
+      log('ride finished: write failed, error=$e');
       feedback.onFailed(denied: e is PlatformException && e.code == 'denied');
     }
   }
