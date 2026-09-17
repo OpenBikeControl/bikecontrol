@@ -12,23 +12,28 @@ class TrainerMetrics {
   final ValueListenable<double?> speedKph;
   final ValueListenable<int?> heartRateBpm;
 
+  /// Whether [heartRateBpm] currently comes from Apple Health (the sensor hub
+  /// overrides the trainer's own value). Null means "never".
+  final bool Function()? isHeartRateFromHealth;
+
   const TrainerMetrics({
     required this.powerW,
     required this.cadenceRpm,
     required this.speedKph,
     required this.heartRateBpm,
+    this.isHeartRateFromHealth,
   });
 
   /// Returns null when [definition] is not a supported bike definition.
   ///
   /// Accepts a [CompositeBleDefinition] and extracts the first supported child,
   /// so callers can pass [DirconEmulator.activeDefinition] directly.
-  static TrainerMetrics? fromDefinition(Object? definition) {
+  static TrainerMetrics? fromDefinition(Object? definition, {bool Function()? isHeartRateFromHealth}) {
     if (definition is CompositeBleDefinition) {
       final fbd = definition.firstOfType<FitnessBikeDefinition>();
-      if (fbd != null) return fromDefinition(fbd);
+      if (fbd != null) return fromDefinition(fbd, isHeartRateFromHealth: isHeartRateFromHealth);
       final proxy = definition.firstOfType<ProxyBikeDefinition>();
-      if (proxy != null) return fromDefinition(proxy);
+      if (proxy != null) return fromDefinition(proxy, isHeartRateFromHealth: isHeartRateFromHealth);
       return null;
     }
     if (definition is FitnessBikeDefinition) {
@@ -37,6 +42,7 @@ class TrainerMetrics {
         cadenceRpm: definition.cadenceRpm,
         speedKph: definition.speedKph,
         heartRateBpm: definition.heartRateBpm,
+        isHeartRateFromHealth: isHeartRateFromHealth,
       );
     }
     if (definition is ProxyBikeDefinition) {
@@ -45,6 +51,7 @@ class TrainerMetrics {
         cadenceRpm: definition.cadenceRpm,
         speedKph: definition.speedKph,
         heartRateBpm: definition.heartRateBpm,
+        isHeartRateFromHealth: isHeartRateFromHealth,
       );
     }
     return null;

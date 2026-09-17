@@ -17,12 +17,18 @@ import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/utils/demo_mode.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/feedback_prompt_service.dart';
+import 'package:bike_control/services/health/health_ride_feedback.dart';
+import 'package:bike_control/services/health/health_ride_preferences.dart';
+import 'package:bike_control/services/health/health_ride_service.dart';
+import 'package:bike_control/services/health/health_workout_channel.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
 import 'package:bike_control/services/shift_feedback/sound_players/shift_sound_player_factory.dart';
 import 'package:bike_control/services/sensors/sensor_hub.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
+import 'package:bike_control/services/workout/fit_writer.dart';
+import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/actions/android.dart';
@@ -108,6 +114,49 @@ class Core {
     createSoundPlayer: createShiftSoundPlayer,
     onError: (context, e, s) => recordError(e, s, context: context),
   );
+
+  final HealthWorkoutChannel _healthWorkoutChannel = MethodChannelHealthWorkout();
+
+  /// "Save rides to Apple Health": detects/records rides on its own and
+  /// writes finished ones to Health. Not final: tests swap in a fresh
+  /// instance (fake channel, in-memory prefs) to assert call sites without a
+  /// platform.
+  late HealthRideService healthRide = HealthRideService(
+    recorder: workoutRecorder,
+    prefs: HealthRidePreferences(settings.prefs),
+    channel: _healthWorkoutChannel,
+    feedback: HealthRideToastFeedback(channel: _healthWorkoutChannel),
+    isPlatformSupported: () => !kIsWeb && Platform.isIOS,
+    isPro: () => IAPManager.instance.isProEnabledForCurrentDevice,
+    trainerApp: () => settings.getTrainerApp(),
+    target: () => settings.getLastTarget(),
+    connectedTrainer: _connectedTrainerMetrics,
+    saveFit: _saveAutoRideFit,
+    onError: (e, s, context) => recordError(e, s, context: context),
+    // Debug builds: quick on-device testing without a real 5-min ride.
+    minRide: kDebugMode ? const Duration(seconds: 20) : HealthRideService.defaultMinRide,
+    log: (message) => connection.signalNotification(LogNotification('HealthRide: $message')),
+  );
+
+  /// The first BLE-connected trainer's live metrics, for [healthRide] to
+  /// watch. Same construction `MiniWorkoutCard` uses for a manual recording,
+  /// just picked automatically rather than from a specific device's page.
+  TrainerMetrics? _connectedTrainerMetrics() {
+    for (final device in connection.proxyDevices) {
+      if (!device.isConnected) continue;
+      final metrics = TrainerMetrics.fromDefinition(device.emulator.activeDefinition);
+      if (metrics != null) return metrics;
+    }
+    return null;
+  }
+
+  /// Persists an automatic ride's FIT file exactly like `MiniWorkoutCard`'s
+  /// manual stop does.
+  Future<void> _saveAutoRideFit(WorkoutResult result) async {
+    final bytes = FitFileWriter.encode(samples: result.samples, summary: result.summary);
+    await workoutRepository.save(startedAt: result.startedAt, fitBytes: bytes, summary: result.summary);
+  }
+
   late final logic = CoreLogic();
   late final permissions = Permissions();
 
