@@ -177,7 +177,7 @@ jobs:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
         run: |
-          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
+          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "Apple Distribution: OpenBikeControl UG (haftungsbeschrankt) (UZRHKPVWN9)";    
           xcrun altool --upload-app -f BikeControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
 
       # macOS shares the App Store record with iOS but keeps its own version, so
