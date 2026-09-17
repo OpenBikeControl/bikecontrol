@@ -5,6 +5,9 @@ inputs:
   developer-id-application-p12-base64:
     description: "Base64-encoded Developer ID Application .p12"
     required: true
+  developer-id-installer-p12-base64:
+    description: "Base64-encoded Developer ID Installer .p12"
+    required: true
   p12-password:
     description: "Password for the .p12 files"
     required: true
@@ -34,6 +37,7 @@ runs:
       shell: bash
       env:
         DEVELOPER_ID_APPLICATION_P12_BASE64_MAC: ${{ inputs.developer-id-application-p12-base64 }}
+        DEVELOPER_ID_INSTALLER_P12_BASE64_MAC: ${{ inputs.developer-id-installer-p12-base64 }}
         P12_PASSWORD: ${{ inputs.p12-password }}
         KEYCHAIN_PASSWORD: ${{ inputs.keychain-password }}
         APPSTORE_PROFILE_IOS_BASE64: ${{ inputs.appstore-profile-ios-base64 }}
@@ -54,6 +58,7 @@ runs:
 
         # import certificate and provisioning profile from secrets
         echo -n "$DEVELOPER_ID_APPLICATION_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH
+        echo -n "$DEVELOPER_ID_INSTALLER_P12_BASE64_MAC" | base64 --decode --output $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH
         echo -n "$APPSTORE_PROFILE_IOS_BASE64" | base64 --decode -o $PP_PATH_IOS
         echo -n "$APPSTORE_PROFILE_LIVEACTIVITY_BASE64" | base64 --decode -o $PP_PATH_LIVEACTIVITY_IOS
         echo -n "$APPSTORE_PROFILE_LIVEACTIVITY_DEBUG_BASE64" | base64 --decode -o $PP_PATH_LIVEACTIVITY_DEBUG_IOS
@@ -68,6 +73,7 @@ runs:
 
         # import certificate to keychain
         security import $DEVELOPER_ID_APPLICATION_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security import $DEVELOPER_ID_INSTALLER_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
         security list-keychain -d user -s $KEYCHAIN_PATH
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 

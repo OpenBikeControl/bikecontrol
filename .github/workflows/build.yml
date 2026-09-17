@@ -69,6 +69,7 @@ jobs:
         uses: ./.github/actions/install-certificates
         with:
           developer-id-application-p12-base64: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
+          developer-id-installer-p12-base64: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
           p12-password: ${{ secrets.P12_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
           appstore-profile-ios-base64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}
@@ -177,7 +178,7 @@ jobs:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
         run: |
-          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "Apple Distribution: OpenBikeControl UG (haftungsbeschrankt) (UZRHKPVWN9)";    
+          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "3rd Party Mac Developer Installer: OpenBikeControl UG (haftungsbeschrankt) (UZRHKPVWN9)";    
           xcrun altool --upload-app -f BikeControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
 
       # macOS shares the App Store record with iOS but keeps its own version, so
