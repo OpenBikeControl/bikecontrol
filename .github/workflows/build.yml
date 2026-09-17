@@ -95,14 +95,6 @@ jobs:
           keystore-base64: ${{ secrets.KEYSTORE_BASE64 }}
           keystore-properties: ${{ secrets.KEYSTORE_PROPERTIES }}
 
-      - name: 🚀 Shorebird Release iOS
-        if: inputs.build_ios
-        uses: shorebirdtech/shorebird-release@v1
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          platform: ios
-          args: "--export-options-plist ios/ExportOptions.plist --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
-
       - name: 🚀 Shorebird Release Android
         if: inputs.build_android
         uses: shorebirdtech/shorebird-release@v1
@@ -151,6 +143,14 @@ jobs:
         run: |
           chmod +x scripts/generate_release_body.sh
           ./scripts/generate_release_body.sh > /tmp/release_body.md
+
+      - name: 🚀 Shorebird Release iOS
+        if: inputs.build_ios
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: ios
+          args: "--export-options-plist ios/ExportOptions.plist --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
       - name: Prepare App Store authentication key
         if: inputs.build_ios || inputs.build_mac
