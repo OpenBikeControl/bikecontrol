@@ -2092,6 +2092,7 @@
   "sensorAwaitingFirstReading": "Warte auf ersten Messwert…",
   "sensorDroppedOut": "Signal verloren — Trainer wird verwendet.",
   "sensorConnectFailed": "Verbindung fehlgeschlagen",
+  "sensorDisconnectFailed": "Trennen fehlgeschlagen",
   "sensorSourceHealthKitSubtitle": "AirPods Pro 3 oder Apple Watch.",
   "sensorSourceHealthKitPassiveSubtitle": "Braucht ein laufendes Training in Fitness auf diesem iPhone.",
   "sensorHealthKitDenied": "Erlaube Herzfrequenz unter Einstellungen › Health › Datenzugriff.",

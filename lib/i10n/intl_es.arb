@@ -2090,6 +2090,7 @@
   "sensorAwaitingFirstReading": "Esperando la primera lectura…",
   "sensorDroppedOut": "Señal perdida — usando el rodillo.",
   "sensorConnectFailed": "No se pudo conectar",
+  "sensorDisconnectFailed": "No se pudo desconectar",
   "sensorSourceHealthKitSubtitle": "AirPods Pro 3 o Apple Watch.",
   "sensorSourceHealthKitPassiveSubtitle": "Necesita un entrenamiento en marcha en Fitness en este iPhone.",
   "sensorHealthKitDenied": "Permite la frecuencia cardíaca en Ajustes › Salud › Acceso a datos.",

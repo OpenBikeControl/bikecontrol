@@ -456,6 +456,16 @@ class MetricCard extends StatelessWidget {
 /// finds nothing scheduled and returns before the disconnect has actually
 /// finished). Bracketing with [_disconnecting] fixes both that and gives the
 /// rider the same busy affordance connecting already has.
+/// Runs [option]'s disconnect for a fire-and-forget gesture. The owner has
+/// already recorded the failure, so all that's left is telling the rider.
+Future<void> _disconnectOption(MetricSourceOption option) async {
+  try {
+    await option.onDisconnect!();
+  } catch (_) {
+    buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.current.sensorDisconnectFailed);
+  }
+}
+
 class _MetricSourceRow extends StatefulWidget {
   const _MetricSourceRow({required this.option, required this.dotColor});
 
@@ -472,7 +482,7 @@ class _MetricSourceRowState extends State<_MetricSourceRow> {
   Future<void> _runDisconnect() async {
     setState(() => _disconnecting = true);
     try {
-      await widget.option.onDisconnect!();
+      await _disconnectOption(widget.option);
     } finally {
       if (mounted) setState(() => _disconnecting = false);
     }
@@ -643,7 +653,7 @@ class _MetricSourcePickerState extends State<_MetricSourcePicker> {
                           ? null
                           : () async {
                               unawaited(closeOverlay(popoverContext));
-                              unawaited(_runBusy(option.onDisconnect!));
+                              unawaited(_runBusy(() => _disconnectOption(option)));
                             },
                     ),
                   ),

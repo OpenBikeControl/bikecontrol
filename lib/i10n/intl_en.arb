@@ -2278,6 +2278,7 @@
   "sensorAwaitingFirstReading": "Waiting for first reading…",
   "sensorDroppedOut": "Signal lost — using trainer.",
   "sensorConnectFailed": "Couldn't connect",
+  "sensorDisconnectFailed": "Couldn't disconnect",
   "sensorSourceHealthKitSubtitle": "AirPods Pro 3 or Apple Watch.",
   "sensorSourceHealthKitPassiveSubtitle": "Needs a workout running in Fitness on this iPhone.",
   "sensorHealthKitDenied": "Allow heart rate in Settings › Health › Data Access.",

@@ -438,6 +438,36 @@ Future<void> main() async {
     expect(disconnected, isTrue);
   });
 
+  testWidgets('a failing long-press disconnect is handled, not left uncaught', (tester) async {
+    await pump(
+      tester,
+      MetricCard(
+        icon: baseCard.icon,
+        iconColor: baseCard.iconColor,
+        label: baseCard.label,
+        value: baseCard.value,
+        unit: baseCard.unit,
+        sources: [
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer),
+          option(
+            id: 'hr-1',
+            label: 'HR6 0050789',
+            state: MetricSourceState.connected,
+            selected: true,
+            onDisconnect: () async => throw StateError('disconnect failed'),
+          ),
+        ],
+      ),
+      width: 900,
+    );
+
+    await tester.longPress(find.byKey(const Key('metric-card-source-option-hr-1')));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SmallProgressIndicator), findsNothing);
+  });
+
   testWidgets('a row with no onDisconnect ignores long-press (Trainer, or an unselected sensor)', (tester) async {
     await pump(
       tester,
@@ -622,6 +652,30 @@ Future<void> main() async {
       await tester.pumpAndSettle();
 
       expect(disconnected, isTrue);
+    });
+
+    testWidgets('a failing disconnect from the popover is handled, not left uncaught', (tester) async {
+      await pump(
+        tester,
+        card([
+          option(id: 'trainer', label: 'Trainer', state: MetricSourceState.trainer),
+          option(
+            id: 'hr-1',
+            label: 'HR6 0050789',
+            state: MetricSourceState.connected,
+            selected: true,
+            onDisconnect: () async => throw StateError('disconnect failed'),
+          ),
+        ]),
+      );
+
+      await tester.tap(picker());
+      await tester.pumpAndSettle();
+      await tester.longPress(find.byKey(const Key('metric-card-source-option-hr-1')));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.descendant(of: picker(), matching: find.byType(SmallProgressIndicator)), findsNothing);
     });
 
     testWidgets('a long selected name ellipsizes instead of overflowing the half-width tile', (tester) async {

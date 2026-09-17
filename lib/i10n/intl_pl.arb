@@ -2090,6 +2090,7 @@
   "sensorAwaitingFirstReading": "Czekam na pierwszy odczyt…",
   "sensorDroppedOut": "Utracono sygnał — używany jest trenażer.",
   "sensorConnectFailed": "Nie udało się połączyć",
+  "sensorDisconnectFailed": "Nie udało się rozłączyć",
   "sensorSourceHealthKitSubtitle": "AirPods Pro 3 lub Apple Watch.",
   "sensorSourceHealthKitPassiveSubtitle": "Wymaga trwającego treningu w aplikacji Fitness na tym iPhonie.",
   "sensorHealthKitDenied": "Zezwól na tętno w Ustawienia › Zdrowie › Dostęp do danych.",
