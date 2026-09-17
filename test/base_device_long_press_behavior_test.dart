@@ -201,6 +201,56 @@ Future<void> main() async {
       expect(stubActions.performedActions.length, countAfterRelease);
     });
 
+    test('stops repeating when the device disconnects mid-press', () async {
+      // Regression: a Click with a flaky battery contact dropped its BLE link
+      // between button-down and button-release. The release never arrived, so
+      // the implicit repeat must be torn down by the drop path itself —
+      // otherwise it keeps shifting until the link is re-established.
+      final stubActions = core.actionHandler as StubActions;
+      core.actionHandler.init(
+        buildApp(
+          hasSingle: true,
+          hasDouble: false,
+          hasLong: false,
+        ),
+      );
+      final device = _ProTestDevice(button: testButton);
+      activeDevices.add(device);
+      device.isConnected = true;
+
+      // Press and wait for the repeat to start, then let it fire again.
+      await device.handleButtonsClicked([testButton]);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      expect(stubActions.performedActions, isNotEmpty);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(stubActions.performedActions.length, greaterThanOrEqualTo(2));
+
+      // The link drops — no release ever arrives.
+      await device.disconnect();
+      expect(device.isConnected, isFalse);
+
+      // Allow any in-flight repeat callback to settle.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final countAfterDrop = stubActions.performedActions.length;
+
+      // Several repeat intervals later nothing else may have fired.
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      expect(stubActions.performedActions.length, countAfterDrop);
+
+      // After reconnecting, a fresh press starts a new repeat.
+      await device.connect();
+      device.isConnected = true;
+      await device.handleButtonsClicked([testButton]);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      expect(stubActions.performedActions.length, greaterThan(countAfterDrop));
+      expect(
+        stubActions.performedActions.last,
+        PerformedAction(testButton, isDown: true, isUp: true, trigger: ButtonTrigger.singleClick),
+      );
+
+      await device.handleButtonsClicked([]);
+    });
+
     test('does not repeat for non-Pro users', () async {
       final stubActions = core.actionHandler as StubActions;
       core.actionHandler.init(
