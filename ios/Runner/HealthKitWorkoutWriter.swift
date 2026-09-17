@@ -61,6 +61,11 @@ final class HealthKitWorkoutWriter: NSObject {
     return types
   }
 
+  /// Note for anyone debugging this: with LLDB attached (flutter run / Xcode)
+  /// the permission sheet never appears — the process is frozen while the
+  /// sheet's remote view is presented and healthd times the session out after
+  /// ~30 s ("Authorization session timed out"). Launched without a debugger
+  /// (devicectl, TestFlight, App Store) the sheet shows instantly.
   private func authorize(_ result: @escaping FlutterResult) {
     guard HKHealthStore.isHealthDataAvailable() else {
       return result(FlutterError(code: "unavailable", message: "HealthKit not available", details: nil))
