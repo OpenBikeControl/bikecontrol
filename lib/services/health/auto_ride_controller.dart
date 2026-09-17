@@ -24,6 +24,7 @@ class AutoRideController {
     this.onRideDetected,
     DateTime Function()? now,
     this.tick = const Duration(seconds: 1),
+    this.minRide = defaultMinRide,
   }) : _now = now ?? DateTime.now;
 
   /// TUNABLE. Standstill before an automatic pause.
@@ -36,7 +37,12 @@ class AutoRideController {
   static const stopAfterDisconnect = Duration(minutes: 2);
 
   /// A shorter spin is not a ride — for detection and for saving alike.
-  static const minRide = Duration(minutes: 5);
+  static const defaultMinRide = Duration(minutes: 5);
+
+  /// A shorter spin is not a ride — for detection and for saving alike.
+  /// Injectable so debug builds can shorten it; production and tests keep
+  /// [defaultMinRide].
+  final Duration minRide;
 
   final WorkoutRecorder recorder;
 

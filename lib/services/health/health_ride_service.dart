@@ -52,6 +52,7 @@ class HealthRideService {
     required this.onError,
     DateTime Function()? now,
     String Function()? newSyncId,
+    this.minRide = defaultMinRide,
   }) : _newSyncId = newSyncId ?? newRideSyncId {
     _controller = AutoRideController(
       recorder: recorder,
@@ -61,8 +62,16 @@ class HealthRideService {
       onRideFinished: (result) => unawaited(_onAutoRideFinished(result)),
       onRideDetected: _onRideDetected,
       now: now,
+      minRide: minRide,
     );
   }
+
+  /// A shorter spin is not a ride — for detection and for saving alike.
+  static const defaultMinRide = AutoRideController.defaultMinRide;
+
+  /// Injectable so debug builds can shorten it; production and tests keep
+  /// [defaultMinRide].
+  final Duration minRide;
 
   final WorkoutRecorder recorder;
   final HealthRidePreferences prefs;
@@ -164,7 +173,7 @@ class HealthRideService {
 
   /// A ride stopped from the workout card; its FIT is already saved.
   Future<void> onManualRideFinished(WorkoutResult result) async {
-    if (result.activeDuration >= AutoRideController.minRide) _onRideDetected();
+    if (result.activeDuration >= minRide) _onRideDetected();
     if (_writes) await _write(result);
   }
 
@@ -182,7 +191,7 @@ class HealthRideService {
 
   Future<void> _onAutoRideFinished(WorkoutResult result) async {
     // Too short to be a ride: not worth a FIT file or a Health workout.
-    if (result.activeDuration < AutoRideController.minRide) return;
+    if (result.activeDuration < minRide) return;
     try {
       await saveFit(result);
     } catch (e, s) {
@@ -213,7 +222,7 @@ class HealthRideService {
   }
 
   Future<void> _write(WorkoutResult result) async {
-    final payload = HealthWorkoutPayload.fromResult(result, syncId: _newSyncId());
+    final payload = HealthWorkoutPayload.fromResult(result, syncId: _newSyncId(), minActiveDuration: minRide);
     if (payload == null) return;
     try {
       await channel.saveWorkout(payload);

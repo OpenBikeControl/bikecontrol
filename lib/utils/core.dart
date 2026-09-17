@@ -133,6 +133,8 @@ class Core {
     connectedTrainer: _connectedTrainerMetrics,
     saveFit: _saveAutoRideFit,
     onError: (e, s, context) => recordError(e, s, context: context),
+    // Debug builds: quick on-device testing without a real 5-min ride.
+    minRide: kDebugMode ? const Duration(seconds: 20) : HealthRideService.defaultMinRide,
   );
 
   /// The first BLE-connected trainer's live metrics, for [healthRide] to

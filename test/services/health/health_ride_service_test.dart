@@ -40,7 +40,7 @@ class _Trainer {
 }
 
 class _Rig {
-  _Rig(this.async, this.prefs) {
+  _Rig(this.async, this.prefs, {Duration minRide = HealthRideService.defaultMinRide}) {
     recorder = WorkoutRecorder(nowProvider: now);
     service = HealthRideService(
       recorder: recorder,
@@ -56,6 +56,7 @@ class _Rig {
       onError: (e, s, context) => errors.add(e),
       now: now,
       newSyncId: () => 'sync-${++syncIds}',
+      minRide: minRide,
     );
   }
 
@@ -399,6 +400,25 @@ void main() {
       rig.ride(600);
       final HealthWorkoutPayload p = rig.channel.saved.single;
       expect(p.start, _Rig.base.add(const Duration(seconds: 1)));
+    });
+  });
+
+  test('a custom minRide is honoured: a 30 s ride is written, a 15 s one is skipped', () {
+    fakeAsync((async) {
+      final rig = _Rig(async, prefs, minRide: const Duration(seconds: 20));
+      rig.boot();
+      async.flushMicrotasks();
+      rig.prefs.setExplicitChoice(true);
+
+      rig.ride(15);
+      expect(rig.fitSaves, isEmpty);
+      expect(rig.channel.saved, isEmpty);
+
+      rig.ride(30);
+      expect(rig.fitSaves, hasLength(1));
+      expect(rig.channel.saved, hasLength(1));
+
+      rig.dispose();
     });
   });
 }

@@ -45,9 +45,6 @@ class HealthWorkoutPayload {
 
   static const syncVersion = 1;
 
-  /// Rides with less active time are not written.
-  static const minActiveDuration = AutoRideController.minRide;
-
   /// Distance and energy are written as one sample per chunk.
   static const chunk = Duration(minutes: 1);
 
@@ -72,7 +69,15 @@ class HealthWorkoutPayload {
   double totalEnergyKcal = 0;
 
   /// Null when the ride is too short to be worth a Health workout.
-  static HealthWorkoutPayload? fromResult(WorkoutResult result, {required String syncId}) {
+  ///
+  /// [minActiveDuration] mirrors whatever [AutoRideController] used to
+  /// detect/record the ride — pass the same value through so a ride that
+  /// qualified is never dropped here.
+  static HealthWorkoutPayload? fromResult(
+    WorkoutResult result, {
+    required String syncId,
+    Duration minActiveDuration = AutoRideController.defaultMinRide,
+  }) {
     if (result.activeDuration < minActiveDuration) return null;
     final payload = HealthWorkoutPayload._(
       syncId: syncId,
