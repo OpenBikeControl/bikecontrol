@@ -18,6 +18,7 @@ Read more in our blog!
 - Android network self-test: two false alarms (own-hostname lookup, multicast lock) no longer flag a healthy setup.
 - Small phones: the home sheets scroll so Close stays reachable, and the Virtual Shifting profile buttons no longer squeeze the profile dropdown.
 - Connect opens the trainer picker even when no trainer app has been chosen yet.
+- Shift feedback: new, deeper shift sounds — the same click as in the BikeControl ad.
 
 ### 6.6.0 (31-08-2026)
 **Features**:
