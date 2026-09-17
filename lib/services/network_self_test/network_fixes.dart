@@ -20,6 +20,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart' show BuildContext;
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'network_check.dart';
+import 'network_method_target.dart';
 
 /// Executes one fix. Returns true when the action completed (not necessarily
 /// that it helped). Failures toast + recordError and return false; a refusal
@@ -28,23 +29,23 @@ import 'network_check.dart';
 Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix) async {
   switch (fix) {
     case NetworkFixId.restartMethod:
+      // The method the selected trainer app rides on — OpenBikeControl for
+      // MyWhoosh, the Click server for Rouvy, DirCon for Zwift — not always
+      // OpenBikeControl.
+      final target = currentNetworkMethodTarget();
       // The page greys this button out while connected, so reaching here
       // with a live connection is defensive — but say why rather than
       // appearing to do nothing.
-      if (core.obpMdnsEmulator.isConnected.value) {
+      if (target.isConnected.value) {
         _toastRefusedWhileConnected();
         return false;
       }
       try {
-        await core.obpMdnsEmulator.stopServer();
-        await core.obpMdnsEmulator.startServer();
+        await target.restart();
         return true;
       } catch (e, s) {
-        recordError(e, s, context: 'runNetworkFix.restartMethod');
-        buildToast(
-          level: LogLevel.LOGLEVEL_ERROR,
-          title: AppLocalizations.current.errorStartingOpenBikeControlServer,
-        );
+        recordError(e, s, context: 'runNetworkFix.restartMethod.${target.kind.name}');
+        buildToast(level: LogLevel.LOGLEVEL_ERROR, title: target.restartFailedMessage);
         return false;
       }
 

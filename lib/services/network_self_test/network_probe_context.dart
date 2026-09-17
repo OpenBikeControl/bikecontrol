@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
 
 import '../../bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
+import '../../bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
 import '../debug_diagnostics.dart';
 
 /// Pushed by the guided-watch probe (a later task) as it polls, so the engine
@@ -50,10 +51,11 @@ class NetworkProbeContext {
   /// [snapshot] is null; surfaced in a check's detail map.
   final Object? snapshotError;
 
-  /// `core.obpMdnsEmulator.isStarted.value`.
+  /// `isStarted.value` of the network method under examination — see
+  /// [methodServerLabel] for which one that is.
   final bool emulatorStarted;
 
-  /// `core.obpMdnsEmulator.isConnected.value`.
+  /// `isConnected.value` of the network method under examination.
   final bool trainerAppConnected;
 
   /// Live read of the same connected state as [trainerAppConnected], sampled
@@ -65,11 +67,25 @@ class NetworkProbeContext {
   /// `core.settings.getTrainerApp()?.name`.
   final String? trainerAppName;
 
-  /// `core.obpMdnsEmulator.activeBackend`.
+  /// Which mDNS backend registers the method's advertisement.
+  /// `core.obpMdnsEmulator.activeBackend` for OpenBikeControl; the Click and
+  /// DirCon methods always register through the in-process advertiser, so
+  /// they report [ObpMdnsBackend.platformDefault].
   final ObpMdnsBackend backend;
 
-  /// `core.obpMdnsEmulator.advertisedHostname`.
+  /// The hostname the method's advertisement resolves under, when known.
   final String? advertisedHostname;
+
+  /// The `ResilientTcpServer.label` of the TCP server behind the network
+  /// method the self-test examines — the one the selected trainer app
+  /// actually rides on. `'OpenBikeControl'` for MyWhoosh and friends,
+  /// `'Click'` for Rouvy, `'DirCon'` for Zwift's mDNS method. Defaults to
+  /// OpenBikeControl so an existing caller keeps its behaviour.
+  final String methodServerLabel;
+
+  /// The port that server binds when nothing else holds it; a bound port
+  /// above it means a leaked previous instance walked it up.
+  final int methodPreferredPort;
 
   /// `Platform.operatingSystem`-shaped: 'windows' | 'macos' | 'linux' |
   /// 'android' | 'ios' | 'web'.
@@ -114,5 +130,7 @@ class NetworkProbeContext {
     required this.sleep,
     required this.now,
     required this.onWatchProgress,
+    this.methodServerLabel = 'OpenBikeControl',
+    this.methodPreferredPort = OpenBikeControlConstants.TCP_PORT,
   });
 }
