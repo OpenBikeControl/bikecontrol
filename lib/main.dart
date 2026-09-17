@@ -322,8 +322,7 @@ Future<void> _persistCrash({
       ..writeln()
       ..writeln();
 
-    final directory = await _getLogDirectory();
-    final file = File('${directory.path}/app.log');
+    final file = await crashLogFile();
     if (file.existsSync()) {
       final fileLength = await file.length();
       if (fileLength > 5 * 1024 * 1024) {
@@ -354,11 +353,13 @@ Future<void> _persistCrash({
   }
 }
 
-// Minimal implementation; customize per platform if needed.
-Future<Directory> _getLogDirectory() async {
-  // On mobile, you might choose applicationDocumentsDirectory via platform channel,
-  // but staying pure Dart, use currentDirectory as a placeholder.
-  return Directory.current;
+/// The persisted crash log ([_persistCrash] appends to it; the log viewer
+/// shows its path). Lives in the app support directory: the process cwd is
+/// `/` inside an iOS sandbox (and unwritable for sandboxed macOS / MSIX
+/// installs), so `Directory.current` produced `//app.log` and EPERM there.
+Future<File> crashLogFile() async {
+  final directory = await getApplicationSupportDirectory();
+  return File('${directory.path}/app.log');
 }
 
 enum ConnectionType {
