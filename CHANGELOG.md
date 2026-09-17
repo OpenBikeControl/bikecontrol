@@ -2,6 +2,7 @@
 **Features**:
 - Sensors: pair a heart-rate strap, cadence sensor or power meter and choose, per signal, whether your trainer app gets the trainer's reading or the sensor's, over the one Bridge connection you already have.
 - AirPods Pro 3 & Apple Watch heart rate (iOS 26) flows from Apple Health into your trainer app. No strap needed.
+- Save rides to Apple Health (iOS, Pro): with a smart trainer connected, BikeControl records your ride on its own and saves it to Apple Health as an indoor cycling workout with power, cadence, speed, distance, heart rate and energy — for MyWhoosh, TrainingPeaks Virtual, Apple TV setups and any other app that doesn't write to Health itself.
 - New Sensors page: broadcast "BikeControl" over Bluetooth or Wi-Fi, so Zwift on an Apple TV or MyWhoosh on a PC pairs it like a strap, trainer or not.
 - Better virtual shifting from a real cadence sensor: an external cadence sensor feeds virtual shifting directly, which sharpens it on trainers with a poor cadence signal and makes it work on trainers that report none at all.
 - Shift feedback: optional sound and vibration on this phone or tablet on every shift, with a distinct cue when you reach the last gear.
