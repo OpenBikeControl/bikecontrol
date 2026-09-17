@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
@@ -34,6 +35,8 @@ NetworkProbeContext ctx({
   Future<List<InternetAddress>> Function(String host)? resolve,
   Future<void> Function(String address, int port)? tcpProbe,
   DateTime Function()? now,
+  String methodServerLabel = 'OpenBikeControl',
+  int methodPreferredPort = OpenBikeControlConstants.TCP_PORT,
 }) => NetworkProbeContext(
   snapshot: snapshot,
   snapshotError: null,
@@ -44,6 +47,8 @@ NetworkProbeContext ctx({
   backend: backend,
   advertisedHostname: advertisedHostname,
   platform: platform,
+  methodServerLabel: methodServerLabel,
+  methodPreferredPort: methodPreferredPort,
   resolve: resolve ?? (host) async => const [],
   tcpProbe: tcpProbe ?? (address, port) async {},
   runProcess: (executable, arguments) async => ProcessResult(0, 0, '', ''),
@@ -150,6 +155,35 @@ void main() {
     test('skipped: no listening OpenBikeControl server in the snapshot', () async {
       final check = await tcpSelfConnectCheck(ctx(snapshot: _diag(servers: const [])));
       expect(check.verdict, NetworkVerdict.skipped);
+    });
+
+    test('probes the Click server when the context\'s method is Click (Rouvy)', () async {
+      // Only the Click server is up — a Rouvy rider never runs OpenBikeControl.
+      int? probedPort;
+      final check = await tcpSelfConnectCheck(
+        ctx(
+          snapshot: _diag(
+            servers: const [TcpServerInfo(label: 'Click', port: 36860, listening: true, hasClient: false)],
+          ),
+          methodServerLabel: 'Click',
+          methodPreferredPort: 36860,
+          tcpProbe: (address, port) async => probedPort = port,
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.pass);
+      expect(probedPort, 36860);
+    });
+
+    test('skipped: a Click server alone does not satisfy an OpenBikeControl context', () async {
+      final check = await tcpSelfConnectCheck(
+        ctx(
+          snapshot: _diag(
+            servers: const [TcpServerInfo(label: 'Click', port: 36860, listening: true, hasClient: false)],
+          ),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.skipped);
+      expect(check.detail['reason'], 'method not listening');
     });
 
     test('pass: the probe succeeds, latency recorded', () async {

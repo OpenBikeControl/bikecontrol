@@ -6,6 +6,7 @@ import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_fixes.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
@@ -51,8 +52,12 @@ Future<void> main() async {
   tearDown(() async {
     core.obpMdnsEmulator.isConnected.value = false;
     await core.obpMdnsEmulator.stopServer();
-    // Anything the emulator lost track of must not bleed into the next test.
-    for (final leaked in ResilientTcpServer.activeServers.where((s) => s.label == 'OpenBikeControl').toList()) {
+    core.rouvyMdnsEmulator.isConnected.value = false;
+    await core.rouvyMdnsEmulator.clickEmulator.stop();
+    // Anything the emulators lost track of must not bleed into the next test.
+    for (final leaked in ResilientTcpServer.activeServers
+        .where((s) => s.label == 'OpenBikeControl' || s.label == 'Click')
+        .toList()) {
       await leaked.stop();
     }
     ServiceAdvertiser.instance = NsdServiceAdvertiser();
@@ -214,6 +219,53 @@ Future<void> main() async {
         expect(obcServers(), hasLength(1));
         expect(obcServers().single.boundPort, 36867);
         expect(instanceAdvertiser.services.map((s) => s.port), [36867]);
+      });
+    });
+  });
+
+  group('restartMethod examines the selected trainer app\'s own method', () {
+    List<ResilientTcpServer> serversLabelled(String label) =>
+        ResilientTcpServer.activeServers.where((s) => s.label == label).toList();
+
+    // Rouvy rides on the Click server (prop's ClickEmulator behind
+    // core.rouvyMdnsEmulator); it never runs OpenBikeControl. Restarting OBC
+    // for a Rouvy rider started a server Rouvy never looks at and left the
+    // one it does look at alone.
+    testWidgets('with Rouvy selected the Click server is restarted, OpenBikeControl is left alone', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        core.settings.setTrainerApp(Rouvy());
+        await core.rouvyMdnsEmulator.startServer();
+        final before = serversLabelled('Click').single;
+
+        final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+
+        expect(ok, isTrue);
+        expect(core.rouvyMdnsEmulator.isStarted.value, isTrue);
+        expect(serversLabelled('Click'), hasLength(1), reason: 'restarted, not duplicated');
+        expect(serversLabelled('Click').single, isNot(same(before)), reason: 'a fresh server, not the old one');
+        expect(serversLabelled('Click').single.boundPort, 36860);
+        expect(core.obpMdnsEmulator.isStarted.value, isFalse, reason: 'OpenBikeControl is not Rouvy\'s method');
+        expect(serversLabelled('OpenBikeControl'), isEmpty);
+        expect(instanceAdvertiser.services.map((s) => s.name), ['BikeControl']);
+      });
+    });
+
+    testWidgets('with Rouvy connected the restart is refused even though OpenBikeControl is idle', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        core.settings.setTrainerApp(Rouvy());
+        core.rouvyMdnsEmulator.isConnected.value = true;
+
+        final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+
+        expect(ok, isFalse);
+        expect(core.rouvyMdnsEmulator.isConnected.value, isTrue, reason: 'the live connection was left alone');
+        expect(serversLabelled('Click'), isEmpty, reason: 'nothing was restarted');
       });
     });
   });

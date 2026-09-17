@@ -7,6 +7,7 @@ import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_fixes.dart';
+import 'package:bike_control/services/network_self_test/network_method_target.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
 import 'package:bike_control/services/network_self_test/network_self_test_engine.dart';
 import 'package:bike_control/services/network_self_test/network_self_test_result.dart';
@@ -45,18 +46,25 @@ String platformString() => kIsWeb ? 'web' : Platform.operatingSystem;
 /// factory, below) *before* the engine exists, and handed in here rather
 /// than fetched inline.
 NetworkProbeContext buildProductionContext({DebugDiagnostics? snapshot, Object? snapshotError}) {
+  // The method the selected trainer app actually rides on: OpenBikeControl
+  // for MyWhoosh, the Click server for Rouvy, DirCon for Zwift. Reading
+  // `core.obpMdnsEmulator` regardless told a connected Rouvy rider the
+  // method was "not started".
+  final target = currentNetworkMethodTarget();
   return NetworkProbeContext(
     snapshot: snapshot,
     snapshotError: snapshotError,
-    emulatorStarted: core.obpMdnsEmulator.isStarted.value,
-    trainerAppConnected: core.obpMdnsEmulator.isConnected.value,
-    trainerAppConnectedNow: () => core.obpMdnsEmulator.isConnected.value,
+    emulatorStarted: target.isStarted.value,
+    trainerAppConnected: target.isConnected.value,
+    trainerAppConnectedNow: () => target.isConnected.value,
     trainerAppName: core.settings.getTrainerApp()?.name,
-    backend: core.obpMdnsEmulator.activeBackend,
-    advertisedHostname: core.obpMdnsEmulator.advertisedHostname,
+    backend: target.backend,
+    advertisedHostname: target.advertisedHostname,
+    methodServerLabel: target.serverLabel,
+    methodPreferredPort: target.preferredPort,
     platform: platformString(),
     resolve: defaultResolve,
-    tcpProbe: defaultTcpProbe,
+    tcpProbe: (address, port) => defaultTcpProbe(address, port, label: target.serverLabel),
     runProcess: (executable, arguments) => Process.run(executable, arguments).timeout(const Duration(seconds: 8)),
     queryLog: () {
       final advertiser = ServiceAdvertiser.instance;
@@ -109,7 +117,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   void initState() {
     super.initState();
     if (kIsWeb) return;
-    if (core.obpMdnsEmulator.isConnected.value) {
+    if (currentNetworkMethodTarget().isConnected.value) {
       _showConnectedRefusal = true;
     } else {
       _start();
@@ -217,13 +225,14 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     );
   }
 
-  /// Fixes that stop the OpenBikeControl server are greyed out while a
+  /// Fixes that stop the examined method's server are greyed out while a
   /// trainer app is connected through it — they would drop a connection
   /// that works. `runNetworkFix` refuses them too (with a toast) should one
   /// slip through; this is just the visual half of that.
   static const _stopsServer = {NetworkFixId.restartMethod, NetworkFixId.useOsResponderForObc, NetworkFixId.useResponderForObc};
 
-  bool _fixDisabled(NetworkFixId fix) => _starting || (_stopsServer.contains(fix) && core.obpMdnsEmulator.isConnected.value);
+  bool _fixDisabled(NetworkFixId fix) =>
+      _starting || (_stopsServer.contains(fix) && currentNetworkMethodTarget().isConnected.value);
 
   /// Which section of the page a check belongs to. The design groups by where
   /// the problem would be, because that is what tells a rider whether to look

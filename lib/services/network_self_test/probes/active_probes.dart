@@ -76,8 +76,9 @@ NetworkCheck _resolveFailure(NetworkProbeContext ctx, Object error) => NetworkCh
 );
 
 /// Check 8: can this machine open a TCP connection to the address/port it
-/// just advertised for the OpenBikeControl service — i.e. would a trainer
-/// app on the same host actually be able to reach us?
+/// just advertised for the network method under examination
+/// ([NetworkProbeContext.methodServerLabel]) — i.e. would a trainer app on
+/// the same host actually be able to reach us?
 Future<NetworkCheck> tcpSelfConnectCheck(NetworkProbeContext ctx) async {
   if (ctx.trainerAppConnected) {
     // A live trainer app already proves connectivity; opening a second,
@@ -90,7 +91,7 @@ Future<NetworkCheck> tcpSelfConnectCheck(NetworkProbeContext ctx) async {
   }
 
   final snapshot = ctx.snapshot;
-  final server = snapshot?.servers.firstOrNullWhere((s) => s.label == 'OpenBikeControl' && s.listening);
+  final server = snapshot?.servers.firstOrNullWhere((s) => s.label == ctx.methodServerLabel && s.listening);
   if (server == null) {
     // methodListeningCheck already failed on this; nothing new to add here.
     return const NetworkCheck(
@@ -136,9 +137,10 @@ NetworkCheck _tcpFailure(NetworkProbeContext ctx, Object error) => NetworkCheck(
 Future<List<InternetAddress>> defaultResolve(String host) =>
     InternetAddress.lookup(host, type: InternetAddressType.IPv4).timeout(const Duration(seconds: 3));
 
-/// Default TCP probe: registers a probe expectation on the active
-/// OpenBikeControl server, then connects to [address]:[port] from a bound
-/// source port and destroys the socket. Throws on refusal/timeout.
+/// Default TCP probe: registers a probe expectation on the active server
+/// labelled [label] (the method under examination — OpenBikeControl unless
+/// the context says otherwise), then connects to [address]:[port] from a
+/// bound source port and destroys the socket. Throws on refusal/timeout.
 ///
 /// The source address the server will see is whatever the OS picks for the
 /// route to [address]: itself, when [address] is loopback (we're connecting
@@ -146,10 +148,10 @@ Future<List<InternetAddress>> defaultResolve(String host) =>
 /// back to ourselves — [address] again, once we bind the socket to it
 /// explicitly via `sourceAddress`. Either way source == destination, so a
 /// single [address] value is all [ResilientTcpServer.expectProbe] needs.
-Future<void> defaultTcpProbe(String address, int port) async {
-  final server = ResilientTcpServer.activeServers.firstOrNullWhere((s) => s.label == 'OpenBikeControl');
+Future<void> defaultTcpProbe(String address, int port, {String label = 'OpenBikeControl'}) async {
+  final server = ResilientTcpServer.activeServers.firstOrNullWhere((s) => s.label == label);
   if (server == null) {
-    throw StateError('OpenBikeControl server not running');
+    throw StateError('$label server not running');
   }
 
   final destination = InternetAddress(address);

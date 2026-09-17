@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
@@ -42,6 +43,8 @@ NetworkProbeContext ctx({
   ObpMdnsBackend backend = ObpMdnsBackend.platformDefault,
   String? advertisedHostname,
   String platform = 'macos',
+  String methodServerLabel = 'OpenBikeControl',
+  int methodPreferredPort = OpenBikeControlConstants.TCP_PORT,
 }) => NetworkProbeContext(
   snapshot: snapshot,
   snapshotError: snapshotError,
@@ -52,6 +55,8 @@ NetworkProbeContext ctx({
   backend: backend,
   advertisedHostname: advertisedHostname,
   platform: platform,
+  methodServerLabel: methodServerLabel,
+  methodPreferredPort: methodPreferredPort,
   resolve: (host) async => const [],
   tcpProbe: (address, port) async {},
   runProcess: (executable, arguments) async => ProcessResult(0, 0, '', ''),
@@ -111,6 +116,70 @@ void main() {
       final check = methodListeningCheck(ctx(snapshot: null, snapshotError: error));
       expect(check.verdict, NetworkVerdict.unknown);
       expect(check.detail['error'], error.toString());
+    });
+  });
+
+  group('methodListeningCheck examines the context\'s own network method', () {
+    // A Rouvy rider's method is the Click server (prop's ClickEmulator), not
+    // OpenBikeControl. With the label hard-wired the check reported "fail"
+    // while Rouvy was happily connected.
+    const clickListening = TcpServerInfo(label: 'Click', port: 36860, listening: true, hasClient: false);
+
+    test('pass: only a Click server listens, and the context asks for Click on 36860', () {
+      final check = methodListeningCheck(
+        ctx(
+          snapshot: _diag(servers: const [clickListening]),
+          methodServerLabel: 'Click',
+          methodPreferredPort: 36860,
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.pass);
+      expect(check.detail['port'], '36860');
+      expect(check.fixes, isEmpty);
+    });
+
+    test('warn: the Click server walked off its preferred port', () {
+      final check = methodListeningCheck(
+        ctx(
+          snapshot: _diag(
+            servers: const [TcpServerInfo(label: 'Click', port: 36861, listening: true, hasClient: false)],
+          ),
+          methodServerLabel: 'Click',
+          methodPreferredPort: 36860,
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.warn);
+      expect(check.detail['port'], '36861');
+      expect(check.fixes, [NetworkFixId.restartMethod]);
+    });
+
+    test('fail: a Click server does not satisfy a context asking for OpenBikeControl', () {
+      final check = methodListeningCheck(ctx(snapshot: _diag(servers: const [clickListening])));
+      expect(check.verdict, NetworkVerdict.fail);
+      expect(check.fixes, [NetworkFixId.restartMethod]);
+    });
+
+    test('the context defaults to OpenBikeControl on its standard port', () {
+      final context = NetworkProbeContext(
+        snapshot: null,
+        snapshotError: null,
+        emulatorStarted: true,
+        trainerAppConnected: false,
+        trainerAppConnectedNow: () => false,
+        trainerAppName: null,
+        backend: ObpMdnsBackend.platformDefault,
+        advertisedHostname: null,
+        platform: 'macos',
+        resolve: (host) async => const [],
+        tcpProbe: (address, port) async {},
+        runProcess: (executable, arguments) async => ProcessResult(0, 0, '', ''),
+        queryLog: () => const [],
+        sleep: (d) async {},
+        now: () => DateTime(2026, 8, 21),
+        onWatchProgress: (progress) {},
+      );
+      expect(context.methodServerLabel, 'OpenBikeControl');
+      expect(context.methodPreferredPort, OpenBikeControlConstants.TCP_PORT);
     });
   });
 

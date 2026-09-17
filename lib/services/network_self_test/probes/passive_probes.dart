@@ -1,7 +1,6 @@
 import 'package:dartx/dartx.dart';
 import 'package:prop/utils/network_address.dart';
 
-import '../../../bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
 import '../../../bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import '../../debug_diagnostics.dart';
 import '../network_check.dart';
@@ -27,8 +26,9 @@ String _subnetPrefix(String address) {
   return parts.length >= 3 ? parts.take(3).join('.') : address;
 }
 
-/// Check 1: is the OpenBikeControl TCP server the mDNS method actually
-/// registered running and listening?
+/// Check 1: is the TCP server behind the network method the selected trainer
+/// app rides on ([NetworkProbeContext.methodServerLabel]: OpenBikeControl,
+/// Rouvy's Click, Zwift's DirCon) actually running and listening?
 NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
   final snapshot = ctx.snapshot;
   if (snapshot == null) {
@@ -46,7 +46,7 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
       fixes: [NetworkFixId.restartMethod],
     );
   }
-  final server = snapshot.servers.firstOrNullWhere((s) => s.label == 'OpenBikeControl' && s.listening);
+  final server = snapshot.servers.firstOrNullWhere((s) => s.label == ctx.methodServerLabel && s.listening);
   if (server == null) {
     return const NetworkCheck(
       id: NetworkCheckId.methodListening,
@@ -55,7 +55,7 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
     );
   }
   final port = server.port;
-  if (port == OpenBikeControlConstants.TCP_PORT) {
+  if (port == ctx.methodPreferredPort) {
     return NetworkCheck(id: NetworkCheckId.methodListening, verdict: NetworkVerdict.pass, detail: {'port': '$port'});
   }
   // Off the preferred port: something else held it when this server bound —
