@@ -56,6 +56,30 @@ void main() {
     expect(find.text(l10n.warningAppLocalControlIosNote(tacx.name)), findsOneWidget);
   });
 
+  testWidgets('the configuration page survives "other device" with no trainer app resolved', (tester) async {
+    // e.g. a saved app that is not listed in this build (debug-only apps).
+    SharedPreferences.setMockInitialValues({'last_target': 'otherDevice', 'trainer_app': 'Not A Listed App'});
+    core.settings.prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(
+      ShadcnApp(
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        locale: const Locale('en'),
+        theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.7),
+        home: Scaffold(child: SingleChildScrollView(child: ConfigurationPage(onUpdate: () {}))),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(ConfigurationPage), findsOneWidget);
+  });
+
   testWidgets('apps with a controller protocol keep the plain install warning', (tester) async {
     final zwift = Zwift();
     await pumpWarning(tester, zwift);

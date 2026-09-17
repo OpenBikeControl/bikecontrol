@@ -105,14 +105,15 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     ],
                   ],
 
-                  if (core.settings.getLastTarget() == Target.otherDevice &&
-                      !core.logic.hasRecommendedConnectionMethods &&
-                      // Nothing to install alongside an app that takes no
-                      // controller input — it only ever sees us as a trainer.
-                      core.settings.getTrainerApp()?.receivesButtonEvents != false &&
-                      core.settings.getTrainerApp() is! BikeControl) ...[
+                  if (core.settings.getTrainerApp() case final app?
+                      when core.settings.getLastTarget() == Target.otherDevice &&
+                          !core.logic.hasRecommendedConnectionMethods &&
+                          // Nothing to install alongside an app that takes no
+                          // controller input — it only ever sees us as a trainer.
+                          app.receivesButtonEvents &&
+                          app is! BikeControl) ...[
                     SizedBox(height: 8),
-                    installOnTargetDeviceWarning(context, core.settings.getTrainerApp()!),
+                    installOnTargetDeviceWarning(context, app),
                   ],
                   if (core.settings.getTrainerApp()?.star == true && !screenshotMode && !widget.onboardingMode)
                     Row(
