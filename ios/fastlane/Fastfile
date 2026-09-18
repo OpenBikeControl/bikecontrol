@@ -30,6 +30,20 @@ SCREENSHOTS_MACOS = File.join(ROOT, "ios/fastlane/screenshots_macos")
 API_KEY_JSON   = File.join(ROOT, "ios/fastlane/asc_api_key.json")
 # Store locales (the per-locale screenshot folder names).
 STORE_LOCALES  = ["en-US", "de-DE", "fr-FR", "es-ES", "it", "pl"]
+# Every locale the App Store listing has. Release notes must reach all of them,
+# otherwise a locale keeps showing the previous version's "What's New". Derived
+# from the locale folders under METADATA; this list is only the fallback for
+# when the private submodule isn't checked out. It is a superset of
+# STORE_LOCALES (es-MX has listing texts but reuses the es-ES screenshots).
+FALLBACK_LISTING_LOCALES = ["en-US", "de-DE", "fr-FR", "es-ES", "es-MX", "it", "pl"]
+
+def listing_locales
+  locales = Dir.exist?(METADATA) ? Dir.children(METADATA).select do |name|
+    # Locale folders look like "en-US" / "it"; skip e.g. review_information.
+    File.directory?(File.join(METADATA, name)) && name.match?(/\A[a-z]{2,3}(-[A-Za-z]{2,4})?\z/)
+  end.sort : []
+  locales.empty? ? FALLBACK_LISTING_LOCALES : locales
+end
 
 def asc_api_key
   app_store_connect_api_key(
@@ -139,19 +153,20 @@ def sync_screenshots(platform, root)
   UI.success("#{platform}: screenshots synced")
 end
 
-# Push the per-version "What's New" (release notes) to every managed App Store
-# locale, using the same text for all of them. The release pipeline (build.yml)
+# Push the per-version "What's New" (release notes) to every App Store listing
+# locale (see listing_locales), using the same text for all of them. The release pipeline (build.yml)
 # ships the English changelog everywhere — localizing the release notes per
 # language is a deliberate non-goal for now, but leaving them unset means the
 # store keeps showing the previous version's note, so we overwrite them all.
 #
-# Reads the note text from RELEASE_NOTES_PATH (default: the whatsnew-en-US file
-# the build workflow generates from CHANGELOG.md) and the marketing version from
+# Reads the note text from RELEASE_NOTES_PATH (default: the ≤4000-char
+# store_notes/app_store_release_notes.txt the build workflow generates from
+# CHANGELOG.md — not the 500-char Play whatsnew file) and the marketing version from
 # APP_STORE_VERSION. `platform` is deliver's platform string: "ios" (default) or
 # "osx" — the iOS and Mac App Store keep separate version records under the same
 # app, so each needs its own push.
 def push_release_notes(platform)
-  notes_path = ENV["RELEASE_NOTES_PATH"] || File.join(ROOT, "whatsnew/whatsnew-en-US")
+  notes_path = ENV["RELEASE_NOTES_PATH"] || File.join(ROOT, "store_notes/app_store_release_notes.txt")
   UI.user_error!("release notes file not found: #{notes_path}") unless File.exist?(notes_path)
   notes = File.read(notes_path).strip
   UI.user_error!("release notes file is empty: #{notes_path}") if notes.empty?
@@ -161,7 +176,7 @@ def push_release_notes(platform)
   Dir.mktmpdir("release_notes") do |tmp|
     # deliver only updates the fields it finds files for, so a metadata tree with
     # just release_notes.txt per locale touches the "What's New" and nothing else.
-    STORE_LOCALES.each do |locale|
+    listing_locales.each do |locale|
       dir = File.join(tmp, locale)
       FileUtils.mkdir_p(dir)
       File.write(File.join(dir, "release_notes.txt"), notes)
