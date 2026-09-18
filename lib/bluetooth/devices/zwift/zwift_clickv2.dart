@@ -7,6 +7,7 @@ import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
@@ -22,10 +23,14 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
-// Prefer the standard Wahoo DirCon port so clients that hard-dial it (ignoring
-// the mDNS SRV port, e.g. TrainerRoad) reach the Virtual-Shifting bridge.
-// Reasoning in `prop` ([kWahooDirconStandardPort]).
-final DirconEmulator ftmsEmulator = DirconEmulator(preferredPort: kWahooDirconStandardPort);
+// TrainerRoad hard-dials the standard Wahoo DirCon port, ignoring the mDNS SRV
+// port. Reasoning in `prop` ([kWahooDirconStandardPort]).
+final DirconEmulator ftmsEmulator = DirconEmulator()..preferStandardPort = bridgeServesStandardDirconPort;
+
+/// Whether the trainer bridges serve on the standard Wahoo DirCon port.
+/// TrainerRoad has no entry of its own, so its riders pick "Other"; every
+/// named app keeps the auto-assigned port it had before 7.0.
+bool bridgeServesStandardDirconPort() => core.settings.getTrainerApp() is CustomApp;
 
 class ZwiftClickV2 extends ZwiftRide {
   ZwiftClickDefinition? _clickDef;

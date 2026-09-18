@@ -40,10 +40,9 @@ class ProxyDevice extends BluetoothDevice {
 
   /// Per-instance emulator used exclusively in proxy mode. Each proxy-mode
   /// trainer needs its own mDNS identity / peripheral so they are independent.
-  // Serve DirCon on the standard Wahoo port so clients that hard-dial it
-  // (ignoring the mDNS SRV port) can connect — TrainerRoad's desktop app is the
-  // motivating case. Reasoning in `prop` ([kWahooDirconStandardPort]).
-  final DirconEmulator _proxyEmulator = DirconEmulator(preferredPort: kWahooDirconStandardPort);
+  // Serves on the standard Wahoo DirCon port for TrainerRoad, which ignores the
+  // mDNS SRV port ([bridgeServesStandardDirconPort]).
+  final DirconEmulator _proxyEmulator = DirconEmulator()..preferStandardPort = bridgeServesStandardDirconPort;
 
   /// Active emulator for this device. In proxy mode → own per-instance
   /// emulator; in VS modes → shared global [ftmsEmulator].
