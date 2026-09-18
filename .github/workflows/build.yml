@@ -31,7 +31,7 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.44.1
+  FLUTTER_VERSION: 3.47.4
 
 jobs:
   build:
@@ -96,6 +96,14 @@ jobs:
           keystore-base64: ${{ secrets.KEYSTORE_BASE64 }}
           keystore-properties: ${{ secrets.KEYSTORE_PROPERTIES }}
 
+      - name: 🚀 Shorebird Release iOS
+        if: inputs.build_ios
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          platform: ios
+          args: "--export-options-plist ios/ExportOptions.plist --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
+
       - name: 🚀 Shorebird Release Android
         if: inputs.build_android
         uses: shorebirdtech/shorebird-release@v1
@@ -145,14 +153,6 @@ jobs:
           chmod +x scripts/generate_release_body.sh
           ./scripts/generate_release_body.sh > /tmp/release_body.md
 
-      - name: 🚀 Shorebird Release iOS
-        if: inputs.build_ios
-        uses: shorebirdtech/shorebird-release@v1
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          platform: ios
-          args: "--export-options-plist ios/ExportOptions.plist --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
-
       - name: Prepare App Store authentication key
         if: inputs.build_ios || inputs.build_mac
         env:
@@ -178,7 +178,7 @@ jobs:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
         run: |
-          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "3rd Party Mac Developer Installer: JONAS TASSILO BARK (UZRHKPVWN9)";    
+          productbuild --component "build/macos/Build/Products/Release/BikeControl.app" /Applications "BikeControl.pkg" --sign "3rd Party Mac Developer Installer: OpenBikeControl UG (haftungsbeschrankt) (UZRHKPVWN9)";    
           xcrun altool --upload-app -f BikeControl.pkg -t osx --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID"; 
 
       # macOS shares the App Store record with iOS but keeps its own version, so
@@ -279,6 +279,11 @@ jobs:
             ($_ -split ' ')[1].Trim()
           }
           echo "VERSION=$version" >> $env:GITHUB_ENV
+
+      # Shorebird checks out its Flutter fork under a long temp path; without
+      # this a cold cache fails with "Filename too long" (Windows MAX_PATH).
+      - name: Enable git long paths
+        run: git config --system core.longpaths true
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1

@@ -44,7 +44,7 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.38.5
+  FLUTTER_VERSION: 3.47.4
 
 jobs:
   guard:
@@ -96,7 +96,6 @@ jobs:
         uses: ./.github/actions/install-certificates
         with:
           developer-id-application-p12-base64: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
-          developer-id-installer-p12-base64: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
           p12-password: ${{ secrets.P12_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
           appstore-profile-ios-base64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}
@@ -220,6 +219,11 @@ jobs:
 
       - name: Rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
         uses: ./.github/actions/rename-pubspec-overrides
+
+      # Shorebird checks out its Flutter fork under a long temp path; without
+      # this a cold cache fails with "Filename too long" (Windows MAX_PATH).
+      - name: Enable git long paths
+        run: git config --system core.longpaths true
 
       - name: 🐦 Setup Shorebird
         uses: shorebirdtech/setup-shorebird@v1
