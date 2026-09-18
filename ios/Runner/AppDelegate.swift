@@ -14,6 +14,7 @@ import UIKit
   private var pipChannel: FlutterMethodChannel?
   private var healthKit: HealthKitHeartRate?
   private var healthKitWorkouts: HealthKitWorkoutWriter?
+  private var dnsSd: DnsSdAdvertiser?
 
   override func application(
     _ application: UIApplication,
@@ -96,6 +97,12 @@ import UIKit
       let writer = HealthKitWorkoutWriter()
       writer.register(with: engineBridge.pluginRegistry)
       healthKitWorkouts = writer
+    }
+
+    if dnsSd == nil {
+      let advertiser = DnsSdAdvertiser()
+      advertiser.register(with: engineBridge.pluginRegistry)
+      dnsSd = advertiser
     }
   }
 

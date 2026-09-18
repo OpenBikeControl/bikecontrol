@@ -113,7 +113,8 @@ Future<void> main(List<String> args) async {
       // link-locals that Mono-based trainer apps (TrainingPeaks) cannot
       // connect to ("No route to host"). On Android the responder's socket
       // acquires a WifiManager multicast lock so queries are received. iOS
-      // stays on the OS responder (no multicast-networking entitlement).
+      // (no multicast-networking entitlement) publishes the same record
+      // shape through Bonjour's dns_sd API instead.
       if (!kIsWeb) {
         ServiceAdvertiser.instance = ServiceAdvertiser.platformDefault();
       }

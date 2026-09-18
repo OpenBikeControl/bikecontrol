@@ -19,6 +19,7 @@ import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
+import 'package:prop/mdns/dnssd_service_advertiser.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/prop.dart';
 import 'package:prop/utils/self_advertisement_registry.dart';
@@ -118,8 +119,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   /// the hostname-resolution probe. Null when unknown: stopped, web, or an
   /// advertiser whose host record we cannot read back.
   ///
-  /// Only two advertisers let us know the name for sure: our own responder
-  /// (it *is* the record) and Bonjour on Windows, whose default host record
+  /// Only three advertisers let us know the name for sure: our own responder
+  /// and the iOS dns_sd bridge (both publish the record themselves) and Bonjour on Windows, whose default host record
   /// is the machine's computer name — which is what [Platform.localHostname]
   /// returns there. The nsd backend (macOS/Android/Linux) is deliberately
   /// `null`: the OS publishes under its Bonjour LocalHostName, which is NOT
@@ -130,8 +131,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
   String? get advertisedHostname {
     if (!isStarted.value) return null;
     final advertiser = _activeAdvertiser;
-    if (advertiser is ResponderServiceAdvertiser) {
-      final label = advertiser.hostLabel;
+    if (advertiser is ResponderServiceAdvertiser || advertiser is DnsSdServiceAdvertiser) {
+      final label = advertiser is ResponderServiceAdvertiser
+          ? advertiser.hostLabel
+          : (advertiser as DnsSdServiceAdvertiser).hostLabel;
       return label == null ? null : '$label.local';
     }
     if (advertiser is BonjourServiceAdvertiser) {
