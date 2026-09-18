@@ -5,6 +5,7 @@ import 'package:bike_control/services/mdns_query_privacy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_network_permission/local_network_permission.dart';
 import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
+import 'package:prop/mdns/dnssd_service_advertiser.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/utils/advertised_service_registry.dart';
 import 'package:prop/utils/network_address.dart';
@@ -130,8 +131,18 @@ class DebugDiagnostics {
 
     return DebugDiagnostics(
       advertised: AdvertisedServiceRegistry.instance.records,
-      backend: isResponder ? 'responder' : 'nsd',
-      hostLabel: isResponder ? advertiser.hostLabel : null,
+      backend: switch (advertiser) {
+        ResponderServiceAdvertiser() => 'responder',
+        // No host label while registered means the native bridge refused
+        // the host and the services went out through nsd instead.
+        DnsSdServiceAdvertiser(:final hostLabel) =>
+          hostLabel != null || AdvertisedServiceRegistry.instance.records.isEmpty ? 'dnssd' : 'dnssd→nsd',
+        _ => 'nsd',
+      },
+      hostLabel: switch (advertiser) {
+        ResponderServiceAdvertiser(:final hostLabel) || DnsSdServiceAdvertiser(:final hostLabel) => hostLabel,
+        _ => null,
+      },
       holdsMulticastLock: isResponder ? advertiser.holdsMulticastLock : false,
       discovered: discovered,
       discoveryRan: discoveryRan,

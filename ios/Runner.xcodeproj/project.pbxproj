@@ -19,6 +19,7 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		9DEFD285994D09CFCE400F36 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CE7ADD07A99710C0FB974A8 /* Pods_Runner.framework */; };
 		A7C3E1B25D0F4A6B8C9D0E1F /* HealthKitWorkoutWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8D4F2C36E1A5B7C9DAE1F20 /* HealthKitWorkoutWriter.swift */; };
+		D1A5C0E27F3B4A6C8E9D0F11 /* DnsSdAdvertiser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A5C0E27F3B4A6C8E9D0F12 /* DnsSdAdvertiser.swift */; };
 		F02276C12FEC277800C2B6F1 /* GearSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */; };
 		F02276C22FEC277800C2B6F1 /* GearReadoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C02FEC277800C2B6F1 /* GearReadoutView.swift */; };
 		F02276C52FEC278C00C2B6F1 /* DeviceCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */; };
@@ -95,6 +96,7 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B8D4F2C36E1A5B7C9DAE1F20 /* HealthKitWorkoutWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitWorkoutWriter.swift; path = Runner/HealthKitWorkoutWriter.swift; sourceTree = "<group>"; };
+		D1A5C0E27F3B4A6C8E9D0F12 /* DnsSdAdvertiser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DnsSdAdvertiser.swift; path = Runner/DnsSdAdvertiser.swift; sourceTree = "<group>"; };
 		DFFDC4B9C4D6EF6A3BDE2E73 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		E58D6DB90644C125994AED4A /* HealthKitHeartRate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HealthKitHeartRate.swift; path = Runner/HealthKitHeartRate.swift; sourceTree = "<group>"; };
 		EFDECED99A47773C293F8819 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
@@ -111,7 +113,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F06879652FAF1F5900395E5C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		F06879652FAF1F5900395E5C /* Exceptions for "TrainerActivity" folder in "TrainerActivityExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -121,7 +123,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		F06879522FAF1F5700395E5C /* TrainerActivity */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (F06879652FAF1F5900395E5C /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrainerActivity; sourceTree = "<group>"; };
+		F06879522FAF1F5700395E5C /* TrainerActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F06879652FAF1F5900395E5C /* Exceptions for "TrainerActivity" folder in "TrainerActivityExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = TrainerActivity;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,6 +218,7 @@
 				F02276C32FEC278C00C2B6F1 /* DeviceCapabilities.swift */,
 				F02276C42FEC278C00C2B6F1 /* PipGearController.swift */,
 				E58D6DB90644C125994AED4A /* HealthKitHeartRate.swift */,
+				D1A5C0E27F3B4A6C8E9D0F12 /* DnsSdAdvertiser.swift */,
 				B8D4F2C36E1A5B7C9DAE1F20 /* HealthKitWorkoutWriter.swift */,
 				F02276C02FEC277800C2B6F1 /* GearReadoutView.swift */,
 				F02276BF2FEC277800C2B6F1 /* GearSnapshot.swift */,
@@ -349,7 +363,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
 			);
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
 			projectDirPath = "";
@@ -399,13 +413,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -495,13 +505,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -526,6 +532,7 @@
 				F02276C52FEC278C00C2B6F1 /* DeviceCapabilities.swift in Sources */,
 				F02276C62FEC278C00C2B6F1 /* PipGearController.swift in Sources */,
 				35EE8D2A70938666CB1AB614 /* HealthKitHeartRate.swift in Sources */,
+				D1A5C0E27F3B4A6C8E9D0F11 /* DnsSdAdvertiser.swift in Sources */,
 				A7C3E1B25D0F4A6B8C9D0E1F /* HealthKitWorkoutWriter.swift in Sources */,
 				F02276C12FEC277800C2B6F1 /* GearSnapshot.swift in Sources */,
 				F02276C22FEC277800C2B6F1 /* GearReadoutView.swift in Sources */,
@@ -1075,7 +1082,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};
