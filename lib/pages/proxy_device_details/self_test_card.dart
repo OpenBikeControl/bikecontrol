@@ -25,6 +25,17 @@ enum _Refusal { disconnected, trainerApp }
 /// not: the prechecks, the screen wakelock, persisting the verdict per trainer
 /// and the three visual states (idle → running → verdict).
 class SelfTestCard extends StatefulWidget {
+  /// Which smart-trainer symptom the support form opens on for [verdict].
+  ///
+  /// Every failing verdict is a resistance complaint, so it preselects the one
+  /// the rider would have picked anyway. A pass is not: the trainer did what it
+  /// was told, and whatever brought the rider to support is something else —
+  /// pinning "No resistance change" there would put a wrong symptom on their
+  /// ticket. See [smartTrainerSymptoms] for the values.
+  @visibleForTesting
+  static String intakeSymptomFor(SelfTestVerdict verdict) =>
+      verdict == SelfTestVerdict.pass ? 'other' : 'no_resistance_change';
+
   final ProxyDevice device;
 
   /// Test seam: builds the engine; defaults to [SelfTestEngine] over a
@@ -336,11 +347,17 @@ class _SelfTestCardState extends State<SelfTestCard> {
     final harness = _engine?.harness;
     final otherProtocol = harness == null ? null : _otherProtocol(harness.supportedProtocolNames, result.protocol);
     return switch (result.verdict) {
+      // A pass gets the support option too, secondary to the overlay. It is the
+      // one result that proves the trainer does what it is told, which is what
+      // separates a hardware fault from a BikeControl one on whatever the rider
+      // reports next — and several riders whose trainers passed had something
+      // else to tell us and no way to attach the evidence.
       SelfTestVerdict.pass => [
         Button.primary(
           onPressed: () => widget.onShowOverlaySettings?.call(),
           child: Text(l10n.selfTestCtaOverlay),
         ),
+        Button.outline(onPressed: () => _openSupport(context, result), child: Text(l10n.selfTestCtaReport)),
       ],
       SelfTestVerdict.ergOkVsFail => [
         Button.primary(onPressed: _switchModeAndRerun, child: Text(l10n.selfTestCtaSwitchMode)),
@@ -490,10 +507,10 @@ class _SelfTestCardState extends State<SelfTestCard> {
           // Matches what the intake form itself produces for this branch
           // (smart-trainer answers go into subcategoryValue with subcategory
           // 'issue').
-          initialIntake: const IntakeAnswers(
+          initialIntake: IntakeAnswers(
             category: IntakeCategory.smartTrainer,
             subcategory: 'issue',
-            subcategoryValue: 'no_resistance_change',
+            subcategoryValue: SelfTestCard.intakeSymptomFor(result.verdict),
           ),
           telemetryBuilder: () async => TelemetrySnapshot.general(freetext: await debugText()),
         ),
