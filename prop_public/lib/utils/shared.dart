@@ -46,6 +46,20 @@ class Logger {
     }
   }
 
+  /// Sink for verbose wire traces. Wired by the app so the lines can reach a
+  /// support bundle from a release build; null (the default) makes [trace] a
+  /// no-op outside debug builds.
+  static void Function(String message)? onTrace;
+
+  /// Emit a verbose wire trace. [build] runs only when a sink is attached or
+  /// the build is a debug build.
+  static void trace(String Function() build, {bool record = true}) {
+    if (!kDebugMode && (!record || onTrace == null)) return;
+    final text = build();
+    if (kDebugMode) debug(text);
+    if (record) onTrace?.call(text);
+  }
+
   static void debug(String s) {
     if (kDebugMode && false) {
       print('\x1B[34m$s\x1B[0m');

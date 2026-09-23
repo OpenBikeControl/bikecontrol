@@ -128,6 +128,58 @@ class FitnessBikeDefinition extends BleDefinition {
 
   int get neutralGear => 0;
 
+  /// The delivery the trainer is actually driven over: the rider's
+  /// [controlProtocolOverride] when set, otherwise auto-detection.
+  TrainerControlProtocol get controlProtocol => TrainerControlProtocol.ftms;
+
+  /// The rider's forced delivery, or null for auto.
+  TrainerControlProtocol? get controlProtocolOverride => null;
+
+  /// Every delivery this trainer can actually carry.
+  Set<TrainerControlProtocol> get supportedControlProtocols => const {};
+
+  void setControlProtocolOverride(TrainerControlProtocol? p) {}
+
+  /// The mode virtual shifting is actually driven with, which can differ from
+  /// the saved [virtualShiftingMode].
+  VirtualShiftingMode get effectiveVirtualShiftingMode => VirtualShiftingMode.targetPower;
+
+  /// The mode auto-selection would pick for this trainer.
+  VirtualShiftingMode get defaultVirtualShiftingMode => VirtualShiftingMode.targetPower;
+
+  /// Hands the virtual-shifting mode back to auto-selection.
+  void useDefaultVirtualShiftingMode() {}
+
+  /// Compact FTMS capability line for the support bundle.
+  String get ftmsCapabilitySummary => '';
+
+  /// The cadence the resistance calculation actually uses.
+  int get filteredCadence => 0;
+
+  /// Compact Zwift-Sync handshake line for the support bundle; 'n/a' when the
+  /// trainer does not speak it.
+  String get zwiftHandshakeSummary => 'n/a';
+
+  /// Compact native gear-acknowledgement line for the support bundle; 'n/a'
+  /// when the trainer does not speak it.
+  String get gearEchoSummary => 'n/a';
+
+  /// How the gear echo watchdog resolved, or null while nothing is wrong.
+  final ValueNotifier<ZwiftGearEchoVerdict?> gearEchoVerdict = ValueNotifier<ZwiftGearEchoVerdict?>(null);
+
+  /// Whether the trainer refused to start grade simulation.
+  final ValueNotifier<bool> trackResistanceRefused = ValueNotifier<bool>(false);
+
+  /// The most recent upstream control write, or null before the first one.
+  ControlWriteResult? get lastControlWrite => null;
+
+  /// Rider metrics sourced by the app rather than the trainer.
+  void setExternalHeartRate(int? bpm) {}
+
+  void setExternalCadence(int? rpm) {}
+
+  void setExternalPower(int? watts) {}
+
   List<String>? get trainerFtmsMachineFeatureFlagNames => null;
 
   List<String>? get trainerFtmsTargetSettingFlagNames => null;
@@ -222,8 +274,32 @@ class FitnessBikeDefinition extends BleDefinition {
   }
 }
 
+/// Outcome of the most recent control write sent upstream to the trainer.
+class ControlWriteResult {
+  final DateTime at;
+  final bool ok;
+  final String op;
+  const ControlWriteResult({required this.at, required this.ok, required this.op});
+}
+
+/// How the gear echo watchdog resolved, once a trainer has ignored enough
+/// native gear commands — see [FitnessBikeDefinition.gearEchoVerdict].
+enum ZwiftGearEchoVerdict {
+  /// Delivery moved to FTMS automatically.
+  fellBackToFtms,
+
+  /// The trainer has no FTMS Control Point; the native path stays.
+  noFtmsToFallBackTo,
+
+  /// The rider forced a protocol; that choice is kept.
+  riderOverrideKept,
+}
+
 enum FrontRing { small, large }
 
 enum TrainerMode { ergMode, simMode, simModeVirtualShifting }
 
 enum VirtualShiftingMode { targetPower, trackResistance, basicResistance }
+
+/// The wire a trainer's control commands are delivered over.
+enum TrainerControlProtocol { ftms, fec, zwiftHub }
