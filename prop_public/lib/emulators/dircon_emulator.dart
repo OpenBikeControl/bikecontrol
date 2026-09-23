@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/ble_definition.dart';
 import 'package:prop/emulators/definitions/composite_ble_definition.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/emulators/definitions/sensor_definition.dart';
 import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/emulators/definitions/zwift_emulator_definition.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
@@ -33,6 +34,30 @@ int _portNumberIterator = 36868;
 void debugSetDirconPortBase(int base) => _portNumberIterator = base;
 
 class DirconEmulator {
+  /// [preferredPort] pins the TCP port the emulator asks its server to bind
+  /// first. Left unset it auto-assigns a distinct port so concurrent
+  /// instances don't pile onto one.
+  DirconEmulator({int? preferredPort}) : _ownPort = preferredPort ?? _portNumberIterator++;
+
+  final int _ownPort;
+
+  /// Serve on the standard DirCon port instead of this instance's own port
+  /// while it returns true.
+  bool Function()? preferStandardPort;
+
+  /// The port this emulator prefers for its DirCon TCP server. The port it
+  /// *actually* bound is [boundPort] (may differ after fallback).
+  int get preferredPort => _ownPort;
+
+  /// Forces the TCP listener to IPv4 only while it returns true.
+  bool Function()? forceIPv4;
+
+  /// Overrides the advertised peripheral / service name.
+  String? Function()? advertisementNameOverride;
+
+  /// Advertises 16-bit service UUIDs in their bare form while it returns true.
+  bool Function()? bareShortServiceUuids;
+
   final ValueNotifier<bool> isStarted = ValueNotifier(false);
   final ValueNotifier<bool> isConnected = ValueNotifier(false);
   final ValueNotifier<String> data = ValueNotifier('');
@@ -88,6 +113,10 @@ class DirconEmulator {
   Future<void> debug() async {}
 
   BleDefinition? get activeDefinition => composite;
+
+  /// Whether the composite holds nothing a trainer app would connect for —
+  /// rider-metric sinks alone don't count.
+  bool get hasNothingToServe => composite.children.every((c) => c is SensorDefinition);
 
   /// Attach [def] as a child of this emulator's [composite].
   Future<void> attachDefinition(BleDefinition def) async {
