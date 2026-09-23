@@ -5,18 +5,19 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/firmware_support.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/single_line_exception.dart';
+import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:version/version.dart';
 
 abstract class ZwiftDevice extends BluetoothDevice {
   ZwiftDevice(super.scanResult, {required super.availableButtons, super.isBeta});
@@ -42,16 +43,31 @@ abstract class ZwiftDevice extends BluetoothDevice {
         );
 
     if (customService == null) {
+      // A controller running firmware NEWER than the last version we support
+      // hides its custom service until the vendor app unlocks it. Telling that
+      // rider to update is plainly wrong (their firmware is already the
+      // latest), so route them to us instead.
+      final beyondSupported = hasFirmwareBeyondSupported;
       actionStreamInternal.add(
-        AlertNotification(
-          LogLevel.LOGLEVEL_ERROR,
-          AppLocalizations.current.firmwareUpdateRequired(name),
-          buttonTitle: AppLocalizations.current.zwiftCompanionApp,
-          onTap: () => launchUrlString(ZwiftConstants.ZWIFT_COMPANION_URL, mode: LaunchMode.externalApplication),
-        ),
+        beyondSupported
+            ? AlertNotification(
+                LogLevel.LOGLEVEL_WARNING,
+                AppLocalizations.current.zwiftRideFirmwareNoticeBody(firmwareVersion ?? ''),
+                buttonTitle: AppLocalizations.current.onboardingHelpSupport,
+                onTap: _openFirmwareSupport,
+              )
+            : AlertNotification(
+                LogLevel.LOGLEVEL_ERROR,
+                AppLocalizations.current.firmwareUpdateRequired(name),
+                buttonTitle: AppLocalizations.current.zwiftCompanionApp,
+                onTap: () => launchUrlString(ZwiftConstants.ZWIFT_COMPANION_URL, mode: LaunchMode.externalApplication),
+              ),
       );
+      final cause = beyondSupported
+          ? 'Firmware $firmwareVersion is newer than the last supported version $latestFirmwareVersion.'
+          : 'You may need to update the firmware in Zwift Companion app.';
       throw Exception(
-        'Custom service ${[ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID, ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID]} not found for device $this ${device.name ?? device.rawName}.\nYou may need to update the firmware in Zwift Companion app.\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
+        'Custom service ${[ZwiftConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID, ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID]} not found for device $this ${device.name ?? device.rawName}.\n$cause\nWe found: ${services.joinToString(transform: (s) => s.uuid)}',
       );
     }
 
@@ -90,19 +106,27 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
   }
 
+  /// True when [latestFirmwareVersion] is strictly newer than the firmware we
+  /// read off the device. Uses the same lenient parser as
+  /// [hasFirmwareBeyondSupported], so a four-component version like `1.2.0.24`
+  /// is compared on its leading `major.minor.patch` instead of being discarded.
+  /// Fail safe: missing or unparseable input returns false — we never prompt an
+  /// update we cannot justify.
   bool get hasNewerFirmwareVersion {
-    final isDifferent =
-        latestFirmwareVersion != null && firmwareVersion != null && firmwareVersion != latestFirmwareVersion;
+    final installed = parseLenientFirmwareVersion(firmwareVersion);
+    final latest = parseLenientFirmwareVersion(latestFirmwareVersion);
+    if (installed == null || latest == null) return false;
+    return installed < latest;
+  }
 
-    if (isDifferent) {
-      try {
-        return Version.parse(firmwareVersion!) < Version.parse(latestFirmwareVersion!);
-      } catch (_) {
-        return false;
-      }
-    } else {
-      return false;
-    }
+  /// Opens the in-app support chat for a controller whose firmware is past the
+  /// last version we support. Runs from the alert's button, i.e. outside any
+  /// widget, so it borrows the root navigator context and stays silent when
+  /// there is none (headless/tests).
+  void _openFirmwareSupport() {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+    openZwiftRideFirmwareSupport(context, this);
   }
 
   /// True when the connected firmware is newer than [latestFirmwareVersion],
