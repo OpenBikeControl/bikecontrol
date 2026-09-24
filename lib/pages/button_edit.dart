@@ -335,6 +335,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
+                                      _keyPair.inGameAction = null;
+                                      _keyPair.inGameActionValue = null;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
@@ -360,6 +362,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
+                                      _keyPair.inGameAction = null;
+                                      _keyPair.inGameActionValue = null;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
@@ -382,6 +386,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
+                                      _keyPair.inGameAction = null;
+                                      _keyPair.inGameActionValue = null;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
@@ -407,6 +413,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
+                                      _keyPair.inGameAction = null;
+                                      _keyPair.inGameActionValue = null;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
@@ -429,6 +437,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
+                                      _keyPair.inGameAction = null;
+                                      _keyPair.inGameActionValue = null;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
@@ -458,6 +468,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                         return;
                                       }
                                       _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
+                                      _keyPair.inGameAction = null;
+                                      _keyPair.inGameActionValue = null;
                                       _keyPair.touchPosition = Offset.zero;
                                       _keyPair.logicalKey = null;
                                       _keyPair.androidAction = null;
