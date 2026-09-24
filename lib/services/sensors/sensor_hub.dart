@@ -12,7 +12,7 @@ import 'sensor_source.dart';
 /// per quantity, or `null` meaning "trainer, use your own". Keeping the policy
 /// here is what makes it testable without any of the hardware it supports.
 class SensorHub {
-  SensorHub({DateTime Function()? now, this.log}) : _now = now ?? DateTime.now;
+  SensorHub({DateTime Function()? now, this.log}) : now = now ?? DateTime.now;
 
   /// TUNABLE. BLE heart rate / CSC / power sensors notify at about 1 Hz.
   static const bleSensorTtl = Duration(seconds: 5);
@@ -21,7 +21,9 @@ class SensorHub {
   /// BLE strap; a 5 s window here would flap continuously.
   static const healthKitTtl = Duration(seconds: 30);
 
-  final DateTime Function() _now;
+  /// The clock readings are aged by. Settable so tests on a fake clock can
+  /// point the app's own hub there.
+  DateTime Function() now;
 
   /// Attached during wiring rather than construction: the buffer lives on
   /// `Connection`, which is built after `core`.
@@ -192,7 +194,7 @@ class SensorHub {
     final allowed = isProEnabled?.call() ?? true;
     final reading = (source != null && allowed) ? source.readingFor(quantity).value : null;
 
-    final stale = reading == null || _now().difference(reading.timestamp) > (source?.ttl ?? bleSensorTtl);
+    final stale = reading == null || now().difference(reading.timestamp) > (source?.ttl ?? bleSensorTtl);
 
     final wasDropped = _droppedOutNotifier(quantity).value;
     if (stale && !wasDropped && reading != null) {
