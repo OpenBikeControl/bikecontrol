@@ -102,7 +102,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
@@ -116,13 +115,12 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_play_fw2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart' show FakePeripheral;
 import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart'
-    show autoRespondToZwiftHandshake, buildFtmsTrainer, zwiftRideNotification;
+    show autoRespondToZwiftHandshake, buildFtmsTrainer;
 import 'package:bike_control/bluetooth/emulation/profiles/zwift_profiles.dart' show buildZwiftController;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart'
     show
-        OtherLocalizationsDelegate,
         debugAnimatesInScreenshotMode,
         debugClickV2OnboardingInScreenshotMode,
         debugKeepsControllerNamesInScreenshotMode,
@@ -137,47 +135,26 @@ import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart' show debugHideGearCountMismatch;
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
-import 'package:bike_control/utils/actions/base_actions.dart' show BaseActions, StubActions;
+import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:crypto/crypto.dart';
-import 'package:flutter/material.dart' as m;
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 // prop.dart's `SramAxs` is the protocol constants, not the app's device class.
 import 'package:prop/prop.dart' as prop show SramAxs;
 import 'package:prop/testing.dart' show FakeSramDerailleur;
-import 'package:golden_screenshot/golden_screenshot.dart'; // tester.loadAssets()
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'helpers/offline_machine.dart';
+import 'helpers/video_capture.dart';
 import 'widget_snapshot.dart';
-import 'widget_to_png.dart';
-
-/// The mobile shell (the desktop rail starts at 800).
-const _logicalSize = Size(380, 824);
-
-/// 3× gives 1140×2472 px. Placed as a phone in a 1080p frame the screen is
-/// roughly 900–1000 px tall, so a full-phone shot is downsampled ~2.5×, and
-/// the compositor's 2.2× punch-in still lands on native pixels (at 2× it
-/// upscaled ~1.17× past them, softening the text).
-const _pixelRatio = 3.0;
-
-const _fps = 30;
-
-/// Settled frames kept before and after every tap (~0.4 s).
-const _hold = 12;
-
-/// How long a controller button is held down (~0.3 s) — long enough to read.
-const _pressHoldFrames = 9;
 
 /// The Virtual Shifting stage on the trainer step never comes to rest (it
 /// cycles its four scenes every 5.5 s), so it gets a fixed run. The film opens
@@ -228,321 +205,10 @@ const _guideFixtures = {
       'test/fixtures/onboarding_guides/mywhoosh_obc/6-bikecontrol-connected.jpg',
 };
 
-class _Tap {
-  _Tap(this.frame, this.x, this.y, this.label, {required this.kind, required this.settledBefore});
-  final int frame;
-  final double x;
-  final double y;
-  final String label;
-
-  /// `tap`, `swipe`, `hardware` or `event` — see the header.
-  final String kind;
-
-  /// Whether the [_hold] frames before it were unchanged. Only a tap into a
-  /// screen that never rests (the Virtual Shifting stage) lacks it.
-  final bool settledBefore;
-
-  int? endFrame;
-  double? endX;
-  double? endY;
-
-  /// For hardware presses: what x/y points at.
-  String? anchor;
-
-  Map<String, Object> toJson() => {
-        'frame': frame,
-        'x': x,
-        'y': y,
-        'label': label,
-        'kind': kind,
-        if (endFrame != null) 'endFrame': endFrame!,
-        if (endX != null) 'endX': endX!,
-        if (endY != null) 'endY': endY!,
-        if (anchor != null) 'anchor': anchor!,
-      };
-}
-
-bool _bytesEqual(Uint8List a, Uint8List b) {
-  if (a.length != b.length) return false;
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
-}
-
-class _Capture {
-  final frames = <Uint8List>[];
-  final taps = <_Tap>[];
-
-  /// Frames each tap's consequence took to come to rest, keyed by tap label.
-  final transitionFrames = <String, int>{};
-
-  /// Chapter names and the frame each one starts on.
-  final chapterStarts = <(String, int)>[];
-
-  /// Screens proven to be inside the captured boundary, and the frame each
-  /// was first seen on — see [_Recorder.sighting].
-  final sightings = <String, int>{};
-
-  List<({String name, int start, int end})> get chapters => [
-        for (var i = 0; i < chapterStarts.length; i++)
-          (
-            name: chapterStarts[i].$1,
-            start: chapterStarts[i].$2,
-            end: i + 1 < chapterStarts.length ? chapterStarts[i + 1].$2 : frames.length - 1,
-          ),
-      ];
-
-  String get tapsJson => const JsonEncoder.withIndent('  ').convert([for (final t in taps) t.toJson()]);
-
-  String get chaptersJson => const JsonEncoder.withIndent('  ')
-      .convert([
-        for (final c in chapters) {'name': c.name, 'start': c.start, 'end': c.end},
-      ]);
-}
-
-/// Drives the app frame by frame, capturing every frame it pumps.
-class _Recorder {
-  _Recorder(this.tester, this.boundary);
-
-  final WidgetTester tester;
-  final GlobalKey boundary;
-  final capture = _Capture();
-
-  /// Frame n is shown at n/30 s. Deriving each pump from the absolute frame
-  /// time keeps the sequence exactly 30 fps with no rounding drift.
-  static int _timeUs(int frame) => (frame * Duration.microsecondsPerSecond / _fps).round();
-
-  List<Uint8List> get _frames => capture.frames;
-
-  Future<void> _grab() async => _frames.add(await encodeBoundaryToPng(tester, boundary, pixelRatio: _pixelRatio));
-
-  /// Frame 0: what is on screen right now, no time advanced.
-  Future<void> first(String chapter) async {
-    assert(_frames.isEmpty);
-    await _grab();
-    capture.chapterStarts.add((chapter, 0));
-  }
-
-  /// Advances exactly one frame and captures it.
-  Future<void> step() async {
-    final n = _frames.length;
-    await tester.pump(Duration(microseconds: _timeUs(n) - _timeUs(n - 1)));
-    await _grab();
-  }
-
-  Future<void> frames(int count) async {
-    for (var i = 0; i < count; i++) {
-      await step();
-    }
-  }
-
-  /// Keeps capturing until [total] frames have passed since [since].
-  Future<void> holdUntil(int since, int total) async {
-    final remaining = since + total - _frames.length;
-    if (remaining > 0) await frames(remaining);
-  }
-
-  bool _lastTwoEqual() => _frames.length >= 2 && _bytesEqual(_frames[_frames.length - 1], _frames[_frames.length - 2]);
-
-  bool get _settled {
-    if (_frames.length <= _hold) return false;
-    final last = _frames.last;
-    for (var i = _frames.length - _hold; i < _frames.length - 1; i++) {
-      if (!_bytesEqual(_frames[i], last)) return false;
-    }
-    return true;
-  }
-
-  /// Starts the next chapter on the current (settled) frame. The previous
-  /// chapter ends on the same frame, so the two share an invisible cut.
-  /// [settled] false for a chapter that starts where something moves for good
-  /// (the running chain in the cutaway) — there is no settled frame to take.
-  void chapter(String name, {bool settled = true}) {
-    if (settled) {
-      expect(_settled, isTrue, reason: 'chapter "$name" must start on a settled frame (frame ${_frames.length - 1})');
-    }
-    capture.chapterStarts.add((name, _frames.length - 1));
-  }
-
-  /// Keeps capturing until [_hold] consecutive frames are unchanged — the
-  /// screen has visually finished moving and the compositor has a settled
-  /// hold to work with. Returns how many frames that took.
-  Future<int> untilStill({int maxFrames = 150}) async {
-    final start = _frames.length;
-    var still = 0;
-    while (still < _hold) {
-      if (_frames.length - start >= maxFrames) {
-        throw StateError('screen never settled within $maxFrames frames (from frame $start)');
-      }
-      await step();
-      still = _lastTwoEqual() ? still + 1 : 0;
-    }
-    return _frames.length - start;
-  }
-
-  _Tap _record(Offset pos, String label, String kind) {
-    final tap = _Tap(_frames.length, pos.dx * _pixelRatio, pos.dy * _pixelRatio, label,
-        kind: kind, settledBefore: _settled);
-    capture.taps.add(tap);
-    return tap;
-  }
-
-  /// Records that [what] is on screen in the last captured frame AND is drawn
-  /// inside the captured boundary — an overlay (a bottom sheet, a pushed
-  /// route) hosted outside it would be missing from the PNGs even though the
-  /// widget tree has it.
-  void sighting(String name, Finder what) {
-    expect(what, findsOneWidget, reason: '"$name" should be on screen');
-    final root = boundary.currentContext!.findRenderObject();
-    RenderObject? node = tester.renderObject(what);
-    while (node != null && node != root) {
-      node = node.parent;
-    }
-    expect(node, same(root), reason: '"$name" must be drawn inside the captured boundary');
-    capture.sightings.putIfAbsent(name, () => _frames.length - 1);
-  }
-
-  /// A finger press on [finder]'s centre: down, ~100 ms held (so the pressed
-  /// state is on film), up — then capture until the result has settled, or
-  /// for exactly [thenFrames] when what follows never rests.
-  Future<void> tap(Finder finder, String label, {int? thenFrames}) async {
-    expect(finder.hitTestable(), findsOneWidget, reason: 'tap target "$label" must be on screen and hittable');
-    final pos = tester.getCenter(finder);
-    final gesture = await tester.startGesture(pos);
-    // The first frame that shows the finger down.
-    _record(pos, label, 'tap');
-    await frames(3);
-    await gesture.up();
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
-  }
-
-  /// A finger dragged from [from] to [to] over [overFrames], then released
-  /// and left to settle (the scroll view's own ballistics included).
-  Future<void> swipe(Offset from, Offset to, String label, {int overFrames = 15}) async {
-    final gesture = await tester.startGesture(from);
-    final tap = _record(from, label, 'swipe');
-    for (var i = 1; i <= overFrames; i++) {
-      await gesture.moveTo(Offset.lerp(from, to, i / overFrames)!);
-      await step();
-    }
-    tap
-      ..endFrame = _frames.length - 1
-      ..endX = to.dx * _pixelRatio
-      ..endY = to.dy * _pixelRatio;
-    await gesture.up();
-    capture.transitionFrames[label] = await untilStill();
-  }
-
-  /// Something the app hears from outside, not a touch — [happen] makes it so
-  /// through the app's own entry point. Recorded as kind `event` at [at], on
-  /// the first frame it can show, then left to settle.
-  Future<void> event(String label, Finder at, void Function() happen) async {
-    expect(at, findsOneWidget, reason: '"$label" needs a spot on screen');
-    final pos = tester.getCenter(at);
-    happen();
-    _record(pos, label, 'event');
-    capture.transitionFrames[label] = await untilStill();
-  }
-
-  /// A button on the controller pressed ([press]) and, [holdFrames] later,
-  /// released ([release] — none for a controller that reports no release).
-  /// Both go in through the device's own decoder, the path a real press
-  /// takes. x/y is [at]'s centre, described by [anchor] (see the header).
-  Future<void> hardware(
-    String label, {
-    required Finder at,
-    required String anchor,
-    required Future<void> Function() press,
-    Future<void> Function()? release,
-    int holdFrames = _pressHoldFrames,
-    int? thenFrames,
-  }) async {
-    expect(at, findsOneWidget, reason: '"$label" needs a spot on screen');
-    final pos = tester.getCenter(at);
-    await press();
-    _record(pos, label, 'hardware').anchor = anchor;
-    await frames(holdFrames);
-    if (release != null) await release();
-    if (thenFrames != null) {
-      await frames(thenFrames);
-      capture.transitionFrames[label] = thenFrames;
-    } else {
-      capture.transitionFrames[label] = await untilStill();
-    }
-  }
-
-  /// Presses [mask] on a controller speaking the Ride protocol (the Ride, the
-  /// Play on firmware 2, a Click V2 puck) and releases it [_pressHoldFrames]
-  /// later.
-  ///
-  /// Both edges go in as the raw keypad notification the controller sends
-  /// over BLE, through the device's own decoder (`processCharacteristic` →
-  /// `handleButtonsClicked`) — the same path a real press takes. [reactsAt]
-  /// locates the x/y recorded: [button] on the contour when one is on screen.
-  Future<void> hardwarePress(
-    ZwiftRide ride,
-    RideButtonMask mask,
-    ControllerButton button,
-    String label, {
-    Finder? reactsAt,
-    int? thenFrames,
-  }) =>
-      hardware(
-        label,
-        at: reactsAt ?? find.byKey(ValueKey(button.name)),
-        anchor: reactsAt == null ? 'contour-button' : 'reaction',
-        press: () => ride.processCharacteristic(
-          ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
-          Uint8List.fromList(zwiftRideNotification(pressed: [mask])),
-        ),
-        release: () => ride.processCharacteristic(
-          ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
-          Uint8List.fromList(zwiftRideNotification()),
-        ),
-        thenFrames: thenFrames,
-      );
-}
-
-/// The real action pipeline — keymap, pro guard, trainer routing — without any
-/// platform key or touch output: a Ride shift lands on the bridged trainer.
-class _FilmActions extends BaseActions {
-  _FilmActions() : super(supportedModes: const []);
-
-  @override
-  void cleanup() {}
-}
-
-/// Prefs as they stood before any capture ran, so each capture starts from the
-/// same stored state (a capture picks MyWhoosh and a target, which persists).
-/// `Settings.reset()` would also re-run `Settings.init()` — Supabase, IAP and
-/// window-manager steps whose timeouts would outlive the test.
-late final Map<String, Object> _pristinePrefs;
-
+/// Each capture starts from the same stored state (a capture picks MyWhoosh
+/// and a target, which persists).
 Future<void> _restoreAppState() async {
-  final prefs = core.settings.prefs;
-  await prefs.clear();
-  for (final MapEntry(:key, :value) in _pristinePrefs.entries) {
-    switch (value) {
-      case final bool v:
-        await prefs.setBool(key, v);
-      case final int v:
-        await prefs.setInt(key, v);
-      case final double v:
-        await prefs.setDouble(key, v);
-      case final String v:
-        await prefs.setString(key, v);
-      case final List<String> v:
-        await prefs.setStringList(key, v);
-      default:
-        throw StateError('unhandled pref type for $key: ${value.runtimeType}');
-    }
-  }
+  await restorePristinePrefs();
   core.settings.trainerAppListenable.value = null;
   // Gearing lives in memory too; reload it from the restored prefs so the
   // cutaway's gear-count and preset changes don't carry into the next take.
@@ -576,38 +242,6 @@ class _Stage {
   late ProxyDevice trainer;
 }
 
-/// Lets real time and fake time pass in turn until [done] completes: parts of
-/// a disconnect complete on the real event loop (stream cancellations), which
-/// the fake clock never waits for. Never on film.
-Future<void> _drive(WidgetTester tester, Future<void> done, String what) async {
-  var finished = false;
-  unawaited(done.whenComplete(() => finished = true));
-  for (var i = 0; i < 100 && !finished; i++) {
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
-    await tester.pump(const Duration(milliseconds: 100));
-  }
-  expect(finished, isTrue, reason: what);
-}
-
-/// A BLE controller as the connected-controllers list shows it: the real device
-/// class over a hand-made scan result, connected, with the meta a connected
-/// controller reports. Staged the way screenshot_test.dart stages its
-/// controllers — no Bluetooth link behind it.
-T _staged<T extends BaseDevice>(T device) {
-  if (device case final ZwiftRide d) {
-    d
-      ..firmwareVersion = '1.2.0'
-      ..rssi = -51
-      ..batteryLevel = 81;
-  } else if (device case final ShimanoDi2 d) {
-    d
-      ..rssi = -51
-      ..batteryLevel = 81;
-  }
-  device.isConnected = true;
-  return device;
-}
-
 /// The controller a MyWhoosh take is filmed with, and what happens on its step.
 abstract class _ControllerTake {
   _ControllerTake({required this.scene, required this.slug, required this.name});
@@ -621,6 +255,9 @@ abstract class _ControllerTake {
   /// The controller's display name, for the compositor's overlay text.
   final String name;
 
+  /// What scene.json says about the controller.
+  Map<String, Object> get sceneInfo => {'controller': slug, 'controllerName': name};
+
   /// The controller step as (kind, label), in order, from "Continue to
   /// controller" on.
   List<(String, String)> get beats;
@@ -631,7 +268,7 @@ abstract class _ControllerTake {
   /// Whether the controller has a contour on the step that reacts to presses.
   bool get hasContour => true;
 
-  /// Screens the take must have filmed (see [_Recorder.sighting]).
+  /// Screens the take must have filmed (see [VideoRecorder.sighting]).
   List<String> get sightings => const [];
 
   /// SVGs the step draws, decoded before the first recorded frame.
@@ -641,25 +278,10 @@ abstract class _ControllerTake {
   Future<void> stage(WidgetTester tester, _Stage stage);
 
   /// Films step 3, from the tap on "Continue to controller" to the last press.
-  Future<void> film(WidgetTester tester, _Recorder rec);
+  Future<void> film(WidgetTester tester, VideoRecorder rec);
 
   /// Takes the controller away again, so the next take starts without it.
   Future<void> unstage(WidgetTester tester, _Stage stage);
-}
-
-/// Forwards [device]'s presses to the wizard the way Connection does for a
-/// device it connected. A staged controller is never BLE-connected, so that
-/// one forwarding line is done here. Not awaited on cancel: a broadcast
-/// subscription's cancel() completes on the real event loop, and awaiting it
-/// would take the test body off the fake clock for good.
-StreamSubscription<BaseNotification> _forward(BaseDevice device) =>
-    device.actionStream.listen(core.connection.signalNotification);
-
-/// Unmounts nothing: removes a staged controller from the device list.
-Future<void> _unstageStaged(WidgetTester tester, BaseDevice device) async {
-  device.isConnected = false;
-  await _drive(tester, core.connection.disconnect(device, forget: true, persistForget: false),
-      '${device.runtimeType} should have been removed');
 }
 
 class _RideTake extends _ControllerTake {
@@ -680,11 +302,11 @@ class _RideTake extends _ControllerTake {
 
   @override
   Future<void> stage(WidgetTester tester, _Stage stage) async {
-    core.connection.addDevices([_staged(ride)]);
+    core.connection.addDevices([stageConnected(ride)]);
   }
 
   @override
-  Future<void> film(WidgetTester tester, _Recorder rec) async {
+  Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
 
     // Step 3 — controller: the connected Ride is listed with its contour.
@@ -692,7 +314,7 @@ class _RideTake extends _ControllerTake {
         reason: 'should be on the controller step with the Ride listed');
 
     // Press buttons on the Ride — a shift, a steer, a shift the other way.
-    final forward = _forward(ride);
+    final forward = forwardPresses(ride);
     await rec.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, 'Ride button: Shift up');
     await rec.hardwarePress(ride, RideButtonMask.LEFT_BTN, ZwiftButtons.navigationLeft, 'Ride button: Steer left');
     await rec.hardwarePress(ride, RideButtonMask.SHFT_DN_L_BTN, ZwiftButtons.shiftDownLeft, 'Ride button: Shift down');
@@ -700,7 +322,7 @@ class _RideTake extends _ControllerTake {
   }
 
   @override
-  Future<void> unstage(WidgetTester tester, _Stage stage) => _unstageStaged(tester, ride);
+  Future<void> unstage(WidgetTester tester, _Stage stage) => unstageStaged(tester, ride);
 }
 
 /// A Zwift Play on firmware 2 — what Zwift Companion puts on a Play today.
@@ -726,19 +348,19 @@ class _PlayTake extends _ControllerTake {
   @override
   Future<void> stage(WidgetTester tester, _Stage stage) async {
     play = ZwiftPlayFw2(BleDevice(name: 'Zwift Play', deviceId: '00:11:22:33:44:66'));
-    _staged(play).firmwareVersion = '2.0.1';
+    stageConnected(play).firmwareVersion = '2.0.1';
     core.connection.addDevices([play]);
   }
 
   @override
-  Future<void> film(WidgetTester tester, _Recorder rec) async {
+  Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
     expect(find.text(play.displayName(tester.element(find.byType(OnboardingPage)))), findsOneWidget,
         reason: 'should be on the controller step with the Play listed');
 
     // The right half's shift button, the left half's D-pad, the left half's
     // shift button.
-    final forward = _forward(play);
+    final forward = forwardPresses(play);
     await rec.hardwarePress(play, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, 'Play button: Shift up');
     await rec.hardwarePress(play, RideButtonMask.LEFT_BTN, ZwiftButtons.navigationLeft, 'Play button: Steer left');
     await rec.hardwarePress(play, RideButtonMask.SHFT_UP_L_BTN, ZwiftButtons.shiftUpLeft, 'Play button: Shift down');
@@ -746,7 +368,7 @@ class _PlayTake extends _ControllerTake {
   }
 
   @override
-  Future<void> unstage(WidgetTester tester, _Stage stage) => _unstageStaged(tester, play);
+  Future<void> unstage(WidgetTester tester, _Stage stage) => unstageStaged(tester, play);
 }
 
 /// Both Click V2 pucks in range, as a rider with a new Click V2 has them. They
@@ -811,7 +433,7 @@ class _ClickV2Take extends _ControllerTake {
   }
 
   @override
-  Future<void> film(WidgetTester tester, _Recorder rec) async {
+  Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     final l10n = AppLocalizations.current;
     // Entering step 3 with a new Click V2 in range opens the explainer.
     await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller', thenFrames: _clickV2OptionPageFrames);
@@ -846,7 +468,7 @@ class _ClickV2Take extends _ControllerTake {
   Future<void> unstage(WidgetTester tester, _Stage stage) async {
     for (final d in [left, right]) {
       if (core.connection.devices.contains(d)) {
-        await _drive(tester, core.connection.disconnect(d, forget: true, persistForget: false),
+        await driveUntil(tester, core.connection.disconnect(d, forget: true, persistForget: false),
             '$d should have disconnected');
       }
     }
@@ -887,19 +509,19 @@ class _Di2Take extends _ControllerTake {
   Future<void> stage(WidgetTester tester, _Stage stage) async {
     heard.clear();
     di2 = ShimanoDi2(BleDevice(name: 'RDR Di2', deviceId: '00:11:22:33:44:77'));
-    core.connection.addDevices([_staged(di2)]);
+    core.connection.addDevices([stageConnected(di2)]);
     // The derailleur reports its D-Fly state when the app subscribes; the
     // first frame is the baseline its buttons are discovered from.
     await _channels(const [0x00, 0x00, 0x00]);
   }
 
   @override
-  Future<void> film(WidgetTester tester, _Recorder rec) async {
+  Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
     final row = find.text(di2.displayName(tester.element(find.byType(OnboardingPage))));
     expect(row, findsOneWidget, reason: 'should be on the controller step with the Di2 listed');
 
-    final forward = _forward(di2);
+    final forward = forwardPresses(di2);
     final listen = core.connection.actionStream.listen((n) {
       if (n is ButtonNotification && n.device == di2 && n.buttonsClicked.isNotEmpty) {
         heard.add(n.buttonsClicked.single.name);
@@ -921,7 +543,7 @@ class _Di2Take extends _ControllerTake {
   }
 
   @override
-  Future<void> unstage(WidgetTester tester, _Stage stage) => _unstageStaged(tester, di2);
+  Future<void> unstage(WidgetTester tester, _Stage stage) => unstageStaged(tester, di2);
 }
 
 /// A SRAM AXS rear derailleur on the offline machine's Bluetooth, with prop's
@@ -998,13 +620,13 @@ class _SramTake extends _ControllerTake {
     core.connection.addDevices([sram]);
     // Connected through the app's real connect path (the scanner's connect
     // queue doesn't run under screenshotMode).
-    await _drive(tester, core.connection.connectDevice(sram), 'the derailleur should have connected');
+    await driveUntil(tester, core.connection.connectDevice(sram), 'the derailleur should have connected');
     expect(sram.isConnected, isTrue);
     expect(sram.needsGuidedSetup, isTrue);
   }
 
   @override
-  Future<void> film(WidgetTester tester, _Recorder rec) async {
+  Future<void> film(WidgetTester tester, VideoRecorder rec) async {
     final l10n = AppLocalizations.current;
     // Entering step 3 with the derailleur connected opens its guided setup.
     await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller');
@@ -1061,7 +683,7 @@ class _SramTake extends _ControllerTake {
 
   @override
   Future<void> unstage(WidgetTester tester, _Stage stage) async {
-    await _drive(tester, core.connection.disconnect(sram, forget: true, persistForget: false),
+    await driveUntil(tester, core.connection.disconnect(sram, forget: true, persistForget: false),
         'the derailleur should have disconnected');
     stage.machine.ble.removePeripheral(_id);
   }
@@ -1070,7 +692,7 @@ class _SramTake extends _ControllerTake {
 /// One take of the MyWhoosh wizard with [take]'s controller on step 3. The
 /// Ride take goes on into the gearing cutaway on the bridged trainer's page
 /// ([withCutaway]).
-Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
+Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   WidgetTester tester,
   _Stage stage,
   _ControllerTake take, {
@@ -1085,10 +707,7 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   final trainer = stage.trainer = ProxyDevice(peripheral.scanResult);
   core.connection.addDevices([trainer]);
 
-  tester.view.physicalSize = _logicalSize * _pixelRatio;
-  tester.view.devicePixelRatio = _pixelRatio;
-  addTearDown(tester.view.resetPhysicalSize);
-  addTearDown(tester.view.resetDevicePixelRatio);
+  useVideoView(tester);
 
   // performScanning early-returns while this is set, so the controller step
   // never starts a scan of its own.
@@ -1096,33 +715,12 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   addTearDown(() => core.connection.isScanning.value = false);
 
   final boundary = GlobalKey();
-  Widget app(Widget home) => RepaintBoundary(
-        key: boundary,
-        child: ShadcnApp(
-          debugShowCheckedModeBanner: false,
-          locale: const Locale('en'),
-          localizationsDelegates: [
-            ...ShadcnLocalizations.localizationsDelegates,
-            const OtherLocalizationsDelegate(),
-            AppLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.delegate.supportedLocales,
-          theme: snapshotTheme(Brightness.light),
-          materialTheme: m.ThemeData(),
-          home: home,
-        ),
-      );
+  Widget app(Widget home) => videoApp(boundary, home);
 
   // ── Warm-up (not recorded): decode every asset the film shows. ──────────
   await tester.pumpWidget(app(const OnboardingPage()));
   await tester.pump();
-  // Every bundled font family, not just the ones step 1 happens to use: later
-  // steps draw Material and other icon glyphs, which would otherwise be tofu.
-  // (loadString, not loadStructuredData: that caches the parsed result under
-  // the same key loadAssets later reads the manifest from.)
-  final manifest = await tester.runAsync(() => rootBundle.loadString('FontManifest.json', cache: false));
-  final bundledFonts = [for (final f in jsonDecode(manifest!) as List) (f as Map)['family'] as String];
-  await tester.loadAssets(alsoLoadTheseFonts: bundledFonts, searchWidgetTreeForImages: false);
+  await loadAllVideoFonts(tester);
   final assetContext = tester.element(find.byType(OnboardingPage));
   await tester.runAsync(() async {
     await Future.wait([
@@ -1138,7 +736,7 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   await tester.pump();
 
   // ── The wizard. Frame 0 is the app step's first frame. ───────────────────
-  final rec = _Recorder(tester, boundary);
+  final rec = VideoRecorder(tester, boundary);
   await tester.pumpWidget(app(const OnboardingPage()));
   await rec.first('app');
   rec.capture.transitionFrames['app step reveal'] = await rec.untilStill();
@@ -1211,7 +809,7 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   // ── The cutaway: the bridged trainer's own page. ─────────────────────────
   // Its own take, on the same bridged trainer. Shifts go through the real
   // action pipeline from here on, so a Ride press changes the trainer's gear.
-  core.actionHandler = _FilmActions()..init(core.settings.getTrainerApp());
+  core.actionHandler = FilmActions()..init(core.settings.getTrainerApp());
   final definition = trainer.fitnessBike!;
   // The gear count starts two short of MyWhoosh's, so the stepper gets there.
   definition.setMaxGear(_cutawayStartGears);
@@ -1224,11 +822,11 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   // through the bridge's own parser.
   void pedal() => unawaited(trainer.processCharacteristic(
         FitnessBikeDefinition.INDOOR_BIKE_DATA_UUID,
-        Uint8List.fromList(_indoorBikeData(cadenceRpm: _pedallingRpm, powerW: _pedallingW)),
+        Uint8List.fromList(indoorBikeData(cadenceRpm: _pedallingRpm, powerW: _pedallingW)),
       ));
   pedal();
   final pedalling = Timer.periodic(const Duration(seconds: 1), (_) => pedal());
-  final cut = _Recorder(tester, boundary);
+  final cut = VideoRecorder(tester, boundary);
   await tester.pumpWidget(app(const SizedBox()));
   await tester.pump();
   await tester.pumpWidget(app(ProxyDeviceDetailsPage(device: trainer)));
@@ -1291,100 +889,13 @@ Future<void> _unbridge(WidgetTester tester, _Stage stage, String peripheralId) a
   // not dispose it, which leaves its 1 s notify timer running; it is stopped
   // below.
   final definition = trainer.fitnessBike;
-  await _drive(tester, core.connection.disconnect(trainer, forget: true, persistForget: false),
+  await driveUntil(tester, core.connection.disconnect(trainer, forget: true, persistForget: false),
       'the trainer should have disconnected');
   definition?.dispose();
   ftmsEmulator.isConnected.value = false;
   core.obpMdnsEmulator.stopServer();
   await tester.pump(const Duration(seconds: 1));
   stage.machine.ble.removePeripheral(peripheralId);
-}
-
-/// An FTMS Indoor Bike Data packet: instantaneous speed (always present),
-/// cadence (0.5 rpm units) and power, as a trainer notifies it.
-List<int> _indoorBikeData({required int cadenceRpm, required int powerW}) {
-  const flags = 0x0004 | 0x0040; // cadence present | power present
-  final speed = 3000; // 30.00 km/h
-  final cadence = cadenceRpm * 2;
-  return [
-    flags & 0xff, flags >> 8,
-    speed & 0xff, speed >> 8,
-    cadence & 0xff, cadence >> 8,
-    powerW & 0xff, (powerW >> 8) & 0xff,
-  ];
-}
-
-List<String> _frameHashes(_Capture c) => [for (final f in c.frames) sha256.convert(f).toString()];
-
-String _sequenceHash(_Capture c) => sha256.convert(utf8.encode(_frameHashes(c).join())).toString();
-
-(int, int) _pngSize(Uint8List png) {
-  // IHDR: width and height are big-endian u32 at bytes 16 and 20.
-  final d = ByteData.sublistView(png);
-  return (d.getUint32(16), d.getUint32(20));
-}
-
-void _writeScene(String scene, _Capture capture, {_ControllerTake? controller}) {
-  final dir = Directory('build/video_frames/$scene');
-  if (dir.existsSync()) dir.deleteSync(recursive: true);
-  dir.createSync(recursive: true);
-  for (var i = 0; i < capture.frames.length; i++) {
-    File('${dir.path}/${i.toString().padLeft(6, '0')}.png').writeAsBytesSync(capture.frames[i]);
-  }
-  File('${dir.path}/taps.json').writeAsStringSync(capture.tapsJson);
-  File('${dir.path}/chapters.json').writeAsStringSync(capture.chaptersJson);
-  final (width, height) = _pngSize(capture.frames.first);
-  File('${dir.path}/scene.json').writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
-    'pixelRatio': _pixelRatio,
-    'width': width,
-    'height': height,
-    'logicalWidth': _logicalSize.width,
-    'logicalHeight': _logicalSize.height,
-    'fps': _fps,
-    'frames': capture.frames.length,
-    if (controller != null) ...{
-      'controller': controller.slug,
-      'controllerName': controller.name,
-    },
-  }));
-}
-
-void _expectWellFormed(_Capture capture, {required Set<String> unsettledTaps, bool settledCuts = true}) {
-  final (width, height) = _pngSize(capture.frames.first);
-  expect((width, height), ((_logicalSize.width * _pixelRatio).round(), (_logicalSize.height * _pixelRatio).round()));
-  for (final f in capture.frames) {
-    expect(_pngSize(f), (width, height), reason: 'every frame must share one size');
-  }
-  for (final t in capture.taps) {
-    expect(t.x, inInclusiveRange(0, width), reason: t.label);
-    expect(t.y, inInclusiveRange(0, height), reason: t.label);
-    expect(t.frame, inExclusiveRange(0, capture.frames.length), reason: t.label);
-    // A settled hold precedes every tap, except into a screen that never rests.
-    expect(t.settledBefore, !unsettledTaps.contains(t.label), reason: 'hold before "${t.label}"');
-  }
-  // Every cut between chapters is on a settled frame.
-  final chapters = capture.chapters;
-  for (var i = 1; i < chapters.length; i++) {
-    final b = chapters[i].start;
-    expect(chapters[i - 1].end, b);
-    if (settledCuts) {
-      expect(_bytesEqual(capture.frames[b], capture.frames[b - 1]), isTrue,
-          reason: 'boundary into "${chapters[i].name}" (frame $b) must be settled');
-    }
-  }
-  expect(chapters.last.end, capture.frames.length - 1);
-  if (settledCuts) {
-    expect(_bytesEqual(capture.frames.last, capture.frames[capture.frames.length - 2]), isTrue,
-        reason: 'the take ends on a settled frame');
-  }
-}
-
-/// How many of the frames from [t]'s on differ from the one before it.
-int _reactingFrames(_Capture capture, _Tap t) {
-  final before = capture.frames[t.frame - 1];
-  return [for (var i = t.frame; i < t.frame + _pressHoldFrames + _hold; i++) capture.frames[i]]
-      .where((f) => !_bytesEqual(f, before))
-      .length;
 }
 
 void main() {
@@ -1402,7 +913,7 @@ void main() {
   // initialisation inside Settings.init() needs to run in a test zone.
   setUpAll(() async {
     await ensureSnapshotAppState();
-    _pristinePrefs = {for (final k in core.settings.prefs.getKeys()) k: core.settings.prefs.get(k)!};
+    rememberPristinePrefs();
     stage = _Stage(OfflineMachine.install(httpFixtures: _guideFixtures));
   });
 
@@ -1442,16 +953,16 @@ void main() {
     ('tap', 'Finish setup'),
   ];
 
-  void expectStepChangesAnimate(_Capture capture, List<String> labels) {
+  void expectStepChangesAnimate(VideoCapture capture, List<String> labels) {
     // A step change is filmed as Flutter's own reveal, not a cut: the content
     // eases in over many distinct frames before the settled hold.
     for (final label in labels) {
-      expect(capture.transitionFrames[label]! - _hold, greaterThan(20),
+      expect(capture.transitionFrames[label]! - videoHold, greaterThan(20),
           reason: '"$label" should animate across frames, not cut');
     }
   }
 
-  void expectStagePlays(_Capture capture, String into) {
+  void expectStagePlays(VideoCapture capture, String into) {
     final tap = capture.taps.firstWhere((t) => t.label == into);
     final stageFrames = capture.frames.sublist(tap.frame + 60, tap.frame + _vsStageFrames);
     expect(stageFrames.map(sha256.convert).toSet().length, greaterThan(30),
@@ -1459,13 +970,13 @@ void main() {
   }
 
   /// Everything every wizard take must hold, whatever the controller.
-  void expectWizardTake(_ControllerTake take, _Capture onboarding) {
+  void expectWizardTake(_ControllerTake take, VideoCapture onboarding) {
     final info = jsonDecode(File('build/video_frames/${take.scene}/scene.json').readAsStringSync()) as Map;
     expect(info['pixelRatio'], 3);
     expect(info['frames'], onboarding.frames.length);
     expect(info['controller'], take.slug);
     expect(info['controllerName'], take.name);
-    expect(_pngSize(onboarding.frames.first), (1140, 2472), reason: take.scene);
+    expect(pngSize(onboarding.frames.first), (1140, 2472), reason: take.scene);
 
     expect(onboarding.taps.map((t) => (t.kind, t.label)), [
       ...intoController,
@@ -1475,44 +986,35 @@ void main() {
       ...linkAndDone,
     ]);
     expect(onboarding.chapters.map((c) => c.name), ['app', 'where', 'controller', 'trainer', 'link-app', 'done']);
-    _expectWellFormed(onboarding, unsettledTaps: {_trainerName, ...take.unsettledBeats});
+    expectWellFormed(onboarding, unsettledTaps: {_trainerName, ...take.unsettledBeats});
     expect(onboarding.sightings.keys, containsAll(take.sightings));
 
     // A press visibly reacts on a controller's contour; with no contour on
     // the step, nothing on screen does. MyWhoosh connecting always shows.
     for (final t in onboarding.taps.where((t) => t.kind == 'hardware' && t.anchor == 'contour-button')) {
-      expect(_reactingFrames(onboarding, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
+      expect(reactingFrames(onboarding, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
     }
     if (!take.hasContour) {
       expect(onboarding.taps.where((t) => t.kind == 'hardware' && t.anchor == 'contour-button'), isEmpty);
     }
     final connects = onboarding.taps.firstWhere((t) => t.label == 'MyWhoosh connects');
-    expect(_reactingFrames(onboarding, connects), greaterThan(3), reason: 'MyWhoosh connecting should show on film');
+    expect(reactingFrames(onboarding, connects), greaterThan(3), reason: 'MyWhoosh connecting should show on film');
 
     expectStepChangesAnimate(onboarding, ['app step reveal', 'Continue with MyWhoosh', 'Continue to connection']);
     expectStagePlays(onboarding, 'Continue to trainer');
-  }
-
-  void report(String scene, _Capture capture, Duration took) {
-    // ignore: avoid_print
-    print('video capture: $scene ${capture.frames.length} frames '
-        '(${(capture.frames.length / _fps).toStringAsFixed(2)} s) in ${took.inMilliseconds} ms, '
-        'sequence sha256 ${_sequenceHash(capture)}\n'
-        '$scene chapters: ${capture.chaptersJson}\n'
-        '$scene taps: ${capture.tapsJson}');
   }
 
   testWidgets('captures the MyWhoosh take and the gearing cutaway as 30 fps frame sequences', (tester) async {
     final watch = Stopwatch()..start();
     final (:onboarding, :cutaway) = await _captureMyWhoosh(tester, stage, rideTake, withCutaway: ride);
     watch.stop();
-    _writeScene(rideTake.scene, onboarding, controller: rideTake);
-    _writeScene(_cutawayScene, cutaway!);
+    writeScene(rideTake.scene, onboarding, extra: rideTake.sceneInfo);
+    writeScene(_cutawayScene, cutaway!);
 
     // Rendered at 3× so text stays sharp through the compositor's 2.2×
     // punch-in; scene.json says so, so nothing downstream has to guess.
     for (final (scene, capture) in [(rideTake.scene, onboarding), (_cutawayScene, cutaway)]) {
-      expect(_pngSize(capture.frames.first), (1140, 2472), reason: scene);
+      expect(pngSize(capture.frames.first), (1140, 2472), reason: scene);
       final info = jsonDecode(File('build/video_frames/$scene/scene.json').readAsStringSync()) as Map;
       expect(info['pixelRatio'], 3);
       expect(info['frames'], capture.frames.length);
@@ -1539,7 +1041,7 @@ void main() {
     expect(cutaway.chapters.map((c) => c.name), ['gearing', 'direct-gear-changes', 'sim-erg']);
     // The chain runs whenever the gear card is on screen, so taps on that page
     // and the beat boundaries there can't wait for a still frame.
-    _expectWellFormed(
+    expectWellFormed(
       cutaway,
       unsettledTaps: const {'Gear settings', 'Ride button: Shift up', 'Ride button: Shift up again', 'ERG'},
       settledCuts: false,
@@ -1554,11 +1056,11 @@ void main() {
         reason: 'the chain should be running on film');
     // A Ride press lands on the gear card.
     for (final t in cutaway.taps.where((t) => t.kind == 'hardware')) {
-      expect(_reactingFrames(cutaway, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
+      expect(reactingFrames(cutaway, t), greaterThan(3), reason: '"${t.label}" should visibly react on film');
     }
 
-    report(rideTake.scene, onboarding, watch.elapsed);
-    report(_cutawayScene, cutaway, watch.elapsed);
+    reportCapture(rideTake.scene, onboarding, watch.elapsed);
+    reportCapture(_cutawayScene, cutaway, watch.elapsed);
   });
 
   for (final take in takes) {
@@ -1566,23 +1068,10 @@ void main() {
       final watch = Stopwatch()..start();
       final (:onboarding, cutaway: _) = await _captureMyWhoosh(tester, stage, take);
       watch.stop();
-      _writeScene(take.scene, onboarding, controller: take);
+      writeScene(take.scene, onboarding, extra: take.sceneInfo);
       expectWizardTake(take, onboarding);
-      report(take.scene, onboarding, watch.elapsed);
+      reportCapture(take.scene, onboarding, watch.elapsed);
     });
-  }
-
-  void expectIdentical(String name, _Capture ca, _Capture cb) {
-    final ha = _frameHashes(ca);
-    final hb = _frameHashes(cb);
-    // ignore: avoid_print
-    print('determinism $name: run A ${ha.length} frames, sequence sha256 ${_sequenceHash(ca)}\n'
-        'determinism $name: run B ${hb.length} frames, sequence sha256 ${_sequenceHash(cb)}');
-    expect(hb.length, ha.length, reason: '$name: both runs must produce the same number of frames');
-    final differing = [for (var i = 0; i < ha.length; i++) if (ha[i] != hb[i]) i];
-    expect(differing, isEmpty, reason: '$name: frames that differ between the two runs');
-    expect(cb.tapsJson, ca.tapsJson);
-    expect(cb.chaptersJson, ca.chaptersJson);
   }
 
   testWidgets('two captures are byte-identical, frame for frame', (tester) async {
