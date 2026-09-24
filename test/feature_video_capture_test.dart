@@ -187,6 +187,9 @@ DateTime _now() => (TestWidgetsFlutterBinding.instance as AutomatedTestWidgetsFl
 /// Network method on, Pro, nothing connected.
 Future<void> _resetApp() async {
   await restorePristinePrefs();
+  // The trainer an earlier take bridged is remembered in memory too (the
+  // home screen names it); every take starts from a machine that never met one.
+  core.connection.rememberedTrainer = null;
   core.settings.trainerAppListenable.value = null;
   await core.shiftingConfigs.init();
   ProxyDevice.debugClearRememberedGears();
