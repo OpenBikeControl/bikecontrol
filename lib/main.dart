@@ -36,6 +36,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
 import 'utils/core.dart';
+import 'utils/host_platform.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
@@ -413,13 +414,13 @@ enum ConnectionType {
 void initializeActions(ConnectionType connectionType) {
   if (kIsWeb) {
     core.actionHandler = StubActions();
-  } else if (Platform.isAndroid) {
+  } else if (HostPlatform.isAndroid) {
     core.actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
-  } else if (Platform.isIOS) {
+  } else if (HostPlatform.isIOS) {
     core.actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),

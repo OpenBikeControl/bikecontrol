@@ -14,6 +14,7 @@ import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -58,6 +59,26 @@ Future<void> main() async {
     expect(core.permissions.getLocalControlRequirements().single, isA<AccessibilityRequirement>());
     debugHostPlatformOverride = TargetPlatform.iOS;
     expect(core.logic.showLocalControl, isFalse);
+  });
+
+  test('choosing this device on an Android build drives it through the accessibility service', () async {
+    // The accessibility plugin AndroidActions talks to on init.
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    const plugin = 'dev.flutter.pigeon.accessibility.';
+    messenger.setMockMessageHandler(
+      '${plugin}Accessibility.setHandledKeys',
+      (_) async => const StandardMessageCodec().encodeMessage(<Object?>[null]),
+    );
+    for (final stream in ['streamEvents', 'hidKeyPressed']) {
+      messenger.setMockMessageHandler(
+        '${plugin}EventChannelMethods.$stream',
+        (_) async => const StandardMethodCodec().encodeSuccessEnvelope(null),
+      );
+    }
+    debugHostPlatformOverride = TargetPlatform.android;
+    core.settings.setTrainerApp(MyWhoosh());
+    await core.settings.setLastTarget(Target.thisDevice);
+    expect(core.actionHandler, isA<AndroidActions>());
   });
 
   testWidgets('phone steering is offered on an Android build, not on a desktop one', (tester) async {
