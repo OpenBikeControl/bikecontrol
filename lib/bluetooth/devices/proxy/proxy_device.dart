@@ -242,6 +242,20 @@ class ProxyDevice extends BluetoothDevice {
     });
   }
 
+  /// Detach [_fbd] from the shared emulator and dispose it. Detaching alone
+  /// leaves the definition's periodic notify pump running (it holds the
+  /// definition alive and keeps firing), and the next connection builds a new
+  /// definition with a pump of its own — so every reconnect stacked another.
+  /// Disposing only cancels the definition's timers; its notifiers stay
+  /// readable, so the gear remembered for a reconnect is unaffected.
+  Future<void> _releaseFbd(String context) async {
+    final fbd = _fbd;
+    if (fbd == null) return;
+    _fbd = null;
+    await _detachLogged(ftmsEmulator.detachDefinition(fbd), context);
+    fbd.dispose();
+  }
+
   /// Stop the shared FTMS emulator once this device's definitions are detached
   /// and nothing else is using it.
   ///
@@ -737,8 +751,7 @@ class ProxyDevice extends BluetoothDevice {
         }
         await _proxyEmulator.stop();
       } else if (_fbd != null) {
-        await _detachLogged(ftmsEmulator.detachDefinition(_fbd!), 'detach FBD after start failure');
-        _fbd = null;
+        await _releaseFbd('detach FBD after start failure');
         await _stopFtmsEmulatorIfUnused();
       }
       disconnect();
@@ -1266,10 +1279,7 @@ class ProxyDevice extends BluetoothDevice {
       );
     } else if (old != RetrofitMode.proxy && next == RetrofitMode.proxy) {
       // VS → proxy: detach from shared, start per-instance
-      if (_fbd != null) {
-        await _detachLogged(ftmsEmulator.detachDefinition(_fbd!), 'detach FBD on VS→proxy switch');
-        _fbd = null;
-      }
+      await _releaseFbd('detach FBD on VS→proxy switch');
       await _stopFtmsEmulatorIfUnused();
 
       // Rebuild proxy def if services have been discovered.
@@ -1324,10 +1334,7 @@ class ProxyDevice extends BluetoothDevice {
     core.bridgeUsageTracker.stopSession();
 
     // Detach FBD from shared emulator if we contributed one.
-    if (_fbd != null) {
-      await _detachLogged(ftmsEmulator.detachDefinition(_fbd!), 'detach FBD on disconnect');
-      _fbd = null;
-    }
+    await _releaseFbd('detach FBD on disconnect');
 
     if (_zwiftControllerEmulator != null) {
       await _detachLogged(
