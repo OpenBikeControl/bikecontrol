@@ -195,8 +195,10 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   ),
                   SizedBox(height: 20),
                 ],
-                MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
-                SizedBox(height: 20),
+                if (!debugHideMiniWorkoutCard) ...[
+                  MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
+                  SizedBox(height: 20),
+                ],
                 _settingsSection(),
                 SizedBox(height: 32),
                 _actions(),

@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:bike_control/main.dart' show screenshotMode;
-import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart' show onboardingMotionPinned;
+import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
@@ -14,6 +13,13 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Opens every [VirtualShiftingStage] on this scene instead of its
+/// [VirtualShiftingStage.initialScene]. The onboarding video starts past the
+/// "works in every app" scene: by step 4 its viewer has already picked a
+/// trainer.
+@visibleForTesting
+int? debugVirtualShiftingStageOpeningScene;
+
 /// What Virtual Shifting buys a rider, shown rather than listed: it works
 /// everywhere, the gearing is yours, there's a front derailleur in it too —
 /// and a last scene for the features that don't need a picture.
@@ -23,13 +29,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// front-shift setting — so the preview can't drift away from the product.
 /// Holds still under reduced motion and in [screenshotMode], where it shows
 /// the first scene only.
-/// Opens every [VirtualShiftingStage] on this scene instead of its
-/// [VirtualShiftingStage.initialScene]. The onboarding video starts past the
-/// "works in every app" scene: by step 4 its viewer has already picked a
-/// trainer.
-@visibleForTesting
-int? debugVirtualShiftingStageOpeningScene;
-
 class VirtualShiftingStage extends StatefulWidget {
   const VirtualShiftingStage({super.key, this.initialScene = 0});
 
@@ -122,9 +121,9 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
     // still do: [screenshotMode] pins the scene so captures are deterministic,
     // while reduced motion only means "don't move by yourself" — swiping and
     // the dots still work.
-    final still = onboardingMotionPinned || reduceMotion;
+    final still = screenshotMotionPinned || reduceMotion;
     _sync(still);
-    final scene = onboardingMotionPinned ? widget.initialScene : _scene;
+    final scene = screenshotMotionPinned ? widget.initialScene : _scene;
 
     final captions = <({String label, String hint})>[
       (label: context.i18n.vsStageAppsLabel, hint: context.i18n.vsStageAppsHint),

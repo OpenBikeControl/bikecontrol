@@ -40,6 +40,17 @@ import 'utils/core.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
 
+/// Lets motion that [screenshotMode] normally holds still run anyway — the
+/// onboarding reveal, the Virtual Shifting stage, the trainer radar and a
+/// pedalling chain. For the video capture, which keeps screenshotMode for the
+/// machine state it pins but films the motion on a fake clock, so the frames
+/// stay deterministic. Off everywhere else.
+@visibleForTesting
+bool debugAnimatesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is holding motion still.
+bool get screenshotMotionPinned => screenshotMode && !debugAnimatesInScreenshotMode;
+
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
 var onboardingActive = false;

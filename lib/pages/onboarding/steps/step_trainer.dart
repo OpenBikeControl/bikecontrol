@@ -1,4 +1,4 @@
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
@@ -252,7 +252,7 @@ class _Radar extends StatefulWidget {
 class _RadarState extends State<_Radar> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
 
-  bool get _still => onboardingMotionPinned || MediaQuery.of(context).disableAnimations;
+  bool get _still => screenshotMotionPinned || MediaQuery.of(context).disableAnimations;
 
   @override
   void didChangeDependencies() {

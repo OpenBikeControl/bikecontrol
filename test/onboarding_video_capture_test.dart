@@ -16,7 +16,11 @@
 //   its chapter is marked `"cut": true` for the edit.
 // * `vs-settings` — a cutaway on the bridged trainer's page: gearing presets,
 //   gear count and a second chainring; a gear change from a Ride press; the
-//   SIM / ERG switch. Its `chapters.json` names those three beats.
+//   SIM / ERG switch. Its `chapters.json` names those three beats. The rider
+//   is pedalling (the trainer streams Indoor Bike Data), so the chain on the
+//   gear card runs; the gear-count warning and the Mini Workout card are kept
+//   off it with test-only flags. Because the chain never rests, the beat
+//   boundaries here are not settled frames — it is one continuous take.
 //
 // Output (per scene):
 //   build/video_frames/<scene>/000000.png, 000001.png, …  760×1648 px
@@ -59,7 +63,7 @@
 //   controller step goes straight to its device list), no update check hits
 //   the network, and no BLE scan or connection queue runs. The motion it also
 //   switches off — the reveal, the Virtual Shifting stage, the trainer radar —
-//   is switched back on through [debugOnboardingAnimatesInScreenshotMode].
+//   is switched back on through [debugAnimatesInScreenshotMode].
 //   App, controller and trainer names on this path are not anonymised by
 //   screenshotMode, so the video shows the real "MyWhoosh", "Zwift Ride" and
 //   "KICKR CORE".
@@ -79,13 +83,15 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart'
     show buildFtmsTrainer, zwiftRideNotification;
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotLocale, screenshotMode;
+import 'package:bike_control/main.dart'
+    show OtherLocalizationsDelegate, debugAnimatesInScreenshotMode, screenshotLocale, screenshotMode;
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart' show OnboardingPairAsTrainerCard;
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
-import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart' show debugVirtualShiftingStageOpeningScene;
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart' show debugHideGearCountMismatch;
+import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
 import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' show BaseActions, StubActions;
 import 'package:bike_control/utils/core.dart';
@@ -100,6 +106,7 @@ import 'package:flutter/material.dart' as m;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:golden_screenshot/golden_screenshot.dart'; // tester.loadAssets()
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -133,6 +140,23 @@ const _pressHoldFrames = 9;
 /// stage moves on (5 s of its 5.5 s dwell).
 const _vsStageOpeningScene = 1;
 const _vsStageFrames = 150;
+
+/// How long the trainer-only take rests on "Trainer connected" before moving
+/// on (~2 s, the settle hold included).
+const _bridgedHoldFrames = 60;
+
+/// Cutaway holds: the opening page, the chosen preset, and each of SIM / ERG.
+const _cutawayOpeningFrames = 45;
+const _presetHoldFrames = 54;
+const _modeHoldFrames = 60;
+
+/// The cutaway starts the gear count here so two taps on + reach MyWhoosh's.
+const _cutawayStartGears = 28;
+
+/// Cadence and power the trainer reports during the cutaway, so the chain on
+/// the gear card runs.
+const _pedallingRpm = 90;
+const _pedallingW = 200;
 
 const _onboardingScene = 'mywhoosh-controller';
 const _trainerOnlyScene = 'mywhoosh-trainer';
@@ -258,6 +282,12 @@ class _Recorder {
     }
   }
 
+  /// Keeps capturing until [total] frames have passed since [since].
+  Future<void> holdUntil(int since, int total) async {
+    final remaining = since + total - _frames.length;
+    if (remaining > 0) await frames(remaining);
+  }
+
   bool _lastTwoEqual() => _frames.length >= 2 && _bytesEqual(_frames[_frames.length - 1], _frames[_frames.length - 2]);
 
   bool get _settled {
@@ -271,8 +301,12 @@ class _Recorder {
 
   /// Starts the next chapter on the current (settled) frame. The previous
   /// chapter ends on the same frame, so the two share an invisible cut.
-  void chapter(String name, {bool cut = false}) {
-    expect(_settled, isTrue, reason: 'chapter "$name" must start on a settled frame (frame ${_frames.length - 1})');
+  /// [settled] false for a chapter that starts where something moves for good
+  /// (the running chain in the cutaway) — there is no settled frame to take.
+  void chapter(String name, {bool cut = false, bool settled = true}) {
+    if (settled) {
+      expect(_settled, isTrue, reason: 'chapter "$name" must start on a settled frame (frame ${_frames.length - 1})');
+    }
     capture.chapterStarts.add((name, _frames.length - 1, cut));
   }
 
@@ -358,6 +392,7 @@ class _Recorder {
     ControllerButton button,
     String label, {
     Finder? reactsAt,
+    int? thenFrames,
   }) async {
     final onContour = find.byKey(ValueKey(button.name));
     final anchor = reactsAt ?? onContour;
@@ -373,7 +408,12 @@ class _Recorder {
       ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
       Uint8List.fromList(zwiftRideNotification()),
     );
-    capture.transitionFrames[label] = await untilStill();
+    if (thenFrames != null) {
+      await frames(thenFrames);
+      capture.transitionFrames[label] = thenFrames;
+    } else {
+      capture.transitionFrames[label] = await untilStill();
+    }
   }
 }
 
@@ -567,8 +607,17 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   rec.chapter('trainer');
   await rec.tap(find.byType(PrimaryButton).last, 'Continue to trainer', thenFrames: _vsStageFrames);
   }
-  await rec.tap(find.text(_trainerName), _trainerName);
+  if (withController) {
+    await rec.tap(find.text(_trainerName), _trainerName);
+  } else {
+    // The row's own "Connect ›" affordance, where a rider's thumb goes.
+    await rec.tap(find.text(l10n.connect), 'Connect');
+  }
   expect(trainer.isBridged, isTrue, reason: 'tapping the trainer should bridge it');
+  if (!withController) {
+    // Rest on "Trainer connected".
+    await rec.holdUntil(rec.capture.frames.length - rec.capture.transitionFrames['Connect']!, _bridgedHoldFrames);
+  }
 
   // Step 5 — link the app: switch on the recommended Network method, then
   // scroll down to the "Then in MyWhoosh" guide and the pair-as-trainer card.
@@ -617,36 +666,68 @@ Future<({_Capture onboarding, _Capture? cutaway})> _captureMyWhoosh(
   // Its own take, on the same bridged trainer. Shifts go through the real
   // action pipeline from here on, so a Ride press changes the trainer's gear.
   core.actionHandler = _FilmActions()..init(core.settings.getTrainerApp());
+  final definition = trainer.fitnessBike!;
+  // The gear count starts two short of MyWhoosh's, so the stepper gets there.
+  definition.setMaxGear(_cutawayStartGears);
+  await core.shiftingConfigs.upsert(
+    core.shiftingConfigs.activeFor(trainer.trainerKey).copyWith(maxGear: _cutawayStartGears),
+  );
+  // The rider is pedalling: the trainer sends FTMS Indoor Bike Data about once
+  // a second. Each packet goes in where the connection layer hands a trainer
+  // notification to the device (as the Ride presses do), and from there
+  // through the bridge's own parser.
+  void pedal() => unawaited(trainer.processCharacteristic(
+        FitnessBikeDefinition.INDOOR_BIKE_DATA_UUID,
+        Uint8List.fromList(_indoorBikeData(cadenceRpm: _pedallingRpm, powerW: _pedallingW)),
+      ));
+  pedal();
+  final pedalling = Timer.periodic(const Duration(seconds: 1), (_) => pedal());
   final cut = _Recorder(tester, boundary);
   await tester.pumpWidget(app(const SizedBox()));
   await tester.pump();
   await tester.pumpWidget(app(ProxyDeviceDetailsPage(device: trainer)));
   await cut.first('gearing');
-  await cut.untilStill();
+  expect(definition.cadenceRpm.value, _pedallingRpm, reason: 'the trainer should be reporting cadence');
+  expect(find.text(l10n.miniWorkout), findsNothing, reason: 'the Mini Workout card is kept off this video');
+  // The page opens on the running chain; hold it before the first tap.
+  await cut.frames(_cutawayOpeningFrames - 1);
 
   // (a) Your gearing, your way.
   await cut.tap(find.text(l10n.gearSettings), 'Gear settings');
   await cut.tap(find.byWidgetPredicate((w) => w is Switch).first, 'Front derailleur');
-  final gearCount = find.widgetWithText(SettingTile, l10n.gearCount);
-  await cut.tap(find.descendant(of: gearCount, matching: find.byIcon(LucideIcons.plus)), 'Gear count +');
-  // The editor flags a count that differs from the app's; take its offer.
-  await cut.tap(find.text(l10n.useGearCount(MyWhoosh().virtualGearAmount)), 'Use MyWhoosh gear count');
+  final plus = find.descendant(of: find.widgetWithText(SettingTile, l10n.gearCount), matching: find.byIcon(LucideIcons.plus));
+  await cut.tap(plus, 'Gear count +');
+  await cut.tap(plus, 'Gear count + again');
+  expect(definition.maxGear, MyWhoosh().virtualGearAmount);
+  final mismatch = l10n.gearCountMismatch(MyWhoosh().name, MyWhoosh().virtualGearAmount, _cutawayStartGears);
+  expect(find.text(mismatch), findsNothing, reason: 'the gear-count warning is kept off this video');
   await cut.swipe(const Offset(190, 640), const Offset(190, 300), 'Scroll to presets');
   await cut.tap(find.text(l10n.presetCompact), 'Compact preset');
-  await cut.tap(find.byIcon(LucideIcons.arrowLeft), 'Back');
+  // Rest on the chosen preset.
+  final compact = cut.capture.taps.last.frame;
+  await cut.holdUntil(compact, _presetHoldFrames);
+  // Back on the page the chain is running again: nothing settles from here.
+  await cut.tap(find.byIcon(LucideIcons.arrowLeft), 'Back', thenFrames: 30);
 
-  // (b) Direct gear changes: two Ride shifts land on the gear card.
-  cut.chapter('direct-gear-changes');
+  // (b) Direct gear changes: two Ride shifts land on the gear card, and the
+  // chain walks to the next cog each time.
+  cut.chapter('direct-gear-changes', settled: false);
   final gearCard = find.byType(GearHeroCard);
-  await cut.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, 'Ride button: Shift up',
-      reactsAt: gearCard);
-  await cut.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, 'Ride button: Shift up again',
-      reactsAt: gearCard);
+  for (final label in ['Ride button: Shift up', 'Ride button: Shift up again']) {
+    final before = definition.currentGear.value;
+    await cut.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, label,
+        reactsAt: gearCard, thenFrames: 30);
+    expect(definition.currentGear.value, before + 1, reason: '"$label" should shift the trainer up a gear');
+  }
 
-  // (c) SIM & ERG: the card's own mode switch.
-  cut.chapter('sim-erg');
-  await cut.tap(find.descendant(of: gearCard, matching: find.byWidgetPredicate((w) => w is Switch)), 'ERG');
-  await cut.tap(find.descendant(of: gearCard, matching: find.byWidgetPredicate((w) => w is Switch)), 'SIM');
+  // (c) SIM & ERG: the card's own mode switch, each held so it reads.
+  cut.chapter('sim-erg', settled: false);
+  final modeSwitch = find.descendant(of: gearCard, matching: find.byWidgetPredicate((w) => w is Switch));
+  await cut.tap(modeSwitch, 'ERG', thenFrames: _modeHoldFrames - 3);
+  expect(definition.trainerMode.value, TrainerMode.ergMode);
+  await cut.tap(modeSwitch, 'SIM', thenFrames: _modeHoldFrames - 3);
+  expect(definition.trainerMode.value, TrainerMode.simMode);
+  pedalling.cancel();
 
   await _unbridge(tester, stage, peripheral.deviceId);
   return (onboarding: rec.capture, cutaway: cut.capture);
@@ -681,6 +762,20 @@ Future<void> _unbridge(WidgetTester tester, _Stage stage, String peripheralId) a
   stage.machine.ble.removePeripheral(peripheralId);
 }
 
+/// An FTMS Indoor Bike Data packet: instantaneous speed (always present),
+/// cadence (0.5 rpm units) and power, as a trainer notifies it.
+List<int> _indoorBikeData({required int cadenceRpm, required int powerW}) {
+  const flags = 0x0004 | 0x0040; // cadence present | power present
+  final speed = 3000; // 30.00 km/h
+  final cadence = cadenceRpm * 2;
+  return [
+    flags & 0xff, flags >> 8,
+    speed & 0xff, speed >> 8,
+    cadence & 0xff, cadence >> 8,
+    powerW & 0xff, (powerW >> 8) & 0xff,
+  ];
+}
+
 List<String> _frameHashes(_Capture c) => [for (final f in c.frames) sha256.convert(f).toString()];
 
 String _sequenceHash(_Capture c) => sha256.convert(utf8.encode(_frameHashes(c).join())).toString();
@@ -702,7 +797,7 @@ void _writeScene(String scene, _Capture capture) {
   File('${dir.path}/chapters.json').writeAsStringSync(capture.chaptersJson);
 }
 
-void _expectWellFormed(_Capture capture, {required Set<String> unsettledTaps}) {
+void _expectWellFormed(_Capture capture, {required Set<String> unsettledTaps, bool settledCuts = true}) {
   final (width, height) = _pngSize(capture.frames.first);
   expect((width, height), ((_logicalSize.width * _pixelRatio).round(), (_logicalSize.height * _pixelRatio).round()));
   for (final f in capture.frames) {
@@ -720,12 +815,16 @@ void _expectWellFormed(_Capture capture, {required Set<String> unsettledTaps}) {
   for (var i = 1; i < chapters.length; i++) {
     final b = chapters[i].start;
     expect(chapters[i - 1].end, b);
-    expect(_bytesEqual(capture.frames[b], capture.frames[b - 1]), isTrue,
-        reason: 'boundary into "${chapters[i].name}" (frame $b) must be settled');
+    if (settledCuts) {
+      expect(_bytesEqual(capture.frames[b], capture.frames[b - 1]), isTrue,
+          reason: 'boundary into "${chapters[i].name}" (frame $b) must be settled');
+    }
   }
   expect(chapters.last.end, capture.frames.length - 1);
-  expect(_bytesEqual(capture.frames.last, capture.frames[capture.frames.length - 2]), isTrue,
-      reason: 'the take ends on a settled frame');
+  if (settledCuts) {
+    expect(_bytesEqual(capture.frames.last, capture.frames[capture.frames.length - 2]), isTrue,
+        reason: 'the take ends on a settled frame');
+  }
 }
 
 void main() {
@@ -752,16 +851,19 @@ void main() {
   setUp(() {
     // Keep the plumbing pinned (see the header) but let the wizard move.
     screenshotMode = true;
-    debugOnboardingAnimatesInScreenshotMode = true;
+    debugAnimatesInScreenshotMode = true;
     debugVirtualShiftingStageOpeningScene = _vsStageOpeningScene;
+    debugHideGearCountMismatch = true;
+    debugHideMiniWorkoutCard = true;
     addTearDown(() {
-      debugOnboardingAnimatesInScreenshotMode = false;
+      debugAnimatesInScreenshotMode = false;
       debugVirtualShiftingStageOpeningScene = null;
+      debugHideGearCountMismatch = false;
+      debugHideMiniWorkoutCard = false;
     });
   });
 
   const linkAndDone = [
-    ('tap', _trainerName),
     ('tap', 'Continue to connection'),
     ('tap', 'Network'),
     ('swipe', 'Scroll to the guide'),
@@ -809,6 +911,7 @@ void main() {
       ('hardware', 'Ride button: Steer left'),
       ('hardware', 'Ride button: Shift down'),
       ('tap', 'Continue to trainer'),
+      ('tap', _trainerName),
       ...linkAndDone,
     ]);
     expect(onboarding.chapters.map((c) => (c.name, c.cut)), [
@@ -828,6 +931,7 @@ void main() {
       ('tap', 'Continue to controller'),
       ('tap', "Can't find my controller"),
       ('tap', 'Set up later'),
+      ('tap', 'Connect'),
       ...linkAndDone,
     ]);
     expect(trainerOnly.chapters.map((c) => (c.name, c.cut)), [
@@ -839,13 +943,18 @@ void main() {
       ('done', false),
     ]);
     // The scan animation never rests, so the way out of it can't wait for it.
-    _expectWellFormed(trainerOnly, unsettledTaps: {_trainerName, "Can't find my controller"});
+    _expectWellFormed(trainerOnly, unsettledTaps: {'Connect', "Can't find my controller"});
+    // "Trainer connected" rests ~2 s before step 5.
+    final toConnection = trainerOnly.taps.firstWhere((t) => t.label == 'Continue to connection').frame;
+    for (var i = toConnection - _bridgedHoldFrames; i < toConnection - 1; i++) {
+      expect(trainerOnly.frames[i], trainerOnly.frames[toConnection - 1], reason: 'hold on "Trainer connected" (frame $i)');
+    }
 
     expect(cutaway.taps.map((t) => (t.kind, t.label)), [
       ('tap', 'Gear settings'),
       ('tap', 'Front derailleur'),
       ('tap', 'Gear count +'),
-      ('tap', 'Use MyWhoosh gear count'),
+      ('tap', 'Gear count + again'),
       ('swipe', 'Scroll to presets'),
       ('tap', 'Compact preset'),
       ('tap', 'Back'),
@@ -855,7 +964,21 @@ void main() {
       ('tap', 'SIM'),
     ]);
     expect(cutaway.chapters.map((c) => c.name), ['gearing', 'direct-gear-changes', 'sim-erg']);
-    _expectWellFormed(cutaway, unsettledTaps: const {});
+    // The chain runs whenever the gear card is on screen, so taps on that page
+    // and the beat boundaries there can't wait for a still frame.
+    _expectWellFormed(
+      cutaway,
+      unsettledTaps: const {'Gear settings', 'Ride button: Shift up', 'Ride button: Shift up again', 'ERG'},
+      settledCuts: false,
+    );
+    int at(String label) => cutaway.taps.firstWhere((t) => t.label == label).frame;
+    expect(at('Gear settings'), greaterThanOrEqualTo(_cutawayOpeningFrames), reason: 'hold the opening page');
+    expect(at('Back') - at('Compact preset'), greaterThanOrEqualTo(_presetHoldFrames), reason: 'hold the preset');
+    expect(at('SIM') - at('ERG'), greaterThanOrEqualTo(_modeHoldFrames), reason: 'hold ERG');
+    expect(cutaway.frames.length - at('SIM'), greaterThanOrEqualTo(_modeHoldFrames), reason: 'hold SIM');
+    // The chain on the gear card runs.
+    expect(cutaway.frames.sublist(0, _cutawayOpeningFrames).map(sha256.convert).toSet().length, greaterThan(30),
+        reason: 'the chain should be running on film');
 
     // A controller press visibly reacts: on the contour in the wizard, on the
     // gear card in the cutaway. So does MyWhoosh connecting.
