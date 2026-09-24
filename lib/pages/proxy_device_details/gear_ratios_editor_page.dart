@@ -280,25 +280,35 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
         def.setGearRatios(preset.values);
         await _saveActiveGearRatios(preset.values);
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            preset.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+      // Four chips share a phone's width, and a preset name like "Compact" or
+      // "Predeterminado" is wider than a quarter of it: the label is kept on
+      // one line and shrunk to fit rather than broken mid-word.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              preset.label,
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+              ),
             ),
-          ),
-          Text(
-            preset.range,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: active ? const Color(0xFFA1A1AA) : cs.mutedForeground,
+            Text(
+              preset.range,
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+                color: active ? const Color(0xFFA1A1AA) : cs.mutedForeground,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
