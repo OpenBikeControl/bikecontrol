@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/main.dart';
@@ -20,6 +21,10 @@ ZwiftClickV2LeftSide _leftSide() => ZwiftClickV2LeftSide(
 
 ZwiftClickV2RightSide _rightSide() => ZwiftClickV2RightSide(
   BleDevice(deviceId: 'right-1', name: 'Zwift Click', manufacturerDataList: const [], services: const []),
+);
+
+ZwiftClickV2 _unified() => ZwiftClickV2(
+  BleDevice(deviceId: 'click-1', name: 'Zwift Click', manufacturerDataList: const [], services: const []),
 );
 
 void main() {
@@ -94,6 +99,41 @@ void main() {
     test('never pending in screenshot mode', () {
       screenshotMode = true;
       expect(ClickV2Onboarding.isPending, isFalse);
+    });
+
+    // The onboarding video films the explainer: it keeps screenshotMode for
+    // the machine state it pins but opts back in to the real auto-prompt.
+    test('pending in screenshot mode when the video capture opts in', () {
+      screenshotMode = true;
+      debugClickV2OnboardingInScreenshotMode = true;
+      addTearDown(() => debugClickV2OnboardingInScreenshotMode = false);
+      expect(ClickV2Onboarding.isPending, isTrue);
+    });
+
+    test('the opt-in changes nothing outside screenshot mode', () async {
+      debugClickV2OnboardingInScreenshotMode = true;
+      addTearDown(() => debugClickV2OnboardingInScreenshotMode = false);
+      await core.settings.setClickV2OnboardingDone(true);
+      expect(ClickV2Onboarding.isPending, isFalse);
+    });
+  });
+
+  group('Click V2 names in screenshot mode', () {
+    tearDown(() {
+      screenshotMode = false;
+      debugKeepsControllerNamesInScreenshotMode = false;
+    });
+
+    test('store screenshots anonymise the controller', () {
+      screenshotMode = true;
+      expect(_unified().toString(), 'Controller');
+    });
+
+    // The onboarding video shows the rider's real controller by name.
+    test('the video capture keeps the real name', () {
+      screenshotMode = true;
+      debugKeepsControllerNamesInScreenshotMode = true;
+      expect(_unified().toString(), ZwiftClickV2.label);
     });
   });
 

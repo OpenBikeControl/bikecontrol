@@ -51,6 +51,25 @@ bool debugAnimatesInScreenshotMode = false;
 /// Whether [screenshotMode] is holding motion still.
 bool get screenshotMotionPinned => screenshotMode && !debugAnimatesInScreenshotMode;
 
+/// Lets the one-time Zwift Click V2 unlock-mode explainer run under
+/// [screenshotMode], which otherwise suppresses it (store screenshots stage
+/// connected controllers and must never be interrupted by it). For the
+/// onboarding video capture, which films that explainer. Off everywhere else.
+@visibleForTesting
+bool debugClickV2OnboardingInScreenshotMode = false;
+
+/// Whether [screenshotMode] is holding the Click V2 explainer back.
+bool get screenshotSuppressesClickV2Onboarding => screenshotMode && !debugClickV2OnboardingInScreenshotMode;
+
+/// Keeps controller names that [screenshotMode] anonymises for the store
+/// boards ("Controller" for a Zwift Click V2) — the onboarding video shows the
+/// rider's real controller. Off everywhere else.
+@visibleForTesting
+bool debugKeepsControllerNamesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is replacing controller names with a generic one.
+bool get screenshotControllerNamesAnonymised => screenshotMode && !debugKeepsControllerNamesInScreenshotMode;
+
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
 var onboardingActive = false;

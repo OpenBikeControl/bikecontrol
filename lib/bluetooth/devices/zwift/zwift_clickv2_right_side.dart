@@ -92,7 +92,7 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   /// from `super.toString()` (which would yield the advertised BLE name).
   @override
   String displayName(BuildContext context) =>
-      context.i18n.deviceSideRight(screenshotMode ? 'Controller' : 'Zwift Click V2');
+      context.i18n.deviceSideRight(screenshotControllerNamesAnonymised ? 'Controller' : 'Zwift Click V2');
 
   @override
   Future<void> setupHandshake() async {
