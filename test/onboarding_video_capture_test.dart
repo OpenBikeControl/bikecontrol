@@ -20,7 +20,10 @@
 //   boundaries here are not settled frames — it is one continuous take.
 //
 // Output (per scene):
-//   build/video_frames/<scene>/000000.png, 000001.png, …  760×1648 px
+//   build/video_frames/<scene>/000000.png, 000001.png, …  1140×2472 px
+//   build/video_frames/<scene>/scene.json  {pixelRatio, width, height,
+//     logicalWidth, logicalHeight, fps, frames} — pixelRatio maps the
+//     380×824 logical screen to the PNG and taps.json pixel space.
 //   build/video_frames/<scene>/taps.json  [{frame, x, y, label, kind}] in PNG
 //     pixels. kind "tap" is a finger on the screen; "swipe" a finger dragged
 //     from x/y (at frame) to endX/endY (at endFrame); "hardware" a button
@@ -115,12 +118,11 @@ import 'widget_to_png.dart';
 /// The mobile shell (the desktop rail starts at 800).
 const _logicalSize = Size(380, 824);
 
-/// 2× gives 760×1648 px. Placed as a phone in a 1080p frame the screen is
-/// roughly 900–1000 px tall, so every frame is downsampled ~1.7× — crisp text
-/// and edges — with headroom for a compositor zoom of up to ~1.7× before any
-/// pixel is upscaled. 3× would add 2.25× the pixels (and encode time) for
-/// detail a 1080p frame cannot show.
-const _pixelRatio = 2.0;
+/// 3× gives 1140×2472 px. Placed as a phone in a 1080p frame the screen is
+/// roughly 900–1000 px tall, so a full-phone shot is downsampled ~2.5×, and
+/// the compositor's 2.2× punch-in still lands on native pixels (at 2× it
+/// upscaled ~1.17× past them, softening the text).
+const _pixelRatio = 3.0;
 
 const _fps = 30;
 
@@ -753,6 +755,16 @@ void _writeScene(String scene, _Capture capture) {
   }
   File('${dir.path}/taps.json').writeAsStringSync(capture.tapsJson);
   File('${dir.path}/chapters.json').writeAsStringSync(capture.chaptersJson);
+  final (width, height) = _pngSize(capture.frames.first);
+  File('${dir.path}/scene.json').writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
+    'pixelRatio': _pixelRatio,
+    'width': width,
+    'height': height,
+    'logicalWidth': _logicalSize.width,
+    'logicalHeight': _logicalSize.height,
+    'fps': _fps,
+    'frames': capture.frames.length,
+  }));
 }
 
 void _expectWellFormed(_Capture capture, {required Set<String> unsettledTaps, bool settledCuts = true}) {
@@ -854,6 +866,15 @@ void main() {
     watch.stop();
     _writeScene(_onboardingScene, onboarding);
     _writeScene(_cutawayScene, cutaway);
+
+    // Rendered at 3× so text stays sharp through the compositor's 2.2×
+    // punch-in; scene.json says so, so nothing downstream has to guess.
+    for (final (scene, capture) in [(_onboardingScene, onboarding), (_cutawayScene, cutaway)]) {
+      expect(_pngSize(capture.frames.first), (1140, 2472), reason: scene);
+      final info = jsonDecode(File('build/video_frames/$scene/scene.json').readAsStringSync()) as Map;
+      expect(info['pixelRatio'], 3);
+      expect(info['frames'], capture.frames.length);
+    }
 
     expect(onboarding.taps.map((t) => (t.kind, t.label)), [
       ('tap', 'MyWhoosh tile'),
