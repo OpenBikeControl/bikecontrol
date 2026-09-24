@@ -22,6 +22,12 @@ SteerSide steerSideFor(double angle, double threshold) {
 /// still travels for typical steering angles. Clamped to a sane span.
 double displayRangeFor(double threshold) => (threshold * 3).clamp(18.0, 90.0);
 
+/// The numeric line under the gauge: the tilt in whole degrees, then the
+/// trigger threshold. Rounded as an int, so a bar a hair right of centre
+/// reads "0°" rather than "-0°".
+String steeringReadout(double angle, double threshold) =>
+    '${angle.round()}°  ·  ±${threshold.toStringAsFixed(0)}°';
+
 /// Compact horizontal gauge for the Phone-Steering device card footer. A knob
 /// glides left/right with the live tilt and a fill grows from the center to the
 /// knob, glowing once the tilt passes ±threshold (marked by ticks). The left and
@@ -125,7 +131,7 @@ class SteeringGauge extends StatelessWidget {
                 // Numeric readout / calibrating hint, below the bar.
                 isCalibrated
                     ? Text(
-                        '${liveAngle.toStringAsFixed(0)}°  ·  ±${threshold.toStringAsFixed(0)}°',
+                        steeringReadout(liveAngle, threshold),
                       ).xSmall.muted
                     : Row(
                         mainAxisSize: MainAxisSize.min,
