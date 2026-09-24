@@ -236,7 +236,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   }) {
     KeyPair? keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
     final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
-    if (screenshotMode &&
+    if (screenshotKeymapsStaged &&
         keyPair == null &&
         deviceButton.name == ZwiftButtons.a.name &&
         trigger == ButtonTrigger.longPress) {
