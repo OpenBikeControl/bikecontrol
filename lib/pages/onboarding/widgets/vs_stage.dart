@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart' show onboardingMotionPinned;
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
@@ -114,9 +115,9 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
     // still do: [screenshotMode] pins the scene so captures are deterministic,
     // while reduced motion only means "don't move by yourself" — swiping and
     // the dots still work.
-    final still = screenshotMode || reduceMotion;
+    final still = onboardingMotionPinned || reduceMotion;
     _sync(still);
-    final scene = screenshotMode ? widget.initialScene : _scene;
+    final scene = onboardingMotionPinned ? widget.initialScene : _scene;
 
     final captions = <({String label, String hint})>[
       (label: context.i18n.vsStageAppsLabel, hint: context.i18n.vsStageAppsHint),
