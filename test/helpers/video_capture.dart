@@ -217,7 +217,11 @@ class VideoRecorder {
     return _frames.length - start;
   }
 
-  VideoTap _record(Offset pos, String label, String kind) {
+  /// Where the captured boundary sits on screen: taps.json is in its pixels.
+  Offset get _origin => (boundary.currentContext!.findRenderObject()! as RenderBox).localToGlobal(Offset.zero);
+
+  VideoTap _record(Offset global, String label, String kind) {
+    final pos = global - _origin;
     final tap = VideoTap(_frames.length, pos.dx * videoPixelRatio, pos.dy * videoPixelRatio, label,
         kind: kind, settledBefore: settled);
     capture.taps.add(tap);
@@ -258,6 +262,21 @@ class VideoRecorder {
     }
   }
 
+  /// A finger press at [pos] (logical px) rather than on a widget — a tap on
+  /// a modal barrier, say. Otherwise as [tap].
+  Future<void> tapAt(Offset pos, String label, {int? thenFrames}) async {
+    final gesture = await tester.startGesture(pos);
+    _record(pos, label, 'tap');
+    await frames(3);
+    await gesture.up();
+    if (thenFrames != null) {
+      await frames(thenFrames);
+      capture.transitionFrames[label] = thenFrames;
+    } else {
+      capture.transitionFrames[label] = await untilStill();
+    }
+  }
+
   /// A finger dragged from [from] to [to] over [overFrames], then released
   /// and left to settle (the scroll view's own ballistics included), or
   /// captured for exactly [thenFrames] when what follows never rests.
@@ -268,10 +287,11 @@ class VideoRecorder {
       await gesture.moveTo(Offset.lerp(from, to, i / overFrames)!);
       await step();
     }
+    final end = to - _origin;
     tap
       ..endFrame = _frames.length - 1
-      ..endX = to.dx * videoPixelRatio
-      ..endY = to.dy * videoPixelRatio;
+      ..endX = end.dx * videoPixelRatio
+      ..endY = end.dy * videoPixelRatio;
     await gesture.up();
     if (thenFrames != null) {
       await frames(thenFrames);
