@@ -1,5 +1,6 @@
 // The gear editor at phone width, with real fonts, in every locale.
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,6 +52,17 @@ Future<void> main() async {
         expect(label, findsOneWidget, reason: preset.label);
         expectBreaksOnlyBetweenWords(tester, label, reason: '[$locale] preset "${preset.label}"');
       }
+    });
+  }
+
+  for (final gears in [30, 18]) {
+    testWidgets('the per-gear list says how many gears it lists ($gears gears)', (tester) async {
+      await showEditor(tester, definition(gears: gears), 'en');
+
+      final l10n = AppLocalizations.of(tester.element(find.byType(GearRatiosEditorPage)));
+      final header = find.ancestor(of: find.text(l10n.perGearLabel), matching: find.byType(Row)).first;
+      expect(find.descendant(of: header, matching: find.textContaining('$gears')), findsOneWidget,
+          reason: 'the per-gear header should count $gears gears');
     });
   }
 }

@@ -333,12 +333,16 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                 color: cs.mutedForeground,
               ),
             ),
-            const Text(
-              '24 steps',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFFA1A1AA),
+            // The rows below, counted — they follow the gear count.
+            ValueListenableBuilder<List<double>>(
+              valueListenable: def.gearRatios,
+              builder: (context, ratios, _) => Text(
+                AppLocalizations.of(context).perGearCount(ratios.length),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFFA1A1AA),
+                ),
               ),
             ),
           ],

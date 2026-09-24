@@ -2195,5 +2195,6 @@
   "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
   "healthRideFailedTitle": "Nie udało się zapisać przejażdżki w Apple Zdrowie",
   "healthRideDeniedTitle": "Dostęp do Apple Zdrowie jest wyłączony",
-  "healthRideOpenSettings": "Otwórz ustawienia Zdrowia"
+  "healthRideOpenSettings": "Otwórz ustawienia Zdrowia",
+  "perGearCount": "{count, plural, =1{1 bieg} few{{count} biegi} other{{count} biegów}}"
 }
