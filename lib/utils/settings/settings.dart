@@ -581,14 +581,6 @@ class Settings {
     await prefs.setBool('zwift_mdns_emulator_enabled', enabled);
   }
 
-  bool getDi2BleEnabled() {
-    return prefs.getBool('di2_ble_enabled') ?? false;
-  }
-
-  Future<void> setDi2BleEnabled(bool enabled) async {
-    await prefs.setBool('di2_ble_enabled', enabled);
-  }
-
   bool getMiuiWarningDismissed() {
     return prefs.getBool('miui_warning_dismissed') ?? false;
   }
@@ -801,10 +793,14 @@ class Settings {
     if (json == null) return {};
     try {
       final decoded = jsonDecode(json) as Map<String, dynamic>;
-      return decoded.map(
-        (key, value) => MapEntry(InGameAction.values.firstWhere((e) => e.name == key), value.toString()),
-      );
-    } catch (e) {
+      // Actions that no longer exist (e.g. the removed D-Fly channels) are
+      // skipped, so one stale entry doesn't throw away every other hotkey.
+      return {
+        for (final MapEntry(:key, :value) in decoded.entries)
+          if (InGameAction.values.firstOrNullWhere((e) => e.name == key) case final action?) action: value.toString(),
+      };
+    } catch (e, s) {
+      recordError(e, s, context: 'Decoding button simulator hotkeys');
       return {};
     }
   }

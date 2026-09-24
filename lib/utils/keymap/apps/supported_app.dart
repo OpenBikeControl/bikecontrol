@@ -7,10 +7,8 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/strappo.dart';
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
-import 'package:bike_control/utils/keymap/apps/wahoo_element.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -28,7 +26,6 @@ enum AppConnectionMethod {
   local,
   remoteMouse,
   remoteKeyboard,
-  di2Ble,
 }
 
 enum ConnectionSupport {
@@ -159,7 +156,6 @@ abstract class SupportedApp {
     FulGaz(),
     BikeControl(),
     OpenBikeControl(),
-    if (kDebugMode) WahooElement(),
     CustomApp(),
   ];
 

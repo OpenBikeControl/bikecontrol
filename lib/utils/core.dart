@@ -4,7 +4,6 @@ import 'package:bike_control/bluetooth/app_connection_latch.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
-import 'package:bike_control/bluetooth/devices/shimano/di2_emulator.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/rouvy_mdns_emulator.dart';
@@ -100,7 +99,6 @@ class Core {
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
-  late final di2Emulator = Di2Emulator();
   late final emulation = EmulationManager();
   late final sensors = SensorHub();
 
@@ -190,10 +188,6 @@ class Core {
     if (settings.getRemoteKeyboardControlEnabled()) {
       settings.setRemoteKeyboardControlEnabled(false);
       await remoteKeyboardPairing.stopAdvertising();
-    }
-    if (settings.getDi2BleEnabled()) {
-      await settings.setDi2BleEnabled(false);
-      await di2Emulator.stopAdvertising();
     }
   }
 }
@@ -302,10 +296,6 @@ class CoreLogic {
     return core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator;
   }
 
-  bool get isDi2BleEnabled {
-    return core.settings.getDi2BleEnabled() && showDi2Ble;
-  }
-
   bool get isObpBleEnabled {
     return core.settings.getObpBleEnabled() && showObpBluetoothEmulator;
   }
@@ -322,13 +312,6 @@ class CoreLogic {
     final app = core.settings.getTrainerApp();
     return app != null &&
         app.supports(AppConnectionMethod.zwiftBle) &&
-        core.settings.getLastTarget() != Target.thisDevice;
-  }
-
-  bool get showDi2Ble {
-    final app = core.settings.getTrainerApp();
-    return app != null &&
-        app.supports(AppConnectionMethod.di2Ble) &&
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
@@ -394,8 +377,7 @@ class CoreLogic {
       (core.settings.getZwiftBleEmulatorEnabled() && showZwiftBleEmulator) ||
       (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator) ||
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
-      (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator) ||
-      (core.settings.getDi2BleEnabled() && showDi2Ble);
+      (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
   bool get showObpActions =>
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
@@ -448,8 +430,7 @@ class CoreLogic {
       !isZwiftMdnsEnabled &&
       !showObpActions &&
       !(core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) &&
-      !showLocalRemoteOptions &&
-      !isDi2BleEnabled;
+      !showLocalRemoteOptions;
 
   bool get hasRecommendedConnectionMethods =>
       showObpBluetoothEmulator ||
@@ -457,8 +438,7 @@ class CoreLogic {
       showLocalControl ||
       showZwiftBleEmulator ||
       showZwiftMsdnEmulator ||
-      showMyWhooshLink ||
-      showDi2Ble;
+      showMyWhooshLink;
 
   bool get hasOfficialConnectionMethods =>
       showObpBluetoothEmulator || showObpMdnsEmulator || showZwiftBleEmulator || showZwiftMsdnEmulator;
@@ -470,7 +450,6 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
-    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
@@ -481,7 +460,6 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
-    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
@@ -493,7 +471,6 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
-    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].sortedBy((e) => e.isConnected.value ? 0 : 1);
@@ -541,7 +518,6 @@ class CoreLogic {
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
-    if (isDi2BleEnabled) core.di2Emulator,
     if (isRemoteControlEnabled) core.remotePairing,
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ];
@@ -552,7 +528,6 @@ class CoreLogic {
     if (showMyWhooshLink) core.whooshLink,
     if (showZwiftBleEmulator) core.zwiftEmulator,
     if (showZwiftMsdnEmulator) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
-    if (showDi2Ble) core.di2Emulator,
     if (showRemote) core.remotePairing,
     if (showRemote) core.remoteKeyboardPairing,
   ];
@@ -650,18 +625,6 @@ class CoreLogic {
         core.settings.setObpBleEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl BLE Emulator: $e'),
-        );
-      });
-    }
-
-    if (isDi2BleEnabled &&
-        await core.permissions.getRemoteControlRequirements().allGranted &&
-        !core.di2Emulator.isStarted.value) {
-      core.di2Emulator.startAdvertising().catchError((e, s) {
-        recordError(e, s, context: 'Di2 Emulator');
-        core.settings.setDi2BleEnabled(false);
-        core.connection.signalNotification(
-          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start Di2 Emulator: $e'),
         );
       });
     }

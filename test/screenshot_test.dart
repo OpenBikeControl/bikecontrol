@@ -45,7 +45,6 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -899,7 +898,6 @@ Future<void> main() async {
             );
           },
         ),
-      if (core.logic.showDi2Ble) Di2BleTile(small: false),
       if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
       if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
     ];
