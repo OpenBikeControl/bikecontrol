@@ -15,4 +15,15 @@ void main() {
       expect(steerSideFor(5, 5), SteerSide.none); // positive boundary inclusive-neutral
     });
   });
+
+  group('steeringReadout', () {
+    test('a bar a hair right of centre reads 0°, not -0°', () {
+      expect(steeringReadout(-0.0, 10), '0°  ·  ±10°');
+      expect(steeringReadout(-0.4, 10), '0°  ·  ±10°');
+    });
+    test('whole degrees either way', () {
+      expect(steeringReadout(24.6, 10), '25°  ·  ±10°');
+      expect(steeringReadout(-24.6, 10), '-25°  ·  ±10°');
+    });
+  });
 }
