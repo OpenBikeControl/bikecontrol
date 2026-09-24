@@ -23,6 +23,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// front-shift setting — so the preview can't drift away from the product.
 /// Holds still under reduced motion and in [screenshotMode], where it shows
 /// the first scene only.
+/// Opens every [VirtualShiftingStage] on this scene instead of its
+/// [VirtualShiftingStage.initialScene]. The onboarding video starts past the
+/// "works in every app" scene: by step 4 its viewer has already picked a
+/// trainer.
+@visibleForTesting
+int? debugVirtualShiftingStageOpeningScene;
+
 class VirtualShiftingStage extends StatefulWidget {
   const VirtualShiftingStage({super.key, this.initialScene = 0});
 
@@ -38,7 +45,7 @@ class VirtualShiftingStage extends StatefulWidget {
 }
 
 class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
-  late int _scene = widget.initialScene;
+  late int _scene = debugVirtualShiftingStageOpeningScene ?? widget.initialScene;
   bool _paused = false;
   Timer? _advance;
 
