@@ -95,28 +95,43 @@ Future<File> captureBoundaryToPng(
   required String outputPath,
   double pixelRatio = 3.0,
 }) async {
+  final pngBytes = await encodeBoundaryToPng(tester, boundaryKey, pixelRatio: pixelRatio);
+
+  // Written synchronously: awaiting real file I/O outside `runAsync` never
+  // completes under the fake-clock test binding, and the capture helpers are
+  // used under both bindings.
+  final file = File(outputPath);
+  file.parent.createSync(recursive: true);
+  file.writeAsBytesSync(pngBytes);
+  return file;
+}
+
+/// Encodes the [RenderRepaintBoundary] behind [boundaryKey] to PNG bytes
+/// without touching the disk — for callers that hash, compare or name the
+/// frames themselves (see `onboarding_video_capture_test.dart`).
+Future<Uint8List> encodeBoundaryToPng(
+  WidgetTester tester,
+  GlobalKey boundaryKey, {
+  double pixelRatio = 3.0,
+}) async {
   final boundary =
       boundaryKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
 
   // toImage()/toByteData() are real async and must run outside the
   // fake-async test zone, hence runAsync.
-  late final Uint8List pngBytes;
+  Uint8List? pngBytes;
   await tester.runAsync(() async {
     final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
     try {
       final ByteData? data =
           await image.toByteData(format: ui.ImageByteFormat.png);
       if (data == null) {
-        throw StateError('toByteData returned null for $outputPath');
+        throw StateError('toByteData returned null for the boundary');
       }
       pngBytes = data.buffer.asUint8List();
     } finally {
       image.dispose();
     }
   });
-
-  final file = File(outputPath);
-  await file.parent.create(recursive: true);
-  await file.writeAsBytes(pngBytes);
-  return file;
+  return pngBytes!;
 }

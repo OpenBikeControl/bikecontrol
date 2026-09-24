@@ -1,6 +1,15 @@
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Lets [OnboardingReveal] animate while [screenshotMode] is on.
+///
+/// The onboarding video capture keeps screenshotMode for the machine state it
+/// pins (no permission probe, update check or BLE scan) but films the reveal,
+/// which is the wizard's step transition. It drives a fake clock, so the
+/// motion stays deterministic.
+@visibleForTesting
+bool debugOnboardingRevealAnimatesInScreenshotMode = false;
+
 /// Reveals its child with a fade + rise once [delay] has elapsed.
 ///
 /// Staggering these — see [onboardingReveal] — is what makes a wizard screen
@@ -33,7 +42,8 @@ class OnboardingReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (screenshotMode || MediaQuery.of(context).disableAnimations) return child;
+    final still = screenshotMode && !debugOnboardingRevealAnimatesInScreenshotMode;
+    if (still || MediaQuery.of(context).disableAnimations) return child;
     final total = span + delay;
     final start = delay.inMilliseconds / total.inMilliseconds;
     return TweenAnimationBuilder<double>(
