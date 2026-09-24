@@ -3,11 +3,15 @@
 // synthetic pointer drawn from taps.json.
 //
 // Slice: MyWhoosh path, steps app → where → controller, driven through the
-// real stateful OnboardingPage with a connected Zwift Ride staged.
+// real stateful OnboardingPage with a connected Zwift Ride staged. Once the
+// controller step settles, three Ride buttons are pressed through the Ride's
+// own notification decoder, so the contour reacts the way it does in the app.
 //
 // Output (per scene):
 //   build/video_frames/<scene>/000000.png, 000001.png, …  760×1648 px
-//   build/video_frames/<scene>/taps.json  [{frame, x, y, label}] in PNG pixels
+//   build/video_frames/<scene>/taps.json  [{frame, x, y, label, kind}] in PNG
+//     pixels; kind "tap" is a finger on the screen, kind "hardware" a button
+//     pressed on the controller (x/y = that button on the contour)
 //
 // Tagged `video` and skipped by default (see dart_test.yaml). Run with:
 //   flutter test --run-skipped --tags video test/onboarding_video_capture_test.dart
@@ -38,11 +42,14 @@
 @Tags(['video'])
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart' show zwiftRideNotification;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotLocale, screenshotMode;
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
@@ -53,6 +60,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart' as m;
@@ -81,16 +89,30 @@ const _fps = 30;
 /// Settled frames kept before and after every tap (~0.4 s).
 const _hold = 12;
 
+/// How long a controller button is held down (~0.3 s) — long enough to read.
+const _pressHoldFrames = 9;
+
 const _scene = 'mywhoosh-controller';
 
 class _Tap {
-  _Tap(this.frame, this.x, this.y, this.label);
+  _Tap(this.frame, this.x, this.y, this.label, {required this.kind});
   final int frame;
   final double x;
   final double y;
   final String label;
 
-  Map<String, Object> toJson() => {'frame': frame, 'x': x, 'y': y, 'label': label};
+  /// `tap` for a finger on the screen, `hardware` for a controller button.
+  final String kind;
+
+  Map<String, Object> toJson() => {'frame': frame, 'x': x, 'y': y, 'label': label, 'kind': kind};
+}
+
+bool _bytesEqual(Uint8List a, Uint8List b) {
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }
 
 class _Capture {
@@ -133,16 +155,7 @@ class _Recorder {
     await _grab();
   }
 
-  bool _lastTwoEqual() {
-    if (_frames.length < 2) return false;
-    final a = _frames[_frames.length - 1];
-    final b = _frames[_frames.length - 2];
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
+  bool _lastTwoEqual() => _frames.length >= 2 && _bytesEqual(_frames[_frames.length - 1], _frames[_frames.length - 2]);
 
   /// Keeps capturing until [_hold] consecutive frames are unchanged — the
   /// screen has visually finished moving and the compositor has a settled
@@ -167,11 +180,36 @@ class _Recorder {
     final pos = tester.getCenter(finder);
     final gesture = await tester.startGesture(pos);
     // The first frame that shows the finger down.
-    capture.taps.add(_Tap(_frames.length, pos.dx * _pixelRatio, pos.dy * _pixelRatio, label));
+    capture.taps.add(_Tap(_frames.length, pos.dx * _pixelRatio, pos.dy * _pixelRatio, label, kind: 'tap'));
     for (var i = 0; i < 3; i++) {
       await step();
     }
     await gesture.up();
+    capture.transitionFrames[label] = await untilStill();
+  }
+
+  /// Presses [mask] on the Ride and releases it [_pressHoldFrames] later.
+  ///
+  /// Both edges go in as the raw keypad notification the Ride sends over BLE,
+  /// through the device's own decoder (`processCharacteristic` →
+  /// `handleButtonsClicked`) — the same path a real press takes. [button] is
+  /// what that mask decodes to; its spot on the contour is the x/y recorded.
+  Future<void> hardwarePress(ZwiftRide ride, RideButtonMask mask, ControllerButton button, String label) async {
+    final onContour = find.byKey(ValueKey(button.name));
+    expect(onContour, findsOneWidget, reason: '"$label" must be on the contour');
+    final pos = tester.getCenter(onContour);
+    await ride.processCharacteristic(
+      ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      Uint8List.fromList(zwiftRideNotification(pressed: [mask])),
+    );
+    capture.taps.add(_Tap(_frames.length, pos.dx * _pixelRatio, pos.dy * _pixelRatio, label, kind: 'hardware'));
+    for (var i = 0; i < _pressHoldFrames; i++) {
+      await step();
+    }
+    await ride.processCharacteristic(
+      ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      Uint8List.fromList(zwiftRideNotification()),
+    );
     capture.transitionFrames[label] = await untilStill();
   }
 }
@@ -208,6 +246,9 @@ Future<void> _restoreAppState() async {
   await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
   // No trainer app chosen yet — picking MyWhoosh is part of the film.
   core.actionHandler = StubActions();
+  // The Ride's own buzz on a shift press is a BLE write to hardware that isn't
+  // there; it isn't on film anyway.
+  await core.settings.setVibrationEnabled(false);
   screenshotLocale = const Locale('en');
   await AppLocalizations.load(const Locale('en'));
 }
@@ -275,13 +316,27 @@ Future<_Capture> _captureMyWhooshControllerSlice(WidgetTester tester, ZwiftRide 
   await rec.tap(find.byWidgetPredicate((w) => w is OnboardingAppTile && w.app is MyWhoosh), 'MyWhoosh tile');
   await rec.tap(find.byType(PrimaryButton).last, 'Continue with MyWhoosh');
 
-  // Step 2 — where. MyWhoosh runs on the PC/tablet, BikeControl on the phone.
-  await rec.tap(find.byKey(const ValueKey('onboarding-where-otherDevice')), 'Another device');
+  // Step 2 — where: MyWhoosh on this device.
+  await rec.tap(find.byKey(const ValueKey('onboarding-where-thisDevice')), 'This Device');
   await rec.tap(find.byType(PrimaryButton).last, 'Continue');
 
   // Step 3 — controller: the connected Ride is listed with its contour.
   expect(find.text(ride.displayName(tester.element(find.byType(OnboardingPage)))), findsOneWidget,
       reason: 'should be on the controller step with the Ride listed');
+
+  // Press buttons on the Ride — a shift, a steer, a shift the other way.
+  // In the app, Connection forwards each connected device's action stream to
+  // core.connection.actionStream (which the wizard listens to) when it
+  // connects the device; the staged Ride is never BLE-connected, so that one
+  // forwarding line is done here.
+  final forward = ride.actionStream.listen(core.connection.signalNotification);
+  await rec.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, 'Ride button: Shift up');
+  await rec.hardwarePress(ride, RideButtonMask.LEFT_BTN, ZwiftButtons.navigationLeft, 'Ride button: Steer left');
+  await rec.hardwarePress(ride, RideButtonMask.SHFT_DN_L_BTN, ZwiftButtons.shiftDownLeft, 'Ride button: Shift down');
+  // Not awaited: a broadcast subscription's cancel() returns a future that
+  // completes on the real event loop, and awaiting it here would take the test
+  // body off the fake clock for good — every pump after it would never return.
+  unawaited(forward.cancel());
 
   // Unmount: dispose() cancels the controller step's 15 s empty-scan timer,
   // which would otherwise still be pending when the test ends.
@@ -345,7 +400,15 @@ void main() {
       expect(_pngSize(f), (width, height), reason: 'every frame must share one size');
     }
 
-    expect(capture.taps.map((t) => t.label), ['MyWhoosh tile', 'Continue with MyWhoosh', 'Another device', 'Continue']);
+    expect(capture.taps.map((t) => (t.kind, t.label)), [
+      ('tap', 'MyWhoosh tile'),
+      ('tap', 'Continue with MyWhoosh'),
+      ('tap', 'This Device'),
+      ('tap', 'Continue'),
+      ('hardware', 'Ride button: Shift up'),
+      ('hardware', 'Ride button: Steer left'),
+      ('hardware', 'Ride button: Shift down'),
+    ]);
     for (final t in capture.taps) {
       expect(t.x, inInclusiveRange(0, width), reason: t.label);
       expect(t.y, inInclusiveRange(0, height), reason: t.label);
@@ -355,6 +418,16 @@ void main() {
       for (var i = t.frame - _hold; i < t.frame - 1; i++) {
         expect(capture.frames[i], capture.frames[t.frame - 1], reason: 'hold before "${t.label}" (frame $i)');
       }
+    }
+
+    // A controller press visibly reacts on the contour: the frames while the
+    // button is held are not all the settled frame from before the press.
+    for (final t in capture.taps.where((t) => t.kind == 'hardware')) {
+      final before = capture.frames[t.frame - 1];
+      final reacting = [for (var i = t.frame; i < t.frame + _pressHoldFrames; i++) capture.frames[i]]
+          .where((f) => !_bytesEqual(f, before))
+          .length;
+      expect(reacting, greaterThan(3), reason: '"${t.label}" should light up the contour on film');
     }
 
     // A step change is filmed as Flutter's own reveal, not a cut: the content
