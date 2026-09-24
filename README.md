@@ -131,7 +131,8 @@ flutter build apk --debug          # or: flutter run
 uninitialised.
 
 `prop` holds the trainer/controller emulator implementations, which are not
-open source. The repository ships `prop_public/`, an API-compatible stub of the
+open source. If you want to have a look at it, contact me :) 
+The repository ships `prop_public/`, an API-compatible stub of the
 same package, and `pubspec.yaml` points at it. A clone therefore builds,
 analyzes and runs against the stub without any extra setup.
 
@@ -148,10 +149,3 @@ debug key, so `flutter build apk --release` works from a plain clone.
 `flutter test` runs, except for 11 of the 297 test files which exercise the
 emulator implementations themselves and import test seams from `prop`. Those
 need the private package; the rest of the suite does not.
-
-## Donate
-Please consider donating to support the development of this app :)
-
-- [via PayPal](https://paypal.me/boni)
-- [via Credit Card, Google Pay, Apple Pay, etc. (USD)](https://donate.stripe.com/8x24gzc5c4ZE3VJdt36J201)
-- [via Credit Card, Google Pay, Apple Pay, etc. (EUR)](https://donate.stripe.com/9B6aEX0muajY8bZ1Kl6J200)
