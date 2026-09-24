@@ -40,10 +40,9 @@ class ProxyDevice extends BluetoothDevice {
 
   /// Per-instance emulator used exclusively in proxy mode. Each proxy-mode
   /// trainer needs its own mDNS identity / peripheral so they are independent.
-  // Serve DirCon on the standard Wahoo port so clients that hard-dial it
-  // (ignoring the mDNS SRV port) can connect — TrainerRoad's desktop app is the
-  // motivating case. Reasoning in `prop` ([kWahooDirconStandardPort]).
-  final DirconEmulator _proxyEmulator = DirconEmulator(preferredPort: kWahooDirconStandardPort);
+  // Serves on the standard Wahoo DirCon port for TrainerRoad, which ignores the
+  // mDNS SRV port ([bridgeServesStandardDirconPort]).
+  final DirconEmulator _proxyEmulator = DirconEmulator()..preferStandardPort = bridgeServesStandardDirconPort;
 
   /// Active emulator for this device. In proxy mode → own per-instance
   /// emulator; in VS modes → shared global [ftmsEmulator].
@@ -460,6 +459,26 @@ class ProxyDevice extends BluetoothDevice {
       e.key: Uint8List.fromList(e.value.codeUnits),
   };
 
+  /// The gear each trainer was last left in, by [trainerKey].
+  ///
+  /// A connection rebuilds the [FitnessBikeDefinition] from scratch, and a
+  /// fresh one starts at its neutral gear — so before this, every reconnect
+  /// handed the rider back the middle gear. On a trainer that drops every
+  /// minute (reported on a Van Rysel HT: five drops in four minutes) that made
+  /// virtual shifting unusable rather than merely annoying — the gear was wiped
+  /// before the rider could feel it, the overlay read a permanent 15/30, and no
+  /// shift ever reached the flywheel.
+  ///
+  /// Static because it has to outlive both the definition and the device
+  /// instance: a BLE drop plus rediscovery can produce a new [ProxyDevice] for
+  /// the same physical trainer. Deliberately *not* persisted — resuming the
+  /// gear a rider was in belongs to the ride they are in, not to one they rode
+  /// last week.
+  static final Map<String, int> _lastGearByTrainer = {};
+
+  @visibleForTesting
+  static void debugClearRememberedGears() => _lastGearByTrainer.clear();
+
   void _seedFitnessBikeDefinition(FitnessBikeDefinition def) {
     final stored = core.shiftingConfigs.storedActiveFor(trainerKey);
     final cfg = stored ?? core.shiftingConfigs.activeFor(trainerKey);
@@ -483,6 +502,7 @@ class ProxyDevice extends BluetoothDevice {
     if (cfg.gearRatios != null) {
       def.setGearRatios(cfg.gearRatios!);
     }
+    _restoreAndTrackGear(def);
 
     // Seed whatever external heart rate is already resolved right now — this
     // is the single funnel every fresh FBD goes through (initial connect,
@@ -532,6 +552,33 @@ class ProxyDevice extends BluetoothDevice {
     _wireGearEchoLog(def);
     _wireSimRefusalLog(def);
   }
+
+  /// Puts this trainer back in the gear it was left in, and keeps
+  /// [_lastGearByTrainer] current from there.
+  ///
+  /// Runs after the gear count and ratios are seeded, so the remembered gear is
+  /// clamped against the table the rider configured rather than the one they had
+  /// when they last rode. Idempotent per definition for the same reason
+  /// [_wireGearEchoLog] is: [applyTrainerSettings] re-seeds an existing
+  /// definition on every settings change.
+  void _restoreAndTrackGear(FitnessBikeDefinition def) {
+    if (identical(_gearTrackedDef, def)) return;
+    final previous = _gearTrackListener;
+    if (previous != null) {
+      _gearTrackedDef?.currentGear.removeListener(previous);
+    }
+    final remembered = _lastGearByTrainer[trainerKey];
+    if (remembered != null) {
+      def.setTargetGear(remembered.clamp(1, def.maxGear));
+    }
+    void onGear() => _lastGearByTrainer[trainerKey] = def.currentGear.value;
+    def.currentGear.addListener(onGear);
+    _gearTrackedDef = def;
+    _gearTrackListener = onGear;
+  }
+
+  FitnessBikeDefinition? _gearTrackedDef;
+  VoidCallback? _gearTrackListener;
 
   /// The definition [_gearEchoLogListener] is attached to, and the listener
   /// itself — so re-seeding can't stack a second one on the same notifier.

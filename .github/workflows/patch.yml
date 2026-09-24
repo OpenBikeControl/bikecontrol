@@ -96,6 +96,7 @@ jobs:
         uses: ./.github/actions/install-certificates
         with:
           developer-id-application-p12-base64: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64_MAC }}
+          developer-id-installer-p12-base64: ${{ secrets.DEVELOPER_ID_INSTALLER_P12_BASE64_MAC }}
           p12-password: ${{ secrets.P12_PASSWORD }}
           keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
           appstore-profile-ios-base64: ${{ secrets.APPSTORE_PROFILE_IOS_BASE64 }}

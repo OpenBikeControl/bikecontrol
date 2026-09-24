@@ -248,6 +248,37 @@ Future<void> main() async {
     expect(revealed, isTrue);
   });
 
+  test('the support intake symptom follows the verdict', () {
+    // The hand-off used to pin "No resistance change when shifting" whatever
+    // happened. On a pass that is simply untrue, and it would put a wrong
+    // symptom on the ticket of a rider whose trainer is fine and whose actual
+    // problem is something else — so a pass opens on "Something else" and lets
+    // them say what it is.
+    expect(SelfTestCard.intakeSymptomFor(SelfTestVerdict.pass), 'other');
+    for (final verdict in [
+      SelfTestVerdict.ergOkVsFail,
+      SelfTestVerdict.vsOkErgFail,
+      SelfTestVerdict.noControl,
+      SelfTestVerdict.noData,
+    ]) {
+      expect(SelfTestCard.intakeSymptomFor(verdict), 'no_resistance_change', reason: '$verdict');
+    }
+  });
+
+  testWidgets('PASS verdict also offers the support CTA', (tester) async {
+    // A passing run is still worth sending: it is the only evidence that says
+    // "the trainer does what it is told", which is exactly what separates a
+    // hardware fault from a BikeControl one on the next report. Withholding the
+    // button meant the riders whose trainers pass had no way to hand that over.
+    final harness = FakeSelfTestHarness();
+    await pumpCard(tester, connectedTrainer(), harness);
+    await tester.tap(find.text('Test resistance control'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your trainer responds correctly'), findsOneWidget);
+    expect(find.text(AppLocalizations.current.selfTestCtaReport), findsOneWidget);
+  });
+
   testWidgets('ergOkVsFail offers mode switch that flips the fake and reruns', (tester) async {
     final harness = FakeSelfTestHarness()..obeysShift = false;
 

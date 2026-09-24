@@ -61,7 +61,8 @@ void main() {
 
       expect(target.kind, NetworkMethodKind.zwiftMdns);
       expect(target.serverLabel, 'DirCon');
-      expect(target.preferredPort, kWahooDirconStandardPort);
+      // Only "Other" (TrainerRoad) moves the bridge to the Wahoo standard port.
+      expect(target.preferredPort, isNot(kWahooDirconStandardPort));
       expect(target.isStarted, same(core.zwiftMdnsEmulator.isStarted));
       expect(target.isConnected, same(core.zwiftMdnsEmulator.isConnected));
     });

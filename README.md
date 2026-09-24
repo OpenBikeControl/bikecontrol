@@ -110,6 +110,45 @@ The app connects to your Controller devices (such as Zwift ones) automatically. 
 - Connect to the supported trainer app using the [OpenBikeControl](https://openbikecontrol.org) protocol
   - available on Android, iOS, iPadOS, macOS, Windows
 
+## Building from source
+
+```bash
+git clone https://github.com/OpenBikeControl/bikecontrol.git
+cd bikecontrol
+flutter pub get
+
+# The localization accessors under lib/gen/ are generated, not committed.
+flutter pub global activate intl_utils
+flutter pub global run intl_utils:generate
+
+flutter build apk --debug          # or: flutter run
+```
+
+### About the `prop` submodule
+
+`.gitmodules` references a private `prop` repository. **You do not need it, and
+`git submodule update --init` is expected to fail for you** — leave it
+uninitialised.
+
+`prop` holds the trainer/controller emulator implementations, which are not
+open source. The repository ships `prop_public/`, an API-compatible stub of the
+same package, and `pubspec.yaml` points at it. A clone therefore builds,
+analyzes and runs against the stub without any extra setup.
+
+What that means in practice: the app launches and the UI, settings,
+localization and non-emulator code are all fully buildable and hackable, but
+the stubbed calls are inert, so trainer emulation and virtual shifting do not
+actually do anything in a build made this way. If you need the full
+implementation, get in touch.
+
+Release APKs are signed with a key that is not in the repository. When
+`android/keystore.properties` is absent the release build falls back to the
+debug key, so `flutter build apk --release` works from a plain clone.
+
+`flutter test` runs, except for 11 of the 297 test files which exercise the
+emulator implementations themselves and import test seams from `prop`. Those
+need the private package; the rest of the suite does not.
+
 ## Donate
 Please consider donating to support the development of this app :)
 

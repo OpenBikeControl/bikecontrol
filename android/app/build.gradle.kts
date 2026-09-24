@@ -9,9 +9,17 @@ plugins {
 }
 
 
+// Release signing material is not in the repo. CI writes keystore.properties
+// from a secret; a plain clone has neither it nor the key, so fall back to the
+// debug key there instead of failing to configure at all.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
+val hasReleaseKeystore = keystorePropertiesFile.exists()
 val keystoreProperties = Properties()
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+if (hasReleaseKeystore) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+} else {
+    logger.lifecycle("android/keystore.properties missing - release builds will be signed with the debug key.")
+}
 
 android {
     namespace = "de.jonasbark.swiftcontrol"
@@ -42,17 +50,19 @@ android {
     }
 
     signingConfigs {
-        create("config") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file("../${keystoreProperties["storeFile"] as String}")
-            storePassword = keystoreProperties["storePassword"] as String
+        if (hasReleaseKeystore) {
+            create("config") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file("../${keystoreProperties["storeFile"] as String}")
+                storePassword = keystoreProperties["storePassword"] as String
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("config")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKeystore) "config" else "debug")
             // R8 minifies the release build and renames/removes members it
             // sees no static use of. OverlayActionBridge reaches the
             // flutter_overlay_window OverlayService fields by reflection, which

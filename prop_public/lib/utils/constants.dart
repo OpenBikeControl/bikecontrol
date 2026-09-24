@@ -48,6 +48,10 @@ class BikeControlMdnsMarkers {
   static const clickManufacturerData = '0000000001';
   static const obcMacAddress = '00:00:00:00:00:01';
 
+  // FAKE placeholder — the real product identifier lives in the full
+  // implementation.
+  static const tacxProductId = '0';
+
   static const txtFingerprints = {
     macAddress,
     manufacturerData,

@@ -9,6 +9,12 @@ class BridgeUsageTracker {
 
   ValueListenable<Duration> get usedTodayListenable => ValueNotifier(dailyLimit);
 
+  /// Time used by bridge sessions today.
+  Duration get usedToday => Duration.zero;
+
+  /// How much of today's budget is left.
+  Duration get remainingToday => dailyLimit;
+
   bool get isExhausted => false;
 
   bool get isCountingDown => false;

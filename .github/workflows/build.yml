@@ -133,9 +133,14 @@ jobs:
       - name: Extract latest changelog
         id: changelog
         run: |
-          chmod +x scripts/get_latest_changelog.sh
-          mkdir -p whatsnew
-          ./scripts/get_latest_changelog.sh | head -c 500 > /tmp/whatsnew.txt
+          chmod +x scripts/get_latest_changelog.sh scripts/truncate_release_notes.sh
+          mkdir -p whatsnew store_notes
+          ./scripts/get_latest_changelog.sh > /tmp/changelog.txt
+          # Store limits are in characters: Play 500, App Store 4000. Truncate by
+          # character (not byte) at a line/word boundary so nothing is cut mid-word.
+          ./scripts/truncate_release_notes.sh 500 < /tmp/changelog.txt > /tmp/whatsnew.txt
+          # Kept outside whatsnew/ so the Play upload doesn't pick it up.
+          ./scripts/truncate_release_notes.sh 4000 < /tmp/changelog.txt > store_notes/app_store_release_notes.txt
           # Both stores keep showing the previous (stale) note for any locale we
           # don't provide, so ship the same English note to every managed locale.
           # Keep this list in sync with scripts/prepare_store_screenshots.sh
@@ -191,7 +196,7 @@ jobs:
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          RELEASE_NOTES_PATH: ${{ github.workspace }}/whatsnew/whatsnew-en-US
+          RELEASE_NOTES_PATH: ${{ github.workspace }}/store_notes/app_store_release_notes.txt
           APP_STORE_VERSION: ${{ env.APP_STORE_VERSION }}
         run: bundle exec fastlane upload_release_notes_macos
 
@@ -213,7 +218,7 @@ jobs:
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          RELEASE_NOTES_PATH: ${{ github.workspace }}/whatsnew/whatsnew-en-US
+          RELEASE_NOTES_PATH: ${{ github.workspace }}/store_notes/app_store_release_notes.txt
           APP_STORE_VERSION: ${{ env.APP_STORE_VERSION }}
         run: bundle exec fastlane upload_release_notes
 
