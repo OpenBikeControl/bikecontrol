@@ -79,7 +79,9 @@ class Core {
   );
   late final workoutRecorder = WorkoutRecorder();
   ScreenRecordingService screenRecording = ScreenRecordingService(backend: createScreenRecorderBackend());
-  late final workoutRepository = WorkoutRepository();
+  /// Where finished rides are saved. Not final: tests swap in one that keeps
+  /// them off the disk.
+  late WorkoutRepository workoutRepository = WorkoutRepository();
 
   late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();

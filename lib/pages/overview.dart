@@ -65,6 +65,12 @@ class _ActivityEntry {
 
 // ── OverviewPage ─────────────────────────────────────────────────────
 
+/// The clock the activity log stamps its entries with and ages them by ("just
+/// now", "5s ago"). Tests on a fake clock point it there, so the ages they
+/// film don't depend on how fast the machine ran.
+@visibleForTesting
+DateTime Function() activityLogClock = DateTime.now;
+
 /// Decides whether an incoming alert should raise a toast.
 ///
 /// The base (historical) rule shows a toast unless the overview is frontmost
@@ -233,7 +239,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final isDesktop = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
     final entry = _ActivityEntry(
       button: button,
-      time: DateTime.now(),
+      time: activityLogClock(),
       result: result,
       buttonTitle: hasRecording
           ? (isDesktop ? AppLocalizations.of(context).openFolder : AppLocalizations.of(context).openGallery)
@@ -302,7 +308,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     final entry = _ActivityEntry(
-      time: DateTime.now(),
+      time: activityLogClock(),
       alertMessage: notification.alertMessage,
       alertLevel: notification.level,
       buttonTitle: notification.buttonTitle,
@@ -581,7 +587,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final actionText = entry.message;
 
     // Time
-    final ago = DateTime.now().difference(entry.time);
+    final ago = activityLogClock().difference(entry.time);
     final String timeText;
     if (ago.inSeconds < 2) {
       timeText = AppLocalizations.of(context).justNow;
