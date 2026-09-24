@@ -2387,5 +2387,7 @@
   "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
   "healthRideFailedTitle": "Couldn't save the ride to Apple Health",
   "healthRideDeniedTitle": "Apple Health access is off",
-  "healthRideOpenSettings": "Open Health settings"
+  "healthRideOpenSettings": "Open Health settings",
+  "perGearCount": "{count, plural, =1{1 gear} other{{count} gears}}",
+  "@perGearCount": {"description": "How many gears the per-gear list in the gear editor shows.", "placeholders": {"count": {"type": "int"}}}
 }

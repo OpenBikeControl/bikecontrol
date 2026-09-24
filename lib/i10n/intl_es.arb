@@ -2195,5 +2195,6 @@
   "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
   "healthRideFailedTitle": "No se pudo guardar la salida en Apple Salud",
   "healthRideDeniedTitle": "El acceso a Apple Salud está desactivado",
-  "healthRideOpenSettings": "Abrir ajustes de Salud"
+  "healthRideOpenSettings": "Abrir ajustes de Salud",
+  "perGearCount": "{count, plural, =1{1 marcha} other{{count} marchas}}"
 }

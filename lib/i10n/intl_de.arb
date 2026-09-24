@@ -2195,5 +2195,6 @@
   "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
   "healthRideFailedTitle": "Fahrt konnte nicht in Apple Health gespeichert werden",
   "healthRideDeniedTitle": "Zugriff auf Apple Health ist deaktiviert",
-  "healthRideOpenSettings": "Health-Einstellungen öffnen"
+  "healthRideOpenSettings": "Health-Einstellungen öffnen",
+  "perGearCount": "{count, plural, =1{1 Gang} other{{count} Gänge}}"
 }
