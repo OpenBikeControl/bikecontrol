@@ -755,7 +755,6 @@ class Connection {
       core.rouvyMdnsEmulator,
       core.obpMdnsEmulator,
       core.obpBluetoothEmulator,
-      core.di2Emulator,
       core.whooshLink,
       core.remotePairing,
       core.remoteKeyboardPairing,

@@ -339,7 +339,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     core.zwiftEmulator.isConnected,
     core.zwiftMdnsEmulator.isConnected,
     core.rouvyMdnsEmulator.isConnected,
-    core.di2Emulator.isConnected,
     core.local.isConnected,
     core.remotePairing.isConnected,
     core.remoteKeyboardPairing.isConnected,
