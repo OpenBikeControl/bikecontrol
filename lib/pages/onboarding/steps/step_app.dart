@@ -5,6 +5,7 @@ import 'package:bike_control/pages/onboarding/widgets/onboarding_group_label.dar
 import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 const _success = Color(0xFF22C55E);
@@ -57,9 +58,7 @@ class OnboardingAppTile extends StatelessWidget {
               ),
             ),
             Gap(9),
-            Text(app.name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis)
-                .xSmall
-                .semiBold,
+            _TileCaption(app.name),
           ]),
         ),
         if (selected)
@@ -76,6 +75,66 @@ class OnboardingAppTile extends StatelessWidget {
           ),
       ]),
     );
+  }
+}
+
+/// A tile's app name: up to two lines, broken only between words. A single
+/// word wider than the tile ("TrainingPeaks" in a 110 px tile) is not cut in
+/// two: the name is laid out as wide as that word and scaled down to fit.
+class _TileCaption extends StatelessWidget {
+  const _TileCaption(this.name);
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => FittedBox(
+        fit: BoxFit.scaleDown,
+        child: _AtLeastWidestWord(
+          width: constraints.maxWidth,
+          child: Text(name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis).xSmall.semiBold,
+        ),
+      ),
+    );
+  }
+}
+
+/// Lays its text child out at [width], or at the width of the child's widest
+/// word if that is more — a paragraph's min intrinsic width is exactly that.
+/// Done at layout rather than in build, so a font arriving late (or a system
+/// font change) re-measures it.
+class _AtLeastWidestWord extends SingleChildRenderObjectWidget {
+  const _AtLeastWidestWord({required this.width, required super.child});
+
+  final double width;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderAtLeastWidestWord(width);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderAtLeastWidestWord renderObject) {
+    renderObject.width = width;
+  }
+}
+
+class _RenderAtLeastWidestWord extends RenderProxyBox {
+  _RenderAtLeastWidestWord(this._width);
+
+  double _width;
+  set width(double value) {
+    if (value == _width) return;
+    _width = value;
+    markNeedsLayout();
+  }
+
+  @override
+  void performLayout() {
+    final child = this.child!;
+    final widestWord = child.getMinIntrinsicWidth(double.infinity);
+    final width = _width.isFinite ? (widestWord > _width ? widestWord : _width) : widestWord;
+    child.layout(BoxConstraints.tightFor(width: width), parentUsesSize: true);
+    size = constraints.constrain(child.size);
   }
 }
 
