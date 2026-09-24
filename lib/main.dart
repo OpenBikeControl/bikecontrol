@@ -70,6 +70,15 @@ bool debugKeepsControllerNamesInScreenshotMode = false;
 /// Whether [screenshotMode] is replacing controller names with a generic one.
 bool get screenshotControllerNamesAnonymised => screenshotMode && !debugKeepsControllerNamesInScreenshotMode;
 
+/// Keeps keymap profile names that [screenshotMode] replaces with "Trainer
+/// app" for the store boards — the feature video films a rider's own profiles
+/// being made and renamed. Off everywhere else.
+@visibleForTesting
+bool debugKeepsProfileNamesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is replacing keymap profile names with a generic one.
+bool get screenshotProfileNamesAnonymised => screenshotMode && !debugKeepsProfileNamesInScreenshotMode;
+
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
 var onboardingActive = false;
