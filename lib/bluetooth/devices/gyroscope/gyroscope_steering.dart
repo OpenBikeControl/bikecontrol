@@ -69,6 +69,11 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
   // Time tracking for integration
   DateTime? _lastGyroUpdate;
 
+  /// The clock the gyroscope integration measures time between samples by.
+  /// Tests that feed samples on a fake clock point it there.
+  @visibleForTesting
+  DateTime Function() nowFn = DateTime.now;
+
   // Last rounded angle for change detection
   int? _lastRoundedAngle;
 
@@ -160,7 +165,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
   }
 
   void _handleGyroscopeEvent(GyroscopeEvent event) {
-    final now = DateTime.now();
+    final now = nowFn();
 
     if (!_hasAccelData) {
       _lastGyroUpdate = now;

@@ -8,6 +8,13 @@
 # To regenerate the images:
 #   flutter test --run-skipped --tags screenshots
 #   flutter test --run-skipped --update-goldens test/screenshot_test.dart
+#
+# The `video` suite films the onboarding wizard as a 30 fps PNG sequence for
+# the video compositor (build/video_frames/<scene>/). Same reasoning — output
+# only, and slow:
+#   flutter test --run-skipped --tags video test/onboarding_video_capture_test.dart
 tags:
   screenshots:
     skip: "Image generation only — run with `flutter test --run-skipped --tags screenshots`"
+  video:
+    skip: "Video frame capture only — run with `flutter test --run-skipped --tags video`"

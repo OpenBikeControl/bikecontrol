@@ -49,14 +49,24 @@ Future<void>? _bootstrap;
 /// declaring tests and before touching `core` — it initializes the test binding,
 /// installs plugin mocks, and bootstraps `core.settings` so the configs/settings
 /// stores are usable. Safe to call repeatedly; only the first call does work.
-Future<void> ensureSnapshotHarness() => _bootstrap ??= _runBootstrap();
-
-Future<void> _runBootstrap() async {
+Future<void> ensureSnapshotHarness() {
   // Must be the very first binding call so toImage()/loadAssets() run in the
   // same environment the golden suite is proven against. (Selecting the binding
   // has to happen before any testWidgets runs, hence: call this from main().)
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  return ensureSnapshotAppState();
+}
 
+/// Everything [ensureSnapshotHarness] does except choosing the binding.
+///
+/// For captures that need the fake-clock binding instead of the live one the
+/// integration binding runs: under the live binding `pump(duration)` waits
+/// real time and frames are stamped by the wall clock, so an animation's
+/// phase in a captured frame depends on how fast the machine was. Call
+/// `TestWidgetsFlutterBinding.ensureInitialized()` first, then this.
+Future<void> ensureSnapshotAppState() => _bootstrap ??= _runBootstrap();
+
+Future<void> _runBootstrap() async {
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
@@ -96,6 +106,28 @@ Future<void> _runBootstrap() async {
   await core.settings.reset(); // clears prefs; reset() can toggle IAP, so re-set:
   IAPManager.instance.isPurchased.value = true;
 }
+
+/// main.dart's light or dark app theme, so snapshots match the app exactly.
+ThemeData snapshotTheme(Brightness brightness) => brightness == Brightness.dark
+    ? ThemeData(
+        colorScheme: ColorSchemes.darkSlate.copyWith(
+          card: () => const Color(0xFF001A29),
+          background: () => const Color(0xFF232323),
+          muted: () => const Color(0xFF3A3A3A),
+          border: () => const Color(0xFF3A3A3A),
+          secondary: () => const Color(0xFF3A3A3A),
+        ),
+        typography: Typography.geist().scale(0.9),
+        radius: 0.7,
+      )
+    : ThemeData(
+        colorScheme: ColorSchemes.lightSlate.copyWith(
+          mutedForeground: () => const Color(0xFFA1A1AA),
+          primary: () => BKColor.main,
+        ),
+        typography: Typography.geist().scale(0.9),
+        radius: 0.7,
+      );
 
 /// Renders [builder]'s widget once per entry in [locales] and writes a tight
 /// PNG per locale to [outputDir].
@@ -151,26 +183,8 @@ Future<List<File>> captureWidget(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  // Mirror main.dart's light + dark themes so snapshots match the app exactly.
-  final lightTheme = ThemeData(
-    colorScheme: ColorSchemes.lightSlate.copyWith(
-      mutedForeground: () => const Color(0xFFA1A1AA),
-      primary: () => BKColor.main,
-    ),
-    typography: Typography.geist().scale(0.9),
-    radius: 0.7,
-  );
-  final darkTheme = ThemeData(
-    colorScheme: ColorSchemes.darkSlate.copyWith(
-      card: () => const Color(0xFF001A29),
-      background: () => const Color(0xFF232323),
-      muted: () => const Color(0xFF3A3A3A),
-      border: () => const Color(0xFF3A3A3A),
-      secondary: () => const Color(0xFF3A3A3A),
-    ),
-    typography: Typography.geist().scale(0.9),
-    radius: 0.7,
-  );
+  final lightTheme = snapshotTheme(Brightness.light);
+  final darkTheme = snapshotTheme(Brightness.dark);
 
   final files = <File>[];
   for (final loc in locales) {

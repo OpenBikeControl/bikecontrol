@@ -36,9 +36,51 @@ import 'package:url_launcher/url_launcher.dart';
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
 import 'utils/core.dart';
+import 'utils/host_platform.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
+
+/// Lets motion that [screenshotMode] normally holds still run anyway — the
+/// onboarding reveal, the Virtual Shifting stage, the trainer radar and a
+/// pedalling chain. For the video capture, which keeps screenshotMode for the
+/// machine state it pins but films the motion on a fake clock, so the frames
+/// stay deterministic. Off everywhere else.
+@visibleForTesting
+bool debugAnimatesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is holding motion still.
+bool get screenshotMotionPinned => screenshotMode && !debugAnimatesInScreenshotMode;
+
+/// Lets the one-time Zwift Click V2 unlock-mode explainer run under
+/// [screenshotMode], which otherwise suppresses it (store screenshots stage
+/// connected controllers and must never be interrupted by it). For the
+/// onboarding video capture, which films that explainer. Off everywhere else.
+@visibleForTesting
+bool debugClickV2OnboardingInScreenshotMode = false;
+
+/// Whether [screenshotMode] is holding the Click V2 explainer back.
+bool get screenshotSuppressesClickV2Onboarding => screenshotMode && !debugClickV2OnboardingInScreenshotMode;
+
+/// Keeps controller names that [screenshotMode] anonymises for the store
+/// boards ("Controller" for a Zwift Click V2) — the onboarding video shows the
+/// rider's real controller. Off everywhere else.
+@visibleForTesting
+bool debugKeepsControllerNamesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is replacing controller names with a generic one.
+bool get screenshotControllerNamesAnonymised => screenshotMode && !debugKeepsControllerNamesInScreenshotMode;
+
+/// Shows the rider's keymaps as they are under [screenshotMode], which dresses
+/// them up for the store boards: every profile is named "Trainer app", and
+/// the A button gets a sample long-press action. The feature video films
+/// profiles being made, renamed and remapped, so it needs the real ones. Off
+/// everywhere else.
+@visibleForTesting
+bool debugShowsRealKeymapsInScreenshotMode = false;
+
+/// Whether [screenshotMode] is dressing keymaps up for the store boards.
+bool get screenshotKeymapsStaged => screenshotMode && !debugShowsRealKeymapsInScreenshotMode;
 
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
@@ -372,13 +414,13 @@ enum ConnectionType {
 void initializeActions(ConnectionType connectionType) {
   if (kIsWeb) {
     core.actionHandler = StubActions();
-  } else if (Platform.isAndroid) {
+  } else if (HostPlatform.isAndroid) {
     core.actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
-  } else if (Platform.isIOS) {
+  } else if (HostPlatform.isIOS) {
     core.actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),

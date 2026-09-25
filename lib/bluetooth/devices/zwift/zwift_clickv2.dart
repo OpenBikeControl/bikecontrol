@@ -137,7 +137,7 @@ class ZwiftClickV2 extends ZwiftRide {
 
   @override
   String toString() {
-    return screenshotMode ? 'Controller' : label;
+    return screenshotControllerNamesAnonymised ? 'Controller' : label;
   }
 
   /// Whether the device was successfully unlocked within the last 24 hours,

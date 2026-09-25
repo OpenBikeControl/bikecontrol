@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
@@ -12,6 +12,13 @@ import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+/// Opens every [VirtualShiftingStage] on this scene instead of its
+/// [VirtualShiftingStage.initialScene]. The onboarding video starts past the
+/// "works in every app" scene: by step 4 its viewer has already picked a
+/// trainer.
+@visibleForTesting
+int? debugVirtualShiftingStageOpeningScene;
 
 /// What Virtual Shifting buys a rider, shown rather than listed: it works
 /// everywhere, the gearing is yours, there's a front derailleur in it too —
@@ -37,7 +44,7 @@ class VirtualShiftingStage extends StatefulWidget {
 }
 
 class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
-  late int _scene = widget.initialScene;
+  late int _scene = debugVirtualShiftingStageOpeningScene ?? widget.initialScene;
   bool _paused = false;
   Timer? _advance;
 
@@ -114,9 +121,9 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
     // still do: [screenshotMode] pins the scene so captures are deterministic,
     // while reduced motion only means "don't move by yourself" — swiping and
     // the dots still work.
-    final still = screenshotMode || reduceMotion;
+    final still = screenshotMotionPinned || reduceMotion;
     _sync(still);
-    final scene = screenshotMode ? widget.initialScene : _scene;
+    final scene = screenshotMotionPinned ? widget.initialScene : _scene;
 
     final captions = <({String label, String hint})>[
       (label: context.i18n.vsStageAppsLabel, hint: context.i18n.vsStageAppsHint),

@@ -12,6 +12,12 @@ import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Keeps the gear-count mismatch warning ("MyWhoosh uses 30 gears …") off the
+/// page. For the onboarding video, which shows the gear-count stepper without
+/// the warning its intermediate counts would raise. Off everywhere else.
+@visibleForTesting
+bool debugHideGearCountMismatch = false;
+
 class GearRatiosEditorPage extends StatefulWidget {
   final FitnessBikeDefinition definition;
   final ProxyDevice device;
@@ -145,7 +151,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final count = def.maxGear;
     final app = core.settings.getTrainerApp();
     final expected = app?.virtualGearAmount;
-    final mismatch = app != null && expected != null && expected != count;
+    final mismatch = app != null && expected != null && expected != count && !debugHideGearCountMismatch;
     return SettingTile(
       icon: LucideIcons.hash,
       title: AppLocalizations.of(context).gearCount,

@@ -11,6 +11,11 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+/// Keeps the Mini Workout card off the trainer page. For the onboarding video,
+/// which is about Virtual Shifting. Off everywhere else.
+@visibleForTesting
+bool debugHideMiniWorkoutCard = false;
+
 class MiniWorkoutCard extends StatefulWidget {
   final ProxyDevice device;
   const MiniWorkoutCard({super.key, required this.device});

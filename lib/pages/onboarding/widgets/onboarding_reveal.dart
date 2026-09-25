@@ -1,5 +1,6 @@
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
 
 /// Reveals its child with a fade + rise once [delay] has elapsed.
 ///
@@ -33,7 +34,7 @@ class OnboardingReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (screenshotMode || MediaQuery.of(context).disableAnimations) return child;
+    if (screenshotMotionPinned || MediaQuery.of(context).disableAnimations) return child;
     final total = span + delay;
     final start = delay.inMilliseconds / total.inMilliseconds;
     return TweenAnimationBuilder<double>(

@@ -7,6 +7,7 @@ import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
@@ -231,7 +232,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ..._buildObpControllerButtonActions(core.logic.obpSupportedButtons),
                 ],
 
-                if (core.logic.showMyWhooshLink && (Platform.isIOS || core.settings.getMyWhooshLinkEnabled())) ...[
+                if (core.logic.showMyWhooshLink && (HostPlatform.isIOS || core.settings.getMyWhooshLinkEnabled())) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
                   if (!core.settings.getMyWhooshLinkEnabled())
@@ -591,18 +592,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 if (!kIsWeb) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.otherActions),
-                  if (Platform.isMacOS || Platform.isWindows || Platform.isIOS) ...[
+                  if (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isIOS) ...[
                     SelectableCard(
                       isProOnly: true,
-                      title: Text(Platform.isMacOS || Platform.isIOS ? 'Launch Shortcut' : 'Run Command'),
-                      icon: Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
+                      title: Text(HostPlatform.isMacOS || HostPlatform.isIOS ? 'Launch Shortcut' : 'Run Command'),
+                      icon: HostPlatform.isMacOS || HostPlatform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
                       isActive: _keyPair.command?.trim().isNotEmpty == true,
                       value: _keyPair.command,
                       onPressed: () async {
                         await _showCommandDialog(context);
                       },
                     ),
-                    if (Platform.isMacOS || Platform.isWindows)
+                    if (HostPlatform.isMacOS || HostPlatform.isWindows)
                       SelectableCard(
                         isProOnly: true,
                         title: Text(context.i18n.takeScreenshot),

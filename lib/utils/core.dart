@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/app_connection_latch.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -78,7 +79,9 @@ class Core {
   );
   late final workoutRecorder = WorkoutRecorder();
   ScreenRecordingService screenRecording = ScreenRecordingService(backend: createScreenRecorderBackend());
-  late final workoutRepository = WorkoutRepository();
+  /// Where finished rides are saved. Not final: tests swap in one that keeps
+  /// them off the disk.
+  late WorkoutRepository workoutRepository = WorkoutRepository();
 
   late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();
@@ -248,7 +251,7 @@ class Permissions {
   }
 
   List<PlatformRequirement> getLocalControlRequirements() {
-    return [Platform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()];
+    return [HostPlatform.isAndroid ? AccessibilityRequirement() : KeyboardRequirement()];
   }
 
   List<PlatformRequirement> getRemoteControlRequirements() {
@@ -274,11 +277,11 @@ class CoreLogic {
   bool get showLocalControl {
     return core.settings.getLastTarget()?.connectionType == ConnectionType.local &&
         core.settings.getTrainerApp()?.acceptsSimulatedInput != false &&
-        (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
+        (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isAndroid);
   }
 
   bool get canRunAndroidService {
-    return Platform.isAndroid && core.actionHandler is AndroidActions;
+    return HostPlatform.isAndroid && core.actionHandler is AndroidActions;
   }
 
   Future<bool> isAndroidServiceRunning() async {
