@@ -224,13 +224,10 @@
   "connectionWifi": "Wi-Fi",
   "connectionBluetooth": "Bluetooth",
   "continueAction": "Continuer",
-  "controlAppUsingModes": "Contrôle {appName} en utilisant{modes}",
+  "controlAppUsingModes": "Contrôler {appName} sur cet appareil",
   "@controlAppUsingModes": {
     "placeholders": {
       "appName": {
-        "type": "String"
-      },
-      "modes": {
         "type": "String"
       }
     }
@@ -315,7 +312,7 @@
   "enableBluetooth": "Activer le Bluetooth",
   "enableItInTheConnectionSettingsFirst": "Active-le d'abord dans les paramètres de connexion.",
   "enableKeyboardAccessMessage": "Active l'accès au clavier dans l'écran suivant pour BikeControl. Si tu ne vois pas BikeControl, ajoute-le manuellement.",
-  "enableKeyboardMouseControl": "BikeControl enverra des actions de souris ou de clavier pour contrôler {appName} .",
+  "enableKeyboardMouseControl": "BikeControl envoie pour vous les appuis de votre contrôleur à {appName}, sans rien saisir.",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {

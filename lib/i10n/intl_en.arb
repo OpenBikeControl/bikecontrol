@@ -215,13 +215,10 @@
     }
   },
   "continueAction": "Continue",
-  "controlAppUsingModes": "Control {appName} using {modes}",
+  "controlAppUsingModes": "Control {appName} on this device",
   "@controlAppUsingModes": {
     "placeholders": {
       "appName": {
-        "type": "String"
-      },
-      "modes": {
         "type": "String"
       }
     }
@@ -313,7 +310,7 @@
   "enableBluetooth": "Enable Bluetooth",
   "enableItInTheConnectionSettingsFirst": "Enable it in the connection settings first.",
   "enableKeyboardAccessMessage": "Enable keyboard access in the following screen for BikeControl. If you don't see BikeControl, please add it manually.",
-  "enableKeyboardMouseControl": "BikeControl will send mouse or keyboard actions to control {appName}.",
+  "enableKeyboardMouseControl": "BikeControl sends your controller's button presses to {appName} for you, no typing needed.",
   "@enableKeyboardMouseControl": {
     "placeholders": {
       "appName": {

@@ -7,7 +7,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
-import 'package:dartx/dartx.dart';
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -202,7 +201,6 @@ class _LocalTileState extends State<LocalTile> {
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
       title: context.i18n.controlAppUsingModes(
         core.settings.getTrainerApp()?.name ?? '',
-        core.actionHandler.supportedModes.joinToString(transform: (e) => e.name.capitalize()),
       ),
       description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
       requirements: core.permissions.getLocalControlRequirements(),
