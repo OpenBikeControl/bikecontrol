@@ -23,7 +23,8 @@ class ProBadge extends StatelessWidget {
       child: Text(
         'PRO',
         style: TextStyle(
-          color: Colors.white,
+          // White on this orange is 2.8:1 — below even the large-text floor.
+          color: const Color(0xFF1C1917),
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
         ),

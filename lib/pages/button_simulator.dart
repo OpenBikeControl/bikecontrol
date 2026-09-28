@@ -421,10 +421,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue),
+              border: Border.all(color: Theme.of(context).colorScheme.primary),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text('Press a key...', style: TextStyle(color: Colors.blue)).small,
+            child: Text('Press a key...', style: TextStyle(color: Theme.of(context).colorScheme.primary)).small,
           )
         else if (hotkey != null)
           KeyWidget(label: hotkey.toUpperCase())

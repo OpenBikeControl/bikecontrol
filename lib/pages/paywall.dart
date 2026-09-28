@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -581,7 +582,7 @@ class _PaywallState extends State<Paywall> {
         return ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Container(
-            color: const Color(0xFFF5F5F8),
+            color: Theme.of(context).colorScheme.muted,
             child: Stack(
               children: [
                 Positioned(
@@ -590,7 +591,7 @@ class _PaywallState extends State<Paywall> {
                   bottom: 0,
                   width: proColumnWidth,
                   child: Container(
-                    color: const Color(0xFFE6E7F5),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                   ),
                 ),
                 Padding(
@@ -642,7 +643,7 @@ class _PaywallState extends State<Paywall> {
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                   letterSpacing: 0.8,
-                  color: Color(0xFF55565C),
+                  color: Theme.of(context).colorScheme.mutedForeground,
                 ),
               ),
             ),
@@ -675,7 +676,7 @@ class _PaywallState extends State<Paywall> {
               children: [
                 Icon(
                   feature.icon,
-                  color: const Color(0xFF94959A),
+                  color: Theme.of(context).colorScheme.mutedForeground,
                   size: compact ? 16 : 22,
                 ),
                 const SizedBox(width: 12),
@@ -683,7 +684,7 @@ class _PaywallState extends State<Paywall> {
                   child: Text(
                     feature.label,
                     style: TextStyle(
-                      color: const Color(0xFF4D4E54),
+                      color: Theme.of(context).colorScheme.foreground,
                       fontWeight: FontWeight.normal,
                       fontSize: compact ? 13.5 : 19,
                       height: 1.2,
@@ -724,7 +725,7 @@ class _PaywallState extends State<Paywall> {
           style: TextStyle(
             fontSize: compact ? 12 : 24,
             fontWeight: FontWeight.w500,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.foreground,
           ),
         ),
       ),
@@ -734,19 +735,19 @@ class _PaywallState extends State<Paywall> {
         style: TextStyle(
           fontSize: compact ? 12 : 24,
           fontWeight: FontWeight.w500,
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.foreground,
         ),
       ),
       _PaywallCheck() => Icon(
         Icons.check_rounded,
         size: compact ? 22 : 48,
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.foreground,
       ),
       _PaywallDash() => Container(
         width: compact ? 20 : 40,
         height: 3,
         decoration: BoxDecoration(
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.foreground,
           borderRadius: BorderRadius.circular(3),
         ),
       ),
@@ -804,6 +805,7 @@ class _PaywallState extends State<Paywall> {
     String? badge,
   }) {
     final selected = _selectedPlan == plan;
+    final cs = Theme.of(context).colorScheme;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -811,16 +813,19 @@ class _PaywallState extends State<Paywall> {
       // stay the same height even though only yearly has a billing line.
       fit: StackFit.passthrough,
       children: [
-        GestureDetector(
-          onTap: () => _selectPlan(plan),
+        BkTappable(
+          onPressed: () => _selectPlan(plan),
+          selected: selected,
+          inMutuallyExclusiveGroup: true,
+          borderRadius: BorderRadius.circular(16),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F2F7),
+              color: cs.card,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: selected ? const Color(0xFF5A6ED6) : const Color(0xFFC1C2C8),
+                color: selected ? cs.primary : bkStrongBorder(context),
                 width: selected ? 2.6 : 2,
               ),
             ),
@@ -840,10 +845,10 @@ class _PaywallState extends State<Paywall> {
                         child: Text(
                           title,
                           maxLines: 1,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF07070A),
+                            color: cs.foreground,
                           ),
                         ),
                       ),
@@ -859,10 +864,10 @@ class _PaywallState extends State<Paywall> {
                   child: Text(
                     price,
                     maxLines: 1,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF111216),
+                      color: cs.foreground,
                     ),
                   ),
                 ),
@@ -872,10 +877,10 @@ class _PaywallState extends State<Paywall> {
                     billed,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF7A7B85),
+                      color: cs.mutedForeground,
                     ),
                   ),
               ],
@@ -891,13 +896,13 @@ class _PaywallState extends State<Paywall> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF5A6ED6),
+                  color: cs.primary,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
                   badge,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: cs.primaryForeground,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                     letterSpacing: 0.3,
@@ -922,17 +927,21 @@ class _PaywallState extends State<Paywall> {
 
   Widget _buildFullVersionCard(BuildContext context) {
     final selected = _selectedPlan == _PaywallPlan.fullVersion;
-    return GestureDetector(
-      onTap: () => _selectPlan(_PaywallPlan.fullVersion),
+    final cs = Theme.of(context).colorScheme;
+    return BkTappable(
+      onPressed: () => _selectPlan(_PaywallPlan.fullVersion),
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           // The one-time Base plan sits quieter than the Pro cards above it.
-          color: Colors.white,
+          color: cs.card,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? const Color(0xFF5A6ED6) : const Color(0xFFDDDEE5),
+            color: selected ? cs.primary : cs.border,
             width: selected ? 2 : 1.5,
           ),
         ),
@@ -949,8 +958,8 @@ class _PaywallState extends State<Paywall> {
                 children: [
                   Text(
                     AppLocalizations.of(context).fullVersion,
-                    style: const TextStyle(
-                      color: Color(0xFF07070A),
+                    style: TextStyle(
+                      color: cs.foreground,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -959,9 +968,9 @@ class _PaywallState extends State<Paywall> {
                     _pricing.fullVersionSubtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
-                      color: Color(0xFF6C6D73),
+                      color: cs.mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -970,10 +979,10 @@ class _PaywallState extends State<Paywall> {
                   // where their purchase went. Say so before they buy.
                   Text(
                     AppLocalizations.of(context).paywall_baseStoreNote(_storeName(context)),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       height: 1.25,
-                      color: Color(0xFF6C6D73),
+                      color: cs.mutedForeground,
                     ),
                   ),
                 ],
@@ -997,6 +1006,7 @@ class _PaywallState extends State<Paywall> {
         : compact
             ? 20.0
             : 34.0;
+    final cs = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       width: size,
@@ -1004,15 +1014,15 @@ class _PaywallState extends State<Paywall> {
       margin: EdgeInsets.only(top: compact ? 2 : 8),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: selected ? const Color(0xFF5A6ED6) : Colors.transparent,
+        color: selected ? cs.primary : Colors.transparent,
         border: Border.all(
-          color: selected ? const Color(0xFF5A6ED6) : const Color(0xFFB8B9C0),
+          color: selected ? cs.primary : bkStrongBorder(context),
           width: selected ? 2 : 1.6,
         ),
         boxShadow: selected
             ? [
                 BoxShadow(
-                  color: const Color(0xFF5A6ED6).withAlpha(70),
+                  color: cs.primary.withAlpha(70),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -1023,18 +1033,24 @@ class _PaywallState extends State<Paywall> {
           ? Icon(
               Icons.check,
               size: small ? 10 : (compact ? 13 : 18),
-              color: Colors.white,
+              color: cs.primaryForeground,
             )
           : null,
     );
   }
 
   Widget _buildPurchaseButton(BuildContext context) {
-    return GestureDetector(
-      onTap: _isPurchasing ? null : _onPurchasePressed,
+    // The gradient is the brand's purchase call-to-action, so it stays drawn
+    // by hand; BkTappable gives it button semantics, keyboard focus and the
+    // click cursor. While a purchase runs it is disabled — and looks it.
+    return BkTappable(
+      onPressed: _isPurchasing ? null : _onPurchasePressed,
+      label: AppLocalizations.of(context).purchase,
+      excludeChildSemantics: true,
+      borderRadius: BorderRadius.circular(22),
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 120),
-        opacity: _isPurchasing ? 0.85 : 1,
+        opacity: _isPurchasing ? 0.55 : 1,
         child: Container(
           height: 52,
           decoration: BoxDecoration(

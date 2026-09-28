@@ -76,42 +76,36 @@ class _WorkoutSummaryDialog extends StatelessWidget {
       _tile(
         context: context,
         icon: LucideIcons.timer,
-        color: const Color(0xFF0EA5E9),
         label: l10n.miniWorkoutSummaryDuration,
         value: _fmtDuration(summary.activeDuration),
       ),
       _tile(
         context: context,
         icon: LucideIcons.route,
-        color: const Color(0xFF10B981),
         label: l10n.miniWorkoutSummaryDistance,
         value: summary.distanceKm.asDistance(context),
       ),
       _tile(
         context: context,
         icon: LucideIcons.zap,
-        color: const Color(0xFFF59E0B),
         label: l10n.miniWorkoutSummaryAvgPower,
         value: '${summary.avgPowerW} W',
       ),
       _tile(
         context: context,
         icon: LucideIcons.trendingUp,
-        color: const Color(0xFFD97706),
         label: l10n.miniWorkoutSummaryMaxPower,
         value: '${summary.maxPowerW} W',
       ),
       _tile(
         context: context,
         icon: LucideIcons.rotateCw,
-        color: const Color(0xFF8B5CF6),
         label: l10n.miniWorkoutSummaryAvgCadence,
         value: '${summary.avgCadenceRpm} rpm',
       ),
       _tile(
         context: context,
         icon: LucideIcons.gauge,
-        color: const Color(0xFF0EA5E9),
         label: l10n.miniWorkoutSummaryAvgSpeed,
         value: summary.avgSpeedKph.asSpeed(context),
       ),
@@ -119,7 +113,6 @@ class _WorkoutSummaryDialog extends StatelessWidget {
         _tile(
           context: context,
           icon: LucideIcons.heart,
-          color: const Color(0xFFEF4444),
           label: l10n.miniWorkoutSummaryAvgHeartRate,
           value: '${summary.avgHeartRateBpm} bpm',
         ),
@@ -127,7 +120,6 @@ class _WorkoutSummaryDialog extends StatelessWidget {
         _tile(
           context: context,
           icon: LucideIcons.heartPulse,
-          color: const Color(0xFFDC2626),
           label: l10n.miniWorkoutSummaryMaxHeartRate,
           value: '${summary.maxHeartRateBpm} bpm',
         ),
@@ -150,7 +142,6 @@ class _WorkoutSummaryDialog extends StatelessWidget {
   Widget _tile({
     required BuildContext context,
     required IconData icon,
-    required Color color,
     required String label,
     required String value,
   }) {
@@ -169,7 +160,9 @@ class _WorkoutSummaryDialog extends StatelessWidget {
           Row(
             spacing: 6,
             children: [
-              Icon(icon, size: 14, color: color),
+              // One accent for every metric: the per-metric rainbow didn't
+              // reach 3:1 on the tile in either theme.
+              Icon(icon, size: 14, color: cs.primary),
               Expanded(
                 child: Text(
                   label.toUpperCase(),
