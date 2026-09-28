@@ -879,6 +879,10 @@ class _PaywallState extends State<Paywall> {
                         ),
                       ),
                     ),
+                    // In the header rather than the card's corner, where it
+                    // ran into the discount badge on the top edge.
+                    if (plan == _PaywallPlan.monthly || plan == _PaywallPlan.yearly)
+                      const ProBadge(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
                     _buildRadioIndicator(selected, compact: true),
                   ],
                 ),
@@ -914,34 +918,25 @@ class _PaywallState extends State<Paywall> {
         if (badge != null)
           Positioned(
             top: -10,
-            left: 0,
-            right: 0,
+            left: 8,
+            right: 8,
             child: Align(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: BoxDecoration(
                   color: cs.primary,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Text(
                   badge,
-                  style: context.typography.base.copyWith(
+                  maxLines: 1,
+                  style: context.typography.small.copyWith(
                     color: cs.primaryForeground,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
                   ),
                 ),
               ),
-            ),
-          ),
-
-        if (plan == _PaywallPlan.monthly || plan == _PaywallPlan.yearly)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: ProBadge(
-              large: true,
-              borderRadius: BorderRadius.only(topRight: Radius.circular(16), bottomLeft: Radius.circular(8)),
             ),
           ),
       ],
