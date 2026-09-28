@@ -2397,5 +2397,6 @@
   "targetOtherDeviceDescriptionMyWhoosh": "Lance {appName} sur un autre appareil et contrôle-le à distance depuis celui-ci, par exemple avec MyWhoosh « Link ».",
   "@targetOtherDeviceDescriptionMyWhoosh": {"placeholders": {"appName": {"type": "String"}}},
   "targetOtherDeviceDescriptionNoApp": "Lance ton appli d'entraînement sur un autre appareil et contrôle-la à distance depuis celui-ci.",
-  "targetThisDeviceDescriptionNoApp": "Lance ton appli d'entraînement sur cet appareil."
+  "targetThisDeviceDescriptionNoApp": "Lance ton appli d'entraînement sur cet appareil.",
+  "purchaseProDeviceLimitTitle": "Pro est sur ton compte, mais pas encore sur cet appareil"
 }

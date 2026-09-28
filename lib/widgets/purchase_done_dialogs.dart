@@ -9,6 +9,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/register_this_device.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -67,7 +68,7 @@ Future<void> showPurchaseProUnregisteredDialog(
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(LucideIcons.crown, color: Colors.orange),
+              Icon(LucideIcons.crown, color: BkTheme.proOrange),
               const SizedBox(width: 8),
               Expanded(child: Text(l10n.purchaseProDoneTitle)),
             ],
@@ -127,8 +128,9 @@ Future<void> showPurchaseProUnregisteredDialog(
 /// activated until another one is removed.
 ///
 /// "Manage devices" closes this dialog, opens the Registered Devices view and,
-/// once that is closed, registers this device again. "Get Support" closes it
-/// and opens the support chat with the limit details attached. The trailing
+/// once that is closed, registers this device again. "Get support" closes it
+/// and opens the support chat with the limit details attached; "Not now"
+/// just closes it. The trailing
 /// parameters are test seams; production uses [openRegisteredDevices],
 /// [IAPManager.registerCurrentDevice] and the support chat.
 Future<void> showProDeviceLimitDialog(
@@ -147,9 +149,9 @@ Future<void> showProDeviceLimitDialog(
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(LucideIcons.crown, color: Colors.orange),
+              Icon(LucideIcons.crown, color: BkTheme.proOrange),
               const SizedBox(width: 8),
-              Expanded(child: Text(l10n.purchaseProDoneTitle)),
+              Expanded(child: Text(l10n.purchaseProDeviceLimitTitle)),
             ],
           ),
           content: Column(
@@ -163,6 +165,10 @@ Future<void> showProDeviceLimitDialog(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
+                  Button.ghost(
+                    onPressed: () => Navigator.of(c).pop(),
+                    child: Text(l10n.onboardingNotNow),
+                  ),
                   Button.secondary(
                     onPressed: () {
                       Navigator.of(c).pop();

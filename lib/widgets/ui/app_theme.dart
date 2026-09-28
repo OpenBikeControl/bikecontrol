@@ -22,6 +22,10 @@ abstract final class BkTheme {
   /// ~2.6:1, so dark mode puts near-black on it instead.
   static const Color darkPrimaryForeground = Color(0xFF04121C);
 
+  /// Pro Orange: the PRO badge and Pro marks, nothing else. Text on it is
+  /// near-black; white on this orange is about 2.8:1.
+  static const Color proOrange = Color(0xFFF97316);
+
   static const ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
     background: Color(0xFFFFFFFF),

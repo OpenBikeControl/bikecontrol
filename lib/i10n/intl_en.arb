@@ -348,7 +348,7 @@
   "full": "Base",
   "fullVersion": "Base",
   "fullVersionDescription": "The base version includes:\n- Unlimited commands per day\n- Access to all future updates\n- No subscription! A one-time fee only :)",
-  "getSupport": "Get Support",
+  "getSupport": "Get support",
   "goPro": "Go Pro",
   "gotIt": "Got it!",
   "grant": "Grant",
@@ -2771,5 +2771,6 @@
   "targetOtherDeviceDescriptionMyWhoosh": "Run {appName} on another device and control it remotely from this one, e.g. with MyWhoosh Link.",
   "@targetOtherDeviceDescriptionMyWhoosh": {"placeholders": {"appName": {"type": "String"}}},
   "targetOtherDeviceDescriptionNoApp": "Run your trainer app on another device and control it remotely from this one.",
-  "targetThisDeviceDescriptionNoApp": "Run your trainer app on this device."
+  "targetThisDeviceDescriptionNoApp": "Run your trainer app on this device.",
+  "purchaseProDeviceLimitTitle": "Pro is on your account, but not on this device yet"
 }

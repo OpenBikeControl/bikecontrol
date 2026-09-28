@@ -8,6 +8,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -60,12 +61,12 @@ Future<void> main() async {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text(l.purchaseProDoneTitle), findsOneWidget);
+    expect(find.text(l.purchaseProDeviceLimitTitle), findsOneWidget);
     expect(find.text(l.purchaseProDeviceLimitBody('2', 'iOS')), findsOneWidget);
 
     await tester.tap(find.text(l.purchaseManageDevices));
     await tester.pumpAndSettle();
-    expect(find.text(l.purchaseProDoneTitle), findsNothing, reason: 'no dialog stacked under the devices view');
+    expect(find.text(l.purchaseProDeviceLimitTitle), findsNothing, reason: 'no dialog stacked under the devices view');
     expect(events, ['manage']);
 
     devicesClosed.complete();
@@ -89,7 +90,7 @@ Future<void> main() async {
     await tester.pumpAndSettle();
     await tester.tap(find.text(l.getSupport));
     await tester.pumpAndSettle();
-    expect(find.text(l.purchaseProDoneTitle), findsNothing);
+    expect(find.text(l.purchaseProDeviceLimitTitle), findsNothing);
     expect(sent, same(_limit));
   });
 
@@ -113,5 +114,36 @@ Future<void> main() async {
     expect(find.text(l.purchaseProUnregisteredBody), findsNothing);
     expect(find.text(l.purchaseProDeviceLimitBody('2', 'iOS')), findsOneWidget);
     expect(find.byType(AlertDialog), findsOneWidget, reason: 'one dialog at a time');
+  });
+  testWidgets('"Not now" closes the dialog without opening anything', (tester) async {
+    final ctx = await pump(tester);
+    final l = AppLocalizations.of(ctx);
+    final events = <String>[];
+    unawaited(
+      showProDeviceLimitDialog(
+        ctx,
+        _limit,
+        manageDevices: (_) async => events.add('manage'),
+        retryRegistration: () async {
+          events.add('retry');
+          return false;
+        },
+        contactSupport: (_, _) => events.add('support'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(l.purchaseProDeviceLimitTitle), findsOneWidget);
+    await tester.tap(find.text(l.onboardingNotNow));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(events, isEmpty);
+  });
+
+  testWidgets('the crown uses the Pro orange', (tester) async {
+    final ctx = await pump(tester);
+    unawaited(showProDeviceLimitDialog(ctx, _limit, manageDevices: (_) async {}, retryRegistration: () async => false));
+    await tester.pumpAndSettle();
+    final crown = tester.widget<Icon>(find.byIcon(LucideIcons.crown));
+    expect(crown.color, BkTheme.proOrange);
   });
 }
