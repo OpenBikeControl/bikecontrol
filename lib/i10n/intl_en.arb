@@ -459,7 +459,6 @@
   "myWhooshDirectConnectAction": "MyWhoosh \"Link\" Action",
   "myWhooshGearHintTitle": "BikeControl handles your gearing",
   "myWhooshGearHintBody": "Disable virtual shifting in MyWhoosh's settings, or hide the gear UI in MyWhoosh. Otherwise both apps may try to control resistance and your shifts can feel inconsistent.",
-  "myWhooshDirectConnection": " e.g. by using MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connected",
   "myWhooshLinkDescriptionLocal": "Connect directly to MyWhoosh via the \"Link\" method. Check the instructions to ensure a connection is possible. The \"MyWhoosh Link\" app must not be active at the same time.",
   "myWhooshLinkInfo": "Please check the troubleshooting section if you encounter any issues. A much more reliable connection method is coming soon!",
@@ -925,7 +924,6 @@
   "onboardingDoneStartRiding": "Done — start riding",
   "openBikeControlActions": "OpenBikeControl actions",
   "openBikeControlAnnouncement": "Great news - {trainerApp} supports the OpenBikeControl Protocol, so you'll have the best possible experience!",
-  "openBikeControlConnection": " e.g. by using OpenBikeControl connection",
   "otherConnectionMethods": "Other Connection Methods",
   "otherTrainerApps": "Other Trainer apps",
   "pairingDescription": "This will allow you to use your phone as a Bluetooth mouse to control apps. Once paired, you can use the buttons on your bike controller to send mouse inputs to the app.",
@@ -1021,20 +1019,6 @@
   "restorePurchases": "Restore purchases",
   "revoke": "Revoke",
   "revoked": "Revoked",
-  "runAppOnPlatformRemotely": "Run {appName} on {platform} and control it remotely from this device{preferredConnection}.",
-  "@runAppOnPlatformRemotely": {
-    "placeholders": {
-      "appName": {
-        "type": "String"
-      },
-      "platform": {
-        "type": "String"
-      },
-      "preferredConnection": {
-        "type": "String"
-      }
-    }
-  },
   "runAppOnThisDevice": "Run {appName} on this device.",
   "@runAppOnThisDevice": {
     "placeholders": {
@@ -2779,5 +2763,13 @@
   "purchaseProActiveOnDevice": "Pro is now active on this device",
   "supportPinnedDeviceLimit": "device limit details",
   "onboardingNetworkResolvedByConnection": "{app} connected over the network, so the network works.",
-  "@onboardingNetworkResolvedByConnection": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkResolvedByConnection": {"placeholders": {"app": {"type": "String"}}},
+  "targetOtherDeviceDescription": "Run {appName} on another device and control it remotely from this one.",
+  "@targetOtherDeviceDescription": {"placeholders": {"appName": {"type": "String"}}},
+  "targetOtherDeviceDescriptionObc": "Run {appName} on another device and control it remotely from this one, e.g. over an OpenBikeControl connection.",
+  "@targetOtherDeviceDescriptionObc": {"placeholders": {"appName": {"type": "String"}}},
+  "targetOtherDeviceDescriptionMyWhoosh": "Run {appName} on another device and control it remotely from this one, e.g. with MyWhoosh Link.",
+  "@targetOtherDeviceDescriptionMyWhoosh": {"placeholders": {"appName": {"type": "String"}}},
+  "targetOtherDeviceDescriptionNoApp": "Run your trainer app on another device and control it remotely from this one.",
+  "targetThisDeviceDescriptionNoApp": "Run your trainer app on this device."
 }

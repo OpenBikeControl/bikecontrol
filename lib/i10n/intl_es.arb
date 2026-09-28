@@ -455,7 +455,6 @@
   "myWhooshDirectConnectAction": "Acción de MyWhoosh \"Link\"",
   "myWhooshGearHintTitle": "BikeControl gestiona tus cambios",
   "myWhooshGearHintBody": "Desactiva el cambio virtual en los ajustes de MyWhoosh u oculta la interfaz de cambios en MyWhoosh. De lo contrario, ambas aplicaciones pueden intentar controlar la resistencia y los cambios pueden sentirse inconsistentes.",
-  "myWhooshDirectConnection": " por ejemplo, usando MyWhoosh \"Link\"",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" conectado",
   "myWhooshLinkDescriptionLocal": "Conectar directamente a MyWhoosh mediante el método MyWoosh \"Link\". Las acciones compatibles incluyen cambios de marcha, reacciones y dirección virtual, entre otras. La aplicación complementaria MyWhoosh Link NO debe estar ejecutándose simultáneamente.",
   "myWhooshLinkInfo": "Si tienes algún problema, revisa la sección de solución de problemas. Muy pronto llegará un método de conexión mucho más fiable.",
@@ -499,7 +498,6 @@
   "only": "Solo",
   "openBikeControlActions": "Acciones de OpenBikeControl",
   "openBikeControlAnnouncement": "Buenas noticias: {trainerApp} es compatible con el protocolo OpenBikeControl, así que tendrás la mejor experiencia posible.",
-  "openBikeControlConnection": " por ejemplo, usando la conexión OpenBikeControl",
   "otherConnectionMethods": "Otros métodos de conexión",
   "otherTrainerApps": "Otras aplicaciones de entrenamiento",
   "pairingDescription": "El emparejamiento permite una personalización completa, pero es posible que no funcione en todos los dispositivos.",
@@ -595,21 +593,7 @@
   "restorePurchases": "Restaurar compras",
   "revoke": "Revocar",
   "revoked": "Revocado",
-  "runAppOnPlatformRemotely": "Ejecutar{appName} en{platform} y controlarlo remotamente desde este dispositivo{preferredConnection} .",
-  "@runAppOnPlatformRemotely": {
-    "placeholders": {
-      "appName": {
-        "type": "String"
-      },
-      "platform": {
-        "type": "String"
-      },
-      "preferredConnection": {
-        "type": "String"
-      }
-    }
-  },
-  "runAppOnThisDevice": "Ejecutar {appName} en este dispositivo.",
+  "runAppOnThisDevice": "Ejecuta {appName} en este dispositivo.",
   "@runAppOnThisDevice": {
     "placeholders": {
       "appName": {
@@ -2405,5 +2389,13 @@
   "purchaseProActiveOnDevice": "Pro ya está activo en este dispositivo",
   "supportPinnedDeviceLimit": "detalles del límite de dispositivos",
   "onboardingNetworkResolvedByConnection": "{app} se ha conectado por la red, así que la red funciona.",
-  "@onboardingNetworkResolvedByConnection": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkResolvedByConnection": {"placeholders": {"app": {"type": "String"}}},
+  "targetOtherDeviceDescription": "Ejecuta {appName} en otro dispositivo y contrólalo a distancia desde este.",
+  "@targetOtherDeviceDescription": {"placeholders": {"appName": {"type": "String"}}},
+  "targetOtherDeviceDescriptionObc": "Ejecuta {appName} en otro dispositivo y contrólalo a distancia desde este, por ejemplo, mediante una conexión OpenBikeControl.",
+  "@targetOtherDeviceDescriptionObc": {"placeholders": {"appName": {"type": "String"}}},
+  "targetOtherDeviceDescriptionMyWhoosh": "Ejecuta {appName} en otro dispositivo y contrólalo a distancia desde este, por ejemplo, con MyWhoosh \"Link\".",
+  "@targetOtherDeviceDescriptionMyWhoosh": {"placeholders": {"appName": {"type": "String"}}},
+  "targetOtherDeviceDescriptionNoApp": "Ejecuta tu app de entrenamiento en otro dispositivo y contrólala a distancia desde este.",
+  "targetThisDeviceDescriptionNoApp": "Ejecuta tu app de entrenamiento en este dispositivo."
 }

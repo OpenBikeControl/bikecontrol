@@ -190,23 +190,22 @@ enum Target {
   }
 
   String getDescription(SupportedApp? app) {
-    final appName = app?.name ?? 'the Trainer app';
-    final preferredConnectionMethod =
-        (app?.supports(AppConnectionMethod.obpBle) == true ||
-            app?.supports(AppConnectionMethod.obpMdns) == true ||
-            app?.supports(AppConnectionMethod.obpDirCon) == true)
-        ? AppLocalizations.current.openBikeControlConnection
-        : app is MyWhoosh
-        ? AppLocalizations.current.myWhooshDirectConnection
-        : '';
-
+    final l = AppLocalizations.current;
+    if (app == null) {
+      return switch (this) {
+        Target.thisDevice => l.targetThisDeviceDescriptionNoApp,
+        Target.otherDevice => l.targetOtherDeviceDescriptionNoApp,
+      };
+    }
+    final viaOpenBikeControl =
+        app.supports(AppConnectionMethod.obpBle) ||
+        app.supports(AppConnectionMethod.obpMdns) ||
+        app.supports(AppConnectionMethod.obpDirCon);
     return switch (this) {
-      Target.thisDevice => AppLocalizations.current.runAppOnThisDevice(appName),
-      Target.otherDevice => AppLocalizations.current.runAppOnPlatformRemotely(
-        appName,
-        AppLocalizations.current.targetOtherDevice,
-        preferredConnectionMethod,
-      ),
+      Target.thisDevice => l.runAppOnThisDevice(app.name),
+      Target.otherDevice when viaOpenBikeControl => l.targetOtherDeviceDescriptionObc(app.name),
+      Target.otherDevice when app is MyWhoosh => l.targetOtherDeviceDescriptionMyWhoosh(app.name),
+      Target.otherDevice => l.targetOtherDeviceDescription(app.name),
     };
   }
 
