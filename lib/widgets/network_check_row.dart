@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -226,9 +228,11 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (expandable)
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() => _detailExpanded = !_detailExpanded),
+          // A disclosure: focusable, and it tells a screen reader whether
+          // the detail block under it is open.
+          BkTappable(
+            onPressed: () => setState(() => _detailExpanded = !_detailExpanded),
+            expanded: _detailExpanded,
             child: row,
           )
         else
@@ -272,7 +276,7 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
     // width the check's own name needs, and both end up wrapping mid-word — so
     // below the breakpoint the fact stays in the expandable block, where it
     // already lives, and only the chevron remains.
-    final headline = MediaQuery.sizeOf(context).width < 640 ? null : networkCheckHeadlineValue(widget.check);
+    final headline = MediaQuery.sizeOf(context).width < Breakpoints.networkValueColumn ? null : networkCheckHeadlineValue(widget.check);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -84,19 +86,16 @@ class _AnimatedButtonWidgetState extends State<AnimatedButtonWidget> with Single
     if (!_canOpenPopup) return pressed;
     // Outer AnimatedScale handles the hover lift — compounded multiplicatively
     // with the press pulse, so a tap mid-hover reads as both effects at once.
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
+    return BkTappable(
+      onPressed: _onTap,
+      onHover: (hovered) => setState(() => _hovered = hovered),
+      label: context.i18n.a11yEditButtonMapping(widget.button.displayName),
+      excludeChildSemantics: true,
       child: AnimatedScale(
         scale: _hovered ? 1.12 : 1.0,
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _onTap,
-          child: pressed,
-        ),
+        child: pressed,
       ),
     );
   }

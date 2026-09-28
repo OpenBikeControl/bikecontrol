@@ -1,6 +1,7 @@
 // Extracted from `lib/widgets/ui/help_button.dart` (Task 8) — behavior is
 // unchanged, only the private classes moved so the Help Center's "Guides &
 // videos" section can open the same drawer.
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -217,8 +218,9 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
   }
 
   Widget _buildVideoCard(_InstructionVideo video, {required bool fullWidth}) {
-    return GestureDetector(
-      onTap: () => launchUrlString(video.url),
+    return BkTappable(
+      onPressed: () => launchUrlString(video.url),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),

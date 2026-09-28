@@ -18,6 +18,7 @@ class BkTappable extends StatelessWidget {
     this.borderRadius,
     this.focusNode,
     this.excludeChildSemantics = false,
+    this.onHover,
   });
 
   final Widget child;
@@ -46,6 +47,9 @@ class BkTappable extends StatelessWidget {
   /// are decorative or would read as fragments).
   final bool excludeChildSemantics;
 
+  /// Hover changes, for a custom hover effect of the caller's own.
+  final ValueChanged<bool>? onHover;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -65,6 +69,7 @@ class BkTappable extends StatelessWidget {
         enabled: onPressed != null,
         onPressed: onPressed,
         focusNode: focusNode,
+        onHover: onHover,
         mouseCursor: WidgetStatePropertyAll(onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
         decoration: borderRadius == null
             ? null

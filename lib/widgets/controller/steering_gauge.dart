@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -110,18 +112,14 @@ class SteeringGauge extends StatelessWidget {
                       if (_canEdit)
                         Row(
                           children: [
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _edit(context, leftButton),
+                            for (final button in [leftButton, rightButton])
+                              Expanded(
+                                child: BkTappable(
+                                  onPressed: () => _edit(context, button),
+                                  label: context.i18n.a11yEditButtonMapping(button.displayName),
+                                  child: const SizedBox.expand(),
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _edit(context, rightButton),
-                              ),
-                            ),
                           ],
                         ),
                     ],
