@@ -905,7 +905,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Null for anything else, including a Click that is currently locked: the
   /// checklist step carries that, and a stale deadline would contradict it.
   String? _unlockStatusLabel(BaseDevice device) {
-    if (_unlockState(device) != true) return null;
+    // Store renders don't carry an expiry date.
+    if (screenshotMode || _unlockState(device) != true) return null;
     final until = _unlockedUntil(device);
     if (until == null) return null;
     return device is ZwiftClickV2 && device.isLikelyUnlocked

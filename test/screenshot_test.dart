@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
@@ -98,6 +99,11 @@ void testGoldens(
   });
 }
 
+/// The version being shipped, straight from pubspec.yaml, so the boards never
+/// carry a stale one.
+final String _pubspecVersion =
+    RegExp(r'^version:\s*(\S+)', multiLine: true).firstMatch(File('pubspec.yaml').readAsStringSync())!.group(1)!;
+
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   // The overview header prints this, so every board carries it — keep it on
@@ -106,8 +112,8 @@ Future<void> main() async {
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
-    version: '6.4.2',
-    buildNumber: '146',
+    version: _pubspecVersion.split('+').first,
+    buildNumber: _pubspecVersion.split('+').last,
     buildSignature: '',
   );
   FlutterSecureStorage.setMockInitialValues({});
@@ -1125,7 +1131,9 @@ Future<void> main() async {
         // initState already ran (with the flag true → no connection method
         // started); mark the mounted OverviewPage element dirty so only its
         // build() re-runs with the flag off, picking up the real device name.
-        screenshotMode = false;
+        // Keep screenshotMode on (it also keeps expiry dates and upsell
+        // meters off the render) and only lift the name anonymisation.
+        debugKeepsControllerNamesInScreenshotMode = true;
         tester.element(find.byType(OverviewPage)).markNeedsBuild();
         await tester.pump();
         try {
@@ -1134,7 +1142,7 @@ Future<void> main() async {
             matchesGoldenFile('../screenshots/$loc/$scene.png'),
           );
         } finally {
-          screenshotMode = savedScreenshotMode;
+          debugKeepsControllerNamesInScreenshotMode = false;
           await tester.pump();
         }
       }
