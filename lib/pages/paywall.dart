@@ -160,9 +160,15 @@ class Paywall extends StatefulWidget {
   /// this only highlights the one-time Full version card.
   final bool defaultToFullVersion;
 
+  /// Test seam: a store-formatted yearly price (e.g. "22,99 €") to bill with
+  /// instead of loading offerings.
+  @visibleForTesting
+  final String? debugYearlyStorePrice;
+
   const Paywall({
     super.key,
     this.defaultToFullVersion = false,
+    this.debugYearlyStorePrice,
   });
 
   @override
@@ -239,7 +245,22 @@ class _PaywallState extends State<Paywall> {
   /// Live store prices once loaded; until then (and always on the Stripe
   /// build) the localized [_PaywallPricing.fallback].
   _PaywallPricing? _storePricing;
-  _PaywallPricing get _pricing => _storePricing ?? _PaywallPricing.fallback(AppLocalizations.of(context));
+  _PaywallPricing get _pricing => _storePricing ?? _debugPricing ?? _PaywallPricing.fallback(AppLocalizations.of(context));
+
+  _PaywallPricing? get _debugPricing {
+    final price = widget.debugYearlyStorePrice;
+    if (price == null) return null;
+    final l10n = AppLocalizations.of(context);
+    final fallback = _PaywallPricing.fallback(l10n);
+    return _PaywallPricing(
+      yearlyPrice: fallback.yearlyPrice,
+      yearlyBilled: l10n.paywall_billedAtYearly(price),
+      monthlyPrice: fallback.monthlyPrice,
+      monthlyBilled: '',
+      fullVersionSubtitle: fallback.fullVersionSubtitle,
+      discountBadge: fallback.discountBadge,
+    );
+  }
 
   bool _isPurchasing = false;
   bool _isRestoring = false;
@@ -992,11 +1013,11 @@ class _PaywallState extends State<Paywall> {
                   ),
                 ),
                 const SizedBox(height: 4),
+                // The amount actually charged: wraps rather than being cut
+                // off in the half-width card.
                 if (billed.isNotEmpty)
                   Text(
                     billed,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: context.typography.small.copyWith(
                       fontWeight: FontWeight.w500,
                       color: cs.mutedForeground,
