@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Reusable building blocks for a staged "guided operation" sheet — a step
@@ -22,7 +23,10 @@ class StepRail extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text('Step $step of $count'.toUpperCase(), style: TextStyle(fontSize: 12, color: scheme.mutedForeground)).bold,
+        Text(
+          'Step $step of $count'.toUpperCase(),
+          style: context.typography.xSmall.copyWith(color: scheme.mutedForeground),
+        ).bold,
         Gap(12),
         for (var i = 1; i <= count; i++) ...[
           if (i > 1) const Gap(6),
@@ -141,8 +145,7 @@ class _ProgressChecklistState extends State<ProgressChecklist> {
                 Expanded(
                   child: Text(
                     widget.items[i],
-                    style: TextStyle(
-                      fontSize: 14,
+                    style: context.typography.small.copyWith(
                       fontWeight: FontWeight.w600,
                       color: i > _current ? scheme.mutedForeground.withValues(alpha: 0.4) : scheme.foreground,
                     ),

@@ -10,6 +10,7 @@ import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -485,9 +486,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                     ),
                     child: Text(
                       AppLocalizations.of(context).newer,
-                      style: TextStyle(
+                      style: context.typography.caption.copyWith(
                         color: Colors.white,
-                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

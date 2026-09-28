@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SettingTile extends StatelessWidget {
@@ -39,15 +40,13 @@ class SettingTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: context.typography.small.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: context.typography.xSmall.copyWith(
                       color: cs.mutedForeground,
                     ),
                   ),

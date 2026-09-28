@@ -9,6 +9,7 @@ import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -160,7 +161,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
       children: [
         Text(
           l10n.overlaySection,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+          style: context.typography.large.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         SettingTile(
           icon: LucideIcons.layers,
@@ -236,8 +237,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
           child: Text(
             '${(_opacity * 100).round()}%',
             textAlign: TextAlign.end,
-            style: TextStyle(
-              fontSize: 12,
+            style: context.typography.xSmall.copyWith(
               fontWeight: FontWeight.w600,
               color: cs.mutedForeground,
             ),
@@ -261,7 +261,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
           Icon(LucideIcons.info, size: 16, color: cs.mutedForeground),
           const Gap(8),
           Expanded(
-            child: Text(text, style: TextStyle(fontSize: 12, color: cs.mutedForeground)),
+            child: Text(text, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
           ),
         ],
       ),

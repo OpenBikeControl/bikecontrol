@@ -17,6 +17,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/material.dart' show RefreshIndicator;
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -377,7 +378,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
               Text(
                 key: const ValueKey('support-account-status-text'),
                 signedIn ? context.i18n.supportAccountStatusSignedIn : context.i18n.supportAccountStatusAnonymous,
-                style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                style: context.typography.caption.copyWith(color: cs.mutedForeground),
               ),
             ],
           ),
@@ -586,8 +587,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                     children: [
                       Text(
                         context.i18n.supportChatIntro,
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: context.typography.small.copyWith(
                           fontWeight: FontWeight.w600,
                           color: cs.foreground,
                         ),
@@ -595,8 +595,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                       const SizedBox(height: 2),
                       Text(
                         context.i18n.supportChatIntroFatherNote,
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: context.typography.small.copyWith(
                           fontStyle: FontStyle.italic,
                           color: cs.mutedForeground,
                         ),

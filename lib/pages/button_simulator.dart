@@ -14,6 +14,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
@@ -549,7 +550,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               if (action.alternativeTitle != null)
                 Text(
                   action.alternativeTitle!.toUpperCase(),
-                  style: TextStyle(fontSize: 10, color: Colors.gray),
+                  style: context.typography.caption.copyWith(color: Colors.gray),
                 ),
             ],
           ),

@@ -26,6 +26,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 // `SramAdvertisement` clashes with nothing here, but the prop package also
@@ -611,7 +612,7 @@ abstract class BluetoothDevice extends BaseDevice {
   @override
   List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
     final foregroundColor = Theme.of(context).colorScheme.mutedForeground;
-    const fontSize = 11.0;
+    final fontSize = context.typography.caption.fontSize!;
     return [
       // metaRow: battery + signal
       if (batteryLevel != null || rssi != null) ...[
@@ -648,7 +649,7 @@ abstract class BluetoothDevice extends BaseDevice {
               size: fontSize,
             )
           else
-            Text('FW', style: TextStyle(fontSize: 10, color: foregroundColor)).inlineCode,
+            Text('FW', style: context.typography.caption.copyWith(color: foregroundColor)).inlineCode,
           Text(
             firmwareVersion!,
             style: TextStyle(

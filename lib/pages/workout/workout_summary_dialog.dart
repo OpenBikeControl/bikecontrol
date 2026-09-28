@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/utils/units.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -45,7 +46,10 @@ class _WorkoutSummaryDialog extends StatelessWidget {
                   child: Button.primary(
                     leading: const Icon(LucideIcons.share2, size: 16),
                     onPressed: () => SharePlus.instance.share(
-                      ShareParams(files: [XFile(fitFile.path)], text: l10n.workoutShareText(fitFile.uri.pathSegments.last)),
+                      ShareParams(
+                        files: [XFile(fitFile.path)],
+                        text: l10n.workoutShareText(fitFile.uri.pathSegments.last),
+                      ),
                     ),
                     child: Text(l10n.miniWorkoutShareFit),
                   ),
@@ -166,8 +170,7 @@ class _WorkoutSummaryDialog extends StatelessWidget {
               Expanded(
                 child: Text(
                   label.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 10,
+                  style: context.typography.caption.copyWith(
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
                     color: cs.mutedForeground,
@@ -179,7 +182,7 @@ class _WorkoutSummaryDialog extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
+            style: context.typography.xLarge.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3),
           ),
         ],
       ),

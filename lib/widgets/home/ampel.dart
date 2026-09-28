@@ -1,5 +1,6 @@
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The status vocabulary the whole home screen speaks: one colour, one icon and
@@ -221,8 +222,7 @@ class StatusLine extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12.5,
+            style: context.typography.xSmall.copyWith(
               fontWeight: quiet ? FontWeight.w500 : FontWeight.w700,
               color: quiet ? muted : AmpelStyle.of(context, status).color,
             ),
@@ -233,7 +233,7 @@ class StatusLine extends StatelessWidget {
               height: 3,
               decoration: BoxDecoration(color: muted.withAlpha(140), shape: BoxShape.circle),
             ),
-            Text(metaText, style: TextStyle(fontSize: 12, color: muted)),
+            Text(metaText, style: context.typography.xSmall.copyWith(color: muted)),
           ],
           ...badges,
         ],

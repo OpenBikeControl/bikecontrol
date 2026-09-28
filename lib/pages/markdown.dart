@@ -2,6 +2,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
@@ -85,8 +86,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
                         content: MarkdownWidget(
                           markdown: group.markdown,
                           theme: MarkdownThemeData(
-                            textStyle: TextStyle(
-                              fontSize: 14.0,
+                            textStyle: context.typography.small.copyWith(
                               color: Theme.of(context).colorScheme.foreground,
                             ),
                             onLinkTap: (title, url) {

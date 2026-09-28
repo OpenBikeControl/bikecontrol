@@ -5,6 +5,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show AuthState, OAuthProvider;
@@ -320,7 +321,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
               Expanded(
                 child: Text(
                   l10n.supportAccountLinkedNote,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -349,9 +350,9 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.supportAccountLinkTitle, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(l10n.supportAccountLinkTitle, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
             const Gap(3),
-            Text(l10n.supportAccountLinkBody, style: TextStyle(fontSize: 12.5, color: cs.mutedForeground)),
+            Text(l10n.supportAccountLinkBody, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
             const Gap(11),
             if (showSocialButtons) ...[
               SignInButton(Buttons.google, onPressed: _linkWithGoogle),
@@ -398,14 +399,14 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
               Text(
                 l10n.supportAccountLinkEmailTaken(taken),
                 key: const ValueKey('support-account-email-taken'),
-                style: TextStyle(color: cs.destructive, fontSize: 12),
+                style: context.typography.xSmall.copyWith(color: cs.destructive),
               ),
             ],
             if (_failed) ...[
               const Gap(8),
               Text(
                 _alreadyLinked ? l10n.supportAccountAlreadyLinked : l10n.supportAccountLinkFailed,
-                style: TextStyle(color: cs.destructive, fontSize: 12),
+                style: context.typography.xSmall.copyWith(color: cs.destructive),
               ),
             ],
           ],

@@ -7,6 +7,7 @@ import 'package:bike_control/services/workout/past_workout.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/units.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -62,7 +63,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
                     Expanded(
                       child: Text(
                         l10n.miniWorkoutPastWorkouts,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
@@ -116,7 +117,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
                     children: _summaryChips(summary, cs),
                   )
                 else
-                  Text(w.fileName, style: TextStyle(fontSize: 11, color: cs.mutedForeground)),
+                  Text(w.fileName, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
               ],
             ),
           ),
@@ -141,7 +142,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
       children: [
         Icon(icon, size: 11, color: cs.mutedForeground),
         const Gap(4),
-        Text(label, style: TextStyle(fontSize: 11, color: cs.mutedForeground)),
+        Text(label, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
       ],
     );
 

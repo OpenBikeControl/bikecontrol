@@ -7,6 +7,7 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -130,24 +131,24 @@ class _LocalTileState extends State<LocalTile> {
             SizedBox(height: 8),
             Text(
               context.i18n.miuiWarningDescription,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             SizedBox(height: 8),
             Text(
               context.i18n.miuiEnsureProperWorking,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
               context.i18n.miuiDisableBatteryOptimization,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             Text(
               context.i18n.miuiEnableAutostart,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             Text(
               context.i18n.miuiLockInRecentApps,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             SizedBox(height: 12),
             OutlineButton(

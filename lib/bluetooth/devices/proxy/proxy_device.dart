@@ -19,6 +19,7 @@ import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/units.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -715,7 +716,7 @@ class ProxyDevice extends BluetoothDevice {
         ftmsEmulator.deviceName = () => scanResult.name;
         ftmsEmulator.advertisementNameOverride = rouvyAdvertisementName;
         ftmsEmulator.forceIPv4 = rouvyNeedsIPv4;
-      ftmsEmulator.bareShortServiceUuids = _bareShortServiceUuids;
+        ftmsEmulator.bareShortServiceUuids = _bareShortServiceUuids;
         _fbd = fbd;
         _currentFbd = fbd;
         await ftmsEmulator.attachDefinition(_fbd!);
@@ -916,7 +917,9 @@ class ProxyDevice extends BluetoothDevice {
     // Say what this entry is instead, and what a tap does.
     final twin = twinSubtitle(AppLocalizations.of(context));
     if (twin != null) {
-      return [Text(twin, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.mutedForeground))];
+      return [
+        Text(twin, style: context.typography.caption.copyWith(color: Theme.of(context).colorScheme.mutedForeground)),
+      ];
     }
     return [buildFeatureList(context)];
   }
@@ -927,7 +930,7 @@ class ProxyDevice extends BluetoothDevice {
   /// the rider who has not seen any of this yet.
   Widget buildFeatureList(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final muted = TextStyle(fontSize: 11, color: cs.mutedForeground);
+    final muted = context.typography.caption.copyWith(color: cs.mutedForeground);
 
     final services = scanResult.services.map((s) => s.toLowerCase()).toSet();
     final hasZwiftAdv = services.contains(ZwiftConstants.ZWIFT_CUSTOM_SERVICE_UUID.toLowerCase());
@@ -986,8 +989,7 @@ class ProxyDevice extends BluetoothDevice {
             Icon(icon, size: 12, color: Theme.of(context).colorScheme.mutedForeground),
             Text(
               text,
-              style: TextStyle(
-                fontSize: 11,
+              style: context.typography.caption.copyWith(
                 color: Theme.of(context).colorScheme.mutedForeground,
               ),
             ),

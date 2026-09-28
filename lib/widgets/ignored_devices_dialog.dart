@@ -1,6 +1,7 @@
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/material.dart';
 
 class IgnoredDevicesDialog extends StatefulWidget {
@@ -57,7 +58,7 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
                     title: Text(device.name),
                     subtitle: Text(
                       device.id,
-                      style: TextStyle(fontSize: 12),
+                      style: context.typography.xSmall,
                     ),
                     trailing: BkIconButton.ghost(
                       icon: Icon(Icons.delete_outline),

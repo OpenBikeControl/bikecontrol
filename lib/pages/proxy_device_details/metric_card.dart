@@ -5,6 +5,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -196,8 +197,7 @@ class MetricCard extends StatelessWidget {
         Icon(icon, size: 14, color: iconColor),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 10,
+          style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
             color: cs.mutedForeground,
@@ -217,11 +217,11 @@ class MetricCard extends StatelessWidget {
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,
-                children: [labelRow, _valueRow(cs)],
+                children: [labelRow, _valueRow(context, cs)],
               )
             : LayoutBuilder(
                 builder: (context, constraints) {
-                  final valueRow = _valueRow(cs);
+                  final valueRow = _valueRow(context, cs);
                   final list = _sourceList(context, cs, options);
                   if (constraints.maxWidth >= _sideBySideBreakpoint) {
                     return Row(
@@ -314,7 +314,9 @@ class MetricCard extends StatelessWidget {
                           child: Container(
                             key: const Key('metric-card-source-divider'),
                             padding: const EdgeInsets.only(left: _dividerGutter),
-                            decoration: BoxDecoration(border: Border(left: BorderSide(color: cs.border))),
+                            decoration: BoxDecoration(
+                              border: Border(left: BorderSide(color: cs.border)),
+                            ),
                             child: list,
                           ),
                         ),
@@ -348,7 +350,7 @@ class MetricCard extends StatelessWidget {
     );
   }
 
-  Widget _valueRow(ColorScheme cs) {
+  Widget _valueRow(BuildContext context, ColorScheme cs) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -362,8 +364,7 @@ class MetricCard extends StatelessWidget {
           // or a heart rate flickering 98/100) reflows the glyph widths
           // every frame and the whole tile visibly jitters. Scoped to the
           // value only — the unit text below is untouched.
-          style: const TextStyle(
-            fontSize: 28,
+          style: context.typography.x3Large.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
             fontFeatures: [FontFeature.tabularFigures()],
@@ -373,8 +374,7 @@ class MetricCard extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 4),
           child: Text(
             unit,
-            style: TextStyle(
-              fontSize: 12,
+            style: context.typography.xSmall.copyWith(
               fontWeight: FontWeight.w600,
               color: cs.mutedForeground,
             ),
@@ -432,8 +432,7 @@ class MetricCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 2),
       child: Text(
         AppLocalizations.of(context).sensorSourceListHeader,
-        style: TextStyle(
-          fontSize: 9,
+        style: context.typography.caption.copyWith(
           fontWeight: FontWeight.w600,
           letterSpacing: 0.6,
           color: cs.mutedForeground.withValues(alpha: 0.7),
@@ -536,8 +535,7 @@ class _MetricSourceRowState extends State<_MetricSourceRow> {
                         option.label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: context.typography.xSmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: cs.mutedForeground,
                         ),
@@ -551,7 +549,7 @@ class _MetricSourceRowState extends State<_MetricSourceRow> {
                         option.subtitle,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10.5, color: cs.mutedForeground),
+                        style: context.typography.caption.copyWith(color: cs.mutedForeground),
                       ),
                     ],
                   ),
@@ -689,7 +687,7 @@ class _MetricSourcePickerState extends State<_MetricSourcePicker> {
                 current.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
               ),
             ),
             const Gap(6),

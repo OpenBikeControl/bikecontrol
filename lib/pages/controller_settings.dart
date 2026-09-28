@@ -20,6 +20,7 @@ import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/trainer_label.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -207,7 +208,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+          style: context.typography.large.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         if (trailing != null) ...[
           const Spacer(),
@@ -366,8 +367,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
 
   /// True for a controller that only exists as a remembered stand-in — no live
   /// device has taken it over, so nothing is connected to disconnect from.
-  bool _isRemembered(BaseDevice device) =>
-      core.connection.offlineControllers.any((d) => d.uniqueId == device.uniqueId);
+  bool _isRemembered(BaseDevice device) => core.connection.offlineControllers.any((d) => d.uniqueId == device.uniqueId);
 
   Widget _buildActionButton({
     required IconData icon,

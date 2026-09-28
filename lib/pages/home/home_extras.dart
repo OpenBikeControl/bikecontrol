@@ -8,6 +8,7 @@ import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -80,7 +81,7 @@ class _HomeExtrasState extends State<HomeExtras> {
                   Expanded(
                     child: Text(
                       context.i18n.chainMoreOptions,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   // A recording in progress has to stay visible even while this
@@ -199,8 +200,7 @@ class _HomeExtrasState extends State<HomeExtras> {
                         padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
                         child: Text(
                           context.i18n.healthRideDuplicateHint(core.healthRide.trainerApp()?.name ?? ''),
-                          style: TextStyle(
-                            fontSize: 11.5,
+                          style: context.typography.caption.copyWith(
                             height: 1.4,
                             color: Theme.of(context).colorScheme.mutedForeground,
                           ),

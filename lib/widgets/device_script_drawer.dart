@@ -2,6 +2,7 @@ import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -206,14 +207,14 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 12,
             children: [
-              Text('Run Script', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              Text('Run Script', style: context.typography.large.copyWith(fontWeight: FontWeight.w600)),
               Text(
                 'Device type: ${widget.deviceType}',
-                style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground, fontSize: 12),
+                style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
               ),
               Text(
                 'This script will run whenever a value is received via bluetooth.\nRequired signature: Future<List<dynamic>> main(String characteristicUuid, List<int> data)',
-                style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground, fontSize: 12),
+                style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
               ),
               Expanded(
                 child: _isLoading
@@ -287,7 +288,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                     if (_tryError != null)
                       Text(
                         _tryError!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
+                        style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.destructive),
                       ),
                     if (_tryOutputCharacteristic != null && _tryOutputHex != null)
                       Column(
@@ -315,7 +316,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                   ),
                   child: Text(
                     _validationError!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
+                    style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.destructive),
                   ),
                 ),
               Row(

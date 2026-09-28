@@ -4,6 +4,7 @@ import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -142,13 +143,16 @@ class ChainCardFooterRow extends StatelessWidget {
             Expanded(
               child: Text(
                 question,
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: theme.colorScheme.mutedForeground),
+                style: context.typography.xSmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.mutedForeground,
+                ),
               ),
             ),
             const Gap(8),
             Text(
               action,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
+              style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
             ),
           ],
         ),
@@ -364,7 +368,7 @@ class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMix
                         widget.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                        style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                     if (_atRest(link)) ...[
@@ -387,7 +391,7 @@ class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMix
                       key: chainCardSubtitleKey,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12.5, color: theme.colorScheme.mutedForeground),
+                      style: context.typography.xSmall.copyWith(color: theme.colorScheme.mutedForeground),
                     ),
                   ),
               ],
@@ -401,7 +405,10 @@ class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMix
                 children: [
                   Text(
                     widget.editLabel ?? context.i18n.chainEdit,
-                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: theme.colorScheme.primary),
+                    style: context.typography.small.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   Icon(LucideIcons.chevronRight, size: 15, color: theme.colorScheme.primary),
                 ],
@@ -466,8 +473,7 @@ class OptionalTag extends StatelessWidget {
       ),
       child: Text(
         context.i18n.chainOptional.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10,
+        style: context.typography.caption.copyWith(
           fontWeight: FontWeight.w700,
           letterSpacing: 0.4,
           color: theme.colorScheme.mutedForeground,
@@ -552,8 +558,7 @@ class StepRow extends StatelessWidget {
                     Flexible(
                       child: Text(
                         text.label,
-                        style: TextStyle(
-                          fontSize: 13.5,
+                        style: context.typography.small.copyWith(
                           height: 1.35,
                           fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                           color: step.done ? theme.colorScheme.mutedForeground : theme.colorScheme.foreground,
@@ -579,7 +584,7 @@ class StepRow extends StatelessWidget {
                   const Gap(3),
                   Text(
                     hint,
-                    style: TextStyle(fontSize: 12, height: 1.4, color: theme.colorScheme.mutedForeground),
+                    style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
                   ),
                 ],
                 if (active && (onInstructions != null || showSecondary)) ...[

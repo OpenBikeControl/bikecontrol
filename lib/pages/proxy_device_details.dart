@@ -24,6 +24,7 @@ import 'package:bike_control/utils/lazy_async.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -263,7 +264,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           Expanded(
             child: Text(
               AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),
-              style: TextStyle(fontSize: 12, color: cs.foreground),
+              style: context.typography.xSmall.copyWith(color: cs.foreground),
             ),
           ),
         ],
@@ -320,7 +321,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       children: [
         Text(
           AppLocalizations.of(context).virtualShiftingSettings,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+          style: context.typography.large.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
         KeyedSubtree(

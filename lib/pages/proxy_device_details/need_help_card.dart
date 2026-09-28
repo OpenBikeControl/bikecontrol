@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Dismissible "Need help?" pointer on the trainer page.
@@ -42,7 +43,7 @@ class NeedHelpCard extends StatelessWidget {
             children: [
               const Icon(LucideIcons.lifeBuoy, size: 18),
               Expanded(
-                child: Text(l10n.needHelpTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                child: Text(l10n.needHelpTitle, style: context.typography.base.copyWith(fontWeight: FontWeight.w600)),
               ),
               BkIconButton.ghost(
                 key: const ValueKey('need-help-dismiss'),
@@ -55,7 +56,7 @@ class NeedHelpCard extends StatelessWidget {
               ),
             ],
           ),
-          Text(l10n.needHelpBody, style: TextStyle(fontSize: 13, color: cs.mutedForeground)),
+          Text(l10n.needHelpBody, style: context.typography.small.copyWith(color: cs.mutedForeground)),
           Button.primary(
             key: const ValueKey('need-help-open'),
             onPressed: onOpenHelp,

@@ -3,6 +3,7 @@ import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -124,12 +125,12 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
         children: [
           Text(
             context.i18n.supportIntakeTitle,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
           ),
           const Gap(4),
           Text(
             context.i18n.supportIntakeSubtitle,
-            style: TextStyle(color: cs.mutedForeground, fontSize: 13),
+            style: context.typography.small.copyWith(color: cs.mutedForeground),
           ),
           const Gap(16),
           _label(context.i18n.supportIntakeCategoryLabel),
@@ -147,9 +148,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           Align(
             alignment: Alignment.centerRight,
             child: Button.primary(
-              onPressed: canContinue
-                  ? () => widget.onContinue(_buildAnswers())
-                  : null,
+              onPressed: canContinue ? () => widget.onContinue(_buildAnswers()) : null,
               child: Text(context.i18n.supportIntakeContinue),
             ),
           ),
@@ -159,13 +158,12 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
   }
 
   Widget _label(String text) => Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.mutedForeground,
-        ),
-      );
+    text,
+    style: context.typography.xSmall.copyWith(
+      fontWeight: FontWeight.w600,
+      color: Theme.of(context).colorScheme.mutedForeground,
+    ),
+  );
 
   Widget _categorySelect() {
     return Select<IntakeCategory>(
@@ -227,11 +225,12 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             .map(controllerOptionIdFor)
             .whereType<String>()
             .toSet();
-        final options = (connectedIds.isEmpty
-                ? controllerOptions
-                : controllerOptions.where((o) => connectedIds.contains(o.id) || o.id == 'other'))
-            .map((o) => (id: o.id, label: o.label))
-            .toList(growable: false);
+        final options =
+            (connectedIds.isEmpty
+                    ? controllerOptions
+                    : controllerOptions.where((o) => connectedIds.contains(o.id) || o.id == 'other'))
+                .map((o) => (id: o.id, label: o.label))
+                .toList(growable: false);
         return [
           _label(context.i18n.supportIntakeWhichController),
           const Gap(4),
@@ -253,9 +252,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-            options: smartTrainerSymptoms
-                .map((o) => (id: o.id, label: o.label))
-                .toList(growable: false),
+            options: smartTrainerSymptoms.map((o) => (id: o.id, label: o.label)).toList(growable: false),
             onChanged: _setSubcategory,
           ),
         ];
@@ -266,9 +263,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-            options: accountSymptoms
-                .map((o) => (id: o.id, label: o.label))
-                .toList(growable: false),
+            options: accountSymptoms.map((o) => (id: o.id, label: o.label)).toList(growable: false),
             onChanged: _setSubcategory,
           ),
         ];
@@ -296,16 +291,16 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       value: value,
       placeholder: Text(placeholder),
       itemBuilder: (c, v) => Text(
-        options.firstWhere(
-          (o) => o.id == v,
-          orElse: () => (id: v, label: v),
-        ).label,
+        options
+            .firstWhere(
+              (o) => o.id == v,
+              orElse: () => (id: v, label: v),
+            )
+            .label,
       ),
       popup: SelectPopup(
         items: SelectItemList(
-          children: options
-              .map((o) => SelectItemButton(value: o.id, child: Text(o.label)))
-              .toList(growable: false),
+          children: options.map((o) => SelectItemButton(value: o.id, child: Text(o.label))).toList(growable: false),
         ),
       ).call,
       onChanged: onChanged,
@@ -337,8 +332,7 @@ class _RecommendedHelp extends StatelessWidget {
               const Gap(6),
               Text(
                 context.i18n.supportIntakeRecommendedHelp,
-                style: TextStyle(
-                  fontSize: 12,
+                style: context.typography.xSmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: cs.mutedForeground,
                 ),
@@ -347,12 +341,12 @@ class _RecommendedHelp extends StatelessWidget {
           ),
           const Gap(8),
           for (final issue in issues) ...[
-            Text(issue.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(issue.title, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
             if ((issue.description ?? '').isNotEmpty) ...[
               const Gap(2),
               Text(
                 issue.description!,
-                style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+                style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -435,7 +429,7 @@ class SupportIntakeSummaryChip extends StatelessWidget {
           Expanded(
             child: Text(
               parts.join('  ·  '),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
           if (onEdit != null)

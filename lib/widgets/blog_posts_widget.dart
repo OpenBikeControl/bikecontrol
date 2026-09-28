@@ -1,6 +1,7 @@
 import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -132,9 +133,8 @@ class _BlogPostRow extends StatelessWidget {
       ),
       child: Text(
         'NEW',
-        style: TextStyle(
+        style: context.typography.caption.copyWith(
           color: Colors.white,
-          fontSize: 9,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),

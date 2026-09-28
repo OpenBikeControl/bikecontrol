@@ -11,6 +11,7 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Opens every [VirtualShiftingStage] on this scene instead of its
@@ -104,8 +105,8 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
     final step = (velocity < -_flingVelocity || _drag <= -_dragCommit)
         ? 1
         : (velocity > _flingVelocity || _drag >= _dragCommit)
-            ? -1
-            : 0;
+        ? -1
+        : 0;
     setState(() {
       _dragging = false;
       _drag = 0;
@@ -349,8 +350,7 @@ class _SceneApps extends StatelessWidget {
                 ),
                 child: Text(
                   'BIKECONTROL',
-                  style: TextStyle(
-                    fontSize: 9,
+                  style: context.typography.caption.copyWith(
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1,
                     color: onboardingAccent(context),
@@ -372,8 +372,7 @@ class _SceneApps extends StatelessWidget {
 
   Widget _heading(BuildContext context, String text) => Text(
     text,
-    style: TextStyle(
-      fontSize: 9,
+    style: context.typography.caption.copyWith(
       fontWeight: FontWeight.w600,
       letterSpacing: 1.3,
       color: Theme.of(context).colorScheme.mutedForeground,
@@ -398,8 +397,7 @@ class _SceneApps extends StatelessWidget {
             ),
             child: Text(
               items[i],
-              style: TextStyle(
-                fontSize: 10.5,
+              style: context.typography.caption.copyWith(
                 fontWeight: FontWeight.w600,
                 color: i == highlighted ? accent : cs.mutedForeground,
               ),
@@ -479,8 +477,7 @@ class _SceneRatios extends StatelessWidget {
             preset.label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 10.5,
+            style: context.typography.caption.copyWith(
               fontWeight: FontWeight.w700,
               color: active ? onboardingOnAccent(context) : cs.mutedForeground,
             ),
@@ -489,8 +486,7 @@ class _SceneRatios extends StatelessWidget {
             preset.range,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 8.5,
+            style: context.typography.caption.copyWith(
               fontWeight: FontWeight.w500,
               color: active ? onboardingOnAccent(context).withValues(alpha: 0.75) : cs.mutedForeground,
             ),
@@ -656,12 +652,16 @@ class _SceneMore extends StatelessWidget {
               children: [
                 Text(
                   item.title,
-                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, height: 1.2, color: cs.foreground),
+                  style: context.typography.xSmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    color: cs.foreground,
+                  ),
                 ),
                 const Gap(2),
                 Text(
                   item.sub,
-                  style: TextStyle(fontSize: 10.5, height: 1.25, color: cs.mutedForeground),
+                  style: context.typography.caption.copyWith(height: 1.25, color: cs.mutedForeground),
                 ),
               ],
             ),

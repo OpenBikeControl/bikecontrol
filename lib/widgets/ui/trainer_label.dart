@@ -1,5 +1,6 @@
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class TrainerLabel extends StatelessWidget {
@@ -25,8 +26,7 @@ class TrainerLabel extends StatelessWidget {
             Icon(LucideIcons.monitor, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
             Text(
               name.split(' ').first,
-              style: TextStyle(
-                fontSize: 12,
+              style: context.typography.xSmall.copyWith(
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.mutedForeground,
               ),

@@ -4,6 +4,7 @@ import 'dart:io' show File;
 
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -288,7 +289,7 @@ class _SupportComposerState extends State<SupportComposer> {
               padding: const EdgeInsets.only(top: 6),
               child: Text(
                 context.i18n.supportDescribeProblemHint,
-                style: TextStyle(fontSize: 11, color: cs.mutedForeground, height: 1.3),
+                style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
               ),
             ),
         ],
@@ -317,7 +318,7 @@ class _SupportComposerState extends State<SupportComposer> {
               child: Text(
                 context.i18n.supportPinnedContextChip(widget.pinnedContextLabel!),
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: cs.mutedForeground),
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w500, color: cs.mutedForeground),
               ),
             ),
           ],
@@ -340,7 +341,7 @@ class _SupportComposerState extends State<SupportComposer> {
               children: [
                 Text(
                   context.i18n.supportDiagnosticsNotice,
-                  style: TextStyle(fontSize: 11, color: cs.mutedForeground, height: 1.3),
+                  style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
                 ),
                 Button.text(
                   onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
@@ -394,7 +395,7 @@ class _SupportComposerState extends State<SupportComposer> {
                   child: SingleChildScrollView(
                     child: Text(
                       widget.diagnosticPreview!,
-                      style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontFamily: 'monospace'),
+                      style: context.typography.caption.copyWith(color: cs.mutedForeground, fontFamily: 'monospace'),
                     ),
                   ),
                 ),
@@ -440,7 +441,7 @@ class _SupportComposerState extends State<SupportComposer> {
               child: Text(
                 att.name,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w500),
               ),
             ),
             BkIconButton.ghost(

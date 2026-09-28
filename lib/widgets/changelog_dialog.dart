@@ -1,5 +1,6 @@
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -32,7 +33,7 @@ class ChangelogDialog extends StatelessWidget {
             child: MarkdownWidget(
               markdown: latestVersion,
               theme: MarkdownThemeData(
-                textStyle: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.primary),
+                textStyle: context.typography.small.copyWith(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ),

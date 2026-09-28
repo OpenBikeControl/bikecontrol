@@ -1,5 +1,6 @@
 import 'package:bike_control/services/health/health_ride_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Shown on the home screen while [HealthRideService] is recording a ride on
@@ -36,7 +37,7 @@ class HealthRideChip extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l.healthRideChipLabel,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 Button.ghost(

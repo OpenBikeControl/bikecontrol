@@ -41,6 +41,7 @@ import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/unread_dot.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -225,7 +226,7 @@ class _CommunityLinkButton extends StatelessWidget {
         spacing: 6,
         children: [
           Icon(icon, size: 18, color: cs.mutedForeground),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(label, style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );

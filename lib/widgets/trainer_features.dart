@@ -7,6 +7,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/core.dart';
@@ -110,8 +111,7 @@ class FeatureWidget extends StatelessWidget {
                           ),
                           child: Text(
                             'NEW',
-                            style: TextStyle(
-                              fontSize: 9,
+                            style: context.typography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                               letterSpacing: 0.5,

@@ -8,6 +8,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/diagnostics_section.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show SelectionArea;
@@ -94,8 +95,7 @@ class _LogviewerState extends State<LogViewer> {
                         .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
                         .join('\n');
                     final diagnosticsText = _diagnostics?.toText();
-                    final shareText =
-                        diagnosticsText == null ? logText : '$diagnosticsText\n\nLogs:\n$logText';
+                    final shareText = diagnosticsText == null ? logText : '$diagnosticsText\n\nLogs:\n$logText';
                     Clipboard.setData(ClipboardData(text: shareText));
 
                     buildToast(title: context.i18n.logsHaveBeenCopiedToClipboard);
@@ -119,8 +119,7 @@ class _LogviewerState extends State<LogViewer> {
                                       (action) => [
                                         TextSpan(
                                           text: action.date.toString().split(" ").last,
-                                          style: TextStyle(
-                                            fontSize: 12,
+                                          style: context.typography.xSmall.copyWith(
                                             fontFeatures: [FontFeature.tabularFigures()],
                                             fontFamily: "monospace",
                                             fontFamilyFallback: <String>["Courier"],
@@ -128,8 +127,7 @@ class _LogviewerState extends State<LogViewer> {
                                         ),
                                         TextSpan(
                                           text: "  ${action.entry}\n",
-                                          style: TextStyle(
-                                            fontSize: 12,
+                                          style: context.typography.xSmall.copyWith(
                                             fontFeatures: [FontFeature.tabularFigures()],
                                             fontWeight: FontWeight.bold,
                                           ),

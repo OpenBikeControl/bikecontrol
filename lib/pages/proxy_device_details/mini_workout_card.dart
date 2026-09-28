@@ -9,6 +9,7 @@ import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -98,7 +99,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
             spacing: 8,
             children: [
               const Icon(LucideIcons.activity, size: 18),
-              Text(l10n.miniWorkout, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(l10n.miniWorkout, style: context.typography.base.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           ValueListenableBuilder<WorkoutState>(
@@ -147,13 +148,12 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           valueListenable: _recorder.elapsed,
           builder: (_, d, _) => Text(
             _fmtDuration(d),
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+            style: context.typography.x3Large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
           ),
         ),
         Text(
           state == WorkoutState.paused ? l10n.miniWorkoutPaused : l10n.miniWorkoutRecording,
-          style: TextStyle(
-            fontSize: 11,
+          style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
             color: Theme.of(context).colorScheme.mutedForeground,
@@ -213,7 +213,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
             Icon(icon, size: 22, color: iconColor),
             Text(
               label,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              style: context.typography.caption.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
           ],

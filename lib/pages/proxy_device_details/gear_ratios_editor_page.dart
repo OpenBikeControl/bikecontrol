@@ -10,6 +10,7 @@ import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart'
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -87,7 +88,10 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               style: ButtonStyle.destructive(size: ButtonSize.small),
               onPressed: _resetGearSettings,
               leading: const Icon(LucideIcons.rotateCcw, size: 12),
-              child: Text(AppLocalizations.of(context).reset, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              child: Text(
+                AppLocalizations.of(context).reset,
+                style: context.typography.caption.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -125,7 +129,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final cs = Theme.of(context).colorScheme;
     return Text(
       AppLocalizations.of(context).tuneGearsIntro,
-      style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+      style: context.typography.small.copyWith(color: cs.mutedForeground),
       softWrap: true,
     );
   }
@@ -171,7 +175,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).gearCountMismatch(app.name, expected, count),
-                      style: TextStyle(fontSize: 12, color: cs.foreground),
+                      style: context.typography.xSmall.copyWith(color: cs.foreground),
                     ),
                   ),
                   Button.ghost(
@@ -179,7 +183,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                       def.setMaxGear(expected);
                       await _updateActive((c) => c.copyWith(maxGear: expected));
                     },
-                    child: Text(AppLocalizations.of(context).useGearCount(expected), style: const TextStyle(fontSize: 12)),
+                    child: Text(AppLocalizations.of(context).useGearCount(expected), style: context.typography.xSmall),
                   ),
                 ],
               ),
@@ -242,8 +246,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       children: [
         Text(
           AppLocalizations.of(context).presetsLabel,
-          style: TextStyle(
-            fontSize: 10,
+          style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 1,
             color: cs.mutedForeground,
@@ -286,8 +289,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               preset.label,
               maxLines: 1,
               softWrap: false,
-              style: TextStyle(
-                fontSize: 12,
+              style: context.typography.xSmall.copyWith(
                 fontWeight: active ? FontWeight.w700 : FontWeight.w600,
               ),
             ),
@@ -295,8 +297,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               preset.range,
               maxLines: 1,
               softWrap: false,
-              style: TextStyle(
-                fontSize: 9,
+              style: context.typography.caption.copyWith(
                 fontWeight: FontWeight.w500,
                 color: active ? cs.primaryForeground.withValues(alpha: 0.8) : cs.mutedForeground,
               ),
@@ -320,8 +321,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           children: [
             Text(
               AppLocalizations.of(context).perGearLabel,
-              style: TextStyle(
-                fontSize: 10,
+              style: context.typography.caption.copyWith(
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1,
                 color: cs.mutedForeground,
@@ -332,8 +332,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               valueListenable: def.gearRatios,
               builder: (context, ratios, _) => Text(
                 AppLocalizations.of(context).perGearCount(ratios.length),
-                style: TextStyle(
-                  fontSize: 10,
+                style: context.typography.caption.copyWith(
                   fontWeight: FontWeight.w500,
                   color: Theme.of(context).colorScheme.mutedForeground,
                 ),
@@ -398,8 +397,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             child: Center(
               child: Text(
                 '$gear',
-                style: TextStyle(
-                  fontSize: 14,
+                style: context.typography.small.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colors.badgeForeground,
                 ),
@@ -417,15 +415,16 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   children: [
                     Text(
                       AppLocalizations.of(context).gearNumber(gear),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                     ),
                     if (isCurrent) _badge(AppLocalizations.of(context).currentBadge, cs.primary, cs.primaryForeground),
-                    if (isNeutral && !isCurrent) _badge(AppLocalizations.of(context).neutralBadge, colors.badgeBackground, colors.badgeForeground),
+                    if (isNeutral && !isCurrent)
+                      _badge(AppLocalizations.of(context).neutralBadge, colors.badgeBackground, colors.badgeForeground),
                   ],
                 ),
                 Text(
                   _hintFor(context, gear, ratio, ratios, def.neutralGear),
-                  style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+                  style: context.typography.caption.copyWith(color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -455,7 +454,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: fg),
+        style: context.typography.caption.copyWith(fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }
@@ -520,7 +519,7 @@ class VirtualShiftingModeCard extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600),
             ),
             if (recommended) ...[
               const Gap(2),

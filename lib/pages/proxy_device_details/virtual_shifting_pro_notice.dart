@@ -2,6 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/register_this_device.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Informational block shown above the Virtual Shifting Settings when the
@@ -68,7 +69,7 @@ class _VirtualShiftingProNoticeState extends State<VirtualShiftingProNotice> {
                   Expanded(
                     child: Text(
                       unregistered ? l10n.proUnregisteredBody : l10n.virtualShiftingProNote(widget.trainerAppName),
-                      style: TextStyle(fontSize: 12, color: cs.foreground),
+                      style: context.typography.xSmall.copyWith(color: cs.foreground),
                     ),
                   ),
                 ],
@@ -77,7 +78,7 @@ class _VirtualShiftingProNoticeState extends State<VirtualShiftingProNotice> {
                 padding: const EdgeInsets.only(left: 28),
                 child: Text(
                   l10n.bridgeMinutesRemainingToday(_remainingMinutesCeil),
-                  style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontWeight: FontWeight.w500),
+                  style: context.typography.caption.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500),
                 ),
               ),
               Align(

@@ -3,6 +3,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/register_this_device.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Home banner for the rider whose account has Pro but whose device is not
@@ -77,13 +78,12 @@ class _ProUnregisteredBannerState extends State<ProUnregisteredBanner> {
                           children: [
                             Text(
                               l.proUnregisteredTitle,
-                              style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                              style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const Gap(2),
                             Text(
                               l.proUnregisteredBody,
-                              style: TextStyle(
-                                fontSize: 12.5,
+                              style: context.typography.xSmall.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: theme.colorScheme.mutedForeground,
                               ),

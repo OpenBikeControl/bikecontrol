@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// What the licence card has to say, as plain data — so the numbers can be
@@ -29,8 +30,7 @@ class TrialCardState {
 
   bool get showsBridgeMeter => bridgeMinutesRemaining != null && (bridgeMinutesTotal ?? 0) > 0;
 
-  bool get _bridgeLow =>
-      showsBridgeMeter && bridgeMinutesRemaining! / bridgeMinutesTotal! <= 0.25;
+  bool get _bridgeLow => showsBridgeMeter && bridgeMinutesRemaining! / bridgeMinutesTotal! <= 0.25;
 
   /// Urgency is earned, not constant: the card only turns amber when one of
   /// the budgets is genuinely close to running out.
@@ -86,15 +86,14 @@ class TrialCard extends StatelessWidget {
                     children: [
                       Text(
                         state.expired ? l.chainTrialExpiredTitle : l.chainTrialTitle,
-                        style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                        style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const Gap(2),
                       Text(
                         state.expired
                             ? l.chainTrialCommandsLimited(state.commandsTotal)
                             : l.chainTrialDaysLeft(state.daysRemaining),
-                        style: TextStyle(
-                          fontSize: 12.5,
+                        style: context.typography.xSmall.copyWith(
                           fontWeight: state.urgent ? FontWeight.w700 : FontWeight.w500,
                           color: state.urgent ? warning.color : theme.colorScheme.mutedForeground,
                         ),
@@ -156,8 +155,7 @@ class TrialCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         l.chainTrialRestoreRow,
-                        style: TextStyle(
-                          fontSize: 12.5,
+                        style: context.typography.xSmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.mutedForeground,
                         ),
@@ -199,13 +197,15 @@ class _Meter extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: muted)),
+              child: Text(
+                label,
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w500, color: muted),
+              ),
             ),
             const Gap(6),
             Text(
               '$value',
-              style: TextStyle(
-                fontSize: 12.5,
+              style: context.typography.xSmall.copyWith(
                 fontWeight: FontWeight.w700,
                 color: low ? warning : theme.colorScheme.foreground,
               ),
@@ -213,7 +213,7 @@ class _Meter extends StatelessWidget {
             const Gap(4),
             Text(
               suffix == null ? '/ $total' : '/ $total $suffix',
-              style: TextStyle(fontSize: 11.5, color: muted),
+              style: context.typography.caption.copyWith(color: muted),
             ),
           ],
         ),

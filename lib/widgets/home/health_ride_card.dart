@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/health/health_ride_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One-time home offer: "we noticed a ride, want rides saved to Apple Health
@@ -62,13 +63,12 @@ class HealthRideCard extends StatelessWidget {
                           children: [
                             Text(
                               l.healthRideCardTitle,
-                              style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                              style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const Gap(2),
                             Text(
                               l.healthRideCardBody,
-                              style: TextStyle(
-                                fontSize: 12.5,
+                              style: context.typography.xSmall.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: theme.colorScheme.mutedForeground,
                               ),

@@ -4,6 +4,7 @@ import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Opens the in-app support chat pre-filled for a Zwift controller whose
@@ -92,7 +93,7 @@ class ZwiftRideFirmwareNotice extends StatelessWidget {
               Expanded(
                 child: Text(
                   l10n.zwiftRideFirmwareNoticeBody(device.firmwareVersion ?? ''),
-                  style: TextStyle(fontSize: 12, color: cs.foreground),
+                  style: context.typography.xSmall.copyWith(color: cs.foreground),
                 ),
               ),
             ],

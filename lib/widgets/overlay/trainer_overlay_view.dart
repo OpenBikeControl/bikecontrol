@@ -2,6 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/gear_readout.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -98,6 +99,7 @@ class TrainerOverlayView extends StatelessWidget {
           letterSpacing: -1.0,
           color: cs.foreground,
           height: 1.0,
+          fontFeatures: BkNumerals.tabular,
         ),
       ),
     );
@@ -189,7 +191,7 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _modePill(ColorScheme cs, TrainerMode mode) {
+  Widget _modePill(BuildContext context, ColorScheme cs, TrainerMode mode) {
     final label = mode == TrainerMode.ergMode ? 'ERG' : 'SIM';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -200,8 +202,7 @@ class TrainerOverlayView extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 9,
+        style: context.typography.caption.copyWith(
           fontWeight: FontWeight.w700,
           color: cs.primaryForeground,
         ),
@@ -214,7 +215,7 @@ class TrainerOverlayView extends StatelessWidget {
   /// a glance; the metrics part hides cleanly when nothing is selected.
   Widget _bottomRow(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final isErg = s.mode == TrainerMode.ergMode;
-    final pill = _modePill(cs, s.mode);
+    final pill = _modePill(context, cs, s.mode);
     final pillWidget = onModeToggle != null
         ? Button.ghost(
             onPressed: onModeToggle,
@@ -225,14 +226,14 @@ class TrainerOverlayView extends StatelessWidget {
 
     final metrics = <Widget>[];
     if (s.fields.contains(OverlayField.power)) {
-      metrics.add(_metric(cs, '${s.powerW ?? '--'} W'));
+      metrics.add(_metric(context, cs, '${s.powerW ?? '--'} W'));
     }
     if (s.fields.contains(OverlayField.cadence)) {
-      metrics.add(_metric(cs, '${s.cadenceRpm ?? '--'} rpm'));
+      metrics.add(_metric(context, cs, '${s.cadenceRpm ?? '--'} rpm'));
     }
     // Gear ratio is meaningless in ERG mode; only show it in SIM.
     if (!isErg && s.fields.contains(OverlayField.gearRatio)) {
-      metrics.add(_metric(cs, '×${s.gearRatio.toStringAsFixed(2)}'));
+      metrics.add(_metric(context, cs, '×${s.gearRatio.toStringAsFixed(2)}'));
     }
 
     return Padding(
@@ -256,11 +257,10 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _metric(ColorScheme cs, String text) {
+  Widget _metric(BuildContext context, ColorScheme cs, String text) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 12,
+      style: context.typography.xSmall.copyWith(
         fontWeight: FontWeight.w600,
         color: cs.mutedForeground,
       ),

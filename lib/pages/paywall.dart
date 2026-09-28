@@ -8,6 +8,7 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -543,7 +544,7 @@ class _PaywallState extends State<Paywall> {
                       ],
                       Text(
                         _isRestoring ? 'Restoring purchases...' : AppLocalizations.of(context).restorePurchases,
-                        style: const TextStyle(fontSize: 14),
+                        style: context.typography.small,
                       ),
                     ],
                   ),
@@ -639,9 +640,8 @@ class _PaywallState extends State<Paywall> {
               child: Text(
                 AppLocalizations.of(context).full,
                 maxLines: 1,
-                style: TextStyle(
+                style: context.typography.small.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
                   letterSpacing: 0.8,
                   color: Theme.of(context).colorScheme.mutedForeground,
                 ),
@@ -652,7 +652,7 @@ class _PaywallState extends State<Paywall> {
         SizedBox(
           width: proColumnWidth,
           child: Center(
-            child: ProBadge(fontSize: 14),
+            child: ProBadge(large: true),
           ),
         ),
       ],
@@ -686,7 +686,7 @@ class _PaywallState extends State<Paywall> {
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.foreground,
                       fontWeight: FontWeight.normal,
-                      fontSize: compact ? 13.5 : 19,
+                      fontSize: (compact ? context.typography.small : context.typography.large).fontSize,
                       height: 1.2,
                     ),
                   ),
@@ -723,7 +723,7 @@ class _PaywallState extends State<Paywall> {
           AppLocalizations.of(context).unlimited,
           maxLines: 1,
           style: TextStyle(
-            fontSize: compact ? 12 : 24,
+            fontSize: (compact ? context.typography.xSmall : context.typography.x2Large).fontSize,
             fontWeight: FontWeight.w500,
             color: Theme.of(context).colorScheme.foreground,
           ),
@@ -733,7 +733,7 @@ class _PaywallState extends State<Paywall> {
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: compact ? 12 : 24,
+          fontSize: (compact ? context.typography.xSmall : context.typography.x2Large).fontSize,
           fontWeight: FontWeight.w500,
           color: Theme.of(context).colorScheme.foreground,
         ),
@@ -767,27 +767,27 @@ class _PaywallState extends State<Paywall> {
             // the cards an infinite height ("RenderBox was not laid out").
             IntrinsicHeight(
               child: Row(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: _buildPlanCard(
-                    plan: _PaywallPlan.yearly,
-                    title: AppLocalizations.of(context).paywall_yearly,
-                    price: _pricing.yearlyPrice,
-                    billed: _pricing.yearlyBilled,
-                    badge: _pricing.discountBadge,
+                spacing: 12,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: _buildPlanCard(
+                      plan: _PaywallPlan.yearly,
+                      title: AppLocalizations.of(context).paywall_yearly,
+                      price: _pricing.yearlyPrice,
+                      billed: _pricing.yearlyBilled,
+                      badge: _pricing.discountBadge,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _buildPlanCard(
-                    plan: _PaywallPlan.monthly,
-                    title: AppLocalizations.of(context).paywall_monthly,
-                    price: _pricing.monthlyPrice,
-                    billed: _pricing.monthlyBilled,
+                  Expanded(
+                    child: _buildPlanCard(
+                      plan: _PaywallPlan.monthly,
+                      title: AppLocalizations.of(context).paywall_monthly,
+                      price: _pricing.monthlyPrice,
+                      billed: _pricing.monthlyBilled,
+                    ),
                   ),
-                ),
-              ],
+                ],
               ),
             ),
             if (!_iapManager.isPurchased.value) _buildFullVersionCard(context),
@@ -845,8 +845,7 @@ class _PaywallState extends State<Paywall> {
                         child: Text(
                           title,
                           maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 17,
+                          style: context.typography.large.copyWith(
                             fontWeight: FontWeight.w600,
                             color: cs.foreground,
                           ),
@@ -864,8 +863,7 @@ class _PaywallState extends State<Paywall> {
                   child: Text(
                     price,
                     maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 17,
+                    style: context.typography.large.copyWith(
                       fontWeight: FontWeight.w600,
                       color: cs.foreground,
                     ),
@@ -877,8 +875,7 @@ class _PaywallState extends State<Paywall> {
                     billed,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
+                    style: context.typography.small.copyWith(
                       fontWeight: FontWeight.w500,
                       color: cs.mutedForeground,
                     ),
@@ -901,10 +898,9 @@ class _PaywallState extends State<Paywall> {
                 ),
                 child: Text(
                   badge,
-                  style: TextStyle(
+                  style: context.typography.base.copyWith(
                     color: cs.primaryForeground,
                     fontWeight: FontWeight.w800,
-                    fontSize: 15,
                     letterSpacing: 0.3,
                   ),
                 ),
@@ -917,7 +913,7 @@ class _PaywallState extends State<Paywall> {
             top: 0,
             right: 0,
             child: ProBadge(
-              fontSize: 14,
+              large: true,
               borderRadius: BorderRadius.only(topRight: Radius.circular(16), bottomLeft: Radius.circular(8)),
             ),
           ),
@@ -958,9 +954,8 @@ class _PaywallState extends State<Paywall> {
                 children: [
                   Text(
                     AppLocalizations.of(context).fullVersion,
-                    style: TextStyle(
+                    style: context.typography.small.copyWith(
                       color: cs.foreground,
-                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -968,8 +963,7 @@ class _PaywallState extends State<Paywall> {
                     _pricing.fullVersionSubtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.5,
+                    style: context.typography.caption.copyWith(
                       color: cs.mutedForeground,
                     ),
                   ),
@@ -979,8 +973,7 @@ class _PaywallState extends State<Paywall> {
                   // where their purchase went. Say so before they buy.
                   Text(
                     AppLocalizations.of(context).paywall_baseStoreNote(_storeName(context)),
-                    style: TextStyle(
-                      fontSize: 11,
+                    style: context.typography.caption.copyWith(
                       height: 1.25,
                       color: cs.mutedForeground,
                     ),
@@ -1004,8 +997,8 @@ class _PaywallState extends State<Paywall> {
     final size = small
         ? 16.0
         : compact
-            ? 20.0
-            : 34.0;
+        ? 20.0
+        : 34.0;
     final cs = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -1079,8 +1072,7 @@ class _PaywallState extends State<Paywall> {
                 )
               : Text(
                   AppLocalizations.of(context).purchase,
-                  style: const TextStyle(
-                    fontSize: 20,
+                  style: context.typography.xLarge.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                     height: 1,

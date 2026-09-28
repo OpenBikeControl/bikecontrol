@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/colors.dart' show BKColor;
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A single Help Center section: a header row over a `Card` body, staggered
@@ -95,8 +96,7 @@ class HelpCenterSectionCard extends StatelessWidget {
                         if (microLabel != null)
                           Text(
                             microLabel.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 10.5,
+                            style: context.typography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.735,
                               color: cs.mutedForeground,
@@ -106,13 +106,13 @@ class HelpCenterSectionCard extends StatelessWidget {
                           padding: EdgeInsets.only(top: microLabel != null ? 1 : 0),
                           child: Text(
                             title,
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.17),
+                            style: context.typography.large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.17),
                           ),
                         ),
                         if (subtitle != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
-                            child: Text(subtitle, style: TextStyle(fontSize: 12.5, color: cs.mutedForeground)),
+                            child: Text(subtitle, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
                           ),
                       ],
                     ),

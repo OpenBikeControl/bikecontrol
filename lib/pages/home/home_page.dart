@@ -18,6 +18,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
 import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
@@ -708,7 +709,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   Expanded(
                     child: Text(
                       context.i18n.chainSomethingNotWorking,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
@@ -1506,10 +1507,10 @@ class _MetricChip extends StatelessWidget {
             const Gap(6),
             Text(
               value?.toString() ?? '--',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w700),
             ),
             const Gap(4),
-            Text(unit, style: TextStyle(fontSize: 11.5, color: theme.colorScheme.mutedForeground)),
+            Text(unit, style: context.typography.caption.copyWith(color: theme.colorScheme.mutedForeground)),
           ],
         ),
       ),

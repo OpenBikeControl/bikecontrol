@@ -12,6 +12,7 @@ import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -426,8 +427,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           Expanded(
             child: Text(
               AppLocalizations.of(context).windowsSubscriptionsRequireYouToBeLoggedIn,
-              style: TextStyle(
-                fontSize: 12,
+              style: context.typography.xSmall.copyWith(
                 color: Colors.orange.shade700,
               ),
             ),

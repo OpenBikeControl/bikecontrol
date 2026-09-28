@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 // The prop package exports a `SramAxs` constants class with the same name as
@@ -488,7 +489,7 @@ class SramAxs extends BluetoothDevice {
         children: [
           Text(
             l.sramPanelIntro,
-            style: TextStyle(fontSize: 13.5, height: 1.4, color: scheme.mutedForeground),
+            style: context.typography.small.copyWith(height: 1.4, color: scheme.mutedForeground),
           ),
           const Gap(12),
           SizedBox(
@@ -532,7 +533,7 @@ class SramAxs extends BluetoothDevice {
               Expanded(
                 child: Text(
                   l.sramShiftingOff,
-                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.35),
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600, height: 1.35),
                 ),
               ),
             ],

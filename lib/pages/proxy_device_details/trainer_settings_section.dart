@@ -8,6 +8,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -127,7 +128,7 @@ class _TrainerSettingsSectionState extends State<TrainerSettingsSection> {
             children: [
               Icon(LucideIcons.triangleAlert, size: 15, color: cs.destructive),
               Expanded(
-                child: Text(message, style: TextStyle(fontSize: 12, color: cs.destructive)),
+                child: Text(message, style: context.typography.xSmall.copyWith(color: cs.destructive)),
               ),
             ],
           ),

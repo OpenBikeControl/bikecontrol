@@ -326,168 +326,168 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             if (!enabled || !context.mounted) return;
                           }
                           showDropdown(
-                              context: context,
-                              builder: (c) => DropdownMenu(
-                                children: [
-                                  MenuButton(
-                                    leading: Icon(Icons.play_arrow_outlined),
-                                    onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(
-                                        context,
-                                        isAllowedForOldPurchases: true,
-                                      )) {
-                                        return;
-                                      }
-                                      _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
-                                      _keyPair.inGameAction = null;
-                                      _keyPair.inGameActionValue = null;
-                                      _keyPair.touchPosition = Offset.zero;
-                                      _keyPair.logicalKey = null;
-                                      _keyPair.androidAction = null;
-                                      _keyPair.androidIntentAction = null;
-                                      _keyPair.command = null;
-                                      _keyPair.screenshotPath = null;
-
-                                      setState(() {});
-                                      widget.onUpdate();
-                                    },
-                                    child: _buildProMenuItemLabel(
-                                      context.i18n.playPause,
+                            context: context,
+                            builder: (c) => DropdownMenu(
+                              children: [
+                                MenuButton(
+                                  leading: Icon(Icons.play_arrow_outlined),
+                                  onPressed: (c) async {
+                                    if (!await IAPManager.instance.ensureProForFeature(
+                                      context,
                                       isAllowedForOldPurchases: true,
-                                    ),
-                                  ),
-                                  MenuButton(
-                                    leading: Icon(Icons.stop_outlined),
-                                    onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(
-                                        context,
-                                        isAllowedForOldPurchases: true,
-                                      )) {
-                                        return;
-                                      }
-                                      _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
-                                      _keyPair.inGameAction = null;
-                                      _keyPair.inGameActionValue = null;
-                                      _keyPair.touchPosition = Offset.zero;
-                                      _keyPair.logicalKey = null;
-                                      _keyPair.androidAction = null;
-                                      _keyPair.androidIntentAction = null;
-                                      _keyPair.command = null;
-                                      _keyPair.screenshotPath = null;
+                                    )) {
+                                      return;
+                                    }
+                                    _keyPair.physicalKey = PhysicalKeyboardKey.mediaPlayPause;
+                                    _keyPair.inGameAction = null;
+                                    _keyPair.inGameActionValue = null;
+                                    _keyPair.touchPosition = Offset.zero;
+                                    _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
+                                    _keyPair.androidIntentAction = null;
+                                    _keyPair.command = null;
+                                    _keyPair.screenshotPath = null;
 
-                                      setState(() {});
-                                      widget.onUpdate();
-                                    },
-                                    child: _buildProMenuItemLabel(context.i18n.stop, isAllowedForOldPurchases: true),
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                  child: _buildProMenuItemLabel(
+                                    context.i18n.playPause,
+                                    isAllowedForOldPurchases: true,
                                   ),
-                                  MenuButton(
-                                    leading: Icon(Icons.skip_previous_outlined),
-                                    onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(
-                                        context,
-                                        isAllowedForOldPurchases: true,
-                                      )) {
-                                        return;
-                                      }
-                                      _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
-                                      _keyPair.inGameAction = null;
-                                      _keyPair.inGameActionValue = null;
-                                      _keyPair.touchPosition = Offset.zero;
-                                      _keyPair.logicalKey = null;
-                                      _keyPair.androidAction = null;
-                                      _keyPair.androidIntentAction = null;
-                                      _keyPair.command = null;
-                                      _keyPair.screenshotPath = null;
-
-                                      setState(() {});
-                                      widget.onUpdate();
-                                    },
-                                    child: _buildProMenuItemLabel(
-                                      context.i18n.previous,
+                                ),
+                                MenuButton(
+                                  leading: Icon(Icons.stop_outlined),
+                                  onPressed: (c) async {
+                                    if (!await IAPManager.instance.ensureProForFeature(
+                                      context,
                                       isAllowedForOldPurchases: true,
-                                    ),
-                                  ),
-                                  MenuButton(
-                                    leading: Icon(Icons.skip_next_outlined),
-                                    onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(
-                                        context,
-                                        isAllowedForOldPurchases: true,
-                                      )) {
-                                        return;
-                                      }
-                                      _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
-                                      _keyPair.inGameAction = null;
-                                      _keyPair.inGameActionValue = null;
-                                      _keyPair.touchPosition = Offset.zero;
-                                      _keyPair.logicalKey = null;
-                                      _keyPair.androidAction = null;
-                                      _keyPair.androidIntentAction = null;
-                                      _keyPair.command = null;
-                                      _keyPair.screenshotPath = null;
+                                    )) {
+                                      return;
+                                    }
+                                    _keyPair.physicalKey = PhysicalKeyboardKey.mediaStop;
+                                    _keyPair.inGameAction = null;
+                                    _keyPair.inGameActionValue = null;
+                                    _keyPair.touchPosition = Offset.zero;
+                                    _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
+                                    _keyPair.androidIntentAction = null;
+                                    _keyPair.command = null;
+                                    _keyPair.screenshotPath = null;
 
-                                      setState(() {});
-                                      widget.onUpdate();
-                                    },
-                                    child: _buildProMenuItemLabel(context.i18n.next, isAllowedForOldPurchases: true),
-                                  ),
-                                  MenuButton(
-                                    leading: Icon(Icons.volume_up_outlined),
-                                    onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(
-                                        context,
-                                        isAllowedForOldPurchases: true,
-                                      )) {
-                                        return;
-                                      }
-                                      _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
-                                      _keyPair.inGameAction = null;
-                                      _keyPair.inGameActionValue = null;
-                                      _keyPair.touchPosition = Offset.zero;
-                                      _keyPair.logicalKey = null;
-                                      _keyPair.androidAction = null;
-                                      _keyPair.androidIntentAction = null;
-                                      _keyPair.command = null;
-                                      _keyPair.screenshotPath = null;
-
-                                      setState(() {});
-                                      widget.onUpdate();
-                                    },
-                                    child: _buildProMenuItemLabel(
-                                      context.i18n.volumeUp,
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                  child: _buildProMenuItemLabel(context.i18n.stop, isAllowedForOldPurchases: true),
+                                ),
+                                MenuButton(
+                                  leading: Icon(Icons.skip_previous_outlined),
+                                  onPressed: (c) async {
+                                    if (!await IAPManager.instance.ensureProForFeature(
+                                      context,
                                       isAllowedForOldPurchases: true,
-                                    ),
-                                  ),
-                                  MenuButton(
-                                    leading: Icon(Icons.volume_down_outlined),
-                                    child: _buildProMenuItemLabel(
-                                      context.i18n.volumeDown,
-                                      isAllowedForOldPurchases: true,
-                                    ),
-                                    onPressed: (c) async {
-                                      if (!await IAPManager.instance.ensureProForFeature(
-                                        context,
-                                        isAllowedForOldPurchases: true,
-                                      )) {
-                                        return;
-                                      }
-                                      _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
-                                      _keyPair.inGameAction = null;
-                                      _keyPair.inGameActionValue = null;
-                                      _keyPair.touchPosition = Offset.zero;
-                                      _keyPair.logicalKey = null;
-                                      _keyPair.androidAction = null;
-                                      _keyPair.androidIntentAction = null;
-                                      _keyPair.command = null;
-                                      _keyPair.screenshotPath = null;
+                                    )) {
+                                      return;
+                                    }
+                                    _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackPrevious;
+                                    _keyPair.inGameAction = null;
+                                    _keyPair.inGameActionValue = null;
+                                    _keyPair.touchPosition = Offset.zero;
+                                    _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
+                                    _keyPair.androidIntentAction = null;
+                                    _keyPair.command = null;
+                                    _keyPair.screenshotPath = null;
 
-                                      setState(() {});
-                                      widget.onUpdate();
-                                    },
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                  child: _buildProMenuItemLabel(
+                                    context.i18n.previous,
+                                    isAllowedForOldPurchases: true,
                                   ),
-                                ],
-                              ),
-                            );
+                                ),
+                                MenuButton(
+                                  leading: Icon(Icons.skip_next_outlined),
+                                  onPressed: (c) async {
+                                    if (!await IAPManager.instance.ensureProForFeature(
+                                      context,
+                                      isAllowedForOldPurchases: true,
+                                    )) {
+                                      return;
+                                    }
+                                    _keyPair.physicalKey = PhysicalKeyboardKey.mediaTrackNext;
+                                    _keyPair.inGameAction = null;
+                                    _keyPair.inGameActionValue = null;
+                                    _keyPair.touchPosition = Offset.zero;
+                                    _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
+                                    _keyPair.androidIntentAction = null;
+                                    _keyPair.command = null;
+                                    _keyPair.screenshotPath = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                  child: _buildProMenuItemLabel(context.i18n.next, isAllowedForOldPurchases: true),
+                                ),
+                                MenuButton(
+                                  leading: Icon(Icons.volume_up_outlined),
+                                  onPressed: (c) async {
+                                    if (!await IAPManager.instance.ensureProForFeature(
+                                      context,
+                                      isAllowedForOldPurchases: true,
+                                    )) {
+                                      return;
+                                    }
+                                    _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeUp;
+                                    _keyPair.inGameAction = null;
+                                    _keyPair.inGameActionValue = null;
+                                    _keyPair.touchPosition = Offset.zero;
+                                    _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
+                                    _keyPair.androidIntentAction = null;
+                                    _keyPair.command = null;
+                                    _keyPair.screenshotPath = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                  child: _buildProMenuItemLabel(
+                                    context.i18n.volumeUp,
+                                    isAllowedForOldPurchases: true,
+                                  ),
+                                ),
+                                MenuButton(
+                                  leading: Icon(Icons.volume_down_outlined),
+                                  child: _buildProMenuItemLabel(
+                                    context.i18n.volumeDown,
+                                    isAllowedForOldPurchases: true,
+                                  ),
+                                  onPressed: (c) async {
+                                    if (!await IAPManager.instance.ensureProForFeature(
+                                      context,
+                                      isAllowedForOldPurchases: true,
+                                    )) {
+                                      return;
+                                    }
+                                    _keyPair.physicalKey = PhysicalKeyboardKey.audioVolumeDown;
+                                    _keyPair.inGameAction = null;
+                                    _keyPair.inGameActionValue = null;
+                                    _keyPair.touchPosition = Offset.zero;
+                                    _keyPair.logicalKey = null;
+                                    _keyPair.androidAction = null;
+                                    _keyPair.androidIntentAction = null;
+                                    _keyPair.command = null;
+                                    _keyPair.screenshotPath = null;
+
+                                    setState(() {});
+                                    widget.onUpdate();
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -516,36 +516,36 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             if (!enabled || !context.mounted) return;
                           }
                           showDropdown(
-                              context: context,
-                              builder: (c) => DropdownMenu(
-                                children: AndroidSystemAction.values
-                                    .where((action) => action != AndroidSystemAction.assistant)
-                                    .map(
-                                      (action) => MenuButton(
-                                        leading: Icon(action.icon),
-                                        onPressed: (_) async {
-                                          if (!await IAPManager.instance.ensureProForFeature(context)) {
-                                            return;
-                                          }
-                                          _keyPair.androidAction = action;
-                                          _keyPair.androidIntentAction = null;
-                                          _keyPair.physicalKey = null;
-                                          _keyPair.logicalKey = null;
-                                          _keyPair.modifiers = [];
-                                          _keyPair.touchPosition = Offset.zero;
-                                          _keyPair.inGameAction = null;
-                                          _keyPair.inGameActionValue = null;
-                                          _keyPair.command = null;
-                                          _keyPair.screenshotPath = null;
-                                          setState(() {});
-                                          widget.onUpdate();
-                                        },
-                                        child: _buildProMenuItemLabel(action.title),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            );
+                            context: context,
+                            builder: (c) => DropdownMenu(
+                              children: AndroidSystemAction.values
+                                  .where((action) => action != AndroidSystemAction.assistant)
+                                  .map(
+                                    (action) => MenuButton(
+                                      leading: Icon(action.icon),
+                                      onPressed: (_) async {
+                                        if (!await IAPManager.instance.ensureProForFeature(context)) {
+                                          return;
+                                        }
+                                        _keyPair.androidAction = action;
+                                        _keyPair.androidIntentAction = null;
+                                        _keyPair.physicalKey = null;
+                                        _keyPair.logicalKey = null;
+                                        _keyPair.modifiers = [];
+                                        _keyPair.touchPosition = Offset.zero;
+                                        _keyPair.inGameAction = null;
+                                        _keyPair.inGameActionValue = null;
+                                        _keyPair.command = null;
+                                        _keyPair.screenshotPath = null;
+                                        setState(() {});
+                                        widget.onUpdate();
+                                      },
+                                      child: _buildProMenuItemLabel(action.title),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -779,13 +779,13 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.connection.inclineDevices.isNotEmpty) ...[
                   SizedBox(height: 8),
-                  if (core.connection.accessories.isEmpty)
-                    ColoredTitle(text: context.i18n.accessoryActions),
+                  if (core.connection.accessories.isEmpty) ColoredTitle(text: context.i18n.accessoryActions),
                   Builder(
                     builder: (context) => SelectableCard(
                       icon: LucideIcons.mountain,
                       title: Text(context.i18n.inclineActions),
-                      isActive: _keyPair.inGameAction != null &&
+                      isActive:
+                          _keyPair.inGameAction != null &&
                           [
                             InGameAction.inclineIncrease,
                             InGameAction.inclineDecrease,
@@ -1318,7 +1318,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         Expanded(child: Text(text)),
         const ProBadge(
           padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          fontSize: 9,
         ),
       ],
     );

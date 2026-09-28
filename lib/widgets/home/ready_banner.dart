@@ -2,6 +2,7 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The one-glance answer at the top of the home screen: am I good?
@@ -112,8 +113,7 @@ class ReadyBanner extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: calm ? 14 : 15,
+                  style: (calm ? context.typography.small : context.typography.base).copyWith(
                     fontWeight: FontWeight.w700,
                     color: calm ? theme.colorScheme.foreground : style.color,
                   ),
@@ -121,7 +121,7 @@ class ReadyBanner extends StatelessWidget {
                 const Gap(2),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 12.5, height: 1.4, color: theme.colorScheme.mutedForeground),
+                  style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
                 ),
               ],
             ),

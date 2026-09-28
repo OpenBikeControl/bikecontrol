@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -38,11 +39,6 @@ class DrivetrainControls extends StatelessWidget {
   /// Smallest tap target a shift button may have (Android's 48 dp guideline).
   static const double _minTarget = 48;
 
-  /// Equal-width digits. Geist's are proportional by default, so a ratio going
-  /// 1.86 → 2.04 is three pixels wider and drags the whole shift column — and
-  /// the buttons in it — sideways on an ordinary shift.
-  static const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
-
   /// Below this the shift column would take so much of the card that the
   /// drivetrain is squeezed into little over half of it, and the picture is the
   /// point. Same breakpoint the ERG side of this card already uses.
@@ -79,11 +75,23 @@ class DrivetrainControls extends StatelessWidget {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _shiftButton(context, icon: LucideIcons.minus, filled: false, label: context.i18n.actionShiftDown, onTap: definition.shiftDown),
+          _shiftButton(
+            context,
+            icon: LucideIcons.minus,
+            filled: false,
+            label: context.i18n.actionShiftDown,
+            onTap: definition.shiftDown,
+          ),
           const Gap(22),
           _gearNumber(context),
           const Gap(22),
-          _shiftButton(context, icon: LucideIcons.plus, filled: true, label: context.i18n.actionShiftUp, onTap: definition.shiftUp),
+          _shiftButton(
+            context,
+            icon: LucideIcons.plus,
+            filled: true,
+            label: context.i18n.actionShiftUp,
+            onTap: definition.shiftUp,
+          ),
         ],
       ),
       if (definition.frontShiftEnabled) Align(child: _frontRing(context)),
@@ -105,11 +113,23 @@ class DrivetrainControls extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _shiftButton(context, icon: LucideIcons.minus, filled: false, label: context.i18n.actionShiftDown, onTap: definition.shiftDown),
+        _shiftButton(
+          context,
+          icon: LucideIcons.minus,
+          filled: false,
+          label: context.i18n.actionShiftDown,
+          onTap: definition.shiftDown,
+        ),
         Gap(_gap),
         _gearNumber(context),
         Gap(_gap),
-        _shiftButton(context, icon: LucideIcons.plus, filled: true, label: context.i18n.actionShiftUp, onTap: definition.shiftUp),
+        _shiftButton(
+          context,
+          icon: LucideIcons.plus,
+          filled: true,
+          label: context.i18n.actionShiftUp,
+          onTap: definition.shiftUp,
+        ),
       ],
     );
   }
@@ -128,7 +148,7 @@ class DrivetrainControls extends StatelessWidget {
       color: cs.foreground,
       // Equal-width digits, so the reserved box is exact for any value of the
       // same length rather than merely close.
-      fontFeatures: _tabular,
+      fontFeatures: BkNumerals.tabular,
     );
     final gear = definition.currentGear.value;
     return Column(
@@ -150,11 +170,10 @@ class DrivetrainControls extends StatelessWidget {
         Text(
           // "2.40" on its own says nothing; the word is what makes it a ratio.
           compact ? 'of ${definition.maxGear}' : 'of ${definition.maxGear} · ratio ${_ratio()}',
-          style: TextStyle(
-            fontSize: 11,
+          style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w500,
             color: cs.mutedForeground,
-            fontFeatures: _tabular,
+            fontFeatures: BkNumerals.tabular,
           ),
         ),
       ],
@@ -188,11 +207,10 @@ class DrivetrainControls extends StatelessWidget {
             children: [
               Text(
                 '${large ? 2 : 1}× · ${teeth}T',
-                style: TextStyle(
-                  fontSize: 12.5,
+                style: context.typography.xSmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: cs.mutedForeground,
-                  fontFeatures: _tabular,
+                  fontFeatures: BkNumerals.tabular,
                 ),
               ),
               const Gap(6),
@@ -224,7 +242,13 @@ class DrivetrainControls extends StatelessWidget {
     );
   }
 
-  Widget _ghost(ColorScheme cs, double pad, {required IconData icon, required bool filled, required VoidCallback onTap}) {
+  Widget _ghost(
+    ColorScheme cs,
+    double pad, {
+    required IconData icon,
+    required bool filled,
+    required VoidCallback onTap,
+  }) {
     return Button.ghost(
       style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.all(pad)),
       onPressed: () {

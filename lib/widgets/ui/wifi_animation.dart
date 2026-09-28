@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SmoothWifiAnimation extends StatefulWidget {
@@ -103,9 +104,8 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
               ),
               child: Text(
                 widget.label,
-                style: TextStyle(
+                style: context.typography.caption.copyWith(
                   color: Theme.of(context).colorScheme.primaryForeground,
-                  fontSize: 10,
                   letterSpacing: 2.0,
                   fontWeight: FontWeight.bold,
                 ),

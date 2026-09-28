@@ -14,6 +14,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/prop.dart' show LogLevel;
@@ -216,7 +217,7 @@ class _SensorsPageState extends State<SensorsPage> {
                   Text(
                     l10n.sensorsOffHint,
                     key: const Key('sensors-off-hint'),
-                    style: TextStyle(fontSize: 12.5, height: 1.4, color: theme.colorScheme.mutedForeground),
+                    style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
                   ),
                 ],
               ],
@@ -289,8 +290,7 @@ class _BroadcastCard extends StatelessWidget {
                   children: [
                     Text(
                       l10n.sensorsBroadcastEyebrow.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10,
+                      style: context.typography.caption.copyWith(
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.6,
                         color: theme.colorScheme.mutedForeground,
@@ -300,7 +300,7 @@ class _BroadcastCard extends StatelessWidget {
                       l10n.sensorsBroadcastTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                      style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                     ),
                     StatusLine(
                       status: status,
@@ -333,7 +333,7 @@ class _BroadcastCard extends StatelessWidget {
               RetrofitMode.wifi => l10n.sensorsTransportNetworkHint,
               _ => l10n.sensorsTransportBluetoothHint,
             },
-            style: TextStyle(fontSize: 12.5, height: 1.4, color: theme.colorScheme.mutedForeground),
+            style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
           ),
         ],
       ),
@@ -380,8 +380,7 @@ class _TransportControl extends StatelessWidget {
               const Gap(6),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 13.5,
+                style: context.typography.small.copyWith(
                   fontWeight: FontWeight.w600,
                   color: selected ? theme.colorScheme.foreground : theme.colorScheme.mutedForeground,
                 ),
@@ -428,8 +427,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(left: 2),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10.5,
+        style: context.typography.caption.copyWith(
           fontWeight: FontWeight.w700,
           letterSpacing: 0.6,
           color: Theme.of(context).colorScheme.mutedForeground,
@@ -471,11 +469,11 @@ class _EmptyPanel extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.sensorsEmptyTitle, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  Text(l10n.sensorsEmptyTitle, style: context.typography.base.copyWith(fontWeight: FontWeight.w700)),
                   const Gap(3),
                   Text(
                     l10n.sensorsEmptyBody,
-                    style: TextStyle(fontSize: 12.5, height: 1.4, color: theme.colorScheme.mutedForeground),
+                    style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
                   ),
                 ],
               ),

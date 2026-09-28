@@ -61,6 +61,8 @@ Future<void> main() async {
     expect(yearly, isSemantics(isButton: true, isSelected: true, hasTapAction: true));
     expect(monthly, isSemantics(isButton: true, isSelected: false, hasTapAction: true));
 
+    await tester.ensureVisible(find.text(l10n.paywall_monthly));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text(l10n.paywall_monthly));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.semantics.byLabel(RegExp(l10n.paywall_monthly)), isSemantics(isSelected: true));

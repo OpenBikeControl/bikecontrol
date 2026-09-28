@@ -6,6 +6,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -63,9 +64,7 @@ class _DevicePageState extends State<ProxyPage> {
                       // takeover-consent dialog via select-to-act. Non-smart
                       // proxy devices (power-meter / HR only) have just the
                       // Proxy mode, so keep the tap-to-connect convenience.
-                      if (!device.isSmartTrainer &&
-                          !device.isStartedListenable.value &&
-                          !device.isStarting.value) {
+                      if (!device.isSmartTrainer && !device.isStartedListenable.value && !device.isStarting.value) {
                         if (IAPManager.instance.isTrialExpired) {
                           await showGoProDialog(context);
                           return;
@@ -99,7 +98,7 @@ class _DevicePageState extends State<ProxyPage> {
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               child: Text(
                 context.i18n.lookingForSmartTrainers,
-                style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+                style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
               ),
             );
           },
