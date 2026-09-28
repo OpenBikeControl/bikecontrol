@@ -1,5 +1,6 @@
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async' show unawaited;
+import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -40,7 +41,32 @@ class SupportDiagnosticsSummary {
   final String? connections;
   final int logLines;
 
+  /// Reads either `debugText()` output or a JSON-encoded telemetry snapshot
+  /// (its fields, plus the `debugText()` in its `freetext`).
   static SupportDiagnosticsSummary parse(String payload) {
+    final trimmed = payload.trimLeft();
+    if (trimmed.startsWith('{')) {
+      try {
+        final json = jsonDecode(trimmed);
+        if (json is Map) {
+          final text = json['freetext'] is String ? _parseText(json['freetext'] as String) : const SupportDiagnosticsSummary();
+          String? field(String key) => json[key] is String && (json[key] as String).isNotEmpty ? json[key] as String : null;
+          return SupportDiagnosticsSummary(
+            appVersion: field('app_version') ?? text.appVersion,
+            platform: field('app_platform') ?? text.platform,
+            devices: text.devices ?? field('bluetooth_name'),
+            connections: text.connections,
+            logLines: text.logLines,
+          );
+        }
+      } on FormatException {
+        // Not JSON after all: read it as text.
+      }
+    }
+    return _parseText(payload);
+  }
+
+  static SupportDiagnosticsSummary _parseText(String payload) {
     final lines = payload.split('\n');
     String? value(String key) {
       for (final line in lines) {

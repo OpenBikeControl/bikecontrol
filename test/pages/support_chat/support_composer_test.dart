@@ -146,6 +146,17 @@ Logs:
     expect(find.textContaining('10:00:01 - one'), findsOneWidget);
   });
 
+  test('a JSON telemetry payload is summarised from its fields and free text', () {
+    const json = '{"app_version": "7.1.0", "app_platform": "android", "bluetooth_name": "KICKR CORE", '
+        '"freetext": "Connected Controllers: Zwift Ride\\nConnected Trainers: OpenBikeControl\\nLogs:\\na\\nb"}';
+    final summary = SupportDiagnosticsSummary.parse(json);
+    expect(summary.appVersion, '7.1.0');
+    expect(summary.platform, 'android');
+    expect(summary.devices, 'Zwift Ride');
+    expect(summary.connections, 'OpenBikeControl');
+    expect(summary.logLines, 2);
+  });
+
   test('the summary is read from the diagnostics payload', () {
     final summary = SupportDiagnosticsSummary.parse('App Version: 1.0\nPlatform: android 15\nConnected Controllers: \nConnected Trainers: -\nLogs:\na\nb\n\nWire trace:\nx');
     expect(summary.appVersion, '1.0');
