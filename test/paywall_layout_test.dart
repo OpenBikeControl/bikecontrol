@@ -204,4 +204,24 @@ Future<void> main() async {
     );
     expect(tester.takeException(), isNull);
   });
+
+  // A long translation at a large text size used to shrink both links to fit
+  // one line (FittedBox) until they were unreadably small; they wrap instead.
+  testWidgets('terms and privacy links keep their size at large text instead of shrinking', (tester) async {
+    IAPManager.instance.isPurchased.value = false;
+    addTearDown(() => IAPManager.instance.isPurchased.value = true);
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
+    expect(tester.takeException(), isNull);
+
+    final l10n = AppLocalizations.current;
+    for (final link in [l10n.termsOfUse, l10n.privacyPolicy]) {
+      expect(
+        find.ancestor(of: find.text(link), matching: find.byType(FittedBox)),
+        findsNothing,
+        reason: link,
+      );
+    }
+  });
 }

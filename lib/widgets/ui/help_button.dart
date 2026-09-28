@@ -1,3 +1,4 @@
+import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/help_center/help_center_page.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
@@ -5,7 +6,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/unread_dot.dart';
-import 'package:prop/utils/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class HelpButton extends StatefulWidget {
@@ -40,7 +40,7 @@ class _HelpButtonState extends State<HelpButton> {
   /// Polls the support chat in the background and surfaces a small dot on
   /// the help button when at least one admin message has arrived since the
   /// last seen timestamp on the chat. Failures (no auth, network down,
-  /// edge function unavailable) are swallowed — the dot just stays off.
+  /// edge function unavailable) are recorded and the dot just stays off.
   Future<void> _checkForUnread() async {
     if (core.supabase.auth.currentSession == null) return;
     try {
@@ -53,9 +53,9 @@ class _HelpButtonState extends State<HelpButton> {
       if (hasUnreadAdminReply != _hasUnread) {
         setState(() => _hasUnread = hasUnreadAdminReply);
       }
-    } catch (error) {
+    } catch (error, stack) {
       // Best-effort — leave the dot off.
-      Logger.error('Failed to check for unread support messages $error');
+      recordError(error, stack, context: 'Checking for unread support messages');
     }
   }
 

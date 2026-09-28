@@ -568,22 +568,27 @@ class _PaywallState extends State<Paywall> {
                   ),
                 ),
               ),
-              // One line, whatever the language: shrink before wrapping.
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Button.text(
-                      onPressed: () => launchUrlString('https://bikecontrol.app/terms-of-use'),
-                      child: Text(AppLocalizations.of(context).termsOfUse, maxLines: 1).xSmall.muted.underline,
-                    ),
-                    Button.text(
-                      onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
-                      child: Text(AppLocalizations.of(context).privacyPolicy, maxLines: 1).xSmall.muted.underline,
-                    ),
-                  ],
-                ),
+              // Side by side while they fit; a long translation or a large
+              // text size wraps them onto two lines rather than shrinking the
+              // legal links until they can't be read.
+              Wrap(
+                alignment: WrapAlignment.center,
+                children: [
+                  Button.text(
+                    onPressed: () => launchUrlString('https://bikecontrol.app/terms-of-use'),
+                    child: Text(
+                      AppLocalizations.of(context).termsOfUse,
+                      textAlign: TextAlign.center,
+                    ).xSmall.muted.underline,
+                  ),
+                  Button.text(
+                    onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
+                    child: Text(
+                      AppLocalizations.of(context).privacyPolicy,
+                      textAlign: TextAlign.center,
+                    ).xSmall.muted.underline,
+                  ),
+                ],
               ),
             ],
           ),

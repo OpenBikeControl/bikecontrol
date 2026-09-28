@@ -2283,5 +2283,7 @@
   "overlayCouldNotStart": "No se pudo mostrar el Overlay. Inténtalo de nuevo.",
   "secondsAgo": "hace {seconds} s",
   "minutesAgo": "hace {minutes} min",
-  "scanning": "Buscando"
+  "scanning": "Buscando",
+  "a11yTabHasErrors": "{tab}, con errores",
+  "a11yTabHasNewPosts": "{tab}, publicaciones nuevas"
 }

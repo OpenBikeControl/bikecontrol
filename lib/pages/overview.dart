@@ -823,45 +823,44 @@ class _TabsState extends State<_Tabs> {
           child: Text(AppLocalizations.of(context).main),
         ),
         TabItem(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(AppLocalizations.of(context).activity),
-              if (widget.hasErrors) ...[
-                Gap(6),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.destructive.withAlpha(160),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ],
+          child: _labelWithDot(
+            AppLocalizations.of(context).activity,
+            dot: widget.hasErrors ? Theme.of(context).colorScheme.destructive.withAlpha(160) : null,
+            spokenWithDot: AppLocalizations.of(context).a11yTabHasErrors,
           ),
         ),
         if (widget.pageCount >= 3)
           TabItem(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(AppLocalizations.of(context).blogTab),
-                if (widget.hasNewBlogPosts) ...[
-                  Gap(6),
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ],
+            child: _labelWithDot(
+              AppLocalizations.of(context).blogTab,
+              dot: widget.hasNewBlogPosts ? Theme.of(context).colorScheme.primary : null,
+              spokenWithDot: AppLocalizations.of(context).a11yTabHasNewPosts,
             ),
           ),
       ],
+    );
+  }
+
+  /// A tab label with an optional coloured dot. The dot only speaks in
+  /// colour, so a screen reader hears [spokenWithDot] as the label instead.
+  Widget _labelWithDot(String label, {required Color? dot, required String Function(String tab) spokenWithDot}) {
+    return Semantics(
+      label: dot == null ? label : spokenWithDot(label),
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label),
+          if (dot != null) ...[
+            const Gap(6),
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

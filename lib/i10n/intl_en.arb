@@ -2636,5 +2636,21 @@
       }
     }
   },
-  "scanning": "Scanning"
+  "scanning": "Scanning",
+  "a11yTabHasErrors": "{tab}, has errors",
+  "@a11yTabHasErrors": {
+    "placeholders": {
+      "tab": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yTabHasNewPosts": "{tab}, new posts",
+  "@a11yTabHasNewPosts": {
+    "placeholders": {
+      "tab": {
+        "type": "String"
+      }
+    }
+  }
 }
