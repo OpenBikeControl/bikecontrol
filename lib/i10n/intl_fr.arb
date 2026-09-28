@@ -2288,5 +2288,20 @@
   "a11yTabHasNewPosts": "{tab}, nouveaux articles",
   "statusConnected": "Connecté",
   "statusConnecting": "Connexion en cours",
-  "statusOff": "Désactivé"
+  "statusOff": "Désactivé",
+  "unlock_importantSetupInfo": "Informations importantes de configuration",
+  "instructionsQa": "Questions-réponses",
+  "remoteControl": "Contrôle à distance",
+  "proFeature": "Fonction Pro",
+  "trainerAppAction": "Action {app}",
+  "open": "Ouvrir",
+  "couldNotLaunchAssistant": "Impossible de lancer l'assistant",
+  "supportChatOpenFailed": "Impossible d’ouvrir le chat d’assistance",
+  "supportChatLoadFailed": "Impossible de charger le chat d’assistance",
+  "supportChatSendFailed": "Impossible d'envoyer le message",
+  "supportChatUnsupportedFile": "Type de fichier non pris en charge",
+  "supportChatUploadFailed": "Impossible d'envoyer la pièce jointe",
+  "supportChatDeleteFailed": "Impossible de supprimer tes données",
+  "youtubeVideo": "Vidéo YouTube",
+  "supportChatIssuesFailed": "Impossible de charger les sujets"
 }

@@ -143,7 +143,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             Warning(
               children: [
                 Text(
-                  'Important Setup Information',
+                  AppLocalizations.of(context).unlock_importantSetupInfo,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ).small,
                 Text(

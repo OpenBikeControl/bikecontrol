@@ -100,11 +100,11 @@ class SupportChatService {
       await core.settings.setSupportChatActive(true);
       return SupportChat.fromJson(chatJson);
     } on FunctionException catch (e) {
-      throw SupportChatException(_extractError(e.details) ?? 'Failed to open support chat');
+      throw SupportChatException(_extractError(e.details) ?? AppLocalizations.current.supportChatOpenFailed);
     } on SupportChatException {
       rethrow;
     } catch (_) {
-      throw const SupportChatException('Failed to open support chat');
+      throw SupportChatException(AppLocalizations.current.supportChatOpenFailed);
     }
   }
 
@@ -140,7 +140,7 @@ class SupportChatService {
           .map((e) => SupportIssue.fromJson(Map<String, dynamic>.from(e)))
           .toList(growable: false);
     } catch (_) {
-      throw const SupportChatException('Failed to load issues');
+      throw SupportChatException(AppLocalizations.current.supportChatIssuesFailed);
     }
   }
 
@@ -162,11 +162,11 @@ class SupportChatService {
           : <SupportMessage>[];
       return (chat: chat, messages: messages);
     } on FunctionException catch (e) {
-      throw SupportChatException(_extractError(e.details) ?? 'Failed to load support chat');
+      throw SupportChatException(_extractError(e.details) ?? AppLocalizations.current.supportChatLoadFailed);
     } on SupportChatException {
       rethrow;
     } catch (_) {
-      throw const SupportChatException('Failed to load support chat');
+      throw SupportChatException(AppLocalizations.current.supportChatLoadFailed);
     }
   }
 
@@ -220,11 +220,11 @@ class SupportChatService {
           .toList(growable: false);
       return SupportMessage.fromJson(messageJson);
     } on FunctionException catch (e) {
-      throw SupportChatException(_extractError(e.details) ?? 'Failed to send message');
+      throw SupportChatException(_extractError(e.details) ?? AppLocalizations.current.supportChatSendFailed);
     } on SupportChatException {
       rethrow;
     } catch (_) {
-      throw const SupportChatException('Failed to send message');
+      throw SupportChatException(AppLocalizations.current.supportChatSendFailed);
     }
   }
 
@@ -241,7 +241,7 @@ class SupportChatService {
 
     final mimeType = SupportAttachmentLimits.mimeTypeForName(fileName);
     if (mimeType == null || !SupportAttachmentLimits.allowedMimeTypes.contains(mimeType)) {
-      throw SupportChatException(unsupportedMimeMessage ?? 'Unsupported file type');
+      throw SupportChatException(unsupportedMimeMessage ?? AppLocalizations.current.supportChatUnsupportedFile);
     }
 
     final size = file.size;
@@ -282,19 +282,21 @@ class SupportChatService {
       final streamed = await _httpClient.send(request);
       final response = await http.Response.fromStream(streamed);
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw SupportChatException(_extractErrorFromBody(response.body) ?? 'Failed to upload attachment');
+        throw SupportChatException(
+          _extractErrorFromBody(response.body) ?? AppLocalizations.current.supportChatUploadFailed,
+        );
       }
       final json = jsonDecode(response.body);
       if (json is! Map) {
-        throw const SupportChatException('Failed to upload attachment');
+        throw SupportChatException(AppLocalizations.current.supportChatUploadFailed);
       }
       return SupportAttachmentUpload.fromJson(Map<String, dynamic>.from(json));
     } on SupportChatException {
       rethrow;
     } on SocketException {
-      throw const SupportChatException('Failed to upload attachment');
+      throw SupportChatException(AppLocalizations.current.supportChatUploadFailed);
     } catch (_) {
-      throw const SupportChatException('Failed to upload attachment');
+      throw SupportChatException(AppLocalizations.current.supportChatUploadFailed);
     }
   }
 
@@ -323,11 +325,11 @@ class SupportChatService {
       );
       await core.settings.setSupportChatActive(false);
     } on FunctionException catch (e) {
-      throw SupportChatException(_extractError(e.details) ?? 'Failed to delete your data');
+      throw SupportChatException(_extractError(e.details) ?? AppLocalizations.current.supportChatDeleteFailed);
     } on SupportChatException {
       rethrow;
     } catch (_) {
-      throw const SupportChatException('Failed to delete your data');
+      throw SupportChatException(AppLocalizations.current.supportChatDeleteFailed);
     }
   }
 

@@ -51,7 +51,9 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
       }
 
       final title = _normalizeTitle(
-        _decodeXmlEntities(_extract(entry, RegExp(r'<title>([\s\S]*?)</title>')) ?? 'YouTube Video'),
+        _decodeXmlEntities(
+          _extract(entry, RegExp(r'<title>([\s\S]*?)</title>')) ?? AppLocalizations.current.youtubeVideo,
+        ),
       );
       final description = _decodeXmlEntities(
         _extract(entry, RegExp(r'<media:description>([\s\S]*?)</media:description>')) ?? '',

@@ -25,7 +25,7 @@ Future<bool> showGoProDialog(BuildContext context, {String? featureName}) async 
           children: [
             Icon(LucideIcons.crown, color: BkStatusColors.of(c).warning),
             const SizedBox(width: 8),
-            Expanded(child: Text(featureName ?? 'Pro Feature')),
+            Expanded(child: Text(featureName ?? AppLocalizations.of(c).proFeature)),
           ],
         ),
         content: Text(AppLocalizations.of(c).thisFeatureIsOnlyAvailableWithPro),

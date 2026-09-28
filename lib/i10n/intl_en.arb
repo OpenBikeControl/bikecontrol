@@ -2655,5 +2655,27 @@
   },
   "statusConnected": "Connected",
   "statusConnecting": "Connecting",
-  "statusOff": "Off"
+  "statusOff": "Off",
+  "unlock_importantSetupInfo": "Important setup information",
+  "instructionsQa": "Q&A",
+  "remoteControl": "Remote Control",
+  "proFeature": "Pro feature",
+  "trainerAppAction": "{app} action",
+  "@trainerAppAction": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "open": "Open",
+  "couldNotLaunchAssistant": "Could not launch the assistant",
+  "supportChatOpenFailed": "Failed to open support chat",
+  "supportChatLoadFailed": "Failed to load support chat",
+  "supportChatSendFailed": "Failed to send message",
+  "supportChatUnsupportedFile": "Unsupported file type",
+  "supportChatUploadFailed": "Failed to upload attachment",
+  "supportChatDeleteFailed": "Failed to delete your data",
+  "youtubeVideo": "YouTube video",
+  "supportChatIssuesFailed": "Failed to load issues"
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/semantics.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show navigatorKey;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -13,6 +14,8 @@ void main() {
     await tester.pumpWidget(
       ShadcnApp(
         navigatorKey: navigatorKey,
+        localizationsDelegates: const [AppLocalizations.delegate],
+        supportedLocales: const [Locale('en')],
         theme: BkTheme.build(Brightness.light),
         home: const ToastLayer(child: SizedBox.expand()),
       ),

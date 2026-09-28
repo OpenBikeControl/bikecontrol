@@ -248,7 +248,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ],
                 if (core.logic.showZwiftBleEmulator || core.logic.showZwiftMsdnEmulator) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: '${core.settings.getTrainerApp()?.name ?? 'Zwift'} Action'),
+                  ColoredTitle(text: context.i18n.trainerAppAction(core.settings.getTrainerApp()?.name ?? 'Zwift')),
                   if (!core.settings.getZwiftBleEmulatorEnabled() && !core.settings.getZwiftMdnsEmulatorEnabled())
                     Warning(
                       important: false,
@@ -1425,7 +1425,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           : keyPairAction.inGameAction?.title ?? '',
                     ),
                     Text(switch (supportedMode) {
-                      SupportedMode.keyboard => keyPairAction.logicalKey?.keyLabel ?? 'Not assigned',
+                      SupportedMode.keyboard =>
+                        keyPairAction.logicalKey?.keyLabel ?? context.i18n.notAssignedOrNoConnectionMethodActive,
                       SupportedMode.touch =>
                         'X:${keyPairAction.touchPosition.dx.toInt()}, Y:${keyPairAction.touchPosition.dy.toInt()}',
                       SupportedMode.media => throw UnimplementedError(),

@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:flutter/semantics.dart';
 import 'package:bike_control/main.dart';
@@ -9,7 +10,9 @@ void buildToast({
   LogLevel level = LogLevel.LOGLEVEL_INFO,
   String? title,
   Widget? titleWidget,
-  String closeTitle = 'Close',
+
+  /// Defaults to the translated "Close".
+  String? closeTitle,
   // Top-right: footer action bars (wizard Continue, settings saves) live at
   // the bottom — toasts must never cover them.
   ToastLocation location = ToastLocation.topRight,
@@ -25,9 +28,7 @@ void buildToast({
     final isMobile = isCompactWindow(navigatorKey.currentContext!);
     showToast(
       context: navigatorKey.currentContext!,
-      location: isMobile
-          ? (onboardingActive ? ToastLocation.bottomCenter : ToastLocation.bottomRight)
-          : location,
+      location: isMobile ? (onboardingActive ? ToastLocation.bottomCenter : ToastLocation.bottomRight) : location,
       showDuration: switch (level) {
         LogLevel.LOGLEVEL_DEBUG => const Duration(seconds: 2),
         LogLevel.LOGLEVEL_INFO => duration ?? const Duration(seconds: 3),
@@ -64,7 +65,7 @@ void buildToast({
                     },
                     child: Container(
                       constraints: BoxConstraints(maxWidth: 100),
-                      child: Text(closeTitle),
+                      child: Text(closeTitle ?? AppLocalizations.of(context).close),
                     ),
                   ),
             trailingAlignment: Alignment.center,

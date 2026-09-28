@@ -210,7 +210,7 @@ class AndroidActions extends BaseActions {
 
     throw PlatformException(
       code: 'assistant_unavailable',
-      message: lastException?.message ?? 'Could not launch assistant',
+      message: lastException?.message ?? AppLocalizations.current.couldNotLaunchAssistant,
     );
   }
 

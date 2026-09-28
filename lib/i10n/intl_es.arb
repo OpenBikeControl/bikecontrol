@@ -2288,5 +2288,20 @@
   "a11yTabHasNewPosts": "{tab}, publicaciones nuevas",
   "statusConnected": "Conectado",
   "statusConnecting": "Conectando",
-  "statusOff": "Desactivado"
+  "statusOff": "Desactivado",
+  "unlock_importantSetupInfo": "Información importante de configuración",
+  "instructionsQa": "Preguntas y respuestas",
+  "remoteControl": "Control remoto",
+  "proFeature": "Función Pro",
+  "trainerAppAction": "Acción de {app}",
+  "open": "Abrir",
+  "couldNotLaunchAssistant": "No se pudo iniciar el asistente",
+  "supportChatOpenFailed": "No se pudo abrir el chat de soporte",
+  "supportChatLoadFailed": "No se pudo cargar el chat de soporte",
+  "supportChatSendFailed": "No se pudo enviar el mensaje",
+  "supportChatUnsupportedFile": "Tipo de archivo no compatible",
+  "supportChatUploadFailed": "No se pudo subir el archivo adjunto",
+  "supportChatDeleteFailed": "No se pudieron eliminar tus datos",
+  "youtubeVideo": "Vídeo de YouTube",
+  "supportChatIssuesFailed": "No se pudieron cargar los temas"
 }

@@ -2288,5 +2288,20 @@
   "a11yTabHasNewPosts": "{tab}, neue Beiträge",
   "statusConnected": "Verbunden",
   "statusConnecting": "Verbindet",
-  "statusOff": "Aus"
+  "statusOff": "Aus",
+  "unlock_importantSetupInfo": "Wichtige Hinweise zur Einrichtung",
+  "instructionsQa": "Fragen & Antworten",
+  "remoteControl": "Fernsteuerung",
+  "proFeature": "Pro-Funktion",
+  "trainerAppAction": "{app}-Aktion",
+  "open": "Öffnen",
+  "couldNotLaunchAssistant": "Der Assistent konnte nicht gestartet werden",
+  "supportChatOpenFailed": "Der Support-Chat konnte nicht geöffnet werden",
+  "supportChatLoadFailed": "Der Support-Chat konnte nicht geladen werden",
+  "supportChatSendFailed": "Die Nachricht konnte nicht gesendet werden",
+  "supportChatUnsupportedFile": "Dateityp wird nicht unterstützt",
+  "supportChatUploadFailed": "Der Anhang konnte nicht hochgeladen werden",
+  "supportChatDeleteFailed": "Deine Daten konnten nicht gelöscht werden",
+  "youtubeVideo": "YouTube-Video",
+  "supportChatIssuesFailed": "Die Themen konnten nicht geladen werden"
 }

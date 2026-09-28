@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
@@ -170,9 +171,9 @@ class _ChangelogPageState extends State<MarkdownPage> {
 
   List<_InstructionOption> _buildInstructionOptions() {
     final options = <_InstructionOption>[
-      _InstructionOption(label: 'Q&A', assetPath: _troubleshootingPath),
+      _InstructionOption(label: AppLocalizations.current.instructionsQa, assetPath: _troubleshootingPath),
       _InstructionOption(label: 'MyWhoosh Link', assetPath: _myWhooshLinkPath),
-      _InstructionOption(label: 'Remote Control', assetPath: _remoteControlPath),
+      _InstructionOption(label: AppLocalizations.current.remoteControl, assetPath: _remoteControlPath),
     ];
 
     final platformSupportsLocal =
@@ -182,7 +183,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
             defaultTargetPlatform == TargetPlatform.windows);
 
     if (platformSupportsLocal) {
-      options.add(_InstructionOption(label: 'Local', assetPath: _localPath));
+      options.add(_InstructionOption(label: AppLocalizations.current.onboardingMethodLocal, assetPath: _localPath));
     }
 
     final trainerApp = core.settings.getTrainerApp();
