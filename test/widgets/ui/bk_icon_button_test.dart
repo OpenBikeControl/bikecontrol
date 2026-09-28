@@ -17,7 +17,7 @@ void main() {
 
     expect(
       find.semantics.byLabel('Back'),
-      containsSemantics(isButton: true, isEnabled: true, hasEnabledState: true, hasTapAction: true, isFocusable: true),
+      isSemantics(isButton: true, isEnabled: true, hasEnabledState: true, hasTapAction: true, isFocusable: true),
     );
     tester.semantics.tap(find.semantics.byLabel('Back'));
     expect(taps, 1);
@@ -29,7 +29,7 @@ void main() {
     await pump(tester, const BkIconButton.primary(icon: Icon(LucideIcons.send), label: 'Send message', onPressed: null));
     expect(
       find.semantics.byLabel('Send message'),
-      containsSemantics(isButton: true, isEnabled: false, hasEnabledState: true, hasTapAction: false),
+      isSemantics(isButton: true, isEnabled: false, hasEnabledState: true, hasTapAction: false),
     );
     handle.dispose();
   });

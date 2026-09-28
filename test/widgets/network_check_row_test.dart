@@ -1,4 +1,3 @@
-import 'dart:ui' show SemanticsFlag;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/services/network_self_test/network_check.dart';
@@ -104,12 +103,12 @@ Future<void> main() async {
     );
     await tester.pumpAndSettle();
     final title = networkCheckTitle(tester.element(find.byType(NetworkCheckRow)), NetworkCheckId.tcpSelfConnect);
-    final row = find.semantics.byPredicate((n) => n.label.contains(title) && n.hasFlag(SemanticsFlag.isButton));
+    final row = find.semantics.byPredicate((n) => n.label.contains(title) && n.getSemanticsData().flagsCollection.isButton);
 
-    expect(row, containsSemantics(isButton: true, hasExpandedState: true, isExpanded: false, hasTapAction: true, isFocusable: true));
+    expect(row, isSemantics(isButton: true, hasExpandedState: true, isExpanded: false, hasTapAction: true, isFocusable: true));
     tester.semantics.tap(row);
     await tester.pumpAndSettle();
-    expect(row, containsSemantics(hasExpandedState: true, isExpanded: true));
+    expect(row, isSemantics(hasExpandedState: true, isExpanded: true));
     handle.dispose();
   });
 

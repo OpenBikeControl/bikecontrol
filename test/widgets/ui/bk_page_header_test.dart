@@ -35,8 +35,8 @@ void main() {
       Scaffold(headers: const [BkPageHeader(title: 'Gear Settings')], child: const SizedBox()),
     );
 
-    expect(find.semantics.byLabel('Gear Settings'), containsSemantics(isHeader: true));
-    expect(find.semantics.byLabel('Back'), containsSemantics(isButton: true, hasTapAction: true));
+    expect(find.semantics.byLabel('Gear Settings'), isSemantics(isHeader: true));
+    expect(find.semantics.byLabel('Back'), isSemantics(isButton: true, hasTapAction: true));
     expect(find.byIcon(LucideIcons.x), findsNothing);
 
     tester.semantics.tap(find.semantics.byLabel('Back'));

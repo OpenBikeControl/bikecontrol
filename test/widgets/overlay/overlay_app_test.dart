@@ -50,8 +50,8 @@ void main() {
       ));
       await tester.pumpAndSettle();
       final (down, up) = mode == TrainerMode.ergMode ? ('Decrease', 'Increase') : ('Shift Down', 'Shift Up');
-      expect(find.semantics.byLabel(down), containsSemantics(isButton: true, hasTapAction: true));
-      expect(find.semantics.byLabel(up), containsSemantics(isButton: true, hasTapAction: true));
+      expect(find.semantics.byLabel(down), isSemantics(isButton: true, hasTapAction: true));
+      expect(find.semantics.byLabel(up), isSemantics(isButton: true, hasTapAction: true));
       handle.dispose();
     });
   }

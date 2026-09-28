@@ -6,7 +6,6 @@ import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -59,13 +58,13 @@ Future<void> main() async {
     final monthly = find.semantics.byLabel(RegExp(l10n.paywall_monthly));
     expect(yearly, findsOne);
     expect(monthly, findsOne);
-    expect(yearly, containsSemantics(isButton: true, isSelected: true, hasTapAction: true));
-    expect(monthly, containsSemantics(isButton: true, isSelected: false, hasTapAction: true));
+    expect(yearly, isSemantics(isButton: true, isSelected: true, hasTapAction: true));
+    expect(monthly, isSemantics(isButton: true, isSelected: false, hasTapAction: true));
 
     await tester.tap(find.text(l10n.paywall_monthly));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.semantics.byLabel(RegExp(l10n.paywall_monthly)), containsSemantics(isSelected: true));
-    expect(find.semantics.byLabel(RegExp(l10n.paywall_yearly)), containsSemantics(isSelected: false));
+    expect(find.semantics.byLabel(RegExp(l10n.paywall_monthly)), isSemantics(isSelected: true));
+    expect(find.semantics.byLabel(RegExp(l10n.paywall_yearly)), isSemantics(isSelected: false));
     handle.dispose();
   });
 
@@ -75,7 +74,7 @@ Future<void> main() async {
     final l10n = AppLocalizations.of(tester.element(find.byType(Paywall)));
     expect(
       find.semantics.byLabel(l10n.purchase),
-      containsSemantics(isButton: true, hasTapAction: true, isFocusable: true, isEnabled: true),
+      isSemantics(isButton: true, hasTapAction: true, isFocusable: true, isEnabled: true),
     );
     handle.dispose();
   });

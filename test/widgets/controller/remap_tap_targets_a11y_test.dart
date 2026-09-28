@@ -35,7 +35,7 @@ Future<void> main() async {
     for (final button in [GyroscopeSteeringButtons.leftSteer, GyroscopeSteeringButtons.rightSteer]) {
       expect(
         find.semantics.byLabel(RegExp(RegExp.escape(button.displayName))),
-        containsSemantics(isButton: true, hasTapAction: true, isFocusable: true),
+        isSemantics(isButton: true, hasTapAction: true, isFocusable: true),
       );
     }
     handle.dispose();
@@ -61,7 +61,7 @@ Future<void> main() async {
     );
     expect(
       find.semantics.byLabel(RegExp(RegExp.escape(button.displayName))),
-      containsSemantics(isButton: true, hasTapAction: true, isFocusable: true),
+      isSemantics(isButton: true, hasTapAction: true, isFocusable: true),
     );
     handle.dispose();
   });

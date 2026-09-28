@@ -57,8 +57,8 @@ void main() {
         ),
       ),
     );
-    expect(find.semantics.byLabel('Decrease'), containsSemantics(isButton: true, isEnabled: false));
-    expect(find.semantics.byLabel('Increase'), containsSemantics(isButton: true, isEnabled: true, hasTapAction: true));
+    expect(find.semantics.byLabel('Decrease'), isSemantics(isButton: true, isEnabled: false));
+    expect(find.semantics.byLabel('Increase'), isSemantics(isButton: true, isEnabled: true, hasTapAction: true));
     handle.dispose();
   });
 }

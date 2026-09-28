@@ -40,8 +40,8 @@ Future<void> main() async {
           builder: (_) => DrivetrainControls(definition: def, compact: compact),
         );
         final before = def.currentGear.value;
-        expect(find.semantics.byLabel('Shift Up'), containsSemantics(isButton: true, hasTapAction: true));
-        expect(find.semantics.byLabel('Shift Down'), containsSemantics(isButton: true, hasTapAction: true));
+        expect(find.semantics.byLabel('Shift Up'), isSemantics(isButton: true, hasTapAction: true));
+        expect(find.semantics.byLabel('Shift Down'), isSemantics(isButton: true, hasTapAction: true));
         tester.semantics.tap(find.semantics.byLabel('Shift Up'));
         expect(def.currentGear.value, before + 1);
         await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
