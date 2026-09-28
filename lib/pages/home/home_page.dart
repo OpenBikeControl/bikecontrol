@@ -640,6 +640,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _outstandingLinkIds = banner.outstandingLinkIds;
     final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
     final trial = _trialState();
+    final vsBudget = vsBudgetCardState(
+      isPurchased: IAPManager.instance.isPurchased.value,
+      isProForDevice: IAPManager.instance.isProEnabledForCurrentDevice,
+      trainerBridged: core.connection.proxyDevices.any((p) => p.isBridged),
+      remainingToday: core.bridgeUsageTracker.remainingToday,
+      dailyLimit: core.bridgeUsageTracker.dailyLimit,
+    );
 
     final cards = <Widget>[];
     final keyedIds = <String>{};
@@ -680,6 +687,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state: trial,
               onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
               onRestore: () => IAPManager.instance.restorePurchases(),
+            ),
+            const Gap(10),
+          ],
+          if (vsBudget != null) ...[
+            // Live while riding: the budget ticks down during a session.
+            ValueListenableBuilder<Duration>(
+              valueListenable: core.bridgeUsageTracker.usedTodayListenable,
+              builder: (context, _, _) => VsBudgetCard(
+                state: vsBudgetCardState(
+                      isPurchased: true,
+                      isProForDevice: false,
+                      trainerBridged: true,
+                      remainingToday: core.bridgeUsageTracker.remainingToday,
+                      dailyLimit: core.bridgeUsageTracker.dailyLimit,
+                    ) ??
+                    vsBudget,
+                // Base is bought, so the paywall shows the Pro plans only.
+                onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
+              ),
             ),
             const Gap(10),
           ],

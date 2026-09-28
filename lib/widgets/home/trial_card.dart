@@ -179,6 +179,85 @@ class TrialCard extends StatelessWidget {
   }
 }
 
+/// Today's virtual-shifting budget for a Base owner.
+class VsBudgetCardState {
+  const VsBudgetCardState({required this.minutesRemaining, required this.minutesTotal});
+
+  final int minutesRemaining;
+  final int minutesTotal;
+}
+
+/// Base doesn't include BikeControl's virtual shifting — without Pro its daily
+/// budget applies after buying Base too (see ProxyDevice._syncBridgeTracking).
+/// The trial card is gone once Base is bought, so this is the only place a
+/// Base owner can see the budget before hitting it. Null when it doesn't
+/// apply: no bridged trainer, Pro on this device, or not bought yet (the trial
+/// card shows the meter then).
+VsBudgetCardState? vsBudgetCardState({
+  required bool isPurchased,
+  required bool isProForDevice,
+  required bool trainerBridged,
+  required Duration remainingToday,
+  required Duration dailyLimit,
+}) {
+  if (!isPurchased || isProForDevice || !trainerBridged || dailyLimit <= Duration.zero) return null;
+  final remaining = remainingToday.isNegative ? Duration.zero : remainingToday;
+  return VsBudgetCardState(minutesRemaining: remaining.inMinutes, minutesTotal: dailyLimit.inMinutes);
+}
+
+/// The Base owner's virtual-shifting meter: one line, same surface as the
+/// chain cards, and the way to Pro.
+class VsBudgetCard extends StatelessWidget {
+  const VsBudgetCard({super.key, required this.state, this.onUpgrade});
+
+  final VsBudgetCardState state;
+  final VoidCallback? onUpgrade;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l = context.i18n;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 8),
+      decoration: ShapeDecoration(
+        color: theme.colorScheme.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.colorScheme.border, width: 1.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _Meter(
+              label: l.chainTrialBridgeMeter,
+              value: state.minutesRemaining,
+              total: state.minutesTotal,
+              suffix: l.chainTrialBridgeMeterSuffix,
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Button.ghost(
+              onPressed: onUpgrade,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.vsBudgetProRemovesLimit).xSmall.semiBold,
+                  const Gap(4),
+                  const Icon(LucideIcons.chevronRight, size: 14),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A budget-of-total bar. Turns amber in the last quarter — the point at which
 /// the number starts to matter.
 class _Meter extends StatelessWidget {

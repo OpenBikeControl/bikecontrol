@@ -2697,5 +2697,6 @@
   "paywall_startProYearly": "Start Pro yearly",
   "paywall_startProMonthly": "Start Pro monthly",
   "paywall_buyBase": "Buy Base",
-  "paywall_planQuestions": "Questions about plans?"
+  "paywall_planQuestions": "Questions about plans?",
+  "vsBudgetProRemovesLimit": "Pro removes the limit"
 }
