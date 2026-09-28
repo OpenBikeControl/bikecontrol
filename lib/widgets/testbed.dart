@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
@@ -73,7 +74,7 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _isMobile = MediaQuery.sizeOf(context).width < 600;
+    _isMobile = isCompactWindow(context);
   }
 
   @override

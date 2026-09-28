@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'dart:async';
@@ -91,8 +92,8 @@ bool shouldShowConnectionAlertToast({
   required bool isConnectionAlert,
 }) {
   final page = (pageViewPage ?? 0).round();
-  final baseShow = !screenshotMode && (!overviewFrontmost || (screenWidth < 800 && page != 1));
-  final connectionCardVisible = overviewFrontmost && (screenWidth >= 800 || page == 0);
+  final baseShow = !screenshotMode && (!overviewFrontmost || (screenWidth < Breakpoints.twoPane && page != 1));
+  final connectionCardVisible = overviewFrontmost && (screenWidth >= Breakpoints.twoPane || page == 0);
   return baseShow && !(isConnectionAlert && connectionCardVisible);
 }
 
@@ -256,7 +257,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       // every one of those presses fails by design. Toasting "X could not be
       // performed" over the step that told them to press it reads as the
       // wizard being broken. The entry is still logged to the activity list.
-      if (!onboardingActive && _screenWidth < 800 && _horizontalScrollController.page != 1) {
+      if (!onboardingActive && _screenWidth < Breakpoints.twoPane && _horizontalScrollController.page != 1) {
         final fix = _errorFixAction(entry);
         buildToast(
           level: LogLevel.LOGLEVEL_WARNING,
@@ -348,7 +349,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     // Wide desktop promotes the activity log to a permanent rail, and that rail
     // carries its own Help button — a second one in the chain would be a
     // duplicate of something already on screen.
-    final showsActivityRail = _screenWidth >= 800;
+    final showsActivityRail = _screenWidth >= Breakpoints.twoPane;
 
     final leftColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,7 +370,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       child: _buildActivityLog(),
     );
 
-    if (_screenWidth < 800) {
+    if (_screenWidth < Breakpoints.twoPane) {
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
       final hPad = 12.0;
 

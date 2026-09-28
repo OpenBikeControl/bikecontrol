@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io' show Platform, Process;
@@ -300,7 +301,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   /// One breakpoint for the whole page: below it the design's side-by-side
   /// arrangements stack, because a desktop window's worth of width is exactly
   /// what they assume.
-  static bool _narrow(BuildContext context) => MediaQuery.sizeOf(context).width < 640;
+  static bool _narrow(BuildContext context) => MediaQuery.sizeOf(context).width < Breakpoints.networkValueColumn;
 
   /// When the run happened, on what — a mono stamp, because its only job is to
   /// be read back to support off a screenshot.

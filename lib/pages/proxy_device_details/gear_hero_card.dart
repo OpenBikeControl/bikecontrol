@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -60,7 +61,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
       ]),
       builder: (context, _) {
         final isErg = widget.definition.trainerMode.value == TrainerMode.ergMode;
-        final isSmall = MediaQuery.sizeOf(context).width < 600;
+        final isSmall = isCompactWindow(context);
         if (widget.simOnly && isErg) return const SizedBox.shrink();
         final showMyWhooshHint = !isErg && !_myWhooshHintDismissed && _isMyWhooshActive && !screenshotMode;
         final tile = SettingTile(
@@ -168,7 +169,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
 
   Widget _ergContent(BuildContext context, ColorScheme cs) {
     final target = widget.definition.ergTargetPower.value ?? 150;
-    final isSmall = MediaQuery.sizeOf(context).width < 600;
+    final isSmall = isCompactWindow(context);
     return Column(
       spacing: isSmall ? 12 : 28,
       children: [

@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -45,7 +46,7 @@ class DrivetrainControls extends StatelessWidget {
   /// Below this the shift column would take so much of the card that the
   /// drivetrain is squeezed into little over half of it, and the picture is the
   /// point. Same breakpoint the ERG side of this card already uses.
-  static const double _sideBySideFrom = 600;
+  static const double _sideBySideFrom = Breakpoints.compact;
 
   @override
   Widget build(BuildContext context) {

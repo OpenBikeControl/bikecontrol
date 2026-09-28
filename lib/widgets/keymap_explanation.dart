@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -73,7 +74,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _isMobile = MediaQuery.sizeOf(context).width < 860;
+    _isMobile = MediaQuery.sizeOf(context).width < Breakpoints.keymapSideBySide;
   }
 
   @override

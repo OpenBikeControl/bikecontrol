@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'dart:async';
@@ -34,7 +35,7 @@ import 'package:bike_control/utils/trainer_setup.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-const double kOnboardingDesktopBreakpoint = 800;
+const double kOnboardingDesktopBreakpoint = Breakpoints.twoPane;
 const double kOnboardingBodyMaxWidth = 640;
 
 String onboardingStepLabel(BuildContext context, OnboardingStep step) => switch (step) {

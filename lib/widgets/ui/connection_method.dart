@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -142,7 +143,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     }
 
     if (widget.small) {
-      final isSmallWidth = MediaQuery.sizeOf(context).width < 800;
+      final isSmallWidth = MediaQuery.sizeOf(context).width < Breakpoints.twoPane;
       final icon = Icon(
         widget.instructionLink?.contains("youtube") == true ? Icons.ondemand_video : Icons.help_outline,
       );

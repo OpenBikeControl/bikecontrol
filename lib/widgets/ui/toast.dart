@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:flutter/semantics.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
@@ -21,7 +22,7 @@ void buildToast({
     // Desktop: top-right (footers live bottom-right there). Mobile: normal
     // bottom placement — lifted above the wizard's sticky footer only while
     // onboarding is active.
-    final isMobile = MediaQuery.sizeOf(navigatorKey.currentContext!).width < 600;
+    final isMobile = isCompactWindow(navigatorKey.currentContext!);
     showToast(
       context: navigatorKey.currentContext!,
       location: isMobile
@@ -35,7 +36,7 @@ void buildToast({
         _ => duration ?? const Duration(seconds: 3),
       },
       builder: (context, overlay) => Padding(
-        padding: EdgeInsets.only(bottom: onboardingActive && MediaQuery.sizeOf(context).width < 600 ? 72 : 0),
+        padding: EdgeInsets.only(bottom: onboardingActive && isCompactWindow(context) ? 72 : 0),
         child: SurfaceCard(
           filled: switch (level) {
             LogLevel.LOGLEVEL_WARNING => true,

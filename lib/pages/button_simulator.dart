@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:math';
 
@@ -233,7 +234,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   Widget build(BuildContext context) {
     final connectedTrainers = core.logic.enabledNonLocalTrainerConnections;
 
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = isCompactWindow(context);
 
     return Focus(
       focusNode: _focusNode,

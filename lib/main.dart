@@ -713,6 +713,8 @@ class _BikeControlAppState extends State<BikeControlApp> {
           await wm.windowManager.ensureInitialized();
           final mainWindowId = await wm.windowManager.getId();
           MultiWindowNative.init(mainWindowId);
+          // Below this the compact layout itself starts to clip.
+          await wm.windowManager.setMinimumSize(Breakpoints.minDesktopWindow);
         } catch (e, s) {
           recordError(e, s, context: 'MultiWindowNative.init(main)');
         }

@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -418,7 +419,7 @@ class ZwiftClickV2 extends ZwiftRide {
     );
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 380) {
+        if (constraints.maxWidth < Breakpoints.clickV2Narrow) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 8,

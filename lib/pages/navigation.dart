@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -130,7 +131,7 @@ class _NavigationState extends State<Navigation> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _isMobile = MediaQuery.sizeOf(context).width < 600;
+    _isMobile = isCompactWindow(context);
   }
 
   Future<void> _checkAndShowChangelog() async {

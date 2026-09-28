@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_update_banner.dart';
@@ -158,7 +159,7 @@ Widget onboardingAppBody(BuildContext context,
   final other = SupportedApp.supportedApps.where((a) => !a.officialIntegration).toList();
 
   Widget grid(List<SupportedApp> apps) => LayoutBuilder(builder: (context, constraints) {
-        final cols = constraints.maxWidth >= 560 ? 5 : 3;
+        final cols = constraints.maxWidth >= Breakpoints.onboardingAppGridWide ? 5 : 3;
         return GridView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
