@@ -542,6 +542,9 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             initialAttachment: widget.initialAttachment,
             pinnedContext: widget.pinnedContext,
             pinnedContextLabel: widget.pinnedContextLabel,
+            // The first message of a conversation must say what is wrong;
+            // follow-ups may be a screenshot alone.
+            requireDescription: !hasMessages,
           ),
       ],
     );

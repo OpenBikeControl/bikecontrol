@@ -2324,5 +2324,6 @@
   "paywall_startProMonthly": "Inizia Pro mensile",
   "paywall_buyBase": "Acquista Base",
   "paywall_planQuestions": "Domande sui piani?",
-  "vsBudgetProRemovesLimit": "Pro rimuove il limite"
+  "vsBudgetProRemovesLimit": "Pro rimuove il limite",
+  "supportDescribeFirstMessageHint": "Dicci cosa stai cercando di fare e cosa succede invece. Uno screenshot da solo non dice cosa non va: basta una frase."
 }

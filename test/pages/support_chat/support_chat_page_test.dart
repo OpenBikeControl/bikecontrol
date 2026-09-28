@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_composer.dart';
 import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
@@ -238,6 +239,21 @@ Future<void> main() async {
     });
   });
 
+  group('first message', () {
+    testWidgets('needs a description before it can be sent', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+
+      expect(tester.widget<SupportComposer>(find.byType(SupportComposer)).requireDescription, isTrue);
+      await tester.enterText(find.byType(TextArea), 'hi');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+      expect(fakeHttp.sendMessageRequests, isEmpty, reason: '"hi" says nothing about what is wrong');
+    });
+  });
+
   group('sending with no session', () {
     testWidgets('signs in anonymously first, then opens the chat and sends', (tester) async {
       expect(client.auth.currentSession, isNull);
@@ -265,14 +281,14 @@ Future<void> main() async {
       await tester.pump();
 
       await selectSomethingElseAndContinue(tester);
-      await tester.enterText(find.byType(TextArea), 'please help');
+      await tester.enterText(find.byType(TextArea), 'please help, nothing pairs');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
 
       expect(fakeHttp.openChatRequests, isEmpty, reason: 'never reaches the backend without a session');
       final field = tester.widget<TextArea>(find.byType(TextArea));
-      expect(field.controller!.text, 'please help', reason: 'composer keeps the typed text so the rider can retry');
+      expect(field.controller!.text, 'please help, nothing pairs', reason: 'composer keeps the typed text so the rider can retry');
       expect(tester.takeException(), isNull);
     });
   });
@@ -330,7 +346,7 @@ Future<void> main() async {
 
       expect(find.byKey(const ValueKey('support-account-link-card')), findsNothing);
 
-      await tester.enterText(find.byType(TextArea), 'help please');
+      await tester.enterText(find.byType(TextArea), 'help please, nothing shifts');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
@@ -346,7 +362,7 @@ Future<void> main() async {
       await tester.pumpAndSettle();
 
       await selectSomethingElseAndContinue(tester);
-      await tester.enterText(find.byType(TextArea), 'hello');
+      await tester.enterText(find.byType(TextArea), 'hello, my trainer is stuck');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
@@ -359,7 +375,7 @@ Future<void> main() async {
       await tester.pumpWidget(app());
       await tester.pump();
       await selectSomethingElseAndContinue(tester);
-      await tester.enterText(find.byType(TextArea), 'help please');
+      await tester.enterText(find.byType(TextArea), 'help please, nothing shifts');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();

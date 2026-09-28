@@ -2324,5 +2324,6 @@
   "paywall_startProMonthly": "Démarrer Pro mensuel",
   "paywall_buyBase": "Acheter Base",
   "paywall_planQuestions": "Des questions sur les offres ?",
-  "vsBudgetProRemovesLimit": "Pro supprime la limite"
+  "vsBudgetProRemovesLimit": "Pro supprime la limite",
+  "supportDescribeFirstMessageHint": "Dis-nous ce que tu essaies de faire et ce qui se passe à la place. Une capture seule ne dit pas ce qui ne va pas — une phrase suffit."
 }

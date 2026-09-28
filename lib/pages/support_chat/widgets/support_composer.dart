@@ -61,6 +61,13 @@ class SupportComposer extends StatefulWidget {
   /// [pinnedContext] is set.
   final String? pinnedContextLabel;
 
+  /// True for the first message of a conversation: send stays disabled until
+  /// the rider has described the problem in [minDescriptionLength]
+  /// characters, whatever is attached. A pre-staged screenshot on its own
+  /// said nothing about what went wrong. Follow-ups (false) may be
+  /// attachment-only.
+  final bool requireDescription;
+
   const SupportComposer({
     super.key,
     required this.sending,
@@ -70,10 +77,11 @@ class SupportComposer extends StatefulWidget {
     this.initialAttachment,
     this.pinnedContext,
     this.pinnedContextLabel,
+    this.requireDescription = false,
   }) : assert(pinnedContext == null || pinnedContextLabel != null, 'pinnedContext needs a pinnedContextLabel');
 
   /// The shortest description that unlocks send while a [pinnedContext] is
-  /// attached. Trimmed length, so whitespace alone counts as nothing.
+  /// attached, or for the first message ([requireDescription]). Trimmed length, so whitespace alone counts as nothing.
   static const int minDescriptionLength = 12;
 
   @override
@@ -118,14 +126,16 @@ class _SupportComposerState extends State<SupportComposer> {
   /// True while a pinned result is waiting on a description the rider has
   /// not typed yet — the one case where send is disabled despite there
   /// being something to send.
+  bool get _describing => _pinnedContext != null || widget.requireDescription;
+
   bool get _needsDescription =>
-      _pinnedContext != null && _controller.text.trim().length < SupportComposer.minDescriptionLength;
+      _describing && _controller.text.trim().length < SupportComposer.minDescriptionLength;
 
   bool get _canSend {
     if (widget.sending) return false;
     // A staged screenshot does not stand in for the description: a picture
     // plus a test result still doesn't say what the rider expected to happen.
-    if (_pinnedContext != null) return !_needsDescription;
+    if (_describing) return !_needsDescription;
     if (_attachment != null) return true;
     return _controller.text.trim().isNotEmpty;
   }
@@ -262,7 +272,7 @@ class _SupportComposerState extends State<SupportComposer> {
                   controller: _controller,
                   focusNode: _focusNode,
                   placeholder: Text(
-                    _pinnedContext != null
+                    _describing
                         ? context.i18n.supportDescribeProblemPlaceholder
                         : context.i18n.messageComposerPlaceholder,
                   ),
@@ -288,7 +298,9 @@ class _SupportComposerState extends State<SupportComposer> {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                context.i18n.supportDescribeProblemHint,
+                _pinnedContext != null
+                    ? context.i18n.supportDescribeProblemHint
+                    : context.i18n.supportDescribeFirstMessageHint,
                 style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
               ),
             ),

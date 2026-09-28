@@ -19,6 +19,7 @@ Future<void> main() async {
     String? pinnedContext,
     String? pinnedContextLabel,
     StagedAttachment? initialAttachment,
+    bool requireDescription = false,
     Future<void> Function(String body, StagedAttachment? attachment)? onSend,
   }) {
     return ShadcnApp(
@@ -35,6 +36,7 @@ Future<void> main() async {
           pinnedContext: pinnedContext,
           pinnedContextLabel: pinnedContextLabel,
           initialAttachment: initialAttachment,
+          requireDescription: requireDescription,
         ),
       ),
     );
@@ -244,6 +246,40 @@ Future<void> main() async {
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
       expect(sent, ['hi']);
+    });
+  });
+
+  // A first message that is only a screenshot (the chat pre-stages one) told
+  // support nothing about what went wrong. The first message of a
+  // conversation needs a description; follow-ups may be attachment-only.
+  group('requireDescription (first message)', () {
+    StagedAttachment screenshot() => StagedAttachment(
+      PlatformFile(name: 'ride-log.txt', size: 4, bytes: Uint8List.fromList([1, 2, 3, 4])),
+    );
+
+    testWidgets('an attachment alone cannot be sent, and the hint says why', (tester) async {
+      await tester.pumpWidget(app(requireDescription: true, initialAttachment: screenshot()));
+      await tester.pump();
+
+      expect(sendEnabled(tester), isFalse);
+      expect(find.text(l10n.supportDescribeProblemPlaceholder), findsOneWidget);
+      expect(find.text(l10n.supportDescribeFirstMessageHint), findsOneWidget);
+
+      await tester.enterText(find.byType(TextArea), 'help');
+      await tester.pump();
+      expect(sendEnabled(tester), isFalse, reason: 'too short to say what is wrong');
+
+      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not react to shifts');
+      await tester.pump();
+      expect(sendEnabled(tester), isTrue);
+      expect(find.text(l10n.supportDescribeFirstMessageHint), findsNothing);
+    });
+
+    testWidgets('a follow-up may be attachment-only', (tester) async {
+      await tester.pumpWidget(app(initialAttachment: screenshot()));
+      await tester.pump();
+      expect(sendEnabled(tester), isTrue);
+      expect(find.text(l10n.supportDescribeFirstMessageHint), findsNothing);
     });
   });
 }
