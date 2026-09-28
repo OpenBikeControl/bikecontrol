@@ -2316,7 +2316,7 @@
   "onboardingStillNotConnected": "Nadal brak połączenia? Sprawdź sieć",
   "paywall_vsByBikeControl": "Wirtualna zmiana biegów BikeControl (każdy trenażer, własne biegi)",
   "paywall_shareSensors": "Udostępniaj tętno i czujniki aplikacji treningowej",
-  "paywall_vsTrialFootnote": "Wypróbuj za darmo wirtualną zmianę biegów BikeControl przez {minutes} min dziennie, zanim wykupisz subskrypcję.",
+  "paywall_vsTrialFootnote": "Bez Pro możesz wypróbować wirtualną zmianę biegów BikeControl przez {minutes} min dziennie.",
   "paywall_startProYearly": "Rozpocznij Pro rocznie",
   "paywall_startProMonthly": "Rozpocznij Pro miesięcznie",
   "paywall_buyBase": "Kup Base",

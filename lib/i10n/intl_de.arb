@@ -2316,7 +2316,7 @@
   "onboardingStillNotConnected": "Immer noch nicht verbunden? Teste dein Netzwerk",
   "paywall_vsByBikeControl": "Virtual Shifting von BikeControl (jeder Trainer, eigene Gänge)",
   "paywall_shareSensors": "Herzfrequenz & Sensoren mit deiner Trainings-App teilen",
-  "paywall_vsTrialFootnote": "Teste das Virtual Shifting von BikeControl vor dem Abo kostenlos {minutes} Min. pro Tag.",
+  "paywall_vsTrialFootnote": "Ohne Pro kannst du das Virtual Shifting von BikeControl {minutes} Min. pro Tag testen.",
   "paywall_startProYearly": "Pro jährlich starten",
   "paywall_startProMonthly": "Pro monatlich starten",
   "paywall_buyBase": "Basis kaufen",

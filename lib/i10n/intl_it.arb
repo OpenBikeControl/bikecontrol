@@ -2316,7 +2316,7 @@
   "onboardingStillNotConnected": "Ancora non connesso? Verifica la rete",
   "paywall_vsByBikeControl": "Cambio virtuale di BikeControl (qualsiasi trainer, marce personalizzate)",
   "paywall_shareSensors": "Condividi frequenza cardiaca e sensori con la tua app di allenamento",
-  "paywall_vsTrialFootnote": "Prova gratis il cambio virtuale di BikeControl per {minutes} min al giorno prima di abbonarti.",
+  "paywall_vsTrialFootnote": "Senza Pro, puoi provare il cambio virtuale di BikeControl per {minutes} min al giorno.",
   "paywall_startProYearly": "Inizia Pro annuale",
   "paywall_startProMonthly": "Inizia Pro mensile",
   "paywall_buyBase": "Acquista Base",

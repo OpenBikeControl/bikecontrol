@@ -2316,7 +2316,7 @@
   "onboardingStillNotConnected": "Toujours pas connecté ? Teste ton réseau",
   "paywall_vsByBikeControl": "Vitesses virtuelles par BikeControl (tout home-trainer, vitesses personnalisées)",
   "paywall_shareSensors": "Partage fréquence cardiaque et capteurs avec ton app d'entraînement",
-  "paywall_vsTrialFootnote": "Essaie gratuitement les vitesses virtuelles de BikeControl {minutes} min par jour avant de t'abonner.",
+  "paywall_vsTrialFootnote": "Sans Pro, tu peux essayer les vitesses virtuelles de BikeControl {minutes} min par jour.",
   "paywall_startProYearly": "Démarrer Pro annuel",
   "paywall_startProMonthly": "Démarrer Pro mensuel",
   "paywall_buyBase": "Acheter Base",
