@@ -1,3 +1,5 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/utils/gear_readout.dart';
 import 'package:flutter/foundation.dart';
@@ -82,6 +84,9 @@ class TrainerOverlayView extends StatelessWidget {
             largeRing: s.frontRingLarge,
           );
     final showControls = s.fields.contains(OverlayField.controls);
+    // The overlay engine may run without localizations (older hosts); the
+    // buttons are still buttons, just unlabelled, rather than a crash.
+    final l10n = AppLocalizations.maybeOf(context);
 
     final primaryText = FittedBox(
       fit: BoxFit.scaleDown,
@@ -101,12 +106,22 @@ class TrainerOverlayView extends StatelessWidget {
         ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _shiftButton(cs, Icons.remove, onPrimaryDecrement),
+              _shiftButton(
+                cs,
+                Icons.remove,
+                onPrimaryDecrement,
+                label: isErg ? l10n?.a11yDecrease : l10n?.actionShiftDown,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: primaryText,
               ),
-              _shiftButton(cs, Icons.add, onPrimaryIncrement),
+              _shiftButton(
+                cs,
+                Icons.add,
+                onPrimaryIncrement,
+                label: isErg ? l10n?.a11yIncrease : l10n?.actionShiftUp,
+              ),
             ],
           )
         : primaryText;
@@ -151,11 +166,13 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  Widget _shiftButton(ColorScheme cs, IconData icon, VoidCallback? onPressed) {
+  Widget _shiftButton(ColorScheme cs, IconData icon, VoidCallback? onPressed, {String? label}) {
     final disabled = onPressed == null;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onPressed,
+    return BkTappable(
+      onPressed: onPressed,
+      label: label,
+      excludeChildSemantics: true,
+      borderRadius: BorderRadius.circular(19),
       child: Container(
         width: 38,
         height: 38,
@@ -225,7 +242,15 @@ class TrainerOverlayView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           pillWidget,
-          ...metrics,
+          // Each reading shrinks rather than overflows when the system text
+          // size is up and every field is switched on.
+          for (final m in metrics)
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: FittedBox(fit: BoxFit.scaleDown, child: m),
+              ),
+            ),
         ],
       ),
     );

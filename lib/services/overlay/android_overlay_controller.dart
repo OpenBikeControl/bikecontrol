@@ -73,6 +73,9 @@ class AndroidOverlayController implements TrainerOverlayController {
     // a 3× display).
     final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
     int dpToPx(double dp) => (dp * dpr).round();
+    final overlayTextGrowth = androidOverlayGrowth(
+      WidgetsBinding.instance.platformDispatcher.textScaleFactor,
+    );
 
     // Android requires a foreground-service notification for SYSTEM_ALERT_WINDOW
     // overlays — we can't suppress it entirely. Use visibilitySecret so it
@@ -85,8 +88,10 @@ class AndroidOverlayController implements TrainerOverlayController {
       flag: OverlayFlag.defaultFlag,
       visibility: NotificationVisibility.visibilitySecret,
       positionGravity: PositionGravity.none,
-      width: dpToPx(270),
-      height: dpToPx(110),
+      // The card's text follows the system font size, so the window does too
+      // (capped: past 1.5x the card would cover the trainer app).
+      width: dpToPx(270 * overlayTextGrowth),
+      height: dpToPx(110 * overlayTextGrowth),
       startPosition: const OverlayPosition(20, 80),
     );
 
@@ -295,3 +300,8 @@ class AndroidOverlayController implements TrainerOverlayController {
     await FlutterOverlayWindow.shareData(jsonEncode(s.toJson()));
   }
 }
+
+/// How much the Android overlay window grows with the system font size:
+/// 1.0 up to the default size, following it up to 1.5x.
+@visibleForTesting
+double androidOverlayGrowth(double textScaleFactor) => textScaleFactor.clamp(1.0, 1.5);

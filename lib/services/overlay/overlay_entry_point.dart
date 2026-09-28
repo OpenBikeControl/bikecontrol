@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/widgets/overlay/overlay_app.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
@@ -65,8 +66,7 @@ class _OverlayAppState extends State<_OverlayApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ShadcnApp(
-      debugShowCheckedModeBanner: false,
+    return OverlayShadcnApp(
       home: Scaffold(
         backgroundColor: const Color(0x00000000),
         child: Center(

@@ -114,7 +114,8 @@ class DesktopOverlayController implements TrainerOverlayController {
       MultiWindowNative.createWindow([
         'trainer-overlay',
         argsJson,
-        'light',
+        // The main app follows the system brightness, and so does the overlay.
+        PlatformDispatcher.instance.platformBrightness == Brightness.dark ? 'dark' : 'light',
       ]);
     } catch (e, s) {
       recordError(e, s, context: 'overlay.controller.createWindow');
