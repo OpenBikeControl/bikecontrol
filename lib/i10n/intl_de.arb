@@ -960,7 +960,6 @@
   "messageComposerPlaceholder": "Nachricht eingeben…",
   "attachImage": "Bild auswählen",
   "attachDocument": "Datei auswählen",
-  "diagnosticInfoAttached": "Die folgenden Daten werden zur Nachricht für Diagnosezwecke angehängt",
   "attachmentOnlyMessageBody": "(Screenshot)",
   "attachmentTooLarge": "Anhang überschreitet 10 MB",
   "attachmentMimeUnsupported": "Dateityp nicht unterstützt",
@@ -2385,5 +2384,18 @@
   "onboardingNetworkContinuedNote": "Die Netzwerkprüfung hat ein Problem gefunden. Wenn {app} sich nicht verbindet, prüfe hier erneut.",
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "In {app} über BikeControl",
-  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
+  "supportDiagnosticsNoticeNoScreenshot": "Damit wir dein Problem lösen können, hängt dieser Chat Diagnosedaten an. Du kannst sie vor dem Senden über ⓘ ansehen.",
+  "supportDiagSummaryTitle": "Was mit deiner Nachricht gesendet wird",
+  "supportDiagAppVersion": "App-Version",
+  "supportDiagPlatform": "System",
+  "supportDiagDevices": "Verbundene Geräte",
+  "supportDiagConnections": "Verbindungsmethoden",
+  "supportDiagLogLines": "Protokollzeilen",
+  "supportDiagScreenshot": "Screenshot",
+  "supportDiagScreenshotAttached": "Angehängt",
+  "supportDiagScreenshotNone": "Nicht angehängt",
+  "supportDiagNone": "Keine",
+  "supportDiagShowTechnical": "Technische Details anzeigen",
+  "supportDiagHideTechnical": "Technische Details ausblenden"
 }

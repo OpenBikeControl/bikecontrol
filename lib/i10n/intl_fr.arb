@@ -949,7 +949,6 @@
   "messageComposerPlaceholder": "Écris un message…",
   "attachImage": "Choisir une image",
   "attachDocument": "Choisir un fichier",
-  "diagnosticInfoAttached": "Les données suivantes seront jointes au message à des fins de diagnostic",
   "attachmentOnlyMessageBody": "(capture d'écran)",
   "attachmentTooLarge": "La pièce jointe dépasse 10 Mo",
   "attachmentMimeUnsupported": "Type de fichier non pris en charge",
@@ -2385,5 +2384,18 @@
   "onboardingNetworkContinuedNote": "La vérification réseau a trouvé un problème. Si {app} ne se connecte pas, vérifie à nouveau ici.",
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "Dans {app} via BikeControl",
-  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
+  "supportDiagnosticsNoticeNoScreenshot": "Pour t'aider à résoudre le problème, ce chat joint des informations de diagnostic. Tu peux les consulter avec ⓘ avant d'envoyer.",
+  "supportDiagSummaryTitle": "Ce qui est envoyé avec ton message",
+  "supportDiagAppVersion": "Version de l'app",
+  "supportDiagPlatform": "Système",
+  "supportDiagDevices": "Appareils connectés",
+  "supportDiagConnections": "Méthodes de connexion",
+  "supportDiagLogLines": "Lignes de journal",
+  "supportDiagScreenshot": "Capture d'écran",
+  "supportDiagScreenshotAttached": "Jointe",
+  "supportDiagScreenshotNone": "Non jointe",
+  "supportDiagNone": "Aucun",
+  "supportDiagShowTechnical": "Afficher les détails techniques",
+  "supportDiagHideTechnical": "Masquer les détails techniques"
 }

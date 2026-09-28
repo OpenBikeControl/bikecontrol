@@ -60,7 +60,9 @@ Future<void> main() async {
     await tester.tap(find.byIcon(LucideIcons.info));
     await tester.pumpAndSettle();
 
-    // Sheet is open and shows the payload.
+    // Sheet is open; the raw payload sits behind the technical-details toggle.
+    await tester.tap(find.text(l10n.supportDiagShowTechnical));
+    await tester.pumpAndSettle();
     expect(find.textContaining('"log0"'), findsOneWidget);
 
     // It must offer an explicit close affordance that dismisses it.
@@ -76,11 +78,27 @@ Future<void> main() async {
   // the first message, a screenshot), the composer must say so up front rather
   // than attaching them silently — a user should never be surprised by what
   // was sent. Ties to the "I never agreed to a screenshot" support ticket.
-  testWidgets('shows the diagnostics/screenshot notice when a diagnostic payload is attached', (tester) async {
-    await tester.pumpWidget(app(payload: 'app_version: 6.5.2'));
+  // The notice names what actually goes out: a screenshot only when one is
+  // staged.
+  StagedAttachment png() => StagedAttachment(PlatformFile(name: 'bikecontrol-screenshot.png', size: 0));
+
+  testWidgets('without a staged screenshot the notice only mentions diagnostics', (tester) async {
+    await tester.pumpWidget(app(payload: 'App Version: 6.5.2'));
     await tester.pump();
 
+    expect(find.text(l10n.supportDiagnosticsNoticeNoScreenshot), findsOneWidget);
+    expect(find.text(l10n.supportDiagnosticsNotice), findsNothing);
+  });
+
+  testWidgets('with a staged screenshot the notice mentions it, until it is removed', (tester) async {
+    await tester.pumpWidget(app(payload: 'App Version: 6.5.2', initialAttachment: png()));
+    await tester.pump();
     expect(find.text(l10n.supportDiagnosticsNotice), findsOneWidget);
+
+    await tester.tap(find.byIcon(LucideIcons.x));
+    await tester.pump();
+    expect(find.text(l10n.supportDiagnosticsNotice), findsNothing);
+    expect(find.text(l10n.supportDiagnosticsNoticeNoScreenshot), findsOneWidget);
   });
 
   testWidgets('hides the notice when there is no diagnostic payload', (tester) async {
@@ -88,6 +106,53 @@ Future<void> main() async {
     await tester.pump();
 
     expect(find.text(l10n.supportDiagnosticsNotice), findsNothing);
+    expect(find.text(l10n.supportDiagnosticsNoticeNoScreenshot), findsNothing);
+  });
+
+  testWidgets('the info sheet leads with a plain summary; the raw payload is behind a toggle', (tester) async {
+    const payload = '''
+
+---
+App Version: 7.1.0+3
+Update Track: stable
+Platform: ios 18.2
+Target: thisDevice
+Trainer App: MyWhoosh
+Connected Controllers: Zwift Click (fw 1.2)
+Connected Trainers: OpenBikeControl
+Smart Trainers:
+  -
+Status: Trial
+Diagnostics: ok
+Logs:
+2026-09-28 10:00:01 - one
+2026-09-28 10:00:02 - two
+2026-09-28 10:00:03 - three''';
+    await tester.pumpWidget(app(payload: payload, initialAttachment: png()));
+    await tester.pump();
+    await tester.tap(find.byIcon(LucideIcons.info));
+    await tester.pumpAndSettle();
+
+    expect(find.text('7.1.0+3'), findsOneWidget);
+    expect(find.text('ios 18.2'), findsOneWidget);
+    expect(find.text('Zwift Click (fw 1.2)'), findsOneWidget);
+    expect(find.text('OpenBikeControl'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget, reason: 'number of log lines');
+    expect(find.text(l10n.supportDiagScreenshotAttached), findsOneWidget);
+    expect(find.textContaining('10:00:01 - one'), findsNothing);
+
+    await tester.tap(find.text(l10n.supportDiagShowTechnical));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('10:00:01 - one'), findsOneWidget);
+  });
+
+  test('the summary is read from the diagnostics payload', () {
+    final summary = SupportDiagnosticsSummary.parse('App Version: 1.0\nPlatform: android 15\nConnected Controllers: \nConnected Trainers: -\nLogs:\na\nb\n\nWire trace:\nx');
+    expect(summary.appVersion, '1.0');
+    expect(summary.platform, 'android 15');
+    expect(summary.devices, isNull);
+    expect(summary.connections, isNull);
+    expect(summary.logLines, 2);
   });
 
   // Self-test → support hand-off. 93 of 309 chats in 30 days opened with a

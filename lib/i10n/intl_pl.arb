@@ -949,7 +949,6 @@
   "messageComposerPlaceholder": "Wpisz wiadomość…",
   "attachImage": "Wybierz zdjęcie",
   "attachDocument": "Wybierz plik",
-  "diagnosticInfoAttached": "Następujące dane zostaną dołączone do wiadomości w celach diagnostycznych",
   "attachmentOnlyMessageBody": "(zrzut ekranu)",
   "attachmentTooLarge": "Załącznik przekracza 10 MB",
   "attachmentMimeUnsupported": "Nieobsługiwany typ pliku",
@@ -2385,5 +2384,18 @@
   "onboardingNetworkContinuedNote": "Test sieci wykrył problem. Jeśli {app} się nie połączy, sprawdź ponownie tutaj.",
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "W {app} przez BikeControl",
-  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
+  "supportDiagnosticsNoticeNoScreenshot": "Aby pomóc rozwiązać problem, ten czat dołącza dane diagnostyczne. Możesz je przejrzeć przez ⓘ przed wysłaniem.",
+  "supportDiagSummaryTitle": "Co zostanie wysłane z wiadomością",
+  "supportDiagAppVersion": "Wersja aplikacji",
+  "supportDiagPlatform": "System",
+  "supportDiagDevices": "Połączone urządzenia",
+  "supportDiagConnections": "Metody połączenia",
+  "supportDiagLogLines": "Wiersze logu",
+  "supportDiagScreenshot": "Zrzut ekranu",
+  "supportDiagScreenshotAttached": "Dołączony",
+  "supportDiagScreenshotNone": "Niedołączony",
+  "supportDiagNone": "Brak",
+  "supportDiagShowTechnical": "Pokaż szczegóły techniczne",
+  "supportDiagHideTechnical": "Ukryj szczegóły techniczne"
 }

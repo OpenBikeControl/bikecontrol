@@ -28,6 +28,48 @@ class StagedAttachment {
   }
 }
 
+/// The rider-facing summary of a diagnostics payload (the text `debugText()`
+/// builds): the few facts a rider can check at a glance before sending.
+/// Values that are empty or "-" read as null.
+class SupportDiagnosticsSummary {
+  const SupportDiagnosticsSummary({this.appVersion, this.platform, this.devices, this.connections, this.logLines = 0});
+
+  final String? appVersion;
+  final String? platform;
+  final String? devices;
+  final String? connections;
+  final int logLines;
+
+  static SupportDiagnosticsSummary parse(String payload) {
+    final lines = payload.split('\n');
+    String? value(String key) {
+      for (final line in lines) {
+        if (line.startsWith('$key:')) {
+          final v = line.substring(key.length + 1).trim();
+          return v.isEmpty || v == '-' ? null : v;
+        }
+      }
+      return null;
+    }
+
+    var logLines = 0;
+    final logsAt = lines.indexWhere((l) => l.trim() == 'Logs:');
+    if (logsAt >= 0) {
+      for (final line in lines.skip(logsAt + 1)) {
+        if (line.trim().isEmpty || line.startsWith('Wire trace:')) break;
+        logLines++;
+      }
+    }
+    return SupportDiagnosticsSummary(
+      appVersion: value('App Version'),
+      platform: value('Platform'),
+      devices: value('Connected Controllers'),
+      connections: value('Connected Trainers'),
+      logLines: logLines,
+    );
+  }
+}
+
 class SupportComposer extends StatefulWidget {
   final bool sending;
   final Future<void> Function(String body, StagedAttachment? attachment) onSend;
@@ -351,8 +393,12 @@ class _SupportComposerState extends State<SupportComposer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Names what actually goes out: the screenshot only while one
+                // is staged.
                 Text(
-                  context.i18n.supportDiagnosticsNotice,
+                  _attachment?.isImage == true
+                      ? context.i18n.supportDiagnosticsNotice
+                      : context.i18n.supportDiagnosticsNoticeNoScreenshot,
                   style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
                 ),
                 Button.text(
@@ -387,32 +433,10 @@ class _SupportComposerState extends State<SupportComposer> {
             maxWidth: 360,
             maxHeight: MediaQuery.sizeOf(context).height * 0.6,
           ),
-          builder: (c) => Container(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: Text("${context.i18n.diagnosticInfoAttached}:")),
-                    BkIconButton.ghost(
-                      icon: const Icon(LucideIcons.x, size: 16),
-                      label: context.i18n.close,
-                      onPressed: () => closeSheet(c),
-                    ),
-                  ],
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Text(
-                      widget.diagnosticPreview!,
-                      style: context.typography.caption.copyWith(color: cs.mutedForeground, fontFamily: 'monospace'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          builder: (c) => _DiagnosticsSheet(
+            payload: widget.diagnosticPreview!,
+            screenshotAttached: _attachment?.isImage == true,
+            onClose: () => closeSheet(c),
           ),
           position: OverlayPosition.bottom,
         ),
@@ -463,6 +487,98 @@ class _SupportComposerState extends State<SupportComposer> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The ⓘ sheet: a plain summary of what goes out with the message first, the
+/// raw payload behind "Show technical details".
+class _DiagnosticsSheet extends StatefulWidget {
+  const _DiagnosticsSheet({required this.payload, required this.screenshotAttached, required this.onClose});
+
+  final String payload;
+  final bool screenshotAttached;
+  final VoidCallback onClose;
+
+  @override
+  State<_DiagnosticsSheet> createState() => _DiagnosticsSheetState();
+}
+
+class _DiagnosticsSheetState extends State<_DiagnosticsSheet> {
+  bool _technical = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = context.i18n;
+    final summary = SupportDiagnosticsSummary.parse(widget.payload);
+    final rows = <(String, String)>[
+      (l.supportDiagAppVersion, summary.appVersion ?? '?'),
+      (l.supportDiagPlatform, summary.platform ?? '?'),
+      (l.supportDiagDevices, summary.devices ?? l.supportDiagNone),
+      (l.supportDiagConnections, summary.connections ?? l.supportDiagNone),
+      (l.supportDiagLogLines, '${summary.logLines}'),
+      (l.supportDiagScreenshot, widget.screenshotAttached ? l.supportDiagScreenshotAttached : l.supportDiagScreenshotNone),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(l.supportDiagSummaryTitle).small.semiBold),
+              BkIconButton.ghost(
+                icon: const Icon(LucideIcons.x, size: 16),
+                label: l.close,
+                onPressed: widget.onClose,
+              ),
+            ],
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (label, value) in rows)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 2, child: Text(label).xSmall.muted),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 3, child: Text(value).xSmall.semiBold),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Button.ghost(
+                      onPressed: () => setState(() => _technical = !_technical),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_technical ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 14),
+                          const SizedBox(width: 6),
+                          Text(_technical ? l.supportDiagHideTechnical : l.supportDiagShowTechnical).xSmall,
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_technical)
+                    Text(
+                      widget.payload,
+                      style: context.typography.caption.copyWith(color: cs.mutedForeground, fontFamily: 'monospace'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
