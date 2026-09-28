@@ -137,8 +137,17 @@ Widget onboardingDoneBody(
             children: [
               Icon(icon, size: 17, color: ok ? success : Theme.of(context).colorScheme.mutedForeground),
               Gap(11),
-              Expanded(child: Text(title).small.semiBold),
-              Flexible(child: Text(sub, textAlign: TextAlign.end).xSmall.muted),
+              Expanded(flex: 3, child: Text(title).small.semiBold),
+              Gap(8),
+              // Right-aligned like before; Flexible only so a long "Waiting
+              // for {app}…" or the Pair button can't push the title off.
+              Flexible(
+                flex: 2,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(sub, textAlign: TextAlign.end).xSmall.muted,
+                ),
+              ),
               if (action != null) ...[Gap(10), action],
             ],
           ),
