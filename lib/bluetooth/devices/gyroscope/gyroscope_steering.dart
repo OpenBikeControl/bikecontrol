@@ -418,14 +418,14 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
             children: [
               DeviceInfo(
                 title: AppLocalizations.of(context).steeringCalibration,
-                icon: BootstrapIcons.wrenchAdjustable,
+                icon: LucideIcons.wrench,
                 value: _isCalibrated
                     ? AppLocalizations.of(context).calibrationComplete
                     : AppLocalizations.of(context).calibrationInProgress,
               ),
               DeviceInfo(
                 title: AppLocalizations.of(context).steeringAngle,
-                icon: RadixIcons.angle,
+                icon: LucideIcons.moveHorizontal,
                 value: _isCalibrated
                     ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°'
                     : AppLocalizations.of(context).steeringCalibrating,
@@ -433,13 +433,13 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
               if (kDebugMode && !_useMagnetometer)
                 DeviceInfo(
                   title: 'Gyro Bias',
-                  icon: BootstrapIcons.speedometer,
+                  icon: LucideIcons.gauge,
                   value: '${_estimator.biasZRadPerSec.toStringAsFixed(4)} rad/s',
                 ),
               if (kDebugMode && _useMagnetometer && _magnetometerCalibrationHeading != null)
                 DeviceInfo(
                   title: 'Mag Heading',
-                  icon: BootstrapIcons.compass,
+                  icon: LucideIcons.compass,
                   value: '${_magnetometerCalibrationHeading!.toStringAsFixed(2)}°',
                 ),
             ],

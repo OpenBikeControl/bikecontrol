@@ -105,7 +105,9 @@ class _ClickContoursState extends State<ClickContours> with SingleTickerProvider
         // Scale the absolute-pixel constants down when given less height
         // than the design was authored for (e.g. a small thumbnail), but
         // never scale them up beyond their authored size.
-        final k = constraints.maxHeight.isFinite ? (constraints.maxHeight / ClickContours._designHeight).clamp(0.0, 1.0) : 1.0;
+        final k = constraints.maxHeight.isFinite
+            ? (constraints.maxHeight / ClickContours._designHeight).clamp(0.0, 1.0)
+            : 1.0;
 
         // The pucks stay in physical order — left puck on the left — while the
         // *emphasis* swaps: page 0 is about the right puck alone, so it takes
@@ -206,7 +208,7 @@ class _FreeBadge extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: cs.border),
         ),
-        child: Icon(Icons.lock_open, size: 12 * k, color: cs.primary),
+        child: Icon(LucideIcons.lockOpen, size: 12 * k, color: cs.primary),
       ),
     );
   }
@@ -233,10 +235,15 @@ class _LockBadge extends StatelessWidget {
     final lift = ((settle - 0.9) / 0.1).clamp(0.0, 1.0);
 
     Widget ringAt(double progress) {
-      return CustomPaint(size: Size(size, size), painter: _SweepRingPainter(color: cs.primary, progress: progress));
+      return CustomPaint(
+        size: Size(size, size),
+        painter: _SweepRingPainter(color: cs.primary, progress: progress),
+      );
     }
 
-    final ring = sweep == null ? ringAt(0.0) : AnimatedBuilder(animation: sweep!, builder: (context, _) => ringAt(sweep!.value));
+    final ring = sweep == null
+        ? ringAt(0.0)
+        : AnimatedBuilder(animation: sweep!, builder: (context, _) => ringAt(sweep!.value));
 
     return Align(
       alignment: Alignment.center,
@@ -249,7 +256,7 @@ class _LockBadge extends StatelessWidget {
             ring,
             Transform.translate(
               offset: Offset(0, -3 * k * lift),
-              child: Icon(lift > 0.5 ? Icons.lock_open : Icons.lock_outline, size: 16 * k, color: cs.primary),
+              child: Icon(lift > 0.5 ? LucideIcons.lockOpen : LucideIcons.lock, size: 16 * k, color: cs.primary),
             ),
           ],
         ),
@@ -297,5 +304,6 @@ class _SweepRingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SweepRingPainter oldDelegate) => oldDelegate.progress != progress || oldDelegate.color != color;
+  bool shouldRepaint(covariant _SweepRingPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.color != color;
 }

@@ -136,7 +136,7 @@ class _HelpButtonState extends State<HelpButton> {
 /// Animated unread indicator: a red dot with a halo ring that pulses outward.
 /// Used on the Help button's icon overlay so a new support reply is hard to miss.
 class PulsingUnreadBadge extends StatefulWidget {
-  const PulsingUnreadBadge();
+  const PulsingUnreadBadge({super.key});
 
   @override
   State<PulsingUnreadBadge> createState() => PulsingUnreadBadgeState();

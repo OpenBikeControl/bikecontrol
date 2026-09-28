@@ -51,7 +51,7 @@ class _UnlockToggleState extends State<UnlockToggle> {
           children: [
             Text(context.i18n.unlock_mode).small.semiBold,
             BkIconButton.link(
-              icon: Icon(Icons.help_outline),
+              icon: Icon(LucideIcons.circleHelp),
               label: context.i18n.a11yHelp,
               onPressed: () {
                 launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
@@ -81,10 +81,7 @@ class _UnlockToggleState extends State<UnlockToggle> {
         ),
 
         if (_mode == _UnlockMode.zwift) ...[
-          if (showsUnlockAction)
-            ...widget.children
-          else
-            Text(context.i18n.unlock_zwiftNeedsLeftSide).xSmall.muted,
+          if (showsUnlockAction) ...widget.children else Text(context.i18n.unlock_zwiftNeedsLeftSide).xSmall.muted,
         ],
       ],
     );

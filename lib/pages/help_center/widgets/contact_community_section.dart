@@ -160,7 +160,7 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
             subtitle: Text(context.i18n.helpCenterReportSubtitle).xSmall.muted,
             trailing: _hasUnread
                 ? const UnreadDot(key: ValueKey('help-center-chat-unread-dot'), size: 10)
-                : const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+                : const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
         Padding(
@@ -185,14 +185,14 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
               ),
               Expanded(
                 child: _CommunityLinkButton(
-                  icon: Icons.facebook_outlined,
+                  icon: LucideIcons.facebook,
                   label: 'Facebook',
                   onPressed: () => launchUrlString('https://www.facebook.com/groups/1892836898778912'),
                 ),
               ),
               Expanded(
                 child: _CommunityLinkButton(
-                  icon: RadixIcons.githubLogo,
+                  icon: LucideIcons.github,
                   label: 'GitHub',
                   onPressed: () => launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues'),
                 ),

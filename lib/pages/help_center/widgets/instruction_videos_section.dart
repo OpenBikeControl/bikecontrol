@@ -251,7 +251,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                           color: Colors.black.withAlpha(166),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.play_arrow, color: Colors.white),
+                        child: const Icon(LucideIcons.play, color: Colors.white),
                       ),
                     ),
                   ],

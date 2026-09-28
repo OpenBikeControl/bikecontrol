@@ -338,7 +338,7 @@ class WindowsIAPService {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.lock, color: Colors.orange),
+            Icon(LucideIcons.lock, color: Colors.orange),
             const SizedBox(width: 8),
             Text(AppLocalizations.of(context).loginRequiredTitle),
           ],

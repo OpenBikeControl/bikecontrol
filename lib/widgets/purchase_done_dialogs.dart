@@ -15,7 +15,7 @@ Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.verified, color: Colors.green),
+              Icon(LucideIcons.badgeCheck, color: Colors.green),
               const SizedBox(width: 8),
               Expanded(child: Text(l10n.purchaseBaseDoneTitle)),
             ],
@@ -46,7 +46,7 @@ Future<void> showPurchaseProUnregisteredDialog(BuildContext context) {
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(Icons.workspace_premium, color: Colors.orange),
+              Icon(LucideIcons.crown, color: Colors.orange),
               const SizedBox(width: 8),
               Expanded(child: Text(l10n.purchaseProDoneTitle)),
             ],

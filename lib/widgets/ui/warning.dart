@@ -24,7 +24,7 @@ class Warning extends StatelessWidget {
         children: [
           if (important)
             Icon(
-              Icons.warning_amber_rounded,
+              LucideIcons.triangleAlert,
               color: Theme.of(context).colorScheme.destructive,
             ),
           Expanded(

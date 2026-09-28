@@ -339,7 +339,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     children: [
                       IconButton.outline(
                         onPressed: _saveAndClose,
-                        icon: const Icon(Icons.save),
+                        icon: const Icon(LucideIcons.save),
                         trailing: Text(context.i18n.save),
                       ),
                       Builder(

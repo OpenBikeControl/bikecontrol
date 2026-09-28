@@ -85,7 +85,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.add,
+                            LucideIcons.plus,
                             size: 16,
                           ),
                           const SizedBox(width: 8),
@@ -107,7 +107,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                   spacing: 12,
                   children: [
                     Icon(
-                      Icons.devices,
+                      LucideIcons.monitorSmartphone,
                       size: 48,
                       color: Theme.of(context).colorScheme.mutedForeground,
                     ),
@@ -151,7 +151,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       child: Row(
         children: [
           Icon(
-            Icons.device_unknown,
+            LucideIcons.smartphone,
             size: 20,
             color: isRevoked ? Theme.of(context).colorScheme.mutedForeground : Theme.of(context).colorScheme.primary,
           ),

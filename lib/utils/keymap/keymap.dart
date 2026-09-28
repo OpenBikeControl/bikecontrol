@@ -19,15 +19,15 @@ import 'apps/custom_app.dart';
 import 'apps/supported_app.dart';
 
 enum AndroidSystemAction {
-  back('Back', Icons.arrow_back_ios, GlobalAction.back),
-  dpadCenter('Select', Icons.radio_button_checked_outlined, GlobalAction.dpadCenter),
-  down('Arrow Down', Icons.arrow_downward, GlobalAction.down),
-  right('Arrow Right', Icons.arrow_forward, GlobalAction.right),
-  up('Arrow Up', Icons.arrow_upward, GlobalAction.up),
-  left('Arrow Left', Icons.arrow_back, GlobalAction.left),
-  home('Home', Icons.home_outlined, GlobalAction.home),
-  recents('Recents', Icons.apps, GlobalAction.recents),
-  assistant('Open Assistant', Icons.assistant_outlined, null);
+  back('Back', LucideIcons.chevronLeft, GlobalAction.back),
+  dpadCenter('Select', LucideIcons.circleDot, GlobalAction.dpadCenter),
+  down('Arrow Down', LucideIcons.arrowDown, GlobalAction.down),
+  right('Arrow Right', LucideIcons.arrowRight, GlobalAction.right),
+  up('Arrow Up', LucideIcons.arrowUp, GlobalAction.up),
+  left('Arrow Left', LucideIcons.arrowLeft, GlobalAction.left),
+  home('Home', LucideIcons.house, GlobalAction.home),
+  recents('Recents', LucideIcons.layoutGrid, GlobalAction.recents),
+  assistant('Open Assistant', LucideIcons.sparkles, null);
 
   final String title;
   final IconData icon;
@@ -285,15 +285,15 @@ class KeyPair {
   IconData? get icon {
     return switch (physicalKey) {
       _ when isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media) => switch (physicalKey) {
-        PhysicalKeyboardKey.mediaPlayPause => Icons.play_arrow_outlined,
-        PhysicalKeyboardKey.mediaStop => Icons.stop,
-        PhysicalKeyboardKey.mediaTrackPrevious => Icons.skip_previous,
-        PhysicalKeyboardKey.mediaTrackNext => Icons.skip_next,
-        PhysicalKeyboardKey.audioVolumeUp => Icons.volume_up,
-        PhysicalKeyboardKey.audioVolumeDown => Icons.volume_down,
-        _ => Icons.keyboard,
+        PhysicalKeyboardKey.mediaPlayPause => LucideIcons.play,
+        PhysicalKeyboardKey.mediaStop => LucideIcons.square,
+        PhysicalKeyboardKey.mediaTrackPrevious => LucideIcons.skipBack,
+        PhysicalKeyboardKey.mediaTrackNext => LucideIcons.skipForward,
+        PhysicalKeyboardKey.audioVolumeUp => LucideIcons.volume2,
+        PhysicalKeyboardKey.audioVolumeDown => LucideIcons.volume1,
+        _ => LucideIcons.keyboard,
       },
-      //_ when inGameAction != null && core.logic.emulatorEnabled => Icons.link,
+      //_ when inGameAction != null && core.logic.emulatorEnabled => LucideIcons.link,
       _
           when inGameAction != null &&
               inGameAction!.icon != null &&
@@ -309,9 +309,9 @@ class KeyPair {
                   ].contains(inGameAction!)) =>
         inGameAction!.icon,
 
-      _ when screenshotPath != null && screenshotPath!.trim().isNotEmpty => Icons.image_outlined,
+      _ when screenshotPath != null && screenshotPath!.trim().isNotEmpty => LucideIcons.image,
       _ when command != null && command!.trim().isNotEmpty =>
-        Platform.isMacOS || Platform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
+        Platform.isMacOS || Platform.isIOS ? LucideIcons.rocket : LucideIcons.terminal,
       _
           when androidAction != null &&
               core.logic.showLocalControl &&
@@ -322,15 +322,15 @@ class KeyPair {
           when androidIntentAction != null &&
               androidIntentAction!.trim().isNotEmpty &&
               defaultTargetPlatform == TargetPlatform.android =>
-        Icons.broadcast_on_home_outlined,
+        LucideIcons.cast,
       _ when physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard) =>
-        RadixIcons.keyboard,
+        LucideIcons.keyboard,
       _
           when touchPosition != Offset.zero &&
               core.logic.showLocalRemoteOptions &&
               core.actionHandler is AndroidActions =>
-        Icons.touch_app,
-      _ when touchPosition != Offset.zero && core.logic.showLocalRemoteOptions => BootstrapIcons.mouse,
+        LucideIcons.pointer,
+      _ when touchPosition != Offset.zero && core.logic.showLocalRemoteOptions => LucideIcons.mouse,
       _ => null,
     };
   }
@@ -386,9 +386,7 @@ class KeyPair {
       (touchPosition != Offset.zero &&
           core.logic.showLocalRemoteOptions &&
           core.actionHandler.supportedModes.contains(SupportedMode.touch)) ||
-      (inGameAction != null &&
-          core.logic.showObpActions &&
-          core.logic.obpSupportedActions.contains(inGameAction)) ||
+      (inGameAction != null && core.logic.showObpActions && core.logic.obpSupportedActions.contains(inGameAction)) ||
       (inGameAction != null &&
           core.logic.showMyWhooshLink &&
           core.settings.getMyWhooshLinkEnabled() &&

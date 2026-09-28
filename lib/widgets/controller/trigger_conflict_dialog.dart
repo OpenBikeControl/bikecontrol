@@ -46,7 +46,7 @@ Widget buildTriggerConflictDialog({
       title: Row(
         children: [
           if (!IAPManager.instance.hasActiveSubscription) ...[
-            Icon(Icons.workspace_premium, color: Colors.orange),
+            Icon(LucideIcons.crown, color: Colors.orange),
             const SizedBox(width: 8),
           ],
           Text(AppLocalizations.of(context).additionalTriggerAssignment),

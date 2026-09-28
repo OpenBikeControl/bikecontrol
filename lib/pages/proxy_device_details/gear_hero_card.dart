@@ -145,13 +145,13 @@ class _GearHeroCardState extends State<GearHeroCard> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.info_outline, size: 18),
+                    const Icon(LucideIcons.info, size: 18),
                     const Gap(8),
                     Expanded(
                       child: Text(AppLocalizations.of(context).myWhooshGearHintTitle).bold.small,
                     ),
                     BkIconButton.ghost(
-                      icon: const Icon(Icons.close, size: 16),
+                      icon: const Icon(LucideIcons.x, size: 16),
                       label: context.i18n.a11yDismiss,
                       onPressed: _dismissMyWhooshHint,
                     ),

@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
             shape: BoxShape.circle,
           ),
           child: Icon(
-            Icons.account_circle,
+            LucideIcons.circleUser,
             size: 64,
             color: Theme.of(context).colorScheme.primary,
           ),
@@ -117,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         if (!kIsWeb && widget.pushed)
           Button.ghost(
-            leading: const Icon(Icons.mail_outline, size: 16),
+            leading: const Icon(LucideIcons.mail, size: 16),
             onPressed: _openMailFallback,
             child: Text(context.i18n.dontWantToSignInWriteAMail),
           ),
@@ -181,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.green.withAlpha(30),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check_circle, size: 28, color: Colors.green),
+                    child: Icon(LucideIcons.circleCheck, size: 28, color: Colors.green),
                   ),
                   const SizedBox(width: 16),
                   Flexible(

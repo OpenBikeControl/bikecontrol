@@ -21,7 +21,7 @@ class AccessibilityRequirement extends PlatformRequirement {
     : super(
         AppLocalizations.current.allowAccessibilityService,
         description: AppLocalizations.current.accessibilityDescription,
-        icon: Icons.accessibility_new,
+        icon: LucideIcons.personStanding,
       );
 
   @override
@@ -75,7 +75,7 @@ class AccessibilityRequirement extends PlatformRequirement {
 }
 
 class BluetoothScanRequirement extends PlatformRequirement {
-  BluetoothScanRequirement() : super(AppLocalizations.current.allowBluetoothScan, icon: Icons.bluetooth_searching);
+  BluetoothScanRequirement() : super(AppLocalizations.current.allowBluetoothScan, icon: LucideIcons.bluetoothSearching);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -92,7 +92,7 @@ class BluetoothScanRequirement extends PlatformRequirement {
 }
 
 class LocationRequirement extends PlatformRequirement {
-  LocationRequirement() : super(AppLocalizations.current.allowLocationForBluetooth, icon: Icons.location_on);
+  LocationRequirement() : super(AppLocalizations.current.allowLocationForBluetooth, icon: LucideIcons.mapPin);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -110,7 +110,7 @@ class LocationRequirement extends PlatformRequirement {
 
 class BluetoothConnectRequirement extends PlatformRequirement {
   BluetoothConnectRequirement()
-    : super(AppLocalizations.current.allowBluetoothConnections, icon: Icons.bluetooth_connected);
+    : super(AppLocalizations.current.allowBluetoothConnections, icon: LucideIcons.bluetoothConnected);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -134,7 +134,7 @@ class NotificationRequirement extends PlatformRequirement {
     : super(
         AppLocalizations.current.allowPersistentNotification,
         description: AppLocalizations.current.notificationDescription,
-        icon: Icons.notifications_active,
+        icon: LucideIcons.bellRing,
       );
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {

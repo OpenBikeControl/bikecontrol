@@ -21,10 +21,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 enum ConnectionMethodType {
-  bluetooth(icon: Icons.bluetooth),
-  network(icon: Icons.wifi),
+  bluetooth(icon: LucideIcons.bluetooth),
+  network(icon: LucideIcons.wifi),
   openBikeControl(icon: null),
-  local(icon: Icons.keyboard);
+  local(icon: LucideIcons.keyboard);
 
   final IconData? icon;
   const ConnectionMethodType({required this.icon});
@@ -145,7 +145,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     if (widget.small) {
       final isSmallWidth = MediaQuery.sizeOf(context).width < Breakpoints.twoPane;
       final icon = Icon(
-        widget.instructionLink?.contains("youtube") == true ? Icons.ondemand_video : Icons.help_outline,
+        widget.instructionLink?.contains("youtube") == true ? LucideIcons.monitorPlay : LucideIcons.circleHelp,
       );
       return SizedBox(
         width: double.infinity,
@@ -257,7 +257,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                             ? ButtonStyle.outline().withBorder(border: Border.all(color: bkStrongBorder(context)))
                             : ButtonStyle.outline(),
                         leading: Icon(
-                          widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,
+                          widget.instructionLink!.contains("youtube")
+                              ? LucideIcons.monitorPlay
+                              : LucideIcons.circleHelp,
                         ),
                         onPressed: () {
                           if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {

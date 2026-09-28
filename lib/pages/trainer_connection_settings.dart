@@ -65,7 +65,11 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
                 Builder(
                   builder: (context) {
                     return BkIconButton.ghost(
-                      icon: Icon(Icons.more_vert, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
+                      icon: Icon(
+                        LucideIcons.ellipsisVertical,
+                        size: 22,
+                        color: Theme.of(context).colorScheme.mutedForeground,
+                      ),
                       label: context.i18n.a11yMoreOptions,
                       tooltip: false,
                       onPressed: () {

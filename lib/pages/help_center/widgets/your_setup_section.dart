@@ -88,9 +88,9 @@ class YourSetupSection extends StatelessWidget {
           style: rowStyle,
           onPressed: () => launchUrlString(article.url),
           child: Basic(
-            leading: const Icon(Icons.menu_book_outlined, size: 18),
+            leading: const Icon(LucideIcons.bookOpen, size: 18),
             title: Text(article.label),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
       // The single most common support question in the corpus: the press
@@ -124,9 +124,9 @@ class YourSetupSection extends StatelessWidget {
             ],
           ),
           child: Basic(
-            leading: const Icon(Icons.visibility_outlined, size: 18),
+            leading: const Icon(LucideIcons.eye, size: 18),
             title: Text(l10n.helpCenterGearOverlayEntry),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
       if (hasNetworkConnection)
@@ -135,9 +135,9 @@ class YourSetupSection extends StatelessWidget {
           style: rowStyle,
           onPressed: () => context.push(const NetworkTroubleshootingPage()),
           child: Basic(
-            leading: const Icon(Icons.wifi_tethering, size: 18),
+            leading: const Icon(LucideIcons.radioTower, size: 18),
             title: Text(l10n.helpCenterNetworkEntry),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
       if (hasControllers)
@@ -159,9 +159,9 @@ class YourSetupSection extends StatelessWidget {
             ],
           ),
           child: Basic(
-            leading: const Icon(Icons.bluetooth_disabled, size: 18),
+            leading: const Icon(LucideIcons.bluetoothOff, size: 18),
             title: Text(l10n.helpCenterControllerDisconnectingEntry),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
       if (hasControllers)
@@ -175,9 +175,9 @@ class YourSetupSection extends StatelessWidget {
             body: l10n.helpAnswerControllerNotFoundBody,
           ),
           child: Basic(
-            leading: const Icon(Icons.bluetooth_searching, size: 18),
+            leading: const Icon(LucideIcons.bluetoothSearching, size: 18),
             title: Text(l10n.helpCenterControllerNotFoundEntry),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
       if (hasClickV2)
@@ -186,9 +186,9 @@ class YourSetupSection extends StatelessWidget {
           style: rowStyle,
           onPressed: () => context.push(const ClickV2OnboardingPage()),
           child: Basic(
-            leading: const Icon(Icons.tune, size: 18),
+            leading: const Icon(LucideIcons.slidersHorizontal, size: 18),
             title: Text(l10n.helpCenterClickV2Entry),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
     ];

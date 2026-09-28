@@ -132,13 +132,13 @@ class WahooKickrShiftButtons {
   static const ControllerButton leftSteer = ControllerButton(
     'leftSteer',
     action: InGameAction.navigateLeft,
-    icon: Icons.keyboard_arrow_left,
+    icon: LucideIcons.chevronLeft,
     color: Colors.black,
   );
   static const ControllerButton rightSteer = ControllerButton(
     'rightSteer',
     action: InGameAction.navigateRight,
-    icon: Icons.keyboard_arrow_right,
+    icon: LucideIcons.chevronRight,
     color: Colors.black,
   );
   static const ControllerButton leftDown = ControllerButton('leftDown', action: InGameAction.shiftDown);
@@ -147,13 +147,13 @@ class WahooKickrShiftButtons {
   static const ControllerButton shiftUpLeft = ControllerButton(
     'shiftUpLeft',
     action: InGameAction.shiftDown,
-    icon: Icons.remove,
+    icon: LucideIcons.minus,
     color: Colors.black,
   );
   static const ControllerButton shiftDownLeft = ControllerButton(
     'shiftDownLeft',
     action: InGameAction.shiftDown,
-    icon: Icons.remove,
+    icon: LucideIcons.minus,
     color: Colors.black,
   );
   static const ControllerButton leftUp = ControllerButton('leftUp', action: InGameAction.shiftDown);
@@ -164,7 +164,7 @@ class WahooKickrShiftButtons {
   static const ControllerButton shiftUpRight = ControllerButton(
     'shiftUpRight',
     action: InGameAction.shiftUp,
-    icon: Icons.add,
+    icon: LucideIcons.plus,
     color: Colors.black,
   );
   static const ControllerButton shiftDownRight = ControllerButton('shiftDownRight', action: InGameAction.shiftUp);

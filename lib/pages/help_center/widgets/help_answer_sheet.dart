@@ -105,7 +105,7 @@ class HelpAnswerSheet extends StatelessWidget {
                             Icon(action.icon, size: 18),
                             const Gap(12),
                             Expanded(child: Text(action.label).small.semiBold),
-                            Icon(action.url != null ? LucideIcons.externalLink : Icons.chevron_right, size: 14),
+                            Icon(action.url != null ? LucideIcons.externalLink : LucideIcons.chevronRight, size: 14),
                           ],
                         ),
                       ),

@@ -70,7 +70,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                                 context,
                               ).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
                             ).muted.xSmall.normal,
-                            trailing: Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+                            trailing: Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
                           ),
                         ),
                       ),
@@ -120,7 +120,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     Row(
                       spacing: 8,
                       children: [
-                        Icon(Icons.star),
+                        Icon(LucideIcons.star),
                         Expanded(
                           child: Text(
                             AppLocalizations.of(
@@ -229,9 +229,7 @@ class TrainerAppSelect extends StatelessWidget {
                         child: Image.asset(app.logoAsset!, width: 22, height: 22),
                       ),
                     Expanded(
-                      child: app == core.settings.getTrainerApp()
-                          ? Text(app.name).semiBold
-                          : Text(app.name),
+                      child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
                     ),
                     if (supportsObp) OpenBikeControlLogo(),
                     if (app.officialUrl != null)
@@ -260,9 +258,7 @@ class TrainerAppSelect extends StatelessWidget {
                   spacing: 8,
                   children: [
                     Expanded(
-                      child: app == core.settings.getTrainerApp()
-                          ? Text(app.name).semiBold
-                          : Text(app.name),
+                      child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
                     ),
                     if (app.officialUrl != null)
                       BkIconButton.ghost(

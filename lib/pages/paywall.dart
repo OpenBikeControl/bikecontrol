@@ -173,55 +173,55 @@ class _PaywallState extends State<Paywall> {
   // bridge) is the Pro part, and Base only gets the daily taster of it.
   late final List<_FeatureLine> _features = [
     _FeatureLine(
-      icon: Icons.functions,
+      icon: LucideIcons.sigma,
       label: AppLocalizations.current.paywall_amountOfActions,
       full: _PaywallCell.unlimited,
       pro: _PaywallCell.unlimited,
     ),
     _FeatureLine(
-      icon: Icons.public,
+      icon: LucideIcons.globe,
       label: AppLocalizations.current.paywall_shiftInYourApp,
       full: _PaywallCell.check,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.directions_bike_outlined,
+      icon: LucideIcons.bike,
       label: AppLocalizations.current.paywall_bikeControlShifts,
       full: _PaywallCell.text(AppLocalizations.current.paywall_twentyMinPerDay),
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.tune,
+      icon: LucideIcons.slidersHorizontal,
       label: AppLocalizations.current.paywall_configure3ActionsPerButton,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.devices,
+      icon: LucideIcons.monitorSmartphone,
       label: AppLocalizations.current.paywall_useBikecontrolOnAllPlatforms,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.keyboard_command_key,
+      icon: LucideIcons.command,
       label: AppLocalizations.current.paywall_startAnyCommandShortcutWithAnyButton,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.music_note_outlined,
+      icon: LucideIcons.music,
       label: AppLocalizations.current.paywall_controlYourDeviceMusic,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.screenshot_monitor_outlined,
+      icon: LucideIcons.camera,
       label: AppLocalizations.current.paywall_createScreenshots,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
     ),
     _FeatureLine(
-      icon: Icons.volunteer_activism_outlined,
+      icon: LucideIcons.handHeart,
       label: AppLocalizations.of(context).paywall_supportDevelopmentOfNewFeaturesDevicesAndMore,
       full: _PaywallCell.dash,
       pro: _PaywallCell.check,
@@ -757,7 +757,7 @@ class _PaywallState extends State<Paywall> {
         ),
       ),
       _PaywallCheck() => Icon(
-        Icons.check_rounded,
+        LucideIcons.check,
         size: compact ? 22 : 48,
         color: Theme.of(context).colorScheme.foreground,
       ),
@@ -1042,7 +1042,7 @@ class _PaywallState extends State<Paywall> {
       ),
       child: selected
           ? Icon(
-              Icons.check,
+              LucideIcons.check,
               size: small ? 10 : (compact ? 13 : 18),
               color: cs.primaryForeground,
             )

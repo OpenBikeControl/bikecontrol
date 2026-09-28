@@ -95,7 +95,7 @@ class _HomeExtrasState extends State<HomeExtras> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.fiber_manual_record, color: Colors.red, size: 12),
+                            const Icon(LucideIcons.circle, color: Colors.red, size: 12),
                             const Gap(4),
                             Text(context.i18n.screenRecordingStarted).xSmall.muted,
                           ],

@@ -37,7 +37,7 @@ Future<void> showZwiftRideFirmwareDialog(BuildContext context, ZwiftRide device)
       child: AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const Icon(LucideIcons.triangleAlert, color: Colors.orange),
             const SizedBox(width: 8),
             Expanded(child: Text(c.i18n.zwiftRideFirmwareNoticeTitle)),
           ],
@@ -89,7 +89,7 @@ class ZwiftRideFirmwareNotice extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 10,
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
+              const Icon(LucideIcons.triangleAlert, color: Colors.orange, size: 18),
               Expanded(
                 child: Text(
                   l10n.zwiftRideFirmwareNoticeBody(device.firmwareVersion ?? ''),
@@ -102,7 +102,7 @@ class ZwiftRideFirmwareNotice extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Button.primary(
               onPressed: () => openZwiftRideFirmwareSupport(context, device),
-              leading: const Icon(Icons.support_agent, size: 14),
+              leading: const Icon(LucideIcons.headset, size: 14),
               child: Text(l10n.onboardingHelpSupport),
             ),
           ),

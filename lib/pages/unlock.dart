@@ -161,7 +161,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                   onPressed: () {
                     launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
                   },
-                  leading: const Icon(Icons.help_outline_outlined),
+                  leading: const Icon(LucideIcons.circleHelp),
                   child: Text(context.i18n.instructions),
                 ),
               ],
@@ -180,7 +180,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             Text(AppLocalizations.of(context).unlock_openZwift).li,
             Text(AppLocalizations.of(context).unlock_connectToBikecontrol).li,
             GhostButton(
-              leading: Icon(Icons.play_circle_outline),
+              leading: Icon(LucideIcons.circlePlay),
               onPressed: () {
                 launchUrlString(
                   'https://www.reddit.com/r/BikeControl/comments/1qt9cg5/great_news_for_zwift_click_v2_owners_introducing/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button',
@@ -203,7 +203,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             if (widget.device.waiting.value && _secondsRemaining >= 0)
               Center(child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60), size: 20))
             else if (widget.device.alreadyUnlocked.value)
-              Center(child: Icon(Icons.lock_clock))
+              Center(child: Icon(LucideIcons.lockKeyhole))
             else
               SmallProgressIndicator(),
             SizedBox(height: 20),

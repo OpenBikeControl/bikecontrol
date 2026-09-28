@@ -273,7 +273,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_download, size: 20),
+                    Icon(LucideIcons.cloudDownload, size: 20),
                     const SizedBox(width: 12),
                     Text(AppLocalizations.of(context).downloadLatestSettings),
                   ],
@@ -289,7 +289,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               child: Row(
                 spacing: 12,
                 children: [
-                  Icon(Icons.info, size: 20, color: Theme.of(context).colorScheme.primary),
+                  Icon(LucideIcons.info, size: 20, color: Theme.of(context).colorScheme.primary),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap,
@@ -321,7 +321,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  _hasNewerSettings ? Icons.cloud_download : Icons.cloud_sync,
+                  _hasNewerSettings ? LucideIcons.cloudDownload : LucideIcons.refreshCw,
                   size: 28,
                   color: _hasNewerSettings ? Colors.orange : Theme.of(context).colorScheme.primary,
                 ),
@@ -358,7 +358,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                    Icon(LucideIcons.clock, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                     const SizedBox(width: 8),
                     Text(
                       '${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? AppLocalizations.of(context).never}',
@@ -368,7 +368,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                 if (_serverSettings?.version != null)
                   Row(
                     children: [
-                      Icon(Icons.tag, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                      Icon(LucideIcons.tag, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                       const SizedBox(width: 8),
                       Text(AppLocalizations.of(context).syncSettingsVersion('${_serverSettings!.version}')).small,
                     ],
@@ -379,7 +379,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.cloud_upload, size: 20),
+                      Icon(LucideIcons.cloudUpload, size: 20),
                       const SizedBox(width: 12),
                       Text(AppLocalizations.of(context).uploadSettings),
                     ],
@@ -408,7 +408,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.devices,
+                  LucideIcons.monitorSmartphone,
                   size: 28,
                   color: Colors.purple,
                 ),
@@ -448,7 +448,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
             child: Row(
               children: [
                 Icon(
-                  Icons.device_unknown,
+                  LucideIcons.smartphone,
                   size: 24,
                   color: Theme.of(context).colorScheme.mutedForeground,
                 ),
@@ -508,7 +508,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           MenuButton(
             child: Row(
               children: [
-                Icon(Icons.download, size: 20),
+                Icon(LucideIcons.download, size: 20),
                 const SizedBox(width: 8),
                 Text(AppLocalizations.of(context).applyNow),
               ],

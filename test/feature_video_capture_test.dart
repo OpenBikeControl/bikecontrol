@@ -43,7 +43,8 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
-import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart'
+    show OpenBikeControlConstants;
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
@@ -211,11 +212,13 @@ Future<void> _resetApp() async {
 Future<void> _connectMyWhoosh(WidgetTester tester, _Studio studio) async {
   await driveUntil(tester, core.obpMdnsEmulator.startServer(), 'the Network method should have started');
   final client = studio.machine.connectTcpClient(OpenBikeControlConstants.TCP_PORT);
-  client.send(OpenBikeProtocolParser.encodeAppInfo(
-    appId: 'MyWhoosh',
-    appVersion: '1.0',
-    supportedButtons: MyWhoosh().defaultObpSupportedButtons,
-  ));
+  client.send(
+    OpenBikeProtocolParser.encodeAppInfo(
+      appId: 'MyWhoosh',
+      appVersion: '1.0',
+      supportedButtons: MyWhoosh().defaultObpSupportedButtons,
+    ),
+  );
   await tester.pump();
   expect(core.obpMdnsEmulator.isConnected.value, isTrue, reason: 'MyWhoosh should be connected');
   studio.myWhoosh = client;
@@ -240,8 +243,11 @@ Future<void> _wrapUp(WidgetTester tester, _Studio studio) async {
   if (overlay.isShowing.value) await overlay.hide();
   for (final device in core.connection.devices.toList()) {
     device.isConnected = false;
-    await driveUntil(tester, core.connection.disconnect(device, forget: true, persistForget: false),
-        '${device.runtimeType} should have been removed');
+    await driveUntil(
+      tester,
+      core.connection.disconnect(device, forget: true, persistForget: false),
+      '${device.runtimeType} should have been removed',
+    );
   }
   // Whatever the shared emulator still carries is left over from this take.
   for (var def = ftmsEmulator.fitnessBike; def != null; def = ftmsEmulator.fitnessBike) {
@@ -345,14 +351,16 @@ Future<VideoCapture> _filmSteering(WidgetTester tester, _Studio studio) async {
   // One sweep: out to [peak] degrees and back to centre over 1.2 s, one
   // notification a frame (the Sterzo streams far faster; one a frame is all
   // the film can show).
-  Future<void> sweep(String label, double peak) => rec.hardware(
+  Future<void> sweep(String label, double peak) => rec
+      .hardware(
         label,
         at: gauge,
         anchor: 'reaction',
         press: () => angle(0),
         holdFrames: 0,
         thenFrames: 0,
-      ).then((_) async {
+      )
+      .then((_) async {
         const frames = 36;
         for (var i = 1; i <= frames; i++) {
           await angle(peak * math.sin(math.pi * i / frames));
@@ -402,8 +410,12 @@ Future<void> _tapEditorCard(VideoRecorder rec, WidgetTester tester, Finder card,
     final box = tester.getRect(editor);
     // Mid-drawer: the bottom edge is where toasts sit.
     // A flick, so the list carries on by itself.
-    await rec.swipe(Offset(box.center.dx, box.center.dy + 200), Offset(box.center.dx, box.center.dy - 200),
-        'Scroll the editor', overFrames: 6);
+    await rec.swipe(
+      Offset(box.center.dx, box.center.dy + 200),
+      Offset(box.center.dx, box.center.dy - 200),
+      'Scroll the editor',
+      overFrames: 6,
+    );
   }
   await rec.tap(card, label);
 }
@@ -435,7 +447,12 @@ Future<VideoCapture> _filmFullControl(WidgetTester tester, _Studio studio) async
   await rec.frames(_endHold);
 
   await _openEditor(rec, ZwiftButtons.y, ButtonTrigger.singleClick, 'Y');
-  await _tapEditorCard(rec, tester, _card(AppLocalizations.current.simulateKeyboardShortcut), 'Simulate keyboard shortcut');
+  await _tapEditorCard(
+    rec,
+    tester,
+    _card(AppLocalizations.current.simulateKeyboardShortcut),
+    'Simulate keyboard shortcut',
+  );
   await rec.tap(find.text(AppLocalizations.current.customLabel).hitTestable(), 'Custom key');
   await rec.event('Key pressed: Arrow Up', find.byType(HotKeyListenerDialog), () async {
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
@@ -444,8 +461,10 @@ Future<VideoCapture> _filmFullControl(WidgetTester tester, _Studio studio) async
   await _closeEditor(rec);
 
   await rec.hardwarePress(ride, RideButtonMask.Y_BTN, ZwiftButtons.y, 'Ride button Y → Arrow Up key');
-  expect(studio.output.performed, ['key down Arrow Up', 'key up Arrow Up'],
-      reason: 'the Y press should have pressed and released Arrow Up');
+  expect(studio.output.performed, [
+    'key down Arrow Up',
+    'key up Arrow Up',
+  ], reason: 'the Y press should have pressed and released Arrow Up');
   await _showActivity(rec);
   await rec.frames(_endHold);
   unawaited(forward.cancel());
@@ -468,8 +487,14 @@ Future<ZwiftRide> _stageDesktop(WidgetTester tester, _Studio studio) async {
 
 /// A Ride press as a gesture: one press (single), two quick ones (double),
 /// or one held ~0.8 s, past the long-press delay (long).
-Future<void> _gesture(VideoRecorder rec, ZwiftRide ride, RideButtonMask mask, ControllerButton button, ButtonTrigger trigger,
-    String label) async {
+Future<void> _gesture(
+  VideoRecorder rec,
+  ZwiftRide ride,
+  RideButtonMask mask,
+  ControllerButton button,
+  ButtonTrigger trigger,
+  String label,
+) async {
   final at = find.byKey(ValueKey(button.name));
   switch (trigger) {
     case ButtonTrigger.singleClick:
@@ -529,8 +554,12 @@ Future<VideoCapture> _filmCustomizability(WidgetTester tester, _Studio studio) a
   final l10n = AppLocalizations.current;
 
   final boundary = GlobalKey();
-  final rec = await _roll(tester, boundary, () => ControllerSettingsPage(device: ride),
-      svgAssets: [ride.controllerLayout.svgAsset!]);
+  final rec = await _roll(
+    tester,
+    boundary,
+    () => ControllerSettingsPage(device: ride),
+    svgAssets: [ride.controllerLayout.svgAsset!],
+  );
   await rec.frames(_endHold);
 
   // A's single click, in the mapping table.
@@ -541,7 +570,7 @@ Future<VideoCapture> _filmCustomizability(WidgetTester tester, _Studio studio) a
   await _closeEditor(rec);
   expect(core.actionHandler.supportedApp!.keymap.getKeyPair(ZwiftButtons.a)?.inGameAction, InGameAction.steerLeft);
 
-  final manage = find.ancestor(of: find.byIcon(Icons.settings), matching: find.byType(Button)).first;
+  final manage = find.ancestor(of: find.byIcon(LucideIcons.settings), matching: find.byType(Button)).first;
   await rec.tap(manage, 'Profile menu');
   await rec.tap(find.text(l10n.rename).hitTestable(), 'Rename');
   await rec.type('Name: Race day', find.byType(TextField).last, 'Race day');
@@ -592,8 +621,14 @@ Future<VideoCapture> _filmGestures(WidgetTester tester, _Studio studio) async {
   await rec.tapAt(const Offset(20, 120), 'Close the menu');
 
   for (final (trigger, action) in assignments) {
-    await _gesture(rec, ride, RideButtonMask.Z_BTN, ZwiftButtons.z, trigger,
-        'Ride button Z, ${trigger.title.toLowerCase()} → ${action.title}');
+    await _gesture(
+      rec,
+      ride,
+      RideButtonMask.Z_BTN,
+      ZwiftButtons.z,
+      trigger,
+      'Ride button Z, ${trigger.title.toLowerCase()} → ${action.title}',
+    );
   }
   await _showActivity(rec);
   await rec.frames(_endHold);
@@ -814,7 +849,8 @@ Future<VideoCapture> _filmHandsFreeSteering(WidgetTester tester, _Studio studio)
   await _scrollTo(rec, gauge, 'Scroll back to the controllers', up: false, by: 400);
   rec.sighting('phone-steering-gauge', gauge);
 
-  Future<void> turn(String label, double rate) => rec.hardware(
+  Future<void> turn(String label, double rate) => rec
+      .hardware(
         label,
         at: gauge,
         anchor: 'reaction',
@@ -822,7 +858,8 @@ Future<VideoCapture> _filmHandsFreeSteering(WidgetTester tester, _Studio studio)
         holdFrames: 15,
         release: () async => yaw = 0,
         thenFrames: 30,
-      ).then((_) async {
+      )
+      .then((_) async {
         // …and back to the middle.
         yaw = -rate;
         await rec.frames(15);
@@ -854,8 +891,11 @@ Future<ProxyDevice> _bridgeTrainer(WidgetTester tester, _Studio studio) async {
   await tester.pumpWidget(videoApp(GlobalKey(), const SizedBox()));
   final context = tester.element(find.byType(SizedBox).last);
   late bool bridged;
-  await driveUntil(tester, connectTrainerFromPicker(context, trainer).then((ok) => bridged = ok),
-      'the trainer should have been bridged');
+  await driveUntil(
+    tester,
+    connectTrainerFromPicker(context, trainer).then((ok) => bridged = ok),
+    'the trainer should have been bridged',
+  );
   expect(bridged, isTrue);
   expect(trainer.fitnessBike, isNotNull, reason: 'the bridge carries Virtual Shifting');
   studio.definitions.add(trainer.fitnessBike!);
@@ -871,10 +911,12 @@ Future<ProxyDevice> _bridgeTrainer(WidgetTester tester, _Studio studio) async {
 void _pedal(_Studio studio, {int cadence = 90, int Function(int second)? watts}) {
   final trainer = studio.trainer!;
   var second = 0;
-  void notify() => unawaited(trainer.processCharacteristic(
-        FitnessBikeDefinition.INDOOR_BIKE_DATA_UUID,
-        Uint8List.fromList(indoorBikeData(cadenceRpm: cadence, powerW: watts?.call(second++) ?? 250)),
-      ));
+  void notify() => unawaited(
+    trainer.processCharacteristic(
+      FitnessBikeDefinition.INDOOR_BIKE_DATA_UUID,
+      Uint8List.fromList(indoorBikeData(cadenceRpm: cadence, powerW: watts?.call(second++) ?? 250)),
+    ),
+  );
   notify();
   studio.pedalling = Timer.periodic(const Duration(seconds: 1), (_) => notify());
 }
@@ -904,28 +946,43 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
   final l10n = AppLocalizations.current;
 
   final boundary = GlobalKey();
-  final roll = await _roll(tester, boundary, () => ProxyDeviceDetailsPage(device: trainer),
-      before: () => _startAt(tester, find.text(l10n.overlaySection), alignment: 0.15));
+  final roll = await _roll(
+    tester,
+    boundary,
+    () => ProxyDeviceDetailsPage(device: trainer),
+    before: () => _startAt(tester, find.text(l10n.overlaySection), alignment: 0.15),
+  );
   await roll.frames(_endHold);
 
-  Finder switchIn(String title) =>
-      find.descendant(of: find.ancestor(of: find.text(title), matching: find.byType(Row)).first, matching: find.byType(Switch));
-  final overlaySwitch = find.descendant(
-    of: find.ancestor(of: find.text(l10n.overlayEnabled), matching: find.byType(SettingTile)).first,
+  Finder switchIn(String title) => find.descendant(
+    of: find.ancestor(of: find.text(title), matching: find.byType(Row)).first,
     matching: find.byType(Switch),
-  ).first;
+  );
+  final overlaySwitch = find
+      .descendant(
+        of: find.ancestor(of: find.text(l10n.overlayEnabled), matching: find.byType(SettingTile)).first,
+        matching: find.byType(Switch),
+      )
+      .first;
   await roll.tap(overlaySwitch, 'Show the overlay');
   expect(TrainerOverlayService.forCurrentPlatform().isShowing.value, isTrue);
   await roll.tap(switchIn(l10n.overlayFieldGearRatio), 'Field: gear ratio');
   await roll.tap(switchIn(l10n.overlayFieldControls), 'Field: − / + controls');
-  expect(core.settings.getOverlayFields(),
-      {OverlayField.power, OverlayField.cadence, OverlayField.gearRatio, OverlayField.controls});
+  expect(core.settings.getOverlayFields(), {
+    OverlayField.power,
+    OverlayField.cadence,
+    OverlayField.gearRatio,
+    OverlayField.controls,
+  });
 
   final slider = find.byType(Slider);
   await _scrollTo(roll, slider, 'Scroll to opacity');
   final track = tester.getRect(slider);
-  await roll.swipe(Offset(track.right - 8, track.center.dy), Offset(track.left + track.width * 0.62, track.center.dy),
-      'Opacity: 75 %');
+  await roll.swipe(
+    Offset(track.right - 8, track.center.dy),
+    Offset(track.left + track.width * 0.62, track.center.dy),
+    'Opacity: 75 %',
+  );
   expect(find.text('75%'), findsOneWidget, reason: 'the overlay is faded to 75 %');
   await roll.frames(30);
 
@@ -974,17 +1031,17 @@ Future<VideoCapture> _filmOverlayView(WidgetTester tester, _Studio studio) async
   // notifiers on every change.
   const fields = {OverlayField.power, OverlayField.cadence};
   TrainerOverlayState read() => TrainerOverlayState(
-        gear: def.currentGear.value,
-        maxGear: def.maxGear,
-        gearRatio: def.gearRatio.value,
-        mode: def.trainerMode.value,
-        powerW: def.powerW.value,
-        cadenceRpm: def.cadenceRpm.value,
-        ergTargetW: def.ergTargetPower.value,
-        fields: fields,
-        frontShiftEnabled: def.frontShiftEnabled,
-        frontRingLarge: def.frontRing.value == FrontRing.large,
-      );
+    gear: def.currentGear.value,
+    maxGear: def.maxGear,
+    gearRatio: def.gearRatio.value,
+    mode: def.trainerMode.value,
+    powerW: def.powerW.value,
+    cadenceRpm: def.cadenceRpm.value,
+    ergTargetW: def.ergTargetPower.value,
+    fields: fields,
+    frontShiftEnabled: def.frontShiftEnabled,
+    frontRingLarge: def.frontRing.value == FrontRing.large,
+  );
   final state = ValueNotifier(read());
   final live = Listenable.merge([def.currentGear, def.gearRatio, def.trainerMode, def.powerW, def.cadenceRpm]);
   void update() => state.value = read();
@@ -993,18 +1050,20 @@ Future<VideoCapture> _filmOverlayView(WidgetTester tester, _Studio studio) async
   useVideoView(tester);
   final boundary = GlobalKey();
   Widget home() => Center(
-        child: RepaintBoundary(
-          key: boundary,
-          child: SizedBox.fromSize(
-            size: _overlayViewSize,
-            child: Center(child: TrainerOverlayView(state: state)),
-          ),
-        ),
-      );
+    child: RepaintBoundary(
+      key: boundary,
+      child: SizedBox.fromSize(
+        size: _overlayViewSize,
+        child: Center(child: TrainerOverlayView(state: state)),
+      ),
+    ),
+  );
   await tester.pumpWidget(videoApp(GlobalKey(), home()));
   await tester.pump();
   await loadAllVideoFonts(tester);
-  await tester.runAsync(() => precacheImage(const AssetImage('icon.png'), tester.element(find.byType(TrainerOverlayView))));
+  await tester.runAsync(
+    () => precacheImage(const AssetImage('icon.png'), tester.element(find.byType(TrainerOverlayView))),
+  );
   await tester.pump(const Duration(seconds: 1));
   final rec = _lastRecorder = VideoRecorder(tester, boundary);
   await rec.first('feature');
@@ -1067,8 +1126,12 @@ Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async
   final l10n = AppLocalizations.current;
 
   final boundary = GlobalKey();
-  final rec = await _roll(tester, boundary, () => ProxyDeviceDetailsPage(device: trainer),
-      before: () => _startAt(tester, find.text(l10n.miniWorkout), alignment: 0.05));
+  final rec = await _roll(
+    tester,
+    boundary,
+    () => ProxyDeviceDetailsPage(device: trainer),
+    before: () => _startAt(tester, find.text(l10n.miniWorkout), alignment: 0.05),
+  );
   rec.sighting('mini-workout', find.text(l10n.miniWorkout));
   await rec.frames(_endHold);
 
@@ -1098,17 +1161,23 @@ Future<VideoCapture> _filmSettingProfiles(WidgetTester tester, _Studio studio) a
   final trainer = await _bridgeTrainer(tester, studio);
   final base = core.shiftingConfigs.activeFor(trainer.trainerKey);
   await core.shiftingConfigs.upsert(base);
-  await core.shiftingConfigs.upsert(base.copyWith(
-    name: 'Climb',
-    isActive: false,
-    bikeWeightKg: 7.5,
-    gearRatios: gearRatioEvenSteps(0.55, 3.2, base.maxGear),
-  ));
+  await core.shiftingConfigs.upsert(
+    base.copyWith(
+      name: 'Climb',
+      isActive: false,
+      bikeWeightKg: 7.5,
+      gearRatios: gearRatioEvenSteps(0.55, 3.2, base.maxGear),
+    ),
+  );
   final def = trainer.fitnessBike!;
 
   final boundary = GlobalKey();
-  final rec = await _roll(tester, boundary, () => ProxyDeviceDetailsPage(device: trainer),
-      before: () => _startAt(tester, find.byType(ShiftingConfigPicker), alignment: 0.05));
+  final rec = await _roll(
+    tester,
+    boundary,
+    () => ProxyDeviceDetailsPage(device: trainer),
+    before: () => _startAt(tester, find.byType(ShiftingConfigPicker), alignment: 0.05),
+  );
   await rec.frames(_endHold);
 
   final picker = find.descendant(of: find.byType(ShiftingConfigPicker), matching: find.byType(Select<ShiftingConfig>));
@@ -1169,15 +1238,22 @@ Future<VideoCapture> _filmHeartRate(WidgetTester tester, _Studio studio) async {
   Finder inHeart(String key) =>
       find.descendant(of: find.byKey(const Key('metric-card-heartRate')), matching: find.byKey(Key(key)));
   await rec.tap(inHeart('metric-card-source-picker'), 'Heart rate source');
-  await rec.tap(find.byKey(const Key('metric-card-source-option-healthkit')).hitTestable().last,
-      'Heart rate from Apple Health', thenFrames: 45);
+  await rec.tap(
+    find.byKey(const Key('metric-card-source-option-healthkit')).hitTestable().last,
+    'Heart rate from Apple Health',
+    thenFrames: 45,
+  );
   expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
   await rec.tap(find.byKey(const Key('sensors-transport-network')), 'Share over Network', thenFrames: 30);
   await rec.tap(find.byKey(const Key('sensors-broadcast-switch')), 'Share sensors', thenFrames: 0);
-  await driveUntil(tester, Future.doWhile(() async {
-    await Future<void>.delayed(const Duration(milliseconds: 20));
-    return !(core.connection.broadcast!.isOn.value);
-  }), 'sharing should have come up');
+  await driveUntil(
+    tester,
+    Future.doWhile(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      return !(core.connection.broadcast!.isOn.value);
+    }),
+    'sharing should have come up',
+  );
   expect(channel.startCalls, greaterThan(0), reason: 'HealthKit is streaming');
   expect(find.text(l10n.sensorsBroadcastLive), findsOneWidget);
   // ~7 s of the reading ticking on the HEART tile, once a second.
@@ -1228,19 +1304,31 @@ Future<VideoCapture> _filmBaseIntensity(WidgetTester tester, _Studio studio) asy
   studio.output.performed.clear();
   final forward = forwardPresses(ride);
   final keyPair = core.actionHandler.supportedApp!.keymap.getKeyPair(ZwiftButtons.navigationUp);
-  expect(keyPair?.inGameAction, InGameAction.increaseResistance, reason: "D-pad up is Tacx Training's own difficulty up");
+  expect(
+    keyPair?.inGameAction,
+    InGameAction.increaseResistance,
+    reason: "D-pad up is Tacx Training's own difficulty up",
+  );
 
   final boundary = GlobalKey();
   final rec = await _roll(tester, boundary, () => const Navigation(), svgAssets: [ride.controllerLayout.svgAsset!]);
   // ~1.5 s to take in the mapping, then two presses, each held to read.
   await rec.frames(45);
   for (final label in ['', ' again']) {
-    await rec.hardwarePress(ride, RideButtonMask.UP_BTN, ZwiftButtons.navigationUp,
-        'Ride D-pad up → ${InGameAction.increaseResistance.title} (Tacx Training)$label');
+    await rec.hardwarePress(
+      ride,
+      RideButtonMask.UP_BTN,
+      ZwiftButtons.navigationUp,
+      'Ride D-pad up → ${InGameAction.increaseResistance.title} (Tacx Training)$label',
+    );
     await rec.frames(45);
   }
-  expect(studio.output.performed, ['key down Arrow Up', 'key up Arrow Up', 'key down Arrow Up', 'key up Arrow Up'],
-      reason: "each press sends Tacx Training's own shortcut");
+  expect(studio.output.performed, [
+    'key down Arrow Up',
+    'key up Arrow Up',
+    'key down Arrow Up',
+    'key up Arrow Up',
+  ], reason: "each press sends Tacx Training's own shortcut");
   unawaited(forward.cancel());
   await _wrapUp(tester, studio);
   return rec.capture;
@@ -1347,18 +1435,28 @@ void main() {
       }
       watch.stop();
       writeScene(scene.id, capture, extra: {'feature': scene.id, 'loops': scene.loops}, logicalSize: scene.logicalSize);
-      expectWellFormed(capture,
-          unsettledTaps: scene.unsettled, settledCuts: scene.settles, logicalSize: scene.logicalSize);
+      expectWellFormed(
+        capture,
+        unsettledTaps: scene.unsettled,
+        settledCuts: scene.settles,
+        logicalSize: scene.logicalSize,
+      );
       final info = jsonDecode(File('build/video_frames/${scene.id}/scene.json').readAsStringSync()) as Map;
       expect(info['feature'], scene.id);
       expect(info['loops'], scene.loops);
       // Held still at either end, and a looping clip ends where it began.
       expect(capture.taps.first.frame, greaterThanOrEqualTo(_endHold), reason: 'hold the opening');
-      expect(capture.frames.length - 1 - capture.taps.last.frame, greaterThanOrEqualTo(_endHold),
-          reason: 'hold the ending');
+      expect(
+        capture.frames.length - 1 - capture.taps.last.frame,
+        greaterThanOrEqualTo(_endHold),
+        reason: 'hold the ending',
+      );
       if (scene.loops) {
-        expect(sha256.convert(capture.frames.last), sha256.convert(capture.frames.first),
-            reason: 'a looping clip ends on its first frame');
+        expect(
+          sha256.convert(capture.frames.last),
+          sha256.convert(capture.frames.first),
+          reason: 'a looping clip ends on its first frame',
+        );
       }
       scene.check(capture);
       reportCapture(scene.id, capture, watch.elapsed);

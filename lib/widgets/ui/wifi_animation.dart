@@ -97,7 +97,7 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
                 border: Border.all(color: innerBorder, width: 1.5),
               ),
               alignment: Alignment.center,
-              child: Icon(Icons.wifi_tethering, color: iconColor, size: 40),
+              child: Icon(LucideIcons.radioTower, color: iconColor, size: 40),
             ),
           ),
 

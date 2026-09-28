@@ -46,7 +46,7 @@ class KeymapManager {
     return Builder(
       builder: (context) {
         return Button.outline(
-          child: Icon(Icons.settings),
+          child: Icon(LucideIcons.settings),
           onPressed: () => showDropdown(
             context: context,
             builder: (c) => DropdownMenu(

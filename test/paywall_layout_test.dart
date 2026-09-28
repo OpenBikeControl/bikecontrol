@@ -69,7 +69,11 @@ Future<void> main() async {
     }
     final tops = [for (final label in labelsInOrder) tester.getTopLeft(find.text(label)).dy];
     for (var i = 1; i < tops.length; i++) {
-      expect(tops[i], greaterThan(tops[i - 1]), reason: '"${labelsInOrder[i]}" must sit below "${labelsInOrder[i - 1]}"');
+      expect(
+        tops[i],
+        greaterThan(tops[i - 1]),
+        reason: '"${labelsInOrder[i]}" must sit below "${labelsInOrder[i - 1]}"',
+      );
     }
 
     // The replaced rows are gone for good, not merely reordered.
@@ -86,12 +90,16 @@ Future<void> main() async {
     expect(cellRect.top, lessThan(rowLabelRect.bottom));
     expect(cellRect.bottom, greaterThan(rowLabelRect.top));
     expect(cellRect.left, greaterThan(rowLabelRect.right));
-    final proCheckInRow = find.byWidgetPredicate(
-      (w) => w is Icon && w.icon == Icons.check_rounded,
-    ).evaluate().map((e) => tester.getRect(find.byWidget(e.widget))).firstWhere(
-      (r) => r.top < rowLabelRect.bottom && r.bottom > rowLabelRect.top,
-      orElse: () => throw StateError('row 3 has no Pro check mark'),
-    );
+    final proCheckInRow = find
+        .byWidgetPredicate(
+          (w) => w is Icon && w.icon == LucideIcons.check,
+        )
+        .evaluate()
+        .map((e) => tester.getRect(find.byWidget(e.widget)))
+        .firstWhere(
+          (r) => r.top < rowLabelRect.bottom && r.bottom > rowLabelRect.top,
+          orElse: () => throw StateError('row 3 has no Pro check mark'),
+        );
     expect(cellRect.right, lessThanOrEqualTo(proCheckInRow.left));
   });
 
@@ -107,7 +115,9 @@ Future<void> main() async {
     try {
       await pumpInScrollView(tester, const Paywall(defaultToFullVersion: true));
       expect(
-        find.text("One-time purchase for the App Store version. It doesn't transfer to other stores or platforms — Pro does."),
+        find.text(
+          "One-time purchase for the App Store version. It doesn't transfer to other stores or platforms — Pro does.",
+        ),
         findsOneWidget,
       );
     } finally {
@@ -116,7 +126,9 @@ Future<void> main() async {
 
     await pumpInScrollView(tester, const Paywall(defaultToFullVersion: true));
     expect(
-      find.text("One-time purchase for the Google Play version. It doesn't transfer to other stores or platforms — Pro does."),
+      find.text(
+        "One-time purchase for the Google Play version. It doesn't transfer to other stores or platforms — Pro does.",
+      ),
       findsOneWidget,
     );
   });
@@ -183,10 +195,12 @@ Future<void> main() async {
   testWidgets('SelectableCard lays out inside a scroll view', (tester) async {
     await pumpInScrollView(
       tester,
-      Column(children: [
-        SelectableCard(title: const Text('Option'), isActive: true, onPressed: () {}),
-        SelectableCard(title: const Text('Other'), subtitle: const Text('sub'), isActive: false, onPressed: () {}),
-      ]),
+      Column(
+        children: [
+          SelectableCard(title: const Text('Option'), isActive: true, onPressed: () {}),
+          SelectableCard(title: const Text('Other'), subtitle: const Text('sub'), isActive: false, onPressed: () {}),
+        ],
+      ),
     );
     expect(tester.takeException(), isNull);
   });

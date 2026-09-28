@@ -64,7 +64,7 @@ List<Widget> buildMenuButtons(BuildContext context) {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.workspace_premium, size: 14),
+                Icon(LucideIcons.crown, size: 14),
                 const SizedBox(width: 4),
                 Text('Pro'),
               ],
@@ -86,7 +86,7 @@ List<Widget> buildMenuButtons(BuildContext context) {
                 builder: (c) => DropdownMenu(
                   children: [
                     MenuButton(
-                      leading: Icon(Icons.star_rate),
+                      leading: Icon(LucideIcons.star),
                       child: Text(context.i18n.leaveAReview),
                       onPressed: (c) async {
                         final InAppReview inAppReview = InAppReview.instance;
@@ -102,7 +102,7 @@ List<Widget> buildMenuButtons(BuildContext context) {
                 ),
               );
             },
-            icon: Icon(Icons.favorite_outline),
+            icon: Icon(LucideIcons.heart),
           );
         },
       ),
@@ -177,9 +177,7 @@ ${guard(() => core.connection.lastLogEntries.reversed.joinToString(separator: '\
     // Verbose DirCon/trainer wire trace, in its own section so it never
     // crowds out the high-level Logs above.
     final trace = core.connection.lastTraceEntries;
-    return trace.isEmpty
-        ? ''
-        : '\n\nWire trace:\n${trace.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}';
+    return trace.isEmpty ? '' : '\n\nWire trace:\n${trace.reversed.joinToString(separator: '\n', transform: (e) => '${e.date.toString().split('.').first} - ${e.entry}')}';
   })}
 ''';
 }
@@ -308,10 +306,12 @@ String describeProxyDevice(ProxyDevice device) {
 /// firmware field, and dropping them from this line would be a real support
 /// regression, not just a formatting change.
 @visibleForTesting
-String describeControllers(Iterable<BaseDevice> devices) => devices.map((e) {
-  final fw = e is BluetoothDevice ? e.firmwareVersion : null;
-  return fw != null ? '$e (fw $fw)' : e.toString();
-}).join(', ');
+String describeControllers(Iterable<BaseDevice> devices) => devices
+    .map((e) {
+      final fw = e is BluetoothDevice ? e.firmwareVersion : null;
+      return fw != null ? '$e (fw $fw)' : e.toString();
+    })
+    .join(', ');
 
 class BKMenuButton extends StatelessWidget {
   const BKMenuButton({super.key});
@@ -321,7 +321,7 @@ class BKMenuButton extends StatelessWidget {
     return BkIconButton.menu(
       label: context.i18n.a11yMoreOptions,
       tooltip: false,
-      icon: Icon(Icons.more_vert),
+      icon: Icon(LucideIcons.ellipsisVertical),
       onPressed: () => showDropdown(
         context: context,
         builder: (c) => DropdownMenu(
@@ -400,7 +400,7 @@ class BKMenuButton extends StatelessWidget {
               MenuDivider(),
             ],
             MenuButton(
-              leading: Icon(Icons.tips_and_updates_outlined),
+              leading: Icon(LucideIcons.lightbulb),
               child: Text(context.i18n.onboardingMenuEntry),
               onPressed: (c) async {
                 await Navigator.of(context).push(
@@ -409,7 +409,7 @@ class BKMenuButton extends StatelessWidget {
               },
             ),
             MenuButton(
-              leading: Icon(Icons.logo_dev_sharp),
+              leading: Icon(LucideIcons.code),
               child: Text(context.i18n.logs),
               onPressed: (c) async {
                 await context.push(LogViewer());
@@ -417,14 +417,14 @@ class BKMenuButton extends StatelessWidget {
             ),
             if (!kIsWeb)
               MenuButton(
-                leading: Icon(Icons.wifi_find_outlined),
+                leading: Icon(LucideIcons.wifi),
                 child: Text(context.i18n.networkTroubleshootingTitle),
                 onPressed: (c) async {
                   await context.push(const NetworkTroubleshootingPage());
                 },
               ),
             MenuButton(
-              leading: Icon(Icons.star_rate),
+              leading: Icon(LucideIcons.star),
               child: Text(context.i18n.leaveAReview),
               onPressed: (c) async {
                 final InAppReview inAppReview = InAppReview.instance;
@@ -437,7 +437,7 @@ class BKMenuButton extends StatelessWidget {
               },
             ),
             MenuButton(
-              leading: Icon(Icons.update_outlined),
+              leading: Icon(LucideIcons.refreshCw),
               child: Text(context.i18n.changelog),
               onPressed: (c) {
                 openDrawer(
@@ -448,7 +448,7 @@ class BKMenuButton extends StatelessWidget {
               },
             ),
             MenuButton(
-              leading: Icon(Icons.policy_outlined),
+              leading: Icon(LucideIcons.shieldCheck),
               child: Text(context.i18n.license),
               onPressed: (c) {
                 showLicensePage(context: context);

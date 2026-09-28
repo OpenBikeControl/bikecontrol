@@ -158,7 +158,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                     Expanded(child: SizedBox()),
                     BkIconButton.ghost(
-                      icon: Icon(Icons.close),
+                      icon: Icon(LucideIcons.x),
                       label: context.i18n.close,
                       onPressed: () {
                         closeDrawer(context);
@@ -204,7 +204,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           ? singleClickPair.toString()
                           : null;
                       return SelectableCard(
-                        icon: Icons.repeat,
+                        icon: LucideIcons.repeat,
                         title: Text(context.i18n.repeatSingleClick),
                         isProOnly: true,
                         isActive: _keyPair.hasNoAction,
@@ -268,7 +268,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     Builder(
                       builder: (context) {
                         return SelectableCard(
-                          icon: RadixIcons.keyboard,
+                          icon: LucideIcons.keyboard,
                           title: Text(context.i18n.simulateKeyboardShortcut),
                           isActive:
                               _keyPair.physicalKey != null &&
@@ -286,14 +286,14 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       builder: (context) {
                         return SelectableCard(
                           title: Text(context.i18n.simulateTouch),
-                          icon: core.actionHandler is AndroidActions ? Icons.touch_app_outlined : BootstrapIcons.mouse,
+                          icon: core.actionHandler is AndroidActions ? LucideIcons.pointer : LucideIcons.mouse,
                           isActive:
                               ((core.actionHandler is AndroidActions || _keyPair.physicalKey == null) &&
                                   _keyPair.touchPosition != Offset.zero) &&
                               (core.settings.getLocalEnabled() || core.settings.getRemoteControlEnabled()),
                           value: _keyPair.toString(),
                           trailing: BkIconButton.secondary(
-                            icon: Icon(Icons.ondemand_video),
+                            icon: Icon(LucideIcons.monitorPlay),
                             label: context.i18n.instructionVideo,
                             onPressed: () {
                               launchUrlString('https://youtube.com/shorts/SvLOQqu2Dqg?feature=share');
@@ -309,12 +309,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   if (core.actionHandler.supportedModes.contains(SupportedMode.media))
                     Builder(
                       builder: (context) => SelectableCard(
-                        icon: Icons.music_note_outlined,
+                        icon: LucideIcons.music,
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
                         title: Text(context.i18n.simulateMediaKey),
                         value: _keyPair.toString(),
                         trailing: BkIconButton.secondary(
-                          icon: Icon(Icons.ondemand_video),
+                          icon: Icon(LucideIcons.monitorPlay),
                           label: context.i18n.instructionVideo,
                           onPressed: () {
                             launchUrlString('https://youtube.com/shorts/ClY1eTnmAv0?feature=share');
@@ -330,7 +330,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             builder: (c) => DropdownMenu(
                               children: [
                                 MenuButton(
-                                  leading: Icon(Icons.play_arrow_outlined),
+                                  leading: Icon(LucideIcons.play),
                                   onPressed: (c) async {
                                     if (!await IAPManager.instance.ensureProForFeature(
                                       context,
@@ -357,7 +357,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   ),
                                 ),
                                 MenuButton(
-                                  leading: Icon(Icons.stop_outlined),
+                                  leading: Icon(LucideIcons.square),
                                   onPressed: (c) async {
                                     if (!await IAPManager.instance.ensureProForFeature(
                                       context,
@@ -381,7 +381,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   child: _buildProMenuItemLabel(context.i18n.stop, isAllowedForOldPurchases: true),
                                 ),
                                 MenuButton(
-                                  leading: Icon(Icons.skip_previous_outlined),
+                                  leading: Icon(LucideIcons.skipBack),
                                   onPressed: (c) async {
                                     if (!await IAPManager.instance.ensureProForFeature(
                                       context,
@@ -408,7 +408,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   ),
                                 ),
                                 MenuButton(
-                                  leading: Icon(Icons.skip_next_outlined),
+                                  leading: Icon(LucideIcons.skipForward),
                                   onPressed: (c) async {
                                     if (!await IAPManager.instance.ensureProForFeature(
                                       context,
@@ -432,7 +432,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   child: _buildProMenuItemLabel(context.i18n.next, isAllowedForOldPurchases: true),
                                 ),
                                 MenuButton(
-                                  leading: Icon(Icons.volume_up_outlined),
+                                  leading: Icon(LucideIcons.volume2),
                                   onPressed: (c) async {
                                     if (!await IAPManager.instance.ensureProForFeature(
                                       context,
@@ -459,7 +459,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   ),
                                 ),
                                 MenuButton(
-                                  leading: Icon(Icons.volume_down_outlined),
+                                  leading: Icon(LucideIcons.volume1),
                                   child: _buildProMenuItemLabel(
                                     context.i18n.volumeDown,
                                     isAllowedForOldPurchases: true,
@@ -494,7 +494,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   if (core.logic.showLocalControl && core.actionHandler is AndroidActions)
                     Builder(
                       builder: (context) => SelectableCard(
-                        icon: Icons.settings_remote_outlined,
+                        icon: LucideIcons.gamepad2,
                         isActive:
                             _keyPair.androidAction != null &&
                             _keyPair.androidAction != AndroidSystemAction.assistant &&
@@ -504,7 +504,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                             ? _keyPair.androidAction?.title
                             : null,
                         trailing: BkIconButton.secondary(
-                          icon: Icon(Icons.ondemand_video),
+                          icon: Icon(LucideIcons.monitorPlay),
                           label: context.i18n.instructionVideo,
                           onPressed: () {
                             launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
@@ -554,7 +554,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 if (defaultTargetPlatform == TargetPlatform.android) ...[
                   Builder(
                     builder: (context) => SelectableCard(
-                      icon: Icons.assistant_outlined,
+                      icon: LucideIcons.sparkles,
                       isActive:
                           _keyPair.androidAction == AndroidSystemAction.assistant && core.settings.getLocalEnabled(),
                       title: Text(AndroidSystemAction.assistant.title),
@@ -580,7 +580,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ),
                   Builder(
                     builder: (context) => SelectableCard(
-                      icon: Icons.broadcast_on_home_outlined,
+                      icon: LucideIcons.cast,
                       isProOnly: true,
                       isActive: _keyPair.androidIntentAction?.trim().isNotEmpty == true,
                       title: Text(context.i18n.broadcastIntent),
@@ -600,7 +600,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     SelectableCard(
                       isProOnly: true,
                       title: Text(HostPlatform.isMacOS || HostPlatform.isIOS ? 'Launch Shortcut' : 'Run Command'),
-                      icon: HostPlatform.isMacOS || HostPlatform.isIOS ? Icons.rocket_launch_outlined : Icons.terminal,
+                      icon: HostPlatform.isMacOS || HostPlatform.isIOS ? LucideIcons.rocket : LucideIcons.terminal,
                       isActive: _keyPair.command?.trim().isNotEmpty == true,
                       value: _keyPair.command,
                       onPressed: () async {
@@ -611,7 +611,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       SelectableCard(
                         isProOnly: true,
                         title: Text(context.i18n.takeScreenshot),
-                        icon: Icons.image_outlined,
+                        icon: LucideIcons.image,
                         isActive: _keyPair.screenshotPath?.trim().isNotEmpty == true,
                         value: _keyPair.screenshotPath,
                         onPressed: () async {
@@ -641,7 +641,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ),
                   if (core.settings.getPhoneSteeringEnabled())
                     SelectableCard(
-                      icon: BootstrapIcons.wrenchAdjustable,
+                      icon: LucideIcons.wrench,
                       title: Text(context.i18n.actionCalibratePhoneSteering),
                       isActive: _keyPair.inGameAction == InGameAction.calibratePhoneSteering,
                       onPressed: () {
@@ -666,7 +666,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   ColoredTitle(text: context.i18n.accessoryActions),
                   Builder(
                     builder: (context) => SelectableCard(
-                      icon: Icons.air,
+                      icon: LucideIcons.wind,
                       title: Text(context.i18n.kickrHeadwind),
                       isActive:
                           _keyPair.inGameAction != null &&
@@ -1036,7 +1036,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   spacing: 4,
                   children: [
                     Icon(
-                      Icons.warning_amber_rounded,
+                      LucideIcons.triangleAlert,
                       size: 12,
                       color: Theme.of(context).colorScheme.secondary,
                     ),
@@ -1437,7 +1437,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             MenuDivider(),
             MenuLabel(child: Text(context.i18n.customModeAction(supportedMode.name.capitalize()))),
             MenuButton(
-              leading: Icon(Icons.edit_outlined),
+              leading: Icon(LucideIcons.pencil),
               onPressed: (_) {
                 _editAction(supportedMode);
               },
@@ -1559,7 +1559,7 @@ class SelectableCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 3.0),
                       child: Icon(
                         icon,
-                        color: icon == Icons.delete_outline ? Theme.of(context).colorScheme.destructive : null,
+                        color: icon == LucideIcons.trash2 ? Theme.of(context).colorScheme.destructive : null,
                       ),
                     )
                   : null,

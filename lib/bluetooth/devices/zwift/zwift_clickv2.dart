@@ -293,7 +293,7 @@ class ZwiftClickV2 extends ZwiftRide {
           children: [
             _unlockStatusLine(
               iconColor: Colors.gray,
-              icon: Icons.lock_open_rounded,
+              icon: LucideIcons.lockOpen,
               text: Text(
                 'Likely unlocked until ${DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1)))}',
               ).xSmall,
@@ -310,7 +310,7 @@ class ZwiftClickV2 extends ZwiftRide {
           children: [
             _unlockStatusLine(
               iconColor: Colors.green,
-              icon: Icons.lock_open_rounded,
+              icon: LucideIcons.lockOpen,
               text: Text(
                 AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
                   DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1))),
@@ -323,7 +323,7 @@ class ZwiftClickV2 extends ZwiftRide {
                 onPressed: () {
                   sendCommand(Opcode.RESET, null);
                 },
-                leading: const Icon(Icons.translate_sharp),
+                leading: const Icon(LucideIcons.languages),
                 style: ButtonStyle.primary(size: ButtonSize.small),
                 child: Text('Reset'),
               ),
@@ -338,7 +338,7 @@ class ZwiftClickV2 extends ZwiftRide {
         children: [
           _unlockStatusLine(
             iconColor: Colors.red,
-            icon: Icons.lock_rounded,
+            icon: LucideIcons.lock,
             text: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall,
             action: Builder(
               builder: (context) {
@@ -349,7 +349,7 @@ class ZwiftClickV2 extends ZwiftRide {
                       builder: (c) => DropdownMenu(
                         children: [
                           MenuButton(
-                            leading: const Icon(Icons.check),
+                            leading: const Icon(LucideIcons.check),
                             onPressed: (c) {
                               propPrefs.setZwiftClickV2LastUnlock(scanResult.deviceId, DateTime.now());
                               propPrefs.setNotSureIfUnlocked(scanResult.deviceId, true);
@@ -366,14 +366,14 @@ class ZwiftClickV2 extends ZwiftRide {
                                 builder: (_) => UnlockPage(device: this),
                               );
                             },
-                            leading: const Icon(Icons.lock_open_rounded),
+                            leading: const Icon(LucideIcons.lockOpen),
                             child: Text(AppLocalizations.of(context).unlock_unlockNow),
                           ),
                         ],
                       ),
                     );
                   },
-                  leading: const Icon(Icons.lock_open_rounded),
+                  leading: const Icon(LucideIcons.lockOpen),
                   style: ButtonStyle.outline(size: ButtonSize.small),
                   child: Text(AppLocalizations.of(context).unlock_unlockNow),
                 );

@@ -73,7 +73,7 @@ class _BlogPostsWidgetState extends State<BlogPostsWidget> {
             if (widget.showHeader)
               Padding(
                 padding: const EdgeInsets.only(left: 16, top: 4),
-                child: ColoredTitle(text: 'BikeControl Blog', icon: Icons.rss_feed),
+                child: ColoredTitle(text: 'BikeControl Blog', icon: LucideIcons.rss),
               ),
             if (widget.showHeader) const Gap(8),
             ...displayPosts.map(
@@ -116,7 +116,7 @@ class _BlogPostRow extends StatelessWidget {
             spacing: 8,
             children: [
               Text(dateFormat.format(post.date)).xSmall.normal.muted,
-              Icon(Icons.chevron_right_outlined, size: 18),
+              Icon(LucideIcons.chevronRight, size: 18),
             ],
           ),
         ),

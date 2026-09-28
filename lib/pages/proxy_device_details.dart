@@ -260,7 +260,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
+          const Icon(LucideIcons.triangleAlert, color: Colors.orange, size: 18),
           Expanded(
             child: Text(
               AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),

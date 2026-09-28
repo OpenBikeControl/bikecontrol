@@ -586,7 +586,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
           const SizedBox(height: 10),
           m.FilledButton.icon(
             onPressed: () => applyAppUpdate(update),
-            icon: Icon(update.isPatch ? m.Icons.restart_alt : m.Icons.open_in_new, size: 18),
+            icon: Icon(update.isPatch ? LucideIcons.rotateCcw : LucideIcons.externalLink, size: 18),
             label: Text(update.isPatch ? 'Restart to update' : 'Open the store'),
           ),
         ],
@@ -602,7 +602,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
           ),
         m.FilledButton.icon(
           onPressed: _checkForUpdates,
-          icon: const Icon(m.Icons.system_update_alt, size: 18),
+          icon: const Icon(LucideIcons.download, size: 18),
           label: Text(_checked ? 'Check again' : 'Check for updates'),
         ),
       ],
@@ -620,7 +620,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(m.Icons.error_outline, size: 44, color: BKColor.main),
+              const Icon(LucideIcons.circleAlert, size: 44, color: BKColor.main),
               const SizedBox(height: 16),
               const Text(
                 "BikeControl couldn't finish starting up",
@@ -638,7 +638,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
               const SizedBox(height: 12),
               m.OutlinedButton.icon(
                 onPressed: _emailSupport,
-                icon: const Icon(m.Icons.mail_outline, size: 18),
+                icon: const Icon(LucideIcons.mail, size: 18),
                 label: const Text('Email support with logs'),
               ),
               const SizedBox(height: 8),

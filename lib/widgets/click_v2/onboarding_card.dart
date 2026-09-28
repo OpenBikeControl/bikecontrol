@@ -62,7 +62,7 @@ class ClickV2OnboardingCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: Button.primary(
-              trailing: const Icon(Icons.arrow_forward, size: 16),
+              trailing: const Icon(LucideIcons.arrowRight, size: 16),
               onPressed: () async {
                 await context.push(const ClickV2OnboardingPage());
                 onCompleted?.call();

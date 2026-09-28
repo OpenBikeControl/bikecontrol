@@ -102,7 +102,7 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
                           children: [
                             material.IconButton(
                               tooltip: l10n.duplicate,
-                              icon: const material.Icon(material.Icons.copy, size: 18),
+                              icon: const material.Icon(LucideIcons.copy, size: 18),
                               onPressed: () async {
                                 final name = await _promptName(
                                   title: l10n.duplicate,
@@ -119,7 +119,7 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
                             ),
                             material.IconButton(
                               tooltip: l10n.rename,
-                              icon: const material.Icon(material.Icons.edit_outlined, size: 18),
+                              icon: const material.Icon(LucideIcons.pencil, size: 18),
                               onPressed: () async {
                                 final name = await _promptName(
                                   title: l10n.rename,
@@ -137,7 +137,7 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
                             if (configs.length > 1)
                               material.IconButton(
                                 tooltip: l10n.delete,
-                                icon: const material.Icon(material.Icons.delete_outline, size: 18),
+                                icon: const material.Icon(LucideIcons.trash2, size: 18),
                                 onPressed: () async {
                                   await core.shiftingConfigs.remove(
                                     trainerKey: widget.trainerKey,

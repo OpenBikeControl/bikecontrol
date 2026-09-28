@@ -645,7 +645,7 @@ abstract class BluetoothDevice extends BaseDevice {
             (showFull || (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion))) ...[
           if (this is ZwiftDevice && (this as ZwiftDevice).hasNewerFirmwareVersion)
             Icon(
-              Icons.warning,
+              LucideIcons.triangleAlert,
               size: fontSize,
             )
           else

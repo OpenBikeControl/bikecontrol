@@ -35,7 +35,8 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
   // Drives the pro/con rows' one-shot staggered entrance. PageView (without a
   // builder) constructs both option pages eagerly, so this fires for both at
   // load time rather than when a page actually becomes active.
-  late final AnimationController _rows = AnimationController(vsync: this, duration: const Duration(milliseconds: 420))..forward();
+  late final AnimationController _rows = AnimationController(vsync: this, duration: const Duration(milliseconds: 420))
+    ..forward();
 
   // One CurvedAnimation per staggered index, built once and reused. A fresh
   // CurvedAnimation registers a status listener on its parent (_rows) in its
@@ -53,7 +54,10 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
     _controller.addListener(_onScroll);
     _staggerCurves = List.generate(_staggerCurveCount, (index) {
       final start = (index * 0.15).clamp(0.0, 0.6);
-      return CurvedAnimation(parent: _rows, curve: Interval(start, 1, curve: Curves.easeOut));
+      return CurvedAnimation(
+        parent: _rows,
+        curve: Interval(start, 1, curve: Curves.easeOut),
+      );
     });
   }
 
@@ -126,7 +130,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
                           Expanded(child: Text(l10n.clickV2Onboarding_title).large.semiBold),
                           BkIconButton.ghost(
                             key: const ValueKey('click-onboarding-close'),
-                            icon: const Icon(Icons.close),
+                            icon: const Icon(LucideIcons.x),
                             label: context.i18n.close,
                             onPressed: () => Navigator.of(context).maybePop(),
                           ),
@@ -135,7 +139,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
                       Text(l10n.clickV2Onboarding_intro).small.muted,
                       Button.link(
                         onPressed: () => launchUrlString(_whyUrl),
-                        trailing: const Icon(Icons.open_in_new, size: 14),
+                        trailing: const Icon(LucideIcons.externalLink, size: 14),
                         child: Text(l10n.clickV2Onboarding_whyLink),
                       ),
                     ],
@@ -177,7 +181,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
                   child: Button.link(
                     onPressed: () => launchUrlString(_alternativesUrl),
-                    trailing: const Icon(Icons.open_in_new, size: 14),
+                    trailing: const Icon(LucideIcons.externalLink, size: 14),
                     child: Text(l10n.clickV2Onboarding_alternativesLink),
                   ),
                 ),
@@ -296,7 +300,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
             spacing: 4,
             children: [
               Text(l10n.clickV2Onboarding_swipeHint).small.muted,
-              Icon(Icons.chevron_right, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+              Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
             ],
           ),
         ),
@@ -400,7 +404,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
         spacing: 8,
         children: [
           Icon(
-            isPro ? Icons.check_circle_outline : Icons.remove_circle_outline,
+            isPro ? LucideIcons.circleCheck : LucideIcons.circleMinus,
             size: 16,
             color: isPro ? Colors.green : Theme.of(context).colorScheme.mutedForeground,
           ),

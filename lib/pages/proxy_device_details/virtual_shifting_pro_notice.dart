@@ -65,7 +65,7 @@ class _VirtualShiftingProNoticeState extends State<VirtualShiftingProNotice> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 10,
                 children: [
-                  Icon(Icons.workspace_premium, color: Colors.orange, size: 18),
+                  Icon(LucideIcons.crown, color: Colors.orange, size: 18),
                   Expanded(
                     child: Text(
                       unregistered ? l10n.proUnregisteredBody : l10n.virtualShiftingProNote(widget.trainerAppName),
@@ -87,7 +87,7 @@ class _VirtualShiftingProNoticeState extends State<VirtualShiftingProNotice> {
                     ? const RegisterThisDeviceButton()
                     : Button.primary(
                         onPressed: () => showGoProDialog(context),
-                        leading: const Icon(Icons.workspace_premium, size: 14),
+                        leading: const Icon(LucideIcons.crown, size: 14),
                         child: Text(l10n.goPro),
                       ),
               ),

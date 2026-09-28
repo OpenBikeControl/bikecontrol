@@ -84,7 +84,7 @@ class RegisterThisDeviceButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isLoading) const SmallProgressIndicator() else const Icon(Icons.devices, size: 16),
+            if (isLoading) const SmallProgressIndicator() else const Icon(LucideIcons.monitorSmartphone, size: 16),
             const SizedBox(width: 8),
             Text(AppLocalizations.of(context).registerThisDevice),
           ],

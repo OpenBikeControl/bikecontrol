@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 
 class ZwiftConstants {
   static const ZWIFT_CUSTOM_SERVICE_UUID = "00000001-19CA-4651-86E5-FA29DCDD09D1";
@@ -66,25 +67,25 @@ class ZwiftButtons {
   static const ControllerButton navigationUp = ControllerButton(
     'navigationUp',
     action: InGameAction.up,
-    icon: Icons.keyboard_arrow_up,
+    icon: LucideIcons.chevronUp,
     color: Colors.black,
   );
   static const ControllerButton navigationDown = ControllerButton(
     'navigationDown',
     action: InGameAction.down,
-    icon: Icons.keyboard_arrow_down,
+    icon: LucideIcons.chevronDown,
     color: Colors.black,
   );
   static const ControllerButton navigationLeft = ControllerButton(
     'navigationLeft',
     action: InGameAction.steerLeft,
-    icon: Icons.keyboard_arrow_left,
+    icon: LucideIcons.chevronLeft,
     color: Colors.black,
   );
   static const ControllerButton navigationRight = ControllerButton(
     'navigationRight',
     action: InGameAction.steerRight,
-    icon: Icons.keyboard_arrow_right,
+    icon: LucideIcons.chevronRight,
     color: Colors.black,
   );
   static const ControllerButton onOffLeft = ControllerButton('onOffLeft', action: InGameAction.toggleUi);
@@ -95,7 +96,7 @@ class ZwiftButtons {
   static const ControllerButton shiftUpLeft = ControllerButton(
     'shiftUpLeft',
     action: InGameAction.shiftDown,
-    icon: Icons.remove,
+    icon: LucideIcons.minus,
     color: Colors.black,
   );
   static const ControllerButton shiftDownLeft = ControllerButton(
@@ -121,7 +122,7 @@ class ZwiftButtons {
   static const ControllerButton shiftUpRight = ControllerButton(
     'shiftUpRight',
     action: InGameAction.shiftUp,
-    icon: Icons.add,
+    icon: LucideIcons.plus,
     color: Colors.black,
   );
   static const ControllerButton shiftDownRight = ControllerButton('shiftDownRight', action: InGameAction.shiftUp);

@@ -34,7 +34,7 @@ class DeviceInfo extends StatelessWidget {
           trailingAlignment: Alignment.centerRight,
           trailing: Icon(
             icon,
-            color: icon == Icons.warning || icon == Icons.battery_alert
+            color: icon == LucideIcons.triangleAlert || icon == LucideIcons.batteryWarning
                 ? Theme.of(context).colorScheme.destructive
                 : null,
           ),

@@ -111,7 +111,7 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
               },
               renderChild: (isLoading, tap) => Button.outline(
                 onPressed: tap,
-                leading: isLoading ? SmallProgressIndicator() : Icon(Icons.update),
+                leading: isLoading ? SmallProgressIndicator() : Icon(LucideIcons.refreshCw),
                 child: Text(AppLocalizations.current.newVersionAvailableWithVersion(_newVersion.toString())).xSmall,
               ),
             ),

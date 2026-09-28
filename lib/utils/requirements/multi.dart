@@ -17,7 +17,7 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
-  KeyboardRequirement() : super(AppLocalizations.current.keyboardAccess, icon: Icons.keyboard);
+  KeyboardRequirement() : super(AppLocalizations.current.keyboardAccess, icon: LucideIcons.keyboard);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -36,7 +36,7 @@ class KeyboardRequirement extends PlatformRequirement {
 
 class BluetoothAdvertiseRequirement extends PlatformRequirement {
   BluetoothAdvertiseRequirement()
-    : super(AppLocalizations.current.bluetoothAdvertiseAccess, icon: Icons.bluetooth_audio);
+    : super(AppLocalizations.current.bluetoothAdvertiseAccess, icon: LucideIcons.headphones);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -51,7 +51,7 @@ class BluetoothAdvertiseRequirement extends PlatformRequirement {
 }
 
 class BluetoothTurnedOn extends PlatformRequirement {
-  BluetoothTurnedOn() : super(AppLocalizations.current.bluetoothTurnedOn, icon: Icons.bluetooth);
+  BluetoothTurnedOn() : super(AppLocalizations.current.bluetoothTurnedOn, icon: LucideIcons.bluetooth);
 
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
@@ -113,7 +113,7 @@ class UnsupportedPlatform extends PlatformRequirement {
         kIsWeb
             ? AppLocalizations.current.browserNotSupported
             : AppLocalizations.current.platformNotSupported('platform'),
-        icon: Icons.error_outline,
+        icon: LucideIcons.circleAlert,
       ) {
     status = false;
   }
@@ -147,10 +147,10 @@ typedef BoolFunction = bool Function();
 
 enum Target {
   thisDevice(
-    icon: Icons.devices,
+    icon: LucideIcons.monitorSmartphone,
   ),
   otherDevice(
-    icon: Icons.settings_remote_outlined,
+    icon: LucideIcons.gamepad2,
   );
 
   final IconData icon;

@@ -111,13 +111,13 @@ class _LocalTileState extends State<LocalTile> {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber),
+                Icon(LucideIcons.triangleAlert),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(context.i18n.miuiDeviceDetected).bold,
                 ),
                 BkIconButton.destructive(
-                  icon: Icon(Icons.close),
+                  icon: Icon(LucideIcons.x),
                   label: context.i18n.a11yDismiss,
                   onPressed: () async {
                     await core.settings.setMiuiWarningDismissed(true);
@@ -158,7 +158,7 @@ class _LocalTileState extends State<LocalTile> {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 }
               },
-              leading: Icon(Icons.open_in_new),
+              leading: Icon(LucideIcons.externalLink),
               child: Text(context.i18n.viewDetailedInstructions),
             ),
           ],
@@ -189,7 +189,7 @@ class _LocalTileState extends State<LocalTile> {
                       });
                     });
                   },
-                  icon: Icon(Icons.refresh),
+                  icon: Icon(LucideIcons.refreshCw),
                 ),
               ],
             ),

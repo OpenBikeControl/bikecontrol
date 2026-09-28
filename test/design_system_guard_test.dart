@@ -64,4 +64,23 @@ void main() {
       expect(offenders, isEmpty);
     });
   });
+
+  group('icon set', () {
+    // Lucide (shadcn_flutter's LucideIcons) is the app's one icon set. A glyph
+    // from another set is allowed only where Lucide has no equivalent — a
+    // brand logo — and is listed here with the one icon it may use.
+    const allowlist = {
+      'lib/pages/help_center/widgets/contact_community_section.dart': {'Icons.reddit_outlined'},
+    };
+    final foreign = RegExp(r'(?<![A-Za-z])(?:Icons|BootstrapIcons|RadixIcons)\.[A-Za-z_0-9]+');
+
+    test('only Lucide icons outside the allowlist', () {
+      final offenders = [
+        for (final (path, line, text) in libLines())
+          for (final m in foreign.allMatches(text))
+            if (!(allowlist[path]?.contains(m.group(0)) ?? false)) '$path:$line  ${m.group(0)}',
+      ];
+      expect(offenders, isEmpty, reason: 'Use the LucideIcons equivalent.');
+    });
+  });
 }
