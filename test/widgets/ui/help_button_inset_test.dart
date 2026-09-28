@@ -27,7 +27,7 @@ Future<void> main() async {
           AppLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
-        theme: BkTheme.build(Brightness.light, compact: true),
+        theme: BkTheme.build(Brightness.light),
         home: const Align(alignment: Alignment.bottomCenter, child: HelpButton(isMobile: true)),
       ),
     );

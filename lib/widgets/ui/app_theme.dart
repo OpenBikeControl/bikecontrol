@@ -21,12 +21,6 @@ abstract final class BkTheme {
   /// ~2.6:1, so dark mode puts near-black on it instead.
   static const Color darkPrimaryForeground = Color(0xFF04121C);
 
-  /// Size scaling applied below the compact breakpoint so shadcn's desktop-
-  /// dense controls reach a finger-sized target (an icon button goes from
-  /// ~36 px to ~45 px). Text keeps its own size — the OS text scale is what
-  /// riders use to change that.
-  static const AdaptiveScaling compactScaling = AdaptiveScaling.only(sizeScaling: 1.25);
-
   static const ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
     background: Color(0xFFFFFFFF),
@@ -87,13 +81,15 @@ abstract final class BkTheme {
     chart5: Color(0xFFE23670),
   );
 
-  /// Builds the theme for [brightness]. [compact] applies [compactScaling].
-  static ThemeData build(Brightness brightness, {bool compact = false}) {
-    final theme = ThemeData(
-      colorScheme: brightness == Brightness.dark ? darkColorScheme : lightColorScheme,
-      typography: const Typography.geist(),
-      radius: radius,
-    );
-    return compact ? compactScaling.scale(theme) : theme;
-  }
+  /// Builds the theme for [brightness].
+  ///
+  /// Deliberately unscaled: on phones and tablets `ShadcnApp` applies
+  /// `AdaptiveScaling.mobile` (1.25x sizes, radius and text) on top of this,
+  /// which is what brings icon buttons to a ~45 px target. The theme used to
+  /// shrink phone text to 0.9x underneath that; it no longer does.
+  static ThemeData build(Brightness brightness) => ThemeData(
+    colorScheme: brightness == Brightness.dark ? darkColorScheme : lightColorScheme,
+    typography: const Typography.geist(),
+    radius: radius,
+  );
 }

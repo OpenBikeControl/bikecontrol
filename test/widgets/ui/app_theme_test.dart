@@ -53,10 +53,19 @@ void main() {
     expect(dark.scaling, light.scaling);
   });
 
-  test('compact scaling enlarges controls but leaves text at its size', () {
-    final regular = BkTheme.build(Brightness.light);
-    final compact = BkTheme.build(Brightness.light, compact: true);
-    expect(compact.scaling, closeTo(1.25, 0.001));
-    expect(compact.typography.base.fontSize, regular.typography.base.fontSize);
+  testWidgets('on a phone, shadcn scales controls 1.25x and text is not shrunk', (tester) async {
+    late ThemeData applied;
+    await tester.pumpWidget(
+      ShadcnApp(
+        theme: BkTheme.build(Brightness.light),
+        home: Builder(builder: (context) {
+          applied = Theme.of(context);
+          return const SizedBox();
+        }),
+      ),
+    );
+    // flutter_test reports Android: ShadcnApp's mobile scaling applies.
+    expect(applied.scaling, closeTo(1.25, 0.001));
+    expect(applied.typography.base.fontSize, closeTo(const Typography.geist().base.fontSize! * 1.25, 0.001));
   });
 }

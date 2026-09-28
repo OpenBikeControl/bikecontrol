@@ -763,11 +763,11 @@ class _BikeControlAppState extends State<BikeControlApp> {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         title: 'BikeControl',
-        darkTheme: BkTheme.build(Brightness.dark, compact: isMobile),
+        darkTheme: BkTheme.build(Brightness.dark),
         locale: demoLocaleOverride.isNotEmpty
             ? Locale(demoLocaleOverride)
             : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
-        theme: BkTheme.build(Brightness.light, compact: isMobile),
+        theme: BkTheme.build(Brightness.light),
         materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
         //themeMode: ThemeMode.dark,
         // Swap splash → content in place inside the always-mounted ShadcnApp so

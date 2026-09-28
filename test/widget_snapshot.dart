@@ -1,4 +1,3 @@
-import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:io';
 
@@ -109,9 +108,7 @@ Future<void> _runBootstrap() async {
 }
 
 /// main.dart's light or dark app theme, so snapshots match the app exactly.
-/// [compact] mirrors main.dart's phone-width scaling.
-ThemeData snapshotTheme(Brightness brightness, {bool compact = false}) =>
-    BkTheme.build(brightness, compact: compact);
+ThemeData snapshotTheme(Brightness brightness) => BkTheme.build(brightness);
 
 /// Renders [builder]'s widget once per entry in [locales] and writes a tight
 /// PNG per locale to [outputDir].
@@ -167,9 +164,8 @@ Future<List<File>> captureWidget(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final compact = width + padding.horizontal < Breakpoints.compact;
-  final lightTheme = snapshotTheme(Brightness.light, compact: compact);
-  final darkTheme = snapshotTheme(Brightness.dark, compact: compact);
+  final lightTheme = snapshotTheme(Brightness.light);
+  final darkTheme = snapshotTheme(Brightness.dark);
 
   final files = <File>[];
   for (final loc in locales) {

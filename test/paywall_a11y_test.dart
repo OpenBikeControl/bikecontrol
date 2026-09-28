@@ -23,7 +23,7 @@ Future<void> main() async {
     addTearDown(tester.view.resetDevicePixelRatio);
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
-    final theme = BkTheme.build(brightness, compact: true);
+    final theme = BkTheme.build(brightness);
     await tester.pumpWidget(
       ShadcnApp(
         debugShowCheckedModeBanner: false,
