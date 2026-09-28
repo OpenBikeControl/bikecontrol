@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'helpers/contrast.dart';
+import 'helpers/touch_targets.dart';
 import 'widget_snapshot.dart';
 
 Future<void> main() async {
@@ -85,6 +86,19 @@ Future<void> main() async {
     await pump(tester, Brightness.light);
     final handle = tester.ensureSemantics();
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    handle.dispose();
+  });
+
+  testWidgets("the paywall's purchase and restore buttons meet Android's 48 dp target on a phone", (tester) async {
+    await pump(tester, Brightness.light);
+    final handle = tester.ensureSemantics();
+    final l10n = AppLocalizations.of(tester.element(find.byType(Paywall)));
+    for (final label in [l10n.purchase, l10n.restorePurchases]) {
+      final rect = find.semantics.byLabel(label).evaluate().first.rect;
+      expect(rect.height, greaterThanOrEqualTo(47.5), reason: '$label: $rect');
+      expect(rect.width, greaterThanOrEqualTo(47.5), reason: '$label: $rect');
+    }
+    expect(actionButtonsBelowAndroidTarget(tester), isEmpty);
     handle.dispose();
   });
 }

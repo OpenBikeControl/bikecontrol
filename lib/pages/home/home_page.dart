@@ -18,6 +18,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
 import 'package:bike_control/pages/home/chain_builder.dart';
@@ -693,20 +694,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           HomeExtras(isMobile: widget.isMobile, onUpdate: _update),
           if (widget.showHelpRow) ...[
             const Gap(12),
-            Button.outline(
-              onPressed: widget.onHelp ?? () => openControllerHelpSheet(context),
-              child: Row(
-                children: [
-                  Icon(LucideIcons.lifeBuoy, size: 17, color: Theme.of(context).colorScheme.primary),
-                  const Gap(9),
-                  Expanded(
-                    child: Text(
-                      context.i18n.chainSomethingNotWorking,
-                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
+            BkTouchTarget(
+              child: Button.outline(
+                alignment: Alignment.center,
+                onPressed: widget.onHelp ?? () => openControllerHelpSheet(context),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.lifeBuoy, size: 17, color: Theme.of(context).colorScheme.primary),
+                    const Gap(9),
+                    Expanded(
+                      child: Text(
+                        context.i18n.chainSomethingNotWorking,
+                        style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
+                      ),
                     ),
-                  ),
-                  Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
-                ],
+                    Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
+                  ],
+                ),
               ),
             ),
           ],

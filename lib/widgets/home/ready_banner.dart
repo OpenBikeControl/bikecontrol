@@ -2,6 +2,7 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -128,10 +129,13 @@ class ReadyBanner extends StatelessWidget {
           ),
           if (banner.hasAction && action != null) ...[
             const Gap(8),
-            PrimaryButton(
-              size: ButtonSize.small,
-              onPressed: action,
-              child: Text(banner.kind == ChainBannerKind.broken ? l.chainBannerFix : l.chainBannerShow),
+            BkTouchTarget(
+              child: PrimaryButton(
+                alignment: Alignment.center,
+                size: ButtonSize.small,
+                onPressed: action,
+                child: Text(banner.kind == ChainBannerKind.broken ? l.chainBannerFix : l.chainBannerShow),
+              ),
             ),
           ],
         ],

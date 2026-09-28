@@ -13,6 +13,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/wifi_animation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -111,16 +112,19 @@ Widget onboardingDeviceRow(BuildContext context, BaseDevice device, {bool needsS
         if (needsSetup)
           // A real button: the auto-opened sub-flow can be cancelled, and this
           // is the way back in.
-          SecondaryButton(
-            size: ButtonSize.small,
-            onPressed: onSetup,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(context.i18n.onboardingSetupNeeded),
-                Gap(5),
-                Icon(LucideIcons.chevronRight, size: 12),
-              ],
+          BkTouchTarget(
+            child: SecondaryButton(
+              alignment: Alignment.center,
+              size: ButtonSize.small,
+              onPressed: onSetup,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(context.i18n.onboardingSetupNeeded),
+                  Gap(5),
+                  Icon(LucideIcons.chevronRight, size: 12),
+                ],
+              ),
             ),
           )
         else if (connected)

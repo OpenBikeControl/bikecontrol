@@ -1,9 +1,10 @@
 // The phone layout at 390x844, at the default text size and at 1.3x: nothing
 // overflows, and every tappable is labelled.
 //
-// Not asserted here: Android's 48 dp target. shadcn's text buttons are
-// 35-38 px tall on a phone (28-32 px for size.small) even with the mobile
-// scale; the icon-only buttons are checked against 48 dp where they're built.
+// Android's 48 dp target is asserted for the action buttons (filled and
+// outlined) rather than every tappable: shadcn's inline ghost/link buttons
+// stay at their 35-38 px on a phone; the icon-only buttons are checked
+// against 48 dp where they're built.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/home/home_page.dart';
@@ -15,6 +16,7 @@ import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../helpers/touch_targets.dart';
 import '../../widget_snapshot.dart';
 
 Future<void> main() async {
@@ -49,11 +51,15 @@ Future<void> main() async {
       final handle = tester.ensureSemantics();
       await pumpPhone(
         tester,
-        Scaffold(child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {}))),
+        Scaffold(
+          child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {})),
+        ),
         textScale: textScale,
       );
       expect(tester.takeException(), isNull);
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      expect(actionButtons(), findsWidgets);
+      expect(actionButtonsBelowAndroidTarget(tester), isEmpty, reason: 'Android 48 dp touch target');
       handle.dispose();
       await tester.pumpWidget(const SizedBox());
     });
@@ -66,6 +72,8 @@ Future<void> main() async {
       await pumpPhone(tester, const OnboardingPage(), textScale: textScale);
       expect(tester.takeException(), isNull);
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      expect(actionButtons(), findsWidgets);
+      expect(actionButtonsBelowAndroidTarget(tester), isEmpty, reason: 'Android 48 dp touch target');
       handle.dispose();
       await tester.pumpWidget(const SizedBox());
     });

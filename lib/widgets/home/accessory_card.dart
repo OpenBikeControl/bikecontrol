@@ -1,6 +1,7 @@
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -78,20 +79,23 @@ class AccessoryCard extends StatelessWidget {
                 ],
               ),
             ),
-            Button.ghost(
-              onPressed: onOpen,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    context.i18n.chainEdit,
-                    style: context.typography.small.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.primary,
+            BkTouchTarget(
+              child: Button.ghost(
+                alignment: Alignment.center,
+                onPressed: onOpen,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.i18n.chainEdit,
+                      style: context.typography.small.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  Icon(LucideIcons.chevronRight, size: 15, color: theme.colorScheme.primary),
-                ],
+                    Icon(LucideIcons.chevronRight, size: 15, color: theme.colorScheme.primary),
+                  ],
+                ),
               ),
             ),
           ],

@@ -32,6 +32,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -39,22 +40,22 @@ const double kOnboardingDesktopBreakpoint = Breakpoints.twoPane;
 const double kOnboardingBodyMaxWidth = 640;
 
 String onboardingStepLabel(BuildContext context, OnboardingStep step) => switch (step) {
-      OnboardingStep.app => context.i18n.onboardingStepApp,
-      OnboardingStep.where => context.i18n.onboardingStepWhere,
-      OnboardingStep.controller => context.i18n.onboardingStepController,
-      OnboardingStep.virtualShifting => context.i18n.onboardingStepVs,
-      OnboardingStep.connection => context.i18n.onboardingStepConnection,
-      OnboardingStep.done => context.i18n.onboardingStepDone,
-    };
+  OnboardingStep.app => context.i18n.onboardingStepApp,
+  OnboardingStep.where => context.i18n.onboardingStepWhere,
+  OnboardingStep.controller => context.i18n.onboardingStepController,
+  OnboardingStep.virtualShifting => context.i18n.onboardingStepVs,
+  OnboardingStep.connection => context.i18n.onboardingStepConnection,
+  OnboardingStep.done => context.i18n.onboardingStepDone,
+};
 
 String onboardingStepSub(BuildContext context, OnboardingStep step) => switch (step) {
-      OnboardingStep.app => context.i18n.onboardingStepAppSub,
-      OnboardingStep.where => context.i18n.onboardingStepWhereSub,
-      OnboardingStep.controller => context.i18n.onboardingStepControllerSub,
-      OnboardingStep.virtualShifting => context.i18n.onboardingStepVsSub,
-      OnboardingStep.connection => context.i18n.onboardingStepConnectionSub,
-      OnboardingStep.done => context.i18n.onboardingStepDoneSub,
-    };
+  OnboardingStep.app => context.i18n.onboardingStepAppSub,
+  OnboardingStep.where => context.i18n.onboardingStepWhereSub,
+  OnboardingStep.controller => context.i18n.onboardingStepControllerSub,
+  OnboardingStep.virtualShifting => context.i18n.onboardingStepVsSub,
+  OnboardingStep.connection => context.i18n.onboardingStepConnectionSub,
+  OnboardingStep.done => context.i18n.onboardingStepDoneSub,
+};
 
 /// Pure shell — mobile: header + progress bar + body + sticky footer;
 /// desktop (>=800): left step rail + centred column + right-aligned footer.
@@ -75,7 +76,12 @@ Widget onboardingShell(
       final scrolledBody = SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: desktop
-            ? Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth), child: body))
+            ? Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
+                  child: body,
+                ),
+              )
             : body,
       );
 
@@ -87,7 +93,11 @@ Widget onboardingShell(
               child: Row(
                 children: [
                   if (onBack != null)
-                    BkIconButton.ghost(icon: Icon(LucideIcons.arrowLeft), label: context.i18n.a11yBack, onPressed: onBack),
+                    BkIconButton.ghost(
+                      icon: Icon(LucideIcons.arrowLeft),
+                      label: context.i18n.a11yBack,
+                      onPressed: onBack,
+                    ),
                   Image.asset('icon.png', width: 30, height: 30),
                   Expanded(
                     child: Text(
@@ -105,11 +115,13 @@ Widget onboardingShell(
                         borderRadius: BorderRadius.circular(999),
                         color: Theme.of(context).colorScheme.card,
                       ),
-                      child: Row(children: [
-                        Icon(LucideIcons.lifeBuoy, size: 14, color: onboardingAccent(context)),
-                        Gap(5),
-                        Text(context.i18n.onboardingHelp).xSmall.semiBold,
-                      ]),
+                      child: Row(
+                        children: [
+                          Icon(LucideIcons.lifeBuoy, size: 14, color: onboardingAccent(context)),
+                          Gap(5),
+                          Text(context.i18n.onboardingHelp).xSmall.semiBold,
+                        ],
+                      ),
                     ),
                   ),
                   if (onClose != null)
@@ -124,28 +136,28 @@ Widget onboardingShell(
                   for (var i = 0; i < OnboardingStep.values.length; i++) ...[
                     if (i > 0) Gap(4),
                     Expanded(
-                      child: Builder(builder: (context) {
-                        final bar = AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          height: 4,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(3),
-                            color: i <= step.index
-                                ? onboardingAccent(context)
-                                : Theme.of(context).colorScheme.border,
-                          ),
-                        );
-                        // Completed segments navigate back — a taller hit
-                        // target wraps the 4px bar.
-                        if (i < step.index && onSelectStep != null) {
-                          return Button.ghost(
-                            style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-                            onPressed: () => onSelectStep(OnboardingStep.values[i]),
-                            child: SizedBox(height: 24, child: Center(child: bar)),
+                      child: Builder(
+                        builder: (context) {
+                          final bar = AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            height: 4,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(3),
+                              color: i <= step.index ? onboardingAccent(context) : Theme.of(context).colorScheme.border,
+                            ),
                           );
-                        }
-                        return SizedBox(height: 24, child: Center(child: bar));
-                      }),
+                          // Completed segments navigate back — a taller hit
+                          // target wraps the 4px bar.
+                          if (i < step.index && onSelectStep != null) {
+                            return Button.ghost(
+                              style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
+                              onPressed: () => onSelectStep(OnboardingStep.values[i]),
+                              child: SizedBox(height: 24, child: Center(child: bar)),
+                            );
+                          }
+                          return SizedBox(height: 24, child: Center(child: bar));
+                        },
+                      ),
                     ),
                   ],
                 ],
@@ -188,11 +200,14 @@ Widget onboardingShell(
                 // below (their tiles carry 12px inner padding).
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                    Image.asset('icon.png', width: 30, height: 30),
-                    Gap(10),
-                    Text('BikeControl').semiBold,
-                  ]),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset('icon.png', width: 30, height: 30),
+                      Gap(10),
+                      Text('BikeControl').semiBold,
+                    ],
+                  ),
                 ),
                 Gap(18),
                 for (final s in OnboardingStep.values) _railStep(context, s, step, onSelectStep: onSelectStep),
@@ -208,12 +223,14 @@ Widget onboardingShell(
                       border: Border.all(color: Theme.of(context).colorScheme.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(children: [
-                      Icon(LucideIcons.lifeBuoy, size: 16, color: onboardingAccent(context)),
-                      Gap(9),
-                      Expanded(child: Text(context.i18n.onboardingHelpAndSupport).small.semiBold),
-                      Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                    ]),
+                    child: Row(
+                      children: [
+                        Icon(LucideIcons.lifeBuoy, size: 16, color: onboardingAccent(context)),
+                        Gap(9),
+                        Expanded(child: Text(context.i18n.onboardingHelpAndSupport).small.semiBold),
+                        Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -225,10 +242,12 @@ Widget onboardingShell(
                 if (onClose != null)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 10, 14, 0),
-                    child: Row(children: [
-                      const Spacer(),
-                      BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
-                    ]),
+                    child: Row(
+                      children: [
+                        const Spacer(),
+                        BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
+                      ],
+                    ),
                   ),
                 Expanded(child: scrolledBody),
                 Container(
@@ -239,9 +258,19 @@ Widget onboardingShell(
                   ),
                   child: Row(
                     children: [
-                      if (onBack != null) GhostButton(onPressed: onBack, child: Text(context.i18n.onboardingBack)),
+                      if (onBack != null)
+                        BkTouchTarget(
+                          child: GhostButton(
+                            alignment: Alignment.center,
+                            onPressed: onBack,
+                            child: Text(context.i18n.onboardingBack),
+                          ),
+                        ),
                       const Spacer(),
-                      for (var i = 0; i < footerActions.length; i++) ...[if (i > 0) Gap(10), footerActions[i]],
+                      for (var i = 0; i < footerActions.length; i++) ...[
+                        if (i > 0) Gap(10),
+                        BkTouchTarget(child: footerActions[i]),
+                      ],
                     ],
                   ),
                 ),
@@ -254,8 +283,12 @@ Widget onboardingShell(
   );
 }
 
-Widget _railStep(BuildContext context, OnboardingStep s, OnboardingStep current,
-    {void Function(OnboardingStep)? onSelectStep}) {
+Widget _railStep(
+  BuildContext context,
+  OnboardingStep s,
+  OnboardingStep current, {
+  void Function(OnboardingStep)? onSelectStep,
+}) {
   final done = s.index < current.index;
   final active = s == current;
   final scheme = Theme.of(context).colorScheme;
@@ -279,8 +312,8 @@ Widget _railStep(BuildContext context, OnboardingStep s, OnboardingStep current,
             color: done
                 ? const Color(0xFF22C55E)
                 : active
-                    ? onboardingAccent(context)
-                    : scheme.border,
+                ? onboardingAccent(context)
+                : scheme.border,
           ),
           child: done
               ? Icon(LucideIcons.check, size: 13, color: onboardingOnAccent(context))
@@ -501,9 +534,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final app = _selectedApp;
     if (app == null) return;
     try {
-      await verifyEnabledNetworkMethod(_sheetContext, app, onUpdate: () {
-        if (mounted) setState(() {});
-      });
+      await verifyEnabledNetworkMethod(
+        _sheetContext,
+        app,
+        onUpdate: () {
+          if (mounted) setState(() {});
+        },
+      );
     } catch (e, s) {
       recordError(e, s, context: 'onboarding connection step requirements');
     }
@@ -539,8 +576,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   void _startScanPhase() {
-    setState(() => _controllerPhase =
-        core.connection.controllerDevices.isNotEmpty ? ControllerPhase.list : ControllerPhase.scanning);
+    setState(
+      () => _controllerPhase = core.connection.controllerDevices.isNotEmpty
+          ? ControllerPhase.list
+          : ControllerPhase.scanning,
+    );
     core.connection.performScanning();
     _emptyScanTimer?.cancel();
     _emptyScanTimer = Timer(const Duration(seconds: 15), () {
@@ -631,198 +671,224 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   Widget _body(BuildContext context) => switch (_step) {
-        OnboardingStep.app => onboardingAppBody(
-            context,
-            // Mobile shows it on the welcome screen instead.
-            showUpdateBanner: !_showedWelcome,
-            selected: _selectedApp,
-            onSelect: (a) => setState(() => _selectedApp = a),
-          ),
-        OnboardingStep.where => onboardingWhereBody(
-            context,
-            app: _selectedApp!,
-            selected: _selectedTarget,
-            onSelect: (t) => setState(() => _selectedTarget = t),
-          ),
-        OnboardingStep.controller => onboardingControllerBody(
-            context,
-            phase: _controllerPhase,
-            devices: core.connection.controllerDevices,
-            appName: _selectedApp?.name ?? '',
-            pressedButtons: _pressedButton,
-            pressGenerations: _pressGeneration,
-            onSetupDevice: (d) => unawaited(_openSetupFor(d)),
-            onUpdate: () => setState(() {}),
-          ),
-        OnboardingStep.virtualShifting => onboardingTrainerBody(
-            context,
-            app: _selectedApp!,
-            trainers: core.connection.proxyDevices,
-            onPick: _onPickTrainer,
-            onRescan: () {
-              core.connection.performScanning();
-              setState(() {});
-            },
-            virtualShiftingBlocked: onboardingVirtualShiftingBlocked(_selectedApp!),
-          ),
-        OnboardingStep.connection => onboardingConnectionBody(
-            context,
-            app: _selectedApp!,
-            // BikeControl (self-hosted) skips the `where` step, so
-            // `_selectedTarget` is stale; `applyTrainerAppSelection` already
-            // pinned `Target.thisDevice` into settings for that case.
-            target: core.settings.getLastTarget() ?? _selectedTarget ?? Target.otherDevice,
-            hasTrainer: onboardingTrainerBridged(core.connection.proxyDevices),
-            trainerName: core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull?.name,
-            onUpdate: () => setState(() {}),
-          ),
-        OnboardingStep.done => onboardingDoneBody(
-            context,
-            app: _selectedApp!,
-            controllerName: core.connection.controllerDevices.where((d) => d.isConnected).firstOrNull?.name,
-            trainerName: core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull?.name,
-            // isConnectedListenable mirrors emulator.isConnected — i.e. the
-            // trainer app actually holds the virtual trainer, not just "the
-            // bridge is running".
-            appConnected: core.logic.connectedTrainerConnections.any((c) => c.isConnected.value),
-            trainerAppConnected: core.connection.proxyDevices.any((t) => t.isConnectedListenable.value),
-            reduceMotion: MediaQuery.of(context).disableAnimations,
-            showTestMode: !IAPManager.instance.isPurchased.value,
-          ),
-      };
+    OnboardingStep.app => onboardingAppBody(
+      context,
+      // Mobile shows it on the welcome screen instead.
+      showUpdateBanner: !_showedWelcome,
+      selected: _selectedApp,
+      onSelect: (a) => setState(() => _selectedApp = a),
+    ),
+    OnboardingStep.where => onboardingWhereBody(
+      context,
+      app: _selectedApp!,
+      selected: _selectedTarget,
+      onSelect: (t) => setState(() => _selectedTarget = t),
+    ),
+    OnboardingStep.controller => onboardingControllerBody(
+      context,
+      phase: _controllerPhase,
+      devices: core.connection.controllerDevices,
+      appName: _selectedApp?.name ?? '',
+      pressedButtons: _pressedButton,
+      pressGenerations: _pressGeneration,
+      onSetupDevice: (d) => unawaited(_openSetupFor(d)),
+      onUpdate: () => setState(() {}),
+    ),
+    OnboardingStep.virtualShifting => onboardingTrainerBody(
+      context,
+      app: _selectedApp!,
+      trainers: core.connection.proxyDevices,
+      onPick: _onPickTrainer,
+      onRescan: () {
+        core.connection.performScanning();
+        setState(() {});
+      },
+      virtualShiftingBlocked: onboardingVirtualShiftingBlocked(_selectedApp!),
+    ),
+    OnboardingStep.connection => onboardingConnectionBody(
+      context,
+      app: _selectedApp!,
+      // BikeControl (self-hosted) skips the `where` step, so
+      // `_selectedTarget` is stale; `applyTrainerAppSelection` already
+      // pinned `Target.thisDevice` into settings for that case.
+      target: core.settings.getLastTarget() ?? _selectedTarget ?? Target.otherDevice,
+      hasTrainer: onboardingTrainerBridged(core.connection.proxyDevices),
+      trainerName: core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull?.name,
+      onUpdate: () => setState(() {}),
+    ),
+    OnboardingStep.done => onboardingDoneBody(
+      context,
+      app: _selectedApp!,
+      controllerName: core.connection.controllerDevices.where((d) => d.isConnected).firstOrNull?.name,
+      trainerName: core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull?.name,
+      // isConnectedListenable mirrors emulator.isConnected — i.e. the
+      // trainer app actually holds the virtual trainer, not just "the
+      // bridge is running".
+      appConnected: core.logic.connectedTrainerConnections.any((c) => c.isConnected.value),
+      trainerAppConnected: core.connection.proxyDevices.any((t) => t.isConnectedListenable.value),
+      reduceMotion: MediaQuery.of(context).disableAnimations,
+      showTestMode: !IAPManager.instance.isPurchased.value,
+    ),
+  };
 
   List<Widget> _footer(BuildContext context) => switch (_step) {
-        OnboardingStep.app => [
-            PrimaryButton(
-              onPressed: _selectedApp == null
-                  ? null
-                  : () async {
-                      try {
-                        await applyTrainerAppSelection(_selectedApp!);
-                      } catch (e, s) {
-                        recordError(e, s, context: 'onboarding apply trainer app selection');
-                      }
-                      // Apps that can only be reached from a second device
-                      // leave the `where` step with a single tile — answer it
-                      // for the rider instead of making them tap the only
-                      // option to move on.
-                      final targets = Target.supportedFor(_selectedApp);
-                      if (targets.length == 1) _selectedTarget = targets.single;
-                      _next();
-                    },
-              child: Text(_selectedApp == null
-                  ? context.i18n.onboardingAppPickToContinue
-                  : context.i18n.onboardingAppContinueWith(_selectedApp!.name)),
-            ),
-          ],
-        OnboardingStep.where => [
-            PrimaryButton(
-              onPressed: _selectedTarget == null
-                  ? null
-                  : () async {
-                      try {
-                        await applyTargetSelection(_selectedTarget!);
-                      } catch (e, s) {
-                        recordError(e, s, context: 'onboarding apply target selection');
-                      }
-                      _next();
-                    },
-              child: Text(context.i18n.onboardingContinue),
-            ),
-          ],
-        OnboardingStep.controller => switch (_controllerPhase) {
-            ControllerPhase.permission => [
-                PrimaryButton(
-                  onPressed: _onAllowBluetooth,
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(LucideIcons.bluetooth, size: 16),
-                    Gap(8),
-                    Text(context.i18n.onboardingAllowBluetooth),
-                  ]),
-                ),
-                GhostButton(onPressed: _onPermissionNotNow, child: Text(context.i18n.onboardingNotNow)),
-              ],
-            ControllerPhase.scanning => [
-                GhostButton(
-                  onPressed: () {
-                    _emptyScanTimer?.cancel();
-                    setState(() => _controllerPhase = ControllerPhase.empty);
-                  },
-                  child: Text(context.i18n.onboardingCantFindController),
-                ),
-              ],
-            ControllerPhase.empty => [
-                PrimaryButton(onPressed: _startScanPhase, child: Text(context.i18n.onboardingScanAgain)),
-                GhostButton(onPressed: _next, child: Text(context.i18n.onboardingSetUpLater)),
-              ],
-            ControllerPhase.list => [
-                if (core.connection.controllerDevices.any((d) => d.isConnected))
-                  PrimaryButton(onPressed: _next, child: Text(context.i18n.onboardingContinue))
-                else
-                  GhostButton(
-                    onPressed: () {
-                      _emptyScanTimer?.cancel();
-                      setState(() => _controllerPhase = ControllerPhase.empty);
-                    },
-                    child: Text(context.i18n.onboardingCantFindController),
-                  ),
-              ],
-          },
-        OnboardingStep.virtualShifting => [
-            if (onboardingTrainerBridged(core.connection.proxyDevices))
-              PrimaryButton(onPressed: _next, child: Text(context.i18n.onboardingContinue))
-            else
-              GhostButton(
-                  onPressed: _onSkipVirtualShifting,
-                  child: Text(context.i18n.onboardingLetAppHandleVs(_selectedApp!.name))),
-          ],
-        OnboardingStep.connection => [
-            PrimaryButton(
-              onPressed: core.logic.hasNoConnectionMethod ? null : _next,
-              child: Text(context.i18n.onboardingFinishSetup),
-            ),
-          ],
-        OnboardingStep.done => [
-            if (!IAPManager.instance.isPurchased.value)
-              PrimaryButton(
-                onPressed: () async {
-                  try {
-                    await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-                    core.logic.startEnabledConnectionMethod(userInitiated: true);
-                    if (!mounted || !context.mounted) return;
-                    // Platform-correct paywall: RevenueCat's hosted sheet on
-                    // iOS/Android, the in-app Paywall drawer on desktop. Going
-                    // through IAPManager is what picks the right one — opening
-                    // the Paywall widget directly showed mobile riders the
-                    // desktop fallback with placeholder "about x €" prices.
-                    await IAPManager.instance.purchaseFullVersion(_sheetContext);
-                    if (mounted) setState(() {});
-                  } catch (e, s) {
-                    recordError(e, s, context: 'onboarding done see pro options');
-                  }
-                },
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.award, size: 16),
-                  Gap(8),
-                  Text(context.i18n.onboardingSeeProOptions),
-                ]),
-              ),
-            GhostButton(
-              onPressed: () async {
+    OnboardingStep.app => [
+      PrimaryButton(
+        alignment: Alignment.center,
+        onPressed: _selectedApp == null
+            ? null
+            : () async {
                 try {
-                  await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-                  // The launch-time start was skipped while the wizard held the
-                  // screen; leaving it is when the enabled methods must come up.
-                  core.logic.startEnabledConnectionMethod(userInitiated: true);
-                  if (context.mounted) Navigator.of(context).pop();
+                  await applyTrainerAppSelection(_selectedApp!);
                 } catch (e, s) {
-                  recordError(e, s, context: 'onboarding done start riding');
+                  recordError(e, s, context: 'onboarding apply trainer app selection');
                 }
+                // Apps that can only be reached from a second device
+                // leave the `where` step with a single tile — answer it
+                // for the rider instead of making them tap the only
+                // option to move on.
+                final targets = Target.supportedFor(_selectedApp);
+                if (targets.length == 1) _selectedTarget = targets.single;
+                _next();
               },
-              child: Text(_doneAllReady ? context.i18n.onboardingDoneStartRiding : context.i18n.onboardingDoneFinishLater),
-            ),
-          ],
-      };
+        child: Text(
+          _selectedApp == null
+              ? context.i18n.onboardingAppPickToContinue
+              : context.i18n.onboardingAppContinueWith(_selectedApp!.name),
+        ),
+      ),
+    ],
+    OnboardingStep.where => [
+      PrimaryButton(
+        alignment: Alignment.center,
+        onPressed: _selectedTarget == null
+            ? null
+            : () async {
+                try {
+                  await applyTargetSelection(_selectedTarget!);
+                } catch (e, s) {
+                  recordError(e, s, context: 'onboarding apply target selection');
+                }
+                _next();
+              },
+        child: Text(context.i18n.onboardingContinue),
+      ),
+    ],
+    OnboardingStep.controller => switch (_controllerPhase) {
+      ControllerPhase.permission => [
+        PrimaryButton(
+          alignment: Alignment.center,
+          onPressed: _onAllowBluetooth,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(LucideIcons.bluetooth, size: 16),
+              Gap(8),
+              Text(context.i18n.onboardingAllowBluetooth),
+            ],
+          ),
+        ),
+        GhostButton(
+          alignment: Alignment.center,
+          onPressed: _onPermissionNotNow,
+          child: Text(context.i18n.onboardingNotNow),
+        ),
+      ],
+      ControllerPhase.scanning => [
+        GhostButton(
+          alignment: Alignment.center,
+          onPressed: () {
+            _emptyScanTimer?.cancel();
+            setState(() => _controllerPhase = ControllerPhase.empty);
+          },
+          child: Text(context.i18n.onboardingCantFindController),
+        ),
+      ],
+      ControllerPhase.empty => [
+        PrimaryButton(
+          alignment: Alignment.center,
+          onPressed: _startScanPhase,
+          child: Text(context.i18n.onboardingScanAgain),
+        ),
+        GhostButton(alignment: Alignment.center, onPressed: _next, child: Text(context.i18n.onboardingSetUpLater)),
+      ],
+      ControllerPhase.list => [
+        if (core.connection.controllerDevices.any((d) => d.isConnected))
+          PrimaryButton(alignment: Alignment.center, onPressed: _next, child: Text(context.i18n.onboardingContinue))
+        else
+          GhostButton(
+            alignment: Alignment.center,
+            onPressed: () {
+              _emptyScanTimer?.cancel();
+              setState(() => _controllerPhase = ControllerPhase.empty);
+            },
+            child: Text(context.i18n.onboardingCantFindController),
+          ),
+      ],
+    },
+    OnboardingStep.virtualShifting => [
+      if (onboardingTrainerBridged(core.connection.proxyDevices))
+        PrimaryButton(alignment: Alignment.center, onPressed: _next, child: Text(context.i18n.onboardingContinue))
+      else
+        GhostButton(
+          alignment: Alignment.center,
+          onPressed: _onSkipVirtualShifting,
+          child: Text(context.i18n.onboardingLetAppHandleVs(_selectedApp!.name)),
+        ),
+    ],
+    OnboardingStep.connection => [
+      PrimaryButton(
+        alignment: Alignment.center,
+        onPressed: core.logic.hasNoConnectionMethod ? null : _next,
+        child: Text(context.i18n.onboardingFinishSetup),
+      ),
+    ],
+    OnboardingStep.done => [
+      if (!IAPManager.instance.isPurchased.value)
+        PrimaryButton(
+          alignment: Alignment.center,
+          onPressed: () async {
+            try {
+              await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
+              core.logic.startEnabledConnectionMethod(userInitiated: true);
+              if (!mounted || !context.mounted) return;
+              // Platform-correct paywall: RevenueCat's hosted sheet on
+              // iOS/Android, the in-app Paywall drawer on desktop. Going
+              // through IAPManager is what picks the right one — opening
+              // the Paywall widget directly showed mobile riders the
+              // desktop fallback with placeholder "about x €" prices.
+              await IAPManager.instance.purchaseFullVersion(_sheetContext);
+              if (mounted) setState(() {});
+            } catch (e, s) {
+              recordError(e, s, context: 'onboarding done see pro options');
+            }
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(LucideIcons.award, size: 16),
+              Gap(8),
+              Text(context.i18n.onboardingSeeProOptions),
+            ],
+          ),
+        ),
+      GhostButton(
+        alignment: Alignment.center,
+        onPressed: () async {
+          try {
+            await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
+            // The launch-time start was skipped while the wizard held the
+            // screen; leaving it is when the enabled methods must come up.
+            core.logic.startEnabledConnectionMethod(userInitiated: true);
+            if (context.mounted) Navigator.of(context).pop();
+          } catch (e, s) {
+            recordError(e, s, context: 'onboarding done start riding');
+          }
+        },
+        child: Text(_doneAllReady ? context.i18n.onboardingDoneStartRiding : context.i18n.onboardingDoneFinishLater),
+      ),
+    ],
+  };
 
   /// Leaves the wizard from the welcome screen and records it as done, so a
   /// rider who declines isn't asked again on every launch.
@@ -839,52 +905,54 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      child: Builder(builder: (overlayContext) {
-        _overlayContext = overlayContext;
-        if (_showWelcome) {
-          // Every platform opens on the welcome screen. Desktop used to drop
-          // riders straight into step 1's rail, which asked them to pick a
-          // trainer app before anything had said what BikeControl does or how
-          // long setup takes — the one screen that answers "what am I about to
-          // agree to" was the one desktop never saw.
-          _showedWelcome = true;
-          return OnboardingWelcome(
-            onStart: () => setState(() => _showWelcome = false),
-            onLater: _onWelcomeLater,
-          );
-        }
-        return _shell(overlayContext);
-      }),
+      child: Builder(
+        builder: (overlayContext) {
+          _overlayContext = overlayContext;
+          if (_showWelcome) {
+            // Every platform opens on the welcome screen. Desktop used to drop
+            // riders straight into step 1's rail, which asked them to pick a
+            // trainer app before anything had said what BikeControl does or how
+            // long setup takes — the one screen that answers "what am I about to
+            // agree to" was the one desktop never saw.
+            _showedWelcome = true;
+            return OnboardingWelcome(
+              onStart: () => setState(() => _showWelcome = false),
+              onLater: _onWelcomeLater,
+            );
+          }
+          return _shell(overlayContext);
+        },
+      ),
     );
   }
 
   Widget _shell(BuildContext overlayContext) {
     final context = overlayContext;
     return SafeArea(
-        child: onboardingShell(
-          overlayContext,
-          step: _step,
-          // Re-keyed per step + controller phase so every screen re-mounts and
-          // its contents reveal themselves again. The reveal lives on the
-          // children (see onboardingReveal) rather than on one wrapper, so a
-          // screen arrives in reading order instead of all at once.
-          body: KeyedSubtree(
-            key: ValueKey('onboarding-body-$_step-$_controllerPhase'),
-            child: _body(overlayContext),
-          ),
-          footerActions: _footer(overlayContext),
-          onBack: _step == OnboardingStep.app || _step == OnboardingStep.done ? null : _back,
-          onHelp: () => openOnboardingHelpSheet(overlayContext, _step),
-          onClose: () => Navigator.of(context).maybePop(),
-          onSelectStep: (s) {
-            // Self-hosted apps skip the where step — route the tap onward.
-            if (s == OnboardingStep.where && _selfHosted) {
-              _goTo(OnboardingStep.app);
-            } else {
-              _goTo(s);
-            }
-          },
+      child: onboardingShell(
+        overlayContext,
+        step: _step,
+        // Re-keyed per step + controller phase so every screen re-mounts and
+        // its contents reveal themselves again. The reveal lives on the
+        // children (see onboardingReveal) rather than on one wrapper, so a
+        // screen arrives in reading order instead of all at once.
+        body: KeyedSubtree(
+          key: ValueKey('onboarding-body-$_step-$_controllerPhase'),
+          child: _body(overlayContext),
         ),
+        footerActions: _footer(overlayContext),
+        onBack: _step == OnboardingStep.app || _step == OnboardingStep.done ? null : _back,
+        onHelp: () => openOnboardingHelpSheet(overlayContext, _step),
+        onClose: () => Navigator.of(context).maybePop(),
+        onSelectStep: (s) {
+          // Self-hosted apps skip the where step — route the tap onward.
+          if (s == OnboardingStep.where && _selfHosted) {
+            _goTo(OnboardingStep.app);
+          } else {
+            _goTo(s);
+          }
+        },
+      ),
     );
   }
 }

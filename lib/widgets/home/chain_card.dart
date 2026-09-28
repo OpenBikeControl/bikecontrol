@@ -3,6 +3,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -132,29 +133,35 @@ class ChainCardFooterRow extends StatelessWidget {
     final theme = Theme.of(context);
     return SizedBox(
       width: double.infinity,
-      child: Button.ghost(
-        style: ButtonStyle.ghost()
-            .withPadding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10))
-            .withBorderRadius(borderRadius: BorderRadius.zero)
-            .withBackgroundColor(color: theme.colorScheme.muted.withAlpha(110), hoverColor: bkCardHover(context)),
-        onPressed: onPressed,
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                question,
-                style: context.typography.xSmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.mutedForeground,
+      child: BkTouchTarget(
+        child: Button.ghost(
+          alignment: Alignment.center,
+          style: ButtonStyle.ghost()
+              .withPadding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10))
+              .withBorderRadius(borderRadius: BorderRadius.zero)
+              .withBackgroundColor(color: theme.colorScheme.muted.withAlpha(110), hoverColor: bkCardHover(context)),
+          onPressed: onPressed,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  question,
+                  style: context.typography.xSmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
                 ),
               ),
-            ),
-            const Gap(8),
-            Text(
-              action,
-              style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
-            ),
-          ],
+              const Gap(8),
+              Text(
+                action,
+                style: context.typography.xSmall.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -398,20 +405,23 @@ class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMix
             ),
           ),
           if (widget.onEdit != null)
-            Button.ghost(
-              onPressed: widget.onEdit,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.editLabel ?? context.i18n.chainEdit,
-                    style: context.typography.small.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.primary,
+            BkTouchTarget(
+              child: Button.ghost(
+                alignment: Alignment.center,
+                onPressed: widget.onEdit,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.editLabel ?? context.i18n.chainEdit,
+                      style: context.typography.small.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  Icon(LucideIcons.chevronRight, size: 15, color: theme.colorScheme.primary),
-                ],
+                    Icon(LucideIcons.chevronRight, size: 15, color: theme.colorScheme.primary),
+                  ],
+                ),
               ),
             ),
         ],
@@ -598,17 +608,23 @@ class StepRow extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       if (onInstructions != null)
-                        PrimaryButton(
-                          size: ButtonSize.small,
-                          onPressed: onInstructions,
-                          leading: const Icon(LucideIcons.bookOpen, size: 13),
-                          child: Text(instructionsLabel ?? context.i18n.chainShowMeHow),
+                        BkTouchTarget(
+                          child: PrimaryButton(
+                            alignment: Alignment.center,
+                            size: ButtonSize.small,
+                            onPressed: onInstructions,
+                            leading: const Icon(LucideIcons.bookOpen, size: 13),
+                            child: Text(instructionsLabel ?? context.i18n.chainShowMeHow),
+                          ),
                         ),
                       if (showSecondary)
-                        Button.ghost(
-                          style: const ButtonStyle.ghost(size: ButtonSize.small),
-                          onPressed: onSecondaryAction,
-                          child: Text(secondaryActionLabel!),
+                        BkTouchTarget(
+                          child: Button.ghost(
+                            alignment: Alignment.center,
+                            style: const ButtonStyle.ghost(size: ButtonSize.small),
+                            onPressed: onSecondaryAction,
+                            child: Text(secondaryActionLabel!),
+                          ),
                         ),
                     ],
                   ),

@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -102,10 +103,13 @@ class TrialCard extends StatelessWidget {
                   ),
                 ),
                 const Gap(8),
-                PrimaryButton(
-                  size: ButtonSize.small,
-                  onPressed: onUpgrade,
-                  child: Text(l.chainUpgrade),
+                BkTouchTarget(
+                  child: PrimaryButton(
+                    alignment: Alignment.center,
+                    size: ButtonSize.small,
+                    onPressed: onUpgrade,
+                    child: Text(l.chainUpgrade),
+                  ),
                 ),
               ],
             ),
@@ -141,28 +145,31 @@ class TrialCard extends StatelessWidget {
             ),
           ),
           if (onRestore != null)
-            Button.ghost(
-              onPressed: onRestore,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: theme.colorScheme.border, width: 0.5)),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.rotateCcw, size: 14, color: theme.colorScheme.mutedForeground),
-                    const Gap(7),
-                    Expanded(
-                      child: Text(
-                        l.chainTrialRestoreRow,
-                        style: context.typography.xSmall.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.mutedForeground,
+            BkTouchTarget(
+              child: Button.ghost(
+                alignment: Alignment.center,
+                onPressed: onRestore,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: theme.colorScheme.border, width: 0.5)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.rotateCcw, size: 14, color: theme.colorScheme.mutedForeground),
+                      const Gap(7),
+                      Expanded(
+                        child: Text(
+                          l.chainTrialRestoreRow,
+                          style: context.typography.xSmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
                         ),
                       ),
-                    ),
-                    Icon(LucideIcons.chevronRight, size: 14, color: theme.colorScheme.mutedForeground),
-                  ],
+                      Icon(LucideIcons.chevronRight, size: 14, color: theme.colorScheme.mutedForeground),
+                    ],
+                  ),
                 ),
               ),
             ),

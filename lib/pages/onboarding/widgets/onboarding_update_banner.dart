@@ -2,6 +2,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/services/app_update.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -51,31 +52,39 @@ class _OnboardingUpdateBannerState extends State<OnboardingUpdateBanner> {
         color: accent.withValues(alpha: 0.09),
         border: Border.all(color: accent.withValues(alpha: 0.45)),
       ),
-      child: Row(children: [
-        Icon(LucideIcons.circleArrowUp, size: 18, color: accent),
-        Gap(11),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(appUpdateLabel(update)).small.semiBold,
-            Text(update.isPatch
-                    ? context.i18n.onboardingUpdatePatchBody
-                    : context.i18n.onboardingUpdateStoreBody)
-                .xSmall
-                .muted,
-          ]),
-        ),
-        Gap(10),
-        LoadingWidget(
-          futureCallback: () => applyAppUpdate(update),
-          renderChild: (isLoading, tap) => PrimaryButton(
-            size: ButtonSize.small,
-            onPressed: tap,
-            child: isLoading
-                ? SmallProgressIndicator()
-                : Text(update.isPatch ? context.i18n.onboardingUpdateRestart : context.i18n.onboardingUpdateOpenStore),
+      child: Row(
+        children: [
+          Icon(LucideIcons.circleArrowUp, size: 18, color: accent),
+          Gap(11),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(appUpdateLabel(update)).small.semiBold,
+                Text(
+                  update.isPatch ? context.i18n.onboardingUpdatePatchBody : context.i18n.onboardingUpdateStoreBody,
+                ).xSmall.muted,
+              ],
+            ),
           ),
-        ),
-      ]),
+          Gap(10),
+          LoadingWidget(
+            futureCallback: () => applyAppUpdate(update),
+            renderChild: (isLoading, tap) => BkTouchTarget(
+              child: PrimaryButton(
+                alignment: Alignment.center,
+                size: ButtonSize.small,
+                onPressed: tap,
+                child: isLoading
+                    ? SmallProgressIndicator()
+                    : Text(
+                        update.isPatch ? context.i18n.onboardingUpdateRestart : context.i18n.onboardingUpdateOpenStore,
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

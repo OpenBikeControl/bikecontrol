@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
@@ -547,24 +548,27 @@ class _PaywallState extends State<Paywall> {
               _buildPlansSection(context),
               _buildPurchaseButton(context),
               Align(
-                child: Button.ghost(
-                  onPressed: _isRestoring ? null : _onRestorePressed,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_isRestoring) ...[
-                        CircularProgressIndicator(
-                          size: 14,
+                child: BkTouchTarget(
+                  child: Button.ghost(
+                    alignment: Alignment.center,
+                    onPressed: _isRestoring ? null : _onRestorePressed,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isRestoring) ...[
+                          CircularProgressIndicator(
+                            size: 14,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          _isRestoring
+                              ? AppLocalizations.of(context).restoringPurchases
+                              : AppLocalizations.of(context).restorePurchases,
+                          style: context.typography.small,
                         ),
-                        const SizedBox(width: 8),
                       ],
-                      Text(
-                        _isRestoring
-                            ? AppLocalizations.of(context).restoringPurchases
-                            : AppLocalizations.of(context).restorePurchases,
-                        style: context.typography.small,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
