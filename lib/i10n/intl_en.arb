@@ -2749,5 +2749,14 @@
   "helpSelfTestNeedsTrainer": "Connect your trainer in BikeControl first — the self-test needs a live connection. You'll then find it on your trainer's page.",
   "onboardingDoneOverlayNote": "{app} keeps showing its own gear number. BikeControl's gear is shown in the overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
-  "onboardingDoneShowOverlay": "Show the gear overlay"
+  "onboardingDoneShowOverlay": "Show the gear overlay",
+  "onboardingNetworkChecking": "Checking your network…",
+  "onboardingNetworkCheckPassed": "Network check passed",
+  "onboardingNetworkCheckFailedTitle": "The network check found a problem",
+  "onboardingNetworkCheckFailedBody": "{app} probably won't find BikeControl on this network until this is fixed.",
+  "@onboardingNetworkCheckFailedBody": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingNetworkRecheck": "Check again",
+  "onboardingNetworkContinueAnyway": "Continue anyway",
+  "onboardingNetworkContinuedNote": "The network check found a problem. If {app} doesn't connect, check again here.",
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
 }

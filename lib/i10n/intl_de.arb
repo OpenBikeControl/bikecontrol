@@ -2375,5 +2375,14 @@
   "helpSelfTestNeedsTrainer": "Verbinde zuerst deinen Trainer in BikeControl — der Selbsttest braucht eine aktive Verbindung. Du findest ihn dann auf der Seite deines Trainers.",
   "onboardingDoneOverlayNote": "{app} zeigt weiter seine eigene Gangzahl. Den Gang von BikeControl siehst du im Overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
-  "onboardingDoneShowOverlay": "Gang-Overlay anzeigen"
+  "onboardingDoneShowOverlay": "Gang-Overlay anzeigen",
+  "onboardingNetworkChecking": "Netzwerk wird geprüft…",
+  "onboardingNetworkCheckPassed": "Netzwerkprüfung bestanden",
+  "onboardingNetworkCheckFailedTitle": "Die Netzwerkprüfung hat ein Problem gefunden",
+  "onboardingNetworkCheckFailedBody": "{app} findet BikeControl in diesem Netzwerk wahrscheinlich erst, wenn das behoben ist.",
+  "@onboardingNetworkCheckFailedBody": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingNetworkRecheck": "Erneut prüfen",
+  "onboardingNetworkContinueAnyway": "Trotzdem fortfahren",
+  "onboardingNetworkContinuedNote": "Die Netzwerkprüfung hat ein Problem gefunden. Wenn {app} sich nicht verbindet, prüfe hier erneut.",
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
 }

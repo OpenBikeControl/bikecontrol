@@ -2375,5 +2375,14 @@
   "helpSelfTestNeedsTrainer": "Conecta primero tu rodillo en BikeControl: el autotest necesita una conexión activa. Luego lo encontrarás en la página de tu rodillo.",
   "onboardingDoneOverlayNote": "{app} sigue mostrando su propio número de marcha. La marcha de BikeControl se ve en el Overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
-  "onboardingDoneShowOverlay": "Mostrar el Overlay de marchas"
+  "onboardingDoneShowOverlay": "Mostrar el Overlay de marchas",
+  "onboardingNetworkChecking": "Comprobando tu red…",
+  "onboardingNetworkCheckPassed": "Comprobación de red superada",
+  "onboardingNetworkCheckFailedTitle": "La comprobación de red encontró un problema",
+  "onboardingNetworkCheckFailedBody": "Probablemente {app} no encontrará BikeControl en esta red hasta que se corrija.",
+  "@onboardingNetworkCheckFailedBody": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingNetworkRecheck": "Comprobar de nuevo",
+  "onboardingNetworkContinueAnyway": "Continuar de todos modos",
+  "onboardingNetworkContinuedNote": "La comprobación de red encontró un problema. Si {app} no se conecta, vuelve a comprobarlo aquí.",
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
 }

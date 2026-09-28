@@ -183,6 +183,7 @@ Widget onboardingConnectionBody(
   required bool hasTrainer,
   required String? trainerName,
   required VoidCallback onUpdate,
+  Widget? networkStatus,
 }) {
   Widget methodTile(OnboardingMethod method) {
     final enabled = onboardingMethodEnabled(method, app);
@@ -254,6 +255,8 @@ Widget onboardingConnectionBody(
         if (onboardingMethodVisible(method, app))
           Padding(padding: const EdgeInsets.only(bottom: 10), child: methodTile(method)),
     ],
+    // The background network check, while a network method is on.
+    ?networkStatus,
     Gap(10),
     OnboardingGroupLabel(context.i18n.onboardingThenInApp(app.name)),
     OnboardingAppGuideCard(app: app),

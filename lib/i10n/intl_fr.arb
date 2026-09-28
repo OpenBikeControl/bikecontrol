@@ -2375,5 +2375,14 @@
   "helpSelfTestNeedsTrainer": "Connecte d'abord ton home-trainer dans BikeControl — l'autotest a besoin d'une connexion active. Tu le trouveras ensuite sur la page de ton home-trainer.",
   "onboardingDoneOverlayNote": "{app} continue d'afficher son propre numéro de vitesse. La vitesse de BikeControl s'affiche dans l'Overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
-  "onboardingDoneShowOverlay": "Afficher l'Overlay des vitesses"
+  "onboardingDoneShowOverlay": "Afficher l'Overlay des vitesses",
+  "onboardingNetworkChecking": "Vérification du réseau…",
+  "onboardingNetworkCheckPassed": "Vérification réseau réussie",
+  "onboardingNetworkCheckFailedTitle": "La vérification réseau a trouvé un problème",
+  "onboardingNetworkCheckFailedBody": "{app} ne trouvera probablement pas BikeControl sur ce réseau tant que ce n'est pas corrigé.",
+  "@onboardingNetworkCheckFailedBody": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingNetworkRecheck": "Vérifier à nouveau",
+  "onboardingNetworkContinueAnyway": "Continuer quand même",
+  "onboardingNetworkContinuedNote": "La vérification réseau a trouvé un problème. Si {app} ne se connecte pas, vérifie à nouveau ici.",
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
 }

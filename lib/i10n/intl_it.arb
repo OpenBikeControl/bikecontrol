@@ -2375,5 +2375,14 @@
   "helpSelfTestNeedsTrainer": "Collega prima il trainer in BikeControl: l'autotest richiede una connessione attiva. Lo troverai poi nella pagina del trainer.",
   "onboardingDoneOverlayNote": "{app} continua a mostrare il proprio numero di marcia. La marcia di BikeControl è nell'Overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
-  "onboardingDoneShowOverlay": "Mostra l'Overlay delle marce"
+  "onboardingDoneShowOverlay": "Mostra l'Overlay delle marce",
+  "onboardingNetworkChecking": "Controllo della rete…",
+  "onboardingNetworkCheckPassed": "Controllo di rete superato",
+  "onboardingNetworkCheckFailedTitle": "Il controllo di rete ha trovato un problema",
+  "onboardingNetworkCheckFailedBody": "Probabilmente {app} non troverà BikeControl su questa rete finché non viene risolto.",
+  "@onboardingNetworkCheckFailedBody": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingNetworkRecheck": "Controlla di nuovo",
+  "onboardingNetworkContinueAnyway": "Continua comunque",
+  "onboardingNetworkContinuedNote": "Il controllo di rete ha trovato un problema. Se {app} non si collega, controlla di nuovo qui.",
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
 }

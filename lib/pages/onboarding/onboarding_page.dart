@@ -1,3 +1,8 @@
+import 'package:bike_control/pages/onboarding/onboarding_network_precheck.dart';
+import 'package:bike_control/services/network_self_test/network_check.dart' show NetworkFixId;
+import 'package:bike_control/services/network_self_test/network_fixes.dart' show runNetworkFix;
+import 'package:bike_control/services/network_self_test/network_method_target.dart' show currentNetworkMethodTarget;
+import 'package:flutter/foundation.dart' show ValueListenable, kIsWeb;
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel;
@@ -451,6 +456,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   @override
   void dispose() {
+    _stopNetworkPrecheck();
     onboardingActive = false;
     for (final l in _methodListenables) {
       l.removeListener(_onMethodConnectionChanged);
@@ -529,6 +535,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   /// direction.
   void _goTo(OnboardingStep step) {
     setState(() => _step = step);
+    _syncNetworkPrecheck();
     if (step == OnboardingStep.controller) _enterControllerStep();
     if (step == OnboardingStep.connection) _enterConnectionStep();
   }
@@ -550,6 +557,59 @@ class _OnboardingPageState extends State<OnboardingPage> {
     } catch (e, s) {
       recordError(e, s, context: 'onboarding connection step requirements');
     }
+  }
+
+  /// The connection step's background network check. Runs once a network
+  /// method is on and its server has started (a server that is still coming
+  /// up would read as a failure), and not while the trainer app is already
+  /// connected through it. Stopped when the step is left or the method
+  /// switched off.
+  OnboardingNetworkPrecheck? _precheck;
+  ValueListenable<bool>? _precheckWaitingOn;
+
+  void _syncNetworkPrecheck() {
+    final wanted = _step == OnboardingStep.connection && !kIsWeb && core.logic.hasNetworkMethodEnabled;
+    if (!wanted) {
+      _stopNetworkPrecheck();
+      return;
+    }
+    if (_precheck != null) return;
+    final target = currentNetworkMethodTarget();
+    if (target.isConnected.value) return;
+    if (!target.isStarted.value) {
+      if (!identical(_precheckWaitingOn, target.isStarted)) {
+        _precheckWaitingOn?.removeListener(_syncNetworkPrecheck);
+        _precheckWaitingOn = target.isStarted..addListener(_syncNetworkPrecheck);
+      }
+      return;
+    }
+    _precheckWaitingOn?.removeListener(_syncNetworkPrecheck);
+    _precheckWaitingOn = null;
+    final precheck = OnboardingNetworkPrecheck()..addListener(_onPrecheckChanged);
+    _precheck = precheck;
+    unawaited(precheck.run());
+  }
+
+  void _stopNetworkPrecheck() {
+    _precheckWaitingOn?.removeListener(_syncNetworkPrecheck);
+    _precheckWaitingOn = null;
+    final precheck = _precheck;
+    _precheck = null;
+    precheck?.removeListener(_onPrecheckChanged);
+    precheck?.dispose();
+  }
+
+  void _onPrecheckChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _runPrecheckFix(NetworkFixId fix) async {
+    try {
+      await runNetworkFix(context, fix);
+    } catch (e, s) {
+      recordError(e, s, context: 'onboarding network precheck fix');
+    }
+    if (mounted) unawaited(_precheck?.run());
   }
 
   void _next() => _goTo(onboardingNextStep(_step, appIsSelfHosted: _selfHosted));
@@ -767,7 +827,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
       target: core.settings.getLastTarget() ?? _selectedTarget ?? Target.otherDevice,
       hasTrainer: onboardingTrainerBridged(core.connection.proxyDevices),
       trainerName: core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull?.name,
-      onUpdate: () => setState(() {}),
+      onUpdate: () {
+        setState(() {});
+        _syncNetworkPrecheck();
+      },
+      networkStatus: _precheck == null
+          ? null
+          : OnboardingNetworkPrecheckCard(precheck: _precheck!, appName: _selectedApp!.name, onFix: _runPrecheckFix),
     ),
     OnboardingStep.done => onboardingDoneBody(
       context,
@@ -898,7 +964,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
     OnboardingStep.connection => [
       PrimaryButton(
         alignment: Alignment.center,
-        onPressed: core.logic.hasNoConnectionMethod ? null : _next,
+        onPressed:
+            onboardingConnectionCanFinish(
+              hasNoConnectionMethod: core.logic.hasNoConnectionMethod,
+              networkBlocking: _precheck?.blocking ?? false,
+            )
+            ? _next
+            : null,
         child: Text(context.i18n.onboardingFinishSetup),
       ),
     ],

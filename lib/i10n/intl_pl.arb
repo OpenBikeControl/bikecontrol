@@ -2375,5 +2375,14 @@
   "helpSelfTestNeedsTrainer": "Najpierw połącz trenażer w BikeControl — autotest wymaga aktywnego połączenia. Znajdziesz go potem na stronie trenażera.",
   "onboardingDoneOverlayNote": "{app} nadal pokazuje własny numer biegu. Bieg BikeControl widać w Overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
-  "onboardingDoneShowOverlay": "Pokaż Overlay biegów"
+  "onboardingDoneShowOverlay": "Pokaż Overlay biegów",
+  "onboardingNetworkChecking": "Sprawdzanie sieci…",
+  "onboardingNetworkCheckPassed": "Test sieci zaliczony",
+  "onboardingNetworkCheckFailedTitle": "Test sieci wykrył problem",
+  "onboardingNetworkCheckFailedBody": "{app} prawdopodobnie nie znajdzie BikeControl w tej sieci, dopóki tego nie naprawisz.",
+  "@onboardingNetworkCheckFailedBody": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingNetworkRecheck": "Sprawdź ponownie",
+  "onboardingNetworkContinueAnyway": "Kontynuuj mimo to",
+  "onboardingNetworkContinuedNote": "Test sieci wykrył problem. Jeśli {app} się nie połączy, sprawdź ponownie tutaj.",
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
 }
