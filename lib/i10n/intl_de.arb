@@ -345,7 +345,7 @@
   "firmware": "Firmware",
   "forceCloseToUpdate": "Schließen die App, um die neue Version zu verwenden.",
   "full": "Basis",
-  "fullVersion": "Basis Version",
+  "fullVersion": "Basis",
   "fullVersionDescription": "Die Basisversion beinhaltet: \n– Unbegrenzte Befehle pro Tag \n– Zugriff auf zukünftigen Updates \n– Kein Abonnement! Nur eine einmalige Gebühr :)",
   "getSupport": "Unterstützung erhalten",
   "goPro": "Pro werden",
@@ -2313,5 +2313,15 @@
   "onboardingTrialUnlimited": "Unbegrenzte Befehle: Basis oder Pro",
   "onboardingSkipControllerNote": "Ohne Controller kann BikeControl nicht schalten. Du kannst später über den Startbildschirm einen koppeln.",
   "onboardingVsProNote": "Das Virtual Shifting von BikeControl ist Teil von Pro. Ohne Pro kannst du es jeden Tag {minutes} Minuten testen; Basis enthält es nicht.",
-  "onboardingStillNotConnected": "Immer noch nicht verbunden? Teste dein Netzwerk"
+  "onboardingStillNotConnected": "Immer noch nicht verbunden? Teste dein Netzwerk",
+  "paywall_vsByBikeControl": "Virtual Shifting von BikeControl (jeder Trainer, eigene Gänge)",
+  "paywall_shareSensors": "Herzfrequenz & Sensoren mit deiner Trainings-App teilen",
+  "paywall_vsTrialFootnote": "Teste das Virtual Shifting von BikeControl vor dem Abo kostenlos {minutes} Min. pro Tag.",
+  "paywall_goalHeadline": "Welcher Plan passt zu dir?",
+  "paywall_goalPro": "Ich will das Virtual Shifting von BikeControl, sein Gang-Overlay oder Sensoren",
+  "paywall_goalBase": "Meine Trainings-App schaltet selbst; ich brauche nur unbegrenzte Tasten",
+  "paywall_startProYearly": "Pro jährlich starten",
+  "paywall_startProMonthly": "Pro monatlich starten",
+  "paywall_buyBase": "Basis kaufen",
+  "paywall_planQuestions": "Fragen zu den Plänen?"
 }

@@ -344,8 +344,8 @@
   },
   "firmware": "Firmware",
   "forceCloseToUpdate": "Wymuś zamknięcie aplikacji, aby móc korzystać z nowej wersji",
-  "full": "Podstawa",
-  "fullVersion": "Opierać",
+  "full": "Base",
+  "fullVersion": "Base",
   "fullVersionDescription": "Wersja podstawowa zawiera: \n- Nielimitowane polecenia dziennie \n- Dostęp do wszystkich przyszłych aktualizacji \n- Brak subskrypcji! Opłata jednorazowa :)",
   "getSupport": "Uzyskaj wsparcie",
   "goPro": "Go Pro",
@@ -2313,5 +2313,15 @@
   "onboardingTrialUnlimited": "Nielimitowane komendy: Base lub Pro",
   "onboardingSkipControllerNote": "Bez kontrolera BikeControl nie może zmieniać biegów. Możesz sparować go później na ekranie głównym.",
   "onboardingVsProNote": "Wirtualna zmiana biegów BikeControl jest częścią Pro. Bez Pro masz codziennie {minutes} minut okresu próbnego; Base jej nie obejmuje.",
-  "onboardingStillNotConnected": "Nadal brak połączenia? Sprawdź sieć"
+  "onboardingStillNotConnected": "Nadal brak połączenia? Sprawdź sieć",
+  "paywall_vsByBikeControl": "Wirtualna zmiana biegów BikeControl (każdy trenażer, własne biegi)",
+  "paywall_shareSensors": "Udostępniaj tętno i czujniki aplikacji treningowej",
+  "paywall_vsTrialFootnote": "Wypróbuj za darmo wirtualną zmianę biegów BikeControl przez {minutes} min dziennie, zanim wykupisz subskrypcję.",
+  "paywall_goalHeadline": "Który plan pasuje do Ciebie?",
+  "paywall_goalPro": "Chcę wirtualnej zmiany biegów BikeControl, nakładki z biegiem lub czujników",
+  "paywall_goalBase": "Moja aplikacja treningowa sama zmienia biegi; potrzebuję tylko nielimitowanych przycisków",
+  "paywall_startProYearly": "Rozpocznij Pro rocznie",
+  "paywall_startProMonthly": "Rozpocznij Pro miesięcznie",
+  "paywall_buyBase": "Kup Base",
+  "paywall_planQuestions": "Pytania o plany?"
 }

@@ -76,7 +76,8 @@ Future<void> main() async {
     final handle = tester.ensureSemantics();
     final l10n = AppLocalizations.of(tester.element(find.byType(Paywall)));
     expect(
-      find.semantics.byLabel(l10n.purchase),
+      // Named after the plan it buys; Pro yearly is preselected.
+      find.semantics.byLabel(l10n.paywall_startProYearly),
       isSemantics(isButton: true, hasTapAction: true, isFocusable: true, isEnabled: true),
     );
     handle.dispose();
@@ -93,7 +94,7 @@ Future<void> main() async {
     await pump(tester, Brightness.light);
     final handle = tester.ensureSemantics();
     final l10n = AppLocalizations.of(tester.element(find.byType(Paywall)));
-    for (final label in [l10n.purchase, l10n.restorePurchases]) {
+    for (final label in [l10n.paywall_startProYearly, l10n.restorePurchases]) {
       final rect = find.semantics.byLabel(label).evaluate().first.rect;
       expect(rect.height, greaterThanOrEqualTo(47.5), reason: '$label: $rect');
       expect(rect.width, greaterThanOrEqualTo(47.5), reason: '$label: $rect');

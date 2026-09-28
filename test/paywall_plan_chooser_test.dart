@@ -1,0 +1,115 @@
+// The paywall's job is to get the rider into the right plan. Riders bought
+// Base expecting BikeControl's virtual shifting because the table gave Base a
+// "20 min/day" cell for it — a trial of a Pro feature, drawn as if Base had
+// some of it. So:
+// - the virtual-shifting row leads the table, Base gets a dash, and the daily
+//   trial is a footnote under the table;
+// - a goal chooser above the table maps "what I want" onto a plan;
+// - the purchase button says which plan it buys.
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import 'widget_snapshot.dart';
+
+Future<void> main() async {
+  await ensureSnapshotHarness();
+
+  Future<AppLocalizations> pump(WidgetTester tester, {bool purchased = false}) async {
+    tester.view.physicalSize = const Size(390, 1800) * 3.0;
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+    IAPManager.instance.isPurchased.value = purchased;
+    addTearDown(() => IAPManager.instance.isPurchased.value = true);
+    await tester.pumpWidget(
+      ShadcnApp(
+        debugShowCheckedModeBanner: false,
+        scaling: BkTheme.scaling,
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.light),
+        home: const SingleChildScrollView(child: Paywall(defaultToFullVersion: false)),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.takeException(), isNull);
+    return AppLocalizations.of(tester.element(find.byType(Paywall)));
+  }
+
+  Rect rowOf(WidgetTester tester, String label) => tester.getRect(find.text(label));
+
+  bool dashInRow(WidgetTester tester, Rect row) => find
+      .byWidgetPredicate((w) => w is Container && w.constraints?.maxHeight == 3)
+      .evaluate()
+      .map((e) => tester.getRect(find.byWidget(e.widget)))
+      .any((r) => r.center.dy > row.top && r.center.dy < row.bottom && r.left > row.right);
+
+  testWidgets('virtual shifting leads the table, Base gets a dash, the trial is a footnote', (tester) async {
+    final l = await pump(tester);
+
+    final vs = rowOf(tester, l.paywall_vsByBikeControl);
+    final commands = rowOf(tester, l.paywall_amountOfActions);
+    expect(vs.top, lessThan(commands.top), reason: 'the row that decides the plan comes first');
+    expect(dashInRow(tester, vs), isTrue, reason: 'Base does not include virtual shifting');
+    expect(find.text(l.paywall_twentyMinPerDay), findsNothing);
+
+    final minutes = '${core.bridgeUsageTracker.dailyLimit.inMinutes}';
+    expect(find.text(l.paywall_vsTrialFootnote(minutes)), findsOneWidget);
+  });
+
+  testWidgets('sensors are a Pro row; "support development" is not a feature', (tester) async {
+    final l = await pump(tester);
+    expect(find.text(l.paywall_shareSensors), findsOneWidget);
+    expect(dashInRow(tester, rowOf(tester, l.paywall_shareSensors)), isTrue);
+    expect(find.text(l.paywall_supportDevelopmentOfNewFeaturesDevicesAndMore), findsNothing);
+  });
+
+  testWidgets('the goal chooser selects the matching plan, and the button names it', (tester) async {
+    final l = await pump(tester);
+
+    // Preselection stays Pro yearly.
+    expect(find.text(l.paywall_startProYearly), findsOneWidget);
+
+    await tester.ensureVisible(find.text(l.paywall_goalBase));
+    await tester.tap(find.text(l.paywall_goalBase));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l.paywall_buyBase), findsOneWidget);
+
+    await tester.ensureVisible(find.text(l.paywall_goalPro));
+    await tester.tap(find.text(l.paywall_goalPro));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l.paywall_startProYearly), findsOneWidget);
+
+    await tester.ensureVisible(find.text(l.paywall_monthly));
+    await tester.tap(find.text(l.paywall_monthly));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l.paywall_startProMonthly), findsOneWidget);
+  });
+
+  testWidgets('Base owners see no Base goal', (tester) async {
+    final l = await pump(tester, purchased: true);
+    expect(find.text(l.paywall_goalBase), findsNothing);
+  });
+
+  testWidgets('the paywall links to the plan questions', (tester) async {
+    final l = await pump(tester);
+    expect(find.text(l.paywall_planQuestions), findsOneWidget);
+  });
+
+  testWidgets('yearly and monthly titles are drawn at the same size', (tester) async {
+    final l = await pump(tester);
+    expect(
+      rowOf(tester, l.paywall_monthly).height,
+      closeTo(rowOf(tester, l.paywall_yearly).height, 0.5),
+    );
+  });
+}

@@ -48,21 +48,23 @@ Future<void> main() async {
 
   // Support-UX: riders bought Base expecting BikeControl-driven virtual
   // shifting — the old table's "Connect to your trainer ✓" for Base read as
-  // exactly that. The rows now say what Base covers (the app shifts, BikeControl
-  // presses the buttons) and what it doesn't (BikeControl shifting the trainer
-  // itself: 20 min/day), in that order.
-  testWidgets('paywall rows spell out Base vs Pro, with 20 min/day in the Base column', (tester) async {
+  // exactly that, and later a "20 min/day" Base cell drew a Pro trial as if
+  // Base had some of it. BikeControl's virtual shifting now leads the table
+  // (Pro only; the trial is a footnote — see paywall_plan_chooser_test.dart),
+  // then what Base covers: the app shifts, BikeControl presses the buttons.
+  testWidgets('paywall rows spell out Base vs Pro, virtual shifting first', (tester) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
     await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
     expect(tester.takeException(), isNull);
 
-    const labelsInOrder = [
-      'Button commands per day',
-      'Shift & steer in your trainer app (the app does the shifting)',
-      'BikeControl shifts your trainer itself — custom gears, front shifting, any trainer',
-      'Configure 3 actions per button',
-      'Use BikeControl on all platforms',
+    final l10n = AppLocalizations.current;
+    final labelsInOrder = [
+      l10n.paywall_vsByBikeControl,
+      l10n.paywall_amountOfActions,
+      l10n.paywall_shiftInYourApp,
+      l10n.paywall_configure3ActionsPerButton,
+      l10n.paywall_useBikecontrolOnAllPlatforms,
     ];
     for (final label in labelsInOrder) {
       expect(find.text(label), findsOneWidget, reason: 'row "$label" missing');
@@ -80,27 +82,7 @@ Future<void> main() async {
     expect(find.text('Connect to your trainer'), findsNothing);
     expect(find.text('Add virtual shifting capability'), findsNothing);
     expect(find.text('Amount of actions'), findsNothing);
-
-    // "20 min/day" sits in row 3's Base column: level with that row's label,
-    // right of it, and left of the row's Pro check mark.
-    final cell = find.text('20 min/day');
-    expect(cell, findsOneWidget);
-    final cellRect = tester.getRect(cell);
-    final rowLabelRect = tester.getRect(find.text(labelsInOrder[2]));
-    expect(cellRect.top, lessThan(rowLabelRect.bottom));
-    expect(cellRect.bottom, greaterThan(rowLabelRect.top));
-    expect(cellRect.left, greaterThan(rowLabelRect.right));
-    final proCheckInRow = find
-        .byWidgetPredicate(
-          (w) => w is Icon && w.icon == LucideIcons.check,
-        )
-        .evaluate()
-        .map((e) => tester.getRect(find.byWidget(e.widget)))
-        .firstWhere(
-          (r) => r.top < rowLabelRect.bottom && r.bottom > rowLabelRect.top,
-          orElse: () => throw StateError('row 3 has no Pro check mark'),
-        );
-    expect(cellRect.right, lessThanOrEqualTo(proCheckInRow.left));
+    expect(find.text(l10n.paywall_bikeControlShifts), findsNothing);
   });
 
   // Cross-store restores: Base is bound to the storefront it was bought on.

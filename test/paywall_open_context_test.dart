@@ -122,7 +122,7 @@ Future<void> main() async {
     await tester.pump();
     await tester.tap(baseCard);
     await tester.pump();
-    final purchase = find.text('Purchase');
+    final purchase = find.text(AppLocalizations.current.paywall_buyBase);
     await tester.ensureVisible(purchase);
     await tester.pump();
     await tester.tap(purchase);
@@ -167,7 +167,7 @@ Future<void> main() async {
     await tester.pump();
     await tester.tap(baseCard);
     await tester.pump();
-    final purchase = find.text('Purchase');
+    final purchase = find.text(AppLocalizations.current.paywall_buyBase);
     await tester.ensureVisible(purchase);
     await tester.pump();
     await tester.tap(purchase);

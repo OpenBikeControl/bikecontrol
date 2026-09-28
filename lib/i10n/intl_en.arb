@@ -2687,5 +2687,15 @@
   "onboardingTrialUnlimited": "For unlimited commands: Base or Pro",
   "onboardingSkipControllerNote": "BikeControl can't shift without a controller. You can pair one later from the home screen.",
   "onboardingVsProNote": "BikeControl's virtual shifting is part of Pro. Without Pro you get a {minutes}-minute trial every day; Base doesn't include it.",
-  "onboardingStillNotConnected": "Still not connected? Test your network"
+  "onboardingStillNotConnected": "Still not connected? Test your network",
+  "paywall_vsByBikeControl": "Virtual shifting by BikeControl (any trainer, custom gears)",
+  "paywall_shareSensors": "Share heart rate & sensors with your trainer app",
+  "paywall_vsTrialFootnote": "Try BikeControl's virtual shifting free for {minutes} min a day before you subscribe.",
+  "paywall_goalHeadline": "Which plan fits how you ride?",
+  "paywall_goalPro": "I want BikeControl's virtual shifting, its gear overlay or sensors",
+  "paywall_goalBase": "My trainer app does the shifting; I just need unlimited buttons",
+  "paywall_startProYearly": "Start Pro yearly",
+  "paywall_startProMonthly": "Start Pro monthly",
+  "paywall_buyBase": "Buy Base",
+  "paywall_planQuestions": "Questions about plans?"
 }

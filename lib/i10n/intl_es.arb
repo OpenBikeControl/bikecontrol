@@ -2313,5 +2313,15 @@
   "onboardingTrialUnlimited": "Para comandos ilimitados: Base o Pro",
   "onboardingSkipControllerNote": "Sin mando, BikeControl no puede cambiar de marcha. Puedes emparejar uno más tarde desde la pantalla de inicio.",
   "onboardingVsProNote": "El cambio virtual de BikeControl forma parte de Pro. Sin Pro tienes una prueba de {minutes} minutos cada día; Base no lo incluye.",
-  "onboardingStillNotConnected": "¿Sigue sin conectar? Prueba tu red"
+  "onboardingStillNotConnected": "¿Sigue sin conectar? Prueba tu red",
+  "paywall_vsByBikeControl": "Cambio virtual de BikeControl (cualquier rodillo, marchas personalizadas)",
+  "paywall_shareSensors": "Comparte frecuencia cardiaca y sensores con tu app de entrenamiento",
+  "paywall_vsTrialFootnote": "Prueba gratis el cambio virtual de BikeControl {minutes} min al día antes de suscribirte.",
+  "paywall_goalHeadline": "¿Qué plan encaja con cómo entrenas?",
+  "paywall_goalPro": "Quiero el cambio virtual de BikeControl, su overlay de marchas o sensores",
+  "paywall_goalBase": "Mi app de entrenamiento hace los cambios; solo necesito botones ilimitados",
+  "paywall_startProYearly": "Empezar Pro anual",
+  "paywall_startProMonthly": "Empezar Pro mensual",
+  "paywall_buyBase": "Comprar Base",
+  "paywall_planQuestions": "¿Dudas sobre los planes?"
 }

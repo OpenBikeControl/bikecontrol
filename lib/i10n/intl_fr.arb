@@ -2313,5 +2313,15 @@
   "onboardingTrialUnlimited": "Pour des commandes illimitées : Base ou Pro",
   "onboardingSkipControllerNote": "Sans commande, BikeControl ne peut pas passer les vitesses. Tu pourras en associer une plus tard depuis l'écran d'accueil.",
   "onboardingVsProNote": "Les vitesses virtuelles de BikeControl font partie de Pro. Sans Pro, tu as un essai de {minutes} minutes chaque jour ; Base ne les inclut pas.",
-  "onboardingStillNotConnected": "Toujours pas connecté ? Teste ton réseau"
+  "onboardingStillNotConnected": "Toujours pas connecté ? Teste ton réseau",
+  "paywall_vsByBikeControl": "Vitesses virtuelles par BikeControl (tout home-trainer, vitesses personnalisées)",
+  "paywall_shareSensors": "Partage fréquence cardiaque et capteurs avec ton app d'entraînement",
+  "paywall_vsTrialFootnote": "Essaie gratuitement les vitesses virtuelles de BikeControl {minutes} min par jour avant de t'abonner.",
+  "paywall_goalHeadline": "Quelle offre te correspond ?",
+  "paywall_goalPro": "Je veux les vitesses virtuelles de BikeControl, leur overlay de vitesse ou les capteurs",
+  "paywall_goalBase": "Mon app d'entraînement gère les vitesses ; il me faut juste des boutons illimités",
+  "paywall_startProYearly": "Démarrer Pro annuel",
+  "paywall_startProMonthly": "Démarrer Pro mensuel",
+  "paywall_buyBase": "Acheter Base",
+  "paywall_planQuestions": "Des questions sur les offres ?"
 }
