@@ -547,7 +547,6 @@ class _PaywallState extends State<Paywall> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Center(child: Image.asset('icon.png', width: 54, height: 54)),
-              if (!_iapManager.isPurchased.value) _buildGoalChooser(context),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: 8,
@@ -630,81 +629,6 @@ class _PaywallState extends State<Paywall> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  bool get _proSelected => _selectedPlan != _PaywallPlan.fullVersion;
-
-  /// "What do you want?" before "what does each plan have?": two goals, each
-  /// mapped onto the plan that covers it. Picking Pro keeps a monthly choice
-  /// the rider already made; otherwise it lands on yearly.
-  Widget _buildGoalChooser(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 8,
-      children: [
-        Text(
-          l10n.paywall_goalHeadline,
-          textAlign: TextAlign.center,
-          style: context.typography.large.copyWith(fontWeight: FontWeight.w600),
-        ),
-        _buildGoalRow(
-          context,
-          label: l10n.paywall_goalPro,
-          plan: const ProBadge(),
-          selected: _proSelected,
-          onPressed: () => _selectPlan(_proSelected ? _selectedPlan : _PaywallPlan.yearly),
-        ),
-        _buildGoalRow(
-          context,
-          label: l10n.paywall_goalBase,
-          plan: Text(
-            l10n.fullVersion,
-            style: context.typography.caption.copyWith(fontWeight: FontWeight.bold),
-          ),
-          selected: !_proSelected,
-          onPressed: () => _selectPlan(_PaywallPlan.fullVersion),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGoalRow(
-    BuildContext context, {
-    required String label,
-    required Widget plan,
-    required bool selected,
-    required VoidCallback onPressed,
-  }) {
-    final cs = Theme.of(context).colorScheme;
-    return BkTappable(
-      onPressed: onPressed,
-      selected: selected,
-      inMutuallyExclusiveGroup: true,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: cs.card,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: selected ? cs.primary : cs.border, width: selected ? 2 : 1.5),
-        ),
-        child: Row(
-          children: [
-            _buildRadioIndicator(selected, compact: true, small: true),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(label, style: context.typography.small.copyWith(color: cs.foreground)),
-            ),
-            const SizedBox(width: 10),
-            Icon(LucideIcons.arrowRight, size: 14, color: cs.mutedForeground),
-            const SizedBox(width: 8),
-            plan,
-          ],
         ),
       ),
     );

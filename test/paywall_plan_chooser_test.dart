@@ -4,7 +4,6 @@
 // some of it. So:
 // - the virtual-shifting row leads the table, Base gets a dash, and the daily
 //   trial is a footnote under the table;
-// - a goal chooser above the table maps "what I want" onto a plan;
 // - the purchase button says which plan it buys.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
@@ -73,31 +72,22 @@ Future<void> main() async {
     expect(find.text(l.paywall_supportDevelopmentOfNewFeaturesDevicesAndMore), findsNothing);
   });
 
-  testWidgets('the goal chooser selects the matching plan, and the button names it', (tester) async {
+  testWidgets('the purchase button names the selected plan', (tester) async {
     final l = await pump(tester);
 
     // Preselection stays Pro yearly.
-    expect(find.text(l.paywall_startProYearly), findsOneWidget);
-
-    await tester.ensureVisible(find.text(l.paywall_goalBase));
-    await tester.tap(find.text(l.paywall_goalBase));
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text(l.paywall_buyBase), findsOneWidget);
-
-    await tester.ensureVisible(find.text(l.paywall_goalPro));
-    await tester.tap(find.text(l.paywall_goalPro));
-    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text(l.paywall_startProYearly), findsOneWidget);
 
     await tester.ensureVisible(find.text(l.paywall_monthly));
     await tester.tap(find.text(l.paywall_monthly));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text(l.paywall_startProMonthly), findsOneWidget);
-  });
 
-  testWidgets('Base owners see no Base goal', (tester) async {
-    final l = await pump(tester, purchased: true);
-    expect(find.text(l.paywall_goalBase), findsNothing);
+    final base = find.textContaining(l.paywall_baseStoreNote('').split(' ').first);
+    await tester.ensureVisible(base.first);
+    await tester.tap(base.first);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(l.paywall_buyBase), findsOneWidget);
   });
 
   testWidgets('the paywall links to the plan questions', (tester) async {
