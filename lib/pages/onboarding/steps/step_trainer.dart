@@ -150,16 +150,29 @@ Widget onboardingTrainerBody(BuildContext context,
     Gap(6),
     Text(context.i18n.onboardingTrainerSubtitle).small.muted,
     Gap(16),
-    // What Virtual Shifting does, animated in the widgets it actually does it
-    // with, instead of three lines of copy claiming the same thing.
-    const VirtualShiftingStage(),
-    Gap(14),
-    OnboardingNote(
-      context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
-      icon: LucideIcons.award,
-    ),
-    Gap(10),
-    _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+    // Once a trainer is found, connecting it is the step's job: the list
+    // (with Connect) moves above the animation so it is on the first screen.
+    if (trainers.isNotEmpty) ...[
+      OnboardingNote(
+        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        icon: LucideIcons.award,
+      ),
+      Gap(10),
+      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+      Gap(14),
+      const VirtualShiftingStage(),
+    ] else ...[
+      // What Virtual Shifting does, animated in the widgets it actually does
+      // it with, instead of three lines of copy claiming the same thing.
+      const VirtualShiftingStage(),
+      Gap(14),
+      OnboardingNote(
+        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        icon: LucideIcons.award,
+      ),
+      Gap(10),
+      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+    ],
     Gap(10),
     Button.ghost(
       onPressed: () => launchUrlString('https://bikecontrol.app/blog/virtual-shifting-with-and-without-bikecontrol/', mode: LaunchMode.externalApplication),
