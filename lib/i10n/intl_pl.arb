@@ -2189,5 +2189,19 @@
   "healthRideFailedTitle": "Nie udało się zapisać przejażdżki w Apple Zdrowie",
   "healthRideDeniedTitle": "Dostęp do Apple Zdrowie jest wyłączony",
   "healthRideOpenSettings": "Otwórz ustawienia Zdrowia",
-  "perGearCount": "{count, plural, =1{1 bieg} few{{count} biegi} other{{count} biegów}}"
+  "perGearCount": "{count, plural, =1{1 bieg} few{{count} biegi} other{{count} biegów}}",
+  "a11yBack": "Wstecz",
+  "a11yMoreOptions": "Więcej opcji",
+  "a11ySendMessage": "Wyślij wiadomość",
+  "a11yAttachFile": "Załącz plik",
+  "a11yRemoveAttachment": "Usuń załącznik",
+  "a11yDismiss": "Odrzuć",
+  "a11yDecrease": "Zmniejsz",
+  "a11yIncrease": "Zwiększ",
+  "a11yRefresh": "Odśwież",
+  "a11yOpenWebsite": "Otwórz stronę",
+  "a11yHelp": "Pomoc",
+  "a11yEditButtonMapping": "Zmień działanie przycisku {button}",
+  "a11yShowDetails": "Pokaż szczegóły",
+  "a11yDragOverlay": "Przesuń nakładkę"
 }

@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:flutter/material.dart';
@@ -58,9 +59,9 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
                       device.id,
                       style: TextStyle(fontSize: 12),
                     ),
-                    trailing: IconButton(
+                    trailing: BkIconButton.ghost(
                       icon: Icon(Icons.delete_outline),
-                      tooltip: context.i18n.removeFromIgnoredList,
+                      label: context.i18n.removeFromIgnoredList,
                       onPressed: () => _removeDevice(device.id),
                     ),
                   );

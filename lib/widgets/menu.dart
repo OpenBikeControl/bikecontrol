@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -76,9 +77,9 @@ List<Widget> buildMenuButtons(BuildContext context) {
       Gap(8),
       Builder(
         builder: (context) {
-          return IconButton(
-            variance: ButtonVariance.menu,
-            density: ButtonDensity.iconDense,
+          return BkIconButton.menu(
+            label: context.i18n.leaveAReview,
+            tooltip: false,
             onPressed: () {
               showDropdown(
                 context: context,
@@ -317,9 +318,9 @@ class BKMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      variance: ButtonVariance.menu,
-      density: ButtonDensity.iconDense,
+    return BkIconButton.menu(
+      label: context.i18n.a11yMoreOptions,
+      tooltip: false,
       icon: Icon(Icons.more_vert),
       onPressed: () => showDropdown(
         context: context,

@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/workout/workout_summary_dialog.dart';
@@ -162,17 +164,20 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           spacing: 12,
           children: [
             if (state == WorkoutState.recording)
-              IconButton.secondary(
+              BkIconButton.secondary(
                 icon: const Icon(LucideIcons.pause, size: 20),
+                label: context.i18n.miniWorkoutPause,
                 onPressed: _recorder.pause,
               ),
             if (state == WorkoutState.paused)
-              IconButton.primary(
+              BkIconButton.primary(
                 icon: const Icon(LucideIcons.play, size: 20),
+                label: context.i18n.miniWorkoutResume,
                 onPressed: _recorder.resume,
               ),
-            IconButton.destructive(
+            BkIconButton.destructive(
               icon: const Icon(LucideIcons.square, size: 20),
+              label: context.i18n.miniWorkoutStop,
               onPressed: _stopAndSave,
             ),
           ],

@@ -2189,5 +2189,19 @@
   "healthRideFailedTitle": "Impossibile salvare l'uscita su Apple Salute",
   "healthRideDeniedTitle": "L'accesso ad Apple Salute è disattivato",
   "healthRideOpenSettings": "Apri le impostazioni di Salute",
-  "perGearCount": "{count, plural, =1{1 rapporto} other{{count} rapporti}}"
+  "perGearCount": "{count, plural, =1{1 rapporto} other{{count} rapporti}}",
+  "a11yBack": "Indietro",
+  "a11yMoreOptions": "Altre opzioni",
+  "a11ySendMessage": "Invia messaggio",
+  "a11yAttachFile": "Allega un file",
+  "a11yRemoveAttachment": "Rimuovi allegato",
+  "a11yDismiss": "Ignora",
+  "a11yDecrease": "Diminuisci",
+  "a11yIncrease": "Aumenta",
+  "a11yRefresh": "Aggiorna",
+  "a11yOpenWebsite": "Apri sito web",
+  "a11yHelp": "Aiuto",
+  "a11yEditButtonMapping": "Cambia la funzione di {button}",
+  "a11yShowDetails": "Mostra dettagli",
+  "a11yDragOverlay": "Sposta overlay"
 }

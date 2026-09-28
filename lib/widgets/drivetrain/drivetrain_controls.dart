@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -32,6 +33,9 @@ class DrivetrainControls extends StatelessWidget {
   double get _buttonSize => compact ? 36 : 44;
 
   double get _gap => compact ? 4 : 6;
+
+  /// Smallest tap target a shift button may have (Android's 48 dp guideline).
+  static const double _minTarget = 48;
 
   /// Equal-width digits. Geist's are proportional by default, so a ratio going
   /// 1.86 → 2.04 is three pixels wider and drags the whole shift column — and
@@ -74,11 +78,11 @@ class DrivetrainControls extends StatelessWidget {
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _shiftButton(context, icon: LucideIcons.minus, filled: false, onTap: definition.shiftDown),
+          _shiftButton(context, icon: LucideIcons.minus, filled: false, label: context.i18n.actionShiftDown, onTap: definition.shiftDown),
           const Gap(22),
           _gearNumber(context),
           const Gap(22),
-          _shiftButton(context, icon: LucideIcons.plus, filled: true, onTap: definition.shiftUp),
+          _shiftButton(context, icon: LucideIcons.plus, filled: true, label: context.i18n.actionShiftUp, onTap: definition.shiftUp),
         ],
       ),
       if (definition.frontShiftEnabled) Align(child: _frontRing(context)),
@@ -100,11 +104,11 @@ class DrivetrainControls extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _shiftButton(context, icon: LucideIcons.minus, filled: false, onTap: definition.shiftDown),
+        _shiftButton(context, icon: LucideIcons.minus, filled: false, label: context.i18n.actionShiftDown, onTap: definition.shiftDown),
         Gap(_gap),
         _gearNumber(context),
         Gap(_gap),
-        _shiftButton(context, icon: LucideIcons.plus, filled: true, onTap: definition.shiftUp),
+        _shiftButton(context, icon: LucideIcons.plus, filled: true, label: context.i18n.actionShiftUp, onTap: definition.shiftUp),
       ],
     );
   }
@@ -203,13 +207,25 @@ class DrivetrainControls extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required bool filled,
+    required String label,
     required VoidCallback onTap,
   }) {
     final cs = Theme.of(context).colorScheme;
+    // The variant's own padding on top of the circle is what stretched this
+    // column past the picture beside it, so the padding is only what it takes
+    // to make the whole button a 48 px target around the smaller circle.
+    final pad = ((_minTarget - _buttonSize) / 2).clamp(2.0, double.infinity);
+    return Semantics(
+      container: true,
+      button: true,
+      label: label,
+      child: _ghost(cs, pad, icon: icon, filled: filled, onTap: onTap),
+    );
+  }
+
+  Widget _ghost(ColorScheme cs, double pad, {required IconData icon, required bool filled, required VoidCallback onTap}) {
     return Button.ghost(
-      // The circle is already a comfortable target; the variant's own padding on
-      // top of it is what stretched this column past the picture beside it.
-      style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.all(2)),
+      style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.all(pad)),
       onPressed: () {
         onTap();
         HapticFeedback.selectionClick();

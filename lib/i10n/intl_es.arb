@@ -2189,5 +2189,19 @@
   "healthRideFailedTitle": "No se pudo guardar la salida en Apple Salud",
   "healthRideDeniedTitle": "El acceso a Apple Salud está desactivado",
   "healthRideOpenSettings": "Abrir ajustes de Salud",
-  "perGearCount": "{count, plural, =1{1 marcha} other{{count} marchas}}"
+  "perGearCount": "{count, plural, =1{1 marcha} other{{count} marchas}}",
+  "a11yBack": "Atrás",
+  "a11yMoreOptions": "Más opciones",
+  "a11ySendMessage": "Enviar mensaje",
+  "a11yAttachFile": "Adjuntar un archivo",
+  "a11yRemoveAttachment": "Quitar adjunto",
+  "a11yDismiss": "Descartar",
+  "a11yDecrease": "Disminuir",
+  "a11yIncrease": "Aumentar",
+  "a11yRefresh": "Actualizar",
+  "a11yOpenWebsite": "Abrir sitio web",
+  "a11yHelp": "Ayuda",
+  "a11yEditButtonMapping": "Cambiar la función de {button}",
+  "a11yShowDetails": "Mostrar detalles",
+  "a11yDragOverlay": "Mover superposición"
 }

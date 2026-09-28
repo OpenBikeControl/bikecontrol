@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -64,8 +66,9 @@ class _WorkoutsListState extends State<WorkoutsList> {
                       ),
                     ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
-                      IconButton.ghost(
+                      BkIconButton.ghost(
                         icon: const Icon(LucideIcons.folder, size: 18),
+                        label: context.i18n.miniWorkoutOpenFolder,
                         onPressed: () async {
                           final dir = await core.workoutRepository.rootDirectory();
                           await launchUrl(Uri.file(dir.path));
@@ -117,12 +120,14 @@ class _WorkoutsListState extends State<WorkoutsList> {
               ],
             ),
           ),
-          IconButton.ghost(
+          BkIconButton.ghost(
             icon: const Icon(LucideIcons.share2, size: 18),
+            label: context.i18n.share,
             onPressed: () => SharePlus.instance.share(ShareParams(files: [XFile(w.file.path)])),
           ),
-          IconButton.ghost(
+          BkIconButton.ghost(
             icon: const Icon(LucideIcons.trash, size: 18),
+            label: context.i18n.delete,
             onPressed: () => _confirmDelete(w, l10n),
           ),
         ],

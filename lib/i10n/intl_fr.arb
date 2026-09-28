@@ -2189,5 +2189,19 @@
   "healthRideFailedTitle": "Impossible d'enregistrer la sortie dans Apple Santé",
   "healthRideDeniedTitle": "L'accès à Apple Santé est désactivé",
   "healthRideOpenSettings": "Ouvrir les réglages Santé",
-  "perGearCount": "{count, plural, =1{1 vitesse} other{{count} vitesses}}"
+  "perGearCount": "{count, plural, =1{1 vitesse} other{{count} vitesses}}",
+  "a11yBack": "Retour",
+  "a11yMoreOptions": "Plus d'options",
+  "a11ySendMessage": "Envoyer le message",
+  "a11yAttachFile": "Joindre un fichier",
+  "a11yRemoveAttachment": "Retirer la pièce jointe",
+  "a11yDismiss": "Masquer",
+  "a11yDecrease": "Diminuer",
+  "a11yIncrease": "Augmenter",
+  "a11yRefresh": "Actualiser",
+  "a11yOpenWebsite": "Ouvrir le site web",
+  "a11yHelp": "Aide",
+  "a11yEditButtonMapping": "Modifier l'action de {button}",
+  "a11yShowDetails": "Afficher les détails",
+  "a11yDragOverlay": "Déplacer la superposition"
 }

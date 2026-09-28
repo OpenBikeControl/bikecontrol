@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -156,9 +157,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ],
                     ),
                     Expanded(child: SizedBox()),
-                    IconButton(
+                    BkIconButton.ghost(
                       icon: Icon(Icons.close),
-                      variance: ButtonVariance.ghost,
+                      label: context.i18n.close,
                       onPressed: () {
                         closeDrawer(context);
                       },
@@ -291,8 +292,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                                   _keyPair.touchPosition != Offset.zero) &&
                               (core.settings.getLocalEnabled() || core.settings.getRemoteControlEnabled()),
                           value: _keyPair.toString(),
-                          trailing: IconButton.secondary(
+                          trailing: BkIconButton.secondary(
                             icon: Icon(Icons.ondemand_video),
+                            label: context.i18n.instructionVideo,
                             onPressed: () {
                               launchUrlString('https://youtube.com/shorts/SvLOQqu2Dqg?feature=share');
                             },
@@ -311,8 +313,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
                         title: Text(context.i18n.simulateMediaKey),
                         value: _keyPair.toString(),
-                        trailing: IconButton.secondary(
+                        trailing: BkIconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
+                          label: context.i18n.instructionVideo,
                           onPressed: () {
                             launchUrlString('https://youtube.com/shorts/ClY1eTnmAv0?feature=share');
                           },
@@ -500,8 +503,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         value: _keyPair.androidAction != AndroidSystemAction.assistant
                             ? _keyPair.androidAction?.title
                             : null,
-                        trailing: IconButton.secondary(
+                        trailing: BkIconButton.secondary(
                           icon: Icon(Icons.ondemand_video),
+                          label: context.i18n.instructionVideo,
                           onPressed: () {
                             launchUrlString('https://youtube.com/shorts/zqD5ARGIVmE?feature=share');
                           },

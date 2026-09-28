@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -31,8 +33,9 @@ class DiagnosticsSection extends StatelessWidget {
               Row(
                 children: [
                   if (scanning) Text('scanning…').muted,
-                  IconButton.ghost(
+                  BkIconButton.ghost(
                     key: const ValueKey('diagnostics-refresh'),
+                    label: context.i18n.a11yRefresh,
                     icon: Icon(LucideIcons.refreshCw, size: 18),
                     onPressed: scanning ? null : onRefresh,
                   ),

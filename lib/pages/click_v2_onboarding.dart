@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -123,9 +124,10 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
                       Row(
                         children: [
                           Expanded(child: Text(l10n.clickV2Onboarding_title).large.semiBold),
-                          IconButton.ghost(
+                          BkIconButton.ghost(
                             key: const ValueKey('click-onboarding-close'),
                             icon: const Icon(Icons.close),
+                            label: context.i18n.close,
                             onPressed: () => Navigator.of(context).maybePop(),
                           ),
                         ],

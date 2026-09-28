@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -114,8 +115,9 @@ class _LocalTileState extends State<LocalTile> {
                 Expanded(
                   child: Text(context.i18n.miuiDeviceDetected).bold,
                 ),
-                IconButton.destructive(
+                BkIconButton.destructive(
                   icon: Icon(Icons.close),
+                  label: context.i18n.a11yDismiss,
                   onPressed: () async {
                     await core.settings.setMiuiWarningDismissed(true);
                     setState(() {
@@ -176,7 +178,8 @@ class _LocalTileState extends State<LocalTile> {
                     },
                   ),
                 ),
-                IconButton.secondary(
+                BkIconButton.secondary(
+                  label: context.i18n.a11yRefresh,
                   onPressed: () {
                     core.logic.isAndroidServiceRunning().then((isRunning) {
                       core.connection.signalNotification(LogNotification('Local Control: $isRunning'));

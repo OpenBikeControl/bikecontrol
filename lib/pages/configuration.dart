@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -234,8 +235,9 @@ class TrainerAppSelect extends StatelessWidget {
                     ),
                     if (supportsObp) OpenBikeControlLogo(),
                     if (app.officialUrl != null)
-                      IconButton.ghost(
+                      BkIconButton.ghost(
                         icon: Icon(LucideIcons.externalLink, size: 16),
+                        label: context.i18n.a11yOpenWebsite,
                         onPressed: () => launchUrlString(
                           app.officialUrl!,
                           mode: LaunchMode.externalApplication,
@@ -263,8 +265,9 @@ class TrainerAppSelect extends StatelessWidget {
                           : Text(app.name),
                     ),
                     if (app.officialUrl != null)
-                      IconButton.ghost(
+                      BkIconButton.ghost(
                         icon: Icon(LucideIcons.externalLink, size: 16),
+                        label: context.i18n.a11yOpenWebsite,
                         onPressed: () => launchUrlString(
                           app.officialUrl!,
                           mode: LaunchMode.externalApplication,

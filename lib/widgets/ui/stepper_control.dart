@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class StepperControl extends StatelessWidget {
@@ -31,8 +33,9 @@ class StepperControl extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton.ghost(
+          BkIconButton.ghost(
             key: const ValueKey('stepper-minus'),
+            label: context.i18n.a11yDecrease,
             icon: const Icon(LucideIcons.minus, size: 14),
             onPressed: value > min ? () => onChanged(_clamp(value - step)) : null,
           ),
@@ -45,8 +48,9 @@ class StepperControl extends StatelessWidget {
               ),
             ),
           ),
-          IconButton.ghost(
+          BkIconButton.ghost(
             key: const ValueKey('stepper-plus'),
+            label: context.i18n.a11yIncrease,
             icon: const Icon(LucideIcons.plus, size: 14),
             onPressed: value < max ? () => onChanged(_clamp(value + step)) : null,
           ),

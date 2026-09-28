@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'dart:async';
 
@@ -84,7 +85,8 @@ Widget onboardingShell(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
               child: Row(
                 children: [
-                  if (onBack != null) IconButton.ghost(icon: Icon(LucideIcons.arrowLeft), onPressed: onBack),
+                  if (onBack != null)
+                    BkIconButton.ghost(icon: Icon(LucideIcons.arrowLeft), label: context.i18n.a11yBack, onPressed: onBack),
                   Image.asset('icon.png', width: 30, height: 30),
                   Expanded(
                     child: Text(
@@ -109,7 +111,8 @@ Widget onboardingShell(
                       ]),
                     ),
                   ),
-                  if (onClose != null) IconButton.ghost(icon: Icon(LucideIcons.x), onPressed: onClose),
+                  if (onClose != null)
+                    BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
                 ],
               ),
             ),
@@ -223,7 +226,7 @@ Widget onboardingShell(
                     padding: const EdgeInsets.fromLTRB(0, 10, 14, 0),
                     child: Row(children: [
                       const Spacer(),
-                      IconButton.ghost(icon: Icon(LucideIcons.x), onPressed: onClose),
+                      BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
                     ]),
                   ),
                 Expanded(child: scrolledBody),

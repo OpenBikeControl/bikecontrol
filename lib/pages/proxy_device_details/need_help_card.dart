@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -42,8 +44,9 @@ class NeedHelpCard extends StatelessWidget {
               Expanded(
                 child: Text(l10n.needHelpTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
-              IconButton.ghost(
+              BkIconButton.ghost(
                 key: const ValueKey('need-help-dismiss'),
+                label: context.i18n.a11yDismiss,
                 // Compact so the 18px glyph doesn't inflate the header row
                 // above the self-test card's.
                 density: ButtonDensity.compact,

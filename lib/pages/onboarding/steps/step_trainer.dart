@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -200,8 +201,9 @@ class _ScanCard extends StatelessWidget {
                 ]),
               ),
               if (onRescan != null)
-                IconButton.ghost(
+                BkIconButton.ghost(
                   icon: Icon(LucideIcons.refreshCw, size: 15),
+                  label: context.i18n.a11yRefresh,
                   onPressed: onRescan,
                 ),
             ]),

@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/utils/core.dart';
@@ -146,8 +148,9 @@ class _GearHeroCardState extends State<GearHeroCard> {
                     Expanded(
                       child: Text(AppLocalizations.of(context).myWhooshGearHintTitle).bold.small,
                     ),
-                    IconButton.ghost(
+                    BkIconButton.ghost(
                       icon: const Icon(Icons.close, size: 16),
+                      label: context.i18n.a11yDismiss,
                       onPressed: _dismissMyWhooshHint,
                     ),
                   ],
@@ -177,6 +180,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
               context: context,
               icon: LucideIcons.minus,
               filled: false,
+              label: AppLocalizations.of(context).a11yDecrease,
               onTap: target > 0 ? () => widget.definition.stepManualErgPower(up: false) : null,
             ),
             Row(
@@ -208,6 +212,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
               context: context,
               icon: LucideIcons.plus,
               filled: true,
+              label: AppLocalizations.of(context).a11yIncrease,
               onTap: target < ErgPowerStepping.maxManualW ? () => widget.definition.stepManualErgPower(up: true) : null,
             ),
             Expanded(child: SizedBox()),
@@ -260,10 +265,21 @@ class _GearHeroCardState extends State<GearHeroCard> {
     required BuildContext context,
     required IconData icon,
     required bool filled,
+    required String label,
     required VoidCallback? onTap,
   }) {
     final cs = Theme.of(context).colorScheme;
     final disabled = onTap == null;
+    return Semantics(
+      container: true,
+      button: true,
+      enabled: !disabled,
+      label: label,
+      child: _ergButton(cs, disabled, icon: icon, filled: filled, onTap: onTap),
+    );
+  }
+
+  Widget _ergButton(ColorScheme cs, bool disabled, {required IconData icon, required bool filled, required VoidCallback? onTap}) {
     return Button.ghost(
       onPressed: onTap,
       child: Container(

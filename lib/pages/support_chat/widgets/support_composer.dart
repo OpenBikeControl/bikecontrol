@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async' show unawaited;
 import 'dart:io' show File;
 
@@ -246,8 +247,10 @@ class _SupportComposerState extends State<SupportComposer> {
             children: [
               Builder(
                 builder: (context) {
-                  return IconButton.ghost(
+                  return BkIconButton.ghost(
                     icon: const Icon(LucideIcons.paperclip, size: 20),
+                    label: context.i18n.a11yAttachFile,
+                    tooltip: false,
                     onPressed: widget.sending ? null : () => _showAttachSheet(context),
                   );
                 },
@@ -271,8 +274,9 @@ class _SupportComposerState extends State<SupportComposer> {
                 _diagnosticPreview(cs),
                 const SizedBox(width: 8),
               ],
-              IconButton.primary(
+              BkIconButton.primary(
                 icon: widget.sending ? const SmallProgressIndicator() : const Icon(LucideIcons.send, size: 18),
+                label: context.i18n.a11ySendMessage,
                 onPressed: _canSend ? () => unawaited(_submit()) : null,
               ),
             ],
@@ -379,8 +383,9 @@ class _SupportComposerState extends State<SupportComposer> {
                 Row(
                   children: [
                     Expanded(child: Text("${context.i18n.diagnosticInfoAttached}:")),
-                    IconButton.ghost(
+                    BkIconButton.ghost(
                       icon: const Icon(LucideIcons.x, size: 16),
+                      label: context.i18n.close,
                       onPressed: () => closeSheet(c),
                     ),
                   ],
@@ -438,8 +443,9 @@ class _SupportComposerState extends State<SupportComposer> {
                 style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ),
-            IconButton.ghost(
+            BkIconButton.ghost(
               icon: const Icon(LucideIcons.x, size: 14),
+              label: context.i18n.a11yRemoveAttachment,
               onPressed: widget.sending ? null : () => setState(() => _attachment = null),
             ),
           ],

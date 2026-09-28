@@ -2189,5 +2189,19 @@
   "healthRideFailedTitle": "Fahrt konnte nicht in Apple Health gespeichert werden",
   "healthRideDeniedTitle": "Zugriff auf Apple Health ist deaktiviert",
   "healthRideOpenSettings": "Health-Einstellungen öffnen",
-  "perGearCount": "{count, plural, =1{1 Gang} other{{count} Gänge}}"
+  "perGearCount": "{count, plural, =1{1 Gang} other{{count} Gänge}}",
+  "a11yBack": "Zurück",
+  "a11yMoreOptions": "Weitere Optionen",
+  "a11ySendMessage": "Nachricht senden",
+  "a11yAttachFile": "Datei anhängen",
+  "a11yRemoveAttachment": "Anhang entfernen",
+  "a11yDismiss": "Ausblenden",
+  "a11yDecrease": "Verringern",
+  "a11yIncrease": "Erhöhen",
+  "a11yRefresh": "Aktualisieren",
+  "a11yOpenWebsite": "Website öffnen",
+  "a11yHelp": "Hilfe",
+  "a11yEditButtonMapping": "Belegung von {button} ändern",
+  "a11yShowDetails": "Details anzeigen",
+  "a11yDragOverlay": "Overlay verschieben"
 }
