@@ -12,6 +12,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/title.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -178,10 +179,10 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.withAlpha(30),
+                      color: BkStatusColors.of(context).successWash,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(LucideIcons.circleCheck, size: 28, color: Colors.green),
+                    child: Icon(LucideIcons.circleCheck, size: 28, color: BkStatusColors.of(context).success),
                   ),
                   const SizedBox(width: 16),
                   Flexible(

@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
@@ -406,7 +407,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
           Icon(
             isPro ? LucideIcons.circleCheck : LucideIcons.circleMinus,
             size: 16,
-            color: isPro ? Colors.green : Theme.of(context).colorScheme.mutedForeground,
+            color: isPro ? BkStatusColors.of(context).success : Theme.of(context).colorScheme.mutedForeground,
           ),
           Expanded(child: Text(text).small),
         ],

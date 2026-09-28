@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
@@ -371,7 +372,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                 height: 7,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: signedIn ? Colors.green : cs.mutedForeground,
+                  color: signedIn ? BkStatusColors.of(context).success : cs.mutedForeground,
                 ),
               ),
               const Gap(5),

@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -310,13 +311,13 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
           margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
-            color: Colors.green.withAlpha(20),
+            color: BkStatusColors.of(context).successWash,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.green),
+            border: Border.all(color: BkStatusColors.of(context).success),
           ),
           child: Row(
             children: [
-              const Icon(LucideIcons.check, size: 16, color: Colors.green),
+              Icon(LucideIcons.check, size: 16, color: BkStatusColors.of(context).success),
               const Gap(9),
               Expanded(
                 child: Text(

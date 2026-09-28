@@ -9,6 +9,7 @@ import 'package:bike_control/pages/subscriptions/sync_settings_view.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -64,14 +65,15 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   Color _getStatusColor() {
+    final status = BkStatusColors.of(context);
     if (_iapManager.isProEnabledForCurrentDevice) {
-      return Colors.green;
+      return status.success;
     } else if (_iapManager.isProEnabled) {
-      return Colors.orange;
+      return status.warning;
     } else if (_iapManager.isPurchased.value) {
-      return Colors.blue;
+      return status.info;
     } else {
-      return Colors.red;
+      return status.danger;
     }
   }
 
@@ -416,19 +418,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.withAlpha(20),
+        color: BkStatusColors.of(context).warningWash,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withAlpha(100)),
+        border: Border.all(color: BkStatusColors.of(context).warning.withAlpha(100)),
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.info, color: Colors.orange, size: 20),
+          Icon(LucideIcons.info, color: BkStatusColors.of(context).warning, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               AppLocalizations.of(context).windowsSubscriptionsRequireYouToBeLoggedIn,
               style: context.typography.xSmall.copyWith(
-                color: Colors.orange.shade700,
+                color: BkStatusColors.of(context).warning,
               ),
             ),
           ),

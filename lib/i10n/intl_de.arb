@@ -2285,5 +2285,8 @@
   "minutesAgo": "vor {minutes} Min.",
   "scanning": "Suche",
   "a11yTabHasErrors": "{tab}, enthält Fehler",
-  "a11yTabHasNewPosts": "{tab}, neue Beiträge"
+  "a11yTabHasNewPosts": "{tab}, neue Beiträge",
+  "statusConnected": "Verbunden",
+  "statusConnecting": "Verbindet",
+  "statusOff": "Aus"
 }

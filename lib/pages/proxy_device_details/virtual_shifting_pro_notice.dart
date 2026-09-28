@@ -2,6 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/register_this_device.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -65,7 +66,7 @@ class _VirtualShiftingProNoticeState extends State<VirtualShiftingProNotice> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 10,
                 children: [
-                  Icon(LucideIcons.crown, color: Colors.orange, size: 18),
+                  Icon(LucideIcons.crown, color: BkStatusColors.of(context).warning, size: 18),
                   Expanded(
                     child: Text(
                       unregistered ? l10n.proUnregisteredBody : l10n.virtualShiftingProNote(widget.trainerAppName),

@@ -109,6 +109,81 @@ abstract final class BkTheme {
   );
 }
 
+/// Status colours, which shadcn's [ColorScheme] has no slots for: success,
+/// warning, info and danger, each with a foreground for text/icons on the
+/// filled colour and a wash for a tinted background.
+///
+/// The colour itself is for text and icons on the page, a card or its own
+/// wash; all of those clear 4.5:1 in both brightnesses (pinned in
+/// app_theme_test). Status must never be colour alone — pair it with an icon
+/// or words.
+@immutable
+class BkStatusColors {
+  const BkStatusColors._({
+    required this.success,
+    required this.successForeground,
+    required this.successWash,
+    required this.warning,
+    required this.warningForeground,
+    required this.warningWash,
+    required this.info,
+    required this.infoForeground,
+    required this.infoWash,
+    required this.danger,
+    required this.dangerForeground,
+    required this.dangerWash,
+  });
+
+  final Color success;
+  final Color successForeground;
+  final Color successWash;
+  final Color warning;
+  final Color warningForeground;
+  final Color warningWash;
+  final Color info;
+  final Color infoForeground;
+  final Color infoWash;
+  final Color danger;
+  final Color dangerForeground;
+  final Color dangerWash;
+
+  static const BkStatusColors light = BkStatusColors._(
+    success: Color(0xFF15803D),
+    successForeground: Color(0xFFFFFFFF),
+    successWash: Color(0xFFF0FDF4),
+    warning: Color(0xFFB45309),
+    warningForeground: Color(0xFFFFFFFF),
+    warningWash: Color(0xFFFFFBEB),
+    info: Color(0xFF1D4ED8),
+    infoForeground: Color(0xFFFFFFFF),
+    infoWash: Color(0xFFEFF6FF),
+    danger: Color(0xFFB91C1C),
+    dangerForeground: Color(0xFFFFFFFF),
+    dangerWash: Color(0xFFFEF2F2),
+  );
+
+  /// Lifted hues for dark surfaces, dark text on the filled colours, and
+  /// low-alpha washes of the colour itself.
+  static const BkStatusColors dark = BkStatusColors._(
+    success: Color(0xFF4ADE80),
+    successForeground: Color(0xFF052E16),
+    successWash: Color(0x264ADE80),
+    warning: Color(0xFFFBBF24),
+    warningForeground: Color(0xFF1C1917),
+    warningWash: Color(0x26FBBF24),
+    info: Color(0xFF93C5FD),
+    infoForeground: Color(0xFF0B1B33),
+    infoWash: Color(0x2693C5FD),
+    danger: Color(0xFFFC8C8C),
+    dangerForeground: Color(0xFF1F0707),
+    dangerWash: Color(0x26FC8C8C),
+  );
+
+  static BkStatusColors forBrightness(Brightness brightness) => brightness == Brightness.dark ? dark : light;
+
+  static BkStatusColors of(BuildContext context) => forBrightness(Theme.of(context).brightness);
+}
+
 /// [BkTheme.mobileScaling]: shadcn scales icons with text; this keeps them at
 /// the control scale so icon buttons don't shrink with the text.
 class _BkMobileScaling extends AdaptiveScaling {

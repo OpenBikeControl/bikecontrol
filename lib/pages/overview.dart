@@ -1,5 +1,6 @@
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'dart:async';
@@ -611,16 +612,16 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final actionText = entry.message;
 
     // Row bg
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final status = BkStatusColors.of(context);
     final Color rowBg;
     if (isError) {
-      rowBg = isDark ? const Color(0x1AEF4444) : const Color(0xFFFEF2F2);
+      rowBg = status.dangerWash;
     } else if (entry.isWarning) {
-      rowBg = isDark ? const Color(0x1AF59E0B) : const Color(0xFFFFFBEB);
+      rowBg = status.warningWash;
     } else if (isSuccess) {
-      rowBg = isDark ? const Color(0x1A22C55E) : const Color(0xFFF0FDFA);
+      rowBg = status.successWash;
     } else if (entry.button == null) {
-      rowBg = Color(0xFFDBEAFE);
+      rowBg = status.infoWash;
     } else {
       rowBg = Colors.transparent;
     }
@@ -633,19 +634,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final Widget leadingIcon;
     if (button != null) {
       leadingIcon = isError
-          ? const Icon(LucideIcons.circleX, size: 16, color: Color(0xFFEF4444))
+          ? Icon(LucideIcons.circleX, size: 16, color: status.danger)
           : isSuccess
-          ? const Icon(LucideIcons.circleCheck, size: 16, color: Color(0xFF22C55E))
+          ? Icon(LucideIcons.circleCheck, size: 16, color: status.success)
           : ButtonWidget(button: button, size: size - 4);
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
-      leadingIcon = Icon(LucideIcons.circleX, size: 16, color: const Color(0xFFEF4444));
+      leadingIcon = Icon(LucideIcons.circleX, size: 16, color: status.danger);
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
-      leadingIcon = Icon(LucideIcons.triangleAlert, size: 16, color: const Color(0xFFF59E0B));
+      leadingIcon = Icon(LucideIcons.triangleAlert, size: 16, color: status.warning);
     } else if (entry.button == null) {
       leadingIcon = Icon(
         entry.connectionType?.activityIcon ?? LucideIcons.bluetooth,
         size: 16,
-        color: Color(0xFF2563EB),
+        color: status.info,
       );
     } else {
       leadingIcon = Icon(LucideIcons.info, size: 16, color: Theme.of(context).colorScheme.mutedForeground);
@@ -670,7 +671,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            isError ? Text(actionText, style: TextStyle(color: Color(0xFFEF4444))).small : Text(actionText).small,
+            isError ? Text(actionText, style: TextStyle(color: status.danger)).small : Text(actionText).small,
             if (errorFix != null) ...[
               Gap(4),
               Builder(

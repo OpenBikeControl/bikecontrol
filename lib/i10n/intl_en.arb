@@ -2652,5 +2652,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "statusConnected": "Connected",
+  "statusConnecting": "Connecting",
+  "statusOff": "Off"
 }

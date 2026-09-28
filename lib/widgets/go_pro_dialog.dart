@@ -1,6 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -22,7 +23,7 @@ Future<bool> showGoProDialog(BuildContext context, {String? featureName}) async 
       child: AlertDialog(
         title: Row(
           children: [
-            Icon(LucideIcons.crown, color: Colors.orange),
+            Icon(LucideIcons.crown, color: BkStatusColors.of(c).warning),
             const SizedBox(width: 8),
             Expanded(child: Text(featureName ?? 'Pro Feature')),
           ],

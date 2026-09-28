@@ -80,4 +80,30 @@ void main() {
     expect(BkTheme.scalingFor(TargetPlatform.macOS), AdaptiveScaling.desktop);
     expect(BkTheme.scalingFor(TargetPlatform.windows), AdaptiveScaling.desktop);
   });
+
+  group('status colours', () {
+    for (final brightness in Brightness.values) {
+      final theme = BkTheme.build(brightness);
+      final cs = theme.colorScheme;
+      final status = BkStatusColors.forBrightness(brightness);
+
+      test('$brightness: each status reads at >= 4.5:1 on the page, a card and its own wash', () {
+        final roles = {
+          'success': (status.success, status.successForeground, status.successWash),
+          'warning': (status.warning, status.warningForeground, status.warningWash),
+          'info': (status.info, status.infoForeground, status.infoWash),
+          'danger': (status.danger, status.dangerForeground, status.dangerWash),
+        };
+        for (final MapEntry(key: name, value: (color, foreground, wash)) in roles.entries) {
+          for (final surface in [cs.background, cs.card]) {
+            expect(contrast(color, surface), greaterThanOrEqualTo(4.5), reason: '$name on $surface');
+            final washed = Color.alphaBlend(wash, surface);
+            expect(contrast(color, washed), greaterThanOrEqualTo(4.5), reason: '$name on its wash');
+            expect(contrast(cs.foreground, washed), greaterThanOrEqualTo(4.5), reason: 'body text on the $name wash');
+          }
+          expect(contrast(foreground, color), greaterThanOrEqualTo(4.5), reason: '$name foreground on $name');
+        }
+      });
+    }
+  });
 }

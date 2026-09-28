@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -164,14 +165,14 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.12),
+                color: BkStatusColors.of(context).warningWash,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.4)),
               ),
               child: Row(
                 spacing: 8,
                 children: [
-                  Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
+                  Icon(LucideIcons.triangleAlert, size: 14, color: BkStatusColors.of(context).warning),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).gearCountMismatch(app.name, expected, count),

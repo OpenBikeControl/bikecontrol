@@ -2285,5 +2285,8 @@
   "minutesAgo": "il y a {minutes} min",
   "scanning": "Recherche",
   "a11yTabHasErrors": "{tab}, contient des erreurs",
-  "a11yTabHasNewPosts": "{tab}, nouveaux articles"
+  "a11yTabHasNewPosts": "{tab}, nouveaux articles",
+  "statusConnected": "Connecté",
+  "statusConnecting": "Connexion en cours",
+  "statusOff": "Désactivé"
 }
