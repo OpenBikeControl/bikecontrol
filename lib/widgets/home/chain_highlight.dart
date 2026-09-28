@@ -8,6 +8,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+// The highlight keeps the card still, and the banner's "Show" jumps to the
+// cards instead of scrolling, when the rider prefers reduced motion.
+export 'package:bike_control/utils/reduced_motion.dart' show prefersReducedMotion;
+
 /// Tells chain cards to jump out.
 ///
 /// One tick per card, keyed by the card's link id: bumping a card's tick plays
@@ -36,14 +40,6 @@ class ChainHighlightController {
     _ticks.clear();
   }
 }
-
-/// Whether the rider asked for less motion: the highlight then keeps the card
-/// still, and the banner's "Show" jumps to the cards instead of scrolling.
-///
-/// Android's "Remove animations" reaches MediaQuery; iOS's Reduce Motion only
-/// arrives as its own platform flag, which MediaQuery does not carry.
-bool prefersReducedMotion(BuildContext context) =>
-    MediaQuery.disableAnimationsOf(context) || View.of(context).platformDispatcher.accessibilityFeatures.reduceMotion;
 
 /// The highlight's three beats: the card pulses, then shakes, and its accent
 /// border fades out once the movement has stopped.

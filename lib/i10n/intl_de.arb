@@ -2282,5 +2282,6 @@
   "scriptOutputHex": "Ausgabedaten (hex): {value}",
   "overlayCouldNotStart": "Das Overlay konnte nicht angezeigt werden. Bitte versuche es erneut.",
   "secondsAgo": "vor {seconds} s",
-  "minutesAgo": "vor {minutes} Min."
+  "minutesAgo": "vor {minutes} Min.",
+  "scanning": "Suche"
 }

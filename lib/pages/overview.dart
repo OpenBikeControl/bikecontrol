@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -564,23 +565,27 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildAnimatedActivityItem(_ActivityEntry entry, int index, Animation<double> animation) {
+    final item = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (index > 0)
+          Divider(
+            color: Theme.of(context).colorScheme.border.withAlpha(160),
+            endIndent: 16,
+            indent: 16,
+            thickness: 0.5,
+          ),
+        _buildActivityRow(entry, isLatest: index == 0),
+      ],
+    );
+    // With reduced motion an entry simply appears (and goes) in place,
+    // instead of growing open and pushing the list down.
+    if (prefersReducedMotion(context)) return item;
     return SizeTransition(
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
       child: FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (index > 0)
-              Divider(
-                color: Theme.of(context).colorScheme.border.withAlpha(160),
-                endIndent: 16,
-                indent: 16,
-                thickness: 0.5,
-              ),
-            _buildActivityRow(entry, isLatest: index == 0),
-          ],
-        ),
+        child: item,
       ),
     );
   }
@@ -802,6 +807,10 @@ class _TabsState extends State<_Tabs> {
     return Tabs(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       onChanged: (index) {
+        if (prefersReducedMotion(context)) {
+          widget.controller.jumpToPage(index);
+          return;
+        }
         widget.controller.animateToPage(
           index,
           duration: const Duration(milliseconds: 300),

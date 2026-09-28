@@ -3,6 +3,7 @@ import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/unread_dot.dart';
 import 'package:prop/utils/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -100,7 +101,7 @@ class _HelpButtonState extends State<HelpButton> {
                     const Positioned(
                       right: -8,
                       top: -8,
-                      child: _PulsingUnreadBadge(),
+                      child: PulsingUnreadBadge(),
                     ),
                 ],
               ),
@@ -134,14 +135,14 @@ class _HelpButtonState extends State<HelpButton> {
 
 /// Animated unread indicator: a red dot with a halo ring that pulses outward.
 /// Used on the Help button's icon overlay so a new support reply is hard to miss.
-class _PulsingUnreadBadge extends StatefulWidget {
-  const _PulsingUnreadBadge();
+class PulsingUnreadBadge extends StatefulWidget {
+  const PulsingUnreadBadge();
 
   @override
-  State<_PulsingUnreadBadge> createState() => _PulsingUnreadBadgeState();
+  State<PulsingUnreadBadge> createState() => PulsingUnreadBadgeState();
 }
 
-class _PulsingUnreadBadgeState extends State<_PulsingUnreadBadge> with SingleTickerProviderStateMixin {
+class PulsingUnreadBadgeState extends State<PulsingUnreadBadge> with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
@@ -150,7 +151,19 @@ class _PulsingUnreadBadgeState extends State<_PulsingUnreadBadge> with SingleTic
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
-    )..repeat();
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // With reduced motion the halo holds one frame of its pulse: still
+    // visible, no longer moving.
+    if (prefersReducedMotion(context)) {
+      _controller.value = 0.35;
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
   }
 
   @override
