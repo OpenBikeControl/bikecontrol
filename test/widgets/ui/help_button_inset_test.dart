@@ -45,11 +45,4 @@ Future<void> main() async {
       expect(inset - bare, closeTo(34, 0.5));
     });
   }
-
-  testWidgets('mobileFooterClearance covers the pill and the inset', (tester) async {
-    await pump(tester, bottomInset: 34, dpr: 3);
-    final context = tester.element(find.byType(HelpButton));
-    final pill = tester.getSize(find.byType(HelpButton)).height;
-    expect(HelpButton.mobileFooterClearance(context), greaterThanOrEqualTo(pill));
-  });
 }

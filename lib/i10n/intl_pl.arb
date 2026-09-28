@@ -1839,7 +1839,7 @@
   "helpCenterYourSetupMicroLabel": "Spersonalizowane",
   "helpCenterKnownIssues": "Znane problemy",
   "helpCenterPricingFaq": "Cennik i konto",
-  "helpCenterPricingFaqSubtitle": "Pytania zadawane w recenzjach z jedną gwiazdką",
+  "helpCenterPricingFaqSubtitle": "Base, Pro, okresy próbne, przywracanie zakupów",
   "helpCenterGuides": "Poradniki i filmy",
   "helpCenterContact": "Kontakt i społeczność",
   "helpCenterChatLanguageHint": "Możesz napisać do wsparcia w swoim własnym języku.",
@@ -2334,5 +2334,6 @@
   "intakeSelfHelpNetworkAction": "Uruchom test sieci",
   "intakeSelfHelpSelfTestTitle": "Uruchom autotest oporu",
   "intakeSelfHelpSelfTestBody": "Sprawdza, czy BikeControl może zmieniać opór trenażera, i mówi, co naprawić, jeśli nie. Znajdziesz go na stronie trenażera, zaraz pod kartą połączenia.",
-  "intakeSelfHelpSelfTestAction": "Otwórz autotest"
+  "intakeSelfHelpSelfTestAction": "Otwórz autotest",
+  "helpCenterRunSetupGuide": "Uruchom przewodnik konfiguracji"
 }

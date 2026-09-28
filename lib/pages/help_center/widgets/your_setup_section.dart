@@ -10,8 +10,9 @@
 // support-chat corpus actually asks, each opening a `HelpAnswerSheet`
 // (help_answer_sheet.dart) instead of a bespoke page — "the gear doesn't
 // move" while a trainer app is configured (deep-links to the trainer's own
-// Overlay setting when a ProxyDevice is known), and "keeps disconnecting" /
-// "isn't found" while any controller is known (live or remembered).
+// Overlay setting when a ProxyDevice is known), "keeps disconnecting" while
+// any controller is known (live or remembered), and "isn't found" plus a
+// "Run the setup guide" row whenever no controller is connected.
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -20,6 +21,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/pages/help_center/widgets/help_answer_sheet.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
@@ -70,6 +72,10 @@ class YourSetupSection extends StatelessWidget {
     // rather than trusting the source to have done so.
     final hasControllers =
         articleDevices.any((d) => d is! ProxyDevice) || core.connection.offlineControllers.isNotEmpty;
+    // "Isn't found" is for exactly the rider with no working controller —
+    // including one who never got a controller to show up at all, who the
+    // old known-controller gate left without it.
+    final hasConnectedController = articleDevices.any((d) => d is! ProxyDevice && d.isConnected);
     // The deep-link target for the overlay row below: prefer a connected
     // trainer, else any known one. `devicesOverride` doubles as the proxy
     // source too so tests can supply a fake one the same way they do for the
@@ -164,7 +170,7 @@ class YourSetupSection extends StatelessWidget {
             trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
-      if (hasControllers)
+      if (!hasConnectedController)
         Button.ghost(
           key: const ValueKey('help-controller-not-found'),
           style: rowStyle,
@@ -177,6 +183,19 @@ class YourSetupSection extends StatelessWidget {
           child: Basic(
             leading: const Icon(LucideIcons.bluetoothSearching, size: 18),
             title: Text(l10n.helpCenterControllerNotFoundEntry),
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
+          ),
+        ),
+      if (!hasConnectedController)
+        Button.ghost(
+          key: const ValueKey('help-run-setup-guide'),
+          style: rowStyle,
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(fullscreenDialog: true, builder: (_) => const OnboardingPage())),
+          child: Basic(
+            leading: const Icon(LucideIcons.lightbulb, size: 18),
+            title: Text(l10n.helpCenterRunSetupGuide),
             trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),

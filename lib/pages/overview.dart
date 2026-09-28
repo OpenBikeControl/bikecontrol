@@ -1,7 +1,6 @@
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
-import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'dart:async';
 import 'dart:io';
@@ -417,7 +416,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   padding: EdgeInsets.only(
                     left: hPad,
                     right: hPad,
-                    bottom: widget.isMobile ? HelpButton.mobileFooterClearance(context) : 0,
+                    bottom: widget.isMobile ? 16 : 0,
                   ),
                   child: leftColumn,
                 ),
@@ -433,7 +432,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
                       right: 20,
-                      bottom: widget.isMobile ? HelpButton.mobileFooterClearance(context) : 0,
+                      bottom: widget.isMobile ? 16 : 0,
                     ),
                     child: activityColumn,
                   ),
@@ -441,7 +440,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                 SingleChildScrollView(
                   padding: EdgeInsets.only(
                     top: 20,
-                    bottom: widget.isMobile ? HelpButton.mobileFooterClearance(context) : 0,
+                    bottom: widget.isMobile ? 16 : 0,
                   ),
                   child: BlogPostsWidget(
                     showHeader: false,

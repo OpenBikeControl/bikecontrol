@@ -1839,7 +1839,7 @@
   "helpCenterYourSetupMicroLabel": "Personalizado",
   "helpCenterKnownIssues": "Problemas conocidos",
   "helpCenterPricingFaq": "Precios y cuenta",
-  "helpCenterPricingFaqSubtitle": "Las preguntas de las reseñas de 1 estrella",
+  "helpCenterPricingFaqSubtitle": "Base, Pro, pruebas, restaurar compras",
   "helpCenterGuides": "Tutoriales y vídeos",
   "helpCenterContact": "Contacto y comunidad",
   "helpCenterChatLanguageHint": "Puedes escribir al soporte en tu propio idioma.",
@@ -2334,5 +2334,6 @@
   "intakeSelfHelpNetworkAction": "Hacer la prueba de red",
   "intakeSelfHelpSelfTestTitle": "Haz el autotest de resistencia",
   "intakeSelfHelpSelfTestBody": "Comprueba si BikeControl puede cambiar la resistencia de tu rodillo y te dice qué corregir si no puede. Está en la página de tu rodillo, justo debajo de la tarjeta de conexión.",
-  "intakeSelfHelpSelfTestAction": "Abrir el autotest"
+  "intakeSelfHelpSelfTestAction": "Abrir el autotest",
+  "helpCenterRunSetupGuide": "Abrir la guía de configuración"
 }

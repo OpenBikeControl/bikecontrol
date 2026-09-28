@@ -209,7 +209,10 @@ class _NavigationState extends State<Navigation> {
             child: HelpButton(isMobile: true),
           ),
       ],
-      floatingFooter: true,
+      // Not floating: the mobile help pill gets its own space below the
+      // content. Floating, it sat on top of whichever card was behind it at
+      // rest (the Smart Trainer card's title on a fresh home).
+      floatingFooter: false,
       child: OverviewPage(isMobile: _isMobile),
     );
   }

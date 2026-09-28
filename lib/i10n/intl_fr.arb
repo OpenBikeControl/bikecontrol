@@ -1839,7 +1839,7 @@
   "helpCenterYourSetupMicroLabel": "Personnalisé",
   "helpCenterKnownIssues": "Problèmes connus",
   "helpCenterPricingFaq": "Tarifs et compte",
-  "helpCenterPricingFaqSubtitle": "Les questions posées par les avis 1 étoile",
+  "helpCenterPricingFaqSubtitle": "Base, Pro, essais, restauration des achats",
   "helpCenterGuides": "Tutoriels et vidéos",
   "helpCenterContact": "Contact et communauté",
   "helpCenterChatLanguageHint": "Tu peux écrire au support dans ta propre langue.",
@@ -2334,5 +2334,6 @@
   "intakeSelfHelpNetworkAction": "Lancer le test réseau",
   "intakeSelfHelpSelfTestTitle": "Lance l'autotest de résistance",
   "intakeSelfHelpSelfTestBody": "Il vérifie si BikeControl peut changer la résistance de ton home-trainer et te dit quoi corriger sinon. Tu le trouves sur la page de ton home-trainer, juste sous la carte de connexion.",
-  "intakeSelfHelpSelfTestAction": "Ouvrir l'autotest"
+  "intakeSelfHelpSelfTestAction": "Ouvrir l'autotest",
+  "helpCenterRunSetupGuide": "Lancer le guide de configuration"
 }

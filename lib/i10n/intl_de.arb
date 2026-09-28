@@ -1850,7 +1850,7 @@
   "helpCenterYourSetupMicroLabel": "Personalisiert",
   "helpCenterKnownIssues": "Bekannte Probleme",
   "helpCenterPricingFaq": "Preise & Konto",
-  "helpCenterPricingFaqSubtitle": "Die Fragen aus den 1-Stern-Bewertungen",
+  "helpCenterPricingFaqSubtitle": "Basis, Pro, Testphase, Käufe wiederherstellen",
   "helpCenterGuides": "Anleitungen & Videos",
   "helpCenterContact": "Kontakt & Community",
   "helpCenterChatLanguageHint": "Du kannst dem Support in deiner eigenen Sprache schreiben.",
@@ -2334,5 +2334,6 @@
   "intakeSelfHelpNetworkAction": "Netzwerktest starten",
   "intakeSelfHelpSelfTestTitle": "Widerstands-Selbsttest starten",
   "intakeSelfHelpSelfTestBody": "Er prüft, ob BikeControl den Widerstand deines Trainers ändern kann, und sagt dir, was zu tun ist, wenn nicht. Du findest ihn auf der Seite deines Trainers, direkt unter der Verbindungskarte.",
-  "intakeSelfHelpSelfTestAction": "Selbsttest öffnen"
+  "intakeSelfHelpSelfTestAction": "Selbsttest öffnen",
+  "helpCenterRunSetupGuide": "Einrichtungsassistent starten"
 }

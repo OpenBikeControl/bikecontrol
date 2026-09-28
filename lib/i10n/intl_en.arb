@@ -2218,7 +2218,7 @@
   "helpCenterYourSetupMicroLabel": "Personalized",
   "helpCenterKnownIssues": "Known issues",
   "helpCenterPricingFaq": "Pricing & account",
-  "helpCenterPricingFaqSubtitle": "The questions the 1-star reviews ask",
+  "helpCenterPricingFaqSubtitle": "Base, Pro, trials, restoring purchases",
   "helpCenterGuides": "Tutorials & Videos",
   "helpCenterContact": "Contact & community",
   "helpCenterChatLanguageHint": "You can write to support in your own language.",
@@ -2708,5 +2708,6 @@
   "intakeSelfHelpNetworkAction": "Run the network test",
   "intakeSelfHelpSelfTestTitle": "Run the resistance self-test",
   "intakeSelfHelpSelfTestBody": "It checks whether BikeControl can change your trainer's resistance, and says what to fix if it can't. You'll find it on your trainer's page, right under the connection card.",
-  "intakeSelfHelpSelfTestAction": "Open the self-test"
+  "intakeSelfHelpSelfTestAction": "Open the self-test",
+  "helpCenterRunSetupGuide": "Run the setup guide"
 }

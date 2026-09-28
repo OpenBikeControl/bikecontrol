@@ -38,6 +38,7 @@ const _clickV2RowKey = ValueKey('help-clickv2-onboarding');
 const _gearOverlayRowKey = ValueKey('help-gear-overlay');
 const _controllerDisconnectingRowKey = ValueKey('help-controller-disconnecting');
 const _controllerNotFoundRowKey = ValueKey('help-controller-not-found');
+const _setupGuideRowKey = ValueKey('help-run-setup-guide');
 const _overlayActionKey = ValueKey('help-answer-action-overlay-settings');
 const _vsBlogActionKey = ValueKey('help-answer-action-vs-blog');
 const _clickV2RestartActionKey = ValueKey('help-answer-action-clickv2-restart-blog');
@@ -278,8 +279,13 @@ Future<void> main() async {
     });
   });
 
+  // "My controller isn't found" used to need a controller that had been
+  // paired before — exactly the rider who never got one to show up didn't
+  // see it. It now shows whenever no controller is connected, together with
+  // a way back into the setup guide. "Keeps disconnecting" still needs a
+  // controller BikeControl has seen.
   group('controller disconnecting / not found rows', () {
-    testWidgets('shown when a controller is known', (tester) async {
+    testWidgets('a known controller that is not connected gets both rows', (tester) async {
       final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
 
       await _pump(tester, devices: [rightSide], connections: const []);
@@ -287,14 +293,16 @@ Future<void> main() async {
 
       expect(find.byKey(_controllerDisconnectingRowKey), findsOneWidget);
       expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+      expect(find.byKey(_setupGuideRowKey), findsOneWidget);
     });
 
-    testWidgets('absent without any controller known', (tester) async {
+    testWidgets('with no controller at all, "isn\'t found" and the setup guide still show', (tester) async {
       await _pump(tester, devices: const [], connections: const []);
       await tester.pump();
 
       expect(find.byKey(_controllerDisconnectingRowKey), findsNothing);
-      expect(find.byKey(_controllerNotFoundRowKey), findsNothing);
+      expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+      expect(find.byKey(_setupGuideRowKey), findsOneWidget);
     });
 
     testWidgets('a trainer alone does not count as a controller', (tester) async {
@@ -304,7 +312,18 @@ Future<void> main() async {
       await tester.pump();
 
       expect(find.byKey(_controllerDisconnectingRowKey), findsNothing);
+      expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+    });
+
+    testWidgets('a connected controller drops "isn\'t found" and the setup guide', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+
+      await _pump(tester, devices: [rightSide], connections: const []);
+      await tester.pump();
+
+      expect(find.byKey(_controllerDisconnectingRowKey), findsOneWidget);
       expect(find.byKey(_controllerNotFoundRowKey), findsNothing);
+      expect(find.byKey(_setupGuideRowKey), findsNothing);
     });
 
     testWidgets('the disconnecting row opens a sheet linking to the Click V2 restart explainer', (tester) async {
@@ -341,16 +360,16 @@ Future<void> main() async {
   });
 
   group('empty state', () {
-    testWidgets('shows a muted nudge toward the setup wizard when nothing is configured', (tester) async {
+    testWidgets('nothing configured still offers the not-found answer and the setup guide', (tester) async {
       await _pump(tester, devices: const [], connections: const []);
       await tester.pump();
 
-      expect(find.text(l10n.helpCenterNoSetup), findsOneWidget);
       expect(find.byKey(_networkRowKey), findsNothing);
       expect(find.byKey(_clickV2RowKey), findsNothing);
       expect(find.byKey(_gearOverlayRowKey), findsNothing);
       expect(find.byKey(_controllerDisconnectingRowKey), findsNothing);
-      expect(find.byKey(_controllerNotFoundRowKey), findsNothing);
+      expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+      expect(find.byKey(_setupGuideRowKey), findsOneWidget);
     });
   });
 }
