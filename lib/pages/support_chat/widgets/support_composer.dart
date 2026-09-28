@@ -31,7 +31,7 @@ class StagedAttachment {
 
 /// The rider-facing summary of a diagnostics payload (the text `debugText()`
 /// builds): the few facts a rider can check at a glance before sending.
-/// Values that are empty or "-" read as null.
+/// Values that are empty, "-" or "?" read as null.
 class SupportDiagnosticsSummary {
   const SupportDiagnosticsSummary({this.appVersion, this.platform, this.devices, this.connections, this.logLines = 0});
 
@@ -72,7 +72,7 @@ class SupportDiagnosticsSummary {
       for (final line in lines) {
         if (line.startsWith('$key:')) {
           final v = line.substring(key.length + 1).trim();
-          return v.isEmpty || v == '-' ? null : v;
+          return v.isEmpty || v == '-' || v == '?' ? null : v;
         }
       }
       return null;
@@ -421,12 +421,13 @@ class _SupportComposerState extends State<SupportComposer> {
               children: [
                 // Names what actually goes out: the screenshot only while one
                 // is staged.
-                Text(
-                  _attachment?.isImage == true
-                      ? context.i18n.supportDiagnosticsNotice
-                      : context.i18n.supportDiagnosticsNoticeNoScreenshot,
-                  style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
-                ),
+                if (_attachment?.isImage == true)
+                  Text(
+                    context.i18n.supportDiagnosticsNotice,
+                    style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
+                  )
+                else
+                  _noticeWithInfoIcon(cs),
                 Button.text(
                   onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
                   child: Text(context.i18n.privacyPolicy).xSmall.muted.underline,
@@ -436,6 +437,30 @@ class _SupportComposerState extends State<SupportComposer> {
           ),
         ],
       ),
+    );
+  }
+
+  /// The no-screenshot notice, with the info button's icon drawn inline where
+  /// the message names it.
+  Widget _noticeWithInfoIcon(ColorScheme cs) {
+    const marker = '\uFFFC';
+    final style = context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3);
+    final parts = context.i18n.supportDiagnosticsNoticeNoScreenshot(marker).split(marker);
+    return Text.rich(
+      key: const ValueKey('support-diagnostics-notice-no-screenshot'),
+      TextSpan(
+        children: [
+          for (var i = 0; i < parts.length; i++) ...[
+            if (i > 0)
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Icon(LucideIcons.info, size: (style.fontSize ?? 11) + 2, color: cs.mutedForeground),
+              ),
+            TextSpan(text: parts[i]),
+          ],
+        ],
+      ),
+      style: style,
     );
   }
 
@@ -518,7 +543,7 @@ class _SupportComposerState extends State<SupportComposer> {
   }
 }
 
-/// The ⓘ sheet: a plain summary of what goes out with the message first, the
+/// The info sheet: a plain summary of what goes out with the message first, the
 /// raw payload behind "Show technical details".
 class _DiagnosticsSheet extends StatefulWidget {
   const _DiagnosticsSheet({required this.payload, required this.screenshotAttached, required this.onClose});
@@ -540,8 +565,8 @@ class _DiagnosticsSheetState extends State<_DiagnosticsSheet> {
     final l = context.i18n;
     final summary = SupportDiagnosticsSummary.parse(widget.payload);
     final rows = <(String, String)>[
-      (l.supportDiagAppVersion, summary.appVersion ?? '?'),
-      (l.supportDiagPlatform, summary.platform ?? '?'),
+      (l.supportDiagAppVersion, summary.appVersion ?? l.unknown),
+      (l.supportDiagPlatform, summary.platform ?? l.unknown),
       (l.supportDiagDevices, summary.devices ?? l.supportDiagNone),
       (l.supportDiagConnections, summary.connections ?? l.supportDiagNone),
       (l.supportDiagLogLines, '${summary.logLines}'),

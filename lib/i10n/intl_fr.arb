@@ -1846,7 +1846,7 @@
   "faqStillTrialQ": "J'ai payé, mais l'appli affiche toujours Essai ou Basique",
   "faqStillTrialA": "Pro a besoin de deux choses : que tu sois connecté avec le même compte BikeControl que celui utilisé pour l'abonnement, et que cet appareil soit enregistré dans Gérer mon abonnement → Appareils enregistrés (chaque plateforme a sa propre limite d'appareils). L'achat unique de la version de base, lui, a juste besoin du même compte store que celui utilisé pour l'achat — utilise Restaurer les achats sur l'écran de paiement. Acheté sur Windows en dehors du Microsoft Store ? Ça passe par Stripe, pas par le store — connecte-toi plutôt avec le même compte BikeControl que celui utilisé au paiement ; Restaurer les achats ne le trouvera pas.",
   "faqTrialQ": "Pourquoi le changement de vitesses virtuel est-il limité à 20 minutes ?",
-  "faqTrialA": "C'est l'essai gratuit de Pro : sans abonnement, tu as 20 minutes de changement de vitesses virtuel dans ton appli d'entraînement par jour — ça se réinitialise chaque jour, pas à chaque sortie. Ça te permet de vérifier que le changement de vitesses virtuel fonctionne vraiment avec ton home-trainer et ton appli d'entraînement avant de payer. Avec Pro, il n'y a pas de limite.",
+  "faqTrialA": "C'est l'essai de Pro : sans abonnement, tu as 20 minutes de changement de vitesses virtuel dans ton appli d'entraînement par jour — ça se réinitialise chaque jour, pas à chaque sortie. Ça te permet de vérifier que le changement de vitesses virtuel fonctionne vraiment avec ton home-trainer et ton appli d'entraînement avant de payer. Avec Pro, il n'y a pas de limite.",
   "faqGrandfatherQ": "J'ai acheté l'appli avant que l'abonnement existe. Qu'est-ce que je garde ?",
   "faqGrandfatherA": "Tout ce que l'achat unique incluait, tu le gardes pour toujours — commandes illimitées, mapping de boutons basique, connexion de tes contrôleurs. Le changement de vitesses virtuel (la connexion de ton Smart Trainer à BikeControl) a toujours fait partie de Pro, même pour les achats anciens, donc il n'est pas inclus automatiquement.",
   "faqRefundQ": "Puis-je obtenir un remboursement ?",
@@ -2370,7 +2370,6 @@
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "Dans {app} via BikeControl",
   "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
-  "supportDiagnosticsNoticeNoScreenshot": "Pour t'aider à résoudre le problème, ce chat joint des informations de diagnostic. Tu peux les consulter avec ⓘ avant d'envoyer.",
   "supportDiagSummaryTitle": "Ce qui est envoyé avec ton message",
   "supportDiagAppVersion": "Version de l'app",
   "supportDiagPlatform": "Système",
@@ -2400,5 +2399,7 @@
   "targetThisDeviceDescriptionNoApp": "Lance ton appli d'entraînement sur cet appareil.",
   "purchaseProDeviceLimitTitle": "Pro est sur ton compte, mais pas encore sur cet appareil",
   "helpAnswerStillStuckContactSupport": "Toujours bloqué ? Contacter le support",
-  "paywallYourPlan": "Ton offre"
+  "paywallYourPlan": "Ton offre",
+  "supportDiagnosticsNoticeNoScreenshot": "Pour t'aider à résoudre le problème, ce chat joint des informations de diagnostic. Tu peux les consulter avec {infoIcon} avant d'envoyer.",
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
 }

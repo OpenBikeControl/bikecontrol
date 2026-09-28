@@ -2225,7 +2225,7 @@
   "faqStillTrialQ": "I paid, but the app still shows Trial or Basic",
   "faqStillTrialA": "Pro needs two things: being logged into the same BikeControl account you subscribed with, and this device registered under Manage Subscription → Registered Devices (each platform has its own device limit). A one-time Base purchase instead just needs the same store account you bought it with — use Restore Purchases on the paywall screen. Bought on Windows outside the Microsoft Store? That's Stripe, not the store, so log into the same BikeControl account you checked out with instead — Restore Purchases won't find it there.",
   "faqTrialQ": "Why is virtual shifting limited to 20 minutes?",
-  "faqTrialA": "That's the free trial of Pro: without a subscription you get 20 minutes of virtual shifting in your trainer app per day — it resets daily, not per ride. It's there so you can confirm virtual shifting actually works with your specific trainer and trainer app before you pay for it. With Pro there's no limit.",
+  "faqTrialA": "That's the Pro trial: without a subscription you get 20 minutes of virtual shifting in your trainer app per day — it resets daily, not per ride. It's there so you can confirm virtual shifting actually works with your specific trainer and trainer app before you pay for it. With Pro there's no limit.",
   "faqGrandfatherQ": "I bought the app before the subscription existed. What do I keep?",
   "faqGrandfatherA": "Everything the one-time purchase included, you keep forever — unlimited commands, basic button mapping, connecting your controllers. Virtual shifting (connecting your Smart Trainer to BikeControl) was always part of Pro, even for early purchases, so it isn't included automatically.",
   "faqRefundQ": "Can I get a refund?",
@@ -2744,7 +2744,6 @@
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "In {app} via BikeControl",
   "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
-  "supportDiagnosticsNoticeNoScreenshot": "To help fix your issue, this chat attaches diagnostic info. You can review it with ⓘ before sending.",
   "supportDiagSummaryTitle": "What's sent with your message",
   "supportDiagAppVersion": "App version",
   "supportDiagPlatform": "System",
@@ -2774,5 +2773,7 @@
   "targetThisDeviceDescriptionNoApp": "Run your trainer app on this device.",
   "purchaseProDeviceLimitTitle": "Pro is on your account, but not on this device yet",
   "helpAnswerStillStuckContactSupport": "Still stuck? Contact support",
-  "paywallYourPlan": "Your plan"
+  "paywallYourPlan": "Your plan",
+  "supportDiagnosticsNoticeNoScreenshot": "To help fix your issue, this chat attaches diagnostic info. You can review it with {infoIcon} before sending.",
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
 }

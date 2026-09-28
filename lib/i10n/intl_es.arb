@@ -1846,7 +1846,7 @@
   "faqStillTrialQ": "Pagué, pero la app sigue mostrando Prueba o Básica",
   "faqStillTrialA": "Pro necesita dos cosas: que hayas iniciado sesión con la misma cuenta de BikeControl con la que te suscribiste, y que este dispositivo esté registrado en Gestionar suscripción → Dispositivos registrados (cada plataforma tiene su propio límite de dispositivos). La compra única de la versión básica, en cambio, solo necesita la misma cuenta de la tienda con la que compraste — usa Restaurar compras en la pantalla de pago. ¿La compraste en Windows fuera de la Microsoft Store? Eso pasa por Stripe, no por la tienda — inicia sesión ahí con la misma cuenta de BikeControl con la que pagaste; Restaurar compras no la encontrará.",
   "faqTrialQ": "¿Por qué el cambio de marchas virtual está limitado a 20 minutos?",
-  "faqTrialA": "Esa es la prueba gratuita de Pro: sin suscripción tienes 20 minutos de cambio de marchas virtual en tu app de entrenamiento al día, y se reinicia cada día, no por salida. Así puedes comprobar que el cambio de marchas virtual realmente funciona con tu rodillo y tu app de entrenamiento antes de pagar. Con Pro no hay límite.",
+  "faqTrialA": "Esa es la prueba de Pro: sin suscripción tienes 20 minutos de cambio de marchas virtual en tu app de entrenamiento al día, y se reinicia cada día, no por salida. Así puedes comprobar que el cambio de marchas virtual realmente funciona con tu rodillo y tu app de entrenamiento antes de pagar. Con Pro no hay límite.",
   "faqGrandfatherQ": "Compré la app antes de que existiera la suscripción. ¿Qué conservo?",
   "faqGrandfatherA": "Todo lo que incluía el pago único lo conservas para siempre: comandos ilimitados, asignación básica de botones, conexión de tus controladores. El cambio de marchas virtual (conectar tu Smart Trainer a BikeControl) siempre fue parte de Pro, incluso para compras antiguas, así que no está incluido automáticamente.",
   "faqRefundQ": "¿Puedo pedir un reembolso?",
@@ -2370,7 +2370,6 @@
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "En {app} a través de BikeControl",
   "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
-  "supportDiagnosticsNoticeNoScreenshot": "Para ayudarte a resolver el problema, este chat adjunta información de diagnóstico. Puedes revisarla con ⓘ antes de enviar.",
   "supportDiagSummaryTitle": "Qué se envía con tu mensaje",
   "supportDiagAppVersion": "Versión de la app",
   "supportDiagPlatform": "Sistema",
@@ -2400,5 +2399,7 @@
   "targetThisDeviceDescriptionNoApp": "Ejecuta tu app de entrenamiento en este dispositivo.",
   "purchaseProDeviceLimitTitle": "Pro está en tu cuenta, pero aún no en este dispositivo",
   "helpAnswerStillStuckContactSupport": "¿Sigue sin funcionar? Contacta con soporte",
-  "paywallYourPlan": "Tu plan"
+  "paywallYourPlan": "Tu plan",
+  "supportDiagnosticsNoticeNoScreenshot": "Para ayudarte a resolver el problema, este chat adjunta información de diagnóstico. Puedes revisarla con {infoIcon} antes de enviar.",
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
 }

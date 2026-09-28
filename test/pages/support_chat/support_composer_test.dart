@@ -51,13 +51,17 @@ Future<void> main() async {
     return button.onPressed != null;
   }
 
+  /// The ⓘ button next to Send (the notice also draws the info icon inline).
+  Finder infoButton() => find.ancestor(of: find.byIcon(LucideIcons.info), matching: find.byType(Button)).first;
+  const noScreenshotNotice = ValueKey('support-diagnostics-notice-no-screenshot');
+
   testWidgets('diagnostic sheet with a huge payload can be closed via its X button', (tester) async {
     // Realistic payload: JSON-encoded telemetry incl. hundreds of log lines.
     final payload = List.generate(400, (i) => '"log$i": "2026-07-09 10:00:$i - entry"').join('\n');
     await tester.pumpWidget(app(payload: payload));
     await tester.pump();
 
-    await tester.tap(find.byIcon(LucideIcons.info));
+    await tester.tap(infoButton());
     await tester.pumpAndSettle();
 
     // Sheet is open; the raw payload sits behind the technical-details toggle.
@@ -86,8 +90,24 @@ Future<void> main() async {
     await tester.pumpWidget(app(payload: 'App Version: 6.5.2'));
     await tester.pump();
 
-    expect(find.text(l10n.supportDiagnosticsNoticeNoScreenshot), findsOneWidget);
+    expect(find.byKey(noScreenshotNotice), findsOneWidget);
     expect(find.text(l10n.supportDiagnosticsNotice), findsNothing);
+  });
+
+  testWidgets('the notice points at the info button with the icon itself, not a text glyph', (tester) async {
+    await tester.pumpWidget(app(payload: 'App Version: 6.5.2'));
+    await tester.pump();
+    expect(find.descendant(of: find.byKey(noScreenshotNotice), matching: find.byIcon(LucideIcons.info)), findsOneWidget);
+    expect(find.textContaining('ⓘ', findRichText: true), findsNothing);
+  });
+
+  testWidgets('unknown summary values read "Unknown", not "?"', (tester) async {
+    await tester.pumpWidget(app(payload: 'App Version: ?\nLogs:\na'));
+    await tester.pump();
+    await tester.tap(infoButton());
+    await tester.pumpAndSettle();
+    expect(find.text('?'), findsNothing);
+    expect(find.text(l10n.unknown), findsNWidgets(2), reason: 'app version and platform');
   });
 
   testWidgets('with a staged screenshot the notice mentions it, until it is removed', (tester) async {
@@ -98,7 +118,7 @@ Future<void> main() async {
     await tester.tap(find.byIcon(LucideIcons.x));
     await tester.pump();
     expect(find.text(l10n.supportDiagnosticsNotice), findsNothing);
-    expect(find.text(l10n.supportDiagnosticsNoticeNoScreenshot), findsOneWidget);
+    expect(find.byKey(noScreenshotNotice), findsOneWidget);
   });
 
   testWidgets('hides the notice when there is no diagnostic payload', (tester) async {
@@ -106,7 +126,7 @@ Future<void> main() async {
     await tester.pump();
 
     expect(find.text(l10n.supportDiagnosticsNotice), findsNothing);
-    expect(find.text(l10n.supportDiagnosticsNoticeNoScreenshot), findsNothing);
+    expect(find.byKey(noScreenshotNotice), findsNothing);
   });
 
   testWidgets('the info sheet leads with a plain summary; the raw payload is behind a toggle', (tester) async {
@@ -130,7 +150,7 @@ Logs:
 2026-09-28 10:00:03 - three''';
     await tester.pumpWidget(app(payload: payload, initialAttachment: png()));
     await tester.pump();
-    await tester.tap(find.byIcon(LucideIcons.info));
+    await tester.tap(infoButton());
     await tester.pumpAndSettle();
 
     expect(find.text('7.1.0+3'), findsOneWidget);

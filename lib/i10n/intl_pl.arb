@@ -1846,7 +1846,7 @@
   "faqStillTrialQ": "Zapłaciłem, ale aplikacja nadal pokazuje Wersję próbną lub Podstawową",
   "faqStillTrialA": "Pro wymaga dwóch rzeczy: zalogowania na to samo konto BikeControl, na którym wykupiono subskrypcję, oraz zarejestrowania tego urządzenia w Zarządzaj subskrypcją → Zarejestrowane urządzenia (każda platforma ma własny limit urządzeń). Jednorazowy zakup wersji podstawowej wymaga za to tylko tego samego konta sklepu, na którym dokonano zakupu — użyj Przywróć zakupy na ekranie płatności. Kupione na Windows poza Microsoft Store? To idzie przez Stripe, a nie przez sklep — zaloguj się tam na to samo konto BikeControl, na którym płaciłeś; Przywróć zakupy niczego tam nie znajdzie.",
   "faqTrialQ": "Dlaczego wirtualne przełączanie jest ograniczone do 20 minut?",
-  "faqTrialA": "To bezpłatny okres próbny Pro: bez subskrypcji masz 20 minut wirtualnego przełączania w aplikacji treningowej dziennie — limit resetuje się codziennie, a nie przy każdej jeździe. Dzięki temu możesz sprawdzić, czy wirtualne przełączanie naprawdę działa z Twoim trenażerem i aplikacją treningową, zanim zapłacisz. Z Pro nie ma limitu.",
+  "faqTrialA": "To okres próbny Pro: bez subskrypcji masz 20 minut wirtualnego przełączania w aplikacji treningowej dziennie — limit resetuje się codziennie, a nie przy każdej jeździe. Dzięki temu możesz sprawdzić, czy wirtualne przełączanie naprawdę działa z Twoim trenażerem i aplikacją treningową, zanim zapłacisz. Z Pro nie ma limitu.",
   "faqGrandfatherQ": "Kupiłem aplikację, zanim istniała subskrypcja. Co zachowuję?",
   "faqGrandfatherA": "Wszystko, co obejmował jednorazowy zakup, zachowujesz na zawsze — nielimitowane polecenia, podstawowe mapowanie przycisków, połączenie z kontrolerami. Wirtualne przełączanie (połączenie Twojego Smart Trainera z BikeControl) zawsze było częścią Pro, nawet dla wcześniejszych zakupów, więc nie jest w nim automatycznie zawarte.",
   "faqRefundQ": "Czy mogę dostać zwrot pieniędzy?",
@@ -2370,7 +2370,6 @@
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "W {app} przez BikeControl",
   "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
-  "supportDiagnosticsNoticeNoScreenshot": "Aby pomóc rozwiązać problem, ten czat dołącza dane diagnostyczne. Możesz je przejrzeć przez ⓘ przed wysłaniem.",
   "supportDiagSummaryTitle": "Co zostanie wysłane z wiadomością",
   "supportDiagAppVersion": "Wersja aplikacji",
   "supportDiagPlatform": "System",
@@ -2400,5 +2399,7 @@
   "targetThisDeviceDescriptionNoApp": "Uruchom swoją aplikację treningową na tym urządzeniu.",
   "purchaseProDeviceLimitTitle": "Pro jest na Twoim koncie, ale jeszcze nie na tym urządzeniu",
   "helpAnswerStillStuckContactSupport": "Nadal nie działa? Napisz do supportu",
-  "paywallYourPlan": "Twój plan"
+  "paywallYourPlan": "Twój plan",
+  "supportDiagnosticsNoticeNoScreenshot": "Aby pomóc rozwiązać problem, ten czat dołącza dane diagnostyczne. Możesz je przejrzeć przez {infoIcon} przed wysłaniem.",
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
 }

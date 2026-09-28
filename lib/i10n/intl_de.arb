@@ -1857,7 +1857,7 @@
   "faqStillTrialQ": "Ich habe bezahlt, aber die App zeigt weiterhin Testphase oder Basis",
   "faqStillTrialA": "Pro braucht zwei Dinge: dass du mit demselben BikeControl-Konto angemeldet bist, mit dem du abonniert hast, und dass dieses Gerät unter „Abonnement verwalten“ → „Registrierte Geräte“ registriert ist (jede Plattform hat ihr eigenes Gerätelimit). Der einmalige Kauf der Basisversion braucht dagegen nur dasselbe Store-Konto, mit dem du gekauft hast – nutze „Käufe wiederherstellen“ auf dem Bezahlbildschirm. Unter Windows außerhalb des Microsoft Store gekauft? Das läuft über Stripe statt über den Store – melde dich stattdessen mit demselben BikeControl-Konto an, mit dem du bezahlt hast; „Käufe wiederherstellen“ findet dort nichts.",
   "faqTrialQ": "Warum ist virtuelles Schalten auf 20 Minuten begrenzt?",
-  "faqTrialA": "Das ist die kostenlose Testzeit von Pro: Ohne Abonnement bekommst du 20 Minuten virtuelles Schalten in deiner Trainings-App pro Tag – sie wird täglich zurückgesetzt, nicht pro Fahrt. So kannst du vor dem Bezahlen prüfen, ob virtuelles Schalten mit genau deinem Trainer und deiner Trainings-App wirklich funktioniert. Mit Pro gibt es kein Limit.",
+  "faqTrialA": "Das ist die Testzeit von Pro: Ohne Abonnement bekommst du 20 Minuten virtuelles Schalten in deiner Trainings-App pro Tag – sie wird täglich zurückgesetzt, nicht pro Fahrt. So kannst du vor dem Bezahlen prüfen, ob virtuelles Schalten mit genau deinem Trainer und deiner Trainings-App wirklich funktioniert. Mit Pro gibt es kein Limit.",
   "faqGrandfatherQ": "Ich habe die App gekauft, bevor es das Abo gab. Was behalte ich?",
   "faqGrandfatherA": "Alles, was der einmalige Kauf enthielt, behältst du für immer – unbegrenzte Befehle, einfaches Button-Mapping, die Verbindung deiner Controller. Virtuelles Schalten (die Verbindung deines Smart Trainers mit BikeControl) war schon immer Teil von Pro, auch für frühe Käufe, und ist deshalb nicht automatisch enthalten.",
   "faqRefundQ": "Kann ich eine Rückerstattung bekommen?",
@@ -2370,7 +2370,6 @@
   "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
   "onboardingSummaryTrainerInApp": "In {app} über BikeControl",
   "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}},
-  "supportDiagnosticsNoticeNoScreenshot": "Damit wir dein Problem lösen können, hängt dieser Chat Diagnosedaten an. Du kannst sie vor dem Senden über ⓘ ansehen.",
   "supportDiagSummaryTitle": "Was mit deiner Nachricht gesendet wird",
   "supportDiagAppVersion": "App-Version",
   "supportDiagPlatform": "System",
@@ -2400,5 +2399,7 @@
   "targetThisDeviceDescriptionNoApp": "Lass deine Trainings-App auf diesem Gerät laufen.",
   "purchaseProDeviceLimitTitle": "Pro ist in deinem Konto, aber noch nicht auf diesem Gerät",
   "helpAnswerStillStuckContactSupport": "Klappt es immer noch nicht? Support kontaktieren",
-  "paywallYourPlan": "Dein Tarif"
+  "paywallYourPlan": "Dein Tarif",
+  "supportDiagnosticsNoticeNoScreenshot": "Damit wir dein Problem lösen können, hängt dieser Chat Diagnosedaten an. Du kannst sie vor dem Senden über {infoIcon} ansehen.",
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
 }
