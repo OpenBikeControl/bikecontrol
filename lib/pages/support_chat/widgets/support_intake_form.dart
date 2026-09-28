@@ -403,27 +403,18 @@ class _InlineSelfHelp extends StatelessWidget {
         ],
         null,
       ),
-      IntakeSelfHelp.appNotReacting => () {
-        final [connection, gear] = appNotReactingChecks(l10n);
-        return (
-          LucideIcons.radioTower,
-          l10n.helpAnswerAppNotReactingTitle,
-          l10n.helpAnswerChecksIntro,
-          [
-            connection.withAction(
-              label: l10n.intakeSelfHelpNetworkAction,
-              icon: LucideIcons.radioTower,
-              onPressed: openNetworkTest,
-            ),
-            if (proxy != null)
-              gear.withAction(label: l10n.helpAnswerGearOverlayAction, icon: LucideIcons.layers, onPressed: openOverlay)
-            else
-              gear,
-          ],
-          const <(Key?, IconData, String, VoidCallback)>[],
-          null,
-        );
-      }(),
+      IntakeSelfHelp.appNotReacting => (
+        LucideIcons.radioTower,
+        l10n.helpAnswerAppNotReactingTitle,
+        l10n.helpAnswerChecksIntro,
+        appNotReactingChecksWithActions(
+          l10n,
+          onNetworkTest: openNetworkTest,
+          onOverlay: proxy != null ? openOverlay : null,
+        ),
+        const <(Key?, IconData, String, VoidCallback)>[],
+        null,
+      ),
       IntakeSelfHelp.trainerAppGear => (
         LucideIcons.eye,
         l10n.helpCenterGearOverlayEntry,

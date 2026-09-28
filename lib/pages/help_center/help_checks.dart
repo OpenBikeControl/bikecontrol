@@ -79,6 +79,35 @@ List<HelpCheck> appNotReactingChecks(AppLocalizations l) => [
   HelpCheck(title: l.helpCheckGearOverlayTitle, body: l.helpCheckGearOverlaySub),
 ];
 
+/// [appNotReactingChecks] with their direct actions: the network test on
+/// the connection check and, when a trainer is known ([onOverlay]), the
+/// overlay settings on the gear check. The Help Center's answer sheet and the
+/// support intake show the same list.
+List<HelpCheck> appNotReactingChecksWithActions(
+  AppLocalizations l, {
+  required VoidCallback onNetworkTest,
+  VoidCallback? onOverlay,
+}) {
+  final [connection, gear] = appNotReactingChecks(l);
+  return [
+    connection.withAction(
+      key: const ValueKey('help-check-network-test'),
+      label: l.intakeSelfHelpNetworkAction,
+      icon: LucideIcons.radioTower,
+      onPressed: onNetworkTest,
+    ),
+    if (onOverlay != null)
+      gear.withAction(
+        key: const ValueKey('help-check-overlay-settings'),
+        label: l.helpAnswerGearOverlayAction,
+        icon: LucideIcons.layers,
+        onPressed: onOverlay,
+      )
+    else
+      gear,
+  ];
+}
+
 /// Numbered checks, in the order to try them.
 class HelpCheckList extends StatelessWidget {
   const HelpCheckList({super.key, required this.checks, this.tileColor});

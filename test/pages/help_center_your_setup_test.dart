@@ -40,7 +40,10 @@ const _gearOverlayRowKey = ValueKey('help-gear-overlay');
 const _controllerDisconnectingRowKey = ValueKey('help-controller-disconnecting');
 const _controllerNotFoundRowKey = ValueKey('help-controller-not-found');
 const _setupGuideRowKey = ValueKey('help-run-setup-guide');
-const _overlayActionKey = ValueKey('help-answer-action-overlay-settings');
+const _overlayActionKey = ValueKey('help-check-overlay-settings');
+const _networkTestActionKey = ValueKey('help-check-network-test');
+const _searchAgainActionKey = ValueKey('help-answer-action-search-again');
+const _contactSupportActionKey = ValueKey('help-answer-action-contact-support');
 const _vsBlogActionKey = ValueKey('help-answer-action-vs-blog');
 const _clickV2RestartActionKey = ValueKey('help-answer-action-clickv2-restart-blog');
 
@@ -78,6 +81,8 @@ Future<void> _pump(
   WidgetTester tester, {
   List<BaseDevice>? devices,
   List<TrainerConnection>? connections,
+  VoidCallback? onSearchAgain,
+  void Function(String? controllerId)? onContactSupport,
 }) {
   return tester.pumpWidget(
     ShadcnApp(
@@ -85,7 +90,12 @@ Future<void> _pump(
       localizationsDelegates: const [AppLocalizations.delegate],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       home: Scaffold(
-        child: YourSetupSection(devicesOverride: devices, connectionsOverride: connections),
+        child: YourSetupSection(
+          devicesOverride: devices,
+          connectionsOverride: connections,
+          onSearchAgain: onSearchAgain,
+          onContactSupport: onContactSupport,
+        ),
       ),
     ),
   );
@@ -251,6 +261,25 @@ Future<void> main() async {
       expect(page.revealOverlaySection, isTrue);
     });
 
+    testWidgets('shows the same numbered checks as the support intake, with the network test', (tester) async {
+      core.settings.setTrainerApp(SupportedApp.supportedApps.first);
+
+      await _pump(tester, devices: const [], connections: const []);
+      await tester.pump();
+      await _openSheet(tester, _gearOverlayRowKey);
+
+      expect(find.byType(HelpCheckList), findsOneWidget);
+      for (final check in appNotReactingChecks(l10n)) {
+        expect(find.text(check.title), findsOneWidget);
+      }
+      expect(find.text(l10n.helpAnswerGearBody), findsNothing);
+
+      await _tapAction(tester, _networkTestActionKey);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull);
+      expect(find.byType(NetworkTroubleshootingPage), findsOneWidget);
+    });
+
     testWidgets('falls back to the link-only fallback when no trainer is known', (tester) async {
       core.settings.setTrainerApp(SupportedApp.supportedApps.first);
 
@@ -347,16 +376,40 @@ Future<void> main() async {
       );
     });
 
-    testWidgets('the not-found row opens a sheet with no follow-up actions', (tester) async {
+    testWidgets('the not-found sheet ends with "Scan again" after the checks', (tester) async {
       final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
+      var searches = 0;
 
-      await _pump(tester, devices: [rightSide], connections: const []);
+      await _pump(tester, devices: [rightSide], connections: const [], onSearchAgain: () => searches++);
       await tester.pump();
       await _openSheet(tester, _controllerNotFoundRowKey);
 
       expect(find.text(l10n.helpCenterControllerNotFoundEntry), findsWidgets);
       expect(find.byType(HelpCheckList), findsOneWidget);
       expect(find.byKey(const ValueKey('help-answer-close')), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(_searchAgainActionKey)).dy,
+        greaterThan(tester.getBottomLeft(find.byType(HelpCheckList)).dy),
+      );
+
+      await _tapAction(tester, _searchAgainActionKey);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(searches, 1);
+      expect(find.byType(HelpCheckList), findsNothing, reason: 'the sheet closes first');
+    });
+
+    testWidgets('"Still stuck?" opens support for the known controller', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
+      final asked = <String?>[];
+
+      await _pump(tester, devices: [rightSide], connections: const [], onContactSupport: asked.add);
+      await tester.pump();
+      await _openSheet(tester, _controllerNotFoundRowKey);
+
+      expect(find.text(l10n.helpAnswerStillStuckContactSupport), findsOneWidget);
+      await _tapAction(tester, _contactSupportActionKey);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(asked, ['zwift_click_v2']);
     });
 
     testWidgets('a known Zwift controller gets the Zwift Companion firmware step', (tester) async {

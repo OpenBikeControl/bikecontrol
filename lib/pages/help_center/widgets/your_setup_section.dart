@@ -13,21 +13,27 @@
 // Overlay setting when a ProxyDevice is known), "keeps disconnecting" while
 // any controller is known (live or remembered), and "isn't found" plus a
 // "Run the setup guide" row whenever no controller is connected.
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/help_answer_sheet.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
+import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -45,7 +51,22 @@ class YourSetupSection extends StatelessWidget {
   /// Test seam: replaces `core.logic.trainerConnections`.
   final List<TrainerConnection>? connectionsOverride;
 
-  const YourSetupSection({super.key, this.devicesOverride, this.connectionsOverride});
+  /// Test seam: "Scan again" in the not-found answer. Production returns to
+  /// the home screen and starts a controller scan.
+  final VoidCallback? onSearchAgain;
+
+  /// Test seam: "Still stuck? Contact support" in the not-found answer, with
+  /// the controller BikeControl knows (or null). Production opens the support
+  /// chat with the intake answered for that controller not pairing.
+  final void Function(String? controllerId)? onContactSupport;
+
+  const YourSetupSection({
+    super.key,
+    this.devicesOverride,
+    this.connectionsOverride,
+    this.onSearchAgain,
+    this.onContactSupport,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,15 +142,15 @@ class YourSetupSection extends StatelessWidget {
             context,
             icon: LucideIcons.eye,
             title: l10n.helpCenterGearOverlayEntry,
-            body: l10n.helpAnswerGearBody,
+            body: l10n.helpAnswerChecksIntro,
+            checks: appNotReactingChecksWithActions(
+              l10n,
+              onNetworkTest: () => context.push(const NetworkTroubleshootingPage()),
+              onOverlay: proxy == null
+                  ? null
+                  : () => context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
+            ),
             actions: [
-              if (proxy != null)
-                HelpAnswerAction.navigate(
-                  id: 'overlay-settings',
-                  icon: LucideIcons.layers,
-                  label: l10n.helpAnswerGearOverlayAction,
-                  onPressed: () => context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
-                ),
               HelpAnswerAction.link(
                 id: 'vs-blog',
                 icon: LucideIcons.bike,
@@ -189,6 +210,20 @@ class YourSetupSection extends StatelessWidget {
             title: l10n.helpCenterControllerNotFoundEntry,
             body: l10n.helpAnswerChecksIntro,
             checks: controllerNotFoundChecks(l10n, controllerId: knownControllerId),
+            actions: [
+              HelpAnswerAction.navigate(
+                id: 'search-again',
+                icon: LucideIcons.bluetoothSearching,
+                label: l10n.onboardingScanAgain,
+                onPressed: onSearchAgain ?? () => _searchAgain(context),
+              ),
+              HelpAnswerAction.navigate(
+                id: 'contact-support',
+                icon: LucideIcons.messageCircle,
+                label: l10n.helpAnswerStillStuckContactSupport,
+                onPressed: () => (onContactSupport ?? (id) => _contactSupport(context, id))(knownControllerId),
+              ),
+            ],
           ),
           child: Basic(
             leading: const Icon(LucideIcons.bluetoothSearching, size: 18),
@@ -237,6 +272,35 @@ class YourSetupSection extends StatelessWidget {
           rows[i],
         ],
       ],
+    );
+  }
+
+  /// Back to the home screen, where the controller scan shows, and scan.
+  static void _searchAgain(BuildContext context) {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    unawaited(
+      core.connection.performScanning().catchError((Object e, StackTrace s) {
+        recordError(e, s, context: 'Help Center: scan again');
+      }),
+    );
+  }
+
+  static void _contactSupport(BuildContext context, String? controllerId) {
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SupportChatPage(
+            diagnosticPreviewFuture: debugText(),
+            initialIntake: IntakeAnswers(
+              category: IntakeCategory.controller,
+              subcategory: 'device',
+              subcategoryValue: controllerId ?? 'other',
+              symptom: 'no_pairing',
+            ),
+            telemetryBuilder: () async => TelemetrySnapshot.general(freetext: await debugText()),
+          ),
+        ),
+      ),
     );
   }
 }

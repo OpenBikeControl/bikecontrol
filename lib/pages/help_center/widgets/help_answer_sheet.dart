@@ -99,7 +99,7 @@ class HelpAnswerSheet extends StatelessWidget {
                 Text(title).h4,
                 const Gap(8),
                 Text(body).small.muted,
-                if (checks.isNotEmpty) ...[const Gap(12), HelpCheckList(checks: checks)],
+                if (checks.isNotEmpty) ...[const Gap(12), HelpCheckList(checks: _closingFirst(context, checks))],
                 if (actions.isNotEmpty) ...[
                   const Gap(16),
                   for (final action in actions)
@@ -135,6 +135,24 @@ class HelpAnswerSheet extends StatelessWidget {
       ),
     );
   }
+
+  /// A check's in-app action closes the sheet before it navigates, like
+  /// [HelpAnswerAction.navigate].
+  static List<HelpCheck> _closingFirst(BuildContext context, List<HelpCheck> checks) => [
+    for (final check in checks)
+      if (check.onAction case final onAction? when check.actionLabel != null && check.actionIcon != null)
+        check.withAction(
+          key: check.actionKey,
+          label: check.actionLabel!,
+          icon: check.actionIcon!,
+          onPressed: () {
+            closeSheet(context);
+            onAction();
+          },
+        )
+      else
+        check,
+  ];
 
   void _run(BuildContext context, HelpAnswerAction action) {
     final url = action.url;
