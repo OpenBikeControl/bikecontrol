@@ -140,7 +140,7 @@ Future<void> main() async {
       (c) => Column(
         children: onboardingDoneFooter(
           c,
-          allReady: true,
+          state: OnboardingDoneState.ready,
           showPlanOptions: true,
           onStartRiding: () {},
           onSeePlanOptions: () {},
@@ -213,5 +213,112 @@ Future<void> main() async {
     await pump(tester, (c) => waiting(c, networkMethod: true));
     await tester.pumpWidget(const SizedBox());
     // flutter_test fails the test if a Timer is still pending here.
+  });
+
+  group('done-step states', () {
+    test('each combination maps to one state', () {
+      OnboardingDoneState state({
+        bool controller = true,
+        bool app = true,
+        bool trainer = false,
+        bool pickedUp = false,
+      }) => onboardingDoneState(
+        hasController: controller,
+        appConnected: app,
+        hasTrainer: trainer,
+        trainerAppConnected: pickedUp,
+      );
+
+      expect(state(), OnboardingDoneState.ready);
+      expect(state(trainer: true, pickedUp: true), OnboardingDoneState.ready);
+      expect(state(controller: false), OnboardingDoneState.noController);
+      expect(state(controller: false, trainer: true, pickedUp: true), OnboardingDoneState.noController);
+      expect(state(app: false), OnboardingDoneState.waitingForApp);
+      expect(state(app: false, trainer: true), OnboardingDoneState.waitingForApp);
+      expect(state(trainer: true), OnboardingDoneState.waitingForTrainerPickup);
+      expect(state(controller: false, trainer: true), OnboardingDoneState.waitingForTrainerPickup);
+    });
+
+    Widget bridgeWaiting(BuildContext c, {VoidCallback? onCheck}) => onboardingDoneBody(
+      c,
+      app: MyWhoosh(),
+      controllerName: 'Zwift Click',
+      trainerName: 'KICKR CORE',
+      appConnected: true,
+      trainerAppConnected: false,
+      reduceMotion: true,
+      showTestMode: false,
+      onRunTrainerCheck: onCheck ?? () {},
+    );
+
+    testWidgets('app connected but the trainer not picked up: says to pick it, and shows how', (tester) async {
+      await pump(tester, (c) => bridgeWaiting(c));
+      final l = l10n(tester);
+
+      expect(find.text(l.onboardingDonePickTrainerTitle), findsOneWidget);
+      expect(find.text(l.onboardingDonePickTrainerSubtitle('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.onboardingAlmostThereSubtitle('MyWhoosh')), findsNothing);
+      expect(find.byType(OnboardingPairAsTrainerCard), findsOneWidget);
+      expect(find.byType(OnboardingAppGuideCard), findsNothing, reason: 'the app is already connected');
+    });
+
+    testWidgets('no trainer check until the app has picked up the trainer', (tester) async {
+      await pump(tester, (c) => bridgeWaiting(c));
+      expect(find.byKey(const ValueKey('onboarding-done-trainer-check')), findsNothing);
+    });
+
+    testWidgets('waiting for the app keeps its own title, and no trainer check', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: MyWhoosh(),
+          controllerName: 'Zwift Click',
+          trainerName: 'KICKR CORE',
+          appConnected: false,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+          onRunTrainerCheck: () {},
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.text(l.onboardingAlmostThereTitle), findsOneWidget);
+      expect(find.text(l.onboardingDonePickTrainerTitle), findsNothing);
+      expect(find.byType(OnboardingAppGuideCard), findsOneWidget);
+      expect(find.byKey(const ValueKey('onboarding-done-trainer-check')), findsNothing);
+    });
+
+    Future<String> primaryLabel(WidgetTester tester, OnboardingDoneState state) async {
+      await pump(
+        tester,
+        (c) => Column(
+          children: onboardingDoneFooter(
+            c,
+            state: state,
+            showPlanOptions: false,
+            onStartRiding: () {},
+            onSeePlanOptions: () {},
+          ),
+        ),
+      );
+      final text = tester.widget<Text>(
+        find.descendant(of: find.byType(PrimaryButton), matching: find.byType(Text)).first,
+      );
+      return text.data!;
+    }
+
+    testWidgets('only the controller missing: the button says pair later', (tester) async {
+      final label = await primaryLabel(tester, OnboardingDoneState.noController);
+      expect(label, l10n(tester).onboardingDonePairLater);
+    });
+
+    testWidgets('waiting on the app or the trainer: the button says connect later', (tester) async {
+      expect(await primaryLabel(tester, OnboardingDoneState.waitingForApp), l10n(tester).onboardingDoneFinishLater);
+      expect(
+        await primaryLabel(tester, OnboardingDoneState.waitingForTrainerPickup),
+        l10n(tester).onboardingDoneFinishLater,
+      );
+    });
   });
 }

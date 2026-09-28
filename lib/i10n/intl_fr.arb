@@ -2332,5 +2332,9 @@
   "intakeSelfHelpSelfTestTitle": "Lance l'autotest de résistance",
   "intakeSelfHelpSelfTestBody": "Il vérifie si BikeControl peut changer la résistance de ton home-trainer et te dit quoi corriger sinon. Tu le trouves sur la page de ton home-trainer, juste sous la carte de connexion.",
   "intakeSelfHelpSelfTestAction": "Ouvrir l'autotest",
-  "helpCenterRunSetupGuide": "Lancer le guide de configuration"
+  "helpCenterRunSetupGuide": "Lancer le guide de configuration",
+  "onboardingDonePickTrainerTitle": "Encore une étape : choisis ton home-trainer",
+  "onboardingDonePickTrainerSubtitle": "{app} est connecté mais n'a pas encore pris ton home-trainer. Dans la sélection du home-trainer ou des appareils de {app}, choisis l'entrée BikeControl :",
+  "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDonePairLater": "Terminer — j'appairerai plus tard"
 }

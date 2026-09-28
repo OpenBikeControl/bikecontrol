@@ -2332,5 +2332,9 @@
   "intakeSelfHelpSelfTestTitle": "Uruchom autotest oporu",
   "intakeSelfHelpSelfTestBody": "Sprawdza, czy BikeControl może zmieniać opór trenażera, i mówi, co naprawić, jeśli nie. Znajdziesz go na stronie trenażera, zaraz pod kartą połączenia.",
   "intakeSelfHelpSelfTestAction": "Otwórz autotest",
-  "helpCenterRunSetupGuide": "Uruchom przewodnik konfiguracji"
+  "helpCenterRunSetupGuide": "Uruchom przewodnik konfiguracji",
+  "onboardingDonePickTrainerTitle": "Jeszcze jeden krok: wybierz trenażer",
+  "onboardingDonePickTrainerSubtitle": "{app} jest połączona, ale nie przejęła jeszcze trenażera. W wyborze trenażera lub urządzeń w {app} wybierz pozycję BikeControl:",
+  "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDonePairLater": "Zakończ — sparuję później"
 }

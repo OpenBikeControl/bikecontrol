@@ -2332,5 +2332,9 @@
   "intakeSelfHelpSelfTestTitle": "Widerstands-Selbsttest starten",
   "intakeSelfHelpSelfTestBody": "Er prüft, ob BikeControl den Widerstand deines Trainers ändern kann, und sagt dir, was zu tun ist, wenn nicht. Du findest ihn auf der Seite deines Trainers, direkt unter der Verbindungskarte.",
   "intakeSelfHelpSelfTestAction": "Selbsttest öffnen",
-  "helpCenterRunSetupGuide": "Einrichtungsassistent starten"
+  "helpCenterRunSetupGuide": "Einrichtungsassistent starten",
+  "onboardingDonePickTrainerTitle": "Noch ein Schritt: Trainer auswählen",
+  "onboardingDonePickTrainerSubtitle": "{app} ist verbunden, hat deinen Trainer aber noch nicht übernommen. Wähle in der Trainer- bzw. Geräteauswahl von {app} den BikeControl-Eintrag:",
+  "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDonePairLater": "Fertig — ich kopple später"
 }

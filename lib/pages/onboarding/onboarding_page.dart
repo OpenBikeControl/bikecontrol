@@ -651,7 +651,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   /// Same readiness the done body's headline uses: the app is connected
   /// through an enabled method and any bridged trainer has been picked up.
-  bool get _doneAllReady => onboardingDoneReady(
+  OnboardingDoneState get _doneState => onboardingDoneState(
     hasController: core.connection.controllerDevices.any((d) => d.isConnected),
     appConnected: core.logic.connectedTrainerConnections.any((c) => c.isConnected.value),
     hasTrainer: onboardingTrainerBridged(core.connection.proxyDevices),
@@ -867,7 +867,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     ],
     OnboardingStep.done => onboardingDoneFooter(
       context,
-      allReady: _doneAllReady,
+      state: _doneState,
       showPlanOptions: !IAPManager.instance.isPurchased.value,
       onStartRiding: () async {
         try {

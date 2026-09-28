@@ -2706,5 +2706,9 @@
   "intakeSelfHelpSelfTestTitle": "Run the resistance self-test",
   "intakeSelfHelpSelfTestBody": "It checks whether BikeControl can change your trainer's resistance, and says what to fix if it can't. You'll find it on your trainer's page, right under the connection card.",
   "intakeSelfHelpSelfTestAction": "Open the self-test",
-  "helpCenterRunSetupGuide": "Run the setup guide"
+  "helpCenterRunSetupGuide": "Run the setup guide",
+  "onboardingDonePickTrainerTitle": "One more step: pick your trainer",
+  "onboardingDonePickTrainerSubtitle": "{app} is connected but hasn't picked up your trainer yet. In {app}'s trainer or device selection, choose the BikeControl entry:",
+  "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDonePairLater": "Finish — I'll pair later"
 }

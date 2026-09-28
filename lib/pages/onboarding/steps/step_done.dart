@@ -9,12 +9,40 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Where the done step stands, in the order a rider has to fix things.
+enum OnboardingDoneState {
+  /// Something can shift: controller paired, app connected, and a bridged
+  /// trainer (if any) picked up by the app.
+  ready,
+
+  /// The app (and any trainer) is fine; only the controller is missing.
+  noController,
+
+  /// The trainer app hasn't connected to BikeControl yet.
+  waitingForApp,
+
+  /// The trainer app is connected, but hasn't picked up the bridged trainer.
+  waitingForTrainerPickup,
+}
+
+OnboardingDoneState onboardingDoneState({
+  required bool hasController,
+  required bool appConnected,
+  required bool hasTrainer,
+  required bool trainerAppConnected,
+}) {
+  if (!appConnected) return OnboardingDoneState.waitingForApp;
+  if (hasTrainer && !trainerAppConnected) return OnboardingDoneState.waitingForTrainerPickup;
+  if (!hasController) return OnboardingDoneState.noController;
+  return OnboardingDoneState.ready;
+}
+
 /// The done step's footer. Starting to ride is the primary action — the rider
 /// just finished setting up, and the plan options are there for when they
 /// want them, not in the way of the one thing they came to do.
 List<Widget> onboardingDoneFooter(
   BuildContext context, {
-  required bool allReady,
+  required OnboardingDoneState state,
   required bool showPlanOptions,
   required VoidCallback onStartRiding,
   required VoidCallback onSeePlanOptions,
@@ -22,7 +50,12 @@ List<Widget> onboardingDoneFooter(
   PrimaryButton(
     alignment: Alignment.center,
     onPressed: onStartRiding,
-    child: Text(allReady ? context.i18n.onboardingDoneStartRiding : context.i18n.onboardingDoneFinishLater),
+    child: Text(switch (state) {
+      OnboardingDoneState.ready => context.i18n.onboardingDoneStartRiding,
+      OnboardingDoneState.noController => context.i18n.onboardingDonePairLater,
+      OnboardingDoneState.waitingForApp ||
+      OnboardingDoneState.waitingForTrainerPickup => context.i18n.onboardingDoneFinishLater,
+    }),
   ),
   if (showPlanOptions)
     OutlineButton(
@@ -46,7 +79,14 @@ bool onboardingDoneReady({
   required bool appConnected,
   required bool hasTrainer,
   required bool trainerAppConnected,
-}) => hasController && appConnected && (!hasTrainer || trainerAppConnected);
+}) =>
+    onboardingDoneState(
+      hasController: hasController,
+      appConnected: appConnected,
+      hasTrainer: hasTrainer,
+      trainerAppConnected: trainerAppConnected,
+    ) ==
+    OnboardingDoneState.ready;
 
 Widget onboardingDoneBody(
   BuildContext context, {
@@ -65,28 +105,28 @@ Widget onboardingDoneBody(
   final status = BkStatusColors.of(context);
   final success = status.success;
   final hasController = controllerName != null;
-  final allReady = onboardingDoneReady(
+  final state = onboardingDoneState(
     hasController: hasController,
     appConnected: appConnected,
     hasTrainer: trainerName != null,
     trainerAppConnected: trainerAppConnected,
   );
-  // Only the controller is missing: say so in the title instead of the
-  // generic "Almost there", which reads as "waiting on the app".
-  final onlyControllerMissing =
-      !hasController && appConnected && (trainerName == null || trainerAppConnected);
-  final title = allReady
-      ? context.i18n.onboardingDoneTitle
-      : onlyControllerMissing
-      ? context.i18n.onboardingDoneNoControllerTitle
-      : context.i18n.onboardingAlmostThereTitle;
-  final subtitle = allReady
-      ? trainerName != null
-            ? context.i18n.onboardingDoneSubtitleBridged(controllerName!, app.name)
-            : context.i18n.onboardingDoneSubtitle(controllerName!, app.name)
-      : onlyControllerMissing
-      ? context.i18n.onboardingDoneNoControllerSubtitle(app.name)
-      : context.i18n.onboardingAlmostThereSubtitle(app.name);
+  final allReady = state == OnboardingDoneState.ready;
+  final title = switch (state) {
+    OnboardingDoneState.ready => context.i18n.onboardingDoneTitle,
+    OnboardingDoneState.noController => context.i18n.onboardingDoneNoControllerTitle,
+    OnboardingDoneState.waitingForApp => context.i18n.onboardingAlmostThereTitle,
+    OnboardingDoneState.waitingForTrainerPickup => context.i18n.onboardingDonePickTrainerTitle,
+  };
+  final subtitle = switch (state) {
+    OnboardingDoneState.ready =>
+      trainerName != null
+          ? context.i18n.onboardingDoneSubtitleBridged(controllerName!, app.name)
+          : context.i18n.onboardingDoneSubtitle(controllerName!, app.name),
+    OnboardingDoneState.noController => context.i18n.onboardingDoneNoControllerSubtitle(app.name),
+    OnboardingDoneState.waitingForApp => context.i18n.onboardingAlmostThereSubtitle(app.name),
+    OnboardingDoneState.waitingForTrainerPickup => context.i18n.onboardingDonePickTrainerSubtitle(app.name),
+  };
   // (icon, title, status, ok, action) — a bridge whose virtual trainer the app
   // hasn't picked up yet is honest about it instead of claiming "Bridged".
   final rows = <(IconData, String, String, bool, Widget?)>[
@@ -152,7 +192,9 @@ Widget onboardingDoneBody(
             ],
           ),
         ),
-      if (onRunTrainerCheck != null && trainerName != null)
+      // The check needs the app to hold the trainer; until then it would
+      // only report what the pickup card below already says.
+      if (onRunTrainerCheck != null && trainerName != null && trainerAppConnected)
         Align(
           alignment: Alignment.centerLeft,
           child: Button.ghost(
@@ -177,6 +219,12 @@ Widget onboardingDoneBody(
         OnboardingAppGuideCard(app: app),
         if (waitingOnNetworkMethod && onTestNetwork != null)
           _StillWaitingNetworkHint(reduceMotion: reduceMotion, onTestNetwork: onTestNetwork),
+      ],
+      // The app is connected but still on the bare trainer (or none): show
+      // which entry to pick in its trainer selection.
+      if (state == OnboardingDoneState.waitingForTrainerPickup) ...[
+        Gap(10),
+        OnboardingPairAsTrainerCard(app: app, trainerName: trainerName),
       ],
       if (showTestMode) ...[
         Gap(10),
