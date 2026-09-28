@@ -4,8 +4,12 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
+import 'package:bike_control/pages/help_center/widgets/help_answer_sheet.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import '../../helpers/contrast.dart';
 
 Future<void> main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -66,4 +70,46 @@ Future<void> main() async {
     expect(tester.getTopLeft(find.text('1')).dy, lessThan(tester.getTopLeft(find.text('2')).dy));
     expect(find.text(l.zwiftCompanionApp), findsOneWidget);
   });
+  for (final brightness in Brightness.values) {
+    Future<void> pumpThemed(WidgetTester tester, Widget child) async {
+      tester.view.physicalSize = const Size(390, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ShadcnApp(
+          theme: BkTheme.build(brightness),
+          localizationsDelegates: const [AppLocalizations.delegate],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          home: Scaffold(child: SingleChildScrollView(child: child)),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('${brightness.name}: check text clears 4.5:1 on the default tiles', (tester) async {
+      await pumpThemed(tester, HelpCheckList(checks: controllerNotFoundChecks(l, controllerId: 'shimano_di2')));
+      expectLegibleText(
+        tester,
+        find.byType(HelpCheckList),
+        pageBackground: BkTheme.build(brightness).colorScheme.background,
+      );
+    });
+
+    testWidgets('${brightness.name}: an answer sheet clears 4.5:1', (tester) async {
+      await pumpThemed(
+        tester,
+        HelpAnswerSheet(
+          icon: LucideIcons.bluetooth,
+          title: l.helpCenterControllerNotFoundEntry,
+          body: l.helpAnswerChecksIntro,
+          checks: controllerNotFoundChecks(l, controllerId: 'shimano_di2'),
+        ),
+      );
+      expectLegibleText(
+        tester,
+        find.byType(HelpAnswerSheet),
+        pageBackground: BkTheme.build(brightness).colorScheme.background,
+      );
+    });
+  }
 }

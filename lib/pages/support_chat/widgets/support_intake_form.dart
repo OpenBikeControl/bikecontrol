@@ -9,6 +9,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/utils/support/intake_self_help.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -465,7 +466,8 @@ class _InlineSelfHelp extends StatelessWidget {
         children: [
           Text(
             l10n.supportIntakeTryThisFirst,
-            style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
+            // Foreground on the muted fill: muted text there is below 4.5:1.
+            style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
           ),
           const Gap(8),
           Row(
@@ -476,7 +478,7 @@ class _InlineSelfHelp extends StatelessWidget {
             ],
           ),
           const Gap(6),
-          Text(body, style: context.typography.xSmall.copyWith(color: cs.mutedForeground, height: 1.35)),
+          Text(body, style: context.typography.xSmall.copyWith(color: cs.foreground, height: 1.35)),
           if (checks.isNotEmpty) ...[const Gap(10), HelpCheckList(checks: checks, tileColor: cs.card)],
           if (note != null) ...[
             const Gap(8),
@@ -507,14 +509,26 @@ class _InlineSelfHelp extends StatelessWidget {
           const Gap(14),
           Text(l10n.supportIntakeDidThisSolveIt, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
           const Gap(8),
-          Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              if (onSolved != null) Button.outline(onPressed: onSolved, child: Text(l10n.supportIntakeSolvedYes)),
-              Button.primary(onPressed: onNotSolved, child: Text(l10n.supportIntakeSolvedNo)),
-            ],
+          // Equal weight: both outline, same size; side by side when both fit
+          // on one line, else stacked full width.
+          _SolvedAnswers(
+            yes: onSolved == null
+                ? null
+                : BkTouchTarget(
+                    child: Button.outline(
+                      alignment: Alignment.center,
+                      onPressed: onSolved,
+                      child: Text(l10n.supportIntakeSolvedYes, maxLines: 1, softWrap: false),
+                    ),
+                  ),
+            no: BkTouchTarget(
+              child: Button.outline(
+                alignment: Alignment.center,
+                onPressed: onNotSolved,
+                child: Text(l10n.supportIntakeSolvedNo, maxLines: 1, softWrap: false),
+              ),
+            ),
+            labels: [if (onSolved != null) l10n.supportIntakeSolvedYes, l10n.supportIntakeSolvedNo],
           ),
         ],
       ),
@@ -526,6 +540,54 @@ class _InlineSelfHelp extends StatelessWidget {
   static ProxyDevice? _knownTrainer() {
     final trainers = core.connection.proxyDevices;
     return trainers.where((t) => t.isConnected).firstOrNull ?? trainers.firstOrNull;
+  }
+}
+
+/// The "Did this solve it?" answers: a row of equal halves when the longer
+/// label fits in half the width, otherwise a full-width stack.
+class _SolvedAnswers extends StatelessWidget {
+  const _SolvedAnswers({required this.yes, required this.no, required this.labels});
+
+  final Widget? yes;
+  final Widget no;
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final yes = this.yes;
+    if (yes == null) return Align(alignment: Alignment.centerRight, child: no);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final style = DefaultTextStyle.of(context).style.merge(context.typography.small);
+        final scaler = MediaQuery.textScalerOf(context);
+        var widest = 0.0;
+        for (final label in labels) {
+          final painter = TextPainter(
+            text: TextSpan(text: label, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: scaler,
+          )..layout();
+          if (painter.width > widest) widest = painter.width;
+          painter.dispose();
+        }
+        // Button padding and the gap between the two, with some slack.
+        final half = (constraints.maxWidth - 8) / 2;
+        final sideBySide = widest + 48 * Theme.of(context).scaling <= half;
+        if (sideBySide) {
+          return Row(
+            children: [
+              Expanded(child: yes),
+              const Gap(8),
+              Expanded(child: no),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [yes, const Gap(8), no],
+        );
+      },
+    );
   }
 }
 

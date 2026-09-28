@@ -114,7 +114,8 @@ class HelpCheckList extends StatelessWidget {
 
   final List<HelpCheck> checks;
 
-  /// Defaults to the muted surface; pass the card colour on a muted panel.
+  /// Defaults to the card surface, with a hairline border: the muted body
+  /// text only reaches 4.5:1 on card, not on the muted fill.
   final Color? tileColor;
 
   @override
@@ -127,7 +128,11 @@ class HelpCheckList extends StatelessWidget {
           Container(
             margin: EdgeInsets.only(top: i == 0 ? 0 : 8),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-            decoration: BoxDecoration(color: tileColor ?? cs.muted, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+              color: tileColor ?? cs.card,
+              border: Border.all(color: cs.border),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
