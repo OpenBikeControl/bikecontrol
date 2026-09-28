@@ -522,7 +522,8 @@ class StepRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final text = chainStepText(context, step, appName: appName);
-    final success = AmpelStyle.of(context, LinkStatus.ready).color;
+    final successStyle = AmpelStyle.of(context, LinkStatus.ready);
+    final success = successStyle.text;
     final tone = step.done
         ? success
         : active
@@ -553,7 +554,7 @@ class StepRow extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: step.done ? null : Border.all(color: tone, width: 2),
               ),
-              child: step.done ? const Icon(LucideIcons.check, size: 11, color: Colors.white) : null,
+              child: step.done ? Icon(LucideIcons.check, size: 11, color: successStyle.onText) : null,
             ),
           ),
           const Gap(_leadingGap),

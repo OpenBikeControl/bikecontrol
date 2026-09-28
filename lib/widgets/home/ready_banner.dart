@@ -103,8 +103,8 @@ class ReadyBanner extends StatelessWidget {
             curve: Curves.easeOutBack,
             width: calm ? 24 : 34,
             height: calm ? 24 : 34,
-            decoration: BoxDecoration(color: style.color, shape: BoxShape.circle),
-            child: Icon(calm ? LucideIcons.check : style.icon, size: calm ? 14 : 19, color: Colors.white),
+            decoration: BoxDecoration(color: style.text, shape: BoxShape.circle),
+            child: Icon(calm ? LucideIcons.check : style.icon, size: calm ? 14 : 19, color: style.onText),
           ),
           const Gap(11),
           Expanded(
@@ -116,7 +116,7 @@ class ReadyBanner extends StatelessWidget {
                   title,
                   style: (calm ? context.typography.small : context.typography.base).copyWith(
                     fontWeight: FontWeight.w700,
-                    color: calm ? theme.colorScheme.foreground : style.color,
+                    color: calm ? theme.colorScheme.foreground : style.text,
                   ),
                 ),
                 const Gap(2),

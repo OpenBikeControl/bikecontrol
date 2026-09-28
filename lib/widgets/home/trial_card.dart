@@ -77,7 +77,7 @@ class TrialCard extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(color: warning.wash, borderRadius: BorderRadius.circular(11)),
-                  child: Icon(LucideIcons.award, size: 19, color: warning.color),
+                  child: Icon(LucideIcons.award, size: 19, color: warning.text),
                 ),
                 const Gap(12),
                 Expanded(
@@ -96,7 +96,7 @@ class TrialCard extends StatelessWidget {
                             : l.chainTrialDaysLeft(state.daysRemaining),
                         style: context.typography.xSmall.copyWith(
                           fontWeight: state.urgent ? FontWeight.w700 : FontWeight.w500,
-                          color: state.urgent ? warning.color : theme.colorScheme.mutedForeground,
+                          color: state.urgent ? warning.text : theme.colorScheme.mutedForeground,
                         ),
                       ),
                     ],
@@ -273,7 +273,8 @@ class _Meter extends StatelessWidget {
     final theme = Theme.of(context);
     final fraction = total > 0 ? (value / total).clamp(0.0, 1.0) : 0.0;
     final low = fraction <= 0.25;
-    final warning = AmpelStyle.of(context, LinkStatus.attention).color;
+    final warningStyle = AmpelStyle.of(context, LinkStatus.attention);
+    final warning = warningStyle.color;
     final muted = theme.colorScheme.mutedForeground;
 
     return Column(
@@ -293,7 +294,7 @@ class _Meter extends StatelessWidget {
               '$value',
               style: context.typography.xSmall.copyWith(
                 fontWeight: FontWeight.w700,
-                color: low ? warning : theme.colorScheme.foreground,
+                color: low ? warningStyle.text : theme.colorScheme.foreground,
               ),
             ),
             const Gap(4),

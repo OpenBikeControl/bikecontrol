@@ -345,9 +345,10 @@ class _SuccessBurst extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const success = Color(0xFF22C55E);
-    const waiting = Color(0xFFF59E0B);
-    final color = ready ? success : waiting;
+    // Contrast-pinned status fills, with their own glyph colour on top.
+    final status = BkStatusColors.of(context);
+    final color = ready ? status.success : status.warning;
+    final glyph = ready ? status.successForeground : status.warningForeground;
     final badge = Container(
       width: 84,
       height: 84,
@@ -357,7 +358,7 @@ class _SuccessBurst extends StatelessWidget {
         color: color,
         boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 30, offset: const Offset(0, 10))],
       ),
-      child: Icon(ready ? LucideIcons.check : LucideIcons.clock, size: 44, color: const Color(0xFFFFFFFF)),
+      child: Icon(ready ? LucideIcons.check : LucideIcons.clock, size: 44, color: glyph),
     );
     if (reduceMotion) return badge;
     return TweenAnimationBuilder<double>(

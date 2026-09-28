@@ -68,7 +68,7 @@ class _ProUnregisteredBannerState extends State<ProUnregisteredBanner> {
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(color: warning.wash, borderRadius: BorderRadius.circular(11)),
-                        child: Icon(LucideIcons.badgeAlert, size: 19, color: warning.color),
+                        child: Icon(LucideIcons.badgeAlert, size: 19, color: warning.text),
                       ),
                       const Gap(12),
                       Expanded(

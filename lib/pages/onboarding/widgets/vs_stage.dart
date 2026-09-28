@@ -9,6 +9,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -326,7 +327,7 @@ class _SceneApps extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final apps = _rideApps();
-    const ok = Color(0xFF22C55E);
+    final ok = BkStatusColors.of(context).success;
     return _Stepper(
       active: active,
       period: const Duration(milliseconds: 950),
