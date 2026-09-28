@@ -2333,7 +2333,7 @@
   "intakeSelfHelpSelfTestAction": "Uruchom autotest",
   "helpCenterRunSetupGuide": "Uruchom przewodnik konfiguracji",
   "onboardingDonePickTrainerTitle": "Jeszcze jeden krok: wybierz trenażer",
-  "onboardingDonePickTrainerSubtitle": "{app} jest połączona, ale nie przejęła jeszcze trenażera. W wyborze trenażera lub urządzeń w {app} wybierz pozycję BikeControl:",
+  "onboardingDonePickTrainerSubtitle": "{app} jest połączona, ale nie przejęła jeszcze trenażera. Wybierz go w {app} tak:",
   "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
   "onboardingDonePairLater": "Zakończ — sparuję później",
   "intakeControllerPlayLeft": "Zwift Play (lewy)",

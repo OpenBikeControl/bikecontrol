@@ -2333,7 +2333,7 @@
   "intakeSelfHelpSelfTestAction": "Selbsttest starten",
   "helpCenterRunSetupGuide": "Einrichtungsassistent starten",
   "onboardingDonePickTrainerTitle": "Noch ein Schritt: Trainer auswählen",
-  "onboardingDonePickTrainerSubtitle": "{app} ist verbunden, hat deinen Trainer aber noch nicht übernommen. Wähle in der Trainer- bzw. Geräteauswahl von {app} den BikeControl-Eintrag:",
+  "onboardingDonePickTrainerSubtitle": "{app} ist verbunden, hat deinen Trainer aber noch nicht übernommen. So wählst du ihn in {app} aus:",
   "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
   "onboardingDonePairLater": "Fertig — ich kopple später",
   "intakeControllerPlayLeft": "Zwift Play (links)",

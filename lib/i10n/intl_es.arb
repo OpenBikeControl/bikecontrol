@@ -2333,7 +2333,7 @@
   "intakeSelfHelpSelfTestAction": "Hacer el autotest",
   "helpCenterRunSetupGuide": "Abrir la guía de configuración",
   "onboardingDonePickTrainerTitle": "Un paso más: elige tu rodillo",
-  "onboardingDonePickTrainerSubtitle": "{app} está conectada, pero aún no ha tomado tu rodillo. En la selección de rodillo o dispositivos de {app}, elige la entrada de BikeControl:",
+  "onboardingDonePickTrainerSubtitle": "{app} está conectada, pero aún no ha tomado tu rodillo. Elígelo en {app} así:",
   "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
   "onboardingDonePairLater": "Finalizar: lo emparejo luego",
   "intakeControllerPlayLeft": "Zwift Play (izquierdo)",

@@ -2707,7 +2707,7 @@
   "intakeSelfHelpSelfTestAction": "Run the self-test",
   "helpCenterRunSetupGuide": "Run the setup guide",
   "onboardingDonePickTrainerTitle": "One more step: pick your trainer",
-  "onboardingDonePickTrainerSubtitle": "{app} is connected but hasn't picked up your trainer yet. In {app}'s trainer or device selection, choose the BikeControl entry:",
+  "onboardingDonePickTrainerSubtitle": "{app} is connected but hasn't picked up your trainer yet. Choose it in {app} like this:",
   "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
   "onboardingDonePairLater": "Finish — I'll pair later",
   "intakeControllerPlayLeft": "Zwift Play (left)",

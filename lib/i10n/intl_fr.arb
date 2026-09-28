@@ -2333,7 +2333,7 @@
   "intakeSelfHelpSelfTestAction": "Lancer l'autotest",
   "helpCenterRunSetupGuide": "Lancer le guide de configuration",
   "onboardingDonePickTrainerTitle": "Encore une étape : choisis ton home-trainer",
-  "onboardingDonePickTrainerSubtitle": "{app} est connecté mais n'a pas encore pris ton home-trainer. Dans la sélection du home-trainer ou des appareils de {app}, choisis l'entrée BikeControl :",
+  "onboardingDonePickTrainerSubtitle": "{app} est connecté mais n'a pas encore pris ton home-trainer. Choisis-le dans {app} comme ceci :",
   "@onboardingDonePickTrainerSubtitle": {"placeholders": {"app": {"type": "String"}}},
   "onboardingDonePairLater": "Terminer — j'appairerai plus tard",
   "intakeControllerPlayLeft": "Zwift Play (gauche)",
