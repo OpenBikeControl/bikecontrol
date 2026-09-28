@@ -123,6 +123,8 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       subcategory: subcategoryKind,
       subcategoryValue: _subcategoryValue,
       symptom: _symptom,
+      // Kept only while the answer is still about the same controller.
+      firmware: _subcategoryValue == widget.initial?.subcategoryValue ? widget.initial?.firmware : null,
     );
   }
 
@@ -271,7 +273,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           const Gap(12),
           _label(context.i18n.supportIntakeWhatHappens),
           const Gap(4),
-          _symptomSelect(IntakeCategory.controller, controllerSymptoms),
+          _symptomSelect(IntakeCategory.controller, controllerSymptomsFor(_subcategoryValue)),
         ];
       case IntakeCategory.smartTrainer:
         return [

@@ -2775,5 +2775,20 @@
   "helpAnswerStillStuckContactSupport": "Still stuck? Contact support",
   "paywallYourPlan": "Your plan",
   "supportDiagnosticsNoticeNoScreenshot": "To help fix your issue, this chat attaches diagnostic info. You can review it with {infoIcon} before sending.",
-  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}},
+  "rideV2SupportLine": "Don't want to unlock every day? Contact support.",
+  "rideV2Explainer_title": "Zwift Ride V2 setup",
+  "rideV2Explainer_heading": "Unlock it with Zwift",
+  "rideV2Explainer_intro": "Zwift locks the Zwift Ride V2 to its own app. Unlock it in the Zwift app and it works with BikeControl for about 24 hours.",
+  "rideV2Explainer_row2": "Unlock it in the Zwift app — BikeControl shows you how",
+  "rideV2Explainer_row3": "An unlock lasts about 24 hours, then it needs another one",
+  "rideV2Explainer_gotIt": "Got it",
+  "rideV2LockedToast": "Your Zwift Ride V2 is locked. Unlock it in the Zwift app first.",
+  "chainStepUnlockedHintRideV2": "Zwift locks the Zwift Ride V2 to its own app — unlock it in Zwift and it keeps working for about 24 hours.",
+  "unlock_rideV2Unlocked": "Zwift Ride V2 is unlocked! You can now close this page.",
+  "unlock_rideV2MightBeUnlockedAlready": "Your Zwift Ride V2 might be unlocked already.",
+  "rideV2Instructions": "Zwift locks the Zwift Ride V2 to its own app. Unlock it there and it works with BikeControl for about 24 hours.\n\n1. Open the Zwift app (not the Companion!)\n2. Log in (subscription not required) and open the device connection screen\n3. Connect your trainer, then connect the Zwift Ride V2\n4. Close the Zwift app again and connect again in BikeControl",
+  "rideV2SupportPrefill": "Hi! My Zwift Ride V2 is on firmware {version} and I'd rather not unlock it in Zwift every day. Can you help?",
+  "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
+  "intakeControllerRideV2Lock": "Zwift Ride V2 lock"
 }

@@ -56,6 +56,7 @@ class ControllerInput {
     this.unlocked,
     this.unlockedUntil,
     this.unlockUncertain = false,
+    this.unlockIsRideV2 = false,
     this.sramSetupDone,
     this.sramCanRestore = false,
     this.needsUnlockModeChoice = false,
@@ -88,9 +89,9 @@ class ControllerInput {
   /// Whether this controller is currently unlocked, or null when unlocking is
   /// not a concept for it.
   ///
-  /// Only Zwift's Click V2 has this: Zwift locks it to their own app, and it
-  /// stops sending button presses about a minute after the last one unless it
-  /// has been unlocked. Every other controller — and a Click V2 running the
+  /// Only Zwift's Click V2 and Ride V2 have this: Zwift locks them to their
+  /// own app, and they stop working unless they have been unlocked. Every
+  /// other controller — and a Click V2 running the
   /// restart workaround instead — passes null, so its card omits the step
   /// rather than carrying a line that can never be actioned.
   final bool? unlocked;
@@ -101,6 +102,10 @@ class ControllerInput {
 
   /// Whether [unlocked] is a best guess — see [SetupStep.uncertain].
   final bool unlockUncertain;
+
+  /// Whether the controller to unlock is a Zwift Ride V2 rather than a Click
+  /// V2 — the unlock step's hint names the right one.
+  final bool unlockIsRideV2;
 
   /// Whether this controller's guided setup has run, or null when it has none.
   ///

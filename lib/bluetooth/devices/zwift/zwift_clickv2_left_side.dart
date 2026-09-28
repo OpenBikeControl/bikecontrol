@@ -27,6 +27,11 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
   @override
   bool get isResetting => ClickLogic.isResetting(device.deviceId);
 
+  /// Only the unlock-with-Zwift mode asks the rider to unlock this puck; the
+  /// restart workaround reboots it instead.
+  @override
+  bool get requiresZwiftUnlock => core.settings.getUnlockWithZwift();
+
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
     aspectRatio: 215 / 252.9,

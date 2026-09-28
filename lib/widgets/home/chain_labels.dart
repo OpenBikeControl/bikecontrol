@@ -45,7 +45,10 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
                 ? l.chainStepUnlockedLikelyUntil(step.hintArg!)
                 : l.chainStepUnlockedUntil(step.hintArg!),
           )
-        : ChainStepText(l.chainStepUnlockedPending, l.chainStepUnlockedHint),
+        : ChainStepText(
+            l.chainStepUnlockedPending,
+            step.variant == SetupStepVariant.zwiftRideV2 ? l.chainStepUnlockedHintRideV2 : l.chainStepUnlockedHint,
+          ),
     // Only ever emitted while outstanding — once the rider has chosen, the step
     // disappears rather than sitting ticked forever on every Click V2 card.
     SetupStepId.controllerClickV2Setup => ChainStepText(

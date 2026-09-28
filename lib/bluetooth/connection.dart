@@ -9,8 +9,8 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_climb.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/inactivity_disconnector.dart';
 import 'package:bike_control/bluetooth/incline/incline_controller.dart';
 import 'package:bike_control/bluetooth/incline/incline_sink.dart';
@@ -942,8 +942,8 @@ class Connection {
       for (final pd in proxyDevices) {
         unawaited(pd.onTrainerAppChanged());
       }
-      for (final click in bluetoothDevices.whereType<ZwiftClickV2>()) {
-        click.onTrainerAppChanged();
+      for (final unlockable in bluetoothDevices.whereType<ZwiftUnlock>()) {
+        unlockable.onTrainerAppChanged();
       }
       unawaited(ftmsEmulator.restart());
     });

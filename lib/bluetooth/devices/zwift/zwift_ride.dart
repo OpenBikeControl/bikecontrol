@@ -1,22 +1,28 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/firmware_support.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
+import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:prop/prop.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:universal_ble/universal_ble.dart';
+import 'package:version/version.dart';
 
-class ZwiftRide extends ZwiftDevice {
+class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
   /// Minimum absolute analog value (0-100) required to trigger paddle button press.
   /// Values below this threshold are ignored to prevent accidental triggers from
   /// analog drift or light touches.
   static const int analogPaddleThreshold = 25;
 
+  @override
   DateTime? initializationTime;
 
   ZwiftRide(super.scanResult, {super.isBeta, List<ControllerButton>? availableButtons})
@@ -48,11 +54,61 @@ class ZwiftRide extends ZwiftDevice {
   @override
   String? get latestFirmwareVersion => '1.2.0';
 
+  /// The first firmware of the Zwift Ride V2.
+  static final Version rideV2Firmware = Version(1, 3, 0);
+
+  /// Display name once a Ride is known to be a V2.
+  static const rideV2Label = 'Zwift Ride V2';
+
+  /// Whether this is a Zwift Ride V2: an actual Zwift Ride (not a subclass
+  /// such as the Click V2 or a Play on firmware 2) reporting firmware 1.3 or
+  /// newer. Only known once connected and the firmware has been read; unknown
+  /// or unparseable firmware counts as a V1. Derived afresh every time, so a
+  /// Ride that later reports 1.2.x is a V1 again.
+  @override
+  bool get isRideV2 {
+    if (runtimeType != ZwiftRide) return false;
+    final firmware = parseLenientFirmwareVersion(firmwareVersion);
+    return firmware != null && firmware >= rideV2Firmware;
+  }
+
+  /// A Zwift Ride V2 is unlocked with Zwift, like a Click V2.
+  @override
+  bool get usesZwiftUnlock => isRideV2;
+
+  @override
+  String get unlockKeyPrefix => 'rideV2';
+
+  @override
+  String get unlockHelpUrl => zwiftRideV2HelpUrl;
+
   /// True only for an actual Zwift Ride (not subclasses such as Click v2 or
-  /// Play fw2) whose firmware is past [latestFirmwareVersion] — i.e. the
-  /// server-locked firmware that stops it working with third-party apps.
+  /// Play fw2) whose firmware is past [latestFirmwareVersion] without being a
+  /// Zwift Ride V2 — which has its own unlock flow. The fallback notice.
   static bool hasUnsupportedFirmware(BaseDevice device) =>
-      device.runtimeType == ZwiftRide && (device as ZwiftRide).hasFirmwareBeyondSupported;
+      device.runtimeType == ZwiftRide && (device as ZwiftRide).hasFirmwareBeyondSupported && !device.isRideV2;
+
+  @override
+  String toString() => isRideV2 ? rideV2Label : super.toString();
+
+  /// A locked Ride V2 hides its Zwift service. That is its normal state until
+  /// it has been unlocked in Zwift, so tell the rider how to unlock it instead
+  /// of failing the connect.
+  @override
+  bool handleHiddenUnlockService() {
+    if (!isRideV2) return false;
+    actionStreamInternal.add(
+      LogNotification('$this is locked: its Zwift service is hidden until it is unlocked in Zwift.'),
+    );
+    showZwiftRideV2LockedToast(this);
+    return true;
+  }
+
+  @override
+  List<Widget> showAdditionalInformation(BuildContext context) {
+    if (!requiresZwiftUnlock || screenshotMode) return super.showAdditionalInformation(context);
+    return [ZwiftRideV2UnlockSection(device: this)];
+  }
 
   @override
   bool get canVibrate => true;
@@ -239,6 +295,7 @@ class ZwiftRide extends ZwiftDevice {
     return buttonsClicked;
   }
 
+  @override
   Future<void> sendCommand(Opcode opCode, $pb.GeneratedMessage? message) async {
     final buffer = Uint8List.fromList([opCode.value, ...message?.writeToBuffer() ?? []]);
     if (kDebugMode) {
@@ -254,6 +311,7 @@ class ZwiftRide extends ZwiftDevice {
     await Future.delayed(Duration(milliseconds: 500));
   }
 
+  @override
   Future<void> sendCommandBuffer(Uint8List buffer) async {
     if (kDebugMode) {
       Logger.info("Sending ${buffer.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
