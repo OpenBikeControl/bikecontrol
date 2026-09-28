@@ -11,6 +11,16 @@ class HelpButton extends StatefulWidget {
   final bool isMobile;
   const HelpButton({super.key, required this.isMobile});
 
+  /// How much bottom padding a scroll view under the floating mobile pill
+  /// needs so its last item can scroll clear of it: the pill itself (one line
+  /// of text plus the button's scaled padding), the system inset it sits on,
+  /// and a little air.
+  static double mobileFooterClearance(BuildContext context) {
+    final theme = Theme.of(context);
+    final line = MediaQuery.textScalerOf(context).scale((theme.typography.small.fontSize ?? 14) * 1.5);
+    return MediaQuery.viewPaddingOf(context).bottom + line + 16 * theme.scaling + 16;
+  }
+
   @override
   State<HelpButton> createState() => _HelpButtonState();
 }
@@ -76,9 +86,8 @@ class _HelpButtonState extends State<HelpButton> {
             },
             leading: Padding(
               padding: EdgeInsets.only(
-                bottom: isMobile
-                    ? MediaQuery.viewPaddingOf(context).bottom / MediaQuery.devicePixelRatioOf(context)
-                    : 0,
+                // viewPadding is already logical — no devicePixelRatio here.
+                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
               ),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -111,9 +120,8 @@ class _HelpButtonState extends State<HelpButton> {
                 ),
             child: Padding(
               padding: EdgeInsets.only(
-                bottom: isMobile
-                    ? MediaQuery.viewPaddingOf(context).bottom / MediaQuery.devicePixelRatioOf(context)
-                    : 0,
+                // viewPadding is already logical — no devicePixelRatio here.
+                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
               ),
               child: Text(context.i18n.troubleshootingGuide),
             ),
