@@ -2280,5 +2280,7 @@
   "savingEllipsis": "Enregistrement…",
   "scriptOutputCharacteristic": "Caractéristique de sortie : {value}",
   "scriptOutputHex": "Données de sortie (hex) : {value}",
-  "overlayCouldNotStart": "Impossible d'afficher l'Overlay. Réessaie."
+  "overlayCouldNotStart": "Impossible d'afficher l'Overlay. Réessaie.",
+  "secondsAgo": "il y a {seconds} s",
+  "minutesAgo": "il y a {minutes} min"
 }

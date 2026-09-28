@@ -2619,5 +2619,21 @@
       }
     }
   },
-  "overlayCouldNotStart": "Couldn't show the overlay. Please try again."
+  "overlayCouldNotStart": "Couldn't show the overlay. Please try again.",
+  "secondsAgo": "{seconds}s ago",
+  "@secondsAgo": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "minutesAgo": "{minutes}m ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  }
 }

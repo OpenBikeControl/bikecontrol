@@ -28,7 +28,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionM
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
-import 'package:prop/prop.dart' show LogLevel, Logger;
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -64,6 +64,15 @@ class _ActivityEntry {
   bool get isWarning => alertLevel == LogLevel.LOGLEVEL_WARNING;
 
   String get message => alertMessage ?? result?.message ?? '';
+}
+
+/// How long ago [time] was, the way the activity log words it.
+String _activityAge(BuildContext context, DateTime time) {
+  final l10n = AppLocalizations.of(context);
+  final ago = activityLogClock().difference(time);
+  if (ago.inSeconds < 2) return l10n.justNow;
+  if (ago.inSeconds < 60) return l10n.secondsAgo('${ago.inSeconds}');
+  return l10n.minutesAgo('${ago.inMinutes}');
 }
 
 // ── OverviewPage ─────────────────────────────────────────────────────
@@ -121,6 +130,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final GlobalKey<AnimatedListState> _activityListKey = GlobalKey<AnimatedListState>();
   static const _maxLogEntries = 30;
 
+  /// Ticks while the log has entries, so each entry's age ("5s ago")
+  /// refreshes on its own instead of the whole page rebuilding.
+  final ValueNotifier<DateTime> _logClock = ValueNotifier(activityLogClock());
+
+  /// Whether the log holds an error, for the Activity tab's marker.
+  final ValueNotifier<bool> _activityHasErrors = ValueNotifier(false);
+
   // Blog
   bool _hasNewBlogPosts = false;
 
@@ -150,10 +166,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     _timeRefreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (_activityLog.isNotEmpty) setState(() {});
+      if (_activityLog.isNotEmpty) _logClock.value = activityLogClock();
     });
     _actionListener = core.connection.actionStream.listen((notification) {
-      Logger.warn('Notification received: ${notification.runtimeType} - $notification');
       if (notification is ActionNotification && notification.result.button != null) {
         _onActionResult(notification.result, notification.result.button!);
       } else if (notification is AlertNotification) {
@@ -232,6 +247,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         duration: const Duration(milliseconds: 200),
       );
     }
+    _activityHasErrors.value = _activityLog.any((e) => e.isError);
   }
 
   void _onActionResult(ActionResult result, ControllerButton button) {
@@ -270,9 +286,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               : null,
         );
       }
-      setState(() {});
-    } else {
-      setState(() {});
     }
   }
 
@@ -305,7 +318,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       buildToast(
         level: notification.level,
         title: notification.alertMessage,
-        closeTitle: notification.buttonTitle ?? 'Close',
+        closeTitle: notification.buttonTitle ?? AppLocalizations.current.close,
         onClose: notification.onTap,
       );
     }
@@ -319,8 +332,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       connectionType: notification.connectionType,
     );
     _insertActivityEntry(entry);
-
-    setState(() {});
   }
 
   @override
@@ -333,6 +344,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _feedbackPromptTrigger.dispose();
 
     _timeRefreshTimer.cancel();
+    _logClock.dispose();
+    _activityHasErrors.dispose();
     _actionListener.cancel();
     for (final proxy in core.connection.proxyDevices) {
       proxy.isStarting.removeListener(_onProxyStateChanged);
@@ -380,12 +393,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             color: Theme.of(context).colorScheme.muted,
             width: double.infinity,
             alignment: Alignment.center,
-            child: _Tabs(
-              controller: _horizontalScrollController,
-              leftWidth: _screenWidth - 50,
-              hasErrors: _activityLog.any((e) => e.isError),
-              hasNewBlogPosts: _hasNewBlogPosts,
-              pageCount: 3,
+            child: ValueListenableBuilder(
+              valueListenable: _activityHasErrors,
+              builder: (context, hasErrors, _) => _Tabs(
+                controller: _horizontalScrollController,
+                leftWidth: _screenWidth - 50,
+                hasErrors: hasErrors,
+                hasNewBlogPosts: _hasNewBlogPosts,
+                pageCount: 3,
+              ),
             ),
           ),
           Divider(),
@@ -579,7 +595,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       );
     }
     _activityLog.clear();
-    setState(() {});
+    _activityHasErrors.value = false;
   }
 
   Widget _buildActivityRow(_ActivityEntry entry, {required bool isLatest}) {
@@ -588,17 +604,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final isSuccess = entry.isSuccess;
 
     final actionText = entry.message;
-
-    // Time
-    final ago = activityLogClock().difference(entry.time);
-    final String timeText;
-    if (ago.inSeconds < 2) {
-      timeText = AppLocalizations.of(context).justNow;
-    } else if (ago.inSeconds < 60) {
-      timeText = '${ago.inSeconds}s ago';
-    } else {
-      timeText = '${ago.inMinutes}m ago';
-    }
 
     // Row bg
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -683,7 +688,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ],
           ],
         ),
-        trailing: Text(timeText).xSmall.muted,
+        // Only the age ticks; the row around it is built once.
+        trailing: ValueListenableBuilder(
+          valueListenable: _logClock,
+          builder: (context, _, _) => Text(_activityAge(context, entry.time)).xSmall.muted,
+        ),
       ),
     );
   }

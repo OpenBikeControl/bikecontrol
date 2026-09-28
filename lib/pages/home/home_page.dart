@@ -59,6 +59,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart' show enableLocal
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
 import 'package:prop/mdns/service_advertiser.dart' show ServiceAdvertiser;
 import 'package:prop/prop.dart' show ClickKeepAwakeStatus, ClickLogic, LogLevel;
@@ -136,14 +137,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late final StreamSubscription<BaseDevice> _connectionListener;
   late final StreamSubscription<BaseNotification> _actionListener;
-  Timer? _metricsTicker;
 
   /// Assumed available until proven otherwise, so the step doesn't flash as
   /// pending on every cold start before the platform has answered.
   bool _bluetoothReady = true;
 
-  final Map<String, ControllerButton> _pressedButton = {};
-  final Map<String, int> _pressGeneration = {};
+  /// The last press per controller (by device id), and how many there have
+  /// been — a notifier each, so a press rebuilds only that controller's
+  /// buttons instead of the whole chain.
+  final Map<String, ValueNotifier<({ControllerButton? button, int generation})>> _presses = {};
+
+  ValueNotifier<({ControllerButton? button, int generation})> _pressesFor(String deviceId) =>
+      _presses.putIfAbsent(deviceId, () => ValueNotifier((button: null, generation: 0)));
 
   /// Last measured Local Network status, kept here rather than read off
   /// [LocalNetworkAccess.cached]: that cache expires after 30s, and a step that
@@ -238,24 +243,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _syncProxyListeners();
     _actionListener = core.connection.actionStream.listen((notification) {
       if (notification is ButtonNotification && notification.buttonsClicked.isNotEmpty) {
-        final id = notification.device.uniqueId;
-        _pressGeneration[id] = (_pressGeneration[id] ?? 0) + 1;
-        if (mounted) setState(() => _pressedButton[id] = notification.buttonsClicked.first);
+        final presses = _pressesFor(notification.device.uniqueId);
+        presses.value = (button: notification.buttonsClicked.first, generation: presses.value.generation + 1);
       }
     });
-
-    // Live trainer telemetry lives behind several notifiers that swap when the
-    // trainer changes mode. A slow tick is cheaper to reason about than
-    // re-subscribing on every transition, and it only runs while a trainer is
-    // actually connected.
-    // Not started under the screenshot harness: a periodic timer never lets a
-    // widget test's frame loop go quiet, and the captured metrics are fixtures
-    // there anyway.
-    if (!screenshotMode) {
-      _metricsTicker = Timer.periodic(const Duration(seconds: 2), (_) {
-        if (mounted && core.connection.proxyDevices.any((p) => p.isConnected)) setState(() {});
-      });
-    }
 
     _refreshBluetoothState();
     IAPManager.instance.isPurchased.addListener(_onPurchaseChanged);
@@ -338,7 +329,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
     _connectionListener.cancel();
     _actionListener.cancel();
-    _metricsTicker?.cancel();
+    for (final presses in _presses.values) {
+      presses.dispose();
+    }
     IAPManager.instance.isPurchased.removeListener(_onPurchaseChanged);
     ClickLogic.keepAwakeStatus.removeListener(_onKeepAwakeChanged);
     for (final listenable in _broadcastListenables) {
@@ -900,16 +893,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final keymap = core.actionHandler.supportedApp?.keymap;
     final size = 56 / Theme.of(context).scaling;
 
+    final presses = _pressesFor(device.uniqueId);
     Widget buttonFor(ControllerButton button) {
-      final pressed = _pressedButton[device.uniqueId];
-      return AnimatedButtonWidget(
+      return ValueListenableBuilder(
         key: ValueKey(button.name),
-        button: button,
-        pressGeneration: pressed?.name == button.name ? (_pressGeneration[device.uniqueId] ?? 0) : 0,
-        keymap: keymap,
-        device: device,
-        size: size,
-        onUpdate: _update,
+        valueListenable: presses,
+        builder: (context, pressed, _) => AnimatedButtonWidget(
+          button: button,
+          pressGeneration: pressed.button?.name == button.name ? pressed.generation : 0,
+          keymap: keymap,
+          device: device,
+          size: size,
+          onUpdate: _update,
+        ),
       );
     }
 
@@ -1186,9 +1182,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // Paired and shifting, but the trainer app is not on the bridge yet — the
     // gears are real, they are just not carrying anything. The buttons come
     // with it: a rider on the home screen can shift without opening the page.
-    return proxy != null && definition != null
-        ? DrivetrainControls(definition: definition, compact: true, dim: !proxy.isConnected)
-        : _trainerFeatureList(proxy);
+    return proxy != null && definition != null ? _LiveTrainerBody(proxy: proxy) : _trainerFeatureList(proxy);
   }
 
   /// The bridging pitch, but only for a trainer that is here and has never
@@ -1515,5 +1509,66 @@ class _MetricChip extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// The trainer card's live drivetrain.
+///
+/// The trainer's definition is swapped when its transport restarts or it
+/// changes mode, behind notifiers that come and go with it. Rather than
+/// re-subscribing on every transition, this re-reads the trainer on a slow
+/// tick — and rebuilds only itself, only when what it shows actually changed.
+/// (It used to be the whole home page, every two seconds.)
+class _LiveTrainerBody extends StatefulWidget {
+  const _LiveTrainerBody({required this.proxy});
+
+  final ProxyDevice proxy;
+
+  @override
+  State<_LiveTrainerBody> createState() => _LiveTrainerBodyState();
+}
+
+class _LiveTrainerBodyState extends State<_LiveTrainerBody> {
+  Timer? _ticker;
+  FitnessBikeDefinition? _definition;
+  bool _connected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _read();
+    // Not under the screenshot harness: a periodic timer never lets a widget
+    // test's frame loop go quiet, and the captured state is a fixture there.
+    if (!screenshotMode) {
+      _ticker = Timer.periodic(const Duration(seconds: 2), (_) {
+        if (widget.proxy.fitnessBike != _definition || widget.proxy.isConnected != _connected) {
+          setState(_read);
+        }
+      });
+    }
+  }
+
+  void _read() {
+    _definition = widget.proxy.fitnessBike;
+    _connected = widget.proxy.isConnected;
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveTrainerBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _read();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final definition = _definition;
+    if (definition == null) return const SizedBox.shrink();
+    return DrivetrainControls(definition: definition, compact: true, dim: !_connected);
   }
 }

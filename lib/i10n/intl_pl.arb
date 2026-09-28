@@ -2280,5 +2280,7 @@
   "savingEllipsis": "Zapisywanie…",
   "scriptOutputCharacteristic": "Charakterystyka wyjściowa: {value}",
   "scriptOutputHex": "Dane wyjściowe (hex): {value}",
-  "overlayCouldNotStart": "Nie udało się wyświetlić Overlay. Spróbuj ponownie."
+  "overlayCouldNotStart": "Nie udało się wyświetlić Overlay. Spróbuj ponownie.",
+  "secondsAgo": "{seconds} s temu",
+  "minutesAgo": "{minutes} min temu"
 }
