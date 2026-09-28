@@ -2399,5 +2399,6 @@
   "targetOtherDeviceDescriptionNoApp": "Lass deine Trainings-App auf einem anderen Gerät laufen und steuere sie von diesem Gerät aus fern.",
   "targetThisDeviceDescriptionNoApp": "Lass deine Trainings-App auf diesem Gerät laufen.",
   "purchaseProDeviceLimitTitle": "Pro ist in deinem Konto, aber noch nicht auf diesem Gerät",
-  "helpAnswerStillStuckContactSupport": "Klappt es immer noch nicht? Support kontaktieren"
+  "helpAnswerStillStuckContactSupport": "Klappt es immer noch nicht? Support kontaktieren",
+  "paywallYourPlan": "Dein Tarif"
 }

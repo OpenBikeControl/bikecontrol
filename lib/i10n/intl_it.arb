@@ -2399,5 +2399,6 @@
   "targetOtherDeviceDescriptionNoApp": "Avvia la tua app di allenamento su un altro dispositivo e controllala a distanza da questo.",
   "targetThisDeviceDescriptionNoApp": "Avvia la tua app di allenamento su questo dispositivo.",
   "purchaseProDeviceLimitTitle": "Pro è sul tuo account, ma non ancora su questo dispositivo",
-  "helpAnswerStillStuckContactSupport": "Ancora problemi? Contatta l'assistenza"
+  "helpAnswerStillStuckContactSupport": "Ancora problemi? Contatta l'assistenza",
+  "paywallYourPlan": "Il tuo piano"
 }

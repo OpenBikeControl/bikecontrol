@@ -2773,5 +2773,6 @@
   "targetOtherDeviceDescriptionNoApp": "Run your trainer app on another device and control it remotely from this one.",
   "targetThisDeviceDescriptionNoApp": "Run your trainer app on this device.",
   "purchaseProDeviceLimitTitle": "Pro is on your account, but not on this device yet",
-  "helpAnswerStillStuckContactSupport": "Still stuck? Contact support"
+  "helpAnswerStillStuckContactSupport": "Still stuck? Contact support",
+  "paywallYourPlan": "Your plan"
 }

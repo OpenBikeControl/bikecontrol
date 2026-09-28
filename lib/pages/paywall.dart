@@ -770,21 +770,36 @@ class _PaywallState extends State<Paywall> {
         const Expanded(child: SizedBox()),
         SizedBox(
           width: fullColumnWidth,
-          child: Center(
-            // "Base" is short in most languages but not all — shrink rather
-            // than wrap or clip inside a fixed-width column.
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                AppLocalizations.of(context).full,
-                maxLines: 1,
-                style: context.typography.small.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                  color: Theme.of(context).colorScheme.mutedForeground,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // "Base" is short in most languages but not all — shrink rather
+              // than wrap or clip inside a fixed-width column.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  AppLocalizations.of(context).full,
+                  maxLines: 1,
+                  style: context.typography.small.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                    color: Theme.of(context).colorScheme.mutedForeground,
+                  ),
                 ),
               ),
-            ),
+              // Base owners: which column is theirs.
+              if (_iapManager.isPurchased.value && !_iapManager.isProEnabled)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    AppLocalizations.of(context).paywallYourPlan,
+                    maxLines: 1,
+                    style: context.typography.xSmall.copyWith(
+                      color: Theme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         SizedBox(

@@ -102,4 +102,19 @@ Future<void> main() async {
       closeTo(rowOf(tester, l.paywall_yearly).height, 0.5),
     );
   });
+  testWidgets('a Base owner sees "Your plan" under the Base column', (tester) async {
+    final l = await pump(tester, purchased: true);
+    expect(IAPManager.instance.isProEnabled, isFalse);
+    final mark = find.text(l.paywallYourPlan);
+    expect(mark, findsOneWidget);
+    final base = tester.getRect(find.text(l.full));
+    final markRect = tester.getRect(mark);
+    expect((markRect.center.dx - base.center.dx).abs(), lessThan(1), reason: 'centred under the Base header');
+    expect(markRect.top, greaterThanOrEqualTo(base.bottom - 0.5));
+  });
+
+  testWidgets('without a purchase there is no "Your plan"', (tester) async {
+    final l = await pump(tester);
+    expect(find.text(l.paywallYourPlan), findsNothing);
+  });
 }
