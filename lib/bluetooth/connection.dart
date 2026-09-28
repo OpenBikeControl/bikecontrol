@@ -269,6 +269,21 @@ class Connection {
 
   bool wasConnectedThisSession(String uniqueId) => _connectedThisSession.contains(uniqueId);
 
+  /// Test seam for the set above. The production path runs through a live BLE
+  /// connection-state stream, which no widget test can drive — and the whole
+  /// "lost" vs "connecting" distinction hangs off this one bit, so it has to
+  /// be settable on its own. Clearing matters as much as setting: `core`
+  /// outlives every test, and a session flag one test left behind would make
+  /// the next one's fresh device read as broken.
+  @visibleForTesting
+  void debugSetConnectedThisSession(String uniqueId, bool value) {
+    if (value) {
+      _connectedThisSession.add(uniqueId);
+    } else {
+      _connectedThisSession.remove(uniqueId);
+    }
+  }
+
   /// Remembered controllers that no live device has taken over yet. Once the
   /// real device is discovered and enters [devices], its offline stand-in drops
   /// out of this list so the rider never sees the same controller twice.

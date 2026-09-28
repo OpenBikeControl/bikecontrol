@@ -23,6 +23,15 @@ enum DevicePresence {
   /// is never a problem.
   resetting,
 
+  /// The connect is in flight: the upstream link is up, or a start is
+  /// running, but the bridge is not live yet. Like [resetting] it is never a
+  /// break — it is the healthy state between "the rider tapped Connect" and
+  /// "BikeControl is bridging". Without it the gap between the Bluetooth link
+  /// coming up and the emulator starting looked exactly like a drop (the
+  /// device had connected this session and was not bridged), and the home
+  /// screen flashed "lost connection" at a trainer that was still connecting.
+  connecting,
+
   /// Was connected during this app session and dropped.
   lost,
 

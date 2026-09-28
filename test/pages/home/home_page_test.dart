@@ -164,6 +164,7 @@ Future<void> main() async {
   _sensorsOnlyTests();
   _overlayStepTests();
   _twoPairingsTests();
+  _connectingTrainerTests();
   _networkAddressStepTests();
   _bannerShowTests();
   _droppedAppTests();
@@ -471,6 +472,103 @@ void _twoPairingsTests() {
 
       expect(statusText(l.chainStatusBridged), findsOneWidget);
       expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh')), findsNothing);
+    });
+  });
+}
+
+// ── A connect in flight is not a lost connection ───────────────────────────
+//
+// The Bluetooth link to a trainer comes up a beat before its bridge starts,
+// and the connection-state listener marks the trainer "connected this
+// session" the moment it does. For that beat the trainer was not bridged and
+// had connected this session — which is exactly the shape of a drop — so the
+// home screen flashed red: "Wahoo KICKR lost connection", about a trainer
+// that was still connecting.
+
+void _connectingTrainerTests() {
+  group('a trainer whose connect is still in flight', () {
+    late AppLocalizations l;
+    final trainers = <ProxyDevice>[];
+
+    setUp(() {
+      l = AppLocalizations.current;
+    });
+
+    tearDown(() {
+      for (final trainer in trainers) {
+        // `core` outlives the test: a session flag left behind would make the
+        // next test's brand-new trainer read as broken.
+        core.connection.debugSetConnectedThisSession(trainer.uniqueId, false);
+      }
+      trainers.clear();
+    });
+
+    /// A trainer the rider asked for that has connected over Bluetooth this
+    /// session but is not bridged. [starting] is whether the bridge start is
+    /// still running; [upstream] whether the Bluetooth link is up — both false
+    /// is a genuine drop.
+    Future<ProxyDevice> pendingTrainer({required bool starting, required bool upstream}) async {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-connecting', name: 'KICKR CORE 9876'));
+      trainer.isConnected = upstream;
+      trainer.isStarting.value = starting;
+      // The rider tapped Connect — without that consent the card rests at
+      // "off" and neither red nor amber is on the table.
+      await core.settings.setAutoConnect(trainer.trainerKey, true);
+      core.connection.debugSetConnectedThisSession(trainer.uniqueId, true);
+      core.connection.devices.add(trainer);
+      trainers.add(trainer);
+      return trainer;
+    }
+
+    Finder statusText(String text) =>
+        find.descendant(of: find.byType(StatusLine), matching: find.text(text));
+
+    ChainCard trainerCard(WidgetTester tester) =>
+        tester.widget<ChainCard>(_chainCard(ChainLinkKey.trainer));
+
+    testWidgets('the banner does not announce a lost connection', (tester) async {
+      final trainer = await pendingTrainer(starting: true, upstream: false);
+
+      await _pumpHome(tester);
+
+      expect(find.text(l.chainBrokenTitle(trainer.toString())), findsNothing);
+      expect(find.text(l.chainBrokenSubtitle), findsNothing);
+      expect(trainerCard(tester).link.status, isNot(LinkStatus.problem));
+    });
+
+    testWidgets('the card says it is connecting, not connected or lost', (tester) async {
+      await pendingTrainer(starting: true, upstream: false);
+
+      await _pumpHome(tester);
+
+      expect(statusText(l.chainStatusConnecting), findsOneWidget);
+      expect(statusText(l.chainStatusLostConnection), findsNothing);
+      expect(statusText(l.connected), findsNothing);
+      expect(statusText(l.notConnected), findsNothing);
+    });
+
+    // The other half of the window: the Bluetooth link is already up and the
+    // bridge has not started yet. Same answer — the connect is in flight.
+    testWidgets('an upstream link without a bridge is still connecting', (tester) async {
+      await pendingTrainer(starting: false, upstream: true);
+
+      await _pumpHome(tester);
+
+      expect(statusText(l.chainStatusConnecting), findsOneWidget);
+      expect(statusText(l.chainStatusLostConnection), findsNothing);
+      expect(trainerCard(tester).link.status, LinkStatus.attention);
+    });
+
+    // And the case the red banner exists for, which must keep working: a
+    // trainer that worked this session and is now gone entirely.
+    testWidgets('a trainer that really dropped is still red', (tester) async {
+      await pendingTrainer(starting: false, upstream: false);
+
+      await _pumpHome(tester);
+
+      expect(trainerCard(tester).link.status, LinkStatus.problem);
+      expect(statusText(l.chainStatusLostConnection), findsOneWidget);
+      expect(statusText(l.chainStatusConnecting), findsNothing);
     });
   });
 }

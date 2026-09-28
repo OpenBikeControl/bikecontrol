@@ -1569,6 +1569,7 @@
   "chainSomethingNotWorking": "¿Algo no funciona?",
   "chainStatusOutOfRange": "Fuera de alcance",
   "chainStatusLostConnection": "Conexión perdida",
+  "chainStatusConnecting": "Conectando…",
   "chainStatusNotSetUp": "Sin configurar",
   "chainStatusReceivingCommands": "Recibiendo comandos",
   "chainStatusWaitingForApp": "Esperando a {app}",

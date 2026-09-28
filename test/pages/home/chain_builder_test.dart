@@ -645,6 +645,41 @@ void main() {
       expect(chain.byKey(ChainLinkKey.trainer).status, LinkStatus.problem);
     });
 
+    // The bug: the Bluetooth link comes up a beat before the bridge starts,
+    // and for that beat the trainer had already "connected this session"
+    // without being bridged — so the card went red and the banner announced a
+    // lost connection about a connect that was still in flight.
+    test('a trainer whose connect is still in flight is amber, never broken', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(presence: DevicePresence.connecting, appHoldsBridge: false),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      expect(link.status, LinkStatus.attention);
+      expect(link.status, isNot(LinkStatus.problem));
+    });
+
+    // The rider asked for this trainer, so the checklist stays put rather than
+    // blinking out for the length of the connect and back in again.
+    test('a connecting trainer keeps its checklist', () {
+      final chain = buildChain(
+        ChainInputs(trainer: trainer(presence: DevicePresence.connecting, appHoldsBridge: false), app: _readyApp),
+      );
+      expect(chain.byKey(ChainLinkKey.trainer).steps, isNotEmpty);
+    });
+
+    // Same reasoning as a resetting device: swiping away something that is
+    // halfway through connecting is an accident, not an intention.
+    test('a connecting trainer cannot be swiped away', () {
+      final chain = buildChain(
+        ChainInputs(trainer: trainer(presence: DevicePresence.connecting), app: _readyApp),
+      );
+      expect(chain.byKey(ChainLinkKey.trainer).dismissible, isFalse);
+    });
+
     // Onboarding is the source of truth: a bridge the trainer app hasn't picked
     // up yet is honest about it rather than claiming to be bridged.
     test('a bridged trainer the app has not picked up is amber, not ready', () {

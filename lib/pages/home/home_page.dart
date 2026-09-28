@@ -441,6 +441,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         presence = DevicePresence.connected;
       } else if (!wanted) {
         presence = DevicePresence.discovered;
+      } else if (proxy.isStarting.value || proxy.isConnected) {
+        // The connect is still running. The Bluetooth link comes up before the
+        // bridge does, and `wasConnectedThisSession` latches the moment it
+        // does — so without this branch the whole window between "link up" and
+        // "emulator started" read as a drop, and the banner flashed red at a
+        // trainer that was connecting perfectly well.
+        presence = DevicePresence.connecting;
       } else if (core.connection.wasConnectedThisSession(proxy.uniqueId)) {
         presence = DevicePresence.lost;
       } else {
@@ -1000,9 +1007,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // case matters now that live watts are shown whenever the trainer reports
     // them: "Not connected" beside a cadence reading is a contradiction the
     // rider has to resolve, so a connected-but-unbridged trainer says so.
+    // A connect in flight has its own answer. Without it this fell through to
+    // "Connected" (the upstream link is up, which is technically true and says
+    // nothing the rider asked about) or "Not connected" (plainly wrong while
+    // BikeControl is connecting it) — see [DevicePresence.connecting].
+    final connecting =
+        inputs.trainer?.presence == DevicePresence.connecting && link.status == LinkStatus.attention;
+
     final String statusLabel;
     if (link.status == LinkStatus.problem) {
       statusLabel = context.i18n.chainStatusLostConnection;
+    } else if (connecting) {
+      statusLabel = context.i18n.chainStatusConnecting;
     } else if (bridged) {
       statusLabel = appHoldsBridge
           ? context.i18n.chainStatusBridged

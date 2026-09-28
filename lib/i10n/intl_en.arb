@@ -1791,6 +1791,7 @@
   "chainSomethingNotWorking": "Something not working?",
   "chainStatusOutOfRange": "Out of range",
   "chainStatusLostConnection": "Lost connection",
+  "chainStatusConnecting": "Connecting…",
   "chainStatusNotSetUp": "Not set up",
   "chainStatusReceivingCommands": "Receiving commands",
   "chainStatusWaitingForApp": "Waiting for {app}",

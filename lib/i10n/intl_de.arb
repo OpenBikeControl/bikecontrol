@@ -1580,6 +1580,7 @@
   "chainSomethingNotWorking": "Etwas funktioniert nicht?",
   "chainStatusOutOfRange": "Außer Reichweite",
   "chainStatusLostConnection": "Verbindung verloren",
+  "chainStatusConnecting": "Verbindung wird hergestellt…",
   "chainStatusNotSetUp": "Nicht eingerichtet",
   "chainStatusReceivingCommands": "Empfängt Befehle",
   "chainStatusWaitingForApp": "Warte auf {app}",
