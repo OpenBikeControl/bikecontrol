@@ -231,7 +231,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           ],
           _label(context.i18n.supportIntakeWhatHappens),
           const Gap(4),
-          _symptomSelect(trainerAppSymptoms),
+          _symptomSelect(IntakeCategory.trainerApp, trainerAppSymptoms),
         ];
       case IntakeCategory.controller:
         // Restrict to controllers the user actually has paired so the list
@@ -247,7 +247,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             (connectedIds.isEmpty
                     ? controllerOptions
                     : controllerOptions.where((o) => connectedIds.contains(o.id) || o.id == 'other'))
-                .map((o) => (id: o.id, label: o.label))
+                .map((o) => (id: o.id, label: controllerOptionLabel(context.i18n, o.id)))
                 .toList(growable: false);
         return [
           _label(context.i18n.supportIntakeWhichController),
@@ -261,7 +261,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           const Gap(12),
           _label(context.i18n.supportIntakeWhatHappens),
           const Gap(4),
-          _symptomSelect(controllerSymptoms),
+          _symptomSelect(IntakeCategory.controller, controllerSymptoms),
         ];
       case IntakeCategory.smartTrainer:
         return [
@@ -270,7 +270,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-            options: smartTrainerSymptoms.map((o) => (id: o.id, label: o.label)).toList(growable: false),
+            options: _symptomOptions(IntakeCategory.smartTrainer, smartTrainerSymptoms),
             onChanged: _setSubcategory,
           ),
         ];
@@ -281,7 +281,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-            options: accountSymptoms.map((o) => (id: o.id, label: o.label)).toList(growable: false),
+            options: _symptomOptions(IntakeCategory.account, accountSymptoms),
             onChanged: _setSubcategory,
           ),
         ];
@@ -290,11 +290,14 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
     }
   }
 
-  Widget _symptomSelect(List<SymptomOption> options) {
+  List<({String id, String label})> _symptomOptions(IntakeCategory category, List<SymptomOption> options) =>
+      options.map((o) => (id: o.id, label: symptomLabel(context.i18n, category, o.id))).toList(growable: false);
+
+  Widget _symptomSelect(IntakeCategory category, List<SymptomOption> options) {
     return _stringSelect(
       value: _symptom,
       placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-      options: options.map((o) => (id: o.id, label: o.label)).toList(growable: false),
+      options: _symptomOptions(category, options),
       onChanged: _setSymptom,
     );
   }
@@ -563,8 +566,8 @@ class SupportIntakeSummaryChip extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final parts = <String>[
       _categoryLabel(context, answers.category),
-      if (answers.subcategoryValue != null) _prettify(answers.subcategoryValue!),
-      if (answers.symptom != null) _prettify(answers.symptom!),
+      if (answers.subcategoryValue case final value?) _subcategoryLabel(context, answers.category, value),
+      if (answers.symptom case final symptom?) symptomLabel(context.i18n, answers.category, symptom),
     ];
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
@@ -606,9 +609,11 @@ class SupportIntakeSummaryChip extends StatelessWidget {
     };
   }
 
-  static String _prettify(String id) {
-    final pretty = id.replaceAll('_', ' ');
-    if (pretty.isEmpty) return id;
-    return pretty[0].toUpperCase() + pretty.substring(1);
-  }
+  /// The controller branch stores a controller id, the trainer-app branch
+  /// the app's name, and the other branches a symptom id.
+  static String _subcategoryLabel(BuildContext context, IntakeCategory category, String value) => switch (category) {
+    IntakeCategory.controller => controllerOptionLabel(context.i18n, value),
+    IntakeCategory.trainerApp => value,
+    _ => symptomLabel(context.i18n, category, value),
+  };
 }
