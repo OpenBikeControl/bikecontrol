@@ -2403,5 +2403,7 @@
   "@purchaseProDeviceLimitBody": {"placeholders": {"max": {"type": "String"}, "platform": {"type": "String"}}},
   "purchaseManageDevices": "Gestisci dispositivi",
   "purchaseProActiveOnDevice": "Pro è ora attivo su questo dispositivo",
-  "supportPinnedDeviceLimit": "dettagli sul limite di dispositivi"
+  "supportPinnedDeviceLimit": "dettagli sul limite di dispositivi",
+  "onboardingNetworkResolvedByConnection": "{app} è connesso tramite la rete, quindi la rete funziona.",
+  "@onboardingNetworkResolvedByConnection": {"placeholders": {"app": {"type": "String"}}}
 }

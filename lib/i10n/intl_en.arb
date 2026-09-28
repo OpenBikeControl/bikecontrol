@@ -2777,5 +2777,7 @@
   "@purchaseProDeviceLimitBody": {"placeholders": {"max": {"type": "String"}, "platform": {"type": "String"}}},
   "purchaseManageDevices": "Manage devices",
   "purchaseProActiveOnDevice": "Pro is now active on this device",
-  "supportPinnedDeviceLimit": "device limit details"
+  "supportPinnedDeviceLimit": "device limit details",
+  "onboardingNetworkResolvedByConnection": "{app} connected over the network, so the network works.",
+  "@onboardingNetworkResolvedByConnection": {"placeholders": {"app": {"type": "String"}}}
 }

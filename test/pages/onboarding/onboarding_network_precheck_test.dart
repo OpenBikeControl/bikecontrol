@@ -12,9 +12,14 @@ import 'package:bike_control/pages/onboarding/onboarding_network_precheck.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
 import 'package:bike_control/services/network_self_test/network_self_test_engine.dart';
+import 'package:bike_control/services/network_self_test/network_method_target.dart';
 import 'package:bike_control/widgets/network_check_row.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import '../../helpers/contrast.dart';
 
 NetworkProbeContext _ctx() => NetworkProbeContext(
   snapshot: null,
@@ -222,5 +227,208 @@ Future<void> main() async {
     expect(onboardingConnectionCanFinish(hasNoConnectionMethod: false, networkBlocking: false), isTrue);
     expect(onboardingConnectionCanFinish(hasNoConnectionMethod: false, networkBlocking: true), isFalse);
     expect(onboardingConnectionCanFinish(hasNoConnectionMethod: true, networkBlocking: false), isFalse);
+  });
+  group('gate', () {
+    NetworkMethodTarget target(NetworkMethodKind kind, {bool started = true, bool connected = false}) =>
+        NetworkMethodTarget(
+          kind: kind,
+          serverLabel: kind.name,
+          preferredPort: 1,
+          isStarted: ValueNotifier(started),
+          isConnected: ValueNotifier(connected),
+        );
+
+    test('the trainer app connecting through the method lifts a failed check', () async {
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (_) => _precheck([_s(NetworkCheckId.localNetworkPermission, NetworkVerdict.fail)]),
+      );
+      final t = target(NetworkMethodKind.openBikeControl);
+      gate.sync(wanted: true, target: t);
+      await gate.pendingRun;
+      expect(gate.precheck!.failures, isNotEmpty);
+      expect(gate.blocking, isTrue);
+
+      var notified = 0;
+      gate.addListener(() => notified++);
+      (t.isConnected as ValueNotifier<bool>).value = true;
+      expect(gate.trainerAppConnected, isTrue);
+      expect(gate.blocking, isFalse);
+      expect(notified, greaterThan(0));
+      gate.dispose();
+    });
+
+    test('switching the method mid-check drops the old run and checks the new method', () async {
+      final hold = Completer<void>();
+      final created = <NetworkMethodKind>[];
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (kind) {
+          created.add(kind);
+          return kind == NetworkMethodKind.openBikeControl
+              ? _precheck([
+                  ProbeSpec(
+                    id: NetworkCheckId.localNetworkPermission,
+                    timeout: const Duration(seconds: 5),
+                    run: (c) async {
+                      await hold.future;
+                      return const NetworkCheck(id: NetworkCheckId.localNetworkPermission, verdict: NetworkVerdict.fail);
+                    },
+                  ),
+                ])
+              : _precheck([_s(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+        },
+      );
+      gate.sync(wanted: true, target: target(NetworkMethodKind.openBikeControl));
+      final first = gate.precheck;
+      await Future<void>.delayed(Duration.zero);
+      expect(first!.phase, NetworkPrecheckPhase.checking);
+
+      gate.sync(wanted: true, target: target(NetworkMethodKind.zwiftMdns));
+      expect(gate.precheck, isNot(same(first)));
+      await gate.pendingRun;
+      hold.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(created, [NetworkMethodKind.openBikeControl, NetworkMethodKind.zwiftMdns]);
+      expect(gate.precheck!.failures, isEmpty);
+      expect(gate.blocking, isFalse);
+      gate.dispose();
+    });
+
+    test('switching the method off and on starts a fresh check', () async {
+      var runs = 0;
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (_) {
+          runs++;
+          return _precheck([_s(NetworkCheckId.localNetworkPermission, NetworkVerdict.fail)]);
+        },
+      );
+      final t = target(NetworkMethodKind.rouvyMdns);
+      gate.sync(wanted: true, target: t);
+      await gate.pendingRun;
+      gate.precheck!.continueAnyway();
+      gate.sync(wanted: false, target: null);
+      expect(gate.precheck, isNull);
+      expect(gate.blocking, isFalse);
+      gate.sync(wanted: true, target: t);
+      await gate.pendingRun;
+      expect(runs, 2);
+      expect(gate.blocking, isTrue);
+      gate.dispose();
+    });
+
+    test('waits for the method to start before checking', () async {
+      var runs = 0;
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (_) {
+          runs++;
+          return _precheck([_s(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+        },
+      );
+      final t = target(NetworkMethodKind.openBikeControl, started: false);
+      gate.sync(wanted: true, target: t);
+      expect(gate.precheck, isNull);
+      (t.isStarted as ValueNotifier<bool>).value = true;
+      await gate.pendingRun;
+      expect(runs, 1);
+      gate.dispose();
+    });
+  });
+
+  group('failure card', () {
+    Future<AppLocalizations> pumpCard(
+      WidgetTester tester,
+      OnboardingNetworkPrecheck p, {
+      Brightness brightness = Brightness.light,
+      bool connected = false,
+    }) async {
+      tester.view.physicalSize = const Size(390, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ShadcnApp(
+          theme: BkTheme.build(brightness),
+          localizationsDelegates: [
+            ...ShadcnLocalizations.localizationsDelegates,
+            const OtherLocalizationsDelegate(),
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          home: Scaffold(
+            child: SingleChildScrollView(
+              child: OnboardingNetworkPrecheckCard(
+                precheck: p,
+                appName: 'MyWhoosh',
+                onFix: (_) {},
+                trainerAppConnected: connected,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      return AppLocalizations.of(tester.element(find.byType(OnboardingNetworkPrecheckCard)));
+    }
+
+    OnboardingNetworkPrecheck failing() => _precheck([
+      _s(NetworkCheckId.localNetworkPermission, NetworkVerdict.fail, fixes: [NetworkFixId.openLocalNetworkSettings]),
+    ]);
+
+    testWidgets('is announced to screen readers when it appears', (tester) async {
+      final p = _precheck([
+        ProbeSpec(
+          id: NetworkCheckId.localNetworkPermission,
+          timeout: const Duration(seconds: 5),
+          run: (c) async => const NetworkCheck(id: NetworkCheckId.localNetworkPermission, verdict: NetworkVerdict.fail),
+        ),
+      ]);
+      final l = await pumpCard(tester, p);
+      tester.takeAnnouncements();
+      await tester.runAsync(p.run);
+      await tester.pump();
+      final announcements = tester.takeAnnouncements();
+      expect(announcements, hasLength(1));
+      expect(announcements.single.message, contains(l.onboardingNetworkCheckFailedTitle));
+      p.dispose();
+    });
+
+    for (final brightness in Brightness.values) {
+      testWidgets('${brightness.name}: its text clears 4.5:1 on its wash', (tester) async {
+        final p = failing();
+        await tester.runAsync(p.run);
+        await pumpCard(tester, p, brightness: brightness);
+        expectLegibleText(
+          tester,
+          find.byKey(const ValueKey('onboarding-network-precheck-failed')),
+          pageBackground: BkTheme.build(brightness).colorScheme.background,
+        );
+        p.dispose();
+      });
+    }
+
+    testWidgets('its buttons reach 48 dp on a phone', (tester) async {
+      final p = failing();
+      await tester.runAsync(p.run);
+      final l = await pumpCard(tester, p);
+      final element = tester.element(find.byType(OnboardingNetworkPrecheckCard));
+      for (final label in [
+        l.onboardingNetworkRecheck,
+        l.onboardingNetworkContinueAnyway,
+        networkFixLabel(element, NetworkFixId.openLocalNetworkSettings),
+      ]) {
+        final target = find.ancestor(of: find.text(label), matching: find.byType(BkTouchTarget));
+        expect(target, findsOneWidget, reason: label);
+        expect(tester.getSize(target).height, greaterThanOrEqualTo(BkTouchTarget.minSize), reason: label);
+      }
+      p.dispose();
+    });
+
+    testWidgets('once the trainer app is connected the failure shows as resolved', (tester) async {
+      final p = failing();
+      await tester.runAsync(p.run);
+      final l = await pumpCard(tester, p, connected: true);
+      expect(find.text(l.onboardingNetworkCheckFailedTitle), findsNothing);
+      expect(find.text(l.onboardingNetworkResolvedByConnection('MyWhoosh')), findsOneWidget);
+      p.dispose();
+    });
   });
 }
