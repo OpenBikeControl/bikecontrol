@@ -21,6 +21,7 @@ import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/lazy_async.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -36,7 +37,16 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
   /// "Show overlay during ride" switch.
   final bool revealOverlaySection;
 
-  const ProxyDeviceDetailsPage({super.key, required this.device, this.revealOverlaySection = false});
+  /// Scrolls to the resistance self-test after the first frame — the setup
+  /// guide's "Run the trainer check" lands here.
+  final bool revealSelfTest;
+
+  const ProxyDeviceDetailsPage({
+    super.key,
+    required this.device,
+    this.revealOverlaySection = false,
+    this.revealSelfTest = false,
+  });
 
   @override
   State<ProxyDeviceDetailsPage> createState() => _ProxyDeviceDetailsPageState();
@@ -46,6 +56,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   late StreamSubscription<BaseDevice> _connectionSub;
   final GlobalKey _overlaySectionKey = GlobalKey();
   final GlobalKey _settingsSectionKey = GlobalKey();
+  final GlobalKey _selfTestKey = GlobalKey();
 
   /// Mirrors the persisted flag so the x tap hides the card in the same
   /// frame instead of waiting on the prefs write; read once at init because
@@ -67,6 +78,22 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     if (widget.revealOverlaySection) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _revealOverlaySection());
     }
+    if (widget.revealSelfTest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _revealSelfTest());
+    }
+  }
+
+  void _revealSelfTest() {
+    final ctx = _selfTestKey.currentContext;
+    if (!mounted || ctx == null) return;
+    unawaited(
+      Scrollable.ensureVisible(
+        ctx,
+        duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      ),
+    );
   }
 
   /// Scrolls the Overlay section into view. No-op when the section isn't in
@@ -127,6 +154,20 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   // re-inflated, which would reset ConnectionCard's accordion.
                   ConnectionCard(key: const ValueKey('connection-card'), device: device),
                   SizedBox(height: 12),
+                  // Checking comes before asking: the self-test answers "does
+                  // BikeControl control my trainer?" on its own, so it sits
+                  // above the card that routes to support.
+                  if (device.fitnessBike != null) ...[
+                    KeyedSubtree(
+                      key: _selfTestKey,
+                      child: SelfTestCard(
+                        key: const ValueKey('self-test'),
+                        device: device,
+                        onShowOverlaySettings: _revealOverlaySection,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                  ],
                   // Keyed for the same reason: dismissing it toggles a sibling
                   // right next to ConnectionCard.
                   if (!_needHelpDismissed) ...[
@@ -166,14 +207,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                     key: const ValueKey('live-metrics'),
                     device: device,
                     hideWhenDeviceHasNoMetrics: true,
-                  ),
-                  SizedBox(height: 20),
-                ],
-                if (!screenshotMode && device.fitnessBike != null) ...[
-                  SelfTestCard(
-                    key: const ValueKey('self-test'),
-                    device: device,
-                    onShowOverlaySettings: _revealOverlaySection,
                   ),
                   SizedBox(height: 20),
                 ],

@@ -22,6 +22,7 @@ import 'package:bike_control/pages/onboarding/steps/step_done.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
 import 'package:bike_control/pages/onboarding/steps/step_welcome.dart';
 import 'package:bike_control/pages/onboarding/steps/step_where.dart';
+import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/trainer_connect.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -648,10 +649,25 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   /// Same readiness the done body's headline uses: the app is connected
   /// through an enabled method and any bridged trainer has been picked up.
-  bool get _doneAllReady =>
-      core.logic.connectedTrainerConnections.any((c) => c.isConnected.value) &&
-      (!onboardingTrainerBridged(core.connection.proxyDevices) ||
-          core.connection.proxyDevices.any((t) => t.isConnectedListenable.value));
+  bool get _doneAllReady => onboardingDoneReady(
+    hasController: core.connection.controllerDevices.any((d) => d.isConnected),
+    appConnected: core.logic.connectedTrainerConnections.any((c) => c.isConnected.value),
+    hasTrainer: onboardingTrainerBridged(core.connection.proxyDevices),
+    trainerAppConnected: core.connection.proxyDevices.any((t) => t.isConnectedListenable.value),
+  );
+
+  /// The bridged trainer's resistance self-test lives on its details page,
+  /// right under the connection card.
+  Future<void> _onRunTrainerCheck() async {
+    final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
+    if (trainer == null) return;
+    try {
+      await context.push(ProxyDeviceDetailsPage(device: trainer, revealSelfTest: true));
+      if (mounted) setState(() {});
+    } catch (e, s) {
+      recordError(e, s, context: 'onboarding done run trainer check');
+    }
+  }
 
   /// "Let {app} handle Virtual Shifting": the rider explicitly opted out, so
   /// tear down every smart-trainer bridge — including ones still connecting —
@@ -728,6 +744,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
       trainerAppConnected: core.connection.proxyDevices.any((t) => t.isConnectedListenable.value),
       reduceMotion: MediaQuery.of(context).disableAnimations,
       showTestMode: !IAPManager.instance.isPurchased.value,
+      onPairController: () => _goTo(OnboardingStep.controller),
+      onRunTrainerCheck: _onRunTrainerCheck,
     ),
   };
 
@@ -843,51 +861,38 @@ class _OnboardingPageState extends State<OnboardingPage> {
         child: Text(context.i18n.onboardingFinishSetup),
       ),
     ],
-    OnboardingStep.done => [
-      if (!IAPManager.instance.isPurchased.value)
-        PrimaryButton(
-          alignment: Alignment.center,
-          onPressed: () async {
-            try {
-              await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-              core.logic.startEnabledConnectionMethod(userInitiated: true);
-              if (!mounted || !context.mounted) return;
-              // Platform-correct paywall: RevenueCat's hosted sheet on
-              // iOS/Android, the in-app Paywall drawer on desktop. Going
-              // through IAPManager is what picks the right one — opening
-              // the Paywall widget directly showed mobile riders the
-              // desktop fallback with placeholder "about x €" prices.
-              await IAPManager.instance.purchaseFullVersion(_sheetContext);
-              if (mounted) setState(() {});
-            } catch (e, s) {
-              recordError(e, s, context: 'onboarding done see pro options');
-            }
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(LucideIcons.award, size: 16),
-              Gap(8),
-              Text(context.i18n.onboardingSeeProOptions),
-            ],
-          ),
-        ),
-      GhostButton(
-        alignment: Alignment.center,
-        onPressed: () async {
-          try {
-            await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-            // The launch-time start was skipped while the wizard held the
-            // screen; leaving it is when the enabled methods must come up.
-            core.logic.startEnabledConnectionMethod(userInitiated: true);
-            if (context.mounted) Navigator.of(context).pop();
-          } catch (e, s) {
-            recordError(e, s, context: 'onboarding done start riding');
-          }
-        },
-        child: Text(_doneAllReady ? context.i18n.onboardingDoneStartRiding : context.i18n.onboardingDoneFinishLater),
-      ),
-    ],
+    OnboardingStep.done => onboardingDoneFooter(
+      context,
+      allReady: _doneAllReady,
+      showPlanOptions: !IAPManager.instance.isPurchased.value,
+      onStartRiding: () async {
+        try {
+          await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
+          // The launch-time start was skipped while the wizard held the
+          // screen; leaving it is when the enabled methods must come up.
+          core.logic.startEnabledConnectionMethod(userInitiated: true);
+          if (context.mounted) Navigator.of(context).pop();
+        } catch (e, s) {
+          recordError(e, s, context: 'onboarding done start riding');
+        }
+      },
+      onSeePlanOptions: () async {
+        try {
+          await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
+          core.logic.startEnabledConnectionMethod(userInitiated: true);
+          if (!mounted || !context.mounted) return;
+          // Platform-correct paywall: RevenueCat's hosted sheet on
+          // iOS/Android, the in-app Paywall drawer on desktop. Going
+          // through IAPManager is what picks the right one — opening
+          // the Paywall widget directly showed mobile riders the
+          // desktop fallback with placeholder "about x €" prices.
+          await IAPManager.instance.purchaseFullVersion(_sheetContext);
+          if (mounted) setState(() {});
+        } catch (e, s) {
+          recordError(e, s, context: 'onboarding done see pro options');
+        }
+      },
+    ),
   };
 
   /// Leaves the wizard from the welcome screen and records it as done, so a

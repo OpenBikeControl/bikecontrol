@@ -1,5 +1,6 @@
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
@@ -268,6 +269,10 @@ Widget onboardingControllerBody(
             linkLabel: context.i18n.zwiftCompanionApp,
             onLink: () => launchUrlString(ZwiftConstants.ZWIFT_COMPANION_URL, mode: LaunchMode.externalApplication),
           ),
+          // The footer lets the rider move on without one — say what that
+          // costs before they take it.
+          Gap(6),
+          OnboardingNote(context.i18n.onboardingSkipControllerNote),
         ]),
       );
     case ControllerPhase.list:
