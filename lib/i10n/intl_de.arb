@@ -1229,7 +1229,7 @@
   "onboardingHelpDoneTitle": "Was sind die Grenzen der Testphase?",
   "onboardingHelpDoneBody": "Ein tägliches Befehlskontingent und eine tägliche Testzeit für das Virtual Shifting von BikeControl (eine Pro-Funktion). Genug, um deine Einrichtung zu prüfen.",
   "onboardingHelpDoneProTitle": "Wo ändere ich später etwas?",
-  "onboardingHelpDoneProBody": "Alles aus dieser Einrichtung findest du in der normalen App: Controller und Tastenbelegungen auf dem Startbildschirm, Verbindungsmethoden unter Trainer-Verbindungen und die Smart-Trainer-Brücke auf der Gerätekarte.",
+  "onboardingHelpDoneProBody": "Alles aus dieser Einrichtung findest du in der normalen App: Controller und Tastenbelegungen auf dem Startbildschirm, Verbindungsmethoden unter Trainer-Verbindungen und deinen Smart Trainer auf der Gerätekarte.",
   "onboardingHelpGuides": "Einrichtungsanleitungen",
   "onboardingHelpTroubleshooting": "Fehlerbehebung",
   "onboardingHelpSupport": "Support kontaktieren",
@@ -1312,7 +1312,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Lass BikeControl auf diesem Handy und fahre {app} auf PC, Apple TV oder Tablet — dort wird die Brücke über dein WLAN gefunden. Gehe einen Schritt zurück und wähle „Auf einem anderen Gerät“.",
+  "onboardingVsBlockedAltAppBody": "Lass BikeControl auf diesem Handy und fahre {app} auf PC, Apple TV oder Tablet — dort findet {app} deinen Trainer über BikeControl in deinem WLAN. Gehe einen Schritt zurück und wähle „Auf einem anderen Gerät“.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1523,7 +1523,6 @@
       }
     }
   },
-  "onboardingSummaryBridged": "Verbunden über BikeControl",
   "onboardingTestModeTitle": "Du bist in der Testphase",
   "onboardingTestModeBody": "Fahr jetzt los und prüfe, ob alles funktioniert. In der Testphase gibt es {commands} Befehle pro Tag — genug, um die Verbindung zu prüfen, nicht für eine ganze Einheit.",
   "onboardingTestModeBodyVs": "Fahr jetzt los und prüfe, ob alles funktioniert. In der Testphase gibt es {commands} Befehle pro Tag, und das Virtual Shifting von BikeControl — eine Pro-Funktion — läuft {minutes} Min. pro Tag.",
@@ -2384,5 +2383,7 @@
   "onboardingNetworkRecheck": "Erneut prüfen",
   "onboardingNetworkContinueAnyway": "Trotzdem fortfahren",
   "onboardingNetworkContinuedNote": "Die Netzwerkprüfung hat ein Problem gefunden. Wenn {app} sich nicht verbindet, prüfe hier erneut.",
-  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingSummaryTrainerInApp": "In {app} über BikeControl",
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
 }

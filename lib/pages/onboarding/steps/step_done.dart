@@ -172,7 +172,7 @@ Widget onboardingDoneBody(
         : (LucideIcons.monitor, app.name, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
     if (trainerName != null)
       trainerAppConnected
-          ? (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryBridged, true, null)
+          ? (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
           : (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
   ];
   return Column(

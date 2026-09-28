@@ -1218,7 +1218,7 @@
   "onboardingHelpDoneTitle": "¿Cuáles son los límites de la prueba?",
   "onboardingHelpDoneBody": "Un cupo diario de comandos y una prueba diaria del cambio virtual de BikeControl (una función Pro). Suficiente para comprobar que tu configuración funciona.",
   "onboardingHelpDoneProTitle": "¿Dónde cambio las cosas más tarde?",
-  "onboardingHelpDoneProBody": "Todo lo de esta configuración está en la app normal: mandos y asignaciones de botones en la pantalla de inicio, métodos de conexión en Conexiones del rodillo y el puente del rodillo inteligente en su tarjeta de dispositivo.",
+  "onboardingHelpDoneProBody": "Todo lo de esta configuración está en la app normal: mandos y asignaciones de botones en la pantalla de inicio, métodos de conexión en Conexiones del rodillo y tu rodillo inteligente en su tarjeta de dispositivo.",
   "onboardingHelpGuides": "Guías de configuración",
   "onboardingHelpTroubleshooting": "Solución de problemas",
   "onboardingHelpSupport": "Contactar con soporte",
@@ -1301,7 +1301,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Deja BikeControl en este móvil y rueda con {app} en un PC, Apple TV o tablet: encontrará el puente por tu wifi. Vuelve un paso y elige «En otro dispositivo».",
+  "onboardingVsBlockedAltAppBody": "Deja BikeControl en este móvil y rueda con {app} en un PC, Apple TV o tablet: encontrará tu rodillo a través de BikeControl por tu wifi. Vuelve un paso y elige «En otro dispositivo».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1512,7 +1512,6 @@
       }
     }
   },
-  "onboardingSummaryBridged": "Conectado por BikeControl",
   "onboardingTestModeTitle": "Estás en el periodo de prueba",
   "onboardingTestModeBody": "Rueda ahora y comprueba que todo funciona. La prueba permite {commands} comandos al día: suficiente para verificar la conexión, no para una sesión entera.",
   "onboardingTestModeBodyVs": "Rueda ahora y comprueba que todo funciona. La prueba permite {commands} comandos al día, y el cambio virtual de BikeControl (una función Pro) funciona {minutes} min al día.",
@@ -2384,5 +2383,7 @@
   "onboardingNetworkRecheck": "Comprobar de nuevo",
   "onboardingNetworkContinueAnyway": "Continuar de todos modos",
   "onboardingNetworkContinuedNote": "La comprobación de red encontró un problema. Si {app} no se conecta, vuelve a comprobarlo aquí.",
-  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingSummaryTrainerInApp": "En {app} a través de BikeControl",
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
 }

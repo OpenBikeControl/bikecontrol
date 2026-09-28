@@ -1218,7 +1218,7 @@
   "onboardingHelpDoneTitle": "Jakie są limity okresu próbnego?",
   "onboardingHelpDoneBody": "Dzienny limit komend oraz dzienny okres próbny wirtualnej zmiany biegów BikeControl (funkcja Pro). Wystarczy, aby sprawdzić, że konfiguracja działa.",
   "onboardingHelpDoneProTitle": "Gdzie zmienię to później?",
-  "onboardingHelpDoneProBody": "Wszystko z tej konfiguracji znajdziesz w zwykłej aplikacji: kontrolery i mapowania na ekranie głównym, metody połączenia w Połączeniach trenażera, a most trenażera na jego karcie urządzenia.",
+  "onboardingHelpDoneProBody": "Wszystko z tej konfiguracji znajdziesz w zwykłej aplikacji: kontrolery i mapowania na ekranie głównym, metody połączenia w Połączeniach trenażera, a trenażer na jego karcie urządzenia.",
   "onboardingHelpGuides": "Przewodniki konfiguracji",
   "onboardingHelpTroubleshooting": "Rozwiązywanie problemów",
   "onboardingHelpSupport": "Skontaktuj się z pomocą",
@@ -1301,7 +1301,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Zostaw BikeControl na tym telefonie i jeźdź w {app} na PC, Apple TV lub tablecie — znajdzie most przez Wi-Fi. Cofnij się o krok i wybierz „Na innym urządzeniu”.",
+  "onboardingVsBlockedAltAppBody": "Zostaw BikeControl na tym telefonie i jeźdź w {app} na PC, Apple TV lub tablecie — znajdzie trenażer przez BikeControl w Wi-Fi. Cofnij się o krok i wybierz „Na innym urządzeniu”.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1512,7 +1512,6 @@
       }
     }
   },
-  "onboardingSummaryBridged": "Połączony przez BikeControl",
   "onboardingTestModeTitle": "Korzystasz z okresu próbnego",
   "onboardingTestModeBody": "Rusz teraz i sprawdź, czy wszystko działa. Okres próbny pozwala na {commands} komend dziennie — wystarczy, by potwierdzić połączenie, ale nie na cały trening.",
   "onboardingTestModeBodyVs": "Rusz teraz i sprawdź, czy wszystko działa. Okres próbny pozwala na {commands} komend dziennie, a wirtualna zmiana biegów BikeControl — funkcja Pro — działa {minutes} min dziennie.",
@@ -2384,5 +2383,7 @@
   "onboardingNetworkRecheck": "Sprawdź ponownie",
   "onboardingNetworkContinueAnyway": "Kontynuuj mimo to",
   "onboardingNetworkContinuedNote": "Test sieci wykrył problem. Jeśli {app} się nie połączy, sprawdź ponownie tutaj.",
-  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingSummaryTrainerInApp": "W {app} przez BikeControl",
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
 }

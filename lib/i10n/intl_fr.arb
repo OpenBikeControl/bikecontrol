@@ -1218,7 +1218,7 @@
   "onboardingHelpDoneTitle": "Quelles sont les limites de l'essai ?",
   "onboardingHelpDoneBody": "Un quota quotidien de commandes, plus un essai quotidien des vitesses virtuelles de BikeControl (une fonction Pro). De quoi vérifier que ta configuration fonctionne.",
   "onboardingHelpDoneProTitle": "Où modifier tout ça plus tard ?",
-  "onboardingHelpDoneProBody": "Tout ce qui vient de cette configuration se trouve dans l'app : commandes et affectations sur l'écran d'accueil, méthodes de connexion sous Connexions home-trainer, et le pont du home-trainer sur sa fiche.",
+  "onboardingHelpDoneProBody": "Tout ce qui vient de cette configuration se trouve dans l'app : commandes et affectations sur l'écran d'accueil, méthodes de connexion sous Connexions home-trainer, et ton home-trainer sur sa fiche.",
   "onboardingHelpGuides": "Guides de configuration",
   "onboardingHelpTroubleshooting": "Dépannage",
   "onboardingHelpSupport": "Contacter l'assistance",
@@ -1301,7 +1301,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Garde BikeControl sur ce téléphone et roule avec {app} sur un PC, une Apple TV ou une tablette — le pont sera trouvé via ton Wi-Fi. Reviens d'une étape et choisis « Sur un autre appareil ».",
+  "onboardingVsBlockedAltAppBody": "Garde BikeControl sur ce téléphone et roule avec {app} sur un PC, une Apple TV ou une tablette — il y trouvera ton home-trainer via BikeControl sur ton Wi-Fi. Reviens d'une étape et choisis « Sur un autre appareil ».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1512,7 +1512,6 @@
       }
     }
   },
-  "onboardingSummaryBridged": "Relié via BikeControl",
   "onboardingTestModeTitle": "Tu es en période d'essai",
   "onboardingTestModeBody": "Roule maintenant et vérifie que tout fonctionne. L'essai autorise {commands} commandes par jour — de quoi valider la connexion, pas une séance entière.",
   "onboardingTestModeBodyVs": "Roule maintenant et vérifie que tout fonctionne. L'essai autorise {commands} commandes par jour, et les vitesses virtuelles de BikeControl — une fonction Pro — tournent {minutes} min par jour.",
@@ -2384,5 +2383,7 @@
   "onboardingNetworkRecheck": "Vérifier à nouveau",
   "onboardingNetworkContinueAnyway": "Continuer quand même",
   "onboardingNetworkContinuedNote": "La vérification réseau a trouvé un problème. Si {app} ne se connecte pas, vérifie à nouveau ici.",
-  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingSummaryTrainerInApp": "Dans {app} via BikeControl",
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
 }

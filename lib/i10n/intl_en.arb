@@ -549,7 +549,7 @@
   "onboardingWelcomeTitle": "Let's get you set up",
   "onboardingWelcomeSubtitle": "A couple of minutes now, and your controller shifts gears in your trainer app for every ride after this.",
   "onboardingWelcomePointController": "Pair your controller and see its buttons light up",
-  "onboardingWelcomePointTrainer": "Optionally bridge your smart trainer for virtual shifting",
+  "onboardingWelcomePointTrainer": "Optionally run your smart trainer through BikeControl for virtual shifting",
   "onboardingWelcomePointApp": "Connect to your trainer app, step by step",
   "onboardingWelcomeStart": "Let's go",
   "onboardingWelcomeLater": "I'll set this up later",
@@ -621,7 +621,7 @@
   "onboardingHelpDoneTitle": "What are the trial limits?",
   "onboardingHelpDoneBody": "A daily command budget, plus a daily trial of BikeControl's virtual shifting (a Pro feature). Enough to verify your setup works.",
   "onboardingHelpDoneProTitle": "Where do I change things later?",
-  "onboardingHelpDoneProBody": "Everything from this setup lives in the regular app: controllers and button mappings on the home screen, connection methods under Trainer Connections, and the smart-trainer bridge on its device card.",
+  "onboardingHelpDoneProBody": "Everything from this setup lives in the regular app: controllers and button mappings on the home screen, connection methods under Trainer Connections, and your smart trainer on its device card.",
   "onboardingHelpGuides": "Setup guides",
   "onboardingHelpTroubleshooting": "Troubleshooting",
   "onboardingHelpSupport": "Contact support",
@@ -689,7 +689,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "Virtual Shifting works with {app} — just not with both apps on this one phone: BikeControl bridges your trainer over Wi-Fi, the Android version of {app} pairs trainers over Bluetooth only, and BikeControl can't advertise Bluetooth to an app on the same device.",
+  "onboardingVsBlockedExplainer": "Virtual shifting works with {app} — just not with both apps on this one phone: BikeControl passes your trainer on over Wi-Fi, the Android version of {app} pairs trainers over Bluetooth only, and BikeControl can't advertise Bluetooth to an app on the same device.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -706,7 +706,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Keep BikeControl on this phone and ride {app} on a PC, Apple TV or tablet — it finds the bridge over your Wi-Fi. Go back a step and pick “On another device”.",
+  "onboardingVsBlockedAltAppBody": "Keep BikeControl on this phone and ride {app} on a PC, Apple TV or tablet — it finds your trainer through BikeControl over your Wi-Fi. Go back a step and pick “On another device”.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -716,7 +716,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "Run BikeControl on another device",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Install BikeControl on a second phone or tablet next to your bike and let it bridge the trainer over Bluetooth — that's what {app} on Android accepts.",
+  "onboardingVsBlockedAltBtBody": "Install BikeControl on a second phone or tablet next to your bike and let it pass the trainer on over Bluetooth — that's what {app} on Android accepts.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -724,7 +724,7 @@
       }
     }
   },
-  "onboardingTrainerTitle": "Optional: let BikeControl handle Virtual Shifting",
+  "onboardingTrainerTitle": "Optional: let BikeControl handle virtual shifting",
   "onboardingTrainerSubtitle": "Connect your smart trainer and BikeControl computes every gear for you — in any app you ride.",
   "onboardingNearbyTrainers": "Nearby smart trainers",
   "onboardingTrainerMeta": "Supports virtual shifting",
@@ -739,7 +739,7 @@
       }
     }
   },
-  "onboardingLetAppHandleVs": "Let {app} handle Virtual Shifting",
+  "onboardingLetAppHandleVs": "Let {app} handle virtual shifting",
   "@onboardingLetAppHandleVs": {
     "placeholders": {
       "app": {
@@ -888,7 +888,7 @@
       }
     }
   },
-  "onboardingDoneSubtitleBridged": "{controller} is connected to {app}, and your trainer is bridged through BikeControl.",
+  "onboardingDoneSubtitleBridged": "{controller} is connected to {app}, and {app} gets your trainer through BikeControl.",
   "@onboardingDoneSubtitleBridged": {
     "placeholders": {
       "controller": {
@@ -917,7 +917,6 @@
       }
     }
   },
-  "onboardingSummaryBridged": "Bridged",
   "onboardingTestModeTitle": "You're on the trial",
   "onboardingTestModeBody": "Ride now and check everything works. The trial allows {commands} commands a day — enough to prove the connection, not a whole session.",
   "onboardingTestModeBodyVs": "Ride now and check everything works. The trial allows {commands} commands a day, and BikeControl's virtual shifting — a Pro feature — runs {minutes} min a day.",
@@ -2758,5 +2757,7 @@
   "onboardingNetworkRecheck": "Check again",
   "onboardingNetworkContinueAnyway": "Continue anyway",
   "onboardingNetworkContinuedNote": "The network check found a problem. If {app} doesn't connect, check again here.",
-  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}}
+  "@onboardingNetworkContinuedNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingSummaryTrainerInApp": "In {app} via BikeControl",
+  "@onboardingSummaryTrainerInApp": {"placeholders": {"app": {"type": "String"}}}
 }

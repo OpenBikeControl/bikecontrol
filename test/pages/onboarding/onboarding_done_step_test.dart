@@ -109,6 +109,8 @@ Future<void> main() async {
         onRunTrainerCheck: () => checked++,
       ),
     );
+    // The trainer row says where the trainer went, in plain words.
+    expect(find.text(l10n(tester).onboardingSummaryTrainerInApp('MyWhoosh')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('onboarding-done-trainer-check')));
     expect(checked, 1);
   });
