@@ -84,12 +84,16 @@ class _WorkoutsListState extends State<WorkoutsList> {
                 child: Center(child: Text(l10n.miniWorkoutNoPastWorkouts)),
               )
             else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: items.length,
-                separatorBuilder: (_, _) => const Divider(thickness: 0.5),
-                itemBuilder: (context, i) => _row(items[i], l10n),
+              // Scrolls inside the sheet it lives in (which has no scroll view
+              // of its own) instead of running off its bottom; shrink-wrapped
+              // so a short history still gets a short sheet.
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const Divider(thickness: 0.5),
+                  itemBuilder: (context, i) => _row(items[i], l10n),
+                ),
               ),
           ],
         );
@@ -100,8 +104,10 @@ class _WorkoutsListState extends State<WorkoutsList> {
   Widget _row(PastWorkout w, AppLocalizations l10n) {
     final cs = Theme.of(context).colorScheme;
     final summary = w.summary;
-    return Button.ghost(
-      onPressed: () {}, // row tap reserved for future detail view
+    // Not a button until there is a detail view to open: a row that looks
+    // tappable and does nothing reads as broken.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
           Expanded(

@@ -1,5 +1,7 @@
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
+import 'package:bike_control/utils/image_decode.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -69,16 +71,21 @@ class _SupportAttachmentViewState extends State<SupportAttachmentView> {
         }
         final url = snapshot.data!;
         if (_isImage) {
-          return GestureDetector(
-            onTap: () => launchUrlString(url),
+          return BkTappable(
+            onPressed: () => launchUrlString(url),
+            label: widget.attachment.fileName,
+            borderRadius: BorderRadius.circular(8),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: widget.maxImageHeight ?? 220),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  url,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _chip(context, onTap: () => launchUrlString(url)),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    cacheWidth: decodeWidthFor(context, constraints.maxWidth),
+                    errorBuilder: (_, __, ___) => _chip(context, onTap: () => launchUrlString(url)),
+                  ),
                 ),
               ),
             ),
@@ -91,8 +98,9 @@ class _SupportAttachmentViewState extends State<SupportAttachmentView> {
 
   Widget _chip(BuildContext context, {VoidCallback? onTap, bool error = false}) {
     final cs = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
+    return BkTappable(
+      onPressed: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(

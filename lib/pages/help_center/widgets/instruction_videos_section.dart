@@ -2,6 +2,7 @@
 // unchanged, only the private classes moved so the Help Center's "Guides &
 // videos" section can open the same drawer.
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/image_decode.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:http/http.dart' as http;
@@ -236,7 +237,13 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(video.thumbnailUrl, fit: BoxFit.cover),
+                    LayoutBuilder(
+                      builder: (context, constraints) => Image.network(
+                        video.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        cacheWidth: decodeWidthFor(context, constraints.maxWidth),
+                      ),
+                    ),
                     Center(
                       child: Container(
                         padding: const EdgeInsets.all(10),
