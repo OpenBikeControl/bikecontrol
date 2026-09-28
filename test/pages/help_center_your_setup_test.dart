@@ -19,6 +19,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
+import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/your_setup_section.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
@@ -354,8 +355,27 @@ Future<void> main() async {
       await _openSheet(tester, _controllerNotFoundRowKey);
 
       expect(find.text(l10n.helpCenterControllerNotFoundEntry), findsWidgets);
-      expect(find.text(l10n.helpAnswerControllerNotFoundBody), findsOneWidget);
+      expect(find.byType(HelpCheckList), findsOneWidget);
       expect(find.byKey(const ValueKey('help-answer-close')), findsOneWidget);
+    });
+
+    testWidgets('a known Zwift controller gets the Zwift Companion firmware step', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
+
+      await _pump(tester, devices: [rightSide], connections: const []);
+      await tester.pump();
+      await _openSheet(tester, _controllerNotFoundRowKey);
+
+      expect(find.text(l10n.zwiftCompanionApp), findsOneWidget);
+    });
+
+    testWidgets('with no known controller the not-found sheet does not assume Zwift', (tester) async {
+      await _pump(tester, devices: const [], connections: const []);
+      await tester.pump();
+      await _openSheet(tester, _controllerNotFoundRowKey);
+
+      expect(find.text(l10n.zwiftCompanionApp), findsNothing);
+      expect(find.text(l10n.helpCheckFirmwareMakerSub), findsOneWidget);
     });
   });
 

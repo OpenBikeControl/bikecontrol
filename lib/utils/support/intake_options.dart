@@ -28,6 +28,7 @@ import '../../bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import '../../bluetooth/devices/zwift/constants.dart';
 import '../../bluetooth/devices/zwift/zwift_click.dart';
 import '../../bluetooth/devices/zwift/zwift_clickv2.dart';
+import '../../bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import '../../bluetooth/devices/zwift/zwift_play.dart';
 import '../../bluetooth/devices/zwift/zwift_ride.dart';
 import '../../gen/l10n.dart';
@@ -173,7 +174,7 @@ String symptomLabel(AppLocalizations l, IntakeCategory category, String id) {
 ///
 /// `ZwiftClickV2 extends ZwiftRide` — keep the V2 check first.
 String? controllerOptionIdFor(BaseDevice device) {
-  if (device is ZwiftClickV2) return 'zwift_click_v2';
+  if (device is ZwiftClickV2 || device is ZwiftClickV2RightSide) return 'zwift_click_v2';
   if (device is ZwiftClick) return 'zwift_click';
   if (device is ZwiftPlay) {
     return device.deviceType == ZwiftDeviceType.playLeft

@@ -19,6 +19,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
+import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/help_answer_sheet.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
@@ -26,6 +27,7 @@ import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -80,6 +82,13 @@ class YourSetupSection extends StatelessWidget {
     // trainer, else any known one. `devicesOverride` doubles as the proxy
     // source too so tests can supply a fake one the same way they do for the
     // controller rows.
+    // The firmware step of "isn't found" depends on the controller; use the
+    // first one BikeControl knows, and assume none when it knows none.
+    final knownControllerId = knownDevices
+        .where((d) => d is! ProxyDevice)
+        .map(controllerOptionIdFor)
+        .whereType<String>()
+        .firstOrNull;
     final proxyPool = (devicesOverride ?? core.connection.devices).whereType<ProxyDevice>();
     final proxy = proxyPool.where((d) => d.isConnected).firstOrNull ?? proxyPool.firstOrNull;
 
@@ -178,7 +187,8 @@ class YourSetupSection extends StatelessWidget {
             context,
             icon: LucideIcons.bluetooth,
             title: l10n.helpCenterControllerNotFoundEntry,
-            body: l10n.helpAnswerControllerNotFoundBody,
+            body: l10n.helpAnswerChecksIntro,
+            checks: controllerNotFoundChecks(l10n, controllerId: knownControllerId),
           ),
           child: Basic(
             leading: const Icon(LucideIcons.bluetoothSearching, size: 18),

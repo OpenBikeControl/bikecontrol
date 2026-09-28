@@ -16,8 +16,8 @@ void main() {
     expect(help(IntakeCategory.controller, symptom: 'buttons_partial'), isNull);
   });
 
-  test('trainer app: gear symptoms -> the gear answer; connection symptoms -> the network test', () {
-    expect(help(IntakeCategory.trainerApp, symptom: 'shifts_not_recognized'), IntakeSelfHelp.trainerAppGear);
+  test('trainer app: no reaction -> connection first; gear display -> the gear answer; connection -> network test', () {
+    expect(help(IntakeCategory.trainerApp, symptom: 'shifts_not_recognized'), IntakeSelfHelp.appNotReacting);
     expect(help(IntakeCategory.trainerApp, symptom: 'gear_indicator_not_updating'), IntakeSelfHelp.trainerAppGear);
     expect(help(IntakeCategory.trainerApp, symptom: 'network_bridge_fails'), IntakeSelfHelp.networkTest);
     expect(help(IntakeCategory.trainerApp, symptom: 'no_pairing'), IntakeSelfHelp.networkTest);

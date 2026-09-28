@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/services/support_chat_models.dart';
@@ -20,12 +21,18 @@ class SupportIntakeForm extends StatefulWidget {
   /// question (the rider can still continue to the composer).
   final VoidCallback? onSolved;
 
+  /// Test seam: resolves the trainer the inline answers act on, instead of
+  /// `core.connection.proxyDevices`.
+  @visibleForTesting
+  final ProxyDevice? Function()? debugTrainer;
+
   const SupportIntakeForm({
     super.key,
     required this.service,
     required this.onContinue,
     this.initial,
     this.onSolved,
+    this.debugTrainer,
   });
 
   @override
@@ -159,6 +166,8 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             _InlineSelfHelp(
               key: ValueKey('intake-self-help-${selfHelp.name}'),
               help: selfHelp,
+              controllerId: _category == IntakeCategory.controller ? _subcategoryValue : null,
+              trainer: widget.debugTrainer,
               onSolved: widget.onSolved,
               onNotSolved: () => widget.onContinue(_buildAnswers()),
             )
@@ -332,31 +341,58 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
 /// The help-center answer matching the intake choice, inline, with "Did this
 /// solve it?" — Yes closes, No continues to the composer.
 class _InlineSelfHelp extends StatelessWidget {
-  const _InlineSelfHelp({super.key, required this.help, required this.onNotSolved, this.onSolved});
+  const _InlineSelfHelp({
+    super.key,
+    required this.help,
+    required this.controllerId,
+    required this.onNotSolved,
+    this.onSolved,
+    this.trainer,
+  });
 
   final IntakeSelfHelp help;
+
+  /// The controller chosen in the form, if any — the "isn't found" checks
+  /// depend on it.
+  final String? controllerId;
   final VoidCallback onNotSolved;
   final VoidCallback? onSolved;
+
+  /// Resolves the trainer the self-test and overlay actions open.
+  final ProxyDevice? Function()? trainer;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l10n = context.i18n;
-    final proxy = _knownTrainer();
+    final proxy = (trainer ?? _knownTrainer)();
+    final connectedTrainer = proxy != null && proxy.isConnected ? proxy : null;
     void openNetworkTest() => context.push(const NetworkTroubleshootingPage());
-    final (IconData icon, String title, String body, List<(IconData, String, VoidCallback)> actions) = switch (help) {
+    void openOverlay() => context.push(ProxyDeviceDetailsPage(device: proxy!, revealOverlaySection: true));
+    final (
+      IconData icon,
+      String title,
+      String body,
+      List<HelpCheck> checks,
+      List<(Key?, IconData, String, VoidCallback)> actions,
+      String? note,
+    ) = switch (help) {
       IntakeSelfHelp.controllerNotFound => (
         LucideIcons.bluetoothSearching,
         l10n.helpCenterControllerNotFoundEntry,
-        l10n.helpAnswerControllerNotFoundBody,
-        const <(IconData, String, VoidCallback)>[],
+        l10n.helpAnswerChecksIntro,
+        controllerNotFoundChecks(l10n, controllerId: controllerId),
+        const <(Key?, IconData, String, VoidCallback)>[],
+        null,
       ),
       IntakeSelfHelp.controllerDisconnecting => (
         LucideIcons.bluetoothOff,
         l10n.helpCenterControllerDisconnectingEntry,
         l10n.helpAnswerControllerDisconnectingBody,
+        const <HelpCheck>[],
         [
           (
+            null,
             LucideIcons.refreshCw,
             l10n.helpAnswerControllerDisconnectingAction,
             () => launchUrlString(
@@ -365,39 +401,65 @@ class _InlineSelfHelp extends StatelessWidget {
             ),
           ),
         ],
+        null,
       ),
+      IntakeSelfHelp.appNotReacting => () {
+        final [connection, gear] = appNotReactingChecks(l10n);
+        return (
+          LucideIcons.radioTower,
+          l10n.helpAnswerAppNotReactingTitle,
+          l10n.helpAnswerChecksIntro,
+          [
+            connection.withAction(
+              label: l10n.intakeSelfHelpNetworkAction,
+              icon: LucideIcons.radioTower,
+              onPressed: openNetworkTest,
+            ),
+            if (proxy != null)
+              gear.withAction(label: l10n.helpAnswerGearOverlayAction, icon: LucideIcons.layers, onPressed: openOverlay)
+            else
+              gear,
+          ],
+          const <(Key?, IconData, String, VoidCallback)>[],
+          null,
+        );
+      }(),
       IntakeSelfHelp.trainerAppGear => (
         LucideIcons.eye,
         l10n.helpCenterGearOverlayEntry,
         l10n.helpAnswerGearBody,
+        const <HelpCheck>[],
         [
-          if (proxy != null)
-            (
-              LucideIcons.layers,
-              l10n.helpAnswerGearOverlayAction,
-              () => context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
-            ),
-          (LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest),
+          if (proxy != null) (null, LucideIcons.layers, l10n.helpAnswerGearOverlayAction, openOverlay),
+          (null, LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest),
         ],
+        null,
       ),
       IntakeSelfHelp.networkTest => (
         LucideIcons.radioTower,
         l10n.helpCenterNetworkEntry,
         l10n.intakeSelfHelpNetworkBody,
-        [(LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest)],
+        const <HelpCheck>[],
+        [(null, LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest)],
+        null,
       ),
+      // The self-test needs a live trainer: run it directly when there is
+      // one, otherwise say to connect it first.
       IntakeSelfHelp.trainerSelfTest => (
         LucideIcons.activity,
         l10n.intakeSelfHelpSelfTestTitle,
         l10n.intakeSelfHelpSelfTestBody,
+        const <HelpCheck>[],
         [
-          if (proxy != null)
+          if (connectedTrainer != null)
             (
+              const ValueKey('intake-run-self-test'),
               LucideIcons.activity,
               l10n.intakeSelfHelpSelfTestAction,
-              () => context.push(ProxyDeviceDetailsPage(device: proxy, revealSelfTest: true)),
+              () => context.push(ProxyDeviceDetailsPage(device: connectedTrainer, revealSelfTest: true)),
             ),
         ],
+        connectedTrainer == null ? l10n.helpSelfTestNeedsTrainer : null,
       ),
     };
     return Container(
@@ -424,11 +486,24 @@ class _InlineSelfHelp extends StatelessWidget {
           ),
           const Gap(6),
           Text(body, style: context.typography.xSmall.copyWith(color: cs.mutedForeground, height: 1.35)),
-          for (final (actionIcon, label, onPressed) in actions) ...[
+          if (checks.isNotEmpty) ...[const Gap(10), HelpCheckList(checks: checks, tileColor: cs.card)],
+          if (note != null) ...[
+            const Gap(8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(LucideIcons.info, size: 14, color: cs.mutedForeground),
+                const Gap(6),
+                Expanded(child: Text(note, style: context.typography.xSmall.copyWith(height: 1.35))),
+              ],
+            ),
+          ],
+          for (final (actionKey, actionIcon, label, onPressed) in actions) ...[
             const Gap(8),
             Align(
               alignment: Alignment.centerLeft,
               child: Button.outline(
+                key: actionKey,
                 style: ButtonStyle.outline(size: ButtonSize.small),
                 onPressed: onPressed,
                 child: Row(

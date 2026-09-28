@@ -15,6 +15,10 @@ enum IntakeSelfHelp {
   /// "Shifting works, but the gear doesn't change" — plus the network test.
   trainerAppGear,
 
+  /// "BikeControl shifts, the app doesn't react": the connection check
+  /// first, the gear display second.
+  appNotReacting,
+
   /// The trainer app can't find or reach BikeControl: the network test.
   networkTest,
 
@@ -29,7 +33,8 @@ IntakeSelfHelp? intakeSelfHelpFor(IntakeAnswers answers) => switch (answers.cate
     _ => null,
   },
   IntakeCategory.trainerApp => switch (answers.symptom) {
-    'shifts_not_recognized' || 'gear_indicator_not_updating' => IntakeSelfHelp.trainerAppGear,
+    'shifts_not_recognized' => IntakeSelfHelp.appNotReacting,
+    'gear_indicator_not_updating' => IntakeSelfHelp.trainerAppGear,
     'network_bridge_fails' || 'no_pairing' => IntakeSelfHelp.networkTest,
     _ => null,
   },
