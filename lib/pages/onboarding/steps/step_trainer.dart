@@ -3,6 +3,9 @@ import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPin
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -137,7 +140,13 @@ Widget onboardingTrainerBody(BuildContext context,
   }
 
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-    Text(context.i18n.onboardingTrainerTitle).h4,
+    // The PRO badge sits on the title itself: this is the Pro feature, and
+    // the rider should know before connecting a trainer, not at the paywall.
+    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: Text(context.i18n.onboardingTrainerTitle).h4),
+      Gap(10),
+      const Padding(padding: EdgeInsets.only(top: 4), child: ProBadge()),
+    ]),
     Gap(6),
     Text(context.i18n.onboardingTrainerSubtitle).small.muted,
     Gap(16),
@@ -145,6 +154,11 @@ Widget onboardingTrainerBody(BuildContext context,
     // with, instead of three lines of copy claiming the same thing.
     const VirtualShiftingStage(),
     Gap(14),
+    OnboardingNote(
+      context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+      icon: LucideIcons.award,
+    ),
+    Gap(10),
     _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
     Gap(10),
     Button.ghost(

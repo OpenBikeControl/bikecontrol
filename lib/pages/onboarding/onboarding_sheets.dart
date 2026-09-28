@@ -136,8 +136,10 @@ Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep st
         ),
       _channel(
         context,
-        icon: LucideIcons.mail,
+        icon: LucideIcons.messageCircle,
         title: context.i18n.onboardingHelpSupport,
+        // The in-app support chat, not a mail client or a web page.
+        external: false,
         onTap: () => _openSupportChat(context, onClose),
       ),
       Gap(16),
@@ -183,7 +185,15 @@ Future<void> _openSupportChat(BuildContext context, VoidCallback onClose) async 
   }
 }
 
-Widget _channel(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+/// [external] marks a channel that leaves the app (a web page): it gets the
+/// external-link mark. In-app destinations get a plain chevron.
+Widget _channel(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+  bool external = true,
+}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Button.card(
@@ -193,7 +203,7 @@ Widget _channel(BuildContext context, {required IconData icon, required String t
           Icon(icon, size: 18),
           Gap(12),
           Expanded(child: Text(title).small.semiBold),
-          Icon(LucideIcons.externalLink, size: 14),
+          Icon(external ? LucideIcons.externalLink : LucideIcons.chevronRight, size: 14),
         ],
       ),
     ),

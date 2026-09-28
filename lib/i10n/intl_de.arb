@@ -1223,7 +1223,7 @@
   "onboardingHelpControllerTitle": "Mein Controller taucht nicht auf",
   "onboardingHelpControllerBody": "Wecke ihn mit einem Tastendruck, schließe jede App, die ihn schon belegt (vor allem Zwift), und halte ihn ein paar Meter in der Nähe.",
   "onboardingHelpVsTitle": "Brauche ich einen Smart Trainer?",
-  "onboardingHelpVsBody": "Nein — dieser Schritt ist optional. Verbinde einen nur, wenn BikeControl deine Gänge und den Widerstand berechnen soll.",
+  "onboardingHelpVsBody": "Nein — dieser Schritt ist optional. Verbinde einen nur, wenn BikeControl deine Gänge und den Widerstand berechnen soll. Das ist das Virtual Shifting von BikeControl, Teil von Pro: Ohne Pro kannst du es täglich testen, Basis enthält es nicht.",
   "onboardingHelpConnectionTitle": "Es verbindet sich nicht",
   "onboardingHelpConnectionBody": "Prüfe für Netzwerk, ob beide Geräte im selben WLAN sind, oder aktiviere Lokal als Alternative unter macOS, Windows und Android.",
   "onboardingHelpDoneTitle": "Was sind die Grenzen der Testphase?",
@@ -2311,5 +2311,6 @@
   "onboardingRunTrainerCheck": "Trainer-Check starten",
   "onboardingTrialKeepVs": "Virtual Shifting behalten: Pro",
   "onboardingTrialUnlimited": "Unbegrenzte Befehle: Basis oder Pro",
-  "onboardingSkipControllerNote": "Ohne Controller kann BikeControl nicht schalten. Du kannst später über den Startbildschirm einen koppeln."
+  "onboardingSkipControllerNote": "Ohne Controller kann BikeControl nicht schalten. Du kannst später über den Startbildschirm einen koppeln.",
+  "onboardingVsProNote": "Das Virtual Shifting von BikeControl ist Teil von Pro. Ohne Pro kannst du es jeden Tag {minutes} Minuten testen; Basis enthält es nicht."
 }

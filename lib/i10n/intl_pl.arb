@@ -1212,7 +1212,7 @@
   "onboardingHelpControllerTitle": "Mój kontroler się nie pojawia",
   "onboardingHelpControllerBody": "Obudź go naciśnięciem przycisku, zamknij aplikacje, które już go zajmują (zwłaszcza Zwift), i trzymaj w odległości kilku metrów.",
   "onboardingHelpVsTitle": "Czy potrzebuję trenażera?",
-  "onboardingHelpVsBody": "Nie — ten krok jest opcjonalny. Podłącz go tylko wtedy, gdy chcesz, aby BikeControl liczył biegi i opór.",
+  "onboardingHelpVsBody": "Nie — ten krok jest opcjonalny. Podłącz go tylko wtedy, gdy chcesz, aby BikeControl liczył biegi i opór. To wirtualna zmiana biegów BikeControl, część Pro: bez Pro masz codzienny okres próbny, a Base jej nie obejmuje.",
   "onboardingHelpConnectionTitle": "Nie łączy się",
   "onboardingHelpConnectionBody": "Dla sieci sprawdź, czy oba urządzenia są w tym samym Wi-Fi, albo włącz metodę lokalną jako zapas na macOS, Windows i Androidzie.",
   "onboardingHelpDoneTitle": "Jakie są limity okresu próbnego?",
@@ -2311,5 +2311,6 @@
   "onboardingRunTrainerCheck": "Uruchom test trenażera",
   "onboardingTrialKeepVs": "Aby zachować wirtualną zmianę biegów: Pro",
   "onboardingTrialUnlimited": "Nielimitowane komendy: Base lub Pro",
-  "onboardingSkipControllerNote": "Bez kontrolera BikeControl nie może zmieniać biegów. Możesz sparować go później na ekranie głównym."
+  "onboardingSkipControllerNote": "Bez kontrolera BikeControl nie może zmieniać biegów. Możesz sparować go później na ekranie głównym.",
+  "onboardingVsProNote": "Wirtualna zmiana biegów BikeControl jest częścią Pro. Bez Pro masz codziennie {minutes} minut okresu próbnego; Base jej nie obejmuje."
 }

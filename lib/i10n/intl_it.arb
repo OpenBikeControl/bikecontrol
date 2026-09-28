@@ -1212,7 +1212,7 @@
   "onboardingHelpControllerTitle": "Il mio controller non compare",
   "onboardingHelpControllerBody": "Sveglialo premendo un pulsante, chiudi ogni app che lo tiene già occupato (soprattutto Zwift) e tienilo a un paio di metri.",
   "onboardingHelpVsTitle": "Mi serve uno smart trainer?",
-  "onboardingHelpVsBody": "No: questo passo è facoltativo. Collegane uno solo se vuoi che BikeControl calcoli marce e resistenza.",
+  "onboardingHelpVsBody": "No: questo passo è facoltativo. Collegane uno solo se vuoi che BikeControl calcoli marce e resistenza. È il cambio virtuale di BikeControl, parte di Pro: senza Pro hai una prova giornaliera, e Base non lo include.",
   "onboardingHelpConnectionTitle": "Non si collega",
   "onboardingHelpConnectionBody": "Per Rete, controlla che entrambi i dispositivi siano sullo stesso Wi-Fi, oppure attiva Locale come alternativa su macOS, Windows e Android.",
   "onboardingHelpDoneTitle": "Quali sono i limiti della prova?",
@@ -2311,5 +2311,6 @@
   "onboardingRunTrainerCheck": "Esegui il test del trainer",
   "onboardingTrialKeepVs": "Per tenere il cambio virtuale: Pro",
   "onboardingTrialUnlimited": "Per comandi illimitati: Base o Pro",
-  "onboardingSkipControllerNote": "Senza controller BikeControl non può cambiare. Puoi abbinarne uno più tardi dalla schermata principale."
+  "onboardingSkipControllerNote": "Senza controller BikeControl non può cambiare. Puoi abbinarne uno più tardi dalla schermata principale.",
+  "onboardingVsProNote": "Il cambio virtuale di BikeControl fa parte di Pro. Senza Pro hai una prova di {minutes} minuti ogni giorno; Base non lo include."
 }

@@ -1212,7 +1212,7 @@
   "onboardingHelpControllerTitle": "Ma commande n'apparaît pas",
   "onboardingHelpControllerBody": "Réveille-la avec un appui, ferme toute app qui la retient déjà (Zwift surtout) et garde-la à deux mètres.",
   "onboardingHelpVsTitle": "Ai-je besoin d'un home-trainer connecté ?",
-  "onboardingHelpVsBody": "Non — cette étape est facultative. Connecte-en un seulement si tu veux que BikeControl calcule tes vitesses et la résistance.",
+  "onboardingHelpVsBody": "Non — cette étape est facultative. Connecte-en un seulement si tu veux que BikeControl calcule tes vitesses et la résistance. Ce sont les vitesses virtuelles de BikeControl, incluses dans Pro : sans Pro, tu as un essai quotidien, et Base ne les inclut pas.",
   "onboardingHelpConnectionTitle": "Ça ne se connecte pas",
   "onboardingHelpConnectionBody": "Pour Réseau, vérifie que les deux appareils sont sur le même Wi-Fi, ou active Local comme solution de repli sur macOS, Windows et Android.",
   "onboardingHelpDoneTitle": "Quelles sont les limites de l'essai ?",
@@ -2311,5 +2311,6 @@
   "onboardingRunTrainerCheck": "Lancer le test du home-trainer",
   "onboardingTrialKeepVs": "Pour garder les vitesses virtuelles : Pro",
   "onboardingTrialUnlimited": "Pour des commandes illimitées : Base ou Pro",
-  "onboardingSkipControllerNote": "Sans commande, BikeControl ne peut pas passer les vitesses. Tu pourras en associer une plus tard depuis l'écran d'accueil."
+  "onboardingSkipControllerNote": "Sans commande, BikeControl ne peut pas passer les vitesses. Tu pourras en associer une plus tard depuis l'écran d'accueil.",
+  "onboardingVsProNote": "Les vitesses virtuelles de BikeControl font partie de Pro. Sans Pro, tu as un essai de {minutes} minutes chaque jour ; Base ne les inclut pas."
 }

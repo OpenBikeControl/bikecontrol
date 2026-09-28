@@ -615,7 +615,7 @@
   "onboardingHelpControllerTitle": "My controller isn't showing up",
   "onboardingHelpControllerBody": "Wake it with a button press, close any app already holding it (Zwift especially), and keep it within a couple of metres.",
   "onboardingHelpVsTitle": "Do I need a smart trainer?",
-  "onboardingHelpVsBody": "No — this step is optional. Connect one only if you want BikeControl to compute your gears and resistance.",
+  "onboardingHelpVsBody": "No — this step is optional. Connect one only if you want BikeControl to compute your gears and resistance. That's BikeControl's virtual shifting, part of Pro: without Pro you get a daily trial, and Base doesn't include it.",
   "onboardingHelpConnectionTitle": "It won't connect",
   "onboardingHelpConnectionBody": "Check both devices are on the same Wi-Fi for Network, or enable Local as a fallback on macOS, Windows and Android.",
   "onboardingHelpDoneTitle": "What are the trial limits?",
@@ -2685,5 +2685,6 @@
   "onboardingRunTrainerCheck": "Run the trainer check",
   "onboardingTrialKeepVs": "To keep virtual shifting: Pro",
   "onboardingTrialUnlimited": "For unlimited commands: Base or Pro",
-  "onboardingSkipControllerNote": "BikeControl can't shift without a controller. You can pair one later from the home screen."
+  "onboardingSkipControllerNote": "BikeControl can't shift without a controller. You can pair one later from the home screen.",
+  "onboardingVsProNote": "BikeControl's virtual shifting is part of Pro. Without Pro you get a {minutes}-minute trial every day; Base doesn't include it."
 }

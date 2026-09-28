@@ -1212,7 +1212,7 @@
   "onboardingHelpControllerTitle": "Mi mando no aparece",
   "onboardingHelpControllerBody": "Despiértalo pulsando un botón, cierra cualquier app que ya lo tenga ocupado (sobre todo Zwift) y mantenlo a un par de metros.",
   "onboardingHelpVsTitle": "¿Necesito un rodillo inteligente?",
-  "onboardingHelpVsBody": "No: este paso es opcional. Conéctalo solo si quieres que BikeControl calcule tus marchas y la resistencia.",
+  "onboardingHelpVsBody": "No: este paso es opcional. Conéctalo solo si quieres que BikeControl calcule tus marchas y la resistencia. Eso es el cambio virtual de BikeControl, parte de Pro: sin Pro tienes una prueba diaria, y Base no lo incluye.",
   "onboardingHelpConnectionTitle": "No se conecta",
   "onboardingHelpConnectionBody": "Para Red, comprueba que ambos dispositivos están en el mismo wifi, o activa Local como alternativa en macOS, Windows y Android.",
   "onboardingHelpDoneTitle": "¿Cuáles son los límites de la prueba?",
@@ -2311,5 +2311,6 @@
   "onboardingRunTrainerCheck": "Hacer la prueba del rodillo",
   "onboardingTrialKeepVs": "Para seguir con el cambio virtual: Pro",
   "onboardingTrialUnlimited": "Para comandos ilimitados: Base o Pro",
-  "onboardingSkipControllerNote": "Sin mando, BikeControl no puede cambiar de marcha. Puedes emparejar uno más tarde desde la pantalla de inicio."
+  "onboardingSkipControllerNote": "Sin mando, BikeControl no puede cambiar de marcha. Puedes emparejar uno más tarde desde la pantalla de inicio.",
+  "onboardingVsProNote": "El cambio virtual de BikeControl forma parte de Pro. Sin Pro tienes una prueba de {minutes} minutos cada día; Base no lo incluye."
 }

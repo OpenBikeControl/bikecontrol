@@ -149,8 +149,9 @@ enum Target {
   thisDevice(
     icon: LucideIcons.monitorSmartphone,
   ),
+  // A screen somewhere else — not a gamepad, which read as "controller".
   otherDevice(
-    icon: LucideIcons.gamepad2,
+    icon: LucideIcons.monitor,
   );
 
   final IconData icon;
