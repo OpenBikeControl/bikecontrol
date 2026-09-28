@@ -122,6 +122,11 @@ abstract class SupportedApp {
   /// (e.g. MyWhoosh → 30).
   int get virtualGearAmount => 24;
 
+  /// Whether this app draws a gear number of its own. With BikeControl's
+  /// virtual shifting that number does not follow BikeControl's gear, which
+  /// the gear overlay shows instead.
+  bool get showsOwnGear => false;
+
   /// Default OpenBikeControl supported buttons used by the ButtonEditor
   /// before (or without) a live OBP connection. Overridden by trainer-app
   /// subclasses that ship a known-good list.

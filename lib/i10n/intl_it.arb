@@ -2372,5 +2372,8 @@
   "helpCheckAppConnectedSub": "La tua app di allenamento si collega a BikeControl separatamente dal trainer. La schermata principale mostra se è collegata; se non lo è, esegui il test di rete.",
   "helpCheckGearOverlayTitle": "I cambi arrivano, ma il numero di marcia non cambia?",
   "helpCheckGearOverlaySub": "Quando BikeControl controlla il trainer, la tua app continua a mostrare la sua marcia. L'Overlay mostra invece la marcia di BikeControl.",
-  "helpSelfTestNeedsTrainer": "Collega prima il trainer in BikeControl: l'autotest richiede una connessione attiva. Lo troverai poi nella pagina del trainer."
+  "helpSelfTestNeedsTrainer": "Collega prima il trainer in BikeControl: l'autotest richiede una connessione attiva. Lo troverai poi nella pagina del trainer.",
+  "onboardingDoneOverlayNote": "{app} continua a mostrare il proprio numero di marcia. La marcia di BikeControl è nell'Overlay.",
+  "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDoneShowOverlay": "Mostra l'Overlay delle marce"
 }

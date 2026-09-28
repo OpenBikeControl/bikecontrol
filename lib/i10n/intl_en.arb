@@ -2746,5 +2746,8 @@
   "helpCheckAppConnectedSub": "Your trainer app connects to BikeControl separately from your trainer. The home screen shows whether it's connected; if it isn't, run the network test.",
   "helpCheckGearOverlayTitle": "Shifts land, but the gear number doesn't change?",
   "helpCheckGearOverlaySub": "When BikeControl steers your trainer, your trainer app keeps showing its own gear. The overlay shows BikeControl's gear instead.",
-  "helpSelfTestNeedsTrainer": "Connect your trainer in BikeControl first — the self-test needs a live connection. You'll then find it on your trainer's page."
+  "helpSelfTestNeedsTrainer": "Connect your trainer in BikeControl first — the self-test needs a live connection. You'll then find it on your trainer's page.",
+  "onboardingDoneOverlayNote": "{app} keeps showing its own gear number. BikeControl's gear is shown in the overlay.",
+  "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDoneShowOverlay": "Show the gear overlay"
 }

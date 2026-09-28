@@ -2372,5 +2372,8 @@
   "helpCheckAppConnectedSub": "Deine Trainings-App verbindet sich getrennt von deinem Trainer mit BikeControl. Der Startbildschirm zeigt, ob sie verbunden ist; wenn nicht, starte den Netzwerktest.",
   "helpCheckGearOverlayTitle": "Die Schaltvorgänge kommen an, aber die Gangzahl ändert sich nicht?",
   "helpCheckGearOverlaySub": "Wenn BikeControl deinen Trainer steuert, zeigt deine Trainings-App weiter ihren eigenen Gang. Das Overlay zeigt stattdessen den Gang von BikeControl.",
-  "helpSelfTestNeedsTrainer": "Verbinde zuerst deinen Trainer in BikeControl — der Selbsttest braucht eine aktive Verbindung. Du findest ihn dann auf der Seite deines Trainers."
+  "helpSelfTestNeedsTrainer": "Verbinde zuerst deinen Trainer in BikeControl — der Selbsttest braucht eine aktive Verbindung. Du findest ihn dann auf der Seite deines Trainers.",
+  "onboardingDoneOverlayNote": "{app} zeigt weiter seine eigene Gangzahl. Den Gang von BikeControl siehst du im Overlay.",
+  "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDoneShowOverlay": "Gang-Overlay anzeigen"
 }

@@ -1,3 +1,6 @@
+import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
@@ -658,6 +661,38 @@ class _OnboardingPageState extends State<OnboardingPage> {
     trainerAppConnected: core.connection.proxyDevices.any((t) => t.isConnectedListenable.value),
   );
 
+  bool get _doneOffersOverlay {
+    final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
+    final app = _selectedApp;
+    if (trainer == null || app == null) return false;
+    return onboardingDoneOffersOverlay(
+      app: app,
+      trainerBridged: true,
+      trainerAppConnected: trainer.isConnectedListenable.value,
+      overlayOffered: trainerOverlayOffered(trainer),
+      overlayEnabled: core.settings.getOverlayEnabled(),
+      overlayDeclined: core.settings.getOverlayDeclined(),
+    );
+  }
+
+  /// Shows the gear overlay through the app's one enable path, which asks for
+  /// Android's draw-over permission first and only records the overlay as on
+  /// when something is actually on screen.
+  Future<void> _onShowOverlay() async {
+    final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
+    if (trainer == null) return;
+    try {
+      final result = await enableTrainerOverlay(trainer);
+      if (!mounted) return;
+      if (!result.ok) {
+        buildToast(level: LogLevel.LOGLEVEL_WARNING, title: result.riderMessage(context.i18n));
+      }
+      setState(() {});
+    } catch (e, s) {
+      recordError(e, s, context: 'onboarding done show overlay');
+    }
+  }
+
   /// The bridged trainer's resistance self-test lives on its details page,
   /// right under the connection card.
   Future<void> _onRunTrainerCheck() async {
@@ -750,6 +785,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
       onRunTrainerCheck: _onRunTrainerCheck,
       waitingOnNetworkMethod: core.logic.hasNetworkMethodEnabled,
       onTestNetwork: () => context.push(const NetworkTroubleshootingPage()),
+      offerOverlay: _doneOffersOverlay,
+      onShowOverlay: _onShowOverlay,
     ),
   };
 

@@ -2372,5 +2372,8 @@
   "helpCheckAppConnectedSub": "Tu app de entrenamiento se conecta a BikeControl por separado de tu rodillo. La pantalla de inicio muestra si está conectada; si no, haz la prueba de red.",
   "helpCheckGearOverlayTitle": "¿Los cambios llegan, pero el número de marcha no cambia?",
   "helpCheckGearOverlaySub": "Cuando BikeControl controla tu rodillo, tu app sigue mostrando su propia marcha. El Overlay muestra la marcha de BikeControl.",
-  "helpSelfTestNeedsTrainer": "Conecta primero tu rodillo en BikeControl: el autotest necesita una conexión activa. Luego lo encontrarás en la página de tu rodillo."
+  "helpSelfTestNeedsTrainer": "Conecta primero tu rodillo en BikeControl: el autotest necesita una conexión activa. Luego lo encontrarás en la página de tu rodillo.",
+  "onboardingDoneOverlayNote": "{app} sigue mostrando su propio número de marcha. La marcha de BikeControl se ve en el Overlay.",
+  "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDoneShowOverlay": "Mostrar el Overlay de marchas"
 }

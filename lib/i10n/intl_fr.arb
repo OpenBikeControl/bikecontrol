@@ -2372,5 +2372,8 @@
   "helpCheckAppConnectedSub": "Ton app d'entraînement se connecte à BikeControl séparément de ton home-trainer. L'écran d'accueil indique si elle est connectée ; sinon, lance le test réseau.",
   "helpCheckGearOverlayTitle": "Les changements passent, mais le numéro de vitesse ne bouge pas ?",
   "helpCheckGearOverlaySub": "Quand BikeControl pilote ton home-trainer, ton app continue d'afficher sa propre vitesse. L'Overlay affiche celle de BikeControl.",
-  "helpSelfTestNeedsTrainer": "Connecte d'abord ton home-trainer dans BikeControl — l'autotest a besoin d'une connexion active. Tu le trouveras ensuite sur la page de ton home-trainer."
+  "helpSelfTestNeedsTrainer": "Connecte d'abord ton home-trainer dans BikeControl — l'autotest a besoin d'une connexion active. Tu le trouveras ensuite sur la page de ton home-trainer.",
+  "onboardingDoneOverlayNote": "{app} continue d'afficher son propre numéro de vitesse. La vitesse de BikeControl s'affiche dans l'Overlay.",
+  "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDoneShowOverlay": "Afficher l'Overlay des vitesses"
 }

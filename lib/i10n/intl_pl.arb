@@ -2372,5 +2372,8 @@
   "helpCheckAppConnectedSub": "Aplikacja treningowa łączy się z BikeControl niezależnie od trenażera. Ekran główny pokazuje, czy jest połączona; jeśli nie, uruchom test sieci.",
   "helpCheckGearOverlayTitle": "Zmiany docierają, ale numer biegu się nie zmienia?",
   "helpCheckGearOverlaySub": "Gdy BikeControl steruje trenażerem, aplikacja nadal pokazuje własny bieg. Overlay pokazuje bieg BikeControl.",
-  "helpSelfTestNeedsTrainer": "Najpierw połącz trenażer w BikeControl — autotest wymaga aktywnego połączenia. Znajdziesz go potem na stronie trenażera."
+  "helpSelfTestNeedsTrainer": "Najpierw połącz trenażer w BikeControl — autotest wymaga aktywnego połączenia. Znajdziesz go potem na stronie trenażera.",
+  "onboardingDoneOverlayNote": "{app} nadal pokazuje własny numer biegu. Bieg BikeControl widać w Overlay.",
+  "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
+  "onboardingDoneShowOverlay": "Pokaż Overlay biegów"
 }

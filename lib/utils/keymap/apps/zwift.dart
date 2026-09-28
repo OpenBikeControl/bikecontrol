@@ -7,6 +7,9 @@ import '../keymap.dart';
 
 class Zwift extends SupportedApp {
   @override
+  bool get showsOwnGear => true;
+
+  @override
   String? get officialUrl => 'https://www.zwift.com';
 
   @override

@@ -88,6 +88,25 @@ bool onboardingDoneReady({
     ) ==
     OnboardingDoneState.ready;
 
+/// Whether the done step offers the gear overlay: the app draws its own gear
+/// number, a bridged trainer is held by the app, the overlay can be shown
+/// here ([overlayOffered]: platform, same device, a virtual-shifting
+/// session), and the rider hasn't already turned it on or declined it.
+bool onboardingDoneOffersOverlay({
+  required SupportedApp app,
+  required bool trainerBridged,
+  required bool trainerAppConnected,
+  required bool overlayOffered,
+  required bool overlayEnabled,
+  required bool overlayDeclined,
+}) =>
+    app.showsOwnGear &&
+    trainerBridged &&
+    trainerAppConnected &&
+    overlayOffered &&
+    !overlayEnabled &&
+    !overlayDeclined;
+
 Widget onboardingDoneBody(
   BuildContext context, {
   required SupportedApp app,
@@ -101,6 +120,8 @@ Widget onboardingDoneBody(
   VoidCallback? onRunTrainerCheck,
   bool waitingOnNetworkMethod = false,
   VoidCallback? onTestNetwork,
+  bool offerOverlay = false,
+  VoidCallback? onShowOverlay,
 }) {
   final status = BkStatusColors.of(context);
   final success = status.success;
@@ -212,6 +233,43 @@ Widget onboardingDoneBody(
             ),
           ),
         ),
+      if (offerOverlay && onShowOverlay != null) ...[
+        Gap(10),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).colorScheme.border, width: 1.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(LucideIcons.layers, size: 17, color: Theme.of(context).colorScheme.primary),
+                  Gap(10),
+                  Expanded(child: Text(context.i18n.onboardingDoneOverlayNote(app.name)).small),
+                ],
+              ),
+              Gap(10),
+              Button.outline(
+                key: const ValueKey('onboarding-done-show-overlay'),
+                onPressed: onShowOverlay,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.layers, size: 15),
+                    Gap(8),
+                    Flexible(child: Text(context.i18n.onboardingDoneShowOverlay).small),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
       // Waiting on the app: show what to do in it, right here — the previous
       // page with these steps is no longer on screen.
       if (!appConnected) ...[

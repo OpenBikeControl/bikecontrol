@@ -13,7 +13,9 @@ import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/steps/step_controller.dart';
 import 'package:bike_control/pages/onboarding/steps/step_done.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -321,4 +323,92 @@ Future<void> main() async {
       );
     });
   });
+
+  group('gear overlay offer', () {
+    bool offers({
+      SupportedApp? app,
+      bool pickedUp = true,
+      bool platform = true,
+      bool enabled = false,
+      bool declined = false,
+    }) => onboardingDoneOffersOverlay(
+      app: app ?? MyWhoosh(),
+      trainerBridged: true,
+      trainerAppConnected: pickedUp,
+      overlayOffered: platform,
+      overlayEnabled: enabled,
+      overlayDeclined: declined,
+    );
+
+    test('offered for an app that shows its own gear, once the trainer is picked up', () {
+      expect(offers(), isTrue);
+      expect(offers(pickedUp: false), isFalse);
+    });
+
+    test('not offered where the overlay cannot be shown, or once answered', () {
+      expect(offers(platform: false), isFalse, reason: 'other device, unsupported platform or no VS session');
+      expect(offers(enabled: true), isFalse);
+      expect(offers(declined: true), isFalse);
+    });
+
+    test('not offered for an app without its own gear display', () {
+      expect(offers(app: CustomApp()), isFalse);
+    });
+
+    test('not offered without a bridged trainer', () {
+      expect(
+        onboardingDoneOffersOverlay(
+          app: MyWhoosh(),
+          trainerBridged: false,
+          trainerAppConnected: false,
+          overlayOffered: true,
+          overlayEnabled: false,
+          overlayDeclined: false,
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('the offer explains the gear display and shows the overlay in one tap', (tester) async {
+      var shown = 0;
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: MyWhoosh(),
+          controllerName: 'Zwift Click',
+          trainerName: 'KICKR CORE',
+          appConnected: true,
+          trainerAppConnected: true,
+          reduceMotion: true,
+          showTestMode: false,
+          offerOverlay: true,
+          onShowOverlay: () => shown++,
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.text(l.onboardingDoneOverlayNote('MyWhoosh')), findsOneWidget);
+      const key = ValueKey('onboarding-done-show-overlay');
+      await tester.ensureVisible(find.byKey(key));
+      await tester.tap(find.byKey(key));
+      expect(shown, 1);
+    });
+
+    testWidgets('no offer card unless asked for', (tester) async {
+      await pump(tester, (c) => bridgeWaitingReady(c));
+      expect(find.byKey(const ValueKey('onboarding-done-show-overlay')), findsNothing);
+    });
+  });
 }
+
+Widget bridgeWaitingReady(BuildContext c) => onboardingDoneBody(
+  c,
+  app: MyWhoosh(),
+  controllerName: 'Zwift Click',
+  trainerName: 'KICKR CORE',
+  appConnected: true,
+  trainerAppConnected: true,
+  reduceMotion: true,
+  showTestMode: false,
+);
+

@@ -605,9 +605,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // The store board sells a finished setup; an outstanding offer, optional or
     // not, is the one thing on that card still asking for something.
     if (screenshotMode) return false;
-    if (!TrainerOverlayService.isSupportedPlatform) return false;
-    if (core.settings.getLastTarget() != Target.thisDevice) return false;
-    return proxy.fitnessBike != null;
+    return trainerOverlayOffered(proxy);
   }
 
   /// Makes chain cards jump out — see [ChainCard.highlight].

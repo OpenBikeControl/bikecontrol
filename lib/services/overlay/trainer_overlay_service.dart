@@ -6,6 +6,7 @@ import 'package:bike_control/services/overlay/desktop_overlay_controller.dart';
 import 'package:bike_control/services/overlay/ios_overlay_controller.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:flutter/foundation.dart';
 
 class TrainerOverlayService {
@@ -45,6 +46,16 @@ class TrainerOverlayService {
   static void setForTest(TrainerOverlayController controller) {
     _instance = controller;
   }
+}
+
+/// Whether the gear overlay can be offered for [device] at all: the platform
+/// can draw one, the trainer app runs on this device (an overlay cannot be
+/// drawn over an app on another device), and BikeControl is computing gears
+/// (a virtual-shifting session).
+bool trainerOverlayOffered(ProxyDevice device) {
+  if (!TrainerOverlayService.isSupportedPlatform) return false;
+  if (core.settings.getLastTarget() != Target.thisDevice) return false;
+  return device.fitnessBike != null;
 }
 
 /// Puts the gear overlay on screen for [device] and persists the choice.
