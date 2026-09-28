@@ -1507,7 +1507,7 @@
   },
   "onboardingSummaryReady": "Bereit",
   "onboardingAlmostThereTitle": "Fast geschafft",
-  "onboardingAlmostThereSubtitle": "Auf Seiten von BikeControl ist alles eingerichtet — es wartet nur noch auf {app}. Führe die Schritte der vorherigen Seite in {app} selbst aus.",
+  "onboardingAlmostThereSubtitle": "Auf Seiten von BikeControl ist alles eingerichtet — es wartet nur noch auf {app}. Erledige diese Schritte in {app}:",
   "@onboardingAlmostThereSubtitle": {
     "placeholders": {
       "app": {
@@ -2312,5 +2312,6 @@
   "onboardingTrialKeepVs": "Virtual Shifting behalten: Pro",
   "onboardingTrialUnlimited": "Unbegrenzte Befehle: Basis oder Pro",
   "onboardingSkipControllerNote": "Ohne Controller kann BikeControl nicht schalten. Du kannst später über den Startbildschirm einen koppeln.",
-  "onboardingVsProNote": "Das Virtual Shifting von BikeControl ist Teil von Pro. Ohne Pro kannst du es jeden Tag {minutes} Minuten testen; Basis enthält es nicht."
+  "onboardingVsProNote": "Das Virtual Shifting von BikeControl ist Teil von Pro. Ohne Pro kannst du es jeden Tag {minutes} Minuten testen; Basis enthält es nicht.",
+  "onboardingStillNotConnected": "Immer noch nicht verbunden? Teste dein Netzwerk"
 }

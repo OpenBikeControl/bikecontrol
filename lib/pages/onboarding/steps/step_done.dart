@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -56,6 +59,8 @@ Widget onboardingDoneBody(
   required bool showTestMode,
   VoidCallback? onPairController,
   VoidCallback? onRunTrainerCheck,
+  bool waitingOnNetworkMethod = false,
+  VoidCallback? onTestNetwork,
 }) {
   final status = BkStatusColors.of(context);
   final success = status.success;
@@ -156,6 +161,14 @@ Widget onboardingDoneBody(
             ),
           ),
         ),
+      // Waiting on the app: show what to do in it, right here — the previous
+      // page with these steps is no longer on screen.
+      if (!appConnected) ...[
+        Gap(10),
+        OnboardingAppGuideCard(app: app),
+        if (waitingOnNetworkMethod && onTestNetwork != null)
+          _StillWaitingNetworkHint(reduceMotion: reduceMotion, onTestNetwork: onTestNetwork),
+      ],
       if (showTestMode) ...[
         Gap(10),
         Container(
@@ -199,6 +212,70 @@ Widget onboardingDoneBody(
       ],
     ]),
   );
+}
+
+/// "Still not connected? Test your network" — held back for
+/// [stillWaitingDelay] so it doesn't suggest something is wrong while the
+/// rider is still working through the steps in their app.
+const Duration stillWaitingDelay = Duration(seconds: 30);
+
+class _StillWaitingNetworkHint extends StatefulWidget {
+  const _StillWaitingNetworkHint({required this.reduceMotion, required this.onTestNetwork});
+
+  final bool reduceMotion;
+  final VoidCallback onTestNetwork;
+
+  @override
+  State<_StillWaitingNetworkHint> createState() => _StillWaitingNetworkHintState();
+}
+
+class _StillWaitingNetworkHintState extends State<_StillWaitingNetworkHint> {
+  Timer? _timer;
+  bool _show = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(stillWaitingDelay, () {
+      if (mounted) setState(() => _show = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final child = _show
+        ? Padding(
+            key: const ValueKey('still-waiting-shown'),
+            padding: const EdgeInsets.only(top: 10),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Button.outline(
+                key: const ValueKey('onboarding-done-test-network'),
+                onPressed: widget.onTestNetwork,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(LucideIcons.radioTower, size: 15),
+                    Gap(8),
+                    Flexible(child: Text(context.i18n.onboardingStillNotConnected).small),
+                  ],
+                ),
+              ),
+            ),
+          )
+        : const SizedBox.shrink(key: ValueKey('still-waiting-hidden'));
+    return AnimatedSwitcher(
+      duration: widget.reduceMotion ? Duration.zero : const Duration(milliseconds: 250),
+      switchInCurve: Curves.easeOut,
+      child: child,
+    );
+  }
 }
 
 /// Green success circle shown at the top of the "done" step. Pops in with a

@@ -1496,7 +1496,7 @@
   },
   "onboardingSummaryReady": "Pronto",
   "onboardingAlmostThereTitle": "Ci siamo quasi",
-  "onboardingAlmostThereSubtitle": "Dal lato BikeControl è tutto pronto: manca solo che {app} si colleghi. Segui i passaggi della pagina precedente dentro {app}.",
+  "onboardingAlmostThereSubtitle": "Dal lato BikeControl è tutto pronto: manca solo che {app} si colleghi. Completa questi passaggi in {app}:",
   "@onboardingAlmostThereSubtitle": {
     "placeholders": {
       "app": {
@@ -2312,5 +2312,6 @@
   "onboardingTrialKeepVs": "Per tenere il cambio virtuale: Pro",
   "onboardingTrialUnlimited": "Per comandi illimitati: Base o Pro",
   "onboardingSkipControllerNote": "Senza controller BikeControl non può cambiare. Puoi abbinarne uno più tardi dalla schermata principale.",
-  "onboardingVsProNote": "Il cambio virtuale di BikeControl fa parte di Pro. Senza Pro hai una prova di {minutes} minuti ogni giorno; Base non lo include."
+  "onboardingVsProNote": "Il cambio virtuale di BikeControl fa parte di Pro. Senza Pro hai una prova di {minutes} minuti ogni giorno; Base non lo include.",
+  "onboardingStillNotConnected": "Ancora non connesso? Verifica la rete"
 }

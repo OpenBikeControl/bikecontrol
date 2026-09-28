@@ -22,8 +22,10 @@ import 'package:bike_control/pages/onboarding/steps/step_done.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
 import 'package:bike_control/pages/onboarding/steps/step_welcome.dart';
 import 'package:bike_control/pages/onboarding/steps/step_where.dart';
+import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/trainer_connect.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -742,10 +744,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
       // bridge is running".
       appConnected: core.logic.connectedTrainerConnections.any((c) => c.isConnected.value),
       trainerAppConnected: core.connection.proxyDevices.any((t) => t.isConnectedListenable.value),
-      reduceMotion: MediaQuery.of(context).disableAnimations,
+      reduceMotion: prefersReducedMotion(context),
       showTestMode: !IAPManager.instance.isPurchased.value,
       onPairController: () => _goTo(OnboardingStep.controller),
       onRunTrainerCheck: _onRunTrainerCheck,
+      waitingOnNetworkMethod: core.logic.hasNetworkMethodEnabled,
+      onTestNetwork: () => context.push(const NetworkTroubleshootingPage()),
     ),
   };
 

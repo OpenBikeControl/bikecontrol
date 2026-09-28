@@ -9,6 +9,7 @@
 // rider would actually pay for given what they set up.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/steps/step_controller.dart';
 import 'package:bike_control/pages/onboarding/steps/step_done.dart';
@@ -19,7 +20,11 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../widget_snapshot.dart';
 
 Future<void> main() async {
-  await ensureSnapshotHarness();
+  // Fake clock: the waiting hint's 30 s must not be waited out for real.
+  TestWidgetsFlutterBinding.ensureInitialized();
+  // In setUpAll: under the fake-clock binding, Supabase's initialisation
+  // inside Settings.init() needs a test zone.
+  setUpAll(ensureSnapshotAppState);
 
   Future<void> pump(WidgetTester tester, Widget Function(BuildContext) builder) async {
     await tester.pumpWidget(
@@ -161,5 +166,52 @@ Future<void> main() async {
       (c) => onboardingControllerBody(c, phase: ControllerPhase.empty, devices: const [], appName: 'MyWhoosh'),
     );
     expect(find.text(l10n(tester).onboardingSkipControllerNote), findsOneWidget);
+  });
+
+  // "Follow the steps from the previous page" sent the rider back to a page
+  // they could no longer see. The waiting state shows the app's own guide,
+  // and after a while on a network method, a way into the network test.
+  Widget waiting(BuildContext c, {required bool networkMethod, VoidCallback? onTroubleshoot}) => onboardingDoneBody(
+    c,
+    app: MyWhoosh(),
+    controllerName: 'Zwift Click',
+    trainerName: null,
+    appConnected: false,
+    trainerAppConnected: false,
+    reduceMotion: true,
+    showTestMode: false,
+    waitingOnNetworkMethod: networkMethod,
+    onTestNetwork: onTroubleshoot ?? () {},
+  );
+
+  testWidgets('waiting for the app shows its setup guide', (tester) async {
+    await pump(tester, (c) => waiting(c, networkMethod: false));
+    expect(find.byType(OnboardingAppGuideCard), findsOneWidget);
+  });
+
+  testWidgets('after 30 s on a network method it offers the network test', (tester) async {
+    var opened = 0;
+    await pump(tester, (c) => waiting(c, networkMethod: true, onTroubleshoot: () => opened++));
+    const key = ValueKey('onboarding-done-test-network');
+    expect(find.byKey(key), findsNothing, reason: 'give the app a moment before suggesting something is wrong');
+
+    await tester.pump(const Duration(seconds: 31));
+    expect(find.byKey(key), findsOneWidget);
+    await tester.ensureVisible(find.byKey(key));
+    await tester.pump();
+    await tester.tap(find.byKey(key));
+    expect(opened, 1);
+  });
+
+  testWidgets('no network test for a method that is not on the network', (tester) async {
+    await pump(tester, (c) => waiting(c, networkMethod: false));
+    await tester.pump(const Duration(seconds: 31));
+    expect(find.byKey(const ValueKey('onboarding-done-test-network')), findsNothing);
+  });
+
+  testWidgets('leaving before 30 s leaves no timer behind', (tester) async {
+    await pump(tester, (c) => waiting(c, networkMethod: true));
+    await tester.pumpWidget(const SizedBox());
+    // flutter_test fails the test if a Timer is still pending here.
   });
 }

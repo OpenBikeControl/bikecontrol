@@ -1496,7 +1496,7 @@
   },
   "onboardingSummaryReady": "Gotowe",
   "onboardingAlmostThereTitle": "Już prawie",
-  "onboardingAlmostThereSubtitle": "Po stronie BikeControl wszystko jest gotowe — czekamy na połączenie {app}. Wykonaj kroki z poprzedniej strony w samej {app}.",
+  "onboardingAlmostThereSubtitle": "Po stronie BikeControl wszystko jest gotowe — czekamy na połączenie {app}. Wykonaj te kroki w {app}:",
   "@onboardingAlmostThereSubtitle": {
     "placeholders": {
       "app": {
@@ -2312,5 +2312,6 @@
   "onboardingTrialKeepVs": "Aby zachować wirtualną zmianę biegów: Pro",
   "onboardingTrialUnlimited": "Nielimitowane komendy: Base lub Pro",
   "onboardingSkipControllerNote": "Bez kontrolera BikeControl nie może zmieniać biegów. Możesz sparować go później na ekranie głównym.",
-  "onboardingVsProNote": "Wirtualna zmiana biegów BikeControl jest częścią Pro. Bez Pro masz codziennie {minutes} minut okresu próbnego; Base jej nie obejmuje."
+  "onboardingVsProNote": "Wirtualna zmiana biegów BikeControl jest częścią Pro. Bez Pro masz codziennie {minutes} minut okresu próbnego; Base jej nie obejmuje.",
+  "onboardingStillNotConnected": "Nadal brak połączenia? Sprawdź sieć"
 }

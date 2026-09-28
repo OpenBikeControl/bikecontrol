@@ -1496,7 +1496,7 @@
   },
   "onboardingSummaryReady": "Prêt",
   "onboardingAlmostThereTitle": "Presque terminé",
-  "onboardingAlmostThereSubtitle": "Tout est prêt côté BikeControl — il ne manque que la connexion de {app}. Suis les étapes de la page précédente dans {app}.",
+  "onboardingAlmostThereSubtitle": "Tout est prêt côté BikeControl — il ne manque que la connexion de {app}. Termine ces étapes dans {app} :",
   "@onboardingAlmostThereSubtitle": {
     "placeholders": {
       "app": {
@@ -2312,5 +2312,6 @@
   "onboardingTrialKeepVs": "Pour garder les vitesses virtuelles : Pro",
   "onboardingTrialUnlimited": "Pour des commandes illimitées : Base ou Pro",
   "onboardingSkipControllerNote": "Sans commande, BikeControl ne peut pas passer les vitesses. Tu pourras en associer une plus tard depuis l'écran d'accueil.",
-  "onboardingVsProNote": "Les vitesses virtuelles de BikeControl font partie de Pro. Sans Pro, tu as un essai de {minutes} minutes chaque jour ; Base ne les inclut pas."
+  "onboardingVsProNote": "Les vitesses virtuelles de BikeControl font partie de Pro. Sans Pro, tu as un essai de {minutes} minutes chaque jour ; Base ne les inclut pas.",
+  "onboardingStillNotConnected": "Toujours pas connecté ? Teste ton réseau"
 }

@@ -901,7 +901,7 @@
   },
   "onboardingSummaryReady": "Ready",
   "onboardingAlmostThereTitle": "Almost there",
-  "onboardingAlmostThereSubtitle": "Everything on BikeControl's side is set — waiting for {app} to connect. Follow the steps from the previous page in {app} itself.",
+  "onboardingAlmostThereSubtitle": "Everything on BikeControl's side is set — waiting for {app} to connect. Finish these steps in {app}:",
   "@onboardingAlmostThereSubtitle": {
     "placeholders": {
       "app": {
@@ -2686,5 +2686,6 @@
   "onboardingTrialKeepVs": "To keep virtual shifting: Pro",
   "onboardingTrialUnlimited": "For unlimited commands: Base or Pro",
   "onboardingSkipControllerNote": "BikeControl can't shift without a controller. You can pair one later from the home screen.",
-  "onboardingVsProNote": "BikeControl's virtual shifting is part of Pro. Without Pro you get a {minutes}-minute trial every day; Base doesn't include it."
+  "onboardingVsProNote": "BikeControl's virtual shifting is part of Pro. Without Pro you get a {minutes}-minute trial every day; Base doesn't include it.",
+  "onboardingStillNotConnected": "Still not connected? Test your network"
 }
