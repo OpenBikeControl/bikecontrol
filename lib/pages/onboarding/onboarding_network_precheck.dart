@@ -418,6 +418,7 @@ class _OnboardingNetworkPrecheckCardState extends State<OnboardingNetworkPrechec
                           const Gap(8),
                           BkTouchTarget(
                             child: Button.outline(
+                              alignment: Alignment.center,
                               style: ButtonStyle.outline(size: ButtonSize.small),
                               onPressed: () => widget.onFix(fix),
                               child: Text(networkFixLabel(context, fix)),
@@ -435,6 +436,7 @@ class _OnboardingNetworkPrecheckCardState extends State<OnboardingNetworkPrechec
                   children: [
                     BkTouchTarget(
                       child: Button.outline(
+                        alignment: Alignment.center,
                         onPressed: precheck.run,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -448,6 +450,7 @@ class _OnboardingNetworkPrecheckCardState extends State<OnboardingNetworkPrechec
                     ),
                     BkTouchTarget(
                       child: Button.ghost(
+                        alignment: Alignment.center,
                         onPressed: precheck.continueAnyway,
                         child: Text(context.i18n.onboardingNetworkContinueAnyway),
                       ),
