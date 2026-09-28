@@ -144,7 +144,7 @@ class NotificationRequirement extends PlatformRequirement {
           ?.requestNotificationsPermission();
       if (result == false) {
         buildToast(
-          title: 'Enable notifications for BikeControl in Android Settings',
+          title: AppLocalizations.current.enableNotificationsAndroid,
         );
       }
     } else if (Platform.isIOS) {
@@ -158,7 +158,7 @@ class NotificationRequirement extends PlatformRequirement {
       core.settings.setHasAskedPermissions(true);
       if (result == false) {
         buildToast(
-          title: 'Enable notifications for BikeControl in System Preferences → Notifications → Bike Control',
+          title: AppLocalizations.current.enableNotificationsApple,
         );
         launchUrlString('x-apple.systempreferences:com.apple.preference.notifications');
       }
@@ -173,7 +173,7 @@ class NotificationRequirement extends PlatformRequirement {
       core.settings.setHasAskedPermissions(true);
       if (result == false) {
         buildToast(
-          title: 'Enable notifications for BikeControl in System Preferences → Notifications → Bike Control',
+          title: AppLocalizations.current.enableNotificationsApple,
         );
         launchUrlString('x-apple.systempreferences:com.apple.preference.notifications');
       }

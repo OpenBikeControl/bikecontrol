@@ -1,6 +1,7 @@
 // Extracted from `lib/widgets/ui/help_button.dart` (Task 8) — behavior is
 // unchanged, only the private classes moved so the Help Center's "Guides &
 // videos" section can open the same drawer.
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:http/http.dart' as http;
@@ -133,7 +134,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                         text: 'Could not load videos from YouTube.',
                         action: SecondaryButton(
                           onPressed: _retry,
-                          child: const Text('Retry'),
+                          child: Text(AppLocalizations.of(context).retry),
                         ),
                       );
                     }
@@ -144,7 +145,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                         text: 'No videos found on the channel right now.',
                         action: SecondaryButton(
                           onPressed: _retry,
-                          child: const Text('Retry'),
+                          child: Text(AppLocalizations.of(context).retry),
                         ),
                       );
                     }

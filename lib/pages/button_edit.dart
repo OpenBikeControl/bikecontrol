@@ -1121,11 +1121,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             if (_keyPair.command?.trim().isNotEmpty == true)
               TextButton(
                 onPressed: () => Navigator.pop(context, ''),
-                child: Text('Clear'),
+                child: Text(AppLocalizations.of(context).clear),
               ),
             TextButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: Text('Save'),
+              child: Text(AppLocalizations.of(context).save),
             ),
           ],
         ),
@@ -1259,7 +1259,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             if (_keyPair.androidIntentAction?.trim().isNotEmpty == true)
               TextButton(
                 onPressed: () => Navigator.pop(context, ''),
-                child: Text('Clear'),
+                child: Text(AppLocalizations.of(context).clear),
               ),
             TextButton(
               onPressed: () async {
@@ -1268,7 +1268,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 }
                 if (context.mounted) Navigator.pop(context, controller.text);
               },
-              child: Text('Save'),
+              child: Text(AppLocalizations.of(context).save),
             ),
           ],
         ),

@@ -387,7 +387,7 @@ class ZwiftClickV2 extends ZwiftRide {
 
   Button _unlockAgainButton(BuildContext context) {
     return Button.outline(
-      child: Text('Unlock again'),
+      child: Text(AppLocalizations.of(context).unlockAgain),
       onPressed: () {
         openDrawer(
           context: context,

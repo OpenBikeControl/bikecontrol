@@ -127,13 +127,13 @@ class _PaywallPricing {
 
   // Only the Windows/Stripe build falls back to these — keep them short
   // enough to fit the cards on one line each.
-  static const fallback = _PaywallPricing(
-    yearlyPrice: 'About 2.25 \$/mo',
-    yearlyBilled: 'Billed yearly',
-    monthlyPrice: 'About 2.50 \$/mo',
+  static _PaywallPricing fallback(AppLocalizations l10n) => _PaywallPricing(
+    yearlyPrice: l10n.paywall_aboutPerMonth('2.25 \$'),
+    yearlyBilled: l10n.paywall_billedYearly,
+    monthlyPrice: l10n.paywall_aboutPerMonth('2.50 \$'),
     monthlyBilled: '',
-    fullVersionSubtitle: 'About 4.99 \$ \u2014 one-time',
-    discountBadge: '10% OFF',
+    fullVersionSubtitle: l10n.paywall_aboutOneTime('4.99 \$'),
+    discountBadge: l10n.paywall_discountOff('10'),
   );
 }
 
@@ -231,7 +231,11 @@ class _PaywallState extends State<Paywall> {
   final IAPManager _iapManager = IAPManager.instance;
 
   late _PaywallPlan _selectedPlan;
-  _PaywallPricing _pricing = _PaywallPricing.fallback;
+
+  /// Live store prices once loaded; until then (and always on the Stripe
+  /// build) the localized [_PaywallPricing.fallback].
+  _PaywallPricing? _storePricing;
+  _PaywallPricing get _pricing => _storePricing ?? _PaywallPricing.fallback(AppLocalizations.of(context));
 
   bool _isPurchasing = false;
   bool _isRestoring = false;
@@ -367,8 +371,8 @@ class _PaywallState extends State<Paywall> {
       // silently or land in the logs as an unhandled "Zone" crash.
       recordError(e, s, context: 'Paywall purchase');
       buildToast(
-        title: 'Purchase Error',
-        subtitle: 'Something went wrong starting your purchase. Please try again.',
+        title: AppLocalizations.current.purchaseErrorTitle,
+        subtitle: AppLocalizations.current.purchaseErrorBody,
       );
     } finally {
       if (mounted) {
@@ -422,11 +426,11 @@ class _PaywallState extends State<Paywall> {
       final pricing = _buildPricingFromOfferings(offerings);
       if (pricing != null && mounted) {
         setState(() {
-          _pricing = pricing;
+          _storePricing = pricing;
         });
       }
-    } catch (e) {
-      debugPrint('Could not load RevenueCat offerings for paywall: $e');
+    } catch (e, s) {
+      recordError(e, s, context: 'Loading RevenueCat offerings for paywall');
     }
   }
 
@@ -459,7 +463,13 @@ class _PaywallState extends State<Paywall> {
     final lifetimeStoreProduct = lifetimePackage?.storeProduct;
 
     final yearlyPrice = yearlyStoreProduct != null
-        ? '${_formatCurrency(yearlyStoreProduct.price / 12, yearlyStoreProduct.currencyCode, sampleFormattedPrice: yearlyStoreProduct.priceString)}/mo'
+        ? AppLocalizations.of(context).paywall_perMonth(
+            _formatCurrency(
+              yearlyStoreProduct.price / 12,
+              yearlyStoreProduct.currencyCode,
+              sampleFormattedPrice: yearlyStoreProduct.priceString,
+            ),
+          )
         : _pricing.yearlyPrice;
 
     final yearlyBilled = yearlyStoreProduct != null
@@ -467,7 +477,13 @@ class _PaywallState extends State<Paywall> {
         : _pricing.yearlyBilled;
 
     final monthlyPrice = monthlyStoreProduct != null
-        ? '${_formatCurrency(monthlyStoreProduct.price, monthlyStoreProduct.currencyCode, sampleFormattedPrice: monthlyStoreProduct.priceString)}/mo'
+        ? AppLocalizations.of(context).paywall_perMonth(
+            _formatCurrency(
+              monthlyStoreProduct.price,
+              monthlyStoreProduct.currencyCode,
+              sampleFormattedPrice: monthlyStoreProduct.priceString,
+            ),
+          )
         : _pricing.monthlyPrice;
 
     // The monthly card's price line already reads "2,99 €/mo" — repeating it
@@ -484,7 +500,7 @@ class _PaywallState extends State<Paywall> {
       final savingsFraction = (monthlyStoreProduct.price - yearlyEquivalent) / monthlyStoreProduct.price;
       final savingsPercent = (savingsFraction * 100).round();
       if (savingsPercent > 0) {
-        discountBadge = '$savingsPercent% OFF';
+        discountBadge = AppLocalizations.of(context).paywall_discountOff('$savingsPercent');
       }
     }
 
@@ -543,7 +559,9 @@ class _PaywallState extends State<Paywall> {
                         const SizedBox(width: 8),
                       ],
                       Text(
-                        _isRestoring ? 'Restoring purchases...' : AppLocalizations.of(context).restorePurchases,
+                        _isRestoring
+                            ? AppLocalizations.of(context).restoringPurchases
+                            : AppLocalizations.of(context).restorePurchases,
                         style: context.typography.small,
                       ),
                     ],

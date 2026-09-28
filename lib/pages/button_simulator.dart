@@ -390,8 +390,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12,
         children: [
-          Text('KEYBOARD SHORTCUTS').bold.muted,
-          Text('Assign keyboard shortcuts to simulator buttons').small.muted,
+          Text(AppLocalizations.of(context).keyboardShortcuts.toUpperCase()).bold.muted,
+          Text(AppLocalizations.of(context).keyboardShortcutsSimulatorHint).small.muted,
           for (final action in uniqueActions) _buildHotkeyRow(action),
         ],
       ),
@@ -412,7 +412,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               border: Border.all(color: Theme.of(context).colorScheme.primary),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text('Press a key...', style: TextStyle(color: Theme.of(context).colorScheme.primary)).small,
+            child: Text(
+              AppLocalizations.of(context).pressAKey,
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ).small,
           )
         else if (hotkey != null)
           KeyWidget(label: hotkey.toUpperCase())
@@ -425,7 +428,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               _editingHotkeyAction = isEditing ? null : action;
             });
           },
-          child: Text(isEditing ? 'Cancel' : 'Set').xSmall,
+          child: Text(
+            isEditing ? AppLocalizations.of(context).cancel : AppLocalizations.of(context).setShortcut,
+          ).xSmall,
         ),
         if (hotkey != null && !isEditing) ...[
           Gap(4),
@@ -436,7 +441,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               });
               core.settings.setButtonSimulatorHotkeys(_hotkeys);
             },
-            child: Text('Clear').xSmall,
+            child: Text(AppLocalizations.of(context).clear).xSmall,
           ),
         ],
       ],

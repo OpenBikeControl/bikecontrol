@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/requirements/android.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -109,7 +110,8 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
-                            if (optional) Text('Optional', style: context.typography.caption).muted,
+                            if (optional)
+                              Text(AppLocalizations.of(context).chainOptional, style: context.typography.caption).muted,
                           ],
                         ),
                       ),

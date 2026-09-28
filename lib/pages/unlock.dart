@@ -197,7 +197,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
           ] else if (!widget.device.isUnlocked.value)
             Text(AppLocalizations.of(context).unlock_waitingForZwift)
           else
-            Text('Zwift Click is unlocked! You can now close this page.'),
+            Text(AppLocalizations.of(context).unlock_clickUnlocked),
           SizedBox(height: 32),
           if (!_showManualSteps && !_isInTrialPhase) ...[
             if (widget.device.waiting.value && _secondsRemaining >= 0)

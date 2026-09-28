@@ -24,23 +24,28 @@ class HidDevice extends BaseDevice {
   }
 
   @override
-  Widget showInformation(BuildContext context,
-      {required bool showFull,
-      Widget? footer,
-      bool showSettingsIcon = true,
-      bool showAdditionalInfo = true}) {
+  Widget showInformation(
+    BuildContext context, {
+    required bool showFull,
+    Widget? footer,
+    bool showSettingsIcon = true,
+    bool showAdditionalInfo = true,
+  }) {
     return Row(
       children: [
         Expanded(
-            child: super.showInformation(context,
-                showFull: true,
-                footer: footer,
-                showSettingsIcon: showSettingsIcon,
-                showAdditionalInfo: showAdditionalInfo)),
+          child: super.showInformation(
+            context,
+            showFull: true,
+            footer: footer,
+            showSettingsIcon: showSettingsIcon,
+            showAdditionalInfo: showAdditionalInfo,
+          ),
+        ),
         PopupMenuButton(
           itemBuilder: (c) => [
             PopupMenuItem(
-              child: Text('Ignore'),
+              child: Text(AppLocalizations.of(context).ignore),
               onTap: () {
                 core.connection.disconnect(this, forget: true, persistForget: true);
                 if (core.actionHandler is AndroidActions) {

@@ -828,7 +828,7 @@ class _TabsState extends State<_Tabs> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Blog'),
+                Text(AppLocalizations.of(context).blogTab),
                 if (widget.hasNewBlogPosts) ...[
                   Gap(6),
                   Container(

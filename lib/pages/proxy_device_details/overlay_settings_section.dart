@@ -112,7 +112,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
         showToast(
           context: context,
           builder: (c, _) => SurfaceCard(
-            child: Text(res.message ?? AppLocalizations.of(context).overlayLowPowerMode),
+            child: Text(res.riderMessage(AppLocalizations.of(context))),
           ),
         );
         setState(() => _enabled = false);

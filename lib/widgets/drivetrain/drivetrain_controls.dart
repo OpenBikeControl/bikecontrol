@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
@@ -169,7 +170,9 @@ class DrivetrainControls extends StatelessWidget {
         ),
         Text(
           // "2.40" on its own says nothing; the word is what makes it a ratio.
-          compact ? 'of ${definition.maxGear}' : 'of ${definition.maxGear} · ratio ${_ratio()}',
+          compact
+              ? AppLocalizations.of(context).gearOfMax('${definition.maxGear}')
+              : AppLocalizations.of(context).gearOfMaxWithRatio('${definition.maxGear}', _ratio()),
           style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w500,
             color: cs.mutedForeground,

@@ -2410,5 +2410,214 @@
   "a11yShowDetails": "Show details",
   "@a11yShowDetails": {"description": "Screen-reader label (and desktop tooltip) for an icon-only button."},
   "a11yDragOverlay": "Move overlay",
-  "@a11yDragOverlay": {"description": "Screen-reader label (and desktop tooltip) for an icon-only button."}
+  "@a11yDragOverlay": {"description": "Screen-reader label (and desktop tooltip) for an icon-only button."},
+  "gearOfMax": "of {max}",
+  "@gearOfMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "gearOfMaxWithRatio": "of {max} · ratio {ratio}",
+  "@gearOfMaxWithRatio": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "restoringPurchases": "Restoring purchases…",
+  "purchaseErrorTitle": "Purchase error",
+  "purchaseErrorBody": "Something went wrong starting your purchase. Please try again.",
+  "paywall_perMonth": "{price}/mo",
+  "@paywall_perMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_aboutPerMonth": "About {price}/mo",
+  "@paywall_aboutPerMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_billedYearly": "Billed yearly",
+  "paywall_aboutOneTime": "About {price} — one-time",
+  "@paywall_aboutOneTime": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_discountOff": "{percent}% OFF",
+  "@paywall_discountOff": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "waitingForConnection": "Waiting for connection…",
+  "unlockAgain": "Unlock again",
+  "unlock_clickUnlocked": "Zwift Click is unlocked! You can now close this page.",
+  "purchaseSuccessfulTitle": "Purchase successful",
+  "purchaseSuccessfulBody": "Purchase complete. Sync may take a moment.",
+  "checkoutErrorTitle": "Checkout error",
+  "checkoutErrorBody": "Failed to start checkout. Please try again.",
+  "billingPortalErrorTitle": "Billing portal error",
+  "billingPortalErrorBody": "Failed to open the billing portal. Please try again.",
+  "loginRequiredTitle": "Login required",
+  "loginRequiredWindowsBody": "A subscription on Windows requires you to be logged in. This allows us to manage your subscription across devices and provide you with secure payment processing through Stripe.",
+  "loginRequiredCta": "Please log in or create an account to continue.",
+  "goToLogin": "Go to login",
+  "fullVersionOfferingUnavailable": "Full version offering not available right now.",
+  "subscriptionOfferingUnavailable": "Subscription offering not available right now.",
+  "enableNotificationsAndroid": "Enable notifications for BikeControl in Android Settings",
+  "enableNotificationsApple": "Enable notifications for BikeControl in System Settings → Notifications → BikeControl",
+  "keyboardShortcuts": "Keyboard shortcuts",
+  "keyboardShortcutsSimulatorHint": "Assign keyboard shortcuts to simulator buttons",
+  "pressAKey": "Press a key…",
+  "setShortcut": "Set",
+  "ignore": "Ignore",
+  "subscription": "Subscription",
+  "couldNotRevokeDevice": "Could not revoke device: {error}",
+  "@couldNotRevokeDevice": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tutorials": "Tutorials",
+  "instructionVideos": "Instruction videos",
+  "wheeltopShifterBattery": "Shifter battery: {volts} V",
+  "@wheeltopShifterBattery": {
+    "placeholders": {
+      "volts": {
+        "type": "String"
+      }
+    }
+  },
+  "wheeltopSlideSwitchHint": "Slide switch on R: top/bottom buttons shift. Slide switch on T: the buttons become two extra assignable buttons.",
+  "wheeltopKeepaliveTitle": "Keepalive experiment (beta)",
+  "wheeltopKeepaliveBody": "TX shifters drop the connection a few seconds after connecting because the app does not yet know how to answer their status frames. This experiment (on by default) automatically tries one candidate answer per reconnect and records the outcome in the log — sharing that log with support helps find the answer that keeps the shifter connected. Turn it off to stop the reconnect attempts instead.",
+  "noNewerSettingsOnServer": "No newer settings on server",
+  "noNewerSettingsAvailable": "No newer settings available",
+  "syncSettingsVersion": "Version: {version}",
+  "@syncSettingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "syncDeviceSummary": "Version: {version} • Keymaps: {count}",
+  "@syncDeviceSummary": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "Unknown",
+  "diagnosticsTitle": "Diagnostics",
+  "diagnosticsScanning": "scanning…",
+  "noDiagnosticsYet": "No diagnostics yet",
+  "logsFile": "Logs file:",
+  "useMagnetometerMode": "Use magnetometer mode",
+  "steeringCalibration": "Calibration",
+  "calibrationComplete": "Complete",
+  "calibrationInProgress": "In progress",
+  "steeringAngle": "Steering angle",
+  "calibrate": "Calibrate",
+  "triggerThreshold": "Trigger threshold:",
+  "calibratingMagnetometerHint": "Calibrating the magnetometer now. Attach your phone/tablet on your handlebar and keep it still for a second.",
+  "calibratingSensorsHint": "Calibrating the sensors now. Attach your phone/tablet on your handlebar and keep it still for a second.",
+  "scriptSavedFor": "Script saved for {device}.",
+  "@scriptSavedFor": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptDeletedFor": "Script deleted for {device}.",
+  "@scriptDeletedFor": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteScriptTitle": "Delete script?",
+  "deleteScriptBody": "This will remove the saved script for {device}.",
+  "@deleteScriptBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "characteristicUuidRequired": "Characteristic UUID is required.",
+  "runScriptTitle": "Run script",
+  "scriptDeviceType": "Device type: {device}",
+  "@scriptDeviceType": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptRunsOnValue": "This script will run whenever a value is received via Bluetooth.\nRequired signature: {signature}",
+  "@scriptRunsOnValue": {
+    "placeholders": {
+      "signature": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptPlaceholder": "Write your script here…",
+  "tryScriptTitle": "Try script",
+  "characteristicUuid": "Characteristic UUID",
+  "hexInputHint": "Hex input (e.g. {example})",
+  "@hexInputHint": {
+    "placeholders": {
+      "example": {
+        "type": "String"
+      }
+    }
+  },
+  "tryingEllipsis": "Trying…",
+  "tryAction": "Try",
+  "deletingEllipsis": "Deleting…",
+  "savingEllipsis": "Saving…",
+  "scriptOutputCharacteristic": "Output characteristic: {value}",
+  "@scriptOutputCharacteristic": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptOutputHex": "Output data (hex): {value}",
+  "@scriptOutputHex": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "overlayCouldNotStart": "Couldn't show the overlay. Please try again."
 }

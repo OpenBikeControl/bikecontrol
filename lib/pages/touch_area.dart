@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -344,7 +345,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                       Builder(
                         builder: (context) {
                           return OutlineButton(
-                            child: Text('Menu'),
+                            child: Text(AppLocalizations.of(context).actionMenu),
                             onPressed: () {
                               showDropdown(
                                 context: context,

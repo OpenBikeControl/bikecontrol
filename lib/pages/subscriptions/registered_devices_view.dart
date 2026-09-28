@@ -45,8 +45,8 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
           _devicesByPlatform = grouped;
         });
       }
-    } catch (e) {
-      // Handle error
+    } catch (e, s) {
+      recordError(e, s, context: 'Loading registered devices');
     } finally {
       if (mounted) {
         setState(() {
@@ -185,7 +185,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
   }
 
   String _formatDate(DateTime? value) {
-    if (value == null) return 'Never';
+    if (value == null) return AppLocalizations.current.never;
     final local = value.toLocal();
     return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
@@ -198,8 +198,9 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       );
       await _iapManager.entitlements.refresh(force: true);
       await _loadDevices();
-    } catch (e) {
-      buildToast(title: 'Could not revoke device: $e');
+    } catch (e, s) {
+      recordError(e, s, context: 'Revoking registered device');
+      buildToast(title: AppLocalizations.current.couldNotRevokeDevice('$e'));
     }
   }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -24,7 +25,7 @@ class StepRail extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
-          'Step $step of $count'.toUpperCase(),
+          AppLocalizations.of(context).onboardingStepOf('$step', '$count').toUpperCase(),
           style: context.typography.xSmall.copyWith(color: scheme.mutedForeground),
         ).bold,
         Gap(12),

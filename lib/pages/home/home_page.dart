@@ -1431,7 +1431,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // switch that sprang back to off.
       buildToast(
         level: LogLevel.LOGLEVEL_WARNING,
-        title: result.message ?? context.i18n.overlayLowPowerMode,
+        title: result.riderMessage(context.i18n),
       );
     }
     await context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true));

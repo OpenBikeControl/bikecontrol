@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io';
@@ -149,7 +150,7 @@ class _LogviewerState extends State<LogViewer> {
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Row(
                   children: [
-                    Text('Logs file: '),
+                    Text('${AppLocalizations.of(context).logsFile} '),
                     Expanded(
                       child: FutureBuilder<File>(
                         future: crashLogFile(),

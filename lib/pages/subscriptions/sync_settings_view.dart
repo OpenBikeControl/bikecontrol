@@ -178,7 +178,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           );
         } else {
           buildToast(
-            title: 'No newer settings on server',
+            title: AppLocalizations.current.noNewerSettingsOnServer,
             level: LogLevel.LOGLEVEL_WARNING,
           );
         }
@@ -191,20 +191,14 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
   }
 
   String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'Unknown';
+    if (dateTime == null) return AppLocalizations.current.unknown;
     final local = dateTime.toLocal();
     return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year} '
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
 
   UserSettings? _getSettingsForDevice(String deviceId) {
-    try {
-      return _allDeviceSettings.firstWhere(
-        (s) => s.deviceId == deviceId,
-      );
-    } catch (e) {
-      return null;
-    }
+    return _allDeviceSettings.where((s) => s.deviceId == deviceId).firstOrNull;
   }
 
   String? _getDeviceRemoteId(UserDevice device) {
@@ -242,8 +236,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
   Future<void> _loadCurrentDeviceId() async {
     try {
       _currentDeviceId = await IAPManager.instance.deviceManagement.currentDeviceId();
-    } catch (e) {
-      print('Error loading current device ID: $e');
+    } catch (e, s) {
+      recordError(e, s, context: 'Loading current device ID');
     }
   }
 
@@ -366,7 +360,9 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   children: [
                     Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                     const SizedBox(width: 8),
-                    Text('${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? 'Never'}').small,
+                    Text(
+                      '${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? AppLocalizations.of(context).never}',
+                    ).small,
                   ],
                 ),
                 if (_serverSettings?.version != null)
@@ -374,7 +370,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                     children: [
                       Icon(Icons.tag, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                       const SizedBox(width: 8),
-                      Text('Version: ${_serverSettings!.version}').small,
+                      Text(AppLocalizations.of(context).syncSettingsVersion('${_serverSettings!.version}')).small,
                     ],
                   ),
                 // Upload button
@@ -471,7 +467,9 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                         const SizedBox(height: 4),
                         Text(_formatDateTime(device.lastSeenAt)).xSmall.muted,
                         Text(
-                          'Version: ${deviceSettings.version} • Keymaps: ${deviceSettings.keymaps?.length ?? 0}',
+                          AppLocalizations.of(
+                            context,
+                          ).syncDeviceSummary('${deviceSettings.version}', '${deviceSettings.keymaps?.length ?? 0}'),
                         ).xSmall.muted,
                       ],
                     ],
@@ -542,7 +540,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           );
         } else {
           buildToast(
-            title: 'No newer settings available',
+            title: AppLocalizations.current.noNewerSettingsAvailable,
             level: LogLevel.LOGLEVEL_WARNING,
           );
         }

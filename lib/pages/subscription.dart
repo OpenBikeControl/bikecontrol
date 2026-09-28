@@ -150,7 +150,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                       children: [
                         Icon(Icons.arrow_back, size: 16),
                         const SizedBox(width: 8),
-                        Text('Subscription'),
+                        Text(AppLocalizations.of(context).subscription),
                       ],
                     ),
                   ),

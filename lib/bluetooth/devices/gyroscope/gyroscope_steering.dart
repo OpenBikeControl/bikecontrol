@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
@@ -391,7 +392,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
         children: [
           // Magnetometer mode toggle
           Checkbox(
-            trailing: Expanded(child: Text('Use Magnetometer Mode')),
+            trailing: Expanded(child: Text(AppLocalizations.of(context).useMagnetometerMode)),
             state: _useMagnetometer ? CheckboxState.checked : CheckboxState.unchecked,
             onChanged: (value) async {
               setState(() {
@@ -416,16 +417,18 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
             runSpacing: 12,
             children: [
               DeviceInfo(
-                title: 'Calibration',
+                title: AppLocalizations.of(context).steeringCalibration,
                 icon: BootstrapIcons.wrenchAdjustable,
-                value: _isCalibrated ? 'Complete' : 'In Progress',
+                value: _isCalibrated
+                    ? AppLocalizations.of(context).calibrationComplete
+                    : AppLocalizations.of(context).calibrationInProgress,
               ),
               DeviceInfo(
-                title: 'Steering Angle',
+                title: AppLocalizations.of(context).steeringAngle,
                 icon: RadixIcons.angle,
                 value: _isCalibrated
                     ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°'
-                    : 'Calibrating...',
+                    : AppLocalizations.of(context).steeringCalibrating,
               ),
               if (kDebugMode && !_useMagnetometer)
                 DeviceInfo(
@@ -454,7 +457,11 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
                         // setState needed until the button wires to isCalibratedNotifier.
                         setState(() {});
                       },
-                child: Text(_isCalibrated ? 'Calibrate' : 'Calibrating...'),
+                child: Text(
+                  _isCalibrated
+                      ? AppLocalizations.of(context).calibrate
+                      : AppLocalizations.of(context).steeringCalibrating,
+                ),
               ),
               Builder(
                 builder: (context) {
@@ -487,7 +494,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
                         ),
                       );
                     },
-                    child: Text('Trigger Threshold:'),
+                    child: Text(AppLocalizations.of(context).triggerThreshold),
                   );
                 },
               ),
@@ -496,8 +503,8 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
           if (!_isCalibrated)
             Text(
               _useMagnetometer
-                  ? 'Calibrating the magnetometer now. Attach your phone/tablet on your handlebar and keep it still for a second.'
-                  : 'Calibrating the sensors now. Attach your phone/tablet on your handlebar and keep it still for a second.',
+                  ? AppLocalizations.of(context).calibratingMagnetometerHint
+                  : AppLocalizations.of(context).calibratingSensorsHint,
             ).xSmall,
         ],
       ),

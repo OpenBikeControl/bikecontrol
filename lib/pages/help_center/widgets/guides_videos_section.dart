@@ -8,6 +8,7 @@
 // /blog/:slug, and the tutorials the row promises ARE blog posts (see the
 // "Blog-derived seeds" comment on guides_videos_section.dart's tests /
 // the seed migration), so it now points at /blog.
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -53,7 +54,7 @@ class GuidesVideosSection extends StatelessWidget {
         onPressed: () => launchUrlString('https://bikecontrol.app/blog'),
         child: Basic(
           leading: const Icon(Icons.play_circle_outline, size: 18),
-          title: const Text('Tutorials'),
+          title: Text(AppLocalizations.of(context).tutorials),
           trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
         ),
       ),
@@ -68,7 +69,7 @@ class GuidesVideosSection extends StatelessWidget {
         },
         child: Basic(
           leading: const Icon(Icons.ondemand_video, size: 18),
-          title: const Text('Instruction Videos'),
+          title: Text(AppLocalizations.of(context).instructionVideos),
           trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
         ),
       ),

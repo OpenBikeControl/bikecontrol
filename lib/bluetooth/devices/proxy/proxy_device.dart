@@ -861,7 +861,7 @@ class ProxyDevice extends BluetoothDevice {
         ValueListenableBuilder<String>(
           valueListenable: emulator.data,
           builder: (context, value, _) {
-            if (value.isEmpty) return Text('Waiting for connection...').xSmall.muted;
+            if (value.isEmpty) return Text(AppLocalizations.of(context).waitingForConnection).xSmall.muted;
             final proxyDef = emulator.composite.firstOfType<ProxyBikeDefinition>();
             final fitnessDef = emulator.fitnessBike;
             final parts = <Widget>[];

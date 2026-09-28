@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/services/entitlements_service.dart';
@@ -110,8 +111,8 @@ class WindowsIAPService {
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
         IAPManager.instance.isPurchased.value = true;
         buildToast(
-          title: 'Purchase Successful',
-          subtitle: 'Purchase complete. Sync may take a moment.',
+          title: AppLocalizations.current.purchaseSuccessfulTitle,
+          subtitle: AppLocalizations.current.purchaseSuccessfulBody,
         );
       }
     } catch (e, s) {
@@ -275,14 +276,14 @@ class WindowsIAPService {
     } on StripeException catch (e, s) {
       recordError(e, s, context: 'Starting Stripe checkout');
       buildToast(
-        title: 'Checkout Error',
+        title: AppLocalizations.current.checkoutErrorTitle,
         subtitle: e.message,
       );
     } catch (e, s) {
       recordError(e, s, context: 'Starting Stripe checkout');
       buildToast(
-        title: 'Checkout Error',
-        subtitle: 'Failed to start checkout. Please try again.',
+        title: AppLocalizations.current.checkoutErrorTitle,
+        subtitle: AppLocalizations.current.checkoutErrorBody,
       );
     }
   }
@@ -306,7 +307,7 @@ class WindowsIAPService {
       recordError(e, s, context: 'Opening Stripe portal');
       if (context.mounted) {
         buildToast(
-          title: 'Portal Error',
+          title: AppLocalizations.current.billingPortalErrorTitle,
           subtitle: e.message,
         );
       }
@@ -315,8 +316,8 @@ class WindowsIAPService {
       recordError(e, s, context: 'Opening Stripe portal');
       if (context.mounted) {
         buildToast(
-          title: 'Portal Error',
-          subtitle: 'Failed to open billing portal. Please try again.',
+          title: AppLocalizations.current.billingPortalErrorTitle,
+          subtitle: AppLocalizations.current.billingPortalErrorBody,
         );
       }
       return true;
@@ -339,19 +340,17 @@ class WindowsIAPService {
           children: [
             Icon(Icons.lock, color: Colors.orange),
             const SizedBox(width: 8),
-            Text('Login Required'),
+            Text(AppLocalizations.of(context).loginRequiredTitle),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'A subscription on Windows requires you to be logged in. This allows us to manage your subscription across devices and provide you with secure payment processing through Stripe.',
-            ),
+            Text(AppLocalizations.of(context).loginRequiredWindowsBody),
             const SizedBox(height: 16),
             Text(
-              'Please log in or create an account to continue.',
+              AppLocalizations.of(context).loginRequiredCta,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -359,7 +358,7 @@ class WindowsIAPService {
         actions: [
           SecondaryButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           PrimaryButton(
             onPressed: () async {
@@ -380,7 +379,7 @@ class WindowsIAPService {
               // Login completing emits Supabase `signedIn`, which
               // IAPManager resumes the deferred checkout from.
             },
-            child: Text('Go to Login'),
+            child: Text(AppLocalizations.of(context).goToLogin),
           ),
         ],
       ),
