@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -240,22 +241,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       onKeyEvent: _onKey,
       child: Scaffold(
         headers: [
-          AppBar(
-            leading: [
-              IconButton.ghost(
-                icon: Icon(LucideIcons.arrowLeft, size: 24),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-            title: Text(context.i18n.simulateButtons),
-            trailing: [
-              IconButton.ghost(
-                icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-            backgroundColor: Theme.of(context).colorScheme.background,
-          ),
+          BkPageHeader(title: context.i18n.simulateButtons, showDivider: false),
         ],
         child: Scrollbar(
           controller: _scrollController,

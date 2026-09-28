@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -99,27 +100,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            AppLocalizations.of(context).smartTrainer,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
-          trailing: [
-            IconButton.ghost(
-              icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          backgroundColor: Theme.of(context).colorScheme.background,
-        ),
-        const Divider(),
+        BkPageHeader(title: AppLocalizations.of(context).smartTrainer),
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

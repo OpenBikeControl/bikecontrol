@@ -6,6 +6,7 @@
 // feedback prompt and the guides/known-issues/support sections here now
 // cover that ground — and replaced the blog link in "Guides & videos" with
 // a direct Tutorials link.)
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/main.dart' show recordError;
@@ -141,21 +142,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
 
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 22),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ],
-          title: Text(
-            l10n.helpCenterTitle,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.background,
-        ),
-        const Divider(),
+        BkPageHeader(title: l10n.helpCenterTitle),
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

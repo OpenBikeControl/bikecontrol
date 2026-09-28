@@ -1,3 +1,5 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/main.dart' show recordError;
@@ -354,18 +356,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     final signedIn = !_accountService.isAnonymous;
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            context.i18n.supportChat,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
+        BkPageHeader(
+          title: context.i18n.supportChat,
           // Standing sign-in affordance: works no matter whether the rider
           // has sent anything yet — it starts the exact same email-link flow
           // as the post-send prompt (SupportAccountLinkCard), just revealed
@@ -389,7 +381,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
               ),
             ],
           ),
-          trailing: [
+          actions: [
             if (!signedIn)
               Button(
                 key: const ValueKey('support-header-sign-in'),
@@ -401,15 +393,15 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             // data) exists. "Delete account" is gated to signed-in riders; an
             // anonymous rider's data is fully covered by "Delete conversation".
             if (_chat != null)
-              IconButton.ghost(
+              BkIconButton.ghost(
                 key: const ValueKey('support-overflow-menu'),
                 icon: const Icon(LucideIcons.ellipsisVertical, size: 20),
+                label: context.i18n.a11yMoreOptions,
+                tooltip: false,
                 onPressed: () => _showDeleteMenu(context, signedIn),
               ),
           ],
-          backgroundColor: Theme.of(context).colorScheme.background,
         ),
-        const Divider(),
       ],
       // The known-issues banner used to sit here — it's gone (usage-fix
       // round 3): known issues belong to the Help Center now, and showing

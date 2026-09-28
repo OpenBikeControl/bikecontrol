@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -69,22 +70,7 @@ class _LogviewerState extends State<LogViewer> {
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
-        AppBar(
-          leading: [
-            IconButton.ghost(
-              icon: Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(context.i18n.logs),
-          trailing: [
-            IconButton.ghost(
-              icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          backgroundColor: Theme.of(context).colorScheme.background,
-        ),
+        BkPageHeader(title: context.i18n.logs, showDivider: false),
       ],
       child: Padding(
         padding: const EdgeInsets.all(16.0),

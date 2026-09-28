@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -182,21 +183,7 @@ class _SensorsPageState extends State<SensorsPage> {
 
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            l10n.sensorsPageTitle,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
-          backgroundColor: theme.colorScheme.background,
-        ),
-        const Divider(),
+        BkPageHeader(title: l10n.sensorsPageTitle),
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

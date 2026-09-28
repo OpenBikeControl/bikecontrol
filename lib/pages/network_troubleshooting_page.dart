@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io' show Platform, Process;
 
@@ -260,24 +261,13 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     final tokens = NetworkTokens.of(context);
     return Scaffold(
       headers: [
-        AppBar(
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 20),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ],
-          title: Text(
-            l10n.networkTroubleshootingTitle,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
-          ),
+        BkPageHeader(
+          title: l10n.networkTroubleshootingTitle,
           // Only beside the title where there is room for both: on a narrow
           // window the stamp wins the space and the title wraps a character at
           // a time. It moves into the body instead.
-          trailing: [if (!_narrow(context)) _runStamp(context)],
-          backgroundColor: Theme.of(context).colorScheme.background,
+          actions: [if (!_narrow(context)) _runStamp(context)],
         ),
-        const Divider(),
       ],
       child: Container(
         color: tokens.pageBg,

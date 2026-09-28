@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -77,22 +78,11 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            AppLocalizations.of(context).gearSettings,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
-          trailing: [
+        BkPageHeader(
+          title: AppLocalizations.of(context).gearSettings,
+          actions: [
             Button(
               style: ButtonStyle.destructive(size: ButtonSize.small),
               onPressed: _resetGearSettings,
@@ -100,9 +90,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               child: Text(AppLocalizations.of(context).reset, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ),
           ],
-          backgroundColor: cs.background,
         ),
-        const Divider(),
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

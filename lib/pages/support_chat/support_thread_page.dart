@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/main.dart' show recordError;
@@ -147,21 +148,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            context.i18n.threadTitle,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.background,
-        ),
-        const Divider(),
+        BkPageHeader(title: context.i18n.threadTitle),
       ],
       child: _body(),
     );
