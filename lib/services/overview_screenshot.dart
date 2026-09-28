@@ -112,27 +112,67 @@ Future<StagedAttachment?> captureOverviewScreenshot({
     final pixelRatio = context != null ? min(MediaQuery.devicePixelRatioOf(context), maxPixelRatio) : maxPixelRatio;
 
     final image = await _captureScreen(screenContext as Element, screen, pixelRatio);
-    final ByteData? png;
-    try {
-      png = await image.toByteData(format: ui.ImageByteFormat.png);
-    } finally {
-      image.dispose();
-    }
-    if (png == null) return null;
-    final bytes = png.buffer.asUint8List();
-
-    final name = 'bikecontrol-screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
-    return StagedAttachment(
-      PlatformFile(
-        name: name,
-        size: bytes.length,
-        bytes: bytes,
-      ),
-    );
+    return await _toAttachment(image);
   } catch (e, s) {
     await recordError(e, s, context: 'overview_screenshot');
     return null;
   }
+}
+
+/// Captures the screen [context] is on. On Home that is
+/// [captureOverviewScreenshot]; on a page pushed over it (a device page, the
+/// setup wizard) it is that page — its route, with its first vertical scroll
+/// view unrolled — rather than Home underneath. Returns null on any failure.
+Future<StagedAttachment?> captureCurrentScreenScreenshot(BuildContext context, {double maxPixelRatio = 2.0}) async {
+  final homeContext = overviewScreenshotKey.currentContext;
+  final route = ModalRoute.of(context);
+  if (homeContext != null && (route == null || identical(ModalRoute.of(homeContext), route))) {
+    return captureOverviewScreenshot(context: context, maxPixelRatio: maxPixelRatio);
+  }
+  try {
+    final element = _routeBoundary(context);
+    final boundary = element?.findRenderObject();
+    if (element == null || boundary is! RenderRepaintBoundary) return null;
+    final pixelRatio = min(MediaQuery.devicePixelRatioOf(context), maxPixelRatio);
+    final image = (await _captureUnrolled(element, boundary, pixelRatio)).image;
+    return await _toAttachment(image);
+  } catch (e, s) {
+    await recordError(e, s, context: 'current_screen_screenshot');
+    return null;
+  }
+}
+
+/// The outermost [RepaintBoundary] of the route [context] is in: the one the
+/// route itself wraps its page in, just below the Navigator's [Overlay].
+Element? _routeBoundary(BuildContext context) {
+  Element? boundary;
+  context.visitAncestorElements((element) {
+    if (element.widget is Overlay) return false;
+    if (element.widget is RepaintBoundary) boundary = element;
+    return true;
+  });
+  return boundary;
+}
+
+/// Encodes [image] as a PNG attachment and disposes it.
+Future<StagedAttachment?> _toAttachment(ui.Image image) async {
+  final ByteData? png;
+  try {
+    png = await image.toByteData(format: ui.ImageByteFormat.png);
+  } finally {
+    image.dispose();
+  }
+  if (png == null) return null;
+  final bytes = png.buffer.asUint8List();
+
+  final name = 'bikecontrol-screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
+  return StagedAttachment(
+    PlatformFile(
+      name: name,
+      size: bytes.length,
+      bytes: bytes,
+    ),
+  );
 }
 
 /// A captured region and where its top-left corner goes, in physical pixels
@@ -329,6 +369,12 @@ Future<({ui.Image image, int addedHeight})> _captureStitched(
       await WidgetsBinding.instance.endOfFrame;
       shots.add(await boundary.toImage(pixelRatio: pixelRatio));
     }
+  } catch (_) {
+    // The shots taken before the failure would otherwise never be released.
+    for (final shot in shots) {
+      shot.dispose();
+    }
+    rethrow;
   } finally {
     position.jumpTo(originalOffset);
   }
@@ -397,9 +443,12 @@ Future<({ui.Image image, int addedHeight})> _captureStitched(
     }
 
     final picture = recorder.endRecording();
-    final image = await picture.toImage(shotWidthPx, stitchedHeight);
-    picture.dispose();
-    return (image: image, addedHeight: stitchedHeight - shotHeightPx);
+    try {
+      final image = await picture.toImage(shotWidthPx, stitchedHeight);
+      return (image: image, addedHeight: stitchedHeight - shotHeightPx);
+    } finally {
+      picture.dispose();
+    }
   } finally {
     for (final s in shots) {
       s.dispose();

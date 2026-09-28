@@ -248,7 +248,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     final device = widget.device;
     // Cheap, local (RepaintBoundary → PNG) — unlike debugText() below, worth
     // paying up front rather than deferring.
-    final screenshot = await captureOverviewScreenshot(context: context);
+    final screenshot = await captureCurrentScreenScreenshot(context);
     if (!mounted) return;
     // Lazy + memoized: the Help Center is now an intermediate stop the rider
     // can bounce off without ever opening the chat, so debugText() (a real

@@ -164,7 +164,7 @@ Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep st
 /// session, so no extra guard is needed here.
 Future<void> _openSupportChat(BuildContext context, VoidCallback onClose) async {
   try {
-    final screenshot = await captureOverviewScreenshot(context: context);
+    final screenshot = await captureCurrentScreenScreenshot(context);
     // Gather diagnostics in the background so the chat opens immediately; the
     // page awaits this future lazily for the preview and at send time (it
     // resolves once and is reused).
