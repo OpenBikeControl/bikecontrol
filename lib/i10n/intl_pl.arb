@@ -2325,5 +2325,14 @@
   "paywall_buyBase": "Kup Base",
   "paywall_planQuestions": "Pytania o plany?",
   "vsBudgetProRemovesLimit": "Pro znosi limit",
-  "supportDescribeFirstMessageHint": "Napisz, co próbujesz zrobić i co dzieje się zamiast tego. Sam zrzut ekranu nie mówi, co nie działa — wystarczy jedno zdanie."
+  "supportDescribeFirstMessageHint": "Napisz, co próbujesz zrobić i co dzieje się zamiast tego. Sam zrzut ekranu nie mówi, co nie działa — wystarczy jedno zdanie.",
+  "supportIntakeTryThisFirst": "Najpierw spróbuj tego",
+  "supportIntakeDidThisSolveIt": "Czy to pomogło?",
+  "supportIntakeSolvedYes": "Tak, wszystko działa",
+  "supportIntakeSolvedNo": "Nie, napisz do supportu",
+  "intakeSelfHelpNetworkBody": "Test sieci sprawdza krok po kroku, czy aplikacja treningowa znajduje BikeControl w tej sieci, i podpowiada, co zmienić, jeśli nie.",
+  "intakeSelfHelpNetworkAction": "Uruchom test sieci",
+  "intakeSelfHelpSelfTestTitle": "Uruchom autotest oporu",
+  "intakeSelfHelpSelfTestBody": "Sprawdza, czy BikeControl może zmieniać opór trenażera, i mówi, co naprawić, jeśli nie. Znajdziesz go na stronie trenażera, zaraz pod kartą połączenia.",
+  "intakeSelfHelpSelfTestAction": "Otwórz autotest"
 }

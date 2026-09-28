@@ -1,8 +1,12 @@
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
+import 'package:bike_control/utils/support/intake_self_help.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -12,11 +16,16 @@ class SupportIntakeForm extends StatefulWidget {
   final IntakeAnswers? initial;
   final ValueChanged<IntakeAnswers> onContinue;
 
+  /// "Did this solve it?" → Yes, for an answer shown inline. Null hides the
+  /// question (the rider can still continue to the composer).
+  final VoidCallback? onSolved;
+
   const SupportIntakeForm({
     super.key,
     required this.service,
     required this.onContinue,
     this.initial,
+    this.onSolved,
   });
 
   @override
@@ -113,6 +122,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final canContinue = _category != null;
+    final selfHelp = canContinue ? intakeSelfHelpFor(_buildAnswers()) : null;
     return Container(
       decoration: BoxDecoration(
         color: cs.card,
@@ -145,13 +155,21 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             _RecommendedHelp(issues: _matchingIssues),
           ],
           const Gap(16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Button.primary(
-              onPressed: canContinue ? () => widget.onContinue(_buildAnswers()) : null,
-              child: Text(context.i18n.supportIntakeContinue),
+          if (selfHelp != null)
+            _InlineSelfHelp(
+              key: ValueKey('intake-self-help-${selfHelp.name}'),
+              help: selfHelp,
+              onSolved: widget.onSolved,
+              onNotSolved: () => widget.onContinue(_buildAnswers()),
+            )
+          else
+            Align(
+              alignment: Alignment.centerRight,
+              child: Button.primary(
+                onPressed: canContinue ? () => widget.onContinue(_buildAnswers()) : null,
+                child: Text(context.i18n.supportIntakeContinue),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -305,6 +323,140 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       ).call,
       onChanged: onChanged,
     );
+  }
+}
+
+/// The help-center answer matching the intake choice, inline, with "Did this
+/// solve it?" — Yes closes, No continues to the composer.
+class _InlineSelfHelp extends StatelessWidget {
+  const _InlineSelfHelp({super.key, required this.help, required this.onNotSolved, this.onSolved});
+
+  final IntakeSelfHelp help;
+  final VoidCallback onNotSolved;
+  final VoidCallback? onSolved;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l10n = context.i18n;
+    final proxy = _knownTrainer();
+    void openNetworkTest() => context.push(const NetworkTroubleshootingPage());
+    final (IconData icon, String title, String body, List<(IconData, String, VoidCallback)> actions) = switch (help) {
+      IntakeSelfHelp.controllerNotFound => (
+        LucideIcons.bluetoothSearching,
+        l10n.helpCenterControllerNotFoundEntry,
+        l10n.helpAnswerControllerNotFoundBody,
+        const <(IconData, String, VoidCallback)>[],
+      ),
+      IntakeSelfHelp.controllerDisconnecting => (
+        LucideIcons.bluetoothOff,
+        l10n.helpCenterControllerDisconnectingEntry,
+        l10n.helpAnswerControllerDisconnectingBody,
+        [
+          (
+            LucideIcons.refreshCw,
+            l10n.helpAnswerControllerDisconnectingAction,
+            () => launchUrlString(
+              'https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps',
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+        ],
+      ),
+      IntakeSelfHelp.trainerAppGear => (
+        LucideIcons.eye,
+        l10n.helpCenterGearOverlayEntry,
+        l10n.helpAnswerGearBody,
+        [
+          if (proxy != null)
+            (
+              LucideIcons.layers,
+              l10n.helpAnswerGearOverlayAction,
+              () => context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
+            ),
+          (LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest),
+        ],
+      ),
+      IntakeSelfHelp.networkTest => (
+        LucideIcons.radioTower,
+        l10n.helpCenterNetworkEntry,
+        l10n.intakeSelfHelpNetworkBody,
+        [(LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest)],
+      ),
+      IntakeSelfHelp.trainerSelfTest => (
+        LucideIcons.activity,
+        l10n.intakeSelfHelpSelfTestTitle,
+        l10n.intakeSelfHelpSelfTestBody,
+        [
+          if (proxy != null)
+            (
+              LucideIcons.activity,
+              l10n.intakeSelfHelpSelfTestAction,
+              () => context.push(ProxyDeviceDetailsPage(device: proxy, revealSelfTest: true)),
+            ),
+        ],
+      ),
+    };
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cs.muted,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: cs.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.supportIntakeTryThisFirst,
+            style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
+          ),
+          const Gap(8),
+          Row(
+            children: [
+              Icon(icon, size: 16, color: cs.primary),
+              const Gap(8),
+              Expanded(child: Text(title, style: context.typography.small.copyWith(fontWeight: FontWeight.w600))),
+            ],
+          ),
+          const Gap(6),
+          Text(body, style: context.typography.xSmall.copyWith(color: cs.mutedForeground, height: 1.35)),
+          for (final (actionIcon, label, onPressed) in actions) ...[
+            const Gap(8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Button.outline(
+                style: ButtonStyle.outline(size: ButtonSize.small),
+                onPressed: onPressed,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [Icon(actionIcon, size: 14), const Gap(6), Flexible(child: Text(label))],
+                ),
+              ),
+            ),
+          ],
+          const Gap(14),
+          Text(l10n.supportIntakeDidThisSolveIt, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+          const Gap(8),
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (onSolved != null) Button.outline(onPressed: onSolved, child: Text(l10n.supportIntakeSolvedYes)),
+              Button.primary(onPressed: onNotSolved, child: Text(l10n.supportIntakeSolvedNo)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The trainer the self-test and overlay actions open: a connected one if
+  /// any, else any known one.
+  static ProxyDevice? _knownTrainer() {
+    final trainers = core.connection.proxyDevices;
+    return trainers.where((t) => t.isConnected).firstOrNull ?? trainers.firstOrNull;
   }
 }
 

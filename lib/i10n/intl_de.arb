@@ -2325,5 +2325,14 @@
   "paywall_buyBase": "Basis kaufen",
   "paywall_planQuestions": "Fragen zu den Plänen?",
   "vsBudgetProRemovesLimit": "Pro hebt das Limit auf",
-  "supportDescribeFirstMessageHint": "Beschreib kurz, was du vorhast und was stattdessen passiert. Ein Screenshot allein sagt nicht, was schiefgeht — ein Satz reicht."
+  "supportDescribeFirstMessageHint": "Beschreib kurz, was du vorhast und was stattdessen passiert. Ein Screenshot allein sagt nicht, was schiefgeht — ein Satz reicht.",
+  "supportIntakeTryThisFirst": "Probier das zuerst",
+  "supportIntakeDidThisSolveIt": "Hat das geholfen?",
+  "supportIntakeSolvedYes": "Ja, passt",
+  "supportIntakeSolvedNo": "Nein, Support kontaktieren",
+  "intakeSelfHelpNetworkBody": "Der Netzwerktest prüft Schritt für Schritt, ob deine Trainings-App BikeControl in diesem Netzwerk findet, und sagt dir, was du ändern musst, wenn nicht.",
+  "intakeSelfHelpNetworkAction": "Netzwerktest starten",
+  "intakeSelfHelpSelfTestTitle": "Widerstands-Selbsttest starten",
+  "intakeSelfHelpSelfTestBody": "Er prüft, ob BikeControl den Widerstand deines Trainers ändern kann, und sagt dir, was zu tun ist, wenn nicht. Du findest ihn auf der Seite deines Trainers, direkt unter der Verbindungskarte.",
+  "intakeSelfHelpSelfTestAction": "Selbsttest öffnen"
 }

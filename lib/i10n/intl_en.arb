@@ -2699,5 +2699,14 @@
   "paywall_buyBase": "Buy Base",
   "paywall_planQuestions": "Questions about plans?",
   "vsBudgetProRemovesLimit": "Pro removes the limit",
-  "supportDescribeFirstMessageHint": "Tell us what you're trying to do and what happens instead. A screenshot alone doesn't say what went wrong — one sentence is enough."
+  "supportDescribeFirstMessageHint": "Tell us what you're trying to do and what happens instead. A screenshot alone doesn't say what went wrong — one sentence is enough.",
+  "supportIntakeTryThisFirst": "Try this first",
+  "supportIntakeDidThisSolveIt": "Did this solve it?",
+  "supportIntakeSolvedYes": "Yes, all good",
+  "supportIntakeSolvedNo": "No, contact support",
+  "intakeSelfHelpNetworkBody": "The network test checks, step by step, whether your trainer app can find BikeControl on this network, and tells you what to change if it can't.",
+  "intakeSelfHelpNetworkAction": "Run the network test",
+  "intakeSelfHelpSelfTestTitle": "Run the resistance self-test",
+  "intakeSelfHelpSelfTestBody": "It checks whether BikeControl can change your trainer's resistance, and says what to fix if it can't. You'll find it on your trainer's page, right under the connection card.",
+  "intakeSelfHelpSelfTestAction": "Open the self-test"
 }

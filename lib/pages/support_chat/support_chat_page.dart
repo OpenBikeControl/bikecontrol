@@ -614,6 +614,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
               SupportIntakeForm(
                 service: _service,
                 initial: _intakeAnswers,
+                // "Did this solve it?" → Yes: nothing left to ask support.
+                onSolved: () => Navigator.of(context).maybePop(),
                 onContinue: (answers) {
                   setState(() {
                     _intakeAnswers = answers;

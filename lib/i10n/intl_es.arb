@@ -2325,5 +2325,14 @@
   "paywall_buyBase": "Comprar Base",
   "paywall_planQuestions": "¿Dudas sobre los planes?",
   "vsBudgetProRemovesLimit": "Pro elimina el límite",
-  "supportDescribeFirstMessageHint": "Cuéntanos qué intentas hacer y qué pasa en su lugar. Una captura sola no dice qué falla: basta con una frase."
+  "supportDescribeFirstMessageHint": "Cuéntanos qué intentas hacer y qué pasa en su lugar. Una captura sola no dice qué falla: basta con una frase.",
+  "supportIntakeTryThisFirst": "Prueba esto primero",
+  "supportIntakeDidThisSolveIt": "¿Se ha solucionado?",
+  "supportIntakeSolvedYes": "Sí, todo bien",
+  "supportIntakeSolvedNo": "No, contactar con soporte",
+  "intakeSelfHelpNetworkBody": "La prueba de red comprueba paso a paso si tu app de entrenamiento encuentra BikeControl en esta red y te dice qué cambiar si no lo hace.",
+  "intakeSelfHelpNetworkAction": "Hacer la prueba de red",
+  "intakeSelfHelpSelfTestTitle": "Haz el autotest de resistencia",
+  "intakeSelfHelpSelfTestBody": "Comprueba si BikeControl puede cambiar la resistencia de tu rodillo y te dice qué corregir si no puede. Está en la página de tu rodillo, justo debajo de la tarjeta de conexión.",
+  "intakeSelfHelpSelfTestAction": "Abrir el autotest"
 }
