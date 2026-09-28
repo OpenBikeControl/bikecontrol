@@ -79,17 +79,13 @@ class _OverlayAppState extends State<_OverlayApp> {
             // Send action requests back to the main isolate, where the
             // controller listens via `FlutterOverlayWindow.overlayListener`.
             onPrimaryDecrement: () {
-              _overlayActionsChannel
-                  .invokeMethod('push', 'primaryDecrement')
-                  .catchError((Object e, StackTrace s) {
+              _overlayActionsChannel.invokeMethod('push', 'primaryDecrement').catchError((Object e, StackTrace s) {
                 recordError(e, s, context: 'overlay.android.push.primaryDecrement');
                 return null;
               });
             },
             onPrimaryIncrement: () {
-              _overlayActionsChannel
-                  .invokeMethod('push', 'primaryIncrement')
-                  .catchError((Object e, StackTrace s) {
+              _overlayActionsChannel.invokeMethod('push', 'primaryIncrement').catchError((Object e, StackTrace s) {
                 recordError(e, s, context: 'overlay.android.push.primaryIncrement');
                 return null;
               });

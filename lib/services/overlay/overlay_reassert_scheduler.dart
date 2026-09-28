@@ -31,8 +31,8 @@ class OverlayReassertScheduler {
     this._controller, {
     required bool Function() isEnabled,
     Duration debounce = const Duration(milliseconds: 750),
-  })  : _isEnabled = isEnabled,
-        _debounce = debounce;
+  }) : _isEnabled = isEnabled,
+       _debounce = debounce;
 
   final TrainerOverlayController _controller;
   final bool Function() _isEnabled;

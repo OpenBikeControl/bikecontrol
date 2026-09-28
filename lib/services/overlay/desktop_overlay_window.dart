@@ -52,8 +52,17 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   // one at a time post-engine-boot, matching the package example's pattern.
   try {
     await wm.windowManager.setAlwaysOnTop(true);
-    await wm.windowManager.setMinimumSize(const Size(180, 100));
-    await wm.windowManager.setSize(const Size(220, 140));
+    // Sized around the gear numeral at the rider's text size, never the
+    // other way round: the numeral is not shrunk to fit a window.
+    final textScaler = TextScaler.linear(WidgetsBinding.instance.platformDispatcher.textScaleFactor);
+    final needed = TrainerOverlayView.windowSize(textScaler);
+    await wm.windowManager.setMinimumSize(needed);
+    await wm.windowManager.setSize(
+      Size(
+        needed.width > TrainerOverlayView.defaultWindowWidth ? needed.width : TrainerOverlayView.defaultWindowWidth,
+        needed.height,
+      ),
+    );
     await wm.windowManager.setHasShadow(false);
     if (Platform.isMacOS) {
       await wm.windowManager.setVisibleOnAllWorkspaces(
@@ -122,8 +131,7 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   // user dragging the slider afterwards. Applies the native window alpha only —
   // no Flutter repaint needed, so unlike the state listener it skips
   // scheduleForcedFrame.
-  final opacityListenerId =
-      MultiWindowNative.registerListener(kOverlayOpacityMethod, (call) async {
+  final opacityListenerId = MultiWindowNative.registerListener(kOverlayOpacityMethod, (call) async {
     try {
       final raw = call.arguments;
       final Map<String, dynamic> m = raw is String
@@ -138,8 +146,7 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
     }
   });
 
-  final overlayListener =
-      _OverlayWindowListener(windowId, stateListenerId, opacityListenerId);
+  final overlayListener = _OverlayWindowListener(windowId, stateListenerId, opacityListenerId);
   wm.windowManager.addListener(overlayListener);
 
   runApp(

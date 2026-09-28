@@ -16,8 +16,8 @@ class IosOverlayController implements TrainerOverlayController {
   /// [liveActivities] and [pip] exist so tests can stand in for ActivityKit and
   /// the PiP channel; production always takes the defaults.
   IosOverlayController({LiveActivities? liveActivities, IosPipController? pip})
-      : _la = liveActivities ?? LiveActivities(),
-        _pip = pip ?? IosPipController();
+    : _la = liveActivities ?? LiveActivities(),
+      _pip = pip ?? IosPipController();
 
   static const _appGroupId = 'group.de.jonasbark.swiftcontrol.overlay';
   static const _minPushIntervalMs = 500; // ~2 Hz
@@ -32,8 +32,7 @@ class IosOverlayController implements TrainerOverlayController {
   /// Custom MethodChannel that delivers Live Activity button taps from
   /// `AppDelegate.swift` (which observes Darwin notifications posted by the
   /// Widget Extension's `AppIntent`s) into the main Flutter engine.
-  static const _actionChannel =
-      MethodChannel('bike_control/overlay_actions_ios');
+  static const _actionChannel = MethodChannel('bike_control/overlay_actions_ios');
 
   final ValueNotifier<bool> _showing = ValueNotifier(false);
   final LiveActivities _la;

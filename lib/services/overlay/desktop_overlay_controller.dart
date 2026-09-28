@@ -98,8 +98,7 @@ class DesktopOverlayController implements TrainerOverlayController {
   // Implementation (multi_window_native)
   // ---------------------------------------------------------------------------
 
-  Future<OverlayShowResult> _showOverlay(
-      FitnessBikeDefinition def, Set<OverlayField> fields) async {
+  Future<OverlayShowResult> _showOverlay(FitnessBikeDefinition def, Set<OverlayField> fields) async {
     _registerListeners(def);
 
     final saved = core.settings.getOverlayPosition();
@@ -183,8 +182,7 @@ class DesktopOverlayController implements TrainerOverlayController {
 
     _listenerIds.add((
       method: kOverlayActionMethod,
-      id: MultiWindowNative.registerListener(kOverlayActionMethod,
-          (call) async {
+      id: MultiWindowNative.registerListener(kOverlayActionMethod, (call) async {
         try {
           final m = _asMap(call.arguments);
           final action = m['action'];
@@ -217,8 +215,7 @@ class DesktopOverlayController implements TrainerOverlayController {
 
     _listenerIds.add((
       method: kOverlayPositionMethod,
-      id: MultiWindowNative.registerListener(kOverlayPositionMethod,
-          (call) async {
+      id: MultiWindowNative.registerListener(kOverlayPositionMethod, (call) async {
         try {
           final m = _asMap(call.arguments);
           await core.settings.setOverlayPosition(
@@ -235,8 +232,7 @@ class DesktopOverlayController implements TrainerOverlayController {
 
     _listenerIds.add((
       method: kOverlayClosedMethod,
-      id: MultiWindowNative.registerListener(kOverlayClosedMethod,
-          (call) async {
+      id: MultiWindowNative.registerListener(kOverlayClosedMethod, (call) async {
         // The sub-window closed itself (user clicked the traffic-light close
         // button). Clean up local state without trying to close it again.
         _cleanupAfterClose();

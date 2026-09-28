@@ -12,9 +12,10 @@ import 'package:bike_control/services/overlay/overlay_entry_point.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
+import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show MethodChannel;
-import 'package:flutter/widgets.dart' show WidgetsBinding;
+import 'package:flutter/widgets.dart' show TextScaler, WidgetsBinding;
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
@@ -73,8 +74,11 @@ class AndroidOverlayController implements TrainerOverlayController {
     // a 3× display).
     final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
     int dpToPx(double dp) => (dp * dpr).round();
-    final overlayTextGrowth = androidOverlayGrowth(
-      WidgetsBinding.instance.platformDispatcher.textScaleFactor,
+    // Sized around the gear numeral at the rider's text size (the card is
+    // never shrunk to fit), with a margin for the card's border. Sized for
+    // the -/+ row too: the fields can change while the window is up.
+    final overlaySize = TrainerOverlayView.windowSize(
+      TextScaler.linear(WidgetsBinding.instance.platformDispatcher.textScaleFactor),
     );
 
     // Android requires a foreground-service notification for SYSTEM_ALERT_WINDOW
@@ -88,10 +92,8 @@ class AndroidOverlayController implements TrainerOverlayController {
       flag: OverlayFlag.defaultFlag,
       visibility: NotificationVisibility.visibilitySecret,
       positionGravity: PositionGravity.none,
-      // The card's text follows the system font size, so the window does too
-      // (capped: past 1.5x the card would cover the trainer app).
-      width: dpToPx(270 * overlayTextGrowth),
-      height: dpToPx(110 * overlayTextGrowth),
+      width: dpToPx(overlaySize.width + 16),
+      height: dpToPx(overlaySize.height + 16),
       startPosition: const OverlayPosition(20, 80),
     );
 
@@ -119,8 +121,7 @@ class AndroidOverlayController implements TrainerOverlayController {
     StackTrace? lastStack;
     for (var i = 0; i < 10; i++) {
       try {
-        final ok = await _overlayActionsChannel
-            .invokeMethod<bool>('installOverlayHandler');
+        final ok = await _overlayActionsChannel.invokeMethod<bool>('installOverlayHandler');
         if (ok == true) return;
       } catch (e, s) {
         // Expected to fail until the overlay engine is in the FlutterEngineCache;
@@ -131,8 +132,7 @@ class AndroidOverlayController implements TrainerOverlayController {
       await Future.delayed(const Duration(milliseconds: 100));
     }
     if (lastError != null) {
-      recordError(lastError, lastStack,
-          context: 'overlay.android.installHandler');
+      recordError(lastError, lastStack, context: 'overlay.android.installHandler');
     }
   }
 
@@ -155,8 +155,7 @@ class AndroidOverlayController implements TrainerOverlayController {
       await Future.delayed(const Duration(milliseconds: 100));
     }
     if (lastError != null) {
-      recordError(lastError, lastStack,
-          context: 'overlay.android.keepScreenOn');
+      recordError(lastError, lastStack, context: 'overlay.android.keepScreenOn');
     }
   }
 
@@ -300,8 +299,3 @@ class AndroidOverlayController implements TrainerOverlayController {
     await FlutterOverlayWindow.shareData(jsonEncode(s.toJson()));
   }
 }
-
-/// How much the Android overlay window grows with the system font size:
-/// 1.0 up to the default size, following it up to 1.5x.
-@visibleForTesting
-double androidOverlayGrowth(double textScaleFactor) => textScaleFactor.clamp(1.0, 1.5);

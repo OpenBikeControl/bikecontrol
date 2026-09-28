@@ -29,10 +29,16 @@ void main() {
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
       late BuildContext ctx;
-      await tester.pumpWidget(OverlayShadcnApp(home: Builder(builder: (c) {
-        ctx = c;
-        return const SizedBox();
-      })));
+      await tester.pumpWidget(
+        OverlayShadcnApp(
+          home: Builder(
+            builder: (c) {
+              ctx = c;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       final theme = Theme.of(ctx);
       expect(theme.brightness, brightness);
@@ -45,9 +51,17 @@ void main() {
   for (final mode in [TrainerMode.simMode, TrainerMode.ergMode]) {
     testWidgets('+/- are labelled in $mode', (tester) async {
       final handle = tester.ensureSemantics();
-      await tester.pumpWidget(OverlayShadcnApp(
-        home: Center(child: TrainerOverlayView(state: state(mode: mode), onPrimaryDecrement: () {}, onPrimaryIncrement: () {})),
-      ));
+      await tester.pumpWidget(
+        OverlayShadcnApp(
+          home: Center(
+            child: TrainerOverlayView(
+              state: state(mode: mode),
+              onPrimaryDecrement: () {},
+              onPrimaryIncrement: () {},
+            ),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       final (down, up) = mode == TrainerMode.ergMode ? ('Decrease', 'Increase') : ('Shift Down', 'Shift Up');
       expect(find.semantics.byLabel(down), isSemantics(isButton: true, hasTapAction: true));
@@ -61,9 +75,13 @@ void main() {
     try {
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-      await tester.pumpWidget(OverlayShadcnApp(
-        home: Center(child: TrainerOverlayView(state: state(), onPrimaryDecrement: () {}, onPrimaryIncrement: () {})),
-      ));
+      await tester.pumpWidget(
+        OverlayShadcnApp(
+          home: Center(
+            child: TrainerOverlayView(state: state(), onPrimaryDecrement: () {}, onPrimaryIncrement: () {}),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     } finally {
