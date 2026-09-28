@@ -136,6 +136,7 @@ Future<void> main() async {
       bool isPurchased = false,
       bool isPro = false,
       bool isProForDevice = false,
+      bool deviceLimitReached = false,
     }) => paywallConfirmationFor(
       isBasePurchase: basePurchase,
       wasPurchased: wasPurchased,
@@ -143,7 +144,21 @@ Future<void> main() async {
       isPurchased: isPurchased,
       isPro: isPro,
       isProForDevice: isProForDevice,
+      deviceLimitReached: deviceLimitReached,
     );
+
+    // The store took the payment, but the account's device limit kept this
+    // device from being activated, so no entitlement arrived at all.
+    test('a Pro purchase stopped by the device limit says so', () {
+      expect(outcome(isPurchased: true, deviceLimitReached: true), PaywallConfirmation.proDeviceLimit);
+      expect(outcome(deviceLimitReached: true), PaywallConfirmation.proDeviceLimit, reason: 'restore too');
+    });
+
+    test('the device limit is not reported for a Base purchase, or once Pro works here', () {
+      expect(outcome(basePurchase: true, isPurchased: true, deviceLimitReached: true), PaywallConfirmation.baseDone);
+      expect(outcome(isPro: true, isProForDevice: true, deviceLimitReached: true), isNull);
+      expect(outcome(wasPro: true, deviceLimitReached: true), isNull);
+    });
 
     test('a Base purchase that went through confirms Base', () {
       expect(outcome(basePurchase: true, isPurchased: true), PaywallConfirmation.baseDone);

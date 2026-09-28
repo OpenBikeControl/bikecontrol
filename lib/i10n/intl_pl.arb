@@ -2397,5 +2397,10 @@
   "supportDiagScreenshotNone": "Niedołączony",
   "supportDiagNone": "Brak",
   "supportDiagShowTechnical": "Pokaż szczegóły techniczne",
-  "supportDiagHideTechnical": "Ukryj szczegóły techniczne"
+  "supportDiagHideTechnical": "Ukryj szczegóły techniczne",
+  "purchaseProDeviceLimitBody": "Tego urządzenia nie można jeszcze aktywować: Twoje konto ma już maksymalnie {max} urządzeń {platform}. Usuń jedno, którego już nie używasz, a to urządzenie zostanie od razu aktywowane.",
+  "@purchaseProDeviceLimitBody": {"placeholders": {"max": {"type": "String"}, "platform": {"type": "String"}}},
+  "purchaseManageDevices": "Zarządzaj urządzeniami",
+  "purchaseProActiveOnDevice": "Pro jest teraz aktywne na tym urządzeniu",
+  "supportPinnedDeviceLimit": "szczegóły limitu urządzeń"
 }

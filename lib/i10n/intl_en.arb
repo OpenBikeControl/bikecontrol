@@ -2771,5 +2771,10 @@
   "supportDiagScreenshotNone": "Not attached",
   "supportDiagNone": "None",
   "supportDiagShowTechnical": "Show technical details",
-  "supportDiagHideTechnical": "Hide technical details"
+  "supportDiagHideTechnical": "Hide technical details",
+  "purchaseProDeviceLimitBody": "This device can't be activated yet: your account already has the maximum of {max} {platform} devices. Remove one you no longer use and this device is activated right after.",
+  "@purchaseProDeviceLimitBody": {"placeholders": {"max": {"type": "String"}, "platform": {"type": "String"}}},
+  "purchaseManageDevices": "Manage devices",
+  "purchaseProActiveOnDevice": "Pro is now active on this device",
+  "supportPinnedDeviceLimit": "device limit details"
 }

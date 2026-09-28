@@ -6,7 +6,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:dartx/dartx.dart';
+import 'package:bike_control/widgets/register_this_device.dart' show devicePlatformLabel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class RegisteredDevicesView extends StatefulWidget {
@@ -216,7 +216,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       recordError(error, stack, context: 'Register current device: limit reached');
       if (!mounted) return;
       buildToast(
-        title: AppLocalizations.of(context).deviceLimitReached(error.platform.capitalize().replaceAll('os', 'OS')),
+        title: AppLocalizations.of(context).deviceLimitReached(devicePlatformLabel(error.platform)),
       );
     } catch (error, stack) {
       recordError(error, stack, context: 'Register current device');

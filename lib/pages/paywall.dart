@@ -15,6 +15,7 @@ import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:prop/prop.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -77,6 +78,9 @@ enum PaywallConfirmation {
 
   /// Pro is on the account but this device isn't registered for it.
   proUnregistered,
+
+  /// The account's device limit kept Pro from reaching this device.
+  proDeviceLimit,
 }
 
 /// Decides [PaywallConfirmation] from the IAP state before an attempt and
@@ -89,7 +93,13 @@ PaywallConfirmation? paywallConfirmationFor({
   required bool isPurchased,
   required bool isPro,
   required bool isProForDevice,
+  bool deviceLimitReached = false,
 }) {
+  // The device limit answered instead of an entitlement: nothing else will
+  // tell the rider why Pro didn't turn on.
+  if (!isBasePurchase && !wasPro && !isProForDevice && deviceLimitReached) {
+    return PaywallConfirmation.proDeviceLimit;
+  }
   // Pro landing on the account outranks a Base receipt: the rider who now
   // has Pro should not be told Base's limits.
   if (!wasPro && isPro && !isProForDevice) return PaywallConfirmation.proUnregistered;
@@ -291,7 +301,8 @@ class _PaywallState extends State<Paywall> {
     if (!mounted) {
       return;
     }
-    if (_iapManager.isProEnabled || _iapManager.isPurchased.value) {
+    final limited = _attempt != null && _iapManager.entitlements.lastDeviceLimitError != null;
+    if (_iapManager.isProEnabled || _iapManager.isPurchased.value || limited) {
       _close();
       // The store's answer lands here, before the purchase call returns (and
       // RevenueCat's can take seconds) — confirm now, not when it returns.
@@ -345,6 +356,7 @@ class _PaywallState extends State<Paywall> {
       isPurchased: _iapManager.isPurchased.value,
       isPro: _iapManager.isProEnabled,
       isProForDevice: _iapManager.isProEnabledForCurrentDevice,
+      deviceLimitReached: _iapManager.entitlements.lastDeviceLimitError != null,
     );
     final rootContext = navigatorKey.currentContext;
     if (confirmation == null || rootContext == null || !rootContext.mounted) return;
@@ -352,7 +364,16 @@ class _PaywallState extends State<Paywall> {
     unawaited(switch (confirmation) {
       PaywallConfirmation.baseDone => showPurchaseBaseDoneDialog(rootContext),
       PaywallConfirmation.proUnregistered => showPurchaseProUnregisteredDialog(rootContext),
+      PaywallConfirmation.proDeviceLimit => _showDeviceLimit(rootContext),
     });
+  }
+
+  Future<void> _showDeviceLimit(BuildContext rootContext) {
+    final error = _iapManager.entitlements.lastDeviceLimitError!;
+    Logger.warn('Paywall: device limit reached after purchase: $error');
+    // The paywall must not stay open under the dialog.
+    if (mounted) _close();
+    return showProDeviceLimitDialog(rootContext, error);
   }
 
   Future<void> _onPurchasePressed() async {
