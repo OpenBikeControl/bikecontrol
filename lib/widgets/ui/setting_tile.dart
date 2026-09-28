@@ -54,7 +54,12 @@ class SettingTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (trailing != null) trailing!,
+            if (trailing != null)
+              // A bare switch is read as an unnamed toggle; it switches
+              // exactly what the tile's title says, so it carries that name.
+              trailing is Switch || trailing is Checkbox
+                  ? Semantics(container: true, label: title, child: trailing!)
+                  : trailing!,
           ],
         ),
         if (child != null) child!,

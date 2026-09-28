@@ -38,6 +38,8 @@ void main() {
     final handle = tester.ensureSemantics();
     await pump(tester, BkIconButton.ghost(icon: const Icon(LucideIcons.x), label: 'Close', onPressed: () {}));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    // flutter_test reports Android, so ShadcnApp's mobile scaling applies.
+    await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
     handle.dispose();
   });
 

@@ -65,4 +65,11 @@ Future<void> main() async {
           reason: 'the per-gear header should count $gears gears');
     });
   }
+
+  testWidgets('every tap target on the gear editor is labelled', (tester) async {
+    final handle = tester.ensureSemantics();
+    await showEditor(tester, definition(gears: 12), 'en');
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    handle.dispose();
+  });
 }
