@@ -2,8 +2,7 @@ import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart'
-    show OtherLocalizationsDelegate, screenshotLocale, screenshotMode;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotLocale, screenshotMode;
 import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -142,6 +141,7 @@ Future<List<File>> captureWidget(
   Brightness brightness = Brightness.light,
   double pixelRatio = 3.0,
   String outputDir = 'build/snapshots',
+
   /// If false, use pump(duration) instead of pumpAndSettle — needed when the
   /// widget contains an infinite animation (e.g. a CircularProgressIndicator)
   /// that would cause pumpAndSettle to time out.
@@ -188,9 +188,7 @@ Future<List<File>> captureWidget(
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: lightTheme,
         darkTheme: darkTheme,
-        themeMode: brightness == Brightness.dark
-            ? ThemeMode.dark
-            : ThemeMode.light,
+        themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
         materialTheme: m.ThemeData(),
         home: Builder(
           builder: (context) {
@@ -208,9 +206,7 @@ Future<List<File>> captureWidget(
                 ),
               ),
             );
-            return height == null
-                ? SingleChildScrollView(child: captured)
-                : captured;
+            return height == null ? SingleChildScrollView(child: captured) : captured;
           },
         ),
       ),
@@ -220,6 +216,11 @@ Future<List<File>> captureWidget(
     // (Geist etc.); the second pump re-renders with real glyphs, not Ahem boxes.
     await tester.pump();
     await tester.loadAssets();
+    // Fonts arriving after the first layout leave intrinsic sizes measured
+    // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+    // clips descenders). The app loads its fonts before the first frame, so
+    // re-measure everything as it would have been.
+    await tester.binding.reassembleApplication();
     if (settle) {
       await tester.pumpAndSettle();
     } else {

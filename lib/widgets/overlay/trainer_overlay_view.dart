@@ -110,17 +110,22 @@ class TrainerOverlayView extends StatelessWidget {
             children: [
               _shiftButton(
                 cs,
-                Icons.remove,
+                LucideIcons.minus,
                 onPrimaryDecrement,
                 label: isErg ? l10n?.a11yDecrease : l10n?.actionShiftDown,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: primaryText,
+              // Flexible so the numeral, not the + button, gives way when a
+              // narrow window meets a large text size: the FittedBox only
+              // scales down against a bounded width.
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: primaryText,
+                ),
               ),
               _shiftButton(
                 cs,
-                Icons.add,
+                LucideIcons.plus,
                 onPrimaryIncrement,
                 label: isErg ? l10n?.a11yIncrease : l10n?.actionShiftUp,
               ),
@@ -158,7 +163,7 @@ class TrainerOverlayView extends StatelessWidget {
                     onPanStart: (_) => onDragStart!(),
                     child: Align(
                       alignment: Alignment.centerRight,
-                      child: Icon(Icons.drag_indicator, size: 14, color: cs.mutedForeground),
+                      child: Icon(LucideIcons.gripVertical, size: 14, color: cs.mutedForeground),
                     ),
                   )
                 : null,
@@ -243,13 +248,20 @@ class TrainerOverlayView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           pillWidget,
-          // Each reading shrinks rather than overflows when the system text
-          // size is up and every field is switched on.
-          for (final m in metrics)
+          // The readings shrink together rather than overflow when the
+          // system text size is up and every field is switched on — as one
+          // group, so a short reading isn't drawn bigger than its neighbours.
+          if (metrics.isNotEmpty)
             Flexible(
               child: Padding(
                 padding: const EdgeInsets.only(left: 4),
-                child: FittedBox(fit: BoxFit.scaleDown, child: m),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: metrics),
+                  ),
+                ),
               ),
             ),
         ],

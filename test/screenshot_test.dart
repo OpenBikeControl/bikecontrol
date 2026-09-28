@@ -239,6 +239,7 @@ Future<void> main() async {
     WidgetTester tester,
     String scene,
     Widget Function() homeBuilder, {
+
     /// Runs on each board after the first pump, before the golden is taken.
     /// Gets the slot so a scene can drive the UI differently per board size.
     Future<void> Function(WidgetTester tester, DeviceType type)? afterPump,
@@ -285,6 +286,11 @@ Future<void> main() async {
         // golden_screenshot v9+ only loads fonts found in the rendered widget
         // tree, so load after the first pump (then re-render with them).
         await tester.loadAssets();
+        // Fonts arriving after the first layout leave intrinsic sizes measured
+        // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+        // clips descenders). The app loads its fonts before the first frame, so
+        // re-measure everything as it would have been.
+        await tester.binding.reassembleApplication();
         await tester.pump();
         await expectLater(
           find.byType(ma.Scaffold),
@@ -339,6 +345,11 @@ Future<void> main() async {
     await tester.pump();
     if (afterPump != null) await afterPump(tester);
     await tester.loadAssets();
+    // Fonts arriving after the first layout leave intrinsic sizes measured
+    // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+    // clips descenders). The app loads its fonts before the first frame, so
+    // re-measure everything as it would have been.
+    await tester.binding.reassembleApplication();
     await tester.pump();
     await expectLater(
       capture?.call() ?? find.byType(ma.Scaffold),
@@ -388,6 +399,11 @@ Future<void> main() async {
       await tester.pump();
       if (afterPump != null) await afterPump(tester);
       await tester.loadAssets();
+      // Fonts arriving after the first layout leave intrinsic sizes measured
+      // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+      // clips descenders). The app loads its fonts before the first frame, so
+      // re-measure everything as it would have been.
+      await tester.binding.reassembleApplication();
       await tester.pump();
       await expectLater(
         capture?.call() ?? find.byType(ma.Scaffold),
@@ -609,7 +625,9 @@ Future<void> main() async {
   // The front-derailleur setting card, enabled so the chainring steppers show.
   testGoldens('Front Derailleur Setting', (WidgetTester tester) async {
     await core.shiftingConfigs.upsert(
-      core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(
+      core.shiftingConfigs
+          .activeFor(proxy.trainerKey)
+          .copyWith(
             frontShiftEnabled: true,
             smallChainringTeeth: 34,
             largeChainringTeeth: 50,
@@ -623,7 +641,10 @@ Future<void> main() async {
         customChild: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy, definition: fbd)),
+            child: RepaintBoundary(
+              key: k,
+              child: FrontShiftCard(device: proxy, definition: fbd),
+            ),
           ),
         ),
       ),
@@ -742,14 +763,14 @@ Future<void> main() async {
                       final keymap = core.actionHandler.supportedApp?.keymap;
                       final size = 56 / Theme.of(context).scaling;
                       Widget btnFor(ControllerButton btn) => AnimatedButtonWidget(
-                            key: ValueKey(btn.name),
-                            button: btn,
-                            pressGeneration: 0,
-                            keymap: keymap,
-                            device: cardDevice,
-                            size: size,
-                            onUpdate: () {},
-                          );
+                        key: ValueKey(btn.name),
+                        button: btn,
+                        pressGeneration: 0,
+                        keymap: keymap,
+                        device: cardDevice,
+                        size: size,
+                        onUpdate: () {},
+                      );
                       final footer = ControllerCanvas(
                         layout: cardDevice.controllerLayout!,
                         availableButtons: cardDevice.availableButtons,
@@ -1093,6 +1114,11 @@ Future<void> main() async {
         );
         await tester.pump();
         await tester.loadAssets();
+        // Fonts arriving after the first layout leave intrinsic sizes measured
+        // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+        // clips descenders). The app loads its fonts before the first frame, so
+        // re-measure everything as it would have been.
+        await tester.binding.reassembleApplication();
         // Flip screenshotMode off only for the synchronous build/pump that
         // produces the captured frame, so the Controllers card header shows the
         // real product name, then restore it before any async work continues.
@@ -1158,12 +1184,18 @@ Future<void> main() async {
       ShiftingConfig.defaults(trainerKey: key, name: 'Default', isActive: false),
     );
     await core.shiftingConfigs.upsert(
-      ShiftingConfig.defaults(trainerKey: key, name: 'Sprint', isActive: false)
-          .copyWith(riderWeightKg: 72, bikeWeightKg: 7.5),
+      ShiftingConfig.defaults(
+        trainerKey: key,
+        name: 'Sprint',
+        isActive: false,
+      ).copyWith(riderWeightKg: 72, bikeWeightKg: 7.5),
     );
     await core.shiftingConfigs.upsert(
-      ShiftingConfig.defaults(trainerKey: key, name: 'Climb day', isActive: true)
-          .copyWith(riderWeightKg: 78, bikeWeightKg: 8.5),
+      ShiftingConfig.defaults(
+        trainerKey: key,
+        name: 'Climb day',
+        isActive: true,
+      ).copyWith(riderWeightKg: 78, bikeWeightKg: 8.5),
     );
   }
 
@@ -1236,8 +1268,7 @@ Future<void> main() async {
       OverlayField.cadence,
       OverlayField.gearRatio,
     });
-    await TrainerOverlayService.forCurrentPlatform()
-        .show(fbd, core.settings.getOverlayFields());
+    await TrainerOverlayService.forCurrentPlatform().show(fbd, core.settings.getOverlayFields());
     const k = ValueKey('shot');
     await shootOne(
       tester,
