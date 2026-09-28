@@ -310,7 +310,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w500,
-                color: active ? const Color(0xFFA1A1AA) : cs.mutedForeground,
+                color: active ? cs.primaryForeground.withValues(alpha: 0.8) : cs.mutedForeground,
               ),
             ),
           ],
@@ -344,10 +344,10 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
               valueListenable: def.gearRatios,
               builder: (context, ratios, _) => Text(
                 AppLocalizations.of(context).perGearCount(ratios.length),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFFA1A1AA),
+                  color: Theme.of(context).colorScheme.mutedForeground,
                 ),
               ),
             ),
@@ -386,33 +386,15 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final isCurrent = gear == current;
     final isNeutral = gear == def.neutralGear;
 
-    Color bgColor = cs.card;
-    Color borderColor = cs.border;
-    double borderWidth = 1;
-    if (isCurrent) {
-      bgColor = const Color(0xFFEFF6FF);
-      borderColor = const Color(0xFFBFDBFE);
-      borderWidth = 1.5;
-    }
-
-    Color badgeBoxBg = cs.muted;
-    Color badgeBoxText = cs.foreground;
-    if (isNeutral && !isCurrent) {
-      badgeBoxBg = const Color(0xFFDBEAFE);
-      badgeBoxText = const Color(0xFF1E40AF);
-    }
-    if (isCurrent) {
-      badgeBoxBg = const Color(0xFF2563EB);
-      badgeBoxText = Colors.white;
-    }
+    final colors = gearRowColors(cs, isCurrent: isCurrent, isNeutral: isNeutral);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: colors.background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: borderColor, width: borderWidth),
+        border: Border.all(color: colors.border, width: isCurrent ? 1.5 : 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -422,7 +404,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: badgeBoxBg,
+              color: colors.badgeBackground,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
@@ -431,7 +413,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: badgeBoxText,
+                  color: colors.badgeForeground,
                 ),
               ),
             ),
@@ -449,8 +431,8 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                       AppLocalizations.of(context).gearNumber(gear),
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                     ),
-                    if (isCurrent) _badge(AppLocalizations.of(context).currentBadge, const Color(0xFF2563EB), Colors.white),
-                    if (isNeutral && !isCurrent) _badge(AppLocalizations.of(context).neutralBadge, const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
+                    if (isCurrent) _badge(AppLocalizations.of(context).currentBadge, cs.primary, cs.primaryForeground),
+                    if (isNeutral && !isCurrent) _badge(AppLocalizations.of(context).neutralBadge, colors.badgeBackground, colors.badgeForeground),
                   ],
                 ),
                 Text(
@@ -636,4 +618,32 @@ class VirtualShiftingModeCard extends StatelessWidget {
       },
     );
   }
+}
+
+/// Colours for one row of the per-gear list, all derived from the theme so
+/// the current row stays legible in dark mode (it used to be a fixed #EFF6FF
+/// wash under near-white text).
+@visibleForTesting
+({Color background, Color border, Color badgeBackground, Color badgeForeground}) gearRowColors(
+  ColorScheme cs, {
+  required bool isCurrent,
+  required bool isNeutral,
+}) {
+  if (isCurrent) {
+    return (
+      background: cs.primary.withValues(alpha: 0.10),
+      border: cs.primary.withValues(alpha: 0.45),
+      badgeBackground: cs.primary,
+      badgeForeground: cs.primaryForeground,
+    );
+  }
+  if (isNeutral) {
+    return (
+      background: cs.card,
+      border: cs.border,
+      badgeBackground: cs.primary.withValues(alpha: 0.15),
+      badgeForeground: cs.foreground,
+    );
+  }
+  return (background: cs.card, border: cs.border, badgeBackground: cs.muted, badgeForeground: cs.foreground);
 }
