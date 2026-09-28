@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:prop/prop.dart';
@@ -16,6 +17,7 @@ void buildToast({
   Duration? duration,
 }) {
   if (navigatorKey.currentContext?.mounted ?? false) {
+    _announce(navigatorKey.currentContext!, level: level, title: title, subtitle: subtitle);
     // Desktop: top-right (footers live bottom-right there). Mobile: normal
     // bottom placement — lifted above the wizard's sticky footer only while
     // onboarding is active.
@@ -70,4 +72,19 @@ void buildToast({
       ),
     );
   }
+}
+
+/// Toasts are visual only; screen readers need the same message spoken.
+/// Errors interrupt (assertive), everything else waits its turn (polite).
+void _announce(BuildContext context, {required LogLevel level, String? title, String? subtitle}) {
+  final message = [title, subtitle].whereType<String>().where((s) => s.trim().isNotEmpty).join('. ');
+  if (message.isEmpty) return;
+  final view = View.maybeOf(context);
+  if (view == null) return;
+  SemanticsService.sendAnnouncement(
+    view,
+    message,
+    Directionality.maybeOf(context) ?? TextDirection.ltr,
+    assertiveness: level == LogLevel.LOGLEVEL_ERROR ? Assertiveness.assertive : Assertiveness.polite,
+  );
 }
