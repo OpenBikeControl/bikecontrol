@@ -695,7 +695,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
             const Gap(10),
           ],
-          if (vsBudget != null) ...[
+          // Store renders stage a finished setup, not a daily limit.
+          if (vsBudget != null && !screenshotMode) ...[
             // Live while riding: the budget ticks down during a session.
             ValueListenableBuilder<Duration>(
               valueListenable: core.bridgeUsageTracker.usedTodayListenable,
