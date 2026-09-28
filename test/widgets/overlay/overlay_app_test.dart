@@ -37,7 +37,7 @@ void main() {
       final theme = Theme.of(ctx);
       expect(theme.brightness, brightness);
       expect(theme.colorScheme.primary, BkTheme.build(brightness).colorScheme.primary);
-      expect(theme.radius, AdaptiveScaling.mobile.scale(BkTheme.build(brightness)).radius);
+      expect(theme.radius, BkTheme.mobileScaling.scale(BkTheme.build(brightness)).radius);
       expect(AppLocalizations.maybeOf(ctx), isNotNull);
     });
   }

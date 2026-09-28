@@ -765,6 +765,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         title: 'BikeControl',
+        scaling: BkTheme.scaling,
         darkTheme: BkTheme.build(Brightness.dark),
         locale: demoLocaleOverride.isNotEmpty
             ? Locale(demoLocaleOverride)

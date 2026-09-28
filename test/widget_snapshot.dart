@@ -186,6 +186,7 @@ Future<List<File>> captureWidget(
           AppLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
+        scaling: BkTheme.scaling,
         theme: lightTheme,
         darkTheme: darkTheme,
         themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,

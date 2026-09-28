@@ -1,5 +1,6 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -53,19 +54,30 @@ void main() {
     expect(dark.scaling, light.scaling);
   });
 
-  testWidgets('on a phone, shadcn scales controls 1.25x and text is not shrunk', (tester) async {
+  testWidgets('on a phone, controls scale 1.25x and text 1.1x', (tester) async {
     late ThemeData applied;
     await tester.pumpWidget(
       ShadcnApp(
+        scaling: BkTheme.scaling,
         theme: BkTheme.build(Brightness.light),
-        home: Builder(builder: (context) {
-          applied = Theme.of(context);
-          return const SizedBox();
-        }),
+        home: Builder(
+          builder: (context) {
+            applied = Theme.of(context);
+            return const SizedBox();
+          },
+        ),
       ),
     );
-    // flutter_test reports Android: ShadcnApp's mobile scaling applies.
-    expect(applied.scaling, closeTo(1.25, 0.001));
-    expect(applied.typography.base.fontSize, closeTo(const Typography.geist().base.fontSize! * 1.25, 0.001));
+    // flutter_test reports Android: the phone scaling applies.
+    const geist = Typography.geist();
+    expect(applied.scaling, closeTo(1.25, 0.001), reason: 'tap targets keep the mobile size');
+    expect(applied.typography.base.fontSize, closeTo(geist.base.fontSize! * 1.1, 0.001));
+    // The 11 px floor holds in rendered size.
+    expect(applied.typography.caption.fontSize, greaterThanOrEqualTo(11));
+  });
+
+  test('desktop is unscaled', () {
+    expect(BkTheme.scalingFor(TargetPlatform.macOS), AdaptiveScaling.desktop);
+    expect(BkTheme.scalingFor(TargetPlatform.windows), AdaptiveScaling.desktop);
   });
 }

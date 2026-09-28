@@ -18,6 +18,7 @@ class OverlayShadcnApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ShadcnApp(
       debugShowCheckedModeBanner: false,
+      scaling: BkTheme.scaling,
       theme: BkTheme.build(Brightness.light),
       darkTheme: BkTheme.build(Brightness.dark),
       localizationsDelegates: [

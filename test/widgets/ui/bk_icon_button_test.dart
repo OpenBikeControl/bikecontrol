@@ -7,13 +7,20 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester, Widget child) => tester.pumpWidget(
-    ShadcnApp(theme: BkTheme.build(Brightness.light), home: Center(child: child)),
+    ShadcnApp(
+      scaling: BkTheme.scaling,
+      theme: BkTheme.build(Brightness.light),
+      home: Center(child: child),
+    ),
   );
 
   testWidgets('announces its label as a button and taps through', (tester) async {
     final handle = tester.ensureSemantics();
     var taps = 0;
-    await pump(tester, BkIconButton.ghost(icon: const Icon(LucideIcons.arrowLeft), label: 'Back', onPressed: () => taps++));
+    await pump(
+      tester,
+      BkIconButton.ghost(icon: const Icon(LucideIcons.arrowLeft), label: 'Back', onPressed: () => taps++),
+    );
 
     expect(
       find.semantics.byLabel('Back'),
@@ -26,7 +33,10 @@ void main() {
 
   testWidgets('a disabled button says so', (tester) async {
     final handle = tester.ensureSemantics();
-    await pump(tester, const BkIconButton.primary(icon: Icon(LucideIcons.send), label: 'Send message', onPressed: null));
+    await pump(
+      tester,
+      const BkIconButton.primary(icon: Icon(LucideIcons.send), label: 'Send message', onPressed: null),
+    );
     expect(
       find.semantics.byLabel('Send message'),
       isSemantics(isButton: true, isEnabled: false, hasEnabledState: true, hasTapAction: false),
@@ -38,7 +48,7 @@ void main() {
     final handle = tester.ensureSemantics();
     await pump(tester, BkIconButton.ghost(icon: const Icon(LucideIcons.x), label: 'Close', onPressed: () {}));
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-    // flutter_test reports Android, so ShadcnApp's mobile scaling applies.
+    // flutter_test reports Android, so the app's phone scaling applies.
     await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
     handle.dispose();
   });

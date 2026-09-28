@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The one place BikeControl's shadcn themes are built.
@@ -81,15 +82,40 @@ abstract final class BkTheme {
     chart5: Color(0xFFE23670),
   );
 
+  /// Phone/tablet scaling. shadcn's own `AdaptiveScaling.mobile` scales
+  /// everything 1.25x; sizes, radii and icons keep that (it is what brings
+  /// icon buttons to a ~45 px target), but text at 1.25x wrapped the dense
+  /// cards far more than on desktop, so text gets 1.1x.
+  static const AdaptiveScaling mobileScaling = _BkMobileScaling();
+
+  /// The scaling every BikeControl `ShadcnApp` passes: [mobileScaling] on
+  /// iOS/Android (where shadcn would pick its mobile default), none elsewhere.
+  static AdaptiveScaling scalingFor(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.iOS || TargetPlatform.android => mobileScaling,
+    _ => AdaptiveScaling.desktop,
+  };
+
+  /// [scalingFor] the platform the app runs on.
+  static AdaptiveScaling get scaling => scalingFor(defaultTargetPlatform);
+
   /// Builds the theme for [brightness].
   ///
-  /// Deliberately unscaled: on phones and tablets `ShadcnApp` applies
-  /// `AdaptiveScaling.mobile` (1.25x sizes, radius and text) on top of this,
-  /// which is what brings icon buttons to a ~45 px target. The theme used to
-  /// shrink phone text to 0.9x underneath that; it no longer does.
+  /// Deliberately unscaled: every app shell passes [scaling] to `ShadcnApp`,
+  /// which applies it on top of this.
   static ThemeData build(Brightness brightness) => ThemeData(
     colorScheme: brightness == Brightness.dark ? darkColorScheme : lightColorScheme,
     typography: const Typography.geist(),
     radius: radius,
   );
+}
+
+/// [BkTheme.mobileScaling]: shadcn scales icons with text; this keeps them at
+/// the control scale so icon buttons don't shrink with the text.
+class _BkMobileScaling extends AdaptiveScaling {
+  const _BkMobileScaling() : super.only(radiusScaling: 1.25, sizeScaling: 1.25, textScaling: 1.1);
+
+  static const double _iconScaling = 1.25;
+
+  @override
+  ThemeData scale(ThemeData theme) => super.scale(theme).copyWith(iconTheme: () => theme.iconTheme.scale(_iconScaling));
 }
