@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -6,7 +8,6 @@ import 'package:bike_control/main.dart'
 import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -108,26 +109,9 @@ Future<void> _runBootstrap() async {
 }
 
 /// main.dart's light or dark app theme, so snapshots match the app exactly.
-ThemeData snapshotTheme(Brightness brightness) => brightness == Brightness.dark
-    ? ThemeData(
-        colorScheme: ColorSchemes.darkSlate.copyWith(
-          card: () => const Color(0xFF001A29),
-          background: () => const Color(0xFF232323),
-          muted: () => const Color(0xFF3A3A3A),
-          border: () => const Color(0xFF3A3A3A),
-          secondary: () => const Color(0xFF3A3A3A),
-        ),
-        typography: Typography.geist().scale(0.9),
-        radius: 0.7,
-      )
-    : ThemeData(
-        colorScheme: ColorSchemes.lightSlate.copyWith(
-          mutedForeground: () => const Color(0xFFA1A1AA),
-          primary: () => BKColor.main,
-        ),
-        typography: Typography.geist().scale(0.9),
-        radius: 0.7,
-      );
+/// [compact] mirrors main.dart's phone-width scaling.
+ThemeData snapshotTheme(Brightness brightness, {bool compact = false}) =>
+    BkTheme.build(brightness, compact: compact);
 
 /// Renders [builder]'s widget once per entry in [locales] and writes a tight
 /// PNG per locale to [outputDir].
@@ -183,8 +167,9 @@ Future<List<File>> captureWidget(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final lightTheme = snapshotTheme(Brightness.light);
-  final darkTheme = snapshotTheme(Brightness.dark);
+  final compact = width + padding.horizontal < Breakpoints.compact;
+  final lightTheme = snapshotTheme(Brightness.light, compact: compact);
+  final darkTheme = snapshotTheme(Brightness.dark, compact: compact);
 
   final files = <File>[];
   for (final loc in locales) {

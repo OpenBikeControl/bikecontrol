@@ -87,9 +87,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
                           theme: MarkdownThemeData(
                             textStyle: TextStyle(
                               fontSize: 14.0,
-                              color: Theme.of(context).colorScheme.brightness == Brightness.dark
-                                  ? Colors.white.withAlpha(255 * 70)
-                                  : Colors.black.withAlpha(87 * 255),
+                              color: Theme.of(context).colorScheme.foreground,
                             ),
                             onLinkTap: (title, url) {
                               launchUrlString(url);

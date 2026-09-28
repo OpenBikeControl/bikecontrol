@@ -70,7 +70,7 @@ class OnboardingAppTile extends StatelessWidget {
               height: 18,
               alignment: Alignment.center,
               decoration: BoxDecoration(shape: BoxShape.circle, color: onboardingAccent(context)),
-              child: Icon(LucideIcons.check, size: 11, color: onboardingOnAccent),
+              child: Icon(LucideIcons.check, size: 11, color: onboardingOnAccent(context)),
             ),
           ),
       ]),

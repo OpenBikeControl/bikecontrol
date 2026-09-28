@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The virtual front derailleur, drawn: two chainrings with the engaged one
@@ -40,7 +39,7 @@ class FrontShiftVisual extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
-    final accent = bkAccent(context);
+    final accent = Theme.of(context).colorScheme.primary;
     final factor = smallTeeth <= 0 ? 1.0 : largeTeeth / smallTeeth;
     final activeTeeth = largeRingActive ? largeTeeth : smallTeeth;
     final gears = gearCount ?? ratios.length;

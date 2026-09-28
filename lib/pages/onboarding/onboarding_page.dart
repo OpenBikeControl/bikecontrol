@@ -279,9 +279,9 @@ Widget _railStep(BuildContext context, OnboardingStep s, OnboardingStep current,
                     : scheme.border,
           ),
           child: done
-              ? Icon(LucideIcons.check, size: 13, color: onboardingOnAccent)
+              ? Icon(LucideIcons.check, size: 13, color: onboardingOnAccent(context))
               : DefaultTextStyle.merge(
-                  style: TextStyle(color: active ? onboardingOnAccent : scheme.mutedForeground),
+                  style: TextStyle(color: active ? onboardingOnAccent(context) : scheme.mutedForeground),
                   child: Text('${s.index + 1}').xSmall.semiBold,
                 ),
         ),

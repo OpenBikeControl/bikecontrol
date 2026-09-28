@@ -79,7 +79,7 @@ class _MethodTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(11),
                 color: on ? onboardingAccent(context) : scheme.muted,
               ),
-              child: Icon(icon, size: 20, color: on ? onboardingOnAccent : null),
+              child: Icon(icon, size: 20, color: on ? onboardingOnAccent(context) : null),
             ),
             Gap(12),
             Expanded(
@@ -166,7 +166,7 @@ class _MethodTile extends StatelessWidget {
                 color: on ? onboardingAccent(context) : null,
                 border: on ? null : Border.all(color: scheme.border, width: 2),
               ),
-              child: on ? Icon(LucideIcons.check, size: 12, color: onboardingOnAccent) : null,
+              child: on ? Icon(LucideIcons.check, size: 12, color: onboardingOnAccent(context)) : null,
             ),
           ]),
         ),

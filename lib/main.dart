@@ -37,6 +37,8 @@ import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
 import 'utils/core.dart';
 import 'utils/host_platform.dart';
+import 'utils/window_size.dart';
+import 'widgets/ui/app_theme.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
@@ -742,7 +744,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = isCompactWindow(context);
     // Rebuild the whole app whenever the in-app language override changes so a
     // language switch takes effect immediately. Defaults to null (=follow the
     // OS language), which is also what an uninitialised Settings reports during
@@ -761,26 +763,11 @@ class _BikeControlAppState extends State<BikeControlApp> {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         title: 'BikeControl',
-        darkTheme: ThemeData(
-          colorScheme: ColorSchemes.darkSlate.copyWith(
-            card: () => Color(0xFF001A29),
-            background: () => Color(0xFF232323),
-            muted: () => Color(0xFF3A3A3A),
-            border: () => Color(0xFF3A3A3A),
-            secondary: () => Color(0xFF3A3A3A),
-          ),
-        ),
+        darkTheme: BkTheme.build(Brightness.dark, compact: isMobile),
         locale: demoLocaleOverride.isNotEmpty
             ? Locale(demoLocaleOverride)
             : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
-        theme: ThemeData(
-          colorScheme: ColorSchemes.lightSlate.copyWith(
-            mutedForeground: () => Color(0xFFA1A1AA),
-            primary: () => BKColor.main,
-          ),
-          typography: Typography.geist().scale(isMobile ? 0.9 : 1),
-          radius: 0.7,
-        ),
+        theme: BkTheme.build(Brightness.light, compact: isMobile),
         materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
         //themeMode: ThemeMode.dark,
         // Swap splash → content in place inside the always-mounted ShadcnApp so
@@ -843,11 +830,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
               borderWidth: 1.5,
             ),
             child: ComponentTheme<DividerTheme>(
-              data: Theme.of(context).brightness == Brightness.dark
-                  ? DividerTheme(
-                      color: Theme.of(context).colorScheme.border,
-                    )
-                  : DividerTheme(),
+              data: DividerTheme(color: Theme.of(context).colorScheme.border),
               child: _Starter(
                 child: widget.customChild ?? Navigation(),
               ),

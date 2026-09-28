@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -402,7 +403,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+                    color: bkSunkenSurface(context),
                     border: Border(
                       left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
                       bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
@@ -458,7 +459,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         Container(
           height: double.infinity,
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+            color: bkSunkenSurface(context),
             border: Border(
               left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
               bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
@@ -832,7 +833,7 @@ class _TabsState extends State<_Tabs> {
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0E74B7),
+                      color: Theme.of(context).colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
                   ),

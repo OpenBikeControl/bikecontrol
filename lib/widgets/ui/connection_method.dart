@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -251,8 +252,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   children: [
                     if (widget.instructionLink != null) ...[
                       Button(
-                        style: widget.isEnabled && Theme.of(context).brightness == Brightness.light
-                            ? ButtonStyle.outline().withBorder(border: Border.all(color: Colors.gray.shade500))
+                        style: widget.isEnabled
+                            ? ButtonStyle.outline().withBorder(border: Border.all(color: bkStrongBorder(context)))
                             : ButtonStyle.outline(),
                         leading: Icon(
                           widget.instructionLink!.contains("youtube") ? Icons.ondemand_video : Icons.help_outline,

@@ -7,13 +7,12 @@ class BKColor {
   static const Color backgroundLight = Color(0xFFF2F9FF);
 }
 
-/// The brand blue, picked out against the current theme.
-///
-/// `colorScheme.primary` is the brand colour in light mode but a near-white in
-/// the dark slate scheme, where it would be indistinguishable from foreground —
-/// so dark mode gets a lifted blue instead.
-Color bkAccent(BuildContext context) =>
-    Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4DA9E8) : Theme.of(context).colorScheme.primary;
+/// A recessed surface one step off the page background — the home screen's
+/// activity rail. Derived from the theme so it holds in both brightnesses.
+Color bkSunkenSurface(BuildContext context) {
+  final cs = Theme.of(context).colorScheme;
+  return Color.lerp(cs.background, cs.muted, 0.5)!;
+}
 
 /// Hover wash for tappable card surfaces. The light theme's soft grey (`border`
 /// pushed to 94% lightness) turns near-white over the dark theme's navy cards,

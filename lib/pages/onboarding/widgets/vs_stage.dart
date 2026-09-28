@@ -482,7 +482,7 @@ class _SceneRatios extends StatelessWidget {
             style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
-              color: active ? onboardingOnAccent : cs.mutedForeground,
+              color: active ? onboardingOnAccent(context) : cs.mutedForeground,
             ),
           ),
           Text(
@@ -492,7 +492,7 @@ class _SceneRatios extends StatelessWidget {
             style: TextStyle(
               fontSize: 8.5,
               fontWeight: FontWeight.w500,
-              color: active ? onboardingOnAccent.withValues(alpha: 0.75) : cs.mutedForeground,
+              color: active ? onboardingOnAccent(context).withValues(alpha: 0.75) : cs.mutedForeground,
             ),
           ),
         ],
@@ -558,7 +558,7 @@ class _SceneFront extends StatelessWidget {
                         padding: const EdgeInsets.all(2),
                         child: Container(
                           width: 16,
-                          decoration: const BoxDecoration(color: onboardingOnAccent, shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: onboardingOnAccent(context), shape: BoxShape.circle),
                         ),
                       ),
                     ),
