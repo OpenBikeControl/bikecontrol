@@ -50,8 +50,19 @@ class TrainerOverlayView extends StatelessWidget {
   /// The drag handle at the end of the row (desktop).
   static const double _dragSlot = 16;
 
-  /// The −/+ circles; the whole circle is the hit area.
-  static const double _hit = 44;
+  /// The −/+ circles on a touch screen (the Android overlay): the whole
+  /// circle is the hit area, a full 48 dp thumb target.
+  static const double touchHit = 48;
+
+  /// The −/+ circles under a mouse (the desktop window), a step smaller so
+  /// the window stays compact.
+  static const double pointerHit = 44;
+
+  /// Whether the overlay is driven by touch on this platform.
+  static bool get _isTouchPlatform =>
+      defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+
+  static double _hitFor(bool touch) => touch ? touchHit : pointerHit;
 
   /// Space between the parts of the row.
   static const double _gap = 6;
@@ -92,7 +103,10 @@ class TrainerOverlayView extends StatelessWidget {
 
   /// The window the overlay needs at [textScaler]: one row of −, the numeral
   /// at full size with its label, +, and the mode pill over one reading.
-  static Size windowSize(TextScaler textScaler, {bool controls = true}) {
+  /// [touch] defaults to whether this platform is a touch platform, and
+  /// sizes the −/+ circles for it.
+  static Size windowSize(TextScaler textScaler, {bool controls = true, bool? touch}) {
+    final hit = _hitFor(touch ?? _isTouchPlatform);
     const typography = Typography.geist();
     final gearStyle = typography.sans.merge(_gearStyle(null));
     var numeral = Size.zero;
@@ -116,7 +130,7 @@ class TrainerOverlayView extends StatelessWidget {
     var side = reading.width > pill.width + 16 ? reading.width : pill.width + 16;
     if (pair > side) side = pair;
     final width =
-        (controls ? 2 * (_hit + _gap) : 0) +
+        (controls ? 2 * (hit + _gap) : 0) +
         numeral.width +
         _dividerSlot +
         side +
@@ -125,7 +139,7 @@ class TrainerOverlayView extends StatelessWidget {
         _padding.horizontal;
     final numeralBlock = numeral.height + label.height;
     final sideBlock = pill.height + 4 + _sideGap + reading.height;
-    var height = controls ? _hit : 0.0;
+    var height = controls ? hit : 0.0;
     if (numeralBlock > height) height = numeralBlock;
     if (sideBlock > height) height = sideBlock;
     // + the Android card's hairline border on each side.
@@ -336,14 +350,15 @@ class TrainerOverlayView extends StatelessWidget {
   /// gear.
   Widget _shiftButton(ColorScheme cs, IconData icon, VoidCallback? onPressed, {String? label}) {
     final disabled = onPressed == null;
+    final hit = _hitFor(_isTouchPlatform);
     return BkTappable(
       onPressed: onPressed,
       label: label,
       excludeChildSemantics: true,
-      borderRadius: BorderRadius.circular(_hit / 2),
+      borderRadius: BorderRadius.circular(hit / 2),
       child: Container(
-        width: _hit,
-        height: _hit,
+        width: hit,
+        height: hit,
         decoration: BoxDecoration(color: cs.muted, shape: BoxShape.circle),
         child: Opacity(
           opacity: disabled ? 0.4 : 1.0,

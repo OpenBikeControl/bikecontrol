@@ -3,6 +3,7 @@ import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/overlay_app.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -136,5 +137,40 @@ void main() {
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
+  });
+
+  // The −/+ circles are a thumb target over the trainer app on a phone; on a
+  // desktop, under a mouse, the smaller circle keeps the window compact.
+  for (final (platform, minimum) in [(TargetPlatform.android, 48.0), (TargetPlatform.macOS, 44.0)]) {
+    testWidgets('−/+ are at least ${minimum.toInt()} px on ${platform.name}', (tester) async {
+      debugDefaultTargetPlatformOverride = platform;
+      try {
+        await tester.pumpWidget(
+          OverlayShadcnApp(
+            home: Center(
+              child: TrainerOverlayView(state: state(), onPrimaryDecrement: () {}, onPrimaryIncrement: () {}),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        for (final icon in [LucideIcons.minus, LucideIcons.plus]) {
+          final circle = tester.getSize(
+            find.ancestor(of: find.byIcon(icon), matching: find.byType(BkTappable)).first,
+          );
+          expect(circle.width, greaterThanOrEqualTo(minimum), reason: '$icon');
+          expect(circle.height, greaterThanOrEqualTo(minimum), reason: '$icon');
+        }
+        expect(tester.takeException(), isNull);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+  }
+
+  test('the touch window makes room for the larger circles', () {
+    final touch = TrainerOverlayView.windowSize(TextScaler.noScaling, touch: true);
+    final desktop = TrainerOverlayView.windowSize(TextScaler.noScaling, touch: false);
+    expect(touch.width - desktop.width, 2 * (TrainerOverlayView.touchHit - TrainerOverlayView.pointerHit));
+    expect(touch.height, greaterThanOrEqualTo(TrainerOverlayView.touchHit));
   });
 }
