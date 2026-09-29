@@ -1,9 +1,9 @@
-// "Save rides to Apple Health" toggle in the home page's "More options"
-// section: iOS/iPadOS with Health only, Pro-gated, and a hint under it when
-// the selected trainer app may already save the ride itself.
+// "Save rides to Apple Health" toggle in Settings → During the ride:
+// iOS/iPadOS with Health only, Pro-gated, and a hint under it when the
+// selected trainer app may already save the ride itself.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
-import 'package:bike_control/pages/home/home_extras.dart';
+import 'package:bike_control/pages/settings/settings_page.dart';
 import 'package:bike_control/services/health/fake_health_workout_channel.dart';
 import 'package:bike_control/services/health/health_ride_preferences.dart';
 import 'package:bike_control/services/health/health_ride_service.dart';
@@ -18,7 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'widget_snapshot.dart';
+import '../../widget_snapshot.dart';
 
 class _NoFeedback implements HealthRideFeedback {
   @override
@@ -77,7 +77,7 @@ Future<void> main() async {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.7),
-        home: SingleChildScrollView(child: HomeExtras(isMobile: false, onUpdate: () {})),
+        home: SingleChildScrollView(child: const DuringRideSection()),
       ),
     );
     await tester.pumpAndSettle();

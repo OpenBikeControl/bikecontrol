@@ -3,7 +3,8 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/apps/connection_tiles.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
-import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -61,7 +62,7 @@ class _TrainerPageState extends State<TrainerPage> {
         padding: EdgeInsets.only(bottom: 16, left: 16, right: 16, top: 16),
         child: Center(
           child: Container(
-            constraints: BoxConstraints(maxWidth: 800),
+            constraints: const BoxConstraints(maxWidth: 720),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,9 +75,11 @@ class _TrainerPageState extends State<TrainerPage> {
                 ),
                 if (core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null) ...[
                   if (recommendedTiles.isNotEmpty) ...[
-                    Gap(32),
-                    ColoredTitle(text: context.i18n.recommendedConnectionMethods),
-                    Gap(12),
+                    const Gap(24),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 6),
+                      child: BkGroupedHeader(context.i18n.recommendedConnectionMethods),
+                    ),
                   ],
 
                   for (final tile in recommendedTiles) ...[
@@ -94,7 +97,7 @@ class _TrainerPageState extends State<TrainerPage> {
                       items: [
                         AccordionItem(
                           trigger: AccordionTrigger(
-                            child: ColoredTitle(text: context.i18n.otherConnectionMethods),
+                            child: BkGroupedHeader(context.i18n.otherConnectionMethods),
                           ),
                           content: Column(
                             children: [
@@ -114,6 +117,20 @@ class _TrainerPageState extends State<TrainerPage> {
                   ],
                   const Gap(24),
                   TrainerFeatures(),
+                  if (!kIsWeb) ...[
+                    const Gap(12),
+                    BkGroupedSection(
+                      children: [
+                        BkGroupedRow(
+                          key: const ValueKey('connection-network-troubleshooting'),
+                          icon: LucideIcons.gauge,
+                          title: context.i18n.networkTroubleshootingTitle,
+                          chevron: true,
+                          onPressed: () => context.push(const NetworkTroubleshootingPage()),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ],
             ),

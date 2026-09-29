@@ -24,7 +24,10 @@ import '../utils/settings/settings.dart';
 import '../widgets/changelog_dialog.dart';
 
 class Navigation extends StatefulWidget {
-  const Navigation({super.key});
+  const Navigation({super.key, this.initialSection = AppSection.ride});
+
+  /// The section on screen first (Ride). Tests and renders open another.
+  final AppSection initialSection;
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -40,6 +43,7 @@ class _NavigationState extends State<Navigation> {
   @override
   void initState() {
     super.initState();
+    _shell.select(widget.initialSection);
 
     core.logic.startEnabledConnectionMethod();
 
@@ -194,7 +198,12 @@ class _NavigationState extends State<Navigation> {
           case WindowSize.compact:
             return ScreenshotScaffold(
               headers: [
-                ShellTopBar(section: section, compact: true, showPlanAndHelp: section == AppSection.ride),
+                ShellTopBar(
+                  section: section,
+                  compact: true,
+                  showPlanAndHelp: section == AppSection.ride,
+                  activity: _shell.activity,
+                ),
               ],
               // The tab bar has its own space below the content, never on top
               // of it.
@@ -213,6 +222,7 @@ class _NavigationState extends State<Navigation> {
                       section: section,
                       compact: false,
                       showPlanAndHelp: section == AppSection.ride,
+                      activity: _shell.activity,
                     ),
                   ),
                 ),
@@ -231,7 +241,7 @@ class _NavigationState extends State<Navigation> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ShellTopBar(section: section, compact: false),
+                          ShellTopBar(section: section, compact: false, activity: _shell.activity),
                           Expanded(child: content),
                         ],
                       ),

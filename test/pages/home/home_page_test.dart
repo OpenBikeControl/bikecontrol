@@ -32,8 +32,11 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
-import 'package:bike_control/widgets/home/ampel.dart';
+import 'package:bike_control/widgets/devices/chain_link_row.dart';
+import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
+import 'package:bike_control/widgets/scan.dart';
+import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:flutter/services.dart' show SystemChannels;
 import 'package:flutter_test/flutter_test.dart';
@@ -285,9 +288,9 @@ void _bannerShowTests() {
       expect(highlighted('app'), findsOneWidget);
       expect(highlighted('trainer'), findsNothing);
 
-      // The controller search the first card would have opened never does.
+      // The controller search the first row would have opened never does.
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text(l.connectControllers), findsNothing);
+      expect(find.byType(ScanWidget), findsNothing);
 
       // A highlight is a moment, not a state.
       await tester.pump(const Duration(milliseconds: 1500));
@@ -299,13 +302,13 @@ void _bannerShowTests() {
       // MyWhoosh is receiving, so the empty controller slot is all that is left.
       core.obpMdnsEmulator.isConnected.value = true;
       await _pumpHome(tester);
-      expect(tester.widget<ChainCard>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.ready);
+      expect(tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.ready);
 
       await tester.tap(showButton());
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text(l.connectControllers), findsOneWidget);
+      expect(find.byType(ScanWidget), findsOneWidget);
       expect(highlighted('controller'), findsNothing);
     });
 
@@ -402,7 +405,7 @@ void _bannerShowTests() {
         sawApp |= tester.any(highlighted('app'));
       }
 
-      expect(tester.widget<ChainCard>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.ready);
+      expect(tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.ready);
       expect(sawController, isTrue, reason: 'the controller card is still outstanding');
       expect(sawApp, isFalse, reason: 'the app card was done before the highlight played');
     });
@@ -474,7 +477,7 @@ void _twoPairingsTests() {
 
     // The status line only: the pick-up step's own label reads the same as
     // the new status, so a bare text finder would match the checklist too.
-    Finder statusText(String text) => find.descendant(of: find.byType(StatusLine), matching: find.text(text));
+    Finder statusText(String text) => find.descendant(of: find.byType(BkStatusDot), matching: find.text(text));
 
     testWidgets('trainer card: with the app already connected, the status says it has not picked the trainer up', (
       tester,
@@ -552,11 +555,9 @@ void _connectingTrainerTests() {
       return trainer;
     }
 
-    Finder statusText(String text) =>
-        find.descendant(of: find.byType(StatusLine), matching: find.text(text));
+    Finder statusText(String text) => find.descendant(of: find.byType(BkStatusDot), matching: find.text(text));
 
-    ChainCard trainerCard(WidgetTester tester) =>
-        tester.widget<ChainCard>(_chainCard(ChainLinkKey.trainer));
+    ChainLinkRow trainerCard(WidgetTester tester) => tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer));
 
     testWidgets('the banner does not announce a lost connection', (tester) async {
       final trainer = await pendingTrainer(starting: true, upstream: false);
@@ -608,7 +609,7 @@ void _connectingTrainerTests() {
 // ── Sensors-only mode (Task 7) ─────────────────────────────────────────────
 
 Finder _chainCard(ChainLinkKey key) =>
-    find.byWidgetPredicate((w) => w is ChainCard && w.link.key == key, description: 'ChainCard(${key.name})');
+    find.byWidgetPredicate((w) => w is ChainLinkRow && w.link.key == key, description: 'ChainLinkRow(${key.name})');
 
 Future<void> _pumpHome(WidgetTester tester, {List<NavigatorObserver> navigatorObservers = const []}) async {
   // Tall enough that the setup cards under Ride are on screen to be tapped.
@@ -655,37 +656,40 @@ void _sensorsOnlyTests() {
       core.connection.standaloneClientConnected = ValueNotifier(false);
     });
 
-    testWidgets('no trainer: the trainer card offers "Share sensors instead", and tapping it swaps in the Sensors card', (
-      tester,
-    ) async {
-      // setUp above selects MyWhoosh as the trainer app, so the footer's
-      // question names it rather than asking the app-agnostic question —
-      // covered separately below for the no-app-selected case.
-      await _pumpHome(tester);
+    testWidgets(
+      'no trainer: the trainer card offers "Share sensors instead", and tapping it swaps in the Sensors card',
+      (
+        tester,
+      ) async {
+        // setUp above selects MyWhoosh as the trainer app, so the footer's
+        // question names it rather than asking the app-agnostic question —
+        // covered separately below for the no-app-selected case.
+        await _pumpHome(tester);
 
-      expect(_chainCard(ChainLinkKey.trainer), findsOneWidget);
-      expect(_chainCard(ChainLinkKey.sensors), findsNothing);
-      final footer = find.byKey(const Key('chain-card-footer'));
-      expect(footer, findsOneWidget);
-      expect(find.text(l.sensorsUseSensorsOnlyQuestionApp('MyWhoosh')), findsOneWidget);
-      expect(find.text(l.sensorsUseSensorsOnly), findsOneWidget);
+        expect(_chainCard(ChainLinkKey.trainer), findsOneWidget);
+        expect(_chainCard(ChainLinkKey.sensors), findsNothing);
+        final footer = find.byKey(const Key('chain-card-footer'));
+        expect(footer, findsOneWidget);
+        expect(find.text(l.sensorsUseSensorsOnlyQuestionApp('MyWhoosh')), findsOneWidget);
+        expect(find.text(l.sensorsUseSensorsOnly), findsOneWidget);
 
-      await tester.tap(find.text(l.sensorsUseSensorsOnly));
-      await tester.pump();
+        await tester.tap(find.text(l.sensorsUseSensorsOnly));
+        await tester.pump();
 
-      expect(core.settings.getSensorsOnlyMode(), isTrue);
-      expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
-      expect(_chainCard(ChainLinkKey.trainer), findsNothing);
-      // The trainer card's own footer is gone with it — but the Sensors card
-      // that replaced it carries the reverse offer ("Connect a trainer"),
-      // covered by its own tests below.
-      expect(find.text(l.sensorsUseSensorsOnlyQuestionApp('MyWhoosh')), findsNothing);
-      expect(find.text(l.sensorsConnectTrainerQuestion), findsOneWidget);
-      // The strip's tap is its own — it must not fall through to the card
-      // and open the trainer connect sheet underneath.
-      await tester.pumpAndSettle();
-      expect(find.text(l.close), findsNothing);
-    });
+        expect(core.settings.getSensorsOnlyMode(), isTrue);
+        expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
+        expect(_chainCard(ChainLinkKey.trainer), findsNothing);
+        // The trainer card's own footer is gone with it — but the Sensors card
+        // that replaced it carries the reverse offer ("Connect a trainer"),
+        // covered by its own tests below.
+        expect(find.text(l.sensorsUseSensorsOnlyQuestionApp('MyWhoosh')), findsNothing);
+        expect(find.text(l.sensorsConnectTrainerQuestion), findsOneWidget);
+        // The strip's tap is its own — it must not fall through to the card
+        // and open the trainer connect sheet underneath.
+        await tester.pumpAndSettle();
+        expect(find.text(l.close), findsNothing);
+      },
+    );
 
     testWidgets('no trainer, no app selected: the trainer card asks the app-agnostic question', (tester) async {
       // Unlike the test above, no trainer app is selected here — the footer
@@ -770,7 +774,6 @@ void _sensorsOnlyTests() {
       expect(_chainCard(ChainLinkKey.sensors), findsOneWidget);
       expect(find.text(l.sensorsNoSensorsYet), findsOneWidget);
       expect(find.text(l.sensorsStatusOffSetup), findsOneWidget);
-      expect(find.text(l.sensorsOpen), findsOneWidget);
     });
 
     testWidgets('a selection with Broadcast off: titled after the source, status "Off", no chips', (tester) async {
@@ -828,7 +831,10 @@ void _sensorsOnlyTests() {
       expect(find.text('Polar H10'), findsOneWidget);
       expect(find.text(l.sensorsStatusBroadcasting), findsOneWidget);
       // The other sources ride a sub line; the meta names the transport.
-      expect(find.byKey(chainCardSubtitleKey), findsOneWidget);
+      expect(
+        find.descendant(of: _chainCard(ChainLinkKey.sensors), matching: find.byKey(chainCardSubtitleKey)),
+        findsOneWidget,
+      );
       expect(find.text(l.sensorsWith('Assioma DUO')), findsOneWidget);
       expect(find.text(l.sensorsTransportBluetooth), findsOneWidget);
       expect(find.byKey(const Key('sensors-chip-heartRate')), findsOneWidget);
@@ -917,11 +923,13 @@ void _sensorsOnlyTests() {
       expect(find.byKey(const Key('chain-card-footer')), findsOneWidget);
     });
 
-    testWidgets('Open on the Sensors card pushes the Sensors page', (tester) async {
+    testWidgets('the Sensors row opens the Sensors page', (tester) async {
       await core.settings.setSensorsOnlyMode(true);
       await _pumpHome(tester);
 
-      await tester.tap(find.text(l.sensorsOpen));
+      await tester.tap(
+        find.descendant(of: _chainCard(ChainLinkKey.sensors), matching: find.text(l.sensorsNoSensorsYet)),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byType(SensorsPage), findsOneWidget);
@@ -1040,26 +1048,26 @@ void _overlayStepTests() {
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.chainOptional.toUpperCase())), findsOneWidget);
       expect(find.text(l.chainStepOverlayDecline), findsNothing);
-      final link = tester.widget<ChainCard>(card).link;
+      final link = tester.widget<ChainLinkRow>(card).link;
       expect(link.status, LinkStatus.ready);
       expect(link.isBlocking, isFalse);
 
       await tester.pumpWidget(const SizedBox());
     }, skip: unsupported);
 
-    testWidgets('the trainer card shows the live gear in its metrics line', (tester) async {
+    testWidgets('the trainer row shows the live gear beside its numbers', (tester) async {
       definition.setTargetGear(12);
       await pumpTallHome(tester);
 
-      // Gear 12 of 24 on the trainer card's status line — the number the
-      // rider's shifter is on, beside the trainer's own watts and cadence
-      // (the drivetrain in the card's body draws the gear too, so this asks
-      // the status line itself rather than any text on the card).
-      final status = tester.widget<StatusLine>(
-        find.descendant(of: _chainCard(ChainLinkKey.trainer), matching: find.byType(StatusLine)),
+      // Gear 12 of 24 in the trainer row's numbers — the gear the rider's
+      // shifter is on, beside the trainer's own watts and cadence.
+      final gear = find.descendant(of: _chainCard(ChainLinkKey.trainer), matching: find.byKey(trainerMetricGearKey));
+      expect(gear, findsOneWidget);
+      expect(find.descendant(of: gear, matching: find.textContaining('12', findRichText: true)), findsOneWidget);
+      expect(
+        find.descendant(of: gear, matching: find.textContaining('/ ${definition.maxGear}', findRichText: true)),
+        findsOneWidget,
       );
-      expect(status.meta, contains('12/24'));
-      expect(find.text(status.meta!), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
     }, skip: unsupported);
@@ -1348,7 +1356,7 @@ void _droppedAppTests() {
     Finder inAppCard(Finder finder) => find.descendant(of: _chainCard(ChainLinkKey.app), matching: finder);
 
     Finder appStatusLine(String text) => find.descendant(
-      of: find.descendant(of: _chainCard(ChainLinkKey.app), matching: find.byType(StatusLine)),
+      of: find.descendant(of: _chainCard(ChainLinkKey.app), matching: find.byType(BkStatusDot)),
       matching: find.text(text),
     );
 
@@ -1363,7 +1371,7 @@ void _droppedAppTests() {
     testWidgets('the app card is amber and says the app disconnected', (tester) async {
       await pumpDroppedApp(tester);
 
-      expect(tester.widget<ChainCard>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.attention);
+      expect(tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.app)).link.status, LinkStatus.attention);
       expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
       expect(inAppCard(find.text(l.notConnected)), findsNothing);
       // Nor does the card itself offer the network check any more.
@@ -1543,7 +1551,7 @@ void _droppedAppTests() {
       // Both cards wait for the app, and the banner names the one reason.
       final trainerStatus = find.descendant(
         of: _chainCard(ChainLinkKey.trainer),
-        matching: find.byType(StatusLine),
+        matching: find.byType(BkStatusDot),
       );
       expect(
         find.descendant(of: trainerStatus, matching: find.text(l.onboardingSummaryWaitingFor('MyWhoosh'))),
@@ -1675,7 +1683,7 @@ void _droppedAppTests() {
       await _pumpHome(tester);
       // On Local alone the app counts as connected.
       final connectedStep = tester
-          .widget<ChainCard>(_chainCard(ChainLinkKey.app))
+          .widget<ChainLinkRow>(_chainCard(ChainLinkKey.app))
           .link
           .steps
           .firstWhere((s) => s.id == SetupStepId.appConnected);

@@ -16,8 +16,13 @@ class BkGroupedSection extends StatelessWidget {
     this.header,
     this.headerTrailing,
     this.footer,
+    this.dividerIndent,
     required this.children,
   });
+
+  /// Where the hairlines between rows start, when the rows are not
+  /// [BkGroupedRow]s the section can measure (e.g. device rows).
+  final double? dividerIndent;
 
   /// Shown upper-cased above the card and announced as a heading.
   final String? header;
@@ -42,7 +47,9 @@ class BkGroupedSection extends StatelessWidget {
       rows.add(child);
       if (i < children.length - 1) {
         final hasTile = child is BkGroupedRow && (child.icon != null || child.leading != null);
-        rows.add(BkGroupedDivider(indent: hasTile ? inset + BkIconTile.size + BkGroupedRow.gap : inset));
+        rows.add(
+          BkGroupedDivider(indent: dividerIndent ?? (hasTile ? inset + BkIconTile.size + BkGroupedRow.gap : inset)),
+        );
       }
     }
     return Column(
@@ -54,21 +61,7 @@ class BkGroupedSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(inset, 0, inset, 6),
             child: Row(
               children: [
-                Expanded(
-                  child: header == null
-                      ? const SizedBox.shrink()
-                      : Semantics(
-                          header: true,
-                          child: Text(
-                            header!.toUpperCase(),
-                            style: context.typography.caption.copyWith(
-                              color: cs.mutedForeground,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.6,
-                            ),
-                          ),
-                        ),
-                ),
+                Expanded(child: header == null ? const SizedBox.shrink() : BkGroupedHeader(header!)),
                 ?headerTrailing,
               ],
             ),
@@ -93,6 +86,29 @@ class BkGroupedSection extends StatelessWidget {
             child: Text(footer!, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
           ),
       ],
+    );
+  }
+}
+
+/// A group's small upper-case header, announced as a heading. For a group
+/// whose content is not one card of rows (e.g. connection method cards).
+class BkGroupedHeader extends StatelessWidget {
+  const BkGroupedHeader(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      header: true,
+      child: Text(
+        text.toUpperCase(),
+        style: context.typography.caption.copyWith(
+          color: Theme.of(context).colorScheme.mutedForeground,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.6,
+        ),
+      ),
     );
   }
 }
@@ -132,6 +148,7 @@ class BkGroupedRow extends StatefulWidget {
     this.chevron = false,
     this.onPressed,
     this.titleColor,
+    this.badge,
   });
 
   /// Drawn in a [BkIconTile]. Ignored when [leading] is given.
@@ -155,6 +172,9 @@ class BkGroupedRow extends StatefulWidget {
   /// Overrides the title colour (e.g. accent for an action row).
   final Color? titleColor;
 
+  /// Sits right after the title, e.g. the PRO badge.
+  final Widget? badge;
+
   static const double minHeight = 48;
 
   /// Space between the leading tile and the text.
@@ -173,6 +193,13 @@ class _BkGroupedRowState extends State<BkGroupedRow> {
     final typography = context.typography;
     final leading = widget.leading ?? (widget.icon != null ? BkIconTile(icon: widget.icon!) : null);
     final trailing = widget.trailing;
+    final title = Text(
+      widget.title,
+      style: typography.small.copyWith(
+        fontWeight: FontWeight.w500,
+        color: widget.titleColor ?? cs.foreground,
+      ),
+    );
 
     Widget content = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: BkGroupedRow.minHeight),
@@ -187,13 +214,15 @@ class _BkGroupedRowState extends State<BkGroupedRow> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 2,
                 children: [
-                  Text(
-                    widget.title,
-                    style: typography.small.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: widget.titleColor ?? cs.foreground,
-                    ),
-                  ),
+                  if (widget.badge case final badge?)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [title, badge],
+                    )
+                  else
+                    title,
                   if (widget.subtitle != null)
                     Text(widget.subtitle!, style: typography.xSmall.copyWith(color: cs.mutedForeground)),
                 ],

@@ -272,12 +272,12 @@ class VirtualShiftingCard extends StatelessWidget {
       decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.border, width: 1))),
       child: Row(
         children: [
-          Expanded(child: _Stat(value: power?.toString() ?? '--', unit: 'W', label: l.sensorQuantityPower)),
-          Expanded(child: _Stat(value: cadence?.toString() ?? '--', unit: 'rpm', label: l.sensorQuantityCadence)),
+          Expanded(child: RideStat(value: power?.toString() ?? '--', unit: 'W', label: l.sensorQuantityPower)),
+          Expanded(child: RideStat(value: cadence?.toString() ?? '--', unit: 'rpm', label: l.sensorQuantityCadence)),
           Expanded(
             child: erg
                 ? const SizedBox.shrink()
-                : _Stat(value: '×${_ratio(definition.gearRatio.value)}', label: l.rideRatio),
+                : RideStat(value: '×${_ratio(definition.gearRatio.value)}', label: l.rideRatio),
           ),
         ],
       ),
@@ -375,17 +375,23 @@ class _ShiftButton extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label, this.unit});
+/// One number of a stats row: the value in the display face, its unit smaller
+/// and muted, and a label under it. Ride's card and the Devices trainer row
+/// share it.
+class RideStat extends StatelessWidget {
+  const RideStat({super.key, required this.value, required this.label, this.unit, this.scale = 1.1});
 
   final String value;
   final String? unit;
   final String label;
 
+  /// Of `x2Large`: 1.1 on Ride's card, smaller in a list row.
+  final double scale;
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final big = (context.typography.x2Large.fontSize ?? 24) * 1.1;
+    final big = (context.typography.x2Large.fontSize ?? 24) * scale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,

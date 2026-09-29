@@ -10,7 +10,10 @@ import 'package:bike_control/utils/trainer_setup.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/ui/colored_title.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -29,6 +32,10 @@ class ConfigurationPage extends StatefulWidget {
 }
 
 class _ConfigurationPageState extends State<ConfigurationPage> {
+  /// Whether the trainer-app picker is open under the app's card. Always open
+  /// while no app is picked yet.
+  bool _changingApp = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +44,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ColoredTitle(text: context.i18n.setupTrainer),
         Builder(
           builder: (context) {
             return StatefulBuilder(
@@ -46,11 +52,15 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TrainerAppSelect(
-                    onUpdate: () {
-                      widget.onUpdate();
-                      setState(() {});
-                    },
+                  _TrainerAppCard(
+                    changing: _changingApp || core.settings.getTrainerApp() == null,
+                    onChange: () => setState(() => _changingApp = !_changingApp),
+                    picker: TrainerAppSelect(
+                      onUpdate: () {
+                        widget.onUpdate();
+                        setState(() => _changingApp = false);
+                      },
+                    ),
                   ),
                   if (core.settings.getTrainerApp() != null) ...[
                     if ((core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpBle) ||
@@ -150,6 +160,75 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 /// [ConfigurationPage] so it can be rendered standalone (e.g. golden
 /// snapshots). Behaviour is unchanged — it mutates the same `core.*`
 /// singletons and notifies via [onUpdate].
+/// The trainer app on top of Connection settings: its logo, "Trainer app"
+/// over its name, and Change, which opens the picker underneath.
+class _TrainerAppCard extends StatelessWidget {
+  const _TrainerAppCard({required this.changing, required this.onChange, required this.picker});
+
+  final bool changing;
+  final VoidCallback onChange;
+  final Widget picker;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final app = core.settings.getTrainerApp();
+    final logo = app?.logoAsset;
+    final name = app == null ? null : (screenshotMode ? 'Trainer app' : app.name);
+    return Container(
+      key: const ValueKey('connection-trainer-app'),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (logo != null && !screenshotMode)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(logo, width: BkIconTile.size, height: BkIconTile.size),
+                )
+              else
+                const BkIconTile(icon: LucideIcons.monitor),
+              const Gap(BkGroupedRow.gap),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.i18n.chainAppTitle,
+                      style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                    ),
+                    Text(
+                      name ?? context.i18n.selectTrainerAppPlaceholder,
+                      style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              if (app != null)
+                Button.ghost(
+                  onPressed: onChange,
+                  child: Text(
+                    context.i18n.rideChange,
+                    style: context.typography.base.copyWith(color: bkAccentText(context)),
+                  ),
+                ),
+            ],
+          ),
+          if (changing) ...[
+            const Gap(10),
+            Padding(padding: const EdgeInsets.only(right: 8), child: picker),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 /// Tells the rider to put BikeControl on the device their trainer app runs on.
 ///
 /// Apps that speak no controller protocol at all (Tacx Training) get two more

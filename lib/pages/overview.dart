@@ -184,6 +184,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
       button: button,
       time: activityNow(),
       result: result,
+      deviceName: _deviceNameFor(button),
       buttonTitle: hasRecording
           ? (isDesktop ? AppLocalizations.of(context).openFolder : AppLocalizations.of(context).openGallery)
           : null,
@@ -211,6 +212,16 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         );
       }
     }
+  }
+
+  /// The controller a press came from, by the id the button carries, else the
+  /// first controller that has a button of that name.
+  String? _deviceNameFor(ControllerButton button) {
+    final controllers = core.connection.controllerDevices;
+    final device =
+        controllers.where((d) => d.uniqueId == button.sourceDeviceId).firstOrNull ??
+        controllers.where((d) => d.availableButtons.any((b) => b.name == button.name)).firstOrNull;
+    return device?.displayName(context);
   }
 
   /// Reveals a saved recording: the containing folder in Finder / Explorer on
@@ -322,8 +333,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
       ),
       AppSection.activity => _scroll(
         'activity',
-        ActivityLogView(controller: _log, fixAction: _errorFixAction, showTitle: false),
-        tight: true,
+        ActivityLogView(controller: _log, fixAction: _errorFixAction, showHeader: false),
       ),
       AppSection.settings => _scroll('settings', SettingsPage(onUpdate: _update)),
     };

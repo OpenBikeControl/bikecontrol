@@ -327,9 +327,13 @@ class ShellTopBar extends StatelessWidget {
     required this.section,
     required this.compact,
     this.showPlanAndHelp = false,
+    this.activity,
   });
 
   final AppSection section;
+
+  /// The session's log, for Activity's Clear.
+  final ActivityLogController? activity;
 
   /// The phone's large title and icon-only update action.
   final bool compact;
@@ -353,6 +357,7 @@ class ShellTopBar extends StatelessWidget {
       ),
       trailingGap: 4,
       trailing: [
+        if (section == AppSection.activity && activity != null) ActivityClearButton(controller: activity!),
         AppUpdateButton(compact: compact),
         if (showPlanAndHelp) const PlanBadge(),
         if (showPlanAndHelp) const HelpButton(),

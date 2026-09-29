@@ -2433,5 +2433,20 @@
   "rideChange": "Ändern",
   "rideNoControllerTitle": "Kein Controller verbunden",
   "rideNoControllerBody": "Wecke deinen Controller auf oder kopple einen neuen – seine Tasten erscheinen dann hier.",
-  "rideSeeAll": "Alle anzeigen"
+  "rideSeeAll": "Alle anzeigen",
+  "statusOn": "An",
+  "devicesOtherInputs": "Weitere Eingaben",
+  "devicesPhoneSteering": "Lenken mit dem Handy",
+  "devicesMediaRemotes": "Bluetooth-Medienfernbedienungen",
+  "devicesShareSensorsSubtitle": "Herzfrequenz, Leistung & Trittfrequenz",
+  "devicesSignalGood": "Signal gut",
+  "devicesSignalWeak": "Schwaches Signal",
+  "devicesBridgedTo": "an {app}",
+  "activityLastMinute": "Letzte Minute",
+  "activityEarlier": "Früher",
+  "activityFooter": "Zeigt die letzten {count} Ereignisse seit dem Start von BikeControl.",
+  "activityEmptyTitle": "Noch keine Aktivität",
+  "activityEmptyBody": "Drück eine Taste an deinem Controller – sie erscheint dann hier.",
+  "settingsSectionDuringRide": "Während der Fahrt",
+  "rideGear": "Gang"
 }

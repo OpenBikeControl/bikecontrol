@@ -1,16 +1,16 @@
-// The two shift-feedback toggles live in the home page's "More options"
-// section. The sound row is on every platform with a clip backend; the
-// vibration row only where there is a haptics engine (phones/tablets).
+// The two shift-feedback toggles live in Settings → During the ride. The
+// sound row is on every platform with a clip backend; the vibration row only
+// where there is a haptics engine (phones/tablets).
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
-import 'package:bike_control/pages/home/home_extras.dart';
+import 'package:bike_control/pages/settings/settings_page.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-import 'helpers/recording_shift_feedback.dart';
-import 'widget_snapshot.dart';
+import '../../helpers/recording_shift_feedback.dart';
+import '../../widget_snapshot.dart';
 
 Future<void> main() async {
   await ensureSnapshotHarness();
@@ -32,7 +32,7 @@ Future<void> main() async {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.7),
-        home: SingleChildScrollView(child: HomeExtras(isMobile: false, onUpdate: () {})),
+        home: SingleChildScrollView(child: const DuringRideSection()),
       ),
     );
     await tester.pumpAndSettle();
