@@ -1750,7 +1750,7 @@
     }
   },
   "chainBrokenSubtitle": "Your buttons won't do anything until it reconnects.",
-  "chainPendingSubtitleSingle": "Finish the {name} card below and you're set.",
+  "chainPendingSubtitleSingle": "Finish the {name} setup and you're set.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -2800,5 +2800,29 @@
   "settingsSectionRidingWith": "Riding with",
   "@settingsSectionRidingWith": {"description": "Settings group header: trainer app and connection settings."},
   "settingsSectionApp": "App",
-  "@settingsSectionApp": {"description": "Settings group header: language, changelog, license."}
+  "@settingsSectionApp": {"description": "Settings group header: language, changelog, license."},
+  "rideVirtualShifting": "Virtual shifting",
+  "@rideVirtualShifting": {"description": "Ride tab: title of the card with the live gear, drivetrain and shift buttons."},
+  "rideVsInviteBody": "Connect your smart trainer and BikeControl shifts its gears.",
+  "@rideVsInviteBody": {"description": "Ride tab: shown instead of the virtual shifting card while no smart trainer is connected."},
+  "rideRatio": "Ratio",
+  "@rideRatio": {"description": "Ride tab: label under the current gear ratio (e.g. ×2.4)."},
+  "rideYourButtons": "Your buttons",
+  "@rideYourButtons": {"description": "Ride tab: section header above the controller picture with its button actions."},
+  "rideEditButtons": "Edit buttons",
+  "@rideEditButtons": {"description": "Ride tab: link next to 'Your buttons' that opens the controller's button mapping."},
+  "rideTapButtonHint": "Tap a button to change what it does.",
+  "@rideTapButtonHint": {"description": "Ride tab: hint above the controller picture on touch devices."},
+  "rideClickButtonHint": "Click a button to change what it does.",
+  "@rideClickButtonHint": {"description": "Ride tab: hint above the controller picture on desktop."},
+  "rideJustPressed": "Just pressed {button}",
+  "@rideJustPressed": {"description": "Ride tab: strip under the controller picture naming the last button pressed; the action it sent follows after an arrow.", "placeholders": {"button": {"type": "String"}}},
+  "rideChange": "Change",
+  "@rideChange": {"description": "Ride tab: action on the last-press strip that opens the pressed button's assignment."},
+  "rideNoControllerTitle": "No controller connected",
+  "@rideNoControllerTitle": {"description": "Ride tab: title of the card shown under 'Your buttons' while no controller is connected."},
+  "rideNoControllerBody": "Wake your controller or pair a new one — its buttons show up here.",
+  "@rideNoControllerBody": {"description": "Ride tab: body of the card shown while no controller is connected."},
+  "rideSeeAll": "See all",
+  "@rideSeeAll": {"description": "Ride tab: link from the recent activity preview to the Activity section."}
 }

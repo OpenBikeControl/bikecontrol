@@ -1528,7 +1528,7 @@
     }
   },
   "chainBrokenSubtitle": "Twoje przyciski nie zadziałają, dopóki połączenie nie wróci.",
-  "chainPendingSubtitleSingle": "Dokończ kartę „{name}” poniżej i wszystko będzie gotowe.",
+  "chainPendingSubtitleSingle": "Dokończ konfigurację „{name}” i wszystko będzie gotowe.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -2421,5 +2421,17 @@
   "navDevices": "Urządzenia",
   "navSettings": "Ustawienia",
   "settingsSectionRidingWith": "Jeździsz z",
-  "settingsSectionApp": "Aplikacja"
+  "settingsSectionApp": "Aplikacja",
+  "rideVirtualShifting": "Wirtualna zmiana biegów",
+  "rideVsInviteBody": "Połącz swój trenażer smart, a BikeControl będzie zmieniać w nim biegi.",
+  "rideRatio": "Przełożenie",
+  "rideYourButtons": "Twoje przyciski",
+  "rideEditButtons": "Edytuj przyciski",
+  "rideTapButtonHint": "Stuknij przycisk, aby zmienić jego działanie.",
+  "rideClickButtonHint": "Kliknij przycisk, aby zmienić jego działanie.",
+  "rideJustPressed": "Właśnie naciśnięto {button}",
+  "rideChange": "Zmień",
+  "rideNoControllerTitle": "Brak połączonego kontrolera",
+  "rideNoControllerBody": "Wybudź kontroler lub sparuj nowy — jego przyciski pojawią się tutaj.",
+  "rideSeeAll": "Zobacz wszystko"
 }

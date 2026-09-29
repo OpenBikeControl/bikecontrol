@@ -62,7 +62,7 @@ class TrialCard extends StatelessWidget {
         color: theme.colorScheme.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: state.urgent ? warning.color : theme.colorScheme.border, width: 1.5),
+          side: state.urgent ? BorderSide(color: warning.color, width: 1.5) : BorderSide.none,
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -223,7 +223,7 @@ class VsBudgetCard extends StatelessWidget {
         color: theme.colorScheme.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: theme.colorScheme.border, width: 1.5),
+          side: BorderSide.none,
         ),
       ),
       child: Column(

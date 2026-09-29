@@ -61,6 +61,36 @@ ChainLink _appLink({required bool appConnected, bool wasConnectedThisSession = f
   );
 }
 
+/// Ride above the setup cards it points at (Devices, in the app), sharing
+/// one reveal controller the way the shell's two sections do.
+class RideAndSetup extends StatefulWidget {
+  const RideAndSetup({super.key});
+
+  @override
+  State<RideAndSetup> createState() => _RideAndSetupState();
+}
+
+class _RideAndSetupState extends State<RideAndSetup> {
+  final ChainRevealController _reveal = ChainRevealController();
+
+  @override
+  void dispose() {
+    _reveal.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HomePage(isMobile: true, onUpdate: () {}, reveal: _reveal, showHelpRow: false),
+        HomePage(isMobile: true, onUpdate: () {}, reveal: _reveal, view: HomeView.setup),
+      ],
+    );
+  }
+}
+
 Future<void> main() async {
   await ensureSnapshotHarness();
 
@@ -147,7 +177,7 @@ Future<void> main() async {
           AppLocalizations.delegate,
         ],
         supportedLocales: const [Locale('en')],
-        home: Scaffold(child: HomePage(isMobile: true, onUpdate: () {})),
+        home: const Scaffold(child: SingleChildScrollView(child: RideAndSetup())),
       ),
     );
     await tester.pump();
@@ -228,7 +258,7 @@ void _bannerShowTests() {
                 SingleChildScrollView(
                   controller: chain,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: HomePage(isMobile: true, onUpdate: () {}),
+                  child: const RideAndSetup(),
                 ),
                 const SizedBox(),
               ],
@@ -360,7 +390,9 @@ void _bannerShowTests() {
       // MyWhoosh connects while the chain is still gliding, and the page
       // redraws with it.
       core.obpMdnsEmulator.isConnected.value = true;
-      tester.element(find.byType(HomePage)).markNeedsBuild();
+      for (final e in find.byType(HomePage).evaluate()) {
+        e.markNeedsBuild();
+      }
 
       var sawController = false;
       var sawApp = false;
@@ -579,6 +611,10 @@ Finder _chainCard(ChainLinkKey key) =>
     find.byWidgetPredicate((w) => w is ChainCard && w.link.key == key, description: 'ChainCard(${key.name})');
 
 Future<void> _pumpHome(WidgetTester tester, {List<NavigatorObserver> navigatorObservers = const []}) async {
+  // Tall enough that the setup cards under Ride are on screen to be tapped.
+  tester.view.physicalSize = const Size(800, 2400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
   await tester.pumpWidget(
     ShadcnApp(
       localizationsDelegates: [
@@ -587,7 +623,7 @@ Future<void> _pumpHome(WidgetTester tester, {List<NavigatorObserver> navigatorOb
       ],
       supportedLocales: const [Locale('en')],
       navigatorObservers: navigatorObservers,
-      home: Scaffold(child: HomePage(isMobile: true, onUpdate: () {})),
+      home: const Scaffold(child: SingleChildScrollView(child: RideAndSetup())),
     ),
   );
   await tester.pump();
@@ -1265,7 +1301,9 @@ void _droppedAppTests() {
     // In the app the host rebuilds the page on every connection alert; here
     // that is done by hand.
     Future<void> rebuild(WidgetTester tester) async {
-      tester.element(find.byType(HomePage)).markNeedsBuild();
+      for (final e in find.byType(HomePage).evaluate()) {
+        e.markNeedsBuild();
+      }
       await tester.pump();
     }
 

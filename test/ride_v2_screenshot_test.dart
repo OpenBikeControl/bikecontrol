@@ -145,7 +145,17 @@ Future<void> main() async {
       tester,
       '2_home_locked',
       Scaffold(
-        child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {})),
+        // Ride's banner above the setup card that carries the unlock step
+        // (on Devices in the app).
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              HomePage(isMobile: true, onUpdate: () {}, showHelpRow: false),
+              HomePage(isMobile: true, onUpdate: () {}, view: HomeView.setup),
+            ],
+          ),
+        ),
       ),
       settle: false,
     );
@@ -225,7 +235,17 @@ Future<void> main() async {
       tester,
       '6_locked_toast',
       Scaffold(
-        child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {})),
+        // Ride's banner above the setup card that carries the unlock step
+        // (on Devices in the app).
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              HomePage(isMobile: true, onUpdate: () {}, showHelpRow: false),
+              HomePage(isMobile: true, onUpdate: () {}, view: HomeView.setup),
+            ],
+          ),
+        ),
       ),
       settle: false,
       afterPump: () async {

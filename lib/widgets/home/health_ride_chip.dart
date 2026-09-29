@@ -29,7 +29,6 @@ class HealthRideChip extends StatelessWidget {
             decoration: BoxDecoration(
               color: theme.colorScheme.card,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.colorScheme.border, width: 1.5),
             ),
             child: Row(
               children: [

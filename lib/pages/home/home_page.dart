@@ -5,7 +5,6 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
-import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
@@ -36,13 +35,10 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
-import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/services/local_network_access.dart';
 import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show advertisedAddressWarning;
 import 'package:bike_control/utils/requirements/local_network.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/controller/controller_canvas.dart';
-import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
@@ -52,9 +48,12 @@ import 'package:bike_control/widgets/home/health_ride_card.dart';
 import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
+import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
 import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
-import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show enableLocalControl, ensureLocalNetworkAccess;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -103,14 +102,44 @@ bool appCardOffersTroubleshooting(ChainLink link) =>
     core.logic.isObpMdnsEnabled &&
     core.obpMdnsEmulator.isStarted.value;
 
-/// The Ride section: the setup chain.
+/// Which part of the setup chain a [HomePage] shows.
+enum HomeView {
+  /// The Ride section: the ready banner, the virtual shifting card and the
+  /// rider's buttons.
+  ride,
+
+  /// The chain's cards, one per link — on Devices.
+  setup,
+}
+
+/// Carries Ride's "Show" over to the setup cards on Devices: Ride asks for
+/// the outstanding cards, the setup view scrolls to them and makes them jump
+/// out.
+class ChainRevealController extends ChangeNotifier {
+  List<String> _pending = const [];
+
+  void request(List<String> linkIds) {
+    _pending = linkIds;
+    notifyListeners();
+  }
+
+  /// The pending request, once.
+  List<String> take() {
+    final ids = _pending;
+    _pending = const [];
+    return ids;
+  }
+}
+
+/// The setup chain, read off the live devices and settings.
 ///
-/// One card per link, in signal-path order — your controllers, then the gears
-/// BikeControl computes from them, then the app that receives them. Each card
-/// states its own status and its own remaining steps, so a rider who opens the
-/// app can answer "am I ready?" without tapping anything, and a rider whose
-/// ride just broke can see *which* link failed instead of a screen of green
-/// widgets that are all technically telling the truth.
+/// One link per card, in signal-path order — your controllers, then the gears
+/// BikeControl computes from them, then the app that receives them.
+///
+/// [HomeView.ride] answers "am I ready?" with one banner and shows what the
+/// rider rides with: the live gear and their buttons. [HomeView.setup] is the
+/// chain itself, each card stating its own status and remaining steps, so a
+/// rider whose ride just broke can see *which* link failed.
 class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
@@ -118,6 +147,10 @@ class HomePage extends StatefulWidget {
     required this.onUpdate,
     this.showHelpRow = true,
     this.onHelp,
+    this.view = HomeView.ride,
+    this.reveal,
+    this.onShowSetup,
+    this.activityPreview,
   });
 
   final bool isMobile;
@@ -128,6 +161,17 @@ class HomePage extends StatefulWidget {
   /// Hidden from 840 wide, where the sidebar carries Help & Support.
   final bool showHelpRow;
   final VoidCallback? onHelp;
+
+  final HomeView view;
+
+  /// Shared between Ride and the setup view — see [ChainRevealController].
+  final ChainRevealController? reveal;
+
+  /// Ride: brings the setup cards on screen (the shell switches to Devices).
+  final VoidCallback? onShowSetup;
+
+  /// Ride's right column, under the buttons, in two-column windows.
+  final Widget? activityPreview;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -144,10 +188,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// The last press per controller (by device id), and how many there have
   /// been — a notifier each, so a press rebuilds only that controller's
   /// buttons instead of the whole chain.
-  final Map<String, ValueNotifier<({ControllerButton? button, int generation})>> _presses = {};
+  final Map<String, ValueNotifier<ControllerPress>> _presses = {};
 
-  ValueNotifier<({ControllerButton? button, int generation})> _pressesFor(String deviceId) =>
+  ValueNotifier<ControllerPress> _pressesFor(String deviceId) =>
       _presses.putIfAbsent(deviceId, () => ValueNotifier((button: null, generation: 0)));
+
+  bool get _isRide => widget.view == HomeView.ride;
 
   /// Last measured Local Network status, kept here rather than read off
   /// [LocalNetworkAccess.cached]: that cache expires after 30s, and a step that
@@ -266,6 +312,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
 
     _maybeShowRideFirmwareDialog();
+    if (!_isRide) widget.reveal?.addListener(_onRevealRequested);
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.reveal != widget.reveal || oldWidget.view != widget.view) {
+      oldWidget.reveal?.removeListener(_onRevealRequested);
+      if (!_isRide) widget.reveal?.addListener(_onRevealRequested);
+    }
+  }
+
+  void _onRevealRequested() {
+    final ids = widget.reveal?.take() ?? const [];
+    if (ids.isNotEmpty) unawaited(_revealOutstanding(ids));
   }
 
   List<Listenable> _broadcastListenables = const [];
@@ -287,6 +348,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool _rideV2ExplainerPending = false;
 
   void _maybeShowRideFirmwareDialog() {
+    // One of the two views asks, or a rider with both on screen gets it twice.
+    if (!_isRide) return;
     _maybeShowRideV2Explainer();
     if (screenshotMode || _rideFirmwareDialogHandled) return;
     if (core.settings.getRideFirmwareLockDialogShown()) {
@@ -346,6 +409,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       proxy.isStartedListenable.removeListener(_onProxyChanged);
       proxy.isConnectedListenable.removeListener(_onProxyChanged);
     }
+    widget.reveal?.removeListener(_onRevealRequested);
     _connectionListener.cancel();
     _actionListener.cancel();
     for (final presses in _presses.values) {
@@ -665,16 +729,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final links = buildChain(inputs);
     final banner = deriveBanner(links);
     _outstandingLinkIds = banner.outstandingLinkIds;
-    final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
-    final trial = _trialState();
-    final vsBudget = vsBudgetCardState(
-      isPurchased: IAPManager.instance.isPurchased.value,
-      isProForDevice: IAPManager.instance.isProEnabledForCurrentDevice,
-      trainerBridged: core.connection.proxyDevices.any((p) => p.isBridged),
-      remainingToday: core.bridgeUsageTracker.remainingToday,
-      dailyLimit: core.bridgeUsageTracker.dailyLimit,
-    );
+    return _isRide ? _buildRide(inputs, links, banner) : _buildSetup(inputs, links);
+  }
 
+  /// The chain's cards, one per link.
+  Widget _buildSetup(ChainInputs inputs, List<ChainLink> links) {
+    final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
     final cards = <Widget>[];
     final keyedIds = <String>{};
     for (final link in links) {
@@ -688,87 +748,274 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
       );
     }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final card in cards) ...[
+          card,
+          const Gap(10),
+        ],
+      ],
+    );
+  }
+
+  /// Whether Ride splits in two: status and shifting on the left, the buttons
+  /// on the right. From 840 (the sidebar's breakpoint) up to the activity
+  /// column's, and past that only while the content still has room for two
+  /// (at 1280 the activity column takes its share and Ride is one column
+  /// again; a 1600 window has room for both).
+  static bool _rideTwoColumns({required double window, required double content}) {
+    if (window < Breakpoints.medium || content < 520) return false;
+    return window < Breakpoints.activityColumn || content >= 820;
+  }
+
+  Widget _buildRide(ChainInputs inputs, List<ChainLink> links, ChainBanner banner) {
+    final trial = _trialState();
+    final vsBudget = vsBudgetCardState(
+      isPurchased: IAPManager.instance.isPurchased.value,
+      isProForDevice: IAPManager.instance.isProEnabledForCurrentDevice,
+      trainerBridged: core.connection.proxyDevices.any((p) => p.isBridged),
+      remainingToday: core.bridgeUsageTracker.remainingToday,
+      dailyLimit: core.bridgeUsageTracker.dailyLimit,
+    );
+
+    final status = <Widget>[
+      ReadyBanner(
+        banner: banner,
+        appName: inputs.app.name,
+        brokenLinkName: _linkName(links, banner.targetLinkId),
+        onAction: banner.hasAction ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId)) : null,
+        onRevealOutstanding: () => _showOutstanding(links, banner.outstandingLinkIds),
+      ),
+      HealthRideChip(service: core.healthRide),
+      if (trial != null) ...[
+        TrialCard(
+          state: trial,
+          onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
+          onRestore: () => IAPManager.instance.restorePurchases(),
+        ),
+        const Gap(10),
+      ],
+      // Store renders stage a finished setup, not a daily limit.
+      if (vsBudget != null && !screenshotMode) ...[
+        // Live while riding: the budget ticks down during a session.
+        ValueListenableBuilder<Duration>(
+          valueListenable: core.bridgeUsageTracker.usedTodayListenable,
+          builder: (context, _, _) => VsBudgetCard(
+            state:
+                vsBudgetCardState(
+                  isPurchased: true,
+                  isProForDevice: false,
+                  trainerBridged: true,
+                  remainingToday: core.bridgeUsageTracker.remainingToday,
+                  dailyLimit: core.bridgeUsageTracker.dailyLimit,
+                ) ??
+                vsBudget,
+            // Base is bought, so the paywall shows the Pro plans only.
+            onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
+          ),
+        ),
+        const Gap(10),
+      ],
+      // Pro on the account, not on this device: carries its own gap.
+      const ProUnregisteredBanner(),
+      HealthRideCard(service: core.healthRide),
+    ];
+
+    // Where the activity column sits beside Ride, it already lists every
+    // press; the strip would say the same thing twice.
+    final showPressStrip = MediaQuery.sizeOf(context).width < Breakpoints.activityColumn;
 
     return Padding(
-      // No horizontal inset on mobile: the shell's scroll view already pads the
-      // chain by 12 (Overview's hPad), and adding another 12 here cost 24px a
-      // side — a sixth of a phone's width spent on nothing, and it stacks again
-      // with each card's own padding. Desktop keeps it: there the chain sits in
-      // a centred max-width box with no padding of its own.
-      padding: EdgeInsets.fromLTRB(widget.isMobile ? 0 : 12, 12, widget.isMobile ? 0 : 12, 26),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ReadyBanner(
-            banner: banner,
-            appName: inputs.app.name,
-            brokenLinkName: _linkName(links, banner.targetLinkId),
-            onAction: banner.hasAction
-                ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId))
-                : null,
-            onRevealOutstanding: () => _revealOutstanding(banner.outstandingLinkIds),
-          ),
-          HealthRideChip(service: core.healthRide),
-          if (trial != null) ...[
-            TrialCard(
-              state: trial,
-              onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
-              onRestore: () => IAPManager.instance.restorePurchases(),
-            ),
-            const Gap(10),
-          ],
-          // Store renders stage a finished setup, not a daily limit.
-          if (vsBudget != null && !screenshotMode) ...[
-            // Live while riding: the budget ticks down during a session.
-            ValueListenableBuilder<Duration>(
-              valueListenable: core.bridgeUsageTracker.usedTodayListenable,
-              builder: (context, _, _) => VsBudgetCard(
-                state: vsBudgetCardState(
-                      isPurchased: true,
-                      isProForDevice: false,
-                      trainerBridged: true,
-                      remainingToday: core.bridgeUsageTracker.remainingToday,
-                      dailyLimit: core.bridgeUsageTracker.dailyLimit,
-                    ) ??
-                    vsBudget,
-                // Base is bought, so the paywall shows the Pro plans only.
-                onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
-              ),
-            ),
-            const Gap(10),
-          ],
-          // Pro on the account, not on this device: carries its own gap.
-          const ProUnregisteredBanner(),
-          HealthRideCard(service: core.healthRide),
-          for (final card in cards) ...[
-            card,
-            const Gap(10),
-          ],
-          if (widget.showHelpRow) ...[
-            const Gap(12),
-            BkTouchTarget(
-              child: Button.outline(
-                alignment: Alignment.center,
-                onPressed: widget.onHelp ?? () => openControllerHelpSheet(context),
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.lifeBuoy, size: 17, color: Theme.of(context).colorScheme.primary),
-                    const Gap(9),
-                    Expanded(
-                      child: Text(
-                        context.i18n.chainSomethingNotWorking,
-                        style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
-                  ],
+      // No horizontal inset on mobile: the shell's scroll view already pads
+      // the page by 12. Desktop keeps it.
+      padding: EdgeInsets.fromLTRB(widget.isMobile ? 0 : 12, 4, widget.isMobile ? 0 : 12, 26),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final twoColumns = _rideTwoColumns(
+            window: MediaQuery.sizeOf(context).width,
+            content: constraints.maxWidth,
+          );
+          final vs = _vsSlot(inputs, links, stacked: twoColumns);
+          final buttons = _yourButtons(
+            wide: !twoColumns && constraints.maxWidth >= Breakpoints.compact,
+            showPressStrip: showPressStrip,
+          );
+          if (twoColumns) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [...status, ?vs],
+                  ),
                 ),
+                const Gap(20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      buttons,
+                      if (widget.activityPreview case final preview?) ...[const Gap(20), preview],
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ...status,
+              if (vs != null) ...[vs, const Gap(20)],
+              buttons,
+              if (widget.showHelpRow) ...[const Gap(20), _helpRow()],
+              if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _helpRow() {
+    return BkTouchTarget(
+      child: Button.outline(
+        alignment: Alignment.center,
+        onPressed: widget.onHelp ?? () => openControllerHelpSheet(context),
+        child: Row(
+          children: [
+            Icon(LucideIcons.lifeBuoy, size: 17, color: Theme.of(context).colorScheme.primary),
+            const Gap(9),
+            Expanded(
+              child: Text(
+                context.i18n.chainSomethingNotWorking,
+                style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
               ),
             ),
+            Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
           ],
-          if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
-        ],
+        ),
       ),
+    );
+  }
+
+  /// Ride's "Show" with several cards outstanding: the cards are on Devices
+  /// now, so Ride hands the request over and the shell switches there. With
+  /// nobody to hand it to, the first card's fix opens instead.
+  void _showOutstanding(List<ChainLink> links, List<String> linkIds) {
+    if (linkIds.isEmpty) return;
+    final reveal = widget.reveal;
+    if (reveal != null) {
+      widget.onShowSetup?.call();
+      reveal.request(linkIds);
+      return;
+    }
+    final first = links.firstOrNullWhere((l) => l.id == linkIds.first);
+    if (first != null) unawaited(_openInstructions(first));
+  }
+
+  // ── Ride: virtual shifting ────────────────────────────────────────────
+
+  /// The virtual shifting slot, by what the trainer is doing:
+  ///
+  /// - shifting (a definition is attached): the live card;
+  /// - connecting: the trainer's name and "Connecting…";
+  /// - lost this session: the trainer's name, the loss, and Connect;
+  /// - not bridged while the trainer app is working: one line saying the app
+  ///   handles shifting;
+  /// - otherwise: an invitation to connect a trainer.
+  ///
+  /// Nothing in sensors-only mode: that rider has said there is no smart
+  /// trainer to connect.
+  Widget? _vsSlot(ChainInputs inputs, List<ChainLink> links, {required bool stacked}) {
+    if (inputs.trainer == null && inputs.sensors != null) return null;
+    final proxy = chainProxy();
+    final trainer = inputs.trainer;
+    final l = context.i18n;
+    final Widget slot;
+    if (proxy != null && proxy.fitnessBike != null) {
+      slot = _LiveTrainerBody(
+        key: const ValueKey('ride-vs-live'),
+        proxy: proxy,
+        builder: (definition, connected) => VirtualShiftingCard(
+          definition: definition,
+          trainerName: proxy.toString(),
+          dim: !connected,
+          layout: stacked ? VsCardLayout.stacked : VsCardLayout.beside,
+          onOpen: () => _openTrainer(proxy, bridged: proxy.isBridged),
+        ),
+      );
+    } else if (trainer?.presence == DevicePresence.connecting) {
+      slot = RidePromptCard(icon: LucideIcons.bike, title: trainer!.name, body: l.chainStatusConnecting);
+    } else if (trainer != null && trainer.presence == DevicePresence.lost) {
+      slot = RidePromptCard(
+        icon: LucideIcons.bike,
+        title: trainer.name,
+        body: l.chainStatusLostConnection,
+        bodyColor: BkStatusColors.of(context).danger,
+        actionLabel: l.connect,
+        onAction: () => _openTrainer(proxy, bridged: false),
+      );
+    } else if (inputs.app.isConnected && inputs.app.name != null && !inputs.app.selfHosted) {
+      slot = RideStatusLine(
+        icon: LucideIcons.bike,
+        text: l.chainStatusHandledByApp(inputs.app.name!),
+        actionLabel: l.connect,
+        onAction: () => _openTrainer(proxy, bridged: false),
+      );
+    } else {
+      slot = RidePromptCard(
+        icon: LucideIcons.bike,
+        title: l.rideVirtualShifting,
+        body: l.rideVsInviteBody,
+        actionLabel: l.connect,
+        onAction: () => _openTrainer(proxy, bridged: false),
+      );
+    }
+    return KeyedSubtree(key: const ValueKey('ride-vs-slot'), child: slot);
+  }
+
+  // ── Ride: your buttons ────────────────────────────────────────────────
+
+  Widget _yourButtons({required bool wide, required bool showPressStrip}) {
+    final l = context.i18n;
+    final connected = core.connection.controllerDevices.where((d) => d.isConnected).toList();
+    final keymap = core.actionHandler.supportedApp?.keymap;
+    final single = connected.length == 1 ? connected.single : null;
+    return Column(
+      key: const ValueKey('ride-your-buttons'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RideSectionHeader(
+          title: l.rideYourButtons,
+          linkLabel: single != null ? l.rideEditButtons : null,
+          onLink: single != null ? () => _openController(single) : null,
+        ),
+        if (connected.isEmpty)
+          RidePromptCard(
+            icon: LucideIcons.gamepad2,
+            title: l.rideNoControllerTitle,
+            body: l.rideNoControllerBody,
+            actionLabel: l.connect,
+            onAction: () => _openController(null),
+          ),
+        for (final (i, device) in connected.indexed) ...[
+          if (i > 0) const Gap(10),
+          ControllerButtonsCard(
+            key: ValueKey('ride-buttons-${device.uniqueId}'),
+            device: device,
+            keymap: keymap,
+            presses: _pressesFor(device.uniqueId),
+            onUpdate: _update,
+            onEdit: () => _openController(device),
+            showDeviceHeader: single == null,
+            showPressStrip: showPressStrip,
+            wide: wide,
+          ),
+        ],
+      ],
     );
   }
 
@@ -913,7 +1160,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return [
       // Same threshold the device page already paints red at.
       if (battery != null && battery < 20) Icon(LucideIcons.batteryWarning, size: 14, color: scheme.destructive),
-      if (device is ZwiftDevice && (device as ZwiftDevice).hasNewerFirmwareVersion)
+      if (device is ZwiftDevice && device.hasNewerFirmwareVersion)
         Icon(LucideIcons.circleArrowUp, size: 13, color: scheme.mutedForeground),
       // -70 dBm is where the device page stops calling the link "Good".
       if (rssi != null && rssi < -70) Icon(LucideIcons.signalLow, size: 13, color: scheme.mutedForeground),
@@ -939,57 +1186,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// button is a keymap edit, not a radio operation, so there is no reason to
   /// make a rider wait until they are back on the bike to do it.
   Widget? _controllerBody(BaseDevice device, {required bool connected}) {
-    // Nothing to draw is not the same as an empty box to draw it in. A device
-    // with no contour and no buttons discovered yet — a SRAM derailleur before
-    // its guided setup runs — otherwise rendered as a blank grey panel that
-    // looked like a failed render.
-    if (device is! SteeringDevice && device.controllerLayout == null && device.availableButtons.isEmpty) {
-      return null;
-    }
-
-    final keymap = core.actionHandler.supportedApp?.keymap;
-    final size = 56 / Theme.of(context).scaling;
-
-    final presses = _pressesFor(device.uniqueId);
-    Widget buttonFor(ControllerButton button) {
-      return ValueListenableBuilder(
-        key: ValueKey(button.name),
-        valueListenable: presses,
-        builder: (context, pressed, _) => AnimatedButtonWidget(
-          button: button,
-          pressGeneration: pressed.button?.name == button.name ? pressed.generation : 0,
-          keymap: keymap,
-          device: device,
-          size: size,
-          onUpdate: _update,
-        ),
-      );
-    }
-
-    final Widget content;
-    if (device is SteeringDevice) {
-      final steering = device as SteeringDevice;
-      content = SteeringGauge(
-        angle: steering.steeringAngle,
-        calibrated: steering.steeringCalibrated,
-        threshold: steering.steeringThreshold,
-        device: device,
-        leftButton: steering.steerLeftButton,
-        rightButton: steering.steerRightButton,
-        keymap: keymap,
-        onUpdate: _update,
-      );
-    } else {
-      final layout = device.controllerLayout;
-      content = layout != null
-          ? ControllerCanvas(
-              layout: layout,
-              availableButtons: device.availableButtons,
-              buttonBuilder: buttonFor,
-              buttonSize: size,
-            )
-          : Wrap(spacing: 9, runSpacing: 9, children: device.availableButtons.map(buttonFor).toList());
-    }
+    final content = controllerButtonsPicture(
+      device: device,
+      keymap: core.actionHandler.supportedApp?.keymap,
+      presses: _pressesFor(device.uniqueId),
+      buttonSize: 56 / Theme.of(context).scaling,
+      onUpdate: _update,
+    );
+    if (content == null) return null;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -1559,9 +1763,13 @@ class _MetricChip extends StatelessWidget {
 /// tick — and rebuilds only itself, only when what it shows actually changed.
 /// (It used to be the whole home page, every two seconds.)
 class _LiveTrainerBody extends StatefulWidget {
-  const _LiveTrainerBody({required this.proxy});
+  const _LiveTrainerBody({super.key, required this.proxy, this.builder});
 
   final ProxyDevice proxy;
+
+  /// What to draw for the current definition; the trainer card's compact
+  /// drivetrain when null.
+  final Widget Function(FitnessBikeDefinition definition, bool connected)? builder;
 
   @override
   State<_LiveTrainerBody> createState() => _LiveTrainerBodyState();
@@ -1608,6 +1816,7 @@ class _LiveTrainerBodyState extends State<_LiveTrainerBody> {
   Widget build(BuildContext context) {
     final definition = _definition;
     if (definition == null) return const SizedBox.shrink();
+    if (widget.builder case final builder?) return builder(definition, _connected);
     return DrivetrainControls(definition: definition, compact: true, dim: !_connected);
   }
 }

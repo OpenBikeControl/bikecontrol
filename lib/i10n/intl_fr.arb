@@ -1528,7 +1528,7 @@
     }
   },
   "chainBrokenSubtitle": "Tes boutons ne feront rien tant que la connexion n’est pas rétablie.",
-  "chainPendingSubtitleSingle": "Termine la carte « {name} » ci-dessous et tu seras prêt.",
+  "chainPendingSubtitleSingle": "Termine la configuration de « {name} » et tu seras prêt.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -2421,5 +2421,17 @@
   "navDevices": "Appareils",
   "navSettings": "Réglages",
   "settingsSectionRidingWith": "Rouler avec",
-  "settingsSectionApp": "Application"
+  "settingsSectionApp": "Application",
+  "rideVirtualShifting": "Changement de vitesse virtuel",
+  "rideVsInviteBody": "Connecte ton home trainer connecté et BikeControl passe ses vitesses.",
+  "rideRatio": "Rapport",
+  "rideYourButtons": "Tes boutons",
+  "rideEditButtons": "Modifier les boutons",
+  "rideTapButtonHint": "Touche un bouton pour changer son action.",
+  "rideClickButtonHint": "Clique sur un bouton pour changer son action.",
+  "rideJustPressed": "Tu viens d'appuyer sur {button}",
+  "rideChange": "Modifier",
+  "rideNoControllerTitle": "Aucune manette connectée",
+  "rideNoControllerBody": "Réveille ta manette ou associe-en une nouvelle : ses boutons s'afficheront ici.",
+  "rideSeeAll": "Tout voir"
 }

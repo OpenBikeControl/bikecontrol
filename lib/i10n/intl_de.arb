@@ -1539,7 +1539,7 @@
     }
   },
   "chainBrokenSubtitle": "Deine Tasten bewirken nichts, bis die Verbindung wieder steht.",
-  "chainPendingSubtitleSingle": "Schließe die Karte „{name}“ unten ab, dann bist du startklar.",
+  "chainPendingSubtitleSingle": "Schließe die Einrichtung von „{name}“ ab, dann bist du startklar.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -2421,5 +2421,17 @@
   "navDevices": "Geräte",
   "navSettings": "Einstellungen",
   "settingsSectionRidingWith": "Fahren mit",
-  "settingsSectionApp": "App"
+  "settingsSectionApp": "App",
+  "rideVirtualShifting": "Virtuelles Schalten",
+  "rideVsInviteBody": "Verbinde deinen Smart Trainer und BikeControl schaltet seine Gänge.",
+  "rideRatio": "Übersetzung",
+  "rideYourButtons": "Deine Tasten",
+  "rideEditButtons": "Tasten bearbeiten",
+  "rideTapButtonHint": "Tippe auf eine Taste, um ihre Aktion zu ändern.",
+  "rideClickButtonHint": "Klicke auf eine Taste, um ihre Aktion zu ändern.",
+  "rideJustPressed": "Gerade gedrückt: {button}",
+  "rideChange": "Ändern",
+  "rideNoControllerTitle": "Kein Controller verbunden",
+  "rideNoControllerBody": "Wecke deinen Controller auf oder kopple einen neuen – seine Tasten erscheinen dann hier.",
+  "rideSeeAll": "Alle anzeigen"
 }

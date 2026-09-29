@@ -4,20 +4,23 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_extras.dart';
+import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/accessory_card.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The Devices section: accessories, and the device options that used to sit
-/// under the setup chain (extra scanning, media keys, phone steering, ignored
+/// The Devices section: the setup chain's cards (controllers, trainer or
+/// sensors, trainer app), accessories, and the device options that used to
+/// sit under the chain (extra scanning, media keys, phone steering, ignored
 /// devices).
-///
-/// The controllers and the trainer still live on Ride's setup chain for now.
 class DevicesPage extends StatefulWidget {
-  const DevicesPage({super.key, required this.isMobile, required this.onUpdate});
+  const DevicesPage({super.key, required this.isMobile, required this.onUpdate, this.reveal});
 
   final bool isMobile;
+
+  /// Ride's "Show": brings the outstanding cards into view.
+  final ChainRevealController? reveal;
 
   /// Lets the shell refresh Ride after a change here.
   final VoidCallback onUpdate;
@@ -57,6 +60,14 @@ class _DevicesPageState extends State<DevicesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        HomePage(
+          view: HomeView.setup,
+          isMobile: widget.isMobile,
+          showHelpRow: false,
+          onUpdate: _update,
+          reveal: widget.reveal,
+        ),
+        const Gap(10),
         if (accessories.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 2, 4, 8),

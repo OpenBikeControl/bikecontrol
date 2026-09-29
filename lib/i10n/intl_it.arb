@@ -1528,7 +1528,7 @@
     }
   },
   "chainBrokenSubtitle": "I tuoi pulsanti non faranno nulla finché non si riconnette.",
-  "chainPendingSubtitleSingle": "Completa la scheda «{name}» qui sotto e sei pronto.",
+  "chainPendingSubtitleSingle": "Completa la configurazione di «{name}» e sei pronto.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -2421,5 +2421,17 @@
   "navDevices": "Dispositivi",
   "navSettings": "Impostazioni",
   "settingsSectionRidingWith": "Pedali con",
-  "settingsSectionApp": "App"
+  "settingsSectionApp": "App",
+  "rideVirtualShifting": "Cambio virtuale",
+  "rideVsInviteBody": "Collega il tuo rullo smart e BikeControl cambia le sue marce.",
+  "rideRatio": "Rapporto",
+  "rideYourButtons": "I tuoi pulsanti",
+  "rideEditButtons": "Modifica pulsanti",
+  "rideTapButtonHint": "Tocca un pulsante per cambiare cosa fa.",
+  "rideClickButtonHint": "Fai clic su un pulsante per cambiare cosa fa.",
+  "rideJustPressed": "Hai appena premuto {button}",
+  "rideChange": "Cambia",
+  "rideNoControllerTitle": "Nessun controller collegato",
+  "rideNoControllerBody": "Risveglia il tuo controller o abbinane uno nuovo: i suoi pulsanti compariranno qui.",
+  "rideSeeAll": "Vedi tutto"
 }

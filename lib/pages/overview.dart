@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
+import 'package:bike_control/pages/activity/activity_preview.dart';
 import 'package:bike_control/pages/devices/devices_page.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/settings/settings_page.dart';
@@ -87,6 +88,9 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
   ShellController? _ownShell;
   ShellController get _shell => widget.shell ?? (_ownShell ??= ShellController());
   ActivityLogController get _log => _shell.activity;
+
+  /// Ride's "Show" → the setup cards on Devices.
+  final ChainRevealController _reveal = ChainRevealController();
 
   void _onProxyStateChanged() {
     if (mounted) setState(() {});
@@ -273,6 +277,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
       core.zwiftEmulator.isConnected.removeListener(_onProxyStateChanged);
     }
     _connectionListener.cancel();
+    _reveal.dispose();
     _ownShell?.dispose();
     super.dispose();
   }
@@ -295,7 +300,12 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
               offstage: section != selected,
               child: TickerMode(
                 enabled: section == selected,
-                child: KeyedSubtree(key: ValueKey(section), child: _section(section)),
+                // Ride and Devices both draw the controller's buttons, and a
+                // hero tag may only fly from one of them.
+                child: HeroMode(
+                  enabled: section == selected,
+                  child: KeyedSubtree(key: ValueKey(section), child: _section(section)),
+                ),
               ),
             ),
         ],
@@ -308,7 +318,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
       AppSection.ride => _ride(),
       AppSection.devices => _scroll(
         'devices',
-        DevicesPage(isMobile: widget.isMobile, onUpdate: _update),
+        DevicesPage(isMobile: widget.isMobile, onUpdate: _update, reveal: _reveal),
       ),
       AppSection.activity => _scroll(
         'activity',
@@ -319,8 +329,9 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
     };
   }
 
-  /// A section's scroll view: the content in one column no wider than 720.
-  Widget _scroll(String id, Widget child, {bool tight = false}) {
+  /// A section's scroll view: the content in one column no wider than
+  /// [maxWidth] (720; Ride, which splits in two, gets more).
+  Widget _scroll(String id, Widget child, {bool tight = false, double maxWidth = 720}) {
     final compact = _screenWidth < Breakpoints.compact;
     final h = tight ? 0.0 : (compact ? 12.0 : 24.0);
     return SingleChildScrollView(
@@ -331,7 +342,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
       child: Align(
         alignment: _screenWidth >= Breakpoints.medium ? Alignment.topLeft : Alignment.topCenter,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
+          constraints: BoxConstraints(maxWidth: maxWidth),
           child: child,
         ),
       ),
@@ -352,7 +363,18 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
               // From 840 the sidebar carries Help & Support.
               showHelpRow: _screenWidth < Breakpoints.medium,
               onUpdate: _update,
+              reveal: _reveal,
+              onShowSetup: () => _shell.select(AppSection.devices),
+              // Between the sidebar and the activity column, Ride's right
+              // column carries the latest few events.
+              activityPreview: _screenWidth >= Breakpoints.medium && !showColumn
+                  ? RideActivityPreview(
+                      controller: _log,
+                      onSeeAll: () => _shell.select(AppSection.activity),
+                    )
+                  : null,
             ),
+            maxWidth: 1080,
           ),
         ),
         if (showColumn)

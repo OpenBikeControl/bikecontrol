@@ -35,7 +35,7 @@ class HealthRideCard extends StatelessWidget {
               color: theme.colorScheme.card,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: theme.colorScheme.border, width: 1.5),
+                side: BorderSide.none,
               ),
             ),
             clipBehavior: Clip.antiAlias,

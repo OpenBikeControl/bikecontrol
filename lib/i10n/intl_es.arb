@@ -1528,7 +1528,7 @@
     }
   },
   "chainBrokenSubtitle": "Tus botones no harán nada hasta que se vuelva a conectar.",
-  "chainPendingSubtitleSingle": "Completa la tarjeta «{name}» de abajo y estarás listo.",
+  "chainPendingSubtitleSingle": "Completa la configuración de «{name}» y estarás listo.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -2421,5 +2421,17 @@
   "navDevices": "Dispositivos",
   "navSettings": "Ajustes",
   "settingsSectionRidingWith": "Rodando con",
-  "settingsSectionApp": "App"
+  "settingsSectionApp": "App",
+  "rideVirtualShifting": "Cambio virtual",
+  "rideVsInviteBody": "Conecta tu rodillo inteligente y BikeControl cambia sus marchas.",
+  "rideRatio": "Relación",
+  "rideYourButtons": "Tus botones",
+  "rideEditButtons": "Editar botones",
+  "rideTapButtonHint": "Toca un botón para cambiar lo que hace.",
+  "rideClickButtonHint": "Haz clic en un botón para cambiar lo que hace.",
+  "rideJustPressed": "Acabas de pulsar {button}",
+  "rideChange": "Cambiar",
+  "rideNoControllerTitle": "Ningún mando conectado",
+  "rideNoControllerBody": "Despierta tu mando o empareja uno nuevo: sus botones aparecerán aquí.",
+  "rideSeeAll": "Ver todo"
 }

@@ -82,31 +82,32 @@ class ReadyBanner extends StatelessWidget {
     // unfinished setup reveals, and a break keeps its "Fix".
     final action = banner.revealsOutstandingCards ? onRevealOutstanding : onAction;
 
-    // The banner changes shape as well as colour between calm and alarmed, so
-    // it animates rather than snapping — the rider sees the screen resolve.
+    // The banner changes colour between calm and alarmed, so it animates
+    // rather than snapping — the rider sees the screen resolve. Calm is a
+    // plain card with a green tick; only trouble gets a wash and an outline,
+    // so colour on this screen always means "look here".
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOut,
       margin: const EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.symmetric(horizontal: calm ? 13 : 14, vertical: calm ? 11 : 13),
+      constraints: const BoxConstraints(minHeight: 64),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: ShapeDecoration(
         color: calm ? theme.colorScheme.card : style.wash,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(color: calm ? theme.colorScheme.border : style.color, width: 1.5),
+          borderRadius: BorderRadius.circular(16),
+          side: calm ? BorderSide.none : BorderSide(color: style.color, width: 1.5),
         ),
       ),
       child: Row(
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutBack,
-            width: calm ? 24 : 34,
-            height: calm ? 24 : 34,
+          Container(
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(color: style.text, shape: BoxShape.circle),
-            child: Icon(calm ? LucideIcons.check : style.icon, size: calm ? 14 : 19, color: style.onText),
+            child: Icon(calm ? LucideIcons.check : style.icon, size: 18, color: style.onText),
           ),
-          const Gap(11),
+          const Gap(12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,15 +115,15 @@ class ReadyBanner extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: (calm ? context.typography.small : context.typography.base).copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: context.typography.base.copyWith(
+                    fontWeight: FontWeight.w600,
                     color: calm ? theme.colorScheme.foreground : style.text,
                   ),
                 ),
                 const Gap(2),
                 Text(
                   subtitle,
-                  style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
+                  style: context.typography.small.copyWith(height: 1.3, color: theme.colorScheme.mutedForeground),
                 ),
               ],
             ),
