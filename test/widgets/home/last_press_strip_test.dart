@@ -62,9 +62,9 @@ Future<void> main() async {
     await tester.pump();
   }
 
-  // The strip's width in Ride's buttons card on a phone (390) and in the
-  // left column at 1180.
-  for (final width in [326.0, 372.0, 520.0]) {
+  // The strip's width beside the pods on an iPad in portrait (820), in
+  // Ride's buttons card on a phone (390) and in the left column at 1180.
+  for (final width in [230.0, 326.0, 372.0, 520.0]) {
     for (final button in [long, short]) {
       testWidgets('at $width, ${button.name}: the action stays whole', (tester) async {
         await pump(tester, width, button);
@@ -78,7 +78,9 @@ Future<void> main() async {
         final sameLine = (actionRect.top - leadRect.top).abs() < 2;
         final nextLine = actionRect.top >= leadRect.bottom - 1;
         expect(sameLine || nextLine, isTrue, reason: 'lead $leadRect, action $actionRect');
-        expect(tester.widget<Text>(lead).maxLines, 1);
+        // A long button name wraps once in a narrow column instead of
+        // losing its end after a few letters.
+        expect(tester.widget<Text>(lead).maxLines, 2);
         expect(tester.takeException(), isNull);
       });
     }

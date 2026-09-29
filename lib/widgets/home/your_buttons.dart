@@ -334,7 +334,9 @@ class LastPressStrip extends StatelessWidget {
                               : context.i18n.rideJustPressed(button.displayName),
                           key: const ValueKey('last-press-lead'),
                           style: muted,
-                          maxLines: 1,
+                          // A long button name in a narrow column (an iPad
+                          // in portrait) wraps once rather than losing its end.
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (action != null)

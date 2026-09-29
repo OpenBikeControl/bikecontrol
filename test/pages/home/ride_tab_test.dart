@@ -1,6 +1,7 @@
 // The Ride tab: the ready banner, the virtual shifting card and "Your
 // buttons". The setup chain's cards live on Devices now (HomeView.setup); Ride
 // keeps the banner that points at them.
+import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
@@ -255,6 +256,21 @@ Future<void> main() async {
       final buttons = rectOf(tester, find.text(l.rideYourButtons));
       expect(buttons.top, greaterThan(vs.bottom), reason: 'buttons sit under the shifting card');
       expect(buttons.bottom, lessThan(844), reason: 'the buttons header is in the first screen');
+      await disposeShell(tester);
+    });
+
+    testWidgets('iPad portrait (820): one wide column, the gear still the largest thing', (tester) async {
+      await pumpShellWithRide(tester, const Size(820, 1180));
+      expect(tester.takeException(), isNull);
+
+      final vs = rectOf(tester, find.byType(VirtualShiftingCard));
+      final buttons = rectOf(tester, find.text(l.rideYourButtons));
+      expect(buttons.top, greaterThan(vs.bottom), reason: 'one column below 840');
+      final gear = tester.getSize(find.descendant(of: find.byType(VirtualShiftingCard), matching: find.text('12')));
+      final picture = tester.getSize(
+        find.descendant(of: find.byType(VirtualShiftingCard), matching: find.byType(DrivetrainView)),
+      );
+      expect(picture.height, lessThanOrEqualTo(gear.height * 1.3), reason: 'the drivetrain does not outgrow the gear');
       await disposeShell(tester);
     });
 

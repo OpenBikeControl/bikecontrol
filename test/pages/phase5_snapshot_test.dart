@@ -259,6 +259,21 @@ Future<void> main() async {
     });
   }
 
+  // iPad portrait (below the master–detail width: one list), both themes.
+  for (final brightness in Brightness.values) {
+    final name = 'mapping-820x1180-${brightness.name}';
+    testWidgets(name, (tester) async {
+      realMappingPage();
+      await shoot(
+        tester,
+        name: name,
+        size: const Size(820, 1180),
+        brightness: brightness,
+        build: (_) => ControllerSettingsPage(device: play),
+      );
+    });
+  }
+
   // Both large sizes: a tablet in landscape and a laptop window.
   for (final size in const [Size(1180, 820), Size(1280, 800)]) {
     final name = 'mapping-${size.width.toInt()}x${size.height.toInt()}-dark';

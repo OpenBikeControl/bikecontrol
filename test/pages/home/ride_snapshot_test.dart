@@ -75,10 +75,11 @@ Future<void> main() async {
   });
   tearDown(() => activityLogClock = DateTime.now);
 
-  const sizes = [Size(390, 844), Size(1180, 820), Size(1280, 800)];
+  // Phone, iPad portrait (top tabs, one wide column), iPad landscape, laptop.
+  const sizes = [Size(390, 844), Size(820, 1180), Size(1180, 820), Size(1280, 800)];
   for (final size in sizes) {
     for (final brightness in Brightness.values) {
-      if (size.width > 400 && brightness == Brightness.light) continue;
+      if (size.width > 1000 && brightness == Brightness.light) continue;
       final name = 'ride-${size.width.toInt()}x${size.height.toInt()}-${brightness.name}';
       // From 840 Ride shows the log: as the latest-events preview under Your
       // buttons, and from 1200 as the permanent column.

@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/drivetrain/chain_geometry.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -134,8 +135,13 @@ class VirtualShiftingCard extends StatelessWidget {
   // ── Layouts ───────────────────────────────────────────────────────────
 
   Widget _beside(BuildContext context, bool erg, double width) {
-    final numeral = (width * 0.27).clamp(84.0, 140.0);
+    // Up to the stacked layout's 176 on a wide card (an iPad in portrait),
+    // so the gear stays the largest thing on it.
+    final numeral = (width * 0.27).clamp(84.0, 176.0);
     final button = width >= 480 ? 56.0 : 48.0;
+    // The picture is never taller than the numeral beside it; on a phone the
+    // column is narrower than this anyway.
+    final pictureWidth = numeral * kDrivetrainBox.width / kDrivetrainBox.height;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -144,7 +150,12 @@ class VirtualShiftingCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _picture(erg),
+              Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: pictureWidth),
+                  child: _picture(erg),
+                ),
+              ),
               if (definition.frontShiftEnabled) Align(child: FrontRingToggle(definition: definition)),
               const Gap(8),
               _stats(context, erg),

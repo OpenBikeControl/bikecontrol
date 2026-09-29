@@ -178,8 +178,7 @@ Future<void> main() async {
     });
 
     testWidgets('connection-390x844-$theme', (tester) async {
-      // The real page: store renders call the app "Trainer app" in the
-      // header and the target question but not in the method's status.
+      // The real page: store renders call the app "Trainer app" throughout.
       screenshotMode = false;
       addTearDown(() => screenshotMode = true);
       await shoot(
@@ -190,6 +189,26 @@ Future<void> main() async {
         build: () => const TrainerConnectionSettingsPage(),
       );
     });
+  }
+
+  // iPad portrait: the top tab bar over one wide column.
+  const ipadPortrait = Size(820, 1180);
+  for (final brightness in Brightness.values) {
+    for (final section in [AppSection.devices, AppSection.settings]) {
+      final name = '${section.name}-820x1180-${brightness.name}';
+      testWidgets(name, (tester) async {
+        debugHostPlatformOverride = TargetPlatform.iOS;
+        screenshotMode = false;
+        addTearDown(() => screenshotMode = true);
+        await shoot(
+          tester,
+          name: name,
+          size: ipadPortrait,
+          brightness: brightness,
+          build: () => Navigation(initialSection: section),
+        );
+      });
+    }
   }
 
   // Both large sizes: a tablet in landscape and a laptop window.
