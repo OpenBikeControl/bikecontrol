@@ -52,8 +52,8 @@ Future<void> main() async {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    // Mobile header Help pill.
-    final help = find.byIcon(LucideIcons.lifeBuoy).first;
+    // Mobile header Help button.
+    final help = find.byIcon(LucideIcons.circleHelp).first;
     await tester.tap(help);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));

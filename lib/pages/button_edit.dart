@@ -20,7 +20,6 @@ import 'package:bike_control/widgets/custom_keymap_selector.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -29,6 +28,7 @@ import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedHeader;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -40,6 +40,12 @@ class ButtonEditPage extends StatefulWidget {
   final KeyPair keyPair;
   final ButtonTrigger trigger;
   final VoidCallback onUpdate;
+
+  /// Laid out in place (the wide button mapping's detail pane) instead of in
+  /// its drawer: no head or close, the page scrolls it, and the actions sit
+  /// in a grid under their group headers. It edits only the key pair it was
+  /// built with; the pane rebuilds it for another button.
+  final bool embedded;
   const ButtonEditPage({
     super.key,
     required this.keyPair,
@@ -47,6 +53,7 @@ class ButtonEditPage extends StatefulWidget {
     required this.onUpdate,
     required this.keymap,
     required this.trigger,
+    this.embedded = false,
   });
 
   @override
@@ -92,6 +99,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       if (!mounted) {
         return;
       }
+      // Embedded, the pane picks the pressed button and rebuilds this.
+      if (widget.embedded) return;
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
         final keyPair = widget.keymap.getOrCreateKeyPair(clickedButton, trigger: widget.trigger);
@@ -112,20 +121,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicWidth(
-      child: Scrollbar(
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 300),
-            padding: const EdgeInsets.only(right: 26.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 8,
-              children: [
-                SizedBox(height: 16),
-                Row(
+    final children = <Widget>[
+                // The drawer's own head; embedded, the pane around it names
+                // the button and trigger.
+                if (!widget.embedded) SizedBox(height: 16),
+                if (!widget.embedded) Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -166,7 +166,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
-                Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
+                if (!widget.embedded) Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
                 if (_usesFallbackLongPressMode)
                   Warning(
                     important: false,
@@ -879,7 +879,22 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   child: Text(context.i18n.unassignAction),
                 ),
                 SizedBox(height: 16),
-              ],
+              ];
+    if (widget.embedded) {
+      return _EmbeddedPicker(children: children);
+    }
+    return IntrinsicWidth(
+      child: Scrollbar(
+        controller: _scrollController,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 300),
+            padding: const EdgeInsets.only(right: 26.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: children,
             ),
           ),
         ),
@@ -1486,6 +1501,62 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 }
 
+/// The action picker laid out in place: each group's header in the grouped
+/// style, its actions as tiles in a grid (three across when there is room,
+/// two otherwise), anything else (notes, warnings, Unassign) full width.
+class _EmbeddedPicker extends StatelessWidget {
+  const _EmbeddedPicker({required this.children});
+
+  final List<Widget> children;
+
+  static bool _isTile(Widget w) => w is SelectableCard || w is Builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 8.0;
+        final columns = constraints.maxWidth >= 520 ? 3 : 2;
+        final tileWidth = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        final out = <Widget>[];
+        var run = <Widget>[];
+        void flush() {
+          if (run.isEmpty) return;
+          out.add(
+            Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [for (final tile in run) SizedBox(width: tileWidth, child: tile)],
+            ),
+          );
+          run = [];
+        }
+
+        for (final child in children) {
+          if (_isTile(child)) {
+            run.add(child);
+            continue;
+          }
+          flush();
+          if (child is SizedBox && child.child == null) continue;
+          out.add(
+            switch (child) {
+              ColoredTitle(:final text) => Padding(
+                padding: const EdgeInsets.only(top: 14, bottom: 2),
+                child: BkGroupedHeader(text),
+              ),
+              DestructiveButton() => Align(alignment: AlignmentDirectional.centerStart, child: child),
+              _ => child,
+            },
+          );
+        }
+        flush();
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 8, children: out);
+      },
+    );
+  }
+}
+
 class SelectableCard extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
@@ -1522,6 +1593,8 @@ class SelectableCard extends StatelessWidget {
     // handed the card an unbounded height inside scrolling drawers (the
     // subscription sheet), which crashed layout. The onboarding app grid
     // that once needed passthrough has its own tile widget now.
+    final cs = Theme.of(context).colorScheme;
+    const radius = BorderRadius.all(Radius.circular(12));
     return Stack(
       children: [
         Button.outline(
@@ -1530,17 +1603,16 @@ class SelectableCard extends StatelessWidget {
                     variance: ButtonVariance.outline,
                   )
                   .withBorder(
-                    border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
-                    hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
-                    focusBorder: Border.all(color: BKColor.main, width: 2),
+                    // A tile, not an outlined box: the fill separates it; the
+                    // hairline only shows on hover/focus.
+                    border: Border.all(color: const Color(0x00000000), width: 2),
+                    hoverBorder: Border.all(color: cs.border, width: 2),
+                    focusBorder: Border.all(color: cs.ring, width: 2),
                   )
+                  .withBorderRadius(borderRadius: radius, hoverBorderRadius: radius, focusBorderRadius: radius)
                   .withBackgroundColor(
-                    color: isActive
-                        ? Theme.of(context).brightness == Brightness.dark
-                              ? Theme.of(context).colorScheme.card
-                              : Theme.of(context).colorScheme.card.withLuminance(0.97)
-                        : Theme.of(context).colorScheme.background,
-                    hoverColor: bkCardHover(context),
+                    color: isActive ? Color.alphaBlend(cs.primary.withValues(alpha: 0.14), cs.muted) : cs.muted,
+                    hoverColor: Color.alphaBlend(cs.foreground.withValues(alpha: 0.05), cs.muted),
                   ),
           onPressed: () async {
             if (isProOnly && !isPro) {
@@ -1578,8 +1650,8 @@ class SelectableCard extends StatelessWidget {
               opacity: isActive ? 1.0 : 0.0,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: BKColor.main, width: 2),
+                  borderRadius: radius,
+                  border: Border.all(color: cs.primary, width: 2),
                 ),
               ),
             ),
@@ -1592,7 +1664,7 @@ class SelectableCard extends StatelessWidget {
             child: const ProBadge(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
+                topRight: Radius.circular(12),
               ),
             ),
           ),

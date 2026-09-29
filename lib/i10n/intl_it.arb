@@ -158,6 +158,8 @@
   "browserNotSupported": "Questo browser non supporta il Web Bluetooth e la piattaforma non è supportata :(",
   "button": "pulsante.",
   "buttonMapping": "Mappatura dei pulsanti",
+  "mappingForApp": "per {app}",
+  "mappingEditMakesCopy": "La mappatura di {app} è integrata. Modificandola ne crei una tua copia.",
   "buyFullVersion": "Acquista la versione completa",
   "bySigningInYouAgreeToOur": "Accedendo, accetti i nostri {privacyPolicy} .",
   "@bySigningInYouAgreeToOur": {
@@ -2303,6 +2305,7 @@
   "paywall_startProMonthly": "Inizia Pro mensile",
   "paywall_buyBase": "Acquista Base",
   "paywall_planQuestions": "Domande sui piani?",
+  "paywall_oneTimePurchase": "Acquisto una tantum",
   "vsBudgetProRemovesLimit": "Pro rimuove il limite",
   "supportDescribeFirstMessageHint": "Dicci cosa stai cercando di fare e cosa succede invece. Uno screenshot da solo non dice cosa non va: basta una frase.",
   "supportIntakeTryThisFirst": "Prova prima questo",

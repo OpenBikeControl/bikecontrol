@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -36,8 +37,8 @@ class OnboardingAppTile extends StatelessWidget {
           height: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            border: Border.all(color: selected ? onboardingAccent(context) : scheme.border, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: selected ? onboardingAccent(context) : const Color(0x00000000), width: 2),
+            borderRadius: BorderRadius.circular(16),
             color: scheme.card,
           ),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -184,7 +185,7 @@ Widget onboardingAppBody(BuildContext context,
     children: onboardingReveal([
       // Shown only when the welcome screen didn't already make the offer.
       if (showUpdateBanner) const OnboardingUpdateBanner(),
-      Text(context.i18n.onboardingAppTitle).h4,
+      OnboardingHeadline(context.i18n.onboardingAppTitle),
       Gap(6),
       Text(context.i18n.onboardingAppSubtitle).small.muted,
       Gap(18),

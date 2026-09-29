@@ -45,47 +45,91 @@ class TrainerOverlayView extends StatelessWidget {
   /// Default window width on desktop; wider when the text size needs it.
   static const double defaultWindowWidth = 220;
 
-  static const EdgeInsets _padding = EdgeInsets.fromLTRB(8, 6, 8, 8);
+  static const EdgeInsets _padding = EdgeInsets.all(8);
 
-  /// Leading app icon / trailing drag handle beside the numeral.
-  static const double _sideSlot = 20;
+  /// The drag handle at the end of the row (desktop).
+  static const double _dragSlot = 16;
 
-  /// Hit area of the −/+ buttons; their visible circle is smaller.
+  /// The −/+ circles; the whole circle is the hit area.
   static const double _hit = 44;
-  static const double _rowGap = 4;
+
+  /// Space between the parts of the row.
+  static const double _gap = 6;
+
+  /// The hairline between the gear and the mode/readings, with its margins.
+  static const double _dividerSlot = 1 + 2 * 8.0;
+
+  /// Space between the mode pill and the readings under it.
+  static const double _sideGap = 6;
 
   /// The widest things the numeral shows: a gear readout, a front/rear
   /// readout and an ERG target.
   static const List<String> _widestReadouts = ['88/88', '2×88', '888 W'];
 
+  /// The widest single reading; the side column always has room for one.
+  static const String _widestReading = '8888 rpm';
+
   static TextStyle _gearStyle(Color? color) =>
       BkNumerals.gear(gearSize, color: color, height: 1.0).copyWith(letterSpacing: -1.0);
 
-  /// The window the overlay needs at [textScaler]: the numeral at full size
-  /// plus its side slots, and the readings row (with −/+ when [controls]).
+  /// Readings are numbers in the display face, a step below the gear.
+  static const double _readingSize = 20;
+  static TextStyle _readingStyle(Color? color) => BkNumerals.display(_readingSize, color: color, height: 1.0);
+
+  static TextStyle _microStyle(Typography typography, Color? color) =>
+      typography.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: 1.1, color: color, height: 1.2);
+
+  static Size _measure(String text, TextStyle style, TextScaler textScaler) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+    )..layout();
+    final size = painter.size;
+    painter.dispose();
+    return size;
+  }
+
+  /// The window the overlay needs at [textScaler]: one row of −, the numeral
+  /// at full size with its label, +, and the mode pill over one reading.
   static Size windowSize(TextScaler textScaler, {bool controls = true}) {
-    var numeralWidth = 0.0;
-    var numeralHeight = 0.0;
-    final style = const Typography.geist().sans.merge(_gearStyle(null));
+    const typography = Typography.geist();
+    final gearStyle = typography.sans.merge(_gearStyle(null));
+    var numeral = Size.zero;
     for (final readout in _widestReadouts) {
-      final painter = TextPainter(
-        text: TextSpan(text: readout, style: style),
-        textDirection: TextDirection.ltr,
-        textScaler: textScaler,
-      )..layout();
-      numeralWidth = numeralWidth > painter.width ? numeralWidth : painter.width;
-      numeralHeight = numeralHeight > painter.height ? numeralHeight : painter.height;
-      painter.dispose();
+      final size = _measure(readout, gearStyle, textScaler);
+      numeral = Size(
+        numeral.width > size.width ? numeral.width : size.width,
+        numeral.height > size.height ? numeral.height : size.height,
+      );
     }
-    final numeralRow = numeralWidth + 2 * _sideSlot + 8;
-    // −, the mode pill with room for one reading, +.
-    final readingsRow = controls ? 2 * _hit + 96 : 0.0;
-    final inner = numeralRow > readingsRow ? numeralRow : readingsRow;
-    final readingsHeight = controls ? _hit : textScaler.scale(20);
-    return Size(
-      (inner + _padding.horizontal).ceilToDouble(),
-      (numeralHeight + _rowGap + readingsHeight + _padding.vertical).ceilToDouble(),
-    );
+    final label = _measure('GEAR', typography.sans.merge(_microStyle(typography, null)), textScaler);
+    final reading = _measure(_widestReading, typography.sans.merge(_readingStyle(null)), textScaler);
+    final pill = _measure('SIM', typography.sans.merge(_pillTextStyle(typography, null)), textScaler);
+
+    // Room for cadence and the ratio side by side, as the rider usually
+    // has them on; power goes first when all three are on.
+    final pair =
+        _measure('188 rpm', typography.sans.merge(_readingStyle(null)), textScaler).width +
+        10 +
+        _measure('×8.88', typography.sans.merge(_readingStyle(null)), textScaler).width;
+    var side = reading.width > pill.width + 16 ? reading.width : pill.width + 16;
+    if (pair > side) side = pair;
+    final width =
+        (controls ? 2 * (_hit + _gap) : 0) +
+        numeral.width +
+        _dividerSlot +
+        side +
+        _gap +
+        _dragSlot +
+        _padding.horizontal;
+    final numeralBlock = numeral.height + label.height;
+    final sideBlock = pill.height + 4 + _sideGap + reading.height;
+    var height = controls ? _hit : 0.0;
+    if (numeralBlock > height) height = numeralBlock;
+    if (sideBlock > height) height = sideBlock;
+    // + the Android card's hairline border on each side.
+    return Size((width + 2).ceilToDouble(), (height + _padding.vertical + 2).ceilToDouble());
   }
 
   @override
@@ -93,40 +137,39 @@ class TrainerOverlayView extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final useConstraints = defaultTargetPlatform == TargetPlatform.android;
     final textScaler = MediaQuery.textScalerOf(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return ValueListenableBuilder<TrainerOverlayState>(
       valueListenable: state,
       builder: (context, s, _) {
         final controls = s.fields.contains(OverlayField.controls);
+        final size = windowSize(textScaler, controls: controls);
         return Container(
-          constraints: useConstraints
-              ? BoxConstraints(maxWidth: windowSize(textScaler, controls: controls).width)
-              : null,
+          constraints: useConstraints ? BoxConstraints(maxWidth: size.width) : null,
+          // On Android the overlay floats over the trainer app: a pill in the
+          // card colour, nearly opaque. The desktop window paints the card
+          // colour itself (it can't be transparent everywhere).
           decoration: useConstraints
               ? BoxDecoration(
-                  color: cs.background.withOpacity(0.92),
-                  borderRadius: BorderRadius.circular(10),
+                  color: cs.card.withValues(alpha: dark ? 0.94 : 0.95),
+                  borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: cs.border),
                 )
               : null,
           padding: _padding,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _numeralRow(context, cs, s, controls: controls),
-              const SizedBox(height: _rowGap),
-              _readingsRow(context, cs, s, controls: controls),
-            ],
-          ),
+          child: _row(context, cs, s, controls: controls),
         );
       },
     );
   }
 
-  /// Row 1: the big numeral (gear in SIM, target watts in ERG), with the app
-  /// icon (when there are no −/+) and the drag handle in slim side slots.
-  Widget _numeralRow(BuildContext context, ColorScheme cs, TrainerOverlayState s, {required bool controls}) {
-    final primary = s.mode == TrainerMode.ergMode
+  /// −, the big numeral (gear in SIM, target watts in ERG) with its label, +,
+  /// a hairline, then the mode pill over the readings, and the drag handle.
+  Widget _row(BuildContext context, ColorScheme cs, TrainerOverlayState s, {required bool controls}) {
+    final isErg = s.mode == TrainerMode.ergMode;
+    // The overlay engine may run without localizations (older hosts); the
+    // buttons are still buttons, just unlabelled, rather than a crash.
+    final l10n = AppLocalizations.maybeOf(context);
+    final primary = isErg
         ? '${s.ergTargetW ?? '--'} W'
         : formatGearReadout(
             currentGear: s.gear,
@@ -134,31 +177,57 @@ class TrainerOverlayView extends StatelessWidget {
             frontShiftEnabled: s.frontShiftEnabled,
             largeRing: s.frontRingLarge,
           );
-    return Row(
+    final microStyle = _microStyle(context.typography, cs.mutedForeground);
+    final numeral = Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          width: _sideSlot,
-          child: controls
-              ? null
-              : const Align(
-                  alignment: Alignment.topLeft,
-                  child: Image(image: AssetImage('icon.png'), width: 18, height: 18),
-                ),
+        Text(primary, maxLines: 1, softWrap: false, style: _gearStyle(cs.foreground)),
+        // In ERG the numeral carries its own unit; the label keeps its line
+        // so the numeral doesn't jump when the mode changes.
+        Text(
+          isErg ? '' : (l10n?.rideGear.toUpperCase() ?? 'GEAR'),
+          maxLines: 1,
+          style: microStyle,
         ),
-        Expanded(
-          child: Center(
-            child: Text(primary, maxLines: 1, softWrap: false, style: _gearStyle(cs.foreground)),
+      ],
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (controls) ...[
+          _shiftButton(
+            cs,
+            LucideIcons.minus,
+            onPrimaryDecrement,
+            label: isErg ? l10n?.a11yDecrease : l10n?.actionShiftDown,
           ),
+          const SizedBox(width: _gap),
+        ],
+        numeral,
+        if (controls) ...[
+          const SizedBox(width: _gap),
+          _shiftButton(
+            cs,
+            LucideIcons.plus,
+            onPrimaryIncrement,
+            label: isErg ? l10n?.a11yIncrease : l10n?.actionShiftUp,
+          ),
+        ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: SizedBox(width: 1, height: 40, child: ColoredBox(color: cs.border)),
         ),
+        Expanded(child: _side(context, cs, s)),
+        const SizedBox(width: _gap),
         SizedBox(
-          width: _sideSlot,
+          width: _dragSlot,
           child: onDragStart != null
               // Opaque, so the whole slot drags, not just the 14 px icon.
               ? GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onPanStart: (_) => onDragStart!(),
-                  child: Align(
-                    alignment: Alignment.topRight,
+                  child: Center(
                     child: Icon(LucideIcons.gripVertical, size: 14, color: cs.mutedForeground),
                   ),
                 )
@@ -168,15 +237,10 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  /// Row 2: the SIM/ERG pill and the readings, between − and + when
-  /// `OverlayField.controls` is on — below the numeral, so the buttons never
-  /// take its width. When the row is short of room the readings go first
-  /// (gear ratio, then cadence); the gear never does.
-  Widget _readingsRow(BuildContext context, ColorScheme cs, TrainerOverlayState s, {required bool controls}) {
+  /// The SIM/ERG pill over the readings. When the column is short of room
+  /// the readings go first (gear ratio, then cadence); the gear never does.
+  Widget _side(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final isErg = s.mode == TrainerMode.ergMode;
-    // The overlay engine may run without localizations (older hosts); the
-    // buttons are still buttons, just unlabelled, rather than a crash.
-    final l10n = AppLocalizations.maybeOf(context);
     final pill = _modePill(context, cs, s.mode);
     final pillWidget = onModeToggle != null
         ? Button.ghost(
@@ -187,21 +251,40 @@ class TrainerOverlayView extends StatelessWidget {
         : pill;
 
     // In the order they give way: the first is the last to go.
-    final readings = <String>[
-      if (s.fields.contains(OverlayField.power)) '${s.powerW ?? '--'} W',
-      if (s.fields.contains(OverlayField.cadence)) '${s.cadenceRpm ?? '--'} rpm',
+    final readings = <(String, String)>[
+      if (s.fields.contains(OverlayField.power)) ('${s.powerW ?? '--'}', 'W'),
+      if (s.fields.contains(OverlayField.cadence)) ('${s.cadenceRpm ?? '--'}', 'rpm'),
       // Gear ratio is meaningless in ERG mode; only show it in SIM.
-      if (!isErg && s.fields.contains(OverlayField.gearRatio)) '×${s.gearRatio.toStringAsFixed(2)}',
+      if (!isErg && s.fields.contains(OverlayField.gearRatio)) ('×${s.gearRatio.toStringAsFixed(2)}', ''),
     ];
-    final readingStyle = context.typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground);
-    const readingGap = 8.0;
+    final valueStyle = _readingStyle(cs.foreground);
+    final unitStyle = context.typography.caption.copyWith(color: cs.mutedForeground);
+    const readingGap = 10.0;
 
-    final middle = LayoutBuilder(
+    Widget reading((String, String) r) => Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: r.$1, style: valueStyle),
+          if (r.$2.isNotEmpty) TextSpan(text: ' ${r.$2}', style: unitStyle),
+        ],
+      ),
+      style: unitStyle,
+      maxLines: 1,
+      softWrap: false,
+    );
+
+    final readingsRow = LayoutBuilder(
       builder: (context, constraints) {
         final textScaler = MediaQuery.textScalerOf(context);
-        double widthOf(String text) {
+        double widthOf((String, String) r) {
           final painter = TextPainter(
-            text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.merge(readingStyle)),
+            text: TextSpan(
+              style: DefaultTextStyle.of(context).style.merge(unitStyle),
+              children: [
+                TextSpan(text: r.$1, style: valueStyle),
+                if (r.$2.isNotEmpty) TextSpan(text: ' ${r.$2}', style: unitStyle),
+              ],
+            ),
             textDirection: TextDirection.ltr,
             textScaler: textScaler,
           )..layout();
@@ -210,72 +293,44 @@ class TrainerOverlayView extends StatelessWidget {
           return width;
         }
 
-        // Room for the readings once the pill has its place.
-        var room = constraints.maxWidth - _pillWidth(context) - readingGap;
-        final shown = <String>[];
-        for (final reading in readings) {
-          final needed = widthOf(reading) + (shown.isEmpty ? 0 : readingGap);
+        var room = constraints.maxWidth;
+        final shown = <(String, String)>[];
+        for (final r in readings) {
+          final needed = widthOf(r) + (shown.isEmpty ? 0 : readingGap);
           if (shown.isNotEmpty && needed > room) break;
-          shown.add(reading);
+          shown.add(r);
           room -= needed;
         }
-        return Row(
-          mainAxisAlignment: controls ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
-          children: [
-            pillWidget,
-            if (shown.isNotEmpty) ...[
-              const SizedBox(width: readingGap),
-              // Only the very last reading can still be too wide (a huge text
-              // size in the narrowest window); it scales down, the gear doesn't.
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: readingGap,
-                    children: [for (final reading in shown) Text(reading, style: readingStyle)],
-                  ),
-                ),
-              ),
-            ],
-          ],
+        if (shown.isEmpty) return const SizedBox.shrink();
+        // Only the very last reading can still be too wide (a huge text size
+        // in the narrowest window); it scales down, the gear doesn't.
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: readingGap,
+              children: [for (final r in shown) reading(r)],
+            ),
+          ),
         );
       },
     );
 
-    if (!controls) return middle;
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _shiftButton(
-          cs,
-          LucideIcons.minus,
-          onPrimaryDecrement,
-          label: isErg ? l10n?.a11yDecrease : l10n?.actionShiftDown,
-        ),
-        Expanded(child: middle),
-        _shiftButton(cs, LucideIcons.plus, onPrimaryIncrement, label: isErg ? l10n?.a11yIncrease : l10n?.actionShiftUp),
+        pillWidget,
+        if (readings.isNotEmpty) ...[const SizedBox(height: _sideGap), readingsRow],
       ],
     );
   }
 
-  double _pillWidth(BuildContext context) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: 'SIM',
-        style: DefaultTextStyle.of(
-          context,
-        ).style.merge(context.typography.caption.copyWith(fontWeight: FontWeight.w700)),
-      ),
-      textDirection: TextDirection.ltr,
-      textScaler: MediaQuery.textScalerOf(context),
-    )..layout();
-    final width = painter.width + 12;
-    painter.dispose();
-    return width;
-  }
-
-  /// A 44 px hit area around a smaller visible circle, so the buttons are
-  /// easy to hit without drawing more attention than the gear.
+  /// A −/+ circle: a quiet fill that doesn't draw more attention than the
+  /// gear.
   Widget _shiftButton(ColorScheme cs, IconData icon, VoidCallback? onPressed, {String? label}) {
     final disabled = onPressed == null;
     return BkTappable(
@@ -283,43 +338,30 @@ class TrainerOverlayView extends StatelessWidget {
       label: label,
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(_hit / 2),
-      child: SizedBox.square(
-        dimension: _hit,
-        child: Center(
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: cs.muted,
-              shape: BoxShape.circle,
-              border: Border.all(color: cs.border),
-            ),
-            child: Opacity(
-              opacity: disabled ? 0.4 : 1.0,
-              child: Icon(icon, size: 18, color: cs.foreground),
-            ),
-          ),
+      child: Container(
+        width: _hit,
+        height: _hit,
+        decoration: BoxDecoration(color: cs.muted, shape: BoxShape.circle),
+        child: Opacity(
+          opacity: disabled ? 0.4 : 1.0,
+          child: Icon(icon, size: 22, color: cs.foreground),
         ),
       ),
     );
   }
 
+  static TextStyle _pillTextStyle(Typography typography, Color? color) =>
+      typography.caption.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.7, color: color);
+
   Widget _modePill(BuildContext context, ColorScheme cs, TrainerMode mode) {
     final label = mode == TrainerMode.ergMode ? 'ERG' : 'SIM';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         color: cs.primary,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(6),
       ),
-      alignment: Alignment.center,
-      child: Text(
-        label,
-        style: context.typography.caption.copyWith(
-          fontWeight: FontWeight.w700,
-          color: cs.primaryForeground,
-        ),
-      ),
+      child: Text(label, style: _pillTextStyle(context.typography, cs.primaryForeground)),
     );
   }
 }

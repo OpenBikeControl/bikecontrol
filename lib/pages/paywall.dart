@@ -6,6 +6,10 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/help_center/widgets/pricing_faq_section.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
@@ -23,36 +27,6 @@ enum _PaywallPlan {
   yearly,
   monthly,
   fullVersion,
-}
-
-/// What a comparison-table cell shows for one plan. [text] is for a cell a
-/// tick or a dash can't express. BikeControl's virtual shifting is not one of
-/// them: it is Pro only — the daily allowance without Pro is a trial of it,
-/// told in a footnote under the table, not a Base feature.
-sealed class _PaywallCell {
-  const _PaywallCell();
-
-  static const _PaywallCell unlimited = _PaywallUnlimited();
-  static const _PaywallCell check = _PaywallCheck();
-  static const _PaywallCell dash = _PaywallDash();
-}
-
-class _PaywallUnlimited extends _PaywallCell {
-  const _PaywallUnlimited();
-}
-
-class _PaywallCheck extends _PaywallCell {
-  const _PaywallCheck();
-}
-
-class _PaywallDash extends _PaywallCell {
-  const _PaywallDash();
-}
-
-class _PaywallText extends _PaywallCell {
-  final String text;
-
-  const _PaywallText(this.text);
 }
 
 /// The storefront the one-time Base purchase is bound to, for the note under
@@ -107,18 +81,17 @@ PaywallConfirmation? paywallConfirmationFor({
   return null;
 }
 
+/// One line of a plan card's feature list.
 class _FeatureLine {
-  final IconData icon;
   final String label;
-  final _PaywallCell full;
-  final _PaywallCell pro;
 
-  const _FeatureLine({
-    required this.icon,
-    required this.label,
-    required this.full,
-    required this.pro,
-  });
+  /// Drawn with "Unlimited" at its end (button commands per day).
+  final bool unlimited;
+
+  /// Base has it too. Every line is Pro.
+  final bool inBase;
+
+  const _FeatureLine(this.label, {this.unlimited = false, this.inBase = false});
 }
 
 class _PaywallPricing {
@@ -175,10 +148,16 @@ class Paywall extends StatefulWidget {
   @visibleForTesting
   final String? debugYearlyStorePrice;
 
+  /// Test seam: told which plan ("yearly", "monthly", "base") a purchase
+  /// button asked for, before the store is.
+  @visibleForTesting
+  final void Function(String plan)? debugOnPurchase;
+
   const Paywall({
     super.key,
     this.defaultToFullVersion = false,
     this.debugYearlyStorePrice,
+    this.debugOnPurchase,
   });
 
   @override
@@ -186,76 +165,34 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
-  // The first row is the one riders bought the wrong plan over: BikeControl
+  // The first line is the one riders bought the wrong plan over: BikeControl
   // shifting the trainer itself is Pro. Base covers pressing the buttons in a
-  // trainer app that shifts by itself (rows two and three).
+  // trainer app that shifts by itself (lines two and three, on both cards).
+  // Sensor sharing is gated on Pro (SensorHub.isProEnabled and the standalone
+  // sensor emulator's shouldAdvertise).
   late final List<_FeatureLine> _features = [
-    _FeatureLine(
-      icon: LucideIcons.bike,
-      label: AppLocalizations.current.paywall_vsByBikeControl,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.sigma,
-      label: AppLocalizations.current.paywall_amountOfActions,
-      full: _PaywallCell.unlimited,
-      pro: _PaywallCell.unlimited,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.globe,
-      label: AppLocalizations.current.paywall_shiftInYourApp,
-      full: _PaywallCell.check,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.slidersHorizontal,
-      label: AppLocalizations.current.paywall_configure3ActionsPerButton,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.monitorSmartphone,
-      label: AppLocalizations.current.paywall_useBikecontrolOnAllPlatforms,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    // Sensor sharing is gated on Pro (SensorHub.isProEnabled and the
-    // standalone sensor emulator's shouldAdvertise).
-    _FeatureLine(
-      icon: LucideIcons.heartPulse,
-      label: AppLocalizations.current.paywall_shareSensors,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.command,
-      label: AppLocalizations.current.paywall_startAnyCommandShortcutWithAnyButton,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.music,
-      label: AppLocalizations.current.paywall_controlYourDeviceMusic,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
-    _FeatureLine(
-      icon: LucideIcons.camera,
-      label: AppLocalizations.current.paywall_createScreenshots,
-      full: _PaywallCell.dash,
-      pro: _PaywallCell.check,
-    ),
+    _FeatureLine(AppLocalizations.current.paywall_vsByBikeControl),
+    _FeatureLine(AppLocalizations.current.paywall_amountOfActions, unlimited: true, inBase: true),
+    _FeatureLine(AppLocalizations.current.paywall_shiftInYourApp, inBase: true),
+    _FeatureLine(AppLocalizations.current.paywall_configure3ActionsPerButton),
+    _FeatureLine(AppLocalizations.current.paywall_useBikecontrolOnAllPlatforms),
+    _FeatureLine(AppLocalizations.current.paywall_shareSensors),
+    _FeatureLine(AppLocalizations.current.paywall_startAnyCommandShortcutWithAnyButton),
+    _FeatureLine(AppLocalizations.current.paywall_controlYourDeviceMusic),
+    _FeatureLine(AppLocalizations.current.paywall_createScreenshots),
   ];
 
   final IAPManager _iapManager = IAPManager.instance;
 
+  /// The Pro billing picked on the Pro card (yearly or monthly). Base has
+  /// its own button.
   late _PaywallPlan _selectedPlan;
 
   /// Live store prices once loaded; until then (and always on the Stripe
   /// build) the localized [_PaywallPricing.fallback].
   _PaywallPricing? _storePricing;
-  _PaywallPricing get _pricing => _storePricing ?? _debugPricing ?? _PaywallPricing.fallback(AppLocalizations.of(context));
+  _PaywallPricing get _pricing =>
+      _storePricing ?? _debugPricing ?? _PaywallPricing.fallback(AppLocalizations.of(context));
 
   _PaywallPricing? get _debugPricing {
     final price = widget.debugYearlyStorePrice;
@@ -273,6 +210,9 @@ class _PaywallState extends State<Paywall> {
   }
 
   bool _isPurchasing = false;
+
+  /// The plan whose button shows the spinner while [_isPurchasing].
+  _PaywallPlan? _purchasingPlan;
   bool _isRestoring = false;
 
   /// The purchase or restore in flight (or last finished): the IAP state when
@@ -376,17 +316,23 @@ class _PaywallState extends State<Paywall> {
     return showProDeviceLimitDialog(rootContext, error);
   }
 
-  Future<void> _onPurchasePressed() async {
+  Future<void> _onPurchasePressed(_PaywallPlan plan) async {
     if (_isPurchasing) {
       return;
     }
     setState(() {
       _isPurchasing = true;
+      _purchasingPlan = plan;
     });
-    _beginAttempt(isBasePurchase: _selectedPlan == _PaywallPlan.fullVersion);
+    _beginAttempt(isBasePurchase: plan == _PaywallPlan.fullVersion);
+    widget.debugOnPurchase?.call(switch (plan) {
+      _PaywallPlan.yearly => 'yearly',
+      _PaywallPlan.monthly => 'monthly',
+      _PaywallPlan.fullVersion => 'base',
+    });
 
     try {
-      switch (_selectedPlan) {
+      switch (plan) {
         case _PaywallPlan.yearly:
           await _iapManager.purchaseSubscription(
             context,
@@ -578,74 +524,87 @@ class _PaywallState extends State<Paywall> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final ownsBase = _iapManager.isPurchased.value && !_iapManager.isProEnabled;
     return Container(
       constraints: const BoxConstraints(maxWidth: 500),
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 20, 18, 26),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           child: Column(
-            spacing: 18,
+            spacing: 12,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(child: Image.asset('icon.png', width: 54, height: 54)),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 8,
+              Row(
                 children: [
-                  _buildComparisonTable(context),
-                  // The daily allowance is a trial of Pro's virtual shifting,
-                  // so it lives under the table, not in Base's column.
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    child: Text(
-                      AppLocalizations.of(
-                        context,
-                      ).paywall_vsTrialFootnote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
-                      style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      child: Text(
+                        l10n.paywallYourPlan,
+                        style: context.typography.x3Large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+                      ),
+                    ),
+                  ),
+                  BkTouchTarget(
+                    child: BkIconButton.secondary(
+                      icon: const Icon(LucideIcons.x, size: 20),
+                      label: l10n.close,
+                      onPressed: _close,
                     ),
                   ),
                 ],
               ),
-              _buildPlansSection(context),
-              _buildPurchaseButton(context),
-              Align(
-                child: BkTouchTarget(
-                  child: Button.ghost(
-                    alignment: Alignment.center,
-                    onPressed: _isRestoring ? null : _onRestorePressed,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_isRestoring) ...[
-                          CircularProgressIndicator(
-                            size: 14,
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(
-                          _isRestoring
-                              ? AppLocalizations.of(context).restoringPurchases
-                              : AppLocalizations.of(context).restorePurchases,
-                          style: context.typography.small,
-                        ),
-                      ],
-                    ),
-                  ),
+              _buildProCard(context),
+              // A Base owner still sees what Base covers, marked as theirs.
+              if (!_iapManager.isPurchased.value || ownsBase) _buildBaseCard(context, owned: ownsBase),
+              // The daily allowance is a trial of Pro's virtual shifting, so
+              // it sits under both plans, not on Base's card.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: Text(
+                  l10n.paywall_vsTrialFootnote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+                  textAlign: TextAlign.center,
+                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                 ),
               ),
-              Align(
-                child: Button.ghost(
-                  onPressed: () => _openPlanQuestions(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(LucideIcons.circleHelp, size: 15),
-                      const SizedBox(width: 8),
-                      Flexible(child: Text(AppLocalizations.of(context).paywall_planQuestions).small),
-                    ],
+              Column(
+                children: [
+                  BkTouchTarget(
+                    child: Button.ghost(
+                      onPressed: () => _openPlanQuestions(context),
+                      child: Text(
+                        l10n.paywall_planQuestions,
+                        textAlign: TextAlign.center,
+                        style: context.typography.small.copyWith(
+                          color: bkAccentText(context),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  BkTouchTarget(
+                    child: Button.ghost(
+                      alignment: Alignment.center,
+                      onPressed: _isRestoring ? null : _onRestorePressed,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_isRestoring) ...[
+                            CircularProgressIndicator(size: 14),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            _isRestoring ? l10n.restoringPurchases : l10n.restorePurchases,
+                            style: context.typography.small,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
               // Side by side while they fit; a long translation or a large
               // text size wraps them onto two lines rather than shrinking the
@@ -655,22 +614,300 @@ class _PaywallState extends State<Paywall> {
                 children: [
                   Button.text(
                     onPressed: () => launchUrlString('https://bikecontrol.app/terms-of-use'),
-                    child: Text(
-                      AppLocalizations.of(context).termsOfUse,
-                      textAlign: TextAlign.center,
-                    ).xSmall.muted.underline,
+                    child: Text(l10n.termsOfUse, textAlign: TextAlign.center).xSmall.muted.underline,
                   ),
                   Button.text(
                     onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
-                    child: Text(
-                      AppLocalizations.of(context).privacyPolicy,
-                      textAlign: TextAlign.center,
-                    ).xSmall.muted.underline,
+                    child: Text(l10n.privacyPolicy, textAlign: TextAlign.center).xSmall.muted.underline,
                   ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// A plan card's head: the plan name in the display face, an optional
+  /// badge, and what kind of purchase it is at the end.
+  Widget _planHead(BuildContext context, {required String name, Widget? badge, required Widget kind}) {
+    return Row(
+      spacing: 8,
+      children: [
+        Text(name.toUpperCase(), style: BkDisplay.title(context)),
+        ?badge,
+        Expanded(
+          child: Align(alignment: AlignmentDirectional.centerEnd, child: kind),
+        ),
+      ],
+    );
+  }
+
+  Widget _kind(BuildContext context, String text) => Text(
+    text,
+    textAlign: TextAlign.end,
+    style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+  );
+
+  /// The feature list with checks: accent on Pro, quiet on Base.
+  Widget _featureList(BuildContext context, List<_FeatureLine> lines, {required bool accent}) {
+    final cs = Theme.of(context).colorScheme;
+    final style = context.typography.small.copyWith(color: cs.foreground, height: 1.3);
+    return Column(
+      spacing: 6,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final line in lines)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  LucideIcons.check,
+                  size: 16,
+                  color: accent ? bkAccentText(context) : cs.mutedForeground,
+                ),
+              ),
+              Expanded(child: Text(line.label, style: style)),
+              if (line.unlimited)
+                Text(
+                  AppLocalizations.of(context).unlimited,
+                  style: style.copyWith(fontWeight: FontWeight.w600),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final yearly = _selectedPlan == _PaywallPlan.yearly;
+    final price = yearly ? _pricing.yearlyPrice : _pricing.monthlyPrice;
+    final billed = yearly ? _pricing.yearlyBilled : _pricing.monthlyBilled;
+    final badge = yearly ? _pricing.discountBadge : null;
+    final plan = yearly ? _PaywallPlan.yearly : _PaywallPlan.monthly;
+    return Container(
+      key: const ValueKey('paywall-pro-card'),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        border: Border.all(color: cs.primary, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _planHead(
+            context,
+            name: 'Pro',
+            badge: const ProBadge(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
+            kind: _kind(context, l10n.subscription),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            spacing: 12,
+            children: [
+              _billingSegments(context),
+              Expanded(
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      price,
+                      maxLines: 1,
+                      style: BkDisplay.title(context).copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (billed.isNotEmpty || badge != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: [
+                if (badge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: cs.primary,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      badge,
+                      maxLines: 1,
+                      style: context.typography.caption.copyWith(
+                        color: cs.primaryForeground,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                // The amount actually charged: wraps rather than being cut off.
+                Expanded(
+                  child: Text(
+                    billed,
+                    textAlign: TextAlign.end,
+                    style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+          _featureList(context, _features, accent: true),
+          const SizedBox(height: 16),
+          _purchaseButton(context, plan: plan, label: _purchaseLabel(l10n, plan), primary: true),
+        ],
+      ),
+    );
+  }
+
+  /// Monthly | Yearly. Each is a button that says whether it is picked.
+  Widget _billingSegments(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    Widget segment(_PaywallPlan plan, String label) {
+      final selected = _selectedPlan == plan;
+      return BkTappable(
+        onPressed: () => _selectPlan(plan),
+        selected: selected,
+        inMutuallyExclusiveGroup: true,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          constraints: const BoxConstraints(minWidth: 72, minHeight: 36),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? cs.primary : const Color(0x00000000),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            style: context.typography.small.copyWith(
+              fontWeight: FontWeight.w600,
+              color: selected ? cs.primaryForeground : cs.mutedForeground,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(10)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          segment(_PaywallPlan.monthly, l10n.paywall_monthly),
+          segment(_PaywallPlan.yearly, l10n.paywall_yearly),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBaseCard(BuildContext context, {required bool owned}) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('paywall-base-card'),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _planHead(
+            context,
+            name: l10n.fullVersion,
+            kind: owned
+                ? Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: BkStatusDot(label: l10n.paywallYourPlan),
+                  )
+                : _kind(context, l10n.paywall_oneTimePurchase),
+          ),
+          const SizedBox(height: 12),
+          _featureList(context, [
+            for (final f in _features)
+              if (f.inBase) f,
+          ], accent: false),
+          const SizedBox(height: 12),
+          if (!owned)
+            Text(
+              _pricing.fullVersionSubtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.typography.large.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
+            ),
+          // Base is a store receipt, not an account: riders who bought it on
+          // one store and installed from another wrote in asking where their
+          // purchase went. Say so before they buy.
+          Text(
+            l10n.paywall_baseStoreNote(_storeName(context)),
+            style: context.typography.caption.copyWith(height: 1.3, color: cs.mutedForeground),
+          ),
+          if (!owned) ...[
+            const SizedBox(height: 12),
+            _purchaseButton(
+              context,
+              plan: _PaywallPlan.fullVersion,
+              label: _purchaseLabel(l10n, _PaywallPlan.fullVersion),
+              primary: false,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _purchaseLabel(AppLocalizations l10n, _PaywallPlan plan) => switch (plan) {
+    _PaywallPlan.yearly => l10n.paywall_startProYearly,
+    _PaywallPlan.monthly => l10n.paywall_startProMonthly,
+    _PaywallPlan.fullVersion => l10n.paywall_buyBase,
+  };
+
+  /// A full-width pill: primary for Pro, a neutral fill for Base. Disabled
+  /// while any purchase runs; the one running shows a spinner.
+  Widget _purchaseButton(
+    BuildContext context, {
+    required _PaywallPlan plan,
+    required String label,
+    required bool primary,
+  }) {
+    final busy = _isPurchasing && _purchasingPlan == plan;
+    final style = BkPillButton.shape(
+      (primary ? const ButtonStyle.primary() : const ButtonStyle.secondary()).withPadding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      ),
+    );
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: BkPillButton.minHeight, minWidth: double.infinity),
+      // shadcn's Button reports neither the button role nor its state.
+      child: Semantics(
+        container: true,
+        button: true,
+        enabled: !_isPurchasing,
+        label: busy ? label : null,
+        child: Button(
+          style: style,
+          alignment: Alignment.center,
+          onPressed: _isPurchasing ? null : () => _onPurchasePressed(plan),
+          child: busy
+              ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(size: 20))
+              : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
       ),
     );
@@ -699,462 +936,14 @@ class _PaywallState extends State<Paywall> {
       if (DrawerOverlay.maybeFind(context) != null) {
         await openSheet<void>(context: context, position: OverlayPosition.bottom, builder: body);
       } else {
-        await showDialog<void>(context: context, builder: (c) => Card(child: body(c)));
+        await showDialog<void>(
+          context: context,
+          builder: (c) => Card(child: body(c)),
+        );
       }
     } catch (e, s) {
       recordError(e, s, context: 'Paywall plan questions');
     }
-  }
-
-  String _purchaseLabel(AppLocalizations l10n) => switch (_selectedPlan) {
-    _PaywallPlan.yearly => l10n.paywall_startProYearly,
-    _PaywallPlan.monthly => l10n.paywall_startProMonthly,
-    _PaywallPlan.fullVersion => l10n.paywall_buyBase,
-  };
-
-  Widget _buildComparisonTable(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final fullColumnWidth = 72.0;
-        final proColumnWidth = 92.0;
-
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            color: Theme.of(context).colorScheme.muted,
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  width: proColumnWidth,
-                  child: Container(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 14, 0, 12),
-                  child: Column(
-                    children: [
-                      _buildHeaderRow(
-                        fullColumnWidth: fullColumnWidth,
-                        proColumnWidth: proColumnWidth,
-                      ),
-                      const SizedBox(height: 8),
-                      ..._features.map(
-                        (feature) => _buildFeatureRow(
-                          feature: feature,
-                          fullColumnWidth: fullColumnWidth,
-                          proColumnWidth: proColumnWidth,
-                          compact: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildHeaderRow({
-    required double fullColumnWidth,
-    required double proColumnWidth,
-  }) {
-    return Row(
-      children: [
-        const Expanded(child: SizedBox()),
-        SizedBox(
-          width: fullColumnWidth,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // "Base" is short in most languages but not all — shrink rather
-              // than wrap or clip inside a fixed-width column.
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  AppLocalizations.of(context).full,
-                  maxLines: 1,
-                  style: context.typography.small.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                    color: Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                ),
-              ),
-              // Base owners: which column is theirs.
-              if (_iapManager.isPurchased.value && !_iapManager.isProEnabled)
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    AppLocalizations.of(context).paywallYourPlan,
-                    maxLines: 1,
-                    style: context.typography.xSmall.copyWith(
-                      color: Theme.of(context).colorScheme.mutedForeground,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        SizedBox(
-          width: proColumnWidth,
-          child: Center(
-            child: ProBadge(large: true),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeatureRow({
-    required _FeatureLine feature,
-    required double fullColumnWidth,
-    required double proColumnWidth,
-    required bool compact,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(
-                  feature.icon,
-                  color: Theme.of(context).colorScheme.mutedForeground,
-                  size: compact ? 16 : 22,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    feature.label,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.foreground,
-                      fontWeight: FontWeight.normal,
-                      fontSize: (compact ? context.typography.small : context.typography.large).fontSize,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            width: fullColumnWidth,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Center(child: _buildCell(feature.full, compact: compact)),
-            ),
-          ),
-          SizedBox(
-            width: proColumnWidth,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Center(child: _buildCell(feature.pro, compact: compact)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCell(_PaywallCell value, {required bool compact}) {
-    return switch (value) {
-      // One word ("Unbegrenzt", "Nieograniczone") — shrink rather than break
-      // it mid-word inside the narrow Base column.
-      _PaywallUnlimited() => FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          AppLocalizations.of(context).unlimited,
-          maxLines: 1,
-          style: TextStyle(
-            fontSize: (compact ? context.typography.xSmall : context.typography.x2Large).fontSize,
-            fontWeight: FontWeight.w500,
-            color: Theme.of(context).colorScheme.foreground,
-          ),
-        ),
-      ),
-      _PaywallText(:final text) => Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: (compact ? context.typography.xSmall : context.typography.x2Large).fontSize,
-          fontWeight: FontWeight.w500,
-          color: Theme.of(context).colorScheme.foreground,
-        ),
-      ),
-      _PaywallCheck() => Icon(
-        LucideIcons.check,
-        size: compact ? 22 : 48,
-        color: Theme.of(context).colorScheme.foreground,
-      ),
-      _PaywallDash() => Container(
-        width: compact ? 20 : 40,
-        height: 3,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.foreground,
-          borderRadius: BorderRadius.circular(3),
-        ),
-      ),
-    };
-  }
-
-  Widget _buildPlansSection(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // One title size for both cards: whichever title is wider decides
-        // how far both shrink, so "Monthly" is never drawn smaller than
-        // "Yearly" (each used to shrink on its own).
-        final l10n = AppLocalizations.of(context);
-        final titleStyle = _planTitleStyle(context);
-        final cardInner = (constraints.maxWidth - 12) / 2 - 32 - 2 * 2.6;
-        double widthOf(String text) {
-          final painter = TextPainter(
-            text: TextSpan(text: text, style: titleStyle),
-            textDirection: Directionality.of(context),
-            textScaler: MediaQuery.textScalerOf(context),
-            maxLines: 1,
-          )..layout();
-          return painter.width;
-        }
-
-        final widest = [l10n.paywall_yearly, l10n.paywall_monthly].map(widthOf).reduce((a, b) => a > b ? a : b);
-        final titleScale = widest <= cardInner || cardInner <= 0 ? 1.0 : cardInner / widest;
-        return Column(
-          spacing: 12,
-          children: [
-            // Yearly and monthly always sit side by side — they're a
-            // comparison. IntrinsicHeight bounds the row to its tallest card
-            // so stretch can equalise them: inside the sheet's scroll view
-            // the cross axis is unbounded, and stretching against that hands
-            // the cards an infinite height ("RenderBox was not laid out").
-            IntrinsicHeight(
-              child: Row(
-                spacing: 12,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: _buildPlanCard(
-                      plan: _PaywallPlan.yearly,
-                      title: AppLocalizations.of(context).paywall_yearly,
-                      price: _pricing.yearlyPrice,
-                      billed: _pricing.yearlyBilled,
-                      badge: _pricing.discountBadge,
-                      titleScale: titleScale,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildPlanCard(
-                      plan: _PaywallPlan.monthly,
-                      title: AppLocalizations.of(context).paywall_monthly,
-                      price: _pricing.monthlyPrice,
-                      billed: _pricing.monthlyBilled,
-                      titleScale: titleScale,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (!_iapManager.isPurchased.value) _buildFullVersionCard(context),
-          ],
-        );
-      },
-    );
-  }
-
-  TextStyle _planTitleStyle(BuildContext context) => context.typography.large.copyWith(fontWeight: FontWeight.w600);
-
-  Widget _buildPlanCard({
-    required _PaywallPlan plan,
-    required String title,
-    required String price,
-    required String billed,
-    required double titleScale,
-    String? badge,
-  }) {
-    final selected = _selectedPlan == plan;
-    final cs = Theme.of(context).colorScheme;
-
-    return Stack(
-      clipBehavior: Clip.none,
-      // Hand the row's stretched height to the card itself, so both plans
-      // stay the same height even though only yearly has a billing line.
-      fit: StackFit.passthrough,
-      children: [
-        BkTappable(
-          onPressed: () => _selectPlan(plan),
-          selected: selected,
-          inMutuallyExclusiveGroup: true,
-          borderRadius: BorderRadius.circular(16),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
-            decoration: BoxDecoration(
-              color: cs.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: selected ? cs.primary : bkStrongBorder(context),
-                width: selected ? 2.6 : 2,
-              ),
-            ),
-            child: Column(
-              spacing: 2,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // PRO and the radio get their own row, so the title below
-                // has the card's full width: next to them "Monthly" had less
-                // room than "Yearly" and was shrunk to a smaller size.
-                Row(
-                  children: [
-                    if (plan == _PaywallPlan.monthly || plan == _PaywallPlan.yearly)
-                      const ProBadge(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
-                    const Spacer(),
-                    _buildRadioIndicator(selected, compact: true),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                // "Monatlich" must not wrap on a narrow card: both titles
-                // shrink together (see [_buildPlansSection]) rather than
-                // break the word.
-                Text(
-                  title,
-                  maxLines: 1,
-                  softWrap: false,
-                  overflow: TextOverflow.fade,
-                  style: _planTitleStyle(context).copyWith(
-                    fontSize: _planTitleStyle(context).fontSize! * titleScale,
-                    color: cs.foreground,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Per-month equivalent leads; the actual billing follows.
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    price,
-                    maxLines: 1,
-                    style: context.typography.large.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: cs.foreground,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // The amount actually charged: wraps rather than being cut
-                // off in the half-width card.
-                if (billed.isNotEmpty)
-                  Text(
-                    billed,
-                    style: context.typography.small.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: cs.mutedForeground,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        if (badge != null)
-          Positioned(
-            top: -10,
-            left: 8,
-            right: 8,
-            child: Align(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-                decoration: BoxDecoration(
-                  color: cs.primary,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Text(
-                  badge,
-                  maxLines: 1,
-                  style: context.typography.small.copyWith(
-                    color: cs.primaryForeground,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildFullVersionCard(BuildContext context) {
-    final selected = _selectedPlan == _PaywallPlan.fullVersion;
-    final cs = Theme.of(context).colorScheme;
-    return BkTappable(
-      onPressed: () => _selectPlan(_PaywallPlan.fullVersion),
-      selected: selected,
-      inMutuallyExclusiveGroup: true,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          // The one-time Base plan sits quieter than the Pro cards above it.
-          color: cs.card,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? cs.primary : cs.border,
-            width: selected ? 2 : 1.5,
-          ),
-        ),
-        child: Row(
-          // The store note makes this a three-line card; keep the radio on
-          // the title line rather than floating mid-card.
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildRadioIndicator(selected, compact: true, small: true),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context).fullVersion,
-                    style: context.typography.small.copyWith(
-                      color: cs.foreground,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    _pricing.fullVersionSubtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.typography.caption.copyWith(
-                      color: cs.mutedForeground,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  // Base is a store receipt, not an account: riders who bought
-                  // it on one store and installed from another wrote in asking
-                  // where their purchase went. Say so before they buy.
-                  Text(
-                    AppLocalizations.of(context).paywall_baseStoreNote(_storeName(context)),
-                    style: context.typography.caption.copyWith(
-                      height: 1.25,
-                      color: cs.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   String _storeName(BuildContext context) => paywallStoreName(
@@ -1162,96 +951,4 @@ class _PaywallState extends State<Paywall> {
     isOutsideStoreWindowsBuild: _iapManager.isOutsideStoreWindowsBuild,
     directDownload: AppLocalizations.of(context).paywall_storeDirectDownload,
   );
-
-  Widget _buildRadioIndicator(bool selected, {bool compact = false, bool small = false}) {
-    final size = small
-        ? 16.0
-        : compact
-        ? 20.0
-        : 34.0;
-    final cs = Theme.of(context).colorScheme;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      width: size,
-      height: size,
-      margin: EdgeInsets.only(top: compact ? 2 : 8),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: selected ? cs.primary : Colors.transparent,
-        border: Border.all(
-          color: selected ? cs.primary : bkStrongBorder(context),
-          width: selected ? 2 : 1.6,
-        ),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                  color: cs.primary.withAlpha(70),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
-      ),
-      child: selected
-          ? Icon(
-              LucideIcons.check,
-              size: small ? 10 : (compact ? 13 : 18),
-              color: cs.primaryForeground,
-            )
-          : null,
-    );
-  }
-
-  Widget _buildPurchaseButton(BuildContext context) {
-    // The gradient is the brand's purchase call-to-action, so it stays drawn
-    // by hand; BkTappable gives it button semantics, keyboard focus and the
-    // click cursor. While a purchase runs it is disabled — and looks it.
-    return BkTappable(
-      onPressed: _isPurchasing ? null : _onPurchasePressed,
-      label: _purchaseLabel(AppLocalizations.of(context)),
-      excludeChildSemantics: true,
-      borderRadius: BorderRadius.circular(22),
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 120),
-        opacity: _isPurchasing ? 0.55 : 1,
-        child: Container(
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                BKColor.main,
-                BKColor.mainEnd,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: BKColor.mainEnd.withAlpha(55),
-                blurRadius: 14,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: _isPurchasing
-              ? CircularProgressIndicator(
-                  size: 20,
-                  color: Colors.white,
-                )
-              : Text(
-                  _purchaseLabel(AppLocalizations.of(context)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.typography.xLarge.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    height: 1,
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
 }

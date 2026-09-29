@@ -172,4 +172,30 @@ void main() {
       });
     }
   });
+
+  for (final brightness in Brightness.values) {
+    testWidgets('$brightness: an on switch has a white thumb on the primary track', (tester) async {
+      await tester.pumpWidget(
+        ShadcnApp(
+          theme: BkTheme.build(brightness),
+          home: BkComponentThemes(
+            child: Center(child: Switch(value: true, onChanged: (_) {})),
+          ),
+        ),
+      );
+      final colors = tester
+          .widgetList<Container>(find.descendant(of: find.byType(Switch), matching: find.byType(Container)))
+          .map((c) => (c.decoration as BoxDecoration?)?.color)
+          .whereType<Color>()
+          .toList();
+      expect(colors, contains(const Color(0xFFFFFFFF)), reason: 'thumb');
+      final track = tester
+          .widgetList<AnimatedContainer>(
+            find.descendant(of: find.byType(Switch), matching: find.byType(AnimatedContainer)),
+          )
+          .map((c) => (c.decoration as BoxDecoration?)?.color)
+          .whereType<Color>();
+      expect(track, contains(BkTheme.build(brightness).colorScheme.primary));
+    });
+  }
 }

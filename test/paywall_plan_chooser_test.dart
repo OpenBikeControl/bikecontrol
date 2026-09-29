@@ -2,9 +2,9 @@
 // Base expecting BikeControl's virtual shifting because the table gave Base a
 // "20 min/day" cell for it — a trial of a Pro feature, drawn as if Base had
 // some of it. So:
-// - the virtual-shifting row leads the table, Base gets a dash, and the daily
-//   trial is a footnote under the table;
-// - the purchase button says which plan it buys.
+// - virtual shifting leads the Pro card, the Base card doesn't list it, and
+//   the daily trial is a footnote under both plans;
+// - each purchase button says which plan it buys.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/paywall.dart';
@@ -19,7 +19,11 @@ import 'widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  Future<AppLocalizations> pump(WidgetTester tester, {bool purchased = false}) async {
+  Future<AppLocalizations> pump(
+    WidgetTester tester, {
+    bool purchased = false,
+    void Function(String plan)? onPurchase,
+  }) async {
     tester.view.physicalSize = const Size(390, 1800) * 3.0;
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
@@ -36,7 +40,7 @@ Future<void> main() async {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: BkTheme.build(Brightness.light),
-        home: const SingleChildScrollView(child: Paywall(defaultToFullVersion: false)),
+        home: SingleChildScrollView(child: Paywall(debugOnPurchase: onPurchase)),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -44,50 +48,70 @@ Future<void> main() async {
     return AppLocalizations.of(tester.element(find.byType(Paywall)));
   }
 
-  Rect rowOf(WidgetTester tester, String label) => tester.getRect(find.text(label));
+  final proCard = find.byKey(const ValueKey('paywall-pro-card'));
+  final baseCard = find.byKey(const ValueKey('paywall-base-card'));
+  Finder inCard(Finder card, String text) => find.descendant(of: card, matching: find.text(text));
 
-  bool dashInRow(WidgetTester tester, Rect row) => find
-      .byWidgetPredicate((w) => w is Container && w.constraints?.maxHeight == 3)
-      .evaluate()
-      .map((e) => tester.getRect(find.byWidget(e.widget)))
-      .any((r) => r.center.dy > row.top && r.center.dy < row.bottom && r.left > row.right);
-
-  testWidgets('virtual shifting leads the table, Base gets a dash, the trial is a footnote', (tester) async {
+  testWidgets('both plans are shown, Pro first, each with its kind of purchase', (tester) async {
     final l = await pump(tester);
-
-    final vs = rowOf(tester, l.paywall_vsByBikeControl);
-    final commands = rowOf(tester, l.paywall_amountOfActions);
-    expect(vs.top, lessThan(commands.top), reason: 'the row that decides the plan comes first');
-    expect(dashInRow(tester, vs), isTrue, reason: 'Base does not include virtual shifting');
-    expect(find.text(l.paywall_twentyMinPerDay), findsNothing);
-
-    final minutes = '${core.bridgeUsageTracker.dailyLimit.inMinutes}';
-    expect(find.text(l.paywall_vsTrialFootnote(minutes)), findsOneWidget);
+    expect(proCard, findsOneWidget);
+    expect(baseCard, findsOneWidget);
+    expect(tester.getRect(proCard).top, lessThan(tester.getRect(baseCard).top));
+    expect(inCard(proCard, l.subscription), findsOneWidget);
+    expect(inCard(baseCard, l.paywall_oneTimePurchase), findsOneWidget);
   });
 
-  testWidgets('sensors are a Pro row; "support development" is not a feature', (tester) async {
+  testWidgets('virtual shifting leads the Pro card, Base does not list it, the trial is a footnote', (tester) async {
     final l = await pump(tester);
-    expect(find.text(l.paywall_shareSensors), findsOneWidget);
-    expect(dashInRow(tester, rowOf(tester, l.paywall_shareSensors)), isTrue);
+
+    final vs = tester.getRect(inCard(proCard, l.paywall_vsByBikeControl));
+    final commands = tester.getRect(inCard(proCard, l.paywall_amountOfActions));
+    expect(vs.top, lessThan(commands.top), reason: 'the line that decides the plan comes first');
+    expect(inCard(baseCard, l.paywall_vsByBikeControl), findsNothing, reason: 'Base does not include virtual shifting');
+    expect(find.text(l.paywall_twentyMinPerDay), findsNothing);
+
+    // Unlimited button commands and shifting in the trainer app are in both.
+    for (final card in [proCard, baseCard]) {
+      expect(inCard(card, l.paywall_amountOfActions), findsOneWidget);
+      expect(inCard(card, l.unlimited), findsOneWidget);
+      expect(inCard(card, l.paywall_shiftInYourApp), findsOneWidget);
+    }
+
+    final minutes = '${core.bridgeUsageTracker.dailyLimit.inMinutes}';
+    final footnote = find.text(l.paywall_vsTrialFootnote(minutes));
+    expect(footnote, findsOneWidget);
+    expect(tester.getRect(footnote).top, greaterThan(tester.getRect(baseCard).bottom), reason: 'under both plans');
+  });
+
+  testWidgets('sensors are a Pro line; "support development" is not a feature', (tester) async {
+    final l = await pump(tester);
+    expect(inCard(proCard, l.paywall_shareSensors), findsOneWidget);
+    expect(inCard(baseCard, l.paywall_shareSensors), findsNothing);
     expect(find.text(l.paywall_supportDevelopmentOfNewFeaturesDevicesAndMore), findsNothing);
   });
 
-  testWidgets('the purchase button names the selected plan', (tester) async {
-    final l = await pump(tester);
+  testWidgets('the Pro button names the billing it buys; each button buys its own plan', (tester) async {
+    final bought = <String>[];
+    final l = await pump(tester, onPurchase: bought.add);
 
     // Preselection stays Pro yearly.
     expect(find.text(l.paywall_startProYearly), findsOneWidget);
+    await tester.tap(find.text(l.paywall_startProYearly));
+    await tester.pump(const Duration(milliseconds: 300));
 
     await tester.ensureVisible(find.text(l.paywall_monthly));
     await tester.tap(find.text(l.paywall_monthly));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text(l.paywall_startProMonthly), findsOneWidget);
-
-    final base = find.textContaining(l.paywall_baseStoreNote('').split(' ').first);
-    await tester.ensureVisible(base.first);
-    await tester.tap(base.first);
+    await tester.tap(find.text(l.paywall_startProMonthly));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text(l.paywall_buyBase), findsOneWidget);
+
+    await tester.ensureVisible(find.text(l.paywall_buyBase));
+    await tester.tap(find.text(l.paywall_buyBase));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(bought, ['yearly', 'monthly', 'base']);
+    // Buying Base doesn't change which Pro billing is picked.
+    expect(find.text(l.paywall_startProMonthly), findsOneWidget);
   });
 
   testWidgets('the paywall links to the plan questions', (tester) async {
@@ -95,26 +119,23 @@ Future<void> main() async {
     expect(find.text(l.paywall_planQuestions), findsOneWidget);
   });
 
-  testWidgets('yearly and monthly titles are drawn at the same size', (tester) async {
+  testWidgets('yearly and monthly are drawn at the same size', (tester) async {
     final l = await pump(tester);
     expect(
-      rowOf(tester, l.paywall_monthly).height,
-      closeTo(rowOf(tester, l.paywall_yearly).height, 0.5),
+      tester.getRect(find.text(l.paywall_monthly)).height,
+      closeTo(tester.getRect(find.text(l.paywall_yearly)).height, 0.5),
     );
   });
-  testWidgets('a Base owner sees "Your plan" under the Base column', (tester) async {
+
+  testWidgets('a Base owner sees "Your plan" on the Base card instead of a Buy button', (tester) async {
     final l = await pump(tester, purchased: true);
     expect(IAPManager.instance.isProEnabled, isFalse);
-    final mark = find.text(l.paywallYourPlan);
-    expect(mark, findsOneWidget);
-    final base = tester.getRect(find.text(l.full));
-    final markRect = tester.getRect(mark);
-    expect((markRect.center.dx - base.center.dx).abs(), lessThan(1), reason: 'centred under the Base header');
-    expect(markRect.top, greaterThanOrEqualTo(base.bottom - 0.5));
+    expect(inCard(baseCard, l.paywallYourPlan), findsOneWidget);
+    expect(find.text(l.paywall_buyBase), findsNothing);
   });
 
-  testWidgets('without a purchase there is no "Your plan"', (tester) async {
+  testWidgets('without a purchase the Base card is not marked "Your plan"', (tester) async {
     final l = await pump(tester);
-    expect(find.text(l.paywallYourPlan), findsNothing);
+    expect(inCard(baseCard, l.paywallYourPlan), findsNothing);
   });
 }

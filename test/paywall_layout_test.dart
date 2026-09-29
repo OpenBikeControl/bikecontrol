@@ -52,7 +52,7 @@ Future<void> main() async {
   // Base had some of it. BikeControl's virtual shifting now leads the table
   // (Pro only; the trial is a footnote — see paywall_plan_chooser_test.dart),
   // then what Base covers: the app shifts, BikeControl presses the buttons.
-  testWidgets('paywall rows spell out Base vs Pro, virtual shifting first', (tester) async {
+  testWidgets('the Pro card spells out what Pro adds, virtual shifting first', (tester) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
     await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
@@ -66,10 +66,12 @@ Future<void> main() async {
       l10n.paywall_configure3ActionsPerButton,
       l10n.paywall_useBikecontrolOnAllPlatforms,
     ];
+    final proCard = find.byKey(const ValueKey('paywall-pro-card'));
+    Finder inPro(String label) => find.descendant(of: proCard, matching: find.text(label));
     for (final label in labelsInOrder) {
-      expect(find.text(label), findsOneWidget, reason: 'row "$label" missing');
+      expect(inPro(label), findsOneWidget, reason: 'line "$label" missing');
     }
-    final tops = [for (final label in labelsInOrder) tester.getTopLeft(find.text(label)).dy];
+    final tops = [for (final label in labelsInOrder) tester.getTopLeft(inPro(label)).dy];
     for (var i = 1; i < tops.length; i++) {
       expect(
         tops[i],

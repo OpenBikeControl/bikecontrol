@@ -80,7 +80,7 @@ void main() {
     await pumpAndOpen(tester);
 
     final l10n = AppLocalizations.current;
-    expect(find.text(l10n.onboardingTrainerTitle), findsOneWidget);
+    expect(find.text(l10n.onboardingTrainerTitle.toUpperCase()), findsOneWidget);
     expect(find.text(l10n.onboardingHelpSheetTitle), findsNothing);
   });
 
@@ -90,7 +90,7 @@ void main() {
     await pumpAndOpen(tester);
 
     final l10n = AppLocalizations.current;
-    expect(find.text(l10n.onboardingTrainerTitle), findsOneWidget);
+    expect(find.text(l10n.onboardingTrainerTitle.toUpperCase()), findsOneWidget);
     expect(find.text(l10n.onboardingHelpSheetTitle), findsNothing);
   });
 
@@ -124,6 +124,6 @@ void main() {
     await tester.tap(close);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text(l10n.onboardingTrainerTitle), findsNothing, reason: 'tapping Close must dismiss the sheet');
+    expect(find.text(l10n.onboardingTrainerTitle.toUpperCase()), findsNothing, reason: 'tapping Close must dismiss the sheet');
   });
 }

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/pages/subscriptions/registered_devices_view.dart';
 import 'package:bike_control/pages/subscriptions/sync_settings_view.dart';
@@ -10,6 +9,8 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -202,32 +203,22 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               children: [
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor().withAlpha(30),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        _getStatusIcon(),
-                        size: 28,
-                        color: _getStatusColor(),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
                         children: [
                           Text(
                             AppLocalizations.of(context).currentPlan,
                           ).small.muted,
                           Text(
-                            IAPManager.instance.getStatusMessage(),
-                          ).large.bold,
+                            IAPManager.instance.getStatusMessage().toUpperCase(),
+                            style: BkDisplay.title(context),
+                          ),
                         ],
                       ),
                     ),
+                    Icon(_getStatusIcon(), size: 24, color: _getStatusColor()),
                   ],
                 ),
                 if (!_isPro) ...[
@@ -295,72 +286,64 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             ),
           ),
 
-          // Account Section
-          _buildProCard(
-            icon: LucideIcons.circleUser,
-            title: AppLocalizations.of(context).account,
-            subtitle: _getAccountSubtitle(session),
-            onTap: () => _navigateTo(SubscriptionPageView.login),
-          ),
-
-          // Sync Settings Section
-          _buildProCard(
-            icon: LucideIcons.refreshCw,
-            title: AppLocalizations.of(context).syncSettings,
-            subtitle: AppLocalizations.of(context).synchronizeAcrossDevices,
-            onTap: () {
-              _handleLoggedInFeature(() {
-                if (IAPManager.instance.isProEnabledForCurrentDevice) {
-                  _navigateTo(SubscriptionPageView.syncSettings);
-                } else {
-                  buildToast(title: AppLocalizations.of(context).currentDeviceIsNotRegistered);
-                }
-              });
-            },
-          ),
-
-          // Registered Devices Section
-          _buildProCard(
-            icon: LucideIcons.monitorSmartphone,
-            title: AppLocalizations.of(context).registeredDevices,
-            subtitle: AppLocalizations.of(context).manageYourDevices,
-            onTap: () => _handleLoggedInFeature(() => _navigateTo(SubscriptionPageView.devices)),
+          BkGroupedSection(
+            children: [
+              _buildProCard(
+                icon: LucideIcons.circleUser,
+                title: AppLocalizations.of(context).account,
+                subtitle: _getAccountSubtitle(session),
+                onTap: () => _navigateTo(SubscriptionPageView.login),
+              ),
+              _buildProCard(
+                icon: LucideIcons.refreshCw,
+                title: AppLocalizations.of(context).syncSettings,
+                subtitle: AppLocalizations.of(context).synchronizeAcrossDevices,
+                onTap: () {
+                  _handleLoggedInFeature(() {
+                    if (IAPManager.instance.isProEnabledForCurrentDevice) {
+                      _navigateTo(SubscriptionPageView.syncSettings);
+                    } else {
+                      buildToast(title: AppLocalizations.of(context).currentDeviceIsNotRegistered);
+                    }
+                  });
+                },
+              ),
+              _buildProCard(
+                icon: LucideIcons.monitorSmartphone,
+                title: AppLocalizations.of(context).registeredDevices,
+                subtitle: AppLocalizations.of(context).manageYourDevices,
+                onTap: () => _handleLoggedInFeature(() => _navigateTo(SubscriptionPageView.devices)),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildProCard({
+  /// One row of the account group. Sync and devices are Pro: without Pro
+  /// they carry the badge and open the Go Pro dialog instead.
+  BkGroupedRow _buildProCard({
     required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return SelectableCard(
-      onPressed: onTap,
-      isActive: false,
-      isProOnly: icon != LucideIcons.circleUser,
-      title: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Row(
-          children: [
-            Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title).small.bold,
-                  const SizedBox(height: 4),
-                  Text(subtitle).small.muted,
-                ],
-              ),
-            ),
-            Icon(LucideIcons.chevronRight, size: 20, color: Theme.of(context).colorScheme.mutedForeground),
-          ],
-        ),
-      ),
+    final proOnly = icon != LucideIcons.circleUser;
+    final locked = proOnly && !IAPManager.instance.hasActiveSubscription;
+    return BkGroupedRow(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      badge: locked ? const ProBadge() : null,
+      chevron: true,
+      onPressed: () async {
+        if (locked) {
+          await showGoProDialog(context);
+        } else {
+          onTap();
+        }
+      },
     );
   }
 

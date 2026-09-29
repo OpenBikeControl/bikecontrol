@@ -158,6 +158,8 @@
   "browserNotSupported": "Dieser Browser unterstützt kein Web-Bluetooth und die Plattform wird nicht unterstützt :(",
   "button": "Taste.",
   "buttonMapping": "Tastenbelegung",
+  "mappingForApp": "für {app}",
+  "mappingEditMakesCopy": "Die Belegung von {app} ist fest eingebaut. Beim Bearbeiten entsteht deine eigene Kopie.",
   "buyFullVersion": "Vollversion kaufen",
   "bySigningInYouAgreeToOur": "Mit der Anmeldung stimmst Du unseren {privacyPolicy} zu",
   "@bySigningInYouAgreeToOur": {
@@ -2303,6 +2305,7 @@
   "paywall_startProMonthly": "Pro monatlich starten",
   "paywall_buyBase": "Basis kaufen",
   "paywall_planQuestions": "Fragen zu den Plänen?",
+  "paywall_oneTimePurchase": "Einmalkauf",
   "vsBudgetProRemovesLimit": "Pro hebt das Limit auf",
   "supportDescribeFirstMessageHint": "Beschreib kurz, was du vorhast und was stattdessen passiert. Ein Screenshot allein sagt nicht, was schiefgeht — ein Satz reicht.",
   "supportIntakeTryThisFirst": "Probier das zuerst",

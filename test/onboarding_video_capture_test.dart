@@ -796,7 +796,7 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   // Step 6 — done, and ready.
   rec.chapter('done');
   await rec.tap(find.byType(PrimaryButton).last, 'Finish setup');
-  expect(find.text(l10n.onboardingDoneTitle), findsOneWidget, reason: 'the take should end ready to ride');
+  expect(find.text(l10n.onboardingDoneTitle.toUpperCase()), findsOneWidget, reason: 'the take should end ready to ride');
   expect(find.text(l10n.onboardingDoneStartRiding), findsOneWidget);
 
   final ride = withCutaway;

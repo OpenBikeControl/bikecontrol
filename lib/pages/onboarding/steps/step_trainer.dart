@@ -1,3 +1,6 @@
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile;
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
@@ -65,7 +68,7 @@ Widget onboardingTrainerBody(BuildContext context,
   // meaningful for a chosen app — its copy names it.
   if (bridged.isEmpty && virtualShiftingBlocked && app != null) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-      Text(context.i18n.onboardingVsBlockedTitle).h4,
+      OnboardingHeadline(context.i18n.onboardingVsBlockedTitle),
       Gap(6),
       Text(context.i18n.onboardingVsBlockedSubtitle(app.name)).small.muted,
       Gap(16),
@@ -110,18 +113,18 @@ Widget onboardingTrainerBody(BuildContext context,
   if (bridged.isNotEmpty) {
     final t = bridged.first;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-      Text(context.i18n.onboardingTrainerConnectedTitle).h4,
+      OnboardingHeadline(context.i18n.onboardingTrainerConnectedTitle),
       Gap(6),
       Text(context.i18n.onboardingTrainerConnectedSubtitle).small.muted,
       Gap(18),
       Container(
-        padding: const EdgeInsets.all(13),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFF22C55E), width: 1.5),
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.card,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(children: [
-          Icon(onboardingTrainerIcon(t), size: 20, color: const Color(0xFF22C55E)),
+          BkIconTile(icon: onboardingTrainerIcon(t), color: BkStatusColors.of(context).success),
           Gap(12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -143,7 +146,7 @@ Widget onboardingTrainerBody(BuildContext context,
     // The PRO badge sits on the title itself: this is the Pro feature, and
     // the rider should know before connecting a trainer, not at the paywall.
     Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Expanded(child: Text(context.i18n.onboardingTrainerTitle).h4),
+      Expanded(child: OnboardingHeadline(context.i18n.onboardingTrainerTitle)),
       Gap(10),
       const Padding(padding: EdgeInsets.only(top: 4), child: ProBadge()),
     ]),
@@ -153,12 +156,12 @@ Widget onboardingTrainerBody(BuildContext context,
     // Once a trainer is found, connecting it is the step's job: the list
     // (with Connect) moves above the animation so it is on the first screen.
     if (trainers.isNotEmpty) ...[
+      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+      Gap(10),
       OnboardingNote(
         context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
         icon: LucideIcons.award,
       ),
-      Gap(10),
-      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
       Gap(14),
       const VirtualShiftingStage(),
     ] else ...[
@@ -205,8 +208,7 @@ class _ScanCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cs.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: trainers.isEmpty ? accent.withValues(alpha: 0.3) : cs.border),
+        borderRadius: BorderRadius.circular(16),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(

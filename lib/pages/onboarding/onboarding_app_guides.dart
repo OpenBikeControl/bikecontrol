@@ -77,11 +77,11 @@ class OnboardingAppGuideCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(bordered ? 14 : 0),
+      padding: EdgeInsets.all(bordered ? 16 : 0),
       decoration: bordered
           ? BoxDecoration(
-              border: Border.all(color: scheme.border, width: 1.5),
-              borderRadius: BorderRadius.circular(12),
+              color: scheme.card,
+              borderRadius: BorderRadius.circular(16),
             )
           : null,
       child: Column(
@@ -173,9 +173,8 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: onboardingAccent(context), width: 1.5),
-        borderRadius: BorderRadius.circular(12),
-        color: onboardingAccent(context).withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        color: scheme.card,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(context.i18n.onboardingPairAsTrainerBody(app.name)).small,
@@ -183,7 +182,7 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
-              color: scheme.card, border: Border.all(color: scheme.border), borderRadius: BorderRadius.circular(10)),
+              color: scheme.muted, borderRadius: BorderRadius.circular(10)),
           child: Row(children: [
             Icon(LucideIcons.radio, size: 20, color: onboardingAccent(context)),
             Gap(12),

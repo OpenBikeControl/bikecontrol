@@ -301,19 +301,22 @@ class _OverlayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // An opaque fill in the theme's own background colour: Windows can't do
-    // real window transparency without WS_EX_LAYERED, and the overlay's
-    // opacity setting is applied to the whole window instead. It used to be
-    // hard-coded white, which glared in dark mode.
+    // An opaque fill in the theme's card colour, the overlay's surface:
+    // Windows can't do real window transparency without WS_EX_LAYERED, and
+    // the overlay's opacity setting is applied to the whole window instead.
+    // It used to be hard-coded white, which glared in dark mode.
     return OverlayShadcnApp(
-      home: Scaffold(
-        child: Center(
-          child: TrainerOverlayView(
-            state: state,
-            onModeToggle: onModeToggle,
-            onDragStart: () => wm.windowManager.startDragging(),
-            onPrimaryDecrement: onPrimaryDecrement,
-            onPrimaryIncrement: onPrimaryIncrement,
+      home: Builder(
+        builder: (context) => Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.card,
+          child: Center(
+            child: TrainerOverlayView(
+              state: state,
+              onModeToggle: onModeToggle,
+              onDragStart: () => wm.windowManager.startDragging(),
+              onPrimaryDecrement: onPrimaryDecrement,
+              onPrimaryIncrement: onPrimaryIncrement,
+            ),
           ),
         ),
       ),

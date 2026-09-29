@@ -88,7 +88,9 @@ void main() {
     expect(find.textContaining('--'), findsWidgets);
   });
 
-  testWidgets('the -/gear/+ row fits a 220 px window at 1.3x text with every field on', (tester) async {
+  testWidgets('the -/gear/+ row fits its desktop window at 1.3x text with every field on', (tester) async {
+    final needed = TrainerOverlayView.windowSize(const TextScaler.linear(1.3)).width;
+    final window = needed > TrainerOverlayView.defaultWindowWidth ? needed : TrainerOverlayView.defaultWindowWidth;
     await tester.pumpWidget(
       ShadcnApp(
         home: MediaQuery(
@@ -97,7 +99,7 @@ void main() {
             child: Align(
               alignment: Alignment.topLeft,
               child: SizedBox(
-                width: 220,
+                width: window,
                 child: TrainerOverlayView(
                   state: mkState(
                     fields: const {

@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
@@ -23,8 +24,8 @@ Widget _whereTile(
       width: double.infinity,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        border: Border.all(color: selected ? onboardingAccent(context) : scheme.border, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: selected ? onboardingAccent(context) : const Color(0x00000000), width: 2),
+        borderRadius: BorderRadius.circular(16),
         color: scheme.card,
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -85,7 +86,7 @@ Widget onboardingWhereBody(BuildContext context,
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: onboardingReveal([
-      Text(context.i18n.onboardingWhereTitle(app.name)).h4,
+      OnboardingHeadline(context.i18n.onboardingWhereTitle(app.name)),
       Gap(6),
       Text(context.i18n.onboardingWhereSubtitle).small.muted,
       Gap(18),

@@ -1,0 +1,220 @@
+@Tags(['screenshots'])
+library;
+
+import 'dart:io';
+
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/onboarding/onboarding_models.dart';
+import 'package:bike_control/pages/onboarding/onboarding_page.dart';
+import 'package:bike_control/pages/onboarding/steps/step_controller.dart';
+import 'package:bike_control/pages/onboarding/steps/step_done.dart';
+import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerPress;
+import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/utils/prefs.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
+
+import '../widget_snapshot.dart';
+
+/// Renders the phase-5 surfaces at the mocks' sizes: button mapping (phone
+/// and iPad master–detail), onboarding step 3 and done, the paywall and the
+/// overlay. Run:
+/// `P5_SHOTS=/tmp/p5 flutter test --run-skipped test/pages/phase5_snapshot_test.dart`
+Future<void> main() async {
+  await ensureSnapshotHarness();
+  final outDir = Platform.environment['P5_SHOTS'] ?? 'build/snapshots';
+
+  final controller = ZwiftClickV2(BleDevice(name: 'Zwift Click', deviceId: 'p5-click'))
+    ..firmwareVersion = '1.2.0'
+    ..isConnected = true
+    ..rssi = -51
+    ..batteryLevel = 81;
+
+  setUp(() async {
+    core.connection.devices
+      ..clear()
+      ..add(controller);
+    core.settings.setTrainerApp(MyWhoosh());
+    core.settings.setKeyMap(MyWhoosh());
+    core.actionHandler.init(MyWhoosh());
+    await core.settings.setClickV2OnboardingDone(true);
+    propPrefs.setZwiftClickV2LastUnlock(controller.scanResult.deviceId, DateTime.now());
+  });
+
+  Future<void> shoot(
+    WidgetTester tester, {
+    required String name,
+    required Size size,
+    required Brightness brightness,
+    required Widget Function(BuildContext) build,
+    Color? background,
+  }) async {
+    await captureWidget(
+      tester,
+      name: name,
+      width: size.width,
+      height: size.height,
+      padding: EdgeInsets.zero,
+      pixelRatio: 2,
+      brightness: brightness,
+      settle: false,
+      background: background,
+      outputDir: outDir,
+      builder: build,
+    );
+  }
+
+  const phone = Size(390, 844);
+  testWidgets('warm-up', (tester) async {
+    await shoot(
+      tester,
+      name: 'warm-up',
+      size: phone,
+      brightness: Brightness.dark,
+      build: (_) => ControllerSettingsPage(device: controller),
+    );
+  });
+
+  final plus = controller.availableButtons.firstWhere(
+    (b) => b.action == InGameAction.shiftUp,
+    orElse: () => controller.availableButtons.first,
+  );
+
+  for (final brightness in Brightness.values) {
+    final theme = brightness.name;
+
+    testWidgets('mapping-390x844-$theme', (tester) async {
+      await shoot(
+        tester,
+        name: 'mapping-390x844-$theme',
+        size: phone,
+        brightness: brightness,
+        build: (_) => ControllerSettingsPage(device: controller),
+      );
+    });
+
+    testWidgets('onboarding-step3-390x844-$theme', (tester) async {
+      final presses = ValueNotifier<ControllerPress>((button: plus, generation: 1));
+      await shoot(
+        tester,
+        name: 'onboarding-step3-390x844-$theme',
+        size: phone,
+        brightness: brightness,
+        build: (c) => Scaffold(
+          child: onboardingShell(
+            c,
+            step: OnboardingStep.controller,
+            body: onboardingControllerBody(
+              c,
+              phase: ControllerPhase.list,
+              devices: [controller],
+              appName: 'MyWhoosh',
+              presses: {controller.uniqueId: presses},
+            ),
+            footerActions: [
+              PrimaryButton(onPressed: () {}, child: Text(c.i18n.onboardingContinue)),
+            ],
+            onBack: () {},
+            onHelp: () {},
+            onSelectStep: (_) {},
+            stepValues: const {OnboardingStep.app: 'MyWhoosh', OnboardingStep.where: 'This device'},
+          ),
+        ),
+      );
+    });
+
+    testWidgets('onboarding-done-390x844-$theme', (tester) async {
+      await shoot(
+        tester,
+        name: 'onboarding-done-390x844-$theme',
+        size: phone,
+        brightness: brightness,
+        build: (c) => Scaffold(
+          child: onboardingShell(
+            c,
+            step: OnboardingStep.done,
+            body: onboardingDoneBody(
+              c,
+              app: MyWhoosh(),
+              controllerName: 'Zwift Click',
+              trainerName: 'KICKR CORE',
+              appConnected: true,
+              trainerAppConnected: true,
+              reduceMotion: true,
+              showTestMode: true,
+            ),
+            footerActions: onboardingDoneFooter(
+              c,
+              state: OnboardingDoneState.ready,
+              showPlanOptions: true,
+              onStartRiding: () {},
+              onSeePlanOptions: () {},
+            ),
+            onHelp: () {},
+          ),
+        ),
+      );
+    });
+
+    testWidgets('paywall-390x844-$theme', (tester) async {
+      IAPManager.instance.isPurchased.value = false;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
+      await shoot(
+        tester,
+        name: 'paywall-390x844-$theme',
+        size: phone,
+        brightness: brightness,
+        build: (_) => const Paywall(debugYearlyStorePrice: '24,99 €'),
+      );
+    });
+
+    testWidgets('overlay-$theme', (tester) async {
+      await shoot(
+        tester,
+        name: 'overlay-$theme',
+        size: const Size(390, 180),
+        brightness: brightness,
+        // A stand-in for the trainer app behind the overlay.
+        background: const Color(0xFF4F6247),
+        build: (_) => Center(
+          child: TrainerOverlayView(
+            state: ValueNotifier(
+              const TrainerOverlayState(
+                gear: 12,
+                maxGear: 24,
+                gearRatio: 2.4,
+                mode: TrainerMode.simMode,
+                powerW: 250,
+                cadenceRpm: 90,
+                ergTargetW: null,
+                fields: {OverlayField.controls, OverlayField.cadence, OverlayField.gearRatio},
+              ),
+            ),
+            onPrimaryDecrement: () {},
+            onPrimaryIncrement: () {},
+          ),
+        ),
+      );
+    });
+  }
+
+  testWidgets('mapping-1180x820-dark', (tester) async {
+    await shoot(
+      tester,
+      name: 'mapping-1180x820-dark',
+      size: const Size(1180, 820),
+      brightness: Brightness.dark,
+      build: (_) => ControllerSettingsPage(device: controller),
+    );
+  });
+}
