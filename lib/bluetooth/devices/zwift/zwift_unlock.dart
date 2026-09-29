@@ -9,12 +9,12 @@ import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
-import 'package:bike_control/utils/window_size.dart';
-import 'package:bike_control/widgets/ui/warning.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/unlock_confirm.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:prop/emulators/definitions/zwift_click_definition.dart';
 import 'package:prop/prop.dart';
@@ -300,157 +300,131 @@ mixin ZwiftUnlock on ZwiftDevice {
     );
   }
 
-  /// The unlock-status warning(s) for this controller.
+  /// The unlock status for this controller: a hairline off the unlock-mode
+  /// text above it, the state as a status dot plus words, and its actions as
+  /// pills. It sits inside the controller card, so it adds no box of its own.
   List<Widget> unlockWarnings(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId, keyPrefix: unlockKeyPrefix);
     if (!isConnected || screenshotMode) return [];
     if (isPersistedUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
-        Warning(
-          important: false,
-          children: [
-            _unlockStatusLine(
-              iconColor: Colors.gray,
-              icon: LucideIcons.lockOpen,
-              text: Text(
-                'Likely unlocked until ${DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1)))}',
-              ).xSmall,
-              action: _unlockAgainButton(context),
-            ),
-            if (initializationTime != null) UnlockConfirm(device: this),
-          ],
+        UnlockStatusPanel(
+          label:
+              'Likely unlocked until ${DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1)))}',
+          tone: BkStatusTone.neutral,
+          actions: [_unlockAgainButton(context)],
+          footer: [if (initializationTime != null) UnlockConfirm(device: this)],
         ),
       ];
     } else if (isPersistedUnlocked && lastUnlockDate != null) {
       return [
-        Warning(
-          important: false,
-          children: [
-            _unlockStatusLine(
-              iconColor: Colors.green,
-              icon: LucideIcons.lockOpen,
-              text: Text(
-                AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
-                  DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1))),
-                ),
-              ).xSmall,
-              action: _unlockAgainButton(context),
-            ),
-            if (kDebugMode) ...[
-              Button(
+        UnlockStatusPanel(
+          label: AppLocalizations.of(context).unlock_unlockedUntilAroundDate(
+            DateFormat('EEEE, HH:mm').format(lastUnlockDate.add(const Duration(days: 1))),
+          ),
+          tone: BkStatusTone.success,
+          actions: [
+            _unlockAgainButton(context),
+            if (kDebugMode)
+              BkPillButton.secondary(
+                expand: false,
                 onPressed: () {
                   sendCommand(Opcode.RESET, null);
                 },
-                leading: const Icon(LucideIcons.languages),
-                style: ButtonStyle.primary(size: ButtonSize.small),
-                child: Text('Reset'),
+                leading: const Icon(LucideIcons.rotateCcw, size: 16),
+                child: const Text('Reset'),
               ),
-            ],
           ],
         ),
       ];
     }
     return [
-      Warning(
-        important: false,
-        children: [
-          _unlockStatusLine(
-            iconColor: Colors.red,
-            icon: LucideIcons.lock,
-            text: Text(AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked).xSmall,
-            action: Builder(
-              builder: (context) {
-                return Button(
-                  onPressed: () {
-                    showDropdown(
-                      context: context,
-                      builder: (c) => DropdownMenu(
-                        children: [
-                          MenuButton(
-                            leading: const Icon(LucideIcons.check),
-                            onPressed: (c) {
-                              markUnlockedManually();
-                              sendRideOn();
-                            },
-                            child: Text(context.i18n.unlock_markAsUnlocked),
-                          ),
-                          MenuDivider(),
-                          MenuButton(
-                            onPressed: (c) => openUnlockPage(context),
-                            leading: const Icon(LucideIcons.lockOpen),
-                            child: Text(AppLocalizations.of(context).unlock_unlockNow),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  leading: const Icon(LucideIcons.lockOpen),
-                  style: ButtonStyle.outline(size: ButtonSize.small),
-                  child: Text(AppLocalizations.of(context).unlock_unlockNow),
-                );
-              },
-            ),
+      UnlockStatusPanel(
+        label: AppLocalizations.of(context).unlock_deviceIsCurrentlyLocked,
+        tone: BkStatusTone.danger,
+        actions: [
+          Builder(
+            builder: (context) {
+              return BkPillButton(
+                expand: false,
+                onPressed: () {
+                  showDropdown(
+                    context: context,
+                    builder: (c) => DropdownMenu(
+                      children: [
+                        MenuButton(
+                          leading: const Icon(LucideIcons.check),
+                          onPressed: (c) {
+                            markUnlockedManually();
+                            sendRideOn();
+                          },
+                          child: Text(context.i18n.unlock_markAsUnlocked),
+                        ),
+                        MenuDivider(),
+                        MenuButton(
+                          onPressed: (c) => openUnlockPage(context),
+                          leading: const Icon(LucideIcons.lockOpen),
+                          child: Text(AppLocalizations.of(context).unlock_unlockNow),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                leading: const Icon(LucideIcons.lockOpen, size: 16),
+                child: Text(AppLocalizations.of(context).unlock_unlockNow),
+              );
+            },
           ),
         ],
       ),
     ];
   }
 
-  Button _unlockAgainButton(BuildContext context) {
-    return Button.outline(
-      child: Text(AppLocalizations.of(context).unlockAgain),
+  Widget _unlockAgainButton(BuildContext context) {
+    return BkPillButton.secondary(
+      expand: false,
       onPressed: () => openUnlockPage(context),
+      child: Text(AppLocalizations.of(context).unlockAgain),
     );
   }
+}
 
-  /// One unlock-status line: a status icon badge, a short message and a trailing
-  /// action. On a narrow card — e.g. the left and right sides shown side by side
-  /// — the action drops below the text instead of being squeezed into an
-  /// unreadable sliver, which previously pushed the "Unlock again" button up out
-  /// of line with the wrapped text.
-  Widget _unlockStatusLine({
-    required Color iconColor,
-    required IconData icon,
-    required Widget text,
-    required Widget action,
-  }) {
-    final iconBadge = Container(
-      decoration: BoxDecoration(
-        color: iconColor,
-        borderRadius: BorderRadius.circular(24),
+/// The unlock state inside a controller card: a hairline that sets it off the
+/// unlock-mode text above, the state as a [BkStatusDot], its actions as pills
+/// that wrap onto a second line on a narrow card, then any footer (the
+/// one-minute confirm countdown). No border and no fill of its own: the card
+/// it sits in is already the surface.
+class UnlockStatusPanel extends StatelessWidget {
+  const UnlockStatusPanel({
+    super.key,
+    required this.label,
+    required this.tone,
+    required this.actions,
+    this.footer = const [],
+  });
+
+  final String label;
+  final BkStatusTone tone;
+  final List<Widget> actions;
+  final List<Widget> footer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 12,
+        children: [
+          const BkGroupedDivider(indent: 0),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: BkStatusDot(label: label, tone: tone),
+          ),
+          Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: actions),
+          ...footer,
+        ],
       ),
-      padding: const EdgeInsets.all(4),
-      child: Icon(icon, color: Colors.white),
-    );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < Breakpoints.clickV2Narrow) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 8,
-            children: [
-              Row(
-                spacing: 8,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  iconBadge,
-                  Flexible(child: text),
-                ],
-              ),
-              action,
-            ],
-          );
-        }
-        return Row(
-          spacing: 12,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            iconBadge,
-            Flexible(child: text),
-            action,
-          ],
-        );
-      },
     );
   }
 }

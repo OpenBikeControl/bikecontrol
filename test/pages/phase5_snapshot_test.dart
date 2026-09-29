@@ -240,20 +240,24 @@ Future<void> main() async {
     });
   }
 
-  // A controller still in beta: its neutral BETA badge on a light card.
-  testWidgets('mapping-beta-390x844-light', (tester) async {
-    screenshotMode = false;
-    addTearDown(() => screenshotMode = true);
-    await shoot(
-      tester,
-      name: 'mapping-beta-390x844-light',
-      size: phone,
-      brightness: Brightness.light,
-      build: (_) => ControllerSettingsPage(device: controller),
-    );
-    expect(controller.isBeta, isTrue);
-    expect(find.text('BETA'), findsWidgets);
-  });
+  // A controller still in beta: its neutral BETA badge on the card, and the
+  // Click V2 unlock status inside it.
+  for (final brightness in Brightness.values) {
+    final name = 'mapping-beta-390x844-${brightness.name}';
+    testWidgets(name, (tester) async {
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
+      await shoot(
+        tester,
+        name: name,
+        size: phone,
+        brightness: brightness,
+        build: (_) => ControllerSettingsPage(device: controller),
+      );
+      expect(controller.isBeta, isTrue);
+      expect(find.text('BETA'), findsWidgets);
+    });
+  }
 
   // Both large sizes: a tablet in landscape and a laptop window.
   for (final size in const [Size(1180, 820), Size(1280, 800)]) {

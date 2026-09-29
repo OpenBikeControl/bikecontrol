@@ -13,7 +13,18 @@ class BkPillButton extends StatelessWidget {
     this.leading,
     this.trailing,
     this.expand = true,
-  });
+  }) : secondary = false;
+
+  /// The second choice beside a primary pill (DESIGN.md
+  /// `button-secondary-pill`): the same shape on the neutral fill.
+  const BkPillButton.secondary({
+    super.key,
+    required this.child,
+    required this.onPressed,
+    this.leading,
+    this.trailing,
+    this.expand = true,
+  }) : secondary = true;
 
   final Widget child;
   final VoidCallback? onPressed;
@@ -22,6 +33,9 @@ class BkPillButton extends StatelessWidget {
 
   /// Fill the available width (the phone default).
   final bool expand;
+
+  /// Neutral fill instead of the primary colour.
+  final bool secondary;
 
   static const double minHeight = 48;
 
@@ -42,7 +56,9 @@ class BkPillButton extends StatelessWidget {
       constraints: BoxConstraints(minHeight: minHeight, minWidth: expand ? double.infinity : 0),
       child: Button(
         style: shape(
-          const ButtonStyle.primary().withPadding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14)),
+          (secondary ? const ButtonStyle.secondary() : const ButtonStyle.primary()).withPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          ),
         ),
         alignment: Alignment.center,
         leading: leading,

@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/core.dart';
@@ -68,7 +69,10 @@ class _UnlockToggleState extends State<UnlockToggle> {
                 // name below and the gated children have to follow the choice.
                 setState(() => _mode = _readMode());
               },
-              child: Text(context.i18n.clickV2Onboarding_setUpAgain).xSmall,
+              child: Text(
+                context.i18n.clickV2Onboarding_setUpAgain,
+                style: TextStyle(color: bkAccentText(context), fontWeight: FontWeight.w600),
+              ).xSmall,
             ),
           ],
         ),
