@@ -2416,5 +2416,10 @@
   "rideV2Instructions": "Zwift verrouille le Zwift Ride V2 sur sa propre application. Déverrouille-le là-bas et il fonctionne avec BikeControl pendant environ 24 heures.\n\n1. Ouvre l'application Zwift (pas Companion !)\n2. Connecte-toi (aucun abonnement requis) et ouvre l'écran de connexion des appareils\n3. Connecte ton home trainer, puis le Zwift Ride V2\n4. Ferme à nouveau l'application Zwift et reconnecte-toi dans BikeControl",
   "rideV2SupportPrefill": "Bonjour ! Mon Zwift Ride V2 est en firmware {version} et je préférerais ne pas le déverrouiller dans Zwift chaque jour. Pouvez-vous m'aider ?",
   "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
-  "intakeControllerRideV2Lock": "Verrouillage du Zwift Ride V2"
+  "intakeControllerRideV2Lock": "Verrouillage du Zwift Ride V2",
+  "navRide": "Rouler",
+  "navDevices": "Appareils",
+  "navSettings": "Réglages",
+  "settingsSectionRidingWith": "Rouler avec",
+  "settingsSectionApp": "Application"
 }

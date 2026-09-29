@@ -4,10 +4,9 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/services/app_update.dart';
-import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
-import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -17,14 +16,22 @@ PackageInfo? packageInfoValue;
 bool? isFromPlayStore;
 Patch? shorebirdPatch;
 
-class AppTitle extends StatefulWidget {
-  const AppTitle({super.key});
+/// The shell's "New version available" action. Draws nothing until an update
+/// is found.
+///
+/// Always mounted in the top bar, so it is also what reads the app version
+/// and the Shorebird patch into [packageInfoValue] and [shorebirdPatch] for
+/// the support bundle and the Settings version row.
+class AppUpdateButton extends StatefulWidget {
+  /// Icon only (the phone's top bar); the version is then the spoken label.
+  final bool compact;
+  const AppUpdateButton({super.key, this.compact = false});
 
   @override
-  State<AppTitle> createState() => _AppTitleState();
+  State<AppUpdateButton> createState() => _AppUpdateButtonState();
 }
 
-class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
+class _AppUpdateButtonState extends State<AppUpdateButton> with WidgetsBindingObserver {
   final updater = ShorebirdUpdater();
 
   Version? _newVersion;
@@ -85,42 +92,35 @@ class _AppTitleState extends State<AppTitle> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GradientText(
-          'BikeControl',
-          style: context.typography.xLarge.copyWith(fontWeight: FontWeight.bold),
-        ),
-        if (packageInfoValue != null)
-          Text(
-            'v${packageInfoValue!.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''} - ${IAPManager.instance.getStatusMessage()}',
-            style: context.typography.caption.copyWith(
-              color: Theme.of(context).colorScheme.mutedForeground.withAlpha(200),
+    if (_newVersion == null || _updateType == null) return const SizedBox.shrink();
+    final label = AppLocalizations.current.newVersionAvailableWithVersion(_newVersion.toString());
+    return LoadingWidget(
+      futureCallback: () async {
+        await applyAppUpdate(AppUpdate(type: _updateType!, version: _newVersion));
+      },
+      renderChild: (isLoading, tap) => widget.compact
+          ? BkIconButton.outline(
+              icon: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.refreshCw, size: 18),
+              label: label,
+              onPressed: tap,
+            )
+          : Button.outline(
+              onPressed: tap,
+              leading: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.refreshCw),
+              child: Text(label).xSmall,
             ),
-          ).mono
-        else
-          SmallProgressIndicator(),
-
-        if (_newVersion != null && _updateType != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: LoadingWidget(
-              futureCallback: () async {
-                await applyAppUpdate(AppUpdate(type: _updateType!, version: _newVersion));
-              },
-              renderChild: (isLoading, tap) => Button.outline(
-                onPressed: tap,
-                leading: isLoading ? SmallProgressIndicator() : Icon(LucideIcons.refreshCw),
-                child: Text(AppLocalizations.current.newVersionAvailableWithVersion(_newVersion.toString())).xSmall,
-              ),
-            ),
-          ),
-      ],
     );
   }
 
   void _onEntitlementsUpdate() {
     setState(() {});
   }
+}
+
+/// The running version as the Settings row shows it ("7.1.0+3"), or null
+/// before [AppUpdateButton] has read it.
+String? appVersionLabel() {
+  final info = packageInfoValue;
+  if (info == null) return null;
+  return '${info.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}';
 }

@@ -24,16 +24,19 @@ enum WindowSize {
 /// are kept at their exact values on purpose — moving them onto a class
 /// boundary would change a layout at widths riders already use.
 abstract final class Breakpoints {
-  /// Below this the window is a phone: stacked layouts, bottom help pill,
+  /// Below this the window is a phone: stacked layouts, bottom tab bar,
   /// compact scaling. Upper edge of [WindowSize.compact].
   static const double compact = 600;
 
-  /// Upper edge of [WindowSize.medium].
+  /// Upper edge of [WindowSize.medium]. From here the sections sit in a
+  /// permanent sidebar instead of a floating tab bar.
   static const double medium = 840;
 
-  /// From here the home screen shows the activity log as a permanent rail
-  /// and onboarding shows its step rail, instead of swiping between tabs.
+  /// From here onboarding shows its step rail beside the step.
   static const double twoPane = 800;
+
+  /// From here Ride shows the activity log as a permanent right column.
+  static const double activityColumn = 1200;
 
   /// Below this, network-check rows drop their right-hand value column and
   /// the troubleshooter header moves its run stamp into the body.

@@ -24,7 +24,6 @@ import 'package:intl/intl.dart';
 import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
-import 'package:bike_control/pages/home/home_extras.dart';
 import 'package:bike_control/pages/home/home_sheets.dart';
 import 'package:bike_control/pages/home/pro_unregistered_banner.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
@@ -45,7 +44,6 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
-import 'package:bike_control/widgets/home/accessory_card.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
@@ -105,7 +103,7 @@ bool appCardOffersTroubleshooting(ChainLink link) =>
     core.logic.isObpMdnsEnabled &&
     core.obpMdnsEmulator.isStarted.value;
 
-/// The Main tab: the setup chain.
+/// The Ride section: the setup chain.
 ///
 /// One card per link, in signal-path order — your controllers, then the gears
 /// BikeControl computes from them, then the app that receives them. Each card
@@ -127,8 +125,7 @@ class HomePage extends StatefulWidget {
   /// Lets the host clear its error banner when the rider acts on a card.
   final VoidCallback onUpdate;
 
-  /// Hidden on wide desktop, where the activity rail already carries a Help
-  /// button and a second one would be redundant.
+  /// Hidden from 840 wide, where the sidebar carries Help & Support.
   final bool showHelpRow;
   final VoidCallback? onHelp;
 
@@ -747,8 +744,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             card,
             const Gap(10),
           ],
-          ..._accessorySection(),
-          HomeExtras(isMobile: widget.isMobile, onUpdate: _update),
           if (widget.showHelpRow) ...[
             const Gap(12),
             BkTouchTarget(
@@ -1332,33 +1327,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// including one that isn't the rider's — a Headwind through a neighbour's
   /// wall — and the only way onto the ignore list runs through a device's own
   /// settings page. Without this section such a device has no route to it.
-  List<Widget> _accessorySection() {
-    final accessories = <BluetoothDevice>[
-      ...core.connection.accessories,
-      ...core.connection.climbAccessories,
-    ];
-    if (accessories.isEmpty) return const [];
-
-    return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(4, 2, 4, 8),
-        child: Text(context.i18n.accessories).xSmall.muted,
-      ),
-      for (final device in accessories) ...[
-        AccessoryCard(
-          title: device.displayName(context),
-          icon: device.icon,
-          connected: device.isConnected,
-          onOpen: () async {
-            await context.push(ControllerSettingsPage(device: device));
-            _update();
-          },
-        ),
-        const Gap(10),
-      ],
-    ];
-  }
-
   // ── Actions ───────────────────────────────────────────────────────────
 
   /// The banner's "Show" with several cards outstanding: bring the rider to

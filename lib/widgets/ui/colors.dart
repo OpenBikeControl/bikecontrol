@@ -8,8 +8,8 @@ class BKColor {
   static const Color backgroundLight = Color(0xFFF2F9FF);
 }
 
-/// A recessed surface one step off the page background — the home screen's
-/// activity rail. Light: a touch darker than the grouped page, toward the
+/// A recessed surface one step off the page background — the sidebar and
+/// Ride's activity column. Light: a touch darker than the grouped page, toward the
 /// fill. Dark: the page is already the bottom of the tonal ladder (cards and
 /// fills sit above it), so the recess goes one step darker still.
 Color bkSunkenSurface(BuildContext context) {

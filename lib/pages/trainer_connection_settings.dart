@@ -98,13 +98,6 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: LanguageSelect(
-                onChanged: () => setState(() {}),
-              ),
-            ),
-            const Divider(),
             Expanded(
               child: TrainerPage(
                 onUpdate: () {
@@ -125,14 +118,16 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
 
 /// The in-app language picker. A [Select] over "System default" (follow the OS
 /// language) plus every supported locale, each labelled by its native name
-/// (endonym), reading/writing [core.settings.setLocaleOverride]. Placed at the
-/// top of the connection-settings page so riders can find it — the whole point
-/// of the feature was that language was previously OS-only and undiscoverable.
+/// (endonym), reading/writing [core.settings.setLocaleOverride]. Lives under
+/// Settings → App.
 class LanguageSelect extends StatefulWidget {
   /// Called after the language changes so the host can rebuild (the app itself
   /// rebuilds via [Settings.localeListenable]).
   final VoidCallback onChanged;
-  const LanguageSelect({super.key, required this.onChanged});
+
+  /// Just the picker, for a settings row that brings its own icon and label.
+  final bool bare;
+  const LanguageSelect({super.key, required this.onChanged, this.bare = false});
 
   @override
   State<LanguageSelect> createState() => _LanguageSelectState();
@@ -165,35 +160,37 @@ class _LanguageSelectState extends State<LanguageSelect> {
       ...AppLocalizations.delegate.supportedLocales.map((e) => e.languageCode),
     ];
     final current = core.settings.getLocaleOverride() ?? _systemValue;
+    final select = Select<String>(
+      constraints: const BoxConstraints(maxWidth: 240, minWidth: 200),
+      popupConstraints: const BoxConstraints(maxWidth: 240, minWidth: 200),
+      itemBuilder: (context, code) => Text(_label(code)),
+      popup: SelectPopup(
+        items: SelectItemList(
+          children: [
+            for (final code in codes)
+              SelectItemButton(
+                value: code,
+                child: code == current ? Text(_label(code)).semiBold : Text(_label(code)),
+              ),
+          ],
+        ),
+      ).call,
+      value: current,
+      onChanged: (code) async {
+        await core.settings.setLocaleOverride(
+          (code == null || code == _systemValue) ? null : code,
+        );
+        if (mounted) setState(() {});
+        widget.onChanged();
+      },
+    );
+    if (widget.bare) return select;
     return Row(
       children: [
         Icon(LucideIcons.languages, size: 20, color: Theme.of(context).colorScheme.mutedForeground),
         const Gap(12),
         Expanded(child: Text(l10n.language).semiBold),
-        Select<String>(
-          constraints: const BoxConstraints(maxWidth: 240, minWidth: 200),
-          popupConstraints: const BoxConstraints(maxWidth: 240, minWidth: 200),
-          itemBuilder: (context, code) => Text(_label(code)),
-          popup: SelectPopup(
-            items: SelectItemList(
-              children: [
-                for (final code in codes)
-                  SelectItemButton(
-                    value: code,
-                    child: code == current ? Text(_label(code)).semiBold : Text(_label(code)),
-                  ),
-              ],
-            ),
-          ).call,
-          value: current,
-          onChanged: (code) async {
-            await core.settings.setLocaleOverride(
-              (code == null || code == _systemValue) ? null : code,
-            );
-            if (mounted) setState(() {});
-            widget.onChanged();
-          },
-        ),
+        select,
       ],
     );
   }

@@ -2416,5 +2416,10 @@
   "rideV2Instructions": "Zwift blokuje Zwift Ride V2 do użytku we własnej aplikacji. Odblokuj go tam, a będzie działał z BikeControl przez około 24 godziny.\n\n1. Otwórz aplikację Zwift (nie Companion!)\n2. Zaloguj się (subskrypcja nie jest wymagana) i otwórz ekran łączenia urządzeń\n3. Połącz trenażer, a następnie Zwift Ride V2\n4. Zamknij ponownie aplikację Zwift i połącz się ponownie w BikeControl",
   "rideV2SupportPrefill": "Cześć! Mój Zwift Ride V2 ma oprogramowanie {version} i wolałbym nie odblokowywać go w Zwift codziennie. Czy możecie pomóc?",
   "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
-  "intakeControllerRideV2Lock": "Blokada Zwift Ride V2"
+  "intakeControllerRideV2Lock": "Blokada Zwift Ride V2",
+  "navRide": "Jazda",
+  "navDevices": "Urządzenia",
+  "navSettings": "Ustawienia",
+  "settingsSectionRidingWith": "Jeździsz z",
+  "settingsSectionApp": "Aplikacja"
 }

@@ -1,19 +1,24 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
-import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../widget_snapshot.dart';
 
-// MediaQuery.viewPadding is already in logical pixels. The pill divided it by
-// the device pixel ratio as well, so on a 3x phone it cleared only a third of
-// the home indicator.
+// The phone's bottom tab bar has to clear the whole home indicator, in logical
+// pixels (MediaQuery's insets already are — dividing by the pixel ratio again
+// once left the old help pill clearing only a third of it on a 3x phone).
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  Future<void> pump(WidgetTester tester, {required double bottomInset, required double dpr}) async {
+  Future<void> pump(
+    WidgetTester tester,
+    ShellController shell, {
+    required double bottomInset,
+    required double dpr,
+  }) async {
     tester.view.physicalSize = const Size(390, 844) * dpr;
     tester.view.devicePixelRatio = dpr;
     tester.view.viewPadding = FakeViewPadding(bottom: bottomInset * dpr);
@@ -28,21 +33,27 @@ Future<void> main() async {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: BkTheme.build(Brightness.light),
-        home: const Align(alignment: Alignment.bottomCenter, child: HelpButton(isMobile: true)),
+        home: Align(
+          alignment: Alignment.bottomCenter,
+          child: ShellTabBar(controller: shell),
+        ),
       ),
     );
     await tester.pump();
   }
 
   for (final dpr in [1.0, 2.0, 3.0]) {
-    testWidgets('mobile pill clears the whole bottom inset at ${dpr}x', (tester) async {
-      await pump(tester, bottomInset: 0, dpr: dpr);
-      final bare = tester.getSize(find.byType(HelpButton)).height;
+    testWidgets('the tab bar clears the whole bottom inset at ${dpr}x', (tester) async {
+      final shell = ShellController();
+      addTearDown(shell.dispose);
+      await pump(tester, shell, bottomInset: 0, dpr: dpr);
+      final bare = tester.getSize(find.byType(ShellTabBar)).height;
 
-      await pump(tester, bottomInset: 34, dpr: dpr);
-      final inset = tester.getSize(find.byType(HelpButton)).height;
+      await pump(tester, shell, bottomInset: 34, dpr: dpr);
+      final inset = tester.getSize(find.byType(ShellTabBar)).height;
 
       expect(inset - bare, closeTo(34, 0.5));
+      await tester.pumpWidget(const SizedBox());
     });
   }
 }

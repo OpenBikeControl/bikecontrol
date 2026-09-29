@@ -120,7 +120,7 @@ Future<void> main() async {
   });
 
   testWidgets('help button push opens HelpCenterPage', (tester) async {
-    await _pump(tester, const HelpButton(isMobile: false));
+    await _pump(tester, const HelpButton());
     await tester.pump();
 
     expect(find.byType(HelpCenterPage), findsNothing);
@@ -142,7 +142,7 @@ Future<void> main() async {
     // pins that the round trip completes cleanly (no session in tests, so
     // `_checkForUnread` no-ops past its `currentSession == null` guard, but
     // the awaited continuation must still run without throwing).
-    await _pump(tester, const HelpButton(isMobile: false));
+    await _pump(tester, const HelpButton());
     await tester.pump();
 
     await tester.tap(find.byType(HelpButton));
@@ -152,7 +152,7 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(HelpCenterPage), findsOneWidget);
 
-    await tester.tap(find.byType(IconButton).first);
+    await tester.tap(find.byKey(const ValueKey('page-header-back')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 1000));
 

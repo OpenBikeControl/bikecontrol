@@ -835,6 +835,8 @@ Future<VideoCapture> _filmHandsFreeSteering(WidgetTester tester, _Studio studio)
   final rec = await _roll(tester, boundary, () => const Navigation());
   await rec.frames(_endHold);
 
+  // Phone steering is a device option, in the Devices section.
+  await rec.tap(find.text(l10n.navDevices).hitTestable().first, 'Devices');
   final toggle = find.text(l10n.enableSteeringWithPhone);
   await _scrollTo(rec, toggle, 'Scroll to phone steering');
   await rec.tap(toggle, 'Enable steering with the phone', thenFrames: 0);
@@ -845,6 +847,7 @@ Future<VideoCapture> _filmHandsFreeSteering(WidgetTester tester, _Studio studio)
   await rec.untilStill(maxFrames: 120);
   expect(phone.steeringCalibrated.value, isTrue, reason: 'it calibrates while the bars are still');
 
+  await rec.tap(find.text(l10n.navRide).hitTestable().first, 'Ride');
   final gauge = find.byType(SteeringGauge);
   await _scrollTo(rec, gauge, 'Scroll back to the controllers', up: false, by: 400);
   rec.sighting('phone-steering-gauge', gauge);

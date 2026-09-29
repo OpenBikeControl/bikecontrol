@@ -11,9 +11,7 @@ import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/title.dart';
-import 'package:bike_control/widgets/ui/help_button.dart';
+import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -34,6 +32,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
+  final ShellController _shell = ShellController();
   StreamSubscription<BaseDevice>? _overlayAutoShowSub;
   OverlayReassertScheduler? _reassertScheduler;
   StreamSubscription<BaseDevice>? _reassertConnSub;
@@ -102,6 +101,7 @@ class _NavigationState extends State<Navigation> {
     _overlayAutoShowSub?.cancel();
     _reassertConnSub?.cancel();
     _reassertScheduler?.dispose();
+    _shell.dispose();
     super.dispose();
   }
 
@@ -179,41 +179,69 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
+    final size = WindowSize.of(context);
+    final content = KeyedSubtree(
+      key: const ValueKey('shell-content'),
+      child: OverviewPage(isMobile: _isMobile, shell: _shell),
+    );
+
     // Not a plain Scaffold: the support screenshot must not show the sheet or
     // toast a rider opens support from, and shadcn paints those inside it.
-    return ScreenshotScaffold(
-      headers: [
-        Stack(
-          children: [
-            AppBar(
-              padding:
-                  const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
-                  (screenshotMode ? 2 : Theme.of(context).scaling),
-              title: AppTitle(),
-              backgroundColor: Theme.of(context).colorScheme.background,
-              trailing: buildMenuButtons(context),
-            ),
-            if (!_isMobile && !screenshotMode)
-              Container(
-                alignment: Alignment.topCenter,
-                child: HelpButton(isMobile: false),
+    return ValueListenableBuilder<AppSection>(
+      valueListenable: _shell.section,
+      builder: (context, section, _) {
+        switch (size) {
+          case WindowSize.compact:
+            return ScreenshotScaffold(
+              headers: [
+                ShellTopBar(section: section, compact: true, showPlanAndHelp: section == AppSection.ride),
+              ],
+              // The tab bar has its own space below the content, never on top
+              // of it.
+              footers: [ShellTabBar(controller: _shell)],
+              child: content,
+            );
+          case WindowSize.medium:
+            return ScreenshotScaffold(
+              headers: [
+                ShellTopTabs(controller: _shell),
+                // Lined up with the centred content column below it.
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720 + 48),
+                    child: ShellTopBar(
+                      section: section,
+                      compact: false,
+                      showPlanAndHelp: section == AppSection.ride,
+                    ),
+                  ),
+                ),
+              ],
+              child: content,
+            );
+          case WindowSize.expanded:
+            return ScreenshotScaffold(
+              headers: const [],
+              child: SafeArea(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ShellSidebar(controller: _shell),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ShellTopBar(section: section, compact: false),
+                          Expanded(child: content),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
-        ),
-        Divider(),
-      ],
-      footers: [
-        if (_isMobile)
-          Container(
-            alignment: Alignment.bottomCenter,
-            child: HelpButton(isMobile: true),
-          ),
-      ],
-      // Not floating: the mobile help pill gets its own space below the
-      // content. Floating, it sat on top of whichever card was behind it at
-      // rest (the Smart Trainer card's title on a fresh home).
-      floatingFooter: false,
-      child: OverviewPage(isMobile: _isMobile),
+            );
+        }
+      },
     );
   }
 }

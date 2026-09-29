@@ -2416,5 +2416,10 @@
   "rideV2Instructions": "Zwift blocca lo Zwift Ride V2 sulla propria app. Sbloccalo lì e funzionerà con BikeControl per circa 24 ore.\n\n1. Apri l'app Zwift (non la Companion!)\n2. Accedi (non serve l'abbonamento) e apri la schermata di connessione dei dispositivi\n3. Collega il tuo rullo, poi collega lo Zwift Ride V2\n4. Chiudi di nuovo l'app Zwift e connettiti di nuovo in BikeControl",
   "rideV2SupportPrefill": "Ciao! Il mio Zwift Ride V2 ha il firmware {version} e preferirei non sbloccarlo in Zwift ogni giorno. Potete aiutarmi?",
   "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
-  "intakeControllerRideV2Lock": "Blocco dello Zwift Ride V2"
+  "intakeControllerRideV2Lock": "Blocco dello Zwift Ride V2",
+  "navRide": "Pedala",
+  "navDevices": "Dispositivi",
+  "navSettings": "Impostazioni",
+  "settingsSectionRidingWith": "Pedali con",
+  "settingsSectionApp": "App"
 }
