@@ -107,7 +107,7 @@ class _CustomizeState extends State<CustomizePage> {
                     spacing: 8,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(screenshotKeymapsStaged ? 'Trainer app' : app!.name)),
+                      Expanded(child: Text(shownKeymapName(app!.name))),
                       if (app is CustomApp) BetaPill(text: 'CUSTOM'),
                     ],
                   ),

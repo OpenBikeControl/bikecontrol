@@ -73,7 +73,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                       SizedBox(height: 0),
                       Text(
                         context.i18n.onboardingWhereTitle(
-                          screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()!.name,
+                          shownTrainerAppName(core.settings.getTrainerApp()!.name),
                         ),
                       ).small,
                       Row(
@@ -204,7 +204,7 @@ class _TrainerAppCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final app = core.settings.getTrainerApp();
     final logo = app?.logoAsset;
-    final name = app == null ? null : (screenshotMode ? 'Trainer app' : app.name);
+    final name = app == null ? null : shownTrainerAppName(app.name);
     return Container(
       key: const ValueKey('connection-trainer-app'),
       width: double.infinity,
@@ -306,7 +306,7 @@ class TrainerAppSelect extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               child: Image.asset(app.logoAsset!, width: 22, height: 22),
             ),
-          Expanded(child: Text(screenshotMode && !showRealName ? 'Trainer app' : app.name)),
+          Expanded(child: Text(showRealName ? app.name : shownTrainerAppName(app.name))),
           if (app.supports(AppConnectionMethod.obpBle) ||
               app.supports(AppConnectionMethod.obpMdns) ||
               app.supports(AppConnectionMethod.obpDirCon))

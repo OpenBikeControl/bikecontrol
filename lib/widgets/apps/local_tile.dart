@@ -1,3 +1,4 @@
+import 'package:bike_control/main.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 import 'dart:io';
@@ -204,9 +205,9 @@ class _LocalTileState extends State<LocalTile> {
       small: widget.small,
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
       title: context.i18n.controlAppUsingModes(
-        core.settings.getTrainerApp()?.name ?? '',
+        shownTrainerAppName(core.settings.getTrainerApp()?.name ?? ''),
       ),
-      description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
+      description: context.i18n.enableKeyboardMouseControl(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '')),
       requirements: core.permissions.getLocalControlRequirements(),
       onChange: (value) {
         core.settings.setLocalEnabled(value);

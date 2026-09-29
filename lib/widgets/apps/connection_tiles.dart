@@ -1,3 +1,4 @@
+import 'package:bike_control/main.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
@@ -47,11 +48,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
         },
       ),
     if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: small),
-    if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: small),
+    // Named after the app it serves: on the store boards, which hide the
+    // trainer app's name, it would give the name away.
+    if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther && !screenshotMode) MyWhooshLinkTile(small: small),
   ];
 
   final otherTiles = [
-    if (showWhooshLinkAsOther) MyWhooshLinkTile(small: small),
+    if (showWhooshLinkAsOther && !screenshotMode) MyWhooshLinkTile(small: small),
     if (core.logic.showRemote) RemoteMousePairingWidget(small: small),
     if (core.logic.showLocalControl && showLocalAsOther) LocalTile(small: small),
     if (core.logic.showRemote && core.settings.getTrainerApp() is! Zwift) RemoteKeyboardPairingWidget(small: small),

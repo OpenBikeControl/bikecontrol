@@ -233,7 +233,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     final connection = widget.trainerConnection;
     final connected = connection.isConnected.value;
     final started = connection.isStarted.value;
-    final appName = core.settings.getTrainerApp()?.name;
+    final realAppName = core.settings.getTrainerApp()?.name;
+    final appName = realAppName == null ? null : shownTrainerAppName(realAppName);
     final accent = bkAccentText(context);
     final linkStyle = context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600);
     const textInset = BkIconTile.size + BkGroupedRow.gap;

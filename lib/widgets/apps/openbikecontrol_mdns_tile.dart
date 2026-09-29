@@ -50,7 +50,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                         )
                       : isStarted
                       ? context.i18n.chooseBikeControlInConnectionScreen
-                      : context.i18n.letsAppConnectOverNetwork(core.settings.getTrainerApp()?.name ?? ''),
+                      : context.i18n.letsAppConnectOverNetwork(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '')),
                   requirements: _requirements,
                   onTroubleshoot: () => context.push(const NetworkTroubleshootingPage()),
                   onChange: (value) {

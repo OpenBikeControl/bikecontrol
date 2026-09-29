@@ -92,6 +92,9 @@ Future<void> main() async {
   testWidgets('a method card flips its method from the switch and from the card, and says when it is connected', (
     tester,
   ) async {
+    // The status names the real app; the store renders hide it.
+    screenshotMode = false;
+    addTearDown(() => screenshotMode = true);
     final connection = _FakeConnection();
     var enabled = false;
     await tester.pumpWidget(

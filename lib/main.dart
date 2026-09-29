@@ -84,6 +84,19 @@ bool debugShowsRealKeymapsInScreenshotMode = false;
 /// Whether [screenshotMode] is dressing keymaps up for the store boards.
 bool get screenshotKeymapsStaged => screenshotMode && !debugShowsRealKeymapsInScreenshotMode;
 
+/// The generic name the store boards show in place of a trainer app's.
+const screenshotTrainerAppName = 'Trainer app';
+
+/// [name] as a screen may show it: the generic [screenshotTrainerAppName]
+/// under [screenshotMode], so every label on a store board names the app the
+/// same way. Route every trainer app name on a screen that hides it through
+/// here, not just the headline one.
+String shownTrainerAppName(String name) => screenshotMode ? screenshotTrainerAppName : name;
+
+/// [name] for a keymap profile, and for the labels next to the keymap picker:
+/// generic while [screenshotKeymapsStaged] names every profile that way.
+String shownKeymapName(String name) => screenshotKeymapsStaged ? screenshotTrainerAppName : name;
+
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
 var onboardingActive = false;

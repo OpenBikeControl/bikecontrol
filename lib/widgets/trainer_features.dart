@@ -1,3 +1,4 @@
+import 'package:bike_control/main.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
@@ -41,7 +42,7 @@ class TrainerFeatures extends StatelessWidget {
             iconBgColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
             title: AppLocalizations.of(
               context,
-            ).manualyControllingButton(trainerApp.name),
+            ).manualyControllingButton(shownTrainerAppName(trainerApp.name)),
             description: context.i18n.noControllerUseCompanionMode,
             isNew: false,
             withCard: withCard,

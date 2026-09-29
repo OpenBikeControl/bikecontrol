@@ -12,7 +12,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show screenshotMode, shownKeymapName;
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
@@ -116,7 +116,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                   if (device is! Accessory) ...[
                     _buildSectionHeader(
                       AppLocalizations.of(context).buttonMapping,
-                      trailing: _buildTrainerLabel(trainerApp?.name ?? '-'),
+                      trailing: _buildTrainerLabel(trainerApp == null ? '-' : shownKeymapName(trainerApp.name)),
                     ),
                     const Gap(8),
                     CustomizePage(

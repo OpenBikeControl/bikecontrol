@@ -66,9 +66,9 @@ class _ZwiftTileState extends State<ZwiftTile> {
                       ? context.i18n.connected
                       : isRouvy
                       ? context.i18n
-                            .waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? '')
+                            .waitingForConnectionKickrBike(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? ''))
                             .replaceAll('KICKR BIKE PRO', 'BikeControl')
-                      : context.i18n.waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? ''),
+                      : context.i18n.waitingForConnectionKickrBike(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '')),
                   requirements: core.permissions.getRemoteControlRequirements(),
                 );
               },
