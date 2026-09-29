@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart' show BkNumerals;
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -231,7 +232,11 @@ Future<List<File>> captureWidget(
     // First pump builds the tree; loadAssets() loads the fonts it finds there
     // (Geist etc.); the second pump re-renders with real glyphs, not Ahem boxes.
     await tester.pump();
-    await tester.loadAssets();
+    // loadAssets() only reads each paragraph's ROOT span family, so a face
+    // set on child spans alone (the Barlow Condensed numerals in RideStat's
+    // "250 W") would stay Ahem boxes unless some earlier capture of the run
+    // happened to load it. Name the display face explicitly.
+    await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
     // Fonts arriving after the first layout leave intrinsic sizes measured
     // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
     // clips descenders). The app loads its fonts before the first frame, so

@@ -5,28 +5,24 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/overview.dart' show activityLogClock;
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
-import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
-import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodType;
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
-import 'package:prop/prop.dart' show LogLevel;
 import 'package:prop/utils/prefs.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../helpers/activity_log_seed.dart';
 import '../helpers/shell_harness.dart';
 import '../widget_snapshot.dart';
 
@@ -94,40 +90,7 @@ Future<void> main() async {
     activityLogClock = DateTime.now;
   });
 
-  /// A few minutes of a ride in the log: a connection earlier, then shifts, a
-  /// press and a press with nothing assigned.
-  Future<void> fillLog() async {
-    final base = DateTime(2026, 9, 29, 10);
-    Future<void> at(Duration ago, BaseNotification notification) async {
-      activityLogClock = () => base.subtract(ago);
-      core.connection.signalNotification(notification);
-      await Future<void>.value();
-      await Future<void>.value();
-    }
-
-    final plus = controller.availableButtons.firstWhere(
-      (b) => b.action == InGameAction.shiftUp,
-      orElse: () => controller.availableButtons.first,
-    );
-    final minus = controller.availableButtons.firstWhere(
-      (b) => b.action == InGameAction.shiftDown,
-      orElse: () => controller.availableButtons.last,
-    );
-    await at(
-      const Duration(minutes: 3),
-      AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to MyWhoosh', connectionType: ConnectionMethodType.network),
-    );
-    await at(const Duration(seconds: 44), ActionNotification(Success('Shifted down to gear 10', button: minus)));
-    await at(
-      const Duration(seconds: 31),
-      ActionNotification(
-        Error('Could not perform Z: No action assigned', button: plus, type: ErrorType.noActionAssigned),
-      ),
-    );
-    await at(const Duration(seconds: 6), ActionNotification(Success('Shifted up to gear 11', button: plus)));
-    await at(Duration.zero, ActionNotification(Success('Shifted up to gear 12', button: plus)));
-    activityLogClock = () => base;
-  }
+  Future<void> fillLog() => seedRideActivityLog(controller);
 
   Future<void> shoot(
     WidgetTester tester, {
@@ -225,15 +188,19 @@ Future<void> main() async {
     });
   }
 
-  testWidgets('settings-1280x800-dark', (tester) async {
-    screenshotMode = false;
-    addTearDown(() => screenshotMode = true);
-    await shoot(
-      tester,
-      name: 'settings-1280x800-dark',
-      size: const Size(1280, 800),
-      brightness: Brightness.dark,
-      build: () => const Navigation(initialSection: AppSection.settings),
-    );
-  });
+  // Both large sizes: a tablet in landscape and a laptop window.
+  for (final size in const [Size(1180, 820), Size(1280, 800)]) {
+    final name = 'settings-${size.width.toInt()}x${size.height.toInt()}-dark';
+    testWidgets(name, (tester) async {
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
+      await shoot(
+        tester,
+        name: name,
+        size: size,
+        brightness: Brightness.dark,
+        build: () => const Navigation(initialSection: AppSection.settings),
+      );
+    });
+  }
 }

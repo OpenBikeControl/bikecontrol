@@ -208,13 +208,17 @@ Future<void> main() async {
     });
   }
 
-  testWidgets('mapping-1180x820-dark', (tester) async {
-    await shoot(
-      tester,
-      name: 'mapping-1180x820-dark',
-      size: const Size(1180, 820),
-      brightness: Brightness.dark,
-      build: (_) => ControllerSettingsPage(device: controller),
-    );
-  });
+  // Both large sizes: a tablet in landscape and a laptop window.
+  for (final size in const [Size(1180, 820), Size(1280, 800)]) {
+    final name = 'mapping-${size.width.toInt()}x${size.height.toInt()}-dark';
+    testWidgets(name, (tester) async {
+      await shoot(
+        tester,
+        name: name,
+        size: size,
+        brightness: Brightness.dark,
+        build: (_) => ControllerSettingsPage(device: controller),
+      );
+    });
+  }
 }

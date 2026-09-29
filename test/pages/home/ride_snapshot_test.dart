@@ -7,6 +7,8 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/overview.dart' show activityLogClock;
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +18,7 @@ import 'package:prop/utils/prefs.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../../helpers/activity_log_seed.dart';
 import '../../helpers/shell_harness.dart';
 import '../../widget_snapshot.dart';
 
@@ -70,12 +73,14 @@ Future<void> main() async {
     proxy.debugSetTrainerAppConnected(true);
     proxy.debugAttachFitnessBike(definition);
   });
+  tearDown(() => activityLogClock = DateTime.now);
 
   const sizes = [Size(390, 844), Size(1180, 820), Size(1280, 800)];
   for (final size in sizes) {
     for (final brightness in Brightness.values) {
       if (size.width > 400 && brightness == Brightness.light) continue;
       final name = 'ride-${size.width.toInt()}x${size.height.toInt()}-${brightness.name}';
+      final withActivityColumn = size.width >= Breakpoints.activityColumn;
       testWidgets(name, (tester) async {
         await captureWidget(
           tester,
@@ -97,7 +102,16 @@ Future<void> main() async {
                 );
                 core.connection.signalNotification(ButtonNotification(device: controller, buttonsClicked: [plus]));
               });
-              return const Navigation();
+              if (!withActivityColumn) return const Navigation();
+              // Wide enough for the permanent Activity column: the same few
+              // minutes of a ride the Activity tab capture shows, landing at
+              // once rather than mid-animation. Each mount gets a fresh log,
+              // so the last mount's seed is the one captured.
+              WidgetsBinding.instance.addPostFrameCallback((_) => seedRideActivityLog(controller));
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(disableAnimations: true),
+                child: const Navigation(),
+              );
             },
           ),
         );
