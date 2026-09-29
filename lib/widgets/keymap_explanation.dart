@@ -130,25 +130,29 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final devices = widget.filterDevice != null ? [widget.filterDevice!] : core.connection.controllerDevices;
     final keyButtonMap = devices.associateWith(mappingButtonsOf);
 
-    return AnimatedSize(
-      duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      alignment: Alignment.topCenter,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 12,
-        children: [
-          for (final MapEntry(key: device, value: buttons) in keyButtonMap.entries) ...[
-            if (widget.filterDevice == null) ColoredTitle(text: device.toString()),
-            if (buttons.isEmpty)
-              Text(device.buttonExplanation, style: const TextStyle(height: 1)).muted
-            else ...[
-              if (device.controllerLayout != null) _podsCard(context, device),
-              _buttonList(context, device, buttons),
-            ],
+    final list = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 12,
+      children: [
+        for (final MapEntry(key: device, value: buttons) in keyButtonMap.entries) ...[
+          if (widget.filterDevice == null) ColoredTitle(text: device.toString()),
+          if (buttons.isEmpty)
+            Text(device.buttonExplanation, style: const TextStyle(height: 1)).muted
+          else ...[
+            if (device.controllerLayout != null) _podsCard(context, device),
+            _buttonList(context, device, buttons),
           ],
         ],
-      ),
+      ],
+    );
+    // No AnimatedSize at all under reduced motion: one with a zero duration
+    // finishes its resize inside its own layout and trips a framework assert.
+    if (prefersReducedMotion(context)) return list;
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      alignment: Alignment.topCenter,
+      child: list,
     );
   }
 

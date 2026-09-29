@@ -107,6 +107,15 @@ Future<void> main() async {
     expect(single.top, greaterThan(tester.getRect(row).top), reason: 'the triggers open under their button');
   });
 
+  testWidgets('with reduced motion, opening another button resizes the list without an error', (tester) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await pump(tester, const Size(390, 844));
+    await openRow(tester, find.byKey(ValueKey('mapping-row-${mapped.name}')));
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(ValueKey('mapping-trigger-${mapped.name}-singleClick')), findsOneWidget);
+  });
+
   /// The paragraph in [within] whose text contains [text].
   RenderParagraph paragraphIn(WidgetTester tester, Finder within, String text) => find
       .descendant(of: within, matching: find.byType(RichText))
