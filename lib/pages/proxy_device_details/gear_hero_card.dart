@@ -192,13 +192,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
               children: [
                 Text(
                   '$target',
-                  style: TextStyle(
-                    fontSize: isSmall ? 52 : 72,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -2,
-                    color: cs.primary,
-                    fontFeatures: BkNumerals.tabular,
-                  ),
+                  style: BkNumerals.gear(isSmall ? 52 : 72, color: cs.primary, fontWeight: FontWeight.w700),
                 ),
                 const Gap(4),
                 Text(

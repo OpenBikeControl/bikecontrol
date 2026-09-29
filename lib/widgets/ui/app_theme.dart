@@ -26,28 +26,40 @@ abstract final class BkTheme {
   /// near-black; white on this orange is about 2.8:1.
   static const Color proOrange = Color(0xFFF97316);
 
+  /// Brand blue for TEXT (links, accent labels) on light grounds. The brand
+  /// blue itself is 4.48:1 on the grouped page (#F2F2F7), a hair under
+  /// 4.5:1; this one notch darker clears it on the page, cards and fills.
+  /// Read it through `bkAccentText(context)`.
+  static const Color lightAccentText = Color(0xFF0C6AA8);
+
+  /// Apple-style grouped palette: white cards on a light grey page, so cards
+  /// separate by tone rather than by a border.
   static const ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
-    background: Color(0xFFFFFFFF),
-    foreground: Color(0xFF020817),
+    background: Color(0xFFF2F2F7),
+    foreground: Color(0xFF1C1C1E),
     card: Color(0xFFFFFFFF),
-    cardForeground: Color(0xFF020817),
+    cardForeground: Color(0xFF1C1C1E),
     popover: Color(0xFFFFFFFF),
-    popoverForeground: Color(0xFF020817),
+    popoverForeground: Color(0xFF1C1C1E),
     primary: BKColor.main,
     primaryForeground: Color(0xFFFFFFFF),
-    secondary: Color(0xFFF1F5F9),
-    secondaryForeground: Color(0xFF0F172A),
-    muted: Color(0xFFF1F5F9),
-    // Zinc-500: >= 4.5:1 on white and on the activity rail's #F8FAFB. The old
-    // #A1A1AA override read at 2.56:1.
-    mutedForeground: Color(0xFF71717A),
-    accent: Color(0xFFF1F5F9),
-    accentForeground: Color(0xFF0F172A),
-    destructive: Color(0xFFEF4444),
-    destructiveForeground: Color(0xFFF8FAFC),
-    border: Color(0xFFE2E8F0),
-    input: Color(0xFFE2E8F0),
+    // Fills (secondary buttons, segmented tracks, chips) read on both the
+    // grey page and a white card.
+    secondary: Color(0xFFE9E9EE),
+    secondaryForeground: Color(0xFF1C1C1E),
+    muted: Color(0xFFE9E9EE),
+    // #6C6C70 is only 4.3:1 on the fills above; this clears 4.5:1 on the
+    // page (5.4), a card (6.0) and a fill.
+    mutedForeground: Color(0xFF636366),
+    accent: Color(0xFFE9E9EE),
+    accentForeground: Color(0xFF1C1C1E),
+    // Red-600: white text on it is 4.8:1 (red-500 was 3.8:1).
+    destructive: Color(0xFFDC2626),
+    destructiveForeground: Color(0xFFFFFFFF),
+    // Hairline separators: visible on white and on the page, never loud.
+    border: Color(0xFFDCDCE0),
+    input: Color(0xFFD1D1D6),
     ring: BKColor.main,
     chart1: Color(0xFFE76E50),
     chart2: Color(0xFF2A9D90),
@@ -56,27 +68,29 @@ abstract final class BkTheme {
     chart5: Color(0xFFF4A462),
   );
 
-  /// One neutral-grey family for every dark surface. Cards used to be navy
-  /// (#001A29) on a grey background, which read as two unrelated palettes.
+  /// One neutral-grey tonal ladder for every dark surface: page #121212,
+  /// card #1E1E1E, raised/fill #2A2A2A. Cards separate by tone, not borders.
   static const ColorScheme darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
-    background: Color(0xFF232323),
-    foreground: Color(0xFFF8FAFC),
-    card: Color(0xFF2A2A2A),
-    cardForeground: Color(0xFFF8FAFC),
+    background: Color(0xFF121212),
+    foreground: Color(0xFFFFFFFF),
+    card: Color(0xFF1E1E1E),
+    cardForeground: Color(0xFFFFFFFF),
+    // Menus and popovers float over cards, so they sit one step up.
     popover: Color(0xFF2A2A2A),
-    popoverForeground: Color(0xFFF8FAFC),
+    popoverForeground: Color(0xFFFFFFFF),
     primary: darkPrimary,
     primaryForeground: darkPrimaryForeground,
-    secondary: Color(0xFF3A3A3A),
-    secondaryForeground: Color(0xFFF8FAFC),
-    muted: Color(0xFF3A3A3A),
-    mutedForeground: Color(0xFFA1A1AA),
-    accent: Color(0xFF3A3A3A),
-    accentForeground: Color(0xFFF8FAFC),
+    secondary: Color(0xFF2A2A2A),
+    secondaryForeground: Color(0xFFFFFFFF),
+    muted: Color(0xFF2A2A2A),
+    mutedForeground: Color(0xFFA3A3A3),
+    accent: Color(0xFF2A2A2A),
+    accentForeground: Color(0xFFFFFFFF),
     destructive: Color(0xFFDC2626),
-    destructiveForeground: Color(0xFFF8FAFC),
-    border: Color(0xFF3A3A3A),
+    destructiveForeground: Color(0xFFFFFFFF),
+    border: Color(0xFF2E2E2E),
+    // Text-field outlines need a touch more than a hairline.
     input: Color(0xFF3A3A3A),
     ring: darkPrimary,
     chart1: Color(0xFF2662D9),
@@ -111,6 +125,41 @@ abstract final class BkTheme {
     typography: const Typography.geist(),
     radius: radius,
   );
+}
+
+/// Component defaults every BikeControl app shell puts around its content
+/// (main app, overlay, test harnesses), so a plain `Card` is the design's
+/// card everywhere: 16 px corners and no outline. Cards separate from the
+/// page by tone (dark: #1E1E1E on #121212; light: white on #F2F2F7).
+///
+/// A card that needs an outline (a selected plan, a warning) still sets
+/// `borderColor` itself.
+class BkComponentThemes extends StatelessWidget {
+  const BkComponentThemes({super.key, required this.child});
+
+  /// Corner radius of a card, in logical px.
+  static const double cardRadius = 16;
+
+  static const CardTheme cardTheme = CardTheme(
+    borderRadius: BorderRadius.all(Radius.circular(cardRadius)),
+    // Border.all(width: 0) still paints a one-pixel hairline, so the default
+    // outline is also made transparent.
+    borderWidth: 0,
+    borderColor: Color(0x00000000),
+  );
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ComponentTheme<CardTheme>(
+      data: cardTheme,
+      child: ComponentTheme<DividerTheme>(
+        data: DividerTheme(color: Theme.of(context).colorScheme.border),
+        child: child,
+      ),
+    );
+  }
 }
 
 /// Status colours, which shadcn's [ColorScheme] has no slots for: success,
@@ -152,7 +201,8 @@ class BkStatusColors {
   final Color dangerWash;
 
   static const BkStatusColors light = BkStatusColors._(
-    success: Color(0xFF15803D),
+    // Green-700 (#15803D) is 4.49:1 on the grouped page; one notch darker.
+    success: Color(0xFF147A3B),
     successForeground: Color(0xFFFFFFFF),
     successWash: Color(0xFFF0FDF4),
     warning: Color(0xFFB45309),
@@ -169,9 +219,9 @@ class BkStatusColors {
   /// Lifted hues for dark surfaces, dark text on the filled colours, and
   /// low-alpha washes of the colour itself.
   static const BkStatusColors dark = BkStatusColors._(
-    success: Color(0xFF4ADE80),
+    success: Color(0xFF22C55E),
     successForeground: Color(0xFF052E16),
-    successWash: Color(0x264ADE80),
+    successWash: Color(0x2622C55E),
     warning: Color(0xFFFBBF24),
     warningForeground: Color(0xFF1C1917),
     warningWash: Color(0x26FBBF24),

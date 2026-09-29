@@ -142,15 +142,9 @@ class DrivetrainControls extends StatelessWidget {
   /// 9, and the target moves under a thumb already on its way down.
   Widget _gearNumber(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final style = TextStyle(
-      fontSize: _gearFontSize,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -1.5,
-      color: cs.foreground,
-      // Equal-width digits, so the reserved box is exact for any value of the
-      // same length rather than merely close.
-      fontFeatures: BkNumerals.tabular,
-    );
+    // Tabular display figures: equal-width digits, so the reserved box is
+    // exact for any value of the same length rather than merely close.
+    final style = BkNumerals.gear(_gearFontSize, color: cs.foreground, fontWeight: FontWeight.w700);
     final gear = definition.currentGear.value;
     return Column(
       mainAxisSize: MainAxisSize.min,

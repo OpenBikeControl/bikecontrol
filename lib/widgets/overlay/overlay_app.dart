@@ -27,7 +27,7 @@ class OverlayShadcnApp extends StatelessWidget {
         AppLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
-      home: home,
+      home: BkComponentThemes(child: home),
     );
   }
 }

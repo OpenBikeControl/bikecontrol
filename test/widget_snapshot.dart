@@ -216,7 +216,8 @@ Future<List<File>> captureWidget(
                 child: SizedBox(
                   width: width,
                   height: height,
-                  child: builder(context),
+                  // main.dart's card/divider defaults.
+                  child: BkComponentThemes(child: Builder(builder: builder)),
                 ),
               ),
             ),

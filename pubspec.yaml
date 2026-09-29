@@ -151,6 +151,17 @@ flutter:
     - icon.png
     - openbikecontrol.png
     - jonas.jpg
+  # Display face for the gear numeral and big headlines (SIL OFL 1.1, see
+  # assets/fonts/barlow_condensed/OFL.txt). Body/UI text stays Geist.
+  fonts:
+    - family: BarlowCondensed
+      fonts:
+        - asset: assets/fonts/barlow_condensed/BarlowCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/barlow_condensed/BarlowCondensed-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/barlow_condensed/BarlowCondensed-ExtraBold.ttf
+          weight: 800
 
 flutter_intl:
   enabled: true
