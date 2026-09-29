@@ -2401,5 +2401,20 @@
   "helpAnswerStillStuckContactSupport": "Ancora problemi? Contatta l'assistenza",
   "paywallYourPlan": "Il tuo piano",
   "supportDiagnosticsNoticeNoScreenshot": "Per aiutarti a risolvere il problema, questa chat allega informazioni diagnostiche. Puoi controllarle con {infoIcon} prima di inviare.",
-  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}},
+  "rideV2SupportLine": "Non vuoi sbloccarlo ogni giorno? Contatta il supporto.",
+  "rideV2Explainer_title": "Configurazione dello Zwift Ride V2",
+  "rideV2Explainer_heading": "Sbloccalo con Zwift",
+  "rideV2Explainer_intro": "Zwift blocca lo Zwift Ride V2 sulla propria app. Sbloccalo nell'app Zwift e funzionerà con BikeControl per circa 24 ore.",
+  "rideV2Explainer_row2": "Sbloccalo nell'app Zwift: BikeControl ti mostra come",
+  "rideV2Explainer_row3": "Uno sblocco dura circa 24 ore, poi ne serve un altro",
+  "rideV2Explainer_gotIt": "Ho capito",
+  "rideV2LockedToast": "Il tuo Zwift Ride V2 è bloccato. Sbloccalo prima nell'app Zwift.",
+  "chainStepUnlockedHintRideV2": "Zwift blocca lo Zwift Ride V2 sulla propria app: sbloccalo in Zwift e continuerà a funzionare per circa 24 ore.",
+  "unlock_rideV2Unlocked": "Lo Zwift Ride V2 è sbloccato! Ora puoi chiudere questa pagina.",
+  "unlock_rideV2MightBeUnlockedAlready": "Il tuo Zwift Ride V2 potrebbe essere già sbloccato.",
+  "rideV2Instructions": "Zwift blocca lo Zwift Ride V2 sulla propria app. Sbloccalo lì e funzionerà con BikeControl per circa 24 ore.\n\n1. Apri l'app Zwift (non la Companion!)\n2. Accedi (non serve l'abbonamento) e apri la schermata di connessione dei dispositivi\n3. Collega il tuo rullo, poi collega lo Zwift Ride V2\n4. Chiudi di nuovo l'app Zwift e connettiti di nuovo in BikeControl",
+  "rideV2SupportPrefill": "Ciao! Il mio Zwift Ride V2 ha il firmware {version} e preferirei non sbloccarlo in Zwift ogni giorno. Potete aiutarmi?",
+  "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
+  "intakeControllerRideV2Lock": "Blocco dello Zwift Ride V2"
 }

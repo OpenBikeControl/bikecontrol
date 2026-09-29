@@ -112,6 +112,7 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
                 done: controller.unlocked!,
                 hintArg: controller.unlockedUntil,
                 uncertain: controller.unlockUncertain,
+                variant: controller.unlockIsRideV2 ? SetupStepVariant.zwiftRideV2 : SetupStepVariant.standard,
               ),
             // An offer, not work: once the derailleur's config has been updated
             // its own shifting is off, and the rider can hand it back at any

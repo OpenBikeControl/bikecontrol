@@ -22,6 +22,7 @@ ControllerInput controller({
   bool? unlocked,
   String? unlockedUntil,
   bool unlockUncertain = false,
+  bool unlockIsRideV2 = false,
   bool? sramSetupDone,
   bool sramCanRestore = false,
   bool needsUnlockModeChoice = false,
@@ -37,6 +38,7 @@ ControllerInput controller({
     unlocked: unlocked,
     unlockedUntil: unlockedUntil,
     unlockUncertain: unlockUncertain,
+    unlockIsRideV2: unlockIsRideV2,
     sramSetupDone: sramSetupDone,
     sramCanRestore: sramCanRestore,
     needsUnlockModeChoice: needsUnlockModeChoice,
@@ -134,6 +136,20 @@ void main() {
       expect(link.activeStep?.id, SetupStepId.controllerUnlocked);
       // A card with work outstanding is never green.
       expect(link.status, LinkStatus.attention);
+    });
+
+    test('a Zwift Ride V2 gets the same unlock step, marked as the Ride V2 so its hint names it', () {
+      final chain = buildChain(
+        ChainInputs(controllers: [controller(name: 'Zwift Ride V2', unlocked: false, unlockIsRideV2: true)], app: _readyApp),
+      );
+      final link = chain.byKey(ChainLinkKey.controller);
+      expect(link.activeStep?.id, SetupStepId.controllerUnlocked);
+      expect(link.activeStep?.variant, SetupStepVariant.zwiftRideV2);
+    });
+
+    test('a Click V2 unlock step keeps the standard wording', () {
+      final chain = buildChain(ChainInputs(controllers: [controller(unlocked: false)], app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.controller).activeStep?.variant, SetupStepVariant.standard);
     });
 
     test('an unlocked controller ticks the step and stays ready', () {

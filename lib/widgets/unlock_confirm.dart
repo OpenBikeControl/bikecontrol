@@ -1,10 +1,10 @@
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class UnlockConfirm extends StatefulWidget {
-  final ZwiftClickV2 device;
+  final ZwiftUnlock device;
   const UnlockConfirm({super.key, required this.device});
 
   @override

@@ -2401,5 +2401,20 @@
   "helpAnswerStillStuckContactSupport": "Nadal nie działa? Napisz do supportu",
   "paywallYourPlan": "Twój plan",
   "supportDiagnosticsNoticeNoScreenshot": "Aby pomóc rozwiązać problem, ten czat dołącza dane diagnostyczne. Możesz je przejrzeć przez {infoIcon} przed wysłaniem.",
-  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}},
+  "rideV2SupportLine": "Nie chcesz odblokowywać codziennie? Skontaktuj się z pomocą.",
+  "rideV2Explainer_title": "Konfiguracja Zwift Ride V2",
+  "rideV2Explainer_heading": "Odblokuj go w Zwift",
+  "rideV2Explainer_intro": "Zwift blokuje Zwift Ride V2 do użytku we własnej aplikacji. Odblokuj go w aplikacji Zwift, a będzie działał z BikeControl przez około 24 godziny.",
+  "rideV2Explainer_row2": "Odblokuj go w aplikacji Zwift – BikeControl pokaże ci, jak",
+  "rideV2Explainer_row3": "Odblokowanie trwa około 24 godzin, potem potrzebne jest kolejne",
+  "rideV2Explainer_gotIt": "Rozumiem",
+  "rideV2LockedToast": "Twój Zwift Ride V2 jest zablokowany. Najpierw odblokuj go w aplikacji Zwift.",
+  "chainStepUnlockedHintRideV2": "Zwift blokuje Zwift Ride V2 do użytku we własnej aplikacji – odblokuj go w Zwift, a będzie działał przez około 24 godziny.",
+  "unlock_rideV2Unlocked": "Zwift Ride V2 jest odblokowany! Możesz teraz zamknąć tę stronę.",
+  "unlock_rideV2MightBeUnlockedAlready": "Twój Zwift Ride V2 może być już odblokowany.",
+  "rideV2Instructions": "Zwift blokuje Zwift Ride V2 do użytku we własnej aplikacji. Odblokuj go tam, a będzie działał z BikeControl przez około 24 godziny.\n\n1. Otwórz aplikację Zwift (nie Companion!)\n2. Zaloguj się (subskrypcja nie jest wymagana) i otwórz ekran łączenia urządzeń\n3. Połącz trenażer, a następnie Zwift Ride V2\n4. Zamknij ponownie aplikację Zwift i połącz się ponownie w BikeControl",
+  "rideV2SupportPrefill": "Cześć! Mój Zwift Ride V2 ma oprogramowanie {version} i wolałbym nie odblokowywać go w Zwift codziennie. Czy możecie pomóc?",
+  "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
+  "intakeControllerRideV2Lock": "Blokada Zwift Ride V2"
 }

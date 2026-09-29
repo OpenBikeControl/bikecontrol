@@ -2401,5 +2401,20 @@
   "helpAnswerStillStuckContactSupport": "Klappt es immer noch nicht? Support kontaktieren",
   "paywallYourPlan": "Dein Tarif",
   "supportDiagnosticsNoticeNoScreenshot": "Damit wir dein Problem lösen können, hängt dieser Chat Diagnosedaten an. Du kannst sie vor dem Senden über {infoIcon} ansehen.",
-  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}},
+  "rideV2SupportLine": "Du willst nicht jeden Tag entsperren? Kontaktiere den Support.",
+  "rideV2Explainer_title": "Zwift Ride V2 einrichten",
+  "rideV2Explainer_heading": "Mit Zwift entsperren",
+  "rideV2Explainer_intro": "Zwift sperrt den Zwift Ride V2 für die eigene App. Entsperre ihn in der Zwift-App, dann funktioniert er etwa 24 Stunden lang mit BikeControl.",
+  "rideV2Explainer_row2": "Entsperre ihn in der Zwift-App – BikeControl zeigt dir, wie",
+  "rideV2Explainer_row3": "Eine Entsperrung hält etwa 24 Stunden, danach ist eine neue nötig",
+  "rideV2Explainer_gotIt": "Verstanden",
+  "rideV2LockedToast": "Dein Zwift Ride V2 ist gesperrt. Entsperre ihn zuerst in der Zwift-App.",
+  "chainStepUnlockedHintRideV2": "Zwift sperrt den Zwift Ride V2 für die eigene App – entsperre ihn in Zwift, dann funktioniert er etwa 24 Stunden lang.",
+  "unlock_rideV2Unlocked": "Zwift Ride V2 ist entsperrt! Du kannst diese Seite jetzt schließen.",
+  "unlock_rideV2MightBeUnlockedAlready": "Dein Zwift Ride V2 ist möglicherweise bereits entsperrt.",
+  "rideV2Instructions": "Zwift sperrt den Zwift Ride V2 für die eigene App. Entsperre ihn dort, dann funktioniert er etwa 24 Stunden lang mit BikeControl.\n\n1. Öffne die Zwift-App (nicht den Companion!)\n2. Melde dich an (kein Abo nötig) und öffne den Bildschirm zum Verbinden der Geräte\n3. Verbinde deinen Trainer und dann den Zwift Ride V2\n4. Schließe die Zwift-App wieder und verbinde dich erneut in BikeControl",
+  "rideV2SupportPrefill": "Hallo! Mein Zwift Ride V2 hat Firmware {version} und ich möchte ihn nicht jeden Tag in Zwift entsperren. Könnt ihr mir helfen?",
+  "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
+  "intakeControllerRideV2Lock": "Sperre des Zwift Ride V2"
 }

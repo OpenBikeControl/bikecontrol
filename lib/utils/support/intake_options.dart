@@ -59,6 +59,7 @@ const controllerOptions = <ControllerOption>[
   ControllerOption('zwift_play_left'),
   ControllerOption('zwift_play_right'),
   ControllerOption('zwift_ride'),
+  ControllerOption('zwift_ride_v2'),
   ControllerOption('shimano_di2'),
   ControllerOption('sram_axs'),
   ControllerOption('wahoo'),
@@ -79,6 +80,7 @@ String controllerOptionLabel(AppLocalizations l, String id) => switch (id) {
   'zwift_play_left' => l.intakeControllerPlayLeft,
   'zwift_play_right' => l.intakeControllerPlayRight,
   'zwift_ride' => 'Zwift Ride',
+  'zwift_ride_v2' => 'Zwift Ride V2',
   'shimano_di2' => 'Shimano Di2',
   'sram_axs' => 'SRAM AXS',
   'wahoo' => 'Wahoo',
@@ -106,6 +108,17 @@ const controllerSymptoms = <SymptomOption>[
   SymptomOption('buttons_partial'),
   SymptomOption('dropouts'),
   SymptomOption('other'),
+];
+
+/// The Zwift Ride V2 lock: Zwift locks it to its own app and it has to be
+/// unlocked there about every 24 hours. Offered for a Zwift Ride V2 only — see
+/// [controllerSymptomsFor].
+const rideV2LockSymptom = SymptomOption('zwift_ride_v2_lock');
+
+/// The "What's happening?" options for the controller picked in the form.
+List<SymptomOption> controllerSymptomsFor(String? controllerId) => [
+  if (controllerId == 'zwift_ride_v2') rideV2LockSymptom,
+  ...controllerSymptoms,
 ];
 
 /// Trainer-app symptom dropdown ("What's happening?").
@@ -148,6 +161,7 @@ String symptomLabel(AppLocalizations l, IntakeCategory category, String id) {
     (IntakeCategory.controller, 'no_response') => l.intakeControllerNoResponse,
     (IntakeCategory.controller, 'buttons_partial') => l.intakeControllerButtonsPartial,
     (IntakeCategory.controller, 'dropouts') => l.intakeControllerDropouts,
+    (IntakeCategory.controller, 'zwift_ride_v2_lock') => l.intakeControllerRideV2Lock,
     (IntakeCategory.trainerApp, 'shifts_not_recognized') => l.intakeAppShiftsNotRecognized,
     (IntakeCategory.trainerApp, 'network_bridge_fails') => l.intakeAppNetworkBridgeFails,
     (IntakeCategory.trainerApp, 'no_pairing') => l.intakeAppNoPairing,
@@ -181,7 +195,7 @@ String? controllerOptionIdFor(BaseDevice device) {
         ? 'zwift_play_left'
         : 'zwift_play_right';
   }
-  if (device is ZwiftRide) return 'zwift_ride';
+  if (device is ZwiftRide) return device.isRideV2 ? 'zwift_ride_v2' : 'zwift_ride';
   if (device is ShimanoDi2) return 'shimano_di2';
   if (device is SramAxs) return 'sram_axs';
   if (device is WahooKickrBikeShift) return 'wahoo';
@@ -218,11 +232,16 @@ class IntakeAnswers {
   /// trainer-app branches.
   final String? symptom;
 
+  /// The controller's firmware version, when the rider came from a screen
+  /// that knows which controller this is about (e.g. the Zwift Ride V2 lock).
+  final String? firmware;
+
   const IntakeAnswers({
     required this.category,
     this.subcategory,
     this.subcategoryValue,
     this.symptom,
+    this.firmware,
   });
 
   Map<String, dynamic> toJson() => {
@@ -231,5 +250,16 @@ class IntakeAnswers {
         if (subcategory != null) 'subcategory': subcategory,
         if (subcategoryValue != null) 'subcategory_value': subcategoryValue,
         if (symptom != null) 'symptom': symptom,
+        if (firmware != null) 'firmware': firmware,
       };
 }
+
+/// The intake for a rider asking about the Zwift Ride V2 lock, pre-selected
+/// when support is opened from one of the Ride V2 unlock screens.
+IntakeAnswers rideV2LockIntake(BaseDevice device) => IntakeAnswers(
+  category: IntakeCategory.controller,
+  subcategory: 'device',
+  subcategoryValue: 'zwift_ride_v2',
+  symptom: rideV2LockSymptom.id,
+  firmware: device is ZwiftRide ? device.firmwareVersion : null,
+);

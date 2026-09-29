@@ -2401,5 +2401,20 @@
   "helpAnswerStillStuckContactSupport": "Toujours bloqué ? Contacter le support",
   "paywallYourPlan": "Ton offre",
   "supportDiagnosticsNoticeNoScreenshot": "Pour t'aider à résoudre le problème, ce chat joint des informations de diagnostic. Tu peux les consulter avec {infoIcon} avant d'envoyer.",
-  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}}
+  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}},
+  "rideV2SupportLine": "Tu ne veux pas déverrouiller chaque jour ? Contacte le support.",
+  "rideV2Explainer_title": "Configuration du Zwift Ride V2",
+  "rideV2Explainer_heading": "Déverrouille-le avec Zwift",
+  "rideV2Explainer_intro": "Zwift verrouille le Zwift Ride V2 sur sa propre application. Déverrouille-le dans l'application Zwift et il fonctionne avec BikeControl pendant environ 24 heures.",
+  "rideV2Explainer_row2": "Déverrouille-le dans l'application Zwift – BikeControl te montre comment",
+  "rideV2Explainer_row3": "Un déverrouillage dure environ 24 heures, puis il en faut un nouveau",
+  "rideV2Explainer_gotIt": "Compris",
+  "rideV2LockedToast": "Ton Zwift Ride V2 est verrouillé. Déverrouille-le d'abord dans l'application Zwift.",
+  "chainStepUnlockedHintRideV2": "Zwift verrouille le Zwift Ride V2 sur sa propre application – déverrouille-le dans Zwift et il fonctionne pendant environ 24 heures.",
+  "unlock_rideV2Unlocked": "Le Zwift Ride V2 est déverrouillé ! Tu peux maintenant fermer cette page.",
+  "unlock_rideV2MightBeUnlockedAlready": "Ton Zwift Ride V2 est peut-être déjà déverrouillé.",
+  "rideV2Instructions": "Zwift verrouille le Zwift Ride V2 sur sa propre application. Déverrouille-le là-bas et il fonctionne avec BikeControl pendant environ 24 heures.\n\n1. Ouvre l'application Zwift (pas Companion !)\n2. Connecte-toi (aucun abonnement requis) et ouvre l'écran de connexion des appareils\n3. Connecte ton home trainer, puis le Zwift Ride V2\n4. Ferme à nouveau l'application Zwift et reconnecte-toi dans BikeControl",
+  "rideV2SupportPrefill": "Bonjour ! Mon Zwift Ride V2 est en firmware {version} et je préférerais ne pas le déverrouiller dans Zwift chaque jour. Pouvez-vous m'aider ?",
+  "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
+  "intakeControllerRideV2Lock": "Verrouillage du Zwift Ride V2"
 }

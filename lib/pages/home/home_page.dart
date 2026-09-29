@@ -9,7 +9,7 @@ import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/remembered_device.dart';
@@ -55,6 +55,7 @@ import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
+import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show enableLocalControl, ensureLocalNetworkAccess;
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -281,11 +282,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// Once per install, when a Zwift Ride first shows up on server-locked
-  /// firmware (>1.2.0), surface a one-time dialog pointing the rider at support.
-  /// The persistent card notice in controller settings is the standing fallback.
+  /// firmware (>1.2.0) without being a Zwift Ride V2, surface a one-time dialog
+  /// pointing the rider at support. The persistent card notice in controller
+  /// settings is the standing fallback. A Zwift Ride V2 gets its own one-time
+  /// explainer instead — see [maybeShowZwiftRideV2Explainer].
   bool _rideFirmwareDialogHandled = false;
+  bool _rideV2ExplainerPending = false;
 
   void _maybeShowRideFirmwareDialog() {
+    _maybeShowRideV2Explainer();
     if (screenshotMode || _rideFirmwareDialogHandled) return;
     if (core.settings.getRideFirmwareLockDialogShown()) {
       _rideFirmwareDialogHandled = true;
@@ -298,6 +303,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         showZwiftRideFirmwareDialog(context, affected as ZwiftRide);
+      }
+    });
+  }
+
+  void _maybeShowRideV2Explainer() {
+    if (screenshotMode || _rideV2ExplainerPending || core.settings.getRideV2ExplainerShown()) return;
+    final hasRideV2 = core.connection.controllerDevices.any((d) => d.isConnected && d is ZwiftUnlock && d.isRideV2);
+    if (!hasRideV2) return;
+    _rideV2ExplainerPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        if (mounted) await maybeShowZwiftRideV2Explainer(context, core.connection.controllerDevices);
+      } catch (e, s) {
+        recordError(e, s, context: 'HomePage.rideV2Explainer');
+      } finally {
+        _rideV2ExplainerPending = false;
       }
     });
   }
@@ -378,15 +399,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   /// Whether [device] is unlocked, or null when unlocking does not apply.
   ///
-  /// Only the Zwift Click V2 needs it, and only in the modes that actually use
-  /// Zwift to unlock: the legacy unified controller (which has no other way)
-  /// and the left puck when the rider chose unlock-with-Zwift. The left puck on
-  /// the restart workaround never unlocks — it reboots itself instead — so a
-  /// step telling the rider to open Zwift would be wrong there, and the right
-  /// puck was never locked at all.
+  /// Only controllers Zwift locks to its own app need it — the Zwift Click V2
+  /// in the modes that actually use Zwift to unlock (the legacy unified
+  /// controller, which has no other way, and the left puck when the rider chose
+  /// unlock-with-Zwift) and the Zwift Ride V2. The left puck on the restart
+  /// workaround never unlocks — it reboots itself instead — so a step telling
+  /// the rider to open Zwift would be wrong there, and the right puck was never
+  /// locked at all. See [ZwiftUnlock.requiresZwiftUnlock].
   bool? _unlockState(BaseDevice device) {
-    if (device is! ZwiftClickV2) return null;
-    if (device is ZwiftClickV2LeftSide && !core.settings.getUnlockWithZwift()) return null;
+    if (device is! ZwiftUnlock || !device.requiresZwiftUnlock) return null;
     return device.isPersistedUnlocked;
   }
 
@@ -394,10 +415,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Formatted here, next to the other display concerns — the chain model
   /// itself stays free of locales and date formats.
   String? _unlockedUntil(BaseDevice device) {
-    if (device is! ZwiftClickV2) return null;
+    if (device is! ZwiftUnlock || !device.requiresZwiftUnlock) return null;
     final until = device.unlockedUntil;
     return until == null ? null : DateFormat('EEEE, HH:mm').format(until);
   }
+
+  bool _unlockUncertain(BaseDevice device) =>
+      device is ZwiftUnlock && device.requiresZwiftUnlock && device.isLikelyUnlocked;
 
   DevicePresence _presenceOf(BaseDevice device, {required bool isStandIn}) {
     if (device.isConnected) return DevicePresence.connected;
@@ -519,7 +543,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             requiresBluetooth: device is BluetoothDevice,
             unlocked: _unlockState(device),
             unlockedUntil: _unlockedUntil(device),
-            unlockUncertain: device is ZwiftClickV2 && device.isLikelyUnlocked,
+            unlockUncertain: _unlockUncertain(device),
+            unlockIsRideV2: device is ZwiftUnlock && device.isRideV2,
             sramSetupDone: device is SramAxs ? !device.needsGuidedSetup : null,
             sramCanRestore: device is SramAxs && device.canRestoreShifting,
             needsUnlockModeChoice:
@@ -909,7 +934,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (screenshotMode || _unlockState(device) != true) return null;
     final until = _unlockedUntil(device);
     if (until == null) return null;
-    return device is ZwiftClickV2 && device.isLikelyUnlocked
+    return _unlockUncertain(device)
         ? context.i18n.chainStepUnlockedLikelyUntil(until)
         : context.i18n.chainStepUnlockedUntil(until);
   }
@@ -1365,12 +1390,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _openInstructions(ChainLink link) async {
     switch (link.key) {
       case ChainLinkKey.controller:
-        // A locked Click V2 has one specific answer, and it is not the generic
-        // "can't find your controller" help: send the rider straight into the
-        // unlock flow for this exact device.
+        // A locked Click V2 or Ride V2 has one specific answer, and it is not
+        // the generic "can't find your controller" help: send the rider
+        // straight into the unlock flow for this exact device.
         final active = link.activeStep?.id;
         final device = _controllerById(link.deviceId);
-        if (active == SetupStepId.controllerUnlocked && device is ZwiftClickV2) {
+        if (active == SetupStepId.controllerUnlocked && device is ZwiftUnlock) {
           await openDrawer(
             context: context,
             position: OverlayPosition.bottom,

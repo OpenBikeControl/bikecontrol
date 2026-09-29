@@ -605,6 +605,15 @@ class Settings {
     await prefs.setBool('ride_firmware_lock_dialog_shown', shown);
   }
 
+  /// Whether the one-time Zwift Ride V2 unlock explainer has been shown.
+  bool getRideV2ExplainerShown() {
+    return prefs.getBool('ride_v2_explainer_shown') ?? false;
+  }
+
+  Future<void> setRideV2ExplainerShown(bool shown) async {
+    await prefs.setBool('ride_v2_explainer_shown', shown);
+  }
+
   /// Sticky flag: true once the user has opened a support chat at least once
   /// on this device. HelpButton uses it to decide whether to do a background
   /// poll for unread admin replies on app start.
