@@ -178,6 +178,10 @@ Future<void> main() async {
     });
 
     testWidgets('connection-390x844-$theme', (tester) async {
+      // The real page: store renders call the app "Trainer app" in the
+      // header and the target question but not in the method's status.
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
       await shoot(
         tester,
         name: 'connection-390x844-$theme',

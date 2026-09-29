@@ -3,7 +3,10 @@ library;
 
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart' show ZwiftDeviceType;
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
+import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
@@ -39,6 +42,30 @@ Future<void> main() async {
     ..isConnected = true
     ..rssi = -51
     ..batteryLevel = 81;
+
+  // Button mapping renders the real page (not a store render, which
+  // anonymises the trainer app in some places and not others): a Zwift Play
+  // with MyWhoosh receiving over the network, so its built-in actions are live.
+  final play = ZwiftPlay(BleDevice(name: 'Zwift Play', deviceId: 'p5-play'), deviceType: ZwiftDeviceType.playRight)
+    ..firmwareVersion = '1.3.1'
+    ..isConnected = true
+    ..rssi = -51
+    ..batteryLevel = 81;
+  void realMappingPage() {
+    screenshotMode = false;
+    addTearDown(() => screenshotMode = true);
+    core.connection.devices
+      ..clear()
+      ..add(play);
+    core.settings.setObpMdnsEnabled(true);
+    core.obpMdnsEmulator.isStarted.value = true;
+    core.obpMdnsEmulator.isConnected.value = true;
+    addTearDown(() {
+      core.settings.setObpMdnsEnabled(false);
+      core.obpMdnsEmulator.isStarted.value = false;
+      core.obpMdnsEmulator.isConnected.value = false;
+    });
+  }
 
   setUp(() async {
     core.connection.devices
@@ -94,12 +121,13 @@ Future<void> main() async {
     final theme = brightness.name;
 
     testWidgets('mapping-390x844-$theme', (tester) async {
+      realMappingPage();
       await shoot(
         tester,
         name: 'mapping-390x844-$theme',
         size: phone,
         brightness: brightness,
-        build: (_) => ControllerSettingsPage(device: controller),
+        build: (_) => ControllerSettingsPage(device: play),
       );
     });
 
@@ -212,12 +240,13 @@ Future<void> main() async {
   for (final size in const [Size(1180, 820), Size(1280, 800)]) {
     final name = 'mapping-${size.width.toInt()}x${size.height.toInt()}-dark';
     testWidgets(name, (tester) async {
+      realMappingPage();
       await shoot(
         tester,
         name: name,
         size: size,
         brightness: Brightness.dark,
-        build: (_) => ControllerSettingsPage(device: controller),
+        build: (_) => ControllerSettingsPage(device: play),
       );
     });
   }

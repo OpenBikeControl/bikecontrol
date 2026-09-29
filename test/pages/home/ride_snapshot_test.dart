@@ -80,7 +80,9 @@ Future<void> main() async {
     for (final brightness in Brightness.values) {
       if (size.width > 400 && brightness == Brightness.light) continue;
       final name = 'ride-${size.width.toInt()}x${size.height.toInt()}-${brightness.name}';
-      final withActivityColumn = size.width >= Breakpoints.activityColumn;
+      // From 840 Ride shows the log: as the latest-events preview under Your
+      // buttons, and from 1200 as the permanent column.
+      final showsLog = size.width >= Breakpoints.medium;
       testWidgets(name, (tester) async {
         await captureWidget(
           tester,
@@ -102,8 +104,8 @@ Future<void> main() async {
                 );
                 core.connection.signalNotification(ButtonNotification(device: controller, buttonsClicked: [plus]));
               });
-              if (!withActivityColumn) return const Navigation();
-              // Wide enough for the permanent Activity column: the same few
+              if (!showsLog) return const Navigation();
+              // Wide enough for the log beside Ride: the same few
               // minutes of a ride the Activity tab capture shows, landing at
               // once rather than mid-animation. Each mount gets a fresh log,
               // so the last mount's seed is the one captured.
