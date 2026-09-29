@@ -1,7 +1,6 @@
 @Tags(['screenshots'])
 library;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -20,6 +19,8 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/activity/activity_log.dart' show ActivityLogController, ActivityLogView;
+import 'package:bike_control/pages/activity/activity_preview.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/pages/controller_settings.dart';
@@ -55,6 +56,7 @@ import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart' show BkNumerals;
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -291,7 +293,7 @@ Future<void> main() async {
         if (afterPump != null) await afterPump(tester, size.type);
         // golden_screenshot v9+ only loads fonts found in the rendered widget
         // tree, so load after the first pump (then re-render with them).
-        await tester.loadAssets();
+        await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
         // Fonts arriving after the first layout leave intrinsic sizes measured
         // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
         // clips descenders). The app loads its fonts before the first frame, so
@@ -350,7 +352,7 @@ Future<void> main() async {
     );
     await tester.pump();
     if (afterPump != null) await afterPump(tester);
-    await tester.loadAssets();
+    await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
     // Fonts arriving after the first layout leave intrinsic sizes measured
     // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
     // clips descenders). The app loads its fonts before the first frame, so
@@ -404,7 +406,7 @@ Future<void> main() async {
       );
       await tester.pump();
       if (afterPump != null) await afterPump(tester);
-      await tester.loadAssets();
+      await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
       // Fonts arriving after the first layout leave intrinsic sizes measured
       // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
       // clips descenders). The app loads its fonts before the first frame, so
@@ -416,6 +418,24 @@ Future<void> main() async {
         matchesGoldenFile('../screenshots/$loc/$scene.png'),
       );
     }
+  }
+
+  // Half a minute of riding in the activity log, worded as the app words it in
+  // the current locale: the shifts that took the drivetrain up to the gear its
+  // card shows. Three rows, so the list ends inside the tablet frame. The
+  // clock is pinned so the ages read the same on every board.
+  Future<void> seedStoreActivity(AppLocalizations l10n) async {
+    final base = DateTime(2026, 9, 29, 10);
+    final shiftUp = device.availableButtons.firstWhere(
+      (b) => b.action == InGameAction.shiftUp,
+      orElse: () => device.availableButtons.first,
+    );
+    for (final (ago, gear) in [(34, 10), (18, 11), (4, 12)]) {
+      activityLogClock = () => base.subtract(Duration(seconds: ago));
+      core.connection.signalNotification(ActionNotification(Success(l10n.trainerShiftedUp(gear), button: shiftUp)));
+      await Future<void>.value();
+    }
+    activityLogClock = () => base;
   }
 
   // The home screen — the first board on the listing, so it has to show a
@@ -452,8 +472,46 @@ Future<void> main() async {
     proxy.debugSetTrainerAppConnected(true);
     proxy.debugAttachFitnessBike(fbd);
     try {
-      await shoot(tester, 'device', () => BikeControlApp());
+      await shoot(
+        tester,
+        'device',
+        () => BikeControlApp(),
+        // The wide boards carry the Ride tab's activity list next to the
+        // drivetrain; "No activity yet" there reads as a setup that never
+        // worked. Fill it with the shifts that took the drivetrain to the gear
+        // it shows.
+        afterPump: (tester, type) async {
+          // The Ride tab's preview card, or the permanent Activity column on
+          // the widest boards.
+          final ActivityLogController log;
+          final Element host;
+          final preview = find.byType(RideActivityPreview);
+          final column = find.byType(ActivityLogView);
+          if (preview.evaluate().isNotEmpty) {
+            host = tester.element(preview.first);
+            log = tester.widget<RideActivityPreview>(preview.first).controller;
+          } else if (column.evaluate().isNotEmpty) {
+            host = tester.element(column.first);
+            log = tester.widget<ActivityLogView>(column.first).controller;
+          } else {
+            return;
+          }
+          // The shell outlives pumpWidget, so start each board from empty:
+          // otherwise a board inherits the previous one's rows, in its
+          // language.
+          log.clear();
+          // Let the cleared rows finish leaving before the new ones land.
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 1));
+          // The board's own localizations: AppLocalizations.current is not
+          // guaranteed to follow the locale the board is rendered in.
+          await seedStoreActivity(AppLocalizations.of(host));
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 1));
+        },
+      );
     } finally {
+      activityLogClock = DateTime.now;
       // Restored so the scenes stay independent of the order they run in.
       proxy.debugAttachFitnessBike(null);
       proxy.debugSetTrainerAppConnected(false);
@@ -472,8 +530,9 @@ Future<void> main() async {
   // state so the tile's description and height don't depend on what a prior
   // scene left behind.
   //
-  // The wide boards additionally show the trainer-app picker open on the apps
-  // BikeControl speaks to; see afterPump.
+  // The trainer-app picker stays folded into its card on every board. It
+  // used to be opened on the wide ones, but it now spans the card, so its
+  // popup covers the whole page this board is about.
   testGoldens('Trainer', (WidgetTester tester) async {
     core.settings.setTrainerApp(MyWhoosh());
     core.settings.setKeyMap(MyWhoosh());
@@ -485,30 +544,6 @@ Future<void> main() async {
       tester,
       'trainer',
       () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
-      // The picker's popup is a shadcn popover, which ShadcnApp hosts in its
-      // own overlay — inside the frame, so it is part of the capture.
-      afterPump: (tester, type) async {
-        // pumpWidget reuses the element tree between boards, and the popup sits
-        // in an overlay above it — so one opened for an earlier board is still
-        // up, carrying that board's locale in its section headers and covering
-        // the spot the reopening tap aims at (that tap then picks a list item
-        // instead: this scene first came out shot on Rouvy that way). Close it
-        // before deciding anything about this board.
-        final open = find.byType(SelectPopup);
-        if (open.evaluate().isNotEmpty) {
-          unawaited(closeOverlay(tester.element(open)));
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 400));
-        }
-        // Opened only where there is room beside it: the popup drops straight
-        // down from the picker, so on a phone it lands on top of the very
-        // connection methods this board exists to show, while a tablet or a
-        // desktop window carries both.
-        if (!CustomFrame.isWide(type)) return;
-        await tester.tap(find.byType(TrainerAppSelect));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-      },
     );
   });
 
@@ -1111,7 +1146,7 @@ Future<void> main() async {
           ),
         );
         await tester.pump();
-        await tester.loadAssets();
+        await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
         // Fonts arriving after the first layout leave intrinsic sizes measured
         // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
         // clips descenders). The app loads its fonts before the first frame, so
