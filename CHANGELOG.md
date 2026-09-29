@@ -1,4 +1,4 @@
-### 7.1.0 (DD-10-2026)
+### 7.1.0 (29-09-2026)
 **Features**:
 - Smoother first-time setup, with a clearer Help Center and support flow.
 - Accessibility: all buttons are labelled for screen readers, toasts are read aloud, touch targets on phones are larger, and "Reduce motion" is respected.
