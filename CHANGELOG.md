@@ -1,3 +1,14 @@
+### 7.1.0 (DD-10-2026)
+**Features**:
+- Smoother first-time setup, with a clearer Help Center and support flow.
+- Accessibility: all buttons are labelled for screen readers, toasts are read aloud, touch targets on phones are larger, and "Reduce motion" is respected.
+- A refreshed light and dark theme that's easier to read.
+
+**Fixes**:
+- Home: a trainer that is still connecting no longer briefly shows "lost connection".
+- Text on phones is a more comfortable size, and the last English-only text is now translated.
+- Faster home screen and workout history.
+
 ### 7.0.0 (18-09-2026)
 **Features**:
 - Sensors: pair a heart-rate strap, cadence sensor or power meter and choose, per signal, whether your trainer app gets the trainer's reading or the sensor's, over the one Bridge connection you already have.
