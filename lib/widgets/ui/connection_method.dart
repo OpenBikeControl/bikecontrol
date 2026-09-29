@@ -45,6 +45,18 @@ extension ConnectionMethodTypeActivityIcon on ConnectionMethodType {
   };
 }
 
+/// Marks the connection methods listed under the "Recommended connection
+/// methods" header, so a method there doesn't repeat "Recommended" as a pill.
+class RecommendedConnectionMethods extends InheritedWidget {
+  const RecommendedConnectionMethods({super.key, required super.child});
+
+  static bool contains(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<RecommendedConnectionMethods>() != null;
+
+  @override
+  bool updateShouldNotify(RecommendedConnectionMethods oldWidget) => false;
+}
+
 class ConnectionMethod extends StatefulWidget {
   final TrainerConnection trainerConnection;
   final String title;
@@ -306,7 +318,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   const BetaPill()
                 else if (widget.supportLevel == ConnectionSupport.experimental)
                   const BetaPill(text: 'EXPER.')
-                else if (widget.isRecommended && !screenshotMode)
+                else if (widget.isRecommended && !screenshotMode && !RecommendedConnectionMethods.contains(context))
                   SecondaryBadge(child: Text(l10n.recommended)),
                 const Gap(8),
                 Semantics(

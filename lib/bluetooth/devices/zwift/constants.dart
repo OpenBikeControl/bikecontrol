@@ -63,7 +63,7 @@ class ZwiftConstants {
 }
 
 class ZwiftButtons {
-  // left controller
+  // left controller. The pod shows the side, so the labels don't: "P", not "P←".
   static const ControllerButton navigationUp = ControllerButton(
     'navigationUp',
     action: InGameAction.up,
@@ -88,9 +88,17 @@ class ZwiftButtons {
     icon: LucideIcons.chevronRight,
     color: Colors.black,
   );
-  static const ControllerButton onOffLeft = ControllerButton('onOffLeft', action: InGameAction.toggleUi);
-  static const ControllerButton sideButtonLeft = ControllerButton('sideButtonLeft', action: InGameAction.shiftDown);
-  static const ControllerButton paddleLeft = ControllerButton('paddleLeft', action: InGameAction.shiftDown);
+  static const ControllerButton onOffLeft = ControllerButton(
+    'onOffLeft',
+    action: InGameAction.toggleUi,
+    icon: LucideIcons.power,
+  );
+  static const ControllerButton sideButtonLeft = ControllerButton(
+    'sideButtonLeft',
+    action: InGameAction.shiftDown,
+    label: 'SB',
+  );
+  static const ControllerButton paddleLeft = ControllerButton('paddleLeft', action: InGameAction.shiftDown, label: 'P');
 
   // zwift ride only
   static const ControllerButton shiftUpLeft = ControllerButton(
@@ -102,8 +110,13 @@ class ZwiftButtons {
   static const ControllerButton shiftDownLeft = ControllerButton(
     'shiftDownLeft',
     action: InGameAction.shiftDown,
+    label: 'SD',
   );
-  static const ControllerButton powerUpLeft = ControllerButton('powerUpLeft', action: InGameAction.shiftDown);
+  static const ControllerButton powerUpLeft = ControllerButton(
+    'powerUpLeft',
+    action: InGameAction.shiftDown,
+    icon: LucideIcons.zap,
+  );
 
   // right controller
   static const ControllerButton a = ControllerButton('a', action: InGameAction.select, color: Colors.lightGreen);
@@ -114,9 +127,17 @@ class ZwiftButtons {
     color: Colors.deepOrangeAccent,
   );
   static const ControllerButton y = ControllerButton('y', action: InGameAction.menu, color: Colors.lightBlue);
-  static const ControllerButton onOffRight = ControllerButton('onOffRight', action: InGameAction.toggleUi);
-  static const ControllerButton sideButtonRight = ControllerButton('sideButtonRight', action: InGameAction.shiftUp);
-  static const ControllerButton paddleRight = ControllerButton('paddleRight', action: InGameAction.shiftUp);
+  static const ControllerButton onOffRight = ControllerButton(
+    'onOffRight',
+    action: InGameAction.toggleUi,
+    icon: LucideIcons.power,
+  );
+  static const ControllerButton sideButtonRight = ControllerButton(
+    'sideButtonRight',
+    action: InGameAction.shiftUp,
+    label: 'SB',
+  );
+  static const ControllerButton paddleRight = ControllerButton('paddleRight', action: InGameAction.shiftUp, label: 'P');
 
   // zwift ride only
   static const ControllerButton shiftUpRight = ControllerButton(
@@ -125,8 +146,16 @@ class ZwiftButtons {
     icon: LucideIcons.plus,
     color: Colors.black,
   );
-  static const ControllerButton shiftDownRight = ControllerButton('shiftDownRight', action: InGameAction.shiftUp);
-  static const ControllerButton powerUpRight = ControllerButton('powerUpRight', action: InGameAction.shiftUp);
+  static const ControllerButton shiftDownRight = ControllerButton(
+    'shiftDownRight',
+    action: InGameAction.shiftUp,
+    label: 'SD',
+  );
+  static const ControllerButton powerUpRight = ControllerButton(
+    'powerUpRight',
+    action: InGameAction.shiftUp,
+    icon: LucideIcons.zap,
+  );
 
   static List<ControllerButton> get values => [
     // left

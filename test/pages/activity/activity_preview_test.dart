@@ -25,7 +25,7 @@ void main() {
   });
   tearDown(() => activityLogClock = DateTime.now);
 
-  Future<ActivityLogController> pump(WidgetTester tester) async {
+  Future<ActivityLogController> pump(WidgetTester tester, {ActivityFixAction? fixAction}) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -41,7 +41,7 @@ void main() {
         theme: BkTheme.build(Brightness.dark),
         home: Scaffold(
           child: SingleChildScrollView(
-            child: RideActivityPreview(controller: log, onSeeAll: () {}),
+            child: RideActivityPreview(controller: log, onSeeAll: () {}, fixAction: fixAction ?? (_) => null),
           ),
         ),
       ),
@@ -75,6 +75,29 @@ void main() {
     await tester.pump();
     expect(find.byType(ActivityEmptyState), findsNothing);
     expect(find.byType(ActivityRow), findsOneWidget);
+    await done(tester, log);
+  });
+
+  testWidgets('an error row carries its fix link, the same row as the Activity tab', (tester) async {
+    var fixed = 0;
+    final log = await pump(
+      tester,
+      fixAction: (entry) => entry.isError ? ('Configure button mapping', (_) => fixed++) : null,
+    );
+    log.insert(
+      ActivityEntry(
+        button: _plus,
+        time: _now,
+        result: const Error('Could not perform Z: No action assigned', button: _plus, type: ErrorType.noActionAssigned),
+        deviceName: 'Zwift Play',
+      ),
+    );
+    await tester.pump();
+    // Identical to the Activity tab's row: the button and controller line too.
+    expect(find.text('${_plus.displayName} · Zwift Play'), findsOneWidget);
+    await tester.tap(find.text('Configure button mapping'));
+    await tester.pump();
+    expect(fixed, 1);
     await done(tester, log);
   });
 }

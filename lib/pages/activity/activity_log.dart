@@ -401,7 +401,7 @@ class ActivityEmptyState extends StatelessWidget {
 /// controller, and how long ago. An error reads in red, with its fix as a
 /// link under it.
 class ActivityRow extends StatelessWidget {
-  const ActivityRow({super.key, required this.entry, required this.clock, this.fix, this.compact = false});
+  const ActivityRow({super.key, required this.entry, required this.clock, this.fix});
 
   final ActivityEntry entry;
 
@@ -409,9 +409,6 @@ class ActivityRow extends StatelessWidget {
   final ValueListenable<DateTime> clock;
 
   final (String, void Function(BuildContext))? fix;
-
-  /// Ride's preview: no second line, no links.
-  final bool compact;
 
   static const double _glyph = 28;
   static const double textInset = BkGroupedSection.inset + _glyph + 12;
@@ -480,7 +477,7 @@ class ActivityRow extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
     final status = BkStatusColors.of(context);
-    final subtitle = compact ? null : _subtitle(l10n);
+    final subtitle = _subtitle(l10n);
     final fix = this.fix;
     final accent = bkAccentText(context);
 
@@ -517,15 +514,12 @@ class ActivityRow extends StatelessWidget {
               children: [
                 Text(
                   entry.message,
-                  maxLines: compact ? 2 : null,
-                  overflow: compact ? TextOverflow.ellipsis : null,
                   style: context.typography.small.copyWith(color: entry.isError ? status.danger : cs.foreground),
                 ),
                 if (subtitle != null && subtitle.isNotEmpty)
                   Text(subtitle, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
-                if (!compact && fix != null) Builder(builder: (context) => link(fix.$1, () => fix.$2(context))),
-                if (!compact && entry.onTap != null && entry.buttonTitle != null)
-                  link(entry.buttonTitle!, entry.onTap!),
+                if (fix != null) Builder(builder: (context) => link(fix.$1, () => fix.$2(context))),
+                if (entry.onTap != null && entry.buttonTitle != null) link(entry.buttonTitle!, entry.onTap!),
               ],
             ),
           ),

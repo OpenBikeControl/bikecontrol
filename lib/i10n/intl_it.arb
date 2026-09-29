@@ -500,7 +500,7 @@
   "ok": "Ok",
   "only": "Soltanto",
   "openBikeControlActions": "Azioni OpenBikeControl",
-  "openBikeControlAnnouncement": "Ottime notizie -{trainerApp} supporta il protocollo OpenBikeControl, così avrai la migliore esperienza possibile!",
+  "openBikeControlAnnouncement": "Ottime notizie – {trainerApp} supporta il protocollo OpenBikeControl, così avrai la migliore esperienza possibile!",
   "otherConnectionMethods": "Altri metodi di connessione",
   "otherTrainerApps": "Altre app di allenamento",
   "pairingDescription": "Questo ti permetterà di usare il tuo telefono come mouse Bluetooth per controllare le app. Una volta associato, potrai usare i pulsanti del controller della tua bici per inviare input del mouse all'app.",

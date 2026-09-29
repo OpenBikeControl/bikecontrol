@@ -319,24 +319,33 @@ class LastPressStrip extends StatelessWidget {
               ExcludeSemantics(child: ButtonWidget(button: button, size: 24)),
               const Gap(8),
               Expanded(
+                // The action never breaks mid-phrase: it follows on the same
+                // line when it fits, else whole on the next one.
                 child: Semantics(
                   liveRegion: true,
-                  child: Text.rich(
-                    TextSpan(
-                      style: muted,
+                  child: MergeSemantics(
+                    child: Wrap(
+                      spacing: 4,
+                      runSpacing: 2,
                       children: [
-                        TextSpan(text: context.i18n.rideJustPressed(button.displayName)),
-                        if (action != null) ...[
-                          const TextSpan(text: ' → '),
-                          TextSpan(
-                            text: action,
+                        Text(
+                          action != null
+                              ? '${context.i18n.rideJustPressed(button.displayName)} →'
+                              : context.i18n.rideJustPressed(button.displayName),
+                          key: const ValueKey('last-press-lead'),
+                          style: muted,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (action != null)
+                          Text(
+                            action,
                             style: muted.copyWith(color: cs.foreground, fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
                       ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),

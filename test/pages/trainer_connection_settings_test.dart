@@ -68,6 +68,10 @@ Future<void> main() async {
     expect(find.descendant(of: card, matching: find.text(l.chainAppTitle)), findsOneWidget);
     expect(find.descendant(of: card, matching: find.text('MyWhoosh')), findsOneWidget);
     expect(find.byType(TrainerAppSelect), findsNothing);
+    // The protocol note is a card in the page's card language, not a loose link.
+    final note = find.byKey(const ValueKey('connection-obc-announcement'));
+    expect(note, findsOneWidget);
+    expect(find.descendant(of: note, matching: find.text(l.openBikeControlAnnouncement('MyWhoosh'))), findsOneWidget);
     // The target question in plain words, naming the same app.
     expect(find.text(l.onboardingWhereTitle('MyWhoosh')), findsOneWidget);
 
@@ -76,6 +80,9 @@ Future<void> main() async {
     expect(find.byType(TrainerAppSelect), findsOneWidget);
 
     expect(find.text(l.recommendedConnectionMethods.toUpperCase()), findsWidgets);
+    // Under that header a method doesn't repeat "Recommended" as a pill.
+    expect(find.byType(ConnectionMethod), findsWidgets);
+    expect(find.text(l.recommended), findsNothing);
     if (!kIsWeb) {
       expect(find.byKey(const ValueKey('connection-network-troubleshooting')), findsOneWidget);
     }
@@ -134,5 +141,50 @@ Future<void> main() async {
       ),
     );
     expect(find.text(l.chainStepAppConnected('MyWhoosh')), findsOneWidget);
+  });
+
+  testWidgets('the Recommended pill only shows where no Recommended header says it already', (tester) async {
+    screenshotMode = false;
+    addTearDown(() => screenshotMode = true);
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const title = 'Connect directly over Network';
+    Widget method() => ConnectionMethod(
+      trainerConnection: _FakeConnection(),
+      title: title,
+      description: 'Lets the app connect directly.',
+      isRecommended: true,
+      isEnabled: true,
+      small: false,
+      requirements: const [],
+      onChange: (_) {},
+    );
+
+    await tester.pumpWidget(
+      _app(
+        Scaffold(
+          child: Padding(padding: const EdgeInsets.all(16), child: method()),
+        ),
+      ),
+    );
+    expect(find.text(l.recommended), findsOneWidget);
+
+    await tester.pumpWidget(
+      _app(
+        Scaffold(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: RecommendedConnectionMethods(child: method()),
+          ),
+        ),
+      ),
+    );
+    expect(find.text(l.recommended), findsNothing);
+    // The title gets the row: it runs right up to the switch.
+    final titleRight = tester.getTopRight(find.text(title)).dx;
+    final switchLeft = tester.getTopLeft(find.byType(Switch)).dx;
+    expect(switchLeft - titleRight, lessThanOrEqualTo(8));
+    await tester.pumpWidget(const SizedBox());
   });
 }

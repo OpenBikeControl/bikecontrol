@@ -382,6 +382,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
                   ? RideActivityPreview(
                       controller: _log,
                       onSeeAll: () => _shell.select(AppSection.activity),
+                      fixAction: _errorFixAction,
                     )
                   : null,
             ),

@@ -8,12 +8,20 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The latest few activity entries, for Ride's right column in windows too
 /// narrow for the permanent activity column. "See all" opens Activity.
-/// Before anything has happened, the log's own empty state.
+/// Before anything has happened, the log's own empty state. Each entry is the
+/// same [ActivityRow] the Activity tab shows, error fix links included.
 class RideActivityPreview extends StatefulWidget {
-  const RideActivityPreview({super.key, required this.controller, required this.onSeeAll, this.maxEntries = 4});
+  const RideActivityPreview({
+    super.key,
+    required this.controller,
+    required this.onSeeAll,
+    required this.fixAction,
+    this.maxEntries = 4,
+  });
 
   final ActivityLogController controller;
   final VoidCallback onSeeAll;
+  final ActivityFixAction fixAction;
   final int maxEntries;
 
   @override
@@ -56,7 +64,7 @@ class _RideActivityPreviewState extends State<RideActivityPreview> {
               children: [
                 for (final (i, entry) in entries.indexed) ...[
                   if (i > 0) const BkGroupedDivider(indent: ActivityRow.textInset),
-                  ActivityRow(entry: entry, clock: widget.controller.clock, compact: true),
+                  ActivityRow(entry: entry, clock: widget.controller.clock, fix: widget.fixAction(entry)),
                 ],
               ],
             ),

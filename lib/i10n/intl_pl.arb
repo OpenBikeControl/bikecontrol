@@ -500,7 +500,7 @@
   "ok": "OK",
   "only": "Tylko",
   "openBikeControlActions": "Akcje OpenBikeControl",
-  "openBikeControlAnnouncement": "Świetna wiadomość - {trainerApp} obsługuje protokół OpenBikeControl, dzięki czemu uzyskasz najlepsze doświadczenia!",
+  "openBikeControlAnnouncement": "Świetna wiadomość – {trainerApp} obsługuje protokół OpenBikeControl, dzięki czemu uzyskasz najlepsze doświadczenia!",
   "otherConnectionMethods": "Inne metody połączenia",
   "otherTrainerApps": "Inne aplikacje Trainer",
   "pairingDescription": "Umożliwi to używanie telefonu jako myszy Bluetooth do sterowania aplikacjami. Po sparowaniu możesz używać przycisków na kontrolerze rowerowym do wysyłania poleceń myszy do aplikacji.",

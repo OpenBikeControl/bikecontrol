@@ -929,7 +929,7 @@
   "onboardingDoneFinishLater": "Finish — I'll connect later",
   "onboardingDoneStartRiding": "Done — start riding",
   "openBikeControlActions": "OpenBikeControl actions",
-  "openBikeControlAnnouncement": "Great news - {trainerApp} supports the OpenBikeControl Protocol, so you'll have the best possible experience!",
+  "openBikeControlAnnouncement": "Great news — {trainerApp} supports the OpenBikeControl Protocol, so you'll have the best possible experience!",
   "otherConnectionMethods": "Other Connection Methods",
   "otherTrainerApps": "Other Trainer apps",
   "pairingDescription": "This will allow you to use your phone as a Bluetooth mouse to control apps. Once paired, you can use the buttons on your bike controller to send mouse inputs to the app.",

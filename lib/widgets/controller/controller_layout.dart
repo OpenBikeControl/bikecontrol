@@ -41,6 +41,12 @@ class ControllerLayout {
   /// flipped — only the silhouette art is.
   final bool mirrorX;
 
+  /// Where the SVG silhouette sits in the canvas, on screen (after
+  /// [mirrorX]). Centred by default; a layout whose buttons reach past one
+  /// side of the art frames the art plus its buttons, and places the art
+  /// within that frame here.
+  final Alignment svgAlignment;
+
   const ControllerLayout({
     required this.aspectRatio,
     required this.shape,
@@ -49,5 +55,6 @@ class ControllerLayout {
     this.rotation = 0,
     this.padding = 0,
     this.mirrorX = false,
+    this.svgAlignment = Alignment.center,
   });
 }

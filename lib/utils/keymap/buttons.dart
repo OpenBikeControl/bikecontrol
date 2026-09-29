@@ -194,10 +194,15 @@ class ControllerButton {
   final IconData? icon;
   final String? sourceDeviceId;
 
+  /// The button's own short label, where [initials] would say something
+  /// the picture already shows — "P" for a pod's paddle, not "P→".
+  final String? label;
+
   const ControllerButton(
     this.name, {
     this.color,
     this.icon,
+    this.label,
     this.identifier,
     this.action,
     this.sourceDeviceId,
@@ -209,6 +214,7 @@ class ControllerButton {
     InGameAction? action,
     Color? color,
     IconData? icon,
+    String? label,
     Object? sourceDeviceId = _unset,
   }) {
     final newSourceDeviceId = sourceDeviceId == _unset ? this.sourceDeviceId : sourceDeviceId as String?;
@@ -217,6 +223,7 @@ class ControllerButton {
       name ?? this.name,
       color: color ?? this.color,
       icon: icon ?? this.icon,
+      label: label ?? this.label,
       identifier: identifier ?? this.identifier,
       action: action ?? this.action,
       sourceDeviceId: newSourceDeviceId,
@@ -253,6 +260,9 @@ class ControllerButton {
         .join();
   }
 
+  /// What the button's face reads when it has no icon.
+  String get shortLabel => label ?? initials;
+
   @override
   String toString() {
     return name;
@@ -268,10 +278,11 @@ class ControllerButton {
           action == other.action &&
           color == other.color &&
           icon == other.icon &&
+          label == other.label &&
           sourceDeviceId == other.sourceDeviceId;
 
   @override
-  int get hashCode => Object.hash(name, action, identifier, color, icon, sourceDeviceId);
+  int get hashCode => Object.hash(name, action, identifier, color, icon, label, sourceDeviceId);
 
   static List<ControllerButton> get values => [
     ...SterzoButtons.values,

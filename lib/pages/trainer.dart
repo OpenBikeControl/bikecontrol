@@ -5,6 +5,7 @@ import 'package:bike_control/widgets/apps/connection_tiles.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart' show RecommendedConnectionMethods;
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -82,11 +83,14 @@ class _TrainerPageState extends State<TrainerPage> {
                     ),
                   ],
 
+                  // The header already says "Recommended"; the cards don't repeat it.
                   for (final tile in recommendedTiles) ...[
-                    IntrinsicHeight(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: tile,
+                    RecommendedConnectionMethods(
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: tile,
+                        ),
                       ),
                     ),
                   ],

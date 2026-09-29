@@ -94,19 +94,24 @@ class ZwiftPlay extends ZwiftDevice {
         },
       );
     }
+    // Framed on the pod and its buttons together (the paddle and side button
+    // reach past the art on the right), so the whole picture sits centred.
+    // Frame: x 108..443 of the 515-wide drawing the positions were measured
+    // in; the art keeps its place in it via [svgAlignment].
     return ControllerLayout(
-      aspectRatio: 515 / 288,
+      aspectRatio: 335 / 288,
       shape: ContourShape.steeringPad,
       svgAsset: 'assets/contours/zwift_play.svg',
       mirrorX: true,
+      svgAlignment: const Alignment(-0.63, 0),
       positions: {
-        ZwiftButtons.onOffRight: const Offset(0.38, 0.76),
-        ZwiftButtons.y: const Offset(0.38, 0.24),
-        ZwiftButtons.a: const Offset(0.48, 0.40),
-        ZwiftButtons.z: const Offset(0.28, 0.40),
-        ZwiftButtons.b: const Offset(0.38, 0.56),
-        ZwiftButtons.paddleRight: const Offset(0.65, 0.19),
-        ZwiftButtons.sideButtonRight: const Offset(0.79, 0.19),
+        ZwiftButtons.onOffRight: const Offset(0.262, 0.76),
+        ZwiftButtons.y: const Offset(0.262, 0.24),
+        ZwiftButtons.a: const Offset(0.416, 0.40),
+        ZwiftButtons.z: const Offset(0.108, 0.40),
+        ZwiftButtons.b: const Offset(0.262, 0.56),
+        ZwiftButtons.paddleRight: const Offset(0.677, 0.19),
+        ZwiftButtons.sideButtonRight: const Offset(0.892, 0.19),
       },
     );
   }

@@ -12,6 +12,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
@@ -67,23 +68,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                             core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpMdns)) &&
                         !screenshotMode &&
                         !widget.onboardingMode)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Button.ghost(
-                          onPressed: () {
-                            launchUrlString('https://openbikecontrol.org', mode: LaunchMode.externalApplication);
-                          },
-                          child: Basic(
-                            leading: OpenBikeControlLogo(),
-                            title: Text(
-                              AppLocalizations.of(
-                                context,
-                              ).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
-                            ).muted.xSmall.normal,
-                            trailing: Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
-                          ),
-                        ),
-                      ),
+                      _OpenBikeControlNote(appName: core.settings.getTrainerApp()!.name),
                     // BikeControl is self-hosted — no external target to pick.
                     if (core.settings.getTrainerApp() is! BikeControl) ...[
                       SizedBox(height: 0),
@@ -162,6 +147,52 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 /// singletons and notifies via [onUpdate].
 /// The trainer app on top of Connection settings: its logo, "Trainer app"
 /// over its name, and Change, which opens the picker underneath.
+/// The note that the trainer app speaks the OpenBikeControl Protocol: a quiet card
+/// that opens the protocol's site.
+class _OpenBikeControlNote extends StatelessWidget {
+  const _OpenBikeControlNote({required this.appName});
+
+  final String appName;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(BkComponentThemes.cardRadius);
+    return BkTappable(
+      key: const ValueKey('connection-obc-announcement'),
+      borderRadius: radius,
+      onPressed: () => launchUrlString('https://openbikecontrol.org', mode: LaunchMode.externalApplication),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        decoration: BoxDecoration(color: cs.card, borderRadius: radius),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Container(
+                width: BkIconTile.size,
+                height: BkIconTile.size,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(8)),
+                child: OpenBikeControlLogo(size: 18, color: bkAccentText(context)),
+              ),
+            ),
+            const Gap(BkGroupedRow.gap),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).openBikeControlAnnouncement(appName),
+                style: context.typography.small.copyWith(color: cs.mutedForeground, height: 1.4),
+              ),
+            ),
+            const Gap(8),
+            Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TrainerAppCard extends StatelessWidget {
   const _TrainerAppCard({required this.changing, required this.onChange, required this.picker});
 

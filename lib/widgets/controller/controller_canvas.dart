@@ -66,6 +66,10 @@ class ControllerCanvas extends StatelessWidget {
                                 child: SvgPicture.asset(
                                   layout.svgAsset!,
                                   fit: BoxFit.contain,
+                                  // The flip mirrors the alignment too.
+                                  alignment: layout.mirrorX
+                                      ? Alignment(-layout.svgAlignment.x, layout.svgAlignment.y)
+                                      : layout.svgAlignment,
                                   colorFilter: Theme.of(context).brightness == Brightness.dark
                                       ? ColorFilter.mode(cs.primary.withValues(alpha: 1), BlendMode.srcIn)
                                       : null,

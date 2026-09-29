@@ -46,11 +46,15 @@ Future<void> main() async {
   // Button mapping renders the real page (not a store render, which
   // anonymises the trainer app in some places and not others): a Zwift Play
   // with MyWhoosh receiving over the network, so its built-in actions are live.
-  final play = ZwiftPlay(BleDevice(name: 'Zwift Play', deviceId: 'p5-play'), deviceType: ZwiftDeviceType.playRight)
-    ..firmwareVersion = '1.3.1'
-    ..isConnected = true
-    ..rssi = -51
-    ..batteryLevel = 81;
+  final play =
+      ZwiftPlay(
+          BleDevice(name: 'Zwift Play', deviceId: 'p5-play'),
+          deviceType: ZwiftDeviceType.playRight,
+        )
+        ..firmwareVersion = '1.3.1'
+        ..isConnected = true
+        ..rssi = -51
+        ..batteryLevel = 81;
   void realMappingPage() {
     screenshotMode = false;
     addTearDown(() => screenshotMode = true);
@@ -235,6 +239,21 @@ Future<void> main() async {
       );
     });
   }
+
+  // A controller still in beta: its neutral BETA badge on a light card.
+  testWidgets('mapping-beta-390x844-light', (tester) async {
+    screenshotMode = false;
+    addTearDown(() => screenshotMode = true);
+    await shoot(
+      tester,
+      name: 'mapping-beta-390x844-light',
+      size: phone,
+      brightness: Brightness.light,
+      build: (_) => ControllerSettingsPage(device: controller),
+    );
+    expect(controller.isBeta, isTrue);
+    expect(find.text('BETA'), findsWidgets);
+  });
 
   // Both large sizes: a tablet in landscape and a laptop window.
   for (final size in const [Size(1180, 820), Size(1280, 800)]) {
