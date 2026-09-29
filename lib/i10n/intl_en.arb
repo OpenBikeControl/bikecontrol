@@ -2668,6 +2668,72 @@
   "onboardingTrialKeepVs": "To keep virtual shifting: Pro",
   "onboardingTrialUnlimited": "For unlimited commands: Base or Pro",
   "onboardingSkipControllerNote": "BikeControl can't shift without a controller. You can pair one later from the home screen.",
+  "onboardingZwiftNoteZwift": "Zwift reads your {device} natively — you don't need BikeControl to ride with it. BikeControl can still help if you want to remap buttons, add actions Zwift doesn't assign, free up a Bluetooth slot, or control virtual shifting directly.",
+  "@onboardingZwiftNoteZwift": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteOfficial": "The {device} was designed for Zwift, so it works best there. {app} is officially supported by BikeControl: shifting and the main controls work, but a few buttons have no {app} equivalent. BikeControl maps everything {app} supports.",
+  "@onboardingZwiftNoteOfficial": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteActions": "The {device} was designed for Zwift, so it works best there. {app} only offers a few controls BikeControl can trigger: {actions}. Other buttons have nothing to do in {app}.",
+  "@onboardingZwiftNoteActions": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      },
+      "actions": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteAppDefined": "The {device} was designed for Zwift, so it works best there. Each {app} app decides which controls it accepts, so some buttons may have nothing to do there. BikeControl maps everything the app offers.",
+  "@onboardingZwiftNoteAppDefined": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteCustom": "The {device} was designed for Zwift, so it works best there. BikeControl has no preset for {app}, so you choose what each button does — for example a keyboard shortcut or a screen tap.",
+  "@onboardingZwiftNoteCustom": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteNoInput": "The {device} was designed for Zwift, so it works best there. {app} doesn't take button input, so the buttons have nothing to control there. BikeControl can still use them for its own virtual shifting.",
+  "@onboardingZwiftNoteNoInput": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingVsProNote": "BikeControl's virtual shifting is part of Pro. Without Pro you get a {minutes}-minute trial every day; Base doesn't include it.",
   "onboardingStillNotConnected": "Still not connected? Test your network",
   "paywall_vsByBikeControl": "Virtual shifting by BikeControl (any trainer, custom gears)",
