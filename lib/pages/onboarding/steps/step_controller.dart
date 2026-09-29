@@ -340,7 +340,9 @@ Widget onboardingControllerBody(
               ],
             ),
           ],
-          if (anyConnected) ...[
+          // Only claim the buttons are mapped when there is a preset to map
+          // them onto — FulGaz takes no buttons, a custom app has no preset.
+          if (anyConnected && appHasButtonPreset(trainerApp)) ...[
             Gap(12),
             _infoRow(context, LucideIcons.lightbulb, context.i18n.onboardingControllerMapped(appName), ''),
           ],

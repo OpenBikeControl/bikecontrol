@@ -2,6 +2,7 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -55,7 +56,7 @@ class ZwiftControllerExpectation {
       actions.map((a) => a.title).join(', '),
     ),
     ZwiftExpectationVariant.appDefined => l.onboardingZwiftNoteAppDefined(deviceName, app.name),
-    ZwiftExpectationVariant.customApp => l.onboardingZwiftNoteCustom(deviceName, app.name),
+    ZwiftExpectationVariant.customApp => l.onboardingZwiftNoteCustom(deviceName),
     ZwiftExpectationVariant.noInput => l.onboardingZwiftNoteNoInput(deviceName, app.name),
   };
 }
@@ -76,6 +77,12 @@ List<InGameAction> triggerableActions(SupportedApp app) {
   }
   return result;
 }
+
+/// Whether the onboarding may say the rider's buttons are already mapped for
+/// [app]. Not for an app that takes no button input (nothing to map onto) nor
+/// for a custom app (no preset; the rider picks every action) — whatever the
+/// controller. True when no app is known, as before.
+bool appHasButtonPreset(SupportedApp? app) => app == null || (app.receivesButtonEvents && app is! CustomApp);
 
 /// Decides whether (and which) expectation note the onboarding controller
 /// list shows. Null when no trainer app is picked, no Zwift-made controller

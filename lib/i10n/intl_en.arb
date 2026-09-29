@@ -2687,7 +2687,7 @@
       }
     }
   },
-  "onboardingZwiftNoteActions": "The {device} was designed for Zwift, so it works best there. {app} only offers a few controls BikeControl can trigger: {actions}. Other buttons have nothing to do in {app}.",
+  "onboardingZwiftNoteActions": "The {device} was designed for Zwift, so it works best there. {app} only offers a few controls BikeControl can trigger: {actions}. Other buttons have nothing to do in {app} — but every control {app} has works from the {device}.",
   "@onboardingZwiftNoteActions": {
     "placeholders": {
       "device": {
@@ -2712,13 +2712,10 @@
       }
     }
   },
-  "onboardingZwiftNoteCustom": "The {device} was designed for Zwift, so it works best there. BikeControl has no preset for {app}, so you choose what each button does — for example a keyboard shortcut or a screen tap.",
+  "onboardingZwiftNoteCustom": "The {device} was designed for Zwift, so it works best there. BikeControl has no preset for your trainer app, so you choose what each button does — for example a keyboard shortcut or a screen tap.",
   "@onboardingZwiftNoteCustom": {
     "placeholders": {
       "device": {
-        "type": "String"
-      },
-      "app": {
         "type": "String"
       }
     }

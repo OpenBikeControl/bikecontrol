@@ -2313,7 +2313,7 @@
       }
     }
   },
-  "onboardingZwiftNoteActions": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. {app} oferuje tylko kilka funkcji, które BikeControl może wywołać: {actions}. Pozostałe przyciski nie mają w {app} nic do zrobienia.",
+  "onboardingZwiftNoteActions": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. {app} oferuje tylko kilka funkcji, które BikeControl może wywołać: {actions}. Pozostałe przyciski nie mają w {app} nic do zrobienia – ale wszystkie funkcje dostępne w {app} obsłużysz urządzeniem {device}.",
   "@onboardingZwiftNoteActions": {
     "placeholders": {
       "device": {
@@ -2338,13 +2338,10 @@
       }
     }
   },
-  "onboardingZwiftNoteCustom": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. BikeControl nie ma gotowego ustawienia dla {app}, więc sam wybierasz, co robi każdy przycisk – na przykład skrót klawiszowy lub dotknięcie ekranu.",
+  "onboardingZwiftNoteCustom": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. BikeControl nie ma gotowego ustawienia dla twojej aplikacji treningowej, więc sam wybierasz, co robi każdy przycisk – na przykład skrót klawiszowy lub dotknięcie ekranu.",
   "@onboardingZwiftNoteCustom": {
     "placeholders": {
       "device": {
-        "type": "String"
-      },
-      "app": {
         "type": "String"
       }
     }

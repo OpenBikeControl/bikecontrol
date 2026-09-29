@@ -2313,7 +2313,7 @@
       }
     }
   },
-  "onboardingZwiftNoteActions": "Il {device} è stato progettato per Zwift, quindi è lì che funziona al meglio. {app} offre solo pochi comandi che BikeControl può attivare: {actions}. Gli altri pulsanti non hanno nulla da fare in {app}.",
+  "onboardingZwiftNoteActions": "Il {device} è stato progettato per Zwift, quindi è lì che funziona al meglio. {app} offre solo pochi comandi che BikeControl può attivare: {actions}. Gli altri pulsanti non hanno nulla da fare in {app}, ma ogni comando di {app} funziona dal {device}.",
   "@onboardingZwiftNoteActions": {
     "placeholders": {
       "device": {
@@ -2338,13 +2338,10 @@
       }
     }
   },
-  "onboardingZwiftNoteCustom": "Il {device} è stato progettato per Zwift, quindi è lì che funziona al meglio. BikeControl non ha una configurazione predefinita per {app}, quindi scegli tu cosa fa ogni pulsante: ad esempio una scorciatoia da tastiera o un tocco sullo schermo.",
+  "onboardingZwiftNoteCustom": "Il {device} è stato progettato per Zwift, quindi è lì che funziona al meglio. BikeControl non ha una configurazione predefinita per la tua app di allenamento, quindi scegli tu cosa fa ogni pulsante: ad esempio una scorciatoia da tastiera o un tocco sullo schermo.",
   "@onboardingZwiftNoteCustom": {
     "placeholders": {
       "device": {
-        "type": "String"
-      },
-      "app": {
         "type": "String"
       }
     }
