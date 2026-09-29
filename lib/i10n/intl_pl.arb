@@ -480,6 +480,7 @@
   "next": "Dalej",
   "no": "Nie",
   "noActionAssigned": "Brak przypisanej akcji",
+  "noActionAssignedShort": "(brak)",
   "noActionAssignedForButton": "Nie można wykonać {button}: Brak przypisanej akcji",
   "trainerAppNotConnectedForButton": "Nie można wykonać {button}: {app} nie jest połączony",
   "trainerAppActionUnsupportedForButton": "Nie można wykonać {button}: {app} tego nie obsługuje",
@@ -610,14 +611,6 @@
   "lookingForSmartTrainers": "Szukam Smart Trainerów…",
   "selectADeviceToSyncFrom": "Wybierz urządzenie, z którego chcesz przeprowadzić synchronizację",
   "selectKeymap": "Wybierz mapę klawiszy",
-  "selectTargetWhereAppRuns": "Wybierz urządzenie docelowe, na którym działa {appName}",
-  "@selectTargetWhereAppRuns": {
-    "placeholders": {
-      "appName": {
-        "type": "String"
-      }
-    }
-  },
   "warningInstallOnTargetDevice": "BikeControl jest dostępny także na iOS, Android, Windows i macOS. Aby w pełni korzystać z aplikacji {appName}, pobierz BikeControl na tamtym urządzeniu.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -2451,5 +2444,16 @@
   "activityEmptyTitle": "Brak aktywności",
   "activityEmptyBody": "Naciśnij przycisk na kontrolerze — pojawi się tutaj.",
   "settingsSectionDuringRide": "Podczas jazdy",
-  "rideGear": "Bieg"
+  "rideGear": "Bieg",
+  "shellTrainerChipLabel": "{trainer}, wysyła do {app}",
+  "@shellTrainerChipLabel": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  }
 }

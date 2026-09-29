@@ -115,7 +115,9 @@ Future<void> main() async {
     expect(checked, 1);
   });
 
-  testWidgets('the trial card points at Pro when a trainer is bridged, Base or Pro otherwise', (tester) async {
+  testWidgets('the trial card says Base or Pro lifts the commands, and Pro keeps virtual shifting when bridged', (
+    tester,
+  ) async {
     Widget body(BuildContext c, {String? trainer}) => onboardingDoneBody(
       c,
       app: MyWhoosh(),
@@ -130,7 +132,7 @@ Future<void> main() async {
     await pump(tester, (c) => body(c, trainer: 'KICKR CORE'));
     var l = l10n(tester);
     expect(find.text(l.onboardingTrialKeepVs), findsOneWidget);
-    expect(find.text(l.onboardingTrialUnlimited), findsNothing);
+    expect(find.text(l.onboardingTrialUnlimited), findsOneWidget);
 
     await pump(tester, (c) => body(c));
     l = l10n(tester);

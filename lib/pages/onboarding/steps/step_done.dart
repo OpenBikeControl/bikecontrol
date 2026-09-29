@@ -313,13 +313,11 @@ Widget onboardingDoneBody(
                           : context.i18n.onboardingTestModeBody('${IAPManager.dailyCommandLimit}'),
                     ).xSmall.muted,
                     Gap(6),
-                    // What the rider would pay for, given what they set up: the
-                    // trainer bridge is BikeControl's virtual shifting (Pro
-                    // only); without one, the trial's limit is the daily
-                    // command budget, which Base lifts as well.
-                    Text(
-                      trainerName != null ? context.i18n.onboardingTrialKeepVs : context.i18n.onboardingTrialUnlimited,
-                    ).xSmall.semiBold,
+                    // What each plan lifts: the daily command budget goes with
+                    // Base or Pro; the trainer bridge is BikeControl's virtual
+                    // shifting, Pro only.
+                    Text(context.i18n.onboardingTrialUnlimited).xSmall.semiBold,
+                    if (trainerName != null) Text(context.i18n.onboardingTrialKeepVs).xSmall.semiBold,
                   ],
                 ),
               ),

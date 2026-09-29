@@ -241,7 +241,7 @@ class _NavigationState extends State<Navigation> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ShellTopBar(section: section, compact: false, activity: _shell.activity),
+                          ShellTopBar(section: section, compact: false, activity: _shell.activity, shell: _shell),
                           Expanded(child: content),
                         ],
                       ),

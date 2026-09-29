@@ -13,7 +13,6 @@ import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
-import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
@@ -629,14 +628,13 @@ class _PaywallState extends State<Paywall> {
     );
   }
 
-  /// A plan card's head: the plan name in the display face, an optional
-  /// badge, and what kind of purchase it is at the end.
-  Widget _planHead(BuildContext context, {required String name, Widget? badge, required Widget kind}) {
+  /// A plan card's head: the plan name in the display face and what kind of
+  /// purchase it is at the end.
+  Widget _planHead(BuildContext context, {required String name, required Widget kind}) {
     return Row(
       spacing: 8,
       children: [
         Text(name.toUpperCase(), style: BkDisplay.title(context)),
-        ?badge,
         Expanded(
           child: Align(alignment: AlignmentDirectional.centerEnd, child: kind),
         ),
@@ -705,7 +703,6 @@ class _PaywallState extends State<Paywall> {
           _planHead(
             context,
             name: 'Pro',
-            badge: const ProBadge(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
             kind: _kind(context, l10n.subscription),
           ),
           const SizedBox(height: 12),

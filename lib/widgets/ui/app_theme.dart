@@ -148,10 +148,20 @@ class BkComponentThemes extends StatelessWidget {
     borderColor: Color(0x00000000),
   );
 
-  /// An on switch keeps a white thumb on the primary track in both
-  /// brightnesses. shadcn paints it in the page colour, which in dark mode is
-  /// a near-black dot on the blue.
-  static const SwitchTheme switchTheme = SwitchTheme(activeThumbColor: Color(0xFFFFFFFF));
+  /// The off switch's track: a muted fill a step off the page and the card,
+  /// so the white thumb has something to sit on in both brightnesses.
+  static Color switchOffTrack(Brightness brightness) =>
+      brightness == Brightness.dark ? const Color(0xFF2A2A2A) : const Color(0xFFDCDCE1);
+
+  /// A switch keeps a white thumb in every state and brightness: on, on the
+  /// primary track; off, on a muted one. shadcn paints the on thumb in the
+  /// page colour (a near-black dot on the blue in dark mode) and the off
+  /// thumb in the text colour (a black dot in light mode).
+  static SwitchTheme switchTheme(Brightness brightness) => SwitchTheme(
+    activeThumbColor: const Color(0xFFFFFFFF),
+    inactiveThumbColor: const Color(0xFFFFFFFF),
+    inactiveColor: switchOffTrack(brightness),
+  );
 
   final Widget child;
 
@@ -160,7 +170,7 @@ class BkComponentThemes extends StatelessWidget {
     return ComponentTheme<CardTheme>(
       data: cardTheme,
       child: ComponentTheme<SwitchTheme>(
-        data: switchTheme,
+        data: switchTheme(Theme.of(context).brightness),
         child: ComponentTheme<DividerTheme>(
           data: DividerTheme(color: Theme.of(context).colorScheme.border),
           child: child,

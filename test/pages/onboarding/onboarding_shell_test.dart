@@ -1,5 +1,5 @@
 // The wizard's frame: "Step N of 6" with Help, a segmented progress bar in
-// the accent, the step's eyebrow over a display headline, a full-width pill
+// the accent, a display headline (no eyebrow), a full-width pill
 // with Back as text under it, and the list of steps (a tick and what the
 // step settled on for the finished ones, which take you back to them).
 import 'package:bike_control/gen/l10n.dart';
@@ -22,7 +22,11 @@ import '../../widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  Future<AppLocalizations> pump(WidgetTester tester, Widget Function(BuildContext) builder, {double width = 390}) async {
+  Future<AppLocalizations> pump(
+    WidgetTester tester,
+    Widget Function(BuildContext) builder, {
+    double width = 390,
+  }) async {
     tester.view.physicalSize = Size(width, 844) * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -37,7 +41,9 @@ Future<void> main() async {
           AppLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
-        home: Scaffold(child: BkComponentThemes(child: Builder(builder: builder))),
+        home: Scaffold(
+          child: BkComponentThemes(child: Builder(builder: builder)),
+        ),
       ),
     );
     await tester.pump(const Duration(seconds: 1));
@@ -64,10 +70,15 @@ Future<void> main() async {
     stepValues: const {OnboardingStep.app: 'MyWhoosh', OnboardingStep.where: 'This device'},
   );
 
-  testWidgets('phone: step count, accent progress up to the step, eyebrow and display headline', (tester) async {
+  testWidgets('phone: step count, accent progress up to the step and display headline, no eyebrow', (tester) async {
     final l = await pump(tester, (c) => shell(c));
     expect(find.text(l.onboardingStepOf('3', '6')), findsOneWidget);
-    expect(find.text('${l.onboardingStepController} · ${l.onboardingStepControllerSub}'), findsOneWidget);
+    expect(find.text('${l.onboardingStepController} · ${l.onboardingStepControllerSub}'), findsNothing);
+    expect(
+      find.bySemanticsLabel(RegExp('${RegExp.escape(l.onboardingStepOf('3', '6'))}.*${l.onboardingStepController}')),
+      findsOneWidget,
+      reason: 'the step count tells a screen reader which step this is',
+    );
 
     final primary = BkTheme.build(Brightness.dark).colorScheme.primary;
     for (var i = 0; i < 6; i++) {
@@ -148,5 +159,9 @@ Future<void> main() async {
     expect(find.descendant(of: summary, matching: find.byType(BkStatusDot)), findsNWidgets(3));
     expect(find.text(l.onboardingTestModeTitle), findsOneWidget);
     expect(find.byIcon(LucideIcons.clock), findsOneWidget);
+    // Honest about what each plan lifts: Base or Pro for commands, Pro for
+    // virtual shifting.
+    expect(find.text(l.onboardingTrialUnlimited), findsOneWidget);
+    expect(find.text(l.onboardingTrialKeepVs), findsOneWidget);
   });
 }

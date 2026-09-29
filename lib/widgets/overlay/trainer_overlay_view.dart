@@ -62,9 +62,9 @@ class TrainerOverlayView extends StatelessWidget {
   /// Space between the mode pill and the readings under it.
   static const double _sideGap = 6;
 
-  /// The widest things the numeral shows: a gear readout, a front/rear
-  /// readout and an ERG target.
-  static const List<String> _widestReadouts = ['88/88', '2×88', '888 W'];
+  /// The widest things the numeral shows: a front/rear readout (wider than
+  /// a bare gear) and an ERG target.
+  static const List<String> _widestReadouts = ['2×88', '888 W'];
 
   /// The widest single reading; the side column always has room for one.
   static const String _widestReading = '8888 rpm';
@@ -176,6 +176,9 @@ class TrainerOverlayView extends StatelessWidget {
             maxGear: s.maxGear,
             frontShiftEnabled: s.frontShiftEnabled,
             largeRing: s.frontRingLarge,
+            // "12" with GEAR under it; the total is not what a rider
+            // glances at the overlay for.
+            withTotal: false,
           );
     final microStyle = _microStyle(context.typography, cs.mutedForeground);
     final numeral = Column(
@@ -255,7 +258,7 @@ class TrainerOverlayView extends StatelessWidget {
       if (s.fields.contains(OverlayField.power)) ('${s.powerW ?? '--'}', 'W'),
       if (s.fields.contains(OverlayField.cadence)) ('${s.cadenceRpm ?? '--'}', 'rpm'),
       // Gear ratio is meaningless in ERG mode; only show it in SIM.
-      if (!isErg && s.fields.contains(OverlayField.gearRatio)) ('×${s.gearRatio.toStringAsFixed(2)}', ''),
+      if (!isErg && s.fields.contains(OverlayField.gearRatio)) (formatGearRatio(s.gearRatio), ''),
     ];
     final valueStyle = _readingStyle(cs.foreground);
     final unitStyle = context.typography.caption.copyWith(color: cs.mutedForeground);

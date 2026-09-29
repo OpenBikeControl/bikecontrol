@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show recordError, screenshotMode;
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/help_center/help_center_page.dart';
-import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
 import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
@@ -21,8 +20,8 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/blog_posts_widget.dart';
 import 'package:bike_control/widgets/logviewer.dart';
-import 'package:bike_control/widgets/home/ampel.dart' show AmpelStyle;
 import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
@@ -341,10 +340,7 @@ class SettingsPlanCard extends StatelessWidget {
         final tier = currentPlanTier();
         final name = planName(context, tier);
         final status = iap.getStatusMessage();
-        final tracker = core.bridgeUsageTracker;
-        // Virtual shifting is Pro per device; everyone else gets the daily
-        // trial of it. Store renders stage a finished setup, not a limit.
-        final showMeter = !iap.isProEnabledForCurrentDevice && tracker.dailyLimit > Duration.zero && !screenshotMode;
+        final showMeter = vsTrialMeterShown();
         return BkTappable(
           key: const ValueKey('settings-plan'),
           onPressed: () => openSubscription(context),
@@ -396,73 +392,13 @@ class SettingsPlanCard extends StatelessWidget {
                 ),
                 if (showMeter) ...[
                   const Gap(12),
-                  ValueListenableBuilder<Duration>(
-                    valueListenable: tracker.usedTodayListenable,
-                    builder: (context, _, _) => _VsTrialMeter(
-                      remaining: tracker.remainingToday,
-                      limit: tracker.dailyLimit,
-                    ),
-                  ),
+                  const VsTrialMeter(),
                 ],
               ],
             ),
           ),
         );
       },
-    );
-  }
-}
-
-/// "Virtual shifting today · 14 min remaining today" over a bar.
-class _VsTrialMeter extends StatelessWidget {
-  const _VsTrialMeter({required this.remaining, required this.limit});
-
-  final Duration remaining;
-  final Duration limit;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final minutes = remaining.isNegative ? 0 : remaining.inMinutes;
-    final fraction = limit.inSeconds > 0 ? (remaining.inSeconds / limit.inSeconds).clamp(0.0, 1.0) : 0.0;
-    final low = fraction <= 0.25;
-    final status = BkStatusColors.of(context);
-    final remainingText = l10n.bridgeMinutesRemainingToday(minutes);
-    return Semantics(
-      label: '${l10n.chainTrialBridgeMeter}: $remainingText',
-      excludeSemantics: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.chainTrialBridgeMeter,
-                  style: context.typography.small.copyWith(fontWeight: FontWeight.w500),
-                ),
-              ),
-              Text(
-                remainingText,
-                style: context.typography.xSmall.copyWith(
-                  color: low ? AmpelStyle.of(context, LinkStatus.attention).text : cs.mutedForeground,
-                ),
-              ),
-            ],
-          ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: fraction,
-              minHeight: 6,
-              backgroundColor: cs.muted,
-              color: low ? status.warning : cs.primary,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

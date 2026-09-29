@@ -98,7 +98,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    final gear = tester.getRect(find.text('14/24'));
+    final gear = tester.getRect(find.text('14'));
     final minus = tester.getRect(find.byIcon(LucideIcons.minus));
     final plus = tester.getRect(find.byIcon(LucideIcons.plus));
     final label = tester.getRect(find.text('GEAR'));

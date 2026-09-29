@@ -484,6 +484,10 @@
   "next": "Next",
   "no": "No",
   "noActionAssigned": "No action assigned",
+  "noActionAssignedShort": "(none)",
+  "@noActionAssignedShort": {
+    "description": "Compact value for a button trigger with no action, shown at the end of a mapping row"
+  },
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
   "trainerAppNotConnectedForButton": "Could not perform {button}: {app} is not connected",
   "@trainerAppNotConnectedForButton": {
@@ -1036,14 +1040,6 @@
   "lookingForSmartTrainers": "Looking for Smart Trainers…",
   "selectADeviceToSyncFrom": "Select a device to sync from",
   "selectKeymap": "Select Keymap",
-  "selectTargetWhereAppRuns": "Select Target where {appName} runs on",
-  "@selectTargetWhereAppRuns": {
-    "placeholders": {
-      "appName": {
-        "type": "String"
-      }
-    }
-  },
   "warningInstallOnTargetDevice": "BikeControl is also available on iOS, Android, Windows and macOS. For proper support for {appName} please download BikeControl on that device.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -2857,5 +2853,17 @@
   "settingsSectionDuringRide": "During the ride",
   "@settingsSectionDuringRide": {"description": "Settings group header: overlay, shift feedback, saving rides."},
   "rideGear": "Gear",
-  "@rideGear": {"description": "Label under the current gear number (e.g. 12 / 24)."}
+  "@rideGear": {"description": "Label under the current gear number (e.g. 12 / 24)."},
+  "shellTrainerChipLabel": "{trainer}, sending to {app}",
+  "@shellTrainerChipLabel": {
+    "description": "Spoken label of the desktop header chip showing the bridged trainer and the trainer app it sends to",
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -11,6 +11,7 @@ import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -81,6 +82,12 @@ Future<void> main() async {
     final footnote = find.text(l.paywall_vsTrialFootnote(minutes));
     expect(footnote, findsOneWidget);
     expect(tester.getRect(footnote).top, greaterThan(tester.getRect(baseCard).bottom), reason: 'under both plans');
+  });
+
+  testWidgets('the Pro card is titled PRO once, without a PRO badge beside it', (tester) async {
+    await pump(tester);
+    expect(inCard(proCard, 'PRO'), findsOneWidget);
+    expect(find.descendant(of: proCard, matching: find.byType(ProBadge)), findsNothing);
   });
 
   testWidgets('sensors are a Pro line; "support development" is not a feature', (tester) async {

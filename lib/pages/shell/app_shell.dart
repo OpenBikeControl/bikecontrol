@@ -1,8 +1,15 @@
+import 'dart:async';
+
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
+import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
 import 'package:bike_control/pages/subscription.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
@@ -328,7 +335,12 @@ class ShellTopBar extends StatelessWidget {
     required this.compact,
     this.showPlanAndHelp = false,
     this.activity,
+    this.shell,
   });
+
+  /// The shell, for the expanded window's device chips (a tap opens
+  /// Devices). The chips show only when it is given.
+  final ShellController? shell;
 
   final AppSection section;
 
@@ -357,10 +369,12 @@ class ShellTopBar extends StatelessWidget {
       ),
       trailingGap: 4,
       trailing: [
+        if (shell != null) ShellDeviceChips(shell: shell!),
         if (section == AppSection.activity && activity != null) ActivityClearButton(controller: activity!),
         AppUpdateButton(compact: compact),
         if (showPlanAndHelp) const PlanBadge(),
         if (showPlanAndHelp) const HelpButton(),
+        // Developer tools; renders nothing outside debug builds.
         const DebugMenuButton(),
       ],
     );
@@ -433,8 +447,9 @@ class PlanBadge extends StatelessWidget {
   }
 }
 
-/// The sidebar's plan card: "Current plan", the plan's name, its status line
-/// and — below Pro — a Go Pro link. The whole card opens the plans.
+/// The sidebar's plan card: "Current plan", the plan's name, its status line,
+/// — below Pro — a Go Pro link and, without Pro on this device, what is left
+/// of today's virtual shifting trial. The whole card opens the plans.
 class SidebarPlanCard extends StatelessWidget {
   const SidebarPlanCard({super.key});
 
@@ -485,11 +500,136 @@ class SidebarPlanCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: context.typography.caption.copyWith(color: cs.mutedForeground),
                   ),
+                // Today's virtual shifting trial, as on Settings' plan card.
+                if (vsTrialMeterShown()) ...[
+                  const Gap(6),
+                  const VsTrialMeter(compact: true),
+                ],
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// The expanded window's header chips: the connected controller with its
+/// battery, and the bridged trainer with the app it sends to. Each opens
+/// Devices. Nothing while no device is connected.
+class ShellDeviceChips extends StatefulWidget {
+  const ShellDeviceChips({super.key, required this.shell});
+
+  final ShellController shell;
+
+  @override
+  State<ShellDeviceChips> createState() => _ShellDeviceChipsState();
+}
+
+class _ShellDeviceChipsState extends State<ShellDeviceChips> {
+  late final StreamSubscription<BaseDevice> _connections;
+
+  @override
+  void initState() {
+    super.initState();
+    _connections = core.connection.connectionStream.listen((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _connections.cancel();
+    super.dispose();
+  }
+
+  void _openDevices() => widget.shell.select(AppSection.devices);
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: core.connection.hasDevices,
+      builder: (context, _, _) {
+        final controller = core.connection.controllerDevices.where((d) => d.isConnected).firstOrNull;
+        final proxy = chainProxy();
+        final trainer = proxy != null && proxy.isConnected ? proxy : null;
+        if (controller == null && trainer == null) return const SizedBox.shrink();
+        final cs = Theme.of(context).colorScheme;
+        final muted = context.typography.xSmall.copyWith(color: cs.mutedForeground);
+        final strong = context.typography.xSmall.copyWith(color: cs.foreground, fontWeight: FontWeight.w500);
+        final battery = controller is BluetoothDevice ? controller.batteryLevel : null;
+        final appName = core.settings.getTrainerApp()?.name;
+        return Row(
+          key: const ValueKey('shell-device-chips'),
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            if (controller != null)
+              _chip(
+                key: const ValueKey('shell-device-chip-controller'),
+                label: [controller.displayName(context), if (battery != null) '$battery%'].join(', '),
+                children: [
+                  Icon(controller.icon, size: 14, color: cs.foreground),
+                  Flexible(
+                    child: Text(
+                      controller.displayName(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: strong,
+                    ),
+                  ),
+                  if (battery != null)
+                    Text(
+                      '$battery%',
+                      style: muted.copyWith(color: battery < 20 ? cs.destructive : null),
+                    ),
+                ],
+              ),
+            if (trainer != null)
+              _chip(
+                key: const ValueKey('shell-device-chip-trainer'),
+                label: appName == null
+                    ? trainer.displayName(context)
+                    : AppLocalizations.of(context).shellTrainerChipLabel(trainer.displayName(context), appName),
+                children: [
+                  Icon(trainer.icon, size: 14, color: cs.foreground),
+                  Flexible(
+                    child: Text(
+                      trainer.displayName(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: strong,
+                    ),
+                  ),
+                  if (appName != null) ...[
+                    Icon(LucideIcons.arrowRight, size: 12, color: cs.mutedForeground),
+                    Text(appName, maxLines: 1, style: muted),
+                  ],
+                ],
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _chip({required Key key, required String label, required List<Widget> children}) {
+    final cs = Theme.of(context).colorScheme;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 240),
+      child: BkTappable(
+        key: key,
+        onPressed: _openDevices,
+        label: label,
+        excludeChildSemantics: true,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(999)),
+          child: Row(mainAxisSize: MainAxisSize.min, spacing: 6, children: children),
+        ),
+      ),
     );
   }
 }

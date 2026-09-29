@@ -174,28 +174,46 @@ void main() {
   });
 
   for (final brightness in Brightness.values) {
-    testWidgets('$brightness: an on switch has a white thumb on the primary track', (tester) async {
-      await tester.pumpWidget(
-        ShadcnApp(
-          theme: BkTheme.build(brightness),
-          home: BkComponentThemes(
-            child: Center(child: Switch(value: true, onChanged: (_) {})),
+    for (final on in [true, false]) {
+      testWidgets('$brightness: ${on ? 'an on' : 'an off'} switch has a white thumb on the '
+          '${on ? 'primary' : 'muted'} track', (tester) async {
+        await tester.pumpWidget(
+          ShadcnApp(
+            theme: BkTheme.build(brightness),
+            home: BkComponentThemes(
+              child: Center(
+                child: Switch(value: on, onChanged: (_) {}),
+              ),
+            ),
           ),
-        ),
-      );
-      final colors = tester
-          .widgetList<Container>(find.descendant(of: find.byType(Switch), matching: find.byType(Container)))
-          .map((c) => (c.decoration as BoxDecoration?)?.color)
-          .whereType<Color>()
-          .toList();
-      expect(colors, contains(const Color(0xFFFFFFFF)), reason: 'thumb');
-      final track = tester
-          .widgetList<AnimatedContainer>(
-            find.descendant(of: find.byType(Switch), matching: find.byType(AnimatedContainer)),
-          )
-          .map((c) => (c.decoration as BoxDecoration?)?.color)
-          .whereType<Color>();
-      expect(track, contains(BkTheme.build(brightness).colorScheme.primary));
-    });
+        );
+        final cs = BkTheme.build(brightness).colorScheme;
+        final thumb = tester
+            .widgetList<Container>(find.descendant(of: find.byType(Switch), matching: find.byType(Container)))
+            .map((c) => (c.decoration as BoxDecoration?)?.color)
+            .whereType<Color>()
+            .toList();
+        // The track (an AnimatedContainer, itself a Container) comes first.
+        expect(thumb.last, const Color(0xFFFFFFFF), reason: 'thumb');
+        final track = tester
+            .widgetList<AnimatedContainer>(
+              find.descendant(of: find.byType(Switch), matching: find.byType(AnimatedContainer)),
+            )
+            .map((c) => (c.decoration as BoxDecoration?)?.color)
+            .whereType<Color>()
+            .single;
+        if (on) {
+          expect(track, cs.primary);
+        } else {
+          expect(track, BkComponentThemes.switchOffTrack(brightness));
+          // The off track reads as a control on the page and on a card.
+          for (final surface in [cs.background, cs.card]) {
+            expect(contrast(track, surface), greaterThan(1.1), reason: 'off track on $surface');
+          }
+          // …and the white thumb stands off it.
+          expect(contrast(const Color(0xFFFFFFFF), track), greaterThan(1.15), reason: 'thumb on off track');
+        }
+      });
+    }
   }
 }

@@ -32,7 +32,7 @@ void main() {
     );
   }
 
-  testWidgets('renders gear/total and mode pill', (tester) async {
+  testWidgets('renders the gear on its own (GEAR under it) and the mode pill', (tester) async {
     await tester.pumpWidget(
       ShadcnApp(
         home: Scaffold(
@@ -40,8 +40,23 @@ void main() {
         ),
       ),
     );
-    expect(find.text('14/24'), findsOneWidget);
+    expect(find.text('14'), findsOneWidget);
+    expect(find.text('14/24'), findsNothing, reason: 'the total is not what a rider glances for');
     expect(find.text('SIM'), findsOneWidget);
+  });
+
+  testWidgets('the ratio reads like Ride: ×2.43 trimmed of trailing zeros', (tester) async {
+    await tester.pumpWidget(
+      ShadcnApp(
+        home: Scaffold(
+          child: TrainerOverlayView(
+            state: mkState(fields: const {OverlayField.gearRatio}),
+            onModeToggle: null,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('×2.43'), findsOneWidget);
   });
 
   testWidgets('renders 2×N position notation when front shift is on', (tester) async {
@@ -56,7 +71,7 @@ void main() {
       ),
     );
     expect(find.text('2×14'), findsOneWidget);
-    expect(find.text('14/24'), findsNothing);
+    expect(find.text('14'), findsNothing);
   });
 
   testWidgets('hides power when not selected', (tester) async {
@@ -126,6 +141,6 @@ void main() {
       final button = tester.getRect(find.byIcon(icon));
       expect(card.left <= button.left && button.right <= card.right, isTrue, reason: '$icon at $button, card $card');
     }
-    expect(find.text('14/24'), findsOneWidget);
+    expect(find.text('14'), findsOneWidget);
   });
 }

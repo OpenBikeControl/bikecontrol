@@ -2,8 +2,10 @@
 // bottom tab bar on a phone, a floating tab bar at medium widths and a
 // permanent sidebar from 840. From 1200 Ride carries the activity log as a
 // permanent right column.
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/devices/devices_page.dart';
 import 'package:bike_control/pages/home/home_page.dart';
@@ -12,9 +14,13 @@ import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart' show LanguageSelect;
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 import '../../helpers/shell_harness.dart';
 import '../../widget_snapshot.dart';
@@ -22,6 +28,12 @@ import '../../widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
   quietShellEnvironment();
+  // With screenshot mode off the shell keeps the screen awake; the test host
+  // has no wakelock plugin.
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMessageHandler(
+    'dev.flutter.pigeon.wakelock_plus_platform_interface.WakelockPlusApi.toggle',
+    (_) async => const StandardMessageCodec().encodeMessage(<Object?>[null]),
+  );
 
   AppLocalizations l10n() => AppLocalizations.current;
 
@@ -163,6 +175,95 @@ Future<void> main() async {
     expect(find.descendant(of: find.byType(SettingsPage), matching: find.byType(LanguageSelect)), findsOneWidget);
     expect(find.descendant(of: find.byType(SettingsPage), matching: find.text(l10n().blogTab)), findsOneWidget);
     expect(find.descendant(of: find.byType(SettingsPage), matching: find.text(l10n().helpCenterTitle)), findsOneWidget);
+    await disposeShell(tester);
+  });
+
+  group('sidebar plan card', () {
+    tearDown(() {
+      IAPManager.instance.setProForTesting(enabled: false);
+      screenshotMode = true;
+    });
+
+    testWidgets('without Pro: what is left of today\'s virtual shifting, as in Settings', (tester) async {
+      IAPManager.instance.setProForTesting(enabled: false);
+      screenshotMode = false;
+      await pumpShell(tester, const Size(1000, 760));
+      final card = find.byKey(const ValueKey('plan-card'));
+      final minutes = core.bridgeUsageTracker.remainingToday.inMinutes;
+      expect(find.descendant(of: card, matching: find.byType(VsTrialMeter)), findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.text(l10n().bridgeMinutesRemainingToday(minutes))),
+        findsOneWidget,
+      );
+      await disposeShell(tester);
+    });
+
+    testWidgets('with Pro on this device, or in a store render: no meter', (tester) async {
+      IAPManager.instance.setProForTesting(enabled: true, registeredDevice: true);
+      screenshotMode = false;
+      await pumpShell(tester, const Size(1000, 760));
+      expect(find.byType(VsTrialMeter), findsNothing);
+      await disposeShell(tester);
+
+      IAPManager.instance.setProForTesting(enabled: false);
+      screenshotMode = true;
+      await pumpShell(tester, const Size(1000, 760));
+      expect(find.byType(VsTrialMeter), findsNothing);
+      await disposeShell(tester);
+    });
+  });
+
+  group('desktop header device chips', () {
+    final controller = ZwiftClickV2(BleDevice(name: 'Zwift Click', deviceId: 'shell-chip-click'))
+      ..isConnected = true
+      ..batteryLevel = 81;
+    tearDown(() {
+      core.connection.devices.clear();
+      core.connection.hasDevices.value = false;
+    });
+
+    testWidgets('from 840: the controller with its battery; a tap opens Devices', (tester) async {
+      core.connection.devices
+        ..clear()
+        ..add(controller);
+      core.connection.hasDevices.value = true;
+      await pumpShell(tester, const Size(1280, 800));
+      final chips = find.byKey(const ValueKey('shell-device-chips'));
+      expect(chips, findsOneWidget);
+      expect(find.descendant(of: chips, matching: find.text(controller.toString())), findsOneWidget);
+      expect(find.descendant(of: chips, matching: find.text('81%')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('shell-device-chip-controller')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(DevicesPage), findsOneWidget);
+      await disposeShell(tester);
+    });
+
+    testWidgets('no devices, no chips; none on the phone', (tester) async {
+      await pumpShell(tester, const Size(1280, 800));
+      expect(find.byKey(const ValueKey('shell-device-chips')), findsNothing);
+      await disposeShell(tester);
+
+      core.connection.devices
+        ..clear()
+        ..add(controller);
+      core.connection.hasDevices.value = true;
+      await pumpShell(tester, const Size(390, 844));
+      expect(find.byKey(const ValueKey('shell-device-chips')), findsNothing);
+      await disposeShell(tester);
+    });
+  });
+
+  testWidgets('from 840: Settings\' column is centred in the content area', (tester) async {
+    await pumpShell(tester, const Size(1280, 800));
+    await tester.tap(find.descendant(of: find.byType(ShellSidebar), matching: find.text(l10n().navSettings)));
+    await tester.pump();
+    final sidebar = tester.getRect(find.byType(ShellSidebar));
+    final settings = tester.getRect(find.byType(SettingsPage));
+    final contentCentre = (sidebar.right + 1280) / 2;
+    expect(settings.width, lessThanOrEqualTo(720));
+    expect((settings.center.dx - contentCentre).abs(), lessThan(2));
     await disposeShell(tester);
   });
 }

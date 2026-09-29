@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/erg_power_stepping.dart';
+import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart' show FrontRingToggle;
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
@@ -277,18 +278,11 @@ class VirtualShiftingCard extends StatelessWidget {
           Expanded(
             child: erg
                 ? const SizedBox.shrink()
-                : RideStat(value: '×${_ratio(definition.gearRatio.value)}', label: l.rideRatio),
+                : RideStat(value: formatGearRatio(definition.gearRatio.value), label: l.rideRatio),
           ),
         ],
       ),
     );
-  }
-
-  /// "2.4" for 2.40, "1.75" for 1.75: as short as the value allows.
-  static String _ratio(double ratio) {
-    var text = ratio.toStringAsFixed(2);
-    if (text.endsWith('0')) text = text.substring(0, text.length - 1);
-    return text;
   }
 }
 

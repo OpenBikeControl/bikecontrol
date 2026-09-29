@@ -8,7 +8,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The latest few activity entries, for Ride's right column in windows too
 /// narrow for the permanent activity column. "See all" opens Activity.
-/// Nothing at all while the log is empty.
+/// Before anything has happened, the log's own empty state.
 class RideActivityPreview extends StatefulWidget {
   const RideActivityPreview({super.key, required this.controller, required this.onSeeAll, this.maxEntries = 4});
 
@@ -40,25 +40,27 @@ class _RideActivityPreviewState extends State<RideActivityPreview> {
   @override
   Widget build(BuildContext context) {
     final entries = widget.controller.entries.take(widget.maxEntries).toList();
-    if (entries.isEmpty) return const SizedBox.shrink();
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         RideSectionHeader(title: l10n.activity, linkLabel: l10n.rideSeeAll, onLink: widget.onSeeAll),
-        DecoratedBox(
-          decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final (i, entry) in entries.indexed) ...[
-                if (i > 0) const BkGroupedDivider(indent: ActivityRow.textInset),
-                ActivityRow(entry: entry, clock: widget.controller.clock, compact: true),
+        if (entries.isEmpty)
+          const ActivityEmptyState()
+        else
+          DecoratedBox(
+            decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (i, entry) in entries.indexed) ...[
+                  if (i > 0) const BkGroupedDivider(indent: ActivityRow.textInset),
+                  ActivityRow(entry: entry, clock: widget.controller.clock, compact: true),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
       ],
     );
   }

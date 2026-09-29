@@ -1,4 +1,3 @@
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -18,25 +17,6 @@ class OnboardingHeadline extends StatelessWidget {
       label: text,
       excludeSemantics: true,
       child: Text(text.toUpperCase(), textAlign: textAlign, style: BkDisplay.headline(context)),
-    );
-  }
-}
-
-/// The accent line over a step's headline: which step this is and what it
-/// is for ("Controller · Find and connect").
-class OnboardingEyebrow extends StatelessWidget {
-  const OnboardingEyebrow(this.text, {super.key});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: context.typography.small.copyWith(
-        fontWeight: FontWeight.w600,
-        color: bkAccentText(context),
-      ),
     );
   }
 }

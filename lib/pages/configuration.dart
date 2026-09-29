@@ -88,8 +88,8 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     if (core.settings.getTrainerApp() is! BikeControl) ...[
                       SizedBox(height: 0),
                       Text(
-                        context.i18n.selectTargetWhereAppRuns(
-                          screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name ?? 'the Trainer app',
+                        context.i18n.onboardingWhereTitle(
+                          screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()!.name,
                         ),
                       ).small,
                       Row(

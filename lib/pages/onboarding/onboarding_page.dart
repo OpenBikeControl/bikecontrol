@@ -1,4 +1,3 @@
-import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -98,15 +97,11 @@ Widget onboardingShell(
     builder: (context, constraints) {
       final desktop = constraints.maxWidth >= kOnboardingDesktopBreakpoint;
       final cs = Theme.of(context).colorScheme;
-      // The done step is its own summary: no eyebrow, no list of steps.
+      // The done step is its own summary: no list of steps.
       final inProgress = step != OnboardingStep.done;
       final content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (inProgress) ...[
-            OnboardingEyebrow('${onboardingStepLabel(context, step)} · ${onboardingStepSub(context, step)}'),
-            const Gap(8),
-          ],
           body,
           if (!desktop && inProgress && step != OnboardingStep.app) ...[
             const Gap(16),
@@ -140,13 +135,22 @@ Widget onboardingShell(
                         : BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
                   ),
                   Expanded(
-                    child: Text(
-                      context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}'),
-                      textAlign: TextAlign.center,
-                      style: context.typography.small.copyWith(
-                        color: cs.mutedForeground,
-                        fontWeight: FontWeight.w500,
-                        fontFeatures: const [FontFeature.tabularFigures()],
+                    // Read as "Step 3 of 6, Controller: Find and connect" —
+                    // the step's name lives in the rail on wide windows and
+                    // only here on the phone.
+                    child: Semantics(
+                      label:
+                          '${context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}')}, '
+                          '${onboardingStepLabel(context, step)}: ${onboardingStepSub(context, step)}',
+                      excludeSemantics: true,
+                      child: Text(
+                        context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}'),
+                        textAlign: TextAlign.center,
+                        style: context.typography.small.copyWith(
+                          color: cs.mutedForeground,
+                          fontWeight: FontWeight.w500,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                   ),

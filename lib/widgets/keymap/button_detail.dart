@@ -230,12 +230,12 @@ class _TriggerCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final kp = keyPair;
     final hasAction = kp != null && !kp.hasNoAction;
-    final value = hasAction ? kp.toString() : context.i18n.noActionAssigned;
+    final value = hasAction ? kp.toString() : context.i18n.noActionAssignedShort;
     return BkTappable(
       onPressed: onPressed,
       selected: selected,
       inMutuallyExclusiveGroup: true,
-      label: '${trigger.title}: $value',
+      label: '${trigger.title}: ${hasAction ? value : context.i18n.noActionAssigned}',
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(14),
       child: Container(

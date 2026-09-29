@@ -68,6 +68,8 @@ Future<void> main() async {
     expect(find.descendant(of: card, matching: find.text(l.chainAppTitle)), findsOneWidget);
     expect(find.descendant(of: card, matching: find.text('MyWhoosh')), findsOneWidget);
     expect(find.byType(TrainerAppSelect), findsNothing);
+    // The target question in plain words, naming the same app.
+    expect(find.text(l.onboardingWhereTitle('MyWhoosh')), findsOneWidget);
 
     await tester.tap(find.descendant(of: card, matching: find.text(l.rideChange)));
     await tester.pump();

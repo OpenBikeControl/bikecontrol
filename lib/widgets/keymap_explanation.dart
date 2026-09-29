@@ -295,22 +295,34 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                 children: [
                   Text(trigger.title, style: muted),
                   if (pro) const ProBadge(padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
-                  const Spacer(),
-                  if (!blocked) ...[
-                    if (hasAction && keyPair.icon != null) Icon(keyPair.icon, size: 14, color: cs.mutedForeground),
-                    Flexible(
-                      flex: 3,
-                      child: Text(
-                        hasAction ? keyPair.toString() : context.i18n.noActionAssigned,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: hasAction
-                            ? context.typography.small.copyWith(fontWeight: FontWeight.w500, color: cs.foreground)
-                            : muted,
-                      ),
-                    ),
-                  ],
+                  // What it does takes the rest of the row, ending at the
+                  // chevron; "(none)" when nothing is on it.
+                  Expanded(
+                    child: blocked
+                        ? const SizedBox.shrink()
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            spacing: 8,
+                            children: [
+                              if (hasAction && keyPair.icon != null)
+                                Icon(keyPair.icon, size: 14, color: cs.mutedForeground),
+                              Flexible(
+                                child: Text(
+                                  hasAction ? keyPair.toString() : context.i18n.noActionAssignedShort,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.end,
+                                  style: hasAction
+                                      ? context.typography.small.copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          color: cs.foreground,
+                                        )
+                                      : muted,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                   Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
                 ],
               ),
@@ -435,32 +447,42 @@ class _ButtonRowState extends State<_ButtonRow> {
               children: [
                 _KeyChip(button: widget.button, selected: widget.selected),
                 const Gap(12),
-                Flexible(
-                  flex: 2,
-                  child: Text(
-                    widget.button.displayName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.typography.base.copyWith(fontWeight: FontWeight.w500),
-                  ),
-                ),
-                if (!open && widget.summary != null) ...[
-                  const Gap(8),
-                  Expanded(
-                    flex: 3,
-                    child: Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Text.rich(
-                        widget.summary!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: context.typography.small,
-                      ),
+                // The name takes its own width (up to about half the row, so
+                // a long one still leaves the value room); the value takes
+                // the rest and ends at the chevron.
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      children: [
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: !open && widget.summary != null
+                                ? constraints.maxWidth * 0.55
+                                : constraints.maxWidth,
+                          ),
+                          child: Text(
+                            widget.button.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.typography.base.copyWith(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        if (!open && widget.summary != null) ...[
+                          const Gap(8),
+                          Expanded(
+                            child: Text.rich(
+                              widget.summary!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: context.typography.small,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ],
-                if (open || widget.summary == null) const Spacer(),
+                ),
                 const Gap(4),
                 Icon(
                   open ? LucideIcons.chevronDown : LucideIcons.chevronRight,
