@@ -775,6 +775,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       phase: _controllerPhase,
       devices: core.connection.controllerDevices,
       appName: _selectedApp?.name ?? '',
+      trainerApp: _selectedApp,
       pressedButtons: _pressedButton,
       pressGenerations: _pressGeneration,
       onSetupDevice: (d) => unawaited(_openSetupFor(d)),

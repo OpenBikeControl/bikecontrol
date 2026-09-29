@@ -2294,6 +2294,69 @@
   "onboardingTrialKeepVs": "Virtual Shifting behalten: Pro",
   "onboardingTrialUnlimited": "Unbegrenzte Befehle: Basis oder Pro",
   "onboardingSkipControllerNote": "Ohne Controller kann BikeControl nicht schalten. Du kannst später über den Startbildschirm einen koppeln.",
+  "onboardingZwiftNoteZwift": "Zwift erkennt deinen {device} direkt – zum Fahren brauchst du BikeControl nicht. BikeControl hilft trotzdem, wenn du Tasten neu belegen, Aktionen hinzufügen willst, die Zwift nicht vergibt, einen Bluetooth-Platz freimachen oder das virtuelle Schalten direkt steuern möchtest.",
+  "@onboardingZwiftNoteZwift": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteOfficial": "Der {device} wurde für Zwift entwickelt und funktioniert dort am besten. {app} wird von BikeControl offiziell unterstützt: Schalten und die wichtigsten Funktionen klappen, nur für ein paar Tasten gibt es in {app} kein Gegenstück. BikeControl belegt alles, was {app} unterstützt.",
+  "@onboardingZwiftNoteOfficial": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteActions": "Der {device} wurde für Zwift entwickelt und funktioniert dort am besten. {app} bietet nur wenige Funktionen, die BikeControl auslösen kann: {actions}. Andere Tasten haben in {app} nichts zu tun – aber jede Funktion, die {app} hat, lässt sich mit dem {device} bedienen.",
+  "@onboardingZwiftNoteActions": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      },
+      "actions": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteAppDefined": "Der {device} wurde für Zwift entwickelt und funktioniert dort am besten. Jede {app}-App legt selbst fest, welche Funktionen sie annimmt, daher haben manche Tasten dort evtl. nichts zu tun. BikeControl belegt alles, was die App anbietet.",
+  "@onboardingZwiftNoteAppDefined": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteCustom": "Der {device} wurde für Zwift entwickelt und funktioniert dort am besten. Für deine Trainings-App hat BikeControl keine Vorlage, du legst also selbst fest, was jede Taste tut – zum Beispiel ein Tastenkürzel oder ein Tippen auf den Bildschirm.",
+  "@onboardingZwiftNoteCustom": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteNoInput": "Der {device} wurde für Zwift entwickelt und funktioniert dort am besten. {app} nimmt keine Tasteneingaben an, dort haben die Tasten also nichts zu steuern. BikeControl kann sie aber für sein eigenes virtuelles Schalten nutzen.",
+  "@onboardingZwiftNoteNoInput": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingVsProNote": "Das Virtual Shifting von BikeControl ist Teil von Pro. Ohne Pro kannst du es jeden Tag {minutes} Minuten testen; Basis enthält es nicht.",
   "onboardingStillNotConnected": "Immer noch nicht verbunden? Teste dein Netzwerk",
   "paywall_vsByBikeControl": "Virtual Shifting von BikeControl (jeder Trainer, eigene Gänge)",
