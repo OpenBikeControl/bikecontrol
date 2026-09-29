@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -12,6 +14,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
@@ -232,7 +235,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   Widget build(BuildContext context) {
     final connectedTrainers = core.logic.enabledNonLocalTrainerConnections;
 
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = isCompactWindow(context);
 
     return Focus(
       focusNode: _focusNode,
@@ -240,22 +243,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       onKeyEvent: _onKey,
       child: Scaffold(
         headers: [
-          AppBar(
-            leading: [
-              IconButton.ghost(
-                icon: Icon(LucideIcons.arrowLeft, size: 24),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-            title: Text(context.i18n.simulateButtons),
-            trailing: [
-              IconButton.ghost(
-                icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-            backgroundColor: Theme.of(context).colorScheme.background,
-          ),
+          BkPageHeader(title: context.i18n.simulateButtons, showDivider: false),
         ],
         child: Scrollbar(
           controller: _scrollController,
@@ -402,8 +390,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12,
         children: [
-          Text('KEYBOARD SHORTCUTS').bold.muted,
-          Text('Assign keyboard shortcuts to simulator buttons').small.muted,
+          Text(AppLocalizations.of(context).keyboardShortcuts.toUpperCase()).bold.muted,
+          Text(AppLocalizations.of(context).keyboardShortcutsSimulatorHint).small.muted,
           for (final action in uniqueActions) _buildHotkeyRow(action),
         ],
       ),
@@ -421,10 +409,13 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue),
+              border: Border.all(color: Theme.of(context).colorScheme.primary),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text('Press a key...', style: TextStyle(color: Colors.blue)).small,
+            child: Text(
+              AppLocalizations.of(context).pressAKey,
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ).small,
           )
         else if (hotkey != null)
           KeyWidget(label: hotkey.toUpperCase())
@@ -437,7 +428,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               _editingHotkeyAction = isEditing ? null : action;
             });
           },
-          child: Text(isEditing ? 'Cancel' : 'Set').xSmall,
+          child: Text(
+            isEditing ? AppLocalizations.of(context).cancel : AppLocalizations.of(context).setShortcut,
+          ).xSmall,
         ),
         if (hotkey != null && !isEditing) ...[
           Gap(4),
@@ -448,7 +441,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               });
               core.settings.setButtonSimulatorHotkeys(_hotkeys);
             },
-            child: Text('Clear').xSmall,
+            child: Text(AppLocalizations.of(context).clear).xSmall,
           ),
         ],
       ],
@@ -562,7 +555,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               if (action.alternativeTitle != null)
                 Text(
                   action.alternativeTitle!.toUpperCase(),
-                  style: TextStyle(fontSize: 10, color: Colors.gray),
+                  style: context.typography.caption.copyWith(color: Colors.gray),
                 ),
             ],
           ),

@@ -84,7 +84,7 @@ Future<void> main() async {
 
     expect(find.byType(Dismissible), findsNothing);
     expect(find.byIcon(LucideIcons.x), findsNothing);
-    expect(find.byIcon(Icons.close), findsNothing);
+    expect(find.byIcon(LucideIcons.x), findsNothing);
   });
 
   testWidgets('the button runs the registration', (tester) async {
@@ -92,10 +92,12 @@ Future<void> main() async {
     var calls = 0;
     await pump(
       tester,
-      ProUnregisteredBanner(register: (_) async {
-        calls++;
-        return true;
-      }),
+      ProUnregisteredBanner(
+        register: (_) async {
+          calls++;
+          return true;
+        },
+      ),
     );
 
     await tester.tap(find.widgetWithText(Button, register));

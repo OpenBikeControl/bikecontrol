@@ -66,4 +66,36 @@ Future<void> main() async {
     expect(find.byType(NetworkTroubleshootingPage), findsOneWidget);
     expect(pageAbsentWhenClosed, isTrue, reason: 'onClose must run, and run before the page is pushed');
   });
+
+  // "Contact support" opens the in-app chat. An external-link mark promised
+  // a browser or a mail client instead.
+  testWidgets('the support channel is marked as in-app, not external', (tester) async {
+    await tester.pumpWidget(
+      ShadcnApp(
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        home: Scaffold(
+          child: SingleChildScrollView(
+            child: Builder(
+              builder: (context) => onboardingHelpSheetBody(context, step: OnboardingStep.done, onClose: () {}),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(tester.element(find.byType(Scaffold).first));
+    final support = find.widgetWithText(Button, l10n.onboardingHelpSupport);
+    expect(support, findsOneWidget);
+    expect(
+      find.descendant(of: support, matching: find.byIcon(LucideIcons.externalLink)),
+      findsNothing,
+    );
+  });
 }

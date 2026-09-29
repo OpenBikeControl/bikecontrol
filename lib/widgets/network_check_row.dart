@@ -1,5 +1,8 @@
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'dart:io' show Platform;
 
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -109,7 +112,19 @@ String? networkCheckSummary(BuildContext context, NetworkCheck check) {
 /// support person reading a screenshot) would actually scan for, in order of
 /// usefulness. Everything else stays in the expandable block.
 String? networkCheckHeadlineValue(NetworkCheck check) {
-  const preferred = ['address', 'resolvedTo', 'hostname', 'backend', 'state', 'latencyMs', 'port', 'held', 'category', 'reason', 'error'];
+  const preferred = [
+    'address',
+    'resolvedTo',
+    'hostname',
+    'backend',
+    'state',
+    'latencyMs',
+    'port',
+    'held',
+    'category',
+    'reason',
+    'error',
+  ];
   for (final key in preferred) {
     final value = check.detail[key];
     if (value == null || value.isEmpty) continue;
@@ -184,14 +199,14 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
               children: [
                 Text(
                   networkCheckTitle(context, check.id),
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Builder(
                   builder: (context) {
                     final summary = networkCheckSummary(context, check) ?? _verdictWord(l10n, check.verdict);
                     return Padding(
                       padding: const EdgeInsets.only(top: 1),
-                      child: Text(summary, style: TextStyle(fontSize: 12, color: cs.mutedForeground)),
+                      child: Text(summary, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
                     );
                   },
                 ),
@@ -226,9 +241,11 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (expandable)
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() => _detailExpanded = !_detailExpanded),
+          // A disclosure: focusable, and it tells a screen reader whether
+          // the detail block under it is open.
+          BkTappable(
+            onPressed: () => setState(() => _detailExpanded = !_detailExpanded),
+            expanded: _detailExpanded,
             child: row,
           )
         else
@@ -272,7 +289,9 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
     // width the check's own name needs, and both end up wrapping mid-word — so
     // below the breakpoint the fact stays in the expandable block, where it
     // already lives, and only the chevron remains.
-    final headline = MediaQuery.sizeOf(context).width < 640 ? null : networkCheckHeadlineValue(widget.check);
+    final headline = MediaQuery.sizeOf(context).width < Breakpoints.networkValueColumn
+        ? null
+        : networkCheckHeadlineValue(widget.check);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -282,7 +301,9 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
             child: Text(
               headline,
               textAlign: TextAlign.right,
-              style: Theme.of(context).typography.mono.copyWith(fontSize: 11.5, color: cs.mutedForeground),
+              style: Theme.of(
+                context,
+              ).typography.mono.copyWith(fontSize: context.typography.caption.fontSize, color: cs.mutedForeground),
             ),
           ),
         if (expandable) ...[
@@ -309,7 +330,7 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (hint != null) ...[
-            Text(hint, style: TextStyle(fontSize: 12, color: cs.mutedForeground)),
+            Text(hint, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
             const Gap(8),
           ],
           Container(
@@ -321,7 +342,11 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
             ),
             child: Text(
               [for (final e in entries) '${e.key.padRight(width)}  ${e.value}'].join('\n'),
-              style: Theme.of(context).typography.mono.copyWith(fontSize: 11, height: 1.75, color: cs.mutedForeground),
+              style: Theme.of(context).typography.mono.copyWith(
+                fontSize: context.typography.caption.fontSize,
+                height: 1.75,
+                color: cs.mutedForeground,
+              ),
             ),
           ),
         ],
@@ -359,7 +384,7 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
     final cs = Theme.of(context).colorScheme;
     return Text(
       '• $text',
-      style: TextStyle(fontSize: 12, color: active ? cs.foreground : cs.mutedForeground),
+      style: context.typography.xSmall.copyWith(color: active ? cs.foreground : cs.mutedForeground),
     );
   }
 }

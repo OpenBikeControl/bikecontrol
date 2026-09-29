@@ -28,8 +28,10 @@ import '../../bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import '../../bluetooth/devices/zwift/constants.dart';
 import '../../bluetooth/devices/zwift/zwift_click.dart';
 import '../../bluetooth/devices/zwift/zwift_clickv2.dart';
+import '../../bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import '../../bluetooth/devices/zwift/zwift_play.dart';
 import '../../bluetooth/devices/zwift/zwift_ride.dart';
+import '../../gen/l10n.dart';
 import '../keymap/apps/supported_app.dart';
 
 enum IntakeCategory {
@@ -44,75 +46,140 @@ enum IntakeCategory {
 }
 
 /// Controller follow-up options ("Which controller?"). The IDs must match the
-/// `problem_subcategories` slugs in the seed migration.
+/// `problem_subcategories` slugs in the seed migration. Only the id is sent;
+/// the label shown is [controllerOptionLabel].
 class ControllerOption {
   final String id;
-  final String label;
-  const ControllerOption(this.id, this.label);
+  const ControllerOption(this.id);
 }
 
 const controllerOptions = <ControllerOption>[
-  ControllerOption('zwift_click', 'Zwift Click'),
-  ControllerOption('zwift_click_v2', 'Zwift Click V2'),
-  ControllerOption('zwift_play_left', 'Zwift Play (Left)'),
-  ControllerOption('zwift_play_right', 'Zwift Play (Right)'),
-  ControllerOption('zwift_ride', 'Zwift Ride'),
-  ControllerOption('shimano_di2', 'Shimano Di2'),
-  ControllerOption('sram_axs', 'SRAM AXS'),
-  ControllerOption('wahoo', 'Wahoo'),
-  ControllerOption('cycplus', 'Cycplus'),
-  ControllerOption('elite', 'Elite'),
-  ControllerOption('thinkrider', 'ThinkRider'),
-  ControllerOption('gamepad', 'Gamepad'),
-  ControllerOption('hid_keyboard', 'HID keyboard'),
-  ControllerOption('gyroscope', 'Gyroscope'),
-  ControllerOption('other', 'Other / not listed'),
+  ControllerOption('zwift_click'),
+  ControllerOption('zwift_click_v2'),
+  ControllerOption('zwift_play_left'),
+  ControllerOption('zwift_play_right'),
+  ControllerOption('zwift_ride'),
+  ControllerOption('zwift_ride_v2'),
+  ControllerOption('shimano_di2'),
+  ControllerOption('sram_axs'),
+  ControllerOption('wahoo'),
+  ControllerOption('cycplus'),
+  ControllerOption('elite'),
+  ControllerOption('thinkrider'),
+  ControllerOption('gamepad'),
+  ControllerOption('hid_keyboard'),
+  ControllerOption('gyroscope'),
+  ControllerOption('other'),
 ];
 
-/// Controller symptom dropdown ("What's happening?").
+/// The label shown for a controller option. Brand names stay as they are;
+/// everything else is localized. Unknown ids are shown as-is.
+String controllerOptionLabel(AppLocalizations l, String id) => switch (id) {
+  'zwift_click' => 'Zwift Click',
+  'zwift_click_v2' => 'Zwift Click V2',
+  'zwift_play_left' => l.intakeControllerPlayLeft,
+  'zwift_play_right' => l.intakeControllerPlayRight,
+  'zwift_ride' => 'Zwift Ride',
+  'zwift_ride_v2' => 'Zwift Ride V2',
+  'shimano_di2' => 'Shimano Di2',
+  'sram_axs' => 'SRAM AXS',
+  'wahoo' => 'Wahoo',
+  'cycplus' => 'Cycplus',
+  'elite' => 'Elite',
+  'thinkrider' => 'ThinkRider',
+  'gamepad' => l.intakeControllerGamepad,
+  'hid_keyboard' => l.intakeControllerHidKeyboard,
+  'gyroscope' => l.intakeControllerGyroscope,
+  'other' => l.intakeControllerOther,
+  _ => id,
+};
+
+/// A "What's happening?" option. Only the id is sent; the label shown is
+/// [symptomLabel].
 class SymptomOption {
   final String id;
-  final String label;
-  const SymptomOption(this.id, this.label);
+  const SymptomOption(this.id);
 }
 
+/// Controller symptom dropdown ("What's happening?").
 const controllerSymptoms = <SymptomOption>[
-  SymptomOption('no_pairing', 'Not pairing'),
-  SymptomOption('no_response', "Pairs but button presses do nothing"),
-  SymptomOption('buttons_partial', 'Only some buttons work'),
-  SymptomOption('dropouts', 'Disconnects mid-ride'),
-  SymptomOption('other', 'Something else'),
+  SymptomOption('no_pairing'),
+  SymptomOption('no_response'),
+  SymptomOption('buttons_partial'),
+  SymptomOption('dropouts'),
+  SymptomOption('other'),
+];
+
+/// The Zwift Ride V2 lock: Zwift locks it to its own app and it has to be
+/// unlocked there about every 24 hours. Offered for a Zwift Ride V2 only — see
+/// [controllerSymptomsFor].
+const rideV2LockSymptom = SymptomOption('zwift_ride_v2_lock');
+
+/// The "What's happening?" options for the controller picked in the form.
+List<SymptomOption> controllerSymptomsFor(String? controllerId) => [
+  if (controllerId == 'zwift_ride_v2') rideV2LockSymptom,
+  ...controllerSymptoms,
 ];
 
 /// Trainer-app symptom dropdown ("What's happening?").
 const trainerAppSymptoms = <SymptomOption>[
-  SymptomOption('shifts_not_recognized', "BikeControl shifts, app doesn't react"),
-  SymptomOption('network_bridge_fails', 'Network bridge stuck on "Waiting"'),
-  SymptomOption('no_pairing', 'Can\'t pair from the app'),
-  SymptomOption('gear_indicator_not_updating', 'Gear number stuck on screen'),
-  SymptomOption('other', 'Something else'),
+  SymptomOption('shifts_not_recognized'),
+  SymptomOption('network_bridge_fails'),
+  SymptomOption('no_pairing'),
+  SymptomOption('gear_indicator_not_updating'),
+  SymptomOption('other'),
 ];
 
 /// Smart trainer symptom dropdown ("What's happening?").
 const smartTrainerSymptoms = <SymptomOption>[
-  SymptomOption('no_resistance_change', 'No resistance change when shifting'),
-  SymptomOption('wrong_resistance', 'Resistance feels wrong / random'),
-  SymptomOption('gear_shift_not_working', 'Gear shift not working'),
-  SymptomOption('no_pairing', 'Trainer not pairing'),
-  SymptomOption('dropouts', 'Drops mid-ride'),
-  SymptomOption('no_data', 'No power / cadence / heart rate'),
-  SymptomOption('not_supported', "Trainer not detected / FTMS missing"),
-  SymptomOption('other', 'Something else'),
+  SymptomOption('no_resistance_change'),
+  SymptomOption('wrong_resistance'),
+  SymptomOption('gear_shift_not_working'),
+  SymptomOption('no_pairing'),
+  SymptomOption('dropouts'),
+  SymptomOption('no_data'),
+  SymptomOption('not_supported'),
+  SymptomOption('other'),
 ];
 
 /// Account / purchase follow-up dropdown.
 const accountSymptoms = <SymptomOption>[
-  SymptomOption('purchase_not_restored', "Can't restore purchase"),
-  SymptomOption('trial_expired_after_purchase', 'Trial expired even though I paid'),
-  SymptomOption('wrong_plan_shown', 'App shows wrong plan'),
-  SymptomOption('refund_request', 'Refund request'),
-  SymptomOption('other', 'Something else'),
+  SymptomOption('purchase_not_restored'),
+  SymptomOption('trial_expired_after_purchase'),
+  SymptomOption('wrong_plan_shown'),
+  SymptomOption('refund_request'),
+  SymptomOption('other'),
 ];
+
+/// The localized label for a symptom id within [category]. The same id can
+/// mean different things per branch ("no_pairing"), hence the category.
+/// Unknown ids are shown as-is.
+String symptomLabel(AppLocalizations l, IntakeCategory category, String id) {
+  if (id == 'other') return l.intakeSomethingElse;
+  return switch ((category, id)) {
+    (IntakeCategory.controller, 'no_pairing') => l.intakeControllerNoPairing,
+    (IntakeCategory.controller, 'no_response') => l.intakeControllerNoResponse,
+    (IntakeCategory.controller, 'buttons_partial') => l.intakeControllerButtonsPartial,
+    (IntakeCategory.controller, 'dropouts') => l.intakeControllerDropouts,
+    (IntakeCategory.controller, 'zwift_ride_v2_lock') => l.intakeControllerRideV2Lock,
+    (IntakeCategory.trainerApp, 'shifts_not_recognized') => l.intakeAppShiftsNotRecognized,
+    (IntakeCategory.trainerApp, 'network_bridge_fails') => l.intakeAppNetworkBridgeFails,
+    (IntakeCategory.trainerApp, 'no_pairing') => l.intakeAppNoPairing,
+    (IntakeCategory.trainerApp, 'gear_indicator_not_updating') => l.intakeAppGearIndicator,
+    (IntakeCategory.smartTrainer, 'no_resistance_change') => l.intakeTrainerNoResistanceChange,
+    (IntakeCategory.smartTrainer, 'wrong_resistance') => l.intakeTrainerWrongResistance,
+    (IntakeCategory.smartTrainer, 'gear_shift_not_working') => l.intakeTrainerGearShiftNotWorking,
+    (IntakeCategory.smartTrainer, 'no_pairing') => l.intakeTrainerNoPairing,
+    (IntakeCategory.smartTrainer, 'dropouts') => l.intakeTrainerDropouts,
+    (IntakeCategory.smartTrainer, 'no_data') => l.intakeTrainerNoData,
+    (IntakeCategory.smartTrainer, 'not_supported') => l.intakeTrainerNotSupported,
+    (IntakeCategory.account, 'purchase_not_restored') => l.intakeAccountPurchaseNotRestored,
+    (IntakeCategory.account, 'trial_expired_after_purchase') => l.intakeAccountTrialExpiredAfterPurchase,
+    (IntakeCategory.account, 'wrong_plan_shown') => l.intakeAccountWrongPlan,
+    (IntakeCategory.account, 'refund_request') => l.intakeAccountRefund,
+    _ => id,
+  };
+}
 
 /// Map a paired device to its intake-form controller option id, so we can
 /// narrow the "Which controller?" dropdown to controllers the user actually
@@ -121,14 +188,14 @@ const accountSymptoms = <SymptomOption>[
 ///
 /// `ZwiftClickV2 extends ZwiftRide` — keep the V2 check first.
 String? controllerOptionIdFor(BaseDevice device) {
-  if (device is ZwiftClickV2) return 'zwift_click_v2';
+  if (device is ZwiftClickV2 || device is ZwiftClickV2RightSide) return 'zwift_click_v2';
   if (device is ZwiftClick) return 'zwift_click';
   if (device is ZwiftPlay) {
     return device.deviceType == ZwiftDeviceType.playLeft
         ? 'zwift_play_left'
         : 'zwift_play_right';
   }
-  if (device is ZwiftRide) return 'zwift_ride';
+  if (device is ZwiftRide) return device.isRideV2 ? 'zwift_ride_v2' : 'zwift_ride';
   if (device is ShimanoDi2) return 'shimano_di2';
   if (device is SramAxs) return 'sram_axs';
   if (device is WahooKickrBikeShift) return 'wahoo';
@@ -165,11 +232,16 @@ class IntakeAnswers {
   /// trainer-app branches.
   final String? symptom;
 
+  /// The controller's firmware version, when the rider came from a screen
+  /// that knows which controller this is about (e.g. the Zwift Ride V2 lock).
+  final String? firmware;
+
   const IntakeAnswers({
     required this.category,
     this.subcategory,
     this.subcategoryValue,
     this.symptom,
+    this.firmware,
   });
 
   Map<String, dynamic> toJson() => {
@@ -178,5 +250,16 @@ class IntakeAnswers {
         if (subcategory != null) 'subcategory': subcategory,
         if (subcategoryValue != null) 'subcategory_value': subcategoryValue,
         if (symptom != null) 'symptom': symptom,
+        if (firmware != null) 'firmware': firmware,
       };
 }
+
+/// The intake for a rider asking about the Zwift Ride V2 lock, pre-selected
+/// when support is opened from one of the Ride V2 unlock screens.
+IntakeAnswers rideV2LockIntake(BaseDevice device) => IntakeAnswers(
+  category: IntakeCategory.controller,
+  subcategory: 'device',
+  subcategoryValue: 'zwift_ride_v2',
+  symptom: rideV2LockSymptom.id,
+  firmware: device is ZwiftRide ? device.firmwareVersion : null,
+);

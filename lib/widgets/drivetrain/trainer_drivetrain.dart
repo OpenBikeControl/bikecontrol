@@ -1,4 +1,4 @@
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show screenshotMotionPinned;
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -42,7 +42,7 @@ class TrainerDrivetrain extends StatelessWidget {
         final cadence = definition.cadenceRpm.value ?? 0;
         // A chain that never stops moving is a screenshot that never looks the
         // same twice — and a golden test that never settles.
-        final pedalling = cadence > 0 && !screenshotMode;
+        final pedalling = cadence > 0 && !screenshotMotionPinned;
         return DrivetrainView(
           gear: definition.currentGear.value,
           gearCount: definition.maxGear,

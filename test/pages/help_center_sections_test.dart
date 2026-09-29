@@ -179,8 +179,9 @@ void main() {
         await _pump(tester, const GuidesVideosSection());
         await tester.pump();
 
-        final tutorialsFinder = find.text('Tutorials');
-        final videosFinder = find.text('Instruction Videos');
+        final l10n = AppLocalizations.of(tester.element(find.byType(GuidesVideosSection)));
+        final tutorialsFinder = find.text(l10n.tutorials);
+        final videosFinder = find.text(l10n.instructionVideos);
         expect(tutorialsFinder, findsOneWidget);
         expect(videosFinder, findsOneWidget);
         expect(

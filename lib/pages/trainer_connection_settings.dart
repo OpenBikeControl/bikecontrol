@@ -1,3 +1,6 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/trainer.dart';
 import 'package:bike_control/utils/core.dart';
@@ -54,25 +57,21 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
       },
       child: Scaffold(
         headers: [
-          AppBar(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            leading: [
-              IconButton.ghost(
-                icon: Icon(LucideIcons.arrowLeft, size: 24),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
-            ],
-            title: Text(
-              AppLocalizations.of(context).connectionSettings,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-            ),
-            trailing: [
+          BkPageHeader(
+            title: AppLocalizations.of(context).connectionSettings,
+            actions: [
               if (core.settings.getTrainerApp()?.connections.any((e) => e.$2 == ConnectionSupport.experimental) ??
                   false)
                 Builder(
                   builder: (context) {
-                    return IconButton.ghost(
-                      icon: Icon(Icons.more_vert, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
+                    return BkIconButton.ghost(
+                      icon: Icon(
+                        LucideIcons.ellipsisVertical,
+                        size: 22,
+                        color: Theme.of(context).colorScheme.mutedForeground,
+                      ),
+                      label: context.i18n.a11yMoreOptions,
+                      tooltip: false,
                       onPressed: () {
                         showDropdown(
                           context: context,
@@ -93,14 +92,8 @@ class _TrainerConnectionSettingsPageState extends State<TrainerConnectionSetting
                     );
                   },
                 ),
-              IconButton.ghost(
-                icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-                onPressed: () => Navigator.of(context).maybePop(),
-              ),
             ],
-            backgroundColor: Theme.of(context).colorScheme.background,
           ),
-          Divider(),
         ],
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

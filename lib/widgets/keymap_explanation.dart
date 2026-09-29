@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/window_size.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -73,7 +74,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _isMobile = MediaQuery.sizeOf(context).width < 860;
+    _isMobile = MediaQuery.sizeOf(context).width < Breakpoints.keymapSideBySide;
   }
 
   @override
@@ -116,112 +117,113 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
         spacing: 8,
         children: [
           for (final devicePair in keyButtonMap.entries) ...[
-          if (widget.filterDevice == null) ColoredTitle(text: devicePair.key.toString()),
-          if (devicePair.value.isEmpty)
-            Text(
-              devicePair.key.buttonExplanation,
-              style: TextStyle(height: 1),
-            ).muted,
-          for (final button in devicePair.value) ...[
-            Card(
-              fillColor: Theme.of(context).colorScheme.background,
-              filled: true,
-              borderColor: ComponentTheme.maybeOf<DividerTheme>(context)?.color ?? Theme.of(context).colorScheme.border,
-              padding: _isMobile ? EdgeInsets.zero : null,
-              clipBehavior: Clip.antiAlias,
-              child: _isMobile
-                  ? Column(
-                      children: [
-                        Container(
-                          color: Theme.of(context).colorScheme.card.withAlpha(70),
-                          height: 52,
-                          child: Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: ButtonWidget(
-                                  button: button,
-                                  heroTag: 'btn-${devicePair.key.uniqueId}-${button.name}',
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(button.name.splitByUpperCase()).medium.small,
-                              ),
-                            ],
-                          ),
-                        ),
-                        _buildTriggerButton(
-                          context,
-                          device: devicePair.key,
-                          deviceButton: button,
-                          trigger: ButtonTrigger.singleClick,
-                          supportsLongPress: devicePair.key.supportsLongPress,
-                        ),
-                        _buildTriggerButton(
-                          context,
-                          device: devicePair.key,
-                          deviceButton: button,
-                          trigger: ButtonTrigger.doubleClick,
-                          supportsLongPress: devicePair.key.supportsLongPress,
-                        ),
-                        _buildTriggerButton(
-                          context,
-                          device: devicePair.key,
-                          deviceButton: button,
-                          trigger: ButtonTrigger.longPress,
-                          supportsLongPress: devicePair.key.supportsLongPress,
-                        ),
-                      ],
-                    )
-                  : Row(
-                      children: [
-                        Expanded(
-                          child: Basic(
-                            leading: SizedBox(
-                              width: 58,
-                              child: Center(
-                                child: IntrinsicHeight(
+            if (widget.filterDevice == null) ColoredTitle(text: devicePair.key.toString()),
+            if (devicePair.value.isEmpty)
+              Text(
+                devicePair.key.buttonExplanation,
+                style: TextStyle(height: 1),
+              ).muted,
+            for (final button in devicePair.value) ...[
+              Card(
+                fillColor: Theme.of(context).colorScheme.background,
+                filled: true,
+                borderColor:
+                    ComponentTheme.maybeOf<DividerTheme>(context)?.color ?? Theme.of(context).colorScheme.border,
+                padding: _isMobile ? EdgeInsets.zero : null,
+                clipBehavior: Clip.antiAlias,
+                child: _isMobile
+                    ? Column(
+                        children: [
+                          Container(
+                            color: Theme.of(context).colorScheme.card.withAlpha(70),
+                            height: 52,
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(12.0),
                                   child: ButtonWidget(
                                     button: button,
                                     heroTag: 'btn-${devicePair.key.uniqueId}-${button.name}',
                                   ),
                                 ),
-                              ),
-                            ),
-                            content: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                _buildTriggerButton(
-                                  context,
-                                  device: devicePair.key,
-                                  deviceButton: button,
-                                  trigger: ButtonTrigger.singleClick,
-                                  supportsLongPress: devicePair.key.supportsLongPress,
-                                ),
-                                _buildTriggerButton(
-                                  context,
-                                  device: devicePair.key,
-                                  deviceButton: button,
-                                  trigger: ButtonTrigger.doubleClick,
-                                  supportsLongPress: devicePair.key.supportsLongPress,
-                                ),
-                                _buildTriggerButton(
-                                  context,
-                                  device: devicePair.key,
-                                  deviceButton: button,
-                                  trigger: ButtonTrigger.longPress,
-                                  supportsLongPress: devicePair.key.supportsLongPress,
+                                Expanded(
+                                  child: Text(button.name.splitByUpperCase()).medium.small,
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-            ),
+                          _buildTriggerButton(
+                            context,
+                            device: devicePair.key,
+                            deviceButton: button,
+                            trigger: ButtonTrigger.singleClick,
+                            supportsLongPress: devicePair.key.supportsLongPress,
+                          ),
+                          _buildTriggerButton(
+                            context,
+                            device: devicePair.key,
+                            deviceButton: button,
+                            trigger: ButtonTrigger.doubleClick,
+                            supportsLongPress: devicePair.key.supportsLongPress,
+                          ),
+                          _buildTriggerButton(
+                            context,
+                            device: devicePair.key,
+                            deviceButton: button,
+                            trigger: ButtonTrigger.longPress,
+                            supportsLongPress: devicePair.key.supportsLongPress,
+                          ),
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          Expanded(
+                            child: Basic(
+                              leading: SizedBox(
+                                width: 58,
+                                child: Center(
+                                  child: IntrinsicHeight(
+                                    child: ButtonWidget(
+                                      button: button,
+                                      heroTag: 'btn-${devicePair.key.uniqueId}-${button.name}',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              content: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _buildTriggerButton(
+                                    context,
+                                    device: devicePair.key,
+                                    deviceButton: button,
+                                    trigger: ButtonTrigger.singleClick,
+                                    supportsLongPress: devicePair.key.supportsLongPress,
+                                  ),
+                                  _buildTriggerButton(
+                                    context,
+                                    device: devicePair.key,
+                                    deviceButton: button,
+                                    trigger: ButtonTrigger.doubleClick,
+                                    supportsLongPress: devicePair.key.supportsLongPress,
+                                  ),
+                                  _buildTriggerButton(
+                                    context,
+                                    device: devicePair.key,
+                                    deviceButton: button,
+                                    trigger: ButtonTrigger.longPress,
+                                    supportsLongPress: devicePair.key.supportsLongPress,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
           ],
-        ],
         ],
       ),
     );
@@ -236,7 +238,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   }) {
     KeyPair? keyPair = widget.keymap.getKeyPair(deviceButton, trigger: trigger);
     final longPressKeyPair = widget.keymap.getKeyPair(deviceButton, trigger: ButtonTrigger.longPress);
-    if (screenshotMode &&
+    if (screenshotKeymapsStaged &&
         keyPair == null &&
         deviceButton.name == ZwiftButtons.a.name &&
         trigger == ButtonTrigger.longPress) {
@@ -293,7 +295,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
               spacing: 6,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (hasAction) Icon(keyPair.icon ?? Icons.check_circle_outline, size: 14),
+                if (hasAction) Icon(keyPair.icon ?? LucideIcons.circleCheck, size: 14),
                 if (hasAction || _isMobile)
                   Flexible(
                     child: Text(
@@ -341,7 +343,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                 child: Row(
                   children: [
                     Expanded(child: column),
-                    if (isLoading) SmallProgressIndicator() else if (hasAction) Icon(Icons.chevron_right),
+                    if (isLoading) SmallProgressIndicator() else if (hasAction) Icon(LucideIcons.chevronRight),
                   ],
                 ),
               ),

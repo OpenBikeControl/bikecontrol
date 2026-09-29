@@ -12,6 +12,7 @@ import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -335,8 +336,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
               Expanded(
                 child: Text(
                   AppLocalizations.of(context).connectModeLabel,
-                  style: TextStyle(
-                    fontSize: 10,
+                  style: context.typography.caption.copyWith(
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1,
                     color: cs.mutedForeground,
@@ -349,7 +349,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
               Button(
                 style: const ButtonStyle.text(size: ButtonSize.small, density: ButtonDensity.compact),
                 onPressed: () => launchUrlString(_helpMeDecideUrl, mode: LaunchMode.externalApplication),
-                child: Text(AppLocalizations.of(context).helpMeDecide, style: const TextStyle(fontSize: 12)),
+                child: Text(AppLocalizations.of(context).helpMeDecide, style: context.typography.xSmall),
               ),
             ],
           ),
@@ -397,16 +397,16 @@ class _ConnectionCardState extends State<ConnectionCard> {
               children: [
                 Text(
                   _selectionLabel(s),
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                 ),
                 Text(
                   _selectionHint(s),
-                  style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                  style: context.typography.caption.copyWith(color: cs.mutedForeground),
                 ),
                 if (showSameDeviceNote)
                   Text(
                     AppLocalizations.of(context).vsTransportSameDeviceNote,
-                    style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                    style: context.typography.caption.copyWith(color: cs.mutedForeground),
                   ),
               ],
             ),
@@ -452,7 +452,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
       spacing: 4,
       children: [
         Icon(icon, size: 13),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(label, style: context.typography.xSmall),
       ],
     );
     if (active) {

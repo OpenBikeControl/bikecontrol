@@ -2,6 +2,8 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The one-glance answer at the top of the home screen: am I good?
@@ -101,8 +103,8 @@ class ReadyBanner extends StatelessWidget {
             curve: Curves.easeOutBack,
             width: calm ? 24 : 34,
             height: calm ? 24 : 34,
-            decoration: BoxDecoration(color: style.color, shape: BoxShape.circle),
-            child: Icon(calm ? LucideIcons.check : style.icon, size: calm ? 14 : 19, color: Colors.white),
+            decoration: BoxDecoration(color: style.text, shape: BoxShape.circle),
+            child: Icon(calm ? LucideIcons.check : style.icon, size: calm ? 14 : 19, color: style.onText),
           ),
           const Gap(11),
           Expanded(
@@ -112,26 +114,28 @@ class ReadyBanner extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: calm ? 14 : 15,
+                  style: (calm ? context.typography.small : context.typography.base).copyWith(
                     fontWeight: FontWeight.w700,
-                    color: calm ? theme.colorScheme.foreground : style.color,
+                    color: calm ? theme.colorScheme.foreground : style.text,
                   ),
                 ),
                 const Gap(2),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 12.5, height: 1.4, color: theme.colorScheme.mutedForeground),
+                  style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
                 ),
               ],
             ),
           ),
           if (banner.hasAction && action != null) ...[
             const Gap(8),
-            PrimaryButton(
-              size: ButtonSize.small,
-              onPressed: action,
-              child: Text(banner.kind == ChainBannerKind.broken ? l.chainBannerFix : l.chainBannerShow),
+            BkTouchTarget(
+              child: PrimaryButton(
+                alignment: Alignment.center,
+                size: ButtonSize.small,
+                onPressed: action,
+                child: Text(banner.kind == ChainBannerKind.broken ? l.chainBannerFix : l.chainBannerShow),
+              ),
             ),
           ],
         ],

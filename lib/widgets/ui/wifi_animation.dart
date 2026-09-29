@@ -1,15 +1,20 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SmoothWifiAnimation extends StatefulWidget {
   const SmoothWifiAnimation({
     super.key,
     this.size = 140,
-    this.label = 'SCANNING',
+    this.label,
   });
 
   final double size;
-  final String label;
+
+  /// The pill's text; "Scanning" in the rider's language by default.
+  final String? label;
 
   @override
   State<SmoothWifiAnimation> createState() => _ScanningIndicatorState();
@@ -24,7 +29,18 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
     _c = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1600),
-    )..repeat();
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // With reduced motion the ripples hold one frame instead of pulsing.
+    if (prefersReducedMotion(context)) {
+      _c.value = 0.5;
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
   }
 
   @override
@@ -81,7 +97,7 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
                 border: Border.all(color: innerBorder, width: 1.5),
               ),
               alignment: Alignment.center,
-              child: Icon(Icons.wifi_tethering, color: iconColor, size: 40),
+              child: Icon(LucideIcons.radioTower, color: iconColor, size: 40),
             ),
           ),
 
@@ -102,10 +118,9 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
                 ],
               ),
               child: Text(
-                widget.label,
-                style: TextStyle(
+                widget.label ?? AppLocalizations.of(context).scanning.toUpperCase(),
+                style: context.typography.caption.copyWith(
                   color: Theme.of(context).colorScheme.primaryForeground,
-                  fontSize: 10,
                   letterSpacing: 2.0,
                   fontWeight: FontWeight.bold,
                 ),

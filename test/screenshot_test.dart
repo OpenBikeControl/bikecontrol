@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
@@ -45,7 +46,6 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -99,6 +99,11 @@ void testGoldens(
   });
 }
 
+/// The version being shipped, straight from pubspec.yaml, so the boards never
+/// carry a stale one.
+final String _pubspecVersion =
+    RegExp(r'^version:\s*(\S+)', multiLine: true).firstMatch(File('pubspec.yaml').readAsStringSync())!.group(1)!;
+
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   // The overview header prints this, so every board carries it — keep it on
@@ -107,8 +112,8 @@ Future<void> main() async {
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
-    version: '6.4.2',
-    buildNumber: '146',
+    version: _pubspecVersion.split('+').first,
+    buildNumber: _pubspecVersion.split('+').last,
     buildSignature: '',
   );
   FlutterSecureStorage.setMockInitialValues({});
@@ -240,6 +245,7 @@ Future<void> main() async {
     WidgetTester tester,
     String scene,
     Widget Function() homeBuilder, {
+
     /// Runs on each board after the first pump, before the golden is taken.
     /// Gets the slot so a scene can drive the UI differently per board size.
     Future<void> Function(WidgetTester tester, DeviceType type)? afterPump,
@@ -286,6 +292,11 @@ Future<void> main() async {
         // golden_screenshot v9+ only loads fonts found in the rendered widget
         // tree, so load after the first pump (then re-render with them).
         await tester.loadAssets();
+        // Fonts arriving after the first layout leave intrinsic sizes measured
+        // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+        // clips descenders). The app loads its fonts before the first frame, so
+        // re-measure everything as it would have been.
+        await tester.binding.reassembleApplication();
         await tester.pump();
         await expectLater(
           find.byType(ma.Scaffold),
@@ -340,6 +351,11 @@ Future<void> main() async {
     await tester.pump();
     if (afterPump != null) await afterPump(tester);
     await tester.loadAssets();
+    // Fonts arriving after the first layout leave intrinsic sizes measured
+    // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+    // clips descenders). The app loads its fonts before the first frame, so
+    // re-measure everything as it would have been.
+    await tester.binding.reassembleApplication();
     await tester.pump();
     await expectLater(
       capture?.call() ?? find.byType(ma.Scaffold),
@@ -389,6 +405,11 @@ Future<void> main() async {
       await tester.pump();
       if (afterPump != null) await afterPump(tester);
       await tester.loadAssets();
+      // Fonts arriving after the first layout leave intrinsic sizes measured
+      // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+      // clips descenders). The app loads its fonts before the first frame, so
+      // re-measure everything as it would have been.
+      await tester.binding.reassembleApplication();
       await tester.pump();
       await expectLater(
         capture?.call() ?? find.byType(ma.Scaffold),
@@ -610,7 +631,9 @@ Future<void> main() async {
   // The front-derailleur setting card, enabled so the chainring steppers show.
   testGoldens('Front Derailleur Setting', (WidgetTester tester) async {
     await core.shiftingConfigs.upsert(
-      core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(
+      core.shiftingConfigs
+          .activeFor(proxy.trainerKey)
+          .copyWith(
             frontShiftEnabled: true,
             smallChainringTeeth: 34,
             largeChainringTeeth: 50,
@@ -624,7 +647,10 @@ Future<void> main() async {
         customChild: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(key: k, child: FrontShiftCard(device: proxy, definition: fbd)),
+            child: RepaintBoundary(
+              key: k,
+              child: FrontShiftCard(device: proxy, definition: fbd),
+            ),
           ),
         ),
       ),
@@ -743,25 +769,22 @@ Future<void> main() async {
                       final keymap = core.actionHandler.supportedApp?.keymap;
                       final size = 56 / Theme.of(context).scaling;
                       Widget btnFor(ControllerButton btn) => AnimatedButtonWidget(
-                            key: ValueKey(btn.name),
-                            button: btn,
-                            pressGeneration: 0,
-                            keymap: keymap,
-                            device: cardDevice,
-                            size: size,
-                            onUpdate: () {},
-                          );
+                        key: ValueKey(btn.name),
+                        button: btn,
+                        pressGeneration: 0,
+                        keymap: keymap,
+                        device: cardDevice,
+                        size: size,
+                        onUpdate: () {},
+                      );
                       final footer = ControllerCanvas(
                         layout: cardDevice.controllerLayout!,
                         availableButtons: cardDevice.availableButtons,
                         buttonBuilder: btnFor,
                         buttonSize: size,
                       );
-                      // Flip screenshotMode off only for this synchronous build
-                      // so the header shows the real product name, then restore
-                      // it before control returns to the framework.
-                      final saved = screenshotMode;
-                      screenshotMode = false;
+                      // screenshotMode stays on, so the Click V2 is shown as a
+                      // generic "Controller".
                       final card = cardDevice.showInformation(
                         context,
                         showFull: false,
@@ -769,7 +792,6 @@ Future<void> main() async {
                         showAdditionalInfo: false,
                         footer: footer,
                       );
-                      screenshotMode = saved;
                       return RepaintBoundary(key: k, child: card);
                     },
                   ),
@@ -899,7 +921,6 @@ Future<void> main() async {
             );
           },
         ),
-      if (core.logic.showDi2Ble) Di2BleTile(small: false),
       if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: false),
       if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: false),
     ];
@@ -1011,8 +1032,8 @@ Future<void> main() async {
 
   // --- Overview / main screen (website setup-guide step 1) ---------------------
   // A clean capture of the app's OVERVIEW page (Controllers card + Trainer
-  // Connection) showing ONLY a single connected controller with its REAL product
-  // name (not the anonymized "Controller" the App-Store `Device` shot uses). No
+  // Connection) showing ONLY a single connected controller (the Zwift Click V2
+  // appears as "Controller", as on the App Store boards). No
   // device frame, no marketing title banner — just the app's own UI inside the
   // frameless `noFrame` ScreenshotApp, localized one shot per locale.
   //
@@ -1021,13 +1042,9 @@ Future<void> main() async {
   //     while `screenshotMode == true`, so `Navigation.initState` →
   //     `core.logic.startEnabledConnectionMethod()` early-returns (no BLE/mDNS
   //     emulators start) and the page is laid out without any real connection.
-  //   * To get the REAL device name we flip `screenshotMode` off *synchronously*
-  //     for just the final `pump()` that produces the captured frame, then
-  //     restore it. e.g. `ZwiftClickV2.toString()` is read during that build and
-  //     returns "Zwift Click V2"; every async callback that re-reads the flag
-  //     (timers, the connection-init scan) runs on a later microtask, by which
-  //     point it is `true` again, so nothing scans. Harmless for the controllers
-  //     whose names are never anonymized.
+  //   * `screenshotMode` stays on for the captured frame too, so the Zwift
+  //     Click V2 is shown as a generic "Controller" and no unlock expiry or
+  //     upsell meter appears. Other controllers keep their names.
   //
   // `core.connection.devices` is reduced to exactly the given controller + the
   // smart-trainer proxy (so the Trainer Connection card shows a connected
@@ -1095,13 +1112,19 @@ Future<void> main() async {
         );
         await tester.pump();
         await tester.loadAssets();
+        // Fonts arriving after the first layout leave intrinsic sizes measured
+        // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+        // clips descenders). The app loads its fonts before the first frame, so
+        // re-measure everything as it would have been.
+        await tester.binding.reassembleApplication();
         // Flip screenshotMode off only for the synchronous build/pump that
         // produces the captured frame, so the Controllers card header shows the
         // real product name, then restore it before any async work continues.
         // initState already ran (with the flag true → no connection method
         // started); mark the mounted OverviewPage element dirty so only its
         // build() re-runs with the flag off, picking up the real device name.
-        screenshotMode = false;
+        // screenshotMode stays on: no expiry dates or upsell meters, and the
+        // Click V2 is shown as a generic "Controller".
         tester.element(find.byType(OverviewPage)).markNeedsBuild();
         await tester.pump();
         try {
@@ -1110,7 +1133,6 @@ Future<void> main() async {
             matchesGoldenFile('../screenshots/$loc/$scene.png'),
           );
         } finally {
-          screenshotMode = savedScreenshotMode;
           await tester.pump();
         }
       }
@@ -1160,12 +1182,18 @@ Future<void> main() async {
       ShiftingConfig.defaults(trainerKey: key, name: 'Default', isActive: false),
     );
     await core.shiftingConfigs.upsert(
-      ShiftingConfig.defaults(trainerKey: key, name: 'Sprint', isActive: false)
-          .copyWith(riderWeightKg: 72, bikeWeightKg: 7.5),
+      ShiftingConfig.defaults(
+        trainerKey: key,
+        name: 'Sprint',
+        isActive: false,
+      ).copyWith(riderWeightKg: 72, bikeWeightKg: 7.5),
     );
     await core.shiftingConfigs.upsert(
-      ShiftingConfig.defaults(trainerKey: key, name: 'Climb day', isActive: true)
-          .copyWith(riderWeightKg: 78, bikeWeightKg: 8.5),
+      ShiftingConfig.defaults(
+        trainerKey: key,
+        name: 'Climb day',
+        isActive: true,
+      ).copyWith(riderWeightKg: 78, bikeWeightKg: 8.5),
     );
   }
 
@@ -1238,8 +1266,7 @@ Future<void> main() async {
       OverlayField.cadence,
       OverlayField.gearRatio,
     });
-    await TrainerOverlayService.forCurrentPlatform()
-        .show(fbd, core.settings.getOverlayFields());
+    await TrainerOverlayService.forCurrentPlatform().show(fbd, core.settings.getOverlayFields());
     const k = ValueKey('shot');
     await shootOne(
       tester,

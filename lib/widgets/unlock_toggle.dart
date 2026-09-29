@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/core.dart';
@@ -49,8 +50,9 @@ class _UnlockToggleState extends State<UnlockToggle> {
         Row(
           children: [
             Text(context.i18n.unlock_mode).small.semiBold,
-            IconButton.link(
-              icon: Icon(Icons.help_outline),
+            BkIconButton.link(
+              icon: Icon(LucideIcons.circleHelp),
+              label: context.i18n.a11yHelp,
               onPressed: () {
                 launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
               },
@@ -79,10 +81,7 @@ class _UnlockToggleState extends State<UnlockToggle> {
         ),
 
         if (_mode == _UnlockMode.zwift) ...[
-          if (showsUnlockAction)
-            ...widget.children
-          else
-            Text(context.i18n.unlock_zwiftNeedsLeftSide).xSmall.muted,
+          if (showsUnlockAction) ...widget.children else Text(context.i18n.unlock_zwiftNeedsLeftSide).xSmall.muted,
         ],
       ],
     );

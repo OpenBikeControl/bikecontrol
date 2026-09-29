@@ -7,10 +7,8 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/strappo.dart';
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
-import 'package:bike_control/utils/keymap/apps/wahoo_element.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:dartx/dartx.dart';
-import 'package:flutter/foundation.dart';
 
 import '../buttons.dart';
 import '../keymap.dart';
@@ -28,7 +26,6 @@ enum AppConnectionMethod {
   local,
   remoteMouse,
   remoteKeyboard,
-  di2Ble,
 }
 
 enum ConnectionSupport {
@@ -125,6 +122,11 @@ abstract class SupportedApp {
   /// (e.g. MyWhoosh → 30).
   int get virtualGearAmount => 24;
 
+  /// Whether this app draws a gear number of its own. With BikeControl's
+  /// virtual shifting that number does not follow BikeControl's gear, which
+  /// the gear overlay shows instead.
+  bool get showsOwnGear => false;
+
   /// Default OpenBikeControl supported buttons used by the ButtonEditor
   /// before (or without) a live OBP connection. Overridden by trainer-app
   /// subclasses that ship a known-good list.
@@ -159,7 +161,6 @@ abstract class SupportedApp {
     FulGaz(),
     BikeControl(),
     OpenBikeControl(),
-    if (kDebugMode) WahooElement(),
     CustomApp(),
   ];
 

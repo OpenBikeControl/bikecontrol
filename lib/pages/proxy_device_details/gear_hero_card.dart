@@ -1,3 +1,6 @@
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/utils/core.dart';
@@ -5,6 +8,7 @@ import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -58,7 +62,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
       ]),
       builder: (context, _) {
         final isErg = widget.definition.trainerMode.value == TrainerMode.ergMode;
-        final isSmall = MediaQuery.sizeOf(context).width < 600;
+        final isSmall = isCompactWindow(context);
         if (widget.simOnly && isErg) return const SizedBox.shrink();
         final showMyWhooshHint = !isErg && !_myWhooshHintDismissed && _isMyWhooshActive && !screenshotMode;
         final tile = SettingTile(
@@ -120,7 +124,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
                       children: [
                         Text(
                           AppLocalizations.of(context).chainEdit,
-                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: cs.primary),
+                          style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.primary),
                         ),
                         Icon(LucideIcons.chevronRight, size: 15, color: cs.primary),
                       ],
@@ -141,13 +145,14 @@ class _GearHeroCardState extends State<GearHeroCard> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.info_outline, size: 18),
+                    const Icon(LucideIcons.info, size: 18),
                     const Gap(8),
                     Expanded(
                       child: Text(AppLocalizations.of(context).myWhooshGearHintTitle).bold.small,
                     ),
-                    IconButton.ghost(
-                      icon: const Icon(Icons.close, size: 16),
+                    BkIconButton.ghost(
+                      icon: const Icon(LucideIcons.x, size: 16),
+                      label: context.i18n.a11yDismiss,
                       onPressed: _dismissMyWhooshHint,
                     ),
                   ],
@@ -165,7 +170,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
 
   Widget _ergContent(BuildContext context, ColorScheme cs) {
     final target = widget.definition.ergTargetPower.value ?? 150;
-    final isSmall = MediaQuery.sizeOf(context).width < 600;
+    final isSmall = isCompactWindow(context);
     return Column(
       spacing: isSmall ? 12 : 28,
       children: [
@@ -177,6 +182,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
               context: context,
               icon: LucideIcons.minus,
               filled: false,
+              label: AppLocalizations.of(context).a11yDecrease,
               onTap: target > 0 ? () => widget.definition.stepManualErgPower(up: false) : null,
             ),
             Row(
@@ -191,13 +197,13 @@ class _GearHeroCardState extends State<GearHeroCard> {
                     fontWeight: FontWeight.w700,
                     letterSpacing: -2,
                     color: cs.primary,
+                    fontFeatures: BkNumerals.tabular,
                   ),
                 ),
                 const Gap(4),
                 Text(
                   'W',
-                  style: TextStyle(
-                    fontSize: 18,
+                  style: context.typography.large.copyWith(
                     fontWeight: FontWeight.w600,
                     color: cs.mutedForeground,
                   ),
@@ -208,6 +214,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
               context: context,
               icon: LucideIcons.plus,
               filled: true,
+              label: AppLocalizations.of(context).a11yIncrease,
               onTap: target < ErgPowerStepping.maxManualW ? () => widget.definition.stepManualErgPower(up: true) : null,
             ),
             Expanded(child: SizedBox()),
@@ -225,11 +232,11 @@ class _GearHeroCardState extends State<GearHeroCard> {
           children: [
             Text(
               '0 W',
-              style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+              style: context.typography.caption.copyWith(color: cs.mutedForeground),
             ),
             Text(
               '${ErgPowerStepping.maxManualW} W',
-              style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+              style: context.typography.caption.copyWith(color: cs.mutedForeground),
             ),
           ],
         ),
@@ -247,8 +254,7 @@ class _GearHeroCardState extends State<GearHeroCard> {
       ),
       child: Text(
         _modeLabel(context, mode),
-        style: TextStyle(
-          fontSize: 10,
+        style: context.typography.caption.copyWith(
           fontWeight: FontWeight.w700,
           color: active ? cs.primaryForeground : cs.mutedForeground,
         ),
@@ -260,10 +266,27 @@ class _GearHeroCardState extends State<GearHeroCard> {
     required BuildContext context,
     required IconData icon,
     required bool filled,
+    required String label,
     required VoidCallback? onTap,
   }) {
     final cs = Theme.of(context).colorScheme;
     final disabled = onTap == null;
+    return Semantics(
+      container: true,
+      button: true,
+      enabled: !disabled,
+      label: label,
+      child: _ergButton(cs, disabled, icon: icon, filled: filled, onTap: onTap),
+    );
+  }
+
+  Widget _ergButton(
+    ColorScheme cs,
+    bool disabled, {
+    required IconData icon,
+    required bool filled,
+    required VoidCallback? onTap,
+  }) {
     return Button.ghost(
       onPressed: onTap,
       child: Container(

@@ -23,7 +23,7 @@ class LocalNetworkRequirement extends PlatformRequirement {
         description: !kIsWeb && Platform.isIOS
             ? AppLocalizations.current.localNetworkAccessDeniedIos
             : AppLocalizations.current.localNetworkAccessDeniedMacos,
-        icon: Icons.wifi_tethering,
+        icon: LucideIcons.radioTower,
       );
 
   /// Only a positive denial blocks the user.

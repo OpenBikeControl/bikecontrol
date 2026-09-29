@@ -4,6 +4,8 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/health/health_ride_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One-time home offer: "we noticed a ride, want rides saved to Apple Health
@@ -62,13 +64,12 @@ class HealthRideCard extends StatelessWidget {
                           children: [
                             Text(
                               l.healthRideCardTitle,
-                              style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                              style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const Gap(2),
                             Text(
                               l.healthRideCardBody,
-                              style: TextStyle(
-                                fontSize: 12.5,
+                              style: context.typography.xSmall.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: theme.colorScheme.mutedForeground,
                               ),
@@ -83,17 +84,23 @@ class HealthRideCard extends StatelessWidget {
                     spacing: 8,
                     children: [
                       Expanded(
-                        child: Button.ghost(
-                          key: const Key('health-ride-card-dismiss'),
-                          onPressed: () => unawaited(service.dismissPrompt()),
-                          child: Text(l.healthRideCardDismiss),
+                        child: BkTouchTarget(
+                          child: Button.ghost(
+                            alignment: Alignment.center,
+                            key: const Key('health-ride-card-dismiss'),
+                            onPressed: () => unawaited(service.dismissPrompt()),
+                            child: Text(l.healthRideCardDismiss),
+                          ),
                         ),
                       ),
                       Expanded(
-                        child: PrimaryButton(
-                          key: const Key('health-ride-card-enable'),
-                          onPressed: () => _enable(context),
-                          child: Text(l.healthRideCardEnable),
+                        child: BkTouchTarget(
+                          child: PrimaryButton(
+                            alignment: Alignment.center,
+                            key: const Key('health-ride-card-enable'),
+                            onPressed: () => _enable(context),
+                            child: Text(l.healthRideCardEnable),
+                          ),
                         ),
                       ),
                     ],

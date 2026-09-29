@@ -23,8 +23,9 @@ abstract final class ClickV2Onboarding {
   /// Whether a discovered Click V2 should be held back for onboarding.
   static bool get isPending {
     // Screenshot frames connect fake controllers directly and must never be
-    // interrupted by an onboarding card.
-    if (screenshotMode) return false;
+    // interrupted by an onboarding card — unless the video capture, which
+    // films this explainer, has asked for it.
+    if (screenshotSuppressesClickV2Onboarding) return false;
     if (!core.settings.isInitialized) return false;
     if (core.settings.getClickV2OnboardingDone()) return false;
     // `unlock_mode` defaults to false, so a true value can only come from a

@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -21,6 +23,12 @@ SteerSide steerSideFor(double angle, double threshold) {
 /// threshold, so the threshold ticks sit well inside the track and the knob
 /// still travels for typical steering angles. Clamped to a sane span.
 double displayRangeFor(double threshold) => (threshold * 3).clamp(18.0, 90.0);
+
+/// The numeric line under the gauge: the tilt in whole degrees, then the
+/// trigger threshold. Rounded as an int, so a bar a hair right of centre
+/// reads "0°" rather than "-0°".
+String steeringReadout(double angle, double threshold) =>
+    '${angle.round()}°  ·  ±${threshold.toStringAsFixed(0)}°';
 
 /// Compact horizontal gauge for the Phone-Steering device card footer. A knob
 /// glides left/right with the live tilt and a fill grows from the center to the
@@ -104,18 +112,14 @@ class SteeringGauge extends StatelessWidget {
                       if (_canEdit)
                         Row(
                           children: [
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _edit(context, leftButton),
+                            for (final button in [leftButton, rightButton])
+                              Expanded(
+                                child: BkTappable(
+                                  onPressed: () => _edit(context, button),
+                                  label: context.i18n.a11yEditButtonMapping(button.displayName),
+                                  child: const SizedBox.expand(),
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _edit(context, rightButton),
-                              ),
-                            ),
                           ],
                         ),
                     ],
@@ -125,7 +129,7 @@ class SteeringGauge extends StatelessWidget {
                 // Numeric readout / calibrating hint, below the bar.
                 isCalibrated
                     ? Text(
-                        '${liveAngle.toStringAsFixed(0)}°  ·  ±${threshold.toStringAsFixed(0)}°',
+                        steeringReadout(liveAngle, threshold),
                       ).xSmall.muted
                     : Row(
                         mainAxisSize: MainAxisSize.min,

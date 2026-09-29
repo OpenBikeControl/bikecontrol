@@ -93,6 +93,11 @@ Future<void> main() async {
       );
       await tester.pump();
       await tester.loadAssets();
+      // Fonts arriving after the first layout leave intrinsic sizes measured
+      // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+      // clips descenders). The app loads its fonts before the first frame, so
+      // re-measure everything as it would have been.
+      await tester.binding.reassembleApplication();
       await tester.pump();
     }
 

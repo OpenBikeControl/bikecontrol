@@ -5,6 +5,7 @@ import 'package:bike_control/utils/keymap/apps/strappo.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -206,7 +207,7 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
                 ),
                 Gap(5),
                 DefaultTextStyle.merge(
-                  style: const TextStyle(color: _success),
+                  style: TextStyle(color: BkStatusColors.of(context).success),
                   child: Text(context.i18n.onboardingLive).xSmall.semiBold,
                 ),
               ]),
@@ -233,7 +234,7 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
             border: Border.all(color: _warning.withValues(alpha: 0.5)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(LucideIcons.triangleAlert, size: 16, color: _warning),
+            Icon(LucideIcons.triangleAlert, size: 16, color: BkStatusColors.of(context).warning),
             Gap(10),
             Expanded(
               child: Text(context.i18n.onboardingPairAsTrainerWarning(trainerName ?? '', app.name)).xSmall,

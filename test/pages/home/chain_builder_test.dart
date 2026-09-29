@@ -22,6 +22,7 @@ ControllerInput controller({
   bool? unlocked,
   String? unlockedUntil,
   bool unlockUncertain = false,
+  bool unlockIsRideV2 = false,
   bool? sramSetupDone,
   bool sramCanRestore = false,
   bool needsUnlockModeChoice = false,
@@ -37,6 +38,7 @@ ControllerInput controller({
     unlocked: unlocked,
     unlockedUntil: unlockedUntil,
     unlockUncertain: unlockUncertain,
+    unlockIsRideV2: unlockIsRideV2,
     sramSetupDone: sramSetupDone,
     sramCanRestore: sramCanRestore,
     needsUnlockModeChoice: needsUnlockModeChoice,
@@ -134,6 +136,20 @@ void main() {
       expect(link.activeStep?.id, SetupStepId.controllerUnlocked);
       // A card with work outstanding is never green.
       expect(link.status, LinkStatus.attention);
+    });
+
+    test('a Zwift Ride V2 gets the same unlock step, marked as the Ride V2 so its hint names it', () {
+      final chain = buildChain(
+        ChainInputs(controllers: [controller(name: 'Zwift Ride V2', unlocked: false, unlockIsRideV2: true)], app: _readyApp),
+      );
+      final link = chain.byKey(ChainLinkKey.controller);
+      expect(link.activeStep?.id, SetupStepId.controllerUnlocked);
+      expect(link.activeStep?.variant, SetupStepVariant.zwiftRideV2);
+    });
+
+    test('a Click V2 unlock step keeps the standard wording', () {
+      final chain = buildChain(ChainInputs(controllers: [controller(unlocked: false)], app: _readyApp));
+      expect(chain.byKey(ChainLinkKey.controller).activeStep?.variant, SetupStepVariant.standard);
     });
 
     test('an unlocked controller ticks the step and stays ready', () {
@@ -643,6 +659,41 @@ void main() {
     test('a trainer that actually dropped is still reported as broken', () {
       final chain = buildChain(ChainInputs(trainer: trainer(presence: DevicePresence.lost), app: _readyApp));
       expect(chain.byKey(ChainLinkKey.trainer).status, LinkStatus.problem);
+    });
+
+    // The bug: the Bluetooth link comes up a beat before the bridge starts,
+    // and for that beat the trainer had already "connected this session"
+    // without being bridged — so the card went red and the banner announced a
+    // lost connection about a connect that was still in flight.
+    test('a trainer whose connect is still in flight is amber, never broken', () {
+      final chain = buildChain(
+        ChainInputs(
+          controllers: [controller()],
+          trainer: trainer(presence: DevicePresence.connecting, appHoldsBridge: false),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      expect(link.status, LinkStatus.attention);
+      expect(link.status, isNot(LinkStatus.problem));
+    });
+
+    // The rider asked for this trainer, so the checklist stays put rather than
+    // blinking out for the length of the connect and back in again.
+    test('a connecting trainer keeps its checklist', () {
+      final chain = buildChain(
+        ChainInputs(trainer: trainer(presence: DevicePresence.connecting, appHoldsBridge: false), app: _readyApp),
+      );
+      expect(chain.byKey(ChainLinkKey.trainer).steps, isNotEmpty);
+    });
+
+    // Same reasoning as a resetting device: swiping away something that is
+    // halfway through connecting is an accident, not an intention.
+    test('a connecting trainer cannot be swiped away', () {
+      final chain = buildChain(
+        ChainInputs(trainer: trainer(presence: DevicePresence.connecting), app: _readyApp),
+      );
+      expect(chain.byKey(ChainLinkKey.trainer).dismissible, isFalse);
     });
 
     // Onboarding is the source of truth: a bridge the trainer app hasn't picked

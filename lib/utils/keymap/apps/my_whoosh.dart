@@ -8,6 +8,9 @@ import '../keymap.dart';
 
 class MyWhoosh extends SupportedApp {
   @override
+  bool get showsOwnGear => true;
+
+  @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.myWhooshLink, ConnectionSupport.supported),
     (AppConnectionMethod.obpMdns, ConnectionSupport.supported),

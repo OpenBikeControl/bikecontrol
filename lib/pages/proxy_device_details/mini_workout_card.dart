@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/workout/workout_summary_dialog.dart';
@@ -7,9 +9,15 @@ import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
+/// Keeps the Mini Workout card off the trainer page. For the onboarding video,
+/// which is about Virtual Shifting. Off everywhere else.
+@visibleForTesting
+bool debugHideMiniWorkoutCard = false;
 
 class MiniWorkoutCard extends StatefulWidget {
   final ProxyDevice device;
@@ -91,7 +99,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
             spacing: 8,
             children: [
               const Icon(LucideIcons.activity, size: 18),
-              Text(l10n.miniWorkout, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(l10n.miniWorkout, style: context.typography.base.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           ValueListenableBuilder<WorkoutState>(
@@ -140,13 +148,12 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           valueListenable: _recorder.elapsed,
           builder: (_, d, _) => Text(
             _fmtDuration(d),
-            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+            style: context.typography.x3Large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
           ),
         ),
         Text(
           state == WorkoutState.paused ? l10n.miniWorkoutPaused : l10n.miniWorkoutRecording,
-          style: TextStyle(
-            fontSize: 11,
+          style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
             color: Theme.of(context).colorScheme.mutedForeground,
@@ -157,17 +164,20 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           spacing: 12,
           children: [
             if (state == WorkoutState.recording)
-              IconButton.secondary(
+              BkIconButton.secondary(
                 icon: const Icon(LucideIcons.pause, size: 20),
+                label: context.i18n.miniWorkoutPause,
                 onPressed: _recorder.pause,
               ),
             if (state == WorkoutState.paused)
-              IconButton.primary(
+              BkIconButton.primary(
                 icon: const Icon(LucideIcons.play, size: 20),
+                label: context.i18n.miniWorkoutResume,
                 onPressed: _recorder.resume,
               ),
-            IconButton.destructive(
+            BkIconButton.destructive(
               icon: const Icon(LucideIcons.square, size: 20),
+              label: context.i18n.miniWorkoutStop,
               onPressed: _stopAndSave,
             ),
           ],
@@ -203,7 +213,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
             Icon(icon, size: 22, color: iconColor),
             Text(
               label,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              style: context.typography.caption.copyWith(fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
           ],

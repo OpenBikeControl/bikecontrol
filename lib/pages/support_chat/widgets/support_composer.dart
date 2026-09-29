@@ -1,8 +1,11 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async' show unawaited;
+import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +26,73 @@ class StagedAttachment {
         lower.endsWith('.png') ||
         lower.endsWith('.gif') ||
         lower.endsWith('.webp');
+  }
+}
+
+/// The rider-facing summary of a diagnostics payload (the text `debugText()`
+/// builds): the few facts a rider can check at a glance before sending.
+/// Values that are empty, "-" or "?" read as null.
+class SupportDiagnosticsSummary {
+  const SupportDiagnosticsSummary({this.appVersion, this.platform, this.devices, this.connections, this.logLines = 0});
+
+  final String? appVersion;
+  final String? platform;
+  final String? devices;
+  final String? connections;
+  final int logLines;
+
+  /// Reads either `debugText()` output or a JSON-encoded telemetry snapshot
+  /// (its fields, plus the `debugText()` in its `freetext`).
+  static SupportDiagnosticsSummary parse(String payload) {
+    final trimmed = payload.trimLeft();
+    if (trimmed.startsWith('{')) {
+      try {
+        final json = jsonDecode(trimmed);
+        if (json is Map) {
+          final text = json['freetext'] is String ? _parseText(json['freetext'] as String) : const SupportDiagnosticsSummary();
+          String? field(String key) => json[key] is String && (json[key] as String).isNotEmpty ? json[key] as String : null;
+          return SupportDiagnosticsSummary(
+            appVersion: field('app_version') ?? text.appVersion,
+            platform: field('app_platform') ?? text.platform,
+            devices: text.devices ?? field('bluetooth_name'),
+            connections: text.connections,
+            logLines: text.logLines,
+          );
+        }
+      } on FormatException {
+        // Not JSON after all: read it as text.
+      }
+    }
+    return _parseText(payload);
+  }
+
+  static SupportDiagnosticsSummary _parseText(String payload) {
+    final lines = payload.split('\n');
+    String? value(String key) {
+      for (final line in lines) {
+        if (line.startsWith('$key:')) {
+          final v = line.substring(key.length + 1).trim();
+          return v.isEmpty || v == '-' || v == '?' ? null : v;
+        }
+      }
+      return null;
+    }
+
+    var logLines = 0;
+    final logsAt = lines.indexWhere((l) => l.trim() == 'Logs:');
+    if (logsAt >= 0) {
+      for (final line in lines.skip(logsAt + 1)) {
+        if (line.trim().isEmpty || line.startsWith('Wire trace:')) break;
+        logLines++;
+      }
+    }
+    return SupportDiagnosticsSummary(
+      appVersion: value('App Version'),
+      platform: value('Platform'),
+      devices: value('Connected Controllers'),
+      connections: value('Connected Trainers'),
+      logLines: logLines,
+    );
   }
 }
 
@@ -59,6 +129,13 @@ class SupportComposer extends StatefulWidget {
   /// [pinnedContext] is set.
   final String? pinnedContextLabel;
 
+  /// True for the first message of a conversation: send stays disabled until
+  /// the rider has described the problem in [minDescriptionLength]
+  /// characters, whatever is attached. A pre-staged screenshot on its own
+  /// said nothing about what went wrong. Follow-ups (false) may be
+  /// attachment-only.
+  final bool requireDescription;
+
   const SupportComposer({
     super.key,
     required this.sending,
@@ -68,10 +145,11 @@ class SupportComposer extends StatefulWidget {
     this.initialAttachment,
     this.pinnedContext,
     this.pinnedContextLabel,
+    this.requireDescription = false,
   }) : assert(pinnedContext == null || pinnedContextLabel != null, 'pinnedContext needs a pinnedContextLabel');
 
   /// The shortest description that unlocks send while a [pinnedContext] is
-  /// attached. Trimmed length, so whitespace alone counts as nothing.
+  /// attached, or for the first message ([requireDescription]). Trimmed length, so whitespace alone counts as nothing.
   static const int minDescriptionLength = 12;
 
   @override
@@ -116,14 +194,16 @@ class _SupportComposerState extends State<SupportComposer> {
   /// True while a pinned result is waiting on a description the rider has
   /// not typed yet — the one case where send is disabled despite there
   /// being something to send.
+  bool get _describing => _pinnedContext != null || widget.requireDescription;
+
   bool get _needsDescription =>
-      _pinnedContext != null && _controller.text.trim().length < SupportComposer.minDescriptionLength;
+      _describing && _controller.text.trim().length < SupportComposer.minDescriptionLength;
 
   bool get _canSend {
     if (widget.sending) return false;
     // A staged screenshot does not stand in for the description: a picture
     // plus a test result still doesn't say what the rider expected to happen.
-    if (_pinnedContext != null) return !_needsDescription;
+    if (_describing) return !_needsDescription;
     if (_attachment != null) return true;
     return _controller.text.trim().isNotEmpty;
   }
@@ -246,8 +326,10 @@ class _SupportComposerState extends State<SupportComposer> {
             children: [
               Builder(
                 builder: (context) {
-                  return IconButton.ghost(
+                  return BkIconButton.ghost(
                     icon: const Icon(LucideIcons.paperclip, size: 20),
+                    label: context.i18n.a11yAttachFile,
+                    tooltip: false,
                     onPressed: widget.sending ? null : () => _showAttachSheet(context),
                   );
                 },
@@ -258,7 +340,7 @@ class _SupportComposerState extends State<SupportComposer> {
                   controller: _controller,
                   focusNode: _focusNode,
                   placeholder: Text(
-                    _pinnedContext != null
+                    _describing
                         ? context.i18n.supportDescribeProblemPlaceholder
                         : context.i18n.messageComposerPlaceholder,
                   ),
@@ -271,8 +353,9 @@ class _SupportComposerState extends State<SupportComposer> {
                 _diagnosticPreview(cs),
                 const SizedBox(width: 8),
               ],
-              IconButton.primary(
+              BkIconButton.primary(
                 icon: widget.sending ? const SmallProgressIndicator() : const Icon(LucideIcons.send, size: 18),
+                label: context.i18n.a11ySendMessage,
                 onPressed: _canSend ? () => unawaited(_submit()) : null,
               ),
             ],
@@ -283,8 +366,10 @@ class _SupportComposerState extends State<SupportComposer> {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                context.i18n.supportDescribeProblemHint,
-                style: TextStyle(fontSize: 11, color: cs.mutedForeground, height: 1.3),
+                _pinnedContext != null
+                    ? context.i18n.supportDescribeProblemHint
+                    : context.i18n.supportDescribeFirstMessageHint,
+                style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
               ),
             ),
         ],
@@ -313,7 +398,7 @@ class _SupportComposerState extends State<SupportComposer> {
               child: Text(
                 context.i18n.supportPinnedContextChip(widget.pinnedContextLabel!),
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: cs.mutedForeground),
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w500, color: cs.mutedForeground),
               ),
             ),
           ],
@@ -334,10 +419,15 @@ class _SupportComposerState extends State<SupportComposer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  context.i18n.supportDiagnosticsNotice,
-                  style: TextStyle(fontSize: 11, color: cs.mutedForeground, height: 1.3),
-                ),
+                // Names what actually goes out: the screenshot only while one
+                // is staged.
+                if (_attachment?.isImage == true)
+                  Text(
+                    context.i18n.supportDiagnosticsNotice,
+                    style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
+                  )
+                else
+                  _noticeWithInfoIcon(cs),
                 Button.text(
                   onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
                   child: Text(context.i18n.privacyPolicy).xSmall.muted.underline,
@@ -347,6 +437,30 @@ class _SupportComposerState extends State<SupportComposer> {
           ),
         ],
       ),
+    );
+  }
+
+  /// The no-screenshot notice, with the info button's icon drawn inline where
+  /// the message names it.
+  Widget _noticeWithInfoIcon(ColorScheme cs) {
+    const marker = '\uFFFC';
+    final style = context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3);
+    final parts = context.i18n.supportDiagnosticsNoticeNoScreenshot(marker).split(marker);
+    return Text.rich(
+      key: const ValueKey('support-diagnostics-notice-no-screenshot'),
+      TextSpan(
+        children: [
+          for (var i = 0; i < parts.length; i++) ...[
+            if (i > 0)
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Icon(LucideIcons.info, size: (style.fontSize ?? 11) + 2, color: cs.mutedForeground),
+              ),
+            TextSpan(text: parts[i]),
+          ],
+        ],
+      ),
+      style: style,
     );
   }
 
@@ -370,31 +484,10 @@ class _SupportComposerState extends State<SupportComposer> {
             maxWidth: 360,
             maxHeight: MediaQuery.sizeOf(context).height * 0.6,
           ),
-          builder: (c) => Container(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: Text("${context.i18n.diagnosticInfoAttached}:")),
-                    IconButton.ghost(
-                      icon: const Icon(LucideIcons.x, size: 16),
-                      onPressed: () => closeSheet(c),
-                    ),
-                  ],
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Text(
-                      widget.diagnosticPreview!,
-                      style: TextStyle(fontSize: 11, color: cs.mutedForeground, fontFamily: 'monospace'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          builder: (c) => _DiagnosticsSheet(
+            payload: widget.diagnosticPreview!,
+            screenshotAttached: _attachment?.isImage == true,
+            onClose: () => closeSheet(c),
           ),
           position: OverlayPosition.bottom,
         ),
@@ -435,15 +528,108 @@ class _SupportComposerState extends State<SupportComposer> {
               child: Text(
                 att.name,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w500),
               ),
             ),
-            IconButton.ghost(
+            BkIconButton.ghost(
               icon: const Icon(LucideIcons.x, size: 14),
+              label: context.i18n.a11yRemoveAttachment,
               onPressed: widget.sending ? null : () => setState(() => _attachment = null),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The info sheet: a plain summary of what goes out with the message first, the
+/// raw payload behind "Show technical details".
+class _DiagnosticsSheet extends StatefulWidget {
+  const _DiagnosticsSheet({required this.payload, required this.screenshotAttached, required this.onClose});
+
+  final String payload;
+  final bool screenshotAttached;
+  final VoidCallback onClose;
+
+  @override
+  State<_DiagnosticsSheet> createState() => _DiagnosticsSheetState();
+}
+
+class _DiagnosticsSheetState extends State<_DiagnosticsSheet> {
+  bool _technical = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l = context.i18n;
+    final summary = SupportDiagnosticsSummary.parse(widget.payload);
+    final rows = <(String, String)>[
+      (l.supportDiagAppVersion, summary.appVersion ?? l.unknown),
+      (l.supportDiagPlatform, summary.platform ?? l.unknown),
+      (l.supportDiagDevices, summary.devices ?? l.supportDiagNone),
+      (l.supportDiagConnections, summary.connections ?? l.supportDiagNone),
+      (l.supportDiagLogLines, '${summary.logLines}'),
+      (l.supportDiagScreenshot, widget.screenshotAttached ? l.supportDiagScreenshotAttached : l.supportDiagScreenshotNone),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(l.supportDiagSummaryTitle).small.semiBold),
+              BkIconButton.ghost(
+                icon: const Icon(LucideIcons.x, size: 16),
+                label: l.close,
+                onPressed: widget.onClose,
+              ),
+            ],
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (label, value) in rows)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 2, child: Text(label).xSmall.muted),
+                          const SizedBox(width: 8),
+                          Expanded(flex: 3, child: Text(value).xSmall.semiBold),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Button.ghost(
+                      onPressed: () => setState(() => _technical = !_technical),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_technical ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 14),
+                          const SizedBox(width: 6),
+                          Text(_technical ? l.supportDiagHideTechnical : l.supportDiagShowTechnical).xSmall,
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_technical)
+                    Text(
+                      widget.payload,
+                      style: context.typography.caption.copyWith(color: cs.mutedForeground, fontFamily: 'monospace'),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

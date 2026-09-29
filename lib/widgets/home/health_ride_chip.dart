@@ -1,5 +1,7 @@
 import 'package:bike_control/services/health/health_ride_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Shown on the home screen while [HealthRideService] is recording a ride on
@@ -36,20 +38,26 @@ class HealthRideChip extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l.healthRideChipLabel,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
-                Button.ghost(
-                  key: const Key('health-ride-chip-finish'),
-                  style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 8)),
-                  onPressed: service.finishNow,
-                  child: Text(l.healthRideFinishNow),
+                BkTouchTarget(
+                  child: Button.ghost(
+                    alignment: Alignment.center,
+                    key: const Key('health-ride-chip-finish'),
+                    style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 8)),
+                    onPressed: service.finishNow,
+                    child: Text(l.healthRideFinishNow),
+                  ),
                 ),
-                Button.ghost(
-                  key: const Key('health-ride-chip-discard'),
-                  style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 8)),
-                  onPressed: () => _confirmDiscard(context),
-                  child: Text(l.healthRideDiscard, style: TextStyle(color: theme.colorScheme.destructive)),
+                BkTouchTarget(
+                  child: Button.ghost(
+                    alignment: Alignment.center,
+                    key: const Key('health-ride-chip-discard'),
+                    style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 8)),
+                    onPressed: () => _confirmDiscard(context),
+                    child: Text(l.healthRideDiscard, style: TextStyle(color: theme.colorScheme.destructive)),
+                  ),
                 ),
               ],
             ),
@@ -67,13 +75,19 @@ class HealthRideChip extends StatelessWidget {
         title: Text(l.healthRideDiscardConfirmTitle),
         content: Text(l.healthRideDiscardConfirmBody),
         actions: [
-          Button.outline(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l.cancel),
+          BkTouchTarget(
+            child: Button.outline(
+              alignment: Alignment.center,
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(l.cancel),
+            ),
           ),
-          DestructiveButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l.healthRideDiscardConfirmAction),
+          BkTouchTarget(
+            child: DestructiveButton(
+              alignment: Alignment.center,
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(l.healthRideDiscardConfirmAction),
+            ),
           ),
         ],
       ),

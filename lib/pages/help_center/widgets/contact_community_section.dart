@@ -41,6 +41,7 @@ import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/unread_dot.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -159,7 +160,7 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
             subtitle: Text(context.i18n.helpCenterReportSubtitle).xSmall.muted,
             trailing: _hasUnread
                 ? const UnreadDot(key: ValueKey('help-center-chat-unread-dot'), size: 10)
-                : const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+                : const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
         Padding(
@@ -184,14 +185,14 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
               ),
               Expanded(
                 child: _CommunityLinkButton(
-                  icon: Icons.facebook_outlined,
+                  icon: LucideIcons.facebook,
                   label: 'Facebook',
                   onPressed: () => launchUrlString('https://www.facebook.com/groups/1892836898778912'),
                 ),
               ),
               Expanded(
                 child: _CommunityLinkButton(
-                  icon: RadixIcons.githubLogo,
+                  icon: LucideIcons.github,
                   label: 'GitHub',
                   onPressed: () => launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues'),
                 ),
@@ -225,7 +226,7 @@ class _CommunityLinkButton extends StatelessWidget {
         spacing: 6,
         children: [
           Icon(icon, size: 18, color: cs.mutedForeground),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(label, style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600)),
         ],
       ),
     );

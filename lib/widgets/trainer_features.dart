@@ -7,6 +7,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../utils/core.dart';
@@ -34,7 +35,7 @@ class TrainerFeatures extends StatelessWidget {
           ),
         if (trainerApp != null && !isBikeControl)
           FeatureWidget(
-            icon: Icons.computer,
+            icon: LucideIcons.monitor,
             iconColor: BKColor.main,
             bgColor: BKColor.main.withValues(alpha: 0.03),
             iconBgColor: BKColor.main.withValues(alpha: 0.08),
@@ -93,7 +94,7 @@ class FeatureWidget extends StatelessWidget {
                 ),
                 child: Icon(icon, size: 16, color: iconColor),
               ),
-              trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+              trailing: Icon(LucideIcons.chevronRight, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -110,8 +111,7 @@ class FeatureWidget extends StatelessWidget {
                           ),
                           child: Text(
                             'NEW',
-                            style: TextStyle(
-                              fontSize: 9,
+                            style: context.typography.caption.copyWith(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                               letterSpacing: 0.5,
@@ -138,7 +138,11 @@ class FeatureWidget extends StatelessWidget {
                 title: Text(title),
                 subtitle: description != null ? Text(description!) : null,
                 trailingAlignment: Alignment.centerRight,
-                trailing: Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                trailing: Icon(
+                  LucideIcons.chevronRight,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.mutedForeground,
+                ),
               ),
             ),
           );

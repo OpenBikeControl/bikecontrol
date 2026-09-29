@@ -9,7 +9,7 @@ import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/remembered_device.dart';
@@ -18,6 +18,8 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
 import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
@@ -53,11 +55,13 @@ import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
+import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show enableLocalControl, ensureLocalNetworkAccess;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
 import 'package:prop/mdns/service_advertiser.dart' show ServiceAdvertiser;
 import 'package:prop/prop.dart' show ClickKeepAwakeStatus, ClickLogic, LogLevel;
@@ -135,14 +139,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late final StreamSubscription<BaseDevice> _connectionListener;
   late final StreamSubscription<BaseNotification> _actionListener;
-  Timer? _metricsTicker;
 
   /// Assumed available until proven otherwise, so the step doesn't flash as
   /// pending on every cold start before the platform has answered.
   bool _bluetoothReady = true;
 
-  final Map<String, ControllerButton> _pressedButton = {};
-  final Map<String, int> _pressGeneration = {};
+  /// The last press per controller (by device id), and how many there have
+  /// been — a notifier each, so a press rebuilds only that controller's
+  /// buttons instead of the whole chain.
+  final Map<String, ValueNotifier<({ControllerButton? button, int generation})>> _presses = {};
+
+  ValueNotifier<({ControllerButton? button, int generation})> _pressesFor(String deviceId) =>
+      _presses.putIfAbsent(deviceId, () => ValueNotifier((button: null, generation: 0)));
 
   /// Last measured Local Network status, kept here rather than read off
   /// [LocalNetworkAccess.cached]: that cache expires after 30s, and a step that
@@ -237,24 +245,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _syncProxyListeners();
     _actionListener = core.connection.actionStream.listen((notification) {
       if (notification is ButtonNotification && notification.buttonsClicked.isNotEmpty) {
-        final id = notification.device.uniqueId;
-        _pressGeneration[id] = (_pressGeneration[id] ?? 0) + 1;
-        if (mounted) setState(() => _pressedButton[id] = notification.buttonsClicked.first);
+        final presses = _pressesFor(notification.device.uniqueId);
+        presses.value = (button: notification.buttonsClicked.first, generation: presses.value.generation + 1);
       }
     });
-
-    // Live trainer telemetry lives behind several notifiers that swap when the
-    // trainer changes mode. A slow tick is cheaper to reason about than
-    // re-subscribing on every transition, and it only runs while a trainer is
-    // actually connected.
-    // Not started under the screenshot harness: a periodic timer never lets a
-    // widget test's frame loop go quiet, and the captured metrics are fixtures
-    // there anyway.
-    if (!screenshotMode) {
-      _metricsTicker = Timer.periodic(const Duration(seconds: 2), (_) {
-        if (mounted && core.connection.proxyDevices.any((p) => p.isConnected)) setState(() {});
-      });
-    }
 
     _refreshBluetoothState();
     IAPManager.instance.isPurchased.addListener(_onPurchaseChanged);
@@ -288,11 +282,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// Once per install, when a Zwift Ride first shows up on server-locked
-  /// firmware (>1.2.0), surface a one-time dialog pointing the rider at support.
-  /// The persistent card notice in controller settings is the standing fallback.
+  /// firmware (>1.2.0) without being a Zwift Ride V2, surface a one-time dialog
+  /// pointing the rider at support. The persistent card notice in controller
+  /// settings is the standing fallback. A Zwift Ride V2 gets its own one-time
+  /// explainer instead — see [maybeShowZwiftRideV2Explainer].
   bool _rideFirmwareDialogHandled = false;
+  bool _rideV2ExplainerPending = false;
 
   void _maybeShowRideFirmwareDialog() {
+    _maybeShowRideV2Explainer();
     if (screenshotMode || _rideFirmwareDialogHandled) return;
     if (core.settings.getRideFirmwareLockDialogShown()) {
       _rideFirmwareDialogHandled = true;
@@ -305,6 +303,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         showZwiftRideFirmwareDialog(context, affected as ZwiftRide);
+      }
+    });
+  }
+
+  void _maybeShowRideV2Explainer() {
+    if (screenshotMode || _rideV2ExplainerPending || core.settings.getRideV2ExplainerShown()) return;
+    final hasRideV2 = core.connection.controllerDevices.any((d) => d.isConnected && d is ZwiftUnlock && d.isRideV2);
+    if (!hasRideV2) return;
+    _rideV2ExplainerPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        if (mounted) await maybeShowZwiftRideV2Explainer(context, core.connection.controllerDevices);
+      } catch (e, s) {
+        recordError(e, s, context: 'HomePage.rideV2Explainer');
+      } finally {
+        _rideV2ExplainerPending = false;
       }
     });
   }
@@ -337,7 +351,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
     _connectionListener.cancel();
     _actionListener.cancel();
-    _metricsTicker?.cancel();
+    for (final presses in _presses.values) {
+      presses.dispose();
+    }
     IAPManager.instance.isPurchased.removeListener(_onPurchaseChanged);
     ClickLogic.keepAwakeStatus.removeListener(_onKeepAwakeChanged);
     for (final listenable in _broadcastListenables) {
@@ -383,15 +399,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   /// Whether [device] is unlocked, or null when unlocking does not apply.
   ///
-  /// Only the Zwift Click V2 needs it, and only in the modes that actually use
-  /// Zwift to unlock: the legacy unified controller (which has no other way)
-  /// and the left puck when the rider chose unlock-with-Zwift. The left puck on
-  /// the restart workaround never unlocks — it reboots itself instead — so a
-  /// step telling the rider to open Zwift would be wrong there, and the right
-  /// puck was never locked at all.
+  /// Only controllers Zwift locks to its own app need it — the Zwift Click V2
+  /// in the modes that actually use Zwift to unlock (the legacy unified
+  /// controller, which has no other way, and the left puck when the rider chose
+  /// unlock-with-Zwift) and the Zwift Ride V2. The left puck on the restart
+  /// workaround never unlocks — it reboots itself instead — so a step telling
+  /// the rider to open Zwift would be wrong there, and the right puck was never
+  /// locked at all. See [ZwiftUnlock.requiresZwiftUnlock].
   bool? _unlockState(BaseDevice device) {
-    if (device is! ZwiftClickV2) return null;
-    if (device is ZwiftClickV2LeftSide && !core.settings.getUnlockWithZwift()) return null;
+    if (device is! ZwiftUnlock || !device.requiresZwiftUnlock) return null;
     return device.isPersistedUnlocked;
   }
 
@@ -399,10 +415,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Formatted here, next to the other display concerns — the chain model
   /// itself stays free of locales and date formats.
   String? _unlockedUntil(BaseDevice device) {
-    if (device is! ZwiftClickV2) return null;
+    if (device is! ZwiftUnlock || !device.requiresZwiftUnlock) return null;
     final until = device.unlockedUntil;
     return until == null ? null : DateFormat('EEEE, HH:mm').format(until);
   }
+
+  bool _unlockUncertain(BaseDevice device) =>
+      device is ZwiftUnlock && device.requiresZwiftUnlock && device.isLikelyUnlocked;
 
   DevicePresence _presenceOf(BaseDevice device, {required bool isStandIn}) {
     if (device.isConnected) return DevicePresence.connected;
@@ -446,6 +465,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         presence = DevicePresence.connected;
       } else if (!wanted) {
         presence = DevicePresence.discovered;
+      } else if (proxy.isStarting.value || proxy.isConnected) {
+        // The connect is still running. The Bluetooth link comes up before the
+        // bridge does, and `wasConnectedThisSession` latches the moment it
+        // does — so without this branch the whole window between "link up" and
+        // "emulator started" read as a drop, and the banner flashed red at a
+        // trainer that was connecting perfectly well.
+        presence = DevicePresence.connecting;
       } else if (core.connection.wasConnectedThisSession(proxy.uniqueId)) {
         presence = DevicePresence.lost;
       } else {
@@ -517,7 +543,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             requiresBluetooth: device is BluetoothDevice,
             unlocked: _unlockState(device),
             unlockedUntil: _unlockedUntil(device),
-            unlockUncertain: device is ZwiftClickV2 && device.isLikelyUnlocked,
+            unlockUncertain: _unlockUncertain(device),
+            unlockIsRideV2: device is ZwiftUnlock && device.isRideV2,
             sramSetupDone: device is SramAxs ? !device.needsGuidedSetup : null,
             sramCanRestore: device is SramAxs && device.canRestoreShifting,
             needsUnlockModeChoice:
@@ -610,9 +637,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // The store board sells a finished setup; an outstanding offer, optional or
     // not, is the one thing on that card still asking for something.
     if (screenshotMode) return false;
-    if (!TrainerOverlayService.isSupportedPlatform) return false;
-    if (core.settings.getLastTarget() != Target.thisDevice) return false;
-    return proxy.fitnessBike != null;
+    return trainerOverlayOffered(proxy);
   }
 
   /// Makes chain cards jump out — see [ChainCard.highlight].
@@ -645,6 +670,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _outstandingLinkIds = banner.outstandingLinkIds;
     final devicesById = {for (final d in _knownControllers) d.uniqueId: d};
     final trial = _trialState();
+    final vsBudget = vsBudgetCardState(
+      isPurchased: IAPManager.instance.isPurchased.value,
+      isProForDevice: IAPManager.instance.isProEnabledForCurrentDevice,
+      trainerBridged: core.connection.proxyDevices.any((p) => p.isBridged),
+      remainingToday: core.bridgeUsageTracker.remainingToday,
+      dailyLimit: core.bridgeUsageTracker.dailyLimit,
+    );
 
     final cards = <Widget>[];
     final keyedIds = <String>{};
@@ -688,6 +720,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
             const Gap(10),
           ],
+          // Store renders stage a finished setup, not a daily limit.
+          if (vsBudget != null && !screenshotMode) ...[
+            // Live while riding: the budget ticks down during a session.
+            ValueListenableBuilder<Duration>(
+              valueListenable: core.bridgeUsageTracker.usedTodayListenable,
+              builder: (context, _, _) => VsBudgetCard(
+                state: vsBudgetCardState(
+                      isPurchased: true,
+                      isProForDevice: false,
+                      trainerBridged: true,
+                      remainingToday: core.bridgeUsageTracker.remainingToday,
+                      dailyLimit: core.bridgeUsageTracker.dailyLimit,
+                    ) ??
+                    vsBudget,
+                // Base is bought, so the paywall shows the Pro plans only.
+                onUpgrade: () => IAPManager.instance.purchaseFullVersion(context),
+              ),
+            ),
+            const Gap(10),
+          ],
           // Pro on the account, not on this device: carries its own gap.
           const ProUnregisteredBanner(),
           HealthRideCard(service: core.healthRide),
@@ -699,20 +751,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           HomeExtras(isMobile: widget.isMobile, onUpdate: _update),
           if (widget.showHelpRow) ...[
             const Gap(12),
-            Button.outline(
-              onPressed: widget.onHelp ?? () => openControllerHelpSheet(context),
-              child: Row(
-                children: [
-                  Icon(LucideIcons.lifeBuoy, size: 17, color: Theme.of(context).colorScheme.primary),
-                  const Gap(9),
-                  Expanded(
-                    child: Text(
-                      context.i18n.chainSomethingNotWorking,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+            BkTouchTarget(
+              child: Button.outline(
+                alignment: Alignment.center,
+                onPressed: widget.onHelp ?? () => openControllerHelpSheet(context),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.lifeBuoy, size: 17, color: Theme.of(context).colorScheme.primary),
+                    const Gap(9),
+                    Expanded(
+                      child: Text(
+                        context.i18n.chainSomethingNotWorking,
+                        style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
+                      ),
                     ),
-                  ),
-                  Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
-                ],
+                    Icon(LucideIcons.chevronRight, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
+                  ],
+                ),
               ),
             ),
           ],
@@ -875,10 +930,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Null for anything else, including a Click that is currently locked: the
   /// checklist step carries that, and a stale deadline would contradict it.
   String? _unlockStatusLabel(BaseDevice device) {
-    if (_unlockState(device) != true) return null;
+    // Store renders don't carry an expiry date.
+    if (screenshotMode || _unlockState(device) != true) return null;
     final until = _unlockedUntil(device);
     if (until == null) return null;
-    return device is ZwiftClickV2 && device.isLikelyUnlocked
+    return _unlockUncertain(device)
         ? context.i18n.chainStepUnlockedLikelyUntil(until)
         : context.i18n.chainStepUnlockedUntil(until);
   }
@@ -899,16 +955,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final keymap = core.actionHandler.supportedApp?.keymap;
     final size = 56 / Theme.of(context).scaling;
 
+    final presses = _pressesFor(device.uniqueId);
     Widget buttonFor(ControllerButton button) {
-      final pressed = _pressedButton[device.uniqueId];
-      return AnimatedButtonWidget(
+      return ValueListenableBuilder(
         key: ValueKey(button.name),
-        button: button,
-        pressGeneration: pressed?.name == button.name ? (_pressGeneration[device.uniqueId] ?? 0) : 0,
-        keymap: keymap,
-        device: device,
-        size: size,
-        onUpdate: _update,
+        valueListenable: presses,
+        builder: (context, pressed, _) => AnimatedButtonWidget(
+          button: button,
+          pressGeneration: pressed.button?.name == button.name ? pressed.generation : 0,
+          keymap: keymap,
+          device: device,
+          size: size,
+          onUpdate: _update,
+        ),
       );
     }
 
@@ -975,9 +1034,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // case matters now that live watts are shown whenever the trainer reports
     // them: "Not connected" beside a cadence reading is a contradiction the
     // rider has to resolve, so a connected-but-unbridged trainer says so.
+    // A connect in flight has its own answer. Without it this fell through to
+    // "Connected" (the upstream link is up, which is technically true and says
+    // nothing the rider asked about) or "Not connected" (plainly wrong while
+    // BikeControl is connecting it) — see [DevicePresence.connecting].
+    final connecting =
+        inputs.trainer?.presence == DevicePresence.connecting && link.status == LinkStatus.attention;
+
     final String statusLabel;
     if (link.status == LinkStatus.problem) {
       statusLabel = context.i18n.chainStatusLostConnection;
+    } else if (connecting) {
+      statusLabel = context.i18n.chainStatusConnecting;
     } else if (bridged) {
       statusLabel = appHoldsBridge
           ? context.i18n.chainStatusBridged
@@ -1185,9 +1253,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // Paired and shifting, but the trainer app is not on the bridge yet — the
     // gears are real, they are just not carrying anything. The buttons come
     // with it: a rider on the home screen can shift without opening the page.
-    return proxy != null && definition != null
-        ? DrivetrainControls(definition: definition, compact: true, dim: !proxy.isConnected)
-        : _trainerFeatureList(proxy);
+    return proxy != null && definition != null ? _LiveTrainerBody(proxy: proxy) : _trainerFeatureList(proxy);
   }
 
   /// The bridging pitch, but only for a trainer that is here and has never
@@ -1324,12 +1390,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _openInstructions(ChainLink link) async {
     switch (link.key) {
       case ChainLinkKey.controller:
-        // A locked Click V2 has one specific answer, and it is not the generic
-        // "can't find your controller" help: send the rider straight into the
-        // unlock flow for this exact device.
+        // A locked Click V2 or Ride V2 has one specific answer, and it is not
+        // the generic "can't find your controller" help: send the rider
+        // straight into the unlock flow for this exact device.
         final active = link.activeStep?.id;
         final device = _controllerById(link.deviceId);
-        if (active == SetupStepId.controllerUnlocked && device is ZwiftClickV2) {
+        if (active == SetupStepId.controllerUnlocked && device is ZwiftUnlock) {
           await openDrawer(
             context: context,
             position: OverlayPosition.bottom,
@@ -1430,7 +1496,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // switch that sprang back to off.
       buildToast(
         level: LogLevel.LOGLEVEL_WARNING,
-        title: result.message ?? context.i18n.overlayLowPowerMode,
+        title: result.riderMessage(context.i18n),
       );
     }
     await context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true));
@@ -1506,13 +1572,74 @@ class _MetricChip extends StatelessWidget {
             const Gap(6),
             Text(
               value?.toString() ?? '--',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w700),
             ),
             const Gap(4),
-            Text(unit, style: TextStyle(fontSize: 11.5, color: theme.colorScheme.mutedForeground)),
+            Text(unit, style: context.typography.caption.copyWith(color: theme.colorScheme.mutedForeground)),
           ],
         ),
       ),
     );
+  }
+}
+
+/// The trainer card's live drivetrain.
+///
+/// The trainer's definition is swapped when its transport restarts or it
+/// changes mode, behind notifiers that come and go with it. Rather than
+/// re-subscribing on every transition, this re-reads the trainer on a slow
+/// tick — and rebuilds only itself, only when what it shows actually changed.
+/// (It used to be the whole home page, every two seconds.)
+class _LiveTrainerBody extends StatefulWidget {
+  const _LiveTrainerBody({required this.proxy});
+
+  final ProxyDevice proxy;
+
+  @override
+  State<_LiveTrainerBody> createState() => _LiveTrainerBodyState();
+}
+
+class _LiveTrainerBodyState extends State<_LiveTrainerBody> {
+  Timer? _ticker;
+  FitnessBikeDefinition? _definition;
+  bool _connected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _read();
+    // Not under the screenshot harness: a periodic timer never lets a widget
+    // test's frame loop go quiet, and the captured state is a fixture there.
+    if (!screenshotMode) {
+      _ticker = Timer.periodic(const Duration(seconds: 2), (_) {
+        if (widget.proxy.fitnessBike != _definition || widget.proxy.isConnected != _connected) {
+          setState(_read);
+        }
+      });
+    }
+  }
+
+  void _read() {
+    _definition = widget.proxy.fitnessBike;
+    _connected = widget.proxy.isConnected;
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveTrainerBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _read();
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final definition = _definition;
+    if (definition == null) return const SizedBox.shrink();
+    return DrivetrainControls(definition: definition, compact: true, dim: !_connected);
   }
 }

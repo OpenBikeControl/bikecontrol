@@ -34,7 +34,9 @@ class WorkoutResult {
 }
 
 class WorkoutRecorder {
-  final DateTime Function() nowProvider;
+  /// The clock the ride is timed by. Settable so tests on a fake clock can
+  /// point the app's own recorder there.
+  DateTime Function() nowProvider;
   final Duration tick;
 
   final ValueNotifier<WorkoutState> state = ValueNotifier(WorkoutState.idle);

@@ -1,5 +1,6 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/prop.dart' show SramBondException;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -234,12 +235,12 @@ Widget sramGuidedBody(
       const Gap(16),
       Text(
         heading,
-        style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
+        style: context.typography.xLarge.copyWith(fontWeight: FontWeight.w700),
       ),
       const Gap(8),
       Text(
         body,
-        style: TextStyle(fontSize: 14.5, height: 1.5, color: scheme.mutedForeground),
+        style: context.typography.small.copyWith(height: 1.5, color: scheme.mutedForeground),
       ),
       if (extra != null) ...[
         const Gap(20),
@@ -324,7 +325,7 @@ class _SramAxsHeroState extends State<_SramAxsHero> with TickerProviderStateMixi
               Flexible(
                 child: Text(
                   context.i18n.sramPressHold,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _sramAmber),
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: _sramAmber),
                 ),
               ),
             ],
@@ -373,9 +374,13 @@ class _SramAxsHeroState extends State<_SramAxsHero> with TickerProviderStateMixi
           else
             _led(1.0),
           const Gap(7),
-          const Text(
+          Text(
             'AXS',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _sramWhite, letterSpacing: 1.4),
+            style: context.typography.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              color: _sramWhite,
+              letterSpacing: 1.4,
+            ),
           ),
         ],
       ),

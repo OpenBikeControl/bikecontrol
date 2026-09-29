@@ -1,3 +1,7 @@
+import 'package:bike_control/utils/reduced_motion.dart';
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -25,7 +29,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionM
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
-import 'package:prop/prop.dart' show LogLevel, Logger;
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -63,7 +67,22 @@ class _ActivityEntry {
   String get message => alertMessage ?? result?.message ?? '';
 }
 
+/// How long ago [time] was, the way the activity log words it.
+String _activityAge(BuildContext context, DateTime time) {
+  final l10n = AppLocalizations.of(context);
+  final ago = activityLogClock().difference(time);
+  if (ago.inSeconds < 2) return l10n.justNow;
+  if (ago.inSeconds < 60) return l10n.secondsAgo('${ago.inSeconds}');
+  return l10n.minutesAgo('${ago.inMinutes}');
+}
+
 // ── OverviewPage ─────────────────────────────────────────────────────
+
+/// The clock the activity log stamps its entries with and ages them by ("just
+/// now", "5s ago"). Tests on a fake clock point it there, so the ages they
+/// film don't depend on how fast the machine ran.
+@visibleForTesting
+DateTime Function() activityLogClock = DateTime.now;
 
 /// Decides whether an incoming alert should raise a toast.
 ///
@@ -83,8 +102,8 @@ bool shouldShowConnectionAlertToast({
   required bool isConnectionAlert,
 }) {
   final page = (pageViewPage ?? 0).round();
-  final baseShow = !screenshotMode && (!overviewFrontmost || (screenWidth < 800 && page != 1));
-  final connectionCardVisible = overviewFrontmost && (screenWidth >= 800 || page == 0);
+  final baseShow = !screenshotMode && (!overviewFrontmost || (screenWidth < Breakpoints.twoPane && page != 1));
+  final connectionCardVisible = overviewFrontmost && (screenWidth >= Breakpoints.twoPane || page == 0);
   return baseShow && !(isConnectionAlert && connectionCardVisible);
 }
 
@@ -111,6 +130,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   final List<_ActivityEntry> _activityLog = [];
   final GlobalKey<AnimatedListState> _activityListKey = GlobalKey<AnimatedListState>();
   static const _maxLogEntries = 30;
+
+  /// Ticks while the log has entries, so each entry's age ("5s ago")
+  /// refreshes on its own instead of the whole page rebuilding.
+  final ValueNotifier<DateTime> _logClock = ValueNotifier(activityLogClock());
+
+  /// Whether the log holds an error, for the Activity tab's marker.
+  final ValueNotifier<bool> _activityHasErrors = ValueNotifier(false);
 
   // Blog
   bool _hasNewBlogPosts = false;
@@ -141,10 +167,9 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     }
 
     _timeRefreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (_activityLog.isNotEmpty) setState(() {});
+      if (_activityLog.isNotEmpty) _logClock.value = activityLogClock();
     });
     _actionListener = core.connection.actionStream.listen((notification) {
-      Logger.warn('Notification received: ${notification.runtimeType} - $notification');
       if (notification is ActionNotification && notification.result.button != null) {
         _onActionResult(notification.result, notification.result.button!);
       } else if (notification is AlertNotification) {
@@ -223,6 +248,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         duration: const Duration(milliseconds: 200),
       );
     }
+    _activityHasErrors.value = _activityLog.any((e) => e.isError);
   }
 
   void _onActionResult(ActionResult result, ControllerButton button) {
@@ -233,7 +259,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final isDesktop = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
     final entry = _ActivityEntry(
       button: button,
-      time: DateTime.now(),
+      time: activityLogClock(),
       result: result,
       buttonTitle: hasRecording
           ? (isDesktop ? AppLocalizations.of(context).openFolder : AppLocalizations.of(context).openGallery)
@@ -248,7 +274,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       // every one of those presses fails by design. Toasting "X could not be
       // performed" over the step that told them to press it reads as the
       // wizard being broken. The entry is still logged to the activity list.
-      if (!onboardingActive && _screenWidth < 800 && _horizontalScrollController.page != 1) {
+      if (!onboardingActive && _screenWidth < Breakpoints.twoPane && _horizontalScrollController.page != 1) {
         final fix = _errorFixAction(entry);
         buildToast(
           level: LogLevel.LOGLEVEL_WARNING,
@@ -261,9 +287,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
               : null,
         );
       }
-      setState(() {});
-    } else {
-      setState(() {});
     }
   }
 
@@ -296,13 +319,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       buildToast(
         level: notification.level,
         title: notification.alertMessage,
-        closeTitle: notification.buttonTitle ?? 'Close',
+        closeTitle: notification.buttonTitle ?? AppLocalizations.current.close,
         onClose: notification.onTap,
       );
     }
 
     final entry = _ActivityEntry(
-      time: DateTime.now(),
+      time: activityLogClock(),
       alertMessage: notification.alertMessage,
       alertLevel: notification.level,
       buttonTitle: notification.buttonTitle,
@@ -310,8 +333,6 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       connectionType: notification.connectionType,
     );
     _insertActivityEntry(entry);
-
-    setState(() {});
   }
 
   @override
@@ -324,6 +345,8 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     _feedbackPromptTrigger.dispose();
 
     _timeRefreshTimer.cancel();
+    _logClock.dispose();
+    _activityHasErrors.dispose();
     _actionListener.cancel();
     for (final proxy in core.connection.proxyDevices) {
       proxy.isStarting.removeListener(_onProxyStateChanged);
@@ -340,7 +363,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     // Wide desktop promotes the activity log to a permanent rail, and that rail
     // carries its own Help button — a second one in the chain would be a
     // duplicate of something already on screen.
-    final showsActivityRail = _screenWidth >= 800;
+    final showsActivityRail = _screenWidth >= Breakpoints.twoPane;
 
     final leftColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,7 +384,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       child: _buildActivityLog(),
     );
 
-    if (_screenWidth < 800) {
+    if (_screenWidth < Breakpoints.twoPane) {
       // Mobile: horizontally scrollable, left side 90% width, activity peeks from right
       final hPad = 12.0;
 
@@ -371,12 +394,15 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             color: Theme.of(context).colorScheme.muted,
             width: double.infinity,
             alignment: Alignment.center,
-            child: _Tabs(
-              controller: _horizontalScrollController,
-              leftWidth: _screenWidth - 50,
-              hasErrors: _activityLog.any((e) => e.isError),
-              hasNewBlogPosts: _hasNewBlogPosts,
-              pageCount: 3,
+            child: ValueListenableBuilder(
+              valueListenable: _activityHasErrors,
+              builder: (context, hasErrors, _) => _Tabs(
+                controller: _horizontalScrollController,
+                leftWidth: _screenWidth - 50,
+                hasErrors: hasErrors,
+                hasNewBlogPosts: _hasNewBlogPosts,
+                pageCount: 3,
+              ),
             ),
           ),
           Divider(),
@@ -390,13 +416,13 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   padding: EdgeInsets.only(
                     left: hPad,
                     right: hPad,
-                    bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                    bottom: widget.isMobile ? 16 : 0,
                   ),
                   child: leftColumn,
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+                    color: bkSunkenSurface(context),
                     border: Border(
                       left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
                       bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
@@ -406,7 +432,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(
                       right: 20,
-                      bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                      bottom: widget.isMobile ? 16 : 0,
                     ),
                     child: activityColumn,
                   ),
@@ -414,7 +440,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
                 SingleChildScrollView(
                   padding: EdgeInsets.only(
                     top: 20,
-                    bottom: widget.isMobile ? MediaQuery.viewPaddingOf(context).bottom + 20 : 0,
+                    bottom: widget.isMobile ? 16 : 0,
                   ),
                   child: BlogPostsWidget(
                     showHeader: false,
@@ -452,7 +478,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         Container(
           height: double.infinity,
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.gray.shade900 : Color(0xFFF8FAFB),
+            color: bkSunkenSurface(context),
             border: Border(
               left: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
               bottom: BorderSide(color: Theme.of(context).colorScheme.border, width: 1),
@@ -539,23 +565,27 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
   }
 
   Widget _buildAnimatedActivityItem(_ActivityEntry entry, int index, Animation<double> animation) {
+    final item = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (index > 0)
+          Divider(
+            color: Theme.of(context).colorScheme.border.withAlpha(160),
+            endIndent: 16,
+            indent: 16,
+            thickness: 0.5,
+          ),
+        _buildActivityRow(entry, isLatest: index == 0),
+      ],
+    );
+    // With reduced motion an entry simply appears (and goes) in place,
+    // instead of growing open and pushing the list down.
+    if (prefersReducedMotion(context)) return item;
     return SizeTransition(
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
       child: FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (index > 0)
-              Divider(
-                color: Theme.of(context).colorScheme.border.withAlpha(160),
-                endIndent: 16,
-                indent: 16,
-                thickness: 0.5,
-              ),
-            _buildActivityRow(entry, isLatest: index == 0),
-          ],
-        ),
+        child: item,
       ),
     );
   }
@@ -570,7 +600,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
       );
     }
     _activityLog.clear();
-    setState(() {});
+    _activityHasErrors.value = false;
   }
 
   Widget _buildActivityRow(_ActivityEntry entry, {required bool isLatest}) {
@@ -580,28 +610,17 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
 
     final actionText = entry.message;
 
-    // Time
-    final ago = DateTime.now().difference(entry.time);
-    final String timeText;
-    if (ago.inSeconds < 2) {
-      timeText = AppLocalizations.of(context).justNow;
-    } else if (ago.inSeconds < 60) {
-      timeText = '${ago.inSeconds}s ago';
-    } else {
-      timeText = '${ago.inMinutes}m ago';
-    }
-
     // Row bg
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final status = BkStatusColors.of(context);
     final Color rowBg;
     if (isError) {
-      rowBg = isDark ? const Color(0x1AEF4444) : const Color(0xFFFEF2F2);
+      rowBg = status.dangerWash;
     } else if (entry.isWarning) {
-      rowBg = isDark ? const Color(0x1AF59E0B) : const Color(0xFFFFFBEB);
+      rowBg = status.warningWash;
     } else if (isSuccess) {
-      rowBg = isDark ? const Color(0x1A22C55E) : const Color(0xFFF0FDFA);
+      rowBg = status.successWash;
     } else if (entry.button == null) {
-      rowBg = Color(0xFFDBEAFE);
+      rowBg = status.infoWash;
     } else {
       rowBg = Colors.transparent;
     }
@@ -614,19 +633,19 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
     final Widget leadingIcon;
     if (button != null) {
       leadingIcon = isError
-          ? const Icon(LucideIcons.circleX, size: 16, color: Color(0xFFEF4444))
+          ? Icon(LucideIcons.circleX, size: 16, color: status.danger)
           : isSuccess
-          ? const Icon(LucideIcons.circleCheck, size: 16, color: Color(0xFF22C55E))
+          ? Icon(LucideIcons.circleCheck, size: 16, color: status.success)
           : ButtonWidget(button: button, size: size - 4);
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_ERROR) {
-      leadingIcon = Icon(LucideIcons.circleX, size: 16, color: const Color(0xFFEF4444));
+      leadingIcon = Icon(LucideIcons.circleX, size: 16, color: status.danger);
     } else if (entry.alertLevel == LogLevel.LOGLEVEL_WARNING) {
-      leadingIcon = Icon(LucideIcons.triangleAlert, size: 16, color: const Color(0xFFF59E0B));
+      leadingIcon = Icon(LucideIcons.triangleAlert, size: 16, color: status.warning);
     } else if (entry.button == null) {
       leadingIcon = Icon(
         entry.connectionType?.activityIcon ?? LucideIcons.bluetooth,
         size: 16,
-        color: Color(0xFF2563EB),
+        color: status.info,
       );
     } else {
       leadingIcon = Icon(LucideIcons.info, size: 16, color: Theme.of(context).colorScheme.mutedForeground);
@@ -651,7 +670,7 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            isError ? Text(actionText, style: TextStyle(color: Color(0xFFEF4444))).small : Text(actionText).small,
+            isError ? Text(actionText, style: TextStyle(color: status.danger)).small : Text(actionText).small,
             if (errorFix != null) ...[
               Gap(4),
               Builder(
@@ -674,7 +693,11 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ],
           ],
         ),
-        trailing: Text(timeText).xSmall.muted,
+        // Only the age ticks; the row around it is built once.
+        trailing: ValueListenableBuilder(
+          valueListenable: _logClock,
+          builder: (context, _, _) => Text(_activityAge(context, entry.time)).xSmall.muted,
+        ),
       ),
     );
   }
@@ -784,6 +807,10 @@ class _TabsState extends State<_Tabs> {
     return Tabs(
       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       onChanged: (index) {
+        if (prefersReducedMotion(context)) {
+          widget.controller.jumpToPage(index);
+          return;
+        }
         widget.controller.animateToPage(
           index,
           duration: const Duration(milliseconds: 300),
@@ -796,45 +823,44 @@ class _TabsState extends State<_Tabs> {
           child: Text(AppLocalizations.of(context).main),
         ),
         TabItem(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(AppLocalizations.of(context).activity),
-              if (widget.hasErrors) ...[
-                Gap(6),
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.destructive.withAlpha(160),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ],
+          child: _labelWithDot(
+            AppLocalizations.of(context).activity,
+            dot: widget.hasErrors ? Theme.of(context).colorScheme.destructive.withAlpha(160) : null,
+            spokenWithDot: AppLocalizations.of(context).a11yTabHasErrors,
           ),
         ),
         if (widget.pageCount >= 3)
           TabItem(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Blog'),
-                if (widget.hasNewBlogPosts) ...[
-                  Gap(6),
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0E74B7),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ],
-              ],
+            child: _labelWithDot(
+              AppLocalizations.of(context).blogTab,
+              dot: widget.hasNewBlogPosts ? Theme.of(context).colorScheme.primary : null,
+              spokenWithDot: AppLocalizations.of(context).a11yTabHasNewPosts,
             ),
           ),
       ],
+    );
+  }
+
+  /// A tab label with an optional coloured dot. The dot only speaks in
+  /// colour, so a screen reader hears [spokenWithDot] as the label instead.
+  Widget _labelWithDot(String label, {required Color? dot, required String Function(String tab) spokenWithDot}) {
+    return Semantics(
+      label: dot == null ? label : spokenWithDot(label),
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label),
+          if (dot != null) ...[
+            const Gap(6),
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

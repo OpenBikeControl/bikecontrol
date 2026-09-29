@@ -1,8 +1,15 @@
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/pages/help_center/help_checks.dart';
+import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
+import 'package:bike_control/utils/support/intake_self_help.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -11,11 +18,22 @@ class SupportIntakeForm extends StatefulWidget {
   final IntakeAnswers? initial;
   final ValueChanged<IntakeAnswers> onContinue;
 
+  /// "Did this solve it?" → Yes, for an answer shown inline. Null hides the
+  /// question (the rider can still continue to the composer).
+  final VoidCallback? onSolved;
+
+  /// Test seam: resolves the trainer the inline answers act on, instead of
+  /// `core.connection.proxyDevices`.
+  @visibleForTesting
+  final ProxyDevice? Function()? debugTrainer;
+
   const SupportIntakeForm({
     super.key,
     required this.service,
     required this.onContinue,
     this.initial,
+    this.onSolved,
+    this.debugTrainer,
   });
 
   @override
@@ -105,6 +123,8 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       subcategory: subcategoryKind,
       subcategoryValue: _subcategoryValue,
       symptom: _symptom,
+      // Kept only while the answer is still about the same controller.
+      firmware: _subcategoryValue == widget.initial?.subcategoryValue ? widget.initial?.firmware : null,
     );
   }
 
@@ -112,6 +132,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final canContinue = _category != null;
+    final selfHelp = canContinue ? intakeSelfHelpFor(_buildAnswers()) : null;
     return Container(
       decoration: BoxDecoration(
         color: cs.card,
@@ -124,12 +145,12 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
         children: [
           Text(
             context.i18n.supportIntakeTitle,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
           ),
           const Gap(4),
           Text(
             context.i18n.supportIntakeSubtitle,
-            style: TextStyle(color: cs.mutedForeground, fontSize: 13),
+            style: context.typography.small.copyWith(color: cs.mutedForeground),
           ),
           const Gap(16),
           _label(context.i18n.supportIntakeCategoryLabel),
@@ -144,28 +165,35 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             _RecommendedHelp(issues: _matchingIssues),
           ],
           const Gap(16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Button.primary(
-              onPressed: canContinue
-                  ? () => widget.onContinue(_buildAnswers())
-                  : null,
-              child: Text(context.i18n.supportIntakeContinue),
+          if (selfHelp != null)
+            _InlineSelfHelp(
+              key: ValueKey('intake-self-help-${selfHelp.name}'),
+              help: selfHelp,
+              controllerId: _category == IntakeCategory.controller ? _subcategoryValue : null,
+              trainer: widget.debugTrainer,
+              onSolved: widget.onSolved,
+              onNotSolved: () => widget.onContinue(_buildAnswers()),
+            )
+          else
+            Align(
+              alignment: Alignment.centerRight,
+              child: Button.primary(
+                onPressed: canContinue ? () => widget.onContinue(_buildAnswers()) : null,
+                child: Text(context.i18n.supportIntakeContinue),
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
   Widget _label(String text) => Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.mutedForeground,
-        ),
-      );
+    text,
+    style: context.typography.xSmall.copyWith(
+      fontWeight: FontWeight.w600,
+      color: Theme.of(context).colorScheme.mutedForeground,
+    ),
+  );
 
   Widget _categorySelect() {
     return Select<IntakeCategory>(
@@ -215,7 +243,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           ],
           _label(context.i18n.supportIntakeWhatHappens),
           const Gap(4),
-          _symptomSelect(trainerAppSymptoms),
+          _symptomSelect(IntakeCategory.trainerApp, trainerAppSymptoms),
         ];
       case IntakeCategory.controller:
         // Restrict to controllers the user actually has paired so the list
@@ -227,11 +255,12 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
             .map(controllerOptionIdFor)
             .whereType<String>()
             .toSet();
-        final options = (connectedIds.isEmpty
-                ? controllerOptions
-                : controllerOptions.where((o) => connectedIds.contains(o.id) || o.id == 'other'))
-            .map((o) => (id: o.id, label: o.label))
-            .toList(growable: false);
+        final options =
+            (connectedIds.isEmpty
+                    ? controllerOptions
+                    : controllerOptions.where((o) => connectedIds.contains(o.id) || o.id == 'other'))
+                .map((o) => (id: o.id, label: controllerOptionLabel(context.i18n, o.id)))
+                .toList(growable: false);
         return [
           _label(context.i18n.supportIntakeWhichController),
           const Gap(4),
@@ -244,7 +273,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           const Gap(12),
           _label(context.i18n.supportIntakeWhatHappens),
           const Gap(4),
-          _symptomSelect(controllerSymptoms),
+          _symptomSelect(IntakeCategory.controller, controllerSymptomsFor(_subcategoryValue)),
         ];
       case IntakeCategory.smartTrainer:
         return [
@@ -253,9 +282,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-            options: smartTrainerSymptoms
-                .map((o) => (id: o.id, label: o.label))
-                .toList(growable: false),
+            options: _symptomOptions(IntakeCategory.smartTrainer, smartTrainerSymptoms),
             onChanged: _setSubcategory,
           ),
         ];
@@ -266,9 +293,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
           _stringSelect(
             value: _subcategoryValue,
             placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-            options: accountSymptoms
-                .map((o) => (id: o.id, label: o.label))
-                .toList(growable: false),
+            options: _symptomOptions(IntakeCategory.account, accountSymptoms),
             onChanged: _setSubcategory,
           ),
         ];
@@ -277,11 +302,14 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
     }
   }
 
-  Widget _symptomSelect(List<SymptomOption> options) {
+  List<({String id, String label})> _symptomOptions(IntakeCategory category, List<SymptomOption> options) =>
+      options.map((o) => (id: o.id, label: symptomLabel(context.i18n, category, o.id))).toList(growable: false);
+
+  Widget _symptomSelect(IntakeCategory category, List<SymptomOption> options) {
     return _stringSelect(
       value: _symptom,
       placeholder: context.i18n.supportIntakeWhatHappensPlaceholder,
-      options: options.map((o) => (id: o.id, label: o.label)).toList(growable: false),
+      options: _symptomOptions(category, options),
       onChanged: _setSymptom,
     );
   }
@@ -296,19 +324,271 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
       value: value,
       placeholder: Text(placeholder),
       itemBuilder: (c, v) => Text(
-        options.firstWhere(
-          (o) => o.id == v,
-          orElse: () => (id: v, label: v),
-        ).label,
+        options
+            .firstWhere(
+              (o) => o.id == v,
+              orElse: () => (id: v, label: v),
+            )
+            .label,
       ),
       popup: SelectPopup(
         items: SelectItemList(
-          children: options
-              .map((o) => SelectItemButton(value: o.id, child: Text(o.label)))
-              .toList(growable: false),
+          children: options.map((o) => SelectItemButton(value: o.id, child: Text(o.label))).toList(growable: false),
         ),
       ).call,
       onChanged: onChanged,
+    );
+  }
+}
+
+/// The help-center answer matching the intake choice, inline, with "Did this
+/// solve it?" — Yes closes, No continues to the composer.
+class _InlineSelfHelp extends StatelessWidget {
+  const _InlineSelfHelp({
+    super.key,
+    required this.help,
+    required this.controllerId,
+    required this.onNotSolved,
+    this.onSolved,
+    this.trainer,
+  });
+
+  final IntakeSelfHelp help;
+
+  /// The controller chosen in the form, if any — the "isn't found" checks
+  /// depend on it.
+  final String? controllerId;
+  final VoidCallback onNotSolved;
+  final VoidCallback? onSolved;
+
+  /// Resolves the trainer the self-test and overlay actions open.
+  final ProxyDevice? Function()? trainer;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l10n = context.i18n;
+    final proxy = (trainer ?? _knownTrainer)();
+    final connectedTrainer = proxy != null && proxy.isConnected ? proxy : null;
+    void openNetworkTest() => context.push(const NetworkTroubleshootingPage());
+    void openOverlay() => context.push(ProxyDeviceDetailsPage(device: proxy!, revealOverlaySection: true));
+    final (
+      IconData icon,
+      String title,
+      String body,
+      List<HelpCheck> checks,
+      List<(Key?, IconData, String, VoidCallback)> actions,
+      String? note,
+    ) = switch (help) {
+      IntakeSelfHelp.controllerNotFound => (
+        LucideIcons.bluetoothSearching,
+        l10n.helpCenterControllerNotFoundEntry,
+        l10n.helpAnswerChecksIntro,
+        controllerNotFoundChecks(l10n, controllerId: controllerId),
+        const <(Key?, IconData, String, VoidCallback)>[],
+        null,
+      ),
+      IntakeSelfHelp.controllerDisconnecting => (
+        LucideIcons.bluetoothOff,
+        l10n.helpCenterControllerDisconnectingEntry,
+        l10n.helpAnswerControllerDisconnectingBody,
+        const <HelpCheck>[],
+        [
+          (
+            null,
+            LucideIcons.refreshCw,
+            l10n.helpAnswerControllerDisconnectingAction,
+            () => launchUrlString(
+              'https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps',
+              mode: LaunchMode.externalApplication,
+            ),
+          ),
+        ],
+        null,
+      ),
+      IntakeSelfHelp.appNotReacting => (
+        LucideIcons.radioTower,
+        l10n.helpAnswerAppNotReactingTitle,
+        l10n.helpAnswerChecksIntro,
+        appNotReactingChecksWithActions(
+          l10n,
+          onNetworkTest: openNetworkTest,
+          onOverlay: proxy != null ? openOverlay : null,
+        ),
+        const <(Key?, IconData, String, VoidCallback)>[],
+        null,
+      ),
+      IntakeSelfHelp.trainerAppGear => (
+        LucideIcons.eye,
+        l10n.helpCenterGearOverlayEntry,
+        l10n.helpAnswerGearBody,
+        const <HelpCheck>[],
+        [
+          if (proxy != null) (null, LucideIcons.layers, l10n.helpAnswerGearOverlayAction, openOverlay),
+          (null, LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest),
+        ],
+        null,
+      ),
+      IntakeSelfHelp.networkTest => (
+        LucideIcons.radioTower,
+        l10n.helpCenterNetworkEntry,
+        l10n.intakeSelfHelpNetworkBody,
+        const <HelpCheck>[],
+        [(null, LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest)],
+        null,
+      ),
+      // The self-test needs a live trainer: run it directly when there is
+      // one, otherwise say to connect it first.
+      IntakeSelfHelp.trainerSelfTest => (
+        LucideIcons.activity,
+        l10n.intakeSelfHelpSelfTestTitle,
+        l10n.intakeSelfHelpSelfTestBody,
+        const <HelpCheck>[],
+        [
+          if (connectedTrainer != null)
+            (
+              const ValueKey('intake-run-self-test'),
+              LucideIcons.activity,
+              l10n.intakeSelfHelpSelfTestAction,
+              () => context.push(ProxyDeviceDetailsPage(device: connectedTrainer, revealSelfTest: true)),
+            ),
+        ],
+        connectedTrainer == null ? l10n.helpSelfTestNeedsTrainer : null,
+      ),
+    };
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cs.muted,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: cs.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.supportIntakeTryThisFirst,
+            // Foreground on the muted fill: muted text there is below 4.5:1.
+            style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
+          ),
+          const Gap(8),
+          Row(
+            children: [
+              Icon(icon, size: 16, color: cs.primary),
+              const Gap(8),
+              Expanded(child: Text(title, style: context.typography.small.copyWith(fontWeight: FontWeight.w600))),
+            ],
+          ),
+          const Gap(6),
+          Text(body, style: context.typography.xSmall.copyWith(color: cs.foreground, height: 1.35)),
+          if (checks.isNotEmpty) ...[const Gap(10), HelpCheckList(checks: checks, tileColor: cs.card)],
+          if (note != null) ...[
+            const Gap(8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(LucideIcons.info, size: 14, color: cs.mutedForeground),
+                const Gap(6),
+                Expanded(child: Text(note, style: context.typography.xSmall.copyWith(height: 1.35))),
+              ],
+            ),
+          ],
+          for (final (actionKey, actionIcon, label, onPressed) in actions) ...[
+            const Gap(8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Button.outline(
+                key: actionKey,
+                style: ButtonStyle.outline(size: ButtonSize.small),
+                onPressed: onPressed,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [Icon(actionIcon, size: 14), const Gap(6), Flexible(child: Text(label))],
+                ),
+              ),
+            ),
+          ],
+          const Gap(14),
+          Text(l10n.supportIntakeDidThisSolveIt, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+          const Gap(8),
+          // Equal weight: both outline, same size; side by side when both fit
+          // on one line, else stacked full width.
+          _SolvedAnswers(
+            yes: onSolved == null
+                ? null
+                : BkTouchTarget(
+                    child: Button.outline(
+                      alignment: Alignment.center,
+                      onPressed: onSolved,
+                      child: Text(l10n.supportIntakeSolvedYes, maxLines: 1, softWrap: false),
+                    ),
+                  ),
+            no: BkTouchTarget(
+              child: Button.outline(
+                alignment: Alignment.center,
+                onPressed: onNotSolved,
+                child: Text(l10n.supportIntakeSolvedNo, maxLines: 1, softWrap: false),
+              ),
+            ),
+            labels: [if (onSolved != null) l10n.supportIntakeSolvedYes, l10n.supportIntakeSolvedNo],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The trainer the self-test and overlay actions open: a connected one if
+  /// any, else any known one.
+  static ProxyDevice? _knownTrainer() {
+    final trainers = core.connection.proxyDevices;
+    return trainers.where((t) => t.isConnected).firstOrNull ?? trainers.firstOrNull;
+  }
+}
+
+/// The "Did this solve it?" answers: a row of equal halves when the longer
+/// label fits in half the width, otherwise a full-width stack.
+class _SolvedAnswers extends StatelessWidget {
+  const _SolvedAnswers({required this.yes, required this.no, required this.labels});
+
+  final Widget? yes;
+  final Widget no;
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final yes = this.yes;
+    if (yes == null) return Align(alignment: Alignment.centerRight, child: no);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final style = DefaultTextStyle.of(context).style.merge(context.typography.small);
+        final scaler = MediaQuery.textScalerOf(context);
+        var widest = 0.0;
+        for (final label in labels) {
+          final painter = TextPainter(
+            text: TextSpan(text: label, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: scaler,
+          )..layout();
+          if (painter.width > widest) widest = painter.width;
+          painter.dispose();
+        }
+        // Button padding and the gap between the two, with some slack.
+        final half = (constraints.maxWidth - 8) / 2;
+        final sideBySide = widest + 48 * Theme.of(context).scaling <= half;
+        if (sideBySide) {
+          return Row(
+            children: [
+              Expanded(child: yes),
+              const Gap(8),
+              Expanded(child: no),
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [yes, const Gap(8), no],
+        );
+      },
     );
   }
 }
@@ -337,8 +617,7 @@ class _RecommendedHelp extends StatelessWidget {
               const Gap(6),
               Text(
                 context.i18n.supportIntakeRecommendedHelp,
-                style: TextStyle(
-                  fontSize: 12,
+                style: context.typography.xSmall.copyWith(
                   fontWeight: FontWeight.w600,
                   color: cs.mutedForeground,
                 ),
@@ -347,12 +626,12 @@ class _RecommendedHelp extends StatelessWidget {
           ),
           const Gap(8),
           for (final issue in issues) ...[
-            Text(issue.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(issue.title, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
             if ((issue.description ?? '').isNotEmpty) ...[
               const Gap(2),
               Text(
                 issue.description!,
-                style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+                style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -417,8 +696,8 @@ class SupportIntakeSummaryChip extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final parts = <String>[
       _categoryLabel(context, answers.category),
-      if (answers.subcategoryValue != null) _prettify(answers.subcategoryValue!),
-      if (answers.symptom != null) _prettify(answers.symptom!),
+      if (answers.subcategoryValue case final value?) _subcategoryLabel(context, answers.category, value),
+      if (answers.symptom case final symptom?) symptomLabel(context.i18n, answers.category, symptom),
     ];
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
@@ -435,7 +714,7 @@ class SupportIntakeSummaryChip extends StatelessWidget {
           Expanded(
             child: Text(
               parts.join('  ·  '),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
           if (onEdit != null)
@@ -460,9 +739,11 @@ class SupportIntakeSummaryChip extends StatelessWidget {
     };
   }
 
-  static String _prettify(String id) {
-    final pretty = id.replaceAll('_', ' ');
-    if (pretty.isEmpty) return id;
-    return pretty[0].toUpperCase() + pretty.substring(1);
-  }
+  /// The controller branch stores a controller id, the trainer-app branch
+  /// the app's name, and the other branches a symptom id.
+  static String _subcategoryLabel(BuildContext context, IntakeCategory category, String value) => switch (category) {
+    IntakeCategory.controller => controllerOptionLabel(context.i18n, value),
+    IntakeCategory.trainerApp => value,
+    _ => symptomLabel(context.i18n, category, value),
+  };
 }

@@ -89,6 +89,29 @@ Future<void> main() async {
     expect(find.textContaining('latencyMs'), findsOneWidget);
   });
 
+  testWidgets('the expandable row is a button that reports its expanded state', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pump(
+      tester,
+      const NetworkCheckRow(
+        check: NetworkCheck(
+          id: NetworkCheckId.tcpSelfConnect,
+          verdict: NetworkVerdict.warn,
+          detail: {'latencyMs': '42'},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final title = networkCheckTitle(tester.element(find.byType(NetworkCheckRow)), NetworkCheckId.tcpSelfConnect);
+    final row = find.semantics.byPredicate((n) => n.label.contains(title) && n.getSemanticsData().flagsCollection.isButton);
+
+    expect(row, isSemantics(isButton: true, hasExpandedState: true, isExpanded: false, hasTapAction: true, isFocusable: true));
+    tester.semantics.tap(row);
+    await tester.pumpAndSettle();
+    expect(row, isSemantics(hasExpandedState: true, isExpanded: true));
+    handle.dispose();
+  });
+
   testWidgets('running shows the small progress indicator', (tester) async {
     await _pump(
       tester,

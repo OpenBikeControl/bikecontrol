@@ -9,8 +9,8 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_climb.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/inactivity_disconnector.dart';
 import 'package:bike_control/bluetooth/incline/incline_controller.dart';
 import 'package:bike_control/bluetooth/incline/incline_sink.dart';
@@ -268,6 +268,21 @@ class Connection {
   final _connectedThisSession = <String>{};
 
   bool wasConnectedThisSession(String uniqueId) => _connectedThisSession.contains(uniqueId);
+
+  /// Test seam for the set above. The production path runs through a live BLE
+  /// connection-state stream, which no widget test can drive — and the whole
+  /// "lost" vs "connecting" distinction hangs off this one bit, so it has to
+  /// be settable on its own. Clearing matters as much as setting: `core`
+  /// outlives every test, and a session flag one test left behind would make
+  /// the next one's fresh device read as broken.
+  @visibleForTesting
+  void debugSetConnectedThisSession(String uniqueId, bool value) {
+    if (value) {
+      _connectedThisSession.add(uniqueId);
+    } else {
+      _connectedThisSession.remove(uniqueId);
+    }
+  }
 
   /// Remembered controllers that no live device has taken over yet. Once the
   /// real device is discovered and enters [devices], its offline stand-in drops
@@ -755,7 +770,6 @@ class Connection {
       core.rouvyMdnsEmulator,
       core.obpMdnsEmulator,
       core.obpBluetoothEmulator,
-      core.di2Emulator,
       core.whooshLink,
       core.remotePairing,
       core.remoteKeyboardPairing,
@@ -928,8 +942,8 @@ class Connection {
       for (final pd in proxyDevices) {
         unawaited(pd.onTrainerAppChanged());
       }
-      for (final click in bluetoothDevices.whereType<ZwiftClickV2>()) {
-        click.onTrainerAppChanged();
+      for (final unlockable in bluetoothDevices.whereType<ZwiftUnlock>()) {
+        unlockable.onTrainerAppChanged();
       }
       unawaited(ftmsEmulator.restart());
     });

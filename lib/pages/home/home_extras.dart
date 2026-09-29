@@ -1,14 +1,14 @@
-import 'dart:io';
-
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/trainer_features.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -35,9 +35,9 @@ class _HomeExtrasState extends State<HomeExtras> {
   // screen the rider is already scrolling only hides it.
   bool _expanded = true;
 
-  bool get _showsMediaKeys => !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS);
+  bool get _showsMediaKeys => HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isIOS;
 
-  bool get _showsPhoneSteering => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  bool get _showsPhoneSteering => HostPlatform.isAndroid || HostPlatform.isIOS;
 
   /// Phone-side shift feedback. Sound has a backend on every desktop/mobile
   /// OS we ship; vibration needs a haptics engine, so phones/tablets only.
@@ -50,7 +50,7 @@ class _HomeExtrasState extends State<HomeExtras> {
 
   /// Quitting from a menu row is a mobile idiom; desktop windows close
   /// themselves, and SystemNavigator.pop() does nothing useful there anyway.
-  bool get _showsQuit => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  bool get _showsQuit => HostPlatform.isAndroid || HostPlatform.isIOS;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +81,7 @@ class _HomeExtrasState extends State<HomeExtras> {
                   Expanded(
                     child: Text(
                       context.i18n.chainMoreOptions,
-                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                   // A recording in progress has to stay visible even while this
@@ -95,7 +95,7 @@ class _HomeExtrasState extends State<HomeExtras> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.fiber_manual_record, color: Colors.red, size: 12),
+                            const Icon(LucideIcons.circle, color: Colors.red, size: 12),
                             const Gap(4),
                             Text(context.i18n.screenRecordingStarted).xSmall.muted,
                           ],
@@ -200,8 +200,7 @@ class _HomeExtrasState extends State<HomeExtras> {
                         padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
                         child: Text(
                           context.i18n.healthRideDuplicateHint(core.healthRide.trainerApp()?.name ?? ''),
-                          style: TextStyle(
-                            fontSize: 11.5,
+                          style: context.typography.caption.copyWith(
                             height: 1.4,
                             color: Theme.of(context).colorScheme.mutedForeground,
                           ),

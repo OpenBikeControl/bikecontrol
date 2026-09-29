@@ -8,6 +8,9 @@ import '../keymap.dart';
 
 class Rouvy extends SupportedApp {
   @override
+  bool get showsOwnGear => true;
+
+  @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.rouvyMdns, ConnectionSupport.supported),
     (AppConnectionMethod.zwiftBle, ConnectionSupport.supported),

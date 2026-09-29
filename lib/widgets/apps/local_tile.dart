@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -6,8 +7,8 @@ import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
-import 'package:dartx/dartx.dart';
 import 'package:device_auto_rotate_checker/device_auto_rotate_checker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -110,13 +111,14 @@ class _LocalTileState extends State<LocalTile> {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber),
+                Icon(LucideIcons.triangleAlert),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(context.i18n.miuiDeviceDetected).bold,
                 ),
-                IconButton.destructive(
-                  icon: Icon(Icons.close),
+                BkIconButton.destructive(
+                  icon: Icon(LucideIcons.x),
+                  label: context.i18n.a11yDismiss,
                   onPressed: () async {
                     await core.settings.setMiuiWarningDismissed(true);
                     setState(() {
@@ -129,24 +131,24 @@ class _LocalTileState extends State<LocalTile> {
             SizedBox(height: 8),
             Text(
               context.i18n.miuiWarningDescription,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             SizedBox(height: 8),
             Text(
               context.i18n.miuiEnsureProperWorking,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
             ),
             Text(
               context.i18n.miuiDisableBatteryOptimization,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             Text(
               context.i18n.miuiEnableAutostart,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             Text(
               context.i18n.miuiLockInRecentApps,
-              style: TextStyle(fontSize: 14),
+              style: context.typography.small,
             ),
             SizedBox(height: 12),
             OutlineButton(
@@ -156,7 +158,7 @@ class _LocalTileState extends State<LocalTile> {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 }
               },
-              leading: Icon(Icons.open_in_new),
+              leading: Icon(LucideIcons.externalLink),
               child: Text(context.i18n.viewDetailedInstructions),
             ),
           ],
@@ -177,7 +179,8 @@ class _LocalTileState extends State<LocalTile> {
                     },
                   ),
                 ),
-                IconButton.secondary(
+                BkIconButton.secondary(
+                  label: context.i18n.a11yRefresh,
                   onPressed: () {
                     core.logic.isAndroidServiceRunning().then((isRunning) {
                       core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
@@ -186,7 +189,7 @@ class _LocalTileState extends State<LocalTile> {
                       });
                     });
                   },
-                  icon: Icon(Icons.refresh),
+                  icon: Icon(LucideIcons.refreshCw),
                 ),
               ],
             ),
@@ -202,7 +205,6 @@ class _LocalTileState extends State<LocalTile> {
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
       title: context.i18n.controlAppUsingModes(
         core.settings.getTrainerApp()?.name ?? '',
-        core.actionHandler.supportedModes.joinToString(transform: (e) => e.name.capitalize()),
       ),
       description: context.i18n.enableKeyboardMouseControl(core.settings.getTrainerApp()?.name ?? ''),
       requirements: core.permissions.getLocalControlRequirements(),

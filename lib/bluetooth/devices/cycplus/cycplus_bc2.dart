@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
@@ -91,14 +92,14 @@ class CycplusBc2Buttons {
     'shiftUp',
     action: InGameAction.shiftUp,
     color: Colors.black,
-    icon: Icons.add,
+    icon: LucideIcons.plus,
   );
 
   static const ControllerButton shiftDown = ControllerButton(
     'shiftDown',
     action: InGameAction.shiftDown,
     color: Colors.black,
-    icon: Icons.remove,
+    icon: LucideIcons.minus,
   );
 
   static const List<ControllerButton> values = [

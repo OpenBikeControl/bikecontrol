@@ -45,17 +45,17 @@ class TrainerOverlayState {
   });
 
   Map<String, dynamic> toJson() => {
-        'gear': gear,
-        'maxGear': maxGear,
-        'gearRatio': gearRatio,
-        'mode': mode.name,
-        'powerW': powerW,
-        'cadenceRpm': cadenceRpm,
-        'ergTargetW': ergTargetW,
-        'fields': fields.map((f) => f.name).toList(),
-        'frontShiftEnabled': frontShiftEnabled,
-        'frontRingLarge': frontRingLarge,
-      };
+    'gear': gear,
+    'maxGear': maxGear,
+    'gearRatio': gearRatio,
+    'mode': mode.name,
+    'powerW': powerW,
+    'cadenceRpm': cadenceRpm,
+    'ergTargetW': ergTargetW,
+    'fields': fields.map((f) => f.name).toList(),
+    'frontShiftEnabled': frontShiftEnabled,
+    'frontRingLarge': frontRingLarge,
+  };
 
   /// Permissive parse — silently fills missing/wrong-typed fields with sane
   /// defaults so a malformed cross-isolate message can never crash the
@@ -68,11 +68,7 @@ class TrainerOverlayState {
     );
     final rawFields = json['fields'];
     final fields = rawFields is List
-        ? rawFields
-            .whereType<String>()
-            .map(OverlayField.fromName)
-            .whereType<OverlayField>()
-            .toSet()
+        ? rawFields.whereType<String>().map(OverlayField.fromName).whereType<OverlayField>().toSet()
         : <OverlayField>{};
     return TrainerOverlayState(
       gear: (json['gear'] as num?)?.toInt() ?? 0,
@@ -106,9 +102,17 @@ class TrainerOverlayState {
 
   @override
   int get hashCode => Object.hash(
-        gear, maxGear, gearRatio, mode, powerW, cadenceRpm, ergTargetW,
-        Object.hashAllUnordered(fields), frontShiftEnabled, frontRingLarge,
-      );
+    gear,
+    maxGear,
+    gearRatio,
+    mode,
+    powerW,
+    cadenceRpm,
+    ergTargetW,
+    Object.hashAllUnordered(fields),
+    frontShiftEnabled,
+    frontRingLarge,
+  );
 
   static bool _setEquals(Set<OverlayField> a, Set<OverlayField> b) {
     if (a.length != b.length) return false;

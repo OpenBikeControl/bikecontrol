@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/testbed.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -337,13 +339,13 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
                     children: [
                       IconButton.outline(
                         onPressed: _saveAndClose,
-                        icon: const Icon(Icons.save),
+                        icon: const Icon(LucideIcons.save),
                         trailing: Text(context.i18n.save),
                       ),
                       Builder(
                         builder: (context) {
                           return OutlineButton(
-                            child: Text('Menu'),
+                            child: Text(AppLocalizations.of(context).actionMenu),
                             onPressed: () {
                               showDropdown(
                                 context: context,
@@ -425,9 +427,8 @@ class KeyWidget extends StatelessWidget {
         child: Center(
           child: Text(
             label.splitByUpperCase(),
-            style: TextStyle(
+            style: context.typography.xSmall.copyWith(
               fontFamily: screenshotMode ? null : 'monospace',
-              fontSize: 12,
               color: invert ? Colors.black : Colors.white,
             ),
           ),

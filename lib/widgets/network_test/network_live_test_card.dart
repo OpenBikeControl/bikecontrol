@@ -1,6 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
 import 'package:bike_control/widgets/network_test/network_tokens.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The live test: the one check that asks the rider to do something, and the
@@ -97,10 +98,10 @@ class NetworkLiveTestCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.networkWatchTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                Text(l10n.networkWatchTitle, style: context.typography.small.copyWith(fontWeight: FontWeight.w700)),
                 Text(
                   l10n.networkWatchPrompt(app),
-                  style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -109,7 +110,7 @@ class NetworkLiveTestCard extends StatelessWidget {
           Text(
             _clock(watch.remaining),
             style: Theme.of(context).typography.mono.copyWith(
-              fontSize: 12,
+              fontSize: context.typography.xSmall.fontSize,
               fontWeight: FontWeight.w600,
               color: cs.primary,
             ),
@@ -146,7 +147,7 @@ class NetworkLiveTestCard extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.networkWatchEndsItself,
-              style: TextStyle(fontSize: 12, color: cs.mutedForeground),
+              style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
             ),
           ),
           const Gap(12),
@@ -225,8 +226,7 @@ class _Step extends StatelessWidget {
               padding: const EdgeInsets.only(top: 7, bottom: 7),
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 13,
+                style: context.typography.small.copyWith(
                   fontWeight: current ? FontWeight.w600 : FontWeight.w500,
                   color: done || current ? cs.foreground : cs.mutedForeground,
                 ),

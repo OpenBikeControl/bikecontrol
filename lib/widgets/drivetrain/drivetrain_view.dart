@@ -172,7 +172,7 @@ class _DrivetrainViewState extends State<DrivetrainView> with SingleTickerProvid
                 font: Theme.of(context).typography.sans,
                 foreground: cs.foreground,
                 muted: cs.mutedForeground,
-                accent: bkAccent(context),
+                accent: Theme.of(context).colorScheme.primary,
                 hardBorder: bkStrongBorder(context),
                 panel: panel,
               ),

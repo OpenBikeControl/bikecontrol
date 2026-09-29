@@ -1,4 +1,4 @@
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -14,9 +14,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../widgets/ui/small_progress_indicator.dart';
+import '../widgets/zwift_ride_v2_unlock.dart';
 
 class UnlockPage extends StatefulWidget {
-  final ZwiftClickV2 device;
+  final ZwiftUnlock device;
   const UnlockPage({super.key, required this.device});
 
   @override
@@ -26,7 +27,9 @@ class UnlockPage extends StatefulWidget {
 class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateMixin {
   late final bool _wasZwiftMdnsEmulatorActive;
   late final bool _wasObpMdnsEmulatorActive;
-  bool _showManualSteps = false;
+  // A Ride V2 whose Zwift service is hidden cannot be unlocked through the
+  // bridge — nothing here can reach it — so it starts on the manual steps.
+  late bool _showManualSteps = widget.device.unlockServiceHidden;
 
   late final bool _isInTrialPhase;
 
@@ -62,7 +65,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       emulator.waiting.value = true;
 
       Future.delayed(Duration(seconds: 3), () {
-        propPrefs.setZwiftClickV2LastUnlock(widget.device.device.deviceId, DateTime.now());
+        propPrefs.setZwiftClickV2LastUnlock(widget.device.device.deviceId, DateTime.now(), keyPrefix: widget.device.unlockKeyPrefix);
         emulator.isUnlocked.value = true;
       });
     });*/
@@ -143,11 +146,13 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             Warning(
               children: [
                 Text(
-                  'Important Setup Information',
+                  AppLocalizations.of(context).unlock_importantSetupInfo,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ).small,
                 Text(
-                  AppLocalizations.of(context).clickV2Instructions,
+                  widget.device.isRideV2
+                      ? AppLocalizations.of(context).rideV2Instructions
+                      : AppLocalizations.of(context).clickV2Instructions,
                 ).xSmall,
                 if (kDebugMode)
                   GhostButton(
@@ -159,9 +164,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
                 Button.secondary(
                   onPressed: () {
-                    launchUrlString('https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps');
+                    launchUrlString(widget.device.unlockHelpUrl);
                   },
-                  leading: const Icon(Icons.help_outline_outlined),
+                  leading: const Icon(LucideIcons.circleHelp),
                   child: Text(context.i18n.instructions),
                 ),
               ],
@@ -170,8 +175,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             Button.primary(
               child: Text(AppLocalizations.of(context).unlock_markAsUnlocked),
               onPressed: () {
-                propPrefs.setZwiftClickV2LastUnlock(widget.device.scanResult.deviceId, DateTime.now());
-                propPrefs.setNotSureIfUnlocked(widget.device.scanResult.deviceId, true);
+                widget.device.markUnlockedManually();
                 widget.device.setupHandshake();
                 closeDrawer(context);
               },
@@ -179,8 +183,9 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
           ] else if (!ftmsEmulator.isConnected.value) ...[
             Text(AppLocalizations.of(context).unlock_openZwift).li,
             Text(AppLocalizations.of(context).unlock_connectToBikecontrol).li,
-            GhostButton(
-              leading: Icon(Icons.play_circle_outline),
+            // The video walks through a Click V2.
+            if (!widget.device.isRideV2) GhostButton(
+              leading: Icon(LucideIcons.circlePlay),
               onPressed: () {
                 launchUrlString(
                   'https://www.reddit.com/r/BikeControl/comments/1qt9cg5/great_news_for_zwift_click_v2_owners_introducing/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button',
@@ -191,19 +196,27 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             SizedBox(height: 32),
             Text(AppLocalizations.of(context).unlock_bikecontrolAndZwiftNetwork).small,
           ] else if (widget.device.alreadyUnlocked.value) ...[
-            Text(AppLocalizations.of(context).unlock_yourZwiftClickMightBeUnlockedAlready),
+            Text(
+              widget.device.isRideV2
+                  ? AppLocalizations.of(context).unlock_rideV2MightBeUnlockedAlready
+                  : AppLocalizations.of(context).unlock_yourZwiftClickMightBeUnlockedAlready,
+            ),
             SizedBox(height: 8),
             Text(AppLocalizations.of(context).unlock_confirmByPressingAButtonOnYourDevice).small,
           ] else if (!widget.device.isUnlocked.value)
             Text(AppLocalizations.of(context).unlock_waitingForZwift)
           else
-            Text('Zwift Click is unlocked! You can now close this page.'),
+            Text(
+              widget.device.isRideV2
+                  ? AppLocalizations.of(context).unlock_rideV2Unlocked
+                  : AppLocalizations.of(context).unlock_clickUnlocked,
+            ),
           SizedBox(height: 32),
           if (!_showManualSteps && !_isInTrialPhase) ...[
             if (widget.device.waiting.value && _secondsRemaining >= 0)
               Center(child: CircularProgressIndicator(value: 1 - (_secondsRemaining / 60), size: 20))
             else if (widget.device.alreadyUnlocked.value)
-              Center(child: Icon(Icons.lock_clock))
+              Center(child: Icon(LucideIcons.lockKeyhole))
             else
               SmallProgressIndicator(),
             SizedBox(height: 20),
@@ -224,6 +237,11 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
                 child: Text(AppLocalizations.of(context).unlock_unlockManually),
               ),
             ),
+          ],
+          // Ride V2 only — the Click V2 has its own ways around the lock.
+          if (widget.device.isRideV2) ...[
+            Center(child: ZwiftRideV2SupportLine(device: widget.device, onBeforeOpen: () => closeDrawer(context))),
+            SizedBox(height: 12),
           ],
           SizedBox(height: 20),
         ],

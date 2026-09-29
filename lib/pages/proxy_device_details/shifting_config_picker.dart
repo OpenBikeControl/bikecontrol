@@ -1,7 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:flutter/material.dart' as material;
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ShiftingConfigPicker extends StatefulWidget {
@@ -37,30 +37,33 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
     if (mounted) setState(() {});
   }
 
-  Future<String?> _promptName({required String title, String initial = ''}) {
+  Future<String?> _promptName({required String title, String initial = ''}) async {
     final l10n = AppLocalizations.of(context);
-    final controller = material.TextEditingController(text: initial);
-    return material.showDialog<String>(
+    final controller = TextEditingController(text: initial);
+    final name = await showDialog<String>(
       context: context,
-      builder: (c) => material.AlertDialog(
-        title: material.Text(title),
-        content: material.TextField(
+      builder: (c) => AlertDialog(
+        title: Text(title),
+        content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: material.InputDecoration(hintText: l10n.nameHint),
+          placeholder: Text(l10n.nameHint),
+          onSubmitted: (value) => Navigator.of(c).pop(value.trim()),
         ),
         actions: [
-          material.TextButton(
-            onPressed: () => material.Navigator.of(c).pop(null),
-            child: material.Text(l10n.cancel),
+          Button.outline(
+            onPressed: () => Navigator.of(c).pop(null),
+            child: Text(l10n.cancel),
           ),
-          material.TextButton(
-            onPressed: () => material.Navigator.of(c).pop(controller.text.trim()),
-            child: material.Text(l10n.ok),
+          Button.primary(
+            onPressed: () => Navigator.of(c).pop(controller.text.trim()),
+            child: Text(l10n.ok),
           ),
         ],
       ),
     );
+    controller.dispose();
+    return name;
   }
 
   Future<void> _createNew() async {
@@ -80,88 +83,90 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
 
   Future<void> _manage() async {
     final l10n = AppLocalizations.of(context);
-    await material.showDialog<void>(
+    await showDialog<void>(
       context: context,
       builder: (c) {
-        return material.StatefulBuilder(
+        return StatefulBuilder(
           builder: (c, setLocal) {
             final configs = core.shiftingConfigs.configsFor(widget.trainerKey);
-            return material.AlertDialog(
-              title: material.Text(l10n.manageShiftingConfigs),
-              content: material.SizedBox(
+            return AlertDialog(
+              title: Text(l10n.manageShiftingConfigs),
+              content: SizedBox(
                 width: 360,
-                child: material.Column(
-                  mainAxisSize: material.MainAxisSize.min,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 4,
                   children: [
                     for (final cfg in configs)
-                      material.ListTile(
-                        title: material.Text(cfg.name),
-                        subtitle: cfg.isActive ? material.Text(l10n.active) : null,
-                        trailing: material.Row(
-                          mainAxisSize: material.MainAxisSize.min,
-                          children: [
-                            material.IconButton(
-                              tooltip: l10n.duplicate,
-                              icon: const material.Icon(material.Icons.copy, size: 18),
-                              onPressed: () async {
-                                final name = await _promptName(
-                                  title: l10n.duplicate,
-                                  initial: l10n.configCopySuffix(cfg.name),
-                                );
-                                if (name == null || name.isEmpty) return;
-                                await core.shiftingConfigs.duplicate(
-                                  trainerKey: widget.trainerKey,
-                                  sourceName: cfg.name,
-                                  newName: name,
-                                );
-                                setLocal(() {});
-                              },
-                            ),
-                            material.IconButton(
-                              tooltip: l10n.rename,
-                              icon: const material.Icon(material.Icons.edit_outlined, size: 18),
-                              onPressed: () async {
-                                final name = await _promptName(
-                                  title: l10n.rename,
-                                  initial: cfg.name,
-                                );
-                                if (name == null || name.isEmpty || name == cfg.name) return;
-                                await core.shiftingConfigs.rename(
-                                  trainerKey: widget.trainerKey,
-                                  from: cfg.name,
-                                  to: name,
-                                );
-                                setLocal(() {});
-                              },
-                            ),
-                            if (configs.length > 1)
-                              material.IconButton(
-                                tooltip: l10n.delete,
-                                icon: const material.Icon(material.Icons.delete_outline, size: 18),
-                                onPressed: () async {
-                                  await core.shiftingConfigs.remove(
-                                    trainerKey: widget.trainerKey,
-                                    name: cfg.name,
-                                  );
-                                  setLocal(() {});
-                                },
-                              ),
-                          ],
-                        ),
+                      _manageRow(
+                        cfg,
+                        canDelete: configs.length > 1,
+                        onChanged: () => setLocal(() {}),
                       ),
                   ],
                 ),
               ),
               actions: [
-                material.TextButton(
-                  onPressed: () => material.Navigator.of(c).pop(),
-                  child: material.Text(l10n.close),
+                Button.outline(
+                  onPressed: () => Navigator.of(c).pop(),
+                  child: Text(l10n.close),
                 ),
               ],
             );
           },
         );
       },
+    );
+  }
+
+  /// One profile in the Manage dialog: its name (and whether it is the
+  /// active one), then duplicate / rename / delete.
+  Widget _manageRow(ShiftingConfig cfg, {required bool canDelete, required VoidCallback onChanged}) {
+    final l10n = AppLocalizations.of(context);
+    return Row(
+      key: ValueKey('shifting-config-${cfg.name}'),
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(cfg.name).semiBold,
+              if (cfg.isActive) Text(l10n.active).xSmall.muted,
+            ],
+          ),
+        ),
+        BkIconButton.ghost(
+          icon: const Icon(LucideIcons.copy, size: 18),
+          label: l10n.duplicate,
+          onPressed: () async {
+            final name = await _promptName(title: l10n.duplicate, initial: l10n.configCopySuffix(cfg.name));
+            if (name == null || name.isEmpty) return;
+            await core.shiftingConfigs.duplicate(trainerKey: widget.trainerKey, sourceName: cfg.name, newName: name);
+            onChanged();
+          },
+        ),
+        BkIconButton.ghost(
+          icon: const Icon(LucideIcons.pencil, size: 18),
+          label: l10n.rename,
+          onPressed: () async {
+            final name = await _promptName(title: l10n.rename, initial: cfg.name);
+            if (name == null || name.isEmpty || name == cfg.name) return;
+            await core.shiftingConfigs.rename(trainerKey: widget.trainerKey, from: cfg.name, to: name);
+            onChanged();
+          },
+        ),
+        if (canDelete)
+          BkIconButton.ghost(
+            icon: const Icon(LucideIcons.trash2, size: 18),
+            label: l10n.delete,
+            onPressed: () async {
+              await core.shiftingConfigs.remove(trainerKey: widget.trainerKey, name: cfg.name);
+              onChanged();
+            },
+          ),
+      ],
     );
   }
 

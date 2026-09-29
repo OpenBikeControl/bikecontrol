@@ -36,7 +36,7 @@ Widget _whereTile(
             borderRadius: BorderRadius.circular(12),
             color: selected ? onboardingAccent(context) : scheme.muted,
           ),
-          child: Icon(icon, size: 22, color: selected ? onboardingOnAccent : null),
+          child: Icon(icon, size: 22, color: selected ? onboardingOnAccent(context) : null),
         ),
         Gap(13),
         Expanded(
@@ -52,7 +52,7 @@ Widget _whereTile(
                   color: selected ? onboardingAccent(context) : null,
                   border: selected ? null : Border.all(color: scheme.border, width: 2),
                 ),
-                child: selected ? Icon(LucideIcons.check, size: 12, color: onboardingOnAccent) : null,
+                child: selected ? Icon(LucideIcons.check, size: 12, color: onboardingOnAccent(context)) : null,
               ),
             ]),
             Gap(5),

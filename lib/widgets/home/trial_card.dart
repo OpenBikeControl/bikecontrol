@@ -1,6 +1,8 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// What the licence card has to say, as plain data — so the numbers can be
@@ -29,8 +31,7 @@ class TrialCardState {
 
   bool get showsBridgeMeter => bridgeMinutesRemaining != null && (bridgeMinutesTotal ?? 0) > 0;
 
-  bool get _bridgeLow =>
-      showsBridgeMeter && bridgeMinutesRemaining! / bridgeMinutesTotal! <= 0.25;
+  bool get _bridgeLow => showsBridgeMeter && bridgeMinutesRemaining! / bridgeMinutesTotal! <= 0.25;
 
   /// Urgency is earned, not constant: the card only turns amber when one of
   /// the budgets is genuinely close to running out.
@@ -76,7 +77,7 @@ class TrialCard extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(color: warning.wash, borderRadius: BorderRadius.circular(11)),
-                  child: Icon(LucideIcons.award, size: 19, color: warning.color),
+                  child: Icon(LucideIcons.award, size: 19, color: warning.text),
                 ),
                 const Gap(12),
                 Expanded(
@@ -86,27 +87,29 @@ class TrialCard extends StatelessWidget {
                     children: [
                       Text(
                         state.expired ? l.chainTrialExpiredTitle : l.chainTrialTitle,
-                        style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                        style: context.typography.base.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const Gap(2),
                       Text(
                         state.expired
                             ? l.chainTrialCommandsLimited(state.commandsTotal)
                             : l.chainTrialDaysLeft(state.daysRemaining),
-                        style: TextStyle(
-                          fontSize: 12.5,
+                        style: context.typography.xSmall.copyWith(
                           fontWeight: state.urgent ? FontWeight.w700 : FontWeight.w500,
-                          color: state.urgent ? warning.color : theme.colorScheme.mutedForeground,
+                          color: state.urgent ? warning.text : theme.colorScheme.mutedForeground,
                         ),
                       ),
                     ],
                   ),
                 ),
                 const Gap(8),
-                PrimaryButton(
-                  size: ButtonSize.small,
-                  onPressed: onUpgrade,
-                  child: Text(l.chainUpgrade),
+                BkTouchTarget(
+                  child: PrimaryButton(
+                    alignment: Alignment.center,
+                    size: ButtonSize.small,
+                    onPressed: onUpgrade,
+                    child: Text(l.chainUpgrade),
+                  ),
                 ),
               ],
             ),
@@ -142,32 +145,113 @@ class TrialCard extends StatelessWidget {
             ),
           ),
           if (onRestore != null)
-            Button.ghost(
-              onPressed: onRestore,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: theme.colorScheme.border, width: 0.5)),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.rotateCcw, size: 14, color: theme.colorScheme.mutedForeground),
-                    const Gap(7),
-                    Expanded(
-                      child: Text(
-                        l.chainTrialRestoreRow,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.mutedForeground,
+            BkTouchTarget(
+              child: Button.ghost(
+                alignment: Alignment.center,
+                onPressed: onRestore,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: theme.colorScheme.border, width: 0.5)),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.rotateCcw, size: 14, color: theme.colorScheme.mutedForeground),
+                      const Gap(7),
+                      Expanded(
+                        child: Text(
+                          l.chainTrialRestoreRow,
+                          style: context.typography.xSmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
                         ),
                       ),
-                    ),
-                    Icon(LucideIcons.chevronRight, size: 14, color: theme.colorScheme.mutedForeground),
-                  ],
+                      Icon(LucideIcons.chevronRight, size: 14, color: theme.colorScheme.mutedForeground),
+                    ],
+                  ),
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Today's virtual-shifting budget for a Base owner.
+class VsBudgetCardState {
+  const VsBudgetCardState({required this.minutesRemaining, required this.minutesTotal});
+
+  final int minutesRemaining;
+  final int minutesTotal;
+}
+
+/// Base doesn't include BikeControl's virtual shifting — without Pro its daily
+/// budget applies after buying Base too (see ProxyDevice._syncBridgeTracking).
+/// The trial card is gone once Base is bought, so this is the only place a
+/// Base owner can see the budget before hitting it. Null when it doesn't
+/// apply: no bridged trainer, Pro on this device, or not bought yet (the trial
+/// card shows the meter then).
+VsBudgetCardState? vsBudgetCardState({
+  required bool isPurchased,
+  required bool isProForDevice,
+  required bool trainerBridged,
+  required Duration remainingToday,
+  required Duration dailyLimit,
+}) {
+  if (!isPurchased || isProForDevice || !trainerBridged || dailyLimit <= Duration.zero) return null;
+  final remaining = remainingToday.isNegative ? Duration.zero : remainingToday;
+  return VsBudgetCardState(minutesRemaining: remaining.inMinutes, minutesTotal: dailyLimit.inMinutes);
+}
+
+/// The Base owner's virtual-shifting meter: one line, same surface as the
+/// chain cards, and the way to Pro.
+class VsBudgetCard extends StatelessWidget {
+  const VsBudgetCard({super.key, required this.state, this.onUpgrade});
+
+  final VsBudgetCardState state;
+  final VoidCallback? onUpgrade;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l = context.i18n;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 8),
+      decoration: ShapeDecoration(
+        color: theme.colorScheme.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.colorScheme.border, width: 1.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _Meter(
+              label: l.chainTrialBridgeMeter,
+              value: state.minutesRemaining,
+              total: state.minutesTotal,
+              suffix: l.chainTrialBridgeMeterSuffix,
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Button.ghost(
+              onPressed: onUpgrade,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l.vsBudgetProRemovesLimit).xSmall.semiBold,
+                  const Gap(4),
+                  const Icon(LucideIcons.chevronRight, size: 14),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -189,7 +273,8 @@ class _Meter extends StatelessWidget {
     final theme = Theme.of(context);
     final fraction = total > 0 ? (value / total).clamp(0.0, 1.0) : 0.0;
     final low = fraction <= 0.25;
-    final warning = AmpelStyle.of(context, LinkStatus.attention).color;
+    final warningStyle = AmpelStyle.of(context, LinkStatus.attention);
+    final warning = warningStyle.color;
     final muted = theme.colorScheme.mutedForeground;
 
     return Column(
@@ -199,21 +284,23 @@ class _Meter extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
-              child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: muted)),
+              child: Text(
+                label,
+                style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w500, color: muted),
+              ),
             ),
             const Gap(6),
             Text(
               '$value',
-              style: TextStyle(
-                fontSize: 12.5,
+              style: context.typography.xSmall.copyWith(
                 fontWeight: FontWeight.w700,
-                color: low ? warning : theme.colorScheme.foreground,
+                color: low ? warningStyle.text : theme.colorScheme.foreground,
               ),
             ),
             const Gap(4),
             Text(
               suffix == null ? '/ $total' : '/ $total $suffix',
-              style: TextStyle(fontSize: 11.5, color: muted),
+              style: context.typography.caption.copyWith(color: muted),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/widgets/overlay/overlay_app.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:multi_window_native/multi_window_native.dart';
@@ -51,8 +52,17 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   // one at a time post-engine-boot, matching the package example's pattern.
   try {
     await wm.windowManager.setAlwaysOnTop(true);
-    await wm.windowManager.setMinimumSize(const Size(180, 100));
-    await wm.windowManager.setSize(const Size(220, 140));
+    // Sized around the gear numeral at the rider's text size, never the
+    // other way round: the numeral is not shrunk to fit a window.
+    final textScaler = TextScaler.linear(WidgetsBinding.instance.platformDispatcher.textScaleFactor);
+    final needed = TrainerOverlayView.windowSize(textScaler);
+    await wm.windowManager.setMinimumSize(needed);
+    await wm.windowManager.setSize(
+      Size(
+        needed.width > TrainerOverlayView.defaultWindowWidth ? needed.width : TrainerOverlayView.defaultWindowWidth,
+        needed.height,
+      ),
+    );
     await wm.windowManager.setHasShadow(false);
     if (Platform.isMacOS) {
       await wm.windowManager.setVisibleOnAllWorkspaces(
@@ -121,8 +131,7 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   // user dragging the slider afterwards. Applies the native window alpha only —
   // no Flutter repaint needed, so unlike the state listener it skips
   // scheduleForcedFrame.
-  final opacityListenerId =
-      MultiWindowNative.registerListener(kOverlayOpacityMethod, (call) async {
+  final opacityListenerId = MultiWindowNative.registerListener(kOverlayOpacityMethod, (call) async {
     try {
       final raw = call.arguments;
       final Map<String, dynamic> m = raw is String
@@ -137,8 +146,7 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
     }
   });
 
-  final overlayListener =
-      _OverlayWindowListener(windowId, stateListenerId, opacityListenerId);
+  final overlayListener = _OverlayWindowListener(windowId, stateListenerId, opacityListenerId);
   wm.windowManager.addListener(overlayListener);
 
   runApp(
@@ -293,14 +301,12 @@ class _OverlayApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // macOS supports real window transparency via NSWindow alpha (window_manager
-    // sets it in `setVisibleOnAllWorkspaces` flow). Windows can't do real
-    // transparency without WS_EX_LAYERED, so keep a dark fill there.
-    final backgroundColor = const Color(0xFFFFFFFF);
-    return ShadcnApp(
-      debugShowCheckedModeBanner: false,
+    // An opaque fill in the theme's own background colour: Windows can't do
+    // real window transparency without WS_EX_LAYERED, and the overlay's
+    // opacity setting is applied to the whole window instead. It used to be
+    // hard-coded white, which glared in dark mode.
+    return OverlayShadcnApp(
       home: Scaffold(
-        backgroundColor: backgroundColor,
         child: Center(
           child: TrainerOverlayView(
             state: state,

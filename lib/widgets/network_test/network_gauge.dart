@@ -44,7 +44,8 @@ class NetworkGauge extends StatelessWidget {
               Text(
                 AppLocalizations.of(context).networkChecksPassedOf(total),
                 style: Theme.of(context).typography.mono.copyWith(
-                  fontSize: 10,
+                  // Fixed 64 px ring: geometry, not the type scale; 11 is the floor.
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: cs.mutedForeground,
                 ),
@@ -93,6 +94,5 @@ class _RingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress || old.color != color || old.track != track;
+  bool shouldRepaint(_RingPainter old) => old.progress != progress || old.color != color || old.track != track;
 }

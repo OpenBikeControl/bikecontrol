@@ -1,23 +1,38 @@
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The status vocabulary the whole home screen speaks: one colour, one icon and
 /// one wash per [LinkStatus], used identically by the dot on a card's tile, the
 /// status line under its title, and the banner at the top of the screen.
 ///
+/// [color] is the bright hue for dots, fills, borders and bars; [text] is the
+/// contrast-pinned [BkStatusColors] foreground for words and glyphs, and
+/// [onText] the glyph colour on a [text]-coloured fill.
+///
 /// Green deliberately stays *in the dot*. A healthy screen is calm — ready
 /// status lines are muted grey, not green — so that colour anywhere on this
 /// screen always means "look here".
 class AmpelStyle {
-  const AmpelStyle({required this.color, required this.wash, required this.icon});
+  const AmpelStyle({
+    required this.color,
+    required this.wash,
+    required this.icon,
+    required this.text,
+    required this.onText,
+  });
 
   final Color color;
   final Color wash;
   final IconData icon;
+  final Color text;
+  final Color onText;
 
   static AmpelStyle of(BuildContext context, LinkStatus status) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final bk = BkStatusColors.of(context);
     // In dark mode a pastel wash turns into a glare, so the wash becomes a low
     // alpha of the status colour instead of a fixed tint.
     Color wash(Color base, Color light) => dark ? base.withAlpha(38) : light;
@@ -27,21 +42,29 @@ class AmpelStyle {
         color: const Color(0xFF22C55E),
         wash: wash(const Color(0xFF22C55E), const Color(0xFFF0FDF4)),
         icon: LucideIcons.check,
+        text: bk.success,
+        onText: bk.successForeground,
       ),
       LinkStatus.attention => AmpelStyle(
         color: const Color(0xFFF59E0B),
         wash: wash(const Color(0xFFF59E0B), const Color(0xFFFFFBEB)),
         icon: LucideIcons.circleAlert,
+        text: bk.warning,
+        onText: bk.warningForeground,
       ),
       LinkStatus.problem => AmpelStyle(
         color: const Color(0xFFEF4444),
         wash: wash(const Color(0xFFEF4444), const Color(0xFFFEF2F2)),
         icon: LucideIcons.circleX,
+        text: bk.danger,
+        onText: bk.dangerForeground,
       ),
       LinkStatus.off => AmpelStyle(
         color: dark ? const Color(0xFF64748B) : const Color(0xFFB7C0CB),
         wash: Theme.of(context).colorScheme.muted,
         icon: LucideIcons.minus,
+        text: Theme.of(context).colorScheme.mutedForeground,
+        onText: Theme.of(context).colorScheme.background,
       ),
     };
   }
@@ -221,10 +244,9 @@ class StatusLine extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12.5,
+            style: context.typography.xSmall.copyWith(
               fontWeight: quiet ? FontWeight.w500 : FontWeight.w700,
-              color: quiet ? muted : AmpelStyle.of(context, status).color,
+              color: quiet ? muted : AmpelStyle.of(context, status).text,
             ),
           ),
           if (metaText != null && metaText.isNotEmpty) ...[
@@ -233,7 +255,7 @@ class StatusLine extends StatelessWidget {
               height: 3,
               decoration: BoxDecoration(color: muted.withAlpha(140), shape: BoxShape.circle),
             ),
-            Text(metaText, style: TextStyle(fontSize: 12, color: muted)),
+            Text(metaText, style: context.typography.xSmall.copyWith(color: muted)),
           ],
           ...badges,
         ],

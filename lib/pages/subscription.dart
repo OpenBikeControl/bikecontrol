@@ -9,9 +9,11 @@ import 'package:bike_control/pages/subscriptions/sync_settings_view.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -63,26 +65,27 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   Color _getStatusColor() {
+    final status = BkStatusColors.of(context);
     if (_iapManager.isProEnabledForCurrentDevice) {
-      return Colors.green;
+      return status.success;
     } else if (_iapManager.isProEnabled) {
-      return Colors.orange;
+      return status.warning;
     } else if (_iapManager.isPurchased.value) {
-      return Colors.blue;
+      return status.info;
     } else {
-      return Colors.red;
+      return status.danger;
     }
   }
 
   IconData _getStatusIcon() {
     if (_iapManager.isProEnabledForCurrentDevice) {
-      return Icons.workspace_premium;
+      return LucideIcons.crown;
     } else if (_iapManager.isProEnabled) {
-      return Icons.pending;
+      return LucideIcons.circleEllipsis;
     } else if (_iapManager.isPurchased.value) {
-      return Icons.verified;
+      return LucideIcons.badgeCheck;
     } else {
-      return Icons.hourglass_empty;
+      return LucideIcons.hourglass;
     }
   }
 
@@ -147,14 +150,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.arrow_back, size: 16),
+                        Icon(LucideIcons.arrowLeft, size: 16),
                         const SizedBox(width: 8),
-                        Text('Subscription'),
+                        Text(AppLocalizations.of(context).subscription),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(Icons.chevron_right, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                  Icon(LucideIcons.chevronRight, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                   const SizedBox(width: 8),
                   Text(
                     switch (_currentView) {
@@ -258,7 +261,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                isLoading ? SmallProgressIndicator() : Icon(Icons.workspace_premium, size: 16),
+                                isLoading ? SmallProgressIndicator() : Icon(LucideIcons.crown, size: 16),
                                 const SizedBox(width: 8),
                                 Text(AppLocalizations.of(context).goPro),
                               ],
@@ -280,7 +283,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            isLoading ? SmallProgressIndicator() : Icon(Icons.manage_accounts, size: 16),
+                            isLoading ? SmallProgressIndicator() : Icon(LucideIcons.userCog, size: 16),
                             const SizedBox(width: 8),
                             Text(AppLocalizations.of(context).manageSubscription),
                           ],
@@ -294,7 +297,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
           // Account Section
           _buildProCard(
-            icon: Icons.account_circle,
+            icon: LucideIcons.circleUser,
             title: AppLocalizations.of(context).account,
             subtitle: _getAccountSubtitle(session),
             onTap: () => _navigateTo(SubscriptionPageView.login),
@@ -302,7 +305,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
           // Sync Settings Section
           _buildProCard(
-            icon: Icons.sync,
+            icon: LucideIcons.refreshCw,
             title: AppLocalizations.of(context).syncSettings,
             subtitle: AppLocalizations.of(context).synchronizeAcrossDevices,
             onTap: () {
@@ -318,7 +321,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
 
           // Registered Devices Section
           _buildProCard(
-            icon: Icons.devices,
+            icon: LucideIcons.monitorSmartphone,
             title: AppLocalizations.of(context).registeredDevices,
             subtitle: AppLocalizations.of(context).manageYourDevices,
             onTap: () => _handleLoggedInFeature(() => _navigateTo(SubscriptionPageView.devices)),
@@ -337,7 +340,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return SelectableCard(
       onPressed: onTap,
       isActive: false,
-      isProOnly: icon != Icons.account_circle,
+      isProOnly: icon != LucideIcons.circleUser,
       title: Padding(
         padding: const EdgeInsets.all(8),
         child: Row(
@@ -354,7 +357,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, size: 20, color: Theme.of(context).colorScheme.mutedForeground),
+            Icon(LucideIcons.chevronRight, size: 20, color: Theme.of(context).colorScheme.mutedForeground),
           ],
         ),
       ),
@@ -415,20 +418,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.withAlpha(20),
+        color: BkStatusColors.of(context).warningWash,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withAlpha(100)),
+        border: Border.all(color: BkStatusColors.of(context).warning.withAlpha(100)),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: Colors.orange, size: 20),
+          Icon(LucideIcons.info, color: BkStatusColors.of(context).warning, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               AppLocalizations.of(context).windowsSubscriptionsRequireYouToBeLoggedIn,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.orange.shade700,
+              style: context.typography.xSmall.copyWith(
+                color: BkStatusColors.of(context).warning,
               ),
             ),
           ),

@@ -36,9 +36,53 @@ import 'package:url_launcher/url_launcher.dart';
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
 import 'utils/core.dart';
+import 'utils/host_platform.dart';
+import 'utils/window_size.dart';
+import 'widgets/ui/app_theme.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 var screenshotMode = false;
+
+/// Lets motion that [screenshotMode] normally holds still run anyway — the
+/// onboarding reveal, the Virtual Shifting stage, the trainer radar and a
+/// pedalling chain. For the video capture, which keeps screenshotMode for the
+/// machine state it pins but films the motion on a fake clock, so the frames
+/// stay deterministic. Off everywhere else.
+@visibleForTesting
+bool debugAnimatesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is holding motion still.
+bool get screenshotMotionPinned => screenshotMode && !debugAnimatesInScreenshotMode;
+
+/// Lets the one-time Zwift Click V2 unlock-mode explainer run under
+/// [screenshotMode], which otherwise suppresses it (store screenshots stage
+/// connected controllers and must never be interrupted by it). For the
+/// onboarding video capture, which films that explainer. Off everywhere else.
+@visibleForTesting
+bool debugClickV2OnboardingInScreenshotMode = false;
+
+/// Whether [screenshotMode] is holding the Click V2 explainer back.
+bool get screenshotSuppressesClickV2Onboarding => screenshotMode && !debugClickV2OnboardingInScreenshotMode;
+
+/// Keeps controller names that [screenshotMode] anonymises for the store
+/// boards ("Controller" for a Zwift Click V2) — the onboarding video shows the
+/// rider's real controller. Off everywhere else.
+@visibleForTesting
+bool debugKeepsControllerNamesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is replacing controller names with a generic one.
+bool get screenshotControllerNamesAnonymised => screenshotMode && !debugKeepsControllerNamesInScreenshotMode;
+
+/// Shows the rider's keymaps as they are under [screenshotMode], which dresses
+/// them up for the store boards: every profile is named "Trainer app", and
+/// the A button gets a sample long-press action. The feature video films
+/// profiles being made, renamed and remapped, so it needs the real ones. Off
+/// everywhere else.
+@visibleForTesting
+bool debugShowsRealKeymapsInScreenshotMode = false;
+
+/// Whether [screenshotMode] is dressing keymaps up for the store boards.
+bool get screenshotKeymapsStaged => screenshotMode && !debugShowsRealKeymapsInScreenshotMode;
 
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
@@ -372,13 +416,13 @@ enum ConnectionType {
 void initializeActions(ConnectionType connectionType) {
   if (kIsWeb) {
     core.actionHandler = StubActions();
-  } else if (Platform.isAndroid) {
+  } else if (HostPlatform.isAndroid) {
     core.actionHandler = switch (connectionType) {
       ConnectionType.local => AndroidActions(),
       ConnectionType.remote => RemoteActions(),
       ConnectionType.unknown => StubActions(),
     };
-  } else if (Platform.isIOS) {
+  } else if (HostPlatform.isIOS) {
     core.actionHandler = switch (connectionType) {
       ConnectionType.local => StubActions(),
       ConnectionType.remote => RemoteActions(),
@@ -542,7 +586,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
           const SizedBox(height: 10),
           m.FilledButton.icon(
             onPressed: () => applyAppUpdate(update),
-            icon: Icon(update.isPatch ? m.Icons.restart_alt : m.Icons.open_in_new, size: 18),
+            icon: Icon(update.isPatch ? LucideIcons.rotateCcw : LucideIcons.externalLink, size: 18),
             label: Text(update.isPatch ? 'Restart to update' : 'Open the store'),
           ),
         ],
@@ -558,7 +602,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
           ),
         m.FilledButton.icon(
           onPressed: _checkForUpdates,
-          icon: const Icon(m.Icons.system_update_alt, size: 18),
+          icon: const Icon(LucideIcons.download, size: 18),
           label: Text(_checked ? 'Check again' : 'Check for updates'),
         ),
       ],
@@ -576,7 +620,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(m.Icons.error_outline, size: 44, color: BKColor.main),
+              const Icon(LucideIcons.circleAlert, size: 44, color: BKColor.main),
               const SizedBox(height: 16),
               const Text(
                 "BikeControl couldn't finish starting up",
@@ -594,7 +638,7 @@ class _StartupRecoveryState extends State<_StartupRecovery> {
               const SizedBox(height: 12),
               m.OutlinedButton.icon(
                 onPressed: _emailSupport,
-                icon: const Icon(m.Icons.mail_outline, size: 18),
+                icon: const Icon(LucideIcons.mail, size: 18),
                 label: const Text('Email support with logs'),
               ),
               const SizedBox(height: 8),
@@ -669,6 +713,8 @@ class _BikeControlAppState extends State<BikeControlApp> {
           await wm.windowManager.ensureInitialized();
           final mainWindowId = await wm.windowManager.getId();
           MultiWindowNative.init(mainWindowId);
+          // Below this the compact layout itself starts to clip.
+          await wm.windowManager.setMinimumSize(Breakpoints.minDesktopWindow);
         } catch (e, s) {
           recordError(e, s, context: 'MultiWindowNative.init(main)');
         }
@@ -700,7 +746,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final isMobile = isCompactWindow(context);
     // Rebuild the whole app whenever the in-app language override changes so a
     // language switch takes effect immediately. Defaults to null (=follow the
     // OS language), which is also what an uninitialised Settings reports during
@@ -719,26 +765,12 @@ class _BikeControlAppState extends State<BikeControlApp> {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         title: 'BikeControl',
-        darkTheme: ThemeData(
-          colorScheme: ColorSchemes.darkSlate.copyWith(
-            card: () => Color(0xFF001A29),
-            background: () => Color(0xFF232323),
-            muted: () => Color(0xFF3A3A3A),
-            border: () => Color(0xFF3A3A3A),
-            secondary: () => Color(0xFF3A3A3A),
-          ),
-        ),
+        scaling: BkTheme.scaling,
+        darkTheme: BkTheme.build(Brightness.dark),
         locale: demoLocaleOverride.isNotEmpty
             ? Locale(demoLocaleOverride)
             : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
-        theme: ThemeData(
-          colorScheme: ColorSchemes.lightSlate.copyWith(
-            mutedForeground: () => Color(0xFFA1A1AA),
-            primary: () => BKColor.main,
-          ),
-          typography: Typography.geist().scale(isMobile ? 0.9 : 1),
-          radius: 0.7,
-        ),
+        theme: BkTheme.build(Brightness.light),
         materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
         //themeMode: ThemeMode.dark,
         // Swap splash → content in place inside the always-mounted ShadcnApp so
@@ -801,11 +833,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
               borderWidth: 1.5,
             ),
             child: ComponentTheme<DividerTheme>(
-              data: Theme.of(context).brightness == Brightness.dark
-                  ? DividerTheme(
-                      color: Theme.of(context).colorScheme.border,
-                    )
-                  : DividerTheme(),
+              data: DividerTheme(color: Theme.of(context).colorScheme.border),
               child: _Starter(
                 child: widget.customChild ?? Navigation(),
               ),

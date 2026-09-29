@@ -5,6 +5,7 @@ import 'package:bike_control/pages/proxy_device_details/front_shift_visual.dart'
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -70,7 +71,7 @@ class FrontShiftCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         AppLocalizations.of(context).frontShiftSmallRingLabel,
-                        style: const TextStyle(fontSize: 13),
+                        style: context.typography.small,
                       ),
                     ),
                     StepperControl(
@@ -94,7 +95,7 @@ class FrontShiftCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         AppLocalizations.of(context).frontShiftLargeRingLabel,
-                        style: const TextStyle(fontSize: 13),
+                        style: context.typography.small,
                       ),
                     ),
                     StepperControl(

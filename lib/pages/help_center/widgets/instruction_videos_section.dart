@@ -1,6 +1,9 @@
 // Extracted from `lib/widgets/ui/help_button.dart` (Task 8) — behavior is
 // unchanged, only the private classes moved so the Help Center's "Guides &
 // videos" section can open the same drawer.
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/image_decode.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -48,7 +51,9 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
       }
 
       final title = _normalizeTitle(
-        _decodeXmlEntities(_extract(entry, RegExp(r'<title>([\s\S]*?)</title>')) ?? 'YouTube Video'),
+        _decodeXmlEntities(
+          _extract(entry, RegExp(r'<title>([\s\S]*?)</title>')) ?? AppLocalizations.current.youtubeVideo,
+        ),
       );
       final description = _decodeXmlEntities(
         _extract(entry, RegExp(r'<media:description>([\s\S]*?)</media:description>')) ?? '',
@@ -132,7 +137,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                         text: 'Could not load videos from YouTube.',
                         action: SecondaryButton(
                           onPressed: _retry,
-                          child: const Text('Retry'),
+                          child: Text(AppLocalizations.of(context).retry),
                         ),
                       );
                     }
@@ -143,7 +148,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                         text: 'No videos found on the channel right now.',
                         action: SecondaryButton(
                           onPressed: _retry,
-                          child: const Text('Retry'),
+                          child: Text(AppLocalizations.of(context).retry),
                         ),
                       );
                     }
@@ -217,8 +222,9 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
   }
 
   Widget _buildVideoCard(_InstructionVideo video, {required bool fullWidth}) {
-    return GestureDetector(
-      onTap: () => launchUrlString(video.url),
+    return BkTappable(
+      onPressed: () => launchUrlString(video.url),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
@@ -233,7 +239,13 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.network(video.thumbnailUrl, fit: BoxFit.cover),
+                    LayoutBuilder(
+                      builder: (context, constraints) => Image.network(
+                        video.thumbnailUrl,
+                        fit: BoxFit.cover,
+                        cacheWidth: decodeWidthFor(context, constraints.maxWidth),
+                      ),
+                    ),
                     Center(
                       child: Container(
                         padding: const EdgeInsets.all(10),
@@ -241,7 +253,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
                           color: Colors.black.withAlpha(166),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.play_arrow, color: Colors.white),
+                        child: const Icon(LucideIcons.play, color: Colors.white),
                       ),
                     ),
                   ],

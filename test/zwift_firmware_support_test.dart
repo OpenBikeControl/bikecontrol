@@ -144,8 +144,12 @@ void main() {
     ZwiftRide ride(String? fw) =>
         ZwiftRide(BleDevice(deviceId: 'zr', name: 'Zwift Ride'))..firmwareVersion = fw;
 
-    test('a Ride on firmware past 1.2.0 is flagged', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(ride('1.3.0')), isTrue);
+    test('a Ride on firmware past 1.2.0 that is not a Ride V2 is flagged', () {
+      expect(ZwiftRide.hasUnsupportedFirmware(ride('1.2.5')), isTrue);
+    });
+
+    test('a Zwift Ride V2 (1.3 or newer) has its own unlock flow and is not flagged', () {
+      expect(ZwiftRide.hasUnsupportedFirmware(ride('1.3.0')), isFalse);
     });
 
     test('a Ride on the last good 1.2.0 is not flagged', () {

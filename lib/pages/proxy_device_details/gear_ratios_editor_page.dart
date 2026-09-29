@@ -1,3 +1,5 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -9,8 +11,15 @@ import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart'
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+/// Keeps the gear-count mismatch warning ("MyWhoosh uses 30 gears …") off the
+/// page. For the onboarding video, which shows the gear-count stepper without
+/// the warning its intermediate counts would raise. Off everywhere else.
+@visibleForTesting
+bool debugHideGearCountMismatch = false;
 
 class GearRatiosEditorPage extends StatefulWidget {
   final FitnessBikeDefinition definition;
@@ -71,32 +80,22 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            AppLocalizations.of(context).gearSettings,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
-          trailing: [
+        BkPageHeader(
+          title: AppLocalizations.of(context).gearSettings,
+          actions: [
             Button(
               style: ButtonStyle.destructive(size: ButtonSize.small),
               onPressed: _resetGearSettings,
               leading: const Icon(LucideIcons.rotateCcw, size: 12),
-              child: Text(AppLocalizations.of(context).reset, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              child: Text(
+                AppLocalizations.of(context).reset,
+                style: context.typography.caption.copyWith(fontWeight: FontWeight.w600),
+              ),
             ),
           ],
-          backgroundColor: cs.background,
         ),
-        const Divider(),
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -131,7 +130,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final cs = Theme.of(context).colorScheme;
     return Text(
       AppLocalizations.of(context).tuneGearsIntro,
-      style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+      style: context.typography.small.copyWith(color: cs.mutedForeground),
       softWrap: true,
     );
   }
@@ -145,7 +144,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final count = def.maxGear;
     final app = core.settings.getTrainerApp();
     final expected = app?.virtualGearAmount;
-    final mismatch = app != null && expected != null && expected != count;
+    final mismatch = app != null && expected != null && expected != count && !debugHideGearCountMismatch;
     return SettingTile(
       icon: LucideIcons.hash,
       title: AppLocalizations.of(context).gearCount,
@@ -166,18 +165,18 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.12),
+                color: BkStatusColors.of(context).warningWash,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+                border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.4)),
               ),
               child: Row(
                 spacing: 8,
                 children: [
-                  Icon(LucideIcons.triangleAlert, size: 14, color: Colors.amber.shade700),
+                  Icon(LucideIcons.triangleAlert, size: 14, color: BkStatusColors.of(context).warning),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).gearCountMismatch(app.name, expected, count),
-                      style: TextStyle(fontSize: 12, color: cs.foreground),
+                      style: context.typography.xSmall.copyWith(color: cs.foreground),
                     ),
                   ),
                   Button.ghost(
@@ -185,7 +184,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                       def.setMaxGear(expected);
                       await _updateActive((c) => c.copyWith(maxGear: expected));
                     },
-                    child: Text(AppLocalizations.of(context).useGearCount(expected), style: const TextStyle(fontSize: 12)),
+                    child: Text(AppLocalizations.of(context).useGearCount(expected), style: context.typography.xSmall),
                   ),
                 ],
               ),
@@ -248,8 +247,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       children: [
         Text(
           AppLocalizations.of(context).presetsLabel,
-          style: TextStyle(
-            fontSize: 10,
+          style: context.typography.caption.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 1,
             color: cs.mutedForeground,
@@ -280,25 +278,33 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
         def.setGearRatios(preset.values);
         await _saveActiveGearRatios(preset.values);
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            preset.label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+      // Four chips share a phone's width, and a preset name like "Compact" or
+      // "Predeterminado" is wider than a quarter of it: the label is kept on
+      // one line and shrunk to fit rather than broken mid-word.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              preset.label,
+              maxLines: 1,
+              softWrap: false,
+              style: context.typography.xSmall.copyWith(
+                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+              ),
             ),
-          ),
-          Text(
-            preset.range,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: active ? const Color(0xFFA1A1AA) : cs.mutedForeground,
+            Text(
+              preset.range,
+              maxLines: 1,
+              softWrap: false,
+              style: context.typography.caption.copyWith(
+                fontWeight: FontWeight.w500,
+                color: active ? cs.primaryForeground.withValues(alpha: 0.8) : cs.mutedForeground,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -316,19 +322,21 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
           children: [
             Text(
               AppLocalizations.of(context).perGearLabel,
-              style: TextStyle(
-                fontSize: 10,
+              style: context.typography.caption.copyWith(
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1,
                 color: cs.mutedForeground,
               ),
             ),
-            const Text(
-              '24 steps',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFFA1A1AA),
+            // The rows below, counted — they follow the gear count.
+            ValueListenableBuilder<List<double>>(
+              valueListenable: def.gearRatios,
+              builder: (context, ratios, _) => Text(
+                AppLocalizations.of(context).perGearCount(ratios.length),
+                style: context.typography.caption.copyWith(
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).colorScheme.mutedForeground,
+                ),
               ),
             ),
           ],
@@ -366,33 +374,15 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
     final isCurrent = gear == current;
     final isNeutral = gear == def.neutralGear;
 
-    Color bgColor = cs.card;
-    Color borderColor = cs.border;
-    double borderWidth = 1;
-    if (isCurrent) {
-      bgColor = const Color(0xFFEFF6FF);
-      borderColor = const Color(0xFFBFDBFE);
-      borderWidth = 1.5;
-    }
-
-    Color badgeBoxBg = cs.muted;
-    Color badgeBoxText = cs.foreground;
-    if (isNeutral && !isCurrent) {
-      badgeBoxBg = const Color(0xFFDBEAFE);
-      badgeBoxText = const Color(0xFF1E40AF);
-    }
-    if (isCurrent) {
-      badgeBoxBg = const Color(0xFF2563EB);
-      badgeBoxText = Colors.white;
-    }
+    final colors = gearRowColors(cs, isCurrent: isCurrent, isNeutral: isNeutral);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: colors.background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: borderColor, width: borderWidth),
+        border: Border.all(color: colors.border, width: isCurrent ? 1.5 : 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -402,16 +392,15 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: badgeBoxBg,
+              color: colors.badgeBackground,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
               child: Text(
                 '$gear',
-                style: TextStyle(
-                  fontSize: 14,
+                style: context.typography.small.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: badgeBoxText,
+                  color: colors.badgeForeground,
                 ),
               ),
             ),
@@ -427,15 +416,16 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
                   children: [
                     Text(
                       AppLocalizations.of(context).gearNumber(gear),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                     ),
-                    if (isCurrent) _badge(AppLocalizations.of(context).currentBadge, const Color(0xFF2563EB), Colors.white),
-                    if (isNeutral && !isCurrent) _badge(AppLocalizations.of(context).neutralBadge, const Color(0xFFDBEAFE), const Color(0xFF1E40AF)),
+                    if (isCurrent) _badge(AppLocalizations.of(context).currentBadge, cs.primary, cs.primaryForeground),
+                    if (isNeutral && !isCurrent)
+                      _badge(AppLocalizations.of(context).neutralBadge, colors.badgeBackground, colors.badgeForeground),
                   ],
                 ),
                 Text(
                   _hintFor(context, gear, ratio, ratios, def.neutralGear),
-                  style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+                  style: context.typography.caption.copyWith(color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -465,7 +455,7 @@ class _GearRatiosEditorPageState extends State<GearRatiosEditorPage> {
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: fg),
+        style: context.typography.caption.copyWith(fontWeight: FontWeight.w700, color: fg),
       ),
     );
   }
@@ -530,7 +520,7 @@ class VirtualShiftingModeCard extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600),
             ),
             if (recommended) ...[
               const Gap(2),
@@ -616,4 +606,32 @@ class VirtualShiftingModeCard extends StatelessWidget {
       },
     );
   }
+}
+
+/// Colours for one row of the per-gear list, all derived from the theme so
+/// the current row stays legible in dark mode (it used to be a fixed #EFF6FF
+/// wash under near-white text).
+@visibleForTesting
+({Color background, Color border, Color badgeBackground, Color badgeForeground}) gearRowColors(
+  ColorScheme cs, {
+  required bool isCurrent,
+  required bool isNeutral,
+}) {
+  if (isCurrent) {
+    return (
+      background: cs.primary.withValues(alpha: 0.10),
+      border: cs.primary.withValues(alpha: 0.45),
+      badgeBackground: cs.primary,
+      badgeForeground: cs.primaryForeground,
+    );
+  }
+  if (isNeutral) {
+    return (
+      background: cs.card,
+      border: cs.border,
+      badgeBackground: cs.primary.withValues(alpha: 0.15),
+      badgeForeground: cs.foreground,
+    );
+  }
+  return (background: cs.card, border: cs.border, badgeBackground: cs.muted, badgeForeground: cs.foreground);
 }

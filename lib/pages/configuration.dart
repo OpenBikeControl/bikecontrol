@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -69,7 +70,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                                 context,
                               ).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
                             ).muted.xSmall.normal,
-                            trailing: Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+                            trailing: Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
                           ),
                         ),
                       ),
@@ -119,7 +120,7 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                     Row(
                       spacing: 8,
                       children: [
-                        Icon(Icons.star),
+                        Icon(LucideIcons.star),
                         Expanded(
                           child: Text(
                             AppLocalizations.of(
@@ -228,14 +229,13 @@ class TrainerAppSelect extends StatelessWidget {
                         child: Image.asset(app.logoAsset!, width: 22, height: 22),
                       ),
                     Expanded(
-                      child: app == core.settings.getTrainerApp()
-                          ? Text(app.name).semiBold
-                          : Text(app.name),
+                      child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
                     ),
                     if (supportsObp) OpenBikeControlLogo(),
                     if (app.officialUrl != null)
-                      IconButton.ghost(
+                      BkIconButton.ghost(
                         icon: Icon(LucideIcons.externalLink, size: 16),
+                        label: context.i18n.a11yOpenWebsite,
                         onPressed: () => launchUrlString(
                           app.officialUrl!,
                           mode: LaunchMode.externalApplication,
@@ -258,13 +258,12 @@ class TrainerAppSelect extends StatelessWidget {
                   spacing: 8,
                   children: [
                     Expanded(
-                      child: app == core.settings.getTrainerApp()
-                          ? Text(app.name).semiBold
-                          : Text(app.name),
+                      child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
                     ),
                     if (app.officialUrl != null)
-                      IconButton.ghost(
+                      BkIconButton.ghost(
                         icon: Icon(LucideIcons.externalLink, size: 16),
+                        label: context.i18n.a11yOpenWebsite,
                         onPressed: () => launchUrlString(
                           app.officialUrl!,
                           mode: LaunchMode.externalApplication,

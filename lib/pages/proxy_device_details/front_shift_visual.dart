@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The virtual front derailleur, drawn: two chainrings with the engaged one
@@ -40,7 +40,7 @@ class FrontShiftVisual extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
-    final accent = bkAccent(context);
+    final accent = Theme.of(context).colorScheme.primary;
     final factor = smallTeeth <= 0 ? 1.0 : largeTeeth / smallTeeth;
     final activeTeeth = largeRingActive ? largeTeeth : smallTeeth;
     final gears = gearCount ?? ratios.length;
@@ -72,8 +72,7 @@ class FrontShiftVisual extends StatelessWidget {
                   Expanded(
                     child: Text(
                       hasRange ? l10n.frontShiftRangeLabel : l10n.frontShiftFactorLabel,
-                      style: TextStyle(
-                        fontSize: 10,
+                      style: context.typography.caption.copyWith(
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,
                         color: cs.mutedForeground,
@@ -82,17 +81,14 @@ class FrontShiftVisual extends StatelessWidget {
                   ),
                   Text(
                     '${factor.toStringAsFixed(2)}×',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.mutedForeground),
+                    style: context.typography.caption.copyWith(fontWeight: FontWeight.w700, color: cs.mutedForeground),
                   ),
                 ],
               ),
               const Gap(2),
               Text(
-                hasRange
-                    ? '${lo.toStringAsFixed(2)} – ${hi.toStringAsFixed(2)}'
-                    : '$smallTeeth / $largeTeeth',
-                style: TextStyle(
-                  fontSize: 19,
+                hasRange ? '${lo.toStringAsFixed(2)} – ${hi.toStringAsFixed(2)}' : '$smallTeeth / $largeTeeth',
+                style: context.typography.large.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.2,
                   color: cs.foreground,
@@ -107,7 +103,7 @@ class FrontShiftVisual extends StatelessWidget {
                 gears > 0
                     ? '${l10n.frontShiftRingActive(activeTeeth)} · ${l10n.gearsCount(gears)}'
                     : l10n.frontShiftRingActive(activeTeeth),
-                style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                style: context.typography.caption.copyWith(color: cs.mutedForeground),
               ),
             ],
           ),
@@ -117,7 +113,13 @@ class FrontShiftVisual extends StatelessWidget {
   }
 
   /// A chainring: solid and washed when engaged, dashed and muted when not.
-  Widget _ring(BuildContext context, {required int teeth, required double size, required bool active, required Color accent}) {
+  Widget _ring(
+    BuildContext context, {
+    required int teeth,
+    required double size,
+    required bool active,
+    required Color accent,
+  }) {
     final cs = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: _swap,
@@ -167,7 +169,9 @@ class _RangeBar extends StatelessWidget {
           height: 5,
           child: Stack(
             children: [
-              Container(decoration: BoxDecoration(color: track, borderRadius: BorderRadius.circular(999))),
+              Container(
+                decoration: BoxDecoration(color: track, borderRadius: BorderRadius.circular(999)),
+              ),
               AnimatedPositioned(
                 duration: const Duration(milliseconds: 450),
                 curve: Curves.easeOutCubic,

@@ -174,6 +174,50 @@ Future<void> main() async {
       await IntegrationEnv.waitFor(() => device.isStartedListenable.value, description: 'bridge restarted');
       await IntegrationEnv.waitFor(() => env.mdns.registrations.isNotEmpty, description: 're-advertised');
     });
+
+    // The bridge starts a periodic notify pump on the trainer's definition.
+    // Detaching the definition on disconnect is not enough: unless it is
+    // disposed, the pump keeps firing (and keeps the definition alive), and
+    // every reconnect builds a new definition with a pump of its own.
+    test('a disconnect stops the definition\'s notify pump; reconnects do not stack them', () async {
+      final device = await connectTrainer();
+      await IntegrationEnv.waitFor(() => device.fitnessBike != null, description: 'VS definition attached');
+      final first = device.fitnessBike!;
+      expect(first.isSubscribedToTrainer, isTrue, reason: 'the running bridge pumps the definition');
+
+      await core.connection.disconnect(device, persistForget: false, forget: false, keepInList: true);
+
+      expect(first.isSubscribedToTrainer, isFalse, reason: 'a disconnected definition must not keep its pump');
+
+      await core.connection.connectDevice(device);
+      await IntegrationEnv.waitFor(
+        () => device.isConnected && device.fitnessBike != null && device.isStartedListenable.value,
+        description: 'reconnected with a definition',
+      );
+      final second = device.fitnessBike!;
+      expect(identical(second, first), isFalse, reason: 'a connection builds its own definition');
+      expect(second.isSubscribedToTrainer, isTrue);
+      expect(first.isSubscribedToTrainer, isFalse, reason: 'the old pump must not come back on reconnect');
+    });
+
+    test('the rider\'s gear survives a real disconnect and reconnect', () async {
+      ProxyDevice.debugClearRememberedGears();
+      final device = await connectTrainer();
+      await IntegrationEnv.waitFor(() => device.fitnessBike != null, description: 'VS definition attached');
+      final first = device.fitnessBike!;
+      first.setTargetGear(first.currentGear.value + 5);
+      await pumpEventQueue();
+      final chosen = first.currentGear.value;
+
+      await core.connection.disconnect(device, persistForget: false, forget: false, keepInList: true);
+      await core.connection.connectDevice(device);
+      await IntegrationEnv.waitFor(
+        () => device.isConnected && device.fitnessBike != null && !identical(device.fitnessBike, first),
+        description: 'reconnected with a fresh definition',
+      );
+
+      expect(device.fitnessBike!.currentGear.value, chosen);
+    });
   });
 
   group('controller → virtual shifting reaction chain', () {

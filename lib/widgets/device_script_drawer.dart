@@ -1,7 +1,9 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -80,7 +82,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
       return;
     }
 
-    buildToast(title: 'Script saved for ${widget.deviceType}.');
+    buildToast(title: AppLocalizations.current.scriptSavedFor(widget.deviceType));
     closeDrawer(context);
   }
 
@@ -88,16 +90,16 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete script?'),
-        content: Text('This will remove the saved script for ${widget.deviceType}.'),
+        title: Text(AppLocalizations.of(context).deleteScriptTitle),
+        content: Text(AppLocalizations.of(context).deleteScriptBody(widget.deviceType)),
         actions: [
           OutlineButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           DestructiveButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context).delete),
           ),
         ],
       ),
@@ -122,7 +124,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
       _hasSavedScript = false;
     });
 
-    buildToast(title: 'Script deleted for ${widget.deviceType}.');
+    buildToast(title: AppLocalizations.current.scriptDeletedFor(widget.deviceType));
   }
 
   Future<void> _tryScript() async {
@@ -137,7 +139,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
 
     if (characteristicUuid.isEmpty) {
       setState(() {
-        _tryError = 'Characteristic UUID is required.';
+        _tryError = AppLocalizations.of(context).characteristicUuidRequired;
       });
       return;
     }
@@ -206,14 +208,19 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 12,
             children: [
-              Text('Run Script', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               Text(
-                'Device type: ${widget.deviceType}',
-                style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground, fontSize: 12),
+                AppLocalizations.of(context).runScriptTitle,
+                style: context.typography.large.copyWith(fontWeight: FontWeight.w600),
               ),
               Text(
-                'This script will run whenever a value is received via bluetooth.\nRequired signature: Future<List<dynamic>> main(String characteristicUuid, List<int> data)',
-                style: TextStyle(color: Theme.of(context).colorScheme.mutedForeground, fontSize: 12),
+                AppLocalizations.of(context).scriptDeviceType(widget.deviceType),
+                style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+              ),
+              Text(
+                AppLocalizations.of(
+                  context,
+                ).scriptRunsOnValue('Future<List<dynamic>> main(String characteristicUuid, List<int> data)'),
+                style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
               ),
               Expanded(
                 child: _isLoading
@@ -224,7 +231,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                         minLines: null,
                         maxLines: null,
                         textAlignVertical: TextAlignVertical.top,
-                        placeholder: Text('Write your script here...'),
+                        placeholder: Text(AppLocalizations.of(context).scriptPlaceholder),
                       ).inlineCode,
               ),
               Container(
@@ -238,7 +245,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
-                    Text('Try Script', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text(AppLocalizations.of(context).tryScriptTitle, style: TextStyle(fontWeight: FontWeight.w600)),
                     Row(
                       spacing: 8,
                       children: [
@@ -247,13 +254,13 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                             children: [
                               TextField(
                                 controller: _tryCharacteristicController,
-                                placeholder: const Text('Characteristic UUID'),
-                                hintText: 'Characteristic UUID',
+                                placeholder: Text(AppLocalizations.of(context).characteristicUuid),
+                                hintText: AppLocalizations.of(context).characteristicUuid,
                               ),
                               TextField(
                                 controller: _tryHexController,
-                                placeholder: const Text('Hex input (e.g. 01 FF 2A)'),
-                                hintText: 'Hex input (e.g. 01 FF 2A)',
+                                placeholder: Text(AppLocalizations.of(context).hexInputHint('01 FF 2A')),
+                                hintText: AppLocalizations.of(context).hexInputHint('01 FF 2A'),
                               ),
                             ],
                           ),
@@ -271,15 +278,15 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                           renderChild: (isLoading, tap) => OutlineButton(
                             onPressed: (_isLoading || _isSaving || _isDeleting) ? null : tap,
                             child: isLoading
-                                ? const Row(
+                                ? Row(
                                     mainAxisSize: MainAxisSize.min,
                                     spacing: 8,
                                     children: [
-                                      SmallProgressIndicator(),
-                                      Text('Trying...'),
+                                      const SmallProgressIndicator(),
+                                      Text(AppLocalizations.of(context).tryingEllipsis),
                                     ],
                                   )
-                                : const Text('Try'),
+                                : Text(AppLocalizations.of(context).tryAction),
                           ),
                         ),
                       ],
@@ -287,7 +294,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                     if (_tryError != null)
                       Text(
                         _tryError!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
+                        style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.destructive),
                       ),
                     if (_tryOutputCharacteristic != null && _tryOutputHex != null)
                       Column(
@@ -295,10 +302,10 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                         spacing: 4,
                         children: [
                           Text(
-                            'Output characteristic: $_tryOutputCharacteristic',
+                            AppLocalizations.of(context).scriptOutputCharacteristic(_tryOutputCharacteristic!),
                           ).inlineCode,
                           Text(
-                            'Output data (hex): $_tryOutputHex',
+                            AppLocalizations.of(context).scriptOutputHex(_tryOutputHex!),
                           ).inlineCode,
                         ],
                       ),
@@ -315,7 +322,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                   ),
                   child: Text(
                     _validationError!,
-                    style: TextStyle(color: Theme.of(context).colorScheme.destructive, fontSize: 12),
+                    style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.destructive),
                   ),
                 ),
               Row(
@@ -336,22 +343,22 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                       renderChild: (isLoading, tap) => DestructiveButton(
                         onPressed: (_isLoading || _isSaving || _isTrying) ? null : tap,
                         child: isLoading
-                            ? const Row(
+                            ? Row(
                                 mainAxisSize: MainAxisSize.min,
                                 spacing: 8,
                                 children: [
-                                  SmallProgressIndicator(),
-                                  Text('Deleting...'),
+                                  const SmallProgressIndicator(),
+                                  Text(AppLocalizations.of(context).deletingEllipsis),
                                 ],
                               )
-                            : const Text('Delete'),
+                            : Text(AppLocalizations.of(context).delete),
                       ),
                     ),
                   if (!_hasSavedScript) const SizedBox.shrink(),
                   const Spacer(),
                   OutlineButton(
                     onPressed: (_isSaving || _isDeleting || _isTrying) ? null : () => closeDrawer(context),
-                    child: const Text('Cancel'),
+                    child: Text(AppLocalizations.of(context).cancel),
                   ),
                   LoadingWidget(
                     onLoadCallback: (isLoading) {
@@ -366,15 +373,15 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                     renderChild: (isLoading, tap) => PrimaryButton(
                       onPressed: (_isLoading || _isDeleting || _isTrying) ? null : tap,
                       child: isLoading
-                          ? const Row(
+                          ? Row(
                               mainAxisSize: MainAxisSize.min,
                               spacing: 8,
                               children: [
-                                SmallProgressIndicator(color: Colors.black),
-                                Text('Saving...'),
+                                const SmallProgressIndicator(color: Colors.black),
+                                Text(AppLocalizations.of(context).savingEllipsis),
                               ],
                             )
-                          : const Text('Save'),
+                          : Text(AppLocalizations.of(context).save),
                     ),
                   ),
                 ],

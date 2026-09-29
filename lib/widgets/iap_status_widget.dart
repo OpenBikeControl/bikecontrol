@@ -66,7 +66,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                       if (hasPremiumAccess) ...[
                         Row(
                           children: [
-                            Icon(Icons.check_circle, color: Colors.green),
+                            Icon(LucideIcons.circleCheck, color: Colors.green),
                             const SizedBox(width: 8),
                             Text(
                               AppLocalizations.of(context).fullVersion,
@@ -80,7 +80,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                         if (!Platform.isAndroid)
                           Basic(
                             leadingAlignment: Alignment.centerLeft,
-                            leading: Icon(Icons.access_time, color: Colors.blue),
+                            leading: Icon(LucideIcons.clock, color: Colors.blue),
                             title: Text(AppLocalizations.of(context).trialPeriodActive(trialDaysRemaining)),
                             subtitle: Text(
                               AppLocalizations.of(context).trialPeriodDescription(IAPManager.dailyCommandLimit),
@@ -90,7 +90,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                           Basic(
                             padding: EdgeInsets.all(8),
                             leading: Icon(
-                              Icons.info_outline,
+                              LucideIcons.info,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                             title: Text(
@@ -130,7 +130,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                       ] else ...[
                         Basic(
                           leadingAlignment: Alignment.centerLeft,
-                          leading: Icon(Icons.lock),
+                          leading: Icon(LucideIcons.lock),
                           title: Text(AppLocalizations.of(context).trialExpired(IAPManager.dailyCommandLimit)),
                           trailingAlignment: Alignment.centerRight,
                           subtitle: Column(
@@ -276,7 +276,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   _alreadyBoughtQuestion == null) ...[
                                 PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star, size: 16),
+                                  leading: Icon(LucideIcons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -292,7 +292,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                               ] else if (_alreadyBoughtQuestion == AlreadyBoughtOption.iap) ...[
                                 PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star, size: 16),
+                                  leading: Icon(LucideIcons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
@@ -331,7 +331,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                               builder: (context) {
                                 return PrimaryButton(
                                   onPressed: _isPurchasing ? null : () => _handlePurchase(context),
-                                  leading: Icon(Icons.star, size: 16),
+                                  leading: Icon(LucideIcons.star, size: 16),
                                   child: _isPurchasing
                                       ? Row(
                                           mainAxisAlignment: MainAxisAlignment.center,

@@ -11,6 +11,7 @@ import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart' show VirtualShiftingMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -49,7 +50,13 @@ class SelfTestCard extends StatefulWidget {
   /// [ProxyDevice.reconnectUpstream].
   final Future<void> Function()? reconnectDevice;
 
-  const SelfTestCard({super.key, required this.device, this.engineFactory, this.onShowOverlaySettings, this.reconnectDevice});
+  const SelfTestCard({
+    super.key,
+    required this.device,
+    this.engineFactory,
+    this.onShowOverlaySettings,
+    this.reconnectDevice,
+  });
 
   @override
   State<SelfTestCard> createState() => _SelfTestCardState();
@@ -182,7 +189,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
             spacing: 8,
             children: [
               const Icon(LucideIcons.gauge, size: 18),
-              Text(l10n.selfTestTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              Text(l10n.selfTestTitle, style: context.typography.base.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           _body(context, l10n),
@@ -224,7 +231,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 10,
       children: [
-        Text(l10n.selfTestIntro, style: TextStyle(fontSize: 13, color: cs.mutedForeground)),
+        Text(l10n.selfTestIntro, style: context.typography.small.copyWith(color: cs.mutedForeground)),
         if (last != null)
           Align(
             alignment: Alignment.centerLeft,
@@ -233,7 +240,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
               decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(999)),
               child: Text(
                 l10n.selfTestLastResult(_verdictTitle(l10n, last.verdict)),
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                style: context.typography.caption.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
               ),
             ),
           ),
@@ -261,7 +268,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
         Text(
           _phaseLabel(l10n, state.phase),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
         ),
         ValueListenableBuilder<int?>(
           valueListenable: engine.harness.powerW,
@@ -270,13 +277,13 @@ class _SelfTestCardState extends State<SelfTestCard> {
           builder: (context, power, _) => Text(
             '${power ?? '--'} W${state.currentErgTarget == null ? '' : ' → ${state.currentErgTarget} W'}',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+            style: context.typography.x3Large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
           ),
         ),
         Text(
           l10n.selfTestPedalPrompt,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+          style: context.typography.small.copyWith(color: cs.mutedForeground),
         ),
         // Informational, not a fault: the test runs fine without cadence, it
         // just scores the sweep on power alone. Saying so beats leaving the
@@ -310,12 +317,12 @@ class _SelfTestCardState extends State<SelfTestCard> {
         Text(
           _verdictTitle(l10n, result.verdict),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
         ),
         Text(
           _verdictBody(l10n, result.verdict),
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+          style: context.typography.small.copyWith(color: cs.mutedForeground),
         ),
         // The shift phase was scored without the "did the rider hold cadence"
         // cross-check, which is a caveat on the verdict above — so it is shown
@@ -544,7 +551,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
         children: [
           Icon(icon, size: 15, color: color),
           Expanded(
-            child: Text(message, style: TextStyle(fontSize: 12, color: color)),
+            child: Text(message, style: context.typography.xSmall.copyWith(color: color)),
           ),
         ],
       ),

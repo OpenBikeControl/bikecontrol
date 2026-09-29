@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
@@ -238,8 +239,7 @@ class RevenueCatService {
           hasPurchasedBefore50 = parsedVersion < Version(5, 0, 0);
         } else {
           final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;
-          isPurchasedNotifier.value =
-              isPurchasedBuild(purchasedVersionAsInt, isMacOS: Platform.isMacOS);
+          isPurchasedNotifier.value = isPurchasedBuild(purchasedVersionAsInt, isMacOS: Platform.isMacOS);
           hasPurchasedBefore50 = purchasedVersionAsInt < 114;
         }
       }
@@ -309,7 +309,7 @@ class RevenueCatService {
     final offerings = await Purchases.getOfferings();
     final defaultOffering = offerings.all['pro'];
     if (defaultOffering == null) {
-      buildToast(title: 'Full version offering not available right now.');
+      buildToast(title: AppLocalizations.current.fullVersionOfferingUnavailable);
       return;
     }
 
@@ -355,7 +355,7 @@ class RevenueCatService {
       proOffering = offerings.all['proonly'];
     }
     if (proOffering == null) {
-      buildToast(title: 'Subscription offering not available right now.');
+      buildToast(title: AppLocalizations.current.subscriptionOfferingUnavailable);
       return;
     }
 

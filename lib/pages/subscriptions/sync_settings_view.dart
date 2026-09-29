@@ -10,6 +10,7 @@ import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -177,7 +178,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           );
         } else {
           buildToast(
-            title: 'No newer settings on server',
+            title: AppLocalizations.current.noNewerSettingsOnServer,
             level: LogLevel.LOGLEVEL_WARNING,
           );
         }
@@ -190,20 +191,14 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
   }
 
   String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'Unknown';
+    if (dateTime == null) return AppLocalizations.current.unknown;
     final local = dateTime.toLocal();
     return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year} '
         '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
 
   UserSettings? _getSettingsForDevice(String deviceId) {
-    try {
-      return _allDeviceSettings.firstWhere(
-        (s) => s.deviceId == deviceId,
-      );
-    } catch (e) {
-      return null;
-    }
+    return _allDeviceSettings.where((s) => s.deviceId == deviceId).firstOrNull;
   }
 
   String? _getDeviceRemoteId(UserDevice device) {
@@ -241,8 +236,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
   Future<void> _loadCurrentDeviceId() async {
     try {
       _currentDeviceId = await IAPManager.instance.deviceManagement.currentDeviceId();
-    } catch (e) {
-      print('Error loading current device ID: $e');
+    } catch (e, s) {
+      recordError(e, s, context: 'Loading current device ID');
     }
   }
 
@@ -278,7 +273,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_download, size: 20),
+                    Icon(LucideIcons.cloudDownload, size: 20),
                     const SizedBox(width: 12),
                     Text(AppLocalizations.of(context).downloadLatestSettings),
                   ],
@@ -294,7 +289,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               child: Row(
                 spacing: 12,
                 children: [
-                  Icon(Icons.info, size: 20, color: Theme.of(context).colorScheme.primary),
+                  Icon(LucideIcons.info, size: 20, color: Theme.of(context).colorScheme.primary),
                   Expanded(
                     child: Text(
                       AppLocalizations.of(context).yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap,
@@ -326,7 +321,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  _hasNewerSettings ? Icons.cloud_download : Icons.cloud_sync,
+                  _hasNewerSettings ? LucideIcons.cloudDownload : LucideIcons.refreshCw,
                   size: 28,
                   color: _hasNewerSettings ? Colors.orange : Theme.of(context).colorScheme.primary,
                 ),
@@ -363,17 +358,19 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.schedule, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                    Icon(LucideIcons.clock, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                     const SizedBox(width: 8),
-                    Text('${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? 'Never'}').small,
+                    Text(
+                      '${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? AppLocalizations.of(context).never}',
+                    ).small,
                   ],
                 ),
                 if (_serverSettings?.version != null)
                   Row(
                     children: [
-                      Icon(Icons.tag, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
+                      Icon(LucideIcons.tag, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                       const SizedBox(width: 8),
-                      Text('Version: ${_serverSettings!.version}').small,
+                      Text(AppLocalizations.of(context).syncSettingsVersion('${_serverSettings!.version}')).small,
                     ],
                   ),
                 // Upload button
@@ -382,7 +379,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.cloud_upload, size: 20),
+                      Icon(LucideIcons.cloudUpload, size: 20),
                       const SizedBox(width: 12),
                       Text(AppLocalizations.of(context).uploadSettings),
                     ],
@@ -411,7 +408,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  Icons.devices,
+                  LucideIcons.monitorSmartphone,
                   size: 28,
                   color: Colors.purple,
                 ),
@@ -451,7 +448,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
             child: Row(
               children: [
                 Icon(
-                  Icons.device_unknown,
+                  LucideIcons.smartphone,
                   size: 24,
                   color: Theme.of(context).colorScheme.mutedForeground,
                 ),
@@ -470,7 +467,9 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                         const SizedBox(height: 4),
                         Text(_formatDateTime(device.lastSeenAt)).xSmall.muted,
                         Text(
-                          'Version: ${deviceSettings.version} • Keymaps: ${deviceSettings.keymaps?.length ?? 0}',
+                          AppLocalizations.of(
+                            context,
+                          ).syncDeviceSummary('${deviceSettings.version}', '${deviceSettings.keymaps?.length ?? 0}'),
                         ).xSmall.muted,
                       ],
                     ],
@@ -485,9 +484,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                     ),
                     child: Text(
                       AppLocalizations.of(context).newer,
-                      style: TextStyle(
+                      style: context.typography.caption.copyWith(
                         color: Colors.white,
-                        fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -510,7 +508,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           MenuButton(
             child: Row(
               children: [
-                Icon(Icons.download, size: 20),
+                Icon(LucideIcons.download, size: 20),
                 const SizedBox(width: 8),
                 Text(AppLocalizations.of(context).applyNow),
               ],
@@ -542,7 +540,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           );
         } else {
           buildToast(
-            title: 'No newer settings available',
+            title: AppLocalizations.current.noNewerSettingsAvailable,
             level: LogLevel.LOGLEVEL_WARNING,
           );
         }

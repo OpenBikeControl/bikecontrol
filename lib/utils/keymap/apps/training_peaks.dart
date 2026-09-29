@@ -10,6 +10,9 @@ import '../keymap.dart';
 
 class TrainingPeaks extends SupportedApp {
   @override
+  bool get showsOwnGear => true;
+
+  @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.obpBle, ConnectionSupport.supported),
     (AppConnectionMethod.obpDirCon, ConnectionSupport.supported),

@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io' show Platform, Process;
 
@@ -14,6 +16,7 @@ import 'package:bike_control/services/network_self_test/network_self_test_result
 import 'package:bike_control/services/network_self_test/network_self_test_store.dart';
 import 'package:bike_control/services/network_self_test/probes/active_probes.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -138,11 +141,13 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     _starting = true;
     _startedAt = DateTime.now();
     unawaited(
-      PackageInfo.fromPlatform().then((info) {
-        if (mounted) setState(() => _version = info.version);
-      }).catchError((Object e, StackTrace s) {
-        recordError(e, s, context: 'NetworkTroubleshootingPage.version');
-      }),
+      PackageInfo.fromPlatform()
+          .then((info) {
+            if (mounted) setState(() => _version = info.version);
+          })
+          .catchError((Object e, StackTrace s) {
+            recordError(e, s, context: 'NetworkTroubleshootingPage.version');
+          }),
     );
     // Nothing on screen reads _starting before the first engine or the
     // refusal card exists (the initState auto-start), so no rebuild then.
@@ -162,15 +167,18 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       _showConnectedRefusal = false;
       _engine = engine;
     });
-    engine.run().then((result) {
-      // Superseded by a later _start() (which cancelled this engine): its
-      // result is stale and must not overwrite the newer one in the store.
-      if (!identical(_engine, engine)) return;
-      NetworkSelfTestStore.save(result);
-      if (mounted) setState(() {});
-    }).catchError((e, s) {
-      recordError(e, s, context: 'NetworkSelfTest.page');
-    });
+    engine
+        .run()
+        .then((result) {
+          // Superseded by a later _start() (which cancelled this engine): its
+          // result is stale and must not overwrite the newer one in the store.
+          if (!identical(_engine, engine)) return;
+          NetworkSelfTestStore.save(result);
+          if (mounted) setState(() {});
+        })
+        .catchError((e, s) {
+          recordError(e, s, context: 'NetworkSelfTest.page');
+        });
   }
 
   Future<NetworkSelfTestEngine> _buildEngine() async {
@@ -189,7 +197,9 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     // `engine.cancelWatch()` into the guided-watch probe's `isCancelled`
     // seam; a probe list built ahead of time and handed in wouldn't see
     // cancellation at all.
-    return NetworkSelfTestEngine(contextBuilder: () => buildProductionContext(snapshot: snapshot, snapshotError: snapshotError));
+    return NetworkSelfTestEngine(
+      contextBuilder: () => buildProductionContext(snapshot: snapshot, snapshotError: snapshotError),
+    );
   }
 
   Future<void> _runFix(NetworkFixId fix) async {
@@ -229,7 +239,11 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   /// trainer app is connected through it — they would drop a connection
   /// that works. `runNetworkFix` refuses them too (with a toast) should one
   /// slip through; this is just the visual half of that.
-  static const _stopsServer = {NetworkFixId.restartMethod, NetworkFixId.useOsResponderForObc, NetworkFixId.useResponderForObc};
+  static const _stopsServer = {
+    NetworkFixId.restartMethod,
+    NetworkFixId.useOsResponderForObc,
+    NetworkFixId.useResponderForObc,
+  };
 
   bool _fixDisabled(NetworkFixId fix) =>
       _starting || (_stopsServer.contains(fix) && currentNetworkMethodTarget().isConnected.value);
@@ -260,24 +274,13 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     final tokens = NetworkTokens.of(context);
     return Scaffold(
       headers: [
-        AppBar(
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 20),
-              onPressed: () => Navigator.of(context).maybePop(),
-            ),
-          ],
-          title: Text(
-            l10n.networkTroubleshootingTitle,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
-          ),
+        BkPageHeader(
+          title: l10n.networkTroubleshootingTitle,
           // Only beside the title where there is room for both: on a narrow
           // window the stamp wins the space and the title wraps a character at
           // a time. It moves into the body instead.
-          trailing: [if (!_narrow(context)) _runStamp(context)],
-          backgroundColor: Theme.of(context).colorScheme.background,
+          actions: [if (!_narrow(context)) _runStamp(context)],
         ),
-        const Divider(),
       ],
       child: Container(
         color: tokens.pageBg,
@@ -310,7 +313,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   /// One breakpoint for the whole page: below it the design's side-by-side
   /// arrangements stack, because a desktop window's worth of width is exactly
   /// what they assume.
-  static bool _narrow(BuildContext context) => MediaQuery.sizeOf(context).width < 640;
+  static bool _narrow(BuildContext context) => MediaQuery.sizeOf(context).width < Breakpoints.networkValueColumn;
 
   /// When the run happened, on what — a mono stamp, because its only job is to
   /// be read back to support off a screenshot.
@@ -326,7 +329,9 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       padding: const EdgeInsets.only(right: 4),
       child: Text(
         parts.join(' · '),
-        style: Theme.of(context).typography.mono.copyWith(fontSize: 11, color: cs.mutedForeground),
+        style: Theme.of(
+          context,
+        ).typography.mono.copyWith(fontSize: context.typography.caption.fontSize, color: cs.mutedForeground),
       ),
     );
   }
@@ -413,12 +418,12 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
                     children: [
                       Text(
                         l10n.networkTroubleshootingTitle,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                        style: context.typography.large.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const Gap(3),
                       Text(
                         l10n.networkOverallUnknownBody,
-                        style: TextStyle(fontSize: 13, color: cs.mutedForeground),
+                        style: context.typography.small.copyWith(color: cs.mutedForeground),
                       ),
                     ],
                   ),
@@ -486,7 +491,11 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
         ..add(const Gap(18))
         ..add(_GroupLabel(text: _groupLabel(l10n, group)))
         ..add(const Gap(8))
-        ..add(_Panel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _lastWithoutDivider(rows))));
+        ..add(
+          _Panel(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _lastWithoutDivider(rows)),
+          ),
+        );
     }
     return sections;
   }
@@ -568,33 +577,33 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            NetworkGauge(passed: passed, total: scored.length, color: arcColor),
-            const Gap(20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    result == null ? l10n.networkWatchTitle : _overallSentence(l10n, result.verdict),
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, letterSpacing: -0.01),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                NetworkGauge(passed: passed, total: scored.length, color: arcColor),
+                const Gap(20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        result == null ? l10n.networkWatchTitle : _overallSentence(l10n, result.verdict),
+                        style: context.typography.large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.01),
+                      ),
+                      const Gap(3),
+                      Text(
+                        result == null ? l10n.networkWatchEndsItself : _overallBody(l10n, result.verdict),
+                        style: context.typography.small.copyWith(color: cs.mutedForeground),
+                      ),
+                    ],
                   ),
-                  const Gap(3),
-                  Text(
-                    result == null ? l10n.networkWatchEndsItself : _overallBody(l10n, result.verdict),
-                    style: TextStyle(fontSize: 13, color: cs.mutedForeground),
-                  ),
-                ],
-              ),
+                ),
+                // Beside the sentence when there is room; underneath when there is
+                // not. The page is reachable on a phone, where a fixed row of
+                // buttons would simply be clipped off the edge.
+                if (!narrow) ...[const Gap(16), actions],
+              ],
             ),
-            // Beside the sentence when there is room; underneath when there is
-            // not. The page is reachable on a phone, where a fixed row of
-            // buttons would simply be clipped off the edge.
-            if (!narrow) ...[const Gap(16), actions],
-          ],
-        ),
             if (narrow) ...[const Gap(14), actions],
           ],
         ),
@@ -626,49 +635,49 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
         child: _RowOrColumn(
           narrow: _narrow(context),
           leading: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    passed ? l10n.networkFooterPassTitle : l10n.networkFooterTitle,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                  const Gap(2),
-                  Text(
-                    passed ? l10n.networkFooterPassBody : l10n.networkFooterBody,
-                    style: TextStyle(fontSize: 13, color: cs.mutedForeground),
-                  ),
-                ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                passed ? l10n.networkFooterPassTitle : l10n.networkFooterTitle,
+                style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
               ),
+              const Gap(2),
+              Text(
+                passed ? l10n.networkFooterPassBody : l10n.networkFooterBody,
+                style: context.typography.small.copyWith(color: cs.mutedForeground),
+              ),
+            ],
+          ),
           trailing: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Button.outline(
+                key: const ValueKey('network-copy'),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: result.toBundleString()));
+                  buildToast(title: l10n.networkTroubleshootResultsCopied);
+                },
+                child: Text(l10n.networkTroubleshootCopyResults),
+              ),
+              if (passed)
                 Button.outline(
-                  key: const ValueKey('network-copy'),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: result.toBundleString()));
-                    buildToast(title: l10n.networkTroubleshootResultsCopied);
-                  },
-                  child: Text(l10n.networkTroubleshootCopyResults),
+                  key: const ValueKey('network-get-help'),
+                  onPressed: () => _openSupport(context, result),
+                  child: Text(l10n.networkFooterGetHelp),
+                )
+              else
+                Button.outline(
+                  key: const ValueKey('network-send-support'),
+                  onPressed: () => _openSupport(context, result),
+                  child: Text(l10n.networkTroubleshootSendToSupport),
                 ),
-                if (passed)
-                  Button.outline(
-                    key: const ValueKey('network-get-help'),
-                    onPressed: () => _openSupport(context, result),
-                    child: Text(l10n.networkFooterGetHelp),
-                  )
-                else
-                  Button.outline(
-                    key: const ValueKey('network-send-support'),
-                    onPressed: () => _openSupport(context, result),
-                    child: Text(l10n.networkTroubleshootSendToSupport),
-                  ),
-                Button.ghost(
-                  onPressed: () => context.push(const LogViewer()),
-                  child: Text(l10n.logs),
-                ),
-              ],
-            ),
+              Button.ghost(
+                onPressed: () => context.push(const LogViewer()),
+                child: Text(l10n.logs),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -724,9 +733,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       ],
     ];
   }
-
 }
-
 
 /// Where a check would point a rider: at this machine, at their network, or at
 /// the hop between BikeControl and the trainer app.
@@ -772,7 +779,7 @@ class _GroupLabel extends StatelessWidget {
         Text(
           text.toUpperCase(),
           style: Theme.of(context).typography.mono.copyWith(
-            fontSize: 10,
+            fontSize: context.typography.caption.fontSize,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.4,
             color: cs.mutedForeground,
@@ -784,7 +791,6 @@ class _GroupLabel extends StatelessWidget {
     );
   }
 }
-
 
 /// Side by side when there is room, stacked when there is not.
 ///
@@ -810,7 +816,11 @@ class _RowOrColumn extends StatelessWidget {
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: leading), const Gap(12), trailing],
+      children: [
+        Expanded(child: leading),
+        const Gap(12),
+        trailing,
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -20,9 +21,11 @@ import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/lazy_async.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -34,7 +37,16 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
   /// "Show overlay during ride" switch.
   final bool revealOverlaySection;
 
-  const ProxyDeviceDetailsPage({super.key, required this.device, this.revealOverlaySection = false});
+  /// Scrolls to the resistance self-test after the first frame — the setup
+  /// guide's "Run the trainer check" lands here.
+  final bool revealSelfTest;
+
+  const ProxyDeviceDetailsPage({
+    super.key,
+    required this.device,
+    this.revealOverlaySection = false,
+    this.revealSelfTest = false,
+  });
 
   @override
   State<ProxyDeviceDetailsPage> createState() => _ProxyDeviceDetailsPageState();
@@ -44,6 +56,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   late StreamSubscription<BaseDevice> _connectionSub;
   final GlobalKey _overlaySectionKey = GlobalKey();
   final GlobalKey _settingsSectionKey = GlobalKey();
+  final GlobalKey _selfTestKey = GlobalKey();
 
   /// Mirrors the persisted flag so the x tap hides the card in the same
   /// frame instead of waiting on the prefs write; read once at init because
@@ -65,6 +78,22 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     if (widget.revealOverlaySection) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _revealOverlaySection());
     }
+    if (widget.revealSelfTest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _revealSelfTest());
+    }
+  }
+
+  void _revealSelfTest() {
+    final ctx = _selfTestKey.currentContext;
+    if (!mounted || ctx == null) return;
+    unawaited(
+      Scrollable.ensureVisible(
+        ctx,
+        duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      ),
+    );
   }
 
   /// Scrolls the Overlay section into view. No-op when the section isn't in
@@ -99,27 +128,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
 
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            AppLocalizations.of(context).smartTrainer,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
-          trailing: [
-            IconButton.ghost(
-              icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          backgroundColor: Theme.of(context).colorScheme.background,
-        ),
-        const Divider(),
+        BkPageHeader(title: AppLocalizations.of(context).smartTrainer),
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -145,6 +154,20 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   // re-inflated, which would reset ConnectionCard's accordion.
                   ConnectionCard(key: const ValueKey('connection-card'), device: device),
                   SizedBox(height: 12),
+                  // Checking comes before asking: the self-test answers "does
+                  // BikeControl control my trainer?" on its own, so it sits
+                  // above the card that routes to support.
+                  if (device.fitnessBike != null) ...[
+                    KeyedSubtree(
+                      key: _selfTestKey,
+                      child: SelfTestCard(
+                        key: const ValueKey('self-test'),
+                        device: device,
+                        onShowOverlaySettings: _revealOverlaySection,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                  ],
                   // Keyed for the same reason: dismissing it toggles a sibling
                   // right next to ConnectionCard.
                   if (!_needHelpDismissed) ...[
@@ -187,16 +210,10 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                   ),
                   SizedBox(height: 20),
                 ],
-                if (!screenshotMode && device.fitnessBike != null) ...[
-                  SelfTestCard(
-                    key: const ValueKey('self-test'),
-                    device: device,
-                    onShowOverlaySettings: _revealOverlaySection,
-                  ),
+                if (!debugHideMiniWorkoutCard) ...[
+                  MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
                   SizedBox(height: 20),
                 ],
-                MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
-                SizedBox(height: 20),
                 _settingsSection(),
                 SizedBox(height: 32),
                 _actions(),
@@ -231,7 +248,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     final device = widget.device;
     // Cheap, local (RepaintBoundary → PNG) — unlike debugText() below, worth
     // paying up front rather than deferring.
-    final screenshot = await captureOverviewScreenshot(context: context);
+    final screenshot = await captureCurrentScreenScreenshot(context);
     if (!mounted) return;
     // Lazy + memoized: the Help Center is now an intermediate stop the rider
     // can bounce off without ever opening the chat, so debugText() (a real
@@ -276,11 +293,11 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 18),
+          const Icon(LucideIcons.triangleAlert, color: Colors.orange, size: 18),
           Expanded(
             child: Text(
               AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),
-              style: TextStyle(fontSize: 12, color: cs.foreground),
+              style: context.typography.xSmall.copyWith(color: cs.foreground),
             ),
           ),
         ],
@@ -337,7 +354,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       children: [
         Text(
           AppLocalizations.of(context).virtualShiftingSettings,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+          style: context.typography.large.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
         ),
         TrainerSettingsSection(definition: def, device: widget.device),
         KeyedSubtree(

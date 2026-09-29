@@ -8,6 +8,7 @@
 // /blog/:slug, and the tutorials the row promises ARE blog posts (see the
 // "Blog-derived seeds" comment on guides_videos_section.dart's tests /
 // the seed migration), so it now points at /blog.
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -38,9 +39,9 @@ class GuidesVideosSection extends StatelessWidget {
           style: rowStyle,
           onPressed: () => launchUrlString(article.url),
           child: Basic(
-            leading: const Icon(Icons.menu_book_outlined, size: 18),
+            leading: const Icon(LucideIcons.bookOpen, size: 18),
             title: Text(article.label),
-            trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),
       Button.ghost(
@@ -52,9 +53,9 @@ class GuidesVideosSection extends StatelessWidget {
         // the website has one.
         onPressed: () => launchUrlString('https://bikecontrol.app/blog'),
         child: Basic(
-          leading: const Icon(Icons.play_circle_outline, size: 18),
-          title: const Text('Tutorials'),
-          trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+          leading: const Icon(LucideIcons.circlePlay, size: 18),
+          title: Text(AppLocalizations.of(context).tutorials),
+          trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
         ),
       ),
       Button.ghost(
@@ -67,9 +68,9 @@ class GuidesVideosSection extends StatelessWidget {
           );
         },
         child: Basic(
-          leading: const Icon(Icons.ondemand_video, size: 18),
-          title: const Text('Instruction Videos'),
-          trailing: const Icon(Icons.chevron_right, size: 16).iconMutedForeground,
+          leading: const Icon(LucideIcons.monitorPlay, size: 18),
+          title: Text(AppLocalizations.of(context).instructionVideos),
+          trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
         ),
       ),
     ];

@@ -1,7 +1,9 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_md/flutter_md.dart';
@@ -85,11 +87,8 @@ class _ChangelogPageState extends State<MarkdownPage> {
                         content: MarkdownWidget(
                           markdown: group.markdown,
                           theme: MarkdownThemeData(
-                            textStyle: TextStyle(
-                              fontSize: 14.0,
-                              color: Theme.of(context).colorScheme.brightness == Brightness.dark
-                                  ? Colors.white.withAlpha(255 * 70)
-                                  : Colors.black.withAlpha(87 * 255),
+                            textStyle: context.typography.small.copyWith(
+                              color: Theme.of(context).colorScheme.foreground,
                             ),
                             onLinkTap: (title, url) {
                               launchUrlString(url);
@@ -172,9 +171,9 @@ class _ChangelogPageState extends State<MarkdownPage> {
 
   List<_InstructionOption> _buildInstructionOptions() {
     final options = <_InstructionOption>[
-      _InstructionOption(label: 'Q&A', assetPath: _troubleshootingPath),
+      _InstructionOption(label: AppLocalizations.current.instructionsQa, assetPath: _troubleshootingPath),
       _InstructionOption(label: 'MyWhoosh Link', assetPath: _myWhooshLinkPath),
-      _InstructionOption(label: 'Remote Control', assetPath: _remoteControlPath),
+      _InstructionOption(label: AppLocalizations.current.remoteControl, assetPath: _remoteControlPath),
     ];
 
     final platformSupportsLocal =
@@ -184,7 +183,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
             defaultTargetPlatform == TargetPlatform.windows);
 
     if (platformSupportsLocal) {
-      options.add(_InstructionOption(label: 'Local', assetPath: _localPath));
+      options.add(_InstructionOption(label: AppLocalizations.current.onboardingMethodLocal, assetPath: _localPath));
     }
 
     final trainerApp = core.settings.getTrainerApp();

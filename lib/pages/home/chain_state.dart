@@ -88,6 +88,10 @@ enum SetupStepVariant {
   /// pairing on the same screen, and the most common support case is a rider
   /// who never learned there were two.
   controllerLinkMissing,
+
+  /// [SetupStepId.controllerUnlocked] for a Zwift Ride V2: the hint names the
+  /// Ride V2 instead of the Click V2.
+  zwiftRideV2,
 }
 
 /// One line of a card's checklist.

@@ -78,12 +78,9 @@ class WheeltopEds extends BluetoothDevice {
   List<Widget> showAdditionalInformation(BuildContext context) {
     return [
       if (batteryCentivolts != null)
-        Text('Shifter battery: ${(batteryCentivolts! / 100).toStringAsFixed(2)} V').xSmall,
+        Text(AppLocalizations.current.wheeltopShifterBattery((batteryCentivolts! / 100).toStringAsFixed(2))).xSmall,
       Text(AppLocalizations.current.wheeltopClaimedByDerailleurHint).xSmall,
-      const Text(
-        'Slide switch on R: top/bottom buttons shift. Slide switch on T: the buttons become '
-        'two extra assignable buttons.',
-      ).xSmall,
+      Text(AppLocalizations.current.wheeltopSlideSwitchHint).xSmall,
     ];
   }
 
@@ -108,8 +105,7 @@ class WheeltopEds extends BluetoothDevice {
         firmware =
             '${adv[WheeltopEdsConstants.ADV_FIRMWARE_INDEX]}.${adv[WheeltopEdsConstants.ADV_FIRMWARE_INDEX + 1]}';
         centivolts =
-            (adv[WheeltopEdsConstants.ADV_BATTERY_INDEX] << 8) |
-            adv[WheeltopEdsConstants.ADV_BATTERY_INDEX + 1];
+            (adv[WheeltopEdsConstants.ADV_BATTERY_INDEX] << 8) | adv[WheeltopEdsConstants.ADV_BATTERY_INDEX + 1];
       }
       return WheeltopEds(
         scanResult,
@@ -321,9 +317,7 @@ class WheeltopEds extends BluetoothDevice {
   ///   why the 3-byte XOR shape alone looked sufficient before TX hardware
   ///   reports.
   static int? _validatedOpcode(Uint8List bytes) {
-    if (bytes.length == 3 &&
-        bytes[0] == WheeltopEdsConstants.PACKET_PREFIX &&
-        bytes[2] == (bytes[0] ^ bytes[1])) {
+    if (bytes.length == 3 && bytes[0] == WheeltopEdsConstants.PACKET_PREFIX && bytes[2] == (bytes[0] ^ bytes[1])) {
       return bytes[1];
     }
     if (bytes.length == 4 &&

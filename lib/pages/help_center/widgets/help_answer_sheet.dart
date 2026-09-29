@@ -12,6 +12,7 @@
 // underneath a still-visible sheet (matches the same file's "Dismiss the
 // sheet first ... the page must not open underneath a still-visible sheet"
 // idiom for `NetworkTroubleshootingPage`/support chat).
+import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart' show StageBadge;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -45,12 +46,13 @@ Future<void> openHelpAnswerSheet(
   required IconData icon,
   required String title,
   required String body,
+  List<HelpCheck> checks = const [],
   List<HelpAnswerAction> actions = const [],
 }) {
   return openSheet<void>(
     context: context,
     position: OverlayPosition.bottom,
-    builder: (sheetContext) => HelpAnswerSheet(icon: icon, title: title, body: body, actions: actions),
+    builder: (sheetContext) => HelpAnswerSheet(icon: icon, title: title, body: body, checks: checks, actions: actions),
   );
 }
 
@@ -58,6 +60,10 @@ class HelpAnswerSheet extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+
+  /// Numbered checks shown under [body], for answers that are a sequence of
+  /// things to try.
+  final List<HelpCheck> checks;
   final List<HelpAnswerAction> actions;
 
   const HelpAnswerSheet({
@@ -65,6 +71,7 @@ class HelpAnswerSheet extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.body,
+    this.checks = const [],
     this.actions = const [],
   });
 
@@ -92,6 +99,7 @@ class HelpAnswerSheet extends StatelessWidget {
                 Text(title).h4,
                 const Gap(8),
                 Text(body).small.muted,
+                if (checks.isNotEmpty) ...[const Gap(12), HelpCheckList(checks: _closingFirst(context, checks))],
                 if (actions.isNotEmpty) ...[
                   const Gap(16),
                   for (final action in actions)
@@ -105,7 +113,7 @@ class HelpAnswerSheet extends StatelessWidget {
                             Icon(action.icon, size: 18),
                             const Gap(12),
                             Expanded(child: Text(action.label).small.semiBold),
-                            Icon(action.url != null ? LucideIcons.externalLink : Icons.chevron_right, size: 14),
+                            Icon(action.url != null ? LucideIcons.externalLink : LucideIcons.chevronRight, size: 14),
                           ],
                         ),
                       ),
@@ -127,6 +135,24 @@ class HelpAnswerSheet extends StatelessWidget {
       ),
     );
   }
+
+  /// A check's in-app action closes the sheet before it navigates, like
+  /// [HelpAnswerAction.navigate].
+  static List<HelpCheck> _closingFirst(BuildContext context, List<HelpCheck> checks) => [
+    for (final check in checks)
+      if (check.onAction case final onAction? when check.actionLabel != null && check.actionIcon != null)
+        check.withAction(
+          key: check.actionKey,
+          label: check.actionLabel!,
+          icon: check.actionIcon!,
+          onPressed: () {
+            closeSheet(context);
+            onAction();
+          },
+        )
+      else
+        check,
+  ];
 
   void _run(BuildContext context, HelpAnswerAction action) {
     final url = action.url;

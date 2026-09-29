@@ -25,10 +25,20 @@ List<ChainLink> buildChain(ChainInputs inputs) {
 /// not mid-failure — but its card still shows amber.
 bool _isPresent(DevicePresence presence) => presence == DevicePresence.connected;
 
+/// A device that is on its way in rather than gone: mid-reboot after an
+/// automatic reset, or mid-connect. Neither may be swiped away — the gesture
+/// would land on a card that is about to go green, and the dismissal would
+/// read as the rider's decision.
+bool _isArriving(DevicePresence presence) =>
+    presence == DevicePresence.resetting || presence == DevicePresence.connecting;
+
 /// Maps presence onto the status of a link whose setup is otherwise complete.
 LinkStatus _presenceStatus(DevicePresence presence) => switch (presence) {
   DevicePresence.connected => LinkStatus.ready,
   DevicePresence.resetting => LinkStatus.attention,
+  // Still on its way in. Amber says "working on it"; red would accuse a
+  // connect that is going fine of having broken.
+  DevicePresence.connecting => LinkStatus.attention,
   DevicePresence.lost => LinkStatus.problem,
   DevicePresence.remembered => LinkStatus.attention,
   // Never connected is "not set up", not "something broke".
@@ -102,6 +112,7 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
                 done: controller.unlocked!,
                 hintArg: controller.unlockedUntil,
                 uncertain: controller.unlockUncertain,
+                variant: controller.unlockIsRideV2 ? SetupStepVariant.zwiftRideV2 : SetupStepVariant.standard,
               ),
             // An offer, not work: once the derailleur's config has been updated
             // its own shifting is off, and the rider can hand it back at any
@@ -139,7 +150,7 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
       deviceId: controller.deviceId,
       // Only an absent device may be swiped away. Dismissing a live controller
       // would be a destructive accident, so the gesture simply isn't there.
-      dismissible: !inRange && controller.presence != DevicePresence.resetting,
+      dismissible: !inRange && !_isArriving(controller.presence),
     );
   }).toList();
 }
@@ -224,7 +235,7 @@ ChainLink _trainerLink(ChainInputs inputs) {
     // whole link is green would hide something true and useful.
     subtitleArg: trainer.metrics,
     deviceId: trainer.deviceId,
-    dismissible: !paired && trainer.presence != DevicePresence.resetting,
+    dismissible: !paired && !_isArriving(trainer.presence),
   );
 }
 

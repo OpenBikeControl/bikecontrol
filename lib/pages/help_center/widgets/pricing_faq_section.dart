@@ -113,7 +113,7 @@ class _FaqRow extends StatelessWidget {
           child: Basic(
             title: Text(item.question),
             trailing: Icon(
-              expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              expanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
               size: 18,
             ).iconMutedForeground,
           ),

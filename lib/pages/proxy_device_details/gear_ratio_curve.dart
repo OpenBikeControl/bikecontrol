@@ -1,4 +1,5 @@
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -71,8 +72,7 @@ class GearRatioCurveView extends StatelessWidget {
             children: [
               Text(
                 l10n.ratioCurveLabel,
-                style: TextStyle(
-                  fontSize: 10,
+                style: context.typography.caption.copyWith(
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1,
                   color: cs.mutedForeground,
@@ -84,12 +84,12 @@ class GearRatioCurveView extends StatelessWidget {
                 children: [
                   Text(
                     ratios.first.toStringAsFixed(2),
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                    style: context.typography.caption.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
                   ),
                   Icon(LucideIcons.arrowRight, size: 10, color: cs.mutedForeground),
                   Text(
                     ratios.last.toStringAsFixed(2),
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                    style: context.typography.caption.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
                   ),
                 ],
               ),
@@ -133,8 +133,10 @@ class GearRatioCurveView extends StatelessWidget {
                 spacing: 4,
                 children: [
                   Icon(LucideIcons.circleChevronLeft, size: 12, color: cs.mutedForeground),
-                  Text(l10n.easier,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground)),
+                  Text(
+                    l10n.easier,
+                    style: context.typography.caption.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                  ),
                 ],
               ),
               Container(
@@ -142,15 +144,17 @@ class GearRatioCurveView extends StatelessWidget {
                 decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(999)),
                 child: Text(
                   '${l10n.gearNumber(gear)} · ${currentRatio.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.primaryForeground),
+                  style: context.typography.caption.copyWith(fontWeight: FontWeight.w700, color: cs.primaryForeground),
                 ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 spacing: 4,
                 children: [
-                  Text(l10n.harder,
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: cs.mutedForeground)),
+                  Text(
+                    l10n.harder,
+                    style: context.typography.caption.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
+                  ),
                   Icon(LucideIcons.circleChevronRight, size: 12, color: cs.mutedForeground),
                 ],
               ),

@@ -1,7 +1,11 @@
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -136,15 +140,39 @@ Widget onboardingTrainerBody(BuildContext context,
   }
 
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-    Text(context.i18n.onboardingTrainerTitle).h4,
+    // The PRO badge sits on the title itself: this is the Pro feature, and
+    // the rider should know before connecting a trainer, not at the paywall.
+    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: Text(context.i18n.onboardingTrainerTitle).h4),
+      Gap(10),
+      const Padding(padding: EdgeInsets.only(top: 4), child: ProBadge()),
+    ]),
     Gap(6),
     Text(context.i18n.onboardingTrainerSubtitle).small.muted,
     Gap(16),
-    // What Virtual Shifting does, animated in the widgets it actually does it
-    // with, instead of three lines of copy claiming the same thing.
-    const VirtualShiftingStage(),
-    Gap(14),
-    _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+    // Once a trainer is found, connecting it is the step's job: the list
+    // (with Connect) moves above the animation so it is on the first screen.
+    if (trainers.isNotEmpty) ...[
+      OnboardingNote(
+        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        icon: LucideIcons.award,
+      ),
+      Gap(10),
+      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+      Gap(14),
+      const VirtualShiftingStage(),
+    ] else ...[
+      // What Virtual Shifting does, animated in the widgets it actually does
+      // it with, instead of three lines of copy claiming the same thing.
+      const VirtualShiftingStage(),
+      Gap(14),
+      OnboardingNote(
+        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        icon: LucideIcons.award,
+      ),
+      Gap(10),
+      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
+    ],
     Gap(10),
     Button.ghost(
       onPressed: () => launchUrlString('https://bikecontrol.app/blog/virtual-shifting-with-and-without-bikecontrol/', mode: LaunchMode.externalApplication),
@@ -200,8 +228,9 @@ class _ScanCard extends StatelessWidget {
                 ]),
               ),
               if (onRescan != null)
-                IconButton.ghost(
+                BkIconButton.ghost(
                   icon: Icon(LucideIcons.refreshCw, size: 15),
+                  label: context.i18n.a11yRefresh,
                   onPressed: onRescan,
                 ),
             ]),
@@ -252,7 +281,7 @@ class _Radar extends StatefulWidget {
 class _RadarState extends State<_Radar> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
 
-  bool get _still => screenshotMode || MediaQuery.of(context).disableAnimations;
+  bool get _still => screenshotMotionPinned || MediaQuery.of(context).disableAnimations;
 
   @override
   void didChangeDependencies() {

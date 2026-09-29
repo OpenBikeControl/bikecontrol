@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../main.dart';
@@ -25,7 +26,7 @@ class DeviceInfo extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: TextStyle(fontSize: 12),
+                style: context.typography.xSmall,
               ),
               ?additionalInfo,
             ],
@@ -33,7 +34,7 @@ class DeviceInfo extends StatelessWidget {
           trailingAlignment: Alignment.centerRight,
           trailing: Icon(
             icon,
-            color: icon == Icons.warning || icon == Icons.battery_alert
+            color: icon == LucideIcons.triangleAlert || icon == LucideIcons.batteryWarning
                 ? Theme.of(context).colorScheme.destructive
                 : null,
           ),

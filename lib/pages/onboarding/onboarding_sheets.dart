@@ -14,23 +14,32 @@ import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 ({String title, String body}) _stepHelp(BuildContext context, OnboardingStep step) => switch (step) {
-      OnboardingStep.app => (title: context.i18n.onboardingHelpAppTitle, body: context.i18n.onboardingHelpAppBody),
-      OnboardingStep.where => (title: context.i18n.onboardingHelpWhereTitle, body: context.i18n.onboardingHelpWhereBody),
-      OnboardingStep.controller =>
-        (title: context.i18n.onboardingHelpControllerTitle, body: context.i18n.onboardingHelpControllerBody),
-      OnboardingStep.virtualShifting => (title: context.i18n.onboardingHelpVsTitle, body: context.i18n.onboardingHelpVsBody),
-      OnboardingStep.connection =>
-        (title: context.i18n.onboardingHelpConnectionTitle, body: context.i18n.onboardingHelpConnectionBody),
-      // Pro riders have no test-mode limits — answer the question they'd
-      // actually have on the final step instead.
-      OnboardingStep.done => IAPManager.instance.isPurchased.value
-          ? (title: context.i18n.onboardingHelpDoneProTitle, body: context.i18n.onboardingHelpDoneProBody)
-          : (title: context.i18n.onboardingHelpDoneTitle, body: context.i18n.onboardingHelpDoneBody),
-    };
+  OnboardingStep.app => (title: context.i18n.onboardingHelpAppTitle, body: context.i18n.onboardingHelpAppBody),
+  OnboardingStep.where => (title: context.i18n.onboardingHelpWhereTitle, body: context.i18n.onboardingHelpWhereBody),
+  OnboardingStep.controller => (
+    title: context.i18n.onboardingHelpControllerTitle,
+    body: context.i18n.onboardingHelpControllerBody,
+  ),
+  OnboardingStep.virtualShifting => (
+    title: context.i18n.onboardingHelpVsTitle,
+    body: context.i18n.onboardingHelpVsBody,
+  ),
+  OnboardingStep.connection => (
+    title: context.i18n.onboardingHelpConnectionTitle,
+    body: context.i18n.onboardingHelpConnectionBody,
+  ),
+  // Pro riders have no test-mode limits — answer the question they'd
+  // actually have on the final step instead.
+  OnboardingStep.done =>
+    IAPManager.instance.isPurchased.value
+        ? (title: context.i18n.onboardingHelpDoneProTitle, body: context.i18n.onboardingHelpDoneProBody)
+        : (title: context.i18n.onboardingHelpDoneTitle, body: context.i18n.onboardingHelpDoneBody),
+};
 
 Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep step, required VoidCallback onClose}) {
   final h = _stepHelp(context, step);
@@ -92,7 +101,11 @@ Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep st
             launchUrlString(article.url, mode: LaunchMode.externalApplication);
           } else {
             onClose();
-            openDrawer(context: context, position: OverlayPosition.bottom, builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'));
+            openDrawer(
+              context: context,
+              position: OverlayPosition.bottom,
+              builder: (c) => MarkdownPage(assetPath: 'TROUBLESHOOTING.md'),
+            );
           }
         },
       ),
@@ -107,25 +120,39 @@ Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep st
       if (core.logic.hasNetworkMethodEnabled)
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
-          child: Button.outline(
-            onPressed: () {
-              // Dismiss the sheet first, as _openSupportChat does — the page
-              // must not open underneath a still-visible sheet. Synchronous,
-              // so `context` is still mounted for the push.
-              onClose();
-              context.push(const NetworkTroubleshootingPage());
-            },
-            child: Text(context.i18n.networkTroubleshootingTitle),
+          child: BkTouchTarget(
+            child: Button.outline(
+              alignment: Alignment.center,
+              onPressed: () {
+                // Dismiss the sheet first, as _openSupportChat does — the page
+                // must not open underneath a still-visible sheet. Synchronous,
+                // so `context` is still mounted for the push.
+                onClose();
+                context.push(const NetworkTroubleshootingPage());
+              },
+              child: Text(context.i18n.networkTroubleshootingTitle),
+            ),
           ),
         ),
       _channel(
         context,
-        icon: LucideIcons.mail,
+        icon: LucideIcons.messageCircle,
         title: context.i18n.onboardingHelpSupport,
+        // The in-app support chat, not a mail client or a web page.
+        external: false,
         onTap: () => _openSupportChat(context, onClose),
       ),
       Gap(16),
-      Align(alignment: Alignment.centerRight, child: PrimaryButton(onPressed: onClose, child: Text(context.i18n.onboardingHelpBackToSetup))),
+      Align(
+        alignment: Alignment.centerRight,
+        child: BkTouchTarget(
+          child: PrimaryButton(
+            alignment: Alignment.center,
+            onPressed: onClose,
+            child: Text(context.i18n.onboardingHelpBackToSetup),
+          ),
+        ),
+      ),
     ],
   );
 }
@@ -137,7 +164,7 @@ Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep st
 /// session, so no extra guard is needed here.
 Future<void> _openSupportChat(BuildContext context, VoidCallback onClose) async {
   try {
-    final screenshot = await captureOverviewScreenshot(context: context);
+    final screenshot = await captureCurrentScreenScreenshot(context);
     // Gather diagnostics in the background so the chat opens immediately; the
     // page awaits this future lazily for the preview and at send time (it
     // resolves once and is reused).
@@ -158,7 +185,15 @@ Future<void> _openSupportChat(BuildContext context, VoidCallback onClose) async 
   }
 }
 
-Widget _channel(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+/// [external] marks a channel that leaves the app (a web page): it gets the
+/// external-link mark. In-app destinations get a plain chevron.
+Widget _channel(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+  bool external = true,
+}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Button.card(
@@ -168,7 +203,7 @@ Widget _channel(BuildContext context, {required IconData icon, required String t
           Icon(icon, size: 18),
           Gap(12),
           Expanded(child: Text(title).small.semiBold),
-          Icon(LucideIcons.externalLink, size: 14),
+          Icon(external ? LucideIcons.externalLink : LucideIcons.chevronRight, size: 14),
         ],
       ),
     ),
@@ -186,7 +221,11 @@ Future<void> openOnboardingHelpSheet(BuildContext context, OnboardingStep step) 
   );
 }
 
-Widget permissionDeniedSheetBody(BuildContext context, {required VoidCallback onContinueAnyway, required VoidCallback onAllow}) {
+Widget permissionDeniedSheetBody(
+  BuildContext context, {
+  required VoidCallback onContinueAnyway,
+  required VoidCallback onAllow,
+}) {
   final reduceMotion = MediaQuery.of(context).disableAnimations;
   return Column(
     mainAxisSize: MainAxisSize.min,
@@ -206,9 +245,21 @@ Widget permissionDeniedSheetBody(BuildContext context, {required VoidCallback on
       Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          GhostButton(onPressed: onContinueAnyway, child: Text(context.i18n.onboardingContinueAnyway)),
+          BkTouchTarget(
+            child: GhostButton(
+              alignment: Alignment.center,
+              onPressed: onContinueAnyway,
+              child: Text(context.i18n.onboardingContinueAnyway),
+            ),
+          ),
           Gap(10),
-          PrimaryButton(onPressed: onAllow, child: Text(context.i18n.onboardingAllowBluetooth)),
+          BkTouchTarget(
+            child: PrimaryButton(
+              alignment: Alignment.center,
+              onPressed: onAllow,
+              child: Text(context.i18n.onboardingAllowBluetooth),
+            ),
+          ),
         ],
       ),
     ],

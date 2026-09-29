@@ -1,3 +1,4 @@
+import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -38,13 +39,16 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     // one comes back tomorrow.
     SetupStepId.controllerUnlocked => step.done
         ? ChainStepText(
-            step.hintArg == null
+            step.hintArg == null || screenshotMode
                 ? l.chainStepUnlocked
                 : step.uncertain
                 ? l.chainStepUnlockedLikelyUntil(step.hintArg!)
                 : l.chainStepUnlockedUntil(step.hintArg!),
           )
-        : ChainStepText(l.chainStepUnlockedPending, l.chainStepUnlockedHint),
+        : ChainStepText(
+            l.chainStepUnlockedPending,
+            step.variant == SetupStepVariant.zwiftRideV2 ? l.chainStepUnlockedHintRideV2 : l.chainStepUnlockedHint,
+          ),
     // Only ever emitted while outstanding — once the rider has chosen, the step
     // disappears rather than sitting ticked forever on every Click V2 card.
     SetupStepId.controllerClickV2Setup => ChainStepText(

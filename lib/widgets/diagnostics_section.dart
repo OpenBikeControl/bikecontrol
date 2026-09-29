@@ -1,4 +1,8 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/services/debug_diagnostics.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/material.dart' show SelectionArea;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -27,12 +31,13 @@ class DiagnosticsSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Diagnostics').bold,
+              Text(AppLocalizations.of(context).diagnosticsTitle).bold,
               Row(
                 children: [
-                  if (scanning) Text('scanning…').muted,
-                  IconButton.ghost(
+                  if (scanning) Text(AppLocalizations.of(context).diagnosticsScanning).muted,
+                  BkIconButton.ghost(
                     key: const ValueKey('diagnostics-refresh'),
+                    label: context.i18n.a11yRefresh,
                     icon: Icon(LucideIcons.refreshCw, size: 18),
                     onPressed: scanning ? null : onRefresh,
                   ),
@@ -51,10 +56,9 @@ class DiagnosticsSection extends StatelessWidget {
                     width: double.infinity,
                     child: Text(
                       diag.toText(),
-                      style: const TextStyle(
+                      style: context.typography.caption.copyWith(
                         fontFamily: 'monospace',
                         fontFamilyFallback: ['Courier'],
-                        fontSize: 11,
                       ),
                     ),
                   ),
@@ -62,7 +66,7 @@ class DiagnosticsSection extends StatelessWidget {
               ),
             )
           else if (!scanning)
-            Text('No diagnostics yet').muted,
+            Text(AppLocalizations.of(context).noDiagnosticsYet).muted,
         ],
       ),
     );

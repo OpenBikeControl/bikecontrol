@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -31,7 +32,7 @@ class BleHeartRateDevice extends BluetoothDevice with Accessory, BleSensorDevice
       // persisted per-quantity selection is keyed on. The advertised name is
       // not — straps rename themselves after a firmware update.
       id: device.deviceId,
-      displayName: device.name ?? 'Heart rate monitor',
+      displayName: device.name ?? AppLocalizations.current.sensorKindHeartRateMonitor,
       provides: const {SensorQuantity.heartRate},
     );
   }

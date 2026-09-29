@@ -1,6 +1,9 @@
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/material.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 
 class IgnoredDevicesDialog extends StatefulWidget {
   const IgnoredDevicesDialog({super.key});
@@ -56,11 +59,11 @@ class _IgnoredDevicesDialogState extends State<IgnoredDevicesDialog> {
                     title: Text(device.name),
                     subtitle: Text(
                       device.id,
-                      style: TextStyle(fontSize: 12),
+                      style: context.typography.xSmall,
                     ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete_outline),
-                      tooltip: context.i18n.removeFromIgnoredList,
+                    trailing: BkIconButton.ghost(
+                      icon: Icon(LucideIcons.trash2),
+                      label: context.i18n.removeFromIgnoredList,
                       onPressed: () => _removeDevice(device.id),
                     ),
                   );

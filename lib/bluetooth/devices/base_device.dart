@@ -14,6 +14,7 @@ import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart' show LogLevel;
@@ -559,7 +560,7 @@ abstract class BaseDevice {
                       children: [
                         Text(
                           displayName(context),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+                          style: context.typography.base.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
                         ),
                         if (badge != null) badge,
                         if (isBeta) BetaPill(),

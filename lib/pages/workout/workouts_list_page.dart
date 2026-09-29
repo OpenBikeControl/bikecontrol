@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -5,6 +7,7 @@ import 'package:bike_control/services/workout/past_workout.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/units.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -60,12 +63,13 @@ class _WorkoutsListState extends State<WorkoutsList> {
                     Expanded(
                       child: Text(
                         l10n.miniWorkoutPastWorkouts,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
                     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux))
-                      IconButton.ghost(
+                      BkIconButton.ghost(
                         icon: const Icon(LucideIcons.folder, size: 18),
+                        label: context.i18n.miniWorkoutOpenFolder,
                         onPressed: () async {
                           final dir = await core.workoutRepository.rootDirectory();
                           await launchUrl(Uri.file(dir.path));
@@ -80,12 +84,16 @@ class _WorkoutsListState extends State<WorkoutsList> {
                 child: Center(child: Text(l10n.miniWorkoutNoPastWorkouts)),
               )
             else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: items.length,
-                separatorBuilder: (_, _) => const Divider(thickness: 0.5),
-                itemBuilder: (context, i) => _row(items[i], l10n),
+              // Scrolls inside the sheet it lives in (which has no scroll view
+              // of its own) instead of running off its bottom; shrink-wrapped
+              // so a short history still gets a short sheet.
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const Divider(thickness: 0.5),
+                  itemBuilder: (context, i) => _row(items[i], l10n),
+                ),
               ),
           ],
         );
@@ -96,8 +104,10 @@ class _WorkoutsListState extends State<WorkoutsList> {
   Widget _row(PastWorkout w, AppLocalizations l10n) {
     final cs = Theme.of(context).colorScheme;
     final summary = w.summary;
-    return Button.ghost(
-      onPressed: () {}, // row tap reserved for future detail view
+    // Not a button until there is a detail view to open: a row that looks
+    // tappable and does nothing reads as broken.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
           Expanded(
@@ -113,16 +123,18 @@ class _WorkoutsListState extends State<WorkoutsList> {
                     children: _summaryChips(summary, cs),
                   )
                 else
-                  Text(w.fileName, style: TextStyle(fontSize: 11, color: cs.mutedForeground)),
+                  Text(w.fileName, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
               ],
             ),
           ),
-          IconButton.ghost(
+          BkIconButton.ghost(
             icon: const Icon(LucideIcons.share2, size: 18),
+            label: context.i18n.share,
             onPressed: () => SharePlus.instance.share(ShareParams(files: [XFile(w.file.path)])),
           ),
-          IconButton.ghost(
+          BkIconButton.ghost(
             icon: const Icon(LucideIcons.trash, size: 18),
+            label: context.i18n.delete,
             onPressed: () => _confirmDelete(w, l10n),
           ),
         ],
@@ -136,7 +148,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
       children: [
         Icon(icon, size: 11, color: cs.mutedForeground),
         const Gap(4),
-        Text(label, style: TextStyle(fontSize: 11, color: cs.mutedForeground)),
+        Text(label, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
       ],
     );
 

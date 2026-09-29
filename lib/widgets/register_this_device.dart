@@ -9,7 +9,7 @@ import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
-import 'package:prop/prop.dart' show LogLevel;
+import 'package:prop/prop.dart' show LogLevel, Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Registers this device for the account's Pro subscription — the same call
@@ -18,15 +18,28 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 ///
 /// A platform at its device limit needs a decision (which device to revoke),
 /// so that case opens the Registered Devices view instead of just failing.
-Future<bool> registerThisDevice(BuildContext context) async {
+///
+/// [onDeviceLimit], when given, takes over the limit case (the post-purchase
+/// dialog swaps itself for the device-limit dialog rather than stacking the
+/// devices view on top). [registerCall] replaces the registration in tests.
+Future<bool> registerThisDevice(
+  BuildContext context, {
+  void Function(DeviceLimitReachedError error)? onDeviceLimit,
+  Future<void> Function()? registerCall,
+}) async {
   final iap = IAPManager.instance;
   try {
-    await iap.registerCurrentDevice();
+    await (registerCall ?? iap.registerCurrentDevice)();
   } on DeviceLimitReachedError catch (e, s) {
+    if (onDeviceLimit != null) {
+      Logger.warn('Register this device: $e');
+      onDeviceLimit(e);
+      return false;
+    }
     recordError(e, s, context: 'Register this device: limit reached');
     buildToast(
       level: LogLevel.LOGLEVEL_WARNING,
-      title: AppLocalizations.current.deviceLimitReached(e.platform.capitalize().replaceAll('os', 'OS')),
+      title: AppLocalizations.current.deviceLimitReached(devicePlatformLabel(e.platform)),
     );
     // Not awaited: the view stays open until the rider is done with it, and
     // the button that started this should not sit on its spinner meanwhile.
@@ -39,6 +52,16 @@ Future<bool> registerThisDevice(BuildContext context) async {
   }
   return iap.isProEnabledForCurrentDevice;
 }
+
+/// A device platform id ("ios", "macos") as riders write it.
+String devicePlatformLabel(String platform) => switch (platform.toLowerCase()) {
+  'ios' => 'iOS',
+  'macos' => 'macOS',
+  'android' => 'Android',
+  'windows' => 'Windows',
+  'web' => 'Web',
+  _ => platform.capitalize(),
+};
 
 /// Opens the Subscription page on its Registered Devices view: as a drawer
 /// where a Scaffold's DrawerOverlay is in scope, else as a dialog — a
@@ -84,7 +107,7 @@ class RegisterThisDeviceButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isLoading) const SmallProgressIndicator() else const Icon(Icons.devices, size: 16),
+            if (isLoading) const SmallProgressIndicator() else const Icon(LucideIcons.monitorSmartphone, size: 16),
             const SizedBox(width: 8),
             Text(AppLocalizations.of(context).registerThisDevice),
           ],

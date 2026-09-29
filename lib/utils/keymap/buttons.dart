@@ -12,40 +12,45 @@ import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 enum InGameAction {
-  shiftUp('Shift Up', icon: BootstrapIcons.patchPlus),
-  shiftDown('Shift Down', icon: BootstrapIcons.patchMinus),
-  uturn('U-Turn', alternativeTitle: 'Down', icon: BootstrapIcons.arrowDownUp),
-  tuck('Tuck', icon: BootstrapIcons.speedometer),
-  steerLeft('Steer Left', alternativeTitle: 'Left', icon: RadixIcons.doubleArrowLeft, isLongPress: true),
-  steerRight('Steer Right', alternativeTitle: 'Right', icon: RadixIcons.doubleArrowRight, isLongPress: true),
+  shiftUp('Shift Up', icon: LucideIcons.badgePlus),
+  shiftDown('Shift Down', icon: LucideIcons.badgeMinus),
+  uturn('U-Turn', alternativeTitle: 'Down', icon: LucideIcons.arrowDownUp),
+  tuck('Tuck', icon: LucideIcons.gauge),
+  steerLeft('Steer Left', alternativeTitle: 'Left', icon: LucideIcons.chevronsLeft, isLongPress: true),
+  steerRight('Steer Right', alternativeTitle: 'Right', icon: LucideIcons.chevronsRight, isLongPress: true),
 
   // mywhoosh
-  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: BootstrapIcons.cameraReels),
-  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6], icon: BootstrapIcons.emojiSmile),
-  toggleUi('Toggle UI', icon: RadixIcons.iconSwitch),
-  navigateLeft('Navigate Left', icon: BootstrapIcons.signTurnLeft),
-  navigateRight('Navigate Right', icon: BootstrapIcons.signTurnRight),
+  cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: LucideIcons.video),
+  emote('Emote', possibleValues: [1, 2, 3, 4, 5, 6], icon: LucideIcons.smile),
+  toggleUi('Toggle UI', icon: LucideIcons.toggleLeft),
+  navigateLeft('Navigate Left', icon: LucideIcons.cornerUpLeft),
+  navigateRight('Navigate Right', icon: LucideIcons.cornerUpRight),
   increaseResistance('Increase Resistance', icon: LucideIcons.chartNoAxesColumnIncreasing),
   decreaseResistance('Decrease Resistance', icon: LucideIcons.chartNoAxesColumnDecreasing),
 
   // zwift
-  openActionBar('Open Action Bar', alternativeTitle: 'Up', icon: BootstrapIcons.menuApp, isLongPress: true),
-  usePowerUp('Use Power-Up', icon: Icons.flash_on_outlined, isLongPress: true),
+  openActionBar('Open Action Bar', alternativeTitle: 'Up', icon: LucideIcons.squareMenu, isLongPress: true),
+  usePowerUp('Use Power-Up', icon: LucideIcons.zap, isLongPress: true),
   select('Select', icon: LucideIcons.mousePointerClick),
-  back('Back', icon: BootstrapIcons.arrowLeft),
+  back('Back', icon: LucideIcons.arrowLeft),
   rideOnBomb('Ride On Bomb', icon: LucideIcons.bomb, isLongPress: true),
 
   // rouvy
-  kudos('Kudos', icon: BootstrapIcons.handThumbsUp),
-  pause('Pause/Resume', icon: BootstrapIcons.pause, isLongPress: true),
+  kudos('Kudos', icon: LucideIcons.thumbsUp),
+  pause('Pause/Resume', icon: LucideIcons.pause, isLongPress: true),
 
   // headwind
-  headwindSpeed('Headwind Speed', possibleValues: [0, 25, 50, 75, 100], icon: Icons.air, isOutsideTrainerApp: true),
-  headwindSpeedInc('Headwind Speed Increase', icon: Icons.air, isOutsideTrainerApp: true),
-  headwindSpeedDec('Headwind Speed Decrease', icon: Icons.air, isOutsideTrainerApp: true),
-  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: Icons.air, isOutsideTrainerApp: true),
-  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: Icons.air, isOutsideTrainerApp: true),
-  headwindHeartRateMode('Headwind HR Mode', icon: Icons.favorite, isOutsideTrainerApp: true),
+  headwindSpeed(
+    'Headwind Speed',
+    possibleValues: [0, 25, 50, 75, 100],
+    icon: LucideIcons.wind,
+    isOutsideTrainerApp: true,
+  ),
+  headwindSpeedInc('Headwind Speed Increase', icon: LucideIcons.wind, isOutsideTrainerApp: true),
+  headwindSpeedDec('Headwind Speed Decrease', icon: LucideIcons.wind, isOutsideTrainerApp: true),
+  headwindSpeedCyclicInc('Headwind Speed Cyclic Increase', icon: LucideIcons.wind, isOutsideTrainerApp: true),
+  headwindSpeedCyclicDec('Headwind Speed Cyclic Decrease', icon: LucideIcons.wind, isOutsideTrainerApp: true),
+  headwindHeartRateMode('Headwind HR Mode', icon: LucideIcons.heart, isOutsideTrainerApp: true),
 
   // Incline devices (KICKR Climb, Elite Rizer)
   inclineIncrease('Incline Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
@@ -54,10 +59,10 @@ enum InGameAction {
   inclineAutoMode('Incline Auto (Follow Grade)', icon: LucideIcons.mountain, isOutsideTrainerApp: true),
 
   // openbikecontrol
-  up('Up', icon: RadixIcons.arrowUp),
-  down('Down', icon: RadixIcons.arrowDown),
-  home('Home', icon: RadixIcons.home),
-  menu('Menu', icon: RadixIcons.dropdownMenu),
+  up('Up', icon: LucideIcons.arrowUp),
+  down('Down', icon: LucideIcons.arrowDown),
+  home('Home', icon: LucideIcons.house),
+  menu('Menu', icon: LucideIcons.menu),
   gearSet('Gear Set', icon: LucideIcons.gauge),
   pushToTalk('Push to Talk', icon: LucideIcons.mic),
   skipInterval('Skip Interval', icon: LucideIcons.skipForward),
@@ -78,14 +83,8 @@ enum InGameAction {
   workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true),
   frontShift('Front Shift (Chainring)', icon: LucideIcons.arrowLeftRight, isOutsideTrainerApp: true),
 
-  // Wahoo ELEMNT — D-Fly channel buttons emitted via the Di2Definition.
-  dFlyChannel1('D-Fly Channel 1', icon: LucideIcons.circleDot),
-  dFlyChannel2('D-Fly Channel 2', icon: LucideIcons.circleDot),
-  dFlyChannel3('D-Fly Channel 3', icon: LucideIcons.circleDot),
-  dFlyChannel4('D-Fly Channel 4', icon: LucideIcons.circleDot),
-
   // device / system
-  calibratePhoneSteering('Calibrate Steering', icon: BootstrapIcons.wrenchAdjustable, isOutsideTrainerApp: true),
+  calibratePhoneSteering('Calibrate Steering', icon: LucideIcons.wrench, isOutsideTrainerApp: true),
   screenRecording('Record Screen', icon: LucideIcons.video, isOutsideTrainerApp: true);
 
   final String englishTitle;
@@ -159,10 +158,6 @@ enum InGameAction {
       InGameAction.trainerIntensityDown => l.actionTrainerIntensityDown,
       InGameAction.workoutPauseResume => l.actionWorkoutPauseResume,
       InGameAction.frontShift => l.actionFrontShift,
-      InGameAction.dFlyChannel1 => l.actionDFlyChannel1,
-      InGameAction.dFlyChannel2 => l.actionDFlyChannel2,
-      InGameAction.dFlyChannel3 => l.actionDFlyChannel3,
-      InGameAction.dFlyChannel4 => l.actionDFlyChannel4,
       InGameAction.calibratePhoneSteering => l.actionCalibratePhoneSteering,
       InGameAction.screenRecording => l.actionScreenRecording,
     };

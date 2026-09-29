@@ -3,6 +3,7 @@ import 'package:bike_control/pages/onboarding/onboarding_page.dart' show kOnboar
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_update_banner.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The welcome screen: the headline's words arrive one after the other, then
@@ -91,21 +92,27 @@ class OnboardingWelcome extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      PrimaryButton(
-                        onPressed: onStart,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(context.i18n.onboardingWelcomeStart),
-                            Gap(8),
-                            Icon(LucideIcons.arrowRight, size: 16),
-                          ],
+                      BkTouchTarget(
+                        child: PrimaryButton(
+                          alignment: Alignment.center,
+                          onPressed: onStart,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(context.i18n.onboardingWelcomeStart),
+                              Gap(8),
+                              Icon(LucideIcons.arrowRight, size: 16),
+                            ],
+                          ),
                         ),
                       ),
                       Gap(8),
-                      GhostButton(
-                        onPressed: onLater,
-                        child: Center(child: Text(context.i18n.onboardingWelcomeLater)),
+                      BkTouchTarget(
+                        child: GhostButton(
+                          alignment: Alignment.center,
+                          onPressed: onLater,
+                          child: Center(child: Text(context.i18n.onboardingWelcomeLater)),
+                        ),
                       ),
                       Gap(6),
                       Center(child: Text(context.i18n.onboardingWelcomeFootnote).xSmall.muted),

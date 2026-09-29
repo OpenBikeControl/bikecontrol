@@ -76,7 +76,7 @@ class _CustomizeState extends State<CustomizePage> {
                           child: Row(
                             spacing: 6,
                             children: [
-                              Icon(Icons.add, color: Theme.of(context).colorScheme.mutedForeground),
+                              Icon(LucideIcons.plus, color: Theme.of(context).colorScheme.mutedForeground),
                               Expanded(child: Text(context.i18n.createNewKeymap).normal.muted),
                             ],
                           ),
@@ -88,7 +88,7 @@ class _CustomizeState extends State<CustomizePage> {
                     spacing: 8,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(screenshotMode ? 'Trainer app' : app!.name)),
+                      Expanded(child: Text(screenshotKeymapsStaged ? 'Trainer app' : app!.name)),
                       if (app is CustomApp) BetaPill(text: 'CUSTOM'),
                     ],
                   ),
@@ -118,7 +118,7 @@ class _CustomizeState extends State<CustomizePage> {
                 tooltip: (c) => Text(context.i18n.synchronizeAcrossDevices),
                 child: StatusIcon(
                   status: IAPManager.instance.isProEnabled,
-                  icon: Icons.cloud_upload,
+                  icon: LucideIcons.cloudUpload,
                   started: IAPManager.instance.isProEnabled,
                   onPressed: IAPManager.instance.isProEnabled
                       ? null

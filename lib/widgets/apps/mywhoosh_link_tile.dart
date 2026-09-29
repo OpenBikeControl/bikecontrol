@@ -58,7 +58,7 @@ class _MywhooshLinkTileState extends State<MyWhooshLinkTile> {
                     title: AppLocalizations.of(context).myWhooshLinkInfo,
                     level: LogLevel.LOGLEVEL_INFO,
                     duration: Duration(seconds: 6),
-                    closeTitle: 'Open',
+                    closeTitle: AppLocalizations.current.open,
                     onClose: () {
                       openDrawer(
                         context: context,

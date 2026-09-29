@@ -1,3 +1,5 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -7,6 +9,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/diagnostics_section.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show SelectionArea;
@@ -69,22 +72,7 @@ class _LogviewerState extends State<LogViewer> {
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
-        AppBar(
-          leading: [
-            IconButton.ghost(
-              icon: Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(context.i18n.logs),
-          trailing: [
-            IconButton.ghost(
-              icon: Icon(LucideIcons.x, size: 22, color: Theme.of(context).colorScheme.mutedForeground),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          backgroundColor: Theme.of(context).colorScheme.background,
-        ),
+        BkPageHeader(title: context.i18n.logs, showDivider: false),
       ],
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -108,8 +96,7 @@ class _LogviewerState extends State<LogViewer> {
                         .map((entry) => '${entry.date.toString().split(" ").last}  ${entry.entry}')
                         .join('\n');
                     final diagnosticsText = _diagnostics?.toText();
-                    final shareText =
-                        diagnosticsText == null ? logText : '$diagnosticsText\n\nLogs:\n$logText';
+                    final shareText = diagnosticsText == null ? logText : '$diagnosticsText\n\nLogs:\n$logText';
                     Clipboard.setData(ClipboardData(text: shareText));
 
                     buildToast(title: context.i18n.logsHaveBeenCopiedToClipboard);
@@ -133,8 +120,7 @@ class _LogviewerState extends State<LogViewer> {
                                       (action) => [
                                         TextSpan(
                                           text: action.date.toString().split(" ").last,
-                                          style: TextStyle(
-                                            fontSize: 12,
+                                          style: context.typography.xSmall.copyWith(
                                             fontFeatures: [FontFeature.tabularFigures()],
                                             fontFamily: "monospace",
                                             fontFamilyFallback: <String>["Courier"],
@@ -142,8 +128,7 @@ class _LogviewerState extends State<LogViewer> {
                                         ),
                                         TextSpan(
                                           text: "  ${action.entry}\n",
-                                          style: TextStyle(
-                                            fontSize: 12,
+                                          style: context.typography.xSmall.copyWith(
                                             fontFeatures: [FontFeature.tabularFigures()],
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -165,7 +150,7 @@ class _LogviewerState extends State<LogViewer> {
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Row(
                   children: [
-                    Text('Logs file: '),
+                    Text('${AppLocalizations.of(context).logsFile} '),
                     Expanded(
                       child: FutureBuilder<File>(
                         future: crashLogFile(),

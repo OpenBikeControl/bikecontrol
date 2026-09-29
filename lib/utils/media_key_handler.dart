@@ -121,8 +121,8 @@ class MediaKeyHandler {
           MediaKey.playPause => LucideIcons.play,
           MediaKey.fastForward => LucideIcons.skipForward,
           MediaKey.rewind => LucideIcons.skipBack,
-          MediaKey.volumeUp => Icons.volume_up_outlined,
-          MediaKey.volumeDown => Icons.volume_down,
+          MediaKey.volumeUp => LucideIcons.volume2,
+          MediaKey.volumeDown => LucideIcons.volume1,
         },
       ),
     );

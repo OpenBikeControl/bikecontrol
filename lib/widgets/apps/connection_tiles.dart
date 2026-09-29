@@ -1,5 +1,4 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:bike_control/widgets/apps/di2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -47,7 +46,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
           onUpdate();
         },
       ),
-    if (core.logic.showDi2Ble) Di2BleTile(small: small),
     if (core.logic.showLocalControl && !showLocalAsOther) LocalTile(small: small),
     if (core.logic.showMyWhooshLink && !showWhooshLinkAsOther) MyWhooshLinkTile(small: small),
   ];

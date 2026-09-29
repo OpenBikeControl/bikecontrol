@@ -1,12 +1,11 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart'
-    show OtherLocalizationsDelegate, screenshotLocale, screenshotMode;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotLocale, screenshotMode;
 import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart' show core;
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -49,14 +48,24 @@ Future<void>? _bootstrap;
 /// declaring tests and before touching `core` — it initializes the test binding,
 /// installs plugin mocks, and bootstraps `core.settings` so the configs/settings
 /// stores are usable. Safe to call repeatedly; only the first call does work.
-Future<void> ensureSnapshotHarness() => _bootstrap ??= _runBootstrap();
-
-Future<void> _runBootstrap() async {
+Future<void> ensureSnapshotHarness() {
   // Must be the very first binding call so toImage()/loadAssets() run in the
   // same environment the golden suite is proven against. (Selecting the binding
   // has to happen before any testWidgets runs, hence: call this from main().)
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  return ensureSnapshotAppState();
+}
 
+/// Everything [ensureSnapshotHarness] does except choosing the binding.
+///
+/// For captures that need the fake-clock binding instead of the live one the
+/// integration binding runs: under the live binding `pump(duration)` waits
+/// real time and frames are stamped by the wall clock, so an animation's
+/// phase in a captured frame depends on how fast the machine was. Call
+/// `TestWidgetsFlutterBinding.ensureInitialized()` first, then this.
+Future<void> ensureSnapshotAppState() => _bootstrap ??= _runBootstrap();
+
+Future<void> _runBootstrap() async {
   PackageInfo.setMockInitialValues(
     appName: 'BikeControl',
     packageName: 'de.jonasbark.swiftcontrol',
@@ -97,6 +106,24 @@ Future<void> _runBootstrap() async {
   IAPManager.instance.isPurchased.value = true;
 }
 
+/// Mounts [app] afresh once its fonts are loaded.
+///
+/// `loadAssets()` can only load the fonts it finds in a built tree, so the
+/// first layout always runs against the test font. `reassembleApplication`
+/// re-lays that tree out, but a paragraph under an `IntrinsicHeight` keeps the
+/// height it was first measured at — shadcn's single-line `Button.link` then
+/// clips its descenders ("Why" renders as "Whv"). The app never sees this: its
+/// fonts are loaded before the first frame. Unmounting and pumping [app] again
+/// gives every render object a first layout with the real fonts.
+Future<void> remountWithLoadedFonts(WidgetTester tester, Widget app) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pumpWidget(app);
+  await tester.pump();
+}
+
+/// main.dart's light or dark app theme, so snapshots match the app exactly.
+ThemeData snapshotTheme(Brightness brightness) => BkTheme.build(brightness);
+
 /// Renders [builder]'s widget once per entry in [locales] and writes a tight
 /// PNG per locale to [outputDir].
 ///
@@ -129,6 +156,7 @@ Future<List<File>> captureWidget(
   Brightness brightness = Brightness.light,
   double pixelRatio = 3.0,
   String outputDir = 'build/snapshots',
+
   /// If false, use pump(duration) instead of pumpAndSettle — needed when the
   /// widget contains an infinite animation (e.g. a CircularProgressIndicator)
   /// that would cause pumpAndSettle to time out.
@@ -151,26 +179,8 @@ Future<List<File>> captureWidget(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  // Mirror main.dart's light + dark themes so snapshots match the app exactly.
-  final lightTheme = ThemeData(
-    colorScheme: ColorSchemes.lightSlate.copyWith(
-      mutedForeground: () => const Color(0xFFA1A1AA),
-      primary: () => BKColor.main,
-    ),
-    typography: Typography.geist().scale(0.9),
-    radius: 0.7,
-  );
-  final darkTheme = ThemeData(
-    colorScheme: ColorSchemes.darkSlate.copyWith(
-      card: () => const Color(0xFF001A29),
-      background: () => const Color(0xFF232323),
-      muted: () => const Color(0xFF3A3A3A),
-      border: () => const Color(0xFF3A3A3A),
-      secondary: () => const Color(0xFF3A3A3A),
-    ),
-    typography: Typography.geist().scale(0.9),
-    radius: 0.7,
-  );
+  final lightTheme = snapshotTheme(Brightness.light);
+  final darkTheme = snapshotTheme(Brightness.dark);
 
   final files = <File>[];
   for (final loc in locales) {
@@ -179,52 +189,54 @@ Future<List<File>> captureWidget(
 
     final boundaryKey = GlobalKey();
 
-    await tester.pumpWidget(
-      ShadcnApp(
-        debugShowCheckedModeBanner: false,
-        locale: Locale(loc),
-        // Mirror main.dart's delegate stack so AppLocalizations.of(context) and
-        // shadcn's own strings both resolve for [loc].
-        localizationsDelegates: [
-          ...ShadcnLocalizations.localizationsDelegates,
-          const OtherLocalizationsDelegate(),
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: brightness == Brightness.dark
-            ? ThemeMode.dark
-            : ThemeMode.light,
-        materialTheme: m.ThemeData(),
-        home: Builder(
-          builder: (context) {
-            final captured = RepaintBoundary(
-              key: boundaryKey,
-              child: ColoredBox(
-                color: background ?? Theme.of(context).colorScheme.background,
-                child: Padding(
-                  padding: padding,
-                  child: SizedBox(
-                    width: width,
-                    height: height,
-                    child: builder(context),
-                  ),
+    final app = ShadcnApp(
+      debugShowCheckedModeBanner: false,
+      locale: Locale(loc),
+      // Mirror main.dart's delegate stack so AppLocalizations.of(context) and
+      // shadcn's own strings both resolve for [loc].
+      localizationsDelegates: [
+        ...ShadcnLocalizations.localizationsDelegates,
+        const OtherLocalizationsDelegate(),
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
+      scaling: BkTheme.scaling,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+      materialTheme: m.ThemeData(),
+      home: Builder(
+        builder: (context) {
+          final captured = RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: background ?? Theme.of(context).colorScheme.background,
+              child: Padding(
+                padding: padding,
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: builder(context),
                 ),
               ),
-            );
-            return height == null
-                ? SingleChildScrollView(child: captured)
-                : captured;
-          },
-        ),
+            ),
+          );
+          return height == null ? SingleChildScrollView(child: captured) : captured;
+        },
       ),
     );
+    await tester.pumpWidget(app);
 
     // First pump builds the tree; loadAssets() loads the fonts it finds there
     // (Geist etc.); the second pump re-renders with real glyphs, not Ahem boxes.
     await tester.pump();
     await tester.loadAssets();
+    // Fonts arriving after the first layout leave intrinsic sizes measured
+    // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+    // clips descenders). The app loads its fonts before the first frame, so
+    // re-measure everything as it would have been.
+    await tester.binding.reassembleApplication();
+    await remountWithLoadedFonts(tester, app);
     if (settle) {
       await tester.pumpAndSettle();
     } else {

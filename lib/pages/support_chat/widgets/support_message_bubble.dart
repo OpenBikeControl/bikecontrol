@@ -5,6 +5,7 @@ import 'package:bike_control/pages/support_chat/widgets/support_attachment_view.
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:in_app_review/in_app_review.dart';
@@ -63,8 +64,7 @@ class SupportMessageBubble extends StatelessWidget {
             if (showSenderLabel)
               Text(
                 isUser ? context.i18n.senderYou : 'Jonas @ BikeControl',
-                style: TextStyle(
-                  fontSize: 11,
+                style: context.typography.caption.copyWith(
                   fontWeight: FontWeight.w600,
                   color: isUser ? cs.primary : cs.mutedForeground,
                 ),
@@ -76,10 +76,10 @@ class SupportMessageBubble extends StatelessWidget {
               // messages stay as plain Text since the sender already knows
               // what they wrote.
               isUser
-                  ? Text(renderedBody, style: const TextStyle(fontSize: 14))
+                  ? Text(renderedBody, style: context.typography.small)
                   : _LinkifiedText(
                       body: renderedBody,
-                      baseStyle: const TextStyle(fontSize: 14),
+                      baseStyle: context.typography.small,
                     ),
             ],
             if (isRatingPrompt) ...[
@@ -110,7 +110,7 @@ class SupportMessageBubble extends StatelessWidget {
               children: [
                 Text(
                   _formatTimestamp(message.createdAt),
-                  style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+                  style: context.typography.caption.copyWith(color: cs.mutedForeground),
                 ),
                 if (pending) ...[
                   const SizedBox(width: 6),
@@ -125,7 +125,7 @@ class SupportMessageBubble extends StatelessWidget {
                 leading: const Icon(LucideIcons.cornerUpLeft, size: 12),
                 child: Text(
                   replyCount > 0 ? context.i18n.replyCount(replyCount) : context.i18n.viewThread,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                  style: context.typography.caption.copyWith(fontWeight: FontWeight.w500),
                 ),
               ),
             ],
@@ -226,9 +226,7 @@ class _LinkifiedTextState extends State<_LinkifiedText> {
         suffix = url.substring(tm.start);
         url = url.substring(0, tm.start);
       }
-      final href = url.startsWith(RegExp('^www\\.', caseSensitive: false))
-          ? 'https://$url'
-          : url;
+      final href = url.startsWith(RegExp('^www\\.', caseSensitive: false)) ? 'https://$url' : url;
       final recognizer = TapGestureRecognizer()..onTap = () => _launch(href);
       _recognizers.add(recognizer);
       spans.add(TextSpan(text: url, style: linkStyle, recognizer: recognizer));

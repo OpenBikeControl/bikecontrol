@@ -1,13 +1,9 @@
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The wizard's accent. `colorScheme.primary` is only overridden to the brand
-/// blue in the LIGHT theme — in dark it stays the slate scheme's near-white,
-/// which made white-on-accent icons and check marks invisible. These helpers
-/// keep the design's brand accent in both themes, with a lightened tone in
-/// dark so it stays legible on the dark card.
-Color onboardingAccent(BuildContext context) =>
-    Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4DA9E8) : BKColor.main;
+/// The wizard's accent: the theme's brand primary, which is the brand blue in
+/// light mode and a lifted brand blue in dark mode (see `BkTheme`).
+Color onboardingAccent(BuildContext context) => Theme.of(context).colorScheme.primary;
 
-/// Content drawn on top of [onboardingAccent] — white in both themes.
-const Color onboardingOnAccent = Color(0xFFFFFFFF);
+/// Content drawn on top of [onboardingAccent]. White on the light brand blue;
+/// near-black on dark mode's lifted blue, where white only reached ~2.6:1.
+Color onboardingOnAccent(BuildContext context) => Theme.of(context).colorScheme.primaryForeground;

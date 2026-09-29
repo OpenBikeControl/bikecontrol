@@ -1,3 +1,4 @@
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -13,11 +14,16 @@ class OverlayShowResult {
   final bool ok;
   final OverlayShowFailure? failure;
   final String? message;
-  const OverlayShowResult.ok()
-      : ok = true,
-        failure = null,
-        message = null;
+  const OverlayShowResult.ok() : ok = true, failure = null, message = null;
   const OverlayShowResult.fail(this.failure, {this.message}) : ok = false;
+
+  /// What to tell the rider about a failed show. [message] is diagnostic
+  /// detail for the log (often a raw exception) and is never shown.
+  String riderMessage(AppLocalizations l10n) => switch (failure) {
+    OverlayShowFailure.permissionDenied => l10n.overlayPermissionExplain,
+    OverlayShowFailure.systemDisabled => l10n.overlayLowPowerMode,
+    OverlayShowFailure.unknown || null => l10n.overlayCouldNotStart,
+  };
 }
 
 /// Looks up the current live [FitnessBikeDefinition] for the active trainer.
@@ -66,9 +72,12 @@ class NoOpOverlayController implements TrainerOverlayController {
     Set<OverlayField> fields, {
     LiveDefinitionLookup? liveDef,
   }) async {
-    return const OverlayShowResult.fail(OverlayShowFailure.systemDisabled,
-        message: 'Overlay not supported on this platform');
+    return const OverlayShowResult.fail(
+      OverlayShowFailure.systemDisabled,
+      message: 'Overlay not supported on this platform',
+    );
   }
+
   @override
   Future<void> hide() async {}
   @override

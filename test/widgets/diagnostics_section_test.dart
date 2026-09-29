@@ -1,3 +1,5 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/widgets/diagnostics_section.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,6 +23,12 @@ void main() {
     var refreshed = 0;
     await tester.pumpWidget(
       ShadcnApp(
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
         home: Scaffold(
           child: DiagnosticsSection(
             diagnostics: _fixture(),

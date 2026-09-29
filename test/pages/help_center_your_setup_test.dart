@@ -19,6 +19,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
+import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/your_setup_section.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
@@ -38,7 +39,11 @@ const _clickV2RowKey = ValueKey('help-clickv2-onboarding');
 const _gearOverlayRowKey = ValueKey('help-gear-overlay');
 const _controllerDisconnectingRowKey = ValueKey('help-controller-disconnecting');
 const _controllerNotFoundRowKey = ValueKey('help-controller-not-found');
-const _overlayActionKey = ValueKey('help-answer-action-overlay-settings');
+const _setupGuideRowKey = ValueKey('help-run-setup-guide');
+const _overlayActionKey = ValueKey('help-check-overlay-settings');
+const _networkTestActionKey = ValueKey('help-check-network-test');
+const _searchAgainActionKey = ValueKey('help-answer-action-search-again');
+const _contactSupportActionKey = ValueKey('help-answer-action-contact-support');
 const _vsBlogActionKey = ValueKey('help-answer-action-vs-blog');
 const _clickV2RestartActionKey = ValueKey('help-answer-action-clickv2-restart-blog');
 
@@ -76,6 +81,8 @@ Future<void> _pump(
   WidgetTester tester, {
   List<BaseDevice>? devices,
   List<TrainerConnection>? connections,
+  VoidCallback? onSearchAgain,
+  void Function(String? controllerId)? onContactSupport,
 }) {
   return tester.pumpWidget(
     ShadcnApp(
@@ -83,7 +90,12 @@ Future<void> _pump(
       localizationsDelegates: const [AppLocalizations.delegate],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       home: Scaffold(
-        child: YourSetupSection(devicesOverride: devices, connectionsOverride: connections),
+        child: YourSetupSection(
+          devicesOverride: devices,
+          connectionsOverride: connections,
+          onSearchAgain: onSearchAgain,
+          onContactSupport: onContactSupport,
+        ),
       ),
     ),
   );
@@ -249,6 +261,25 @@ Future<void> main() async {
       expect(page.revealOverlaySection, isTrue);
     });
 
+    testWidgets('shows the same numbered checks as the support intake, with the network test', (tester) async {
+      core.settings.setTrainerApp(SupportedApp.supportedApps.first);
+
+      await _pump(tester, devices: const [], connections: const []);
+      await tester.pump();
+      await _openSheet(tester, _gearOverlayRowKey);
+
+      expect(find.byType(HelpCheckList), findsOneWidget);
+      for (final check in appNotReactingChecks(l10n)) {
+        expect(find.text(check.title), findsOneWidget);
+      }
+      expect(find.text(l10n.helpAnswerGearBody), findsNothing);
+
+      await _tapAction(tester, _networkTestActionKey);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.takeException(), isNull);
+      expect(find.byType(NetworkTroubleshootingPage), findsOneWidget);
+    });
+
     testWidgets('falls back to the link-only fallback when no trainer is known', (tester) async {
       core.settings.setTrainerApp(SupportedApp.supportedApps.first);
 
@@ -278,8 +309,13 @@ Future<void> main() async {
     });
   });
 
+  // "My controller isn't found" used to need a controller that had been
+  // paired before — exactly the rider who never got one to show up didn't
+  // see it. It now shows whenever no controller is connected, together with
+  // a way back into the setup guide. "Keeps disconnecting" still needs a
+  // controller BikeControl has seen.
   group('controller disconnecting / not found rows', () {
-    testWidgets('shown when a controller is known', (tester) async {
+    testWidgets('a known controller that is not connected gets both rows', (tester) async {
       final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
 
       await _pump(tester, devices: [rightSide], connections: const []);
@@ -287,14 +323,16 @@ Future<void> main() async {
 
       expect(find.byKey(_controllerDisconnectingRowKey), findsOneWidget);
       expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+      expect(find.byKey(_setupGuideRowKey), findsOneWidget);
     });
 
-    testWidgets('absent without any controller known', (tester) async {
+    testWidgets('with no controller at all, "isn\'t found" and the setup guide still show', (tester) async {
       await _pump(tester, devices: const [], connections: const []);
       await tester.pump();
 
       expect(find.byKey(_controllerDisconnectingRowKey), findsNothing);
-      expect(find.byKey(_controllerNotFoundRowKey), findsNothing);
+      expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+      expect(find.byKey(_setupGuideRowKey), findsOneWidget);
     });
 
     testWidgets('a trainer alone does not count as a controller', (tester) async {
@@ -304,7 +342,18 @@ Future<void> main() async {
       await tester.pump();
 
       expect(find.byKey(_controllerDisconnectingRowKey), findsNothing);
+      expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+    });
+
+    testWidgets('a connected controller drops "isn\'t found" and the setup guide', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+
+      await _pump(tester, devices: [rightSide], connections: const []);
+      await tester.pump();
+
+      expect(find.byKey(_controllerDisconnectingRowKey), findsOneWidget);
       expect(find.byKey(_controllerNotFoundRowKey), findsNothing);
+      expect(find.byKey(_setupGuideRowKey), findsNothing);
     });
 
     testWidgets('the disconnecting row opens a sheet linking to the Click V2 restart explainer', (tester) async {
@@ -327,30 +376,73 @@ Future<void> main() async {
       );
     });
 
-    testWidgets('the not-found row opens a sheet with no follow-up actions', (tester) async {
+    testWidgets('the not-found sheet ends with "Scan again" after the checks', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
+      var searches = 0;
+
+      await _pump(tester, devices: [rightSide], connections: const [], onSearchAgain: () => searches++);
+      await tester.pump();
+      await _openSheet(tester, _controllerNotFoundRowKey);
+
+      expect(find.text(l10n.helpCenterControllerNotFoundEntry), findsWidgets);
+      expect(find.byType(HelpCheckList), findsOneWidget);
+      expect(find.byKey(const ValueKey('help-answer-close')), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(_searchAgainActionKey)).dy,
+        greaterThan(tester.getBottomLeft(find.byType(HelpCheckList)).dy),
+      );
+
+      await _tapAction(tester, _searchAgainActionKey);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(searches, 1);
+      expect(find.byType(HelpCheckList), findsNothing, reason: 'the sheet closes first');
+    });
+
+    testWidgets('"Still stuck?" opens support for the known controller', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
+      final asked = <String?>[];
+
+      await _pump(tester, devices: [rightSide], connections: const [], onContactSupport: asked.add);
+      await tester.pump();
+      await _openSheet(tester, _controllerNotFoundRowKey);
+
+      expect(find.text(l10n.helpAnswerStillStuckContactSupport), findsOneWidget);
+      await _tapAction(tester, _contactSupportActionKey);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(asked, ['zwift_click_v2']);
+    });
+
+    testWidgets('a known Zwift controller gets the Zwift Companion firmware step', (tester) async {
       final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'));
 
       await _pump(tester, devices: [rightSide], connections: const []);
       await tester.pump();
       await _openSheet(tester, _controllerNotFoundRowKey);
 
-      expect(find.text(l10n.helpCenterControllerNotFoundEntry), findsWidgets);
-      expect(find.text(l10n.helpAnswerControllerNotFoundBody), findsOneWidget);
-      expect(find.byKey(const ValueKey('help-answer-close')), findsOneWidget);
+      expect(find.text(l10n.zwiftCompanionApp), findsOneWidget);
+    });
+
+    testWidgets('with no known controller the not-found sheet does not assume Zwift', (tester) async {
+      await _pump(tester, devices: const [], connections: const []);
+      await tester.pump();
+      await _openSheet(tester, _controllerNotFoundRowKey);
+
+      expect(find.text(l10n.zwiftCompanionApp), findsNothing);
+      expect(find.text(l10n.helpCheckFirmwareMakerSub), findsOneWidget);
     });
   });
 
   group('empty state', () {
-    testWidgets('shows a muted nudge toward the setup wizard when nothing is configured', (tester) async {
+    testWidgets('nothing configured still offers the not-found answer and the setup guide', (tester) async {
       await _pump(tester, devices: const [], connections: const []);
       await tester.pump();
 
-      expect(find.text(l10n.helpCenterNoSetup), findsOneWidget);
       expect(find.byKey(_networkRowKey), findsNothing);
       expect(find.byKey(_clickV2RowKey), findsNothing);
       expect(find.byKey(_gearOverlayRowKey), findsNothing);
       expect(find.byKey(_controllerDisconnectingRowKey), findsNothing);
-      expect(find.byKey(_controllerNotFoundRowKey), findsNothing);
+      expect(find.byKey(_controllerNotFoundRowKey), findsOneWidget);
+      expect(find.byKey(_setupGuideRowKey), findsOneWidget);
     });
   });
 }

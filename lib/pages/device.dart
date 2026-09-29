@@ -61,8 +61,7 @@ class _DevicePageState extends State<DevicePage> {
 
   /// Whether any discovered Click V2 side is still waiting for the rider to
   /// pick an unlock mode. All such sides collapse into one onboarding card.
-  bool get _hasPendingClickV2 =>
-      ClickV2Onboarding.isPending && ClickV2Onboarding.pendingDevices.isNotEmpty;
+  bool get _hasPendingClickV2 => ClickV2Onboarding.isPending && ClickV2Onboarding.pendingDevices.isNotEmpty;
 
   /// Groups controller devices for display: every Click V2 side still awaiting
   /// onboarding collapses into a single placeholder group, a connected Zwift
@@ -218,7 +217,7 @@ class _DevicePageState extends State<DevicePage> {
               onTap: () {
                 launchUrlString('https://bikecontrol.app/#supported-devices');
               },
-              icon: Icons.gamepad_outlined,
+              icon: LucideIcons.gamepad2,
               title: context.i18n.showSupportedControllers,
               withCard: false,
             ),

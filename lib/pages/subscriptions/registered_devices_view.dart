@@ -6,7 +6,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:dartx/dartx.dart';
+import 'package:bike_control/widgets/register_this_device.dart' show devicePlatformLabel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class RegisteredDevicesView extends StatefulWidget {
@@ -45,8 +45,8 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
           _devicesByPlatform = grouped;
         });
       }
-    } catch (e) {
-      // Handle error
+    } catch (e, s) {
+      recordError(e, s, context: 'Loading registered devices');
     } finally {
       if (mounted) {
         setState(() {
@@ -85,7 +85,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.add,
+                            LucideIcons.plus,
                             size: 16,
                           ),
                           const SizedBox(width: 8),
@@ -107,7 +107,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
                   spacing: 12,
                   children: [
                     Icon(
-                      Icons.devices,
+                      LucideIcons.monitorSmartphone,
                       size: 48,
                       color: Theme.of(context).colorScheme.mutedForeground,
                     ),
@@ -151,7 +151,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       child: Row(
         children: [
           Icon(
-            Icons.device_unknown,
+            LucideIcons.smartphone,
             size: 20,
             color: isRevoked ? Theme.of(context).colorScheme.mutedForeground : Theme.of(context).colorScheme.primary,
           ),
@@ -185,7 +185,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
   }
 
   String _formatDate(DateTime? value) {
-    if (value == null) return 'Never';
+    if (value == null) return AppLocalizations.current.never;
     final local = value.toLocal();
     return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
   }
@@ -198,8 +198,9 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       );
       await _iapManager.entitlements.refresh(force: true);
       await _loadDevices();
-    } catch (e) {
-      buildToast(title: 'Could not revoke device: $e');
+    } catch (e, s) {
+      recordError(e, s, context: 'Revoking registered device');
+      buildToast(title: AppLocalizations.current.couldNotRevokeDevice('$e'));
     }
   }
 
@@ -215,7 +216,7 @@ class _RegisteredDevicesViewState extends State<RegisteredDevicesView> {
       recordError(error, stack, context: 'Register current device: limit reached');
       if (!mounted) return;
       buildToast(
-        title: AppLocalizations.of(context).deviceLimitReached(error.platform.capitalize().replaceAll('os', 'OS')),
+        title: AppLocalizations.of(context).deviceLimitReached(devicePlatformLabel(error.platform)),
       );
     } catch (error, stack) {
       recordError(error, stack, context: 'Register current device');

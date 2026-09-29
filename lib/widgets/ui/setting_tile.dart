@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class SettingTile extends StatelessWidget {
@@ -39,22 +40,25 @@ class SettingTile extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: context.typography.small.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: context.typography.xSmall.copyWith(
                       color: cs.mutedForeground,
                     ),
                   ),
                 ],
               ),
             ),
-            if (trailing != null) trailing!,
+            if (trailing != null)
+              // A bare switch is read as an unnamed toggle; it switches
+              // exactly what the tile's title says, so it carries that name.
+              trailing is Switch || trailing is Checkbox
+                  ? Semantics(container: true, label: title, child: trailing!)
+                  : trailing!,
           ],
         ),
         if (child != null) child!,

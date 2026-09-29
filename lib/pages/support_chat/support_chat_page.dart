@@ -1,3 +1,6 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
 import 'package:bike_control/main.dart' show recordError;
@@ -15,6 +18,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/material.dart' show RefreshIndicator;
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -354,18 +358,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     final signedIn = !_accountService.isAnonymous;
     return Scaffold(
       headers: [
-        AppBar(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          leading: [
-            IconButton.ghost(
-              icon: const Icon(LucideIcons.arrowLeft, size: 24),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-          title: Text(
-            context.i18n.supportChat,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-          ),
+        BkPageHeader(
+          title: context.i18n.supportChat,
           // Standing sign-in affordance: works no matter whether the rider
           // has sent anything yet — it starts the exact same email-link flow
           // as the post-send prompt (SupportAccountLinkCard), just revealed
@@ -378,18 +372,18 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                 height: 7,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: signedIn ? Colors.green : cs.mutedForeground,
+                  color: signedIn ? BkStatusColors.of(context).success : cs.mutedForeground,
                 ),
               ),
               const Gap(5),
               Text(
                 key: const ValueKey('support-account-status-text'),
                 signedIn ? context.i18n.supportAccountStatusSignedIn : context.i18n.supportAccountStatusAnonymous,
-                style: TextStyle(fontSize: 11, color: cs.mutedForeground),
+                style: context.typography.caption.copyWith(color: cs.mutedForeground),
               ),
             ],
           ),
-          trailing: [
+          actions: [
             if (!signedIn)
               Button(
                 key: const ValueKey('support-header-sign-in'),
@@ -401,15 +395,15 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             // data) exists. "Delete account" is gated to signed-in riders; an
             // anonymous rider's data is fully covered by "Delete conversation".
             if (_chat != null)
-              IconButton.ghost(
+              BkIconButton.ghost(
                 key: const ValueKey('support-overflow-menu'),
                 icon: const Icon(LucideIcons.ellipsisVertical, size: 20),
+                label: context.i18n.a11yMoreOptions,
+                tooltip: false,
                 onPressed: () => _showDeleteMenu(context, signedIn),
               ),
           ],
-          backgroundColor: Theme.of(context).colorScheme.background,
         ),
-        const Divider(),
       ],
       // The known-issues banner used to sit here — it's gone (usage-fix
       // round 3): known issues belong to the Help Center now, and showing
@@ -548,6 +542,9 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             initialAttachment: widget.initialAttachment,
             pinnedContext: widget.pinnedContext,
             pinnedContextLabel: widget.pinnedContextLabel,
+            // The first message of a conversation must say what is wrong;
+            // follow-ups may be a screenshot alone.
+            requireDescription: !hasMessages,
           ),
       ],
     );
@@ -594,8 +591,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                     children: [
                       Text(
                         context.i18n.supportChatIntro,
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: context.typography.small.copyWith(
                           fontWeight: FontWeight.w600,
                           color: cs.foreground,
                         ),
@@ -603,8 +599,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                       const SizedBox(height: 2),
                       Text(
                         context.i18n.supportChatIntroFatherNote,
-                        style: TextStyle(
-                          fontSize: 13,
+                        style: context.typography.small.copyWith(
                           fontStyle: FontStyle.italic,
                           color: cs.mutedForeground,
                         ),
@@ -619,6 +614,8 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
               SupportIntakeForm(
                 service: _service,
                 initial: _intakeAnswers,
+                // "Did this solve it?" → Yes: nothing left to ask support.
+                onSolved: () => Navigator.of(context).maybePop(),
                 onContinue: (answers) {
                   setState(() {
                     _intakeAnswers = answers;
