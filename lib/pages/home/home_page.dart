@@ -1717,8 +1717,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 }
 
 /// The live sensor readings as chips, one per quantity the rider has a
-/// source for — the same icon and colour the signals grid uses for that
-/// quantity, so a rider recognises the tile each chip summarises.
+/// source for — the same icon the signals grid uses for that quantity, so a
+/// rider recognises the tile each chip summarises. Icons stay neutral: the
+/// one accent is brand blue, and a hue per quantity would read as a state.
 class SensorChips extends StatelessWidget {
   const SensorChips({super.key, required this.quantities});
 
@@ -1731,21 +1732,11 @@ class SensorChips extends StatelessWidget {
       runSpacing: 8,
       children: [
         if (quantities.contains(SensorQuantity.heartRate))
-          const _MetricChip(
-            quantity: SensorQuantity.heartRate,
-            icon: LucideIcons.heart,
-            color: Color(0xFFEF4444),
-            unit: 'bpm',
-          ),
+          const _MetricChip(quantity: SensorQuantity.heartRate, icon: LucideIcons.heart, unit: 'bpm'),
         if (quantities.contains(SensorQuantity.cadence))
-          const _MetricChip(
-            quantity: SensorQuantity.cadence,
-            icon: LucideIcons.rotateCw,
-            color: Color(0xFF8B5CF6),
-            unit: 'rpm',
-          ),
+          const _MetricChip(quantity: SensorQuantity.cadence, icon: LucideIcons.rotateCw, unit: 'rpm'),
         if (quantities.contains(SensorQuantity.power))
-          const _MetricChip(quantity: SensorQuantity.power, icon: LucideIcons.zap, color: Color(0xFFF59E0B), unit: 'W'),
+          const _MetricChip(quantity: SensorQuantity.power, icon: LucideIcons.zap, unit: 'W'),
       ],
     );
   }
@@ -1753,11 +1744,10 @@ class SensorChips extends StatelessWidget {
 
 /// One live reading: icon, the number in bold, its unit muted.
 class _MetricChip extends StatelessWidget {
-  const _MetricChip({required this.quantity, required this.icon, required this.color, required this.unit});
+  const _MetricChip({required this.quantity, required this.icon, required this.unit});
 
   final SensorQuantity quantity;
   final IconData icon;
-  final Color color;
   final String unit;
 
   @override
@@ -1775,7 +1765,7 @@ class _MetricChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: color),
+            Icon(icon, size: 14, color: theme.colorScheme.mutedForeground),
             const Gap(6),
             Text(
               value?.toString() ?? '--',

@@ -1,6 +1,5 @@
 import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -128,13 +127,13 @@ class _BlogPostRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: BKColor.main,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         'NEW',
         style: context.typography.caption.copyWith(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.primaryForeground,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
         ),

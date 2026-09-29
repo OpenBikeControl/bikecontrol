@@ -92,7 +92,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
         index: 0,
         icon: LucideIcons.bookOpen,
         title: l10n.helpCenterGuides,
-        accent: null,
+        tone: HelpSectionTone.neutral,
         child: const GuidesVideosSection(),
       ),
       // The ValueKey moves to a KeyedSubtree wrapping the whole card now
@@ -125,7 +125,7 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
           icon: LucideIcons.creditCard,
           title: l10n.helpCenterPricingFaq,
           subtitle: l10n.helpCenterPricingFaqSubtitle,
-          accent: null,
+          tone: HelpSectionTone.neutral,
           child: const PricingFaqSection(key: ValueKey('help-pricing-account')),
         ),
       ),

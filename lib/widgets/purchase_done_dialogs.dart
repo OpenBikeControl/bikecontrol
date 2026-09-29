@@ -27,7 +27,7 @@ Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(LucideIcons.badgeCheck, color: Colors.green),
+              Icon(LucideIcons.badgeCheck, color: BkStatusColors.of(context).success),
               const SizedBox(width: 8),
               Expanded(child: Text(l10n.purchaseBaseDoneTitle)),
             ],

@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
@@ -10,7 +11,6 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-const _success = Color(0xFF22C55E);
 
 /// 10 padding + 40 logo + 9 gap + two xSmall caption lines + 10 padding, with
 /// a little slack.
@@ -144,10 +144,10 @@ Widget _verifiedBadge(BuildContext context) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: _success.withValues(alpha: 0.12),
+        color: BkStatusColors.of(context).successWash,
       ),
       child: DefaultTextStyle.merge(
-        style: const TextStyle(color: _success, letterSpacing: 0.6),
+        style: TextStyle(color: BkStatusColors.of(context).success, letterSpacing: 0.6),
         child: Text(context.i18n.onboardingVerified.toUpperCase()).xSmall.semiBold,
       ),
     );

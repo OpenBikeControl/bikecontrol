@@ -19,6 +19,7 @@ import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
@@ -418,7 +419,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(dotColor(tester, 'heartRate', source.id), const Color(0xFF22C55E));
+      expect(dotColor(tester, 'heartRate', source.id), _status(tester).success);
       // The value/unit rows are unchanged from before this feature — a raw
       // "142", not the combined "142 bpm" the deleted picker's subtitle used.
       expect(
@@ -458,7 +459,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(dotColor(tester, 'cadence', source.id), const Color(0xFF22C55E));
+      expect(dotColor(tester, 'cadence', source.id), _status(tester).success);
       // Connected, but not CADENCE's own pick — a different subtitle from
       // the "streaming its own reading" one above: this row means "tap to
       // use it here too", not "this is already your source".
@@ -499,7 +500,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(dotColor(tester, 'cadence', 'ghost-cadence-source'), const Color(0xFFF59E0B));
+      expect(dotColor(tester, 'cadence', 'ghost-cadence-source'), _status(tester).warning);
     });
   });
 
@@ -539,7 +540,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(dotColor(tester, 'power', source.id), const Color(0xFFF59E0B));
+      expect(dotColor(tester, 'power', source.id), _status(tester).warning);
     });
   });
 
@@ -565,7 +566,7 @@ void main() {
 
       await pump(tester);
 
-      expect(dotColor(tester, 'heartRate', source.id), const Color(0xFFEF4444));
+      expect(dotColor(tester, 'heartRate', source.id), _status(tester).danger);
       // The subtitle names exactly what happened and what the rider is
       // seeing instead — this is the "value has fallen back to the trainer"
       // case the row has to spell out, not leave to the dot colour alone.
@@ -1311,3 +1312,7 @@ void main() {
     });
   });
 }
+
+/// The status palette of the theme the section was pumped in.
+BkStatusColors _status(WidgetTester tester) => BkStatusColors.of(tester.element(find.byType(LiveMetricsSection).first));
+

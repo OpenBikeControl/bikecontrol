@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -11,7 +12,6 @@ import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-const _success = Color(0xFF22C55E);
 
 /// One design-language method tile: icon square, title + badge, description,
 /// optional feature checks, radio check-dot on the right. Selection state is
@@ -98,7 +98,7 @@ class _MethodTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Row(children: [
-                      Icon(LucideIcons.check, size: 13, color: _success),
+                      Icon(LucideIcons.check, size: 13, color: BkStatusColors.of(context).success),
                       Gap(7),
                       Text(f).xSmall,
                     ]),
@@ -126,13 +126,13 @@ class _MethodTile extends StatelessWidget {
                             height: 7,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isConnected ? _success : Theme.of(context).colorScheme.mutedForeground,
+                              color: isConnected ? BkStatusColors.of(context).success : Theme.of(context).colorScheme.mutedForeground,
                             ),
                           ),
                           Gap(7),
                           isConnected
                               ? DefaultTextStyle.merge(
-                                  style: const TextStyle(color: _success),
+                                  style: TextStyle(color: BkStatusColors.of(context).success),
                                   child: Text(context.i18n.onboardingDeviceConnected).xSmall.semiBold,
                                 )
                               : Text(context.i18n.onboardingSummaryWaitingFor(appName)).xSmall.muted,

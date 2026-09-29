@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -52,14 +53,18 @@ extension on MetricSourceState {
   /// Dot colours per the component spec. Deliberately NOT applied to a
   /// row's text — see [MetricCard]'s doc comment on why the control has
   /// to stay muted regardless of state.
-  Color dotColor(ColorScheme cs) => switch (this) {
-    MetricSourceState.trainer => cs.mutedForeground,
-    MetricSourceState.notConnected => cs.mutedForeground,
-    MetricSourceState.connected => const Color(0xFF22C55E),
-    MetricSourceState.connecting => const Color(0xFFF59E0B),
-    MetricSourceState.waitingForFirstReading => const Color(0xFFF59E0B),
-    MetricSourceState.lost => const Color(0xFFEF4444),
-  };
+  Color dotColor(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final status = BkStatusColors.of(context);
+    return switch (this) {
+      MetricSourceState.trainer => cs.mutedForeground,
+      MetricSourceState.notConnected => cs.mutedForeground,
+      MetricSourceState.connected => status.success,
+      MetricSourceState.connecting => status.warning,
+      MetricSourceState.waitingForFirstReading => status.warning,
+      MetricSourceState.lost => status.danger,
+    };
+  }
 }
 
 /// One row of a [MetricCard]'s inline source list — Trainer, or one known
@@ -415,7 +420,7 @@ class MetricCard extends StatelessWidget {
         spacing: 2,
         children: [
           _sourceListHeader(context, cs),
-          for (final option in options) _row(cs, option),
+          for (final option in options) _row(context, option),
         ],
       ),
     );
@@ -441,8 +446,8 @@ class MetricCard extends StatelessWidget {
     );
   }
 
-  Widget _row(ColorScheme cs, MetricSourceOption option) {
-    return _MetricSourceRow(option: option, dotColor: option.state.dotColor(cs));
+  Widget _row(BuildContext context, MetricSourceOption option) {
+    return _MetricSourceRow(option: option, dotColor: option.state.dotColor(context));
   }
 }
 
@@ -620,7 +625,6 @@ class _MetricSourcePickerState extends State<_MetricSourcePicker> {
   });
 
   void _open() {
-    final cs = Theme.of(context).colorScheme;
     showDropdown(
       context: context,
       alignment: AlignmentDirectional.topStart,
@@ -636,7 +640,7 @@ class _MetricSourcePickerState extends State<_MetricSourcePicker> {
               children: [
                 for (final option in widget.options)
                   _MetricSourceRow(
-                    dotColor: option.state.dotColor(cs),
+                    dotColor: option.state.dotColor(context),
                     option: MetricSourceOption(
                       id: option.id,
                       label: option.label,
@@ -679,7 +683,7 @@ class _MetricSourcePickerState extends State<_MetricSourcePicker> {
               key: const Key('metric-card-source-picker-dot'),
               width: 7,
               height: 7,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: current.state.dotColor(cs)),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: current.state.dotColor(context)),
             ),
             const Gap(8),
             Expanded(

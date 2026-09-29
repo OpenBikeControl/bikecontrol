@@ -15,7 +15,6 @@ import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:d4rt/d4rt.dart';
@@ -318,10 +317,9 @@ class TrainerAppSelect extends StatelessWidget {
         items: SelectItemList(
           children: [
             if (groupedByOfficial.get(true)?.isNotEmpty == true)
-              Container(
-                color: Theme.of(context).colorScheme.accent,
-                padding: const EdgeInsets.all(8.0),
-                child: GradientText(AppLocalizations.of(context).officiallySupported).xSmall,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+                child: BkGroupedHeader(AppLocalizations.of(context).officiallySupported),
               ),
             ...groupedByOfficial.get(true)?.map((app) {
               final supportsObp =
@@ -356,10 +354,9 @@ class TrainerAppSelect extends StatelessWidget {
               );
             }),
             if (groupedByOfficial.get(true)?.isNotEmpty == true)
-              Container(
-                color: Theme.of(context).colorScheme.accent,
-                padding: const EdgeInsets.all(8.0),
-                child: GradientText(AppLocalizations.of(context).otherTrainerApps).xSmall,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+                child: BkGroupedHeader(AppLocalizations.of(context).otherTrainerApps),
               ),
             ...groupedByOfficial.get(false)?.map((app) {
               return SelectItemButton(

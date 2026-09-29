@@ -207,7 +207,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.gray.withAlpha(100)),
+          border: Border.all(color: Theme.of(context).colorScheme.border),
         ),
         child: Column(
           spacing: 12,
@@ -228,7 +228,7 @@ class _InstructionVideosDrawerState extends State<InstructionVideosDrawer> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.gray.withAlpha(100)),
+          border: Border.all(color: Theme.of(context).colorScheme.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

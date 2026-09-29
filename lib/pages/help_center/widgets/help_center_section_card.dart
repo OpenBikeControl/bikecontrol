@@ -1,4 +1,5 @@
-import 'package:bike_control/widgets/ui/colors.dart' show BKColor;
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -15,18 +16,20 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// than sitting inside a padded column, so the card itself carries no
 /// padding at all.
 ///
-/// [accent] colours the icon and, when it equals [BKColor.main], tints the
-/// icon tile with the brand tint too (matching the mockup's "brand-accented"
-/// tiles). Any other non-null accent (e.g. a warning colour) gets a light
-/// tint of itself instead. `null` renders the mockup's neutral tile: a plain
-/// muted background with a foreground-coloured icon.
+/// [tone] picks the icon tile: [HelpSectionTone.brand] an accent icon on a
+/// light wash of the primary colour, [HelpSectionTone.warning] the status
+/// warning on its wash, [HelpSectionTone.neutral] a plain muted tile with a
+/// foreground icon. All from theme roles, so both themes hold contrast.
+/// The icon tile treatment of a [HelpCenterSectionCard].
+enum HelpSectionTone { brand, warning, neutral }
+
 class HelpCenterSectionCard extends StatelessWidget {
   final int index;
   final IconData icon;
   final String title;
   final String? microLabel;
   final String? subtitle;
-  final Color? accent;
+  final HelpSectionTone tone;
   final bool focused;
   final Widget child;
 
@@ -37,7 +40,7 @@ class HelpCenterSectionCard extends StatelessWidget {
     required this.title,
     this.microLabel,
     this.subtitle,
-    this.accent = BKColor.main,
+    this.tone = HelpSectionTone.brand,
     this.focused = false,
     required this.child,
   });
@@ -45,11 +48,12 @@ class HelpCenterSectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final accent = this.accent;
-    final tileBackground = accent == null
-        ? cs.muted
-        : (accent == BKColor.main ? BKColor.backgroundLight : accent.withValues(alpha: 0.12));
-    final iconColor = accent ?? cs.foreground;
+    final status = BkStatusColors.of(context);
+    final (tileBackground, iconColor) = switch (tone) {
+      HelpSectionTone.brand => (cs.primary.withValues(alpha: 0.12), bkAccentText(context)),
+      HelpSectionTone.warning => (status.warningWash, status.warning),
+      HelpSectionTone.neutral => (cs.muted, cs.foreground),
+    };
     final microLabel = this.microLabel;
     final subtitle = this.subtitle;
 
@@ -72,7 +76,7 @@ class HelpCenterSectionCard extends StatelessWidget {
         // Keeps the border-colour easing feel the old focus frame had, now
         // driven by the card's own border instead of a nested container.
         duration: const Duration(milliseconds: 220),
-        borderColor: focused ? BKColor.main : null,
+        borderColor: focused ? cs.primary : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

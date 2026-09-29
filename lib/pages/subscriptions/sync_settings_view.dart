@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -316,14 +317,14 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: _hasNewerSettings
-                      ? Colors.orange.withAlpha(30)
+                      ? BkStatusColors.of(context).warningWash
                       : Theme.of(context).colorScheme.primary.withAlpha(30),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   _hasNewerSettings ? LucideIcons.cloudDownload : LucideIcons.refreshCw,
                   size: 28,
-                  color: _hasNewerSettings ? Colors.orange : Theme.of(context).colorScheme.primary,
+                  color: _hasNewerSettings ? BkStatusColors.of(context).warning : Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(width: 16),
@@ -404,13 +405,13 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.purple.withAlpha(30),
+                  color: Theme.of(context).colorScheme.muted,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   LucideIcons.monitorSmartphone,
                   size: 28,
-                  color: Colors.purple,
+                  color: Theme.of(context).colorScheme.foreground,
                 ),
               ),
               const SizedBox(width: 16),
@@ -479,13 +480,13 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: BkStatusColors.of(context).warning,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       AppLocalizations.of(context).newer,
                       style: context.typography.caption.copyWith(
-                        color: Colors.white,
+                        color: BkStatusColors.of(context).warningForeground,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

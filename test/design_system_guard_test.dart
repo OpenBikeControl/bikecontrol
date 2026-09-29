@@ -83,4 +83,36 @@ void main() {
       expect(offenders, isEmpty, reason: 'Use the LucideIcons equivalent.');
     });
   });
+
+  group('page colours', () {
+    // Pages take colours from colorScheme roles, BkStatusColors and the
+    // helpers in lib/widgets/ui/colors.dart, so both themes keep their
+    // contrast. A literal colour is allowed only where it is not UI chrome —
+    // listed here with the exact tokens it may use. Fully transparent
+    // (Color(0x00000000), Colors.transparent) is not a colour and is fine.
+    const allowlist = {
+      // Markers and key caps drawn over the rider's own screenshot of their
+      // trainer app: they must read on arbitrary imagery, not on our grounds.
+      'lib/pages/touch_area.dart': {'Colors.white', 'Colors.black', 'Colors.green', 'Colors.red'},
+      // The scrim and play glyph over a video thumbnail.
+      'lib/pages/help_center/widgets/instruction_videos_section.dart': {'Colors.black', 'Colors.white'},
+    };
+    final literal = RegExp(
+      r'Color\(0x(?!00000000\))[0-9A-Fa-f]{8}\)|(?<![A-Za-z_])Colors\.(?!transparent\b)[A-Za-z]+|BKColor\.[A-Za-z]+',
+    );
+
+    test('no hard-coded colours in lib/pages outside the allowlist', () {
+      final offenders = [
+        for (final (path, line, text) in libLines())
+          if (path.startsWith('lib/pages/') && !text.trimLeft().startsWith('//'))
+            for (final m in literal.allMatches(text))
+              if (!(allowlist[path]?.contains(m.group(0)) ?? false)) '$path:$line  ${m.group(0)}',
+      ];
+      expect(
+        offenders,
+        isEmpty,
+        reason: 'Use colorScheme roles, BkStatusColors.of(context) or the helpers in lib/widgets/ui/colors.dart.',
+      );
+    });
+  });
 }

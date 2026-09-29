@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -46,7 +47,7 @@ Widget buildTriggerConflictDialog({
       title: Row(
         children: [
           if (!IAPManager.instance.hasActiveSubscription) ...[
-            Icon(LucideIcons.crown, color: Colors.orange),
+            Icon(LucideIcons.crown, color: BkStatusColors.of(context).warning),
             const SizedBox(width: 8),
           ],
           Text(AppLocalizations.of(context).additionalTriggerAssignment),

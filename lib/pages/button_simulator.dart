@@ -12,7 +12,6 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -308,7 +307,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                         };
 
                         return [
-                          GradientText(connection.title).bold.large,
+                          Text(connection.title).bold.large,
                           for (final group in actionGroups.entries) _buildGroupCard(group, connection, isMobile),
                         ];
                       },
@@ -555,7 +554,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               if (action.alternativeTitle != null)
                 Text(
                   action.alternativeTitle!.toUpperCase(),
-                  style: context.typography.caption.copyWith(color: Colors.gray),
+                  style: context.typography.caption.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
                 ),
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-import 'colors.dart' show BKColor;
+import 'colors.dart' show bkAccentText;
 
 class ColoredTitle extends StatelessWidget {
   final String text;
@@ -12,7 +12,7 @@ class ColoredTitle extends StatelessWidget {
     return Row(
       spacing: 6,
       children: [
-        if (icon != null) Icon(icon, size: 18, color: BKColor.main),
+        if (icon != null) Icon(icon, size: 18, color: bkAccentText(context)),
         Text(text).small.medium,
       ],
     );

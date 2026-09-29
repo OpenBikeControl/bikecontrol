@@ -99,7 +99,7 @@ class OnboardingAppGuideCard extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(shape: BoxShape.circle, color: onboardingAccent(context)),
                     child: DefaultTextStyle.merge(
-                      style: const TextStyle(color: Color(0xFFFFFFFF)),
+                      style: TextStyle(color: onboardingOnAccent(context)),
                       child: Text('${i + 1}').xSmall.semiBold,
                     ),
                   ),
@@ -196,13 +196,13 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
-                color: _success.withValues(alpha: 0.12),
+                color: BkStatusColors.of(context).successWash,
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Container(
                   width: 7,
                   height: 7,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: _success),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: BkStatusColors.of(context).success),
                 ),
                 Gap(5),
                 DefaultTextStyle.merge(
@@ -229,8 +229,8 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: _warning.withValues(alpha: 0.12),
-            border: Border.all(color: _warning.withValues(alpha: 0.5)),
+            color: BkStatusColors.of(context).warningWash,
+            border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.5)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(LucideIcons.triangleAlert, size: 16, color: BkStatusColors.of(context).warning),
@@ -259,5 +259,3 @@ Widget _slotRow(BuildContext context, IconData icon, String slot, String entryNa
   );
 }
 
-const Color _success = Color(0xFF22C55E);
-const Color _warning = Color(0xFFF59E0B);

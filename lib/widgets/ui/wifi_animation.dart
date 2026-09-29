@@ -53,10 +53,10 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
   Widget build(BuildContext context) {
     final s = widget.size;
 
-    // Colors close to the screenshot
-    const ringColor = Color(0xFFBFEFF2); // pale cyan
-    const innerBorder = Color(0xFFE6E6E6);
-    const iconColor = BKColor.main; // teal
+    final cs = Theme.of(context).colorScheme;
+    final ringColor = cs.primary.withValues(alpha: 0.25);
+    final innerBorder = cs.border;
+    final iconColor = bkAccentText(context);
 
     return SizedBox(
       width: s,
@@ -93,7 +93,7 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
               height: s * 0.62,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
+                color: cs.card,
                 border: Border.all(color: innerBorder, width: 1.5),
               ),
               alignment: Alignment.center,
@@ -109,13 +109,6 @@ class _ScanningIndicatorState extends State<SmoothWifiAnimation> with SingleTick
               decoration: ShapeDecoration(
                 color: Theme.of(context).colorScheme.primary,
                 shape: StadiumBorder(),
-                shadows: [
-                  BoxShadow(
-                    blurRadius: 10,
-                    offset: Offset(0, 3),
-                    color: Color(0x33000000),
-                  ),
-                ],
               ),
               child: Text(
                 widget.label ?? AppLocalizations.of(context).scanning.toUpperCase(),

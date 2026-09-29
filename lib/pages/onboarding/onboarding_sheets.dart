@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/markdown.dart';
@@ -233,8 +234,8 @@ Widget permissionDeniedSheetBody(
     children: [
       StageBadge(
         icon: LucideIcons.bluetoothOff,
-        tone: const Color(0xFFDC2626),
-        wash: const Color(0x1ADC2626),
+        tone: BkStatusColors.of(context).danger,
+        wash: BkStatusColors.of(context).dangerWash,
         reduceMotion: reduceMotion,
       ),
       Gap(14),

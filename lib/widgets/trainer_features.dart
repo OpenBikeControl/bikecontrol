@@ -36,9 +36,9 @@ class TrainerFeatures extends StatelessWidget {
         if (trainerApp != null && !isBikeControl)
           FeatureWidget(
             icon: LucideIcons.monitor,
-            iconColor: BKColor.main,
-            bgColor: BKColor.main.withValues(alpha: 0.03),
-            iconBgColor: BKColor.main.withValues(alpha: 0.08),
+            iconColor: bkAccentText(context),
+            bgColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.03),
+            iconBgColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
             title: AppLocalizations.of(
               context,
             ).manualyControllingButton(trainerApp.name),
@@ -106,14 +106,14 @@ class FeatureWidget extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: iconColor,
+                            color: Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             'NEW',
                             style: context.typography.caption.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.primaryForeground,
                               letterSpacing: 0.5,
                             ),
                           ),

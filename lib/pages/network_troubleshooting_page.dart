@@ -753,9 +753,6 @@ class _Panel extends StatelessWidget {
         color: cs.card,
         border: Border.all(color: cs.border),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: const Color(0x0F0F1520), blurRadius: 2, offset: const Offset(0, 1)),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: child,

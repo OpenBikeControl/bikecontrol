@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
@@ -293,7 +294,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
         children: [
-          const Icon(LucideIcons.triangleAlert, color: Colors.orange, size: 18),
+          Icon(LucideIcons.triangleAlert, color: BkStatusColors.of(context).warning, size: 18),
           Expanded(
             child: Text(
               AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),
