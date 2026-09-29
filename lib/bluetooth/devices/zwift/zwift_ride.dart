@@ -54,6 +54,10 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
   @override
   String? get latestFirmwareVersion => '1.2.0';
 
+  /// The Ride's two hoods, as the home card and device page draw them. Also
+  /// the Ride V2 explainer's hero, so both show the same controller.
+  static const contourAsset = 'assets/contours/zwift_play_both.svg';
+
   /// The first firmware of the Zwift Ride V2.
   static final Version rideV2Firmware = Version(1, 3, 0);
 
@@ -119,7 +123,7 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
     // SVG depicts both Plays side-by-side; shape kept as dropBar only as a
     // sizing-bucket hint for [ControllerCanvas] (the painter is not used).
     shape: ContourShape.steeringPad,
-    svgAsset: 'assets/contours/zwift_play_both.svg',
+    svgAsset: contourAsset,
     positions: {
       // LEFT half — ZwiftPlay LEFT positions with x scaled by 0.5 so they
       // land inside the left controller silhouette in the both-svg.

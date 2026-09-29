@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, navigatorKey, screenshotMode;
+import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/pages/unlock.dart';
@@ -69,32 +70,31 @@ Future<void> main() async {
     addTearDown(tester.view.resetDevicePixelRatio);
     await AppLocalizations.load(const Locale('en'));
     final key = GlobalKey();
-    await tester.pumpWidget(
-      RepaintBoundary(
-        key: key,
-        child: ShadcnApp(
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          locale: const Locale('en'),
-          localizationsDelegates: [
-            ...ShadcnLocalizations.localizationsDelegates,
-            const OtherLocalizationsDelegate(),
-            AppLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.delegate.supportedLocales,
-          scaling: BkTheme.scaling,
-          theme: snapshotTheme(Brightness.light),
-          darkTheme: snapshotTheme(Brightness.dark),
-          themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
-          materialTheme: m.ThemeData(),
-          home: home,
-        ),
+    final app = RepaintBoundary(
+      key: key,
+      child: ShadcnApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        locale: const Locale('en'),
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        scaling: BkTheme.scaling,
+        theme: snapshotTheme(Brightness.light),
+        darkTheme: snapshotTheme(Brightness.dark),
+        themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+        materialTheme: m.ThemeData(),
+        home: home,
       ),
     );
+    await tester.pumpWidget(app);
     await tester.pump();
     await tester.loadAssets();
     await tester.binding.reassembleApplication();
-    await tester.pump();
+    await remountWithLoadedFonts(tester, app);
     if (afterPump != null) await afterPump();
     if (settle) {
       await tester.pumpAndSettle();
@@ -118,6 +118,11 @@ Future<void> main() async {
     child: device.showInformation(context, showFull: true),
   );
 
+  testWidgets('0 Click V2 explainer, for comparison', (tester) async {
+    await shootApp(tester, '0_clickv2_explainer', const ClickV2OnboardingPage(), settle: false);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('1 one-time explainer', (tester) async {
     for (final b in Brightness.values) {
       await shootApp(
@@ -139,7 +144,9 @@ Future<void> main() async {
     await shootApp(
       tester,
       '2_home_locked',
-      Scaffold(child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {}))),
+      Scaffold(
+        child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {})),
+      ),
       settle: false,
     );
     await tester.pumpWidget(const SizedBox());
@@ -217,7 +224,9 @@ Future<void> main() async {
     await shootApp(
       tester,
       '6_locked_toast',
-      Scaffold(child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {}))),
+      Scaffold(
+        child: SingleChildScrollView(child: HomePage(isMobile: true, onUpdate: () {})),
+      ),
       settle: false,
       afterPump: () async {
         showZwiftRideV2LockedToast(ride);

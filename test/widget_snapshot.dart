@@ -106,6 +106,21 @@ Future<void> _runBootstrap() async {
   IAPManager.instance.isPurchased.value = true;
 }
 
+/// Mounts [app] afresh once its fonts are loaded.
+///
+/// `loadAssets()` can only load the fonts it finds in a built tree, so the
+/// first layout always runs against the test font. `reassembleApplication`
+/// re-lays that tree out, but a paragraph under an `IntrinsicHeight` keeps the
+/// height it was first measured at — shadcn's single-line `Button.link` then
+/// clips its descenders ("Why" renders as "Whv"). The app never sees this: its
+/// fonts are loaded before the first frame. Unmounting and pumping [app] again
+/// gives every render object a first layout with the real fonts.
+Future<void> remountWithLoadedFonts(WidgetTester tester, Widget app) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pumpWidget(app);
+  await tester.pump();
+}
+
 /// main.dart's light or dark app theme, so snapshots match the app exactly.
 ThemeData snapshotTheme(Brightness brightness) => BkTheme.build(brightness);
 
@@ -174,44 +189,43 @@ Future<List<File>> captureWidget(
 
     final boundaryKey = GlobalKey();
 
-    await tester.pumpWidget(
-      ShadcnApp(
-        debugShowCheckedModeBanner: false,
-        locale: Locale(loc),
-        // Mirror main.dart's delegate stack so AppLocalizations.of(context) and
-        // shadcn's own strings both resolve for [loc].
-        localizationsDelegates: [
-          ...ShadcnLocalizations.localizationsDelegates,
-          const OtherLocalizationsDelegate(),
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        scaling: BkTheme.scaling,
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
-        materialTheme: m.ThemeData(),
-        home: Builder(
-          builder: (context) {
-            final captured = RepaintBoundary(
-              key: boundaryKey,
-              child: ColoredBox(
-                color: background ?? Theme.of(context).colorScheme.background,
-                child: Padding(
-                  padding: padding,
-                  child: SizedBox(
-                    width: width,
-                    height: height,
-                    child: builder(context),
-                  ),
+    final app = ShadcnApp(
+      debugShowCheckedModeBanner: false,
+      locale: Locale(loc),
+      // Mirror main.dart's delegate stack so AppLocalizations.of(context) and
+      // shadcn's own strings both resolve for [loc].
+      localizationsDelegates: [
+        ...ShadcnLocalizations.localizationsDelegates,
+        const OtherLocalizationsDelegate(),
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
+      scaling: BkTheme.scaling,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+      materialTheme: m.ThemeData(),
+      home: Builder(
+        builder: (context) {
+          final captured = RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: background ?? Theme.of(context).colorScheme.background,
+              child: Padding(
+                padding: padding,
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: builder(context),
                 ),
               ),
-            );
-            return height == null ? SingleChildScrollView(child: captured) : captured;
-          },
-        ),
+            ),
+          );
+          return height == null ? SingleChildScrollView(child: captured) : captured;
+        },
       ),
     );
+    await tester.pumpWidget(app);
 
     // First pump builds the tree; loadAssets() loads the fonts it finds there
     // (Geist etc.); the second pump re-renders with real glyphs, not Ahem boxes.
@@ -222,6 +236,7 @@ Future<List<File>> captureWidget(
     // clips descenders). The app loads its fonts before the first frame, so
     // re-measure everything as it would have been.
     await tester.binding.reassembleApplication();
+    await remountWithLoadedFonts(tester, app);
     if (settle) {
       await tester.pumpAndSettle();
     } else {

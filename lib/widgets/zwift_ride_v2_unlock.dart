@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
@@ -260,8 +261,8 @@ class ZwiftRideV2ExplainerPage extends StatelessWidget {
   }
 }
 
-/// The Ride's contour with a padlock badge — the Click V2 explainer's hero,
-/// for the Ride.
+/// The Ride's two hoods (the same line art as its home card) with a padlock
+/// badge between them — the Click V2 explainer's hero, for the Ride.
 class _RideV2Hero extends StatelessWidget {
   const _RideV2Hero();
 
@@ -276,7 +277,7 @@ class _RideV2Hero extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        SvgPicture.asset('assets/contours/zwift_play_both.svg', fit: BoxFit.contain, colorFilter: colorFilter),
+        SvgPicture.asset(ZwiftRide.contourAsset, fit: BoxFit.contain, colorFilter: colorFilter),
         Container(
           width: 40,
           height: 40,
