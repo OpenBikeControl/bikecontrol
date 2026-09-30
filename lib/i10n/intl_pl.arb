@@ -787,8 +787,6 @@
   "basicMode": "Podstawowy",
   "gearCount": "Liczba biegów",
   "gearCountDesc": "Rozmiar wirtualnej kasety",
-  "gearCountMismatch": "{appName} używa {expected} biegów, ta konfiguracja używa {actual}. Bieg pokazywany w {appName} może się nie zgadzać.",
-  "useGearCount": "Użyj {count}",
   "gradeSmoothing": "Wygładzanie nachylenia",
   "gradeSmoothingDesc": "Uśrednia gwałtowne zmiany nachylenia",
   "cadenceFilter": "Filtr kadencji",

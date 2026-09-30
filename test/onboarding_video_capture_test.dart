@@ -131,7 +131,6 @@ import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart' show O
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart' show debugVirtualShiftingStageOpeningScene;
-import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart' show debugHideGearCountMismatch;
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
@@ -845,8 +844,6 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   await cut.tap(plus, 'Gear count +');
   await cut.tap(plus, 'Gear count + again');
   expect(definition.maxGear, MyWhoosh().virtualGearAmount);
-  final mismatch = l10n.gearCountMismatch(MyWhoosh().name, MyWhoosh().virtualGearAmount, _cutawayStartGears);
-  expect(find.text(mismatch), findsNothing, reason: 'the gear-count warning is kept off this video');
   await cut.swipe(const Offset(190, 640), const Offset(190, 300), 'Scroll to presets');
   await cut.tap(find.text(l10n.presetCompact), 'Compact preset');
   // Rest on the chosen preset.
@@ -922,14 +919,12 @@ void main() {
     debugClickV2OnboardingInScreenshotMode = true;
     debugKeepsControllerNamesInScreenshotMode = true;
     debugVirtualShiftingStageOpeningScene = _vsStageOpeningScene;
-    debugHideGearCountMismatch = true;
     debugHideMiniWorkoutCard = true;
     addTearDown(() {
       debugAnimatesInScreenshotMode = false;
       debugClickV2OnboardingInScreenshotMode = false;
       debugKeepsControllerNamesInScreenshotMode = false;
       debugVirtualShiftingStageOpeningScene = null;
-      debugHideGearCountMismatch = false;
       debugHideMiniWorkoutCard = false;
     });
   });

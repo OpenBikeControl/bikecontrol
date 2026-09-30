@@ -787,8 +787,6 @@
   "basicMode": "Base",
   "gearCount": "Numero di rapporti",
   "gearCountDesc": "Dimensione del cambio virtuale",
-  "gearCountMismatch": "{appName} usa {expected} rapporti, questa config ne usa {actual}. Il rapporto mostrato in {appName} potrebbe non corrispondere.",
-  "useGearCount": "Usa {count}",
   "gradeSmoothing": "Smussamento pendenza",
   "gradeSmoothingDesc": "Media i cambi di pendenza improvvisi",
   "cadenceFilter": "Filtro cadenza",

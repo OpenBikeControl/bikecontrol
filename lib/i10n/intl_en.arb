@@ -1272,28 +1272,6 @@
   "basicMode": "Basic",
   "gearCount": "Gear Count",
   "gearCountDesc": "Size of the virtual shifter",
-  "gearCountMismatch": "{appName} uses {expected} gears, this config uses {actual}. The gear displayed in {appName} may not match.",
-  "@gearCountMismatch": {
-    "placeholders": {
-      "appName": {
-        "type": "String"
-      },
-      "expected": {
-        "type": "int"
-      },
-      "actual": {
-        "type": "int"
-      }
-    }
-  },
-  "useGearCount": "Use {count}",
-  "@useGearCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "gradeSmoothing": "Grade Smoothing",
   "gradeSmoothingDesc": "Averages sudden slope changes",
   "cadenceFilter": "Cadence Filter",

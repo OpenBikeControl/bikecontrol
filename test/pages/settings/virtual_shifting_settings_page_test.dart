@@ -216,15 +216,19 @@ Future<void> main() async {
       expect(state.debugIdleRingOpacity, 1);
     });
 
-    testWidgets('a gear count that differs from the trainer app still warns', (tester) async {
+    // The trainer app's gear count is not synced with BikeControl's, and the
+    // overlay is what shows the rider the real gear — so a count that differs
+    // from the app's is not a problem to warn about.
+    testWidgets('a gear count that differs from the trainer app raises no warning', (tester) async {
       final (:proxy, :definition) = attachLiveTrainer();
+      definition.setMaxGear(24);
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
       await tester.pump();
-      final app = MyWhoosh();
-      expect(
-        find.text(l.gearCountMismatch(app.name, app.virtualGearAmount, definition.maxGear)),
-        definition.maxGear == app.virtualGearAmount ? findsNothing : findsOneWidget,
-      );
+      expect(MyWhoosh().virtualGearAmount, isNot(definition.maxGear));
+      final row = find.byType(GearCountRow);
+      expect(row, findsOneWidget);
+      expect(find.descendant(of: row, matching: find.byIcon(LucideIcons.triangleAlert)), findsNothing);
+      expect(find.descendant(of: row, matching: find.byType(GhostButton)), findsNothing);
     });
 
     testWidgets('Per-gear ratios opens the steppers with the curve pinned above them', (tester) async {

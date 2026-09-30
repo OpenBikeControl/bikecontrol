@@ -4,7 +4,6 @@ import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
@@ -17,12 +16,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 // trainer's "Gear Settings" row; it is now Settings → Virtual shifting (the
 // curve, presets, gear count and switches, see VirtualShiftingSettingsPage)
 // with only the per-gear steppers one screen deeper, in [PerGearRatiosPage].
-
-/// Keeps the gear-count mismatch warning ("MyWhoosh uses 30 gears …") off the
-/// page. For the onboarding video, which shows the gear-count stepper without
-/// the warning its intermediate counts would raise. Off everywhere else.
-@visibleForTesting
-bool debugHideGearCountMismatch = false;
 
 /// Applies [mutate] to [device]'s active shifting config and stores it.
 Future<void> updateActiveShiftingConfig(ProxyDevice device, ShiftingConfig Function(ShiftingConfig) mutate) async {
@@ -143,8 +136,9 @@ class GearRatioPresetChips extends StatelessWidget {
   }
 }
 
-/// Gear Count with its stepper, and — when the trainer app counts a different
-/// number of gears — the warning with a one-tap fix under it.
+/// Gear Count with its stepper. BikeControl's gear count is its own: it is
+/// not synced with the trainer app's, and the overlay is what shows the rider
+/// the gear they are actually in.
 class GearCountRow extends StatelessWidget {
   const GearCountRow({super.key, required this.definition, required this.device});
 
@@ -154,64 +148,23 @@ class GearCountRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final cs = Theme.of(context).colorScheme;
     final count = definition.maxGear;
-    final app = core.settings.getTrainerApp();
-    final expected = app?.virtualGearAmount;
-    final mismatch = app != null && expected != null && expected != count && !debugHideGearCountMismatch;
-    final status = BkStatusColors.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        BkGroupedRow(
-          icon: LucideIcons.hash,
-          title: l10n.gearCount,
-          subtitle: l10n.gearCountDesc,
-          trailing: StepperControl(
-            value: count.toDouble(),
-            step: 1.0,
-            min: ShiftingConfig.maxGearMin.toDouble(),
-            max: ShiftingConfig.maxGearMax.toDouble(),
-            format: (v) => v.toStringAsFixed(0),
-            onChanged: (v) async {
-              final next = v.toInt();
-              definition.setMaxGear(next);
-              await updateActiveShiftingConfig(device, (c) => c.copyWith(maxGear: next));
-            },
-          ),
-        ),
-        if (mismatch)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: status.warningWash,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: status.warning.withValues(alpha: 0.4)),
-              ),
-              child: Row(
-                spacing: 8,
-                children: [
-                  Icon(LucideIcons.triangleAlert, size: 14, color: status.warning),
-                  Expanded(
-                    child: Text(
-                      l10n.gearCountMismatch(app.name, expected, count),
-                      style: context.typography.xSmall.copyWith(color: cs.foreground),
-                    ),
-                  ),
-                  Button.ghost(
-                    onPressed: () async {
-                      definition.setMaxGear(expected);
-                      await updateActiveShiftingConfig(device, (c) => c.copyWith(maxGear: expected));
-                    },
-                    child: Text(l10n.useGearCount(expected), style: context.typography.xSmall),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
+    return BkGroupedRow(
+      icon: LucideIcons.hash,
+      title: l10n.gearCount,
+      subtitle: l10n.gearCountDesc,
+      trailing: StepperControl(
+        value: count.toDouble(),
+        step: 1.0,
+        min: ShiftingConfig.maxGearMin.toDouble(),
+        max: ShiftingConfig.maxGearMax.toDouble(),
+        format: (v) => v.toStringAsFixed(0),
+        onChanged: (v) async {
+          final next = v.toInt();
+          definition.setMaxGear(next);
+          await updateActiveShiftingConfig(device, (c) => c.copyWith(maxGear: next));
+        },
+      ),
     );
   }
 }

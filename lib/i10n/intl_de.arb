@@ -787,8 +787,6 @@
   "basicMode": "Einfach",
   "gearCount": "Anzahl Gänge",
   "gearCountDesc": "Größe des virtuellen Schalters",
-  "gearCountMismatch": "{appName} nutzt {expected} Gänge, diese Konfiguration nutzt {actual}. Der in {appName} angezeigte Gang könnte abweichen.",
-  "useGearCount": "{count} verwenden",
   "gradeSmoothing": "Steigungsglättung",
   "gradeSmoothingDesc": "Mittelt plötzliche Steigungswechsel",
   "cadenceFilter": "Trittfrequenz-Filter",

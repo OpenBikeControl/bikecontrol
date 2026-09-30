@@ -787,8 +787,6 @@
   "basicMode": "Basique",
   "gearCount": "Nombre de vitesses",
   "gearCountDesc": "Taille du passage virtuel",
-  "gearCountMismatch": "{appName} utilise {expected} vitesses, cette config en utilise {actual}. La vitesse affichée dans {appName} peut ne pas correspondre.",
-  "useGearCount": "Utiliser {count}",
   "gradeSmoothing": "Lissage de la pente",
   "gradeSmoothingDesc": "Atténue les changements brusques de pente",
   "cadenceFilter": "Filtre de cadence",

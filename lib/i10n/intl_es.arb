@@ -787,8 +787,6 @@
   "basicMode": "Básico",
   "gearCount": "Número de marchas",
   "gearCountDesc": "Tamaño del cambio virtual",
-  "gearCountMismatch": "{appName} usa {expected} marchas, esta configuración usa {actual}. La marcha mostrada en {appName} puede no coincidir.",
-  "useGearCount": "Usar {count}",
   "gradeSmoothing": "Suavizado de pendiente",
   "gradeSmoothingDesc": "Promedia los cambios bruscos de pendiente",
   "cadenceFilter": "Filtro de cadencia",
