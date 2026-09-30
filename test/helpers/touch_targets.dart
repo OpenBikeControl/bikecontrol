@@ -24,3 +24,11 @@ List<String> actionButtonsBelowAndroidTarget(WidgetTester tester) => [
       '${element.widget.toStringShort()} ${size.width.toStringAsFixed(1)}×${size.height.toStringAsFixed(1)} '
           '"${find.descendant(of: find.byWidget(element.widget), matching: find.byType(Text)).evaluate().map((e) => (e.widget as Text).data).join(' ')}"',
 ];
+
+/// Any tappable, found however: each of [targets] is at least 48×48 logical
+/// px. Returns the offenders, described, for a readable failure.
+List<String> targetsBelowAndroidMinimum(WidgetTester tester, List<Finder> targets) => [
+  for (final target in targets)
+    if (tester.getSize(target) case final size when size.width < 47.5 || size.height < 47.5)
+      '$target ${size.width.toStringAsFixed(1)}×${size.height.toStringAsFixed(1)}',
+];

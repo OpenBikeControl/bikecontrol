@@ -2460,5 +2460,8 @@
   "vsGroupPhysics": "Física",
   "perGearRatiosTitle": "Desarrollo por marcha",
   "rideOverlayOff": "El Overlay de marchas está desactivado",
+  "rideOverlayOfferNote": "{app} muestra su propia marcha",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Mostrar Overlay",
   "a11yChangeChainring": "Cambiar de plato"
 }

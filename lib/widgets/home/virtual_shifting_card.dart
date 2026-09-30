@@ -9,6 +9,7 @@ import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -77,8 +78,12 @@ class VirtualShiftingCard extends StatelessWidget {
       ]),
       builder: (context, _) {
         final erg = definition.trainerMode.value == TrainerMode.ergMode;
+        // On touch the header links are 48 tall and take over the card's top
+        // padding and the gap below them (see [_HeaderLink]), so the text
+        // stays about where it was.
+        final touch = _HeaderLink.touch;
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(16, touch ? 0 : 16, 16, 16),
           decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -87,7 +92,7 @@ class VirtualShiftingCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _header(context, erg),
-                  const Gap(12),
+                  if (!touch) const Gap(12),
                   if (layout == VsCardLayout.stacked) ..._stacked(context, erg, width) else _beside(context, erg, width),
                   if (footer case final footer?) ...[
                     const Gap(14),
@@ -118,6 +123,7 @@ class VirtualShiftingCard extends StatelessWidget {
             children: [
               _HeaderLink(
                 key: const ValueKey('ride-vs-settings-link'),
+                alignment: AlignmentDirectional.bottomStart,
                 onPressed: onOpenSettings,
                 label: l.rideVirtualShifting,
                 children: [
@@ -134,6 +140,7 @@ class VirtualShiftingCard extends StatelessWidget {
               ),
               _HeaderLink(
                 key: const ValueKey('ride-vs-trainer-link'),
+                alignment: AlignmentDirectional.topStart,
                 onPressed: onOpenTrainer,
                 label: trainerName,
                 children: [
@@ -334,27 +341,44 @@ class VirtualShiftingCard extends StatelessWidget {
 /// One of the card header's two links: a row of text that opens something,
 /// tall enough to hit on its own, with a focus ring and a spoken name.
 class _HeaderLink extends StatelessWidget {
-  const _HeaderLink({super.key, required this.onPressed, required this.label, required this.children});
+  const _HeaderLink({
+    super.key,
+    required this.onPressed,
+    required this.label,
+    required this.alignment,
+    required this.children,
+  });
 
   final VoidCallback? onPressed;
   final String label;
+
+  /// Where the text sits in a touch-height link: the title at the bottom of
+  /// its 48 and the trainer name at the top of its own, so the two lines stay
+  /// as close together as the 32-tall pointer links, and the extra height
+  /// stands in for the card's top padding and the gap under the header.
+  final AlignmentGeometry alignment;
   final List<Widget> children;
 
-  /// Two of them stack in the header, so each stays under a full 48.
-  static const double height = 32;
+  /// The height with a mouse: two of them stack in the header.
+  static const double pointerHeight = 32;
+
+  /// Whether the links are thumb-sized: touch platforms get a full 48 each.
+  static bool get touch =>
+      defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   Widget build(BuildContext context) {
+    final row = Row(mainAxisSize: MainAxisSize.min, children: children);
     return BkTappable(
       onPressed: onPressed,
       label: label,
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(8),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: height),
+        constraints: BoxConstraints(minHeight: touch ? BkTouchTarget.minSize : pointerHeight),
         child: Padding(
-          padding: const EdgeInsetsDirectional.only(end: 6),
-          child: Row(mainAxisSize: MainAxisSize.min, children: children),
+          padding: EdgeInsetsDirectional.only(end: 6, top: touch ? 4 : 0, bottom: touch ? 4 : 0),
+          child: touch ? Align(alignment: alignment, widthFactor: 1, child: row) : row,
         ),
       ),
     );

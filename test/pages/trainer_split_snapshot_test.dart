@@ -35,7 +35,7 @@ import '../widget_snapshot.dart';
 /// Settings, Settings → Virtual shifting (scrolled so the drivetrain and Gears
 /// share the screen), Per-gear ratios and Settings → Overlay. Run:
 /// `TS_SHOTS=.impeccable/review flutter test --run-skipped test/pages/trainer_split_snapshot_test.dart`
-/// Output: `$TS_SHOTS` (default `build/snapshots`), `trainer-<surface>-<theme>.png`.
+/// Output: `$TS_SHOTS` (default `build/snapshots`), `trainer-<surface>-<theme>[-<locale>].png`.
 Future<void> main() async {
   await ensureSnapshotHarness();
   quietShellEnvironment();
@@ -108,10 +108,17 @@ Future<void> main() async {
     (_) async => const StandardMessageCodec().encodeMessage(<Object?>[null]),
   );
 
-  Future<void> shoot(WidgetTester tester, String name, Brightness brightness, Widget Function() build) async {
+  Future<void> shoot(
+    WidgetTester tester,
+    String name,
+    Brightness brightness,
+    Widget Function() build, {
+    String locale = 'en',
+  }) async {
     await captureWidget(
       tester,
-      name: 'trainer-$name-${brightness.name}',
+      name: 'trainer-$name-${brightness.name}${locale == 'en' ? '' : '-$locale'}',
+      locales: [locale],
       width: 390,
       height: 844,
       padding: EdgeInsets.zero,
@@ -166,6 +173,17 @@ Future<void> main() async {
 
     testWidgets('vs-top-$theme', (tester) async {
       await shoot(tester, 'vs-top', brightness, () => VirtualShiftingSettingsPage(definition: definition, device: proxy));
+    });
+
+    // The mode choice's longest labels are German compounds.
+    testWidgets('vs-top-$theme-de', (tester) async {
+      await shoot(
+        tester,
+        'vs-top',
+        brightness,
+        () => VirtualShiftingSettingsPage(definition: definition, device: proxy),
+        locale: 'de',
+      );
     });
 
     testWidgets('per-gear-$theme', (tester) async {

@@ -2460,5 +2460,8 @@
   "vsGroupPhysics": "Physik",
   "perGearRatiosTitle": "Übersetzung pro Gang",
   "rideOverlayOff": "Gang-Overlay ist aus",
+  "rideOverlayOfferNote": "{app} zeigt den eigenen Gang",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Overlay zeigen",
   "a11yChangeChainring": "Kettenblatt wechseln"
 }

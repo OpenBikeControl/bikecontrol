@@ -2870,5 +2870,8 @@
   "vsGroupPhysics": "Physics",
   "perGearRatiosTitle": "Per-gear ratios",
   "rideOverlayOff": "Gear overlay is off",
+  "rideOverlayOfferNote": "{app} shows its own gear",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Show overlay",
   "a11yChangeChainring": "Change chainring"
 }

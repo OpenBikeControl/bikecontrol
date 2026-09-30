@@ -17,10 +17,12 @@ import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../helpers/live_trainer.dart';
+import '../../helpers/text_breaks.dart';
 import '../../widget_snapshot.dart';
 
 Future<void> _pump(WidgetTester tester, Widget home, {bool reducedMotion = false, double height = 3200}) async {
@@ -247,5 +249,47 @@ Future<void> main() async {
       expect(_top(tester, curve), curveTop, reason: 'pinned while the rows scroll');
       expect(find.text(l.gearNumber(1)), findsNothing);
     });
+  });
+
+  // Last: it loads the real fonts, which stay loaded for the rest of the file.
+  group('the mode choice at phone width', () {
+    setUpAll(loadAppFonts);
+
+    for (final locale in const ['en', 'de', 'fr', 'es', 'it', 'pl']) {
+      testWidgets('never breaks a label mid-word ($locale)', (tester) async {
+        await AppLocalizations.load(Locale(locale));
+        addTearDown(() => AppLocalizations.load(const Locale('en')));
+        final (:proxy, :definition) = attachLiveTrainer();
+        tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+        tester.view.devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          ShadcnApp(
+            locale: Locale(locale),
+            localizationsDelegates: [
+              ...ShadcnLocalizations.localizationsDelegates,
+              const OtherLocalizationsDelegate(),
+              AppLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.delegate.supportedLocales,
+            scaling: BkTheme.scalingFor(TargetPlatform.android),
+            theme: BkTheme.build(Brightness.light),
+            home: VirtualShiftingSettingsPage(definition: definition, device: proxy),
+          ),
+        );
+        await tester.pump();
+        expect(tester.takeException(), isNull);
+
+        final card = find.byType(VirtualShiftingModeCard);
+        await tester.ensureVisible(card);
+        await tester.pump();
+        final l = AppLocalizations.current;
+        for (final label in [l.targetPowerMode, l.trackResistanceMode, l.basicMode, l.vsModeRecommended]) {
+          final text = find.descendant(of: card, matching: find.text(label));
+          expect(text, findsOneWidget, reason: label);
+          expectBreaksOnlyBetweenWords(tester, text);
+        }
+      });
+    }
   });
 }

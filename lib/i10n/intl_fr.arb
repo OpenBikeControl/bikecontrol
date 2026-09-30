@@ -2460,5 +2460,8 @@
   "vsGroupPhysics": "Physique",
   "perGearRatiosTitle": "Développement par vitesse",
   "rideOverlayOff": "L'Overlay de vitesse est désactivé",
+  "rideOverlayOfferNote": "{app} affiche sa propre vitesse",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Afficher l'Overlay",
   "a11yChangeChainring": "Changer de plateau"
 }

@@ -14,6 +14,7 @@ import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/settings/overlay_settings_page.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
+import 'package:bike_control/pages/shell/app_shell.dart' show ShellTabBar;
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/core.dart';
@@ -22,7 +23,9 @@ import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -30,6 +33,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../../helpers/fake_overlay_controller.dart';
 import '../../helpers/shell_harness.dart';
+import '../../helpers/touch_targets.dart';
 import '../../widget_snapshot.dart';
 
 /// A bridged smart trainer reporting 250 W at 90 rpm, in gear 12 of 24.
@@ -100,6 +104,10 @@ Future<void> pumpRide(
 
 Future<void> main() async {
   await ensureSnapshotHarness();
+  // Real font metrics: the fallback test font draws every glyph as a wide
+  // box, which would push a one-row offer onto many rows and the first-screen
+  // checks below off the screen.
+  setUpAll(loadAppFonts);
   late AppLocalizations l;
 
   setUp(() {
@@ -191,15 +199,31 @@ Future<void> main() async {
       expect(find.byType(ProxyDeviceDetailsPage), findsOneWidget);
     });
 
-    testWidgets('the two header links are separate targets, each a comfortable height', (tester) async {
+    testWidgets('the two header links are separate 48 dp touch targets', (tester) async {
       liveTrainer();
       await pumpRide(tester);
 
-      final settings = tester.getRect(find.byKey(const ValueKey('ride-vs-settings-link')));
-      final trainer = tester.getRect(find.byKey(const ValueKey('ride-vs-trainer-link')));
-      expect(settings.height, greaterThanOrEqualTo(32));
-      expect(trainer.height, greaterThanOrEqualTo(32));
+      final settingsLink = find.byKey(const ValueKey('ride-vs-settings-link'));
+      final trainerLink = find.byKey(const ValueKey('ride-vs-trainer-link'));
+      expect(targetsBelowAndroidMinimum(tester, [settingsLink, trainerLink]), isEmpty);
+      final settings = tester.getRect(settingsLink);
+      final trainer = tester.getRect(trainerLink);
       expect(settings.bottom, lessThanOrEqualTo(trainer.top), reason: 'no overlap');
+    });
+
+    testWidgets('the taller targets barely move the header: the two lines stay close together', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      final card = tester.getRect(find.byType(VirtualShiftingCard));
+      final title = tester.getRect(
+        find.descendant(of: find.byKey(const ValueKey('ride-vs-settings-link')), matching: find.text(l.rideVirtualShifting)),
+      );
+      final trainer = tester.getRect(
+        find.descendant(of: find.byKey(const ValueKey('ride-vs-trainer-link')), matching: find.text('KICKR CORE')),
+      );
+      expect(title.top - card.top, lessThanOrEqualTo(24), reason: 'the title keeps its place at the top of the card');
+      expect(trainer.top - title.bottom, lessThanOrEqualTo(12), reason: 'the trainer name sits right under the title');
     });
 
     testWidgets('speed and heart rate show as chips once there is a reading', (tester) async {
@@ -255,37 +279,59 @@ Future<void> main() async {
 
     Finder inCard(Finder f) => find.descendant(of: find.byType(VirtualShiftingCard), matching: f);
 
-    testWidgets('off: the note, "Show the gear overlay" and "Not now"', (tester) async {
+    Finder notNow() => find.bySemanticsLabel(l.chainStepOverlayDecline);
+
+    testWidgets('off: one short line, "Show overlay" and a "Not now" close button', (tester) async {
       liveTrainer();
       await pumpRide(tester);
 
-      expect(inCard(find.text(l.onboardingDoneOverlayNote('MyWhoosh'))), findsOneWidget);
-      expect(inCard(find.text(l.onboardingDoneShowOverlay)), findsOneWidget);
-      expect(inCard(find.text(l.chainStepOverlayDecline)), findsOneWidget);
+      expect(inCard(find.text(l.rideOverlayOfferNote('MyWhoosh'))), findsOneWidget);
+      expect(inCard(find.text(l.rideOverlayOfferShow)), findsOneWidget);
+      expect(notNow(), findsOneWidget);
     });
 
-    testWidgets('"Show the gear overlay" turns it on and the notice becomes one line', (tester) async {
+    testWidgets('off: the offer is one compact row with 48 dp targets', (tester) async {
       liveTrainer();
       await pumpRide(tester);
 
-      await tester.tap(inCard(find.text(l.onboardingDoneShowOverlay)));
+      final offer = find.byKey(const ValueKey('ride-overlay-offer'));
+      // One row: the old note-over-buttons stack stood over 200 tall. (The
+      // phone-scaled shell below pins the two-line height.)
+      expect(tester.getSize(offer).height, lessThanOrEqualTo(72), reason: 'one row, not a paragraph and a button stack');
+      final note = tester.getRect(inCard(find.text(l.rideOverlayOfferNote('MyWhoosh'))));
+      final show = tester.getRect(find.byKey(const ValueKey('ride-overlay-show')));
+      final close = tester.getRect(notNow());
+      expect(show.left, greaterThan(note.left), reason: 'the button trails the text');
+      expect(close.left, greaterThanOrEqualTo(show.right), reason: 'the close button trails the button');
+      expect((show.center.dy - close.center.dy).abs(), lessThan(2), reason: 'on the same row');
+      expect(
+        targetsBelowAndroidMinimum(tester, [find.byKey(const ValueKey('ride-overlay-show')), notNow()]),
+        isEmpty,
+      );
+    });
+
+    testWidgets('"Show overlay" turns it on and the notice becomes one line', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      await tester.tap(inCard(find.text(l.rideOverlayOfferShow)));
       await tester.pump();
       await tester.pump();
       expect(overlay.shows, 1);
       expect(core.settings.getOverlayEnabled(), isTrue);
       expect(inCard(find.text(l.chainStepOverlayDone)), findsOneWidget);
-      expect(inCard(find.text(l.onboardingDoneShowOverlay)), findsNothing);
+      expect(inCard(find.text(l.rideOverlayOfferShow)), findsNothing);
     });
 
     testWidgets('"Not now" leaves one quiet line that opens the Overlay page', (tester) async {
       liveTrainer();
       await pumpRide(tester);
 
-      await tester.tap(inCard(find.text(l.chainStepOverlayDecline)));
+      await tester.tap(notNow());
       await tester.pump();
       await tester.pump();
       expect(core.settings.getOverlayDeclined(), isTrue);
-      expect(inCard(find.text(l.onboardingDoneOverlayNote('MyWhoosh'))), findsNothing);
+      expect(inCard(find.text(l.rideOverlayOfferNote('MyWhoosh'))), findsNothing);
       expect(inCard(find.text(l.rideOverlayOff)), findsOneWidget);
 
       await tester.tap(inCard(find.text(l.rideOverlayOff)));
@@ -308,7 +354,7 @@ Future<void> main() async {
       liveTrainer();
       await pumpRide(tester);
 
-      expect(inCard(find.text(l.onboardingDoneShowOverlay)), findsNothing);
+      expect(inCard(find.text(l.rideOverlayOfferShow)), findsNothing);
       expect(inCard(find.text(l.rideOverlayOff)), findsNothing);
       expect(inCard(find.text(l.chainStepOverlayDone)), findsNothing);
     });
@@ -379,6 +425,38 @@ Future<void> main() async {
       final buttons = rectOf(tester, find.text(l.rideYourButtons));
       expect(buttons.top, greaterThan(vs.bottom), reason: 'buttons sit under the shifting card');
       expect(buttons.bottom, lessThan(844), reason: 'the buttons header is in the first screen');
+      await disposeShell(tester);
+    });
+
+    testWidgets('phone with the overlay offer open: "Your buttons" still in the first screen', (tester) async {
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
+      TrainerOverlayService.setForTest(FakeOverlayController());
+      TrainerOverlayService.debugSupportedPlatform = true;
+      addTearDown(() {
+        TrainerOverlayService.resetForTest();
+        TrainerOverlayService.debugSupportedPlatform = null;
+      });
+      // With screenshotMode off Ride keeps the screen awake; no plugin here.
+      const wakelock = 'dev.flutter.pigeon.wakelock_plus_platform_interface.WakelockPlusApi.toggle';
+      final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMessageHandler(
+        wakelock,
+        (_) async => const StandardMessageCodec().encodeMessage(<Object?>[null]),
+      );
+      addTearDown(() => messenger.setMockMessageHandler(wakelock, null));
+      await core.settings.setLastTarget(Target.thisDevice);
+      await core.settings.setOverlayEnabled(false);
+      await core.settings.setOverlayDeclined(false);
+      await pumpShellWithRide(tester, const Size(390, 844));
+      expect(tester.takeException(), isNull);
+      final offer = find.byKey(const ValueKey('ride-overlay-offer'));
+      expect(offer, findsOneWidget);
+      expect(tester.getSize(offer).height, lessThanOrEqualTo(56), reason: 'at most two lines beside its buttons');
+
+      final buttons = rectOf(tester, find.text(l.rideYourButtons));
+      final tabBar = rectOf(tester, find.byType(ShellTabBar));
+      expect(buttons.bottom, lessThanOrEqualTo(tabBar.top), reason: 'the buttons header clears the tab bar');
       await disposeShell(tester);
     });
 

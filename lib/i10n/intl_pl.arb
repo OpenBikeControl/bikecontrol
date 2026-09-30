@@ -2460,5 +2460,8 @@
   "vsGroupPhysics": "Fizyka",
   "perGearRatiosTitle": "Przełożenia biegów",
   "rideOverlayOff": "Overlay biegów jest wyłączony",
+  "rideOverlayOfferNote": "{app} pokazuje własny bieg",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Pokaż Overlay",
   "a11yChangeChainring": "Zmień tarczę"
 }

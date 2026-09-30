@@ -1,6 +1,8 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -21,7 +23,8 @@ enum RideOverlayState {
 /// the gear number riders compare against — for trainer apps that keep
 /// showing their own gear, where the two numbers disagree.
 ///
-/// It never goes away completely: after "Not now" it shrinks to "Gear overlay
+/// The offer is one row (see [_offer]). It never goes away completely: after
+/// "Not now" (its close button) it shrinks to "Gear overlay
 /// is off · Overlay ›", and once on it reads "Gear overlay is on · Overlay ›".
 /// Neither line is a second switch: the overlay is turned off in one place,
 /// its page.
@@ -52,80 +55,62 @@ class RideOverlayNotice extends StatelessWidget {
     };
   }
 
+  /// One row: the layers icon, one short line, a primary-tinted "Show
+  /// overlay" and a "Not now" close button — short enough that Your buttons
+  /// stays in a phone's first screen under the card.
   Widget _offer(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l = context.i18n;
     final accent = bkAccentText(context);
-    return Padding(
+    return Row(
       key: const ValueKey('ride-overlay-offer'),
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: Icon(LucideIcons.layers, size: 18, color: accent),
-              ),
-              const Gap(10),
-              Expanded(
-                child: Text(
-                  l.onboardingDoneOverlayNote(appName),
-                  style: context.typography.small.copyWith(color: cs.foreground, height: 1.4),
-                ),
-              ),
-            ],
+      children: [
+        Icon(LucideIcons.layers, size: 18, color: accent),
+        const Gap(8),
+        Expanded(
+          child: Text(
+            l.rideOverlayOfferNote(appName),
+            style: context.typography.small.copyWith(color: cs.foreground, height: 1.3),
           ),
-          const Gap(12),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              // Primary-tinted rather than filled: − / + above keep the card's
-              // one solid accent.
-              BkTappable(
-                onPressed: onEnable,
-                borderRadius: BorderRadius.circular(22),
-                child: Container(
-                  height: 44,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: cs.primary.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(LucideIcons.layers, size: 17, color: accent),
-                      const Gap(6),
-                      Text(
-                        l.onboardingDoneShowOverlay,
-                        style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
+        ),
+        const Gap(6),
+        // Primary-tinted rather than filled: − / + above keep the card's one
+        // solid accent. The pill is drawn 36 tall inside a 48 tall target.
+        BkTappable(
+          key: const ValueKey('ride-overlay-show'),
+          onPressed: onEnable,
+          borderRadius: BorderRadius.circular(18),
+          child: SizedBox(
+            height: BkTouchTarget.minSize,
+            child: Center(
+              widthFactor: 1,
+              child: Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-              BkTappable(
-                onPressed: onDecline,
-                borderRadius: BorderRadius.circular(22),
-                child: Container(
-                  height: 44,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Center(
+                  widthFactor: 1,
                   child: Text(
-                    l.chainStepOverlayDecline,
-                    style: context.typography.small.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w600),
+                    l.rideOverlayOfferShow,
+                    maxLines: 1,
+                    style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ],
-      ),
+        ),
+        BkTouchTarget(
+          child: BkIconButton.ghost(
+            icon: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground),
+            label: l.chainStepOverlayDecline,
+            onPressed: onDecline,
+          ),
+        ),
+      ],
     );
   }
 

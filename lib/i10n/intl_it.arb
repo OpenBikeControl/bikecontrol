@@ -2460,5 +2460,8 @@
   "vsGroupPhysics": "Fisica",
   "perGearRatiosTitle": "Rapporti per marcia",
   "rideOverlayOff": "L'Overlay marce è disattivato",
+  "rideOverlayOfferNote": "{app} mostra la propria marcia",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Mostra Overlay",
   "a11yChangeChainring": "Cambia corona"
 }
