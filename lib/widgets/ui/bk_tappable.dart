@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/reduced_motion.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A custom-drawn tappable surface that behaves like a button everywhere a
@@ -6,6 +8,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// focus ring), and shows the click cursor.
 ///
 /// Use it for cards and pills whose look a stock `Button` variant can't give.
+///
+/// With [wash] it also paints the card surfaces' hover and pressed washes
+/// ([bkCardHover], [bkCardPressed]) over its resting [color] — the feedback
+/// every grouped row and tappable card shares.
 class BkTappable extends StatelessWidget {
   const BkTappable({
     super.key,
@@ -19,7 +25,16 @@ class BkTappable extends StatelessWidget {
     this.focusNode,
     this.excludeChildSemantics = false,
     this.onHover,
+    this.wash = false,
+    this.color,
   });
+
+  /// Paint the hover and pressed washes behind [child].
+  final bool wash;
+
+  /// The resting fill behind [child] (none when null); the washes replace it
+  /// while hovered or pressed.
+  final Color? color;
 
   final Widget child;
 
@@ -71,7 +86,19 @@ class BkTappable extends StatelessWidget {
         focusNode: focusNode,
         onHover: onHover,
         mouseCursor: WidgetStatePropertyAll(onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
-        decoration: borderRadius == null
+        disableTransition: prefersReducedMotion(context),
+        decoration: wash || color != null
+            ? WidgetStateProperty.resolveWith(
+                (states) => BoxDecoration(
+                  borderRadius: borderRadius,
+                  color: wash && states.contains(WidgetState.pressed)
+                      ? bkCardPressed(context)
+                      : wash && states.contains(WidgetState.hovered)
+                      ? bkCardHover(context)
+                      : color,
+                ),
+              )
+            : borderRadius == null
             ? null
             : WidgetStatePropertyAll(BoxDecoration(borderRadius: borderRadius)),
         child: child,

@@ -3,7 +3,10 @@
 // the buttons on the left and the picked button's triggers and actions on
 // the right. Without Pro, a button's triggers beyond its one action carry
 // the PRO badge.
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/button_edit.dart';
@@ -15,6 +18,8 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
@@ -45,7 +50,12 @@ Future<void> main() async {
   });
   tearDown(() => core.connection.devices.clear());
 
-  Future<AppLocalizations> pump(WidgetTester tester, Size size, {bool realFonts = false}) async {
+  Future<AppLocalizations> pump(
+    WidgetTester tester,
+    Size size, {
+    bool realFonts = false,
+    BaseDevice? controller,
+  }) async {
     tester.view.physicalSize = size * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -59,7 +69,7 @@ Future<void> main() async {
         AppLocalizations.delegate,
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
-      home: BkComponentThemes(child: ControllerSettingsPage(device: device)),
+      home: BkComponentThemes(child: ControllerSettingsPage(device: controller ?? device)),
     );
     await tester.pumpWidget(app);
     if (realFonts) {
@@ -226,5 +236,135 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 600));
     expect(core.actionHandler.supportedApp, isA<CustomApp>(), reason: 'editing copies the built-in mapping');
     expect(find.byType(ButtonEditPage), findsOneWidget, reason: 'the action picker is inline');
+  });
+
+  group('hover, press and focus', () {
+    /// Every fill painted in [target] and under it — including shadcn
+    /// Clickable's own (private) decorated box, which paints the washes.
+    bool isClickableBox(Widget w) => w.runtimeType.toString() == '_DecoratedBox';
+    Set<Color> fillsIn(WidgetTester tester, Finder target) => {
+      for (final e in [
+        ...target.evaluate(),
+        ...find
+            .descendant(
+              of: target,
+              matching: find.byWidgetPredicate((w) => w is DecoratedBox || w is ColoredBox || isClickableBox(w)),
+            )
+            .evaluate(),
+      ])
+        ...switch (e.widget) {
+          DecoratedBox(decoration: BoxDecoration(:final color?)) => [color],
+          ColoredBox(:final color) => [color],
+          final w when isClickableBox(w) => [
+            if ((w as dynamic).decoration case BoxDecoration(:final color?)) color,
+          ],
+          _ => const <Color>[],
+        },
+    };
+
+    /// [target]'s surface paints the card washes for hover and press and
+    /// shows the click cursor; then a real press shows the pressed wash.
+    Future<void> expectHoverAndPress(WidgetTester tester, Finder target) async {
+      await tester.ensureVisible(target);
+      await tester.pump();
+      final context = tester.element(target);
+      final hover = bkCardHover(context);
+      final pressed = bkCardPressed(context);
+      expect(fillsIn(tester, target), isNot(contains(hover)), reason: '$target at rest');
+
+      // The target's own surface: the outermost Clickable under it.
+      final clickable = tester.widget<Clickable>(find.descendant(of: target, matching: find.byType(Clickable)).first);
+      Color? fillWhen(Set<WidgetState> states) => switch (clickable.decoration?.resolve(states)) {
+        BoxDecoration(:final color) => color,
+        _ => null,
+      };
+      expect(fillWhen({WidgetState.hovered}), hover, reason: '$target hovered');
+      expect(fillWhen({WidgetState.hovered, WidgetState.pressed}), pressed, reason: '$target pressed');
+      expect(clickable.mouseCursor?.resolve({}), SystemMouseCursors.click, reason: '$target cursor');
+
+      final press = await tester.startGesture(tester.getCenter(target));
+      // Past the tap's press timeout, then the frame that paints it.
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(fillsIn(tester, target), contains(pressed), reason: '$target pressed for real');
+      await press.cancel();
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    testWidgets('390 wide: a button row and its trigger rows wash on hover and press', (tester) async {
+      await pump(tester, const Size(390, 844));
+      await openRow(tester, find.byKey(ValueKey('mapping-row-${mapped.name}')));
+      await expectHoverAndPress(tester, find.byKey(ValueKey('mapping-row-${mapped.name}')));
+      for (final trigger in ButtonTrigger.values) {
+        await expectHoverAndPress(tester, find.byKey(ValueKey('mapping-trigger-${mapped.name}-${trigger.name}')));
+      }
+    });
+
+    testWidgets('1280 wide: the trigger cards wash on hover and press, and take the focus ring', (tester) async {
+      await pump(tester, const Size(1280, 800));
+      for (final trigger in ButtonTrigger.values) {
+        await expectHoverAndPress(tester, find.byKey(ValueKey('mapping-trigger-card-${trigger.name}')));
+      }
+
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+      final card = find.byKey(const ValueKey('mapping-trigger-card-doubleClick'));
+      final inner = find.descendant(of: card, matching: find.byType(Text)).first;
+      Focus.of(tester.element(inner)).requestFocus();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        tester.widgetList<FocusOutline>(find.descendant(of: card, matching: find.byType(FocusOutline))).any((o) => o.focused),
+        isTrue,
+      );
+    });
+  });
+
+  group('vibration on shift', () {
+    ZwiftPlay vibratingController() => ZwiftPlay(
+      BleDevice(name: 'Zwift Play', deviceId: 'mapping-play'),
+      deviceType: ZwiftDeviceType.playLeft,
+    )
+      ..isConnected = true
+      ..batteryLevel = 70;
+
+    testWidgets('is a grouped row with a switch, right above Reset to defaults', (tester) async {
+      final play = vibratingController();
+      core.connection.devices.add(play);
+      await core.settings.setVibrationEnabled(true);
+      final l = await pump(tester, const Size(390, 844), controller: play);
+
+      expect(find.byType(Checkbox), findsNothing, reason: 'no loose checkbox');
+      final row = find.widgetWithText(BkGroupedRow, l.enableVibrationFeedback);
+      expect(row, findsOneWidget);
+      final toggle = find.descendant(of: row, matching: find.byType(Switch));
+      expect(toggle, findsOneWidget);
+
+      final reset = find.widgetWithText(BkGroupedRow, l.resetToDefaults);
+      expect(reset, findsOneWidget);
+      final section = find.ancestor(of: reset, matching: find.byType(BkGroupedSection));
+      expect(find.descendant(of: section, matching: row), findsOneWidget, reason: 'the same group as Reset');
+      final rowRect = tester.getRect(row);
+      final resetRect = tester.getRect(reset);
+      expect(rowRect.bottom, lessThanOrEqualTo(resetRect.top));
+      expect(resetRect.top - rowRect.bottom, lessThan(2), reason: 'directly above it');
+
+      // Read as its title and on/off.
+      expect(
+        tester.getSemantics(toggle),
+        containsSemantics(label: l.enableVibrationFeedback, hasToggledState: true, isToggled: true),
+      );
+
+      await tester.ensureVisible(row);
+      await tester.tap(row);
+      await tester.pump();
+      expect(core.settings.getVibrationEnabled(), isFalse);
+      expect(tester.widget<Switch>(toggle).value, isFalse);
+    });
+
+    testWidgets('is not offered for a controller that cannot vibrate', (tester) async {
+      final l = await pump(tester, const Size(390, 844));
+      expect(find.widgetWithText(BkGroupedRow, l.enableVibrationFeedback), findsNothing);
+    });
   });
 }

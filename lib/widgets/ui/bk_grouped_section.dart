@@ -1,6 +1,5 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -136,7 +135,7 @@ class BkGroupedDivider extends StatelessWidget {
 /// One row of a [BkGroupedSection]: optional icon tile, title and subtitle,
 /// then a trailing value/control and an optional chevron. At least 48 dp
 /// tall. With [onPressed] the whole row is one button (read as its title and
-/// value) with keyboard focus and a hover wash.
+/// value) with keyboard focus, the click cursor and hover / pressed washes.
 class BkGroupedRow extends StatefulWidget {
   const BkGroupedRow({
     super.key,
@@ -185,8 +184,6 @@ class BkGroupedRow extends StatefulWidget {
 }
 
 class _BkGroupedRowState extends State<BkGroupedRow> {
-  bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -262,14 +259,7 @@ class _BkGroupedRowState extends State<BkGroupedRow> {
 
     if (widget.onPressed == null) return content;
 
-    return BkTappable(
-      onPressed: widget.onPressed,
-      onHover: (hovered) => setState(() => _hovered = hovered),
-      child: ColoredBox(
-        color: _hovered ? bkCardHover(context) : const Color(0x00000000),
-        child: content,
-      ),
-    );
+    return BkTappable(onPressed: widget.onPressed, wash: true, child: content);
   }
 }
 

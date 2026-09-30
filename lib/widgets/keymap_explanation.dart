@@ -16,7 +16,6 @@ import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
@@ -283,6 +282,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final muted = context.typography.small.copyWith(color: cs.mutedForeground);
     return BkTappable(
       key: ValueKey('mapping-trigger-${button.name}-${trigger.name}'),
+      wash: true,
       onPressed: () => _onTriggerPressed(device: device, button: button, trigger: trigger),
       label: '${trigger.title}: ${hasAction ? keyPair.toString() : context.i18n.noActionAssigned}',
       excludeChildSemantics: true,
@@ -425,8 +425,6 @@ class _ButtonRow extends StatefulWidget {
 }
 
 class _ButtonRowState extends State<_ButtonRow> {
-  bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -434,15 +432,13 @@ class _ButtonRowState extends State<_ButtonRow> {
     final washed = widget.selected && widget.master;
     return BkTappable(
       onPressed: widget.onPressed,
-      onHover: (h) => setState(() => _hovered = h),
+      // The grouped rows' hover and pressed washes; the picked row's accent
+      // tint lies over them.
+      wash: true,
       selected: widget.master ? widget.selected : null,
       expanded: widget.master ? null : widget.selected,
       child: ColoredBox(
-        color: washed
-            ? cs.primary.withValues(alpha: 0.14)
-            : _hovered
-            ? bkCardHover(context)
-            : const Color(0x00000000),
+        color: washed ? cs.primary.withValues(alpha: 0.14) : const Color(0x00000000),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 52),
           child: Padding(

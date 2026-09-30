@@ -162,6 +162,10 @@ Future<List<File>> captureWidget(
   /// widget contains an infinite animation (e.g. a CircularProgressIndicator)
   /// that would cause pumpAndSettle to time out.
   bool settle = true,
+
+  /// Runs once the widget is laid out with its real fonts, just before the
+  /// capture: hover a row, scroll to something, open a group.
+  Future<void> Function(WidgetTester tester)? beforeCapture,
 }) async {
   await ensureSnapshotHarness();
 
@@ -250,6 +254,8 @@ Future<List<File>> captureWidget(
       // would time out. Pump a fixed frame so the widget is rendered.
       await tester.pump(const Duration(milliseconds: 100));
     }
+
+    if (beforeCapture != null) await beforeCapture(tester);
 
     final fileName = locales.length == 1 ? '$name.png' : '$name-$loc.png';
     files.add(

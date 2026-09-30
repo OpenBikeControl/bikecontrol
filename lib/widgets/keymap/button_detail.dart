@@ -238,11 +238,14 @@ class _TriggerCard extends StatelessWidget {
       label: '${trigger.title}: ${hasAction ? value : context.i18n.noActionAssigned}',
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(14),
+      // The card is the tappable's own fill, so it takes the grouped rows'
+      // hover and pressed washes.
+      color: cs.card,
+      wash: true,
       child: Container(
         constraints: const BoxConstraints(minHeight: 78),
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         decoration: BoxDecoration(
-          color: cs.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: selected ? cs.primary : const Color(0x00000000), width: 2),
         ),

@@ -43,3 +43,13 @@ Color bkAccentText(BuildContext context) {
   final theme = Theme.of(context);
   return theme.brightness == Brightness.dark ? theme.colorScheme.primary : BkTheme.lightAccentText;
 }
+
+/// Pressed wash for tappable card surfaces: one step firmer than
+/// [bkCardHover], so a press reads while the finger (or button) is down.
+Color bkCardPressed(BuildContext context) {
+  final theme = Theme.of(context);
+  final cs = theme.colorScheme;
+  return theme.brightness == Brightness.dark
+      ? Color.lerp(cs.card, cs.foreground, 0.14)!
+      : Color.lerp(cs.card, cs.muted, 1)!;
+}

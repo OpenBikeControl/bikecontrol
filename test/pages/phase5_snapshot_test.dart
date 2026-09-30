@@ -21,6 +21,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerPress;
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/utils/prefs.dart';
@@ -89,6 +90,8 @@ Future<void> main() async {
     required Brightness brightness,
     required Widget Function(BuildContext) build,
     Color? background,
+    List<String> locales = const ['en'],
+    Future<void> Function(WidgetTester tester)? beforeCapture,
   }) async {
     await captureWidget(
       tester,
@@ -101,6 +104,8 @@ Future<void> main() async {
       settle: false,
       background: background,
       outputDir: outDir,
+      locales: locales,
+      beforeCapture: beforeCapture,
       builder: build,
     );
   }
@@ -288,4 +293,50 @@ Future<void> main() async {
       );
     });
   }
+
+  // German, where the owner rides: the vibration switch row above Reset in
+  // the actions group, phone width, both themes.
+  for (final brightness in Brightness.values) {
+    final name = 'mapping-actions-390x844-${brightness.name}-de';
+    testWidgets(name, (tester) async {
+      realMappingPage();
+      await shoot(
+        tester,
+        name: name,
+        size: phone,
+        brightness: brightness,
+        locales: const ['de'],
+        build: (_) => ControllerSettingsPage(device: play),
+        beforeCapture: (tester) async {
+          final reset = find.byKey(const ValueKey('controller-vibration'));
+          await tester.ensureVisible(reset);
+          await tester.pump(const Duration(milliseconds: 300));
+        },
+      );
+    });
+  }
+
+  // A laptop window with the mouse over the long-press trigger card: the
+  // hover wash the rows and cards share.
+  testWidgets('mapping-1280x800-dark-hover', (tester) async {
+    realMappingPage();
+    await shoot(
+      tester,
+      name: 'mapping-1280x800-dark-hover',
+      size: const Size(1280, 800),
+      brightness: Brightness.dark,
+      locales: const ['de'],
+      build: (_) => ControllerSettingsPage(device: play),
+      beforeCapture: (tester) async {
+        FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+        addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await mouse.addPointer(location: Offset.zero);
+        addTearDown(mouse.removePointer);
+        await mouse.moveTo(tester.getCenter(find.byKey(const ValueKey('mapping-trigger-card-longPress'))));
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump(const Duration(milliseconds: 300));
+      },
+    );
+  });
 }

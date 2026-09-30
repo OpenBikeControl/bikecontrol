@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode, shownKeymapName;
@@ -373,6 +374,15 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     return BkGroupedSection(
       dividerIndent: BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
       children: [
+        // The controller's own buzz on every shift, for the ones that can.
+        if (device is ZwiftDevice && device.canVibrate)
+          BkGroupedRow(
+            key: const ValueKey('controller-vibration'),
+            icon: LucideIcons.vibrate,
+            title: AppLocalizations.of(context).enableVibrationFeedback,
+            trailing: Switch(value: core.settings.getVibrationEnabled(), onChanged: (_) => _toggleVibration()),
+            onPressed: _toggleVibration,
+          ),
         // Same reason the mapping section is hidden: there is nothing to reset
         // for a device that never had a mapping.
         if (keymap != null && device is! Accessory)
@@ -450,6 +460,11 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
         ],
       ],
     );
+  }
+
+  Future<void> _toggleVibration() async {
+    await core.settings.setVibrationEnabled(!core.settings.getVibrationEnabled());
+    if (mounted) setState(() {});
   }
 
   /// True for a controller that only exists as a remembered stand-in — no live
