@@ -960,6 +960,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         steps.add(
           ReadyBannerStep(
             linkId: link.id,
+            linkTitle: link.title.isNotEmpty ? link.title : chainLinkName(context, link.key),
             step: step,
             actionLabel: actionable ? _fixLabel(link, inputs) : null,
             onFix: actionable ? () => _fix(link, inputs) : null,

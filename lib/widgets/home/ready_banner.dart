@@ -13,9 +13,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// button on the Devices row. [onFix] is null for a step that waits on an
 /// earlier one of the same card: its fix is that step's.
 class ReadyBannerStep {
-  const ReadyBannerStep({required this.linkId, required this.step, this.actionLabel, this.onFix});
+  const ReadyBannerStep({required this.linkId, required this.step, this.linkTitle, this.actionLabel, this.onFix});
 
   final String linkId;
+
+  /// The card's name — the device or the trainer app — over the step, so
+  /// "Unlock it with Zwift" says which "it".
+  final String? linkTitle;
   final SetupStep step;
 
   /// The fix's label; null reads "Show me how", as on the Devices row.
@@ -314,6 +318,13 @@ class _StepLine extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               spacing: 2,
               children: [
+                if (step.linkTitle case final title? when title.isNotEmpty)
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500),
+                  ),
                 Text(
                   text.label,
                   style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),

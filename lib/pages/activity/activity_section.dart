@@ -53,7 +53,12 @@ class ActivitySegments extends StatelessWidget {
         final unread = shell.news.hasUnread.value;
         return Container(
           padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(12)),
+          // Dark: the track is the card and the chosen segment lifts a step
+          // above it; light: a grey track under a white segment.
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark ? cs.card : cs.muted,
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Row(
             spacing: 3,
             children: [
@@ -120,7 +125,9 @@ class _SegmentState extends State<_Segment> {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: selected ? cs.card : (_hovered ? bkCardHover(context).withValues(alpha: 0.5) : null),
+            color: selected
+                ? (Theme.of(context).brightness == Brightness.dark ? cs.input : cs.card)
+                : (_hovered ? bkCardHover(context) : null),
             borderRadius: radius,
           ),
           child: Row(
