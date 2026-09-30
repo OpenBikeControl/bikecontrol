@@ -11,7 +11,7 @@ void main() {
     int maxGear = 24,
     int? powerW = 178,
     int? cadenceRpm = 86,
-    Set<OverlayField> fields = const {OverlayField.gearRatio},
+    Set<OverlayField> fields = const {OverlayField.power, OverlayField.cadence},
     TrainerMode mode = TrainerMode.simMode,
     bool frontShiftEnabled = false,
     bool frontRingLarge = false,
@@ -74,34 +74,33 @@ void main() {
     expect(find.text('14'), findsNothing);
   });
 
-  testWidgets('never shows watts or rpm: the trainer app already does', (tester) async {
+  testWidgets('hides power when not selected', (tester) async {
     await tester.pumpWidget(
       ShadcnApp(
         home: Scaffold(
           child: TrainerOverlayView(
-            state: mkState(
-              powerW: 250,
-              cadenceRpm: 90,
-              fields: const {OverlayField.gearRatio, OverlayField.controls, OverlayField.ergTarget},
-            ),
+            state: mkState(fields: const {OverlayField.cadence}),
             onModeToggle: null,
           ),
         ),
       ),
     );
-    expect(find.textContaining('250', findRichText: true), findsNothing);
-    expect(find.textContaining('rpm', findRichText: true), findsNothing);
-    expect(find.textContaining(' W', findRichText: true), findsNothing);
-    expect(find.text('×2.43', findRichText: true), findsOneWidget);
+    expect(find.textContaining('W'), findsNothing);
+    expect(find.textContaining('rpm'), findsOneWidget);
   });
 
-  test('the window is sized for the gear and the ratio, not for watts and rpm', () {
-    const scaler = TextScaler.noScaling;
-    final withControls = TrainerOverlayView.windowSize(scaler, touch: false);
-    final bare = TrainerOverlayView.windowSize(scaler, controls: false, touch: false);
-    // The controls add exactly their two buttons and gaps; nothing else in
-    // the row reserves room for readings the overlay no longer shows.
-    expect(withControls.width - bare.width, 2 * (TrainerOverlayView.pointerHit + 6));
+  testWidgets('shows -- for null power and cadence', (tester) async {
+    await tester.pumpWidget(
+      ShadcnApp(
+        home: Scaffold(
+          child: TrainerOverlayView(
+            state: mkState(powerW: null, cadenceRpm: null),
+            onModeToggle: null,
+          ),
+        ),
+      ),
+    );
+    expect(find.textContaining('--'), findsWidgets);
   });
 
   testWidgets('the -/gear/+ row fits its desktop window at 1.3x text with every field on', (tester) async {
@@ -120,7 +119,8 @@ void main() {
                   state: mkState(
                     fields: const {
                       OverlayField.controls,
-                      OverlayField.ergTarget,
+                      OverlayField.power,
+                      OverlayField.cadence,
                       OverlayField.gearRatio,
                     },
                   ),

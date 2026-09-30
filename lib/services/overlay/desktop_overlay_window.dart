@@ -283,7 +283,7 @@ TrainerOverlayState _emptyState() => const TrainerOverlayState(
   powerW: null,
   cadenceRpm: null,
   ergTargetW: null,
-  fields: {OverlayField.gearRatio},
+  fields: {OverlayField.power, OverlayField.cadence},
 );
 
 class _OverlayApp extends StatelessWidget {

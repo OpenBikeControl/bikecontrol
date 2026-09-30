@@ -634,7 +634,7 @@ Future<void> main() async {
         powerW: 250,
         cadenceRpm: 90,
         ergTargetW: null,
-        fields: {OverlayField.gearRatio},
+        fields: {OverlayField.power, OverlayField.cadence},
         frontShiftEnabled: true,
         frontRingLarge: true,
       ),
@@ -1273,8 +1273,9 @@ Future<void> main() async {
       (call) async => null,
     );
     await core.settings.setOverlayFields({
+      OverlayField.power,
+      OverlayField.cadence,
       OverlayField.gearRatio,
-      OverlayField.controls,
     });
     await TrainerOverlayService.forCurrentPlatform().show(fbd, core.settings.getOverlayFields());
     const k = ValueKey('shot');

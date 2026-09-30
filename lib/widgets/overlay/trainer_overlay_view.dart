@@ -84,8 +84,8 @@ class TrainerOverlayView extends StatelessWidget {
   /// a bare gear) and an ERG target.
   static const List<String> _widestReadouts = ['2×88', '888 W'];
 
-  /// The widest reading the side column shows: the gear ratio.
-  static const String _widestReading = '×8.88';
+  /// The widest single reading; the side column always has room for one.
+  static const String _widestReading = '8888 rpm';
 
   static TextStyle _gearStyle(Color? color) =>
       BkNumerals.gear(gearSize, color: color, height: 1.0).copyWith(letterSpacing: -1.0);
@@ -109,7 +109,7 @@ class TrainerOverlayView extends StatelessWidget {
   }
 
   /// The window the overlay needs at [textScaler]: one row of −, the numeral
-  /// at full size with its label, +, and the mode pill over the ratio.
+  /// at full size with its label, +, and the mode pill over one reading.
   /// [touch] defaults to whether this platform is a touch platform, and
   /// sizes the −/+ circles for it.
   static Size windowSize(TextScaler textScaler, {bool controls = true, bool? touch}) {
@@ -128,9 +128,14 @@ class TrainerOverlayView extends StatelessWidget {
     final reading = _measure(_widestReading, typography.sans.merge(_readingStyle(null)), textScaler);
     final pill = _measure('SIM', typography.sans.merge(_pillTextStyle(typography, null)), textScaler);
 
-    // Only the ratio sits under the mode pill: no watts or rpm, which the
-    // trainer app on the same screen already shows.
-    final side = reading.width > pill.width + 16 ? reading.width : pill.width + 16;
+    // Room for cadence and the ratio side by side, as the rider usually
+    // has them on; power goes first when all three are on.
+    final pair =
+        _measure('188 rpm', typography.sans.merge(_readingStyle(null)), textScaler).width +
+        10 +
+        _measure('×8.88', typography.sans.merge(_readingStyle(null)), textScaler).width;
+    var side = reading.width > pill.width + 16 ? reading.width : pill.width + 16;
+    if (pair > side) side = pair;
     final width =
         (controls ? 2 * (hit + _gap) : 0) +
         numeral.width +
@@ -179,7 +184,7 @@ class TrainerOverlayView extends StatelessWidget {
   }
 
   /// −, the big numeral (gear in SIM, target watts in ERG) with its label, +,
-  /// a hairline, then the mode pill over the ratio, and the drag handle.
+  /// a hairline, then the mode pill over the readings, and the drag handle.
   Widget _row(BuildContext context, ColorScheme cs, TrainerOverlayState s, {required bool controls}) {
     final isErg = s.mode == TrainerMode.ergMode;
     // The overlay engine may run without localizations (older hosts); the
@@ -256,9 +261,8 @@ class TrainerOverlayView extends StatelessWidget {
     );
   }
 
-  /// The SIM/ERG pill over the gear ratio. No watts or rpm: the trainer app
-  /// on the same screen shows them already. The ratio scales down in the
-  /// narrowest window at a huge text size; the gear never does.
+  /// The SIM/ERG pill over the readings. When the column is short of room
+  /// the readings go first (gear ratio, then cadence); the gear never does.
   Widget _side(BuildContext context, ColorScheme cs, TrainerOverlayState s) {
     final isErg = s.mode == TrainerMode.ergMode;
     final pill = _modePill(context, cs, s.mode);
@@ -270,8 +274,73 @@ class TrainerOverlayView extends StatelessWidget {
           )
         : pill;
 
-    // Gear ratio is meaningless in ERG mode; only show it in SIM.
-    final showRatio = !isErg && s.fields.contains(OverlayField.gearRatio);
+    // In the order they give way: the first is the last to go.
+    final readings = <(String, String)>[
+      if (s.fields.contains(OverlayField.power)) ('${s.powerW ?? '--'}', 'W'),
+      if (s.fields.contains(OverlayField.cadence)) ('${s.cadenceRpm ?? '--'}', 'rpm'),
+      // Gear ratio is meaningless in ERG mode; only show it in SIM.
+      if (!isErg && s.fields.contains(OverlayField.gearRatio)) (formatGearRatio(s.gearRatio), ''),
+    ];
+    final valueStyle = _readingStyle(cs.foreground);
+    final unitStyle = context.typography.caption.copyWith(color: cs.mutedForeground);
+    const readingGap = 10.0;
+
+    Widget reading((String, String) r) => Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: r.$1, style: valueStyle),
+          if (r.$2.isNotEmpty) TextSpan(text: ' ${r.$2}', style: unitStyle),
+        ],
+      ),
+      style: unitStyle,
+      maxLines: 1,
+      softWrap: false,
+    );
+
+    final readingsRow = LayoutBuilder(
+      builder: (context, constraints) {
+        final textScaler = MediaQuery.textScalerOf(context);
+        double widthOf((String, String) r) {
+          final painter = TextPainter(
+            text: TextSpan(
+              style: DefaultTextStyle.of(context).style.merge(unitStyle),
+              children: [
+                TextSpan(text: r.$1, style: valueStyle),
+                if (r.$2.isNotEmpty) TextSpan(text: ' ${r.$2}', style: unitStyle),
+              ],
+            ),
+            textDirection: TextDirection.ltr,
+            textScaler: textScaler,
+          )..layout();
+          final width = painter.width;
+          painter.dispose();
+          return width;
+        }
+
+        var room = constraints.maxWidth;
+        final shown = <(String, String)>[];
+        for (final r in readings) {
+          final needed = widthOf(r) + (shown.isEmpty ? 0 : readingGap);
+          if (shown.isNotEmpty && needed > room) break;
+          shown.add(r);
+          room -= needed;
+        }
+        if (shown.isEmpty) return const SizedBox.shrink();
+        // Only the very last reading can still be too wide (a huge text size
+        // in the narrowest window); it scales down, the gear doesn't.
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: readingGap,
+              children: [for (final r in shown) reading(r)],
+            ),
+          ),
+        );
+      },
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -279,21 +348,7 @@ class TrainerOverlayView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         pillWidget,
-        if (showRatio) ...[
-          const SizedBox(height: _sideGap),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                formatGearRatio(s.gearRatio),
-                maxLines: 1,
-                softWrap: false,
-                style: _readingStyle(cs.foreground),
-              ),
-            ),
-          ),
-        ],
+        if (readings.isNotEmpty) ...[const SizedBox(height: _sideGap), readingsRow],
       ],
     );
   }

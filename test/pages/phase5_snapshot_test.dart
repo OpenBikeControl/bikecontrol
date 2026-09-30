@@ -229,7 +229,7 @@ Future<void> main() async {
                 powerW: 250,
                 cadenceRpm: 90,
                 ergTargetW: null,
-                fields: {OverlayField.controls, OverlayField.gearRatio},
+                fields: {OverlayField.controls, OverlayField.cadence, OverlayField.gearRatio},
               ),
             ),
             onPrimaryDecrement: () {},

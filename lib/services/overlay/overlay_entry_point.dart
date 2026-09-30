@@ -61,7 +61,7 @@ class _OverlayAppState extends State<_OverlayApp> {
     powerW: null,
     cadenceRpm: null,
     ergTargetW: null,
-    fields: {OverlayField.gearRatio},
+    fields: {OverlayField.power, OverlayField.cadence},
   );
 
   @override

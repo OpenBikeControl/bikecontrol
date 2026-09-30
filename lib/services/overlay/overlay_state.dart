@@ -1,12 +1,8 @@
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
-/// What the overlay shows besides the gear.
-///
-/// No power or cadence: the trainer app on the same screen already shows
-/// both, and the overlay is there for what that app gets wrong or does not
-/// have (the gear, BikeControl's ERG target, the ratio). Stored choices from
-/// builds that had them parse to nothing — see [fromName].
 enum OverlayField {
+  power,
+  cadence,
   ergTarget,
   gearRatio,
   // When enabled, the overlay renders − / + buttons either side of the big
@@ -137,10 +133,8 @@ Map<String, dynamic> overlayStateToActivityMap(TrainerOverlayState s) {
     'gear': s.gear,
     'maxGear': s.maxGear,
     'mode': s.mode == TrainerMode.ergMode ? 'erg' : 'sim',
-    // Always off: the overlay no longer shows watts or rpm. Still written, so a
-    // Live Activity an older build left behind with them on is switched off.
-    'showPower': false,
-    'showCadence': false,
+    'showPower': s.fields.contains(OverlayField.power),
+    'showCadence': s.fields.contains(OverlayField.cadence),
     'showErgTarget': s.fields.contains(OverlayField.ergTarget),
     'showGearRatio': s.fields.contains(OverlayField.gearRatio),
     'showControls': s.fields.contains(OverlayField.controls),

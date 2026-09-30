@@ -50,7 +50,7 @@ class IosOverlayController implements TrainerOverlayController {
   FitnessBikeDefinition? _def;
   LiveDefinitionLookup? _liveDef;
   Listenable? _bound;
-  Set<OverlayField> _fields = {OverlayField.gearRatio};
+  Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
   Timer? _pushDebounce;
   TrainerOverlayState? _lastPushed;

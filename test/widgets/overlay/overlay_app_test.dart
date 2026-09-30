@@ -21,7 +21,7 @@ void main() {
       powerW: 1234,
       cadenceRpm: 118,
       ergTargetW: 250,
-      fields: const {OverlayField.gearRatio, OverlayField.controls},
+      fields: const {OverlayField.power, OverlayField.cadence, OverlayField.gearRatio, OverlayField.controls},
     ),
   );
 

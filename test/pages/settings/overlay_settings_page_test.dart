@@ -77,7 +77,7 @@ Future<void> main() async {
     expect(find.byType(OverlaySettingsPage), findsOneWidget);
   });
 
-  testWidgets('the preview sits on top and follows the field switches', (tester) async {
+  testWidgets('the preview sits on top and follows the field switches, power and cadence included', (tester) async {
     final (:proxy, :definition) = attachLiveTrainer();
     await _pump(tester, OverlaySettingsPage(device: proxy, definition: definition));
 
@@ -89,7 +89,7 @@ Future<void> main() async {
       lessThanOrEqualTo(tester.getTopLeft(find.text(l.overlayEnabled)).dy),
       reason: 'the preview heads the page',
     );
-    // The live gear, never watts or rpm.
+    // The live gear; watts and rpm only when their fields are on (off here).
     expect(find.descendant(of: preview, matching: find.text('${definition.currentGear.value}')), findsOneWidget);
     expect(find.descendant(of: preview, matching: find.textContaining('rpm')), findsNothing);
 
@@ -100,8 +100,27 @@ Future<void> main() async {
     await tester.pump();
     expect(overlay.shows, 1);
     expect(find.text(l.overlayFieldGearRatio), findsOneWidget);
-    expect(find.text(l.overlayFieldPower), findsNothing);
-    expect(find.text(l.overlayFieldCadence), findsNothing);
+    expect(find.text(l.overlayFieldPower), findsOneWidget);
+    expect(find.text(l.overlayFieldCadence), findsOneWidget);
+
+    // Power and cadence are optional fields, and the preview follows them.
+    Finder rpm() => find.descendant(of: preview, matching: find.textContaining('rpm'));
+    Finder watts() => find.descendant(of: preview, matching: find.textContaining(' W'));
+    await tester.tap(_switchFor(l.overlayFieldCadence));
+    await tester.pump();
+    await tester.pump();
+    expect(rpm(), findsOneWidget);
+    expect(core.settings.getOverlayFields(), contains(OverlayField.cadence));
+    await tester.tap(_switchFor(l.overlayFieldPower));
+    await tester.pump();
+    await tester.pump();
+    expect(watts(), findsOneWidget);
+    await tester.tap(_switchFor(l.overlayFieldCadence));
+    await tester.tap(_switchFor(l.overlayFieldPower));
+    await tester.pump();
+    await tester.pump();
+    expect(rpm(), findsNothing);
+    expect(watts(), findsNothing);
 
     Finder ratio() => find.descendant(of: preview, matching: find.textContaining('×'));
     Finder plus() => find.descendant(of: preview, matching: find.byIcon(LucideIcons.plus));

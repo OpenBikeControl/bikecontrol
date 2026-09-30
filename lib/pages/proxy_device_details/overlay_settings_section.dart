@@ -214,6 +214,8 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
             ),
             // The fields only matter while there is an overlay to show them.
             if (_enabled) ...[
+              _fieldRow(OverlayField.power, l10n.overlayFieldPower),
+              _fieldRow(OverlayField.cadence, l10n.overlayFieldCadence),
               _fieldRow(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
               _fieldRow(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
               _fieldRow(OverlayField.controls, l10n.overlayFieldControls),
