@@ -95,11 +95,16 @@ class VirtualShiftingCard extends StatelessWidget {
                 children: [
                   _header(context, erg),
                   if (!touch) const Gap(12),
-                  if (layout == VsCardLayout.stacked) ..._stacked(context, erg, width) else _beside(context, erg, width),
+                  if (layout == VsCardLayout.stacked)
+                    ..._stacked(context, erg, width)
+                  else
+                    _beside(context, erg, width),
                   if (footer case final footer?) ...[
                     const Gap(14),
                     DecoratedBox(
-                      decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.border, width: 1))),
+                      decoration: BoxDecoration(
+                        border: Border(top: BorderSide(color: cs.border, width: 1)),
+                      ),
                       child: Padding(padding: const EdgeInsets.only(top: 6), child: footer),
                     ),
                   ],
@@ -185,6 +190,12 @@ class VirtualShiftingCard extends StatelessWidget {
     // The picture is never taller than the numeral beside it; on a phone the
     // column is narrower than this anyway.
     final pictureWidth = numeral * kDrivetrainBox.width / kDrivetrainBox.height;
+    // The readings sit under the drivetrain while every label fits its column
+    // on one line; four readings, or labels as long as German's, move to the
+    // card's full width under the gear instead of breaking mid-word.
+    final stats = _statItems(context, erg);
+    final columnWidth = width - 12 - _gearColumnWidth(context, erg, numeral, button);
+    final statsBeside = _StatsRow.fitsOneLine(context, stats, columnWidth);
     final row = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -200,7 +211,7 @@ class VirtualShiftingCard extends StatelessWidget {
                 ),
               ),
               if (definition.frontShiftEnabled) Align(child: FrontRingToggle(definition: definition)),
-              if (!_hasHeart) ...[const Gap(8), _stats(context, erg)],
+              if (statsBeside) ...[const Gap(8), _StatsRow(stats: stats)],
             ],
           ),
         ),
@@ -219,14 +230,34 @@ class VirtualShiftingCard extends StatelessWidget {
         ),
       ],
     );
-    // Four readings don't fit the drivetrain's column; with heart rate the
-    // row runs the card's full width under the gear.
-    if (!_hasHeart) return row;
+    if (statsBeside) return row;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
-      children: [row, const Gap(12), _stats(context, erg)],
+      children: [
+        row,
+        const Gap(12),
+        _StatsRow(stats: stats),
+      ],
     );
+  }
+
+  /// How wide the gear column beside the drivetrain is: the widest value the
+  /// numeral box holds, its "of 24" / "W" line, or − / + side by side.
+  double _gearColumnWidth(BuildContext context, bool erg, double numeral, double button) {
+    final widest = erg ? '000' : '0' * '${definition.maxGear}'.length;
+    final number = _measure(
+      context,
+      TextSpan(text: widest, style: BkNumerals.gear(erg ? numeral * 0.72 : numeral, height: 0.8)),
+    );
+    final caption = _measure(
+      context,
+      TextSpan(
+        text: erg ? 'W' : context.i18n.gearOfMax('${definition.maxGear}'),
+        style: BkNumerals.display((context.typography.base.fontSize ?? 16) * 1.1, fontWeight: FontWeight.w600),
+      ),
+    );
+    return [number, caption, button * 2 + 8].reduce((a, b) => a > b ? a : b);
   }
 
   /// Heart rate is a reading only while a source reports a real one.
@@ -234,8 +265,6 @@ class VirtualShiftingCard extends StatelessWidget {
     final bpm? when bpm > 0 => bpm,
     _ => null,
   };
-
-  bool get _hasHeart => _heart != null;
 
   List<Widget> _stacked(BuildContext context, bool erg, double width) {
     final numeral = (width * 0.4).clamp(96.0, 176.0);
@@ -254,7 +283,7 @@ class VirtualShiftingCard extends StatelessWidget {
       ),
       if (definition.frontShiftEnabled) Align(child: FrontRingToggle(definition: definition)),
       const Gap(12),
-      _stats(context, erg),
+      _StatsRow(stats: _statItems(context, erg)),
     ];
   }
 
@@ -332,36 +361,140 @@ class VirtualShiftingCard extends StatelessWidget {
     );
   }
 
-  Widget _stats(BuildContext context, bool erg) {
+  /// Power, cadence, the ratio (a blank slot in ERG, so the others keep
+  /// their places) and heart rate while a source reports one.
+  List<_Stat> _statItems(BuildContext context, bool erg) {
     final l = context.i18n;
-    final cs = Theme.of(context).colorScheme;
     final power = definition.powerW.value;
     final cadence = definition.cadenceRpm.value;
+    return [
+      _Stat(
+        RideStat(value: power?.toString() ?? '--', unit: 'W', label: l.sensorQuantityPower),
+        widest: '000',
+      ),
+      _Stat(
+        RideStat(value: cadence?.toString() ?? '--', unit: 'rpm', label: l.sensorQuantityCadence),
+        widest: '000',
+      ),
+      erg
+          ? const _Stat.blank()
+          : _Stat(
+              RideStat(value: formatGearRatio(definition.gearRatio.value), label: l.rideRatio),
+              widest: '×0.00',
+            ),
+      if (_heart case final heart?)
+        _Stat(
+          RideStat(
+            key: const ValueKey('ride-stat-heart'),
+            value: '$heart',
+            unit: 'bpm',
+            label: l.sensorQuantityHeartRate,
+          ),
+          widest: '000',
+        ),
+    ];
+  }
+}
+
+/// A reading of the stats row, and the widest value it expects to show — so
+/// the row is laid out once for the ride, not again as power passes 100 W.
+class _Stat {
+  const _Stat(RideStat this.stat, {required this.widest});
+
+  const _Stat.blank() : stat = null, widest = '';
+
+  final RideStat? stat;
+  final String widest;
+
+  /// What the reading needs with its label on one line.
+  double width(BuildContext context) {
+    final stat = this.stat;
+    if (stat == null) return 0;
+    return RideStat.intrinsicWidth(context, value: widest, unit: stat.unit, label: stat.label, scale: stat.scale);
+  }
+}
+
+/// The card's readings behind a hairline, each label on one line.
+///
+/// Equal columns while every reading fits one (English on a phone); columns
+/// sized to their readings while the row as a whole fits; otherwise two rows
+/// of equal columns. A label never breaks mid-word.
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.stats});
+
+  final List<_Stat> stats;
+
+  /// Room between two readings, so neighbouring labels never touch.
+  static const double gap = 8;
+
+  /// Whether [stats] fit one row [width] wide.
+  static bool fitsOneLine(BuildContext context, List<_Stat> stats, double width) {
+    final widths = [for (final s in stats) s.width(context)];
+    return widths.fold(0.0, (a, b) => a + b) + gap * (stats.length - 1) <= width;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.only(top: 10),
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.border, width: 1))),
-      child: Row(
-        children: [
-          Expanded(child: RideStat(value: power?.toString() ?? '--', unit: 'W', label: l.sensorQuantityPower)),
-          Expanded(child: RideStat(value: cadence?.toString() ?? '--', unit: 'rpm', label: l.sensorQuantityCadence)),
-          Expanded(
-            child: erg
-                ? const SizedBox.shrink()
-                : RideStat(value: formatGearRatio(definition.gearRatio.value), label: l.rideRatio),
-          ),
-          if (_heart case final heart?)
-            Expanded(
-              child: RideStat(
-                key: const ValueKey('ride-stat-heart'),
-                value: '$heart',
-                unit: 'bpm',
-                label: l.sensorQuantityHeartRate,
-              ),
-            ),
-        ],
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: cs.border, width: 1)),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final widths = [for (final s in stats) s.width(context)];
+          Widget cell(int i) => stats[i].stat ?? const SizedBox.shrink();
+
+          // Equal columns: the phone's English look.
+          final equal = width / stats.length;
+          if (widths.every((w) => w + gap <= equal)) {
+            return Row(children: [for (var i = 0; i < stats.length; i++) Expanded(child: cell(i))]);
+          }
+          // Each reading its own width, the room left shared out.
+          if (fitsOneLine(context, stats, width)) {
+            final spare = (width - widths.fold(0.0, (a, b) => a + b) - gap * (stats.length - 1)) / stats.length;
+            return Row(
+              spacing: gap,
+              children: [
+                for (var i = 0; i < stats.length; i++) SizedBox(width: widths[i] + spare, child: cell(i)),
+              ],
+            );
+          }
+          // Two rows of equal columns, lined up under each other.
+          final perRow = (stats.length / 2).ceil();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            spacing: 10,
+            children: [
+              for (var start = 0; start < stats.length; start += perRow)
+                Row(
+                  children: [
+                    for (var i = start; i < start + perRow; i++)
+                      Expanded(child: i < stats.length ? cell(i) : const SizedBox.shrink()),
+                  ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }
+}
+
+/// Lays [span] out on one line in [context]'s text scale; its width.
+double _measure(BuildContext context, InlineSpan span) {
+  final painter = TextPainter(
+    text: span,
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: 1,
+  )..layout();
+  final width = painter.width;
+  painter.dispose();
+  return width;
 }
 
 /// One of the card header's two links: a row of text that opens something,
@@ -507,30 +640,63 @@ class RideStat extends StatelessWidget {
   /// Of `x2Large`: 1.1 on Ride's card, smaller in a list row.
   final double scale;
 
+  static TextSpan _valueSpan(
+    BuildContext context,
+    String value,
+    String? unit,
+    double scale, {
+    Color? color,
+    Color? unitColor,
+  }) {
+    final big = (context.typography.x2Large.fontSize ?? 24) * scale;
+    return TextSpan(
+      children: [
+        TextSpan(
+          text: value,
+          style: BkNumerals.display(big, color: color),
+        ),
+        if (unit != null)
+          TextSpan(
+            text: ' $unit',
+            style: BkNumerals.display(big * 0.55, color: unitColor, fontWeight: FontWeight.w600),
+          ),
+      ],
+    );
+  }
+
+  static TextStyle _labelStyle(BuildContext context) => context.typography.xSmall;
+
+  /// The width a reading needs to show [value] and its [label] each on one
+  /// line.
+  static double intrinsicWidth(
+    BuildContext context, {
+    required String value,
+    required String label,
+    String? unit,
+    double scale = 1.1,
+  }) {
+    final number = _measure(context, _valueSpan(context, value, unit, scale));
+    final text = _measure(
+      context,
+      TextSpan(text: label, style: DefaultTextStyle.of(context).style.merge(_labelStyle(context))),
+    );
+    return number > text ? number : text;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final big = (context.typography.x2Large.fontSize ?? 24) * scale;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(text: value, style: BkNumerals.display(big, color: cs.foreground)),
-              if (unit != null)
-                TextSpan(
-                  text: ' $unit',
-                  style: BkNumerals.display(big * 0.55, color: cs.mutedForeground, fontWeight: FontWeight.w600),
-                ),
-            ],
-          ),
+          _valueSpan(context, value, unit, scale, color: cs.foreground, unitColor: cs.mutedForeground),
           maxLines: 1,
           overflow: TextOverflow.fade,
           softWrap: false,
         ),
-        Text(label, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
+        Text(label, style: _labelStyle(context).copyWith(color: cs.mutedForeground)),
       ],
     );
   }
@@ -621,7 +787,9 @@ class RideStatusLine extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: cs.mutedForeground),
           const Gap(8),
-          Expanded(child: Text(text, style: context.typography.small.copyWith(color: cs.mutedForeground))),
+          Expanded(
+            child: Text(text, style: context.typography.small.copyWith(color: cs.mutedForeground)),
+          ),
           if (actionLabel != null && onAction != null)
             Button.ghost(
               onPressed: onAction,

@@ -35,7 +35,8 @@ import '../widget_snapshot.dart';
 
 /// Renders the owner-feedback round: toasts above the tab bar, Ride's banner
 /// listing the outstanding steps, Activity's News segment, Settings without
-/// the Blog row and Virtual shifting's Gears without the gear-count warning.
+/// the Blog row, Virtual shifting's Gears without the gear-count warning and
+/// Ride's readings with labels that never break mid-word.
 /// German unless named `-en`. Run:
 /// `OF_SHOTS=.impeccable/review flutter test --run-skipped test/pages/owner_feedback_snapshot_test.dart`
 Future<void> main() async {
@@ -360,4 +361,25 @@ Future<void> main() async {
       },
     );
   });
+
+  // ── 6. Ride, ready: the readings under the gear ───────────────────────
+  // German's long labels ("Trittfrequenz", "Übersetzung") move the readings
+  // to the card's full width; English keeps them under the drivetrain.
+  for (final (locale, heart) in [('de', false), ('en', false), ('de', true)]) {
+    final name = 'ride${heart ? '-heart' : ''}-390x844-light-$locale';
+    testWidgets(name, (tester) async {
+      if (heart) {
+        definition.setExternalHeartRate(142);
+        addTearDown(() => definition.setExternalHeartRate(null));
+      }
+      await shoot(
+        tester,
+        name: name,
+        size: phone,
+        brightness: Brightness.light,
+        locale: locale,
+        build: (_) => const Navigation(),
+      );
+    });
+  }
 }
