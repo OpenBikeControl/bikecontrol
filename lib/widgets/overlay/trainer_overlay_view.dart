@@ -28,6 +28,12 @@ class TrainerOverlayView extends StatelessWidget {
   /// Called when the user taps the + button next to the primary value.
   final VoidCallback? onPrimaryIncrement;
 
+  /// Draws the floating pill (card colour, hairline, fully rounded) and
+  /// keeps the row to the window's width. Defaults to the platforms whose
+  /// overlay floats over the trainer app on its own (Android); the settings
+  /// page's preview asks for it everywhere.
+  final bool? pill;
+
   const TrainerOverlayView({
     super.key,
     required this.state,
@@ -35,6 +41,7 @@ class TrainerOverlayView extends StatelessWidget {
     this.onDragStart,
     this.onPrimaryDecrement,
     this.onPrimaryIncrement,
+    this.pill,
   });
 
   /// The gear numeral's design size at 1.0x text. It is the one thing a
@@ -144,7 +151,7 @@ class TrainerOverlayView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final useConstraints = defaultTargetPlatform == TargetPlatform.android;
+    final useConstraints = pill ?? defaultTargetPlatform == TargetPlatform.android;
     final textScaler = MediaQuery.textScalerOf(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
     return ValueListenableBuilder<TrainerOverlayState>(

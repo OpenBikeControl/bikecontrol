@@ -8,9 +8,9 @@
 // Content-round addition: three explainer rows opening a `HelpAnswerSheet`
 // (help_answer_sheet.dart) — "the gear doesn't move" while a trainer app is
 // configured, and "keeps disconnecting" / "isn't found" while any controller
-// is known. Pins: visibility conditions, the overlay row's deep link to
-// `ProxyDeviceDetailsPage(revealOverlaySection: true)` when a ProxyDevice is
-// known (and its link-only fallback when none is), and the exact blog URLs
+// is known. Pins: visibility conditions, the overlay row's deep link (the
+// Overlay page in a virtual shifting session, else the trainer's page where
+// that session starts) when a ProxyDevice is known (and its link-only fallback when none is), and the exact blog URLs
 // wired into the two link actions.
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -257,8 +257,9 @@ Future<void> main() async {
 
       expect(tester.takeException(), isNull);
       final page = tester.widget<ProxyDeviceDetailsPage>(find.byType(ProxyDeviceDetailsPage));
+      // No virtual shifting session yet, so no gear to draw: the trainer's
+      // page, where that session starts, rather than the Overlay page.
       expect(page.device, same(proxy));
-      expect(page.revealOverlaySection, isTrue);
     });
 
     testWidgets('shows the same numbered checks as the support intake, with the network test', (tester) async {

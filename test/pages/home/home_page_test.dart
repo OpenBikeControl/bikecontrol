@@ -1014,14 +1014,15 @@ void _overlayStepTests() {
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)), findsOneWidget);
 
-      await tester.tap(find.text(l.chainStepOverlayDecline));
+      // Ride's own offer has a "Not now" too; this is the chain card's.
+      await tester.tap(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)));
       await tester.pump();
       // Let the checklist's collapse run out before looking for what is left.
       await tester.pump(const Duration(milliseconds: 400));
 
       expect(core.settings.getOverlayDeclined(), isTrue);
       expect(find.text(l.chainStepOverlayPending('MyWhoosh')), findsNothing);
-      expect(find.text(l.chainStepOverlayDecline), findsNothing);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)), findsNothing);
       // The rider said no, and the overlay itself stayed off.
       expect(core.settings.getOverlayEnabled(), isFalse);
 
@@ -1047,7 +1048,7 @@ void _overlayStepTests() {
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.chainOptional.toUpperCase())), findsOneWidget);
-      expect(find.text(l.chainStepOverlayDecline), findsNothing);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)), findsNothing);
       final link = tester.widget<ChainLinkRow>(card).link;
       expect(link.status, LinkStatus.ready);
       expect(link.isBlocking, isFalse);

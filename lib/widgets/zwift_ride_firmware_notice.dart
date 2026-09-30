@@ -63,8 +63,8 @@ Future<void> showZwiftRideFirmwareDialog(BuildContext context, ZwiftRide device)
 }
 
 /// Persistent advisory shown on the Zwift Ride's controller card when its
-/// firmware is past the last supported version. Mirrors
-/// [VirtualShiftingProNotice]; routes to support without mentioning any tooling.
+/// firmware is past the last supported version. Routes to support without
+/// mentioning any tooling.
 class ZwiftRideFirmwareNotice extends StatelessWidget {
   final ZwiftRide device;
 

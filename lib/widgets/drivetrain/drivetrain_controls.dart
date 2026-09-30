@@ -250,28 +250,42 @@ class FrontRingToggle extends StatelessWidget {
       builder: (context, ring, _) {
         final large = ring == FrontRing.large;
         final teeth = large ? definition.largeChainringTeeth : definition.smallChainringTeeth;
-        return Button.ghost(
-          style: ButtonStyle.ghost().withPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          ),
-          onPressed: () {
-            definition.toggleFrontChainring();
-            HapticFeedback.selectionClick();
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${large ? 2 : 1}× · ${teeth}T',
-                style: context.typography.xSmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.mutedForeground,
-                  fontFeatures: BkNumerals.tabular,
-                ),
+        final readout = '${large ? 2 : 1}× · ${teeth}T';
+        // Announced as what it does, with the ring it is on as its value; a
+        // bare "1× · 34T" said nothing about being a button.
+        return Semantics(
+          container: true,
+          button: true,
+          label: context.i18n.a11yChangeChainring,
+          value: readout,
+          excludeSemantics: true,
+          child: ConstrainedBox(
+            // A thumb target under the drivetrain, not just the text's height.
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Button.ghost(
+              style: ButtonStyle.ghost().withPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               ),
-              const Gap(6),
-              Icon(LucideIcons.repeat, size: 13, color: cs.primary),
-            ],
+              onPressed: () {
+                definition.toggleFrontChainring();
+                HapticFeedback.selectionClick();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    readout,
+                    style: context.typography.xSmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.mutedForeground,
+                      fontFeatures: BkNumerals.tabular,
+                    ),
+                  ),
+                  const Gap(6),
+                  Icon(LucideIcons.repeat, size: 13, color: cs.primary),
+                ],
+              ),
+            ),
           ),
         );
       },

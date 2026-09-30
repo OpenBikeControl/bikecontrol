@@ -6,6 +6,7 @@ import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart' show F
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -26,16 +27,22 @@ enum VsCardLayout {
 /// Ride's hero: the live gear of a bridged trainer, the drivetrain picture it
 /// drives, − / + to shift, and power / cadence / ratio.
 ///
-/// In ERG the big number is the target power and − / + step it, as on the
-/// trainer's own page. The SIM / ERG segments only report the mode — the
-/// switch lives on the trainer page, which the header opens.
+/// In ERG the big number is the target power and − / + step it. The SIM / ERG
+/// segments only report the mode.
+///
+/// The header holds two links: "Virtual shifting ›" opens how the trainer
+/// shifts (Settings → Virtual shifting), the trainer's name opens the trainer
+/// itself (its hardware page). [footer] sits under the numbers, behind a
+/// hairline — Ride's gear-overlay offer.
 class VirtualShiftingCard extends StatelessWidget {
   const VirtualShiftingCard({
     super.key,
     required this.definition,
     required this.trainerName,
     this.dim = false,
-    this.onOpen,
+    this.onOpenSettings,
+    this.onOpenTrainer,
+    this.footer,
     this.layout = VsCardLayout.beside,
   });
 
@@ -45,8 +52,13 @@ class VirtualShiftingCard extends StatelessWidget {
   /// Paired, but not carrying gears right now — see [TrainerDrivetrain.dim].
   final bool dim;
 
+  /// Opens Settings → Virtual shifting.
+  final VoidCallback? onOpenSettings;
+
   /// Opens the trainer's page.
-  final VoidCallback? onOpen;
+  final VoidCallback? onOpenTrainer;
+
+  final Widget? footer;
 
   final VsCardLayout layout;
 
@@ -77,6 +89,13 @@ class VirtualShiftingCard extends StatelessWidget {
                   _header(context, erg),
                   const Gap(12),
                   if (layout == VsCardLayout.stacked) ..._stacked(context, erg, width) else _beside(context, erg, width),
+                  if (footer case final footer?) ...[
+                    const Gap(14),
+                    DecoratedBox(
+                      decoration: BoxDecoration(border: Border(top: BorderSide(color: cs.border, width: 1))),
+                      child: Padding(padding: const EdgeInsets.only(top: 6), child: footer),
+                    ),
+                  ],
                 ],
               );
             },
@@ -89,41 +108,56 @@ class VirtualShiftingCard extends StatelessWidget {
   Widget _header(BuildContext context, bool erg) {
     final cs = Theme.of(context).colorScheme;
     final l = context.i18n;
+    final accent = bkAccentText(context);
     return Row(
       children: [
         Expanded(
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: BkTappable(
-              onPressed: onOpen,
-              label: '${l.rideVirtualShifting}, $trainerName',
-              excludeChildSemantics: true,
-              borderRadius: BorderRadius.circular(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _HeaderLink(
+                key: const ValueKey('ride-vs-settings-link'),
+                onPressed: onOpenSettings,
+                label: l.rideVirtualShifting,
                 children: [
-                  Text(
-                    l.rideVirtualShifting,
-                    style: context.typography.base.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
+                  Flexible(
+                    child: Text(
+                      l.rideVirtualShifting,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.typography.base.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
+                    ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          trainerName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.typography.small.copyWith(color: cs.mutedForeground),
-                        ),
-                      ),
-                      if (onOpen != null) Icon(LucideIcons.chevronRight, size: 14, color: cs.mutedForeground),
-                    ],
-                  ),
+                  if (onOpenSettings != null) Icon(LucideIcons.chevronRight, size: 16, color: accent),
                 ],
               ),
-            ),
+              _HeaderLink(
+                key: const ValueKey('ride-vs-trainer-link'),
+                onPressed: onOpenTrainer,
+                label: trainerName,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                      color: dim ? cs.mutedForeground : BkStatusColors.of(context).success,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const Gap(6),
+                  Flexible(
+                    child: Text(
+                      trainerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.typography.small.copyWith(color: cs.mutedForeground),
+                    ),
+                  ),
+                  if (onOpenTrainer != null) Icon(LucideIcons.chevronRight, size: 14, color: cs.mutedForeground),
+                ],
+              ),
+            ],
           ),
         ),
         const Gap(8),
@@ -292,6 +326,36 @@ class VirtualShiftingCard extends StatelessWidget {
                 : RideStat(value: formatGearRatio(definition.gearRatio.value), label: l.rideRatio),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// One of the card header's two links: a row of text that opens something,
+/// tall enough to hit on its own, with a focus ring and a spoken name.
+class _HeaderLink extends StatelessWidget {
+  const _HeaderLink({super.key, required this.onPressed, required this.label, required this.children});
+
+  final VoidCallback? onPressed;
+  final String label;
+  final List<Widget> children;
+
+  /// Two of them stack in the header, so each stays under a full 48.
+  static const double height = 32;
+
+  @override
+  Widget build(BuildContext context) {
+    return BkTappable(
+      onPressed: onPressed,
+      label: label,
+      excludeChildSemantics: true,
+      borderRadius: BorderRadius.circular(8),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: height),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(end: 6),
+          child: Row(mainAxisSize: MainAxisSize.min, children: children),
+        ),
       ),
     );
   }

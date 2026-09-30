@@ -8,20 +8,33 @@ import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/settings/settings.dart';
-import 'package:bike_control/widgets/ui/setting_tile.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// The overlay's settings — the body of Settings → Overlay: the switch and,
+/// while the overlay is on, the fields it shows; then what only some
+/// platforms have (opacity on desktop, Picture-in-Picture on iOS, Android's
+/// draw-over permission, the Windows fullscreen tip).
 class OverlaySettingsSection extends StatefulWidget {
   final FitnessBikeDefinition definition;
   final ProxyDevice device;
+
+  /// Told about every field switch, so a preview can follow them.
+  final ValueChanged<Set<OverlayField>>? onFieldsChanged;
+
+  /// Told when the overlay goes on or off.
+  final ValueChanged<bool>? onEnabledChanged;
+
   const OverlaySettingsSection({
     super.key,
     required this.definition,
     required this.device,
+    this.onFieldsChanged,
+    this.onEnabledChanged,
   });
 
   @override
@@ -96,6 +109,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
   void _syncFromController() {
     if (!mounted) return;
     setState(() => _enabled = _controller.isShowing.value);
+    widget.onEnabledChanged?.call(_enabled);
   }
 
   Future<void> _toggle(bool v) async {
@@ -146,6 +160,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     await core.settings.setOverlayFields(next);
     _controller.updateFields(next);
     if (mounted) setState(() => _fields = next);
+    widget.onFieldsChanged?.call(next);
   }
 
   @override
@@ -155,62 +170,70 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     final isAndroid = !kIsWeb && Platform.isAndroid;
     final isDesktop = !kIsWeb && (Platform.isMacOS || Platform.isWindows);
 
+    final platformRows = <Widget>[
+      if (isIos && _pipCapable)
+        BkGroupedRow(
+          icon: LucideIcons.appWindow,
+          title: l10n.overlayUsePip,
+          subtitle: l10n.overlayUsePipSubtitle,
+          trailing: Switch(value: _pipPref ?? _pipAutoDefault, onChanged: _togglePip),
+          onPressed: () => _togglePip(!(_pipPref ?? _pipAutoDefault)),
+        ),
+      if (isDesktop && _enabled)
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            BkGroupedRow(icon: LucideIcons.blend, title: l10n.overlayOpacity, subtitle: l10n.overlayOpacitySubtitle),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
+                0,
+                BkGroupedSection.inset,
+                12,
+              ),
+              child: _opacitySlider(),
+            ),
+          ],
+        ),
+      if (isAndroid && !_androidPermissionGranted) _androidPermissionRow(l10n),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 10,
+      spacing: 24,
       children: [
-        Text(
-          l10n.overlaySection,
-          style: context.typography.large.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
+        BkGroupedSection(
+          key: const ValueKey('overlay-main'),
+          children: [
+            BkGroupedRow(
+              icon: LucideIcons.layers,
+              title: l10n.overlayEnabled,
+              subtitle: isIos ? l10n.overlayDisabledIos : l10n.overlaySectionSubtitle,
+              trailing: Switch(value: _enabled, onChanged: _toggle),
+              onPressed: () => _toggle(!_enabled),
+            ),
+            // The fields only matter while there is an overlay to show them.
+            if (_enabled) ...[
+              _fieldRow(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
+              _fieldRow(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
+              _fieldRow(OverlayField.controls, l10n.overlayFieldControls),
+            ],
+          ],
         ),
-        SettingTile(
-          icon: LucideIcons.layers,
-          title: l10n.overlayEnabled,
-          subtitle: isIos ? l10n.overlayDisabledIos : l10n.overlaySectionSubtitle,
-          trailing: Switch(value: _enabled, onChanged: _toggle),
-          child: _enabled ? _fieldsCard(l10n) : null,
-        ),
-        if (isDesktop && _enabled)
-          SettingTile(
-            icon: LucideIcons.blend,
-            title: l10n.overlayOpacity,
-            subtitle: l10n.overlayOpacitySubtitle,
-            child: _opacitySlider(),
-          ),
-        if (isIos && _pipCapable)
-          SettingTile(
-            icon: LucideIcons.appWindow,
-            title: l10n.overlayUsePip,
-            subtitle: l10n.overlayUsePipSubtitle,
-            trailing: Switch(value: _pipPref ?? _pipAutoDefault, onChanged: _togglePip),
-          ),
+        if (platformRows.isNotEmpty) BkGroupedSection(key: const ValueKey('overlay-platform'), children: platformRows),
         if (!kIsWeb && Platform.isWindows && _enabled) _tipCard(l10n.overlayWindowsTip),
-        if (isAndroid && !_androidPermissionGranted) _androidPermissionTile(l10n),
       ],
     );
   }
 
-  Widget _fieldsCard(AppLocalizations l10n) {
-    Widget row(OverlayField f, String label) {
-      return Row(
-        children: [
-          Expanded(child: Text(label).small),
-          Switch(
-            value: _fields.contains(f),
-            onChanged: (v) => _toggleField(f, v),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 6,
-      children: [
-        row(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
-        row(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
-        row(OverlayField.controls, l10n.overlayFieldControls),
-      ],
+  /// One field of the overlay, indented under the switch it belongs to.
+  Widget _fieldRow(OverlayField f, String label) {
+    final on = _fields.contains(f);
+    return BkGroupedRow(
+      leading: const SizedBox(width: BkIconTile.size),
+      title: label,
+      trailing: Switch(value: on, onChanged: (v) => _toggleField(f, v)),
+      onPressed: () => _toggleField(f, !on),
     );
   }
 
@@ -266,18 +289,14 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
     );
   }
 
-  Widget _androidPermissionTile(AppLocalizations l10n) {
-    return SettingTile(
+  Widget _androidPermissionRow(AppLocalizations l10n) {
+    return BkGroupedRow(
       icon: LucideIcons.shieldCheck,
       title: l10n.overlayGrantAndroidPermission,
       subtitle: l10n.overlayPermissionExplain,
-      trailing: Button.ghost(
-        onPressed: () async {
-          // Re-trigger via show(): the controller asks for permission first.
-          await _toggle(true);
-        },
-        child: Text(l10n.overlayGrantAndroidPermission),
-      ),
+      // Re-trigger via show(): the controller asks for permission first.
+      onPressed: () => _toggle(true),
+      chevron: true,
     );
   }
 }

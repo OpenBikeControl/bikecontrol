@@ -989,7 +989,7 @@
       }
     }
   },
-  "trainerMissingFtmsWarning": "{trainerName} no anuncia el servicio FTMS, por lo que el cambio de marchas virtual puede no funcionar. Usa el botón \"Enviar feedback\" más abajo para reportar este trainer.",
+  "trainerMissingFtmsWarning": "{trainerName} no anuncia el servicio FTMS, por lo que el cambio de marchas virtual puede no funcionar. Usa \"¿Necesitas ayuda?\" más abajo para reportar este trainer.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
@@ -2455,5 +2455,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vsGroupGears": "Marchas",
+  "vsGroupPhysics": "Física",
+  "perGearRatiosTitle": "Desarrollo por marcha",
+  "rideOverlayOff": "El Overlay de marchas está desactivado",
+  "a11yChangeChainring": "Cambiar de plato"
 }

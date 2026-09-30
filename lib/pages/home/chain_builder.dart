@@ -201,7 +201,7 @@ ChainLink _trainerLink(ChainInputs inputs) {
           // on this card — so the step blocks "Ready to ride" until the rider
           // either turns the overlay on or says "not now". Either answer is
           // final for the blocking: an overlay switched off afterwards (the
-          // trainer page's switch, the Live Activity's "stop ride" on every
+          // Overlay page's switch, the Live Activity's "stop ride" on every
           // ride end) leaves the line as the offer it used to be, never as
           // work outstanding. A decline takes the step off the card entirely
           // (a greyed-out offer would still read as unfinished) until the

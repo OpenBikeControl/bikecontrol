@@ -989,7 +989,7 @@
       }
     }
   },
-  "trainerMissingFtmsWarning": "{trainerName} n'annonce pas le service FTMS, le changement de vitesses virtuel peut donc ne pas fonctionner. Utilise le bouton \"Envoyer un retour\" ci-dessous pour signaler ce home trainer.",
+  "trainerMissingFtmsWarning": "{trainerName} n'annonce pas le service FTMS, le changement de vitesses virtuel peut donc ne pas fonctionner. Utilise \"Besoin d'aide ?\" ci-dessous pour signaler ce home trainer.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
@@ -2455,5 +2455,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vsGroupGears": "Vitesses",
+  "vsGroupPhysics": "Physique",
+  "perGearRatiosTitle": "Développement par vitesse",
+  "rideOverlayOff": "L'Overlay de vitesse est désactivé",
+  "a11yChangeChainring": "Changer de plateau"
 }

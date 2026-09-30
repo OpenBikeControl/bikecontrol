@@ -8,8 +8,8 @@ import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
 import 'package:bike_control/pages/markdown.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
-import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
@@ -125,15 +125,16 @@ class _SettingsPageState extends State<SettingsPage> {
               chevron: true,
               onPressed: () => _open(const TrainerConnectionSettingsPage()),
             ),
-            // Only with a trainer shifting: the gears are its definition's.
+            // Only with a trainer shifting: the settings are its active
+            // shifting config's.
             if (proxy != null && definition != null)
               BkGroupedRow(
-                key: const ValueKey('settings-gears'),
+                key: const ValueKey('settings-vs'),
                 icon: LucideIcons.slidersHorizontal,
-                title: l10n.gearSettings,
-                trailing: Text(l10n.gearsCount(definition.maxGear)),
+                title: l10n.rideVirtualShifting,
+                subtitle: virtualShiftingSummary(context, definition, proxy),
                 chevron: true,
-                onPressed: () => _open(GearRatiosEditorPage(definition: definition, device: proxy)),
+                onPressed: () => _open(VirtualShiftingSettingsPage(definition: definition, device: proxy)),
               ),
           ],
         ),
@@ -261,16 +262,18 @@ class _DuringRideSectionState extends State<DuringRideSection> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final proxy = chainProxy();
+    final definition = proxy?.fitnessBike;
     final rows = <Widget>[
-      // The overlay lives on the trainer's page; this row only opens it there.
-      if (proxy != null && TrainerOverlayService.isSupportedPlatform)
+      // The overlay draws the gear of a shifting trainer; without one there
+      // is nothing for it to show.
+      if (proxy != null && definition != null && TrainerOverlayService.isSupportedPlatform)
         BkGroupedRow(
           key: const ValueKey('settings-overlay'),
           icon: LucideIcons.layers,
           title: l10n.overlaySection,
           trailing: Text(core.settings.getOverlayEnabled() ? l10n.statusOn : l10n.statusOff),
           chevron: true,
-          onPressed: () => _open(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
+          onPressed: () => _open(OverlaySettingsPage(device: proxy, definition: definition)),
         ),
       if (_showsShiftHaptics)
         BkSwitchRow(

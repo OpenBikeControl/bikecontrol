@@ -1000,7 +1000,7 @@
       }
     }
   },
-  "trainerMissingFtmsWarning": "{trainerName} bewirbt den FTMS-Service nicht, daher funktioniert das virtuelle Schalten möglicherweise nicht. Bitte nutze unten den \"Feedback senden\"-Button, um diesen Trainer zu melden.",
+  "trainerMissingFtmsWarning": "{trainerName} bewirbt den FTMS-Service nicht, daher funktioniert das virtuelle Schalten möglicherweise nicht. Bitte nutze unten \"Hilfe benötigt?\", um diesen Trainer zu melden.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
@@ -2455,5 +2455,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vsGroupGears": "Gänge",
+  "vsGroupPhysics": "Physik",
+  "perGearRatiosTitle": "Übersetzung pro Gang",
+  "rideOverlayOff": "Gang-Overlay ist aus",
+  "a11yChangeChainring": "Kettenblatt wechseln"
 }

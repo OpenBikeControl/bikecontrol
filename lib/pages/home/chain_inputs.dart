@@ -196,7 +196,7 @@ class TrainerInput {
   /// Whether the rider has ever answered the overlay step — turned the
   /// overlay on, or said "Not now". The step is required only until then: it
   /// holds the card amber once, not after every ride. An overlay that was on
-  /// and has since been switched off (the trainer page's switch, the Live
+  /// and has since been switched off (the Overlay page's switch, the Live
   /// Activity's "stop ride") is an offer again, never outstanding work.
   final bool overlayAnswered;
 

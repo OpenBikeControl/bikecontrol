@@ -23,9 +23,15 @@ class TrainerOverlayService {
   /// home screen rebuilds on every BLE event) don't spin up platform channels
   /// just to ask.
   static bool get isSupportedPlatform {
+    if (debugSupportedPlatform case final supported?) return supported;
     if (kIsWeb) return false;
     return Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.isWindows;
   }
+
+  /// Stands in for the host platform's answer to [isSupportedPlatform], so a
+  /// test reads the same on every machine it runs on. Null outside tests.
+  @visibleForTesting
+  static bool? debugSupportedPlatform;
 
   static TrainerOverlayController _build() {
     if (kIsWeb) return NoOpOverlayController();

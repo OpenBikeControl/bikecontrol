@@ -7,9 +7,15 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
+import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
+import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
@@ -22,6 +28,7 @@ import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../../helpers/fake_overlay_controller.dart';
 import '../../helpers/shell_harness.dart';
 import '../../widget_snapshot.dart';
 
@@ -89,13 +96,6 @@ Future<void> pumpRide(
     ),
   );
   await tester.pump();
-}
-
-class _PushRecorder extends NavigatorObserver {
-  final pushed = <Route<dynamic>>[];
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => pushed.add(route);
 }
 
 Future<void> main() async {
@@ -171,16 +171,58 @@ Future<void> main() async {
       expect(find.descendant(of: card, matching: find.text('205')), findsOneWidget);
     });
 
-    testWidgets('the header opens the trainer', (tester) async {
+    testWidgets('"Virtual shifting ›" opens Settings → Virtual shifting', (tester) async {
       liveTrainer();
-      final recorder = _PushRecorder();
-      await pumpRide(tester, observers: [recorder]);
-      final pushedBefore = recorder.pushed.length;
+      await pumpRide(tester);
+
+      await tester.tap(find.byKey(const ValueKey('ride-vs-settings-link')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget);
+    });
+
+    testWidgets('the trainer name opens the trainer page', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
 
       await tester.tap(find.descendant(of: find.byType(VirtualShiftingCard), matching: find.text('KICKR CORE')));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(recorder.pushed.length, pushedBefore + 1);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(ProxyDeviceDetailsPage), findsOneWidget);
+    });
+
+    testWidgets('the two header links are separate targets, each a comfortable height', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      final settings = tester.getRect(find.byKey(const ValueKey('ride-vs-settings-link')));
+      final trainer = tester.getRect(find.byKey(const ValueKey('ride-vs-trainer-link')));
+      expect(settings.height, greaterThanOrEqualTo(32));
+      expect(trainer.height, greaterThanOrEqualTo(32));
+      expect(settings.bottom, lessThanOrEqualTo(trainer.top), reason: 'no overlap');
+    });
+
+    testWidgets('speed and heart rate show as chips once there is a reading', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      await pumpRide(tester);
+      expect(find.byKey(const ValueKey('ride-chip-speed')), findsOneWidget, reason: 'the trainer reports speed');
+      expect(find.byKey(const ValueKey('ride-chip-heart')), findsNothing);
+
+      definition.setExternalHeartRate(142);
+      await tester.pump();
+      final heart = find.byKey(const ValueKey('ride-chip-heart'));
+      expect(heart, findsOneWidget);
+      expect(find.descendant(of: heart, matching: find.text('142')), findsOneWidget);
+    });
+
+    testWidgets('the Mini Workout sits below Your buttons', (tester) async {
+      liveTrainer();
+      connectedPlay();
+      await pumpRide(tester);
+
+      final workout = find.byType(MiniWorkoutCard);
+      expect(workout, findsOneWidget);
+      expect(tester.getTopLeft(workout).dy, greaterThan(tester.getTopLeft(find.text(l.rideYourButtons)).dy));
     });
 
     testWidgets('without a trainer, Ride invites the rider to connect one', (tester) async {
@@ -188,6 +230,87 @@ Future<void> main() async {
 
       expect(find.byType(VirtualShiftingCard), findsNothing);
       expect(find.text(l.rideVsInviteBody), findsOneWidget);
+    });
+  });
+
+  group('overlay offer', () {
+    late FakeOverlayController overlay;
+
+    setUp(() async {
+      // Store renders never carry an open offer; this is the real app.
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
+      overlay = FakeOverlayController();
+      TrainerOverlayService.setForTest(overlay);
+      TrainerOverlayService.debugSupportedPlatform = true;
+      await core.settings.setLastTarget(Target.thisDevice);
+      await core.settings.setOverlayEnabled(false);
+      await core.settings.setOverlayDeclined(false);
+    });
+
+    tearDown(() {
+      TrainerOverlayService.resetForTest();
+      TrainerOverlayService.debugSupportedPlatform = null;
+    });
+
+    Finder inCard(Finder f) => find.descendant(of: find.byType(VirtualShiftingCard), matching: f);
+
+    testWidgets('off: the note, "Show the gear overlay" and "Not now"', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      expect(inCard(find.text(l.onboardingDoneOverlayNote('MyWhoosh'))), findsOneWidget);
+      expect(inCard(find.text(l.onboardingDoneShowOverlay)), findsOneWidget);
+      expect(inCard(find.text(l.chainStepOverlayDecline)), findsOneWidget);
+    });
+
+    testWidgets('"Show the gear overlay" turns it on and the notice becomes one line', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      await tester.tap(inCard(find.text(l.onboardingDoneShowOverlay)));
+      await tester.pump();
+      await tester.pump();
+      expect(overlay.shows, 1);
+      expect(core.settings.getOverlayEnabled(), isTrue);
+      expect(inCard(find.text(l.chainStepOverlayDone)), findsOneWidget);
+      expect(inCard(find.text(l.onboardingDoneShowOverlay)), findsNothing);
+    });
+
+    testWidgets('"Not now" leaves one quiet line that opens the Overlay page', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      await tester.tap(inCard(find.text(l.chainStepOverlayDecline)));
+      await tester.pump();
+      await tester.pump();
+      expect(core.settings.getOverlayDeclined(), isTrue);
+      expect(inCard(find.text(l.onboardingDoneOverlayNote('MyWhoosh'))), findsNothing);
+      expect(inCard(find.text(l.rideOverlayOff)), findsOneWidget);
+
+      await tester.tap(inCard(find.text(l.rideOverlayOff)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(OverlaySettingsPage), findsOneWidget);
+    });
+
+    testWidgets('on: "Gear overlay is on · Overlay ›"', (tester) async {
+      await core.settings.setOverlayEnabled(true);
+      liveTrainer();
+      await pumpRide(tester);
+
+      expect(inCard(find.text(l.chainStepOverlayDone)), findsOneWidget);
+      expect(inCard(find.text(l.overlaySection)), findsOneWidget);
+    });
+
+    testWidgets('not offered where the trainer app is on another device', (tester) async {
+      await core.settings.setLastTarget(Target.otherDevice);
+      liveTrainer();
+      await pumpRide(tester);
+
+      expect(inCard(find.text(l.onboardingDoneShowOverlay)), findsNothing);
+      expect(inCard(find.text(l.rideOverlayOff)), findsNothing);
+      expect(inCard(find.text(l.chainStepOverlayDone)), findsNothing);
     });
   });
 

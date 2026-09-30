@@ -989,7 +989,7 @@
       }
     }
   },
-  "trainerMissingFtmsWarning": "{trainerName} nie udostępnia usługi FTMS, więc wirtualne przełączanie może nie działać. Użyj poniższego przycisku \"Wyślij opinię\", aby zgłosić ten trainer.",
+  "trainerMissingFtmsWarning": "{trainerName} nie udostępnia usługi FTMS, więc wirtualne przełączanie może nie działać. Użyj poniżej \"Potrzebujesz pomocy?\", aby zgłosić ten trainer.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
@@ -2455,5 +2455,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vsGroupGears": "Biegi",
+  "vsGroupPhysics": "Fizyka",
+  "perGearRatiosTitle": "Przełożenia biegów",
+  "rideOverlayOff": "Overlay biegów jest wyłączony",
+  "a11yChangeChainring": "Zmień tarczę"
 }

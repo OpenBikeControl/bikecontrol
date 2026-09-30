@@ -430,7 +430,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
     return harness.supportsPowerTarget ? 'targetPower' : null;
   }
 
-  /// Mirrors the settings-UI path (`TrainerSettingsSection`'s virtual-
+  /// Mirrors the settings-UI path (`VirtualShiftingModeCard`'s virtual-
   /// shifting-mode radio, via `_updateActive`): the CTA's own mode switch
   /// must stick the same way a manual pick in settings does, or the rider's
   /// next connect quietly reverts to whatever the active [ShiftingConfig] on
@@ -482,7 +482,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
     return null;
   }
 
-  /// Mirrors `TrainerSettingsSection._protocolLabel`: the three protocols the
+  /// Mirrors `ControlProtocolSection._protocolLabel`: the three protocols the
   /// settings picker knows about get their translated name; anything else
   /// (a name this build doesn't recognize) falls back to the raw value
   /// rather than crashing.

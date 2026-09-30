@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -27,6 +28,8 @@ import 'package:bike_control/pages/home/home_sheets.dart';
 import 'package:bike_control/pages/home/pro_unregistered_banner.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
@@ -47,6 +50,8 @@ import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/home/health_ride_card.dart';
 import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
+import 'package:bike_control/widgets/home/ride_live_chips.dart';
+import 'package:bike_control/widgets/home/ride_overlay_notice.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart';
@@ -867,6 +872,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             wide: !twoColumns && constraints.maxWidth >= Breakpoints.compact,
             showPressStrip: showPressStrip,
           );
+          final extras = _rideExtras();
           if (twoColumns) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -883,6 +889,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       buttons,
+                      ...extras,
                       if (widget.activityPreview case final preview?) ...[const Gap(20), preview],
                     ],
                   ),
@@ -896,6 +903,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ...status,
               if (vs != null) ...[vs, const Gap(20)],
               buttons,
+              ...extras,
               if (widget.showHelpRow) ...[const Gap(20), _helpRow()],
               if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
             ],
@@ -970,7 +978,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           trainerName: proxy.toString(),
           dim: !connected,
           layout: stacked ? VsCardLayout.stacked : VsCardLayout.beside,
-          onOpen: () => _openTrainer(proxy, bridged: proxy.isBridged),
+          onOpenSettings: () => _openVsSettings(proxy),
+          onOpenTrainer: () => _openTrainerPage(proxy),
+          footer: _overlayNotice(proxy),
         ),
       );
     } else if (trainer?.presence == DevicePresence.connecting) {
@@ -1001,6 +1011,75 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
     }
     return KeyedSubtree(key: const ValueKey('ride-vs-slot'), child: slot);
+  }
+
+  /// Settings → Virtual shifting, for the trainer on Ride's card.
+  Future<void> _openVsSettings(ProxyDevice proxy) async {
+    final definition = proxy.fitnessBike;
+    if (definition == null) return;
+    await context.push(VirtualShiftingSettingsPage(definition: definition, device: proxy));
+    _update();
+  }
+
+  /// The trainer's hardware page — Ride's card only exists while the trainer
+  /// is in a session, so there is always something for the page to be about.
+  Future<void> _openTrainerPage(ProxyDevice proxy) async {
+    await context.push(ProxyDeviceDetailsPage(device: proxy));
+    _update();
+  }
+
+  /// The gear-overlay offer at the foot of Ride's card, for trainer apps that
+  /// keep showing their own gear — where the rider sees two numbers disagree.
+  /// Only where the overlay can be offered at all (see [_overlayOffered]).
+  Widget? _overlayNotice(ProxyDevice proxy) {
+    final app = core.settings.getTrainerApp();
+    if (app == null || !app.showsOwnGear || !_overlayOffered(proxy)) return null;
+    final state = core.settings.getOverlayEnabled()
+        ? RideOverlayState.on
+        : core.settings.getOverlayDeclined()
+        ? RideOverlayState.declined
+        : RideOverlayState.offer;
+    return RideOverlayNotice(
+      state: state,
+      appName: app.name,
+      onEnable: () => _enableOverlayFromRide(proxy),
+      onDecline: _declineOverlay,
+      onOpen: () async {
+        await context.push(overlaySettingsDestination(proxy));
+        _update();
+      },
+    );
+  }
+
+  /// "Show the gear overlay" on Ride: turns it on in place, and the notice
+  /// becomes its one-line status. Only a refusal (Android's draw-over grant,
+  /// say) opens the Overlay page, where that is sorted out.
+  Future<void> _enableOverlayFromRide(ProxyDevice proxy) async {
+    final result = await enableTrainerOverlay(proxy);
+    if (!mounted) return;
+    if (!result.ok) {
+      buildToast(level: LogLevel.LOGLEVEL_WARNING, title: result.riderMessage(context.i18n));
+      await context.push(overlaySettingsDestination(proxy));
+    }
+    _update();
+  }
+
+  /// Under Your buttons: heart rate and speed while there is a reading, then
+  /// the Mini Workout — for the trainer on Ride's card.
+  List<Widget> _rideExtras() {
+    final proxy = chainProxy();
+    if (proxy == null || proxy.fitnessBike == null) return const [];
+    return [
+      _LiveTrainerBody(
+        key: const ValueKey('ride-live-chips'),
+        proxy: proxy,
+        builder: (definition, _) => RideLiveChips(definition: definition),
+      ),
+      if (MiniWorkoutCard.shows(proxy)) ...[
+        const Gap(20),
+        MiniWorkoutCard(key: const ValueKey('ride-mini-workout'), device: proxy),
+      ],
+    ];
   }
 
   // ── Ride: your buttons ────────────────────────────────────────────────
@@ -1651,7 +1730,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _update();
   }
 
-  /// Turns the gear overlay on, then opens the Overlay section.
+  /// Turns the gear overlay on, then opens Settings → Overlay.
   ///
   /// The button says "Enable overlay", so it enables the overlay — a button
   /// that only navigates somewhere with another switch on it is the toast
@@ -1673,12 +1752,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         title: result.riderMessage(context.i18n),
       );
     }
-    await context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true));
+    await context.push(overlaySettingsDestination(proxy));
   }
 
-  /// "Not now" on the overlay step: the rider has answered, so the step leaves
-  /// the card and stays away. There is no undo here on purpose — the trainer
-  /// page's Overlay switch is the way back, and turning the overlay on there
+  /// "Not now" on the overlay step (and on Ride's offer): the rider has
+  /// answered, so the step leaves the card and stays away, and Ride's offer
+  /// shrinks to one line. There is no undo here on purpose — the Overlay
+  /// page's switch is the way back, and turning the overlay on there
   /// (or anywhere) clears the decline again; see `Settings.setOverlayEnabled`.
   /// The decline also records the answer, so the step is never required again.
   Future<void> _declineOverlay() async {

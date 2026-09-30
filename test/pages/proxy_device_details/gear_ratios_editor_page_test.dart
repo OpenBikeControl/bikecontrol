@@ -1,8 +1,10 @@
-// The gear editor at phone width, with real fonts, in every locale.
+// The gear editor's parts at phone width, with real fonts, in every locale:
+// the presets on Settings → Virtual shifting, the steppers on Per-gear ratios.
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -30,25 +32,32 @@ Future<void> main() async {
         data: ValueNotifier(''),
       )..setMaxGear(gears);
 
-  Future<void> showEditor(WidgetTester tester, FitnessBikeDefinition def, String locale) => captureWidget(
+  Future<void> show(WidgetTester tester, Widget page, String name, String locale) => captureWidget(
         tester,
-        name: 'gear_ratios_editor_$locale',
+        name: '${name}_$locale',
         width: 380,
-        height: 824,
+        height: 1600,
         padding: EdgeInsets.zero,
         locales: [locale],
         settle: false,
-        builder: (_) => GearRatiosEditorPage(definition: def, device: device),
+        builder: (_) => page,
       );
+
+  Future<void> showSettings(WidgetTester tester, FitnessBikeDefinition def, String locale) =>
+      show(tester, VirtualShiftingSettingsPage(definition: def, device: device), 'vs_settings', locale);
+
+  Future<void> showPerGear(WidgetTester tester, FitnessBikeDefinition def, String locale) =>
+      show(tester, PerGearRatiosPage(definition: def, device: device), 'per_gear_ratios', locale);
 
   for (final locale in _locales) {
     testWidgets('preset chips never break a label mid-word ($locale)', (tester) async {
       final def = definition();
-      await showEditor(tester, def, locale);
+      await showSettings(tester, def, locale);
 
-      final context = tester.element(find.byType(GearRatiosEditorPage));
+      final context = tester.element(find.byType(GearRatioPresetChips));
       for (final preset in gearRatioPresets(context, def.maxGear)) {
-        final label = find.text(preset.label);
+        // The config picker above can be called "Default" too.
+        final label = find.descendant(of: find.byType(GearRatioPresetChips), matching: find.text(preset.label));
         expect(label, findsOneWidget, reason: preset.label);
         expectBreaksOnlyBetweenWords(tester, label, reason: '[$locale] preset "${preset.label}"');
       }
@@ -57,18 +66,25 @@ Future<void> main() async {
 
   for (final gears in [30, 18]) {
     testWidgets('the per-gear list says how many gears it lists ($gears gears)', (tester) async {
-      await showEditor(tester, definition(gears: gears), 'en');
+      await showPerGear(tester, definition(gears: gears), 'en');
 
-      final l10n = AppLocalizations.of(tester.element(find.byType(GearRatiosEditorPage)));
+      final l10n = AppLocalizations.of(tester.element(find.byType(PerGearRatiosPage)));
       final header = find.ancestor(of: find.text(l10n.perGearLabel), matching: find.byType(Row)).first;
       expect(find.descendant(of: header, matching: find.textContaining('$gears')), findsOneWidget,
           reason: 'the per-gear header should count $gears gears');
     });
   }
 
-  testWidgets('every tap target on the gear editor is labelled', (tester) async {
+  testWidgets('every tap target on the per-gear page is labelled', (tester) async {
     final handle = tester.ensureSemantics();
-    await showEditor(tester, definition(gears: 12), 'en');
+    await showPerGear(tester, definition(gears: 12), 'en');
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    handle.dispose();
+  });
+
+  testWidgets('every tap target on Settings → Virtual shifting is labelled', (tester) async {
+    final handle = tester.ensureSemantics();
+    await showSettings(tester, definition(gears: 12), 'en');
     await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
     handle.dispose();
   });

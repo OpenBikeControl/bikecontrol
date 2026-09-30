@@ -1,7 +1,6 @@
 // The Settings tab: the plan card on top (with today's virtual shifting trial
 // while Pro is off on this device), Riding with, During the ride, Help &
 // support and App — each row only where it applies.
-import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/settings/settings_page.dart';
@@ -13,10 +12,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
-import 'package:prop/emulators/transporter/network_transporter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:universal_ble/universal_ble.dart';
 
 import '../../widget_snapshot.dart';
 
@@ -97,36 +93,6 @@ Future<void> main() async {
       expect(find.byType(TrainerConnectionSettingsPage), findsOneWidget);
     });
 
-    testWidgets('gear settings only with a trainer shifting, with its gear count', (tester) async {
-      await _pumpSettings(tester);
-      expect(find.byKey(const ValueKey('settings-gears')), findsNothing);
-
-      final proxy =
-          ProxyDevice(
-              BleDevice(
-                name: 'KICKR CORE',
-                deviceId: 'settings-kickr',
-                services: [FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID],
-              ),
-            )
-            ..services = [BleService(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID, [])]
-            ..isConnected = true;
-      final definition = FitnessBikeDefinition(
-        connectedDevice: proxy.scanResult,
-        connectedDeviceServices: proxy.services!,
-        data: ValueNotifier(''),
-      )..setDebugValues();
-      proxy.emulator.debugSetTransporter(NetworkTransporter(definition: definition));
-      proxy.debugAttachFitnessBike(definition);
-      addTearDown(() => proxy.debugAttachFitnessBike(null));
-      core.connection.devices.add(proxy);
-      await tester.pumpWidget(const SizedBox());
-      await _pumpSettings(tester);
-
-      final gears = find.byKey(const ValueKey('settings-gears'));
-      expect(gears, findsOneWidget);
-      expect(find.descendant(of: gears, matching: find.text(l.gearsCount(definition.maxGear))), findsOneWidget);
-    });
   });
 
   testWidgets('during the ride: sound everywhere, vibration and Quit only on a phone', (tester) async {

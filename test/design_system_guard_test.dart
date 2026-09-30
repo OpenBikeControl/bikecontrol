@@ -31,13 +31,11 @@ void main() {
       // Recovery screen shown when start-up fails, before the app theme exists.
       'lib/main.dart',
       // Gear numerals: the one deliberate display size.
-      'lib/pages/proxy_device_details/gear_hero_card.dart',
       'lib/widgets/drivetrain/drivetrain_controls.dart',
       'lib/widgets/overlay/trainer_overlay_view.dart',
       // Painted into a fixed coordinate space / fixed-size ring or tile.
       'lib/widgets/drivetrain/drivetrain_view.dart',
       'lib/widgets/network_test/network_gauge.dart',
-      'lib/pages/proxy_device_details/front_shift_visual.dart',
       'lib/widgets/ui/button_widget.dart',
       // Debug-only key-press overlay.
       'lib/widgets/testbed.dart',

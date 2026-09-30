@@ -1108,7 +1108,7 @@
   "touchSimulationForegroundMessage": "To simulate touches the app needs to stay in the foreground.",
   "trainer": "Trainer",
   "trainerConnection": "Trainer Connection",
-  "trainerMissingFtmsWarning": "{trainerName} does not advertise the FTMS service, so virtual shifting may not work. Please use the \"Send feedback\" button below to report this trainer.",
+  "trainerMissingFtmsWarning": "{trainerName} does not advertise the FTMS service, so virtual shifting may not work. Please use \"Need help?\" below to report this trainer.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
@@ -2865,5 +2865,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "vsGroupGears": "Gears",
+  "vsGroupPhysics": "Physics",
+  "perGearRatiosTitle": "Per-gear ratios",
+  "rideOverlayOff": "Gear overlay is off",
+  "a11yChangeChainring": "Change chainring"
 }

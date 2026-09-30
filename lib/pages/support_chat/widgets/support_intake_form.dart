@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
@@ -371,7 +372,7 @@ class _InlineSelfHelp extends StatelessWidget {
     final proxy = (trainer ?? _knownTrainer)();
     final connectedTrainer = proxy != null && proxy.isConnected ? proxy : null;
     void openNetworkTest() => context.push(const NetworkTroubleshootingPage());
-    void openOverlay() => context.push(ProxyDeviceDetailsPage(device: proxy!, revealOverlaySection: true));
+    void openOverlay() => context.push(overlaySettingsDestination(proxy!));
     final (
       IconData icon,
       String title,

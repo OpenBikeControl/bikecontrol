@@ -15,6 +15,7 @@
 // "Run the setup guide" row whenever no controller is connected.
 import 'dart:async';
 
+import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -26,7 +27,6 @@ import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/help_answer_sheet.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
-import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
@@ -148,7 +148,7 @@ class YourSetupSection extends StatelessWidget {
               onNetworkTest: () => context.push(const NetworkTroubleshootingPage()),
               onOverlay: proxy == null
                   ? null
-                  : () => context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
+                  : () => context.push(overlaySettingsDestination(proxy)),
             ),
             actions: [
               HelpAnswerAction.link(

@@ -14,7 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-/// Keeps the Mini Workout card off the trainer page. For the onboarding video,
+/// Keeps the Mini Workout card off Ride. For the onboarding video,
 /// which is about Virtual Shifting. Off everywhere else.
 @visibleForTesting
 bool debugHideMiniWorkoutCard = false;
@@ -22,6 +22,17 @@ bool debugHideMiniWorkoutCard = false;
 class MiniWorkoutCard extends StatefulWidget {
   final ProxyDevice device;
   const MiniWorkoutCard({super.key, required this.device});
+
+  /// Whether the card has anything to show for [device]: a trainer whose
+  /// metrics it can record, off the web. Lets a host leave its spacing out
+  /// along with the card.
+  static bool shows(ProxyDevice device) =>
+      !kIsWeb && !debugHideMiniWorkoutCard && _metricsFor(device) != null;
+
+  /// What the workout records: the bridge's live definition, or the trainer's
+  /// own virtual shifting definition while the bridge has not composed it.
+  static TrainerMetrics? _metricsFor(ProxyDevice device) =>
+      TrainerMetrics.fromDefinition(device.emulator.activeDefinition) ?? TrainerMetrics.fromDefinition(device.fitnessBike);
 
   @override
   State<MiniWorkoutCard> createState() => _MiniWorkoutCardState();
@@ -31,7 +42,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
   WorkoutRecorder get _recorder => core.workoutRecorder;
 
   void _start() {
-    final metrics = TrainerMetrics.fromDefinition(widget.device.emulator.activeDefinition);
+    final metrics = MiniWorkoutCard._metricsFor(widget.device);
     if (metrics == null) return;
     WakelockPlus.enable();
     _recorder.start(metrics);
@@ -80,7 +91,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
   Widget build(BuildContext context) {
     if (kIsWeb) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
-    final metrics = TrainerMetrics.fromDefinition(widget.device.emulator.activeDefinition);
+    final metrics = MiniWorkoutCard._metricsFor(widget.device);
     if (metrics == null) return const SizedBox.shrink();
 
     return Container(
