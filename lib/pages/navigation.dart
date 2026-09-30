@@ -12,6 +12,7 @@ import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
+import 'package:bike_control/services/blog_news.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -44,6 +45,9 @@ class _NavigationState extends State<Navigation> {
   void initState() {
     super.initState();
     _shell.select(widget.initialSection);
+    // Fetched up front so the Activity item can show its new-posts dot before
+    // anyone opens News.
+    if (BlogNewsController.fetchesAtStart) unawaited(_shell.news.load());
 
     core.logic.startEnabledConnectionMethod();
 
@@ -203,6 +207,7 @@ class _NavigationState extends State<Navigation> {
                   compact: true,
                   showPlanAndHelp: section == AppSection.ride,
                   activity: _shell.activity,
+                  activityTab: _shell.activityTab,
                 ),
               ],
               // The tab bar has its own space below the content, never on top
@@ -223,6 +228,7 @@ class _NavigationState extends State<Navigation> {
                       compact: false,
                       showPlanAndHelp: section == AppSection.ride,
                       activity: _shell.activity,
+                      activityTab: _shell.activityTab,
                     ),
                   ),
                 ),
@@ -241,7 +247,13 @@ class _NavigationState extends State<Navigation> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ShellTopBar(section: section, compact: false, activity: _shell.activity, shell: _shell),
+                          ShellTopBar(
+                            section: section,
+                            compact: false,
+                            activity: _shell.activity,
+                            activityTab: _shell.activityTab,
+                            shell: _shell,
+                          ),
                           Expanded(child: content),
                         ],
                       ),

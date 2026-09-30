@@ -118,8 +118,10 @@ Future<void> main() async {
     for (final text in [l.helpCenterTitle, l.onboardingMenuEntry, l.logs, l.networkTroubleshootingTitle]) {
       expect(_inSection('settings-help', find.text(text)), findsOneWidget, reason: text);
     }
-    for (final text in [l.language, l.blogTab, l.changelog, l.leaveAReview, l.license]) {
+    for (final text in [l.language, l.changelog, l.leaveAReview, l.license]) {
       expect(_inSection('settings-app', find.text(text)), findsOneWidget, reason: text);
     }
+    // The blog lives in Activity → News; one home, not two.
+    expect(find.text(l.blogTab), findsNothing);
   });
 }

@@ -1057,6 +1057,12 @@ class Settings {
     await prefs.setBool('overlay_answered', answered);
   }
 
+  /// Slugs of the recent blog posts the rider has seen on Activity → News;
+  /// the rest of the recent ones carry the unread dot.
+  List<String> getSeenBlogPosts() => prefs.getStringList('blog_seen_posts') ?? const [];
+
+  Future<void> setSeenBlogPosts(List<String> slugs) => prefs.setStringList('blog_seen_posts', slugs);
+
   /// Whether the rider answered the home screen's gear-overlay step with
   /// "Not now". Keeps the step off the trainer card until the overlay is
   /// turned on somewhere, which clears it again — see [setOverlayEnabled].

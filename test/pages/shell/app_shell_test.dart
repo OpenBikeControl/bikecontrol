@@ -166,14 +166,14 @@ Future<void> main() async {
     await disposeShell(tester);
   });
 
-  testWidgets('Settings holds the language picker, and there is no Blog tab any more', (tester) async {
+  testWidgets('Settings holds the language picker, and no Blog row: the blog is Activity → News', (tester) async {
     await pumpShell(tester, const Size(390, 844));
     expect(find.text(l10n().blogTab), findsNothing, reason: 'no Blog tab');
 
     await tester.tap(find.descendant(of: find.byType(ShellTabBar), matching: find.text(l10n().navSettings)));
     await tester.pump();
     expect(find.descendant(of: find.byType(SettingsPage), matching: find.byType(LanguageSelect)), findsOneWidget);
-    expect(find.descendant(of: find.byType(SettingsPage), matching: find.text(l10n().blogTab)), findsOneWidget);
+    expect(find.descendant(of: find.byType(SettingsPage), matching: find.text(l10n().blogTab)), findsNothing);
     expect(find.descendant(of: find.byType(SettingsPage), matching: find.text(l10n().helpCenterTitle)), findsOneWidget);
     await disposeShell(tester);
   });

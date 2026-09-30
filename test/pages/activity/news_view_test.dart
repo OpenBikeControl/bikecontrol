@@ -1,12 +1,13 @@
-// BlogPostsWidget must render each post in the app's ACTIVE language: the
+// A News card must render its post in the app's ACTIVE language: the
 // German build of a post has its own slug (/de/blog/<german-slug>/), so the
-// row's title and the launched URL both follow `Localizations.localeOf`.
+// card's title and the launched URL both follow `Localizations.localeOf`.
 // Posts without a translation stay on the English /blog/ URL — the /de/ URL
 // for an untranslated post 404s.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/services/blog_service.dart';
-import 'package:bike_control/widgets/blog_posts_widget.dart';
+import 'package:bike_control/pages/activity/news_view.dart';
+import 'package:bike_control/services/blog_news.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -64,7 +65,9 @@ Future<void> _pump(WidgetTester tester, Locale locale, List<BlogPost> posts) asy
       ],
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       home: Scaffold(
-        child: BlogPostsWidget(showHeader: false, postsFutureOverride: Future.value(posts)),
+        child: SingleChildScrollView(
+          child: NewsView(controller: BlogNewsController(fetch: () async => posts)),
+        ),
       ),
     ),
   );

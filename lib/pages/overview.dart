@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/activity/activity_preview.dart';
+import 'package:bike_control/pages/activity/activity_section.dart';
 import 'package:bike_control/pages/devices/devices_page.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/settings/settings_page.dart';
@@ -331,10 +332,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         'devices',
         DevicesPage(isMobile: widget.isMobile, onUpdate: _update, reveal: _reveal),
       ),
-      AppSection.activity => _scroll(
-        'activity',
-        ActivityLogView(controller: _log, fixAction: _errorFixAction, showHeader: false),
-      ),
+      AppSection.activity => _scroll('activity', ActivitySection(shell: _shell, fixAction: _errorFixAction)),
       // Settings is a single centred column at every width.
       AppSection.settings => _scroll('settings', SettingsPage(onUpdate: _update), centred: true),
     };

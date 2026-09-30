@@ -6,6 +6,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
 import 'package:bike_control/pages/subscription.dart';
+import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/menu.dart';
@@ -19,6 +20,7 @@ import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The app's four top-level sections.
@@ -46,17 +48,44 @@ enum AppSection {
   }
 }
 
-/// What the shell's chrome and its content share: the selected section and
-/// the session's activity log.
+/// Activity's two segments: the session's log and the blog.
+enum ActivityTab { log, news }
+
+/// What the shell's chrome and its content share: the selected section, the
+/// session's activity log, and the blog behind Activity's News segment.
 class ShellController {
+  ShellController({BlogNewsController? news}) : news = news ?? BlogNewsController() {
+    section.addListener(_markNewsReadIfViewed);
+    activityTab.addListener(_markNewsReadIfViewed);
+    this.news.hasUnread.addListener(_markNewsReadIfViewed);
+  }
+
   final ValueNotifier<AppSection> section = ValueNotifier(AppSection.ride);
   final ActivityLogController activity = ActivityLogController();
 
+  /// Which of Activity's segments is showing.
+  final ValueNotifier<ActivityTab> activityTab = ValueNotifier(ActivityTab.log);
+
+  final BlogNewsController news;
+
   void select(AppSection value) => section.value = value;
 
+  /// Whether the rider is looking at the News segment right now.
+  bool get viewingNews => section.value == AppSection.activity && activityTab.value == ActivityTab.news;
+
+  /// Posts on screen are posts read: the dot goes the moment News shows.
+  void _markNewsReadIfViewed() {
+    if (viewingNews) news.markRead();
+  }
+
   void dispose() {
+    section.removeListener(_markNewsReadIfViewed);
+    activityTab.removeListener(_markNewsReadIfViewed);
+    news.hasUnread.removeListener(_markNewsReadIfViewed);
     section.dispose();
+    activityTab.dispose();
     activity.dispose();
+    news.dispose();
   }
 }
 
@@ -71,9 +100,47 @@ void openSubscription(BuildContext context) {
 
 enum _NavLayout { bottom, top, side }
 
+enum _NavDot { error, news }
+
+/// A segment that never changes, for a top bar shown without the shell.
+class _FixedTab implements ValueListenable<ActivityTab> {
+  const _FixedTab(this.value);
+
+  @override
+  final ActivityTab value;
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+}
+
+/// The small status dot on a navigation item or segment: a filled circle with
+/// a ring in the background colour, so it reads over the icon's edge.
+class NavDot extends StatelessWidget {
+  const NavDot({super.key, required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Theme.of(context).colorScheme.background, width: 1.5),
+      ),
+    );
+  }
+}
+
 /// One section entry of the tab bar, the top tabs or the sidebar: a labelled
 /// button that reports whether it is selected. The Activity entry carries a
-/// red dot while the log holds an error, and says so to a screen reader.
+/// red dot while the log holds an error, else an accent dot while the blog
+/// has an unread post, and says so to a screen reader.
 class ShellNavItem extends StatefulWidget {
   const ShellNavItem._({required this.section, required this.controller, required _NavLayout layout})
     : _layout = layout;
@@ -92,56 +159,55 @@ class _ShellNavItemState extends State<ShellNavItem> {
   @override
   Widget build(BuildContext context) {
     final section = widget.section;
-    final hasErrors = widget.controller.activity.hasErrors;
-    return ValueListenableBuilder<AppSection>(
-      valueListenable: widget.controller.section,
-      builder: (context, selectedSection, _) {
-        final selected = selectedSection == section;
-        return ValueListenableBuilder<bool>(
-          valueListenable: hasErrors,
-          builder: (context, errors, _) {
-            final showDot = section == AppSection.activity && errors;
-            final label = section.label(context);
-            return BkTappable(
-              onPressed: () => widget.controller.select(section),
-              label: showDot ? AppLocalizations.of(context).a11yTabHasErrors(label) : label,
-              selected: selected,
-              excludeChildSemantics: true,
-              borderRadius: BorderRadius.circular(widget._layout == _NavLayout.bottom ? 12 : 999),
-              onHover: (hovered) => setState(() => _hovered = hovered),
-              child: _build(context, label, selected, showDot),
-            );
+    final controller = widget.controller;
+    return ListenableBuilder(
+      listenable: Listenable.merge([controller.section, controller.activity.hasErrors, controller.news.hasUnread]),
+      builder: (context, _) {
+        final selected = controller.section.value == section;
+        final isActivity = section == AppSection.activity;
+        final dot = !isActivity
+            ? null
+            : controller.activity.hasErrors.value
+            ? _NavDot.error
+            : controller.news.hasUnread.value
+            ? _NavDot.news
+            : null;
+        final label = section.label(context);
+        final l10n = AppLocalizations.of(context);
+        return BkTappable(
+          onPressed: () => controller.select(section),
+          label: switch (dot) {
+            _NavDot.error => l10n.a11yTabHasErrors(label),
+            _NavDot.news => l10n.a11yTabHasNewPosts(label),
+            null => label,
           },
+          selected: selected,
+          excludeChildSemantics: true,
+          borderRadius: BorderRadius.circular(widget._layout == _NavLayout.bottom ? 12 : 999),
+          onHover: (hovered) => setState(() => _hovered = hovered),
+          child: _build(context, label, selected, dot),
         );
       },
     );
   }
 
-  Widget _icon(BuildContext context, Color color, bool showDot, double size) {
+  Widget _icon(BuildContext context, Color color, _NavDot? dot, double size) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Icon(widget.section.icon, size: size, color: color),
-        if (showDot)
+        if (dot != null)
           Positioned(
-            key: const ValueKey('activity-error-dot'),
+            key: ValueKey(dot == _NavDot.error ? 'activity-error-dot' : 'activity-news-dot'),
             right: -3,
             top: -2,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: BkStatusColors.of(context).danger,
-                shape: BoxShape.circle,
-                border: Border.all(color: Theme.of(context).colorScheme.background, width: 1.5),
-              ),
-            ),
+            child: NavDot(color: dot == _NavDot.error ? BkStatusColors.of(context).danger : bkAccentText(context)),
           ),
       ],
     );
   }
 
-  Widget _build(BuildContext context, String label, bool selected, bool showDot) {
+  Widget _build(BuildContext context, String label, bool selected, _NavDot? showDot) {
     final cs = Theme.of(context).colorScheme;
     switch (widget._layout) {
       case _NavLayout.bottom:
@@ -339,8 +405,12 @@ class ShellTopBar extends StatelessWidget {
     required this.compact,
     this.showPlanAndHelp = false,
     this.activity,
+    this.activityTab,
     this.shell,
   });
+
+  /// Activity's segment: Clear belongs to the log, not to News.
+  final ValueListenable<ActivityTab>? activityTab;
 
   /// The shell, for the expanded window's device chips (a tap opens
   /// Devices). The chips show only when it is given.
@@ -374,7 +444,12 @@ class ShellTopBar extends StatelessWidget {
       trailingGap: 4,
       trailing: [
         if (shell != null) ShellDeviceChips(shell: shell!),
-        if (section == AppSection.activity && activity != null) ActivityClearButton(controller: activity!),
+        if (section == AppSection.activity && activity != null)
+          ValueListenableBuilder<ActivityTab>(
+            valueListenable: activityTab ?? const _FixedTab(ActivityTab.log),
+            builder: (context, tab, _) =>
+                tab == ActivityTab.log ? ActivityClearButton(controller: activity!) : const SizedBox.shrink(),
+          ),
         AppUpdateButton(compact: compact),
         if (showPlanAndHelp) const PlanBadge(),
         if (showPlanAndHelp) const HelpButton(),

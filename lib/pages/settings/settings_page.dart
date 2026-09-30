@@ -18,14 +18,12 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/blog_posts_widget.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
-import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_switch_row.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
@@ -184,12 +182,6 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: LucideIcons.globe,
               title: l10n.language,
               trailing: LanguageSelect(bare: true, onChanged: () => setState(() {})),
-            ),
-            BkGroupedRow(
-              icon: LucideIcons.rss,
-              title: l10n.blogTab,
-              chevron: true,
-              onPressed: () => _open(const BlogPage()),
             ),
             BkGroupedRow(
               icon: LucideIcons.refreshCw,
@@ -402,27 +394,6 @@ class SettingsPlanCard extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-/// The BikeControl blog, opened from Settings → App.
-class BlogPage extends StatelessWidget {
-  const BlogPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      headers: [BkPageHeader(title: AppLocalizations.of(context).blogTab)],
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: const BlogPostsWidget(showHeader: false, maxPosts: 10),
-          ),
-        ),
-      ),
     );
   }
 }
