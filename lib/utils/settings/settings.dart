@@ -1082,14 +1082,17 @@ class Settings {
     }
   }
 
-  /// Get overlay display fields (set of OverlayField enum values).
-  /// Defaults to {power, cadence}.
+  /// What the overlay shows next to the gear. Defaults to the gear ratio.
+  ///
+  /// Power and cadence were fields once and are ignored where they are still
+  /// stored. A rider who had only those two on would otherwise be left with a
+  /// bare gear they never chose, so that choice reads as the default.
   Set<OverlayField> getOverlayFields() {
+    const defaults = <OverlayField>{OverlayField.gearRatio};
     final raw = prefs.getStringList('overlay_fields');
-    if (raw == null) {
-      return <OverlayField>{OverlayField.power, OverlayField.cadence};
-    }
+    if (raw == null) return {...defaults};
     final parsed = raw.map(OverlayField.fromName).whereType<OverlayField>().toSet();
+    if (parsed.isEmpty && raw.isNotEmpty) return {...defaults};
     return parsed;
   }
 

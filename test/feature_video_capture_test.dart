@@ -942,7 +942,7 @@ Future<void> _startAt(WidgetTester tester, Finder target, {double alignment = 0.
 Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) async {
   await _resetApp();
   debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-  await core.settings.setOverlayFields({OverlayField.power, OverlayField.cadence});
+  await core.settings.setOverlayFields({OverlayField.ergTarget});
   await core.settings.setOverlayOpacity(1.0);
   await _connectMyWhoosh(tester, studio);
   final trainer = await _bridgeTrainer(tester, studio);
@@ -972,8 +972,7 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
   await roll.tap(switchIn(l10n.overlayFieldGearRatio), 'Field: gear ratio');
   await roll.tap(switchIn(l10n.overlayFieldControls), 'Field: − / + controls');
   expect(core.settings.getOverlayFields(), {
-    OverlayField.power,
-    OverlayField.cadence,
+    OverlayField.ergTarget,
     OverlayField.gearRatio,
     OverlayField.controls,
   });
@@ -1032,7 +1031,7 @@ Future<VideoCapture> _filmOverlayView(WidgetTester tester, _Studio studio) async
 
   // What the overlay controllers push to their window, built from the same
   // notifiers on every change.
-  const fields = {OverlayField.power, OverlayField.cadence};
+  const fields = {OverlayField.gearRatio};
   TrainerOverlayState read() => TrainerOverlayState(
     gear: def.currentGear.value,
     maxGear: def.maxGear,

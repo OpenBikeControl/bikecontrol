@@ -153,7 +153,7 @@ void main() {
   }
 
   Future<void> showOn(IosOverlayController controller) async {
-    await controller.show(makeDefinition(), {OverlayField.power});
+    await controller.show(makeDefinition(), {OverlayField.gearRatio});
   }
 
   group('planLiveActivity', () {
@@ -268,8 +268,8 @@ void main() {
       final la = _FakeLiveActivities();
       final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
 
-      final first = controller.show(makeDefinition(), {OverlayField.power});
-      final second = controller.show(makeDefinition(), {OverlayField.power});
+      final first = controller.show(makeDefinition(), {OverlayField.gearRatio});
+      final second = controller.show(makeDefinition(), {OverlayField.gearRatio});
       await Future.wait([first, second]);
 
       expect(la.creates, 1);
@@ -287,7 +287,7 @@ void main() {
 
       la.live.clear();
       la.blockCreates = true;
-      final result = await controller.show(makeDefinition(), {OverlayField.power});
+      final result = await controller.show(makeDefinition(), {OverlayField.gearRatio});
 
       expect(result.ok, isFalse);
       expect(controller.isShowing.value, isFalse);

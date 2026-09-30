@@ -5,7 +5,10 @@ import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 void main() {
   group('OverlayField', () {
     test('parses from name with fallback', () {
-      expect(OverlayField.fromName('power'), OverlayField.power);
+      expect(OverlayField.fromName('gearRatio'), OverlayField.gearRatio);
+      // Power and cadence left the overlay; old stored names parse to nothing.
+      expect(OverlayField.fromName('power'), isNull);
+      expect(OverlayField.fromName('cadence'), isNull);
       expect(OverlayField.fromName('bogus'), isNull);
     });
   });
@@ -20,7 +23,7 @@ void main() {
         powerW: 178,
         cadenceRpm: 86,
         ergTargetW: null,
-        fields: {OverlayField.power, OverlayField.cadence},
+        fields: {OverlayField.gearRatio, OverlayField.controls},
       );
       final round = TrainerOverlayState.fromJson(s.toJson());
       expect(round, s);
@@ -31,13 +34,13 @@ void main() {
         gear: 1, maxGear: 2, gearRatio: 1.0,
         mode: TrainerMode.simMode,
         powerW: null, cadenceRpm: null, ergTargetW: null,
-        fields: {OverlayField.power},
+        fields: {OverlayField.gearRatio},
       );
       const b = TrainerOverlayState(
         gear: 1, maxGear: 2, gearRatio: 1.0,
         mode: TrainerMode.simMode,
         powerW: null, cadenceRpm: null, ergTargetW: null,
-        fields: {OverlayField.cadence},
+        fields: {OverlayField.controls},
       );
       expect(a == b, isFalse);
     });

@@ -27,8 +27,6 @@ Future<void> main() async {
       ergTargetW: null,
       fields: {
         if (controls) OverlayField.controls,
-        OverlayField.power,
-        OverlayField.cadence,
         OverlayField.gearRatio,
       },
       frontShiftEnabled: false,
@@ -95,12 +93,11 @@ Future<void> main() async {
 
           final gear = renderedSize(tester, tester.renderObject(find.text('14')));
           expect(gear, greaterThanOrEqualTo(36 * textScale - 0.01), reason: 'the gear is drawn at its design size');
-          for (final metric in ['250 W', '90 rpm', '×3.53']) {
-            final finder = find.text(metric);
-            if (finder.evaluate().isEmpty) continue; // dropped for room — allowed
-            expect(renderedSize(tester, tester.renderObject(finder)), lessThan(gear), reason: metric);
-          }
-          expect(find.text('250 W'), findsOneWidget, reason: 'power is the last reading to go');
+          final ratio = find.text('×3.53');
+          expect(ratio, findsOneWidget, reason: 'the ratio has its room in the side column');
+          expect(renderedSize(tester, tester.renderObject(ratio)), lessThan(gear));
+          expect(find.textContaining('250'), findsNothing, reason: 'no watts on the overlay');
+          expect(find.textContaining('rpm'), findsNothing, reason: 'no rpm on the overlay');
         });
       }
     }

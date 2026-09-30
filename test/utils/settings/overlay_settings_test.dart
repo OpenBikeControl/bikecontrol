@@ -89,16 +89,28 @@ void main() {
     expect(settings.getOverlayAnswered(), isTrue);
   });
 
-  test('overlay fields default to {power, cadence}', () {
-    expect(settings.getOverlayFields(),
-        {OverlayField.power, OverlayField.cadence});
+  test('overlay fields default to the gear ratio', () {
+    expect(settings.getOverlayFields(), {OverlayField.gearRatio});
   });
 
   test('overlay fields round-trip', () async {
-    await settings.setOverlayFields(
-        {OverlayField.power, OverlayField.gearRatio});
-    expect(settings.getOverlayFields(),
-        {OverlayField.power, OverlayField.gearRatio});
+    await settings.setOverlayFields({OverlayField.controls, OverlayField.gearRatio});
+    expect(settings.getOverlayFields(), {OverlayField.controls, OverlayField.gearRatio});
+  });
+
+  test('stored power and cadence choices are ignored', () async {
+    await settings.prefs.setStringList('overlay_fields', ['power', 'gearRatio', 'controls']);
+    expect(settings.getOverlayFields(), {OverlayField.gearRatio, OverlayField.controls});
+  });
+
+  test('a stored choice of only power and cadence falls back to the default', () async {
+    await settings.prefs.setStringList('overlay_fields', ['power', 'cadence']);
+    expect(settings.getOverlayFields(), {OverlayField.gearRatio});
+  });
+
+  test('an overlay stored with every field off stays that way', () async {
+    await settings.setOverlayFields({});
+    expect(settings.getOverlayFields(), isEmpty);
   });
 
   test('overlay position null when unset, round-trips when set', () async {

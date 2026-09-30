@@ -21,7 +21,10 @@ void main() {
       expect(m['mode'], 'sim');
       expect(m['gearRatio'], 2.04);
       expect(m['showGearRatio'], true);
+      // The overlay never shows watts or rpm; the flags stay, always off, so a
+      // Live Activity written by an older build is switched off too.
       expect(m['showPower'], false);
+      expect(m['showCadence'], false);
       expect(m.containsKey('powerW'), false);
       expect(m.containsKey('cadenceRpm'), false);
       expect(m.containsKey('ergTargetW'), false);
@@ -36,7 +39,7 @@ void main() {
         powerW: 210,
         cadenceRpm: 88,
         ergTargetW: 250,
-        fields: {OverlayField.power, OverlayField.cadence, OverlayField.ergTarget},
+        fields: {OverlayField.ergTarget},
       );
       final m = overlayStateToActivityMap(s);
       expect(m['mode'], 'erg');

@@ -207,8 +207,6 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 6,
       children: [
-        row(OverlayField.power, l10n.overlayFieldPower),
-        row(OverlayField.cadence, l10n.overlayFieldCadence),
         row(OverlayField.ergTarget, l10n.overlayFieldErgTarget),
         row(OverlayField.gearRatio, l10n.overlayFieldGearRatio),
         row(OverlayField.controls, l10n.overlayFieldControls),
