@@ -9,6 +9,7 @@ Future<void> pumpBanner(
   ChainBanner banner, {
   VoidCallback? onAction,
   VoidCallback? onRevealOutstanding,
+  List<ReadyBannerStep> steps = const [],
 }) async {
   await tester.pumpWidget(
     ShadcnApp(
@@ -16,12 +17,15 @@ Future<void> pumpBanner(
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
       home: Scaffold(
-        child: ReadyBanner(
-          banner: banner,
-          brokenLinkName: null,
-          appName: 'MyWhoosh',
-          onAction: onAction,
-          onRevealOutstanding: onRevealOutstanding,
+        child: SingleChildScrollView(
+          child: ReadyBanner(
+            banner: banner,
+            brokenLinkName: null,
+            appName: 'MyWhoosh',
+            onAction: onAction,
+            onRevealOutstanding: onRevealOutstanding,
+            steps: steps,
+          ),
         ),
       ),
     ),
@@ -257,6 +261,107 @@ void main() async {
 
       expect(find.text(l.chainPendingSubtitleController('MyWhoosh')), findsOneWidget);
       expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsNothing);
+    });
+  });
+
+  // "3 steps left" with only a Show button said nothing about what was wrong.
+  // The banner lists the steps themselves, each with the fix the Devices row
+  // offers for it.
+  group('the outstanding steps', () {
+    const pending = ChainBanner(
+      kind: ChainBannerKind.pending,
+      status: LinkStatus.attention,
+      stepsLeft: 4,
+      targetLinkId: 'controller-a',
+      targetKey: ChainLinkKey.controller,
+      outstandingKeys: [ChainLinkKey.controller, ChainLinkKey.trainer, ChainLinkKey.app],
+      outstandingLinkIds: ['controller-a', 'controller-b', 'trainer', 'app'],
+    );
+
+    List<ReadyBannerStep> fourSteps(List<String> fixed) => [
+      ReadyBannerStep(
+        linkId: 'controller-a',
+        step: const SetupStep(id: SetupStepId.controllerPaired, done: false),
+        actionLabel: l.chainSetUp,
+        onFix: () => fixed.add('controller-a'),
+      ),
+      ReadyBannerStep(
+        linkId: 'controller-b',
+        step: const SetupStep(id: SetupStepId.controllerUnlocked, done: false),
+        onFix: () => fixed.add('controller-b'),
+      ),
+      ReadyBannerStep(
+        linkId: 'trainer',
+        step: const SetupStep(id: SetupStepId.trainerGearOverlay, done: false),
+        actionLabel: l.chainStepOverlayAction,
+        onFix: () => fixed.add('trainer'),
+      ),
+      ReadyBannerStep(
+        linkId: 'app',
+        step: const SetupStep(id: SetupStepId.appLocalNetwork, done: false),
+        onFix: () => fixed.add('app'),
+      ),
+    ];
+
+    testWidgets('lists every step with its title, reason and fix', (tester) async {
+      final fixed = <String>[];
+      await pumpBanner(tester, pending, steps: fourSteps(fixed));
+
+      expect(find.text(l.chainStepsLeftTitle(4)), findsOneWidget);
+      for (final title in [
+        l.chainStepControllerPairedPending,
+        l.chainStepUnlockedPending,
+        l.chainStepOverlayPending('MyWhoosh'),
+        l.chainStepAppLocalNetworkPending,
+      ]) {
+        expect(find.text(title), findsOneWidget, reason: title);
+      }
+      expect(find.text(l.chainStepControllerPairedHint), findsOneWidget);
+      expect(find.text(l.chainSetUp), findsOneWidget);
+      expect(find.text(l.chainStepOverlayAction), findsOneWidget);
+      // No label of its own: the Devices row's default.
+      expect(find.text(l.chainShowMeHow), findsNWidgets(2));
+      // Nothing to reveal: every step is on screen.
+      expect(find.text(l.chainBannerShow), findsNothing);
+
+      await tester.tap(find.text(l.chainSetUp));
+      await tester.tap(find.text(l.chainStepOverlayAction));
+      await tester.tap(find.text(l.chainShowMeHow).last);
+      await tester.pump();
+      expect(fixed, ['controller-a', 'trainer', 'app']);
+    });
+
+    testWidgets('a step whose fix comes after an earlier one shows without a button', (tester) async {
+      await pumpBanner(
+        tester,
+        pending,
+        steps: const [
+          ReadyBannerStep(linkId: 'controller-a', step: SetupStep(id: SetupStepId.controllerPaired, done: false)),
+        ],
+      );
+      expect(find.text(l.chainStepControllerPairedPending), findsOneWidget);
+      expect(find.byType(PrimaryButton), findsNothing);
+    });
+
+    testWidgets('past four, the rest is "+N more", which reveals them on Devices', (tester) async {
+      var revealed = 0;
+      final fixed = <String>[];
+      await pumpBanner(
+        tester,
+        pending,
+        onRevealOutstanding: () => revealed++,
+        steps: [
+          ...fourSteps(fixed),
+          const ReadyBannerStep(linkId: 'app', step: SetupStep(id: SetupStepId.appConnected, done: false)),
+          const ReadyBannerStep(linkId: 'app', step: SetupStep(id: SetupStepId.appLocalControl, done: false)),
+        ],
+      );
+
+      expect(find.text(l.chainStepAppLocalNetworkPending), findsOneWidget);
+      expect(find.text(l.chainStepAppConnectedPending('MyWhoosh')), findsNothing);
+      await tester.tap(find.text(l.readyBannerMoreSteps(2)));
+      await tester.pump();
+      expect(revealed, 1);
     });
   });
 }

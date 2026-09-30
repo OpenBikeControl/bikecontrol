@@ -334,6 +334,9 @@ Future<void> main() async {
       liveTrainer();
       await pumpRide(tester);
 
+      // The banner above lists what setup still needs; the card is below it.
+      await tester.ensureVisible(inCard(find.text(l.rideOverlayOfferShow)));
+      await tester.pump();
       await tester.tap(inCard(find.text(l.rideOverlayOfferShow)));
       await tester.pump();
       await tester.pump();
@@ -347,6 +350,8 @@ Future<void> main() async {
       liveTrainer();
       await pumpRide(tester);
 
+      await tester.ensureVisible(notNow());
+      await tester.pump();
       await tester.tap(notNow());
       await tester.pump();
       await tester.pump();
@@ -468,6 +473,17 @@ Future<void> main() async {
       await core.settings.setLastTarget(Target.thisDevice);
       await core.settings.setOverlayEnabled(false);
       await core.settings.setOverlayDeclined(false);
+      // Mid-ride, MyWhoosh receiving: the overlay is all that is left, so the
+      // banner is one line. (Outstanding setup lists its steps and rightly
+      // takes the room.)
+      core.settings.setObpMdnsEnabled(true);
+      core.obpMdnsEmulator.isStarted.value = true;
+      core.obpMdnsEmulator.isConnected.value = true;
+      addTearDown(() {
+        core.obpMdnsEmulator.isConnected.value = false;
+        core.obpMdnsEmulator.isStarted.value = false;
+        core.settings.setObpMdnsEnabled(false);
+      });
       await pumpShellWithRide(tester, const Size(390, 844));
       expect(tester.takeException(), isNull);
       final offer = find.byKey(const ValueKey('ride-overlay-offer'));

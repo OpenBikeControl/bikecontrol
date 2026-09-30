@@ -1539,6 +1539,7 @@
   },
   "chainBannerFix": "Risolvi",
   "chainBannerShow": "Mostra",
+  "readyBannerMoreSteps": "+{count} altri",
   "chainOptional": "Facoltativo",
   "chainEdit": "Modifica",
   "chainSetUp": "Configura",

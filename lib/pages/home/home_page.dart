@@ -816,6 +816,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId))
             : null,
         onRevealOutstanding: () => _showOutstanding(links, banner.outstandingLinkIds),
+        steps: _bannerSteps(links, banner, inputs),
       ),
       HealthRideChip(service: core.healthRide),
       if (trial != null) ...[
@@ -932,6 +933,94 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  /// The banner's list while setup is incomplete: every required step still
+  /// outstanding, card by card. The step each card can act on now carries
+  /// that card's fix — the Devices row's action under the Devices row's
+  /// label; a step that waits on an earlier one has none yet. An app that
+  /// went away after working is one cause with one fix: its step alone.
+  List<ReadyBannerStep> _bannerSteps(List<ChainLink> links, ChainBanner banner, ChainInputs inputs) {
+    if (banner.kind != ChainBannerKind.pending) return const [];
+    final ids = banner.appDropped ? [banner.targetLinkId] : banner.outstandingLinkIds;
+    final steps = <ReadyBannerStep>[];
+    for (final id in ids) {
+      final link = links.firstOrNullWhere((l) => l.id == id);
+      if (link == null) continue;
+      final pending = link.requiredSteps.where((s) => !s.done).toList();
+      if (banner.appDropped) pending.removeWhere((s) => s.id != SetupStepId.appConnected);
+      final active = link.activeStep;
+      // Ride's shifting card carries the overlay offer, with its "Not now";
+      // listing it here as well would ask the same question twice.
+      if (_rideOffersOverlay()) pending.removeWhere((s) => s.id == SetupStepId.trainerGearOverlay);
+      for (final (index, step) in pending.indexed) {
+        // The fix acts on the card's active step. Where that is an optional
+        // offer ahead of the required ones, the first required step carries it.
+        final actionable = identical(step, active) || (index == 0 && (active?.optional ?? false));
+        steps.add(
+          ReadyBannerStep(
+            linkId: link.id,
+            step: step,
+            actionLabel: actionable ? _fixLabel(link, inputs) : null,
+            onFix: actionable ? () => _fix(link, inputs) : null,
+          ),
+        );
+      }
+    }
+    return steps;
+  }
+
+  /// Whether Ride's shifting card shows the overlay offer — see
+  /// [_overlayNotice].
+  bool _rideOffersOverlay() {
+    final proxy = chainProxy();
+    if (proxy == null || proxy.fitnessBike == null) return false;
+    return _overlayNotice(proxy) != null && !core.settings.getOverlayEnabled() && !core.settings.getOverlayDeclined();
+  }
+
+  /// What a card's step button does on its Devices row.
+  Future<void> _fix(ChainLink link, ChainInputs inputs) async {
+    // No trainer ever: the row itself is the invitation to connect one.
+    if (link.key == ChainLinkKey.trainer && inputs.trainer == null) {
+      await _openTrainer(chainProxy(), bridged: false);
+      return;
+    }
+    await _openInstructions(link);
+  }
+
+  /// The label of a card's step button on its Devices row; null reads "Show
+  /// me how".
+  String? _fixLabel(ChainLink link, ChainInputs inputs) {
+    final l = context.i18n;
+    final active = link.activeStep?.id;
+    switch (link.key) {
+      case ChainLinkKey.controller:
+        return link.deviceId == null ||
+                _controllerById(link.deviceId) == null ||
+                active == SetupStepId.controllerClickV2Setup
+            ? l.chainSetUp
+            : null;
+      case ChainLinkKey.trainer:
+        if (inputs.trainer == null) return l.chainSetUp;
+        return active == SetupStepId.trainerGearOverlay ? l.chainStepOverlayAction : null;
+      case ChainLinkKey.sensors:
+        return null;
+      case ChainLinkKey.app:
+        return _appFixLabel(link);
+    }
+  }
+
+  String? _appFixLabel(ChainLink link) {
+    final l = context.i18n;
+    return link.activeStep?.id == SetupStepId.appLocalControl
+        ? l.chainStepLocalControlAction
+        : link.activeStep?.id == SetupStepId.appNetworkAddress
+        ? l.chainStepNetworkAddressAction
+        : appLinkOpensConnectionSettings(link)
+        ? l.chainSetUp
+        : appCardOffersTroubleshooting(link)
+        ? l.networkTroubleshootTroubleshoot
+        : null;
   }
 
   /// Ride's "Show" with several cards outstanding: the cards are on Devices
@@ -1595,15 +1684,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Both of this row's actions act rather than explain, so both say what
       // they do: opening Trainer Connections is an action, and so is switching
       // Local on.
-      instructionsLabel: link.activeStep?.id == SetupStepId.appLocalControl
-          ? l.chainStepLocalControlAction
-          : link.activeStep?.id == SetupStepId.appNetworkAddress
-          ? l.chainStepNetworkAddressAction
-          : appLinkOpensConnectionSettings(link)
-          ? l.chainSetUp
-          : appCardOffersTroubleshooting(link)
-          ? l.networkTroubleshootTroubleshoot
-          : null,
+      instructionsLabel: _appFixLabel(link),
     );
   }
   // ── Actions ───────────────────────────────────────────────────────────

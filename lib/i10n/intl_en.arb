@@ -1744,6 +1744,14 @@
   },
   "chainBannerFix": "Fix",
   "chainBannerShow": "Show",
+  "readyBannerMoreSteps": "+{count} more",
+  "@readyBannerMoreSteps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "chainOptional": "Optional",
   "chainEdit": "Edit",
   "chainSetUp": "Set up",
