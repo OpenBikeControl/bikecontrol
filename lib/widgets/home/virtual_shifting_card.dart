@@ -26,7 +26,8 @@ enum VsCardLayout {
 }
 
 /// Ride's hero: the live gear of a bridged trainer, the drivetrain picture it
-/// drives, − / + to shift, and power / cadence / ratio.
+/// drives, − / + to shift, and power / cadence / ratio — plus heart rate
+/// while a source reports one.
 ///
 /// In ERG the big number is the target power and − / + step it. The SIM / ERG
 /// segments only report the mode.
@@ -75,6 +76,7 @@ class VirtualShiftingCard extends StatelessWidget {
         definition.gearRatios,
         definition.powerW,
         definition.cadenceRpm,
+        definition.heartRateBpm,
       ]),
       builder: (context, _) {
         final erg = definition.trainerMode.value == TrainerMode.ergMode;
@@ -183,7 +185,7 @@ class VirtualShiftingCard extends StatelessWidget {
     // The picture is never taller than the numeral beside it; on a phone the
     // column is narrower than this anyway.
     final pictureWidth = numeral * kDrivetrainBox.width / kDrivetrainBox.height;
-    return Row(
+    final row = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
@@ -198,8 +200,7 @@ class VirtualShiftingCard extends StatelessWidget {
                 ),
               ),
               if (definition.frontShiftEnabled) Align(child: FrontRingToggle(definition: definition)),
-              const Gap(8),
-              _stats(context, erg),
+              if (!_hasHeart) ...[const Gap(8), _stats(context, erg)],
             ],
           ),
         ),
@@ -218,7 +219,23 @@ class VirtualShiftingCard extends StatelessWidget {
         ),
       ],
     );
+    // Four readings don't fit the drivetrain's column; with heart rate the
+    // row runs the card's full width under the gear.
+    if (!_hasHeart) return row;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [row, const Gap(12), _stats(context, erg)],
+    );
   }
+
+  /// Heart rate is a reading only while a source reports a real one.
+  int? get _heart => switch (definition.heartRateBpm.value) {
+    final bpm? when bpm > 0 => bpm,
+    _ => null,
+  };
+
+  bool get _hasHeart => _heart != null;
 
   List<Widget> _stacked(BuildContext context, bool erg, double width) {
     final numeral = (width * 0.4).clamp(96.0, 176.0);
@@ -332,6 +349,15 @@ class VirtualShiftingCard extends StatelessWidget {
                 ? const SizedBox.shrink()
                 : RideStat(value: formatGearRatio(definition.gearRatio.value), label: l.rideRatio),
           ),
+          if (_heart case final heart?)
+            Expanded(
+              child: RideStat(
+                key: const ValueKey('ride-stat-heart'),
+                value: '$heart',
+                unit: 'bpm',
+                label: l.sensorQuantityHeartRate,
+              ),
+            ),
         ],
       ),
     );

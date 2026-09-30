@@ -50,7 +50,6 @@ import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/home/health_ride_card.dart';
 import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
-import 'package:bike_control/widgets/home/ride_live_chips.dart';
 import 'package:bike_control/widgets/home/ride_overlay_notice.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
@@ -1064,17 +1063,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _update();
   }
 
-  /// Under Your buttons: heart rate and speed while there is a reading, then
-  /// the Mini Workout — for the trainer on Ride's card.
+  /// Under Your buttons: the Mini Workout, for the trainer on Ride's card.
+  /// (Heart rate is one of the card's readings; speed is not on Ride.)
   List<Widget> _rideExtras() {
     final proxy = chainProxy();
     if (proxy == null || proxy.fitnessBike == null) return const [];
     return [
-      _LiveTrainerBody(
-        key: const ValueKey('ride-live-chips'),
-        proxy: proxy,
-        builder: (definition, _) => RideLiveChips(definition: definition),
-      ),
       if (MiniWorkoutCard.shows(proxy)) ...[
         const Gap(20),
         MiniWorkoutCard(key: const ValueKey('ride-mini-workout'), device: proxy),

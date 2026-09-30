@@ -150,6 +150,14 @@ Future<void> main() async {
       await shoot(tester, 'ride-overlay-on', brightness, () => const Navigation());
     });
 
+    // A heart-rate source reporting: heart rate joins the card's readings.
+    testWidgets('ride-heart-$theme', (tester) async {
+      await core.settings.setOverlayEnabled(true);
+      definition.setExternalHeartRate(142);
+      addTearDown(() => definition.setExternalHeartRate(0));
+      await shoot(tester, 'ride-heart', brightness, () => const Navigation());
+    });
+
     testWidgets('hardware-$theme', (tester) async {
       await shoot(tester, 'hardware', brightness, () => ProxyDeviceDetailsPage(device: proxy));
     });

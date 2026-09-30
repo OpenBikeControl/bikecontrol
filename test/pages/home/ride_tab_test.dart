@@ -226,17 +226,37 @@ Future<void> main() async {
       expect(trainer.top - title.bottom, lessThanOrEqualTo(12), reason: 'the trainer name sits right under the title');
     });
 
-    testWidgets('speed and heart rate show as chips once there is a reading', (tester) async {
+    testWidgets('no speed and no chip strip on Ride: an indoor trainer has nowhere to go', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      definition.setExternalHeartRate(142);
+      await pumpRide(tester);
+      expect(find.byKey(const ValueKey('ride-live-chips')), findsNothing);
+      expect(find.byKey(const ValueKey('ride-chip-speed')), findsNothing);
+      expect(find.byKey(const ValueKey('ride-chip-heart')), findsNothing);
+      expect(find.text(l.sensorQuantitySpeed), findsNothing);
+    });
+
+    testWidgets('heart rate joins the card\'s readings only while a source reports one', (tester) async {
       final (:proxy, :definition) = liveTrainer();
       await pumpRide(tester);
-      expect(find.byKey(const ValueKey('ride-chip-speed')), findsOneWidget, reason: 'the trainer reports speed');
-      expect(find.byKey(const ValueKey('ride-chip-heart')), findsNothing);
+      final card = find.byType(VirtualShiftingCard);
+      Finder heartLabel() => find.descendant(of: card, matching: find.text(l.sensorQuantityHeartRate));
+      expect(heartLabel(), findsNothing, reason: 'no heart-rate source');
+
+      definition.setExternalHeartRate(0);
+      await tester.pump();
+      expect(heartLabel(), findsNothing, reason: 'never a 0 bpm reading');
 
       definition.setExternalHeartRate(142);
       await tester.pump();
-      final heart = find.byKey(const ValueKey('ride-chip-heart'));
-      expect(heart, findsOneWidget);
-      expect(find.descendant(of: heart, matching: find.text('142')), findsOneWidget);
+      expect(heartLabel(), findsOneWidget);
+      final reading = find.byKey(const ValueKey('ride-stat-heart'));
+      expect(find.descendant(of: reading, matching: find.textContaining('142', findRichText: true)), findsOneWidget);
+      expect(find.descendant(of: reading, matching: find.textContaining('bpm', findRichText: true)), findsOneWidget);
+      // One row with power, cadence and the ratio.
+      final power = tester.getRect(find.descendant(of: card, matching: find.text(l.sensorQuantityPower)));
+      expect((tester.getRect(heartLabel()).top - power.top).abs(), lessThan(1), reason: 'the same metrics row');
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('the Mini Workout sits below Your buttons', (tester) async {
