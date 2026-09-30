@@ -26,12 +26,10 @@ import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/overview.dart';
-import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
-import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
-import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
@@ -574,21 +572,21 @@ Future<void> main() async {
     core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
-    // Put the proxy into virtual-shifting mode so the page shows the gear UI
-    // instead of the "trainer doesn't advertise FTMS" warning.
+    // Put the proxy into virtual-shifting mode: the board is Settings →
+    // Virtual shifting for that trainer (the Smart Trainer page is hardware
+    // only now).
     proxy.debugAttachFitnessBike(fbd);
     await shoot(
       tester,
       'virtualshifting',
-      () => BikeControlApp(customChild: ProxyDeviceDetailsPage(device: proxy)),
+      () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
     );
   });
 
-  // The front derailleur is switched on for this board so its card shows the
-  // chainring steppers and the resulting range rather than just an off switch.
-  // Restored afterwards — it changes what the drivetrain reports (2× notation,
-  // ring-aware ratios), which every later scene sharing this trainer would
-  // otherwise inherit.
+  // Virtual shifting → Per-gear ratios, with the front derailleur switched on
+  // so the curve's gear reads as a ring position. Restored afterwards — it
+  // changes what the drivetrain reports (2× notation, ring-aware ratios),
+  // which every later scene sharing this trainer would otherwise inherit.
   testGoldens('Virtual Shifting Settings', (WidgetTester tester) async {
     core.settings.setTrainerApp(Zwift());
     core.settings.setKeyMap(Zwift());
@@ -607,7 +605,7 @@ Future<void> main() async {
         tester,
         'virtualshifting-settings',
         () => BikeControlApp(
-          customChild: GearRatiosEditorPage(
+          customChild: PerGearRatiosPage(
             device: proxy,
             definition: fbd,
           ),
@@ -663,8 +661,10 @@ Future<void> main() async {
     );
   });
 
-  // The front-derailleur setting card, enabled so the chainring steppers show.
+  // The front-derailleur setting, enabled so the chainring steppers show: its
+  // rows in the Gears group of Settings → Virtual shifting.
   testGoldens('Front Derailleur Setting', (WidgetTester tester) async {
+    proxy.debugAttachFitnessBike(fbd);
     await core.shiftingConfigs.upsert(
       core.shiftingConfigs
           .activeFor(proxy.trainerKey)
@@ -674,22 +674,12 @@ Future<void> main() async {
             largeChainringTeeth: 50,
           ),
     );
-    const k = ValueKey('shot');
     await shootOne(
       tester,
       'frontderailleur-setting',
-      () => BikeControlApp(
-        customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(
-              key: k,
-              child: FrontShiftCard(device: proxy, definition: fbd),
-            ),
-          ),
-        ),
-      ),
-      capture: () => find.byKey(k),
+      () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
+      capture: () => find.byKey(const ValueKey('vs-front-derailleur')),
+      size: const Size(1080, 6000),
     );
   });
 
@@ -1255,36 +1245,22 @@ Future<void> main() async {
     );
   });
 
-  // 2) Ride-feel / trainer settings: the config picker + gear settings card +
-  // bike-weight + rider-weight steppers.
+  // 2) Ride-feel: the Physics group of Settings → Virtual shifting (bike and
+  // rider weight).
   testGoldens('ride-feel', (WidgetTester tester) async {
     await seedShiftingConfigs();
     proxy.debugAttachFitnessBike(fbd);
-    const k = ValueKey('shot');
     await shootOne(
       tester,
       'ride-feel',
-      () => BikeControlApp(
-        customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: RepaintBoundary(
-              key: k,
-              child: TrainerSettingsSection(definition: fbd, device: proxy),
-            ),
-          ),
-        ),
-      ),
-      capture: () => find.byKey(k),
-      // Wide enough that the embedded config picker's Select shows the active
-      // config name on one line (it sizes to its Expanded slot, which collapses
-      // at phone-narrow widths).
-      size: const Size(1980, 2390),
+      () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
+      capture: () => find.byKey(const ValueKey('vs-physics')),
+      size: const Size(1080, 6000),
     );
   });
 
-  // 3) Overlay settings: the enable tile + the display-field toggles (Power /
-  // Cadence / ERG / Gear / Controls). The field list only renders while the
+  // 3) Overlay settings: Settings → Overlay, its live preview on top, the
+  // enable row and the display-field toggles (ERG / Gear / Controls). The field list only renders while the
   // overlay is "showing", so flip the platform controller (the same singleton
   // the section reads in initState) on up front.
   testGoldens('overlay-settings', (WidgetTester tester) async {
@@ -1311,7 +1287,7 @@ Future<void> main() async {
             padding: const EdgeInsets.all(20),
             child: RepaintBoundary(
               key: k,
-              child: OverlaySettingsSection(definition: fbd, device: proxy),
+              child: SizedBox(height: 900, child: OverlaySettingsPage(device: proxy, definition: fbd)),
             ),
           ),
         ),
@@ -1321,7 +1297,7 @@ Future<void> main() async {
   });
 
   // 4) The Virtual Shifting mode selector (Target Power / Track Resistance /
-  // Basic radio group), extracted from GearRatiosEditorPage as a public widget.
+  // Basic radio group), a public widget of Settings → Virtual shifting.
   testGoldens('vs-mode', (WidgetTester tester) async {
     await seedShiftingConfigs();
     proxy.debugAttachFitnessBike(fbd);

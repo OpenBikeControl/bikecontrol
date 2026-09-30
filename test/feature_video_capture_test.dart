@@ -76,11 +76,12 @@ import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 // ignore: depend_on_referenced_packages
 import 'package:image/image.dart' as img;
-import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/home/home_page.dart' show HomePage;
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/trainer_connect.dart';
-import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart' show buildFtmsTrainer;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -952,8 +953,8 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
   final roll = await _roll(
     tester,
     boundary,
-    () => ProxyDeviceDetailsPage(device: trainer),
-    before: () => _startAt(tester, find.text(l10n.overlaySection), alignment: 0.15),
+    () => OverlaySettingsPage(device: trainer, definition: trainer.fitnessBike!),
+    before: () => _startAt(tester, find.byKey(const ValueKey('overlay-preview')), alignment: 0.05),
   );
   await roll.frames(_endHold);
 
@@ -961,12 +962,7 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
     of: find.ancestor(of: find.text(title), matching: find.byType(Row)).first,
     matching: find.byType(Switch),
   );
-  final overlaySwitch = find
-      .descendant(
-        of: find.ancestor(of: find.text(l10n.overlayEnabled), matching: find.byType(SettingTile)).first,
-        matching: find.byType(Switch),
-      )
-      .first;
+  final overlaySwitch = switchIn(l10n.overlayEnabled);
   await roll.tap(overlaySwitch, 'Show the overlay');
   expect(TrainerOverlayService.forCurrentPlatform().isShowing.value, isTrue);
   await roll.tap(switchIn(l10n.overlayFieldGearRatio), 'Field: gear ratio');
@@ -988,7 +984,7 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
   expect(find.text('75%'), findsOneWidget, reason: 'the overlay is faded to 75 %');
   await roll.frames(30);
 
-  await _scrollToTopOf(roll, tester, find.text(l10n.overlaySection), 'Scroll back');
+  await _scrollToTopOf(roll, tester, find.byKey(const ValueKey('overlay-preview')), 'Scroll back');
   await roll.tap(overlaySwitch, 'Hide the overlay');
   await roll.frames(_endHold);
   await _wrapUp(tester, studio);
@@ -1119,7 +1115,7 @@ class _MemoryWorkoutRepository extends WorkoutRepository {
 Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async {
   await _resetApp();
   await _connectMyWhoosh(tester, studio);
-  final trainer = await _bridgeTrainer(tester, studio);
+  await _bridgeTrainer(tester, studio);
   _pedal(studio);
   final realClock = core.workoutRecorder.nowProvider;
   core.workoutRecorder.nowProvider = _now;
@@ -1131,7 +1127,11 @@ Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async
   final rec = await _roll(
     tester,
     boundary,
-    () => ProxyDeviceDetailsPage(device: trainer),
+    // The Mini Workout lives on Ride now, under Your buttons.
+    () => SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: HomePage(isMobile: true, onUpdate: () {}),
+    ),
     before: () => _startAt(tester, find.text(l10n.miniWorkout), alignment: 0.05),
   );
   rec.sighting('mini-workout', find.text(l10n.miniWorkout));
@@ -1177,7 +1177,7 @@ Future<VideoCapture> _filmSettingProfiles(WidgetTester tester, _Studio studio) a
   final rec = await _roll(
     tester,
     boundary,
-    () => ProxyDeviceDetailsPage(device: trainer),
+    () => VirtualShiftingSettingsPage(definition: trainer.fitnessBike!, device: trainer),
     before: () => _startAt(tester, find.byType(ShiftingConfigPicker), alignment: 0.05),
   );
   await rec.frames(_endHold);
