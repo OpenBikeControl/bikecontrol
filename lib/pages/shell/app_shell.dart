@@ -17,6 +17,7 @@ import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -224,22 +225,25 @@ class ShellTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: cs.background,
-        border: Border(top: BorderSide(color: cs.border, width: 0.5)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          child: Row(
-            children: [
-              for (final section in AppSection.values)
-                Expanded(
-                  child: ShellNavItem._(section: section, controller: controller, layout: _NavLayout.bottom),
-                ),
-            ],
+    // Toasts sit above the bar, never on it.
+    return ReportsToastClearance(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: cs.background,
+          border: Border(top: BorderSide(color: cs.border, width: 0.5)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Row(
+              children: [
+                for (final section in AppSection.values)
+                  Expanded(
+                    child: ShellNavItem._(section: section, controller: controller, layout: _NavLayout.bottom),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

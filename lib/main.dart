@@ -19,6 +19,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:multi_window_native/multi_window_native.dart';
@@ -766,34 +767,39 @@ class _BikeControlAppState extends State<BikeControlApp> {
     // the splash — so this is safe before core.settings.init() completes.
     return ValueListenableBuilder<Locale?>(
       valueListenable: core.settings.localeListenable,
-      builder: (context, localeOverride, _) => ShadcnApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        menuHandler: OverlayHandler.popover,
-        popoverHandler: OverlayHandler.popover,
-        localizationsDelegates: [
-          ...ShadcnLocalizations.localizationsDelegates,
-          OtherLocalizationsDelegate(),
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        title: 'BikeControl',
-        scaling: BkTheme.scaling,
-        darkTheme: BkTheme.build(Brightness.dark),
-        locale: demoLocaleOverride.isNotEmpty
-            ? Locale(demoLocaleOverride)
-            : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
-        theme: BkTheme.build(Brightness.light),
-        materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
-        //themeMode: ThemeMode.dark,
-        // Swap splash → content in place inside the always-mounted ShadcnApp so
-        // the themed background is painted the whole time — no black flash while
-        // the real content takes over from the splash. The Builder gives _home a
-        // context *below* ShadcnApp, where its Theme is available.
-        home: m.Builder(
-          builder: (context) => AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: _home(context, isMobile),
+      // Toasts go to shadcn's root layer inside the app; this places them.
+      builder: (context, localeOverride, _) => BkToastTheme(
+        child: ShadcnApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          menuHandler: OverlayHandler.popover,
+          popoverHandler: OverlayHandler.popover,
+          localizationsDelegates: [
+            ...ShadcnLocalizations.localizationsDelegates,
+            OtherLocalizationsDelegate(),
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          title: 'BikeControl',
+          scaling: BkTheme.scaling,
+          darkTheme: BkTheme.build(Brightness.dark),
+          locale: demoLocaleOverride.isNotEmpty
+              ? Locale(demoLocaleOverride)
+              : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
+          theme: BkTheme.build(Brightness.light),
+          materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark
+              ? m.ThemeData.dark()
+              : m.ThemeData(),
+          //themeMode: ThemeMode.dark,
+          // Swap splash → content in place inside the always-mounted ShadcnApp so
+          // the themed background is painted the whole time — no black flash while
+          // the real content takes over from the splash. The Builder gives _home a
+          // context *below* ShadcnApp, where its Theme is available.
+          home: m.Builder(
+            builder: (context) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _home(context, isMobile),
+            ),
           ),
         ),
       ),
@@ -836,18 +842,15 @@ class _BikeControlAppState extends State<BikeControlApp> {
       );
     }
 
-    return ToastLayer(
+    return m.Builder(
       key: const ValueKey('Test'),
-      padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-      child: m.Builder(
-        builder: (context) {
-          return BkComponentThemes(
-            child: _Starter(
-              child: widget.customChild ?? Navigation(),
-            ),
-          );
-        },
-      ),
+      builder: (context) {
+        return BkComponentThemes(
+          child: _Starter(
+            child: widget.customChild ?? Navigation(),
+          ),
+        );
+      },
     );
   }
 }

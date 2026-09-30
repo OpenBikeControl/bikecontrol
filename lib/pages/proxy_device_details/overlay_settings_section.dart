@@ -13,6 +13,8 @@ import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/prop.dart' show LogLevel;
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The overlay's settings — the body of Settings → Overlay: the switch and,
@@ -123,12 +125,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
         setState(() => _enabled = true);
       } else {
         // Stay off and surface message.
-        showToast(
-          context: context,
-          builder: (c, _) => SurfaceCard(
-            child: Text(res.riderMessage(AppLocalizations.of(context))),
-          ),
-        );
+        buildToast(level: LogLevel.LOGLEVEL_WARNING, title: res.riderMessage(AppLocalizations.of(context)));
         setState(() => _enabled = false);
       }
     } else {
