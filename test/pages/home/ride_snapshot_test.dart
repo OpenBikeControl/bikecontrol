@@ -81,8 +81,7 @@ Future<void> main() async {
     for (final brightness in Brightness.values) {
       if (size.width > 1000 && brightness == Brightness.light) continue;
       final name = 'ride-${size.width.toInt()}x${size.height.toInt()}-${brightness.name}';
-      // From 840 Ride shows the log: as the latest-events preview under Your
-      // buttons, and from 1200 as the permanent column.
+      // From 840 Ride shows the latest-events preview under Your buttons.
       final showsLog = size.width >= Breakpoints.medium;
       testWidgets(name, (tester) async {
         await captureWidget(

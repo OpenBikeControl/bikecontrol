@@ -1,5 +1,4 @@
-// Ride's latest-events preview (between the sidebar and the permanent
-// activity column): the section header with See all, then the newest few
+// Ride's latest-events preview (its right column from 840): the section header with See all, then the newest few
 // entries — or, before anything has happened, the log's own empty state, so
 // the column never reads as a blank gap.
 import 'package:bike_control/gen/l10n.dart';

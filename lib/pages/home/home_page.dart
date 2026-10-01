@@ -788,14 +788,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// Whether Ride splits in two: status and shifting on the left, the buttons
-  /// on the right. From 840 (the sidebar's breakpoint) up to the activity
-  /// column's, and past that only while the content still has room for two
-  /// (at 1280 the activity column takes its share and Ride is one column
-  /// again; a 1600 window has room for both).
-  static bool _rideTwoColumns({required double window, required double content}) {
-    if (window < Breakpoints.medium || content < 520) return false;
-    return window < Breakpoints.activityColumn || content >= 820;
-  }
+  /// on the right. From 840 (the sidebar's breakpoint) at every width, while
+  /// the content has room for two.
+  static bool _rideTwoColumns({required double window, required double content}) =>
+      window >= Breakpoints.medium && content >= 520;
 
   Widget _buildRide(ChainInputs inputs, List<ChainLink> links, ChainBanner banner) {
     final trial = _trialState();
@@ -853,10 +849,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       HealthRideCard(service: core.healthRide),
     ];
 
-    // Where the activity column sits beside Ride, it already lists every
-    // press; the strip would say the same thing twice.
-    final showPressStrip = MediaQuery.sizeOf(context).width < Breakpoints.activityColumn;
-
     return Padding(
       // No horizontal inset on mobile: the shell's scroll view already pads
       // the page by 12. Desktop keeps it.
@@ -870,7 +862,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           final vs = _vsSlot(inputs, links, stacked: twoColumns);
           final buttons = _yourButtons(
             wide: !twoColumns && constraints.maxWidth >= Breakpoints.compact,
-            showPressStrip: showPressStrip,
           );
           final extras = _rideExtras();
           if (twoColumns) {
@@ -1168,7 +1159,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   // ── Ride: your buttons ────────────────────────────────────────────────
 
-  Widget _yourButtons({required bool wide, required bool showPressStrip}) {
+  Widget _yourButtons({required bool wide}) {
     final l = context.i18n;
     final connected = core.connection.controllerDevices.where((d) => d.isConnected).toList();
     final keymap = core.actionHandler.supportedApp?.keymap;
@@ -1200,7 +1191,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             onUpdate: _update,
             onEdit: () => _openController(device),
             showDeviceHeader: single == null,
-            showPressStrip: showPressStrip,
             wide: wide,
           ),
         ],

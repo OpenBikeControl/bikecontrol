@@ -35,9 +35,6 @@ abstract final class Breakpoints {
   /// From here onboarding shows its step rail beside the step.
   static const double twoPane = 800;
 
-  /// From here Ride shows the activity log as a permanent right column.
-  static const double activityColumn = 1200;
-
   /// Below this, network-check rows drop their right-hand value column and
   /// the troubleshooter header moves its run stamp into the body.
   static const double networkValueColumn = 640;

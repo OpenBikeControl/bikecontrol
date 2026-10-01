@@ -150,7 +150,6 @@ class ControllerButtonsCard extends StatelessWidget {
     required this.onUpdate,
     required this.onEdit,
     this.showDeviceHeader = false,
-    this.showPressStrip = true,
     this.wide = false,
   });
 
@@ -160,7 +159,6 @@ class ControllerButtonsCard extends StatelessWidget {
   final VoidCallback onUpdate;
   final VoidCallback onEdit;
   final bool showDeviceHeader;
-  final bool showPressStrip;
   final bool wide;
 
   @override
@@ -181,7 +179,7 @@ class ControllerButtonsCard extends StatelessWidget {
             style: context.typography.small.copyWith(color: cs.mutedForeground),
           )
         : null;
-    final strip = showPressStrip && picture != null
+    final strip = picture != null
         ? LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate)
         : null;
 

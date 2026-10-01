@@ -1,12 +1,13 @@
 // The app shell: four sections (Ride / Devices / Activity / Settings) behind a
 // bottom tab bar on a phone, a floating tab bar at medium widths and a
-// permanent sidebar from 840. From 1200 Ride carries the activity log as a
-// permanent right column.
+// permanent sidebar from 840. Every width from 840 lays Ride out the same way:
+// two columns, with the latest activity under the buttons.
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/activity/activity_log.dart';
+import 'package:bike_control/pages/activity/activity_preview.dart';
 import 'package:bike_control/pages/devices/devices_page.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/settings/settings_page.dart';
@@ -122,7 +123,7 @@ Future<void> main() async {
     expect(find.descendant(of: sidebar, matching: find.text(l10n().navDevices)), findsOneWidget);
     expect(find.descendant(of: sidebar, matching: find.text(l10n().troubleshootingGuide)), findsOneWidget);
     expect(find.descendant(of: sidebar, matching: find.text(l10n().currentPlan)), findsOneWidget);
-    expect(find.byKey(const ValueKey('activity-column')), findsNothing, reason: 'not below 1200');
+    expect(find.byKey(const ValueKey('activity-column')), findsNothing);
 
     await tester.tap(find.descendant(of: sidebar, matching: find.text(l10n().activity)));
     await tester.pump();
@@ -130,23 +131,21 @@ Future<void> main() async {
     await disposeShell(tester);
   });
 
-  testWidgets('wide: Ride shows the activity log as a permanent right column', (tester) async {
-    await pumpShell(tester, const Size(1300, 800));
+  for (final size in const [Size(1300, 800), Size(1440, 900)]) {
+    testWidgets('${size.width.toInt()} wide: Ride keeps the tablet layout, no activity column', (tester) async {
+      await pumpShell(tester, size);
 
-    expect(find.byKey(const ValueKey('activity-column')), findsOneWidget);
-    expect(find.byType(HomePage), findsOneWidget);
-    expect(
-      tester.getRect(find.byKey(const ValueKey('activity-column'))).left,
-      greaterThan(tester.getRect(find.byType(HomePage)).right),
-    );
+      expect(find.byKey(const ValueKey('activity-column')), findsNothing);
+      expect(find.byType(HomePage), findsOneWidget);
+      // The latest few events sit under the buttons, as from 840.
+      expect(find.byType(RideActivityPreview), findsOneWidget);
 
-    // The Activity item still opens the full log.
-    await tester.tap(find.descendant(of: find.byType(ShellSidebar), matching: find.text(l10n().activity)));
-    await tester.pump();
-    expect(find.byKey(const ValueKey('activity-column')), findsNothing);
-    expect(find.byType(ActivityLogView), findsOneWidget);
-    await disposeShell(tester);
-  });
+      await tester.tap(find.descendant(of: find.byType(ShellSidebar), matching: find.text(l10n().activity)));
+      await tester.pump();
+      expect(find.byType(ActivityLogView), findsOneWidget);
+      await disposeShell(tester);
+    });
+  }
 
   testWidgets('an error marks the Activity item, in colour and in its spoken label', (tester) async {
     final semantics = tester.ensureSemantics();

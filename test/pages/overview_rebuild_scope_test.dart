@@ -23,7 +23,7 @@ Future<void> main() async {
     var now = DateTime(2026, 9, 28, 12);
     activityLogClock = () => now;
     addTearDown(() => activityLogClock = DateTime.now);
-    // Wide enough for Ride's permanent activity column.
+    // Wide enough for Ride's latest-events preview.
     await pumpShell(tester, const Size(1300, 900));
 
     final pageRebuilds = <w.Element>[];

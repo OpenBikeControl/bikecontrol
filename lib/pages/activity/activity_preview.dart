@@ -6,8 +6,8 @@ import 'package:bike_control/widgets/home/your_buttons.dart' show RideSectionHea
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The latest few activity entries, for Ride's right column in windows too
-/// narrow for the permanent activity column. "See all" opens Activity.
+/// The latest few activity entries, for Ride's right column from 840.
+/// "See all" opens Activity.
 /// Before anything has happened, the log's own empty state. Each entry is the
 /// same [ActivityRow] the Activity tab shows, error fix links included.
 class RideActivityPreview extends StatefulWidget {

@@ -21,6 +21,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerButtonsCard, LastPressStrip;
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/services.dart' show StandardMessageCodec;
@@ -521,15 +522,22 @@ Future<void> main() async {
       await disposeShell(tester);
     });
 
-    testWidgets('1300 wide: one column beside the activity column', (tester) async {
-      await pumpShellWithRide(tester, const Size(1300, 800));
-      expect(tester.takeException(), isNull);
+    for (final size in const [Size(1300, 800), Size(1440, 900)]) {
+      testWidgets('${size.width.toInt()} wide: two columns like a tablet, the last press under the pods', (tester) async {
+        await pumpShellWithRide(tester, size);
+        expect(tester.takeException(), isNull);
 
-      final vs = rectOf(tester, find.byType(VirtualShiftingCard));
-      final buttons = rectOf(tester, find.text(l.rideYourButtons));
-      expect(buttons.top, greaterThan(vs.bottom));
-      expect(find.byKey(const ValueKey('activity-column')), findsOneWidget);
-      await disposeShell(tester);
-    });
+        final vs = rectOf(tester, find.byType(VirtualShiftingCard));
+        final buttons = rectOf(tester, find.text(l.rideYourButtons));
+        expect(buttons.left, greaterThan(vs.right), reason: 'two columns');
+        expect(find.byKey(const ValueKey('activity-column')), findsNothing);
+        expect(
+          find.descendant(of: find.byType(ControllerButtonsCard), matching: find.byType(LastPressStrip)),
+          findsOneWidget,
+          reason: 'no activity column lists the presses, so the strip stays',
+        );
+        await disposeShell(tester);
+      });
+    }
   });
 }

@@ -20,7 +20,6 @@ import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
 import 'package:bike_control/widgets/feedback_prompt/feedback_prompt_flow.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
@@ -33,10 +32,10 @@ import '../main.dart';
 
 export 'package:bike_control/pages/activity/activity_log.dart' show activityLogClock;
 
-/// Whether the activity log is on screen: its own section, or Ride's
-/// permanent column in a window of at least [Breakpoints.activityColumn].
+/// Whether the activity log is on screen: only in its own section. Ride
+/// shows a few recent events at most, never the whole log.
 bool activityLogVisible({required AppSection section, required double screenWidth}) =>
-    section == AppSection.activity || (section == AppSection.ride && screenWidth >= Breakpoints.activityColumn);
+    section == AppSection.activity;
 
 /// Decides whether an incoming alert should raise a toast.
 ///
@@ -60,8 +59,7 @@ bool shouldShowConnectionAlertToast({
   return baseShow && !(isConnectionAlert && connectionCardVisible);
 }
 
-/// The content area of the main screen: the selected section, with the
-/// activity log beside Ride in wide windows. Also owns what runs for the
+/// The content area of the main screen: the selected section. Also owns what runs for the
 /// whole session on this screen: the activity log's feed, the keep-awake,
 /// the feedback prompt and the alert toasts.
 ///
@@ -359,48 +357,25 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
   }
 
   Widget _ride() {
-    final showColumn = _screenWidth >= Breakpoints.activityColumn;
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: _scroll(
-            'ride',
-            HomePage(
-              isMobile: widget.isMobile,
-              // From 840 the sidebar carries Help & Support.
-              showHelpRow: _screenWidth < Breakpoints.medium,
-              onUpdate: _update,
-              reveal: _reveal,
-              onShowSetup: () => _shell.select(AppSection.devices),
-              // Between the sidebar and the activity column, Ride's right
-              // column carries the latest few events.
-              activityPreview: _screenWidth >= Breakpoints.medium && !showColumn
-                  ? RideActivityPreview(
-                      controller: _log,
-                      onSeeAll: () => _shell.select(AppSection.activity),
-                      fixAction: _errorFixAction,
-                    )
-                  : null,
-            ),
-            maxWidth: 1080,
-          ),
-        ),
-        if (showColumn)
-          Container(
-            key: const ValueKey('activity-column'),
-            width: (_screenWidth * 0.28).clamp(320.0, 420.0),
-            decoration: BoxDecoration(
-              color: bkSunkenSurface(context),
-              border: Border(left: BorderSide(color: cs.border, width: 0.5)),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(right: 12, top: 16, bottom: 16),
-              child: ActivityLogView(controller: _log, fixAction: _errorFixAction),
-            ),
-          ),
-      ],
+    return _scroll(
+      'ride',
+      HomePage(
+        isMobile: widget.isMobile,
+        // From 840 the sidebar carries Help & Support.
+        showHelpRow: _screenWidth < Breakpoints.medium,
+        onUpdate: _update,
+        reveal: _reveal,
+        onShowSetup: () => _shell.select(AppSection.devices),
+        // From 840 Ride's right column carries the latest few events.
+        activityPreview: _screenWidth >= Breakpoints.medium
+            ? RideActivityPreview(
+                controller: _log,
+                onSeeAll: () => _shell.select(AppSection.activity),
+                fixAction: _errorFixAction,
+              )
+            : null,
+      ),
+      maxWidth: 1080,
     );
   }
 

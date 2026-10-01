@@ -27,7 +27,7 @@ void main() {
       expect(show(connection: false), isTrue);
     });
 
-    test('non-connection alert on Ride below the activity column still shows', () {
+    test('non-connection alert on a tablet Ride still shows', () {
       expect(show(connection: false, width: 1000), isTrue);
     });
 
@@ -43,8 +43,11 @@ void main() {
     test('nothing is toasted while the activity log itself is on screen', () {
       expect(show(connection: true, section: AppSection.activity), isFalse);
       expect(show(connection: false, section: AppSection.activity), isFalse);
-      // Ride with its permanent activity column.
-      expect(show(connection: false, width: 1300), isFalse);
+    });
+
+    test('Ride in a wide window has no activity log beside it: an error still toasts', () {
+      expect(show(connection: false, width: 1300), isTrue);
+      expect(show(connection: false, width: 1600), isTrue);
     });
 
     test('screenshot mode never shows a toast', () {
