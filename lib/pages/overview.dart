@@ -151,6 +151,14 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
   void didChangeDependencies() {
     _screenWidth = MediaQuery.sizeOf(context).width;
     super.didChangeDependencies();
+    // After the frame: telling the shell may mark the news read, and the
+    // navigation's dot listens to that.
+    final besideLog = _screenWidth >= Breakpoints.medium;
+    if (_shell.newsBesideLog.value != besideLog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _shell.newsBesideLog.value = besideLog;
+      });
+    }
   }
 
   @override
@@ -330,7 +338,11 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         'devices',
         DevicesPage(isMobile: widget.isMobile, onUpdate: _update, reveal: _reveal),
       ),
-      AppSection.activity => _scroll('activity', ActivitySection(shell: _shell, fixAction: _errorFixAction)),
+      // From 840 the log and News sit side by side, each scrolling on its own.
+      AppSection.activity =>
+        _screenWidth >= Breakpoints.medium
+            ? ActivitySection(shell: _shell, fixAction: _errorFixAction, sideBySide: true)
+            : _scroll('activity', ActivitySection(shell: _shell, fixAction: _errorFixAction)),
       // Settings is a single centred column at every width.
       AppSection.settings => _scroll('settings', SettingsPage(onUpdate: _update), centred: true),
     };

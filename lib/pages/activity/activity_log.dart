@@ -85,7 +85,7 @@ class ActivityCleared extends ActivityLogChange {
 }
 
 /// The last [maxEntries] entries of the session, shared by every view that
-/// shows them (the Activity section and Ride's activity column).
+/// shows them (the Activity section and Ride's latest-events preview).
 class ActivityLogController {
   ActivityLogController() {
     _tick = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -152,9 +152,9 @@ bool activityInLastMinute(ActivityEntry entry) =>
 /// first, with a note on how much it keeps. Entries grow in and out as they
 /// come and go (they just appear with reduced motion).
 ///
-/// [showHeader] adds the "Activity" title with its Clear action — for Ride's
-/// activity column. The Activity section puts Clear in the page's own header
-/// ([ActivityClearButton]).
+/// [showHeader] adds the "Activity" title with its Clear action — for the
+/// log's pane beside News from 840. Below that the Activity section puts
+/// Clear in the page's own header ([ActivityClearButton]).
 class ActivityLogView extends StatefulWidget {
   const ActivityLogView({super.key, required this.controller, required this.fixAction, this.showHeader = true});
 
@@ -230,22 +230,9 @@ class _ActivityLogViewState extends State<ActivityLogView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (widget.showHeader)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, 4, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: Text(
-                      l10n.activity,
-                      style: context.typography.large.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-                ActivityClearButton(controller: widget.controller),
-              ],
-            ),
+          ActivityPaneHeader(
+            title: l10n.activity,
+            trailing: ActivityClearButton(controller: widget.controller),
           ),
         if (empty) const ActivityEmptyState(),
         AnimatedList(
@@ -331,6 +318,37 @@ class _ActivityLogViewState extends State<ActivityLogView> {
       child: FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
         child: item,
+      ),
+    );
+  }
+}
+
+/// A pane's title over its content — the log's (with Clear) and News's,
+/// side by side from 840. One height with or without an action, so the two
+/// panes' first cards line up.
+class ActivityPaneHeader extends StatelessWidget {
+  const ActivityPaneHeader({super.key, required this.title, this.trailing});
+
+  final String title;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, 4, 8),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 40),
+        child: Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(title, style: context.typography.large.copyWith(fontWeight: FontWeight.w700)),
+              ),
+            ),
+            ?trailing,
+          ],
+        ),
       ),
     );
   }

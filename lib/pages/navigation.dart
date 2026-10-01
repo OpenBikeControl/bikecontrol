@@ -247,13 +247,8 @@ class _NavigationState extends State<Navigation> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          ShellTopBar(
-                            section: section,
-                            compact: false,
-                            activity: _shell.activity,
-                            activityTab: _shell.activityTab,
-                            shell: _shell,
-                          ),
+                          // Activity's Clear sits in the log's pane here.
+                          ShellTopBar(section: section, compact: false, shell: _shell),
                           Expanded(child: content),
                         ],
                       ),

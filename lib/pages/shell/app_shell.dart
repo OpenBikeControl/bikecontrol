@@ -57,6 +57,7 @@ class ShellController {
   ShellController({BlogNewsController? news}) : news = news ?? BlogNewsController() {
     section.addListener(_markNewsReadIfViewed);
     activityTab.addListener(_markNewsReadIfViewed);
+    newsBesideLog.addListener(_markNewsReadIfViewed);
     this.news.hasUnread.addListener(_markNewsReadIfViewed);
   }
 
@@ -68,10 +69,16 @@ class ShellController {
 
   final BlogNewsController news;
 
+  /// Whether Activity shows the log and News side by side (from 840) instead
+  /// of behind segments. Set by the content area from the window's width.
+  final ValueNotifier<bool> newsBesideLog = ValueNotifier(false);
+
   void select(AppSection value) => section.value = value;
 
-  /// Whether the rider is looking at the News segment right now.
-  bool get viewingNews => section.value == AppSection.activity && activityTab.value == ActivityTab.news;
+  /// Whether News is on screen right now: Activity is open and shows News,
+  /// as its chosen segment or in its pane beside the log.
+  bool get viewingNews =>
+      section.value == AppSection.activity && (newsBesideLog.value || activityTab.value == ActivityTab.news);
 
   /// Posts on screen are posts read: the dot goes the moment News shows.
   void _markNewsReadIfViewed() {
@@ -81,9 +88,11 @@ class ShellController {
   void dispose() {
     section.removeListener(_markNewsReadIfViewed);
     activityTab.removeListener(_markNewsReadIfViewed);
+    newsBesideLog.removeListener(_markNewsReadIfViewed);
     news.hasUnread.removeListener(_markNewsReadIfViewed);
     section.dispose();
     activityTab.dispose();
+    newsBesideLog.dispose();
     activity.dispose();
     news.dispose();
   }
@@ -418,7 +427,8 @@ class ShellTopBar extends StatelessWidget {
 
   final AppSection section;
 
-  /// The session's log, for Activity's Clear.
+  /// The session's log, for Activity's Clear — below 840 only: from there
+  /// Clear sits in the log's own pane.
   final ActivityLogController? activity;
 
   /// The phone's large title and icon-only update action.

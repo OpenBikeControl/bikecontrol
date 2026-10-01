@@ -9,15 +9,22 @@ import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The Activity section: a segmented control over the session's log and the
-/// blog's News.
+/// blog's News — or, [sideBySide] (from 840), the two as panes: the log on
+/// the left, News on the right, each under its own header and scrolling on
+/// its own.
 class ActivitySection extends StatelessWidget {
-  const ActivitySection({super.key, required this.shell, required this.fixAction});
+  const ActivitySection({super.key, required this.shell, required this.fixAction, this.sideBySide = false});
 
   final ShellController shell;
   final ActivityFixAction fixAction;
+  final bool sideBySide;
+
+  /// The two panes together are no wider than Ride's two columns.
+  static const double sideBySideMaxWidth = 1080;
 
   @override
   Widget build(BuildContext context) {
+    if (sideBySide) return _panes(context);
     return ValueListenableBuilder<ActivityTab>(
       valueListenable: shell.activityTab,
       builder: (context, tab, _) => Column(
@@ -30,6 +37,47 @@ class ActivitySection extends StatelessWidget {
             ActivityTab.news => NewsView(controller: shell.news),
           },
         ],
+      ),
+    );
+  }
+
+  Widget _panes(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    // The same insets as the other sections' scroll views, split between the
+    // panes so each scrolls to the window's edge.
+    const outer = 24.0;
+    const gutter = 10.0;
+    return Align(
+      alignment: Alignment.topLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: sideBySideMaxWidth + 2 * outer),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              key: const ValueKey('activity-log-pane'),
+              child: SingleChildScrollView(
+                key: const PageStorageKey('section-activity-log'),
+                padding: const EdgeInsets.fromLTRB(outer, 8, gutter, 24),
+                child: ActivityLogView(controller: shell.activity, fixAction: fixAction),
+              ),
+            ),
+            Expanded(
+              key: const ValueKey('activity-news-pane'),
+              child: SingleChildScrollView(
+                key: const PageStorageKey('section-activity-news'),
+                padding: const EdgeInsets.fromLTRB(gutter, 8, outer, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ActivityPaneHeader(title: l10n.activityTabNews),
+                    NewsView(controller: shell.news, singleColumn: true),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

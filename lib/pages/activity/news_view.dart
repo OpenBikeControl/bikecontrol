@@ -15,10 +15,13 @@ import 'package:url_launcher/url_launcher.dart';
 /// opens its post in the app's language (a post without a translation opens
 /// in English).
 class NewsView extends StatefulWidget {
-  const NewsView({super.key, required this.controller, this.maxPosts = 20});
+  const NewsView({super.key, required this.controller, this.maxPosts = 20, this.singleColumn = false});
 
   final BlogNewsController controller;
   final int maxPosts;
+
+  /// One card per row at any width — for News's pane beside the log.
+  final bool singleColumn;
 
   /// From this content width the cards sit two to a row.
   static const double twoColumnWidth = 560;
@@ -74,7 +77,7 @@ class _NewsViewState extends State<NewsView> {
       key: key,
       builder: (context, constraints) {
         const gap = 12.0;
-        final columns = constraints.maxWidth >= NewsView.twoColumnWidth ? 2 : 1;
+        final columns = !widget.singleColumn && constraints.maxWidth >= NewsView.twoColumnWidth ? 2 : 1;
         if (columns == 1) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

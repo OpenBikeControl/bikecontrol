@@ -121,6 +121,82 @@ Future<void> main() async {
     await disposeShell(tester);
   });
 
+  group('from 840: the log and News side by side', () {
+    Finder sidebarItem(String label) => find.descendant(of: find.byType(ShellSidebar), matching: find.text(label));
+
+    Future<void> openWideActivity(WidgetTester tester, Size size) async {
+      await pumpShell(tester, size);
+      await tester.pump();
+      await tester.tap(sidebarItem(l().activity));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    for (final size in const [Size(1180, 820), Size(1280, 800)]) {
+      testWidgets('${size.width.toInt()}: two panes, no segments, each with its own header', (tester) async {
+        await openWideActivity(tester, size);
+
+        expect(find.byType(ActivitySegments), findsNothing);
+        final logPane = find.byKey(const ValueKey('activity-log-pane'));
+        final newsPane = find.byKey(const ValueKey('activity-news-pane'));
+        expect(find.descendant(of: logPane, matching: find.byType(ActivityLogView)), findsOneWidget);
+        expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsOneWidget);
+        expect(
+          tester.getRect(find.byType(NewsView)).left,
+          greaterThan(tester.getRect(find.byType(ActivityLogView)).right),
+          reason: 'log left, News right',
+        );
+
+        // Each pane has its header: the log's carries Clear.
+        expect(find.descendant(of: logPane, matching: find.text(l().activity)), findsOneWidget);
+        expect(find.descendant(of: logPane, matching: find.byType(ActivityClearButton)), findsOneWidget);
+        expect(find.descendant(of: newsPane, matching: find.text(l().activityTabNews)), findsOneWidget);
+        expect(find.byType(ActivityClearButton), findsOneWidget, reason: 'not also in the page header');
+
+        // Each scrolls on its own.
+        expect(find.descendant(of: logPane, matching: find.byType(SingleChildScrollView)), findsOneWidget);
+        expect(find.descendant(of: newsPane, matching: find.byType(SingleChildScrollView)), findsOneWidget);
+
+        // The posts in one column in their pane.
+        final first = tester.getRect(find.widgetWithText(NewsCard, 'Seven point one'));
+        final second = tester.getRect(find.widgetWithText(NewsCard, 'Winter update'));
+        expect(second.left, moreOrLessEquals(first.left));
+        expect(second.top, greaterThan(first.bottom));
+        await disposeShell(tester);
+      });
+    }
+
+    testWidgets('opening Activity reads the news: News is on screen', (tester) async {
+      await pumpShell(tester, const Size(1280, 800));
+      await tester.pump();
+      final dot = find.descendant(
+        of: find.byType(ShellSidebar),
+        matching: find.byKey(const ValueKey('activity-news-dot')),
+      );
+      expect(dot, findsOneWidget);
+
+      await tester.tap(sidebarItem(l().activity));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(dot, findsNothing);
+      expect(core.settings.getSeenBlogPosts(), contains('seven-one'));
+      expect(find.byKey(const ValueKey('news-segment-dot')), findsNothing);
+      await disposeShell(tester);
+    });
+
+    testWidgets('below 840 the segments stay', (tester) async {
+      await pumpShell(tester, const Size(700, 900));
+      await tester.tap(find.descendant(of: find.byType(ShellTopTabs), matching: find.text(l().activity)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(ActivitySegments), findsOneWidget);
+      expect(find.byKey(const ValueKey('activity-news-pane')), findsNothing);
+      // Opening Activity on the log segment does not read the news.
+      expect(core.settings.getSeenBlogPosts(), isNot(contains('seven-one')));
+      await disposeShell(tester);
+    });
+  });
+
   group('News states', () {
     Future<void> openNews(WidgetTester tester) async {
       await pumpShell(tester, const Size(390, 844));
