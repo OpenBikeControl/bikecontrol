@@ -688,7 +688,14 @@
   "unlockTheFullVersionOrGoPro": "Desbloquea la versión básica o hazte Pro.",
   "unlock_bikecontrolAndZwiftNetwork": "BikeControl y Zwift deben estar en la misma red o en el mismo dispositivo. Puede tardar unos segundos en aparecer.",
   "unlock_confirmByPressingAButtonOnYourDevice": "Confirma pulsando un botón en tu dispositivo.",
-  "unlock_connectToBikecontrol": "Conéctate a \"BikeControl\", por ejemplo como fuente de potencia",
+  "unlock_connectToBikecontrol": "Conéctate a \"{name}\", por ejemplo como fuente de potencia",
+  "@unlock_connectToBikecontrol": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unlock_deviceIsCurrentlyLocked": "El dispositivo está bloqueado en este momento",
   "unlock_isnowunlocked": "{device} ya está desbloqueado",
   "unlock_markAsUnlocked": "Marcar como desbloqueado",

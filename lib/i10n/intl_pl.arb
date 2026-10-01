@@ -688,7 +688,14 @@
   "unlockTheFullVersionOrGoPro": "Odblokuj wersję podstawową lub Go Pro",
   "unlock_bikecontrolAndZwiftNetwork": "BikeControl i Zwift muszą być podłączone do tej samej sieci lub urządzenia. Pojawienie się aplikacji może potrwać kilka sekund.",
   "unlock_confirmByPressingAButtonOnYourDevice": "Potwierdź, naciskając przycisk na swoim urządzeniu.",
-  "unlock_connectToBikecontrol": "Połącz się z „BikeControl”, np. jako źródło zasilania",
+  "unlock_connectToBikecontrol": "Połącz się z „{name}”, np. jako źródło mocy",
+  "@unlock_connectToBikecontrol": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unlock_deviceIsCurrentlyLocked": "Urządzenie jest obecnie zablokowane",
   "unlock_isnowunlocked": "{device} jest teraz odblokowany",
   "unlock_markAsUnlocked": "Oznacz jako odblokowane",

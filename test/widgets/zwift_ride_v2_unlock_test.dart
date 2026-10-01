@@ -127,6 +127,31 @@ void main() {
       expect(find.text(AppLocalizations.current.clickV2Instructions), findsNothing);
       await tester.pumpWidget(const SizedBox());
     });
+
+    group('names the entry Zwift actually lists', () {
+      tearDown(() => ftmsEmulator.deviceName = null);
+
+      testWidgets('with a trainer bridged, the entry carries the trainer name', (tester) async {
+        ftmsEmulator.deviceName = () => 'KICKR CORE 7234';
+        await pumpUnlockPage(tester, _clickV2());
+        expect(find.textContaining('"KICKR CORE 7234 - BikeControl"'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      });
+
+      testWidgets('follows the advertised name when the bridge (re)starts while open', (tester) async {
+        await pumpUnlockPage(tester, _clickV2());
+        expect(find.textContaining('"BikeControl"'), findsOneWidget);
+
+        // The bridge restarts with a trainer attached (as the page itself or
+        // the trainer connection would do), which renames its entry.
+        ftmsEmulator.isStarted.value = false;
+        ftmsEmulator.deviceName = () => 'KICKR CORE 7234';
+        ftmsEmulator.isStarted.value = true;
+        await tester.pump();
+        expect(find.textContaining('"KICKR CORE 7234 - BikeControl"'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      });
+    });
   });
 
   group('one-time explainer', () {

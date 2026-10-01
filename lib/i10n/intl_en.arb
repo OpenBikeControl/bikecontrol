@@ -1131,7 +1131,14 @@
   "unlockTheFullVersionOrGoPro": "Unlock the Base version - or Go Pro",
   "unlock_bikecontrolAndZwiftNetwork": "BikeControl and Zwift need to be on the same network or device. It may take a few seconds to appear.",
   "unlock_confirmByPressingAButtonOnYourDevice": "Confirm by pressing a button on your device.",
-  "unlock_connectToBikecontrol": "Connect to \"BikeControl\" e.g. as Power source",
+  "unlock_connectToBikecontrol": "Connect to \"{name}\" e.g. as Power source",
+  "@unlock_connectToBikecontrol": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unlock_deviceIsCurrentlyLocked": "Device is currently locked",
   "unlock_isnowunlocked": "{device} is now unlocked",
   "unlock_markAsUnlocked": "Mark as Unlocked",
