@@ -254,15 +254,19 @@ Future<void> main() async {
     });
   });
 
-  testWidgets('from 840: Settings\' column is centred in the content area', (tester) async {
+  testWidgets('from 840: Settings starts at the same left edge as the other sections', (tester) async {
     await pumpShell(tester, const Size(1280, 800));
-    await tester.tap(find.descendant(of: find.byType(ShellSidebar), matching: find.text(l10n().navSettings)));
+    final sidebar = find.byType(ShellSidebar);
+    await tester.tap(find.descendant(of: sidebar, matching: find.text(l10n().navDevices)));
     await tester.pump();
-    final sidebar = tester.getRect(find.byType(ShellSidebar));
+    final devicesLeft = tester.getRect(find.byType(DevicesPage)).left;
+
+    await tester.tap(find.descendant(of: sidebar, matching: find.text(l10n().navSettings)));
+    await tester.pump();
     final settings = tester.getRect(find.byType(SettingsPage));
-    final contentCentre = (sidebar.right + 1280) / 2;
-    expect(settings.width, lessThanOrEqualTo(720));
-    expect((settings.center.dx - contentCentre).abs(), lessThan(2));
+    expect(settings.width, lessThanOrEqualTo(720), reason: 'still one column of at most 720');
+    expect(settings.left, moreOrLessEquals(devicesLeft, epsilon: 0.5));
+    expect(settings.left, lessThan(tester.getRect(sidebar).right + 40), reason: 'not centred');
     await disposeShell(tester);
   });
 }

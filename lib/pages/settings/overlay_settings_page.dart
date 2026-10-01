@@ -44,7 +44,9 @@ class _OverlaySettingsPageState extends State<OverlaySettingsPage> {
       headers: [BkPageHeader(title: l10n.overlaySection)],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-        child: Center(
+        // Left-aligned like the shell's sections; the column keeps its width.
+        child: Align(
+          alignment: Alignment.topLeft,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
             child: Column(

@@ -189,7 +189,9 @@ class _PerGearRatiosPageState extends State<PerGearRatiosPage> {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       headers: [BkPageHeader(title: l10n.perGearRatiosTitle)],
-      child: Center(
+      // Left-aligned like the shell's sections; the column keeps its width.
+      child: Align(
+        alignment: Alignment.topLeft,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
           child: Column(

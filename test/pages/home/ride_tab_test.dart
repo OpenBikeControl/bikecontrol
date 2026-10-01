@@ -66,9 +66,13 @@ import '../../widget_snapshot.dart';
 }
 
 ZwiftPlay connectedPlay() {
-  final play = ZwiftPlay(BleDevice(name: 'Zwift Play', deviceId: 'ride-tab-play'), deviceType: ZwiftDeviceType.playLeft)
-    ..isConnected = true
-    ..batteryLevel = 81;
+  final play =
+      ZwiftPlay(
+          BleDevice(name: 'Zwift Play', deviceId: 'ride-tab-play'),
+          deviceType: ZwiftDeviceType.playLeft,
+        )
+        ..isConnected = true
+        ..batteryLevel = 81;
   core.connection.devices.add(play);
   core.actionHandler.init(MyWhoosh());
   return play;
@@ -218,7 +222,10 @@ Future<void> main() async {
 
       final card = tester.getRect(find.byType(VirtualShiftingCard));
       final title = tester.getRect(
-        find.descendant(of: find.byKey(const ValueKey('ride-vs-settings-link')), matching: find.text(l.rideVirtualShifting)),
+        find.descendant(
+          of: find.byKey(const ValueKey('ride-vs-settings-link')),
+          matching: find.text(l.rideVirtualShifting),
+        ),
       );
       final trainer = tester.getRect(
         find.descendant(of: find.byKey(const ValueKey('ride-vs-trainer-link')), matching: find.text('KICKR CORE')),
@@ -318,7 +325,11 @@ Future<void> main() async {
       final offer = find.byKey(const ValueKey('ride-overlay-offer'));
       // One row: the old note-over-buttons stack stood over 200 tall. (The
       // phone-scaled shell below pins the two-line height.)
-      expect(tester.getSize(offer).height, lessThanOrEqualTo(72), reason: 'one row, not a paragraph and a button stack');
+      expect(
+        tester.getSize(offer).height,
+        lessThanOrEqualTo(72),
+        reason: 'one row, not a paragraph and a button stack',
+      );
       final note = tester.getRect(inCard(find.text(l.rideOverlayOfferNote('MyWhoosh'))));
       final show = tester.getRect(find.byKey(const ValueKey('ride-overlay-show')));
       final close = tester.getRect(notNow());
@@ -523,7 +534,9 @@ Future<void> main() async {
     });
 
     for (final size in const [Size(1300, 800), Size(1440, 900)]) {
-      testWidgets('${size.width.toInt()} wide: two columns like a tablet, the last press under the pods', (tester) async {
+      testWidgets('${size.width.toInt()} wide: two columns like a tablet, the last press under the pods', (
+        tester,
+      ) async {
         await pumpShellWithRide(tester, size);
         expect(tester.takeException(), isNull);
 

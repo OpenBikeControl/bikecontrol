@@ -61,7 +61,9 @@ class _TrainerPageState extends State<TrainerPage> {
       child: SingleChildScrollView(
         controller: _scrollController,
         padding: EdgeInsets.only(bottom: 16, left: 16, right: 16, top: 16),
-        child: Center(
+        // Left-aligned like the shell's sections; the column keeps its width.
+        child: Align(
+          alignment: Alignment.topLeft,
           child: Container(
             constraints: const BoxConstraints(maxWidth: 720),
             child: Column(

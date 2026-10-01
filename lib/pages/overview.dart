@@ -34,8 +34,7 @@ export 'package:bike_control/pages/activity/activity_log.dart' show activityLogC
 
 /// Whether the activity log is on screen: only in its own section. Ride
 /// shows a few recent events at most, never the whole log.
-bool activityLogVisible({required AppSection section, required double screenWidth}) =>
-    section == AppSection.activity;
+bool activityLogVisible({required AppSection section, required double screenWidth}) => section == AppSection.activity;
 
 /// Decides whether an incoming alert should raise a toast.
 ///
@@ -343,23 +342,22 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         _screenWidth >= Breakpoints.medium
             ? ActivitySection(shell: _shell, fixAction: _errorFixAction, sideBySide: true)
             : _scroll('activity', ActivitySection(shell: _shell, fixAction: _errorFixAction)),
-      // Settings is a single centred column at every width.
-      AppSection.settings => _scroll('settings', SettingsPage(onUpdate: _update), centred: true),
+      AppSection.settings => _scroll('settings', SettingsPage(onUpdate: _update)),
     };
   }
 
   /// A section's scroll view: the content in one column no wider than
   /// [maxWidth] (720; Ride, which splits in two, gets more).
-  Widget _scroll(String id, Widget child, {bool tight = false, double maxWidth = 720, bool centred = false}) {
+  Widget _scroll(String id, Widget child, {bool tight = false, double maxWidth = 720}) {
     final compact = _screenWidth < Breakpoints.compact;
     final h = tight ? 0.0 : (compact ? 12.0 : 24.0);
     return SingleChildScrollView(
       key: PageStorageKey('section-$id'),
       padding: EdgeInsets.fromLTRB(h, compact ? 4 : 8, h, 24),
-      // Centred under the medium window's tab bar; from 840 it starts under
-      // the page title, beside the sidebar — except a [centred] section.
+      // Centred under the medium window's tab bar; from 840 every section
+      // starts under the page title, beside the sidebar.
       child: Align(
-        alignment: _screenWidth >= Breakpoints.medium && !centred ? Alignment.topLeft : Alignment.topCenter,
+        alignment: _screenWidth >= Breakpoints.medium ? Alignment.topLeft : Alignment.topCenter,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: child,
