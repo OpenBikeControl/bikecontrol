@@ -35,8 +35,9 @@ import '../widget_snapshot.dart';
 
 /// Renders the owner-feedback round: toasts above the tab bar, Ride's banner
 /// listing the outstanding steps, Activity's News segment, Settings without
-/// the Blog row, Virtual shifting's Gears without the gear-count warning and
-/// Ride's readings with labels that never break mid-word.
+/// the Blog row, Virtual shifting's Gears without the gear-count warning,
+/// Ride's readings with labels that never break mid-word, and the wide
+/// windows: Activity's two panes, Ride in two columns, Settings left-aligned.
 /// German unless named `-en`. Run:
 /// `OF_SHOTS=.impeccable/review flutter test --run-skipped test/pages/owner_feedback_snapshot_test.dart`
 Future<void> main() async {
@@ -295,22 +296,6 @@ Future<void> main() async {
     });
   }
 
-  testWidgets('activity-news-1280x800-dark-de', (tester) async {
-    await shoot(
-      tester,
-      name: 'activity-news-1280x800-dark-de',
-      size: desktop,
-      brightness: Brightness.dark,
-      build: (_) => const Navigation(initialSection: AppSection.activity),
-      beforeCapture: (tester) async {
-        await tester.tap(find.descendant(of: find.byType(ActivitySegments), matching: find.text('Neuigkeiten')));
-        for (var i = 0; i < 4; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
-      },
-    );
-  });
-
   testWidgets('activity-log-390x844-dark-de', (tester) async {
     await shoot(
       tester,
@@ -379,6 +364,59 @@ Future<void> main() async {
         brightness: Brightness.light,
         locale: locale,
         build: (_) => const Navigation(),
+      );
+    });
+  }
+
+  // ── 7. Wide windows: Activity side by side, Ride two-pane, Settings left ─
+  Widget seeded(BuildContext context, AppSection section) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(disableAnimations: true),
+    child: Builder(
+      builder: (context) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => seedRideActivityLog(controller));
+        return Navigation(initialSection: section);
+      },
+    ),
+  );
+
+  const tablet = Size(1180, 820);
+  for (final size in const [tablet, desktop]) {
+    for (final brightness in Brightness.values) {
+      final name = 'activity-${size.width.toInt()}x${size.height.toInt()}-${brightness.name}-de';
+      testWidgets(name, (tester) async {
+        await shoot(
+          tester,
+          name: name,
+          size: size,
+          brightness: brightness,
+          build: (context) => seeded(context, AppSection.activity),
+        );
+      });
+    }
+  }
+
+  for (final size in const [desktop, Size(1440, 900)]) {
+    final name = 'ride-${size.width.toInt()}x${size.height.toInt()}-dark-de';
+    testWidgets(name, (tester) async {
+      await shoot(
+        tester,
+        name: name,
+        size: size,
+        brightness: Brightness.dark,
+        build: (context) => seeded(context, AppSection.ride),
+      );
+    });
+  }
+
+  for (final size in const [tablet, desktop]) {
+    final name = 'settings-${size.width.toInt()}x${size.height.toInt()}-dark-de';
+    testWidgets(name, (tester) async {
+      await shoot(
+        tester,
+        name: name,
+        size: size,
+        brightness: Brightness.dark,
+        build: (_) => const Navigation(initialSection: AppSection.settings),
       );
     });
   }
