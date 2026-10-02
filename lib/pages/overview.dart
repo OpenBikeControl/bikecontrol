@@ -550,15 +550,22 @@ class _OverviewPageState extends State<OverviewPage> with TickerProviderStateMix
             ),
           ],
         ),
-        AnimatedList(
-          key: _activityListKey,
-          shrinkWrap: true,
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          initialItemCount: _activityLog.length,
-          itemBuilder: (context, index, animation) {
-            return _buildAnimatedActivityItem(_activityLog[index], index, animation);
-          },
+        // Built when the list mounts, not with the page: on phones the log is a
+        // PageView page that is re-created on every swipe back, and the log
+        // changes without rebuilding the page, so a count captured in the
+        // page's build would be stale by then.
+        Builder(
+          builder: (context) => AnimatedList(
+            key: _activityListKey,
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            initialItemCount: _activityLog.length,
+            itemBuilder: (context, index, animation) {
+              if (index >= _activityLog.length) return const SizedBox.shrink();
+              return _buildAnimatedActivityItem(_activityLog[index], index, animation);
+            },
+          ),
         ),
       ],
     );
