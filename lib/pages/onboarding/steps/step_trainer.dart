@@ -1,6 +1,7 @@
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
-import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile;
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile, BkGroupedHeader;
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
@@ -156,8 +157,8 @@ Widget onboardingTrainerBody(BuildContext context,
     // Once a trainer is found, connecting it is the step's job: the list
     // (with Connect) moves above the animation so it is on the first screen.
     if (trainers.isNotEmpty) ...[
-      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
-      Gap(10),
+      _NearbyTrainers(trainers: trainers, onPick: onPick, onRescan: onRescan),
+      Gap(16),
       OnboardingNote(
         context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
         icon: LucideIcons.award,
@@ -188,6 +189,85 @@ Widget onboardingTrainerBody(BuildContext context,
       ]),
     ),
   ]));
+}
+
+/// The trainers the scan found, each a device card of its own under a
+/// "Nearby smart trainers" header with a primary Connect — so a found trainer
+/// reads as the thing to do on this step, not as a line of its explanation.
+class _NearbyTrainers extends StatelessWidget {
+  const _NearbyTrainers({required this.trainers, required this.onPick, this.onRescan});
+
+  final List<ProxyDevice> trainers;
+  final void Function(ProxyDevice) onPick;
+  final VoidCallback? onRescan;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Row(children: [
+            Expanded(child: BkGroupedHeader(context.i18n.onboardingNearbyTrainers)),
+            if (onRescan != null)
+              BkIconButton.ghost(
+                icon: Icon(LucideIcons.refreshCw, size: 15),
+                label: context.i18n.a11yRefresh,
+                onPressed: onRescan,
+              ),
+          ]),
+        ),
+        Gap(4),
+        for (final (i, t) in trainers.indexed) ...[
+          if (i > 0) Gap(8),
+          _TrainerCard(trainer: t, onPick: onPick),
+        ],
+      ],
+    );
+  }
+}
+
+class _TrainerCard extends StatelessWidget {
+  const _TrainerCard({required this.trainer, required this.onPick});
+
+  final ProxyDevice trainer;
+  final void Function(ProxyDevice) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = trainer;
+    return ValueListenableBuilder<bool>(
+      valueListenable: t.isStarting,
+      builder: (context, starting, _) => Container(
+        key: ValueKey('onboarding-trainer-${t.uniqueId}'),
+        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+        decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+        child: Row(children: [
+          BkIconTile(icon: onboardingTrainerIcon(t), color: onboardingAccent(context)),
+          Gap(12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 2, children: [
+              Text(t.name, maxLines: 2, overflow: TextOverflow.ellipsis).base.semiBold,
+              Text(onboardingTrainerSubtitleFor(context, t)).xSmall.muted,
+            ]),
+          ),
+          Gap(10),
+          if (starting) ...[
+            Text(context.i18n.onboardingDeviceConnecting).xSmall.muted,
+            Gap(8),
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(size: 16)),
+          ] else
+            BkPillButton(
+              expand: false,
+              onPressed: () => onPick(t),
+              child: Text(context.i18n.connect),
+            ),
+        ]),
+      ),
+    );
+  }
 }
 
 /// The scan, as its own card: a pulsing radar, what the scan is doing right

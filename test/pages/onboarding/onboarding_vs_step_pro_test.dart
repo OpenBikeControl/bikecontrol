@@ -11,6 +11,7 @@ import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -50,6 +51,45 @@ Future<void> main() async {
 
     expect(find.byType(ProBadge), findsOneWidget);
     expect(find.text(l.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}')), findsOneWidget);
+  });
+
+  // A found trainer read like a line of the explanation. It is a device card
+  // of its own under "Nearby smart trainers", with a primary Connect.
+  testWidgets('a found trainer is a card of its own with a primary Connect', (tester) async {
+    final picked = <ProxyDevice>[];
+    final kickr = ProxyDevice(BleDevice(deviceId: 'vs-card', name: 'KICKR CORE'));
+    await tester.pumpWidget(
+      ShadcnApp(
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        home: Scaffold(
+          child: SingleChildScrollView(
+            child: Builder(
+              builder: (c) => onboardingTrainerBody(c, app: MyWhoosh(), trainers: [kickr], onPick: picked.add),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final l = AppLocalizations.of(tester.element(find.byType(Scaffold)));
+
+    expect(find.text(l.onboardingNearbyTrainers.toUpperCase()), findsOneWidget);
+    final card = find.byKey(ValueKey('onboarding-trainer-${kickr.uniqueId}'));
+    expect(card, findsOneWidget);
+    expect(find.descendant(of: card, matching: find.text('KICKR CORE')), findsOneWidget);
+    expect(find.descendant(of: card, matching: find.textContaining(l.onboardingTrainerMeta)), findsOneWidget);
+    final connect = find.descendant(of: card, matching: find.widgetWithText(BkPillButton, l.connect));
+    expect(connect, findsOneWidget);
+    expect(tester.getSize(connect).height, greaterThanOrEqualTo(48));
+
+    await tester.tap(connect);
+    expect(picked, [kickr]);
   });
 
   test('the "other device" target does not look like a controller', () {
