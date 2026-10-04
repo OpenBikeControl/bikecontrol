@@ -52,7 +52,7 @@ Future<void> main() async {
   // Base had some of it. BikeControl's virtual shifting now leads the table
   // (Pro only; the trial is a footnote — see paywall_plan_chooser_test.dart),
   // then what Base covers: the app shifts, BikeControl presses the buttons.
-  testWidgets('the Pro card spells out what Pro adds, virtual shifting first', (tester) async {
+  testWidgets('the Pro card spells out what Pro adds: unlimited commands, then virtual shifting', (tester) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
     await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
@@ -60,8 +60,8 @@ Future<void> main() async {
 
     final l10n = AppLocalizations.current;
     final labelsInOrder = [
-      l10n.paywall_vsByBikeControl,
       l10n.paywall_amountOfActions,
+      l10n.paywall_vsByBikeControl,
       l10n.paywall_shiftInYourApp,
       l10n.paywall_configure3ActionsPerButton,
       l10n.paywall_useBikecontrolOnAllPlatforms,

@@ -62,12 +62,16 @@ Future<void> main() async {
     expect(inCard(baseCard, l.paywall_oneTimePurchase), findsOneWidget);
   });
 
-  testWidgets('virtual shifting leads the Pro card, Base does not list it, the trial is a footnote', (tester) async {
+  testWidgets('unlimited commands opens the Pro card, then virtual shifting; Base does not list it; the trial is a footnote', (tester) async {
     final l = await pump(tester);
 
+    // Unlimited commands (no demo clip) opens the list, so the clip rows
+    // run together below it; virtual shifting follows straight after.
     final vs = tester.getRect(inCard(proCard, l.paywall_vsByBikeControl));
     final commands = tester.getRect(inCard(proCard, l.paywall_amountOfActions));
-    expect(vs.top, lessThan(commands.top), reason: 'the line that decides the plan comes first');
+    final shift = tester.getRect(inCard(proCard, l.paywall_shiftInYourApp));
+    expect(commands.top, lessThan(vs.top), reason: 'unlimited commands is the first line');
+    expect(vs.top, lessThan(shift.top), reason: 'virtual shifting comes right after it');
     expect(inCard(baseCard, l.paywall_vsByBikeControl), findsNothing, reason: 'Base does not include virtual shifting');
 
     // Unlimited button commands and shifting in the trainer app are in both.

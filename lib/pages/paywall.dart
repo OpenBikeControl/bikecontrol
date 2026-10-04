@@ -190,9 +190,11 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
-  // The first line is the one riders bought the wrong plan over: BikeControl
-  // shifting the trainer itself is Pro. Base covers pressing the buttons in a
-  // trainer app that shifts by itself (lines two and three, on both cards);
+  // Unlimited button commands opens the list (it has no demo clip, so the
+  // clip rows run together below it). Next, the line riders bought the wrong
+  // plan over: BikeControl shifting the trainer itself is Pro. Base covers
+  // pressing the buttons in a trainer app that shifts by itself (lines one
+  // and three; on the Base card, its first two);
   // that line names the rider's app so it's clear which app does the gears.
   // Sensor sharing is gated on Pro (SensorHub.isProEnabled and the standalone
   // sensor emulator's shouldAdvertise).
@@ -200,8 +202,8 @@ class _PaywallState extends State<Paywall> {
   List<_FeatureLine> _features(AppLocalizations l10n) {
     final app = paywallShiftAppName(core.settings.getTrainerApp());
     return [
-      _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
       _FeatureLine(l10n.paywall_amountOfActions, unlimited: true, inBase: true),
+      _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
       _FeatureLine(
         app == null ? l10n.paywall_shiftInYourApp : l10n.paywall_shiftInNamedApp(app),
         inBase: true,
