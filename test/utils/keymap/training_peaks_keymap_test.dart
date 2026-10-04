@@ -42,8 +42,11 @@ void main() {
         app.keymap.getKeyPair(button, trigger: ButtonTrigger.singleClick)?.inGameAction;
 
     expect(actionFor(ZwiftButtons.navigationUp), InGameAction.up);
-    expect(actionFor(ZwiftButtons.navigationLeft), InGameAction.steerLeft);
-    expect(actionFor(ZwiftButtons.navigationRight), InGameAction.steerRight);
+    // Steering only works while held: it sits on the long press.
+    InGameAction? heldFor(ControllerButton button) =>
+        app.keymap.getKeyPair(button, trigger: ButtonTrigger.longPress)?.inGameAction;
+    expect(heldFor(ZwiftButtons.navigationLeft), InGameAction.steerLeft);
+    expect(heldFor(ZwiftButtons.navigationRight), InGameAction.steerRight);
     expect(actionFor(ZwiftButtons.a), InGameAction.select);
     expect(actionFor(ZwiftButtons.b), InGameAction.back);
     expect(actionFor(ZwiftButtons.y), InGameAction.menu);

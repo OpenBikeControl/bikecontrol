@@ -7,6 +7,7 @@ import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
+import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
@@ -307,6 +308,9 @@ class LastPressStrip extends StatelessWidget {
         if (button == null) return const SizedBox.shrink();
         final cs = Theme.of(context).colorScheme;
         final action = _actionFor(keymap, button);
+        // Its single click is an action that only works while held.
+        final holdOnClick =
+            keymap?.getKeyPair(button, trigger: ButtonTrigger.singleClick)?.holdActionOnClick == true;
         final muted = context.typography.small.copyWith(color: cs.mutedForeground);
         return Container(
           constraints: const BoxConstraints(minHeight: 44),
@@ -343,6 +347,11 @@ class LastPressStrip extends StatelessWidget {
                             style: muted.copyWith(color: cs.foreground, fontWeight: FontWeight.w600),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                          ),
+                        if (holdOnClick)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 2),
+                            child: HoldActionMarker(announce: true),
                           ),
                       ],
                     ),

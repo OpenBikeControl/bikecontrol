@@ -2478,5 +2478,11 @@
   "changelogEarlierVersions": "Wcześniejsze wersje",
   "changelogAllVersions": "Wszystkie wersje",
   "changelogLoadFailed": "Nie udało się wczytać listy zmian.",
-  "changelogWhatsNewSince": "Co się zmieniło od ostatniej aktualizacji."
+  "changelogWhatsNewSince": "Co się zmieniło od ostatniej aktualizacji.",
+  "holdWarningSteering": "Skręcanie działa tylko wtedy, gdy przycisk jest przytrzymany. Przypisz je do długiego naciśnięcia.",
+  "holdWarningAction": "{action} działa tylko wtedy, gdy przycisk jest przytrzymany. Przypisz to do długiego naciśnięcia.",
+  "holdAssignToLongPress": "Przypisz do długiego naciśnięcia",
+  "holdReplaceLongPress": "Długie naciśnięcie wykonuje już {current}. Zastąpić to akcją {action}?",
+  "holdMovedToLongPress": "{action} działa teraz na długie naciśnięcie.",
+  "holdOnlyWhileHeld": "Działa tylko przy przytrzymaniu"
 }

@@ -7,6 +7,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
 import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -176,6 +177,11 @@ class _KeymapButtonDetailState extends State<KeymapButtonDetail> {
                 persistMappingEdit();
                 widget.onUpdate();
               },
+              // The picker follows the action to its long press.
+              onMovedToLongPress: () {
+                widget.selection.selectTrigger(ButtonTrigger.longPress);
+                widget.onUpdate();
+              },
             ),
           )
         else
@@ -231,11 +237,14 @@ class _TriggerCard extends StatelessWidget {
     final kp = keyPair;
     final hasAction = kp != null && !kp.hasNoAction;
     final value = hasAction ? kp.toString() : context.i18n.noActionAssignedShort;
+    final holdOnClick = kp?.holdActionOnClick == true;
     return BkTappable(
       onPressed: onPressed,
       selected: selected,
       inMutuallyExclusiveGroup: true,
-      label: '${trigger.title}: ${hasAction ? value : context.i18n.noActionAssigned}',
+      label:
+          '${trigger.title}: ${hasAction ? value : context.i18n.noActionAssigned}'
+          '${holdOnClick ? '. ${holdActionMarkerLabel(context)}' : ''}',
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(14),
       // The card is the tappable's own fill, so it takes the grouped rows'
@@ -265,6 +274,7 @@ class _TriggerCard extends StatelessWidget {
                   ),
                 ),
                 if (pro) const ProBadge(padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
+                if (holdOnClick) const HoldActionMarker(),
               ],
             ),
             Row(

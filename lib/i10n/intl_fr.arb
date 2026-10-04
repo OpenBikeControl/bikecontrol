@@ -2478,5 +2478,11 @@
   "changelogEarlierVersions": "Versions précédentes",
   "changelogAllVersions": "Toutes les versions",
   "changelogLoadFailed": "Impossible de charger les nouveautés.",
-  "changelogWhatsNewSince": "Ce qui a changé depuis ta dernière mise à jour."
+  "changelogWhatsNewSince": "Ce qui a changé depuis ta dernière mise à jour.",
+  "holdWarningSteering": "La direction ne fonctionne que tant que le bouton reste enfoncé. Attribue-la plutôt à l'appui long.",
+  "holdWarningAction": "{action} ne fonctionne que tant que le bouton reste enfoncé. Attribue-le plutôt à l'appui long.",
+  "holdAssignToLongPress": "Attribuer à l'appui long",
+  "holdReplaceLongPress": "L'appui long déclenche déjà {current}. Le remplacer par {action} ?",
+  "holdMovedToLongPress": "{action} est maintenant sur l'appui long.",
+  "holdOnlyWhileHeld": "Ne fonctionne que maintenu enfoncé"
 }

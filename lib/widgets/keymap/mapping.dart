@@ -124,9 +124,7 @@ Future<Keymap?> resolveTriggerEdit(
   final isPro = IAPManager.instance.hasActiveSubscription;
   final hasOtherAssignedTrigger = hasActiveTriggerOtherThan(keymap, button, trigger);
   final shouldAsk =
-      hintText != null ||
-      mappingTriggerOverLimit(keymap, button, trigger) ||
-      (!hasAction && hasOtherAssignedTrigger);
+      hintText != null || mappingTriggerOverLimit(keymap, button, trigger) || (!hasAction && hasOtherAssignedTrigger);
 
   var clearOtherTriggers = false;
   if (askFirst && (!isPro || hintText != null) && shouldAsk) {
@@ -163,4 +161,113 @@ void persistMappingEdit() {
   if (core.actionHandler.supportedApp is CustomApp) {
     core.settings.setKeyMap(core.actionHandler.supportedApp!);
   }
+}
+
+/// Moves what [from] of [button] does onto [to], replacing whatever [to]
+/// did, and leaves [from] empty.
+void moveTriggerAssignment(
+  Keymap keymap,
+  ControllerButton button, {
+  required ButtonTrigger from,
+  required ButtonTrigger to,
+}) {
+  final source = keymap.getOrCreateKeyPair(button, trigger: from);
+  final target = keymap.getOrCreateKeyPair(button, trigger: to);
+  target
+    ..physicalKey = source.physicalKey
+    ..logicalKey = source.logicalKey
+    ..modifiers = List.of(source.modifiers)
+    ..touchPosition = source.touchPosition
+    ..inGameAction = source.inGameAction
+    ..inGameActionValue = source.inGameActionValue
+    ..androidAction = source.androidAction
+    ..androidIntentAction = source.androidIntentAction
+    ..command = source.command
+    ..screenshotPath = source.screenshotPath;
+  source
+    ..physicalKey = null
+    ..logicalKey = null
+    ..modifiers = []
+    ..touchPosition = Offset.zero
+    ..inGameAction = null
+    ..inGameActionValue = null
+    ..androidAction = null
+    ..androidIntentAction = null
+    ..command = null
+    ..screenshotPath = null;
+  keymap.signalUpdate();
+}
+
+/// The warning for [action] sitting on a click: steering in its own words,
+/// any other hold-only action by name.
+String holdActionWarningText(BuildContext context, InGameAction action) =>
+    action == InGameAction.steerLeft || action == InGameAction.steerRight
+    ? context.i18n.holdWarningSteering
+    : context.i18n.holdWarningAction(action.title);
+
+/// Moves the hold-only action on [from] (a single or double click) of
+/// [button] to its long press, where it works.
+///
+/// Without Pro a button does one thing: when another trigger would stay
+/// assigned beside the long press, the Pro question comes first (Go Pro, or
+/// replace the other triggers). When the long press already does something
+/// else, the rider confirms replacing it. A built-in mapping is copied first.
+/// Returns the keymap that was changed, or null when the rider backed out.
+Future<Keymap?> moveHoldActionToLongPress(
+  BuildContext context, {
+  required Keymap keymap,
+  required ControllerButton button,
+  required ButtonTrigger from,
+}) async {
+  const to = ButtonTrigger.longPress;
+  final source = keymap.getKeyPair(button, trigger: from);
+  if (source == null || source.hasNoAction) return null;
+  final action = source.toString();
+
+  final staying = mappingActiveTriggers(keymap, button).where((t) => t != from && t != to);
+  var clearOthers = false;
+  if (staying.isNotEmpty && !IAPManager.instance.hasActiveSubscription) {
+    final resolution = await showTriggerConflictDialog(context, to);
+    if (!context.mounted || resolution == null) return null;
+    if (resolution == TriggerConflictResolution.goPro) {
+      await IAPManager.instance.purchaseSubscription(context);
+      if (!context.mounted || !IAPManager.instance.hasActiveSubscription) return null;
+    } else {
+      clearOthers = true;
+    }
+  }
+
+  final target = keymap.getKeyPair(button, trigger: to);
+  final sameAction =
+      target != null &&
+      target.inGameAction == source.inGameAction &&
+      target.inGameActionValue == source.inGameActionValue;
+  if (!clearOthers && target != null && !target.hasNoAction && !sameAction) {
+    final resolution = await showTriggerConflictDialog(
+      context,
+      to,
+      title: context.i18n.holdAssignToLongPress,
+      hintText: context.i18n.holdReplaceLongPress(target.toString(), action),
+      offerPro: false,
+    );
+    if (!context.mounted || resolution == null) return null;
+  }
+
+  var selectedKeymap = keymap;
+  if (core.actionHandler.supportedApp is! CustomApp) {
+    final currentProfile = core.actionHandler.supportedApp!.name;
+    final newName = await KeymapManager().duplicate(context, currentProfile, skipName: '$currentProfile (Copy)');
+    if (!context.mounted || newName == null) return null;
+    buildToast(title: context.i18n.createdNewCustomProfile(newName));
+    selectedKeymap = core.actionHandler.supportedApp!.keymap;
+  }
+
+  moveTriggerAssignment(selectedKeymap, button, from: from, to: to);
+  if (clearOthers) {
+    clearOtherTriggerAssignments(selectedKeymap, button, to);
+    selectedKeymap.signalUpdate();
+  }
+  persistMappingEdit();
+  buildToast(title: context.i18n.holdMovedToLongPress(action));
+  return selectedKeymap;
 }

@@ -10,6 +10,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
+import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
 import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
@@ -235,6 +236,12 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final cs = Theme.of(context).colorScheme;
     return TextSpan(
       children: [
+        // A hold-only action on a click: marked before the summary.
+        if (mappingHasHoldActionOnClick(widget.keymap, button))
+          const WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(padding: EdgeInsets.only(right: 6), child: HoldActionMarker(announce: true)),
+          ),
         if (first != ButtonTrigger.singleClick || widget.master == false)
           TextSpan(
             text: '${first.title} · ',
@@ -277,6 +284,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       );
     }
     final hasAction = keyPair != null && !keyPair.hasNoAction;
+    final holdOnClick = keyPair?.holdActionOnClick == true;
     final blocked = mappingTriggerBlockedHint(context, widget.keymap, device, button, trigger) != null;
     final pro = mappingTriggerIsPro(widget.keymap, button, trigger);
     final muted = context.typography.small.copyWith(color: cs.mutedForeground);
@@ -284,7 +292,9 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       key: ValueKey('mapping-trigger-${button.name}-${trigger.name}'),
       wash: true,
       onPressed: () => _onTriggerPressed(device: device, button: button, trigger: trigger),
-      label: '${trigger.title}: ${hasAction ? keyPair.toString() : context.i18n.noActionAssigned}',
+      label:
+          '${trigger.title}: ${hasAction ? keyPair.toString() : context.i18n.noActionAssigned}'
+          '${holdOnClick ? '. ${holdActionMarkerLabel(context)}' : ''}',
       excludeChildSemantics: true,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 44),
@@ -299,6 +309,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                 children: [
                   Text(trigger.title, style: muted),
                   if (pro) const ProBadge(padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
+                  if (holdOnClick) const HoldActionMarker(),
                   // What it does takes the rest of the row, ending at the
                   // chevron; "(none)" when nothing is on it.
                   Expanded(

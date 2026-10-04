@@ -45,12 +45,16 @@ class Zwift extends SupportedApp {
               physicalKey: PhysicalKeyboardKey.arrowLeft,
               logicalKey: LogicalKeyboardKey.arrowLeft,
               inGameAction: InGameAction.steerLeft,
+              // Steering only works while held.
+              isLongPress: true,
             ),
             KeyPair(
               buttons: [ZwiftButtons.navigationRight],
               physicalKey: PhysicalKeyboardKey.arrowRight,
               logicalKey: LogicalKeyboardKey.arrowRight,
               inGameAction: InGameAction.steerRight,
+              // Steering only works while held.
+              isLongPress: true,
             ),
             KeyPair(
               buttons: [ZwiftButtons.shiftUpLeft],

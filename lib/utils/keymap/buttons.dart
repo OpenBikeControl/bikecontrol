@@ -16,8 +16,20 @@ enum InGameAction {
   shiftDown('Shift Down', icon: LucideIcons.badgeMinus),
   uturn('U-Turn', alternativeTitle: 'Down', icon: LucideIcons.arrowDownUp),
   tuck('Tuck', icon: LucideIcons.gauge),
-  steerLeft('Steer Left', alternativeTitle: 'Left', icon: LucideIcons.chevronsLeft, isLongPress: true),
-  steerRight('Steer Right', alternativeTitle: 'Right', icon: LucideIcons.chevronsRight, isLongPress: true),
+  steerLeft(
+    'Steer Left',
+    alternativeTitle: 'Left',
+    icon: LucideIcons.chevronsLeft,
+    isLongPress: true,
+    requiresHold: true,
+  ),
+  steerRight(
+    'Steer Right',
+    alternativeTitle: 'Right',
+    icon: LucideIcons.chevronsRight,
+    isLongPress: true,
+    requiresHold: true,
+  ),
 
   // mywhoosh
   cameraAngle('Change Camera Angle', possibleValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], icon: LucideIcons.video),
@@ -64,7 +76,7 @@ enum InGameAction {
   home('Home', icon: LucideIcons.house),
   menu('Menu', icon: LucideIcons.menu),
   gearSet('Gear Set', icon: LucideIcons.gauge),
-  pushToTalk('Push to Talk', icon: LucideIcons.mic),
+  pushToTalk('Push to Talk', icon: LucideIcons.mic, requiresHold: true),
   skipInterval('Skip Interval', icon: LucideIcons.skipForward),
   previousInterval('Previous Interval', icon: LucideIcons.skipBack),
   lap('Lap', icon: LucideIcons.timer),
@@ -88,7 +100,15 @@ enum InGameAction {
   screenRecording('Record Screen', icon: LucideIcons.video, isOutsideTrainerApp: true);
 
   final String englishTitle;
+
+  /// The trigger a button gets when it is first mapped to this action.
   final bool isLongPress;
+
+  /// The action only does something while the button is held: the trainer
+  /// app steers (or keeps the microphone open) for as long as it sees the
+  /// press. A single or double click sends the press and its release back to
+  /// back, so on a click it does next to nothing — it belongs on a long press.
+  final bool requiresHold;
   final bool isOutsideTrainerApp;
   final IconData? icon;
   final String? alternativeTitle;
@@ -101,6 +121,7 @@ enum InGameAction {
     this.alternativeTitle,
     this.icon,
     this.isLongPress = false,
+    this.requiresHold = false,
   });
 
   /// Localized label shown in the UI (falls back to [englishTitle]).

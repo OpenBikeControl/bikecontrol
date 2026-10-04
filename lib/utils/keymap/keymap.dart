@@ -264,6 +264,10 @@ class KeyPair {
 
   bool get isLongPress => trigger == ButtonTrigger.longPress;
 
+  /// An action that only works while held ([InGameAction.requiresHold]) sits
+  /// on a single or double click, where it does next to nothing.
+  bool get holdActionOnClick => inGameAction?.requiresHold == true && trigger != ButtonTrigger.longPress;
+
   bool get doesNotNeedTrainerConnection => inGameAction?.isOutsideTrainerApp == true || androidIntentAction != null;
 
   set isLongPress(bool value) {

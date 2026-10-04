@@ -2478,5 +2478,11 @@
   "changelogEarlierVersions": "Frühere Versionen",
   "changelogAllVersions": "Alle Versionen",
   "changelogLoadFailed": "Die Änderungen konnten nicht geladen werden.",
-  "changelogWhatsNewSince": "Das hat sich seit deinem letzten Update geändert."
+  "changelogWhatsNewSince": "Das hat sich seit deinem letzten Update geändert.",
+  "holdWarningSteering": "Lenken funktioniert nur, solange die Taste gedrückt bleibt. Leg es stattdessen auf Langes Drücken.",
+  "holdWarningAction": "{action} funktioniert nur, solange die Taste gedrückt bleibt. Leg es stattdessen auf Langes Drücken.",
+  "holdAssignToLongPress": "Auf Langes Drücken legen",
+  "holdReplaceLongPress": "Langes Drücken löst schon {current} aus. Durch {action} ersetzen?",
+  "holdMovedToLongPress": "{action} liegt jetzt auf Langes Drücken.",
+  "holdOnlyWhileHeld": "Funktioniert nur gedrückt gehalten"
 }

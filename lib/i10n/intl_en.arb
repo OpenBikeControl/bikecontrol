@@ -2875,5 +2875,11 @@
   "changelogEarlierVersions": "Earlier versions",
   "changelogAllVersions": "All versions",
   "changelogLoadFailed": "The changelog couldn't be loaded.",
-  "changelogWhatsNewSince": "What changed since your last update."
+  "changelogWhatsNewSince": "What changed since your last update.",
+  "holdWarningSteering": "Steering only works while the button is held. Assign it to Long Press instead.",
+  "holdWarningAction": "{action} only works while the button is held. Assign it to Long Press instead.",
+  "holdAssignToLongPress": "Assign to Long Press",
+  "holdReplaceLongPress": "Long Press already does {current}. Replace it with {action}?",
+  "holdMovedToLongPress": "{action} now runs on Long Press.",
+  "holdOnlyWhileHeld": "Only works while held"
 }

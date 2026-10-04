@@ -2478,5 +2478,11 @@
   "changelogEarlierVersions": "Versioni precedenti",
   "changelogAllVersions": "Tutte le versioni",
   "changelogLoadFailed": "Impossibile caricare le novità.",
-  "changelogWhatsNewSince": "Cosa è cambiato dal tuo ultimo aggiornamento."
+  "changelogWhatsNewSince": "Cosa è cambiato dal tuo ultimo aggiornamento.",
+  "holdWarningSteering": "Lo sterzo funziona solo mentre tieni premuto il pulsante. Assegnalo invece alla pressione lunga.",
+  "holdWarningAction": "{action} funziona solo mentre tieni premuto il pulsante. Assegnalo invece alla pressione lunga.",
+  "holdAssignToLongPress": "Assegna alla pressione lunga",
+  "holdReplaceLongPress": "La pressione lunga esegue già {current}. Sostituirlo con {action}?",
+  "holdMovedToLongPress": "{action} ora è sulla pressione lunga.",
+  "holdOnlyWhileHeld": "Funziona solo tenendo premuto"
 }

@@ -9,6 +9,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
 import 'package:bike_control/widgets/controller/trigger_conflict_dialog.dart';
+import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -103,6 +104,10 @@ class _TriggerLabel extends StatelessWidget {
               color: assigned ? null : cs.mutedForeground,
             ),
           ),
+          if (kp?.holdActionOnClick == true) ...[
+            const SizedBox(width: 8),
+            const HoldActionMarker(announce: true),
+          ],
         ],
       ),
     );

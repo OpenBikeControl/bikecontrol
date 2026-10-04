@@ -16,10 +16,16 @@ enum TriggerConflictResolution {
 /// Shared "another trigger is already assigned" dialog, used by both the
 /// physical-press flow in `KeymapExplanation` and the tap-to-assign popup in
 /// `showTriggerAssignmentPopup`. Returns `null` when the user cancels.
+///
+/// [title] replaces "Additional trigger assignment"; [offerPro] false leaves
+/// out Go Pro where Pro wouldn't resolve the conflict (replacing what a
+/// trigger already does).
 Future<TriggerConflictResolution?> showTriggerConflictDialog(
   BuildContext context,
   ButtonTrigger trigger, {
   String? hintText,
+  String? title,
+  bool? offerPro,
 }) {
   return showDialog<TriggerConflictResolution>(
     context: context,
@@ -27,6 +33,8 @@ Future<TriggerConflictResolution?> showTriggerConflictDialog(
       context: c,
       trigger: trigger,
       hintText: hintText,
+      title: title,
+      offerPro: offerPro,
       onResolved: (resolution) => Navigator.of(c).pop(resolution),
     ),
   );
@@ -39,18 +47,21 @@ Widget buildTriggerConflictDialog({
   required BuildContext context,
   required ButtonTrigger trigger,
   String? hintText,
+  String? title,
+  bool? offerPro,
   required void Function(TriggerConflictResolution? resolution) onResolved,
 }) {
+  final showPro = offerPro ?? !IAPManager.instance.hasActiveSubscription;
   return Container(
     constraints: const BoxConstraints(maxWidth: 420),
     child: AlertDialog(
       title: Row(
         children: [
-          if (!IAPManager.instance.hasActiveSubscription) ...[
+          if (showPro) ...[
             Icon(LucideIcons.crown, color: BkStatusColors.of(context).warning),
             const SizedBox(width: 8),
           ],
-          Text(AppLocalizations.of(context).additionalTriggerAssignment),
+          Flexible(child: Text(title ?? AppLocalizations.of(context).additionalTriggerAssignment)),
         ],
       ),
       content: Text(
@@ -69,7 +80,7 @@ Widget buildTriggerConflictDialog({
               onPressed: () => onResolved(TriggerConflictResolution.replaceOtherTriggers),
               child: Text(AppLocalizations.of(context).replaceExisting),
             ),
-            if (!IAPManager.instance.hasActiveSubscription)
+            if (showPro)
               PrimaryButton(
                 onPressed: () => onResolved(TriggerConflictResolution.goPro),
                 child: Text(AppLocalizations.of(context).goPro),

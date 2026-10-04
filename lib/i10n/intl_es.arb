@@ -2478,5 +2478,11 @@
   "changelogEarlierVersions": "Versiones anteriores",
   "changelogAllVersions": "Todas las versiones",
   "changelogLoadFailed": "No se pudo cargar el registro de cambios.",
-  "changelogWhatsNewSince": "Lo que ha cambiado desde tu última actualización."
+  "changelogWhatsNewSince": "Lo que ha cambiado desde tu última actualización.",
+  "holdWarningSteering": "La dirección solo funciona mientras mantienes pulsado el botón. Asígnala a Pulsación larga.",
+  "holdWarningAction": "{action} solo funciona mientras mantienes pulsado el botón. Asígnalo a Pulsación larga.",
+  "holdAssignToLongPress": "Asignar a Pulsación larga",
+  "holdReplaceLongPress": "Pulsación larga ya hace {current}. ¿Sustituirlo por {action}?",
+  "holdMovedToLongPress": "{action} ahora está en Pulsación larga.",
+  "holdOnlyWhileHeld": "Solo funciona manteniéndolo pulsado"
 }

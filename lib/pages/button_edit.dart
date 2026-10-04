@@ -18,6 +18,8 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
+import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
@@ -46,6 +48,10 @@ class ButtonEditPage extends StatefulWidget {
   /// in a grid under their group headers. It edits only the key pair it was
   /// built with; the pane rebuilds it for another button.
   final bool embedded;
+
+  /// Called after the hold-only action on this click moved to the button's
+  /// long press (see [HoldActionWarning]). Without it the drawer closes.
+  final VoidCallback? onMovedToLongPress;
   const ButtonEditPage({
     super.key,
     required this.keyPair,
@@ -54,6 +60,7 @@ class ButtonEditPage extends StatefulWidget {
     required this.keymap,
     required this.trigger,
     this.embedded = false,
+    this.onMovedToLongPress,
   });
 
   @override
@@ -119,8 +126,43 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     super.dispose();
   }
 
+  /// Whether this build already put the hold warning under its action.
+  bool _holdWarningPlaced = false;
+
+  /// The [HoldActionWarning] under the card for [action] when it is the
+  /// picked one and only works while held, but this is a click.
+  List<Widget> _holdWarningAfter(InGameAction action, {required bool isActive}) {
+    if (!isActive || _holdWarningPlaced || !_keyPair.holdActionOnClick || _keyPair.inGameAction != action) {
+      return const [];
+    }
+    _holdWarningPlaced = true;
+    return [_holdWarning()];
+  }
+
+  Widget _holdWarning() => HoldActionWarning(
+    action: _keyPair.inGameAction!,
+    onAssignToLongPress: _moveToLongPress,
+  );
+
+  Future<void> _moveToLongPress() async {
+    final moved = await moveHoldActionToLongPress(
+      context,
+      keymap: widget.keymap,
+      button: _keyPair.buttons.first,
+      from: widget.trigger,
+    );
+    if (!mounted || moved == null) return;
+    widget.onUpdate();
+    if (widget.onMovedToLongPress != null) {
+      widget.onMovedToLongPress!();
+    } else if (!widget.embedded) {
+      closeDrawer(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _holdWarningPlaced = false;
     final children = <Widget>[
                 // The drawer's own head; embedded, the pane around it names
                 // the button and trigger.
@@ -880,6 +922,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ),
                 SizedBox(height: 16),
               ];
+    // The picked action's card isn't listed (its connection is off): say it
+    // under the head instead.
+    if (!_holdWarningPlaced && _keyPair.holdActionOnClick) {
+      children.insert(widget.embedded ? 0 : 3, _holdWarning());
+    }
     if (widget.embedded) {
       return _EmbeddedPicker(children: children);
     }
@@ -908,67 +955,75 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   List<Widget> _buildTrainerConnectionActions(List<InGameAction> supportedActions) {
-    return supportedActions.map((action) {
-      return Builder(
-        builder: (context) {
-          return SelectableCard(
-            icon: action.icon,
-            title: Text(switch (action) {
-              InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
-              InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
-              _ => action.title,
-            }),
-            subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
-                ? Text(_keyPair.inGameActionValue!.toString())
-                : action.alternativeTitle != null
-                ? Text(action.alternativeTitle!)
-                : null,
-            isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
-            onPressed: () {
-              if (action.possibleValues?.isNotEmpty == true) {
-                showDropdown(
-                  context: context,
-                  builder: (c) => DropdownMenu(
-                    children: action.possibleValues!.map(
-                      (ingame) {
-                        return MenuButton(
-                          child: Text(ingame.toString()),
-                          onPressed: (_) {
-                            _keyPair.touchPosition = Offset.zero;
-                            _keyPair.physicalKey = null;
-                            _keyPair.logicalKey = null;
-                            _keyPair.androidAction = null;
-                            _keyPair.androidIntentAction = null;
-                            _keyPair.command = null;
-                            _keyPair.screenshotPath = null;
-                            _keyPair.inGameAction = action;
-                            _keyPair.inGameActionValue = ingame;
-                            widget.onUpdate();
-                            setState(() {});
-                          },
-                        );
-                      },
-                    ).toList(),
-                  ),
-                );
-              } else {
-                _keyPair.touchPosition = Offset.zero;
-                _keyPair.physicalKey = null;
-                _keyPair.logicalKey = null;
-                _keyPair.androidAction = null;
-                _keyPair.androidIntentAction = null;
-                _keyPair.command = null;
-                _keyPair.screenshotPath = null;
-                _keyPair.inGameAction = action;
-                _keyPair.inGameActionValue = null;
-                widget.onUpdate();
-                setState(() {});
-              }
-            },
-          );
-        },
-      );
+    return supportedActions.expand((action) {
+      final isActive = _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction);
+      return [
+        _trainerConnectionAction(action, supportedActions),
+        ..._holdWarningAfter(action, isActive: isActive),
+      ];
     }).toList();
+  }
+
+  Widget _trainerConnectionAction(InGameAction action, List<InGameAction> supportedActions) {
+    return Builder(
+      builder: (context) {
+        return SelectableCard(
+          icon: action.icon,
+          title: Text(switch (action) {
+            InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
+            InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
+            _ => action.title,
+          }),
+          subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
+              ? Text(_keyPair.inGameActionValue!.toString())
+              : action.alternativeTitle != null
+              ? Text(action.alternativeTitle!)
+              : null,
+          isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
+          onPressed: () {
+            if (action.possibleValues?.isNotEmpty == true) {
+              showDropdown(
+                context: context,
+                builder: (c) => DropdownMenu(
+                  children: action.possibleValues!.map(
+                    (ingame) {
+                      return MenuButton(
+                        child: Text(ingame.toString()),
+                        onPressed: (_) {
+                          _keyPair.touchPosition = Offset.zero;
+                          _keyPair.physicalKey = null;
+                          _keyPair.logicalKey = null;
+                          _keyPair.androidAction = null;
+                          _keyPair.androidIntentAction = null;
+                          _keyPair.command = null;
+                          _keyPair.screenshotPath = null;
+                          _keyPair.inGameAction = action;
+                          _keyPair.inGameActionValue = ingame;
+                          widget.onUpdate();
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ).toList(),
+                ),
+              );
+            } else {
+              _keyPair.touchPosition = Offset.zero;
+              _keyPair.physicalKey = null;
+              _keyPair.logicalKey = null;
+              _keyPair.androidAction = null;
+              _keyPair.androidIntentAction = null;
+              _keyPair.command = null;
+              _keyPair.screenshotPath = null;
+              _keyPair.inGameAction = action;
+              _keyPair.inGameActionValue = null;
+              widget.onUpdate();
+              setState(() {});
+            }
+          },
+        );
+      },
+    );
   }
 
   List<Widget> _buildObpControllerButtonActions(List<ControllerButton> buttons) {
@@ -980,92 +1035,99 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             ...actionable.where((b) => _myWhooshPoorlySupportedObpActions.contains(b.action)),
           ]
         : actionable;
-    return ordered.map((button) {
+    return ordered.expand((button) {
       final action = button.action!;
       final showMyWhooshWarning = isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action);
-      return Builder(
-        builder: (context) {
-          final card = SelectableCard(
-            icon: button.icon ?? action.icon,
-            title: Text(button.name),
-            subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
-                ? Text(_keyPair.inGameActionValue!.toString())
-                : action.alternativeTitle != null
-                ? Text(action.alternativeTitle!)
-                : null,
-            isActive: _keyPair.inGameAction == action,
-            onPressed: () {
-              if (action.possibleValues?.isNotEmpty == true) {
-                showDropdown(
-                  context: context,
-                  builder: (c) => DropdownMenu(
-                    children: action.possibleValues!.map(
-                      (ingame) {
-                        return MenuButton(
-                          child: Text(ingame.toString()),
-                          onPressed: (_) {
-                            _keyPair.touchPosition = Offset.zero;
-                            _keyPair.physicalKey = null;
-                            _keyPair.logicalKey = null;
-                            _keyPair.androidAction = null;
-                            _keyPair.androidIntentAction = null;
-                            _keyPair.command = null;
-                            _keyPair.screenshotPath = null;
-                            _keyPair.inGameAction = action;
-                            _keyPair.inGameActionValue = ingame;
-                            widget.onUpdate();
-                            setState(() {});
-                          },
-                        );
-                      },
-                    ).toList(),
-                  ),
-                );
-              } else {
-                _keyPair.touchPosition = Offset.zero;
-                _keyPair.physicalKey = null;
-                _keyPair.logicalKey = null;
-                _keyPair.androidAction = null;
-                _keyPair.androidIntentAction = null;
-                _keyPair.command = null;
-                _keyPair.screenshotPath = null;
-                _keyPair.inGameAction = action;
-                _keyPair.inGameActionValue = null;
-                widget.onUpdate();
-                setState(() {});
-              }
-            },
-          );
-          if (!showMyWhooshWarning) {
-            return card;
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 4,
-            children: [
-              card,
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 4,
-                  children: [
-                    Icon(
-                      LucideIcons.triangleAlert,
-                      size: 12,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                    Expanded(
-                      child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      );
+      return [
+        _obpControllerButtonAction(button, action, showMyWhooshWarning),
+        ..._holdWarningAfter(action, isActive: _keyPair.inGameAction == action),
+      ];
     }).toList();
+  }
+
+  Widget _obpControllerButtonAction(ControllerButton button, InGameAction action, bool showMyWhooshWarning) {
+    return Builder(
+      builder: (context) {
+        final card = SelectableCard(
+          icon: button.icon ?? action.icon,
+          title: Text(button.name),
+          subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
+              ? Text(_keyPair.inGameActionValue!.toString())
+              : action.alternativeTitle != null
+              ? Text(action.alternativeTitle!)
+              : null,
+          isActive: _keyPair.inGameAction == action,
+          onPressed: () {
+            if (action.possibleValues?.isNotEmpty == true) {
+              showDropdown(
+                context: context,
+                builder: (c) => DropdownMenu(
+                  children: action.possibleValues!.map(
+                    (ingame) {
+                      return MenuButton(
+                        child: Text(ingame.toString()),
+                        onPressed: (_) {
+                          _keyPair.touchPosition = Offset.zero;
+                          _keyPair.physicalKey = null;
+                          _keyPair.logicalKey = null;
+                          _keyPair.androidAction = null;
+                          _keyPair.androidIntentAction = null;
+                          _keyPair.command = null;
+                          _keyPair.screenshotPath = null;
+                          _keyPair.inGameAction = action;
+                          _keyPair.inGameActionValue = ingame;
+                          widget.onUpdate();
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ).toList(),
+                ),
+              );
+            } else {
+              _keyPair.touchPosition = Offset.zero;
+              _keyPair.physicalKey = null;
+              _keyPair.logicalKey = null;
+              _keyPair.androidAction = null;
+              _keyPair.androidIntentAction = null;
+              _keyPair.command = null;
+              _keyPair.screenshotPath = null;
+              _keyPair.inGameAction = action;
+              _keyPair.inGameActionValue = null;
+              widget.onUpdate();
+              setState(() {});
+            }
+          },
+        );
+        if (!showMyWhooshWarning) {
+          return card;
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
+          children: [
+            card,
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 4,
+                children: [
+                  Icon(
+                    LucideIcons.triangleAlert,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  Expanded(
+                    child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   static const Set<InGameAction> _myWhooshPoorlySupportedObpActions = {

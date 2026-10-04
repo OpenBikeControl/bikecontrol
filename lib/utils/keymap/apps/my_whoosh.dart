@@ -169,9 +169,9 @@ class MyWhoosh extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.arrowRight,
                     logicalKey: LogicalKeyboardKey.arrowRight,
-                    touchPosition: Offset(32, 80),
+                    touchPosition: Offset(60, 80),
                     isLongPress: true,
-                    inGameAction: InGameAction.steerLeft,
+                    inGameAction: InGameAction.steerRight,
                   ),
                 ),
             ...ControllerButton.values
