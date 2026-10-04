@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/reduced_motion.dart';
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -77,35 +78,39 @@ class PaywallClipButton extends StatelessWidget {
   }
 }
 
-/// Opens [clip] over the paywall: a bottom sheet in the paywall's drawer, a
-/// dialog anywhere else.
+/// Opens [clip] over the paywall: a bottom sheet in the paywall's drawer on a
+/// phone, a centred dialog on desktop, in a wide window and anywhere else.
 Future<void> showPaywallFeatureClip(
   BuildContext context, {
   required String title,
   required PaywallFeatureClip clip,
   ImageProvider? poster,
 }) async {
+  final sheet = DrawerOverlay.maybeFind(context) != null && !PaywallClipPreviews.enabled && isCompactWindow(context);
   Widget body(BuildContext c) => SafeArea(
     child: ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 440, maxHeight: MediaQuery.sizeOf(c).height * 0.9),
+      constraints: BoxConstraints(maxWidth: sheet ? 440 : 520, maxHeight: MediaQuery.sizeOf(c).height * 0.9),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: PaywallFeatureClipView(
           title: title,
           clip: clip,
           poster: poster,
-          onClose: () => DrawerOverlay.maybeFind(c) != null ? closeSheet(c) : Navigator.of(c).pop(),
+          maxMediaHeightFraction: sheet ? 0.6 : 0.7,
+          onClose: () => sheet ? closeSheet(c) : Navigator.of(c).pop(),
         ),
       ),
     ),
   );
   try {
-    if (DrawerOverlay.maybeFind(context) != null) {
+    if (sheet) {
       await openSheet<void>(context: context, position: OverlayPosition.bottom, builder: body);
     } else {
       await showDialog<void>(
         context: context,
-        builder: (c) => Card(child: body(c)),
+        builder: (c) => Center(
+          child: Card(padding: EdgeInsets.zero, child: body(c)),
+        ),
       );
     }
   } catch (e, s) {
@@ -126,7 +131,11 @@ class PaywallFeatureClipView extends StatefulWidget {
     required this.clip,
     this.poster,
     this.onClose,
+    this.maxMediaHeightFraction = 0.6,
   });
+
+  /// The clip is never taller than this share of the window's height.
+  final double maxMediaHeightFraction;
 
   /// The feature line the clip belongs to.
   final String title;
@@ -265,34 +274,52 @@ class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
               onPressed: _toggle,
             ),
     );
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-      child: AspectRatio(
-        aspectRatio: value.isInitialized && value.aspectRatio > 0 ? value.aspectRatio : 1,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            ColoredBox(
-              color: cs.muted,
-              child: Image(
-                image: _poster,
-                fit: BoxFit.cover,
-                excludeFromSemantics: true,
-                errorBuilder: (context, e, s) {
-                  _recordPosterError(e, s);
-                  return Center(child: Icon(LucideIcons.imageOff, size: 28, color: cs.mutedForeground));
-                },
+    // The clip's own aspect ratio (square until it has loaded), as wide as
+    // the sheet allows but never taller than its share of the window: never
+    // stretched to fill.
+    final aspect = value.isInitialized && value.aspectRatio > 0 ? value.aspectRatio : 1.0;
+    final maxHeight = MediaQuery.sizeOf(context).height * widget.maxMediaHeightFraction;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        var width = constraints.maxWidth;
+        var height = width / aspect;
+        if (height > maxHeight) {
+          height = maxHeight;
+          width = height * aspect;
+        }
+        return Center(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(
+                    color: cs.muted,
+                    child: Image(
+                      image: _poster,
+                      fit: BoxFit.contain,
+                      excludeFromSemantics: true,
+                      errorBuilder: (context, e, s) {
+                        _recordPosterError(e, s);
+                        return Center(child: Icon(LucideIcons.imageOff, size: 28, color: cs.mutedForeground));
+                      },
+                    ),
+                  ),
+                  if (showVideo) ExcludeSemantics(child: VideoPlayer(_video)),
+                  if (loading) const Center(child: CircularProgressIndicator(size: 28)),
+                  if (!_failed && !loading)
+                    // The clips burn their caption into the bottom of the frame:
+                    // while playing, pause sits top-right, clear of it.
+                    playing ? Positioned(right: 4, top: 4, child: control) : Center(child: control),
+                ],
               ),
             ),
-            if (showVideo) ExcludeSemantics(child: VideoPlayer(_video)),
-            if (loading) const Center(child: CircularProgressIndicator(size: 28)),
-            if (!_failed && !loading)
-              // The clips burn their caption into the bottom of the frame:
-              // while playing, pause sits top-right, clear of it.
-              playing ? Positioned(right: 4, top: 4, child: control) : Center(child: control),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

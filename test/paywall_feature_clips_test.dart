@@ -50,6 +50,9 @@ class _FakeUrlLauncher extends UrlLauncherPlatform {
 /// report itself ready, fail to load, or stay loading.
 class _FakeVideoPlatform extends VideoPlayerPlatform {
   _ClipLoad mode = _ClipLoad.ready;
+
+  /// The frame size a ready clip reports.
+  Size size = const Size(720, 720);
   final List<String> created = [];
   final List<int> disposed = [];
   final List<int> played = [];
@@ -84,7 +87,7 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
           VideoEvent(
             eventType: VideoEventType.initialized,
             duration: const Duration(seconds: 6),
-            size: const Size(720, 720),
+            size: size,
           ),
         );
       case _ClipLoad.fails:
@@ -532,6 +535,105 @@ Future<void> main() async {
       expect(preview, findsNothing);
       expect(video.created, isEmpty);
     }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+  });
+
+  group('clip sheet size', () {
+    final opener = find.byKey(const ValueKey('open-clip'));
+
+    /// Opens the clip from inside a Scaffold (which has a DrawerOverlay, as
+    /// the paywall drawer does) in a [size] window.
+    Future<void> openClip(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size * 2.0;
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ShadcnApp(
+          debugShowCheckedModeBanner: false,
+          scaling: BkTheme.scaling,
+          localizationsDelegates: [
+            ...ShadcnLocalizations.localizationsDelegates,
+            const OtherLocalizationsDelegate(),
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          theme: BkTheme.build(Brightness.dark),
+          home: Scaffold(
+            child: Builder(
+              builder: (context) => Center(
+                child: Button.primary(
+                  key: const ValueKey('open-clip'),
+                  onPressed: () => showPaywallFeatureClip(
+                    context,
+                    title: 'Button gestures',
+                    clip: PaywallFeatureClip.buttonGestures,
+                    poster: _PendingImage(),
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(opener);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    Rect frame(WidgetTester tester, [int index = 0]) =>
+        tester.getRect(find.byKey(ValueKey('fake-video-${video.first + index}')));
+
+    void expectAspect(Rect r, double aspect) =>
+        expect(r.width / r.height, moreOrLessEquals(aspect, epsilon: 0.02), reason: '$r');
+
+    testWidgets('on desktop the clip opens in a centred dialog at the clip\'s own aspect ratio', (tester) async {
+      video.size = const Size(1280, 720);
+      const window = Size(1280, 800);
+      await openClip(tester, window);
+      final view = tester.getRect(find.byType(PaywallFeatureClipView));
+      expect(view.width, lessThanOrEqualTo(520), reason: 'a dialog, not a full-width sheet');
+      expect(view.center.dx, moreOrLessEquals(window.width / 2, epsilon: 1));
+      final r = frame(tester);
+      expectAspect(r, 16 / 9);
+      expect(r.width, lessThanOrEqualTo(520));
+      expect(r.height, lessThanOrEqualTo(window.height * 0.7));
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+    testWidgets('a tall clip on desktop is held to 70% of the window height', (tester) async {
+      video.size = const Size(720, 1280);
+      const window = Size(1280, 800);
+      await openClip(tester, window);
+      final r = frame(tester);
+      expectAspect(r, 9 / 16);
+      expect(r.height, lessThanOrEqualTo(window.height * 0.7 + 0.5));
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+    testWidgets('the poster keeps the same square box while the clip loads', (tester) async {
+      video.mode = _ClipLoad.pending;
+      const window = Size(1280, 800);
+      await openClip(tester, window);
+      final poster = tester.getRect(
+        find.descendant(of: find.byType(PaywallFeatureClipView), matching: find.byType(Image)),
+      );
+      expectAspect(poster, 1);
+      expect(poster.height, lessThanOrEqualTo(window.height * 0.7));
+      expect(tester.widget<Image>(find.byType(Image)).fit, BoxFit.contain);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+    testWidgets('on a phone the sheet keeps the clip\'s aspect ratio too', (tester) async {
+      const window = Size(390, 844);
+      for (final (i, size) in const [Size(1280, 720), Size(720, 1280)].indexed) {
+        video.size = size;
+        await openClip(tester, window);
+        final r = frame(tester, i);
+        expectAspect(r, size.aspectRatio);
+        expect(r.width, lessThanOrEqualTo(window.width));
+        expect(r.height, lessThanOrEqualTo(window.height * 0.6 + 0.5));
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump();
+      }
+    });
   });
 
   group('clip sheet', () {
