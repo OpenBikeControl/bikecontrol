@@ -1,5 +1,6 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -8,6 +9,7 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:video_player/video_player.dart';
 
 /// The short feature demo loops the website plays on its feature cards and
 /// pricing rows, served from bikecontrol.app. Each value is named after the
@@ -94,19 +96,22 @@ Future<void> showPaywallFeatureClip(
     if (DrawerOverlay.maybeFind(context) != null) {
       await openSheet<void>(context: context, position: OverlayPosition.bottom, builder: body);
     } else {
-      await showDialog<void>(context: context, builder: (c) => Card(child: body(c)));
+      await showDialog<void>(
+        context: context,
+        builder: (c) => Card(child: body(c)),
+      );
     }
   } catch (e, s) {
     recordError(e, s, context: 'Paywall feature clip ${clip.name}');
   }
 }
 
-/// A feature clip's sheet: its poster, and a control that plays the loop.
+/// A feature clip's sheet: its poster, then the loop playing inline.
 ///
-/// The app has no video player of its own, so the clip plays in the browser
-/// and only when the rider asks for it: nothing starts on its own, which also
-/// covers reduced motion. Nothing is fetched before the sheet opens; then only
-/// the poster.
+/// Nothing is fetched before the sheet opens. On open the poster shows while
+/// the clip loads; once ready it plays muted and looping, unless the rider asked
+/// for less motion, in which case the poster stays with a play control. If the
+/// clip can't play here, the sheet says so and offers the browser instead.
 class PaywallFeatureClipView extends StatefulWidget {
   const PaywallFeatureClipView({
     super.key,
@@ -132,18 +137,93 @@ class PaywallFeatureClipView extends StatefulWidget {
 
 class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
   late final ImageProvider _poster = widget.poster ?? NetworkImage(widget.clip.posterUrl);
+  late final VideoPlayerController _video = VideoPlayerController.networkUrl(
+    Uri.parse(widget.clip.videoUrl),
+    // Muted, and never interrupting the rider's music or the app's own audio.
+    videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+  );
   bool _posterErrorRecorded = false;
-  bool _playFailed = false;
+
+  /// The clip has loaded and the inline player owns its errors from now on.
+  bool _ready = false;
+
+  /// The rider (or autoplay) asked for playback: the video replaces the poster.
+  bool _started = false;
+
+  /// Play was tapped before the clip was ready.
+  bool _playWhenReady = false;
+
+  /// The clip can't play here: the browser is offered instead.
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _video.addListener(_onVideoChanged);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _video.removeListener(_onVideoChanged);
+    _guard(_video.dispose(), 'dispose');
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      await _video.setVolume(0);
+      await _video.setLooping(true);
+      await _video.initialize();
+      if (!mounted) return;
+      setState(() => _ready = true);
+      if (_playWhenReady || !prefersReducedMotion(context)) await _play();
+    } catch (e, s) {
+      _fail(e, s, 'load');
+    }
+  }
+
+  /// Errors while playing, after the clip has loaded.
+  void _onVideoChanged() {
+    final value = _video.value;
+    if (_ready && value.hasError) {
+      _fail(StateError(value.errorDescription ?? 'playback error'), StackTrace.current, 'play');
+    }
+  }
+
+  void _fail(Object error, StackTrace stack, String step) {
+    if (_failed) return;
+    _failed = true;
+    recordError(error, stack, context: 'Paywall feature clip ${widget.clip.name}: $step');
+    if (mounted) setState(() {});
+  }
 
   Future<void> _play() async {
-    setState(() => _playFailed = false);
+    setState(() => _started = true);
+    await _video.play();
+  }
+
+  void _toggle() {
+    if (!_ready) {
+      setState(() => _playWhenReady = true);
+    } else if (_video.value.isPlaying) {
+      _guard(_video.pause(), 'pause');
+    } else {
+      _guard(_play(), 'play');
+    }
+  }
+
+  void _guard(Future<void> future, String step) {
+    future.catchError((Object e, StackTrace s) => _fail(e, s, step));
+  }
+
+  Future<void> _openInBrowser() async {
     final url = widget.clip.videoUrl;
     try {
       final opened = await launchUrlString(url, mode: LaunchMode.externalApplication);
       if (!opened) throw StateError('No app could open $url');
     } catch (e, s) {
-      recordError(e, s, context: 'Paywall feature clip ${widget.clip.name}: play');
-      if (mounted) setState(() => _playFailed = true);
+      recordError(e, s, context: 'Paywall feature clip ${widget.clip.name}: browser');
     }
   }
 
@@ -153,10 +233,63 @@ class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
     recordError(error, stack, context: 'Paywall feature clip ${widget.clip.name}: poster');
   }
 
+  Widget _media(BuildContext context, VideoPlayerValue value) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final showVideo = _started && value.isInitialized && !_failed;
+    final loading =
+        !_failed &&
+        ((!_ready && (_playWhenReady || !prefersReducedMotion(context))) || (showVideo && value.isBuffering));
+    final playing = showVideo && value.isPlaying;
+    final control = BkTouchTarget(
+      child: playing
+          ? BkIconButton.secondary(
+              key: const ValueKey('paywall-clip-toggle'),
+              icon: const Icon(LucideIcons.pause, size: 20),
+              label: l10n.paywall_pauseClip,
+              onPressed: _toggle,
+            )
+          : BkIconButton.primary(
+              key: const ValueKey('paywall-clip-toggle'),
+              icon: const Icon(LucideIcons.play, size: 24),
+              label: l10n.paywall_playClip,
+              size: ButtonSize.large,
+              shape: ButtonShape.circle,
+              onPressed: _toggle,
+            ),
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+      child: AspectRatio(
+        aspectRatio: value.isInitialized && value.aspectRatio > 0 ? value.aspectRatio : 1,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ColoredBox(
+              color: cs.muted,
+              child: Image(
+                image: _poster,
+                fit: BoxFit.cover,
+                excludeFromSemantics: true,
+                errorBuilder: (context, e, s) {
+                  _recordPosterError(e, s);
+                  return Center(child: Icon(LucideIcons.imageOff, size: 28, color: cs.mutedForeground));
+                },
+              ),
+            ),
+            if (showVideo) ExcludeSemantics(child: VideoPlayer(_video)),
+            if (loading) const Center(child: CircularProgressIndicator(size: 28)),
+            if (!_failed && !loading)
+              playing ? Positioned(right: 4, bottom: 4, child: control) : Center(child: control),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final cs = Theme.of(context).colorScheme;
     final error = Text(
       l10n.paywall_clipLoadError,
       textAlign: TextAlign.center,
@@ -189,51 +322,21 @@ class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
           ],
         ),
         const SizedBox(height: 12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: ColoredBox(
-              color: cs.muted,
-              child: Image(
-                image: _poster,
-                fit: BoxFit.cover,
-                excludeFromSemantics: true,
-                errorBuilder: (context, e, s) {
-                  _recordPosterError(e, s);
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        spacing: 8,
-                        children: [
-                          Icon(LucideIcons.imageOff, size: 28, color: cs.mutedForeground),
-                          error,
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+        ValueListenableBuilder<VideoPlayerValue>(
+          valueListenable: _video,
+          builder: (context, value, _) => _media(context, value),
+        ),
+        if (_failed) ...[
+          const SizedBox(height: 12),
+          error,
+          const SizedBox(height: 12),
+          BkPillButton.secondary(
+            key: const ValueKey('paywall-clip-open-browser'),
+            leading: const Icon(LucideIcons.externalLink, size: 18),
+            onPressed: _openInBrowser,
+            child: Text(l10n.paywall_openClipInBrowser),
           ),
-        ),
-        const SizedBox(height: 16),
-        BkPillButton(
-          key: const ValueKey('paywall-clip-play'),
-          leading: const Icon(LucideIcons.play, size: 18),
-          trailing: const Icon(LucideIcons.externalLink, size: 16),
-          onPressed: _play,
-          child: Text(l10n.paywall_playClip),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          l10n.paywall_clipOpensInBrowser,
-          textAlign: TextAlign.center,
-          style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
-        ),
-        if (_playFailed) ...[const SizedBox(height: 8), error],
+        ],
       ],
     );
   }

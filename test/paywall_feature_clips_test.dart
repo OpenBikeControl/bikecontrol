@@ -15,11 +15,13 @@ import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/prop.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
+import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 import 'helpers/touch_targets.dart';
 import 'widget_snapshot.dart';
@@ -42,6 +44,97 @@ class _FakeUrlLauncher extends UrlLauncherPlatform {
     return result;
   }
 }
+
+/// Plays clips without a real player. [mode] decides what a new player does:
+/// report itself ready, fail to load, or stay loading.
+class _FakeVideoPlatform extends VideoPlayerPlatform {
+  _ClipLoad mode = _ClipLoad.ready;
+  final List<String> created = [];
+  final List<int> disposed = [];
+  final List<int> played = [];
+  final List<int> paused = [];
+  final Map<int, bool> looping = {};
+  final Map<int, double> volume = {};
+  final Map<int, StreamController<VideoEvent>> _events = {};
+
+  // Player ids are unique across tests, so a player released late by an
+  // earlier test never shows up here.
+  static int _instances = 0;
+  final int _base = ++_instances * 100;
+  late int _nextId = first;
+
+  /// The id the first player created gets.
+  int get first => _base + 1;
+
+  /// The players still alive.
+  Iterable<int> get live => _events.keys.where((id) => !disposed.contains(id));
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<int?> createWithOptions(VideoCreationOptions options) async {
+    final id = _nextId++;
+    created.add(options.dataSource.uri!);
+    final events = _events[id] = StreamController<VideoEvent>();
+    switch (mode) {
+      case _ClipLoad.ready:
+        events.add(
+          VideoEvent(
+            eventType: VideoEventType.initialized,
+            duration: const Duration(seconds: 6),
+            size: const Size(720, 720),
+          ),
+        );
+      case _ClipLoad.fails:
+        events.addError(PlatformException(code: 'VideoError', message: 'clip: no connection'));
+      case _ClipLoad.pending:
+        break;
+    }
+    return id;
+  }
+
+  @override
+  Stream<VideoEvent> videoEventsFor(int playerId) => _events[playerId]!.stream;
+
+  @override
+  Future<void> dispose(int playerId) async {
+    if (_events.containsKey(playerId)) disposed.add(playerId);
+  }
+
+  @override
+  Future<void> setLooping(int playerId, bool looping) async => this.looping[playerId] = looping;
+
+  @override
+  Future<void> setVolume(int playerId, double volume) async => this.volume[playerId] = volume;
+
+  @override
+  Future<void> play(int playerId) async => played.add(playerId);
+
+  @override
+  Future<void> pause(int playerId) async => paused.add(playerId);
+
+  @override
+  Future<void> setPlaybackSpeed(int playerId, double speed) async {}
+
+  @override
+  Future<void> setMixWithOthers(bool mixWithOthers) async {}
+
+  @override
+  Future<void> setPreventsDisplaySleepDuringVideoPlayback(int playerId, bool prevents) async {}
+
+  @override
+  Future<Duration> getPosition(int playerId) async => Duration.zero;
+
+  @override
+  Future<void> seekTo(int playerId, Duration position) async {}
+
+  @override
+  Widget buildViewWithOptions(VideoViewOptions options) =>
+      ColoredBox(key: ValueKey('fake-video-${options.playerId}'), color: const Color(0xFF336699));
+}
+
+enum _ClipLoad { ready, fails, pending }
 
 /// A poster that never arrives: the sheet stays on its placeholder.
 class _PendingImage extends ImageProvider<_PendingImage> {
@@ -71,12 +164,30 @@ Future<void> main() async {
   Finder inCard(Finder card, String text) => find.descendant(of: card, matching: find.text(text));
 
   late _FakeUrlLauncher launcher;
+  late _FakeVideoPlatform video;
   setUp(() {
     launcher = _FakeUrlLauncher();
     final previous = UrlLauncherPlatform.instance;
     UrlLauncherPlatform.instance = launcher;
     addTearDown(() => UrlLauncherPlatform.instance = previous);
+    video = _FakeVideoPlatform();
+    final previousVideo = VideoPlayerPlatform.instance;
+    VideoPlayerPlatform.instance = video;
+    addTearDown(() => VideoPlayerPlatform.instance = previousVideo);
   });
+
+  /// Routes recordError into a list of contexts for the test's duration.
+  List<String> captureRecordedErrors() {
+    installLoggerErrorListener();
+    final recorded = <String>[];
+    final pipeline = Logger.onRecordError;
+    Logger.onRecordError = (context, error, stack) => recorded.add(context);
+    addTearDown(() => Logger.onRecordError = pipeline);
+    return recorded;
+  }
+
+  final toggle = find.byKey(const ValueKey('paywall-clip-toggle'));
+  final openInBrowser = find.byKey(const ValueKey('paywall-clip-open-browser'));
 
   Future<AppLocalizations> pump(WidgetTester tester, {Size size = const Size(390, 2000)}) async {
     tester.view.physicalSize = size * 3.0;
@@ -198,9 +309,10 @@ Future<void> main() async {
       handle.dispose();
     });
 
-    testWidgets('tapping ▶ opens the clip sheet for that feature, nothing launched yet', (tester) async {
+    testWidgets('tapping ▶ opens the clip sheet for that feature; the clip loads only then', (tester) async {
       useTrainerApp(null);
       final l = await pump(tester);
+      expect(video.created, isEmpty, reason: 'no clip loads with the paywall');
       await tester.ensureVisible(find.byKey(const ValueKey('paywall-clip-buttonGestures')));
       await tester.tap(find.byKey(const ValueKey('paywall-clip-buttonGestures')));
       await tester.pump(const Duration(milliseconds: 600));
@@ -209,11 +321,8 @@ Future<void> main() async {
       expect(sheet, findsOneWidget);
       expect(tester.widget<PaywallFeatureClipView>(sheet).clip, PaywallFeatureClip.buttonGestures);
       expect(find.descendant(of: sheet, matching: find.text(l.paywall_configure3ActionsPerButton)), findsOneWidget);
-      expect(launcher.launched, isEmpty, reason: 'the clip only loads when asked for');
-
-      await tester.tap(find.byKey(const ValueKey('paywall-clip-play')));
-      await tester.pump();
-      expect(launcher.launched, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
+      expect(video.created, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
+      expect(launcher.launched, isEmpty, reason: 'the clip plays in the app');
     });
   });
 
@@ -246,56 +355,139 @@ Future<void> main() async {
       return AppLocalizations.of(tester.element(find.byType(PaywallFeatureClipView)));
     }
 
-    for (final reduced in [false, true]) {
-      testWidgets('shows the poster and a play control first, never autoplays (reduced motion: $reduced)', (
-        tester,
-      ) async {
-        if (reduced) {
-          tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
-            disableAnimations: true,
-            reduceMotion: true,
-          );
-          addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-        }
-        final poster = _PendingImage();
-        await pumpSheet(tester, poster: poster);
-        await tester.pump(const Duration(seconds: 2));
-        expect(find.byWidgetPredicate((w) => w is Image && w.image == poster), findsOneWidget);
-        expect(find.byKey(const ValueKey('paywall-clip-play')), findsOneWidget);
-        expect(launcher.launched, isEmpty);
-      });
+    void reduceMotion(WidgetTester tester) {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+        disableAnimations: true,
+        reduceMotion: true,
+      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     }
 
-    testWidgets('a poster that fails to load says so and is recorded', (tester) async {
-      installLoggerErrorListener();
-      final recorded = <String>[];
-      final pipeline = Logger.onRecordError;
-      Logger.onRecordError = (context, error, stack) => recorded.add(context);
-      addTearDown(() => Logger.onRecordError = pipeline);
+    /// Lets the fake player's load, the sheet's reaction and playback settle.
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 10; i++) {
+        await tester.pump();
+      }
+    }
 
-      final l = await pumpSheet(tester, poster: _FailingImage());
-      await tester.pump();
-      await tester.pump();
-      expect(find.text(l.paywall_clipLoadError), findsOneWidget);
-      expect(recorded, hasLength(1));
-      // Playing is still offered: the clip itself may load fine.
-      expect(find.byKey(const ValueKey('paywall-clip-play')), findsOneWidget);
+    Finder posterOf(ImageProvider poster) => find.byWidgetPredicate((w) => w is Image && w.image == poster);
+    Finder fakeFrame() => find.byKey(ValueKey('fake-video-${video.first}'));
+
+    testWidgets('shows the poster and a loading indicator while the clip loads', (tester) async {
+      video.mode = _ClipLoad.pending;
+      final poster = _PendingImage();
+      await pumpSheet(tester, poster: poster);
+      await tester.pump(const Duration(seconds: 1));
+      expect(posterOf(poster), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(fakeFrame(), findsNothing);
+      expect(video.played, isEmpty);
     });
 
-    testWidgets('a clip that cannot be opened says so and is recorded', (tester) async {
-      installLoggerErrorListener();
-      final recorded = <String>[];
-      final pipeline = Logger.onRecordError;
-      Logger.onRecordError = (context, error, stack) => recorded.add(context);
-      addTearDown(() => Logger.onRecordError = pipeline);
-      launcher.result = false;
-
+    testWidgets('plays the clip inline, muted and looping, once it is ready', (tester) async {
       final l = await pumpSheet(tester, poster: _PendingImage());
-      await tester.tap(find.byKey(const ValueKey('paywall-clip-play')));
-      await tester.pump();
-      await tester.pump();
+      await settle(tester);
+      expect(video.created, hasLength(1));
+      expect(video.played, [video.first]);
+      expect(video.volume[video.first], 0, reason: 'muted');
+      expect(video.looping[video.first], isTrue);
+      expect(fakeFrame(), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      // Square clip: the frame keeps the video's aspect ratio.
+      final frame = tester.getSize(fakeFrame());
+      expect(frame.width, moreOrLessEquals(frame.height, epsilon: 0.5));
+      expect(launcher.launched, isEmpty);
+
+      // A labelled pause control; tapping it pauses, tapping again plays.
+      final handle = tester.ensureSemantics();
+      expect(find.semantics.byLabel(l.paywall_pauseClip), findsOne);
+      handle.dispose();
+      final pauses = video.paused.length;
+      await tester.tap(toggle);
+      await settle(tester);
+      expect(video.paused, hasLength(pauses + 1));
+      expect(find.bySemanticsLabel(l.paywall_playClip), findsOneWidget);
+      await tester.tap(toggle);
+      await settle(tester);
+      expect(video.played, [video.first, video.first]);
+    });
+
+    testWidgets('under reduced motion shows the poster and a play control, and plays only when asked', (
+      tester,
+    ) async {
+      reduceMotion(tester);
+      final poster = _PendingImage();
+      final l = await pumpSheet(tester, poster: poster);
+      await settle(tester);
+      await tester.pump(const Duration(seconds: 2));
+      expect(video.played, isEmpty, reason: 'no autoplay under reduced motion');
+      expect(posterOf(poster), findsOneWidget);
+      expect(fakeFrame(), findsNothing);
+      expect(find.bySemanticsLabel(l.paywall_playClip), findsOneWidget);
+      expect(targetsBelowAndroidMinimum(tester, [toggle]), isEmpty);
+
+      await tester.tap(toggle);
+      await settle(tester);
+      expect(video.played, [video.first]);
+      expect(video.volume[video.first], 0);
+      expect(fakeFrame(), findsOneWidget);
+    });
+
+    testWidgets('a clip that fails to load says so, is recorded, and offers the browser', (tester) async {
+      final recorded = captureRecordedErrors();
+      video.mode = _ClipLoad.fails;
+      final l = await pumpSheet(tester, poster: _PendingImage());
+      await settle(tester);
       expect(find.text(l.paywall_clipLoadError), findsOneWidget);
       expect(recorded, hasLength(1));
+      expect(recorded.single, contains('buttonGestures'));
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(toggle, findsNothing);
+
+      expect(openInBrowser, findsOneWidget);
+      expect(find.text(l.paywall_openClipInBrowser), findsOneWidget);
+      await tester.tap(openInBrowser);
+      await tester.pump();
+      expect(launcher.launched, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
+    });
+
+    testWidgets('a browser that cannot open the clip is recorded too', (tester) async {
+      final recorded = captureRecordedErrors();
+      video.mode = _ClipLoad.fails;
+      launcher.result = false;
+      final l = await pumpSheet(tester, poster: _PendingImage());
+      await settle(tester);
+      await tester.tap(openInBrowser);
+      await settle(tester);
+      expect(find.text(l.paywall_clipLoadError), findsOneWidget);
+      expect(recorded, hasLength(2));
+    });
+
+    testWidgets('a poster that fails to load is recorded; the clip still plays', (tester) async {
+      final recorded = captureRecordedErrors();
+      await pumpSheet(tester, poster: _FailingImage());
+      await settle(tester);
+      expect(recorded, hasLength(1));
+      expect(fakeFrame(), findsOneWidget);
+      expect(openInBrowser, findsNothing);
+    });
+
+    testWidgets('closing the sheet releases the player', (tester) async {
+      await pumpSheet(tester, poster: _PendingImage());
+      await settle(tester);
+      expect(video.live, [video.first]);
+      await tester.pumpWidget(const SizedBox());
+      await settle(tester);
+      expect(video.disposed, [video.first]);
+      expect(video.live, isEmpty);
+    });
+
+    testWidgets('closing while the clip still loads releases the player too', (tester) async {
+      video.mode = _ClipLoad.pending;
+      await pumpSheet(tester, poster: _PendingImage());
+      await tester.pumpWidget(const SizedBox());
+      await settle(tester);
+      expect(video.disposed, [video.first]);
     });
   });
 }

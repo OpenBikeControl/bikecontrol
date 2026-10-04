@@ -2490,6 +2490,7 @@
   "paywall_watchClip": "Voir : {feature}",
   "@paywall_watchClip": {"placeholders": {"feature": {"type": "String"}}},
   "paywall_playClip": "Lire le clip",
-  "paywall_clipOpensInBrowser": "Le clip s'ouvre dans ton navigateur.",
+  "paywall_pauseClip": "Mettre le clip en pause",
+  "paywall_openClipInBrowser": "Ouvrir dans le navigateur",
   "paywall_clipLoadError": "Impossible de charger le clip. Vérifie ta connexion et réessaie."
 }

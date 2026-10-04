@@ -2887,6 +2887,7 @@
   "paywall_watchClip": "Watch: {feature}",
   "@paywall_watchClip": {"placeholders": {"feature": {"type": "String"}}},
   "paywall_playClip": "Play clip",
-  "paywall_clipOpensInBrowser": "The clip opens in your browser.",
+  "paywall_pauseClip": "Pause clip",
+  "paywall_openClipInBrowser": "Open in browser",
   "paywall_clipLoadError": "Couldn't load the clip. Check your connection and try again."
 }
