@@ -5,7 +5,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/help_center/help_center_page.dart';
 import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
-import 'package:bike_control/pages/markdown.dart';
+import 'package:bike_control/pages/changelog_page.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/settings/overlay_settings_page.dart';
@@ -187,11 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: LucideIcons.refreshCw,
               title: l10n.changelog,
               chevron: true,
-              onPressed: () => openDrawer(
-                context: context,
-                position: OverlayPosition.bottom,
-                builder: (c) => MarkdownPage(assetPath: 'CHANGELOG.md'),
-              ),
+              onPressed: () => _open(const ChangelogPage()),
             ),
             BkGroupedRow(
               icon: LucideIcons.star,

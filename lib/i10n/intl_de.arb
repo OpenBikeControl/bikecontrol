@@ -2469,5 +2469,14 @@
   "a11yChangeChainring": "Kettenblatt wechseln",
   "recordActivitySubtitle": "Zeichnet Leistung, Trittfrequenz und Herzfrequenz als .fit-Datei auf, die du teilen oder in andere Apps hochladen kannst.",
   "recordActivitySubtitleHealth": "Zeichnet Leistung, Trittfrequenz und Herzfrequenz auf und speichert die Fahrt in Apple Health und als .fit-Datei zum Teilen.",
-  "rideVsSettingsLink": "Einstellungen"
+  "rideVsSettingsLink": "Einstellungen",
+  "changelogKindAdded": "Neu",
+  "changelogKindImproved": "Verbessert",
+  "changelogKindFixed": "Behoben",
+  "changelogKindOther": "Änderungen",
+  "changelogYourVersion": "Deine Version",
+  "changelogEarlierVersions": "Frühere Versionen",
+  "changelogAllVersions": "Alle Versionen",
+  "changelogLoadFailed": "Die Änderungen konnten nicht geladen werden.",
+  "changelogWhatsNewSince": "Das hat sich seit deinem letzten Update geändert."
 }

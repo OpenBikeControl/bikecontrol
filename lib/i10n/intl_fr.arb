@@ -2469,5 +2469,14 @@
   "a11yChangeChainring": "Changer de plateau",
   "recordActivitySubtitle": "Enregistre puissance, cadence et fréquence cardiaque dans un fichier .fit à partager ou importer dans d'autres apps.",
   "recordActivitySubtitleHealth": "Enregistre puissance, cadence et fréquence cardiaque, et sauvegarde la sortie dans Apple Health et en fichier .fit à partager.",
-  "rideVsSettingsLink": "Réglages"
+  "rideVsSettingsLink": "Réglages",
+  "changelogKindAdded": "Nouveautés",
+  "changelogKindImproved": "Améliorations",
+  "changelogKindFixed": "Corrections",
+  "changelogKindOther": "Changements",
+  "changelogYourVersion": "Ta version",
+  "changelogEarlierVersions": "Versions précédentes",
+  "changelogAllVersions": "Toutes les versions",
+  "changelogLoadFailed": "Impossible de charger les nouveautés.",
+  "changelogWhatsNewSince": "Ce qui a changé depuis ta dernière mise à jour."
 }

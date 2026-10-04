@@ -2469,5 +2469,14 @@
   "a11yChangeChainring": "Zmień tarczę",
   "recordActivitySubtitle": "Zapisuje moc, kadencję i tętno w pliku .fit, który możesz udostępnić lub przesłać do innych aplikacji.",
   "recordActivitySubtitleHealth": "Zapisuje moc, kadencję i tętno, a jazdę zapisuje w Apple Health i jako plik .fit do udostępnienia.",
-  "rideVsSettingsLink": "Ustawienia"
+  "rideVsSettingsLink": "Ustawienia",
+  "changelogKindAdded": "Nowości",
+  "changelogKindImproved": "Ulepszenia",
+  "changelogKindFixed": "Poprawki",
+  "changelogKindOther": "Zmiany",
+  "changelogYourVersion": "Twoja wersja",
+  "changelogEarlierVersions": "Wcześniejsze wersje",
+  "changelogAllVersions": "Wszystkie wersje",
+  "changelogLoadFailed": "Nie udało się wczytać listy zmian.",
+  "changelogWhatsNewSince": "Co się zmieniło od ostatniej aktualizacji."
 }

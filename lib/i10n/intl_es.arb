@@ -2469,5 +2469,14 @@
   "a11yChangeChainring": "Cambiar de plato",
   "recordActivitySubtitle": "Graba potencia, cadencia y frecuencia cardíaca en un archivo .fit que puedes compartir o subir a otras apps.",
   "recordActivitySubtitleHealth": "Graba potencia, cadencia y frecuencia cardíaca, y guarda la sesión en Apple Health y como archivo .fit para compartir.",
-  "rideVsSettingsLink": "Ajustes"
+  "rideVsSettingsLink": "Ajustes",
+  "changelogKindAdded": "Novedades",
+  "changelogKindImproved": "Mejoras",
+  "changelogKindFixed": "Correcciones",
+  "changelogKindOther": "Cambios",
+  "changelogYourVersion": "Tu versión",
+  "changelogEarlierVersions": "Versiones anteriores",
+  "changelogAllVersions": "Todas las versiones",
+  "changelogLoadFailed": "No se pudo cargar el registro de cambios.",
+  "changelogWhatsNewSince": "Lo que ha cambiado desde tu última actualización."
 }

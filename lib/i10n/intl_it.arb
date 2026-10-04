@@ -2469,5 +2469,14 @@
   "a11yChangeChainring": "Cambia corona",
   "recordActivitySubtitle": "Registra potenza, cadenza e frequenza cardiaca in un file .fit da condividere o caricare in altre app.",
   "recordActivitySubtitleHealth": "Registra potenza, cadenza e frequenza cardiaca e salva l'uscita in Apple Health e come file .fit da condividere.",
-  "rideVsSettingsLink": "Impostazioni"
+  "rideVsSettingsLink": "Impostazioni",
+  "changelogKindAdded": "Novità",
+  "changelogKindImproved": "Miglioramenti",
+  "changelogKindFixed": "Correzioni",
+  "changelogKindOther": "Modifiche",
+  "changelogYourVersion": "La tua versione",
+  "changelogEarlierVersions": "Versioni precedenti",
+  "changelogAllVersions": "Tutte le versioni",
+  "changelogLoadFailed": "Impossibile caricare le novità.",
+  "changelogWhatsNewSince": "Cosa è cambiato dal tuo ultimo aggiornamento."
 }
