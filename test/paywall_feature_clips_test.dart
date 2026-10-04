@@ -389,6 +389,11 @@ Future<void> main() async {
       final row = tester.getRect(inCard(proCard, l.paywall_configure3ActionsPerButton));
       expect(card.top, lessThan(row.bottom));
       expect(card.bottom, greaterThan(row.top));
+      // Beside the line's ▶, not over the feature text: in a wide card the
+      // line runs the full width, so the card sits next to the ▶.
+      final play = tester.getRect(find.byKey(const ValueKey('paywall-clip-buttonGestures')));
+      expect(card.right <= play.left || card.left >= play.right, isTrue, reason: '$card vs ▶ $play');
+      expect((card.center.dx - play.center.dx).abs(), lessThan(PaywallClipPreviews.width), reason: 'next to the ▶');
       expect(launcher.launched, isEmpty);
     }, variant: desktop);
 

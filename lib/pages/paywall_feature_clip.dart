@@ -469,7 +469,13 @@ class PaywallClipPreviews {
     final lineBox = line.findRenderObject();
     final overlayBox = overlay?.context.findRenderObject();
     if (overlay == null || lineBox is! RenderBox || overlayBox is! RenderBox || !lineBox.hasSize) return;
-    final anchor = MatrixUtils.transformRect(lineBox.getTransformTo(overlayBox), Offset.zero & lineBox.size);
+    Rect rectOf(RenderBox box) => MatrixUtils.transformRect(box.getTransformTo(overlayBox), Offset.zero & box.size);
+    // Beside the line's ▶ (its end): a line can run the full width of a wide
+    // card, and the card belongs next to the ▶, not over the feature text.
+    final row = rectOf(lineBox);
+    final playBox = _playButtonOf(line)?.findRenderObject();
+    final play = playBox is RenderBox && playBox.hasSize ? rectOf(playBox) : null;
+    final anchor = play == null ? row : Rect.fromLTRB(play.left, row.top, play.right, row.bottom);
     final animate = !prefersReducedMotion(line);
     // The card is placed for where the line was: a scroll takes it away.
     _scroll = Scrollable.maybeOf(line)?.position?..addListener(hide);
@@ -496,7 +502,23 @@ class PaywallClipPreviews {
   }
 }
 
-/// Puts the card beside its line: to the right, or to the left when the
+/// The ▶ of the feature line at [line], if it has one.
+Element? _playButtonOf(BuildContext line) {
+  Element? found;
+  void visit(Element e) {
+    if (found != null) return;
+    if (e.widget is PaywallClipButton) {
+      found = e;
+      return;
+    }
+    e.visitChildElements(visit);
+  }
+
+  (line as Element).visitChildElements(visit);
+  return found;
+}
+
+/// Puts the card beside its line's ▶: to the right, or to the left when the
 /// window has no room there, and always inside the window.
 class _PreviewPlacement extends SingleChildLayoutDelegate {
   _PreviewPlacement(this.anchor);
