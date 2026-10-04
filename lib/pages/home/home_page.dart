@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
+import 'package:bike_control/utils/trainer_connect.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -1493,6 +1494,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } else {
       statusLabel = l.notConnected;
     }
+    // A trainer that is here but not connected — nearby, or lost — connects
+    // from its row, the way the trainer sheet connects it; tapping the row
+    // still opens the sheet with the rest.
+    final offersConnect =
+        proxy != null &&
+        !bridged &&
+        !connecting &&
+        !proxy.isConnected &&
+        !proxy.isStarting.value &&
+        (statusLabel == l.notConnected || link.status == LinkStatus.problem);
 
     final activeStep = link.activeStep;
     final offersOverlay = activeStep?.id == SetupStepId.trainerGearOverlay;
@@ -1518,6 +1529,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Until a trainer is actually bridged there is nothing to open — the
       // useful offer is to connect it, the same way onboarding does.
       onTap: () => _openTrainer(proxy, bridged: bridged),
+      action: offersConnect
+          ? (
+              label: l.connect,
+              icon: LucideIcons.plug,
+              onPressed: () async {
+                await connectTrainerFromPicker(context, proxy);
+                _update();
+              },
+            )
+          : null,
       onInstructions: () => _openInstructions(link),
       // The overlay step is an offer, not a puzzle: its button turns the thing
       // on rather than explaining how it works. And while the step is

@@ -6,6 +6,7 @@ import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -48,6 +49,7 @@ class ChainLinkRow extends StatefulWidget {
     this.secondaryActionLabel,
     this.onOffer,
     this.offerLabel,
+    this.action,
     this.body,
     this.footer,
     this.highlight,
@@ -92,6 +94,10 @@ class ChainLinkRow extends StatefulWidget {
   /// with nothing to offer.
   final ValueChanged<SetupStep>? onOffer;
   final String? Function(SetupStep step)? offerLabel;
+
+  /// The row's one direct action, under its name — "Connect" on a trainer
+  /// that is nearby but not connected — for a row with no steps to carry it.
+  final ({String label, IconData? icon, VoidCallback onPressed})? action;
 
   /// Live content under the row: the trainer's numbers, the sensor chips.
   final Widget? body;
@@ -152,6 +158,22 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
       mainAxisSize: MainAxisSize.min,
       children: [
         _header(context),
+        if (widget.action case final action?)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(chainRowTextInset, 0, BkGroupedSection.inset, 12),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: BkTouchTarget(
+                child: PrimaryButton(
+                  alignment: Alignment.center,
+                  size: ButtonSize.small,
+                  onPressed: action.onPressed,
+                  leading: action.icon == null ? null : Icon(action.icon, size: 14),
+                  child: Text(action.label),
+                ),
+              ),
+            ),
+          ),
         if (widget.body case final body?) ...[
           const BkGroupedDivider(indent: chainRowTextInset),
           Padding(

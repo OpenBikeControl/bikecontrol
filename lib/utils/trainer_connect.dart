@@ -7,6 +7,10 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel, RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Stands in for [connectTrainerFromPicker] in tests.
+@visibleForTesting
+Future<bool> Function(BuildContext context, ProxyDevice device)? debugConnectTrainerOverride;
+
 /// Connects a smart trainer the way the onboarding wizard does: pick it from a
 /// list, and it bridges over WiFi.
 ///
@@ -16,6 +20,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 ///
 /// Returns true when a connect was actually started.
 Future<bool> connectTrainerFromPicker(BuildContext context, ProxyDevice device) async {
+  if (debugConnectTrainerOverride case final override?) return override(context, device);
   try {
     if (device.isStartedListenable.value || device.isStarting.value || device.isConnectedListenable.value) {
       return false;

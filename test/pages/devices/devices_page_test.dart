@@ -16,6 +16,7 @@ import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
+import 'package:bike_control/utils/trainer_connect.dart' show debugConnectTrainerOverride;
 import 'package:bike_control/widgets/devices/chain_link_row.dart';
 import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
 import 'package:bike_control/widgets/scan.dart';
@@ -178,6 +179,31 @@ Future<void> main() async {
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(ProxyDeviceDetailsPage), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('nearby but not connected: Connect right on the row', (tester) async {
+      final proxy = ProxyDevice(
+        BleDevice(
+          name: 'KICKR CORE',
+          deviceId: 'devices-kickr-nearby',
+          services: [FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID],
+        ),
+      );
+      core.connection.devices.add(proxy);
+      final picked = <ProxyDevice>[];
+      debugConnectTrainerOverride = (_, device) async {
+        picked.add(device);
+        return true;
+      };
+      addTearDown(() => debugConnectTrainerOverride = null);
+      await _pumpDevices(tester);
+
+      expect(_inRow(ChainLinkKey.trainer, find.text(l.notConnected)), findsOneWidget);
+      final connect = _inRow(ChainLinkKey.trainer, find.widgetWithText(PrimaryButton, l.connect));
+      expect(connect, findsOneWidget);
+      await tester.tap(connect);
+      await tester.pump();
+      expect(picked, [proxy]);
     });
 
     testWidgets('none: an invitation to connect one', (tester) async {
