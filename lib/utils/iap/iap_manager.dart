@@ -4,14 +4,18 @@ import 'dart:io';
 import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
+import 'package:bike_control/models/entitlement.dart';
+import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/pages/paywall.dart';
 import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
 import 'package:bike_control/services/device_identity_service.dart';
 import 'package:bike_control/services/device_management_service.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
+import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -24,6 +28,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 enum SubscriptionPlan {
   monthly,
   yearly,
+}
+
+/// Where this build sells and restores purchases.
+enum PurchaseChannel {
+  appStore,
+  macAppStore,
+  playStore,
+  microsoftStore,
+
+  /// The Windows download from the website: Stripe, behind a sign-in.
+  windowsDirect,
+
+  /// No purchases here (the web, tests).
+  none;
+
+  /// "Restore purchases" asks the store; only the app stores can answer.
+  bool get canRestore => this == appStore || this == macAppStore || this == playStore;
 }
 
 /// Unified IAP manager that handles platform-specific IAP services.
@@ -57,6 +78,14 @@ class IAPManager {
 
   ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);
   ValueNotifier<bool> isLocalPro = ValueNotifier<bool>(false);
+
+  /// The store's own record of the Pro subscription on this device (iOS,
+  /// Android, macOS): whether it renews, a billing issue, a trial. Null where
+  /// the store has none, e.g. Pro bought on another platform.
+  final ValueNotifier<SubscriptionTerm?> storeTerm = ValueNotifier<SubscriptionTerm?>(null);
+
+  /// The store's page for managing subscriptions, when it gave one.
+  String? storeManagementUrl;
 
   IAPManager._();
 
@@ -139,6 +168,46 @@ class IAPManager {
       isPurchased.value &&
       ((_revenueCatService?.hasPurchasedBefore50 ?? false) || (_windowsIapService?.hasPurchasedBefore50 ?? false));
 
+  /// The current Pro period, from the store when it knows (it says whether
+  /// the subscription renews), else from the account's entitlement, which
+  /// carries only the date. Null without an active subscription.
+  SubscriptionTerm? get subscriptionTerm {
+    if (!hasActiveSubscription) return null;
+    final fromStore = storeTerm.value;
+    if (fromStore != null) return fromStore;
+    Entitlement? latest;
+    for (final e in entitlements.current) {
+      if (!e.isActive || (e.productKey != premiumMonthlyProductKey && e.productKey != premiumYearlyProductKey)) {
+        continue;
+      }
+      if (latest == null || (e.activeUntil?.isAfter(latest.activeUntil ?? DateTime(0)) ?? false)) latest = e;
+    }
+    return latest == null ? null : SubscriptionTerm.fromEntitlement(latest);
+  }
+
+  /// Test-only: stage the store's record of the subscription.
+  @visibleForTesting
+  void setSubscriptionTermForTesting(SubscriptionTerm? term) => storeTerm.value = term;
+
+  /// Where this build sells and restores purchases.
+  PurchaseChannel get purchaseChannel {
+    if (kIsWeb) return PurchaseChannel.none;
+    if (_purchaseChannelForTesting case final channel?) return channel;
+    if (isUsingRevenueCat) {
+      if (HostPlatform.isIOS) return PurchaseChannel.appStore;
+      if (HostPlatform.isMacOS) return PurchaseChannel.macAppStore;
+      if (HostPlatform.isAndroid) return PurchaseChannel.playStore;
+    }
+    if (isWindows) return isOutsideStoreWindowsBuild ? PurchaseChannel.windowsDirect : PurchaseChannel.microsoftStore;
+    return PurchaseChannel.none;
+  }
+
+  PurchaseChannel? _purchaseChannelForTesting;
+
+  /// Test-only: stage the build's purchase channel (null restores the real one).
+  @visibleForTesting
+  set purchaseChannelForTesting(PurchaseChannel? channel) => _purchaseChannelForTesting = channel;
+
   DateTime? get premiumActiveUntil =>
       entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
 
@@ -168,6 +237,8 @@ class IAPManager {
           prefs,
           isPurchasedNotifier: isPurchased,
           isProNotifier: isLocalPro,
+          termNotifier: storeTerm,
+          onManagementUrl: (url) => storeManagementUrl = url,
           getDailyCommandLimit: () => dailyCommandLimit,
           setDailyCommandLimit: (limit) => dailyCommandLimit = limit,
           entitlementsService: entitlements,
@@ -303,38 +374,26 @@ class IAPManager {
 
   /// Get a status message for the user.
   String getStatusMessage() {
-    final activeUntil = premiumActiveUntil;
-    final expiryInfo = activeUntil != null ? '\nexpires at ${_formatDate(activeUntil)}' : '';
-
+    final l10n = AppLocalizations.current;
     if (kIsWeb) {
       return "Web";
     } else if (isProEnabledForCurrentDevice) {
-      return 'Pro$expiryInfo';
+      final term = subscriptionTerm;
+      return (term == null ? null : subscriptionTermLine(l10n, term)) ?? 'Pro';
     } else if (isProEnabled) {
-      return 'Pro (unregistered device)$expiryInfo';
+      return l10n.proNotOnThisDevice;
     } else if (isPurchased.value) {
-      return AppLocalizations.current.fullVersion;
+      return l10n.fullVersion;
     } else if (isOutsideStoreWindowsBuild) {
-      return AppLocalizations.current.trialExpired(dailyCommandLimit);
+      return l10n.trialExpired(dailyCommandLimit);
     } else if (!hasTrialStarted) {
-      return AppLocalizations.current.trialDaysAvailable(
+      return l10n.trialDaysAvailable(
         _revenueCatService?.trialDaysRemaining ?? _windowsIapService?.trialDaysRemaining ?? 0,
       );
     } else if (!isTrialExpired) {
-      return AppLocalizations.current.trialDaysRemaining(trialDaysRemaining);
+      return l10n.trialDaysRemaining(trialDaysRemaining);
     } else {
-      return AppLocalizations.current.commandsRemainingToday(commandsRemainingToday, dailyCommandLimit);
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    final local = date.toLocal();
-    // when today return full time, otherwise just date
-    final now = DateTime.now();
-    if (local.year == now.year && local.month == now.month && local.day == now.day) {
-      return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-    } else {
-      return '${local.day.toString().padLeft(2, '0')}.${local.month.toString().padLeft(2, '0')}.${local.year}';
+      return l10n.commandsRemainingToday(commandsRemainingToday, dailyCommandLimit);
     }
   }
 
@@ -408,12 +467,15 @@ class IAPManager {
     );
   }
 
-  /// Restore previous purchases.
-  Future<void> restorePurchases() async {
+  /// Restore previous purchases. Resolves to whether the store found a
+  /// purchase (Base or Pro); throws when the store could not be asked.
+  Future<bool> restorePurchases() async {
+    var restored = false;
     if (_revenueCatService != null) {
-      await _revenueCatService!.restorePurchases();
-    } else if (_windowsIapService != null) {}
+      restored = await _revenueCatService!.restorePurchases();
+    }
     _syncPurchaseFlagFromEntitlements();
+    return restored;
   }
 
   /// Check if RevenueCat is being used.
@@ -428,11 +490,12 @@ class IAPManager {
   /// Check if user is logged in (Windows Stripe requires this)
   bool get isWindowsLoggedIn => _windowsIapService?.isLoggedIn ?? false;
 
-  /// Open Stripe Billing Portal (Windows only)
+  /// Opens where the subscription is managed: the store's subscription
+  /// settings (iOS, Android, macOS) or the Stripe billing portal (Windows).
   /// Returns false if user has no Stripe customer (should hide button)
   Future<bool> openBillingPortal(BuildContext context) async {
     if (_revenueCatService != null) {
-      return _revenueCatService!.openBillingPortal(context);
+      return _revenueCatService!.openBillingPortal(context, managementUrl: storeManagementUrl);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.openBillingPortal(context);
     } else {

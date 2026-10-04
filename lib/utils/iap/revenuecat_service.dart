@@ -5,6 +5,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/analytics/campaign_attributes.dart';
 import 'package:bike_control/utils/analytics/install_referrer_reporter.dart';
@@ -19,6 +20,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:version/version.dart';
 
 /// RevenueCat-based IAP service for iOS, macOS, and Android
@@ -56,6 +58,13 @@ class RevenueCatService {
   final FlutterSecureStorage _prefs;
   final ValueNotifier<bool> isPurchasedNotifier;
   final ValueNotifier<bool> isProNotifier;
+
+  /// The store's record of the Pro subscription (renewal, billing issue,
+  /// trial), null without one.
+  final ValueNotifier<SubscriptionTerm?>? termNotifier;
+
+  /// Receives the store's subscription-management page.
+  final void Function(String? url)? onManagementUrl;
   final int Function() getDailyCommandLimit;
   final void Function(int limit) setDailyCommandLimit;
   final EntitlementsService entitlementsService;
@@ -73,6 +82,8 @@ class RevenueCatService {
     this._prefs, {
     required this.isPurchasedNotifier,
     required this.isProNotifier,
+    this.termNotifier,
+    this.onManagementUrl,
     required this.getDailyCommandLimit,
     required this.setDailyCommandLimit,
     required this.entitlementsService,
@@ -218,7 +229,10 @@ class RevenueCatService {
     core.connection.signalNotification(LogNotification('User ID: $userId at ${customerInfo.requestDate}'));
     core.connection.signalNotification(LogNotification('Full Version entitlement: ${fullVersionEntitlements != null}'));
 
-    isProNotifier.value = customerInfo.entitlements.active.containsKey(proVersionEntitlement);
+    final pro = customerInfo.entitlements.active[proVersionEntitlement];
+    isProNotifier.value = pro != null;
+    termNotifier?.value = pro == null ? null : SubscriptionTerm.fromRevenueCat(pro);
+    onManagementUrl?.call(customerInfo.managementURL);
 
     if (fullVersionEntitlements == null) {
       // purchased before IAP migration
@@ -278,27 +292,27 @@ class RevenueCatService {
     }
   }
 
-  /// Restore previous purchases
-  Future<void> restorePurchases() async {
+  /// Restore previous purchases. Says the outcome in a toast and resolves to
+  /// whether a purchase (Base or Pro) was found; rethrows when the store
+  /// could not be asked.
+  Future<bool> restorePurchases() async {
     try {
       final customerInfo = await Purchases.restorePurchases();
-      final result = await _handleCustomerInfoUpdate(customerInfo);
+      final purchased = await _handleCustomerInfoUpdate(customerInfo);
       await refreshEntitlementsWithRetry();
-
-      if (result) {
-        core.connection.signalNotification(
-          AlertNotification(zp.LogLevel.LOGLEVEL_INFO, 'Purchase restored'),
-        );
-      }
-    } catch (e, s) {
+      final restored = purchased || isProNotifier.value;
       core.connection.signalNotification(
         AlertNotification(
-          zp.LogLevel.LOGLEVEL_ERROR,
-          'There was an error restoring purchases. Please try again.',
+          zp.LogLevel.LOGLEVEL_INFO,
+          restored ? AppLocalizations.current.restorePurchasesDone : AppLocalizations.current.restorePurchasesNone,
         ),
       );
+      return restored;
+    } catch (e, s) {
+      core.connection.signalNotification(
+        AlertNotification(zp.LogLevel.LOGLEVEL_ERROR, AppLocalizations.current.restorePurchasesFailed),
+      );
       recordError(e, s, context: 'Restore Purchases');
-      debugPrint('Error restoring purchases: $e');
       rethrow;
     }
   }
@@ -601,7 +615,16 @@ class RevenueCatService {
     await logInWithSupabaseUserId(session.user.id, performSync: false);
   }
 
-  Future<bool> openBillingPortal(BuildContext context) async {
+  /// The Mac App Store's subscription settings, when the store gave no page.
+  static const String macSubscriptionsUrl = 'https://apps.apple.com/account/subscriptions';
+
+  Future<bool> openBillingPortal(BuildContext context, {String? managementUrl}) async {
+    if (Platform.isMacOS) {
+      // RevenueCat's customer center is not available on macOS: open the Mac
+      // App Store's subscription settings instead.
+      await launchUrlString(managementUrl ?? macSubscriptionsUrl, mode: LaunchMode.externalApplication);
+      return true;
+    }
     await RevenueCatUI.presentCustomerCenter();
     return true;
   }
