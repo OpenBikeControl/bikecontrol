@@ -991,7 +991,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Bridge-Testzeit ist vorbei",
-  "bridgeTrialTimeOverBody": "Du hast die 20 Minuten virtuelles Schalten durch BikeControl für heute aufgebraucht. Das ist eine Pro-Funktion – der Kauf der Basis-Version erweitert sie nicht. Ohne Pro lässt du deine Trainer-App schalten: Kopple den Trainer direkt in der App, und BikeControl sendet deine Schalttasten.",
+  "bridgeTrialTimeOverBody": "Du hast die 20 Minuten Virtual Shifting von BikeControl für heute aufgebraucht. Das ist eine Pro-Funktion, die der Kauf der Basis-Version nicht enthält. Ohne Pro übernimmt deine Trainer-App das Virtual Shifting: Kopple den Trainer direkt in der App, und BikeControl sendet deine Schalttasten.",
   "connect": "Verbinden",
   "smartTrainerAndAccessories": "Smart-Trainer & Zubehör",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} unterstützt das noch nicht",
@@ -1006,14 +1006,6 @@
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
-        "type": "String"
-      }
-    }
-  },
-  "virtualShiftingProNote": "Virtuelles Schalten ist eine Pro-Funktion – du kannst aber alle Einstellungen in BikeControl ausprobieren. Die Verbindung in {trainerApp} ist auf 20 Min pro Tag begrenzt, damit du siehst, wie es funktioniert.",
-  "@virtualShiftingProNote": {
-    "placeholders": {
-      "trainerApp": {
         "type": "String"
       }
     }
@@ -1203,7 +1195,7 @@
   "onboardingHelpControllerTitle": "Mein Controller taucht nicht auf",
   "onboardingHelpControllerBody": "Wecke ihn mit einem Tastendruck, schließe jede App, die ihn schon belegt (vor allem Zwift), und halte ihn ein paar Meter in der Nähe.",
   "onboardingHelpVsTitle": "Brauche ich einen Smart Trainer?",
-  "onboardingHelpVsBody": "Nein — dieser Schritt ist optional. Verbinde einen nur, wenn BikeControl deine Gänge und den Widerstand berechnen soll. Das ist das Virtual Shifting von BikeControl, Teil von Pro: Ohne Pro kannst du es täglich testen, Basis enthält es nicht.",
+  "onboardingHelpVsBody": "Nein — dieser Schritt ist optional. Verbinde einen nur, wenn BikeControl deine Gänge und den Widerstand berechnen soll. Das ist das Virtual Shifting von BikeControl, Teil von Pro. Ohne Pro übernimmt deine Trainer-App das Virtual Shifting.",
   "onboardingHelpConnectionTitle": "Es verbindet sich nicht",
   "onboardingHelpConnectionBody": "Prüfe für Netzwerk, ob beide Geräte im selben WLAN sind, oder aktiviere Lokal als Alternative unter macOS, Windows und Android.",
   "onboardingHelpDoneTitle": "Was sind die Grenzen der Testphase?",
@@ -1855,7 +1847,7 @@
   "faqStillTrialQ": "Ich habe bezahlt, aber die App zeigt weiterhin Testphase oder Basis",
   "faqStillTrialA": "Pro braucht zwei Dinge: dass du mit demselben BikeControl-Konto angemeldet bist, mit dem du abonniert hast, und dass dieses Gerät unter „Abonnement verwalten“ → „Registrierte Geräte“ registriert ist (jede Plattform hat ihr eigenes Gerätelimit). Der einmalige Kauf der Basisversion braucht dagegen nur dasselbe Store-Konto, mit dem du gekauft hast – nutze „Käufe wiederherstellen“ auf dem Bezahlbildschirm. Unter Windows außerhalb des Microsoft Store gekauft? Das läuft über Stripe statt über den Store – melde dich stattdessen mit demselben BikeControl-Konto an, mit dem du bezahlt hast; „Käufe wiederherstellen“ findet dort nichts.",
   "faqTrialQ": "Warum ist virtuelles Schalten auf 20 Minuten begrenzt?",
-  "faqTrialA": "Das ist die Testzeit von Pro: Ohne Abonnement bekommst du 20 Minuten virtuelles Schalten in deiner Trainings-App pro Tag – sie wird täglich zurückgesetzt, nicht pro Fahrt. So kannst du vor dem Bezahlen prüfen, ob virtuelles Schalten mit genau deinem Trainer und deiner Trainings-App wirklich funktioniert. Mit Pro gibt es kein Limit.",
+  "faqTrialA": "Ohne Abonnement läuft das Virtual Shifting von BikeControl 20 Minuten pro Tag – das wird täglich zurückgesetzt, nicht pro Fahrt. Ohne Pro übernimmt stattdessen deine Trainer-App das Virtual Shifting. Mit Pro hat das Virtual Shifting von BikeControl kein Limit.",
   "faqGrandfatherQ": "Ich habe die App gekauft, bevor es das Abo gab. Was behalte ich?",
   "faqGrandfatherA": "Alles, was der einmalige Kauf enthielt, behältst du für immer – unbegrenzte Befehle, einfaches Button-Mapping, die Verbindung deiner Controller. Virtuelles Schalten (die Verbindung deines Smart Trainers mit BikeControl) war schon immer Teil von Pro, auch für frühe Käufe, und ist deshalb nicht automatisch enthalten.",
   "faqRefundQ": "Kann ich eine Rückerstattung bekommen?",
@@ -2114,7 +2106,6 @@
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
   "paywall_shiftInYourApp": "Schalten & Lenken in deiner Trainer-App (die App schaltet)",
   "paywall_bikeControlShifts": "BikeControl schaltet deinen Trainer selbst – eigene Gänge, vorne schalten, jeder Trainer",
-  "paywall_twentyMinPerDay": "20 Min/Tag",
   "paywall_baseStoreNote": "Einmalkauf für die {store}-Version. Er gilt nicht in anderen Stores oder auf anderen Plattformen – Pro schon.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "Direktdownload",
@@ -2292,11 +2283,19 @@
   "onboardingTrialKeepVs": "Virtual Shifting behalten: Pro",
   "onboardingTrialUnlimited": "Unbegrenzte Befehle: Basis oder Pro",
   "onboardingSkipControllerNote": "Ohne Controller kann BikeControl nicht schalten. Du kannst später über den Startbildschirm einen koppeln.",
-  "onboardingVsProNote": "Das Virtual Shifting von BikeControl ist Teil von Pro. Ohne Pro kannst du es jeden Tag {minutes} Minuten testen; Basis enthält es nicht.",
   "onboardingStillNotConnected": "Immer noch nicht verbunden? Teste dein Netzwerk",
   "paywall_vsByBikeControl": "Virtual Shifting von BikeControl (jeder Trainer, eigene Gänge)",
   "paywall_shareSensors": "Herzfrequenz & Sensoren mit deiner Trainings-App teilen",
-  "paywall_vsTrialFootnote": "Ohne Pro kannst du das Virtual Shifting von BikeControl {minutes} Min. pro Tag testen.",
+  "vsWithoutProNote": "Ohne Pro übernimmt {app} das Virtual Shifting, und dir fehlen die Vorteile von BikeControl Pro: knackige Gangwechsel, direkte Kontrolle, virtueller Umwerfer und volle Anpassbarkeit.",
+  "@vsWithoutProNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsWithoutProNoteYourApp": "Ohne Pro übernimmt deine Trainer-App das Virtual Shifting, und dir fehlen die Vorteile von BikeControl Pro: knackige Gangwechsel, direkte Kontrolle, virtueller Umwerfer und volle Anpassbarkeit.",
+  "vsWithoutProLearnMore": "Mehr erfahren ›",
   "paywall_startProYearly": "Pro jährlich starten",
   "paywall_startProMonthly": "Pro monatlich starten",
   "paywall_buyBase": "Basis kaufen",

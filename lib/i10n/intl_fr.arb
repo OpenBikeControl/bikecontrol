@@ -980,7 +980,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Temps d'essai du Bridge écoulé",
-  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 minutes de changement de vitesses virtuel par BikeControl pour aujourd'hui. C'est une fonction Pro – l'achat de Base ne l'étend pas. Sans Pro, laisse ton appli d'entraînement passer les vitesses : associe le home trainer directement dans l'appli et BikeControl envoie tes boutons de vitesse.",
+  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 minutes de vitesses virtuelles BikeControl pour aujourd'hui. C'est une fonction Pro, que l'achat de Base n'inclut pas. Sans Pro, ton appli d'entraînement gère les vitesses virtuelles : associe le home trainer directement dans l'appli et BikeControl envoie tes boutons de vitesse.",
   "connect": "Connecter",
   "smartTrainerAndAccessories": "Home trainer & accessoires",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} ne le prend pas encore en charge",
@@ -995,14 +995,6 @@
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
-        "type": "String"
-      }
-    }
-  },
-  "virtualShiftingProNote": "Le changement de vitesses virtuel est une fonctionnalité Pro, mais tu peux tester tous les réglages dans BikeControl. La connexion dans {trainerApp} est limitée à 20 min par jour pour que tu puisses voir comment ça marche.",
-  "@virtualShiftingProNote": {
-    "placeholders": {
-      "trainerApp": {
         "type": "String"
       }
     }
@@ -1192,7 +1184,7 @@
   "onboardingHelpControllerTitle": "Ma commande n'apparaît pas",
   "onboardingHelpControllerBody": "Réveille-la avec un appui, ferme toute app qui la retient déjà (Zwift surtout) et garde-la à deux mètres.",
   "onboardingHelpVsTitle": "Ai-je besoin d'un home-trainer connecté ?",
-  "onboardingHelpVsBody": "Non — cette étape est facultative. Connecte-en un seulement si tu veux que BikeControl calcule tes vitesses et la résistance. Ce sont les vitesses virtuelles de BikeControl, incluses dans Pro : sans Pro, tu as un essai quotidien, et Base ne les inclut pas.",
+  "onboardingHelpVsBody": "Non — cette étape est facultative. Connecte-en un seulement si tu veux que BikeControl calcule tes vitesses et la résistance. Ce sont les vitesses virtuelles de BikeControl, incluses dans Pro. Sans Pro, ton appli d'entraînement gère les vitesses virtuelles.",
   "onboardingHelpConnectionTitle": "Ça ne se connecte pas",
   "onboardingHelpConnectionBody": "Pour Réseau, vérifie que les deux appareils sont sur le même Wi-Fi, ou active Local comme solution de repli sur macOS, Windows et Android.",
   "onboardingHelpDoneTitle": "Quelles sont les limites de l'essai ?",
@@ -1844,7 +1836,7 @@
   "faqStillTrialQ": "J'ai payé, mais l'appli affiche toujours Essai ou Basique",
   "faqStillTrialA": "Pro a besoin de deux choses : que tu sois connecté avec le même compte BikeControl que celui utilisé pour l'abonnement, et que cet appareil soit enregistré dans Gérer mon abonnement → Appareils enregistrés (chaque plateforme a sa propre limite d'appareils). L'achat unique de la version de base, lui, a juste besoin du même compte store que celui utilisé pour l'achat — utilise Restaurer les achats sur l'écran de paiement. Acheté sur Windows en dehors du Microsoft Store ? Ça passe par Stripe, pas par le store — connecte-toi plutôt avec le même compte BikeControl que celui utilisé au paiement ; Restaurer les achats ne le trouvera pas.",
   "faqTrialQ": "Pourquoi le changement de vitesses virtuel est-il limité à 20 minutes ?",
-  "faqTrialA": "C'est l'essai de Pro : sans abonnement, tu as 20 minutes de changement de vitesses virtuel dans ton appli d'entraînement par jour — ça se réinitialise chaque jour, pas à chaque sortie. Ça te permet de vérifier que le changement de vitesses virtuel fonctionne vraiment avec ton home-trainer et ton appli d'entraînement avant de payer. Avec Pro, il n'y a pas de limite.",
+  "faqTrialA": "Sans abonnement, les vitesses virtuelles de BikeControl fonctionnent 20 minutes par jour — ça se réinitialise chaque jour, pas à chaque sortie. Sans Pro, c'est ton appli d'entraînement qui gère les vitesses virtuelles. Avec Pro, les vitesses virtuelles de BikeControl n'ont pas de limite.",
   "faqGrandfatherQ": "J'ai acheté l'appli avant que l'abonnement existe. Qu'est-ce que je garde ?",
   "faqGrandfatherA": "Tout ce que l'achat unique incluait, tu le gardes pour toujours — commandes illimitées, mapping de boutons basique, connexion de tes contrôleurs. Le changement de vitesses virtuel (la connexion de ton Smart Trainer à BikeControl) a toujours fait partie de Pro, même pour les achats anciens, donc il n'est pas inclus automatiquement.",
   "faqRefundQ": "Puis-je obtenir un remboursement ?",
@@ -2112,7 +2104,6 @@
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
   "paywall_shiftInYourApp": "Changer de vitesse et diriger dans ton appli d'entraînement (c'est l'appli qui passe les vitesses)",
   "paywall_bikeControlShifts": "BikeControl passe lui-même les vitesses de ton home trainer – vitesses personnalisées, plateau avant, tout home trainer",
-  "paywall_twentyMinPerDay": "20 min/jour",
   "paywall_baseStoreNote": "Achat unique pour la version {store}. Il n'est pas transférable vers d'autres stores ou plateformes – Pro l'est.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "téléchargement direct",
@@ -2292,11 +2283,19 @@
   "onboardingTrialKeepVs": "Pour garder les vitesses virtuelles : Pro",
   "onboardingTrialUnlimited": "Pour des commandes illimitées : Base ou Pro",
   "onboardingSkipControllerNote": "Sans commande, BikeControl ne peut pas passer les vitesses. Tu pourras en associer une plus tard depuis l'écran d'accueil.",
-  "onboardingVsProNote": "Les vitesses virtuelles de BikeControl font partie de Pro. Sans Pro, tu as un essai de {minutes} minutes chaque jour ; Base ne les inclut pas.",
   "onboardingStillNotConnected": "Toujours pas connecté ? Teste ton réseau",
   "paywall_vsByBikeControl": "Vitesses virtuelles par BikeControl (tout home-trainer, vitesses personnalisées)",
   "paywall_shareSensors": "Partage fréquence cardiaque et capteurs avec ton app d'entraînement",
-  "paywall_vsTrialFootnote": "Sans Pro, tu peux essayer les vitesses virtuelles de BikeControl {minutes} min par jour.",
+  "vsWithoutProNote": "Sans Pro, {app} gère les vitesses virtuelles et tu perds les avantages de BikeControl Pro : changements de vitesse réactifs, contrôle direct, dérailleur avant virtuel et personnalisation complète.",
+  "@vsWithoutProNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsWithoutProNoteYourApp": "Sans Pro, ton appli d'entraînement gère les vitesses virtuelles et tu perds les avantages de BikeControl Pro : changements de vitesse réactifs, contrôle direct, dérailleur avant virtuel et personnalisation complète.",
+  "vsWithoutProLearnMore": "En savoir plus ›",
   "paywall_startProYearly": "Démarrer Pro annuel",
   "paywall_startProMonthly": "Démarrer Pro mensuel",
   "paywall_buyBase": "Acheter Base",

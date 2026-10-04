@@ -3,13 +3,13 @@
 // "20 min/day" cell for it — a trial of a Pro feature, drawn as if Base had
 // some of it. So:
 // - virtual shifting leads the Pro card, the Base card doesn't list it, and
-//   the daily trial is a footnote under both plans;
+//   a footnote under both plans says the trainer app shifts without Pro;
 // - each purchase button says which plan it buys.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/paywall.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/plan/vs_without_pro_note.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,7 +69,6 @@ Future<void> main() async {
     final commands = tester.getRect(inCard(proCard, l.paywall_amountOfActions));
     expect(vs.top, lessThan(commands.top), reason: 'the line that decides the plan comes first');
     expect(inCard(baseCard, l.paywall_vsByBikeControl), findsNothing, reason: 'Base does not include virtual shifting');
-    expect(find.text(l.paywall_twentyMinPerDay), findsNothing);
 
     // Unlimited button commands and shifting in the trainer app are in both.
     for (final card in [proCard, baseCard]) {
@@ -78,9 +77,12 @@ Future<void> main() async {
       expect(inCard(card, l.paywall_shiftInYourApp), findsOneWidget);
     }
 
-    final minutes = '${core.bridgeUsageTracker.dailyLimit.inMinutes}';
-    final footnote = find.text(l.paywall_vsTrialFootnote(minutes));
+    // Under both plans: without Pro the trainer app does the shifting, and
+    // what Pro adds, with the post comparing the two.
+    final footnote = find.byType(VsWithoutProNote);
     expect(footnote, findsOneWidget);
+    expect(find.descendant(of: footnote, matching: find.text(l.vsWithoutProNoteYourApp)), findsOneWidget);
+    expect(find.descendant(of: footnote, matching: find.text(l.vsWithoutProLearnMore)), findsOneWidget);
     expect(tester.getRect(footnote).top, greaterThan(tester.getRect(baseCard).bottom), reason: 'under both plans');
   });
 

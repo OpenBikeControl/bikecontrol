@@ -131,7 +131,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Bridge trial time is over",
-  "bridgeTrialTimeOverBody": "You've used today's 20 minutes of BikeControl-driven virtual shifting. This is a Pro feature — the Base purchase doesn't extend it. Without Pro, let your trainer app do the shifting: pair the trainer directly in the app and BikeControl sends your shift buttons.",
+  "bridgeTrialTimeOverBody": "You've used today's 20 minutes of BikeControl's virtual shifting. It's a Pro feature, and the Base purchase doesn't include it. Without Pro, your trainer app handles virtual shifting: pair the trainer directly in the app and BikeControl sends your shift buttons.",
   "bluetoothKeyboardExplanation": "This will allow you to use your phone as a Bluetooth keyboard to control compatible apps. Once paired, you can use the buttons on your bike controller to send keyboard inputs to the app.",
   "bluetoothTurnedOn": "Bluetooth turned on",
   "bluetoothPermissionRequired": "Allow Bluetooth for BikeControl",
@@ -620,7 +620,7 @@
   "onboardingHelpControllerTitle": "My controller isn't showing up",
   "onboardingHelpControllerBody": "Wake it with a button press, close any app already holding it (Zwift especially), and keep it within a couple of metres.",
   "onboardingHelpVsTitle": "Do I need a smart trainer?",
-  "onboardingHelpVsBody": "No — this step is optional. Connect one only if you want BikeControl to compute your gears and resistance. That's BikeControl's virtual shifting, part of Pro: without Pro you get a daily trial, and Base doesn't include it.",
+  "onboardingHelpVsBody": "No — this step is optional. Connect one only if you want BikeControl to compute your gears and resistance. That's BikeControl's virtual shifting, part of Pro. Without Pro, your trainer app handles virtual shifting.",
   "onboardingHelpConnectionTitle": "It won't connect",
   "onboardingHelpConnectionBody": "Check both devices are on the same Wi-Fi for Network, or enable Local as a fallback on macOS, Windows and Android.",
   "onboardingHelpDoneTitle": "What are the trial limits?",
@@ -1171,14 +1171,6 @@
     }
   },
   "viewDetailedInstructions": "View Detailed Instructions",
-  "virtualShiftingProNote": "Virtual shifting is a Pro feature - but you can test all settings within BikeControl. Connecting it in {trainerApp} is limited to 20 min per day, so you're able to see how it works.",
-  "@virtualShiftingProNote": {
-    "placeholders": {
-      "trainerApp": {
-        "type": "String"
-      }
-    }
-  },
   "volumeDown": "Volume Down",
   "volumeUp": "Volume Up",
   "waiting": "Waiting...",
@@ -2213,7 +2205,7 @@
   "faqStillTrialQ": "I paid, but the app still shows Trial or Basic",
   "faqStillTrialA": "Pro needs two things: being logged into the same BikeControl account you subscribed with, and this device registered under Manage Subscription → Registered Devices (each platform has its own device limit). A one-time Base purchase instead just needs the same store account you bought it with — use Restore Purchases on the paywall screen. Bought on Windows outside the Microsoft Store? That's Stripe, not the store, so log into the same BikeControl account you checked out with instead — Restore Purchases won't find it there.",
   "faqTrialQ": "Why is virtual shifting limited to 20 minutes?",
-  "faqTrialA": "That's the Pro trial: without a subscription you get 20 minutes of virtual shifting in your trainer app per day — it resets daily, not per ride. It's there so you can confirm virtual shifting actually works with your specific trainer and trainer app before you pay for it. With Pro there's no limit.",
+  "faqTrialA": "Without a subscription, BikeControl's own virtual shifting runs 20 minutes a day — it resets daily, not per ride. Without Pro, your trainer app handles virtual shifting instead. With Pro, BikeControl's virtual shifting has no limit.",
   "faqGrandfatherQ": "I bought the app before the subscription existed. What do I keep?",
   "faqGrandfatherA": "Everything the one-time purchase included, you keep forever — unlimited commands, basic button mapping, connecting your controllers. Virtual shifting (connecting your Smart Trainer to BikeControl) was always part of Pro, even for early purchases, so it isn't included automatically.",
   "faqRefundQ": "Can I get a refund?",
@@ -2296,7 +2288,6 @@
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
   "paywall_shiftInYourApp": "Shift & steer in your trainer app (the app does the shifting)",
   "paywall_bikeControlShifts": "BikeControl shifts your trainer itself — custom gears, front shifting, any trainer",
-  "paywall_twentyMinPerDay": "20 min/day",
   "paywall_baseStoreNote": "One-time purchase for the {store} version. It doesn't transfer to other stores or platforms — Pro does.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "direct download",
@@ -2656,11 +2647,19 @@
   "onboardingTrialKeepVs": "To keep virtual shifting: Pro",
   "onboardingTrialUnlimited": "For unlimited commands: Base or Pro",
   "onboardingSkipControllerNote": "BikeControl can't shift without a controller. You can pair one later from the home screen.",
-  "onboardingVsProNote": "BikeControl's virtual shifting is part of Pro. Without Pro you get a {minutes}-minute trial every day; Base doesn't include it.",
   "onboardingStillNotConnected": "Still not connected? Test your network",
   "paywall_vsByBikeControl": "Virtual shifting by BikeControl (any trainer, custom gears)",
   "paywall_shareSensors": "Share heart rate & sensors with your trainer app",
-  "paywall_vsTrialFootnote": "Without Pro, you can try BikeControl's virtual shifting for {minutes} min a day.",
+  "vsWithoutProNote": "Without Pro, {app} handles virtual shifting and you lose the advantages BikeControl Pro offers: snappy gear changes, direct control, virtual front derailleur and full customization.",
+  "@vsWithoutProNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsWithoutProNoteYourApp": "Without Pro, your trainer app handles virtual shifting and you lose the advantages BikeControl Pro offers: snappy gear changes, direct control, virtual front derailleur and full customization.",
+  "vsWithoutProLearnMore": "Learn more ›",
   "paywall_startProYearly": "Start Pro yearly",
   "paywall_startProMonthly": "Start Pro monthly",
   "paywall_buyBase": "Buy Base",

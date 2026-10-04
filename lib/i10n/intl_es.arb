@@ -980,7 +980,7 @@
     }
   },
   "bridgeTrialTimeOverTitle": "Tiempo de prueba del Bridge agotado",
-  "bridgeTrialTimeOverBody": "Has usado los 20 minutos de hoy de cambio de marchas virtual por BikeControl. Es una función Pro; la compra de Base no la amplía. Sin Pro, deja que tu app de entrenamiento haga el cambio: empareja el rodillo directamente en la app y BikeControl envía tus botones de cambio.",
+  "bridgeTrialTimeOverBody": "Has usado los 20 minutos de hoy del cambio virtual de BikeControl. Es una función Pro, y la compra de Base no la incluye. Sin Pro, tu app de entrenamiento se encarga del cambio virtual: empareja el rodillo directamente en la app y BikeControl envía tus botones de cambio.",
   "connect": "Conectar",
   "smartTrainerAndAccessories": "Smart trainer y accesorios",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} todavía no admite esto",
@@ -995,14 +995,6 @@
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
-        "type": "String"
-      }
-    }
-  },
-  "virtualShiftingProNote": "El cambio de marchas virtual es una función Pro, pero puedes probar todos los ajustes dentro de BikeControl. Conectarlo en {trainerApp} está limitado a 20 min al día, para que veas cómo funciona.",
-  "@virtualShiftingProNote": {
-    "placeholders": {
-      "trainerApp": {
         "type": "String"
       }
     }
@@ -1192,7 +1184,7 @@
   "onboardingHelpControllerTitle": "Mi mando no aparece",
   "onboardingHelpControllerBody": "Despiértalo pulsando un botón, cierra cualquier app que ya lo tenga ocupado (sobre todo Zwift) y mantenlo a un par de metros.",
   "onboardingHelpVsTitle": "¿Necesito un rodillo inteligente?",
-  "onboardingHelpVsBody": "No: este paso es opcional. Conéctalo solo si quieres que BikeControl calcule tus marchas y la resistencia. Eso es el cambio virtual de BikeControl, parte de Pro: sin Pro tienes una prueba diaria, y Base no lo incluye.",
+  "onboardingHelpVsBody": "No: este paso es opcional. Conéctalo solo si quieres que BikeControl calcule tus marchas y la resistencia. Eso es el cambio virtual de BikeControl, parte de Pro. Sin Pro, tu app de entrenamiento se encarga del cambio virtual.",
   "onboardingHelpConnectionTitle": "No se conecta",
   "onboardingHelpConnectionBody": "Para Red, comprueba que ambos dispositivos están en el mismo wifi, o activa Local como alternativa en macOS, Windows y Android.",
   "onboardingHelpDoneTitle": "¿Cuáles son los límites de la prueba?",
@@ -1844,7 +1836,7 @@
   "faqStillTrialQ": "Pagué, pero la app sigue mostrando Prueba o Básica",
   "faqStillTrialA": "Pro necesita dos cosas: que hayas iniciado sesión con la misma cuenta de BikeControl con la que te suscribiste, y que este dispositivo esté registrado en Gestionar suscripción → Dispositivos registrados (cada plataforma tiene su propio límite de dispositivos). La compra única de la versión básica, en cambio, solo necesita la misma cuenta de la tienda con la que compraste — usa Restaurar compras en la pantalla de pago. ¿La compraste en Windows fuera de la Microsoft Store? Eso pasa por Stripe, no por la tienda — inicia sesión ahí con la misma cuenta de BikeControl con la que pagaste; Restaurar compras no la encontrará.",
   "faqTrialQ": "¿Por qué el cambio de marchas virtual está limitado a 20 minutos?",
-  "faqTrialA": "Esa es la prueba de Pro: sin suscripción tienes 20 minutos de cambio de marchas virtual en tu app de entrenamiento al día, y se reinicia cada día, no por salida. Así puedes comprobar que el cambio de marchas virtual realmente funciona con tu rodillo y tu app de entrenamiento antes de pagar. Con Pro no hay límite.",
+  "faqTrialA": "Sin suscripción, el cambio virtual de BikeControl funciona 20 minutos al día; se reinicia cada día, no por salida. Sin Pro, tu app de entrenamiento se encarga del cambio virtual. Con Pro, el cambio virtual de BikeControl no tiene límite.",
   "faqGrandfatherQ": "Compré la app antes de que existiera la suscripción. ¿Qué conservo?",
   "faqGrandfatherA": "Todo lo que incluía el pago único lo conservas para siempre: comandos ilimitados, asignación básica de botones, conexión de tus controladores. El cambio de marchas virtual (conectar tu Smart Trainer a BikeControl) siempre fue parte de Pro, incluso para compras antiguas, así que no está incluido automáticamente.",
   "faqRefundQ": "¿Puedo pedir un reembolso?",
@@ -2112,7 +2104,6 @@
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
   "paywall_shiftInYourApp": "Cambia de marcha y dirige en tu app de entrenamiento (la app hace el cambio)",
   "paywall_bikeControlShifts": "BikeControl cambia las marchas de tu rodillo por sí mismo: marchas personalizadas, cambio delantero, cualquier rodillo",
-  "paywall_twentyMinPerDay": "20 min/día",
   "paywall_baseStoreNote": "Compra única para la versión de {store}. No se transfiere a otras tiendas ni plataformas; Pro sí.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "descarga directa",
@@ -2292,11 +2283,19 @@
   "onboardingTrialKeepVs": "Para seguir con el cambio virtual: Pro",
   "onboardingTrialUnlimited": "Para comandos ilimitados: Base o Pro",
   "onboardingSkipControllerNote": "Sin mando, BikeControl no puede cambiar de marcha. Puedes emparejar uno más tarde desde la pantalla de inicio.",
-  "onboardingVsProNote": "El cambio virtual de BikeControl forma parte de Pro. Sin Pro tienes una prueba de {minutes} minutos cada día; Base no lo incluye.",
   "onboardingStillNotConnected": "¿Sigue sin conectar? Prueba tu red",
   "paywall_vsByBikeControl": "Cambio virtual de BikeControl (cualquier rodillo, marchas personalizadas)",
   "paywall_shareSensors": "Comparte frecuencia cardiaca y sensores con tu app de entrenamiento",
-  "paywall_vsTrialFootnote": "Sin Pro, puedes probar el cambio virtual de BikeControl {minutes} min al día.",
+  "vsWithoutProNote": "Sin Pro, {app} se encarga del cambio virtual y pierdes las ventajas de BikeControl Pro: cambios de marcha ágiles, control directo, desviador delantero virtual y personalización total.",
+  "@vsWithoutProNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsWithoutProNoteYourApp": "Sin Pro, tu app de entrenamiento se encarga del cambio virtual y pierdes las ventajas de BikeControl Pro: cambios de marcha ágiles, control directo, desviador delantero virtual y personalización total.",
+  "vsWithoutProLearnMore": "Más información ›",
   "paywall_startProYearly": "Empezar Pro anual",
   "paywall_startProMonthly": "Empezar Pro mensual",
   "paywall_buyBase": "Comprar Base",

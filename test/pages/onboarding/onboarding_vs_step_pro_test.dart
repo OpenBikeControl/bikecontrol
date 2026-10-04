@@ -1,14 +1,13 @@
 // The virtual-shifting step pitched BikeControl's virtual shifting without
 // ever saying it is part of Pro — riders found out from the paywall after
 // they had set it up. The step now carries the PRO badge and one honest line
-// above the trainer list.
+// above the trainer list: without Pro the trainer app shifts, and what Pro adds.
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
-import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -22,7 +21,11 @@ import '../../widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  testWidgets('the step says virtual shifting is Pro, with the trial and Base spelled out', (tester) async {
+  testWidgets('the step says virtual shifting is Pro and what the trainer app does without it', (tester) async {
+    // The harness stages store screenshots, which keep app names generic.
+    final wasScreenshotMode = screenshotMode;
+    screenshotMode = false;
+    addTearDown(() => screenshotMode = wasScreenshotMode);
     await tester.pumpWidget(
       ShadcnApp(
         debugShowCheckedModeBanner: false,
@@ -50,7 +53,9 @@ Future<void> main() async {
     final l = AppLocalizations.of(tester.element(find.byType(Scaffold)));
 
     expect(find.byType(ProBadge), findsOneWidget);
-    expect(find.text(l.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}')), findsOneWidget);
+    // Without Pro the trainer app shifts; the note names it and links the post.
+    expect(find.text(l.vsWithoutProNote('MyWhoosh')), findsOneWidget);
+    expect(find.byKey(const ValueKey('vs-without-pro-learn-more')), findsOneWidget);
   });
 
   // A found trainer read like a line of the explanation. It is a device card

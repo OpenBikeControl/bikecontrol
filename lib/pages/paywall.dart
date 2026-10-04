@@ -18,6 +18,7 @@ import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/plan/vs_without_pro_note.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -558,7 +559,6 @@ class _PaywallState extends State<Paywall> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final cs = Theme.of(context).colorScheme;
     final ownsBase = _iapManager.isPurchased.value && !_iapManager.isProEnabled;
     return Container(
       constraints: const BoxConstraints(maxWidth: 500),
@@ -593,15 +593,11 @@ class _PaywallState extends State<Paywall> {
               _buildProCard(context),
               // A Base owner still sees what Base covers, marked as theirs.
               if (!_iapManager.isPurchased.value || ownsBase) _buildBaseCard(context, owned: ownsBase),
-              // The daily allowance is a trial of Pro's virtual shifting, so
-              // it sits under both plans, not on Base's card.
+              // Without Pro the trainer app does the shifting; what Pro adds
+              // on top concerns both plans, so it sits under both.
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                child: Text(
-                  l10n.paywall_vsTrialFootnote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
-                  textAlign: TextAlign.center,
-                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
-                ),
+                child: VsWithoutProNote(app: core.settings.getTrainerApp()),
               ),
               Column(
                 children: [

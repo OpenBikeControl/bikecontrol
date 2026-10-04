@@ -8,13 +8,12 @@ import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
-import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/plan/vs_without_pro_note.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 bool onboardingTrainerBridged(List<ProxyDevice> trainers) => trainers.any((t) => t.isBridged);
 
@@ -97,9 +96,7 @@ Widget onboardingTrainerBody(BuildContext context,
       Gap(6),
       Button.ghost(
         style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-        onPressed: () => launchUrlString(
-            'https://bikecontrol.app/blog/virtual-shifting-with-and-without-bikecontrol/',
-            mode: LaunchMode.externalApplication),
+        onPressed: () => openVsBlogPost(context),
         child: Row(children: [
           Icon(LucideIcons.bookOpen, size: 15),
           Gap(8),
@@ -160,8 +157,9 @@ Widget onboardingTrainerBody(BuildContext context,
       _NearbyTrainers(trainers: trainers, onPick: onPick, onRescan: onRescan),
       Gap(16),
       OnboardingNote(
-        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        vsWithoutProText(context, app),
         icon: LucideIcons.award,
+        action: const VsWithoutProLearnMore(alignStart: true),
       ),
       Gap(14),
       const VirtualShiftingStage(),
@@ -171,15 +169,16 @@ Widget onboardingTrainerBody(BuildContext context,
       const VirtualShiftingStage(),
       Gap(14),
       OnboardingNote(
-        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        vsWithoutProText(context, app),
         icon: LucideIcons.award,
+        action: const VsWithoutProLearnMore(alignStart: true),
       ),
       Gap(10),
       _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
     ],
     Gap(10),
     Button.ghost(
-      onPressed: () => launchUrlString('https://bikecontrol.app/blog/virtual-shifting-with-and-without-bikecontrol/', mode: LaunchMode.externalApplication),
+      onPressed: () => openVsBlogPost(context),
       child: Row(children: [
         Icon(LucideIcons.bookOpen, size: 15),
         Gap(8),

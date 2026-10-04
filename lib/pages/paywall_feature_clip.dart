@@ -280,7 +280,9 @@ class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
             if (showVideo) ExcludeSemantics(child: VideoPlayer(_video)),
             if (loading) const Center(child: CircularProgressIndicator(size: 28)),
             if (!_failed && !loading)
-              playing ? Positioned(right: 4, bottom: 4, child: control) : Center(child: control),
+              // The clips burn their caption into the bottom of the frame:
+              // while playing, pause sits top-right, clear of it.
+              playing ? Positioned(right: 4, top: 4, child: control) : Center(child: control),
           ],
         ),
       ),

@@ -398,6 +398,15 @@ Future<void> main() async {
       expect(frame.width, moreOrLessEquals(frame.height, epsilon: 0.5));
       expect(launcher.launched, isEmpty);
 
+      // The clips burn their caption into the bottom of the frame, so the
+      // pause control sits in the top-right corner, clear of it, at 48dp.
+      final clipRect = tester.getRect(fakeFrame());
+      final pause = tester.getRect(toggle);
+      expect(pause.top, lessThan(clipRect.top + clipRect.height * 0.25), reason: 'top of the clip, not over the caption');
+      expect(pause.right, greaterThan(clipRect.right - clipRect.width * 0.25), reason: 'right-hand corner');
+      expect(pause.width, greaterThanOrEqualTo(47.5));
+      expect(pause.height, greaterThanOrEqualTo(47.5));
+
       // A labelled pause control; tapping it pauses, tapping again plays.
       final handle = tester.ensureSemantics();
       expect(find.semantics.byLabel(l.paywall_pauseClip), findsOne);

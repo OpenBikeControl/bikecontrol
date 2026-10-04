@@ -3,9 +3,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The design's info strip: icon + text on a brand-tinted wash.
 class OnboardingNote extends StatelessWidget {
-  const OnboardingNote(this.text, {super.key, this.icon = LucideIcons.info});
+  const OnboardingNote(this.text, {super.key, this.icon = LucideIcons.info, this.action});
   final String text;
   final IconData icon;
+
+  /// A link under the text, lined up with it.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +22,11 @@ class OnboardingNote extends StatelessWidget {
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(icon, size: 15, color: onboardingAccent(context)),
         Gap(9),
-        Expanded(child: Text(text).xSmall),
+        Expanded(
+          child: action == null
+              ? Text(text).xSmall
+              : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(text).xSmall, action!]),
+        ),
       ]),
     );
   }
