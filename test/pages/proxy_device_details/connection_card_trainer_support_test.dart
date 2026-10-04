@@ -105,37 +105,46 @@ Future<void> main() async {
     expect(find.textContaining('Choose BikeControl in the connection screen'), findsNothing);
   });
 
-  testWidgets('connecting keeps the bridge accordion and shows no "Connecting in … mode" card', (tester) async {
+  testWidgets('connecting keeps the choice on screen and shows no "Connecting in … mode" card', (tester) async {
     final device = smartTrainer();
     await pumpCard(tester, device);
 
     device.isStarting.value = true;
     await tester.pump();
 
-    // The bridge accordion view must remain — progress is shown inline (a spinner
-    // in the status icon), not by swapping the whole card for a placeholder.
-    expect(find.byType(AccordionItem), findsOneWidget);
+    // Progress is shown inline (a spinner in the status icon), not by
+    // swapping the whole card for a placeholder.
+    expect(find.text('Virtual Shifting'), findsOneWidget);
     expect(find.textContaining('Connecting in'), findsNothing);
   });
 
-  testWidgets('accordion stays expanded after connecting from the picker', (tester) async {
+  // The choice used to sit in an accordion that started collapsed once the
+  // trainer was connected. It is the card: always open, nothing to expand.
+  testWidgets('the connection choice is always open, connected or not', (tester) async {
     final device = smartTrainer();
     await pumpCard(tester, device);
 
-    // Disconnected: the picker is expanded so the options are visible.
-    expect(tester.widget<AccordionItem>(find.byType(AccordionItem)).expanded, isTrue);
+    expect(find.byType(Accordion), findsNothing);
+    for (final label in ['Virtual Shifting', 'Proxy', 'No connection']) {
+      expect(find.text(label), findsOneWidget, reason: label);
+    }
 
-    // Simulate the connect transition: a brief "connecting" state (which tears
-    // the accordion down) followed by a connected state.
     device.isConnected = true;
+    device.setRetrofitMode(RetrofitMode.wifi);
     device.isStarting.value = true;
     await tester.pump();
     device.isStarting.value = false;
     await tester.pump();
 
-    // Connected, but the picker must remain expanded (not collapse to the
-    // bridge-status summary) — it was opened by the user to connect.
-    expect(tester.widget<AccordionItem>(find.byType(AccordionItem)).expanded, isTrue);
+    expect(find.byType(Accordion), findsNothing);
+    for (final label in ['Virtual Shifting', 'Proxy', 'No connection']) {
+      expect(find.text(label), findsOneWidget, reason: label);
+    }
+    // The selected Virtual Shifting row opens its own options: the transport.
+    expect(find.text('WiFi'), findsOneWidget);
+    device.isConnected = false;
+    device.setRetrofitMode(RetrofitMode.proxy);
+    await tester.pumpWidget(const SizedBox());
   });
 
   // Reproduces the proxy_device_details Column reconciliation: on (dis)connect,
@@ -176,7 +185,7 @@ Future<void> main() async {
     expect(identical(before, after), isFalse);
   });
 
-  testWidgets('keyed ConnectionCard is reused across the reflow → accordion state survives (the fix)', (tester) async {
+  testWidgets('keyed ConnectionCard is reused across the reflow → its state survives (the fix)', (tester) async {
     final connected = ValueNotifier(true);
     await tester.pumpWidget(
       reflowHarness(cardKey: const ValueKey('connection-card'), connected: connected, device: powerMeter()),

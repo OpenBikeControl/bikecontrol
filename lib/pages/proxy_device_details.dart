@@ -143,7 +143,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 // the protocol and health cards below) appear/disappear on
                 // (dis)connect — an unkeyed widget trapped between two
                 // toggling siblings lands in the reconciliation middle and is
-                // re-inflated, which would reset ConnectionCard's accordion.
+                // re-inflated, which would reset ConnectionCard's state.
                 ConnectionCard(key: const ValueKey('connection-card'), device: device),
                 SizedBox(height: 12),
               ],
