@@ -1,4 +1,5 @@
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart'
     show StepRow, chainCardFooterKey, chainCardHighlightKey, chainCardSubtitleKey;
@@ -194,16 +195,25 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       for (final (index, step) in pending.indexed)
+                        // A standby controller's steps are all offers: none
+                        // is "the next thing to do", so none is highlighted,
+                        // and the first keeps its fix as a quiet button.
                         StepRow(
                           step: step,
-                          active: index == 0,
+                          active: index == 0 && !link.standby,
                           appName: widget.appName,
                           onInstructions: index == 0 ? widget.onInstructions : null,
                           instructionsLabel: widget.instructionsLabel,
                           onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
                           secondaryActionLabel: widget.secondaryActionLabel,
-                          onOffer: widget.onOffer == null ? null : () => widget.onOffer!(step),
-                          offerLabel: widget.offerLabel?.call(step),
+                          onOffer: link.standby
+                              ? (index == 0 ? widget.onInstructions : null)
+                              : widget.onOffer == null
+                              ? null
+                              : () => widget.onOffer!(step),
+                          offerLabel: link.standby
+                              ? (index == 0 ? widget.instructionsLabel ?? context.i18n.chainShowMeHow : null)
+                              : widget.offerLabel?.call(step),
                         ),
                     ],
                   ),

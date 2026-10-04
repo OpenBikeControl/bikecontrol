@@ -413,6 +413,17 @@ class _ChangelogInlineTextState extends State<ChangelogInlineText> {
     }
   }
 
+  /// A bare URL as a readable link: its host and first path segment
+  /// ("bikecontrol.app/blog/…") — the whole address opens on tap.
+  static String _shortUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.host.isEmpty) return url;
+    final host = uri.host.replaceFirst(RegExp(r'^www\.'), '');
+    final segments = uri.pathSegments.where((p) => p.isNotEmpty).toList();
+    if (segments.isEmpty) return host;
+    return segments.length == 1 ? '$host/${segments.first}' : '$host/${segments.first}/…';
+  }
+
   @override
   Widget build(BuildContext context) {
     _disposeRecognizers();
@@ -430,7 +441,7 @@ class _ChangelogInlineTextState extends State<ChangelogInlineText> {
       if (m.start > index) spans.add(TextSpan(text: text.substring(index, m.start)));
       if (m.group(1) != null || m.group(5) != null) {
         final url = m.group(2) ?? m.group(5)!;
-        final label = m.group(1) ?? url.replaceFirst(RegExp(r'^https?://(www\.)?'), '');
+        final label = m.group(1) ?? _shortUrl(url);
         final recognizer = TapGestureRecognizer()..onTap = () => _open(url);
         _recognizers.add(recognizer);
         spans.add(TextSpan(text: label, style: link, recognizer: recognizer));

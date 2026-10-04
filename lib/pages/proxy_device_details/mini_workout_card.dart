@@ -12,6 +12,8 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart' show RideSectionHeader;
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -102,11 +104,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        RideSectionHeader(
-          title: l10n.miniWorkout,
-          linkLabel: l10n.miniWorkoutPastWorkouts,
-          onLink: _openPast,
-        ),
+        RideSectionHeader(title: l10n.miniWorkout),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -150,9 +148,27 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           const Gap(14),
           BkPillButton(
             key: const ValueKey('record-activity-start'),
-            leading: Icon(LucideIcons.circleDot, size: 18, color: cs.primaryForeground),
             onPressed: _start,
-            child: Text(l10n.miniWorkoutStart),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                Icon(LucideIcons.circleDot, size: 18, color: cs.primaryForeground),
+                Text(l10n.miniWorkoutStart),
+              ],
+            ),
+          ),
+          const Gap(4),
+          BkTouchTarget(
+            child: Button.ghost(
+              key: const ValueKey('record-activity-past'),
+              alignment: Alignment.center,
+              onPressed: _openPast,
+              child: Text(
+                l10n.miniWorkoutPastWorkouts,
+                style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+              ),
+            ),
           ),
         ],
       );
