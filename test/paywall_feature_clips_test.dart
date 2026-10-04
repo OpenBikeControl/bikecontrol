@@ -15,6 +15,7 @@ import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/prop.dart' show Logger;
@@ -171,6 +172,7 @@ Future<void> main() async {
     UrlLauncherPlatform.instance = launcher;
     addTearDown(() => UrlLauncherPlatform.instance = previous);
     video = _FakeVideoPlatform();
+    PaywallClipPreviews.debugResetRecordedErrors();
     final previousVideo = VideoPlayerPlatform.instance;
     VideoPlayerPlatform.instance = video;
     addTearDown(() => VideoPlayerPlatform.instance = previousVideo);
@@ -326,6 +328,212 @@ Future<void> main() async {
     });
   });
 
+  group('hover preview (desktop)', () {
+    final desktop = TargetPlatformVariant.only(TargetPlatform.macOS);
+    final preview = find.byKey(const ValueKey('paywall-clip-preview'));
+
+    Future<AppLocalizations> pumpDesktop(WidgetTester tester, {Size size = const Size(1280, 1400)}) async {
+      useTrainerApp(null);
+      return pump(tester, size: size);
+    }
+
+    /// A mouse that starts outside the window's content.
+    Future<TestGesture> mouse(WidgetTester tester) async {
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await gesture.addPointer(location: Offset.zero);
+      addTearDown(gesture.removePointer);
+      return gesture;
+    }
+
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 10; i++) {
+        await tester.pump();
+      }
+    }
+
+    Finder frameIn(Finder scope, int id) =>
+        find.descendant(of: scope, matching: find.byKey(ValueKey('fake-video-$id')));
+
+    testWidgets('hovering a clip line plays a muted looping preview after a short delay', (tester) async {
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(preview, findsNothing, reason: 'hover intent: nothing before the delay');
+      expect(video.created, isEmpty);
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(preview, findsOneWidget);
+      // The poster shows straight away, before the clip is ready.
+      expect(find.descendant(of: preview, matching: find.byType(Image)), findsOneWidget);
+      await settle(tester);
+      expect(video.created, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
+      expect(video.played, [video.first]);
+      expect(video.volume[video.first], 0, reason: 'muted');
+      expect(video.looping[video.first], isTrue);
+      expect(frameIn(preview, video.first), findsOneWidget);
+      // Square clip: the card keeps the clip's aspect ratio.
+      final frame = tester.getSize(frameIn(preview, video.first));
+      expect(frame.width, moreOrLessEquals(frame.height, epsilon: 0.5));
+      expect(frame.width, inInclusiveRange(200, 280));
+
+      // Inside the window, beside its line.
+      final card = tester.getRect(preview);
+      final window = Offset.zero & tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(window.contains(card.topLeft) && window.contains(card.bottomRight), isTrue, reason: '$card in $window');
+      final row = tester.getRect(inCard(proCard, l.paywall_configure3ActionsPerButton));
+      expect(card.top, lessThan(row.bottom));
+      expect(card.bottom, greaterThan(row.top));
+      expect(launcher.launched, isEmpty);
+    }, variant: desktop);
+
+    testWidgets('a quick pass over a line loads nothing', (tester) async {
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_shareSensors)));
+      await tester.pump(const Duration(milliseconds: 150));
+      await gesture.moveTo(Offset.zero);
+      await tester.pump(const Duration(seconds: 1));
+      await settle(tester);
+      expect(preview, findsNothing);
+      expect(video.created, isEmpty);
+    }, variant: desktop);
+
+    testWidgets('moving between lines keeps one preview and releases the last one', (tester) async {
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_shareSensors)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(video.live, [video.first]);
+
+      // Sweeping across lines on the way starts nothing.
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_startAnyCommandShortcutWithAnyButton)));
+      await tester.pump(const Duration(milliseconds: 100));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_controlYourDeviceMusic)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(preview, findsOneWidget);
+      expect(video.created, [
+        'https://bikecontrol.app/videos/features/heartRate.mp4',
+        'https://bikecontrol.app/videos/features/music.mp4',
+      ]);
+      expect(video.disposed, [video.first]);
+      expect(video.live, [video.first + 1]);
+      expect(frameIn(preview, video.first + 1), findsOneWidget);
+    }, variant: desktop);
+
+    testWidgets('the preview stays while the pointer moves onto it and goes once it leaves', (tester) async {
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      await gesture.moveTo(tester.getCenter(preview));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(preview, findsOneWidget, reason: 'moving onto the preview keeps it');
+
+      await gesture.moveTo(Offset.zero);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(preview, findsOneWidget, reason: 'a short grace before it hides');
+      await tester.pump(const Duration(milliseconds: 100));
+      await settle(tester);
+      expect(preview, findsNothing);
+      expect(video.disposed, [video.first]);
+      expect(video.live, isEmpty);
+    }, variant: desktop);
+
+    testWidgets('clicking ▶ still opens the clip sheet, and the preview goes', (tester) async {
+      await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      final play = find.byKey(const ValueKey('paywall-clip-buttonGestures'));
+      await gesture.moveTo(tester.getCenter(play));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(preview, findsOneWidget);
+      await gesture.down(tester.getCenter(play));
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 600));
+      await settle(tester);
+      expect(find.byType(PaywallFeatureClipView), findsOneWidget);
+      expect(preview, findsNothing);
+      expect(video.live, hasLength(1), reason: 'only the sheet plays');
+    }, variant: desktop);
+
+    testWidgets('under reduced motion the preview shows the poster only', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+        disableAnimations: true,
+        reduceMotion: true,
+      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(preview, findsOneWidget);
+      expect(find.descendant(of: preview, matching: find.byType(Image)), findsOneWidget);
+      expect(video.created, isEmpty);
+      expect(video.played, isEmpty);
+    }, variant: desktop);
+
+    testWidgets('a clip that fails falls back to its poster and is recorded once', (tester) async {
+      final recorded = captureRecordedErrors();
+      video.mode = _ClipLoad.fails;
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      final line = tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton));
+      for (var i = 0; i < 2; i++) {
+        await gesture.moveTo(line);
+        await tester.pump(const Duration(milliseconds: 400));
+        await settle(tester);
+        expect(preview, findsOneWidget);
+        expect(find.descendant(of: preview, matching: find.byType(Image)), findsOneWidget);
+        expect(find.text(l.paywall_clipLoadError), findsNothing, reason: 'silent in the preview');
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        await gesture.moveTo(Offset.zero);
+        await tester.pump(const Duration(milliseconds: 400));
+        await settle(tester);
+      }
+      expect(video.created, hasLength(2));
+      final clipErrors = recorded.where((c) => c.startsWith('Paywall feature clip'));
+      expect(clipErrors, hasLength(1));
+      expect(clipErrors.single, contains('buttonGestures'));
+    }, variant: desktop);
+
+    testWidgets('a line near the bottom of the window keeps its preview inside it', (tester) async {
+      const window = Size(1280, 460);
+      final l = await pumpDesktop(tester, size: window);
+      final line = inCard(proCard, l.paywall_createScreenshots);
+      // Scroll the line to the bottom edge of the window.
+      unawaited(Scrollable.ensureVisible(tester.element(line), alignment: 1.0));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      // Too close to the bottom for a card centred on the line.
+      expect(tester.getCenter(line).dy + PaywallClipPreviews.width / 2, greaterThan(window.height));
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(line));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(preview, findsOneWidget);
+      final card = tester.getRect(preview);
+      expect(card.top, greaterThanOrEqualTo(0));
+      expect(card.bottom, lessThanOrEqualTo(window.height));
+      expect(card.left, greaterThanOrEqualTo(0));
+      expect(card.right, lessThanOrEqualTo(window.width));
+    }, variant: desktop);
+
+    testWidgets('touch platforms show no preview', (tester) async {
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await tester.pump(const Duration(seconds: 1));
+      await settle(tester);
+      expect(preview, findsNothing);
+      expect(video.created, isEmpty);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+  });
+
   group('clip sheet', () {
     Future<AppLocalizations> pumpSheet(WidgetTester tester, {required ImageProvider poster}) async {
       tester.view.physicalSize = const Size(390, 844) * 3.0;
@@ -402,7 +610,11 @@ Future<void> main() async {
       // pause control sits in the top-right corner, clear of it, at 48dp.
       final clipRect = tester.getRect(fakeFrame());
       final pause = tester.getRect(toggle);
-      expect(pause.top, lessThan(clipRect.top + clipRect.height * 0.25), reason: 'top of the clip, not over the caption');
+      expect(
+        pause.top,
+        lessThan(clipRect.top + clipRect.height * 0.25),
+        reason: 'top of the clip, not over the caption',
+      );
       expect(pause.right, greaterThan(clipRect.right - clipRect.width * 0.25), reason: 'right-hand corner');
       expect(pause.width, greaterThanOrEqualTo(47.5));
       expect(pause.height, greaterThanOrEqualTo(47.5));

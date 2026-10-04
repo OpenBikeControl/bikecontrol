@@ -190,6 +190,9 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
+  // Hovering a clip line on desktop previews its clip beside it.
+  late final _clipPreviews = PaywallClipPreviews(poster: widget.debugClipPoster);
+
   // Unlimited button commands opens the list (it has no demo clip, so the
   // clip rows run together below it). Next, the line riders bought the wrong
   // plan over: BikeControl shifting the trainer itself is Pro. Base covers
@@ -268,6 +271,7 @@ class _PaywallState extends State<Paywall> {
 
   @override
   void dispose() {
+    _clipPreviews.dispose();
     _iapManager.entitlements.removeListener(_onEntitlementsChanged);
     _iapManager.isPurchased.removeListener(_onEntitlementsChanged);
     super.dispose();
@@ -693,40 +697,50 @@ class _PaywallState extends State<Paywall> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final line in lines)
-          ConstrainedBox(
-            constraints: BoxConstraints(minHeight: clips && isCompactWindow(context) ? 28 : 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              spacing: 8,
-              children: [
-                Icon(
-                  LucideIcons.check,
-                  size: 16,
-                  color: accent ? bkAccentText(context) : cs.mutedForeground,
-                ),
-                Expanded(child: Text(line.label, style: style)),
-                if (line.unlimited)
-                  Text(
-                    AppLocalizations.of(context).unlimited,
-                    style: style.copyWith(fontWeight: FontWeight.w600),
+          _clipLine(
+            clips ? line.clip : null,
+            ConstrainedBox(
+              constraints: BoxConstraints(minHeight: clips && isCompactWindow(context) ? 28 : 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 8,
+                children: [
+                  Icon(
+                    LucideIcons.check,
+                    size: 16,
+                    color: accent ? bkAccentText(context) : cs.mutedForeground,
                   ),
-                if (clips && line.clip != null)
-                  PaywallClipButton(
-                    clip: line.clip!,
-                    feature: line.label,
-                    onPressed: () => showPaywallFeatureClip(
-                      context,
-                      title: line.label,
-                      clip: line.clip!,
-                      poster: widget.debugClipPoster?.call(line.clip!),
+                  Expanded(child: Text(line.label, style: style)),
+                  if (line.unlimited)
+                    Text(
+                      AppLocalizations.of(context).unlimited,
+                      style: style.copyWith(fontWeight: FontWeight.w600),
                     ),
-                  ),
-              ],
+                  if (clips && line.clip != null)
+                    PaywallClipButton(
+                      clip: line.clip!,
+                      feature: line.label,
+                      tooltip: !PaywallClipPreviews.enabled,
+                      onPressed: () {
+                        _clipPreviews.hide();
+                        showPaywallFeatureClip(
+                          context,
+                          title: line.label,
+                          clip: line.clip!,
+                          poster: widget.debugClipPoster?.call(line.clip!),
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
           ),
       ],
     );
   }
+
+  Widget _clipLine(PaywallFeatureClip? clip, Widget line) =>
+      clip == null ? line : PaywallClipHoverRegion(previews: _clipPreviews, clip: clip, child: line);
 
   Widget _buildProCard(BuildContext context) {
     final l10n = AppLocalizations.of(context);
