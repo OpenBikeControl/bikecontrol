@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -432,7 +433,10 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         (context) {}, // no dedicated page
       ),
       ErrorType.other => null,
-      ErrorType.deviceRegistrationNeeded => ('Register device', (context) => openSubscription(context)),
+      ErrorType.deviceRegistrationNeeded => (
+        AppLocalizations.of(context).registerThisDevice,
+        (context) => openPlanAccount(context),
+      ),
     };
   }
 }

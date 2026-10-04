@@ -16,7 +16,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// True on platforms where Google Sign-In can hand back a native ID token
 /// directly (matches [LoginPage]'s existing native-vs-browser-redirect
@@ -95,4 +95,35 @@ Future<AppleIdTokenResult> fetchAppleIdToken() async {
     throw const AuthException('Could not find ID Token from generated credential.');
   }
   return AppleIdTokenResult(idToken: idToken, rawNonce: rawNonce);
+}
+
+/// Whether [error] is the rider closing the Google or Apple sheet, which is
+/// a choice, not a failure to report.
+bool isSignInCancellation(Object error) =>
+    (error is GoogleSignInException && error.code == GoogleSignInExceptionCode.canceled) ||
+    (error is SignInWithAppleAuthorizationException && error.code == AuthorizationErrorCode.canceled);
+
+/// Signs in with [provider] on [client]: the native Google / Apple sheet
+/// where the platform has one (an ID token Supabase verifies), else the
+/// provider's page in the browser, which returns through `bikecontrol://`.
+Future<void> signInWithProvider(SupabaseClient client, OAuthProvider provider) async {
+  if (provider == OAuthProvider.google && supportsNativeGoogleSignIn) {
+    final token = await fetchGoogleIdToken();
+    await client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: token.idToken,
+      accessToken: token.accessToken,
+    );
+    return;
+  }
+  if (provider == OAuthProvider.apple && supportsNativeAppleSignIn) {
+    final token = await fetchAppleIdToken();
+    await client.auth.signInWithIdToken(provider: OAuthProvider.apple, idToken: token.idToken, nonce: token.rawNonce);
+    return;
+  }
+  await client.auth.signInWithOAuth(
+    provider,
+    redirectTo: kIsWeb ? null : 'bikecontrol://login/',
+    authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+  );
 }

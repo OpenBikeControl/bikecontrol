@@ -10,6 +10,7 @@ import 'package:bike_control/repositories/user_settings_repository.dart';
 import 'package:bike_control/services/settings_sync_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
@@ -77,22 +78,8 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
   void _updateLastSyncText() {
     final lastSynced = _syncService.lastSyncedAt.value;
-    if (lastSynced == null) {
-      _lastSyncText = AppLocalizations.of(context).never;
-    } else {
-      final now = DateTime.now();
-      final diff = now.difference(lastSynced);
-
-      if (diff.inMinutes < 1) {
-        _lastSyncText = AppLocalizations.of(context).justNow;
-      } else if (diff.inMinutes < 60) {
-        _lastSyncText = '${diff.inMinutes}min ago';
-      } else if (diff.inHours < 24) {
-        _lastSyncText = '${diff.inHours}h ago';
-      } else {
-        _lastSyncText = '${diff.inDays}d ago';
-      }
-    }
+    final l10n = AppLocalizations.of(context);
+    _lastSyncText = lastSynced == null ? l10n.never : formatRelativeTime(l10n, lastSynced);
   }
 
   Future<void> _loadData() async {
@@ -115,7 +102,6 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
       await _checkForUpdates();
     } catch (e, s) {
       recordError(e, s, context: 'Load Data');
-      print('Error loading sync data: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -133,7 +119,6 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
       }
     } catch (e, s) {
       recordError(e, s, context: 'Check for Updates');
-      print('Error checking for updates: $e');
     }
   }
 
@@ -149,7 +134,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           await _loadData();
         } else if (_syncService.lastError.value != null) {
           buildToast(
-            title: _syncService.lastError.value!,
+            title: AppLocalizations.of(context).syncFailed,
             level: LogLevel.LOGLEVEL_ERROR,
           );
         }
@@ -174,7 +159,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           setState(() => _hasNewerSettings = false);
         } else if (_syncService.lastError.value != null) {
           buildToast(
-            title: _syncService.lastError.value!,
+            title: AppLocalizations.of(context).syncFailed,
             level: LogLevel.LOGLEVEL_ERROR,
           );
         } else {
@@ -244,64 +229,62 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        spacing: 24,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Sync Status Card
-          _buildSyncStatusCard(),
+    // Hosted by SyncSettingsPage, which scrolls and centres it.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 24,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Sync Status Card
+        _buildSyncStatusCard(),
 
-          // Device Selection Card
-          if (_getDevicesWithSettings().isNotEmpty) _buildDeviceSelectionCard(),
+        // Device Selection Card
+        if (_getDevicesWithSettings().isNotEmpty) _buildDeviceSelectionCard(),
 
-          // Sync Actions
-          if (_isLoading)
-            Card(
-              filled: true,
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            )
-          else ...[
-            // Download button (only if newer settings available)
-            if (_hasNewerSettings)
-              Button.secondary(
-                onPressed: _syncFromServer,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(LucideIcons.cloudDownload, size: 20),
-                    const SizedBox(width: 12),
-                    Text(AppLocalizations.of(context).downloadLatestSettings),
-                  ],
-                ),
-              ),
-          ],
-
-          // Info Card
+        // Sync Actions
+        if (_isLoading)
           Card(
             filled: true,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          )
+        else ...[
+          // Download button (only if newer settings available)
+          if (_hasNewerSettings)
+            Button.secondary(
+              onPressed: _syncFromServer,
               child: Row(
-                spacing: 12,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(LucideIcons.info, size: 20, color: Theme.of(context).colorScheme.primary),
-                  Expanded(
-                    child: Text(
-                      AppLocalizations.of(context).yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap,
-                    ).small.muted,
-                  ),
+                  Icon(LucideIcons.cloudDownload, size: 20),
+                  const SizedBox(width: 12),
+                  Text(AppLocalizations.of(context).downloadLatestSettings),
                 ],
               ),
             ),
-          ),
         ],
-      ),
+
+        // Info Card
+        Card(
+          filled: true,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              spacing: 12,
+              children: [
+                Icon(LucideIcons.info, size: 20, color: Theme.of(context).colorScheme.primary),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context).yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap,
+                  ).small.muted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -362,7 +345,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                     Icon(LucideIcons.clock, size: 16, color: Theme.of(context).colorScheme.mutedForeground),
                     const SizedBox(width: 8),
                     Text(
-                      '${AppLocalizations.of(context).lastSynced} ${_lastSyncText ?? AppLocalizations.of(context).never}',
+                      AppLocalizations.of(context).lastSyncedAt(_lastSyncText ?? AppLocalizations.of(context).never),
                     ).small,
                   ],
                 ),
@@ -536,7 +519,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
           setState(() => _hasNewerSettings = false);
         } else if (_syncService.lastError.value != null) {
           buildToast(
-            title: _syncService.lastError.value!,
+            title: AppLocalizations.of(context).syncFailed,
             level: LogLevel.LOGLEVEL_ERROR,
           );
         } else {

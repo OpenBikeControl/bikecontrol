@@ -195,51 +195,54 @@ class _NavigationState extends State<Navigation> {
 
     // Not a plain Scaffold: the support screenshot must not show the sheet or
     // toast a rider opens support from, and shadcn paints those inside it.
-    return ValueListenableBuilder<AppSection>(
-      valueListenable: _shell.section,
-      builder: (context, section, _) {
-        if (size != WindowSize.expanded) {
-          // Below 840: the phone's layout, scaled up — the large title over
-          // the content and the tab bar below it.
-          return ScreenshotScaffold(
-            headers: [
-              ShellTopBar(
-                section: section,
-                compact: true,
-                showPlanAndHelp: section == AppSection.ride,
-                activity: _shell.activity,
-                activityTab: _shell.activityTab,
-              ),
-            ],
-            // The tab bar has its own space below the content, never on top
-            // of it.
-            footers: [ShellTabBar(controller: _shell)],
-            child: content,
-          );
-        }
-        return ScreenshotScaffold(
-          headers: const [],
-          child: SafeArea(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ShellSidebar(controller: _shell),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Activity's log and News sit side by side here, so
-                      // Clear is always the log's.
-                      ShellTopBar(section: section, compact: false, shell: _shell, activity: _shell.activity),
-                      Expanded(child: content),
-                    ],
-                  ),
+    return ShellScope(
+      controller: _shell,
+      child: ValueListenableBuilder<AppSection>(
+        valueListenable: _shell.section,
+        builder: (context, section, _) {
+          if (size != WindowSize.expanded) {
+            // Below 840: the phone's layout, scaled up — the large title over
+            // the content and the tab bar below it.
+            return ScreenshotScaffold(
+              headers: [
+                ShellTopBar(
+                  section: section,
+                  compact: true,
+                  showPlanAndHelp: section == AppSection.ride,
+                  activity: _shell.activity,
+                  activityTab: _shell.activityTab,
                 ),
               ],
+              // The tab bar has its own space below the content, never on top
+              // of it.
+              footers: [ShellTabBar(controller: _shell)],
+              child: content,
+            );
+          }
+          return ScreenshotScaffold(
+            headers: const [],
+            child: SafeArea(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ShellSidebar(controller: _shell),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Activity's log and News sit side by side here, so
+                        // Clear is always the log's.
+                        ShellTopBar(section: section, compact: false, shell: _shell, activity: _shell.activity),
+                        Expanded(child: content),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

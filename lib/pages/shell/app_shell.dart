@@ -5,7 +5,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
-import 'package:bike_control/pages/subscription.dart';
+import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -99,13 +99,18 @@ class ShellController {
   }
 }
 
-/// Opens the plan and subscription drawer (the old Pro crown's target).
-void openSubscription(BuildContext context) {
-  openDrawer(
-    context: context,
-    builder: (c) => SubscriptionPage(),
-    position: OverlayPosition.end,
-  );
+/// Hands the shell's controller to what is pushed above the shell, so a
+/// pushed page in a wide window can keep the sidebar beside it.
+class ShellScope extends InheritedWidget {
+  const ShellScope({super.key, required this.controller, required super.child});
+
+  final ShellController controller;
+
+  static ShellController? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ShellScope>()?.controller;
+
+  @override
+  bool updateShouldNotify(ShellScope oldWidget) => controller != oldWidget.controller;
 }
 
 enum _NavLayout { bottom, side }
@@ -152,12 +157,24 @@ class NavDot extends StatelessWidget {
 /// red dot while the log holds an error, else an accent dot while the blog
 /// has an unread post, and says so to a screen reader.
 class ShellNavItem extends StatefulWidget {
-  const ShellNavItem._({required this.section, required this.controller, required _NavLayout layout})
-    : _layout = layout;
+  const ShellNavItem._({
+    required this.section,
+    required this.controller,
+    required _NavLayout layout,
+    this.onSelected,
+    this.planOpen = false,
+  }) : _layout = layout;
 
   final AppSection section;
   final ShellController controller;
   final _NavLayout _layout;
+
+  /// Runs after the section is selected (a page pushed beside the sidebar
+  /// closes itself).
+  final VoidCallback? onSelected;
+
+  /// The plan page is open beside the sidebar: no section is the current one.
+  final bool planOpen;
 
   @override
   State<ShellNavItem> createState() => _ShellNavItemState();
@@ -173,7 +190,7 @@ class _ShellNavItemState extends State<ShellNavItem> {
     return ListenableBuilder(
       listenable: Listenable.merge([controller.section, controller.activity.hasErrors, controller.news.hasUnread]),
       builder: (context, _) {
-        final selected = controller.section.value == section;
+        final selected = !widget.planOpen && controller.section.value == section;
         final isActivity = section == AppSection.activity;
         final dot = !isActivity
             ? null
@@ -185,7 +202,10 @@ class _ShellNavItemState extends State<ShellNavItem> {
         final label = section.label(context);
         final l10n = AppLocalizations.of(context);
         return BkTappable(
-          onPressed: () => controller.select(section),
+          onPressed: () {
+            controller.select(section);
+            widget.onSelected?.call();
+          },
           label: switch (dot) {
             _NavDot.error => l10n.a11yTabHasErrors(label),
             _NavDot.news => l10n.a11yTabHasNewPosts(label),
@@ -320,9 +340,15 @@ class ShellTabBar extends StatelessWidget {
 /// The expanded window's permanent sidebar: the wordmark, the sections, and
 /// at its foot the current plan and Help & Support.
 class ShellSidebar extends StatelessWidget {
-  const ShellSidebar({super.key, required this.controller});
+  const ShellSidebar({super.key, required this.controller, this.onSectionSelected, this.planSelected = false});
 
   final ShellController controller;
+
+  /// Runs after a section is chosen: a page pushed beside the sidebar closes.
+  final VoidCallback? onSectionSelected;
+
+  /// The plan page is open beside the sidebar: its plan card shows selected.
+  final bool planSelected;
 
   static const double width = 232;
 
@@ -352,10 +378,16 @@ class ShellSidebar extends StatelessWidget {
           for (final section in AppSection.values)
             Padding(
               padding: const EdgeInsets.only(bottom: 2),
-              child: ShellNavItem._(section: section, controller: controller, layout: _NavLayout.side),
+              child: ShellNavItem._(
+                section: section,
+                controller: controller,
+                layout: _NavLayout.side,
+                onSelected: onSectionSelected,
+                planOpen: planSelected,
+              ),
             ),
           const Spacer(),
-          const SidebarPlanCard(),
+          SidebarPlanCard(selected: planSelected),
           const Gap(8),
           const HelpButton(style: HelpButtonStyle.sidebar),
         ],
@@ -483,7 +515,7 @@ class PlanBadge extends StatelessWidget {
               );
         return BkTappable(
           key: const ValueKey('plan-badge'),
-          onPressed: () => openSubscription(context),
+          onPressed: () => openPlanAccount(context),
           label: '${AppLocalizations.of(context).currentPlan}: ${planName(context, tier)}',
           excludeChildSemantics: true,
           borderRadius: BorderRadius.circular(999),
@@ -501,7 +533,10 @@ class PlanBadge extends StatelessWidget {
 /// — below Pro — a Go Pro link and, without Pro on this device, what is left
 /// of today's virtual shifting trial. The whole card opens the plans.
 class SidebarPlanCard extends StatelessWidget {
-  const SidebarPlanCard({super.key});
+  const SidebarPlanCard({super.key, this.selected = false});
+
+  /// The plan page is open: the card is outlined and tapping it does nothing.
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -512,11 +547,16 @@ class SidebarPlanCard extends StatelessWidget {
         final status = IAPManager.instance.getStatusMessage();
         return BkTappable(
           key: const ValueKey('plan-card'),
-          onPressed: () => openSubscription(context),
+          onPressed: selected ? null : () => openPlanAccount(context),
+          selected: selected,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: cs.card,
+              borderRadius: BorderRadius.circular(12),
+              border: selected ? Border.all(color: cs.primary, width: 1.5) : null,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               spacing: 2,

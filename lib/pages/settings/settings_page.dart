@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
@@ -334,7 +335,7 @@ class SettingsPlanCard extends StatelessWidget {
         final showMeter = vsTrialMeterShown();
         return BkTappable(
           key: const ValueKey('settings-plan'),
-          onPressed: () => openSubscription(context),
+          onPressed: () => openPlanAccount(context),
           borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -370,13 +371,13 @@ class SettingsPlanCard extends StatelessWidget {
                     const Gap(12),
                     if (tier == PlanTier.pro)
                       Button.ghost(
-                        onPressed: () => openSubscription(context),
+                        onPressed: () => openPlanAccount(context),
                         child: Text(l10n.manageAction),
                       )
                     else
                       BkPillButton(
                         expand: false,
-                        onPressed: () => openSubscription(context),
+                        onPressed: () => openPlanAccount(context),
                         child: Text(l10n.goPro),
                       ),
                   ],

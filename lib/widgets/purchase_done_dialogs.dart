@@ -232,7 +232,7 @@ Future<bool> _retryRegistration() async {
     return false;
   } catch (e, s) {
     recordError(e, s, context: 'Device limit: retry registration');
-    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailed('$e'));
+    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailedRetry);
     return false;
   }
 }

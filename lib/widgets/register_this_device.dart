@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
-import 'package:bike_control/pages/subscription.dart';
+import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
@@ -16,8 +16,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// the Registered Devices view makes — and reports the outcome. Resolves to
 /// true once Pro is enabled for this device.
 ///
-/// A platform at its device limit needs a decision (which device to revoke),
-/// so that case opens the Registered Devices view instead of just failing.
+/// A platform at its device limit needs a decision (which device to remove),
+/// so that case opens the registered devices instead of just failing.
 ///
 /// [onDeviceLimit], when given, takes over the limit case (the post-purchase
 /// dialog swaps itself for the device-limit dialog rather than stacking the
@@ -47,7 +47,7 @@ Future<bool> registerThisDevice(
     return false;
   } catch (e, s) {
     recordError(e, s, context: 'Register this device');
-    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailed('$e'));
+    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailedRetry);
     return false;
   }
   return iap.isProEnabledForCurrentDevice;
@@ -63,17 +63,8 @@ String devicePlatformLabel(String platform) => switch (platform.toLowerCase()) {
   _ => platform.capitalize(),
 };
 
-/// Opens the Subscription page on its Registered Devices view: as a drawer
-/// where a Scaffold's DrawerOverlay is in scope, else as a dialog — a
-/// post-purchase dialog on the root navigator has no overlay above it, and
-/// openDrawer does `parentLayer!` without one.
-Future<void> openRegisteredDevices(BuildContext context) {
-  Widget page(BuildContext c) => const SubscriptionPage(initialView: SubscriptionPageView.devices);
-  if (DrawerOverlay.maybeFind(context) == null) {
-    return showDialog<void>(context: context, builder: page);
-  }
-  return openDrawer<void>(context: context, builder: page, position: OverlayPosition.end);
-}
+/// Opens Plan & account scrolled to the registered devices.
+Future<void> openRegisteredDevices(BuildContext context) => openPlanAccount(context, showDevices: true);
 
 /// The "Register this device" button with its own busy state. [register] is
 /// swappable for tests; production runs [registerThisDevice].
