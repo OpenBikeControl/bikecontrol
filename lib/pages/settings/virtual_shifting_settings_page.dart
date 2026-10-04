@@ -30,6 +30,23 @@ String virtualShiftingSummary(BuildContext context, FitnessBikeDefinition defini
   ].join(' · ');
 }
 
+/// The name of [mode], as the mode picker shows it.
+String virtualShiftingModeLabel(AppLocalizations l10n, VirtualShiftingMode mode) => switch (mode) {
+  VirtualShiftingMode.targetPower => l10n.targetPowerMode,
+  VirtualShiftingMode.trackResistance => l10n.trackResistanceMode,
+  VirtualShiftingMode.basicResistance => l10n.basicMode,
+};
+
+/// Ride's short form of the summary: the gear count and how the trainer
+/// shifts — "24 gears · Track Resistance".
+String rideVirtualShiftingSummary(BuildContext context, FitnessBikeDefinition definition) {
+  final l10n = AppLocalizations.of(context);
+  return [
+    l10n.gearsCount(definition.gearRatios.value.length),
+    virtualShiftingModeLabel(l10n, definition.virtualShiftingMode.value),
+  ].join(' · ');
+}
+
 /// Settings → Virtual shifting: how the bridged trainer shifts.
 ///
 /// Shifting config and mode first; then the live drivetrain, directly above

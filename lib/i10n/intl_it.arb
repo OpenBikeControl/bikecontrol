@@ -2468,5 +2468,6 @@
   "rideOverlayOfferShow": "Mostra Overlay",
   "a11yChangeChainring": "Cambia corona",
   "recordActivitySubtitle": "Registra potenza, cadenza e frequenza cardiaca in un file .fit da condividere o caricare in altre app.",
-  "recordActivitySubtitleHealth": "Registra potenza, cadenza e frequenza cardiaca e salva l'uscita in Apple Health e come file .fit da condividere."
+  "recordActivitySubtitleHealth": "Registra potenza, cadenza e frequenza cardiaca e salva l'uscita in Apple Health e come file .fit da condividere.",
+  "rideVsSettingsLink": "Impostazioni"
 }

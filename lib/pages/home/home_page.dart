@@ -1061,7 +1061,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           layout: stacked ? VsCardLayout.stacked : VsCardLayout.beside,
           onOpenSettings: () => _openVsSettings(proxy),
           onOpenTrainer: () => _openTrainerPage(proxy),
-          footer: _overlayNotice(proxy),
+          footer: _vsFooter(proxy),
         ),
       );
     } else if (trainer?.presence == DevicePresence.connecting) {
@@ -1107,6 +1107,31 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _openTrainerPage(ProxyDevice proxy) async {
     await context.push(ProxyDeviceDetailsPage(device: proxy));
     _update();
+  }
+
+  /// The foot of Ride's shifting card: one line summing up how the trainer
+  /// shifts, opening Settings → Virtual shifting, then the overlay's offer or
+  /// line where there is one.
+  Widget _vsFooter(ProxyDevice proxy) {
+    final definition = proxy.fitnessBike!;
+    final overlay = _overlayNotice(proxy);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AnimatedBuilder(
+          animation: Listenable.merge([definition.gearRatios, definition.virtualShiftingMode]),
+          builder: (context, _) => RideSettingsLine(
+            key: const ValueKey('ride-vs-settings-line'),
+            icon: LucideIcons.slidersHorizontal,
+            text: rideVirtualShiftingSummary(context, definition),
+            linkLabel: context.i18n.rideVsSettingsLink,
+            onPressed: () => _openVsSettings(proxy),
+          ),
+        ),
+        ?overlay,
+      ],
+    );
   }
 
   /// The gear-overlay offer at the foot of Ride's card, for trainer apps that

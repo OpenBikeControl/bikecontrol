@@ -2865,5 +2865,6 @@
   "rideOverlayOfferShow": "Show overlay",
   "a11yChangeChainring": "Change chainring",
   "recordActivitySubtitle": "Records power, cadence and heart rate as a .fit file you can share or upload to other apps.",
-  "recordActivitySubtitleHealth": "Records power, cadence and heart rate, and saves the ride to Apple Health and as a .fit file you can share."
+  "recordActivitySubtitleHealth": "Records power, cadence and heart rate, and saves the ride to Apple Health and as a .fit file you can share.",
+  "rideVsSettingsLink": "Settings"
 }

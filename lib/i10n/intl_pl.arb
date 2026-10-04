@@ -2468,5 +2468,6 @@
   "rideOverlayOfferShow": "Pokaż Overlay",
   "a11yChangeChainring": "Zmień tarczę",
   "recordActivitySubtitle": "Zapisuje moc, kadencję i tętno w pliku .fit, który możesz udostępnić lub przesłać do innych aplikacji.",
-  "recordActivitySubtitleHealth": "Zapisuje moc, kadencję i tętno, a jazdę zapisuje w Apple Health i jako plik .fit do udostępnienia."
+  "recordActivitySubtitleHealth": "Zapisuje moc, kadencję i tętno, a jazdę zapisuje w Apple Health i jako plik .fit do udostępnienia.",
+  "rideVsSettingsLink": "Ustawienia"
 }

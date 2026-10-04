@@ -156,3 +156,53 @@ class RideOverlayNotice extends StatelessWidget {
     );
   }
 }
+
+/// A one-line summary at the foot of Ride's virtual shifting card that opens
+/// where it is changed — "⚙ 24 gears · Track Resistance   Settings ›". Drawn
+/// like the overlay's own line ([RideOverlayNotice] once answered), 48 tall.
+class RideSettingsLine extends StatelessWidget {
+  const RideSettingsLine({
+    super.key,
+    required this.icon,
+    required this.text,
+    required this.linkLabel,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String text;
+  final String linkLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final accent = bkAccentText(context);
+    return BkTappable(
+      onPressed: onPressed,
+      label: '$text, $linkLabel',
+      excludeChildSemantics: true,
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: BkTouchTarget.minSize,
+        child: Row(
+          children: [
+            Icon(icon, size: 15, color: cs.mutedForeground),
+            const Gap(8),
+            Expanded(
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const Gap(8),
+            Text(linkLabel, style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600)),
+            Icon(LucideIcons.chevronRight, size: 15, color: accent),
+          ],
+        ),
+      ),
+    );
+  }
+}

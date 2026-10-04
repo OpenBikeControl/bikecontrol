@@ -2468,5 +2468,6 @@
   "rideOverlayOfferShow": "Overlay zeigen",
   "a11yChangeChainring": "Kettenblatt wechseln",
   "recordActivitySubtitle": "Zeichnet Leistung, Trittfrequenz und Herzfrequenz als .fit-Datei auf, die du teilen oder in andere Apps hochladen kannst.",
-  "recordActivitySubtitleHealth": "Zeichnet Leistung, Trittfrequenz und Herzfrequenz auf und speichert die Fahrt in Apple Health und als .fit-Datei zum Teilen."
+  "recordActivitySubtitleHealth": "Zeichnet Leistung, Trittfrequenz und Herzfrequenz auf und speichert die Fahrt in Apple Health und als .fit-Datei zum Teilen.",
+  "rideVsSettingsLink": "Einstellungen"
 }

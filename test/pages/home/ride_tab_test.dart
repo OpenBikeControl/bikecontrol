@@ -220,6 +220,24 @@ Future<void> main() async {
       expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget);
     });
 
+    testWidgets('a settings line sums up virtual shifting and opens its settings', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      await pumpRide(tester);
+
+      final line = find.byKey(const ValueKey('ride-vs-settings-line'));
+      expect(line, findsOneWidget);
+      expect(find.descendant(of: find.byType(VirtualShiftingCard), matching: line), findsOneWidget);
+      expect(find.descendant(of: line, matching: find.textContaining(l.gearsCount(24))), findsOneWidget);
+      expect(tester.getSize(line).height, greaterThanOrEqualTo(48));
+
+      await tester.ensureVisible(line);
+      await tester.pump();
+      await tester.tap(line);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget);
+    });
+
     testWidgets('the trainer name opens the trainer page', (tester) async {
       liveTrainer();
       await pumpRide(tester);

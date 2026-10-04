@@ -2468,5 +2468,6 @@
   "rideOverlayOfferShow": "Afficher l'Overlay",
   "a11yChangeChainring": "Changer de plateau",
   "recordActivitySubtitle": "Enregistre puissance, cadence et fréquence cardiaque dans un fichier .fit à partager ou importer dans d'autres apps.",
-  "recordActivitySubtitleHealth": "Enregistre puissance, cadence et fréquence cardiaque, et sauvegarde la sortie dans Apple Health et en fichier .fit à partager."
+  "recordActivitySubtitleHealth": "Enregistre puissance, cadence et fréquence cardiaque, et sauvegarde la sortie dans Apple Health et en fichier .fit à partager.",
+  "rideVsSettingsLink": "Réglages"
 }
