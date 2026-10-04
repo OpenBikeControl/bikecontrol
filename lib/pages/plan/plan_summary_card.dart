@@ -2,7 +2,9 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
+import 'package:bike_control/pages/paywall.dart' show paywallShiftAppName;
 import 'package:bike_control/pages/shell/app_shell.dart' show PlanTier, currentPlanTier, planName;
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/widgets/home/ampel.dart' show AmpelStyle;
@@ -30,7 +32,9 @@ class PlanSummaryCard extends StatelessWidget {
     required this.onQuestions,
   });
 
-  /// Where the subscription is managed from here; null hides Manage.
+  /// Where the subscription is managed from here; null hides the compact
+  /// Manage link (the page passes null where Purchases sits beside it). A
+  /// billing issue shows its own Manage button regardless.
   final SubscriptionStore? manageTarget;
   final VoidCallback onManage;
   final VoidCallback onRegister;
@@ -61,7 +65,7 @@ class PlanSummaryCard extends StatelessWidget {
     );
   }
 
-  Widget _header(BuildContext context, {required String name, bool pro = false, String? tag}) {
+  Widget _header(BuildContext context, {required String name, String? tag}) {
     final cs = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,13 +79,7 @@ class PlanSummaryCard extends StatelessWidget {
                 AppLocalizations.of(context).currentPlan,
                 style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
               ),
-              Row(
-                spacing: 8,
-                children: [
-                  Flexible(child: Text(name.toUpperCase(), style: BkDisplay.title(context))),
-                  if (pro) const ProBadge(),
-                ],
-              ),
+              Text(name.toUpperCase(), style: BkDisplay.title(context)),
             ],
           ),
         ),
@@ -97,7 +95,7 @@ class PlanSummaryCard extends StatelessWidget {
     final billingIssue = term?.renewal == SubscriptionRenewal.billingIssue;
     final line = term == null || billingIssue ? null : subscriptionTermLine(l10n, term);
     return [
-      _header(context, name: 'Pro', pro: true, tag: periodLabel(l10n, term?.period)),
+      _header(context, name: 'Pro', tag: periodLabel(l10n, term?.period)),
       const Gap(8),
       Wrap(
         spacing: 12,
@@ -123,17 +121,34 @@ class PlanSummaryCard extends StatelessWidget {
         const Gap(12),
         BkPillButton(onPressed: onManage, child: Text(l10n.manageSubscription)),
       ] else if (manageTarget != null) ...[
-        const Gap(14),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final wide = constraints.maxWidth >= 560;
-            final button = BkPillButton.secondary(
-              expand: !wide,
-              onPressed: onManage,
-              child: Text(l10n.manageSubscription),
-            );
-            return wide ? Align(alignment: Alignment.centerLeft, child: button) : button;
-          },
+        Align(
+          alignment: Alignment.centerLeft,
+          child: BkTouchTarget(
+            child: Semantics(
+              button: true,
+              label: l10n.manageSubscription,
+              excludeSemantics: true,
+              child: Button.ghost(
+                key: const ValueKey('plan-manage-link'),
+                style: const ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(vertical: 8)),
+                onPressed: onManage,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 2,
+                  children: [
+                    Text(
+                      l10n.manageAction,
+                      style: context.typography.small.copyWith(
+                        color: bkAccentText(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Icon(LucideIcons.chevronRight, size: 16, color: bkAccentText(context)),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ],
     ];
@@ -146,12 +161,18 @@ class PlanSummaryCard extends StatelessWidget {
       const Gap(12),
       _Check(l10n.planBaseUnlimitedCommands),
       const Gap(6),
-      _Check(l10n.planBaseAppShifts),
+      _Check(_shiftLine(l10n)),
       if (vsTrialMeterShown()) ...[const Gap(14), const VsTrialMeter()],
       const Gap(16),
       _goPro(context),
       _questions(context),
     ];
+  }
+
+  /// The paywall's line: names the picked trainer app where it shifts.
+  static String _shiftLine(AppLocalizations l10n) {
+    final app = paywallShiftAppName(core.settings.getTrainerApp());
+    return app == null ? l10n.paywall_shiftInYourApp : l10n.paywall_shiftInNamedApp(app);
   }
 
   List<Widget> _trial(BuildContext context) {

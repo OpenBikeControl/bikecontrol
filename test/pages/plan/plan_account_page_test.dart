@@ -4,19 +4,25 @@
 import 'dart:convert';
 
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/models/user_device.dart';
 import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/pages/subscriptions/email_login_form.dart';
 import 'package:bike_control/services/email_otp_auth_service.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:sign_in_button/sign_in_button.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -192,6 +198,44 @@ Future<void> main() async {
       );
     });
 
+    testWidgets('Apple and Google sign in with their own branded buttons, labelled in the app\'s language', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      final buttons = tester.widgetList<SignInButton>(inKey('plan-account', find.byType(SignInButton))).toList();
+      expect(buttons.map((b) => b.button), [Buttons.google, Buttons.apple]);
+      expect(buttons.map((b) => b.text), [l.signInWithGoogle, l.signInWithApple]);
+      for (final key in ['plan-sign-in-google', 'plan-sign-in-apple']) {
+        expect(tester.getSize(find.byKey(ValueKey(key))).height, greaterThanOrEqualTo(48));
+      }
+    });
+
+    testWidgets('on Apple platforms Sign in with Apple comes first', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await pumpPage(tester);
+        final buttons = tester.widgetList<SignInButton>(inKey('plan-account', find.byType(SignInButton))).toList();
+        expect(buttons.map((b) => b.button).first, anyOf(Buttons.apple, Buttons.appleDark));
+        expect(buttons.map((b) => b.button).last, Buttons.google);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('names the picked trainer app on the shifting line, like the paywall', (tester) async {
+      final wasScreenshotMode = screenshotMode;
+      addTearDown(() {
+        screenshotMode = wasScreenshotMode;
+        core.settings.setTrainerApp(CustomApp());
+      });
+      screenshotMode = false;
+      core.settings.setTrainerApp(MyWhoosh());
+      await pumpPage(tester);
+      expect(inKey('plan-summary', find.text(l.paywall_shiftInNamedApp('MyWhoosh'))), findsOneWidget);
+      expect(inKey('plan-summary', find.text(l.planBaseAppShifts)), findsNothing);
+    });
+
     testWidgets('GitHub and Facebook wait behind "More options"', (tester) async {
       await pumpPage(tester);
       expect(find.text(l.signInWithGithub), findsNothing);
@@ -203,6 +247,8 @@ Future<void> main() async {
 
       expect(find.text(l.signInWithGithub), findsOneWidget);
       expect(find.text(l.signInWithFacebook), findsOneWidget);
+      final more = tester.widgetList<SignInButton>(inKey('plan-account', find.byType(SignInButton)));
+      expect(more.map((b) => b.button), containsAll([Buttons.gitHub, Buttons.facebook]));
     });
 
     testWidgets('sync and devices carry the PRO badge without Pro', (tester) async {
@@ -225,6 +271,12 @@ Future<void> main() async {
     expect(inKey('plan-account', find.byKey(EmailLoginForm.codeFieldKey)), findsOneWidget);
     expect(find.byType(PlanAccountPage), findsOneWidget);
     expect(find.byKey(const ValueKey('plan-summary')), findsOneWidget);
+    // "New code in …" and "Use a different address" sit centred under the code.
+    final centre = tester.getCenter(find.byKey(const ValueKey('plan-account'))).dx;
+    for (final key in [EmailLoginForm.resendButtonKey, EmailLoginForm.changeEmailKey]) {
+      final label = find.descendant(of: find.byKey(key), matching: find.byType(RichText)).first;
+      expect(tester.getCenter(label).dx, moreOrLessEquals(centre, epsilon: 1));
+    }
   });
 
   testWidgets('a sign-in error shows inside Konto, in words, not as a raw exception', (tester) async {
@@ -261,6 +313,27 @@ Future<void> main() async {
       expect(inKey('plan-account', find.text(l.signedInWith('Apple'))), findsOneWidget);
       expect(inKey('plan-account', find.text(l.logout)), findsOneWidget);
       expect(find.byKey(EmailLoginForm.emailFieldKey), findsNothing);
+    });
+
+    testWidgets('the PRO plan name stands alone, without a second PRO badge', (tester) async {
+      await signIn('apple');
+      await pumpPage(tester);
+      expect(inKey('plan-summary', find.byType(ProBadge)), findsNothing);
+    });
+
+    testWidgets('phone: a compact Manage link in the plan card, the full row under Purchases', (tester) async {
+      var managed = 0;
+      IAPManager.instance.setSubscriptionTermForTesting(
+        SubscriptionTerm(renewal: SubscriptionRenewal.renews, until: DateTime(2026, 11, 4), store: SubscriptionStore.appStore),
+      );
+      await signIn('apple');
+      await pumpPage(tester, manageSubscription: () async => managed++);
+
+      expect(inKey('plan-summary', find.text(l.manageSubscription)), findsNothing);
+      await tester.tap(inKey('plan-summary', find.byKey(const ValueKey('plan-manage-link'))));
+      await tester.pumpAndSettle();
+      expect(managed, 1);
+      expect(find.byKey(const ValueKey('plan-manage-subscription')), findsOneWidget);
     });
 
     testWidgets('not renewing: "Active until", never "Renews on"', (tester) async {
@@ -427,5 +500,8 @@ Future<void> main() async {
     final purchases = tester.getRect(find.byKey(const ValueKey('plan-purchases')));
     expect(account.top, moreOrLessEquals(purchases.top, epsilon: 1));
     expect(account.right, lessThan(purchases.left));
+    // Manage lives once, under Purchases, right there beside Konto.
+    expect(find.text(l.manageSubscription), findsOneWidget);
+    expect(find.byKey(const ValueKey('plan-manage-link')), findsNothing);
   });
 }

@@ -250,12 +250,15 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
         builder: (context) {
           final left = _cooldownLeft;
           if (left > Duration.zero) {
-            return Button.ghost(
-              key: EmailLoginForm.resendButtonKey,
-              onPressed: () => _sendCode(isResend: true),
-              child: Text(
-                context.i18n.sendANewCodeIn((left.inMilliseconds / 1000).ceil()),
-                style: context.typography.small.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+            return Center(
+              child: Button.ghost(
+                key: EmailLoginForm.resendButtonKey,
+                onPressed: () => _sendCode(isResend: true),
+                child: Text(
+                  context.i18n.sendANewCodeIn((left.inMilliseconds / 1000).ceil()),
+                  textAlign: TextAlign.center,
+                  style: context.typography.small.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+                ),
               ),
             );
           }
@@ -266,12 +269,15 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
           );
         },
       ),
-      Button.ghost(
-        key: EmailLoginForm.changeEmailKey,
-        onPressed: _backToEmailEntry,
-        child: Text(
-          context.i18n.useADifferentEmailAddress,
-          style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+      Center(
+        child: Button.ghost(
+          key: EmailLoginForm.changeEmailKey,
+          onPressed: _backToEmailEntry,
+          child: Text(
+            context.i18n.useADifferentEmailAddress,
+            textAlign: TextAlign.center,
+            style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     ];

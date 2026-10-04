@@ -184,4 +184,16 @@ Future<void> main() async {
 
     expect(auth.sentTo, hasLength(2));
   });
+
+  testWidgets('code sent: the resend countdown and "use a different address" sit centred under the code', (tester) async {
+    await pumpForm(tester);
+    await submitEmail(tester, 'rider@example.com');
+
+    final centre = tester.getCenter(find.byType(EmailLoginForm)).dx;
+    // The label itself, not just a button stretched across the form.
+    for (final key in [EmailLoginForm.resendButtonKey, EmailLoginForm.changeEmailKey]) {
+      final label = find.descendant(of: find.byKey(key), matching: find.byType(RichText)).first;
+      expect(tester.getCenter(label).dx, moreOrLessEquals(centre, epsilon: 1));
+    }
+  });
 }

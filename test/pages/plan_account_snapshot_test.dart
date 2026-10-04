@@ -11,7 +11,10 @@ import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/pages/subscriptions/email_login_form.dart';
 import 'package:bike_control/services/email_otp_auth_service.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -183,6 +186,9 @@ Future<void> main() async {
 
   for (final brightness in Brightness.values) {
     testWidgets('01 base signed out ${brightness.name}', (tester) async {
+      // A picked trainer app, named on the shifting line.
+      addTearDown(() => core.settings.setTrainerApp(CustomApp()));
+      core.settings.setTrainerApp(MyWhoosh());
       final client = await _client();
       await shoot(tester, 'pro-new-01-base-${brightness.name}', () => page(client), brightness: brightness);
     });

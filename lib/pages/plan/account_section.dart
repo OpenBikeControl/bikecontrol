@@ -13,17 +13,17 @@ import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/title.dart' show isFromPlayStore, packageInfoValue;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
-import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// The Konto group of Plan & account. Signed out: Apple, Google and the
-/// emailed code, in the app's own pill buttons, with GitHub and Facebook
+/// emailed code, Apple and Google in their vendors' branded buttons, with GitHub and Facebook
 /// behind "More options"; the group steps forward in place once a code is
 /// sent. Signed in: who, how, and Sign out.
 class AccountSection extends StatefulWidget {
@@ -175,19 +175,27 @@ class _AccountSectionState extends State<AccountSection> {
     );
   }
 
+  /// The vendors' own sign-in buttons: Apple and Google require their
+  /// branded button (logo, colours, approved localized title), so these keep
+  /// the vendor styling instead of the app's pills. Apple's is white on the
+  /// dark theme and black on the light one, as Apple's guidelines ask.
   Widget _providerButton(BuildContext context, OAuthProvider provider) {
     final l10n = AppLocalizations.of(context);
-    final busy = _busy == provider;
-    return BkPillButton.secondary(
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final (button, label) = switch (provider) {
+      OAuthProvider.apple => (dark ? Buttons.apple : Buttons.appleDark, l10n.signInWithApple),
+      OAuthProvider.google => (Buttons.google, l10n.signInWithGoogle),
+      OAuthProvider.github => (Buttons.gitHub, l10n.signInWithGithub),
+      _ => (Buttons.facebook, l10n.signInWithFacebook),
+    };
+    return SizedBox(
       key: ValueKey('plan-sign-in-${provider.name}'),
-      onPressed: _busy == null ? () => _signIn(provider) : null,
-      leading: busy ? const SmallProgressIndicator() : null,
-      child: Text(switch (provider) {
-        OAuthProvider.apple => l10n.signInWithApple,
-        OAuthProvider.google => l10n.signInWithGoogle,
-        OAuthProvider.github => l10n.signInWithGithub,
-        _ => l10n.signInWithFacebook,
-      }),
+      height: 48,
+      child: SignInButton(
+        button,
+        text: label,
+        onPressed: () => _signIn(provider),
+      ),
     );
   }
 

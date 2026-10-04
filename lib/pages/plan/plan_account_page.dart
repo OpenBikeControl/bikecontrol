@@ -372,8 +372,10 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
     // On the Windows download Pro needs an account: Konto comes first.
     final accountFirst = channel == PurchaseChannel.windowsDirect && !_signedIn;
 
-    final plan = PlanSummaryCard(
-      manageTarget: manage,
+    // Manage lives under Purchases; the plan card links to it only where
+    // Purchases is out of sight (narrow), unless a billing issue needs it.
+    Widget plan({required bool purchasesBeside}) => PlanSummaryCard(
+      manageTarget: purchasesBeside ? null : manage,
       onManage: _manage,
       onRegister: _register,
       registering: _registering,
@@ -404,7 +406,7 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
               final wide = constraints.maxWidth >= 600;
               final sections = <Widget>[
                 if (accountFirst) account,
-                plan,
+                plan(purchasesBeside: wide && !accountFirst && purchases != null),
                 if (!accountFirst)
                   if (wide && purchases != null)
                     Row(
