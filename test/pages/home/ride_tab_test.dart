@@ -24,6 +24,8 @@ import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerButtonsCard, LastPressStrip;
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
@@ -139,9 +141,33 @@ Future<void> main() async {
       expect(find.descendant(of: card, matching: find.textContaining('250', findRichText: true)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.textContaining('90', findRichText: true)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.rideRatio)), findsOneWidget);
-      // SIM is the mode on screen; the indicator only reports it.
+      // SIM is the mode on screen.
       expect(find.descendant(of: card, matching: find.text(l.simMode)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.ergMode)), findsOneWidget);
+    });
+
+    testWidgets('SIM | ERG switches the trainer, like the Switch ERG/SIM button action', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      await pumpRide(tester);
+      final handle = tester.ensureSemantics();
+
+      final erg = find.bySemanticsLabel(l.ergMode);
+      final sim = find.bySemanticsLabel(l.simMode);
+      expect(tester.getSemantics(sim).flagsCollection.isSelected, Tristate.isTrue);
+      expect(tester.getSemantics(erg).flagsCollection.isSelected, Tristate.isFalse);
+      expect(tester.getSemantics(erg).flagsCollection.isButton, isTrue);
+      expect(tester.getSize(erg).height, greaterThanOrEqualTo(48));
+
+      await tester.tap(erg);
+      await tester.pump();
+      expect(definition.trainerMode.value, TrainerMode.ergMode);
+      expect(definition.ergTargetPower.value, isNotNull);
+      expect(tester.getSemantics(find.bySemanticsLabel(l.ergMode)).flagsCollection.isSelected, Tristate.isTrue);
+
+      await tester.tap(find.bySemanticsLabel(l.simMode));
+      await tester.pump();
+      expect(definition.trainerMode.value, TrainerMode.simMode);
+      handle.dispose();
     });
 
     testWidgets('+ and − shift the trainer, like the old drivetrain buttons', (tester) async {

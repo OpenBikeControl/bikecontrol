@@ -30,7 +30,7 @@ enum VsCardLayout {
 /// while a source reports one.
 ///
 /// In ERG the big number is the target power and − / + step it. The SIM / ERG
-/// segments only report the mode.
+/// segments switch the trainer between the two.
 ///
 /// The header holds two links: "Virtual shifting ›" opens how the trainer
 /// shifts (Settings → Virtual shifting), the trainer's name opens the trainer
@@ -175,7 +175,7 @@ class VirtualShiftingCard extends StatelessWidget {
           ),
         ),
         const Gap(8),
-        _ModeIndicator(erg: erg),
+        _ModeSwitch(definition: definition, erg: erg),
       ],
     );
   }
@@ -544,41 +544,74 @@ class _HeaderLink extends StatelessWidget {
   }
 }
 
-/// SIM | ERG, the current one filled. Reports the mode; it is not a switch.
-class _ModeIndicator extends StatelessWidget {
-  const _ModeIndicator({required this.erg});
+/// SIM | ERG, the current one filled — a switch, like the "Switch ERG/SIM"
+/// button action: ERG holds the last power target (150 W the first time)
+/// and keeps it against the trainer app's terrain until the rider picks SIM
+/// again, which hands the trainer back to gears and grade.
+class _ModeSwitch extends StatelessWidget {
+  const _ModeSwitch({required this.definition, required this.erg});
 
+  final FitnessBikeDefinition definition;
   final bool erg;
+
+  /// What ERG starts at when there is no target yet; the button action's.
+  static const int defaultErgW = 150;
+
+  void _select(bool toErg) {
+    if (toErg == erg) return;
+    if (toErg) {
+      definition.setManualErgPower(definition.ergTargetPower.value ?? defaultErgW);
+    } else {
+      definition.exitErgMode();
+    }
+    HapticFeedback.selectionClick();
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l = context.i18n;
-    Widget segment(String text, bool on) => Container(
-      constraints: const BoxConstraints(minWidth: 52),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(color: on ? cs.primary : null, borderRadius: BorderRadius.circular(8)),
-      child: Text(
-        text,
-        style: context.typography.small.copyWith(
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.3,
-          color: on ? cs.primaryForeground : cs.mutedForeground,
+    // Each segment is a full 48 on touch, inside the track's 2 px inset.
+    final height = _HeaderLink.touch ? BkTouchTarget.minSize + 4 : 36.0;
+    Widget segment(String text, bool forErg) {
+      final on = forErg == erg;
+      return BkTappable(
+        key: ValueKey(forErg ? 'ride-vs-mode-erg' : 'ride-vs-mode-sim'),
+        onPressed: () => _select(forErg),
+        label: text,
+        selected: on,
+        inMutuallyExclusiveGroup: true,
+        excludeChildSemantics: true,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 52),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: on ? cs.primary : null, borderRadius: BorderRadius.circular(8)),
+          child: Text(
+            text,
+            style: context.typography.small.copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+              color: on ? cs.primaryForeground : cs.mutedForeground,
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    }
+
     return Semantics(
-      label: '${l.trainerControl}: ${erg ? l.ergMode : l.simMode}',
-      excludeSemantics: true,
+      label: l.trainerControl,
+      container: true,
+      explicitChildNodes: true,
       child: Container(
-        height: 36,
+        height: height,
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(10)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [segment(l.simMode, !erg), segment(l.ergMode, erg)],
+          children: [segment(l.simMode, false), segment(l.ergMode, true)],
         ),
       ),
     );
