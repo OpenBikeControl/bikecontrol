@@ -108,7 +108,7 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
     return Scaffold(
       child: SafeArea(
         // The whole column, header included, is capped at a page's width
-        // and starts at the left edge like every page. No effect on phones,
+        // and centred like every pushed page. No effect on phones,
         // where the window is already narrower than the cap.
         child: BkPageColumn(
           child: Column(

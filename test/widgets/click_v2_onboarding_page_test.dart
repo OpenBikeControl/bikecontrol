@@ -200,7 +200,10 @@ void main() {
     // Scoped to the dot row itself — shadcn's own widgets use AnimatedContainer
     // internally too, so a blanket byType(AnimatedContainer) would overcount.
     expect(
-      find.descendant(of: find.byKey(const ValueKey('click-onboarding-dots')), matching: find.byType(AnimatedContainer)),
+      find.descendant(
+        of: find.byKey(const ValueKey('click-onboarding-dots')),
+        matching: find.byType(AnimatedContainer),
+      ),
       findsNWidgets(3),
     );
   });
@@ -223,7 +226,7 @@ void main() {
     }
   });
 
-  testWidgets('caps content width and starts it at the left edge on a wide desktop window, like every page', (
+  testWidgets('caps content width and centres it on a wide desktop window, like every pushed page', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1400, 900);
@@ -240,7 +243,7 @@ void main() {
     expect(cap, findsOneWidget);
     expect(tester.getSize(cap).width, BkPageColumn.defaultMaxWidth);
 
-    // Pinned to the left edge under where a page's title sits, not centred.
-    expect(tester.getTopLeft(cap).dx, 0);
+    // Centred in the window, like every pushed page.
+    expect(tester.getTopLeft(cap).dx, (1400 - BkPageColumn.defaultMaxWidth) / 2);
   });
 }

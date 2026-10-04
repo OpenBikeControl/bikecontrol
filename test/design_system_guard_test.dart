@@ -115,25 +115,91 @@ void main() {
   });
 
   group('page columns', () {
-    // From 840 every section and every pushed page starts its content column
-    // at the left edge, under the back arrow and title (BkPageColumn). A page
-    // column floated in the middle of a wide window is the drift this
-    // catches: Center around a ConstrainedBox of a page's width.
-    const allowlist = {
-      // A card inside the support chat's own column, not a page column.
+    // From 840 the shell's sections (Ride, Devices, Activity, Settings) start
+    // at the left edge beside the sidebar. A page pushed on top of the shell
+    // centres its content column in the window (BkPageColumn), and its header
+    // (BkPageHeader) insets the back arrow and title to the same column.
+    const shellSections = [
+      'lib/pages/overview.dart',
+      'lib/pages/home/home_page.dart',
+      'lib/pages/devices/devices_page.dart',
+      'lib/pages/activity/activity_log.dart',
+      'lib/pages/activity/activity_section.dart',
+      'lib/pages/settings/settings_page.dart',
+    ];
+    // Pushed pages with a header but full-width content on purpose: a chat
+    // thread and the log viewer use the whole window.
+    const fullWidthPages = {
+      'lib/pages/support_chat/support_chat_page.dart',
+      'lib/pages/support_chat/support_thread_page.dart',
+      'lib/widgets/logviewer.dart',
+    };
+    // Pushed pages whose column lives in the body widget they host.
+    const columnInBody = {
+      'lib/pages/trainer_connection_settings.dart': 'lib/pages/trainer.dart',
+    };
+    // Hand-rolled centred columns: drawers and dialogs centred in their own
+    // surface, and a card inside the support chat's own column.
+    const handRolledAllowlist = {
       'lib/pages/support_chat/widgets/support_account_link_card.dart',
-      // Drawers and dialogs: centred in their own surface on purpose.
       'lib/pages/help_center/widgets/instruction_videos_section.dart',
       'lib/pages/subscriptions/login.dart',
     };
     final centred = RegExp(
       r'Center\(\s*(?:heightFactor:[^,]*,\s*)?child: (?:ConstrainedBox|Container)\(\s*constraints: (?:const )?BoxConstraints\(maxWidth: (\d+)',
     );
+    Iterable<File> sources() => Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart') && !f.path.startsWith('lib/gen/'));
 
-    test('no page column is centred in the window', () {
+    test('BkPageColumn centres its column', () {
+      final source = File('lib/widgets/ui/bk_page_column.dart').readAsStringSync();
+      expect(source, contains('Alignment.topCenter'));
+      expect(source, isNot(contains('AlignmentDirectional.topStart')));
+    });
+
+    bool bodyHasColumn(String path) {
+      final body = columnInBody[path];
+      return body != null && File(body).readAsStringSync().contains('BkPageColumn(');
+    }
+
+    test('every pushed page with a header wraps its content in BkPageColumn', () {
+      final offenders = [
+        for (final file in sources())
+          if (!fullWidthPages.contains(file.path) && file.path != 'lib/widgets/ui/bk_page_header.dart')
+            if (file.readAsStringSync() case final source when source.contains('BkPageHeader('))
+              if (!source.contains('BkPageColumn(') && !bodyHasColumn(file.path)) file.path,
+      ];
+      expect(offenders, isEmpty, reason: 'Wrap the page content in BkPageColumn (lib/widgets/ui/bk_page_column.dart).');
+    });
+
+    test('a page with a wider or narrower column gives its header the same width', () {
+      final custom = RegExp(r'BkPageColumn\(\s*maxWidth:');
+      final offenders = [
+        for (final file in sources())
+          if (file.readAsStringSync() case final source when custom.hasMatch(source))
+            if (source.contains('BkPageHeader(') && !source.contains('columnWidth:')) file.path,
+      ];
+      expect(offenders, isEmpty, reason: 'Pass the column\'s maxWidth to BkPageHeader(columnWidth: ...).');
+    });
+
+    test('the shell\'s sections stay left-aligned', () {
       final offenders = <String>[];
-      for (final file in Directory('lib').listSync(recursive: true).whereType<File>()) {
-        if (!file.path.endsWith('.dart') || file.path.startsWith('lib/gen/') || allowlist.contains(file.path)) continue;
+      for (final path in shellSections) {
+        final source = File(path).readAsStringSync();
+        if (source.contains('BkPageColumn(')) offenders.add('$path  BkPageColumn');
+        for (final m in centred.allMatches(source)) {
+          if (int.parse(m.group(1)!) >= 600) offenders.add('$path  centred maxWidth ${m.group(1)}');
+        }
+      }
+      expect(offenders, isEmpty, reason: 'Sections start at the left edge beside the sidebar.');
+    });
+
+    test('no hand-rolled centred page column', () {
+      final offenders = <String>[];
+      for (final file in sources()) {
+        if (handRolledAllowlist.contains(file.path)) continue;
         final source = file.readAsStringSync();
         for (final m in centred.allMatches(source)) {
           if (int.parse(m.group(1)!) >= 600) {
@@ -142,7 +208,7 @@ void main() {
           }
         }
       }
-      expect(offenders, isEmpty, reason: 'Wrap the page content in BkPageColumn (lib/widgets/ui/bk_page_column.dart).');
+      expect(offenders, isEmpty, reason: 'Use BkPageColumn (lib/widgets/ui/bk_page_column.dart).');
     });
   });
 }

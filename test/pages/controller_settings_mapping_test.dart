@@ -28,6 +28,7 @@ import 'package:prop/utils/prefs.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../helpers/page_column.dart';
 import '../widget_snapshot.dart';
 
 Future<void> main() async {
@@ -190,6 +191,12 @@ Future<void> main() async {
     expect(badgeIn(ButtonTrigger.singleClick), findsNothing);
     expect(badgeIn(ButtonTrigger.doubleClick), findsOneWidget);
     expect(badgeIn(ButtonTrigger.longPress), findsOneWidget);
+  });
+
+  testWidgets('1600 wide: the master–detail keeps its 1240 column, centred, header on its edge', (tester) async {
+    await pump(tester, const Size(1600, 900));
+    expect(find.byKey(const ValueKey('mapping-detail')), findsOneWidget);
+    expectCentredPageColumn(tester, maxWidth: 1240);
   });
 
   testWidgets('1180 wide: master–detail — buttons left, the picked one\'s triggers right', (tester) async {

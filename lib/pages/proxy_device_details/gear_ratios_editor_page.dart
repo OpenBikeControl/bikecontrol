@@ -189,7 +189,7 @@ class _PerGearRatiosPageState extends State<PerGearRatiosPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      headers: [BkPageHeader(title: l10n.perGearRatiosTitle)],
+      headers: [BkPageHeader(title: l10n.perGearRatiosTitle, columnGutter: 0)],
       child: BkPageColumn(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

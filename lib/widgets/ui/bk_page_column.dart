@@ -1,11 +1,12 @@
 import 'package:flutter/widgets.dart';
 
-/// A page's content column: no wider than [maxWidth], starting at the page's
-/// leading edge under the back arrow and title — like the shell's sections.
-/// On a phone the column is simply the page's width.
+/// A pushed page's content column: no wider than [maxWidth], centred in a
+/// wide window. On a phone the column is simply the page's width.
 ///
-/// Every pushed page wraps its content in one, so a wide window never floats
-/// a page's column in the middle while the title sits at the left.
+/// Every pushed page wraps its content in one, and its [BkPageHeader] insets
+/// the back arrow and title to the same column (`columnWidth`), so title and
+/// content share an edge. The shell's sections are not pushed pages: they
+/// stay at the left edge beside the sidebar.
 class BkPageColumn extends StatelessWidget {
   const BkPageColumn({super.key, required this.child, this.maxWidth = defaultMaxWidth});
 
@@ -21,7 +22,7 @@ class BkPageColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: AlignmentDirectional.topStart,
+      alignment: Alignment.topCenter,
       child: ConstrainedBox(
         key: columnKey,
         constraints: BoxConstraints(maxWidth: maxWidth),

@@ -97,7 +97,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
     final cs = Theme.of(context).colorScheme;
     final releases = _releases;
     return Scaffold(
-      headers: [BkPageHeader(title: context.i18n.changelog)],
+      headers: [BkPageHeader(title: context.i18n.changelog, columnWidth: changelogMaxWidth)],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
         child: BkPageColumn(

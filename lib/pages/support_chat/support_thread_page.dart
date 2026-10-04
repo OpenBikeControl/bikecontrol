@@ -148,7 +148,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
-        BkPageHeader(title: context.i18n.threadTitle),
+        BkPageHeader(title: context.i18n.threadTitle, columnWidth: null),
       ],
       child: _body(),
     );

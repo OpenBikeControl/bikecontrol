@@ -66,6 +66,10 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     super.dispose();
   }
 
+  /// The master–detail's column and its distance from the window edge.
+  static const double _wideColumnWidth = 1240;
+  static const double _wideGutter = 24;
+
   /// Context under this page's [DrawerOverlay]; see the note in [build].
   BuildContext? _overlayContext;
   BuildContext get _sheetContext => _overlayContext ?? context;
@@ -91,26 +95,28 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
           // found in the widget tree" (the "Unlock again" button did exactly
           // that).
           _overlayContext = context;
+          // Master–detail from the keymap side-by-side width: the buttons on
+          // the left, the picked one's triggers and actions on the right. A
+          // pushed page spans the window, so the window's width decides — and
+          // the header knows the column it sits over.
+          final wide =
+              MediaQuery.sizeOf(context).width >= Breakpoints.keymapSideBySide &&
+              device is! Accessory &&
+              core.actionHandler.supportedApp != null &&
+              mappingButtonsOf(device).isNotEmpty;
+          if (wide) _selection.ensureFor(device);
           return Scaffold(
             headers: [
               BkPageHeader(
                 title: device is Accessory
                     ? AppLocalizations.of(context).deviceSettings
                     : AppLocalizations.of(context).controllerSettings,
+                columnWidth: wide ? _wideColumnWidth : BkPageColumn.defaultMaxWidth,
+                columnGutter: wide ? _wideGutter : 16,
               ),
             ],
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Master–detail from the keymap side-by-side width: the
-                // buttons on the left, the picked one's triggers and actions
-                // on the right.
-                final wide =
-                    constraints.maxWidth >= Breakpoints.keymapSideBySide &&
-                    device is! Accessory &&
-                    core.actionHandler.supportedApp != null &&
-                    mappingButtonsOf(device).isNotEmpty;
-                if (wide) _selection.ensureFor(device);
-
+            child: Builder(
+              builder: (context) {
                 final mapping = <Widget>[
                   // Button mapping. An accessory — a Headwind fan, a Climb —
                   // has no buttons of its own, so the section would render an
@@ -201,9 +207,9 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                   );
                 }
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(_wideGutter, 16, _wideGutter, 24),
                   child: BkPageColumn(
-                    maxWidth: 1240,
+                    maxWidth: _wideColumnWidth,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

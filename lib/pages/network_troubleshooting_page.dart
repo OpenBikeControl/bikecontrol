@@ -277,6 +277,8 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       headers: [
         BkPageHeader(
           title: l10n.networkTroubleshootingTitle,
+          // The column sits flush and pads its content inside.
+          columnGutter: 0,
           // Only beside the title where there is room for both: on a narrow
           // window the stamp wins the space and the title wraps a character at
           // a time. It moves into the body instead.
