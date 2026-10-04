@@ -23,7 +23,7 @@ class DeviceManagementService {
     String? deviceName,
     String? appVersion,
   }) async {
-    final session = _requireSession();
+    _requireSession();
     final platform = await _requirePlatform();
     final deviceId = await _deviceIdentityService.getOrCreateDeviceId();
 
@@ -31,7 +31,6 @@ class DeviceManagementService {
       final response = await _supabase.functions.invoke(
         registerDeviceFunction,
         method: HttpMethod.post,
-        headers: _authHeaders(session),
         body: {
           'platform': platform,
           'device_id': deviceId,
@@ -52,11 +51,10 @@ class DeviceManagementService {
   }
 
   Future<List<UserDevice>> getMyDevices() async {
-    final session = _requireSession();
+    _requireSession();
     final response = await _supabase.functions.invoke(
       meDevicesFunction,
       method: HttpMethod.get,
-      headers: _authHeaders(session),
     );
     return _parseDevicesPayload(response.data);
   }
@@ -65,11 +63,10 @@ class DeviceManagementService {
     required String platform,
     required String deviceId,
   }) async {
-    final session = _requireSession();
+    _requireSession();
     final response = await _supabase.functions.invoke(
       revokeDeviceFunction,
       method: HttpMethod.post,
-      headers: _authHeaders(session),
       body: {
         'platform': platform,
         'device_id': deviceId,
@@ -101,10 +98,6 @@ class DeviceManagementService {
       throw StateError('Unsupported platform for device management');
     }
     return platform;
-  }
-
-  Map<String, String> _authHeaders(Session session) {
-    return {'Authorization': 'Bearer ${session.accessToken}'};
   }
 
   List<UserDevice> _parseDevicesPayload(dynamic payload) {

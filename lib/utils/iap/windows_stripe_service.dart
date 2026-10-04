@@ -27,9 +27,6 @@ class WindowsStripeService {
   /// support-chat session doesn't count: a checkout must never be tied to it.
   bool get isLoggedIn => hasAccount(_supabase.auth.currentSession?.user);
 
-  /// Get the current session
-  Session? get _session => _supabase.auth.currentSession;
-
   /// Start a Stripe Checkout session for purchase
   ///
   /// [priceId] must be 'monthly', 'yearly', or 'full' (one-time purchase)
@@ -69,9 +66,6 @@ class WindowsStripeService {
       final response = await _supabase.functions.invoke(
         _checkoutFunction,
         method: HttpMethod.post,
-        headers: {
-          'Authorization': 'Bearer ${_session!.accessToken}',
-        },
         body: body,
       );
 
@@ -135,9 +129,6 @@ class WindowsStripeService {
       final response = await _supabase.functions.invoke(
         _portalFunction,
         method: HttpMethod.post,
-        headers: {
-          'Authorization': 'Bearer ${_session!.accessToken}',
-        },
         body: body.isNotEmpty ? body : null,
       );
 
@@ -194,9 +185,6 @@ class WindowsStripeService {
       await _supabase.functions.invoke(
         _portalFunction,
         method: HttpMethod.post,
-        headers: {
-          'Authorization': 'Bearer ${_session!.accessToken}',
-        },
       );
       return true;
     } on FunctionException catch (e) {
