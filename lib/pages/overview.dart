@@ -354,10 +354,9 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
     return SingleChildScrollView(
       key: PageStorageKey('section-$id'),
       padding: EdgeInsets.fromLTRB(h, compact ? 4 : 8, h, 24),
-      // Centred under the medium window's tab bar; from 840 every section
-      // starts under the page title, beside the sidebar.
+      // Every section starts under the page title, at every width.
       child: Align(
-        alignment: _screenWidth >= Breakpoints.medium ? Alignment.topLeft : Alignment.topCenter,
+        alignment: AlignmentDirectional.topStart,
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: child,

@@ -1,6 +1,6 @@
 // Toasts on a phone used to land on top of the bottom tab bar. They sit above
-// it now, the width of the content; on wider windows they sit bottom-right in
-// the content area, clear of the sidebar.
+// it now, the width of the content; from 600 they sit bottom-right — above the
+// tab bar below 840, in the content area clear of the sidebar from there.
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
@@ -60,6 +60,19 @@ Future<void> main() async {
     expect(toast.right, closeTo(390 - 16, 0.5));
     await finish(tester);
   });
+
+  for (final size in const [Size(700, 1000), Size(839, 1000)]) {
+    testWidgets('${size.width.toInt()}: the toast sits above the bottom tab bar, bottom-right', (tester) async {
+      await pumpApp(tester, size);
+      final bar = tester.getRect(find.byType(ShellTabBar));
+      final toast = await showAndMeasure(tester);
+
+      expect(toast.bottom, lessThanOrEqualTo(bar.top), reason: 'toast $toast, bar $bar');
+      expect(bar.top - toast.bottom, closeTo(8, 1), reason: 'an 8 px gap above the bar');
+      expect(size.width - toast.right, closeTo(24, 0.5));
+      await finish(tester);
+    });
+  }
 
   testWidgets('desktop: the toast sits bottom-right, clear of the sidebar', (tester) async {
     await pumpApp(tester, const Size(1280, 800));

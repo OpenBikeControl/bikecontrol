@@ -28,8 +28,9 @@ abstract final class Breakpoints {
   /// compact scaling. Upper edge of [WindowSize.compact].
   static const double compact = 600;
 
-  /// Upper edge of [WindowSize.medium]. From here the sections sit in a
-  /// permanent sidebar instead of a floating tab bar.
+  /// Upper edge of [WindowSize.medium]. Below it the sections sit behind the
+  /// bottom tab bar (the phone's layout, scaled up); from here in a
+  /// permanent sidebar.
   static const double medium = 840;
 
   /// From here onboarding shows its step rail beside the step.

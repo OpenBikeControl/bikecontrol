@@ -96,7 +96,8 @@ final ValueNotifier<double> toastBottomClearance = ValueNotifier(0);
 /// root layer above the navigator included, which is where [buildToast]
 /// shows them. On a phone they sit bottom-centre, as wide as the window less
 /// 16 a side and 8 above the tab bar ([toastBottomClearance]); from 600 wide
-/// they sit bottom-right, 24 in from the corner, clear of the sidebar.
+/// they sit bottom-right, 24 in from the side and 8 above the tab bar — or,
+/// from 840, 24 in from the corner, clear of the sidebar.
 ///
 /// Goes ABOVE the `ShadcnApp`: the root layer lives inside it.
 class BkToastTheme extends StatelessWidget {
@@ -122,7 +123,8 @@ class BkToastTheme extends StatelessWidget {
         data: ToastTheme(
           padding: compact
               ? EdgeInsets.fromLTRB(16, 16, 16, clearance + 8) / scale
-              : const EdgeInsets.fromLTRB(16, 16, 24, 24) / scale,
+              // Below 840 the tab bar runs along the bottom: 8 above it.
+              : EdgeInsets.fromLTRB(16, 16, 24, clearance > 0 ? clearance + 8 : 24) / scale,
           toastConstraints: BoxConstraints.tightFor(
             width: compact ? math.max(0, width - 32) : math.min(wideWidth, width - 48),
           ),

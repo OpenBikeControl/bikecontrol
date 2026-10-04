@@ -9,6 +9,7 @@ import 'package:bike_control/pages/subscription.dart';
 import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/title.dart';
@@ -107,7 +108,7 @@ void openSubscription(BuildContext context) {
   );
 }
 
-enum _NavLayout { bottom, top, side }
+enum _NavLayout { bottom, side }
 
 enum _NavDot { error, news }
 
@@ -146,7 +147,7 @@ class NavDot extends StatelessWidget {
   }
 }
 
-/// One section entry of the tab bar, the top tabs or the sidebar: a labelled
+/// One section entry of the tab bar or the sidebar: a labelled
 /// button that reports whether it is selected. The Activity entry carries a
 /// red dot while the log holds an error, else an accent dot while the blog
 /// has an unread post, and says so to a screen reader.
@@ -192,7 +193,7 @@ class _ShellNavItemState extends State<ShellNavItem> {
           },
           selected: selected,
           excludeChildSemantics: true,
-          borderRadius: BorderRadius.circular(widget._layout == _NavLayout.bottom ? 12 : 999),
+          borderRadius: BorderRadius.circular(widget._layout == _NavLayout.bottom ? 12 : 10),
           onHover: (hovered) => setState(() => _hovered = hovered),
           child: _build(context, label, selected, dot),
         );
@@ -241,27 +242,6 @@ class _ShellNavItemState extends State<ShellNavItem> {
             ],
           ),
         );
-      case _NavLayout.top:
-        final color = selected ? cs.primaryForeground : cs.foreground;
-        return Container(
-          constraints: const BoxConstraints(minHeight: 40),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: selected ? cs.primary : (_hovered ? bkCardHover(context) : null),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 7,
-            children: [
-              _icon(context, color, showDot, 16),
-              Text(
-                label,
-                style: context.typography.small.copyWith(color: color, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        );
       case _NavLayout.side:
         final color = selected ? cs.primaryForeground : cs.foreground;
         return Container(
@@ -291,11 +271,16 @@ class _ShellNavItemState extends State<ShellNavItem> {
   }
 }
 
-/// The phone's bottom tab bar: four sections, icons over labels.
+/// The bottom tab bar below 840: four sections, icons over labels. On a
+/// wider window the items keep a tab bar's width, centred, instead of
+/// stretching across it.
 class ShellTabBar extends StatelessWidget {
   const ShellTabBar({super.key, required this.controller});
 
   final ShellController controller;
+
+  /// The widest the four items get together.
+  static const double maxWidth = 480;
 
   @override
   Widget build(BuildContext context) {
@@ -311,45 +296,19 @@ class ShellTabBar extends StatelessWidget {
           top: false,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            child: Row(
-              children: [
-                for (final section in AppSection.values)
-                  Expanded(
-                    child: ShellNavItem._(section: section, controller: controller, layout: _NavLayout.bottom),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The medium window's floating tab bar: a pill group above the page.
-class ShellTopTabs extends StatelessWidget {
-  const ShellTopTabs({super.key, required this.controller});
-
-  final ShellController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(999)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 2,
-              children: [
-                for (final section in AppSection.values)
-                  ShellNavItem._(section: section, controller: controller, layout: _NavLayout.top),
-              ],
+            child: Center(
+              heightFactor: 1,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: maxWidth),
+                child: Row(
+                  children: [
+                    for (final section in AppSection.values)
+                      Expanded(
+                        child: ShellNavItem._(section: section, controller: controller, layout: _NavLayout.bottom),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -427,15 +386,14 @@ class ShellTopBar extends StatelessWidget {
 
   final AppSection section;
 
-  /// The session's log, for Activity's Clear — below 840 only: from there
-  /// Clear sits in the log's own pane.
+  /// The session's log, for Activity's Clear.
   final ActivityLogController? activity;
 
-  /// The phone's large title and icon-only update action.
+  /// The phone's large title and icon-only update action — below 840.
   final bool compact;
 
-  /// The plan badge and the (?) Help icon — for the phone and medium windows,
-  /// where there is no sidebar to carry them.
+  /// The plan badge and the (?) Help icon — below 840, where there is no
+  /// sidebar to carry them.
   final bool showPlanAndHelp;
 
   @override
@@ -444,8 +402,11 @@ class ShellTopBar extends StatelessWidget {
     final style = compact
         ? context.typography.x2Large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.4)
         : BkPageHeader.titleStyle(context);
+    // On a phone the title sits 4 in from the cards' edge; from 600 it lines
+    // up with the cards, as beside the sidebar.
+    final phone = isCompactWindow(context);
     return AppBar(
-      padding: EdgeInsets.fromLTRB(compact ? 16 : 24, compact ? 10 : 16, compact ? 8 : 20, 8),
+      padding: EdgeInsets.fromLTRB(phone ? 16 : 24, compact ? 10 : 16, phone ? 8 : 20, 8),
       backgroundColor: Theme.of(context).colorScheme.background,
       title: Semantics(
         header: true,

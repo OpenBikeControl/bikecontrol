@@ -850,9 +850,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ];
 
     return Padding(
-      // No horizontal inset on mobile: the shell's scroll view already pads
-      // the page by 12. Desktop keeps it.
-      padding: EdgeInsets.fromLTRB(widget.isMobile ? 0 : 12, 4, widget.isMobile ? 0 : 12, 26),
+      // No horizontal inset: the shell's scroll view pads every section, so
+      // Ride starts under the page title like the others.
+      padding: const EdgeInsets.fromLTRB(0, 4, 0, 26),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final twoColumns = _rideTwoColumns(

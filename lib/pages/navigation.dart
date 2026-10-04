@@ -198,66 +198,47 @@ class _NavigationState extends State<Navigation> {
     return ValueListenableBuilder<AppSection>(
       valueListenable: _shell.section,
       builder: (context, section, _) {
-        switch (size) {
-          case WindowSize.compact:
-            return ScreenshotScaffold(
-              headers: [
-                ShellTopBar(
-                  section: section,
-                  compact: true,
-                  showPlanAndHelp: section == AppSection.ride,
-                  activity: _shell.activity,
-                  activityTab: _shell.activityTab,
-                ),
-              ],
-              // The tab bar has its own space below the content, never on top
-              // of it.
-              footers: [ShellTabBar(controller: _shell)],
-              child: content,
-            );
-          case WindowSize.medium:
-            return ScreenshotScaffold(
-              headers: [
-                ShellTopTabs(controller: _shell),
-                // Lined up with the centred content column below it.
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 720 + 48),
-                    child: ShellTopBar(
-                      section: section,
-                      compact: false,
-                      showPlanAndHelp: section == AppSection.ride,
-                      activity: _shell.activity,
-                      activityTab: _shell.activityTab,
-                    ),
+        if (size != WindowSize.expanded) {
+          // Below 840: the phone's layout, scaled up — the large title over
+          // the content and the tab bar below it.
+          return ScreenshotScaffold(
+            headers: [
+              ShellTopBar(
+                section: section,
+                compact: true,
+                showPlanAndHelp: section == AppSection.ride,
+                activity: _shell.activity,
+                activityTab: _shell.activityTab,
+              ),
+            ],
+            // The tab bar has its own space below the content, never on top
+            // of it.
+            footers: [ShellTabBar(controller: _shell)],
+            child: content,
+          );
+        }
+        return ScreenshotScaffold(
+          headers: const [],
+          child: SafeArea(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ShellSidebar(controller: _shell),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Activity's log and News sit side by side here, so
+                      // Clear is always the log's.
+                      ShellTopBar(section: section, compact: false, shell: _shell, activity: _shell.activity),
+                      Expanded(child: content),
+                    ],
                   ),
                 ),
               ],
-              child: content,
-            );
-          case WindowSize.expanded:
-            return ScreenshotScaffold(
-              headers: const [],
-              child: SafeArea(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ShellSidebar(controller: _shell),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Activity's Clear sits in the log's pane here.
-                          ShellTopBar(section: section, compact: false, shell: _shell),
-                          Expanded(child: content),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-        }
+            ),
+          ),
+        );
       },
     );
   }

@@ -1,6 +1,6 @@
 // The app shell: four sections (Ride / Devices / Activity / Settings) behind a
-// bottom tab bar on a phone, a floating tab bar at medium widths and a
-// permanent sidebar from 840. Every width from 840 lays Ride out the same way:
+// bottom tab bar below 840 (the phone's layout, scaled up) and a permanent
+// sidebar from 840. Every width from 840 lays Ride out the same way:
 // two columns, with the latest activity under the buttons.
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -16,6 +16,7 @@ import 'package:bike_control/pages/trainer_connection_settings.dart' show Langua
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter/services.dart' show StandardMessageCodec;
@@ -45,7 +46,6 @@ Future<void> main() async {
 
     expect(find.byType(ShellTabBar), findsOneWidget);
     expect(find.byType(ShellSidebar), findsNothing);
-    expect(find.byType(ShellTopTabs), findsNothing);
     for (final label in [l10n().navRide, l10n().navDevices, l10n().activity, l10n().navSettings]) {
       expect(
         find.descendant(of: find.byType(ShellTabBar), matching: find.text(label)),
@@ -98,27 +98,39 @@ Future<void> main() async {
     await disposeShell(tester);
   });
 
-  testWidgets('medium: a top tab bar and one wide column', (tester) async {
-    await pumpShell(tester, const Size(700, 1000));
+  for (final size in const [Size(700, 1000), Size(839, 1000)]) {
+    testWidgets('${size.width.toInt()}: the phone\'s bottom tab bar and large title, no top tabs', (tester) async {
+      await pumpShell(tester, size);
 
-    expect(find.byType(ShellTopTabs), findsOneWidget);
-    expect(find.byType(ShellTabBar), findsNothing);
-    expect(find.byType(ShellSidebar), findsNothing);
-    final column = tester.getRect(find.byType(HomePage));
-    expect(column.width, lessThanOrEqualTo(720));
+      expect(find.byType(ShellTabBar), findsOneWidget);
+      expect(find.byType(ShellSidebar), findsNothing);
+      // The phone's large title: the app's name on Ride.
+      expect(find.descendant(of: find.byType(ShellTopBar), matching: find.text('BikeControl')), findsOneWidget);
+      final column = tester.getRect(find.byType(HomePage).first);
+      expect(column.left, moreOrLessEquals(24, epsilon: 0.5), reason: 'full width, 24 a side');
+      expect(size.width - column.right, moreOrLessEquals(24, epsilon: 0.5));
 
-    await tester.tap(find.descendant(of: find.byType(ShellTopTabs), matching: find.text(l10n().navSettings)));
-    await tester.pump();
-    expect(find.byType(SettingsPage), findsOneWidget);
-    await disposeShell(tester);
-  });
+      // The items stay a tab bar's width, centred, not stretched to the window.
+      final items = tester.widgetList(find.byType(ShellNavItem)).map((w) => tester.getRect(find.byWidget(w))).toList();
+      expect(items, hasLength(4));
+      for (final item in items) {
+        expect(item.width, lessThanOrEqualTo(ShellTabBar.maxWidth / 4 + 0.5));
+      }
+      expect(items.first.left, moreOrLessEquals(size.width - items.last.right, epsilon: 1), reason: 'centred');
+
+      await tester.tap(find.descendant(of: find.byType(ShellTabBar), matching: find.text(l10n().navSettings)));
+      await tester.pump();
+      expect(find.byType(SettingsPage), findsOneWidget);
+      expect(tester.getRect(find.byType(SettingsPage)).left, moreOrLessEquals(24, epsilon: 0.5), reason: 'left-aligned');
+      await disposeShell(tester);
+    });
+  }
 
   testWidgets('expanded: a permanent sidebar with the sections, the plan and Help', (tester) async {
     await pumpShell(tester, const Size(1000, 760));
 
     expect(find.byType(ShellSidebar), findsOneWidget);
     expect(find.byType(ShellTabBar), findsNothing);
-    expect(find.byType(ShellTopTabs), findsNothing);
     final sidebar = find.byType(ShellSidebar);
     expect(find.descendant(of: sidebar, matching: find.text(l10n().navDevices)), findsOneWidget);
     expect(find.descendant(of: sidebar, matching: find.text(l10n().troubleshootingGuide)), findsOneWidget);
@@ -269,4 +281,33 @@ Future<void> main() async {
     expect(settings.left, lessThan(tester.getRect(sidebar).right + 40), reason: 'not centred');
     await disposeShell(tester);
   });
+
+  for (final size in const [Size(1280, 800), Size(900, 800)]) {
+    testWidgets('${size.width.toInt()}: Ride, Devices, Activity and Settings start under the page title', (tester) async {
+      await pumpShell(tester, size);
+      final sidebar = find.byType(ShellSidebar);
+      final title = find.descendant(of: find.byType(ShellTopBar), matching: find.text(l10n().navRide));
+      final titleLeft = tester.getRect(title).left;
+      final starts = <String, double>{'title': titleLeft};
+
+      starts['ride'] = tester.getRect(find.byType(ReadyBanner).first).left;
+      Future<void> open(String label) async {
+        await tester.tap(find.descendant(of: sidebar, matching: find.text(label)));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      await open(l10n().navDevices);
+      starts['devices'] = tester.getRect(find.byType(DevicesPage)).left;
+      await open(l10n().activity);
+      starts['activity'] = tester.getRect(find.byType(ActivityLogView)).left;
+      await open(l10n().navSettings);
+      starts['settings'] = tester.getRect(find.byType(SettingsPage)).left;
+
+      for (final entry in starts.entries) {
+        expect(entry.value, moreOrLessEquals(titleLeft, epsilon: 0.5), reason: '${entry.key}: $starts');
+      }
+      await disposeShell(tester);
+    });
+  }
 }
