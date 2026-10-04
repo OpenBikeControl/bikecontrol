@@ -46,6 +46,8 @@ class ChainLinkRow extends StatefulWidget {
     this.instructionsLabel,
     this.onSecondaryAction,
     this.secondaryActionLabel,
+    this.onOffer,
+    this.offerLabel,
     this.body,
     this.footer,
     this.highlight,
@@ -84,6 +86,12 @@ class ChainLinkRow extends StatefulWidget {
   final String? instructionsLabel;
   final VoidCallback? onSecondaryAction;
   final String? secondaryActionLabel;
+
+  /// An optional step's action while it is not the step in front — see
+  /// [StepRow.onOffer]. [offerLabel] names it, or returns null for a step
+  /// with nothing to offer.
+  final ValueChanged<SetupStep>? onOffer;
+  final String? Function(SetupStep step)? offerLabel;
 
   /// Live content under the row: the trainer's numbers, the sensor chips.
   final Widget? body;
@@ -172,6 +180,8 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
                           instructionsLabel: widget.instructionsLabel,
                           onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
                           secondaryActionLabel: widget.secondaryActionLabel,
+                          onOffer: widget.onOffer == null ? null : () => widget.onOffer!(step),
+                          offerLabel: widget.offerLabel?.call(step),
                         ),
                     ],
                   ),

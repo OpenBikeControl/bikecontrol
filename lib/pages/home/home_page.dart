@@ -1676,6 +1676,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // they do: opening Trainer Connections is an action, and so is switching
       // Local on.
       instructionsLabel: _appFixLabel(link),
+      // Local control is optional and sits behind "Waiting for {app}" while
+      // the app is away — it still gets its button, the same one it has when
+      // it is the step in front.
+      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControlAction : null,
+      onOffer: (step) async {
+        if (step.id != SetupStepId.appLocalControl) return;
+        await enableLocalControl(context);
+        _update();
+      },
     );
   }
   // ── Actions ───────────────────────────────────────────────────────────

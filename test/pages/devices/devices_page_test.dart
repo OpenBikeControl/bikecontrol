@@ -15,6 +15,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/widgets/devices/chain_link_row.dart';
 import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
 import 'package:bike_control/widgets/scan.dart';
@@ -193,6 +194,23 @@ Future<void> main() async {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(TrainerConnectionSettingsPage), findsOneWidget);
+  });
+
+  testWidgets('the trainer app row offers its optional Local control step a button of its own', (tester) async {
+    // Waiting for MyWhoosh is the step in front; "Add keyboard and mouse
+    // actions" is the optional one behind it and still needs a way to act.
+    debugHostPlatformOverride = TargetPlatform.macOS;
+    await core.settings.setLastTarget(Target.thisDevice);
+    core.settings.setLocalEnabled(false);
+    core.settings.setObpMdnsEnabled(true);
+    addTearDown(() => core.settings.setObpMdnsEnabled(false));
+    await _pumpDevices(tester);
+
+    expect(_inRow(ChainLinkKey.app, find.text(l.chainStepLocalControl)), findsOneWidget);
+    final action = _inRow(ChainLinkKey.app, find.text(l.chainStepLocalControlAction));
+    expect(action, findsOneWidget);
+    final button = find.ancestor(of: action, matching: find.byWidgetPredicate((w) => w is Button));
+    expect(tester.widget<Button>(button.first).onPressed, isNotNull);
   });
 
   testWidgets('Share sensors wears the PRO badge without Pro and opens the Sensors page', (tester) async {

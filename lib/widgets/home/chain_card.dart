@@ -506,10 +506,19 @@ class StepRow extends StatelessWidget {
     this.instructionsLabel,
     this.onSecondaryAction,
     this.secondaryActionLabel,
+    this.onOffer,
+    this.offerLabel,
   });
 
   final SetupStep step;
   final bool active;
+
+  /// An optional step's own action while another step is in front of it —
+  /// "Enable local control" behind "Waiting for MyWhoosh". An offer the rider
+  /// can only read about is one they never take up. Ignored on the active row
+  /// (that has [onInstructions]) and on required steps, which wait their turn.
+  final VoidCallback? onOffer;
+  final String? offerLabel;
   final String? appName;
   final VoidCallback? onInstructions;
   final String? instructionsLabel;
@@ -596,6 +605,17 @@ class StepRow extends StatelessWidget {
                   Text(
                     hint,
                     style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
+                  ),
+                ],
+                if (!active && step.optional && !step.done && onOffer != null && offerLabel != null) ...[
+                  const Gap(8),
+                  BkTouchTarget(
+                    child: Button.outline(
+                      alignment: Alignment.center,
+                      style: const ButtonStyle.outline(size: ButtonSize.small),
+                      onPressed: onOffer,
+                      child: Text(offerLabel!),
+                    ),
                   ),
                 ],
                 if (active && (onInstructions != null || showSecondary)) ...[
