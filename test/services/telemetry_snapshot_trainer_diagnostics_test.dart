@@ -72,6 +72,9 @@ void main() {
       expect(json.containsKey('self_test_result'), isFalse);
       expect(json.containsKey('self_test_passed'), isFalse);
       expect(json.containsKey('ble_services'), isFalse);
+      expect(json.containsKey('bluetooth_name'), isFalse);
+      expect(json.containsKey('hardware_manufacturer'), isFalse);
+      expect(json.containsKey('firmware_version'), isFalse);
     });
 
     test('a disconnected trainer does not count', () async {
@@ -85,12 +88,19 @@ void main() {
       core.connection.devices.add(
         ZwiftClickV2(BleDevice(deviceId: 'c2', name: 'Zwift Click'))
           ..isConnected = true
-          ..services = ftmsAndZwift,
+          ..services = ftmsAndZwift
+          ..deviceName = 'Zwift Click'
+          ..hardwareRevision = 'B'
+          ..manufacturerName = 'Zwift'
+          ..firmwareVersion = '1.3.0',
       );
 
       final json = generalJson();
       expect(json.containsKey('ble_services'), isFalse);
       expect(json.containsKey('self_test_result'), isFalse);
+      expect(json.containsKey('bluetooth_name'), isFalse);
+      expect(json.containsKey('hardware_manufacturer'), isFalse);
+      expect(json.containsKey('firmware_version'), isFalse);
     });
   });
 
@@ -177,6 +187,35 @@ void main() {
       final json = generalJson();
       expect(json['self_test_result'], isNull);
       expect(json['self_test_passed'], isNull);
+    });
+
+    test('carries the trainer identity exactly as fromDevice builds it', () {
+      final device = trainer(services: ftmsAndZwift)
+        ..deviceName = 'KICKR CORE 1EB7'
+        ..hardwareRevision = '2'
+        ..manufacturerName = 'Wahoo Fitness'
+        ..firmwareVersion = '4.3.2';
+      core.connection.devices.add(device);
+
+      final json = generalJson();
+
+      expect(json['bluetooth_name'], 'KICKR CORE 1EB7 (HW: 2)');
+      expect(json['hardware_manufacturer'], 'Wahoo Fitness');
+      expect(json['firmware_version'], '4.3.2');
+      final fromDevice = TelemetrySnapshot.fromDevice(device: device).toJson();
+      for (final key in ['bluetooth_name', 'hardware_manufacturer', 'firmware_version']) {
+        expect(json[key], fromDevice[key], reason: key);
+      }
+    });
+
+    test('identity falls back like fromDevice when the device info is unread', () {
+      core.connection.devices.add(trainer());
+
+      final json = generalJson();
+
+      expect(json['bluetooth_name'], 'KICKR CORE');
+      expect(json.containsKey('hardware_manufacturer'), isFalse);
+      expect(json.containsKey('firmware_version'), isFalse);
     });
 
     test('freetext is unchanged', () {

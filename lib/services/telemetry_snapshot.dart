@@ -83,6 +83,11 @@ class TelemetrySnapshot {
   factory TelemetrySnapshot.general({String? freetext}) {
     final trainer = _connectedTrainer();
     return TelemetrySnapshot(
+      // Same identity fields as [TelemetrySnapshot.fromDevice], so the trainer
+      // diagnostics below can be attributed to a model and firmware.
+      bluetoothName: trainer == null ? null : _computeBluetoothName(trainer),
+      hardwareManufacturer: trainer?.manufacturerName,
+      firmwareVersion: trainer?.firmwareVersion,
       appVersion: _appVersion(),
       appPlatform: _appPlatform(),
       trainerApp: core.settings.getTrainerApp()?.name,
