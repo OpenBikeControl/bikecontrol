@@ -10,6 +10,7 @@ import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/activity/activity_log.dart' show activityLogClock;
 import 'package:bike_control/pages/activity/activity_section.dart';
 import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
@@ -37,7 +38,8 @@ import '../widget_snapshot.dart';
 /// listing the outstanding steps, Activity's News segment, Settings without
 /// the Blog row, Virtual shifting's Gears without the gear-count warning,
 /// Ride's readings with labels that never break mid-word, and the wide
-/// windows: Activity's two panes, Ride in two columns, Settings left-aligned.
+/// windows: Activity's two panes, Ride in two columns, Settings left-aligned;
+/// below 840 the phone's bottom tab bar, from 840 every page left-aligned.
 /// German unless named `-en`. Run:
 /// `OF_SHOTS=.impeccable/review flutter test --run-skipped test/pages/owner_feedback_snapshot_test.dart`
 Future<void> main() async {
@@ -420,4 +422,51 @@ Future<void> main() async {
       );
     });
   }
+
+  // ── 8. Below 840 the phone's tab bar; from 840 every page starts left ──
+  const medium = Size(700, 1000);
+  for (final brightness in Brightness.values) {
+    for (final section in const [AppSection.ride, AppSection.settings]) {
+      final name = '${section.name}-700x1000-${brightness.name}-de';
+      testWidgets(name, (tester) async {
+        await shoot(
+          tester,
+          name: name,
+          size: medium,
+          brightness: brightness,
+          build: (context) => seeded(context, section),
+        );
+      });
+    }
+  }
+
+  testWidgets('ride-820x1180-dark-de', (tester) async {
+    await shoot(
+      tester,
+      name: 'ride-820x1180-dark-de',
+      size: const Size(820, 1180),
+      brightness: Brightness.dark,
+      build: (context) => seeded(context, AppSection.ride),
+    );
+  });
+
+  testWidgets('devices-1280x800-dark-de', (tester) async {
+    await shoot(
+      tester,
+      name: 'devices-1280x800-dark-de',
+      size: desktop,
+      brightness: Brightness.dark,
+      build: (context) => seeded(context, AppSection.devices),
+    );
+  });
+
+  testWidgets('trainer-1280x800-dark-de', (tester) async {
+    await shoot(
+      tester,
+      name: 'trainer-1280x800-dark-de',
+      size: desktop,
+      brightness: Brightness.dark,
+      build: (_) => ProxyDeviceDetailsPage(device: proxy),
+    );
+  });
 }
