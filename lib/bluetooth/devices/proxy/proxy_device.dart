@@ -942,7 +942,7 @@ class ProxyDevice extends BluetoothDevice {
       if (!hasZwiftAdv) (LucideIcons.sparkles, l10n.proxyFeatureAddVirtualShifting),
       (LucideIcons.slidersHorizontal, l10n.proxyFeatureAdjustGears),
       if (controller != null) (LucideIcons.gamepad2, l10n.proxyFeatureDirectControl(controller.name)),
-      (LucideIcons.dumbbell, l10n.proxyFeatureMiniWorkout),
+      (LucideIcons.circleDot, l10n.proxyFeatureMiniWorkout),
       if (supportsWifiProxy) (LucideIcons.wifi, l10n.proxyFeatureWifiProxy),
     ];
 

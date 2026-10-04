@@ -1144,7 +1144,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _update();
   }
 
-  /// Under Your buttons: the Mini Workout, for the trainer on Ride's card.
+  /// Under Your buttons: Record Activity, for the trainer on Ride's card.
   /// (Heart rate is one of the card's readings; speed is not on Ride.)
   List<Widget> _rideExtras() {
     final proxy = chainProxy();

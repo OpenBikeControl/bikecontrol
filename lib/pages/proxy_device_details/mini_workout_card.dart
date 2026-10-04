@@ -9,12 +9,15 @@ import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart' show RideSectionHeader;
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-/// Keeps the Mini Workout card off Ride. For the onboarding video,
+/// Keeps the Record Activity card off Ride. For the onboarding video,
 /// which is about Virtual Shifting. Off everywhere else.
 @visibleForTesting
 bool debugHideMiniWorkoutCard = false;
@@ -93,94 +96,107 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
     final l10n = AppLocalizations.of(context);
     final metrics = MiniWorkoutCard._metricsFor(widget.device);
     if (metrics == null) return const SizedBox.shrink();
+    final cs = Theme.of(context).colorScheme;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.card,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 12,
-        children: [
-          Row(
-            spacing: 8,
-            children: [
-              const Icon(LucideIcons.activity, size: 18),
-              Text(l10n.miniWorkout, style: context.typography.base.copyWith(fontWeight: FontWeight.w600)),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        RideSectionHeader(
+          title: l10n.miniWorkout,
+          linkLabel: l10n.miniWorkoutPastWorkouts,
+          onLink: _openPast,
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cs.card,
+            borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
           ),
-          ValueListenableBuilder<WorkoutState>(
+          child: ValueListenableBuilder<WorkoutState>(
             valueListenable: _recorder.state,
             builder: (context, state, _) => _body(context, state, l10n),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
+  /// What a recording becomes: always a .fit file to share, and on iPhone a
+  /// workout in Apple Health while saving rides there is on.
+  String _subtitle(AppLocalizations l10n) {
+    final health = core.healthRide;
+    return health.isSupported && health.isEnabled ? l10n.recordActivitySubtitleHealth : l10n.recordActivitySubtitle;
+  }
+
+  void _openPast() => openSheet(
+    context: context,
+    draggable: true,
+    position: OverlayPosition.bottom,
+    builder: (_) => const Padding(
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
+      child: WorkoutsList(showHeader: true),
+    ),
+  );
+
   Widget _body(BuildContext context, WorkoutState state, AppLocalizations l10n) {
+    final cs = Theme.of(context).colorScheme;
     if (state == WorkoutState.idle) {
-      return Row(
-        spacing: 8,
-        mainAxisAlignment: MainAxisAlignment.center,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _gridTile(
-            context: context,
-            icon: LucideIcons.circle,
-            iconColor: Theme.of(context).colorScheme.destructive,
-            label: l10n.miniWorkoutStart,
-            onTap: _start,
-          ),
-          _gridTile(
-            context: context,
-            icon: LucideIcons.list,
-            label: l10n.miniWorkoutPastWorkouts,
-            onTap: () => openSheet(
-              context: context,
-              draggable: true,
-              position: OverlayPosition.bottom,
-              builder: (_) => const Padding(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
-                child: WorkoutsList(showHeader: true),
-              ),
-            ),
+          Text(_subtitle(l10n), style: context.typography.small.copyWith(color: cs.mutedForeground)),
+          const Gap(14),
+          BkPillButton(
+            key: const ValueKey('record-activity-start'),
+            leading: Icon(LucideIcons.circleDot, size: 18, color: cs.primaryForeground),
+            onPressed: _start,
+            child: Text(l10n.miniWorkoutStart),
           ),
         ],
       );
     }
+    final recording = state == WorkoutState.recording;
     return Column(
       spacing: 8,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 8,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: recording ? cs.destructive : cs.mutedForeground,
+                shape: BoxShape.circle,
+              ),
+            ),
+            Text(
+              recording ? l10n.miniWorkoutRecording : l10n.miniWorkoutPaused,
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.mutedForeground),
+            ),
+          ],
+        ),
         ValueListenableBuilder<Duration>(
           valueListenable: _recorder.elapsed,
           builder: (_, d, _) => Text(
             _fmtDuration(d),
-            style: context.typography.x3Large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
-          ),
-        ),
-        Text(
-          state == WorkoutState.paused ? l10n.miniWorkoutPaused : l10n.miniWorkoutRecording,
-          style: context.typography.caption.copyWith(
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-            color: Theme.of(context).colorScheme.mutedForeground,
+            style: BkNumerals.gear((context.typography.x3Large.fontSize ?? 30) * 1.6, color: cs.foreground, height: 1),
           ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           spacing: 12,
           children: [
-            if (state == WorkoutState.recording)
+            if (recording)
               BkIconButton.secondary(
                 icon: const Icon(LucideIcons.pause, size: 20),
                 label: context.i18n.miniWorkoutPause,
                 onPressed: _recorder.pause,
-              ),
-            if (state == WorkoutState.paused)
+              )
+            else
               BkIconButton.primary(
                 icon: const Icon(LucideIcons.play, size: 20),
                 label: context.i18n.miniWorkoutResume,
@@ -194,42 +210,6 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _gridTile({
-    required BuildContext context,
-    required IconData icon,
-    Color? iconColor,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final cs = Theme.of(context).colorScheme;
-    return Button.ghost(
-      onPressed: onTap,
-      style: ButtonStyle.ghost().copyWith(
-        padding: (context, states, value) => const EdgeInsets.all(0),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: cs.muted,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: cs.border),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 6,
-          children: [
-            Icon(icon, size: 22, color: iconColor),
-            Text(
-              label,
-              style: context.typography.caption.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 

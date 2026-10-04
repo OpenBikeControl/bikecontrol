@@ -267,7 +267,7 @@ Future<void> main() async {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('the Mini Workout sits below Your buttons', (tester) async {
+    testWidgets('Record Activity sits below Your buttons', (tester) async {
       liveTrainer();
       connectedPlay();
       await pumpRide(tester);
@@ -275,6 +275,19 @@ Future<void> main() async {
       final workout = find.byType(MiniWorkoutCard);
       expect(workout, findsOneWidget);
       expect(tester.getTopLeft(workout).dy, greaterThan(tester.getTopLeft(find.text(l.rideYourButtons)).dy));
+    });
+
+    testWidgets('Record Activity says what it records and where the ride goes', (tester) async {
+      liveTrainer();
+      connectedPlay();
+      await pumpRide(tester);
+
+      final card = find.byType(MiniWorkoutCard);
+      expect(find.descendant(of: card, matching: find.text(l.miniWorkout)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.recordActivitySubtitle)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.miniWorkoutStart)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.miniWorkoutPastWorkouts)), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('without a trainer, Ride invites the rider to connect one', (tester) async {
