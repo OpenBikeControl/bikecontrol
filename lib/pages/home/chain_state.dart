@@ -196,6 +196,7 @@ class ChainLink {
     this.dismissible = false,
     this.wasConnectedThisSession = false,
     this.dropped = false,
+    this.standby = false,
   });
 
   final ChainLinkKey key;
@@ -251,9 +252,17 @@ class ChainLink {
   /// connected, which has a step of its own.
   final bool dropped;
 
+  /// A controller the rider is riding without: remembered from before (or
+  /// only ever found), out of reach or never set up, while another controller
+  /// is connected and working. Its steps stay on its own card, as optional,
+  /// but it does not stop the rider being ready — a Click V2 from an earlier
+  /// ride is not what stands between a rider on a Zwift Play and riding.
+  final bool standby;
+
   /// Whether this link stops the rider being ready.
   bool get isBlocking {
     if (status == LinkStatus.ready) return false;
+    if (standby) return false;
     if (optional && status == LinkStatus.off) return false;
     return true;
   }
@@ -298,6 +307,7 @@ class ChainLink {
       dismissible: dismissible ?? this.dismissible,
       wasConnectedThisSession: wasConnectedThisSession,
       dropped: dropped,
+      standby: standby,
     );
   }
 

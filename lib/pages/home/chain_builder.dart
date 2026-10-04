@@ -65,7 +65,7 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
     ];
   }
 
-  return inputs.controllers.map((controller) {
+  final links = inputs.controllers.map((controller) {
     final inRange = _isPresent(controller.presence);
     final guidedSetupDone = controller.sramSetupDone;
     // A Click V2 waiting for its unlock-mode choice gets that one step and
@@ -153,7 +153,35 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
       dismissible: !inRange && !_isArriving(controller.presence),
     );
   }).toList();
+
+  // Once one controller is connected with nothing left to do, the ones that
+  // are merely remembered (or only ever found) are not what stands between
+  // the rider and riding: a Click V2 from an earlier ride, out of reach and
+  // locked, beside the Zwift Play the rider is on now. Their steps stay on
+  // their own cards, as offers, and stop counting. One lost in this session
+  // is different — that was working minutes ago, and its break stays news.
+  if (!links.any((l) => l.status == LinkStatus.ready)) return links;
+  return [
+    for (final (i, link) in links.indexed)
+      if (_canStandBy(inputs.controllers[i].presence))
+        ChainLink(
+          key: link.key,
+          id: link.id,
+          status: link.status,
+          title: link.title,
+          steps: [for (final step in link.steps) step.optional ? step : step.copyWith(optional: true)],
+          deviceId: link.deviceId,
+          dismissible: link.dismissible,
+          standby: true,
+        )
+      else
+        link,
+  ];
 }
+
+/// A controller that is not here and was not here in this session either.
+bool _canStandBy(DevicePresence presence) =>
+    presence == DevicePresence.remembered || presence == DevicePresence.discovered;
 
 ChainLink _trainerLink(ChainInputs inputs) {
   final trainer = inputs.trainer;

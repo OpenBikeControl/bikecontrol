@@ -292,6 +292,15 @@ class Connection {
     return _offlineControllers.values.where((d) => !liveIds.contains(d.uniqueId)).toList();
   }
 
+  /// Remembers [device] as an offline controller, as [loadRememberedDevices]
+  /// does from storage. Tests only.
+  @visibleForTesting
+  void debugRememberController(BaseDevice device) => _offlineControllers[device.uniqueId] = device;
+
+  /// Clears what [debugRememberController] added. Tests only.
+  @visibleForTesting
+  void debugForgetOfflineControllers() => _offlineControllers.clear();
+
   /// Rebuilds the remembered controllers and restores the remembered trainer.
   /// Safe to call more than once — entries already present are left alone.
   void loadRememberedDevices() {

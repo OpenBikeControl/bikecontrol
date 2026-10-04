@@ -114,6 +114,67 @@ void main() {
     });
   });
 
+  // A Click V2 from an earlier ride, out of reach and locked, while the rider
+  // is on a Zwift Play that works: the Click V2's steps are not what stands
+  // between the rider and riding.
+  group('an absent controller beside a working one', () {
+    final absentClick = controller(
+      deviceId: 'click',
+      name: 'Zwift Click V2',
+      presence: DevicePresence.remembered,
+      unlocked: false,
+    );
+    final play = controller(deviceId: 'play', name: 'Zwift Play');
+
+    test('does not block Ready and adds nothing to the steps left', () {
+      final chain = buildChain(ChainInputs(controllers: [absentClick, play], trainer: trainer(), app: _readyApp));
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.ready);
+      expect(banner.stepsLeft, 0);
+    });
+
+    test('keeps its steps on its own card, as optional', () {
+      final chain = buildChain(ChainInputs(controllers: [absentClick, play], app: _readyApp));
+      final click = chain.firstWhere((l) => l.id == 'controller:click');
+      expect(click.pendingSteps.map((s) => s.id), [SetupStepId.controllerInRange, SetupStepId.controllerUnlocked]);
+      expect(click.pendingSteps.every((s) => s.optional), isTrue);
+      expect(click.isBlocking, isFalse);
+      expect(click.standby, isTrue);
+    });
+
+    test('a controller never set up stays out of the way too', () {
+      final found = controller(deviceId: 'found', presence: DevicePresence.discovered);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [found, play], app: _readyApp)));
+      expect(banner.kind, ChainBannerKind.ready);
+    });
+
+    test('other steps still count', () {
+      const waiting = AppInput(name: 'MyWhoosh', hasEnabledConnection: true);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [absentClick, play], app: waiting)));
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.outstandingLinkIds, ['app']);
+      expect(banner.stepsLeft, 1);
+    });
+
+    test('alone, it is still the thing to fix', () {
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [absentClick], app: _readyApp)));
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.outstandingLinkIds, ['controller:click']);
+    });
+
+    test('beside a controller that is itself unfinished, it still counts', () {
+      final unmapped = controller(deviceId: 'play', name: 'Zwift Play', hasMappedButtons: false);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [absentClick, unmapped], app: _readyApp)));
+      expect(banner.outstandingLinkIds, contains('controller:click'));
+    });
+
+    test('one lost this session is still news', () {
+      final lost = controller(deviceId: 'click', presence: DevicePresence.lost);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [lost, play], app: _readyApp)));
+      expect(banner.kind, ChainBannerKind.broken);
+    });
+  });
+
   group('controller steps', () {
     test('a connected, mapped controller is ready with every step done', () {
       final chain = buildChain(ChainInputs(controllers: [controller()], app: _readyApp));

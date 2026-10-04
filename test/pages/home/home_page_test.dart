@@ -16,6 +16,9 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/models/remembered_device.dart';
@@ -221,6 +224,29 @@ void _bannerStepTests() {
 
     Finder inBanner(Finder finder) => find.descendant(of: find.byType(ReadyBanner), matching: finder);
     Finder inDevices(Finder finder) => find.descendant(of: _chainCard(ChainLinkKey.controller), matching: finder);
+
+    testWidgets('a Click V2 out of reach is not a step while a Zwift Play works', (tester) async {
+      // The rider rode a Click V2 last time and is on a Zwift Play now.
+      final click = ZwiftClickV2(BleDevice(name: 'Zwift Click', deviceId: 'banner-click'));
+      core.connection.debugRememberController(click);
+      addTearDown(core.connection.debugForgetOfflineControllers);
+      await core.settings.setClickV2OnboardingDone(true);
+      final play = ZwiftPlay(BleDevice(name: 'Zwift Play', deviceId: 'banner-play'), deviceType: ZwiftDeviceType.playLeft)
+        ..isConnected = true;
+      core.connection.devices.add(play);
+      core.actionHandler.init(MyWhoosh());
+      core.obpMdnsEmulator.isConnected.value = true;
+      addTearDown(() => core.obpMdnsEmulator.isConnected.value = false);
+      await _pumpHome(tester);
+
+      expect(find.text(l.chainReadyTitle), findsOneWidget);
+      expect(tester.widget<ReadyBanner>(find.byType(ReadyBanner)).steps, isEmpty);
+      // Its own row keeps what it would take, as optional.
+      final row = find.byWidgetPredicate((w) => w is ChainLinkRow && w.link.deviceId == click.uniqueId);
+      expect(row, findsOneWidget);
+      expect(find.descendant(of: row, matching: find.text(l.chainStepInRangePending)), findsOneWidget);
+      expect(find.descendant(of: row, matching: find.byType(OptionalTag)), findsWidgets);
+    });
 
     testWidgets('each outstanding step shows with its title and the Devices row\'s fix', (tester) async {
       // A fresh install: no controller yet, MyWhoosh waiting for its

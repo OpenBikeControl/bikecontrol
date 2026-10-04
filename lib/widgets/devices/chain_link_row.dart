@@ -204,7 +204,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
   Widget _header(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final typography = context.typography;
-    final tone = chainStatusTone(widget.link.status);
+    // A controller the rider is riding without reads quiet, not amber: it is
+    // not something to fix right now — see [ChainLink.standby].
+    final tone = widget.link.standby ? BkStatusTone.neutral : chainStatusTone(widget.link.status);
     final detail = widget.statusDetail;
     final badges = widget.statusBadges;
 
