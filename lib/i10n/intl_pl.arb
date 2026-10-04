@@ -2004,6 +2004,7 @@
   "networkHintBonjourNsp": "Brakuje zaczepu resolvera Bonjour. Zainstaluj ponownie Bonjour — bez niego przycisk BikeControl w MyWhoosh nie zadziała.",
   "networkHintResolveFail": "Ten komputer nie mógł rozwiązać adresu BikeControl — dokładnie na tym kroku zawodzi aplikacja treningowa. W systemie Windows uszkodzona instalacja Bonjour może to powodować, nawet gdy usługa działa; pomaga czysta ponowna instalacja.",
   "supportDiagnosticsNotice": "Aby pomóc rozwiązać twój problem, ten czat dołącza zrzut ekranu BikeControl i dane diagnostyczne. Możesz je sprawdzić lub usunąć przed wysłaniem.",
+  "supportRetentionNotice": "Rozmowy są automatycznie usuwane 30 dni po ostatniej wiadomości. Zanonimizowane dane trenażera (model, firmware, wyniki testów) przechowujemy, aby poprawiać kompatybilność.",
   "supportDeleteConversation": "Usuń rozmowę",
   "supportDeleteAccount": "Usuń konto i wszystkie dane",
   "supportDeleteConversationTitle": "Usunąć rozmowę?",

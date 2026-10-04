@@ -1477,6 +1477,7 @@
   "feedbackQuestion": "Does it work?",
   "supportChat": "Support Chat",
   "supportDiagnosticsNotice": "To help fix your issue, this chat attaches a screenshot of BikeControl and diagnostic info. You can review or remove them before sending.",
+  "supportRetentionNotice": "Conversations are deleted automatically 30 days after the last message. Anonymised trainer data (model, firmware, test results) is kept to improve compatibility.",
   "supportDeleteConversation": "Delete conversation",
   "supportDeleteAccount": "Delete account & all data",
   "supportDeleteConversationTitle": "Delete conversation?",

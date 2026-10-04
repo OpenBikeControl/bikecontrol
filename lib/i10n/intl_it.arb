@@ -2004,6 +2004,7 @@
   "networkHintBonjourNsp": "Manca l'hook del resolver di Bonjour. Reinstalla Bonjour: senza di esso il pulsante BikeControl in MyWhoosh non può funzionare.",
   "networkHintResolveFail": "Questo computer non è riuscito a risolvere l'indirizzo di BikeControl, esattamente il passaggio in cui la app di allenamento fallisce. Su Windows un'installazione di Bonjour danneggiata può causarlo anche quando il servizio è in esecuzione; una reinstallazione pulita lo risolve.",
   "supportDiagnosticsNotice": "Per aiutarti a risolvere il problema, questa chat allega uno screenshot di BikeControl e informazioni diagnostiche. Puoi rivederle o rimuoverle prima di inviare.",
+  "supportRetentionNotice": "Le conversazioni vengono eliminate automaticamente 30 giorni dopo l'ultimo messaggio. I dati anonimizzati dei rulli (modello, firmware, risultati dei test) vengono conservati per migliorare la compatibilità.",
   "supportDeleteConversation": "Elimina conversazione",
   "supportDeleteAccount": "Elimina account e tutti i dati",
   "supportDeleteConversationTitle": "Eliminare la conversazione?",

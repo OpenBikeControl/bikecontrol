@@ -905,6 +905,7 @@
   "feedbackQuestion": "Funktioniert es?",
   "supportChat": "Support-Chat",
   "supportDiagnosticsNotice": "Damit wir dein Problem beheben können, hängt dieser Chat einen Screenshot von BikeControl und Diagnosedaten an. Du kannst sie vor dem Senden prüfen oder entfernen.",
+  "supportRetentionNotice": "Unterhaltungen werden 30 Tage nach der letzten Nachricht automatisch gelöscht. Anonymisierte Trainerdaten (Modell, Firmware, Testergebnisse) bewahren wir auf, um die Kompatibilität zu verbessern.",
   "supportDeleteConversation": "Unterhaltung löschen",
   "supportDeleteAccount": "Konto & alle Daten löschen",
   "supportDeleteConversationTitle": "Unterhaltung löschen?",
