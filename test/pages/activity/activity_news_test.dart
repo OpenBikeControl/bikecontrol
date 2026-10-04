@@ -10,6 +10,8 @@ import 'package:bike_control/pages/activity/news_view.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/services/blog_service.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
@@ -147,11 +149,14 @@ Future<void> main() async {
           reason: 'log left, News right',
         );
 
-        // Each pane has its header: the log's carries Clear.
-        expect(find.descendant(of: logPane, matching: find.text(l().activity)), findsOneWidget);
-        expect(find.descendant(of: logPane, matching: find.byType(ActivityClearButton)), findsOneWidget);
-        expect(find.descendant(of: newsPane, matching: find.text(l().activityTabNews)), findsOneWidget);
-        expect(find.byType(ActivityClearButton), findsOneWidget, reason: 'not also in the page header');
+        // The page title already says Activity: the log's pane has no header
+        // of its own, and Clear sits in the page's title bar. News keeps its
+        // header.
+        expect(find.descendant(of: logPane, matching: find.text(l().activity)), findsNothing);
+        expect(find.byType(ActivityPaneHeader), findsOneWidget, reason: 'News only');
+        expect(find.descendant(of: newsPane, matching: find.byType(ActivityPaneHeader)), findsOneWidget);
+        expect(find.descendant(of: find.byType(ShellTopBar), matching: find.byType(ActivityClearButton)), findsOneWidget);
+        expect(find.byType(ActivityClearButton), findsOneWidget, reason: 'only in the title bar');
 
         // Each scrolls on its own.
         expect(find.descendant(of: logPane, matching: find.byType(SingleChildScrollView)), findsOneWidget);
@@ -165,6 +170,35 @@ Future<void> main() async {
         await disposeShell(tester);
       });
     }
+
+    testWidgets('the panes line up: their first captions and their first cards', (tester) async {
+      await pumpShell(tester, const Size(1280, 800));
+      await tester.pump();
+      // An empty log: its card starts where News's header does.
+      await tester.tap(sidebarItem(l().activity));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final newsHeader = tester.getRect(find.byType(ActivityPaneHeader));
+      expect(
+        tester.getRect(find.byKey(const ValueKey('activity-empty'))).top,
+        moreOrLessEquals(newsHeader.top, epsilon: 0.5),
+      );
+
+      // With an entry: "Last minute" beside "News", the first row beside the
+      // first post.
+      core.connection.signalNotification(
+        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to the trainer app'),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      final caption = tester.getRect(find.text(l().activityLastMinute.toUpperCase()));
+      final header = tester.getRect(find.byType(ActivityPaneHeader));
+      expect(caption.top, moreOrLessEquals(header.top, epsilon: 0.5));
+      final firstRow = tester.getRect(find.byType(ActivityRow).first);
+      final firstPost = tester.getRect(find.byType(NewsCard).first);
+      expect(firstRow.top, moreOrLessEquals(firstPost.top, epsilon: 0.5));
+      await disposeShell(tester);
+    });
 
     testWidgets('opening Activity reads the news: News is on screen', (tester) async {
       await pumpShell(tester, const Size(1280, 800));
@@ -186,7 +220,7 @@ Future<void> main() async {
 
     testWidgets('below 840 the segments stay', (tester) async {
       await pumpShell(tester, const Size(700, 900));
-      await tester.tap(find.descendant(of: find.byType(ShellTopTabs), matching: find.text(l().activity)));
+      await tester.tap(find.descendant(of: find.byType(ShellTabBar), matching: find.text(l().activity)));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(ActivitySegments), findsOneWidget);

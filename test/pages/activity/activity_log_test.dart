@@ -15,7 +15,6 @@ final DateTime _now = DateTime(2026, 9, 29, 10);
 Future<ActivityLogController> _pumpLog(
   WidgetTester tester, {
   ActivityFixAction? fixAction,
-  bool showHeader = false,
 }) async {
   tester.view.physicalSize = const Size(430, 1600);
   tester.view.devicePixelRatio = 1;
@@ -35,7 +34,7 @@ Future<ActivityLogController> _pumpLog(
           child: Column(
             children: [
               ActivityClearButton(controller: controller),
-              ActivityLogView(controller: controller, fixAction: fixAction ?? (_) => null, showHeader: showHeader),
+              ActivityLogView(controller: controller, fixAction: fixAction ?? (_) => null),
             ],
           ),
         ),

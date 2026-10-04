@@ -10,8 +10,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The Activity section: a segmented control over the session's log and the
 /// blog's News — or, [sideBySide] (from 840), the two as panes: the log on
-/// the left, News on the right, each under its own header and scrolling on
-/// its own.
+/// the left under the page's own title, News on the right under its header,
+/// each scrolling on its own.
 class ActivitySection extends StatelessWidget {
   const ActivitySection({super.key, required this.shell, required this.fixAction, this.sideBySide = false});
 
@@ -33,7 +33,7 @@ class ActivitySection extends StatelessWidget {
           ActivitySegments(shell: shell),
           const Gap(16),
           switch (tab) {
-            ActivityTab.log => ActivityLogView(controller: shell.activity, fixAction: fixAction, showHeader: false),
+            ActivityTab.log => ActivityLogView(controller: shell.activity, fixAction: fixAction),
             ActivityTab.news => NewsView(controller: shell.news),
           },
         ],

@@ -152,15 +152,13 @@ bool activityInLastMinute(ActivityEntry entry) =>
 /// first, with a note on how much it keeps. Entries grow in and out as they
 /// come and go (they just appear with reduced motion).
 ///
-/// [showHeader] adds the "Activity" title with its Clear action — for the
-/// log's pane beside News from 840. Below that the Activity section puts
-/// Clear in the page's own header ([ActivityClearButton]).
+/// It has no title of its own: the page's title says Activity, and Clear
+/// ([ActivityClearButton]) sits in the page's title bar.
 class ActivityLogView extends StatefulWidget {
-  const ActivityLogView({super.key, required this.controller, required this.fixAction, this.showHeader = true});
+  const ActivityLogView({super.key, required this.controller, required this.fixAction});
 
   final ActivityLogController controller;
   final ActivityFixAction fixAction;
-  final bool showHeader;
 
   @override
   State<ActivityLogView> createState() => _ActivityLogViewState();
@@ -229,11 +227,6 @@ class _ActivityLogViewState extends State<ActivityLogView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (widget.showHeader)
-          ActivityPaneHeader(
-            title: l10n.activity,
-            trailing: ActivityClearButton(controller: widget.controller),
-          ),
         if (empty) const ActivityEmptyState(),
         AnimatedList(
           key: _listKey,
@@ -280,19 +273,9 @@ class _ActivityLogViewState extends State<ActivityLogView> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (first && !removing)
-          Padding(
-            padding: EdgeInsets.fromLTRB(BkGroupedSection.inset, index == 0 ? 0 : 20, BkGroupedSection.inset, 6),
-            child: Semantics(
-              header: true,
-              child: Text(
-                (recent ? l10n.activityLastMinute : l10n.activityEarlier).toUpperCase(),
-                style: context.typography.caption.copyWith(
-                  color: cs.mutedForeground,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.6,
-                ),
-              ),
-            ),
+          ActivityGroupCaption(
+            title: recent ? l10n.activityLastMinute : l10n.activityEarlier,
+            top: index == 0 ? 0 : 20,
           ),
         DecoratedBox(
           decoration: BoxDecoration(
@@ -323,35 +306,44 @@ class _ActivityLogViewState extends State<ActivityLogView> {
   }
 }
 
-/// A pane's title over its content — the log's (with Clear) and News's,
-/// side by side from 840. One height with or without an action, so the two
-/// panes' first cards line up.
-class ActivityPaneHeader extends StatelessWidget {
-  const ActivityPaneHeader({super.key, required this.title, this.trailing});
+/// A group's caption in the grouped-list style: "LAST MINUTE", "EARLIER".
+class ActivityGroupCaption extends StatelessWidget {
+  const ActivityGroupCaption({super.key, required this.title, this.top = 0});
 
   final String title;
-  final Widget? trailing;
+
+  /// Space above the caption: none for a pane's first, more between groups.
+  final double top;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, 4, 8),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 40),
-        child: Row(
-          children: [
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(title, style: context.typography.large.copyWith(fontWeight: FontWeight.w700)),
-              ),
-            ),
-            ?trailing,
-          ],
+      padding: EdgeInsets.fromLTRB(BkGroupedSection.inset, top, BkGroupedSection.inset, 6),
+      child: Semantics(
+        header: true,
+        child: Text(
+          title.toUpperCase(),
+          style: context.typography.caption.copyWith(
+            color: Theme.of(context).colorScheme.mutedForeground,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.6,
+          ),
         ),
       ),
     );
   }
+}
+
+/// News's header in its pane beside the log, from 840: a caption like the
+/// log's groups, at the same height, so the two panes' first cards line up
+/// under the page's title.
+class ActivityPaneHeader extends StatelessWidget {
+  const ActivityPaneHeader({super.key, required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => ActivityGroupCaption(title: title);
 }
 
 /// "Clear" for the activity log, in accent; disabled while there is nothing
