@@ -247,23 +247,25 @@ Future<void> main() async {
     testWidgets('uses the selected trainer app on both cards', (tester) async {
       useTrainerApp(MyWhoosh());
       final l = await pump(tester);
-      final line = l.paywall_shiftInNamedApp('MyWhoosh');
-      expect(inCard(proCard, line), findsOneWidget);
-      expect(inCard(baseCard, line), findsOneWidget);
+      // Pro: BikeControl can do the gears, so the line doesn't say the app
+      // computes them. Base: the app does, and says so.
+      expect(inCard(proCard, l.paywall_shiftInNamedAppShort('MyWhoosh')), findsOneWidget);
+      expect(inCard(baseCard, l.paywall_shiftInNamedApp('MyWhoosh')), findsOneWidget);
+      expect(inCard(proCard, l.paywall_shiftInNamedApp('MyWhoosh')), findsNothing);
       expect(find.text(l.paywall_shiftInYourApp), findsNothing);
     });
 
     testWidgets('falls back to the generic wording with no app selected', (tester) async {
       useTrainerApp(null);
       final l = await pump(tester);
-      expect(inCard(proCard, l.paywall_shiftInYourApp), findsOneWidget);
+      expect(inCard(proCard, l.paywall_shiftInYourAppShort), findsOneWidget);
       expect(inCard(baseCard, l.paywall_shiftInYourApp), findsOneWidget);
     });
 
     testWidgets('stays generic in store-screenshot mode', (tester) async {
       useTrainerApp(MyWhoosh(), screenshots: true);
       final l = await pump(tester);
-      expect(inCard(proCard, l.paywall_shiftInYourApp), findsOneWidget);
+      expect(inCard(proCard, l.paywall_shiftInYourAppShort), findsOneWidget);
       expect(find.textContaining('MyWhoosh'), findsNothing);
     });
   });
@@ -285,7 +287,7 @@ Future<void> main() async {
       final l = await pump(tester);
       final withClip = {
         l.paywall_vsByBikeControl: PaywallFeatureClip.smartTrainerVirtualShifting,
-        l.paywall_shiftInYourApp: PaywallFeatureClip.virtualGearShifting,
+        l.paywall_shiftInYourAppShort: PaywallFeatureClip.virtualGearShifting,
         l.paywall_configure3ActionsPerButton: PaywallFeatureClip.buttonGestures,
         l.paywall_shareSensors: PaywallFeatureClip.heartRate,
         l.paywall_startAnyCommandShortcutWithAnyButton: PaywallFeatureClip.launchCommand,

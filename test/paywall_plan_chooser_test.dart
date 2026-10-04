@@ -69,7 +69,7 @@ Future<void> main() async {
     // run together below it; virtual shifting follows straight after.
     final vs = tester.getRect(inCard(proCard, l.paywall_vsByBikeControl));
     final commands = tester.getRect(inCard(proCard, l.paywall_amountOfActions));
-    final shift = tester.getRect(inCard(proCard, l.paywall_shiftInYourApp));
+    final shift = tester.getRect(inCard(proCard, l.paywall_shiftInYourAppShort));
     expect(commands.top, lessThan(vs.top), reason: 'unlimited commands is the first line');
     expect(vs.top, lessThan(shift.top), reason: 'virtual shifting comes right after it');
     expect(inCard(baseCard, l.paywall_vsByBikeControl), findsNothing, reason: 'Base does not include virtual shifting');
@@ -78,8 +78,10 @@ Future<void> main() async {
     for (final card in [proCard, baseCard]) {
       expect(inCard(card, l.paywall_amountOfActions), findsOneWidget);
       expect(inCard(card, l.unlimited), findsOneWidget);
-      expect(inCard(card, l.paywall_shiftInYourApp), findsOneWidget);
     }
+    // Pro drops "the app does the shifting": with Pro, BikeControl can.
+    expect(inCard(proCard, l.paywall_shiftInYourAppShort), findsOneWidget);
+    expect(inCard(baseCard, l.paywall_shiftInYourApp), findsOneWidget);
 
     // Under both plans: without Pro the trainer app does the shifting, and
     // what Pro adds, with the post comparing the two.

@@ -202,13 +202,20 @@ class _PaywallState extends State<Paywall> {
   // Sensor sharing is gated on Pro (SensorHub.isProEnabled and the standalone
   // sensor emulator's shouldAdvertise).
   // A line whose feature has a website demo clip offers it (Pro card only).
-  List<_FeatureLine> _features(AppLocalizations l10n) {
+  // On the Pro card the shift line stops at "in {app}": with Pro, BikeControl
+  // can do the gears, so "the app computes them" only holds for Base.
+  List<_FeatureLine> _features(AppLocalizations l10n, {required bool pro}) {
     final app = paywallShiftAppName(core.settings.getTrainerApp());
     return [
       _FeatureLine(l10n.paywall_amountOfActions, unlimited: true, inBase: true),
       _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
       _FeatureLine(
-        app == null ? l10n.paywall_shiftInYourApp : l10n.paywall_shiftInNamedApp(app),
+        switch ((app, pro)) {
+          (null, true) => l10n.paywall_shiftInYourAppShort,
+          (null, false) => l10n.paywall_shiftInYourApp,
+          (final String app, true) => l10n.paywall_shiftInNamedAppShort(app),
+          (final String app, false) => l10n.paywall_shiftInNamedApp(app),
+        },
         inBase: true,
         clip: PaywallFeatureClip.virtualGearShifting,
       ),
@@ -821,7 +828,7 @@ class _PaywallState extends State<Paywall> {
             ),
           ],
           const SizedBox(height: 14),
-          _featureList(context, _features(l10n), accent: true, clips: true),
+          _featureList(context, _features(l10n, pro: true), accent: true, clips: true),
           const SizedBox(height: 16),
           _purchaseButton(context, plan: plan, label: _purchaseLabel(l10n, plan), primary: true),
         ],
@@ -899,7 +906,7 @@ class _PaywallState extends State<Paywall> {
           ),
           const SizedBox(height: 12),
           _featureList(context, [
-            for (final f in _features(l10n))
+            for (final f in _features(l10n, pro: false))
               if (f.inBase) f,
           ], accent: false),
           const SizedBox(height: 12),

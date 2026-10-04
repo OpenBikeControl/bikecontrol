@@ -62,7 +62,7 @@ Future<void> main() async {
     final labelsInOrder = [
       l10n.paywall_amountOfActions,
       l10n.paywall_vsByBikeControl,
-      l10n.paywall_shiftInYourApp,
+      l10n.paywall_shiftInYourAppShort,
       l10n.paywall_configure3ActionsPerButton,
       l10n.paywall_useBikecontrolOnAllPlatforms,
     ];
