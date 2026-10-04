@@ -4,8 +4,14 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/help_center/widgets/pricing_faq_section.dart';
+import 'package:bike_control/pages/paywall_feature_clip.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/bike_control.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -80,9 +86,22 @@ PaywallConfirmation? paywallConfirmationFor({
   return null;
 }
 
+/// The trainer app to name on the "shift in your app" line, or null for the
+/// generic wording: no app picked, a stand-in that isn't an app that shifts
+/// (a custom keymap, "OpenBikeControl compatible", BikeControl itself), or
+/// store screenshots, which keep app names generic.
+String? paywallShiftAppName(SupportedApp? app) {
+  if (app == null || app is CustomApp || app is OpenBikeControl || app is BikeControl) return null;
+  final shown = shownTrainerAppName(app.name);
+  return shown == app.name ? shown : null;
+}
+
 /// One line of a plan card's feature list.
 class _FeatureLine {
   final String label;
+
+  /// The website demo clip that shows this feature, if there is one.
+  final PaywallFeatureClip? clip;
 
   /// Drawn with "Unlimited" at its end (button commands per day).
   final bool unlimited;
@@ -90,7 +109,7 @@ class _FeatureLine {
   /// Base has it too. Every line is Pro.
   final bool inBase;
 
-  const _FeatureLine(this.label, {this.unlimited = false, this.inBase = false});
+  const _FeatureLine(this.label, {this.unlimited = false, this.inBase = false, this.clip});
 }
 
 class _PaywallPricing {
@@ -152,11 +171,17 @@ class Paywall extends StatefulWidget {
   @visibleForTesting
   final void Function(String plan)? debugOnPurchase;
 
+  /// Test seam: the poster a feature clip's sheet shows, instead of loading
+  /// it from the website.
+  @visibleForTesting
+  final ImageProvider Function(PaywallFeatureClip clip)? debugClipPoster;
+
   const Paywall({
     super.key,
     this.defaultToFullVersion = false,
     this.debugYearlyStorePrice,
     this.debugOnPurchase,
+    this.debugClipPoster,
   });
 
   @override
@@ -166,20 +191,29 @@ class Paywall extends StatefulWidget {
 class _PaywallState extends State<Paywall> {
   // The first line is the one riders bought the wrong plan over: BikeControl
   // shifting the trainer itself is Pro. Base covers pressing the buttons in a
-  // trainer app that shifts by itself (lines two and three, on both cards).
+  // trainer app that shifts by itself (lines two and three, on both cards);
+  // that line names the rider's app so it's clear which app does the gears.
   // Sensor sharing is gated on Pro (SensorHub.isProEnabled and the standalone
   // sensor emulator's shouldAdvertise).
-  late final List<_FeatureLine> _features = [
-    _FeatureLine(AppLocalizations.current.paywall_vsByBikeControl),
-    _FeatureLine(AppLocalizations.current.paywall_amountOfActions, unlimited: true, inBase: true),
-    _FeatureLine(AppLocalizations.current.paywall_shiftInYourApp, inBase: true),
-    _FeatureLine(AppLocalizations.current.paywall_configure3ActionsPerButton),
-    _FeatureLine(AppLocalizations.current.paywall_useBikecontrolOnAllPlatforms),
-    _FeatureLine(AppLocalizations.current.paywall_shareSensors),
-    _FeatureLine(AppLocalizations.current.paywall_startAnyCommandShortcutWithAnyButton),
-    _FeatureLine(AppLocalizations.current.paywall_controlYourDeviceMusic),
-    _FeatureLine(AppLocalizations.current.paywall_createScreenshots),
-  ];
+  // A line whose feature has a website demo clip offers it (Pro card only).
+  List<_FeatureLine> _features(AppLocalizations l10n) {
+    final app = paywallShiftAppName(core.settings.getTrainerApp());
+    return [
+      _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
+      _FeatureLine(l10n.paywall_amountOfActions, unlimited: true, inBase: true),
+      _FeatureLine(
+        app == null ? l10n.paywall_shiftInYourApp : l10n.paywall_shiftInNamedApp(app),
+        inBase: true,
+        clip: PaywallFeatureClip.virtualGearShifting,
+      ),
+      _FeatureLine(l10n.paywall_configure3ActionsPerButton, clip: PaywallFeatureClip.buttonGestures),
+      _FeatureLine(l10n.paywall_useBikecontrolOnAllPlatforms),
+      _FeatureLine(l10n.paywall_shareSensors, clip: PaywallFeatureClip.heartRate),
+      _FeatureLine(l10n.paywall_startAnyCommandShortcutWithAnyButton, clip: PaywallFeatureClip.launchCommand),
+      _FeatureLine(l10n.paywall_controlYourDeviceMusic, clip: PaywallFeatureClip.music),
+      _FeatureLine(l10n.paywall_createScreenshots, clip: PaywallFeatureClip.screenshots),
+    ];
+  }
 
   final IAPManager _iapManager = IAPManager.instance;
 
@@ -648,34 +682,49 @@ class _PaywallState extends State<Paywall> {
     style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
   );
 
-  /// The feature list with checks: accent on Pro, quiet on Base.
-  Widget _featureList(BuildContext context, List<_FeatureLine> lines, {required bool accent}) {
+  /// The feature list with checks: accent on Pro, quiet on Base. With
+  /// [clips], a line whose feature has a demo clip ends in a ▶ that opens it
+  /// (48 dp on phones, which sets that line's height).
+  Widget _featureList(BuildContext context, List<_FeatureLine> lines, {required bool accent, bool clips = false}) {
     final cs = Theme.of(context).colorScheme;
     final style = context.typography.small.copyWith(color: cs.foreground, height: 1.3);
     return Column(
-      spacing: 6,
+      // A ▶ already makes its line a touch target tall; a smaller gap keeps
+      // the list from spreading out.
+      spacing: clips ? 4 : 6,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final line in lines)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 8,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: clips && isCompactWindow(context) ? 28 : 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              spacing: 8,
+              children: [
+                Icon(
                   LucideIcons.check,
                   size: 16,
                   color: accent ? bkAccentText(context) : cs.mutedForeground,
                 ),
-              ),
-              Expanded(child: Text(line.label, style: style)),
-              if (line.unlimited)
-                Text(
-                  AppLocalizations.of(context).unlimited,
-                  style: style.copyWith(fontWeight: FontWeight.w600),
-                ),
-            ],
+                Expanded(child: Text(line.label, style: style)),
+                if (line.unlimited)
+                  Text(
+                    AppLocalizations.of(context).unlimited,
+                    style: style.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                if (clips && line.clip != null)
+                  PaywallClipButton(
+                    clip: line.clip!,
+                    feature: line.label,
+                    onPressed: () => showPaywallFeatureClip(
+                      context,
+                      title: line.label,
+                      clip: line.clip!,
+                      poster: widget.debugClipPoster?.call(line.clip!),
+                    ),
+                  ),
+              ],
+            ),
           ),
       ],
     );
@@ -760,7 +809,7 @@ class _PaywallState extends State<Paywall> {
             ),
           ],
           const SizedBox(height: 14),
-          _featureList(context, _features, accent: true),
+          _featureList(context, _features(l10n), accent: true, clips: true),
           const SizedBox(height: 16),
           _purchaseButton(context, plan: plan, label: _purchaseLabel(l10n, plan), primary: true),
         ],
@@ -838,7 +887,7 @@ class _PaywallState extends State<Paywall> {
           ),
           const SizedBox(height: 12),
           _featureList(context, [
-            for (final f in _features)
+            for (final f in _features(l10n))
               if (f.inBase) f,
           ], accent: false),
           const SizedBox(height: 12),
