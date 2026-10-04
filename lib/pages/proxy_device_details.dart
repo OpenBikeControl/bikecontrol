@@ -27,6 +27,7 @@ import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// Devices → Smart Trainer: the trainer's hardware page. Is it connected and
 /// how (the connection card, with the WiFi / Bluetooth choice), which control
@@ -125,86 +126,83 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _deviceCard(),
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _deviceCard(),
+              SizedBox(height: 12),
+              if (_ftmsMissingWarning() case final w?) ...[
+                w,
                 SizedBox(height: 12),
-                if (_ftmsMissingWarning() case final w?) ...[
-                  w,
-                  SizedBox(height: 12),
-                ],
-
-                if (!screenshotMode) ...[
-                  // Stable keys keep these persistent stateful cards from being
-                  // remounted when conditional siblings (the FTMS warning above,
-                  // the protocol and health cards below) appear/disappear on
-                  // (dis)connect — an unkeyed widget trapped between two
-                  // toggling siblings lands in the reconciliation middle and is
-                  // re-inflated, which would reset ConnectionCard's accordion.
-                  ConnectionCard(key: const ValueKey('connection-card'), device: device),
-                  SizedBox(height: 12),
-                ],
-                // How BikeControl talks to this trainer — hardware, so it sits
-                // here, next to the self-test that recommends changing it.
-                if (device.fitnessBike case final definition?)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: ControlProtocolSection(
-                      key: const ValueKey('control-protocol'),
-                      definition: definition,
-                      device: device,
-                    ),
-                  ),
-                if (!screenshotMode) ...[
-                  // Checking comes before asking: the self-test answers "does
-                  // BikeControl control my trainer?" on its own, so it sits
-                  // above the card that routes to support.
-                  if (device.fitnessBike != null) ...[
-                    KeyedSubtree(
-                      key: _selfTestKey,
-                      child: SelfTestCard(
-                        key: const ValueKey('self-test'),
-                        device: device,
-                        onShowOverlaySettings: _openOverlaySettings,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                  ],
-                  // Keyed for the same reason: dismissing it toggles a sibling
-                  // right next to ConnectionCard.
-                  if (!_needHelpDismissed) ...[
-                    NeedHelpCard(
-                      key: const ValueKey('need-help'),
-                      onOpenHelp: _routeToHelpCenter,
-                      onDismiss: _dismissNeedHelp,
-                    ),
-                    SizedBox(height: 12),
-                  ],
-                ],
-                // The one link out: riders who come here for their gears still
-                // find them.
-                if (device.fitnessBike != null) ...[
-                  SizedBox(height: 12),
-                  BkGroupedSection(
-                    children: [
-                      BkGroupedRow(
-                        key: const ValueKey('trainer-vs-settings'),
-                        icon: LucideIcons.slidersHorizontal,
-                        title: context.i18n.virtualShiftingSettings,
-                        chevron: true,
-                        onPressed: _openVirtualShiftingSettings,
-                      ),
-                    ],
-                  ),
-                ],
-                SizedBox(height: 32),
-                _actions(),
               ],
-            ),
+
+              if (!screenshotMode) ...[
+                // Stable keys keep these persistent stateful cards from being
+                // remounted when conditional siblings (the FTMS warning above,
+                // the protocol and health cards below) appear/disappear on
+                // (dis)connect — an unkeyed widget trapped between two
+                // toggling siblings lands in the reconciliation middle and is
+                // re-inflated, which would reset ConnectionCard's accordion.
+                ConnectionCard(key: const ValueKey('connection-card'), device: device),
+                SizedBox(height: 12),
+              ],
+              // How BikeControl talks to this trainer — hardware, so it sits
+              // here, next to the self-test that recommends changing it.
+              if (device.fitnessBike case final definition?)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ControlProtocolSection(
+                    key: const ValueKey('control-protocol'),
+                    definition: definition,
+                    device: device,
+                  ),
+                ),
+              if (!screenshotMode) ...[
+                // Checking comes before asking: the self-test answers "does
+                // BikeControl control my trainer?" on its own, so it sits
+                // above the card that routes to support.
+                if (device.fitnessBike != null) ...[
+                  KeyedSubtree(
+                    key: _selfTestKey,
+                    child: SelfTestCard(
+                      key: const ValueKey('self-test'),
+                      device: device,
+                      onShowOverlaySettings: _openOverlaySettings,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                ],
+                // Keyed for the same reason: dismissing it toggles a sibling
+                // right next to ConnectionCard.
+                if (!_needHelpDismissed) ...[
+                  NeedHelpCard(
+                    key: const ValueKey('need-help'),
+                    onOpenHelp: _routeToHelpCenter,
+                    onDismiss: _dismissNeedHelp,
+                  ),
+                  SizedBox(height: 12),
+                ],
+              ],
+              // The one link out: riders who come here for their gears still
+              // find them.
+              if (device.fitnessBike != null) ...[
+                SizedBox(height: 12),
+                BkGroupedSection(
+                  children: [
+                    BkGroupedRow(
+                      key: const ValueKey('trainer-vs-settings'),
+                      icon: LucideIcons.slidersHorizontal,
+                      title: context.i18n.virtualShiftingSettings,
+                      chevron: true,
+                      onPressed: _openVirtualShiftingSettings,
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: 32),
+              _actions(),
+            ],
           ),
         ),
       ),

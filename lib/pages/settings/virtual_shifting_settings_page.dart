@@ -16,6 +16,7 @@ import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// "24 gears · Smoothing on · Custom ratios": what the Settings row says about
 /// the trainer's active shifting config.
@@ -125,33 +126,28 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-        // Left-aligned like the shell's sections; the column keeps its width.
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset),
-                  child: Text(
-                    l10n.tuneGearsIntro,
-                    style: context.typography.small.copyWith(color: cs.mutedForeground),
-                  ),
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset),
+                child: Text(
+                  l10n.tuneGearsIntro,
+                  style: context.typography.small.copyWith(color: cs.mutedForeground),
                 ),
-                const Gap(20),
-                _shiftingConfig(context),
-                const Gap(12),
-                VirtualShiftingModeCard(definition: def, device: widget.device),
-                const Gap(24),
-                _drivetrain(context),
-                const Gap(20),
-                _gears(context),
-                const Gap(24),
-                _physics(context),
-              ],
-            ),
+              ),
+              const Gap(20),
+              _shiftingConfig(context),
+              const Gap(12),
+              VirtualShiftingModeCard(definition: def, device: widget.device),
+              const Gap(24),
+              _drivetrain(context),
+              const Gap(20),
+              _gears(context),
+              const Gap(24),
+              _physics(context),
+            ],
           ),
         ),
       ),

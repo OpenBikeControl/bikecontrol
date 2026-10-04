@@ -33,6 +33,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// `Platform.operatingSystem`-shaped, `kIsWeb`-aware — matches
 /// [NetworkProbeContext.platform]'s documented shape. The page is never
@@ -285,23 +286,20 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       child: Container(
         color: tokens.pageBg,
         child: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 880),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(26, 22, 26, 26),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_narrow(context)) ...[
-                      Align(alignment: AlignmentDirectional.centerStart, child: _runStamp(context)),
-                      const Gap(12),
-                    ],
-                    _showConnectedRefusal && _engine == null
-                        ? _refusalCard(context, l10n)
-                        : _engineSection(context, l10n),
+          child: BkPageColumn(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 22, 16, 26),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_narrow(context)) ...[
+                    Align(alignment: AlignmentDirectional.centerStart, child: _runStamp(context)),
+                    const Gap(12),
                   ],
-                ),
+                  _showConnectedRefusal && _engine == null
+                      ? _refusalCard(context, l10n)
+                      : _engineSection(context, l10n),
+                ],
               ),
             ),
           ),

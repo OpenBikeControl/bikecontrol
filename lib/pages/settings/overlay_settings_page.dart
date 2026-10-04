@@ -10,6 +10,7 @@ import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// Where "show me the overlay setup" lands for [proxy]: the Overlay page while
 /// the trainer is in a virtual shifting session (the only time there is a
@@ -44,24 +45,19 @@ class _OverlaySettingsPageState extends State<OverlaySettingsPage> {
       headers: [BkPageHeader(title: l10n.overlaySection)],
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-        // Left-aligned like the shell's sections; the column keeps its width.
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                OverlayPreview(definition: widget.definition, fields: _fields, enabled: _enabled),
-                const Gap(16),
-                OverlaySettingsSection(
-                  definition: widget.definition,
-                  device: widget.device,
-                  onFieldsChanged: (fields) => setState(() => _fields = fields),
-                  onEnabledChanged: (enabled) => setState(() => _enabled = enabled),
-                ),
-              ],
-            ),
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OverlayPreview(definition: widget.definition, fields: _fields, enabled: _enabled),
+              const Gap(16),
+              OverlaySettingsSection(
+                definition: widget.definition,
+                device: widget.device,
+                onFieldsChanged: (fields) => setState(() => _fields = fields),
+                onEnabledChanged: (enabled) => setState(() => _enabled = enabled),
+              ),
+            ],
           ),
         ),
       ),

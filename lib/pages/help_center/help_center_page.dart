@@ -19,6 +19,7 @@ import 'package:bike_control/pages/help_center/widgets/pricing_faq_section.dart'
 import 'package:bike_control/pages/help_center/widgets/your_setup_section.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// A section the page can be asked to land the rider on directly, e.g. from a
 /// "check your setup" hint elsewhere in the app.
@@ -146,16 +147,13 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: Column(
-              // No `spacing:` here — each section beyond the first supplies
-              // its own leading gap (see `sectionGap` above) so a hidden
-              // KnownIssuesSection doesn't leave a phantom one behind.
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: sections,
-            ),
+        child: BkPageColumn(
+          child: Column(
+            // No `spacing:` here — each section beyond the first supplies
+            // its own leading gap (see `sectionGap` above) so a hidden
+            // KnownIssuesSection doesn't leave a phantom one behind.
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: sections,
           ),
         ),
       ),

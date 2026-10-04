@@ -18,6 +18,7 @@ import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 class ButtonSimulator extends StatefulWidget {
   const ButtonSimulator({super.key});
@@ -249,72 +250,69 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           child: SingleChildScrollView(
             controller: _scrollController,
             padding: EdgeInsets.all(16),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 800),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 16,
-                  children: [
-                    if (connectedTrainers.isEmpty)
-                      Warning(
-                        children: [
-                          Text(
-                            'No suitable connection method activated. Connect a trainer to simulate button presses.',
-                          ),
-                        ],
-                      ),
-                    for (final connectedTrainer in connectedTrainers)
-                      if (!screenshotMode) connectedTrainer.getTile(),
-                    ...connectedTrainers.map(
-                      (connection) {
-                        final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
-                        final supportedActions =
-                            (connection.supportedActions == InGameAction.values
-                                    ? core.settings
-                                          .getTrainerApp()!
-                                          .keymap
-                                          .keyPairs
-                                          .mapNotNull((k) => k.inGameAction)
-                                          .distinct()
-                                          .toList()
-                                    : connection.supportedActions)
-                                .map((a) => mapping[a] ?? a)
-                                .toList();
+            child: BkPageColumn(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 16,
+                children: [
+                  if (connectedTrainers.isEmpty)
+                    Warning(
+                      children: [
+                        Text(
+                          'No suitable connection method activated. Connect a trainer to simulate button presses.',
+                        ),
+                      ],
+                    ),
+                  for (final connectedTrainer in connectedTrainers)
+                    if (!screenshotMode) connectedTrainer.getTile(),
+                  ...connectedTrainers.map(
+                    (connection) {
+                      final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
+                      final supportedActions =
+                          (connection.supportedActions == InGameAction.values
+                                  ? core.settings
+                                        .getTrainerApp()!
+                                        .keymap
+                                        .keyPairs
+                                        .mapNotNull((k) => k.inGameAction)
+                                        .distinct()
+                                        .toList()
+                                  : connection.supportedActions)
+                              .map((a) => mapping[a] ?? a)
+                              .toList();
 
-                        final actionGroups = {
-                          if (supportedActions.contains(InGameAction.shiftUp) &&
-                              supportedActions.contains(InGameAction.shiftDown))
-                            AppLocalizations.current.actionCategoryShifting: [
-                              InGameAction.shiftDown,
-                              InGameAction.shiftUp,
-                            ],
-                          AppLocalizations.current.actionCategoryOther: supportedActions
-                              .where(
-                                (action) =>
-                                    action != InGameAction.shiftUp &&
-                                    action != InGameAction.shiftDown &&
-                                    action != InGameAction.steerLeft &&
-                                    action != InGameAction.steerRight,
-                              )
-                              .toList(),
-                          if (supportedActions.contains(InGameAction.steerLeft) &&
-                              supportedActions.contains(InGameAction.steerRight))
-                            AppLocalizations.current.actionCategorySteering: [
-                              InGameAction.steerLeft,
-                              InGameAction.steerRight,
-                            ],
-                        };
+                      final actionGroups = {
+                        if (supportedActions.contains(InGameAction.shiftUp) &&
+                            supportedActions.contains(InGameAction.shiftDown))
+                          AppLocalizations.current.actionCategoryShifting: [
+                            InGameAction.shiftDown,
+                            InGameAction.shiftUp,
+                          ],
+                        AppLocalizations.current.actionCategoryOther: supportedActions
+                            .where(
+                              (action) =>
+                                  action != InGameAction.shiftUp &&
+                                  action != InGameAction.shiftDown &&
+                                  action != InGameAction.steerLeft &&
+                                  action != InGameAction.steerRight,
+                            )
+                            .toList(),
+                        if (supportedActions.contains(InGameAction.steerLeft) &&
+                            supportedActions.contains(InGameAction.steerRight))
+                          AppLocalizations.current.actionCategorySteering: [
+                            InGameAction.steerLeft,
+                            InGameAction.steerRight,
+                          ],
+                      };
 
-                        return [
-                          Text(connection.title).bold.large,
-                          for (final group in actionGroups.entries) _buildGroupCard(group, connection, isMobile),
-                        ];
-                      },
-                    ).flatten(),
-                    _buildHotkeySection(connectedTrainers),
-                  ],
-                ),
+                      return [
+                        Text(connection.title).bold.large,
+                        for (final group in actionGroups.entries) _buildGroupCard(group, connection, isMobile),
+                      ];
+                    },
+                  ).flatten(),
+                  _buildHotkeySection(connectedTrainers),
+                ],
               ),
             ),
           ),

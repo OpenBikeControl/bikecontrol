@@ -8,6 +8,7 @@ import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show RecommendedConnectionMethods;
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 class TrainerPage extends StatefulWidget {
   final bool isMobile;
@@ -61,85 +62,80 @@ class _TrainerPageState extends State<TrainerPage> {
       child: SingleChildScrollView(
         controller: _scrollController,
         padding: EdgeInsets.only(bottom: 16, left: 16, right: 16, top: 16),
-        // Left-aligned like the shell's sections; the column keeps its width.
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ConfigurationPage(
-                  onUpdate: () {
-                    setState(() {});
-                    widget.onUpdate();
-                  },
-                ),
-                if (core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null) ...[
-                  if (recommendedTiles.isNotEmpty) ...[
-                    const Gap(24),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 6),
-                      child: BkGroupedHeader(context.i18n.recommendedConnectionMethods),
-                    ),
-                  ],
+        child: BkPageColumn(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ConfigurationPage(
+                onUpdate: () {
+                  setState(() {});
+                  widget.onUpdate();
+                },
+              ),
+              if (core.settings.getTrainerApp() != null && core.settings.getLastTarget() != null) ...[
+                if (recommendedTiles.isNotEmpty) ...[
+                  const Gap(24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 6),
+                    child: BkGroupedHeader(context.i18n.recommendedConnectionMethods),
+                  ),
+                ],
 
-                  // The header already says "Recommended"; the cards don't repeat it.
-                  for (final tile in recommendedTiles) ...[
-                    RecommendedConnectionMethods(
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: tile,
-                        ),
+                // The header already says "Recommended"; the cards don't repeat it.
+                for (final tile in recommendedTiles) ...[
+                  RecommendedConnectionMethods(
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: tile,
                       ),
                     ),
-                  ],
-                  Gap(12),
-                  if (otherTiles.isNotEmpty) ...[
-                    SizedBox(height: 8),
-                    Accordion(
-                      items: [
-                        AccordionItem(
-                          trigger: AccordionTrigger(
-                            child: BkGroupedHeader(context.i18n.otherConnectionMethods),
-                          ),
-                          content: Column(
-                            children: [
-                              for (final tile in otherTiles)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: IntrinsicHeight(child: tile),
-                                ),
-                            ],
-                          ),
+                  ),
+                ],
+                Gap(12),
+                if (otherTiles.isNotEmpty) ...[
+                  SizedBox(height: 8),
+                  Accordion(
+                    items: [
+                      AccordionItem(
+                        trigger: AccordionTrigger(
+                          child: BkGroupedHeader(context.i18n.otherConnectionMethods),
                         ),
-                      ],
-                    ),
-                  ] else ...[
-                    Gap(8),
-                    Divider(),
-                  ],
-                  const Gap(24),
-                  TrainerFeatures(),
-                  if (!kIsWeb) ...[
-                    const Gap(12),
-                    BkGroupedSection(
-                      children: [
-                        BkGroupedRow(
-                          key: const ValueKey('connection-network-troubleshooting'),
-                          icon: LucideIcons.gauge,
-                          title: context.i18n.networkTroubleshootingTitle,
-                          chevron: true,
-                          onPressed: () => context.push(const NetworkTroubleshootingPage()),
+                        content: Column(
+                          children: [
+                            for (final tile in otherTiles)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12.0),
+                                child: IntrinsicHeight(child: tile),
+                              ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Gap(8),
+                  Divider(),
+                ],
+                const Gap(24),
+                TrainerFeatures(),
+                if (!kIsWeb) ...[
+                  const Gap(12),
+                  BkGroupedSection(
+                    children: [
+                      BkGroupedRow(
+                        key: const ValueKey('connection-network-troubleshooting'),
+                        icon: LucideIcons.gauge,
+                        title: context.i18n.networkTroubleshootingTitle,
+                        chevron: true,
+                        onPressed: () => context.push(const NetworkTroubleshootingPage()),
+                      ),
+                    ],
+                  ),
                 ],
               ],
-            ),
+            ],
           ),
         ),
       ),

@@ -11,6 +11,7 @@ import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 // The parts of the gear editor. The editor used to be one page behind the
 // trainer's "Gear Settings" row; it is now Settings → Virtual shifting (the
@@ -189,49 +190,44 @@ class _PerGearRatiosPageState extends State<PerGearRatiosPage> {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       headers: [BkPageHeader(title: l10n.perGearRatiosTitle)],
-      // Left-aligned like the shell's sections; the column keeps its width.
-      child: Align(
-        alignment: Alignment.topLeft,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-                child: GearRatioCurve(definition: def, compact: true),
+      child: BkPageColumn(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: GearRatioCurve(definition: def, compact: true),
+            ),
+            BkGroupedDivider(indent: 0),
+            Expanded(
+              child: AnimatedBuilder(
+                animation: Listenable.merge([def.gearRatios, def.currentGear]),
+                builder: (context, _) {
+                  final ratios = def.gearRatios.value;
+                  final current = def.currentGear.value;
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                    itemCount: ratios.length + 1,
+                    separatorBuilder: (_, i) => Gap(i == 0 ? 8 : 6),
+                    itemBuilder: (context, i) {
+                      if (i == 0) return _header(context, ratios.length);
+                      final gear = i;
+                      return GearRatioRow(
+                        definition: def,
+                        gear: gear,
+                        ratios: ratios,
+                        current: current,
+                        onChanged: (v) async {
+                          def.setGearRatio(gear, v);
+                          await saveActiveGearRatios(widget.device, def.gearRatios.value);
+                        },
+                      );
+                    },
+                  );
+                },
               ),
-              BkGroupedDivider(indent: 0),
-              Expanded(
-                child: AnimatedBuilder(
-                  animation: Listenable.merge([def.gearRatios, def.currentGear]),
-                  builder: (context, _) {
-                    final ratios = def.gearRatios.value;
-                    final current = def.currentGear.value;
-                    return ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                      itemCount: ratios.length + 1,
-                      separatorBuilder: (_, i) => Gap(i == 0 ? 8 : 6),
-                      itemBuilder: (context, i) {
-                        if (i == 0) return _header(context, ratios.length);
-                        final gear = i;
-                        return GearRatioRow(
-                          definition: def,
-                          gear: gear,
-                          ratios: ratios,
-                          current: current,
-                          onChanged: (v) async {
-                            def.setGearRatio(gear, v);
-                            await saveActiveGearRatios(widget.device, def.gearRatios.value);
-                          },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

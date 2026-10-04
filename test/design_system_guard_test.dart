@@ -113,4 +113,36 @@ void main() {
       );
     });
   });
+
+  group('page columns', () {
+    // From 840 every section and every pushed page starts its content column
+    // at the left edge, under the back arrow and title (BkPageColumn). A page
+    // column floated in the middle of a wide window is the drift this
+    // catches: Center around a ConstrainedBox of a page's width.
+    const allowlist = {
+      // A card inside the support chat's own column, not a page column.
+      'lib/pages/support_chat/widgets/support_account_link_card.dart',
+      // Drawers and dialogs: centred in their own surface on purpose.
+      'lib/pages/help_center/widgets/instruction_videos_section.dart',
+      'lib/pages/subscriptions/login.dart',
+    };
+    final centred = RegExp(
+      r'Center\(\s*(?:heightFactor:[^,]*,\s*)?child: (?:ConstrainedBox|Container)\(\s*constraints: (?:const )?BoxConstraints\(maxWidth: (\d+)',
+    );
+
+    test('no page column is centred in the window', () {
+      final offenders = <String>[];
+      for (final file in Directory('lib').listSync(recursive: true).whereType<File>()) {
+        if (!file.path.endsWith('.dart') || file.path.startsWith('lib/gen/') || allowlist.contains(file.path)) continue;
+        final source = file.readAsStringSync();
+        for (final m in centred.allMatches(source)) {
+          if (int.parse(m.group(1)!) >= 600) {
+            final line = '\n'.allMatches(source.substring(0, m.start)).length + 1;
+            offenders.add('${file.path}:$line  maxWidth ${m.group(1)}');
+          }
+        }
+      }
+      expect(offenders, isEmpty, reason: 'Wrap the page content in BkPageColumn (lib/widgets/ui/bk_page_column.dart).');
+    });
+  });
 }

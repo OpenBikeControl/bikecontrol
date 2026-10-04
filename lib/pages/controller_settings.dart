@@ -32,6 +32,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 class ControllerSettingsPage extends StatefulWidget {
   final BaseDevice device;
@@ -191,43 +192,38 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                 if (!wide) {
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 640),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [...head, ...mapping, ...rest],
-                        ),
+                    child: BkPageColumn(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [...head, ...mapping, ...rest],
                       ),
                     ),
                   );
                 }
                 return SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1240),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 392,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [...head, ...mapping, ...rest],
-                            ),
+                  child: BkPageColumn(
+                    maxWidth: 1240,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 392,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [...head, ...mapping, ...rest],
                           ),
-                          const Gap(24),
-                          Expanded(
-                            child: KeymapButtonDetail(
-                              selection: _selection,
-                              onUpdate: () {
-                                if (mounted) setState(() {});
-                              },
-                            ),
+                        ),
+                        const Gap(24),
+                        Expanded(
+                          child: KeymapButtonDetail(
+                            selection: _selection,
+                            onUpdate: () {
+                              if (mounted) setState(() {});
+                            },
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 );

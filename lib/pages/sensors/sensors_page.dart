@@ -19,6 +19,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// The no-trainer path's own page: the Broadcast switch, the transport choice
 /// and the signals grid behind the Sensors chain card.
@@ -188,40 +189,37 @@ class _SensorsPageState extends State<SensorsPage> {
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _BroadcastCard(
-                  isOn: isOn,
-                  hasSelection: hasSelection,
-                  pending: _pending,
-                  connecting: _inFlight == true,
-                  clientName: core.connection.standaloneClientName,
-                  transport: _broadcast?.transport.value ?? RetrofitMode.bluetooth,
-                  onChanged: _setBroadcast,
-                  onTransport: _setTransport,
-                ),
-                const Gap(18),
-                _SectionHeader(l10n.sensorsSignalsHeader),
-                const Gap(8),
-                if (_noCandidates) ...[
-                  const _EmptyPanel(key: Key('sensors-empty')),
-                  const Gap(10),
-                ],
-                const LiveMetricsSection(device: null),
-                if (!isOn && hasSelection) ...[
-                  const Gap(12),
-                  Text(
-                    l10n.sensorsOffHint,
-                    key: const Key('sensors-off-hint'),
-                    style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
-                  ),
-                ],
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _BroadcastCard(
+                isOn: isOn,
+                hasSelection: hasSelection,
+                pending: _pending,
+                connecting: _inFlight == true,
+                clientName: core.connection.standaloneClientName,
+                transport: _broadcast?.transport.value ?? RetrofitMode.bluetooth,
+                onChanged: _setBroadcast,
+                onTransport: _setTransport,
+              ),
+              const Gap(18),
+              _SectionHeader(l10n.sensorsSignalsHeader),
+              const Gap(8),
+              if (_noCandidates) ...[
+                const _EmptyPanel(key: Key('sensors-empty')),
+                const Gap(10),
               ],
-            ),
+              const LiveMetricsSection(device: null),
+              if (!isOn && hasSelection) ...[
+                const Gap(12),
+                Text(
+                  l10n.sensorsOffHint,
+                  key: const Key('sensors-off-hint'),
+                  style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
+                ),
+              ],
+            ],
           ),
         ),
       ),
