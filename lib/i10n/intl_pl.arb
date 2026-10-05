@@ -2605,5 +2605,10 @@
   "ridesDeleteTitle": "Usunąć przejażdżkę?",
   "ridesDeleteBody": "Przejażdżka i jej plik .fit zostaną usunięte z tego urządzenia. To, co jest już w {store}, tam zostanie.",
   "@ridesDeleteBody": {"placeholders": {"store": {"type": "String"}}},
-  "ridesDeleteBodyNoHealth": "Przejażdżka i jej plik .fit zostaną usunięte z tego urządzenia."
+  "ridesDeleteBodyNoHealth": "Przejażdżka i jej plik .fit zostaną usunięte z tego urządzenia.",
+  "ridesAskHealth": "Zapisywać przejażdżki w {store}?",
+  "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesAskHealthBody": "Dotyczy od teraz każdej przejażdżki. Możesz to zmienić w Ustawienia → Podczas jazdy.",
+  "ridesGearChangesNoun": "{count, plural, =1{zmiana biegu} few{zmiany biegu} many{zmian biegu} other{zmiany biegu}}",
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
 }

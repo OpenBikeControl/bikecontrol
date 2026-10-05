@@ -2605,5 +2605,10 @@
   "ridesDeleteTitle": "¿Borrar la salida?",
   "ridesDeleteBody": "La salida y su archivo .fit se eliminan de este dispositivo. Lo que ya esté en {store} se queda allí.",
   "@ridesDeleteBody": {"placeholders": {"store": {"type": "String"}}},
-  "ridesDeleteBodyNoHealth": "La salida y su archivo .fit se eliminan de este dispositivo."
+  "ridesDeleteBodyNoHealth": "La salida y su archivo .fit se eliminan de este dispositivo.",
+  "ridesAskHealth": "¿Guardar las salidas en {store}?",
+  "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesAskHealthBody": "Se aplica a cada salida a partir de ahora. Puedes cambiarlo en Ajustes → Durante la ruta.",
+  "ridesGearChangesNoun": "{count, plural, =1{cambio de marcha} other{cambios de marcha}}",
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
 }

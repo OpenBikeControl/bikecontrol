@@ -2995,5 +2995,10 @@
   "ridesDeleteTitle": "Delete ride?",
   "ridesDeleteBody": "The ride and its .fit file are removed from this device. Anything already in {store} stays there.",
   "@ridesDeleteBody": {"placeholders": {"store": {"type": "String"}}},
-  "ridesDeleteBodyNoHealth": "The ride and its .fit file are removed from this device."
+  "ridesDeleteBodyNoHealth": "The ride and its .fit file are removed from this device.",
+  "ridesAskHealth": "Save rides to {store}?",
+  "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesAskHealthBody": "Applies to every ride from now on. You can change it in Settings → During the ride.",
+  "ridesGearChangesNoun": "{count, plural, =1{gear change} other{gear changes}}",
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
 }

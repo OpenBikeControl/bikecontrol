@@ -54,6 +54,7 @@ import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart';
 import 'package:bike_control/widgets/rides/ride_recording_line.dart';
+import 'package:bike_control/widgets/rides/ride_summary_card.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/utils/window_size.dart';
@@ -912,7 +913,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [...status, ?vs],
+                    // The last ride heads the left column (above Ready).
+                    children: [
+                      const RideSummaryCard(key: ValueKey('ride-summary'), wide: true),
+                      ...status,
+                      ?vs,
+                    ],
                   ),
                 ),
                 const Gap(20),
@@ -933,6 +939,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // The last ride heads Ride, above the Ready banner.
+              const RideSummaryCard(key: ValueKey('ride-summary')),
               ...status,
               // Recording status right under Virtual shifting, in the first
               // viewport: a rider sees "recording" without scrolling.

@@ -2605,5 +2605,10 @@
   "ridesDeleteTitle": "Supprimer la sortie ?",
   "ridesDeleteBody": "La sortie et son fichier .fit sont supprimés de cet appareil. Ce qui est déjà dans {store} y reste.",
   "@ridesDeleteBody": {"placeholders": {"store": {"type": "String"}}},
-  "ridesDeleteBodyNoHealth": "La sortie et son fichier .fit sont supprimés de cet appareil."
+  "ridesDeleteBodyNoHealth": "La sortie et son fichier .fit sont supprimés de cet appareil.",
+  "ridesAskHealth": "Enregistrer les sorties dans {store} ?",
+  "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesAskHealthBody": "S'applique désormais à chaque sortie. Tu peux le modifier dans Réglages → Pendant la sortie.",
+  "ridesGearChangesNoun": "{count, plural, =1{changement de vitesse} other{changements de vitesse}}",
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
 }

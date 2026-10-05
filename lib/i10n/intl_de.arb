@@ -2605,5 +2605,10 @@
   "ridesDeleteTitle": "Fahrt löschen?",
   "ridesDeleteBody": "Die Fahrt und ihre .fit-Datei werden von diesem Gerät entfernt. Was schon in {store} ist, bleibt dort.",
   "@ridesDeleteBody": {"placeholders": {"store": {"type": "String"}}},
-  "ridesDeleteBodyNoHealth": "Die Fahrt und ihre .fit-Datei werden von diesem Gerät entfernt."
+  "ridesDeleteBodyNoHealth": "Die Fahrt und ihre .fit-Datei werden von diesem Gerät entfernt.",
+  "ridesAskHealth": "Fahrten in {store} speichern?",
+  "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesAskHealthBody": "Gilt ab jetzt für jede Fahrt. Ändern kannst du das unter Einstellungen → Während der Fahrt.",
+  "ridesGearChangesNoun": "{count, plural, =1{Gangwechsel} other{Gangwechsel}}",
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
 }

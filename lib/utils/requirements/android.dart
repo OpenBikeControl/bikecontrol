@@ -10,6 +10,7 @@ import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/services.dart';
+import 'package:bike_control/pages/rides/ride_details_page.dart' show openRideFromNotification;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -235,8 +236,17 @@ class NotificationRequirement extends PlatformRequirement {
       onDidReceiveBackgroundNotificationResponse: Platform.isMacOS ? null : notificationTapBackground,
       onDidReceiveNotificationResponse: (n) {
         notificationTapBackground(n);
+        // A ride's push opens that ride's Details.
+        if (n.actionId == null) unawaited(openRideFromNotification(n.payload));
       },
     );
+    // The app was started by tapping a ride's push: open it once the first
+    // screen stands.
+    final launch = await core.flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    final payload = launch?.didNotificationLaunchApp == true ? launch?.notificationResponse?.payload : null;
+    if (payload != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(openRideFromNotification(payload)));
+    }
   }
 
   static Future<void> addPersistentNotification() async {
