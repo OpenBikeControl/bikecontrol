@@ -726,7 +726,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ValueListenableBuilder<Duration>(
               valueListenable: core.bridgeUsageTracker.usedTodayListenable,
               builder: (context, _, _) => VsBudgetCard(
-                state: vsBudgetCardState(
+                state:
+                    vsBudgetCardState(
                       isPurchased: true,
                       isProForDevice: false,
                       trainerBridged: true,
@@ -983,6 +984,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         rightButton: steering.steerRightButton,
         keymap: keymap,
         onUpdate: _update,
+        onRecalibrate: connected ? steering.recalibrate : null,
       );
     } else {
       final layout = device.controllerLayout;
@@ -1038,8 +1040,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // "Connected" (the upstream link is up, which is technically true and says
     // nothing the rider asked about) or "Not connected" (plainly wrong while
     // BikeControl is connecting it) — see [DevicePresence.connecting].
-    final connecting =
-        inputs.trainer?.presence == DevicePresence.connecting && link.status == LinkStatus.attention;
+    final connecting = inputs.trainer?.presence == DevicePresence.connecting && link.status == LinkStatus.attention;
 
     final String statusLabel;
     if (link.status == LinkStatus.problem) {

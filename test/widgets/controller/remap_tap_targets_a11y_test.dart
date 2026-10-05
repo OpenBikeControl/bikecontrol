@@ -41,6 +41,90 @@ Future<void> main() async {
     handle.dispose();
   });
 
+  testWidgets('calibrated steering gauge exposes an enabled calibrate button', (tester) async {
+    final handle = tester.ensureSemantics();
+    var recalibrations = 0;
+    await captureWidget(
+      tester,
+      name: 'steering_gauge_recalibrate_enabled',
+      width: 360,
+      settle: false,
+      builder: (_) => SteeringGauge(
+        angle: ValueNotifier(0),
+        calibrated: ValueNotifier(true),
+        threshold: 5,
+        device: device,
+        leftButton: GyroscopeSteeringButtons.leftSteer,
+        rightButton: GyroscopeSteeringButtons.rightSteer,
+        onRecalibrate: () => recalibrations++,
+      ),
+    );
+
+    expect(
+      find.semantics.byLabel('Calibrate'),
+      isSemantics(
+        isButton: true,
+        isEnabled: true,
+        hasEnabledState: true,
+        hasTapAction: true,
+        isFocusable: true,
+      ),
+    );
+    await tester.tap(find.byIcon(LucideIcons.wrench));
+    expect(recalibrations, 1);
+    handle.dispose();
+  });
+
+  testWidgets('calibrating steering gauge disables the calibrate button', (tester) async {
+    final handle = tester.ensureSemantics();
+    var recalibrations = 0;
+    await captureWidget(
+      tester,
+      name: 'steering_gauge_recalibrate_disabled',
+      width: 360,
+      settle: false,
+      builder: (_) => SteeringGauge(
+        angle: ValueNotifier(0),
+        calibrated: ValueNotifier(false),
+        threshold: 5,
+        device: device,
+        leftButton: GyroscopeSteeringButtons.leftSteer,
+        rightButton: GyroscopeSteeringButtons.rightSteer,
+        onRecalibrate: () => recalibrations++,
+      ),
+    );
+
+    expect(
+      find.semantics.byLabel('Calibrate'),
+      isSemantics(isButton: true, isEnabled: false, hasEnabledState: true, hasTapAction: false),
+    );
+    await tester.tap(find.byIcon(LucideIcons.wrench));
+    expect(recalibrations, 0);
+    handle.dispose();
+  });
+
+  testWidgets('steering gauge omits calibrate button without a callback', (tester) async {
+    final handle = tester.ensureSemantics();
+    await captureWidget(
+      tester,
+      name: 'steering_gauge_without_recalibrate',
+      width: 360,
+      settle: false,
+      builder: (_) => SteeringGauge(
+        angle: ValueNotifier(0),
+        calibrated: ValueNotifier(true),
+        threshold: 5,
+        device: device,
+        leftButton: GyroscopeSteeringButtons.leftSteer,
+        rightButton: GyroscopeSteeringButtons.rightSteer,
+      ),
+    );
+
+    expect(find.byIcon(LucideIcons.wrench), findsNothing);
+    expect(find.semantics.byLabel('Calibrate'), findsNothing);
+    handle.dispose();
+  });
+
   testWidgets('controller buttons with a remap popup are labelled buttons', (tester) async {
     final handle = tester.ensureSemantics();
     final button = GyroscopeSteeringButtons.leftSteer;

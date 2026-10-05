@@ -177,6 +177,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
           rightButton: steering.steerRightButton,
           keymap: core.actionHandler.supportedApp?.keymap,
           onUpdate: () => setState(() {}),
+          onRecalibrate: device.isConnected ? steering.recalibrate : null,
         ),
       );
     }
