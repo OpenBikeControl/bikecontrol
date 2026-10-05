@@ -18,7 +18,10 @@ void main() {
 
   late ZwiftPlay play;
   setUp(() {
-    play = ZwiftPlay(BleDevice(name: 'Zwift Play', deviceId: 'startup-play'), deviceType: ZwiftDeviceType.playLeft);
+    play = ZwiftPlay(
+      BleDevice(name: 'Zwift Play', deviceId: 'startup-play'),
+      deviceType: ZwiftDeviceType.playLeft,
+    );
     core.connection.debugRememberController(play);
   });
   tearDown(() {
