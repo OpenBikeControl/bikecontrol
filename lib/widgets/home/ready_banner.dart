@@ -2,7 +2,9 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_motion.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -71,7 +73,15 @@ class ReadyBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (banner.kind == ChainBannerKind.pending && steps.isNotEmpty) return _stepList(context);
+    // The list and the one-line banner are different shapes: going from one
+    // to the other crossfades while the height eases, so the cards under the
+    // banner glide instead of jumping.
+    return BkAnimatedSwap(
+      child: banner.kind == ChainBannerKind.pending && steps.isNotEmpty ? _stepList(context) : _line(context),
+    );
+  }
+
+  Widget _line(BuildContext context) {
     final theme = Theme.of(context);
     final style = AmpelStyle.of(context, banner.status);
     final calm = banner.kind == ChainBannerKind.ready;
@@ -118,7 +128,8 @@ class ReadyBanner extends StatelessWidget {
     // plain card with a green tick; only trouble gets a wash and an outline,
     // so colour on this screen always means "look here".
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 260),
+      key: const ValueKey('ready-banner-line'),
+      duration: BkMotion.of(context, const Duration(milliseconds: 260)),
       curve: Curves.easeOut,
       margin: const EdgeInsets.only(bottom: 12),
       constraints: const BoxConstraints(minHeight: 64),
@@ -217,55 +228,112 @@ class ReadyBanner extends StatelessWidget {
                     children: [
                       Semantics(
                         header: true,
-                        child: Text(
-                          l.chainStepsLeftTitle(banner.stepsLeft),
+                        child: _StepCount(
+                          text: l.chainStepsLeftTitle(banner.stepsLeft),
                           style: context.typography.base.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
                         ),
                       ),
-                      if (subtitle != null) ...[
-                        const Gap(2),
-                        Text(
-                          subtitle,
-                          style: context.typography.small.copyWith(height: 1.3, color: cs.mutedForeground),
-                        ),
-                      ],
+                      BkAnimatedColumn(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (subtitle != null)
+                            Padding(
+                              key: ValueKey('ready-banner-subtitle-$subtitle'),
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                subtitle,
+                                style: context.typography.small.copyWith(height: 1.3, color: cs.mutedForeground),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          for (final (index, step) in shown.indexed) ...[
-            if (index > 0) const BkGroupedDivider(indent: _stepTextInset),
-            _StepLine(step: step, appName: appName, tone: style.text),
-          ],
-          if (more > 0) ...[
-            const BkGroupedDivider(indent: _stepTextInset),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(_stepTextInset - 12, 2, 16, 4),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: BkTouchTarget(
-                  child: Button.ghost(
-                    alignment: Alignment.center,
-                    style: const ButtonStyle.ghost(size: ButtonSize.small),
-                    onPressed: onRevealOutstanding,
-                    trailing: Icon(LucideIcons.chevronRight, size: 14, color: bkAccentText(context)),
-                    child: Text(
-                      l.readyBannerMoreSteps(more),
-                      style: context.typography.small.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: bkAccentText(context),
+          // Each step grows in when it turns up and shrinks out where it
+          // stood once it is done, so the rest of Ride glides rather than
+          // jumps as the rider works down the list.
+          BkAnimatedColumn(
+            children: [
+              for (final (index, step) in shown.indexed)
+                Column(
+                  key: ValueKey('ready-step-row-${step.linkId}-${step.step.id.name}'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (index > 0) const BkGroupedDivider(indent: _stepTextInset),
+                    _StepLine(step: step, appName: appName, tone: style.text),
+                  ],
+                ),
+              if (more > 0)
+                Column(
+                  key: const ValueKey('ready-step-more'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const BkGroupedDivider(indent: _stepTextInset),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(_stepTextInset - 12, 2, 16, 4),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: BkTouchTarget(
+                          child: Button.ghost(
+                            alignment: Alignment.center,
+                            style: const ButtonStyle.ghost(size: ButtonSize.small),
+                            onPressed: onRevealOutstanding,
+                            trailing: Icon(LucideIcons.chevronRight, size: 14, color: bkAccentText(context)),
+                            child: Text(
+                              l.readyBannerMoreSteps(more),
+                              style: context.typography.small.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: bkAccentText(context),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ),
-            ),
-          ],
+            ],
+          ),
           const Gap(6),
         ],
       ),
+    );
+  }
+}
+
+/// "3 steps left": when the number changes, the old count fades out as the
+/// new one fades in from just below — the count visibly ticks down.
+class _StepCount extends StatelessWidget {
+  const _StepCount({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(text, key: ValueKey(text), style: style);
+    if (prefersReducedMotion(context)) return label;
+    return AnimatedSwitcher(
+      duration: BkMotion.standard,
+      reverseDuration: BkMotion.exit,
+      switchInCurve: BkMotion.curve,
+      switchOutCurve: Curves.easeIn,
+      layoutBuilder: (current, previous) => Stack(
+        alignment: AlignmentDirectional.centerStart,
+        children: [...previous, ?current],
+      ),
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween(begin: const Offset(0, 0.35), end: Offset.zero).animate(animation),
+          child: child,
+        ),
+      ),
+      child: label,
     );
   }
 }
