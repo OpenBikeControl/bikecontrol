@@ -325,6 +325,59 @@ class Connection {
     }
   }
 
+  // ── Startup reconnect ─────────────────────────────────────────────────
+
+  /// How long after launch the remembered devices count as on their way
+  /// back. Long enough for a controller to wake and a trainer to be found; a
+  /// device still missing after it really is just not here.
+  static const Duration startupReconnectWindow = Duration(seconds: 20);
+
+  /// The remembered devices (by id) BikeControl is reconnecting to on its own
+  /// right after launch. The home screen shows each as a placeholder card that
+  /// is "Connecting…" — where its live card will be — instead of a device that
+  /// is away. A device leaves the set the moment it connects; the set empties
+  /// when [startupReconnectWindow] runs out.
+  // A list, not a Set: `prop` exports its own `Set`, which shadows dart:core's.
+  final ValueNotifier<List<String>> startupReconnecting = ValueNotifier(const []);
+  Timer? _startupReconnectTimer;
+
+  /// Opens the window for every remembered controller, and the remembered
+  /// trainer if the rider left it on auto-connect. Nothing remembered, no
+  /// window.
+  void beginStartupReconnect({Duration window = startupReconnectWindow}) {
+    final trainer = rememberedTrainer;
+    final ids = [
+      ..._offlineControllers.keys,
+      if (trainer != null && core.settings.getAutoConnect(trainer.name ?? trainer.deviceId)) trainer.deviceId,
+    ].where((id) => !_connectedThisSession.contains(id)).toSet().toList(growable: false);
+    _startupReconnectTimer?.cancel();
+    if (ids.isEmpty) {
+      startupReconnecting.value = const [];
+      return;
+    }
+    startupReconnecting.value = List.unmodifiable(ids);
+    _startupReconnectTimer = Timer(window, endStartupReconnect);
+  }
+
+  /// [deviceId] is back: it no longer needs a placeholder. The last one back
+  /// closes the window.
+  void noteReconnected(String deviceId) {
+    final pending = startupReconnecting.value;
+    if (!pending.contains(deviceId)) return;
+    final rest = pending.where((id) => id != deviceId).toList(growable: false);
+    if (rest.isEmpty) {
+      endStartupReconnect();
+    } else {
+      startupReconnecting.value = List.unmodifiable(rest);
+    }
+  }
+
+  void endStartupReconnect() {
+    _startupReconnectTimer?.cancel();
+    _startupReconnectTimer = null;
+    if (startupReconnecting.value.isNotEmpty) startupReconnecting.value = const [];
+  }
+
   /// Drops a remembered device and returns the index it sat at, so an Undo can
   /// put it back exactly where the rider saw it. Bindings in the keymap are
   /// left alone and the device is NOT ignored, so switching it on nearby still
@@ -351,6 +404,7 @@ class Connection {
   /// arriving twice for one connect is harmless.
   void _noteConnected(BaseDevice device) {
     _connectedThisSession.add(device.uniqueId);
+    noteReconnected(device.uniqueId);
     unawaited(_rememberConnectedDevice(device));
     _registerSensorSource(device);
   }
@@ -739,6 +793,8 @@ class Connection {
   void initialize() {
     // Show what the rider owns before any radio has said a word.
     loadRememberedDevices();
+    // Store renders stage a settled setup, not a launch.
+    if (!screenshotMode) beginStartupReconnect();
 
     startLogCapture();
 
