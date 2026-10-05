@@ -4,10 +4,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A muted rounded bar standing in for text that is on its way.
 class BkBone extends StatelessWidget {
-  const BkBone({super.key, this.width, required this.height});
+  const BkBone({super.key, this.width, required this.height, this.radius});
 
   final double? width;
   final double height;
+
+  /// A pill by default.
+  final double? radius;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +19,7 @@ class BkBone extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.muted,
-        borderRadius: BorderRadius.circular(height / 2),
+        borderRadius: BorderRadius.circular(radius ?? height / 2),
       ),
     );
   }
@@ -70,7 +73,11 @@ class _BkShimmerState extends State<BkShimmer> with SingleTickerProviderStateMix
           shaderCallback: (bounds) => LinearGradient(
             begin: Alignment(-1 + t * 2 - 0.6, 0),
             end: Alignment(-1 + t * 2 + 0.6, 0),
-            colors: [light.withValues(alpha: 0), light.withValues(alpha: peak), light.withValues(alpha: 0)],
+            colors: [
+              light.withValues(alpha: 0),
+              light.withValues(alpha: peak),
+              light.withValues(alpha: 0),
+            ],
           ).createShader(bounds),
           child: child,
         );

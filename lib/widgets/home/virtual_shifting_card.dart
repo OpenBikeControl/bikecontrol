@@ -141,22 +141,26 @@ class VirtualShiftingCard extends StatelessWidget {
     );
   }
 
-  /// While connecting, a bone where the settings line will be — the live
-  /// card always has one, so the placeholder keeps its height.
+  /// While connecting, "Connecting…" where the settings line will be — the
+  /// live card always has one, so the placeholder keeps its height.
   Widget? _footer(BuildContext context) {
     if (!_connecting) return footer;
     final cs = Theme.of(context).colorScheme;
     return SizedBox(
+      key: const ValueKey('ride-vs-connecting'),
       height: BkTouchTarget.minSize,
       child: Row(
         children: [
-          Icon(LucideIcons.slidersHorizontal, size: 15, color: cs.mutedForeground),
+          Icon(LucideIcons.bluetooth, size: 15, color: cs.mutedForeground),
           const Gap(8),
-          const Expanded(
-            child: FractionallySizedBox(
-              alignment: AlignmentDirectional.centerStart,
-              widthFactor: 0.6,
-              child: BkShimmer(child: BkBone(height: 12)),
+          Expanded(
+            child: BkShimmer(
+              child: Text(
+                context.i18n.chainStatusConnecting,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.typography.small.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500),
+              ),
             ),
           ),
         ],
@@ -196,7 +200,7 @@ class VirtualShiftingCard extends StatelessWidget {
                 key: const ValueKey('ride-vs-trainer-link'),
                 alignment: AlignmentDirectional.topStart,
                 onPressed: onOpenTrainer,
-                label: _trainerLine(context),
+                label: trainerName,
                 children: [
                   Container(
                     width: 7,
@@ -209,7 +213,7 @@ class VirtualShiftingCard extends StatelessWidget {
                   const Gap(6),
                   Flexible(
                     child: Text(
-                      _trainerLine(context),
+                      trainerName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.typography.small.copyWith(color: cs.mutedForeground),
@@ -226,10 +230,6 @@ class VirtualShiftingCard extends StatelessWidget {
       ],
     );
   }
-
-  /// "KICKR CORE", or "KICKR CORE · Connecting…" while it is on its way.
-  String _trainerLine(BuildContext context) =>
-      _connecting ? '$trainerName · ${context.i18n.chainStatusConnecting}' : trainerName;
 
   // ── Layouts ───────────────────────────────────────────────────────────
 
@@ -392,7 +392,12 @@ class VirtualShiftingCard extends StatelessWidget {
               maintainState: true,
               child: Text(widest, style: style),
             ),
-            Text(value, style: style),
+            if (definition == null)
+              BkShimmer(
+                child: BkBone(width: size * 0.62, height: size * 0.6, radius: 14),
+              )
+            else
+              Text(value, style: style),
           ],
         ),
         Text(
