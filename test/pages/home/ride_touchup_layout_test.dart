@@ -40,12 +40,14 @@ Future<void> main() async {
   }
 }
 
-/// Measured on the layout before the touch-up.
+/// Measured on the layout before the touch-up; the numeral and everything
+/// under it since moved down once, on purpose, for room under the brand band
+/// (ride_vs_band_gap_test.dart).
 const _before = (
   cardTop: 629.0,
-  cardHeight: 448.0,
-  numberTop: 725.0,
+  cardHeight: 476.0,
+  numberTop: 749.0,
   ergCenterY: 677.0,
-  buttonsTop: 1097.0,
+  buttonsTop: 1125.0,
   titleCenterY: 32.0,
 );

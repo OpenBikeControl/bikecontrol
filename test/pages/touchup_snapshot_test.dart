@@ -151,6 +151,19 @@ Future<void> main() async {
     });
   }
 
+  // Ride's stacked shifting card (two columns from 840), where − gear + share
+  // a row under the band.
+  testWidgets('touchupB-ride-1180x820-light', (tester) async {
+    debugHostPlatformOverride = TargetPlatform.iOS;
+    screenshotMode = false;
+    await shoot(
+      tester,
+      name: 'touchupB-ride-1180x820-light',
+      size: const Size(1180, 820),
+      brightness: Brightness.light,
+    );
+  });
+
   testWidgets('touchupB-ride-1280x800-dark', (tester) async {
     debugHostPlatformOverride = TargetPlatform.macOS;
     screenshotMode = false;

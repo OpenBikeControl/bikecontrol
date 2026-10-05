@@ -129,8 +129,10 @@ class VirtualShiftingCard extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(16, touch ? 0 : 12, 16, touch ? 0 : 12),
             child: Builder(builder: (context) => _header(context, erg)),
           ),
+          // The card's 16 plus a deliberate 8 under the band, so the gear
+          // reads as the card's content rather than the header's caption.
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 16 + 8, 16, 16),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
@@ -385,6 +387,10 @@ class VirtualShiftingCard extends StatelessWidget {
     return TrainerDrivetrain(definition: definition, showGear: false, framed: false, dim: dim || erg);
   }
 
+  /// How far, per em, the numeral's figures reach above its 0.8 line box:
+  /// about 0.04 for a flat top ("1"), round tops ("2", "0") overshoot more.
+  static const double _inkOverhang = 0.06;
+
   /// The gear (or ERG target) in a box sized for the widest value it can
   /// show, so − / + never move under a thumb as the number changes width.
   Widget _number(BuildContext context, bool erg, double size) {
@@ -406,6 +412,10 @@ class VirtualShiftingCard extends StatelessWidget {
       key: const ValueKey('ride-vs-number'),
       mainAxisSize: MainAxisSize.min,
       children: [
+        // In a 0.8 line box Barlow Condensed's figures stand a little proud
+        // of the box's top; inset by that much so the ink, not the box,
+        // keeps the card's spacing under the band.
+        SizedBox(height: (style.fontSize ?? size) * _inkOverhang),
         Stack(
           alignment: Alignment.center,
           children: [
