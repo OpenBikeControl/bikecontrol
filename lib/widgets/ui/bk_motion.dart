@@ -177,7 +177,7 @@ class _BkAnimatedColumnState extends State<BkAnimatedColumn> with TickerProvider
               ignoring: entry.leaving,
               child: SizeTransition(
                 sizeFactor: entry.eased,
-                axisAlignment: -1,
+                alignment: Alignment.topCenter,
                 child: FadeTransition(
                   opacity: entry.fade,
                   child: SlideTransition(
