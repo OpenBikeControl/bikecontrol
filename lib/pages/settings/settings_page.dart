@@ -144,12 +144,14 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             BkGroupedRow(
               icon: LucideIcons.lifeBuoy,
+              quietIcon: true,
               title: l10n.helpCenterTitle,
               chevron: true,
               onPressed: () => _open(const HelpCenterPage()),
             ),
             BkGroupedRow(
               icon: LucideIcons.lightbulb,
+              quietIcon: true,
               title: l10n.onboardingMenuEntry,
               chevron: true,
               onPressed: () async {
@@ -161,6 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             BkGroupedRow(
               icon: LucideIcons.code,
+              quietIcon: true,
               title: l10n.logs,
               chevron: true,
               onPressed: () => _open(LogViewer()),
@@ -168,6 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
             if (!kIsWeb)
               BkGroupedRow(
                 icon: LucideIcons.gauge,
+                quietIcon: true,
                 title: l10n.networkTroubleshootingTitle,
                 chevron: true,
                 onPressed: () => _open(const NetworkTroubleshootingPage()),
@@ -181,23 +185,27 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             BkGroupedRow(
               icon: LucideIcons.globe,
+              quietIcon: true,
               title: l10n.language,
               trailing: LanguageSelect(bare: true, onChanged: () => setState(() {})),
             ),
             BkGroupedRow(
               icon: LucideIcons.refreshCw,
+              quietIcon: true,
               title: l10n.changelog,
               chevron: true,
               onPressed: () => _open(const ChangelogPage()),
             ),
             BkGroupedRow(
               icon: LucideIcons.star,
+              quietIcon: true,
               title: context.i18n.leaveAReview,
               chevron: true,
               onPressed: _review,
             ),
             BkGroupedRow(
               icon: LucideIcons.shieldCheck,
+              quietIcon: true,
               title: l10n.license,
               chevron: true,
               onPressed: () => showLicensePage(context: context),
@@ -206,6 +214,7 @@ class _SettingsPageState extends State<SettingsPage> {
               BkGroupedRow(
                 key: const ValueKey('settings-quit'),
                 icon: LucideIcons.power,
+                quietIcon: true,
                 title: l10n.chainCloseAndQuit,
                 onPressed: _quit,
               ),

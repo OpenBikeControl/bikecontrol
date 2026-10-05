@@ -13,7 +13,7 @@ import 'package:bike_control/widgets/home/your_buttons.dart' show RideSectionHea
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
-import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
+import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText, bkCardShadow;
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -31,13 +31,13 @@ class MiniWorkoutCard extends StatefulWidget {
   /// Whether the card has anything to show for [device]: a trainer whose
   /// metrics it can record, off the web. Lets a host leave its spacing out
   /// along with the card.
-  static bool shows(ProxyDevice device) =>
-      !kIsWeb && !debugHideMiniWorkoutCard && _metricsFor(device) != null;
+  static bool shows(ProxyDevice device) => !kIsWeb && !debugHideMiniWorkoutCard && _metricsFor(device) != null;
 
   /// What the workout records: the bridge's live definition, or the trainer's
   /// own virtual shifting definition while the bridge has not composed it.
   static TrainerMetrics? _metricsFor(ProxyDevice device) =>
-      TrainerMetrics.fromDefinition(device.emulator.activeDefinition) ?? TrainerMetrics.fromDefinition(device.fitnessBike);
+      TrainerMetrics.fromDefinition(device.emulator.activeDefinition) ??
+      TrainerMetrics.fromDefinition(device.fitnessBike);
 
   @override
   State<MiniWorkoutCard> createState() => _MiniWorkoutCardState();
@@ -110,6 +110,7 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
           decoration: BoxDecoration(
             color: cs.card,
             borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+            boxShadow: bkCardShadow(context),
           ),
           child: ValueListenableBuilder<WorkoutState>(
             valueListenable: _recorder.state,

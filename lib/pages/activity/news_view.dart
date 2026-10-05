@@ -277,7 +277,11 @@ class _NewsMessage extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 10,

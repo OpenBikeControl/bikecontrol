@@ -209,7 +209,11 @@ class _TrainerAppCard extends StatelessWidget {
       key: const ValueKey('connection-trainer-app'),
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -4,6 +4,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/register_this_device.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Home banner for the rider whose account has Pro but whose device is not
@@ -50,6 +51,7 @@ class _ProUnregisteredBannerState extends State<ProUnregisteredBanner> {
           child: Container(
             decoration: ShapeDecoration(
               color: theme.colorScheme.card,
+              shadows: bkCardShadow(context),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(color: warning.color, width: 1.5),

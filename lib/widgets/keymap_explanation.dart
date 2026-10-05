@@ -20,6 +20,7 @@ import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../bluetooth/messages/notification.dart';
@@ -163,7 +164,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final size = 44 / Theme.of(context).scaling;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
       child: ControllerCanvas(
         layout: device.controllerLayout!,
         availableButtons: device.availableButtons,
@@ -216,7 +221,11 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     }
     return DecoratedBox(
       key: const ValueKey('mapping-list'),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),

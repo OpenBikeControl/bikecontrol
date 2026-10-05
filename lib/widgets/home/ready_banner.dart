@@ -8,6 +8,7 @@ import 'package:bike_control/widgets/ui/bk_motion.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One outstanding setup step as the banner lists it: the step, the card it
@@ -149,6 +150,7 @@ class ReadyBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: ShapeDecoration(
         color: calm ? theme.colorScheme.card : style.wash,
+        shadows: bkCardShadow(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: calm ? BorderSide.none : BorderSide(color: style.color, width: 1.5),
@@ -157,12 +159,17 @@ class ReadyBanner extends StatelessWidget {
       child: Row(
         children: [
           Container(
+            key: const ValueKey('ready-banner-tick'),
             width: 32,
             height: 32,
             // On their way back is neither good nor bad news yet: a quiet grey.
+            // Ready wears a quiet halo: a crisp ring of the success colour.
             decoration: BoxDecoration(
               color: connecting != null ? theme.colorScheme.muted : style.text,
               shape: BoxShape.circle,
+              boxShadow: banner.kind == ChainBannerKind.ready && connecting == null
+                  ? [BoxShadow(color: BkBrandColors.of(context).readyHalo, spreadRadius: 5)]
+                  : null,
             ),
             child: Icon(
               connecting != null
@@ -231,7 +238,11 @@ class ReadyBanner extends StatelessWidget {
     return Container(
       key: const ValueKey('ready-banner-steps'),
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

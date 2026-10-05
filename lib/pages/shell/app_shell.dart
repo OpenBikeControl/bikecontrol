@@ -249,7 +249,22 @@ class _ShellNavItemState extends State<ShellNavItem> {
             mainAxisSize: MainAxisSize.min,
             spacing: 3,
             children: [
-              _icon(context, color, showDot, 22),
+              // The selected tab's icon sits on an accent pill; the slot is
+              // the pill's size either way, so selecting moves nothing.
+              SizedBox(
+                width: 52,
+                height: 30,
+                child: selected
+                    ? DecoratedBox(
+                        key: const ValueKey('shell-tab-pill'),
+                        decoration: BoxDecoration(
+                          color: BkBrandColors.of(context).navPill,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Center(child: _icon(context, color, showDot, 22)),
+                      )
+                    : Center(child: _icon(context, color, showDot, 22)),
+              ),
               Text(
                 label,
                 maxLines: 1,

@@ -6,6 +6,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One-time home offer: "we noticed a ride, want rides saved to Apple Health
@@ -33,6 +34,7 @@ class HealthRideCard extends StatelessWidget {
           child: Container(
             decoration: ShapeDecoration(
               color: theme.colorScheme.card,
+              shadows: bkCardShadow(context),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide.none,

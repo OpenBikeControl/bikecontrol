@@ -1,6 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -336,7 +337,10 @@ void main() async {
         tester,
         pending,
         steps: const [
-          ReadyBannerStep(linkId: 'controller-a', step: SetupStep(id: SetupStepId.controllerPaired, done: false)),
+          ReadyBannerStep(
+            linkId: 'controller-a',
+            step: SetupStep(id: SetupStepId.controllerPaired, done: false),
+          ),
         ],
       );
       expect(find.text(l.chainStepControllerPairedPending), findsOneWidget);
@@ -352,8 +356,14 @@ void main() async {
         onRevealOutstanding: () => revealed++,
         steps: [
           ...fourSteps(fixed),
-          const ReadyBannerStep(linkId: 'app', step: SetupStep(id: SetupStepId.appConnected, done: false)),
-          const ReadyBannerStep(linkId: 'app', step: SetupStep(id: SetupStepId.appLocalControl, done: false)),
+          const ReadyBannerStep(
+            linkId: 'app',
+            step: SetupStep(id: SetupStepId.appConnected, done: false),
+          ),
+          const ReadyBannerStep(
+            linkId: 'app',
+            step: SetupStep(id: SetupStepId.appLocalControl, done: false),
+          ),
         ],
       );
 
@@ -363,5 +373,19 @@ void main() async {
       await tester.pump();
       expect(revealed, 1);
     });
+  });
+
+  // Ready is calm: a green tick with a quiet halo, no wash, no outline.
+  testWidgets('ready: the tick wears a quiet halo of the success colour', (tester) async {
+    await pumpBanner(
+      tester,
+      const ChainBanner(kind: ChainBannerKind.ready, status: LinkStatus.ready, stepsLeft: 0),
+    );
+    final tick = tester.widget<Container>(find.byKey(const ValueKey('ready-banner-tick')));
+    final shadows = (tick.decoration! as BoxDecoration).boxShadow!;
+    expect(shadows, hasLength(1));
+    expect(shadows.single.color, BkBrandColors.light.readyHalo);
+    expect(shadows.single.blurRadius, 0, reason: 'a crisp ring, not a glow');
+    expect(shadows.single.spreadRadius, 5);
   });
 }

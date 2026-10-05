@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart' show RideSectionHeader;
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The latest few activity entries, for Ride's right column from 840.
@@ -58,7 +59,11 @@ class _RideActivityPreviewState extends State<RideActivityPreview> {
           const ActivityEmptyState()
         else
           DecoratedBox(
-            decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: cs.card,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: bkCardShadow(context),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

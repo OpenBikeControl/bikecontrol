@@ -14,7 +14,7 @@ import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedHeader;
-import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
+import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText, bkCardShadow;
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -251,7 +251,11 @@ class _ConnectionCardState extends State<ConnectionCard> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -15,6 +15,7 @@ import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
@@ -191,7 +192,11 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     return Container(
       key: const ValueKey('vs-drivetrain'),
       padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

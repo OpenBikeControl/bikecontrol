@@ -281,6 +281,7 @@ class _ActivityLogViewState extends State<ActivityLogView> {
           decoration: BoxDecoration(
             color: cs.card,
             borderRadius: BorderRadius.vertical(top: first ? radius : Radius.zero, bottom: last ? radius : Radius.zero),
+            boxShadow: bkCardShadow(context),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,7 +384,11 @@ class ActivityEmptyState extends StatelessWidget {
     return Container(
       key: const ValueKey('activity-empty'),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 6,

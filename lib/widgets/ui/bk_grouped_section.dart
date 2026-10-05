@@ -1,6 +1,7 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A grouped list: an optional small upper-case header, then one card of
@@ -69,6 +70,7 @@ class BkGroupedSection extends StatelessWidget {
           decoration: BoxDecoration(
             color: cs.card,
             borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+            boxShadow: bkCardShadow(context),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
@@ -148,7 +150,12 @@ class BkGroupedRow extends StatefulWidget {
     this.onPressed,
     this.titleColor,
     this.badge,
+    this.quietIcon = false,
   });
+
+  /// Draws the icon tile grey instead of in the brand wash: for housekeeping
+  /// rows (help, logs, app info) that should not compete with the rest.
+  final bool quietIcon;
 
   /// Drawn in a [BkIconTile]. Ignored when [leading] is given.
   final IconData? icon;
@@ -188,7 +195,11 @@ class _BkGroupedRowState extends State<BkGroupedRow> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final typography = context.typography;
-    final leading = widget.leading ?? (widget.icon != null ? BkIconTile(icon: widget.icon!) : null);
+    final leading =
+        widget.leading ??
+        (widget.icon != null
+            ? BkIconTile(icon: widget.icon!, color: widget.quietIcon ? cs.mutedForeground : null)
+            : null);
     final trailing = widget.trailing;
     final title = Text(
       widget.title,
@@ -263,16 +274,19 @@ class _BkGroupedRowState extends State<BkGroupedRow> {
   }
 }
 
-/// A small rounded tile holding a row's icon.
+/// A small rounded tile holding a row's icon: the brand's blue wash with a
+/// blue glyph. A tile given its own [color] (a status, a quiet grey) keeps
+/// the neutral fill, so state colours never sit on the brand wash.
 class BkIconTile extends StatelessWidget {
   const BkIconTile({super.key, required this.icon, this.color, this.background});
 
   final IconData icon;
 
-  /// Icon colour; defaults to the foreground.
+  /// Icon colour; defaults to the brand's tile ink.
   final Color? color;
 
-  /// Tile fill; defaults to the muted fill.
+  /// Tile fill; defaults to the brand's tile wash, or the muted fill when
+  /// [color] is something other than the tile ink.
   final Color? background;
 
   static const double size = 30;
@@ -280,15 +294,17 @@ class BkIconTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final brand = BkBrandColors.of(context);
+    final ink = color ?? brand.tileInk;
     return ExcludeSemantics(
       child: SizedBox.square(
         dimension: size,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: background ?? cs.muted,
+            color: background ?? (ink == brand.tileInk ? brand.tileWash : cs.muted),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: color ?? cs.foreground),
+          child: Icon(icon, size: 16, color: ink),
         ),
       ),
     );

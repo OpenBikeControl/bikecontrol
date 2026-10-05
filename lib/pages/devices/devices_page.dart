@@ -246,6 +246,7 @@ class _OtherInputsSectionState extends State<OtherInputsSection> {
             BkGroupedRow(
               key: const ValueKey('devices-ignored'),
               icon: LucideIcons.eyeOff,
+              quietIcon: true,
               title: l10n.ignoredDevices,
               trailing: Text('${ignored.length}'),
               chevron: true,

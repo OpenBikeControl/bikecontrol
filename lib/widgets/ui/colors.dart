@@ -53,3 +53,8 @@ Color bkCardPressed(BuildContext context) {
       ? Color.lerp(cs.card, cs.foreground, 0.14)!
       : Color.lerp(cs.card, cs.muted, 1)!;
 }
+
+/// A card's elevation: a soft brand-tinted shadow on light cards (so white
+/// cards lift off the grey page without a border), none in dark mode, where
+/// cards separate by tone. See [BkBrandColors.cardShadow].
+List<BoxShadow> bkCardShadow(BuildContext context) => BkBrandColors.of(context).cardShadow;

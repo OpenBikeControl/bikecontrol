@@ -238,6 +238,7 @@ class _ChainCardState extends State<ChainCard> with SingleTickerProviderStateMix
       curve: Curves.easeOut,
       decoration: ShapeDecoration(
         color: theme.colorScheme.card,
+        shadows: bkCardShadow(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           // A dashed border isn't available here, so an optional card at rest is

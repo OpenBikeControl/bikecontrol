@@ -295,7 +295,11 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius)),
+        decoration: BoxDecoration(
+          color: cs.card,
+          borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+          boxShadow: bkCardShadow(context),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 6,

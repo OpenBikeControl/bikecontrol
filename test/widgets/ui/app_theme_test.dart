@@ -53,9 +53,9 @@ void main() {
     final cs = BkTheme.build(Brightness.dark).colorScheme;
 
     test('is a tonal ladder: page, card, raised', () {
-      expect(cs.background, const Color(0xFF121212));
-      expect(cs.card, const Color(0xFF1E1E1E));
-      expect(cs.muted, const Color(0xFF2A2A2A));
+      expect(cs.background, const Color(0xFF101318));
+      expect(cs.card, const Color(0xFF1B1F25));
+      expect(cs.muted, const Color(0xFF262B33));
       expect(cs.foreground, const Color(0xFFFFFFFF));
       expect(cs.mutedForeground, const Color(0xFFA3A3A3));
       expect(cs.card.computeLuminance(), greaterThan(cs.background.computeLuminance()));
@@ -78,9 +78,10 @@ void main() {
       expect(contrast(cs.destructiveForeground, cs.destructive), greaterThanOrEqualTo(4.5));
     });
 
-    test('card and background come from one neutral family', () {
+    test('card and background are graphite with the same faint cool tint', () {
       for (final c in [cs.card, cs.background, cs.popover, cs.muted]) {
-        expect((c.r - c.b).abs(), lessThan(0.02), reason: '$c is tinted, not neutral');
+        expect(c.b - c.r, greaterThan(0), reason: '$c leans toward the brand blue');
+        expect(c.b - c.r, lessThan(0.06), reason: '$c is tinted, not coloured');
       }
     });
   });
