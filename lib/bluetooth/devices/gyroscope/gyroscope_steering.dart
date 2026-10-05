@@ -364,7 +364,9 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
 
   /// Reset calibration so the sensors re-learn their neutral reference. Safe to
   /// call any time (also used by the assignable Calibrate action).
+  @override
   void recalibrate() {
+    _keypressTimer?.cancel();
     _setCalibrated(false);
     if (_useMagnetometer) {
       _magnetometerCalibrationHeading = null;
@@ -380,6 +382,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
     _lastRoundedAngle = null;
     _lastSteeringButton = null;
     steeringAngle.value = 0.0;
+    unawaited(handleButtonsClicked([]));
   }
 
   @override
