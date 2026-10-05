@@ -35,8 +35,9 @@ String formatRideClockRange(WorkoutSummary s, String locale) {
   return '${f.format(start)}–${f.format(end)}';
 }
 
-String healthStoreName(HealthStore store) => switch (store) {
-  HealthStore.appleHealth => 'Apple Health',
+/// The store's name as the platform shows it ("Apple Santé" in French).
+String healthStoreName(HealthStore store, [AppLocalizations? l10n]) => switch (store) {
+  HealthStore.appleHealth => (l10n ?? AppLocalizations.current).ridesAppleHealth,
   HealthStore.healthConnect => 'Health Connect',
 };
 

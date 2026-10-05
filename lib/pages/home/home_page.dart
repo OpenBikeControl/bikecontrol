@@ -30,7 +30,6 @@ import 'package:bike_control/pages/home/home_sheets.dart';
 import 'package:bike_control/pages/home/pro_unregistered_banner.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
@@ -54,6 +53,8 @@ import 'package:bike_control/widgets/home/ride_overlay_notice.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart';
+import 'package:bike_control/widgets/rides/ride_recording_line.dart';
+import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
@@ -904,7 +905,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             // column puts it under the pods (see [ControllerButtonsCard]).
             showButtonList: twoColumns || constraints.maxWidth >= Breakpoints.compact,
           );
-          final extras = _rideExtras();
           if (twoColumns) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -921,7 +921,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       buttons,
-                      ...extras,
+                      // While a ride records: where the record card was.
+                      const RideRecordingSlot(key: ValueKey('ride-recording-slot'), textActions: true, spacing: 20),
                       if (widget.activityPreview case final preview?) ...[const Gap(20), preview],
                     ],
                   ),
@@ -933,9 +934,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ...status,
-              if (vs != null) ...[vs, const Gap(20)],
+              // Recording status right under Virtual shifting, in the first
+              // viewport: a rider sees "recording" without scrolling.
+              if (vs != null) vs,
+              RideRecordingSlot(key: const ValueKey('ride-recording-slot'), spacing: vs != null ? 12 : 0),
+              if (vs != null) const Gap(20) else const _GapWhenRecording(),
               buttons,
-              ...extras,
               if (widget.showHelpRow) ...[const Gap(20), _helpRow()],
               if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
             ],
@@ -1227,19 +1231,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await context.push(overlaySettingsDestination(proxy));
     }
     _update();
-  }
-
-  /// Under Your buttons: Record Activity, for the trainer on Ride's card.
-  /// (Heart rate is one of the card's readings; speed is not on Ride.)
-  List<Widget> _rideExtras() {
-    final proxy = chainProxy();
-    if (proxy == null || proxy.fitnessBike == null) return const [];
-    return [
-      if (MiniWorkoutCard.shows(proxy)) ...[
-        const Gap(20),
-        MiniWorkoutCard(key: const ValueKey('ride-mini-workout'), device: proxy),
-      ],
-    ];
   }
 
   // ── Ride: your buttons ────────────────────────────────────────────────
@@ -2132,5 +2123,22 @@ class _LiveTrainerBodyState extends State<_LiveTrainerBody> {
     if (definition == null) return const SizedBox.shrink();
     if (widget.builder case final builder?) return builder(definition, _connected);
     return DrivetrainControls(definition: definition, compact: true, dim: !_connected);
+  }
+}
+
+/// Below the recording slot when Ride has no Virtual shifting card: a gap
+/// only while the slot shows anything.
+class _GapWhenRecording extends StatelessWidget {
+  const _GapWhenRecording();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: core.rides.changes,
+      builder: (context, _) {
+        final shows = core.rides.recorder.state.value != WorkoutState.idle || !core.rides.autoRecord;
+        return shows ? const Gap(20) : const SizedBox.shrink();
+      },
+    );
   }
 }

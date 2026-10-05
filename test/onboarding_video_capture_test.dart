@@ -131,7 +131,6 @@ import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart' show O
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart' show debugVirtualShiftingStageOpeningScene;
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
@@ -919,13 +918,11 @@ void main() {
     debugClickV2OnboardingInScreenshotMode = true;
     debugKeepsControllerNamesInScreenshotMode = true;
     debugVirtualShiftingStageOpeningScene = _vsStageOpeningScene;
-    debugHideMiniWorkoutCard = true;
     addTearDown(() {
       debugAnimatesInScreenshotMode = false;
       debugClickV2OnboardingInScreenshotMode = false;
       debugKeepsControllerNamesInScreenshotMode = false;
       debugVirtualShiftingStageOpeningScene = null;
-      debugHideMiniWorkoutCard = false;
     });
   });
 

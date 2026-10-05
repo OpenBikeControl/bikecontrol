@@ -9,6 +9,7 @@ import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RecordingRideFeedback implements RideFeedback {
@@ -71,6 +72,18 @@ class RideRig {
       onError: (e, s, context) => throw StateError('$context: $e'),
     );
     await service.start(detect: false);
+    // Put the app's own back afterwards, so a later test does not inherit
+    // this one's settings. Building it needs core.settings, which only the
+    // snapshot harness bootstraps.
+    RideService? previous;
+    try {
+      previous = core.rides;
+    } on Error {
+      previous = null;
+    }
+    addTearDown(() {
+      if (previous != null) core.rides = previous;
+    });
     core.rides = service;
     return RideRig._(service, repository, channel, feedback, ridePrefs);
   }

@@ -35,6 +35,7 @@ import 'package:flutter/material.dart' show MaterialPageRoute, showLicensePage;
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/services/rides/ride_format.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The Settings section: the plan, what BikeControl rides with, what happens
@@ -227,8 +228,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-/// "During the ride": the gear overlay, shift feedback on this device, and
-/// saving rides to Apple Health — each only where the platform has it.
+/// "During the ride": recording rides automatically and saving them to the
+/// Health store, the gear overlay and shift feedback on this device — each
+/// only where the platform has it.
 class DuringRideSection extends StatefulWidget {
   const DuringRideSection({super.key, this.onOpen});
 
@@ -246,8 +248,29 @@ class _DuringRideSectionState extends State<DuringRideSection> {
 
   bool get _showsShiftHaptics => PlatformShiftHaptics.isSupported;
 
-  /// "Save rides to Apple Health / Health Connect", where the store exists.
-  bool get _showsHealthRide => core.rides.healthStore != null;
+  @override
+  void initState() {
+    super.initState();
+    core.rides.changes.addListener(_onRidesChanged);
+  }
+
+  @override
+  void dispose() {
+    core.rides.changes.removeListener(_onRidesChanged);
+    super.dispose();
+  }
+
+  void _onRidesChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _guard(String context, Future<Object?> Function() run) async {
+    try {
+      await run();
+    } catch (e, s) {
+      await recordError(e, s, context: context);
+    }
+  }
 
   Future<void> _open(Widget page) async {
     if (widget.onOpen case final open?) {
@@ -263,7 +286,35 @@ class _DuringRideSectionState extends State<DuringRideSection> {
     final l10n = AppLocalizations.of(context);
     final proxy = chainProxy();
     final definition = proxy?.fitnessBike;
+    final rides = core.rides;
+    final store = rides.healthStore;
     final rows = <Widget>[
+      // Recording comes first: everything after it is about how a ride feels.
+      BkSwitchRow(
+        key: const ValueKey('settings-auto-record'),
+        icon: LucideIcons.circleDot,
+        title: l10n.ridesAutoRecordTitle,
+        subtitle: l10n.ridesAutoRecordSubtitle,
+        value: rides.autoRecord,
+        onToggle: () => _guard('Settings.setAutoRecord', () => rides.setAutoRecord(!rides.autoRecord)),
+      ),
+      if (store != null)
+        BkSwitchRow(
+          key: const ValueKey('settings-save-to-health'),
+          icon: LucideIcons.heart,
+          title: l10n.ridesHealthToggle(healthStoreName(store, l10n)),
+          // The duplicate warning, else what goes there; or the install.
+          subtitle: !rides.healthReady
+              ? l10n.ridesHealthConnectNotInstalled
+              : rides.showsDuplicateHint
+              ? l10n.ridesHealthDuplicateHint(rides.trainerApp()?.name ?? '', healthStoreName(store, l10n))
+              : l10n.ridesHealthOnlyRecorded,
+          value: rides.savesToHealth,
+          onToggle: () => _guard(
+            'Settings.setSavesToHealth',
+            () => rides.healthReady ? rides.setSavesToHealth(!rides.savesToHealth) : rides.installHealth(),
+          ),
+        ),
       // The overlay draws the gear of a shifting trainer; without one there
       // is nothing for it to show.
       if (proxy != null && definition != null && TrainerOverlayService.isSupportedPlatform)
@@ -295,31 +346,11 @@ class _DuringRideSectionState extends State<DuringRideSection> {
             if (mounted) setState(() {});
           },
         ),
-      if (_showsHealthRide)
-        ListenableBuilder(
-          listenable: core.rides.changes,
-          builder: (context, _) => BkSwitchRow(
-            icon: LucideIcons.heartPulse,
-            title: l10n.healthRideToggleTitle,
-            // The duplicate warning is the one thing worth a second line.
-            subtitle: core.rides.showsDuplicateHint
-                ? l10n.healthRideDuplicateHint(core.rides.trainerApp()?.name ?? '')
-                : null,
-            value: core.rides.savesToHealth,
-            onToggle: () async {
-              try {
-                await core.rides.setSavesToHealth(!core.rides.savesToHealth);
-              } catch (e, s) {
-                await recordError(e, s, context: 'Settings.setSavesToHealth');
-              }
-            },
-          ),
-        ),
     ];
-    if (rows.isEmpty) return const SizedBox.shrink();
     return BkGroupedSection(
       key: const ValueKey('settings-during-ride'),
       header: l10n.settingsSectionDuringRide,
+      footer: rides.autoRecord ? null : l10n.ridesAutoRecordOffFooter,
       children: rows,
     );
   }

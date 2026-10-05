@@ -1,7 +1,7 @@
 import 'package:bike_control/main.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_simulator.dart';
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/widgets/rides/ride_recording_line.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -25,14 +25,12 @@ class TrainerFeatures extends StatelessWidget {
     return Column(
       spacing: 8,
       children: [
-        // BikeControl hosts the Mini Workout in-app — surface the card for each
-        // connected smart trainer instead of the "control $app manually" tile.
+        // BikeControl as the trainer app: the ride's recording slot instead
+        // of the "control $app manually" tile.
         if (isBikeControl)
-          ...core.connection.proxyDevices.map(
-            (device) => Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 8),
-              child: MiniWorkoutCard(device: device),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0, right: 16, bottom: 8),
+            child: RideRecordingSlot(),
           ),
         if (trainerApp != null && !isBikeControl)
           FeatureWidget(

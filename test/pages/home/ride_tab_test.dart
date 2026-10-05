@@ -11,7 +11,8 @@ import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screens
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/services/workout/trainer_metrics.dart';
+import 'package:bike_control/widgets/rides/ride_recording_line.dart';
 import 'package:bike_control/pages/settings/overlay_settings_page.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/pages/shell/app_shell.dart' show ShellTabBar;
@@ -36,6 +37,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../helpers/fake_overlay_controller.dart';
+import '../../helpers/ride_rig.dart';
 import '../../helpers/shell_harness.dart';
 import '../../helpers/touch_targets.dart';
 import '../../widget_snapshot.dart';
@@ -312,26 +314,40 @@ Future<void> main() async {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Record Activity sits below Your buttons', (tester) async {
-      liveTrainer();
+    testWidgets('a recording ride shows its status line right under Virtual shifting', (tester) async {
+      final (proxy: _, :definition) = liveTrainer();
       connectedPlay();
+      RideRig.reset();
+      RideRig.source = TrainerMetrics.fromDefinition(definition)!.named('KICKR CORE');
+      final rig = await RideRig.install();
       await pumpRide(tester);
+      expect(find.byType(RideRecordingLine), findsNothing, reason: 'automatic and idle: nothing to show');
 
-      final workout = find.byType(MiniWorkoutCard);
-      expect(workout, findsOneWidget);
-      expect(tester.getTopLeft(workout).dy, greaterThan(tester.getTopLeft(find.text(l.rideYourButtons.toUpperCase())).dy));
+      rig.service.startManual();
+      await tester.pump();
+      final line = find.byType(RideRecordingLine);
+      expect(line, findsOneWidget);
+      final vs = tester.getRect(find.byType(VirtualShiftingCard));
+      expect(tester.getTopLeft(line).dy, closeTo(vs.bottom + 12, 1));
+      expect(tester.getTopLeft(line).dy, lessThan(tester.getTopLeft(find.text(l.rideYourButtons.toUpperCase())).dy));
+      expect(find.text(l.miniWorkout.toUpperCase()), findsNothing, reason: 'the old record card is gone');
+
+      rig.service.discard();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Record Activity says what it records and where the ride goes', (tester) async {
-      liveTrainer();
-      connectedPlay();
+    testWidgets('automatic recording off: the manual start takes the same slot', (tester) async {
+      final (proxy: _, :definition) = liveTrainer();
+      RideRig.reset();
+      RideRig.source = TrainerMetrics.fromDefinition(definition);
+      await RideRig.install(prefs: {'rides_auto_record': false});
       await pumpRide(tester);
 
-      final card = find.byType(MiniWorkoutCard);
-      expect(find.descendant(of: card, matching: find.text(l.miniWorkout.toUpperCase())), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.recordActivitySubtitle)), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.miniWorkoutStart)), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.miniWorkoutPastWorkouts)), findsOneWidget);
+      final start = find.text(l.miniWorkoutStart);
+      expect(start, findsOneWidget);
+      final vs = tester.getRect(find.byType(VirtualShiftingCard));
+      expect(tester.getTopLeft(find.byType(RideManualStartCard)).dy, closeTo(vs.bottom + 12, 1));
       expect(tester.takeException(), isNull);
     });
 

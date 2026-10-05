@@ -15,7 +15,6 @@ import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/models/changelog.dart';
@@ -180,21 +179,6 @@ Future<void> main() async {
         size: phone,
         brightness: brightness,
         build: (_) => const Navigation(),
-      );
-    });
-
-    // ── Ride: Record Activity under Your buttons ──────────────────────
-    testWidgets('of2-ride-record-390x844-$b', (tester) async {
-      await shoot(
-        tester,
-        name: 'of2-ride-record-390x844-$b',
-        size: phone,
-        brightness: brightness,
-        build: (_) => const Navigation(),
-        beforeCapture: (tester) async {
-          await tester.ensureVisible(find.byType(MiniWorkoutCard));
-          await settle(tester);
-        },
       );
     });
 

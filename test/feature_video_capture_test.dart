@@ -90,7 +90,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart' show HotKeyListenerDialog;
 import 'package:bike_control/pages/overview.dart' show activityLogClock;
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
+import 'package:bike_control/services/workout/memory_workout_repository.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -1099,20 +1099,9 @@ void _checkOverlayView(VideoCapture c) {
 
 // ── 13. Mini workout ──────────────────────────────────────────────────────
 
-/// A saved ride that goes nowhere: the summary dialog needs a file to share.
-class _MemoryWorkoutRepository extends WorkoutRepository {
-  final saved = <WorkoutSummary?>[];
-
-  @override
-  Future<File> save({required DateTime startedAt, required List<int> fitBytes, WorkoutSummary? summary}) async {
-    saved.add(summary);
-    return File('/Users/rider/Documents/workouts/BikeControl ride.fit');
-  }
-}
-
-/// The Mini Workout card on the trainer's page: the rider starts a workout,
-/// it records for a while (the clip cuts from its 3rd to its 11th second),
-/// then stops it and gets the summary.
+/// Recording a ride on Ride: with automatic recording off the rider starts
+/// it by hand (the same ride an automatic start makes), it records for a
+/// while (the clip cuts from its 3rd to its 11th second), then Beenden.
 Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async {
   await _resetApp();
   await _connectMyWhoosh(tester, studio);
@@ -1121,35 +1110,35 @@ Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async
   final realClock = core.workoutRecorder.nowProvider;
   core.workoutRecorder.nowProvider = _now;
   final realRepository = core.rides.repository;
-  final repository = _MemoryWorkoutRepository();
+  final repository = MemoryWorkoutRepository();
   core.rides.repository = repository;
+  final wasAuto = core.rides.autoRecord;
+  await core.rides.setAutoRecord(false);
   final l10n = AppLocalizations.current;
 
   final boundary = GlobalKey();
   final rec = await _roll(
     tester,
     boundary,
-    // The Mini Workout lives on Ride now, under Your buttons.
     () => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: HomePage(isMobile: true, onUpdate: () {}),
     ),
-    before: () => _startAt(tester, find.text(l10n.miniWorkout), alignment: 0.05),
+    before: () => _startAt(tester, find.text(l10n.miniWorkoutStart), alignment: 0.3),
   );
-  rec.sighting('mini-workout', find.text(l10n.miniWorkout));
+  rec.sighting('manual-start', find.text(l10n.miniWorkoutStart));
   await rec.frames(_endHold);
 
-  await rec.tap(find.text(l10n.miniWorkoutStart), 'Start workout', thenFrames: 100);
+  await rec.tap(find.text(l10n.miniWorkoutStart), 'Start recording', thenFrames: 100);
   await rec.cut('recording', const Duration(seconds: 8));
   await rec.frames(24);
-  await rec.tap(find.byIcon(LucideIcons.square), 'Stop', thenFrames: 20);
-  await rec.tap(find.text(l10n.miniWorkoutStop).hitTestable().last, 'Stop and save');
-  expect(repository.saved, hasLength(1), reason: 'the ride is saved');
-  rec.sighting('summary', find.text(l10n.miniWorkoutSummaryTitle));
+  await rec.tap(find.text(l10n.miniWorkoutStop), 'Stop', thenFrames: 20);
+  expect(repository.saves, 1, reason: 'the ride is saved');
   await rec.frames(60);
 
   core.workoutRecorder.nowProvider = realClock;
   core.rides.repository = realRepository;
+  await core.rides.setAutoRecord(wasAuto);
   await _wrapUp(tester, studio);
   return rec.capture;
 }
@@ -1414,7 +1403,6 @@ void main() {
       debugAnimatesInScreenshotMode = false;
       debugKeepsControllerNamesInScreenshotMode = false;
       debugShowsRealKeymapsInScreenshotMode = false;
-      debugHideMiniWorkoutCard = false;
       debugHostPlatformOverride = null;
       debugDefaultTargetPlatformOverride = null;
       activityLogClock = DateTime.now;
