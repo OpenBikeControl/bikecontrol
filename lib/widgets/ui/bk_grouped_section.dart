@@ -91,25 +91,28 @@ class BkGroupedSection extends StatelessWidget {
   }
 }
 
-/// A group's small upper-case header, announced as a heading. For a group
-/// whose content is not one card of rows (e.g. connection method cards).
+/// A group's small upper-case header, announced as a heading: Barlow
+/// Condensed caps in the brand's header ink (the head-unit label voice). For
+/// a group whose content is not one card of rows (e.g. connection method
+/// cards).
 class BkGroupedHeader extends StatelessWidget {
   const BkGroupedHeader(this.text, {super.key});
 
   final String text;
 
+  /// The header style: the scale's `small` step in the display face.
+  static TextStyle style(BuildContext context) => BkNumerals.display(
+    context.typography.small.fontSize ?? 14,
+    color: BkBrandColors.of(context).groupHeader,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+  ).copyWith(letterSpacing: 1.2);
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
       header: true,
-      child: Text(
-        text.toUpperCase(),
-        style: context.typography.caption.copyWith(
-          color: Theme.of(context).colorScheme.mutedForeground,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.6,
-        ),
-      ),
+      child: Text(text.toUpperCase(), style: style(context)),
     );
   }
 }

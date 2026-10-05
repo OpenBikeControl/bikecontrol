@@ -44,7 +44,16 @@ class RideSectionHeader extends StatelessWidget {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(title, style: context.typography.large.copyWith(fontWeight: FontWeight.w700)),
+              // Barlow Condensed caps, the brand's section voice.
+              child: Text(
+                title.toUpperCase(),
+                style: BkNumerals.display(
+                  context.typography.x2Large.fontSize ?? 24,
+                  color: Theme.of(context).colorScheme.foreground,
+                  fontWeight: FontWeight.w800,
+                  height: 1.1,
+                ).copyWith(letterSpacing: 0.2),
+              ),
             ),
           ),
           if (linkLabel != null && onLink != null)
@@ -219,7 +228,11 @@ class ControllerButtonsCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: bkCardShadow(context),
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final Widget content;

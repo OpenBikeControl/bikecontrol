@@ -319,7 +319,7 @@ Future<void> main() async {
 
       final workout = find.byType(MiniWorkoutCard);
       expect(workout, findsOneWidget);
-      expect(tester.getTopLeft(workout).dy, greaterThan(tester.getTopLeft(find.text(l.rideYourButtons)).dy));
+      expect(tester.getTopLeft(workout).dy, greaterThan(tester.getTopLeft(find.text(l.rideYourButtons.toUpperCase())).dy));
     });
 
     testWidgets('Record Activity says what it records and where the ride goes', (tester) async {
@@ -328,7 +328,7 @@ Future<void> main() async {
       await pumpRide(tester);
 
       final card = find.byType(MiniWorkoutCard);
-      expect(find.descendant(of: card, matching: find.text(l.miniWorkout)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.miniWorkout.toUpperCase())), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.recordActivitySubtitle)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.miniWorkoutStart)), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.miniWorkoutPastWorkouts)), findsOneWidget);
@@ -460,7 +460,7 @@ Future<void> main() async {
       final play = connectedPlay();
       await pumpRide(tester);
 
-      expect(find.text(l.rideYourButtons), findsOneWidget);
+      expect(find.text(l.rideYourButtons.toUpperCase()), findsOneWidget);
       expect(find.text(l.rideEditButtons), findsOneWidget);
       expect(find.text(l.rideTapButtonHint), findsOneWidget);
       expect(find.byType(AnimatedButtonWidget), findsNWidgets(play.availableButtons.length));
@@ -517,7 +517,7 @@ Future<void> main() async {
       expect(tester.takeException(), isNull);
 
       final vs = rectOf(tester, find.byType(VirtualShiftingCard));
-      final buttons = rectOf(tester, find.text(l.rideYourButtons));
+      final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
       expect(buttons.top, greaterThan(vs.bottom), reason: 'buttons sit under the shifting card');
       expect(buttons.bottom, lessThan(844), reason: 'the buttons header is in the first screen');
       await disposeShell(tester);
@@ -560,7 +560,7 @@ Future<void> main() async {
       expect(offer, findsOneWidget);
       expect(tester.getSize(offer).height, lessThanOrEqualTo(56), reason: 'at most two lines beside its buttons');
 
-      final buttons = rectOf(tester, find.text(l.rideYourButtons));
+      final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
       final tabBar = rectOf(tester, find.byType(ShellTabBar));
       expect(buttons.bottom, lessThanOrEqualTo(tabBar.top), reason: 'the buttons header clears the tab bar');
       await disposeShell(tester);
@@ -571,7 +571,7 @@ Future<void> main() async {
       expect(tester.takeException(), isNull);
 
       final vs = rectOf(tester, find.byType(VirtualShiftingCard));
-      final buttons = rectOf(tester, find.text(l.rideYourButtons));
+      final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
       expect(buttons.top, greaterThan(vs.bottom), reason: 'one column below 840');
       final gear = tester.getSize(find.descendant(of: find.byType(VirtualShiftingCard), matching: find.text('12')));
       final picture = tester.getSize(
@@ -586,7 +586,7 @@ Future<void> main() async {
       expect(tester.takeException(), isNull);
 
       final vs = rectOf(tester, find.byType(VirtualShiftingCard));
-      final buttons = rectOf(tester, find.text(l.rideYourButtons));
+      final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
       expect(buttons.left, greaterThan(vs.right), reason: 'two columns');
       await disposeShell(tester);
     });
@@ -621,7 +621,7 @@ Future<void> main() async {
         expect(tester.takeException(), isNull);
 
         final vs = rectOf(tester, find.byType(VirtualShiftingCard));
-        final buttons = rectOf(tester, find.text(l.rideYourButtons));
+        final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
         expect(buttons.left, greaterThan(vs.right), reason: 'two columns');
         expect(find.byKey(const ValueKey('activity-column')), findsNothing);
         expect(

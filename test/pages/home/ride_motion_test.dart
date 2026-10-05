@@ -117,7 +117,7 @@ Future<void> _signal(WidgetTester tester, dynamic device) async {
 void _closeWindow() => core.connection.endStartupReconnect();
 
 double _yourButtonsTop(WidgetTester tester) =>
-    tester.getTopLeft(find.text(AppLocalizations.current.rideYourButtons)).dy;
+    tester.getTopLeft(find.text(AppLocalizations.current.rideYourButtons.toUpperCase())).dy;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

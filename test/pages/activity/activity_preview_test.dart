@@ -56,7 +56,7 @@ void main() {
 
   testWidgets('empty: the header and the log\'s empty state, not nothing', (tester) async {
     final log = await pump(tester);
-    expect(find.text(l.activity), findsOneWidget);
+    expect(find.text(l.activity.toUpperCase()), findsOneWidget);
     expect(find.byType(ActivityEmptyState), findsOneWidget);
     await done(tester, log);
   });
