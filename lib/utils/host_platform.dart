@@ -21,6 +21,8 @@ abstract final class HostPlatform {
 
   static bool get isWindows => _is(TargetPlatform.windows, () => Platform.isWindows);
 
+  static bool get isLinux => _is(TargetPlatform.linux, () => Platform.isLinux);
+
   static bool _is(TargetPlatform platform, bool Function() host) {
     final override = debugHostPlatformOverride;
     if (override != null) return override == platform;

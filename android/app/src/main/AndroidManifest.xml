@@ -36,6 +36,18 @@
     <!-- Android 14+: foreground service type declaration for overlay window service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- Health Connect: write finished rides (session, power, cadence, speed,
+         heart rate, distance, active energy). Write only; nothing is read. -->
+    <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />
+    <uses-permission android:name="android.permission.health.WRITE_POWER" />
+    <uses-permission android:name="android.permission.health.WRITE_SPEED" />
+    <uses-permission android:name="android.permission.health.WRITE_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.WRITE_DISTANCE" />
+    <uses-permission android:name="android.permission.health.WRITE_ACTIVE_CALORIES_BURNED" />
+    <!-- connect-client declares minSdk 26; the writer guards every call by
+         API level, so the app keeps running on 24/25 without Health Connect. -->
+    <uses-sdk tools:overrideLibrary="androidx.health.connect.client" />
+
     <application
         android:label="BikeControl"
         android:allowBackup="false"
@@ -79,6 +91,28 @@
                 <data android:scheme="https" android:host="bikecontrol.app" android:pathPrefix="/app" />
             </intent-filter>
         </activity>
+
+        <!-- Health Connect asks the app to explain its permissions: this
+             opens the privacy policy. Android 13 and below use the
+             rationale action; Android 14+ the permission-usage alias. -->
+        <activity
+            android:name=".HealthPermissionsRationaleActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".HealthPermissionsRationaleActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
 
         <receiver
                 android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
@@ -130,5 +164,7 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Health Connect availability (SDK status) needs to see its package. -->
+        <package android:name="com.google.android.apps.healthdata" />
     </queries>
 </manifest>

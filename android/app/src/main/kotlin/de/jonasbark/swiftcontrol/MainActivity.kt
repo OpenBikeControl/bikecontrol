@@ -25,6 +25,7 @@ class MainActivity: FlutterFragmentActivity(), GamepadsCompatibleActivity {
         )
         OverlayActionBridge.bindMainChannel(mainChannel)
         ShiftHapticsChannel.register(flutterEngine.dartExecutor.binaryMessenger, this)
+        HealthConnectWorkoutWriter.register(flutterEngine.dartExecutor.binaryMessenger, this)
         mainChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "installOverlayHandler" -> {

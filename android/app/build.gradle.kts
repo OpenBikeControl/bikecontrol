@@ -75,6 +75,10 @@ android {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // Writes finished rides to Health Connect (HealthConnectWorkoutWriter).
+    // Needs API 26+; minSdk stays 24 and the writer reports "unsupported"
+    // below 26 (see tools:overrideLibrary in the manifest).
+    implementation("androidx.health.connect:connect-client:1.1.0")
 }
 
 flutter {

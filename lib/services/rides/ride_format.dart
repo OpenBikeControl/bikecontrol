@@ -75,3 +75,24 @@ String? rideFileFromPayload(String? payload) {
   final name = payload.substring(_payloadPrefix.length);
   return name.isEmpty ? null : name;
 }
+
+bool _sameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// "Heute", "Gestern", else "So., 4. Okt." — the summary header and the
+/// history rows.
+String rideDayLabel(DateTime startedAt, AppLocalizations l10n, String locale, {DateTime? now}) {
+  final day = startedAt.toLocal();
+  final today = (now ?? DateTime.now()).toLocal();
+  if (_sameDay(day, today)) return l10n.ridesToday;
+  if (_sameDay(day, today.subtract(const Duration(days: 1)))) return l10n.ridesYesterday;
+  return DateFormat.MMMEd(locale).format(day);
+}
+
+/// "Heute, 5. Okt." / "So., 4. Okt." — the Details page title.
+String rideDayTitle(DateTime startedAt, AppLocalizations l10n, String locale, {DateTime? now}) {
+  final label = rideDayLabel(startedAt, l10n, locale, now: now);
+  final day = startedAt.toLocal();
+  final today = (now ?? DateTime.now()).toLocal();
+  final relative = _sameDay(day, today) || _sameDay(day, today.subtract(const Duration(days: 1)));
+  return relative ? '$label, ${DateFormat.MMMd(locale).format(day)}' : label;
+}

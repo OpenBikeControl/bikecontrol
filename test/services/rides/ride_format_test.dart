@@ -69,4 +69,12 @@ void main() {
     expect(rideFileFromPayload('something-else'), isNull);
     expect(rideFileFromPayload(null), isNull);
   });
+
+  test('day labels: today, yesterday, then the date', () {
+    final now = DateTime(2026, 10, 5, 18, 41);
+    expect(rideDayLabel(DateTime(2026, 10, 5, 17, 56), l10n, 'de', now: now), l10n.ridesToday);
+    expect(rideDayLabel(DateTime(2026, 10, 4, 10, 12), l10n, 'de', now: now), l10n.ridesYesterday);
+    expect(rideDayLabel(DateTime(2026, 10, 2, 18, 30), l10n, 'de', now: now), 'Fr., 2. Okt.');
+    expect(rideDayTitle(DateTime(2026, 10, 5, 17, 56), l10n, 'de', now: now), '${l10n.ridesToday}, 5. Okt.');
+  });
 }
