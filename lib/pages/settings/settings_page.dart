@@ -33,6 +33,8 @@ import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' show MaterialPageRoute, showLicensePage;
 import 'package:flutter/services.dart' show SystemNavigator;
+import 'package:bike_control/widgets/ui/bk_brand_band.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The Settings section: the plan, what BikeControl rides with, what happens
@@ -337,7 +339,6 @@ class SettingsPlanCard extends StatelessWidget {
       listenable: Listenable.merge([iap.entitlements, iap.isPurchased]),
       builder: (context, _) {
         final l10n = AppLocalizations.of(context);
-        final cs = Theme.of(context).colorScheme;
         final tier = currentPlanTier();
         final name = planName(context, tier);
         final status = iap.getStatusMessage();
@@ -346,56 +347,66 @@ class SettingsPlanCard extends StatelessWidget {
           key: const ValueKey('settings-plan'),
           onPressed: () => openPlanAccount(context),
           borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          // The plan wears the brand band: white text, a white Go Pro.
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              color: cs.card,
               borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+              boxShadow: bkCardShadow(context),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
+            child: BkBrandBand(
+              borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+              contours: const BkContourPlacement.card(),
+              child: Builder(
+                builder: (context) {
+                  final cs = Theme.of(context).colorScheme;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            l10n.currentPlan,
-                            style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  l10n.currentPlan,
+                                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                ),
+                                Text(name.toUpperCase(), style: BkDisplay.title(context)),
+                                if (status.isNotEmpty && status != name)
+                                  Text(
+                                    status,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                  ),
+                              ],
+                            ),
                           ),
-                          Text(name.toUpperCase(), style: BkDisplay.title(context)),
-                          if (status.isNotEmpty && status != name)
-                            Text(
-                              status,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                          const Gap(12),
+                          if (tier == PlanTier.pro)
+                            Button.ghost(
+                              onPressed: () => openPlanAccount(context),
+                              child: Text(l10n.manageAction),
+                            )
+                          else
+                            BkPillButton(
+                              expand: false,
+                              onPressed: () => openPlanAccount(context),
+                              child: Text(l10n.goPro),
                             ),
                         ],
                       ),
-                    ),
-                    const Gap(12),
-                    if (tier == PlanTier.pro)
-                      Button.ghost(
-                        onPressed: () => openPlanAccount(context),
-                        child: Text(l10n.manageAction),
-                      )
-                    else
-                      BkPillButton(
-                        expand: false,
-                        onPressed: () => openPlanAccount(context),
-                        child: Text(l10n.goPro),
-                      ),
-                  ],
-                ),
-                if (showMeter) ...[
-                  const Gap(12),
-                  const VsTrialMeter(),
-                ],
-              ],
+                      if (showMeter) ...[
+                        const Gap(12),
+                        const VsTrialMeter(),
+                      ],
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         );

@@ -14,6 +14,7 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/bk_brand_mark.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
@@ -582,52 +583,63 @@ class SidebarPlanCard extends StatelessWidget {
           onPressed: selected ? null : () => openPlanAccount(context),
           selected: selected,
           borderRadius: BorderRadius.circular(12),
+          // The plan wears the brand band, as on Settings.
           child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: cs.card,
+            foregroundDecoration: selected
+                ? BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: cs.primary, width: 1.5),
+                  )
+                : null,
+            child: BkBrandBand(
               borderRadius: BorderRadius.circular(12),
-              border: selected ? Border.all(color: cs.primary, width: 1.5) : null,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 2,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l10n.currentPlan,
-                        style: context.typography.caption.copyWith(color: cs.mutedForeground),
+              padding: const EdgeInsets.all(12),
+              contours: const BkContourPlacement.compact(),
+              child: Builder(
+                builder: (context) {
+                  final cs = Theme.of(context).colorScheme;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 2,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.currentPlan,
+                              style: context.typography.caption.copyWith(color: cs.mutedForeground),
+                            ),
+                          ),
+                          if (tier != PlanTier.pro)
+                            Text(
+                              l10n.goPro,
+                              style: context.typography.xSmall.copyWith(
+                                color: bkAccentText(context),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
                       ),
-                    ),
-                    if (tier != PlanTier.pro)
                       Text(
-                        l10n.goPro,
-                        style: context.typography.xSmall.copyWith(
-                          color: bkAccentText(context),
-                          fontWeight: FontWeight.w600,
-                        ),
+                        planName(context, tier).toUpperCase(),
+                        style: BkDisplay.title(context),
                       ),
-                  ],
-                ),
-                Text(
-                  planName(context, tier).toUpperCase(),
-                  style: BkDisplay.title(context),
-                ),
-                if (status.isNotEmpty && status != planName(context, tier))
-                  Text(
-                    status,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.typography.caption.copyWith(color: cs.mutedForeground),
-                  ),
-                // Today's virtual shifting trial, as on Settings' plan card.
-                if (vsTrialMeterShown()) ...[
-                  const Gap(6),
-                  const VsTrialMeter(compact: true),
-                ],
-              ],
+                      if (status.isNotEmpty && status != planName(context, tier))
+                        Text(
+                          status,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.typography.caption.copyWith(color: cs.mutedForeground),
+                        ),
+                      // Today's virtual shifting trial, as on Settings' plan card.
+                      if (vsTrialMeterShown()) ...[
+                        const Gap(6),
+                        const VsTrialMeter(compact: true),
+                      ],
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         );

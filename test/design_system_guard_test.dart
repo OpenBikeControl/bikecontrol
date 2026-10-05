@@ -114,6 +114,50 @@ void main() {
     });
   });
 
+  group('brand band', () {
+    // The blue→teal band is a signature, not decoration: Ride's virtual
+    // shifting header and the two plan cards (Settings, the sidebar). Never
+    // on buttons or state indicators.
+    const allowed = {
+      'lib/widgets/ui/bk_brand_band.dart',
+      'lib/widgets/home/virtual_shifting_card.dart',
+      'lib/pages/settings/settings_page.dart',
+      'lib/pages/shell/app_shell.dart',
+    };
+    // Where the band's colours are defined, and the mark's disc, which is the
+    // app icon's own gradient (not a band).
+    const tokenHomes = {'lib/widgets/ui/app_theme.dart', 'lib/widgets/ui/bk_brand_mark.dart'};
+    final use = RegExp(r'BkBrandBand\(|\.bandStart\b|\.bandEnd\b');
+
+    test('only the shifting card header and the plan cards wear the band', () {
+      final offenders = [
+        for (final (path, line, text) in libLines())
+          if (!allowed.contains(path) && !tokenHomes.contains(path) && use.hasMatch(text))
+            '$path:$line  ${text.trim()}',
+      ];
+      expect(offenders, isEmpty, reason: 'The brand band is reserved; see DESIGN.md.');
+    });
+
+    test('each allowed file wears it once', () {
+      for (final path in allowed.skip(1)) {
+        expect('BkBrandBand('.allMatches(File(path).readAsStringSync()).length, 1, reason: path);
+      }
+    });
+  });
+
+  group('brand mark', () {
+    // The handlebar mark is the one brand asset in the app chrome; it is an
+    // SVG asset, drawn white on the band gradient, next to the wordmark.
+    test('the mark is an asset and is drawn only by BkBrandMark', () {
+      expect(File('assets/brand/bikecontrol_mark.svg').existsSync(), isTrue);
+      final offenders = [
+        for (final (path, line, text) in libLines())
+          if (path != 'lib/widgets/ui/bk_brand_mark.dart' && text.contains('bikecontrol_mark.svg')) '$path:$line',
+      ];
+      expect(offenders, isEmpty);
+    });
+  });
+
   group('page columns', () {
     // From 840 the shell's sections (Ride, Devices, Activity, Settings) start
     // at the left edge beside the sidebar. A page pushed on top of the shell

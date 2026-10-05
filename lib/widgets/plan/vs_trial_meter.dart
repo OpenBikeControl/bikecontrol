@@ -5,6 +5,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/home/ampel.dart' show AmpelStyle;
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -42,7 +43,9 @@ class VsTrialMeter extends StatelessWidget {
     final status = BkStatusColors.of(context);
     final remainingText = l10n.bridgeMinutesRemainingToday(minutes);
     final remainingStyle = context.typography.xSmall.copyWith(
-      color: low ? AmpelStyle.of(context, LinkStatus.attention).text : cs.mutedForeground,
+      // On the brand band (the plan cards) only white reads; the bar still
+      // turns amber when the day's minutes run low.
+      color: low && !BkBrandBand.isOn(context) ? AmpelStyle.of(context, LinkStatus.attention).text : cs.mutedForeground,
     );
     final bar = ClipRRect(
       borderRadius: BorderRadius.circular(3),

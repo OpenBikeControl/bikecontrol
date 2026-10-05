@@ -5,10 +5,11 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart' show FrontRingToggle;
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
+import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/bk_skeleton.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
-import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkBrandColors, BkStatusColors;
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
@@ -109,34 +110,52 @@ class VirtualShiftingCard extends StatelessWidget {
 
   Widget _card(BuildContext context, {required bool erg}) {
     final cs = Theme.of(context).colorScheme;
-    // On touch the header links are 48 tall and take over the card's top
-    // padding and the gap below them (see [_HeaderLink]), so the text
-    // stays about where it was.
+    // On touch the header links are 48 tall and take over the band's padding
+    // (see [_HeaderLink]), so the text stays about where it was.
     final touch = _HeaderLink.touch;
+    const radius = Radius.circular(16);
     return Container(
-      padding: EdgeInsets.fromLTRB(16, touch ? 0 : 16, 16, 16),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _header(context, erg),
-              if (!touch) const Gap(12),
-              if (layout == VsCardLayout.stacked) ..._stacked(context, erg, width) else _beside(context, erg, width),
-              if (_footer(context) case final footer?) ...[
-                const Gap(14),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: cs.border, width: 1)),
-                  ),
-                  child: Padding(padding: const EdgeInsets.only(top: 6), child: footer),
-                ),
-              ],
-            ],
-          );
-        },
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: const BorderRadius.all(radius),
+        boxShadow: bkCardShadow(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // The header is the brand band: the one card riders look at.
+          BkBrandBand(
+            borderRadius: const BorderRadius.vertical(top: radius),
+            padding: EdgeInsets.fromLTRB(16, touch ? 0 : 12, 16, touch ? 0 : 12),
+            child: Builder(builder: (context) => _header(context, erg)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (layout == VsCardLayout.stacked)
+                      ..._stacked(context, erg, width)
+                    else
+                      _beside(context, erg, width),
+                    if (_footer(context) case final footer?) ...[
+                      const Gap(14),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border(top: BorderSide(color: cs.border, width: 1)),
+                        ),
+                        child: Padding(padding: const EdgeInsets.only(top: 6), child: footer),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -208,6 +227,11 @@ class VirtualShiftingCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: dim ? cs.mutedForeground : BkStatusColors.of(context).success,
                       shape: BoxShape.circle,
+                      // On the band the green dot wears a white ring, so it
+                      // reads against the blue.
+                      boxShadow: !dim && BkBrandBand.isOn(context)
+                          ? [BoxShadow(color: cs.foreground, spreadRadius: 1.5)]
+                          : null,
                     ),
                   ),
                   const Gap(6),
@@ -858,14 +882,21 @@ class RidePromptCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: bkCardShadow(context),
+      ),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, size: 20, color: cs.foreground),
+            decoration: BoxDecoration(
+              color: BkBrandColors.of(context).tileWash,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: BkBrandColors.of(context).tileInk),
           ),
           const Gap(12),
           Expanded(
