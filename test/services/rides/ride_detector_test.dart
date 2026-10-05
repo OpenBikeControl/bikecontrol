@@ -1,6 +1,8 @@
-import 'package:bike_control/services/health/auto_ride_controller.dart';
+import 'package:bike_control/services/rides/ride_detector.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
+import 'package:bike_control/services/workout/workout_sample.dart';
+import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,28 +19,28 @@ class _Trainer {
 /// Wires a controller to a scripted trainer on a fake clock. Everything is
 /// driven from the 1 Hz tick, so `at(seconds)` reads as "the ride's clock".
 class _Rig {
-  _Rig(this.async, {this.record = true, this.detect = false}) {
+  _Rig(this.async, {this.record = true}) {
     recorder = WorkoutRecorder(nowProvider: now);
-    controller = AutoRideController(
+    controller = RideDetector(
       recorder: recorder,
-      connectedTrainer: () => connected ? trainer.metrics : null,
-      shouldRecord: () => record,
-      shouldDetect: () => detect,
-      onRideFinished: finished.add,
-      onRideDetected: () => detections++,
+      source: () => connected ? trainer.metrics : null,
+      autoRecord: () => record,
+      onRideFinished: (result, reason) {
+        finished.add(result);
+        reasons.add(reason);
+      },
       now: now,
     )..start();
   }
 
   final FakeAsync async;
   bool record;
-  bool detect;
   bool connected = true;
   final trainer = _Trainer();
   late final WorkoutRecorder recorder;
-  late final AutoRideController controller;
+  late final RideDetector controller;
   final finished = <WorkoutResult>[];
-  int detections = 0;
+  final reasons = <RideEndReason>[];
 
   static final base = DateTime.utc(2026, 9, 16, 18);
 
@@ -68,7 +70,7 @@ void main() {
       rig.trainer.power.value = 200;
       rig.runTo(30);
       expect(rig.state, WorkoutState.idle);
-      expect(rig.controller.isAutoRecording.value, isFalse);
+      expect(rig.controller.startedAutomatically.value, isFalse);
       rig.dispose();
     });
   });
@@ -96,7 +98,7 @@ void main() {
       rig.trainer.cadence.value = 85;
       rig.runTo(1);
       expect(rig.state, WorkoutState.recording);
-      expect(rig.controller.isAutoRecording.value, isTrue);
+      expect(rig.controller.startedAutomatically.value, isTrue);
       rig.dispose();
     });
   });
@@ -129,7 +131,7 @@ void main() {
       expect(rig.state, WorkoutState.recording);
 
       rig.runTo(131);
-      rig.controller.finishNow();
+      rig.controller.finish();
       final ride = rig.finished.single;
       // 1 s → 60 s pedalling, paused 60 s → 101 s, then 101 s → 131 s (+ the
       // 1 ms runTo overshoots by, since finishNow ends the ride "now").
@@ -151,7 +153,7 @@ void main() {
       expect(rig.finished, isEmpty);
       rig.runTo(700);
       expect(rig.state, WorkoutState.idle);
-      expect(rig.controller.isAutoRecording.value, isFalse);
+      expect(rig.controller.startedAutomatically.value, isFalse);
       final ride = rig.finished.single;
       expect(ride.startedAt, rig.at(1));
       expect(ride.endedAt, rig.at(400));
@@ -196,16 +198,45 @@ void main() {
     });
   });
 
-  test('leaves a manual recording alone', () {
+  test('a manual start follows the same flow: auto-pause, resume and end', () {
+    fakeAsync((async) {
+      final rig = _Rig(async, record: false);
+      expect(rig.controller.startManual(), isTrue);
+      expect(rig.state, WorkoutState.recording);
+      expect(rig.controller.startedAutomatically.value, isFalse);
+      // Nobody pedals yet: it pauses after 10 s like an automatic ride.
+      rig.runTo(10);
+      expect(rig.state, WorkoutState.paused);
+      rig.trainer.cadence.value = 90;
+      rig.runTo(11);
+      expect(rig.state, WorkoutState.recording);
+      rig.runTo(200);
+      rig.trainer.cadence.value = 0;
+      rig.runTo(500);
+      expect(rig.reasons, [RideEndReason.idle]);
+      expect(rig.finished.single.endedAt, rig.at(200));
+      rig.dispose();
+    });
+  });
+
+  test('a manual start without anything to record from does nothing', () {
+    fakeAsync((async) {
+      final rig = _Rig(async, record: false);
+      rig.connected = false;
+      expect(rig.controller.startManual(), isFalse);
+      expect(rig.state, WorkoutState.idle);
+      rig.dispose();
+    });
+  });
+
+  test('Beenden ends the ride now and reports it as a manual finish', () {
     fakeAsync((async) {
       final rig = _Rig(async);
-      rig.trainer.cadence.value = 0;
-      rig.recorder.start(rig.trainer.metrics);
-      rig.runTo(700);
-      expect(rig.state, WorkoutState.recording);
-      expect(rig.controller.isAutoRecording.value, isFalse);
-      expect(rig.finished, isEmpty);
-      rig.recorder.stop();
+      rig.trainer.cadence.value = 90;
+      rig.runTo(30);
+      final result = rig.controller.finish();
+      expect(result, isNotNull);
+      expect(rig.reasons, [RideEndReason.finished]);
       rig.dispose();
     });
   });
@@ -237,7 +268,7 @@ void main() {
       final rig = _Rig(async);
       rig.trainer.cadence.value = 90;
       rig.runTo(30);
-      rig.controller.finishNow();
+      rig.controller.finish();
       expect(rig.finished, hasLength(1));
       expect(rig.finished.single.endedAt, rig.at(30).add(const Duration(milliseconds: 1)));
       rig.runTo(60);
@@ -246,57 +277,40 @@ void main() {
     });
   });
 
-  group('detection only (setting undecided or not Pro)', () {
-    test('reports a ride of at least 5 min once it ends, without recording', () {
-      fakeAsync((async) {
-        final rig = _Rig(async, record: false, detect: true);
-        rig.trainer.cadence.value = 90;
-        rig.runTo(400);
-        expect(rig.state, WorkoutState.idle);
-        rig.trainer.cadence.value = 0;
-        rig.runTo(699);
-        expect(rig.detections, 0);
-        rig.runTo(700);
-        expect(rig.detections, 1);
-        rig.runTo(2000);
-        expect(rig.detections, 1);
-        rig.dispose();
-      });
+  group('too short to keep', () {
+    WorkoutResult ride(Duration moving, int watts) {
+      final start = DateTime.utc(2026);
+      final samples = [WorkoutSample(timestamp: start, powerW: watts)];
+      return WorkoutResult(
+        samples: samples,
+        startedAt: start,
+        endedAt: start.add(moving),
+        activeDuration: moving,
+        pauses: const [],
+        summary: WorkoutSummary.fromSamples(samples, startedAt: start, activeDuration: moving),
+      );
+    }
+
+    test('under 2 min moving AND under 10 kJ is discarded', () {
+      expect(RideDetector.isTooShort(ride(const Duration(seconds: 119), 80)), isTrue);
     });
 
-    test('ignores a short spin', () {
-      fakeAsync((async) {
-        final rig = _Rig(async, record: false, detect: true);
-        rig.trainer.cadence.value = 90;
-        rig.runTo(120);
-        rig.trainer.cadence.value = 0;
-        rig.runTo(1000);
-        expect(rig.detections, 0);
-        rig.dispose();
-      });
+    test('2 min of moving time is kept, however easy', () {
+      expect(RideDetector.isTooShort(ride(const Duration(minutes: 2), 20)), isFalse);
     });
 
-    test('also ends on disconnect', () {
-      fakeAsync((async) {
-        final rig = _Rig(async, record: false, detect: true);
-        rig.trainer.cadence.value = 90;
-        rig.runTo(400);
-        rig.connected = false;
-        rig.runTo(521);
-        expect(rig.detections, 1);
-        rig.dispose();
-      });
+    test('a short hard effort over 10 kJ is kept', () {
+      // 100 s at 110 W = 11 kJ.
+      expect(RideDetector.isTooShort(ride(const Duration(seconds: 100), 110)), isFalse);
     });
   });
 
-  test('a recorded ride of 5 min or more also counts as detected', () {
+  test('a heart-rate strap alone never starts a ride', () {
     fakeAsync((async) {
       final rig = _Rig(async);
-      rig.trainer.cadence.value = 90;
-      rig.runTo(400);
-      rig.trainer.cadence.value = 0;
-      rig.runTo(700);
-      expect(rig.detections, 1);
+      rig.trainer.hr.value = 130;
+      rig.runTo(30);
+      expect(rig.state, WorkoutState.idle);
       rig.dispose();
     });
   });

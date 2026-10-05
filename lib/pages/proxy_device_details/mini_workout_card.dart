@@ -2,13 +2,10 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/workout/workout_summary_dialog.dart';
 import 'package:bike_control/pages/workout/workouts_list_page.dart' show WorkoutsList;
-import 'package:bike_control/services/workout/fit_writer.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart' show RideSectionHeader;
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -47,10 +44,8 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
   WorkoutRecorder get _recorder => core.workoutRecorder;
 
   void _start() {
-    final metrics = MiniWorkoutCard._metricsFor(widget.device);
-    if (metrics == null) return;
     WakelockPlus.enable();
-    _recorder.start(metrics);
+    core.rides.startManual();
   }
 
   Future<void> _stopAndSave() async {
@@ -74,22 +69,8 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
     );
     if (confirmed != true || !mounted) return;
 
-    // Through healthRide so the ride also reaches Apple Health, and an
-    // automatic ride is released rather than restarted on the next tick.
-    final result = core.healthRide.stopRide();
+    core.rides.finish();
     WakelockPlus.disable();
-    if (result.activeDuration.inSeconds < 10) {
-      buildToast(title: l10n.miniWorkoutRecordingTooShort);
-      return;
-    }
-    final bytes = FitFileWriter.encode(samples: result.samples, summary: result.summary);
-    final file = await core.workoutRepository.save(
-      startedAt: result.startedAt,
-      fitBytes: bytes,
-      summary: result.summary,
-    );
-    if (!mounted) return;
-    await showWorkoutSummaryDialog(context: context, summary: result.summary, fitFile: file);
   }
 
   @override
@@ -123,10 +104,8 @@ class _MiniWorkoutCardState extends State<MiniWorkoutCard> {
 
   /// What a recording becomes: always a .fit file to share, and on iPhone a
   /// workout in Apple Health while saving rides there is on.
-  String _subtitle(AppLocalizations l10n) {
-    final health = core.healthRide;
-    return health.isSupported && health.isEnabled ? l10n.recordActivitySubtitleHealth : l10n.recordActivitySubtitle;
-  }
+  String _subtitle(AppLocalizations l10n) =>
+      core.rides.savesToHealth ? l10n.recordActivitySubtitleHealth : l10n.recordActivitySubtitle;
 
   void _openPast() => openSheet(
     context: context,

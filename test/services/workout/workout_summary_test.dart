@@ -1,3 +1,4 @@
+import 'package:bike_control/services/workout/workout_recorder.dart' show WorkoutPause;
 import 'package:bike_control/services/workout/workout_sample.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,14 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final start = DateTime(2026, 4, 24, 10, 0, 0);
 
-  WorkoutSample s(int sec, {int? p, int? c, double? sp, int? hr}) =>
-      WorkoutSample(
-        timestamp: start.add(Duration(seconds: sec)),
-        powerW: p,
-        cadenceRpm: c,
-        speedKph: sp,
-        heartRateBpm: hr,
-      );
+  WorkoutSample s(int sec, {int? p, int? c, double? sp, int? hr}) => WorkoutSample(
+    timestamp: start.add(Duration(seconds: sec)),
+    powerW: p,
+    cadenceRpm: c,
+    speedKph: sp,
+    heartRateBpm: hr,
+  );
 
   test('empty samples produce zeroed summary', () {
     final sum = WorkoutSummary.fromSamples([], startedAt: start, activeDuration: Duration.zero);
@@ -59,5 +59,118 @@ void main() {
     );
     // 30 km/h for 1 minute = 0.5 km
     expect(sum.distanceKm, closeTo(0.5, 0.001));
+  });
+
+  group('ride statistics', () {
+    test('work, energy, max cadence and total vs moving time', () {
+      final samples = [
+        s(0, p: 100, c: 80, hr: 120),
+        s(1, p: 200, c: 95, hr: 130),
+        s(2, p: 300, c: 110, hr: 150),
+      ];
+      final sum = WorkoutSummary.fromSamples(
+        samples,
+        startedAt: start,
+        activeDuration: const Duration(minutes: 10),
+        endedAt: start.add(const Duration(minutes: 12)),
+        gearChanges: 7,
+      );
+      // Ø 200 W over 600 s of pedalling = 120 kJ; kcal ≈ kJ.
+      expect(sum.workKj, closeTo(120, 0.001));
+      expect(sum.energyKcal, closeTo(120, 0.001));
+      expect(sum.maxCadenceRpm, 110);
+      expect(sum.elapsedDuration, const Duration(minutes: 12));
+      expect(sum.activeDuration, const Duration(minutes: 10));
+      expect(sum.gearChanges, 7);
+    });
+
+    test('no speed source: distance is unknown, never invented', () {
+      final sum = WorkoutSummary.fromSamples(
+        [s(0, p: 200, c: 90), s(1, p: 210, c: 91)],
+        startedAt: start,
+        activeDuration: const Duration(minutes: 5),
+      );
+      expect(sum.hasSpeed, isFalse);
+      expect(sum.shownDistanceKm, isNull);
+    });
+
+    test('a speed source gives a distance', () {
+      final sum = WorkoutSummary.fromSamples(
+        [s(0, sp: 30), s(1, sp: 30)],
+        startedAt: start,
+        activeDuration: const Duration(minutes: 2),
+      );
+      expect(sum.hasSpeed, isTrue);
+      expect(sum.shownDistanceKm, closeTo(1.0, 0.001));
+    });
+
+    test('chart buckets power and heart rate over the whole ride, pauses empty', () {
+      final samples = [
+        for (var i = 0; i < 20; i++) s(i, p: 200, hr: 140),
+        for (var i = 30; i < 40; i++) s(i, p: 100, hr: 120),
+      ];
+      final sum = WorkoutSummary.fromSamples(
+        samples,
+        startedAt: start,
+        activeDuration: const Duration(seconds: 30),
+        endedAt: start.add(const Duration(seconds: 40)),
+        pauses: [
+          WorkoutPause(start: start.add(const Duration(seconds: 20)), end: start.add(const Duration(seconds: 30))),
+        ],
+      );
+      final chart = sum.chart!;
+      expect(chart.stepSeconds, 5);
+      expect(chart.power, [200, 200, 200, 200, null, null, 100, 100]);
+      expect(chart.heartRate, [140, 140, 140, 140, null, null, 120, 120]);
+      expect(chart.pauses, [(20, 30)]);
+    });
+
+    test('round-trips everything through json', () {
+      final sum = WorkoutSummary.fromSamples(
+        [s(0, p: 200, c: 90, sp: 30, hr: 140), s(1, p: 220, c: 92, sp: 31, hr: 141)],
+        startedAt: start,
+        activeDuration: const Duration(minutes: 3),
+        endedAt: start.add(const Duration(minutes: 4)),
+        gearChanges: 3,
+        trainerName: 'KICKR CORE',
+        appName: 'MyWhoosh',
+        autoStarted: true,
+      ).copyWith(savedToHealth: true, healthSyncId: 'abc', fitExported: true);
+      final back = WorkoutSummary.fromJson(sum.toJson());
+      expect(back.toJson(), sum.toJson());
+      expect(back.trainerName, 'KICKR CORE');
+      expect(back.appName, 'MyWhoosh');
+      expect(back.autoStarted, isTrue);
+      expect(back.savedToHealth, isTrue);
+      expect(back.healthSyncId, 'abc');
+      expect(back.fitExported, isTrue);
+      expect(back.gearChanges, 3);
+      expect(back.chart!.power, sum.chart!.power);
+    });
+
+    test('reads a ride saved before this version', () {
+      final old = {
+        'startedAt': '2026-04-24T10:00:00.000Z',
+        'activeDurationSeconds': 1800,
+        'avgPowerW': 200,
+        'maxPowerW': 400,
+        'avgCadenceRpm': 88,
+        'avgSpeedKph': 0.0,
+        'distanceKm': 0.0,
+        'avgHeartRateBpm': 0,
+        'maxHeartRateBpm': 0,
+        'sampleCount': 1800,
+      };
+      final sum = WorkoutSummary.fromJson(old);
+      expect(sum.activeDuration, const Duration(minutes: 30));
+      expect(sum.elapsedDuration, const Duration(minutes: 30));
+      expect(sum.hasSpeed, isFalse);
+      expect(sum.shownDistanceKm, isNull);
+      expect(sum.workKj, closeTo(360, 0.001));
+      expect(sum.gearChanges, isNull);
+      expect(sum.chart, isNull);
+      expect(sum.savedToHealth, isFalse);
+      expect(sum.maxCadenceRpm, 0);
+    });
   });
 }

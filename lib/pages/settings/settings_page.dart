@@ -246,8 +246,8 @@ class _DuringRideSectionState extends State<DuringRideSection> {
 
   bool get _showsShiftHaptics => PlatformShiftHaptics.isSupported;
 
-  /// "Save rides to Apple Health": iOS/iPadOS with Health on the device.
-  bool get _showsHealthRide => core.healthRide.isSupported;
+  /// "Save rides to Apple Health / Health Connect", where the store exists.
+  bool get _showsHealthRide => core.rides.healthStore != null;
 
   Future<void> _open(Widget page) async {
     if (widget.onOpen case final open?) {
@@ -297,21 +297,20 @@ class _DuringRideSectionState extends State<DuringRideSection> {
         ),
       if (_showsHealthRide)
         ListenableBuilder(
-          listenable: core.healthRide.changes,
+          listenable: core.rides.changes,
           builder: (context, _) => BkSwitchRow(
             icon: LucideIcons.heartPulse,
             title: l10n.healthRideToggleTitle,
             // The duplicate warning is the one thing worth a second line.
-            subtitle: core.healthRide.showsDuplicateHint
-                ? l10n.healthRideDuplicateHint(core.healthRide.trainerApp()?.name ?? '')
+            subtitle: core.rides.showsDuplicateHint
+                ? l10n.healthRideDuplicateHint(core.rides.trainerApp()?.name ?? '')
                 : null,
-            value: core.healthRide.isEnabled,
-            proOnly: true,
+            value: core.rides.savesToHealth,
             onToggle: () async {
               try {
-                await core.healthRide.setEnabled(!core.healthRide.isEnabled);
+                await core.rides.setSavesToHealth(!core.rides.savesToHealth);
               } catch (e, s) {
-                await recordError(e, s, context: 'Settings.setHealthRideEnabled');
+                await recordError(e, s, context: 'Settings.setSavesToHealth');
               }
             },
           ),

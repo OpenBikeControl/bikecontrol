@@ -32,12 +32,12 @@ class _WorkoutsListState extends State<WorkoutsList> {
   @override
   void initState() {
     super.initState();
-    _future = core.workoutRepository.list();
+    _future = core.rides.repository.list();
   }
 
   void _refresh() {
     setState(() {
-      _future = core.workoutRepository.list();
+      _future = core.rides.repository.list();
     });
   }
 
@@ -71,7 +71,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
                         icon: const Icon(LucideIcons.folder, size: 18),
                         label: context.i18n.miniWorkoutOpenFolder,
                         onPressed: () async {
-                          final dir = await core.workoutRepository.rootDirectory();
+                          final dir = await core.rides.repository.rootDirectory();
                           await launchUrl(Uri.file(dir.path));
                         },
                       ),
@@ -180,7 +180,7 @@ class _WorkoutsListState extends State<WorkoutsList> {
     );
     if (!mounted) return;
     if (confirmed == true) {
-      await core.workoutRepository.delete(w.file);
+      await core.rides.repository.delete(w.file);
       if (!mounted) return;
       _refresh();
     }

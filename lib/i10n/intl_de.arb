@@ -2550,5 +2550,16 @@
   "restorePurchasesNone": "Für dieses Store-Konto wurden keine Käufe gefunden.",
   "restorePurchasesFailed": "Käufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut.",
   "helpHeader": "Hilfe",
-  "syncFailed": "Die Synchronisierung hat nicht geklappt. Bitte versuche es erneut."
+  "syncFailed": "Die Synchronisierung hat nicht geklappt. Bitte versuche es erneut.",
+  "ridesGearChangeCount": "{count, plural, =1{1 Gangwechsel} other{{count} Gangwechsel}}",
+  "@ridesGearChangeCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesHealthSaved": "Fahrt in {store} gespeichert",
+  "@ridesHealthSaved": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFailed": "Die Fahrt konnte nicht in {store} gespeichert werden",
+  "@ridesHealthFailed": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthDenied": "Zugriff auf {store} ist aus",
+  "@ridesHealthDenied": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOpenSettings": "Berechtigungen öffnen",
+  "ridesTooShort": "Zu kurz zum Speichern: unter 2 Minuten und 10 kJ.",
+  "ridesTab": "Fahrten"
 }

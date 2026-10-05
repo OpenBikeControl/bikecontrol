@@ -6,6 +6,8 @@ import 'package:bike_control/services/workout/past_workout.dart';
 import 'package:bike_control/services/workout/workout_repository.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/ride_rig.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../widget_snapshot.dart';
@@ -22,9 +24,8 @@ Future<void> main() async {
   await ensureSnapshotHarness();
 
   testWidgets('a long history scrolls inside the sheet, and rows are not dead buttons', (tester) async {
-    final previous = core.workoutRepository;
-    addTearDown(() => core.workoutRepository = previous);
-    core.workoutRepository = _FakeRepository([
+    await RideRig.install();
+    core.rides.repository = _FakeRepository([
       for (var i = 0; i < 30; i++)
         PastWorkout(file: File('/tmp/w$i.fit'), startedAt: DateTime(2026, 9, 1 + (i % 28), 7, i), sizeBytes: 1000),
     ]);
@@ -61,9 +62,8 @@ Future<void> main() async {
   });
 
   testWidgets('opens in the real bottom sheet without a layout error', (tester) async {
-    final previous = core.workoutRepository;
-    addTearDown(() => core.workoutRepository = previous);
-    core.workoutRepository = _FakeRepository([
+    await RideRig.install();
+    core.rides.repository = _FakeRepository([
       for (var i = 0; i < 30; i++)
         PastWorkout(file: File('/tmp/w$i.fit'), startedAt: DateTime(2026, 9, 1, 7, i), sizeBytes: 1000),
     ]);

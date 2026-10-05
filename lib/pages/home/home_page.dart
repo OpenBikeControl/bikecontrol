@@ -49,8 +49,6 @@ import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/home/chain_labels.dart';
-import 'package:bike_control/widgets/home/health_ride_card.dart';
-import 'package:bike_control/widgets/home/health_ride_chip.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/home/ride_overlay_notice.dart';
 import 'package:bike_control/widgets/home/trial_card.dart';
@@ -856,7 +854,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ? [for (final l in reconnectingLinks) _linkName(links, l.id) ?? chainLinkName(context, l.key)]
             : null,
       ),
-      HealthRideChip(service: core.healthRide),
       if (trial != null) ...[
         TrialCard(
           state: trial,
@@ -888,7 +885,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       ],
       // Pro on the account, not on this device: carries its own gap.
       const ProUnregisteredBanner(),
-      HealthRideCard(service: core.healthRide),
     ];
 
     return Padding(

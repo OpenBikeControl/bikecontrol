@@ -2,7 +2,6 @@ import 'dart:math';
 
 import '../workout/workout_recorder.dart';
 import '../workout/workout_sample.dart';
-import 'auto_ride_controller.dart';
 
 /// A random (v4) UUID — the ride's HealthKit sync identifier, so a retried
 /// save replaces rather than duplicates the workout.
@@ -68,15 +67,13 @@ class HealthWorkoutPayload {
   double totalDistanceMeters = 0;
   double totalEnergyKcal = 0;
 
-  /// Null when the ride is too short to be worth a Health workout.
-  ///
-  /// [minActiveDuration] mirrors whatever [AutoRideController] used to
-  /// detect/record the ride — pass the same value through so a ride that
-  /// qualified is never dropped here.
+  /// Null when the ride is shorter than [minActiveDuration]. Rides are
+  /// already filtered when they end (see `RideDetector.isTooShort`), so by
+  /// default every saved ride qualifies.
   static HealthWorkoutPayload? fromResult(
     WorkoutResult result, {
     required String syncId,
-    Duration minActiveDuration = AutoRideController.defaultMinRide,
+    Duration minActiveDuration = Duration.zero,
   }) {
     if (result.activeDuration < minActiveDuration) return null;
     final payload = HealthWorkoutPayload._(

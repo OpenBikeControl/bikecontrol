@@ -2940,5 +2940,16 @@
   "restorePurchasesNone": "No purchases found for this store account.",
   "restorePurchasesFailed": "Purchases couldn't be restored. Please try again.",
   "helpHeader": "Help",
-  "syncFailed": "Sync didn't work. Please try again."
+  "syncFailed": "Sync didn't work. Please try again.",
+  "ridesGearChangeCount": "{count, plural, =1{1 gear change} other{{count} gear changes}}",
+  "@ridesGearChangeCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesHealthSaved": "Ride saved to {store}",
+  "@ridesHealthSaved": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFailed": "Couldn't save the ride to {store}",
+  "@ridesHealthFailed": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthDenied": "{store} access is off",
+  "@ridesHealthDenied": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOpenSettings": "Open permissions",
+  "ridesTooShort": "Too short to keep: under 2 minutes and 10 kJ.",
+  "ridesTab": "Rides"
 }

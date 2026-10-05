@@ -2550,5 +2550,16 @@
   "restorePurchasesNone": "Nessun acquisto trovato per questo account dello store.",
   "restorePurchasesFailed": "Impossibile ripristinare gli acquisti. Riprova.",
   "helpHeader": "Aiuto",
-  "syncFailed": "Sincronizzazione non riuscita. Riprova."
+  "syncFailed": "Sincronizzazione non riuscita. Riprova.",
+  "ridesGearChangeCount": "{count, plural, =1{1 cambio marcia} other{{count} cambi marcia}}",
+  "@ridesGearChangeCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesHealthSaved": "Uscita salvata in {store}",
+  "@ridesHealthSaved": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFailed": "Impossibile salvare l'uscita in {store}",
+  "@ridesHealthFailed": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthDenied": "L'accesso a {store} è disattivato",
+  "@ridesHealthDenied": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOpenSettings": "Apri autorizzazioni",
+  "ridesTooShort": "Troppo breve per essere salvato: meno di 2 minuti e 10 kJ.",
+  "ridesTab": "Uscite"
 }

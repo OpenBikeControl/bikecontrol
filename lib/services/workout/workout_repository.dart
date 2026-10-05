@@ -8,7 +8,11 @@ import 'workout_summary.dart';
 
 class WorkoutRepository {
   final Directory? _rootOverride;
-  WorkoutRepository({Directory? rootOverride}) : _rootOverride = rootOverride;
+
+  /// Where a damaged sidecar is reported (recordError in the app).
+  final void Function(Object error, StackTrace stack, String context)? onError;
+
+  WorkoutRepository({Directory? rootOverride, this.onError}) : _rootOverride = rootOverride;
 
   Future<Directory> rootDirectory() async {
     final override = _rootOverride;
@@ -65,12 +69,14 @@ class WorkoutRepository {
       final parsed = _parseFilename(e.path);
       if (parsed == null) continue;
       final stat = await e.stat();
-      workouts.add(PastWorkout(
-        file: e,
-        startedAt: parsed,
-        sizeBytes: stat.size,
-        summary: await _readSidecar(e),
-      ));
+      workouts.add(
+        PastWorkout(
+          file: e,
+          startedAt: parsed,
+          sizeBytes: stat.size,
+          summary: await _readSidecar(e),
+        ),
+      );
     }
     workouts.sort((a, b) => b.startedAt.compareTo(a.startedAt));
     return workouts;
@@ -82,6 +88,29 @@ class WorkoutRepository {
     if (await sidecar.exists()) await sidecar.delete();
   }
 
+  /// Every ride and its sidecar.
+  Future<void> deleteAll() async {
+    for (final ride in await list()) {
+      await delete(ride.file);
+    }
+  }
+
+  /// The ride saved under [fileName], or null when it is gone.
+  Future<PastWorkout?> find(String fileName) async {
+    for (final ride in await list()) {
+      if (ride.fileName == fileName) return ride;
+    }
+    return null;
+  }
+
+  /// Rewrites [ride]'s sidecar (export bookkeeping), keeping the .fit.
+  Future<PastWorkout> update(PastWorkout ride, WorkoutSummary summary) async {
+    await _atomicWriteString(_sidecarFor(ride.file), jsonEncode(summary.toJson()));
+    return PastWorkout(file: ride.file, startedAt: ride.startedAt, sizeBytes: ride.sizeBytes, summary: summary);
+  }
+
+  Future<List<int>> readBytes(PastWorkout ride) => ride.file.readAsBytes();
+
   File _sidecarFor(File fit) => File('${fit.path}.json');
 
   Future<WorkoutSummary?> _readSidecar(File fit) async {
@@ -91,7 +120,9 @@ class WorkoutRepository {
       final raw = await sidecar.readAsString();
       final json = jsonDecode(raw) as Map<String, Object?>;
       return WorkoutSummary.fromJson(json);
-    } catch (_) {
+    } catch (e, s) {
+      // A damaged sidecar only costs the ride its numbers; the .fit stays.
+      onError?.call(e, s, 'WorkoutRepository.readSidecar');
       return null;
     }
   }

@@ -23,6 +23,9 @@ class WorkoutResult {
   final Duration activeDuration;
   final List<WorkoutPause> pauses;
   final WorkoutSummary summary;
+
+  /// Shifts during the ride; null when the source has no gears.
+  final int? gearChanges;
   WorkoutResult({
     required this.samples,
     required this.startedAt,
@@ -30,6 +33,7 @@ class WorkoutResult {
     required this.activeDuration,
     required this.pauses,
     required this.summary,
+    this.gearChanges,
   });
 }
 
@@ -43,6 +47,12 @@ class WorkoutRecorder {
   final ValueNotifier<Duration> elapsed = ValueNotifier(Duration.zero);
   final List<WorkoutSample> samples = [];
 
+  /// Shifts (rear and front) since the ride started.
+  final ValueNotifier<int> gearChanges = ValueNotifier(0);
+  bool _hasGearSource = false;
+  ValueListenable<int>? _gear;
+  ValueListenable<Object?>? _frontRing;
+
   DateTime? _startedAt;
   DateTime? _lastResumedAt;
   DateTime? _pausedAt;
@@ -52,7 +62,7 @@ class WorkoutRecorder {
   TrainerMetrics? _metrics;
 
   WorkoutRecorder({DateTime Function()? nowProvider, this.tick = const Duration(seconds: 1)})
-      : nowProvider = nowProvider ?? DateTime.now;
+    : nowProvider = nowProvider ?? DateTime.now;
 
   DateTime? get startedAt => _startedAt;
 
@@ -64,14 +74,40 @@ class WorkoutRecorder {
     _accumulatedActive = Duration.zero;
     samples.clear();
     _pauses.clear();
+    gearChanges.value = 0;
+    _hasGearSource = false;
+    _bindGears(metrics);
     state.value = WorkoutState.recording;
     _timer = Timer.periodic(tick, (_) => _onTick());
+  }
+
+  /// Follows [metrics]' gears. Rebinding (a reconnect rebuilt the
+  /// definition) only listens from here on: the fresh notifier's starting
+  /// gear is not a shift.
+  void _bindGears(TrainerMetrics metrics) {
+    _unbindGears();
+    _gear = metrics.gear?..addListener(_onShift);
+    _frontRing = metrics.frontRing?..addListener(_onShift);
+    if (_gear != null || _frontRing != null) _hasGearSource = true;
+  }
+
+  void _unbindGears() {
+    _gear?.removeListener(_onShift);
+    _frontRing?.removeListener(_onShift);
+    _gear = null;
+    _frontRing = null;
+  }
+
+  void _onShift() {
+    if (state.value == WorkoutState.idle) return;
+    gearChanges.value++;
   }
 
   /// Points sampling at a new source without touching timing — the trainer
   /// reconnected and its definition (and notifiers) were rebuilt.
   void updateMetrics(TrainerMetrics metrics) {
     if (state.value == WorkoutState.idle) return;
+    if (!identical(metrics.gear, _gear) || !identical(metrics.frontRing, _frontRing)) _bindGears(metrics);
     _metrics = metrics;
   }
 
@@ -114,7 +150,15 @@ class WorkoutRecorder {
     final active = _accumulatedActive;
     final captured = List<WorkoutSample>.unmodifiable(samples);
     final pauses = List<WorkoutPause>.unmodifiable(_pauses);
-    final summary = WorkoutSummary.fromSamples(captured, startedAt: startedAt, activeDuration: active);
+    final shifts = _hasGearSource ? gearChanges.value : null;
+    final summary = WorkoutSummary.fromSamples(
+      captured,
+      startedAt: startedAt,
+      activeDuration: active,
+      endedAt: endedAt,
+      pauses: pauses,
+      gearChanges: shifts,
+    );
     _reset();
     return WorkoutResult(
       samples: captured,
@@ -123,6 +167,7 @@ class WorkoutRecorder {
       activeDuration: active,
       pauses: pauses,
       summary: summary,
+      gearChanges: shifts,
     );
   }
 
@@ -136,6 +181,9 @@ class WorkoutRecorder {
     elapsed.value = Duration.zero;
     samples.clear();
     _metrics = null;
+    _unbindGears();
+    _hasGearSource = false;
+    gearChanges.value = 0;
   }
 
   void _onTick() {
@@ -158,7 +206,9 @@ class WorkoutRecorder {
 
   void dispose() {
     _timer?.cancel();
+    _unbindGears();
     state.dispose();
     elapsed.dispose();
+    gearChanges.dispose();
   }
 }

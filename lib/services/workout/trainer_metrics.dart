@@ -16,13 +16,37 @@ class TrainerMetrics {
   /// overrides the trainer's own value). Null means "never".
   final bool Function()? isHeartRateFromHealth;
 
+  /// The virtual rear gear, where BikeControl shifts (FTMS bridge). Null for
+  /// sources without gears; a ride then has no gear-change count.
+  final ValueListenable<int>? gear;
+
+  /// The virtual front chainring, counted as a shift when it flips.
+  final ValueListenable<Object?>? frontRing;
+
+  /// What the rider sees as the source (the trainer's or sensor's name).
+  final String? sourceName;
+
   const TrainerMetrics({
     required this.powerW,
     required this.cadenceRpm,
     required this.speedKph,
     required this.heartRateBpm,
     this.isHeartRateFromHealth,
+    this.gear,
+    this.frontRing,
+    this.sourceName,
   });
+
+  TrainerMetrics named(String? name) => TrainerMetrics(
+    powerW: powerW,
+    cadenceRpm: cadenceRpm,
+    speedKph: speedKph,
+    heartRateBpm: heartRateBpm,
+    isHeartRateFromHealth: isHeartRateFromHealth,
+    gear: gear,
+    frontRing: frontRing,
+    sourceName: name,
+  );
 
   /// Returns null when [definition] is not a supported bike definition.
   ///
@@ -43,6 +67,8 @@ class TrainerMetrics {
         speedKph: definition.speedKph,
         heartRateBpm: definition.heartRateBpm,
         isHeartRateFromHealth: isHeartRateFromHealth,
+        gear: definition.currentGear,
+        frontRing: definition.frontRing,
       );
     }
     if (definition is ProxyBikeDefinition) {

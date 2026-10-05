@@ -2550,5 +2550,16 @@
   "restorePurchasesNone": "No se encontraron compras para esta cuenta de la tienda.",
   "restorePurchasesFailed": "No se pudieron restaurar las compras. Inténtalo de nuevo.",
   "helpHeader": "Ayuda",
-  "syncFailed": "No se pudo sincronizar. Inténtalo de nuevo."
+  "syncFailed": "No se pudo sincronizar. Inténtalo de nuevo.",
+  "ridesGearChangeCount": "{count, plural, =1{1 cambio de marcha} other{{count} cambios de marcha}}",
+  "@ridesGearChangeCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesHealthSaved": "Recorrido guardado en {store}",
+  "@ridesHealthSaved": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFailed": "No se pudo guardar el recorrido en {store}",
+  "@ridesHealthFailed": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthDenied": "El acceso a {store} está desactivado",
+  "@ridesHealthDenied": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOpenSettings": "Abrir permisos",
+  "ridesTooShort": "Demasiado corto para guardarlo: menos de 2 minutos y 10 kJ.",
+  "ridesTab": "Recorridos"
 }

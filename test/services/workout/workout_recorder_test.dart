@@ -11,11 +11,11 @@ class _Fake {
   final hr = ValueNotifier<int?>(null);
 
   TrainerMetrics get metrics => TrainerMetrics(
-        powerW: power,
-        cadenceRpm: cadence,
-        speedKph: speed,
-        heartRateBpm: hr,
-      );
+    powerW: power,
+    cadenceRpm: cadence,
+    speedKph: speed,
+    heartRateBpm: hr,
+  );
 }
 
 void main() {
@@ -23,7 +23,8 @@ void main() {
     fakeAsync((async) {
       final fake = _Fake();
       final rec = WorkoutRecorder(
-        nowProvider: () => DateTime.utc(2026, 4, 24, 10, 0, 0).add(Duration(milliseconds: async.elapsed.inMilliseconds)),
+        nowProvider: () =>
+            DateTime.utc(2026, 4, 24, 10, 0, 0).add(Duration(milliseconds: async.elapsed.inMilliseconds)),
         tick: const Duration(milliseconds: 100),
       );
       expect(rec.state.value, WorkoutState.idle);
@@ -47,7 +48,8 @@ void main() {
     fakeAsync((async) {
       final fake = _Fake();
       final rec = WorkoutRecorder(
-        nowProvider: () => DateTime.utc(2026, 4, 24, 10, 0, 0).add(Duration(milliseconds: async.elapsed.inMilliseconds)),
+        nowProvider: () =>
+            DateTime.utc(2026, 4, 24, 10, 0, 0).add(Duration(milliseconds: async.elapsed.inMilliseconds)),
         tick: const Duration(milliseconds: 100),
       );
 
@@ -150,6 +152,73 @@ void main() {
 
         expect(rec.samples.map((s) => s.powerW), [100, 250]);
         expect(rec.startedAt, base());
+      });
+    });
+  });
+
+  group('gear changes', () {
+    DateTime base() => DateTime.utc(2026, 4, 24, 10, 0, 0);
+
+    test('counts every rear and front shift while the ride runs, not before or after', () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        final gear = ValueNotifier<int>(12);
+        final front = ValueNotifier<Object?>('small');
+        final metrics = TrainerMetrics(
+          powerW: fake.power,
+          cadenceRpm: fake.cadence,
+          speedKph: fake.speed,
+          heartRateBpm: fake.hr,
+          gear: gear,
+          frontRing: front,
+        );
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        gear.value = 13; // before the ride: not counted
+        rec.start(metrics);
+        gear.value = 14;
+        gear.value = 15;
+        front.value = 'large';
+        async.elapse(const Duration(seconds: 2));
+        rec.pause();
+        gear.value = 14; // a shift while paused still happened on this ride
+        rec.resume();
+        expect(rec.gearChanges.value, 4);
+        final result = rec.stop();
+        expect(result.gearChanges, 4);
+        expect(result.summary.gearChanges, 4);
+        gear.value = 10; // after the ride: not counted
+        expect(rec.gearChanges.value, 0);
+      });
+    });
+
+    test('a reconnect that rebuilds the gear notifier is not a shift', () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        final first = ValueNotifier<int>(12);
+        final second = ValueNotifier<int>(12);
+        TrainerMetrics m(ValueNotifier<int> g) => TrainerMetrics(
+          powerW: fake.power,
+          cadenceRpm: fake.cadence,
+          speedKph: fake.speed,
+          heartRateBpm: fake.hr,
+          gear: g,
+        );
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(m(first));
+        first.value = 15;
+        rec.updateMetrics(m(second)); // fresh definition back at 12
+        first.value = 16; // the old one is no longer listened to
+        second.value = 13;
+        expect(rec.stop().gearChanges, 2);
+      });
+    });
+
+    test('without a gear source the count stays unknown', () {
+      fakeAsync((async) {
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(_Fake().metrics);
+        async.elapse(const Duration(seconds: 1));
+        expect(rec.stop().summary.gearChanges, isNull);
       });
     });
   });

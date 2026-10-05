@@ -17,17 +17,17 @@ import 'package:bike_control/bluetooth/remote_pairing.dart';
 import 'package:bike_control/utils/demo_mode.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/feedback_prompt_service.dart';
-import 'package:bike_control/services/health/health_ride_feedback.dart';
-import 'package:bike_control/services/health/health_ride_preferences.dart';
-import 'package:bike_control/services/health/health_ride_service.dart';
 import 'package:bike_control/services/health/health_workout_channel.dart';
+import 'package:bike_control/services/rides/ride_feedback.dart';
+import 'package:bike_control/services/rides/ride_preferences.dart';
+import 'package:bike_control/services/rides/ride_service.dart';
+import 'package:bike_control/services/rides/ride_sources.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
 import 'package:bike_control/services/shift_feedback/sound_players/shift_sound_player_factory.dart';
 import 'package:bike_control/services/sensors/sensor_hub.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
-import 'package:bike_control/services/workout/fit_writer.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/services/workout/workout_repository.dart';
@@ -79,9 +79,6 @@ class Core {
   );
   late final workoutRecorder = WorkoutRecorder();
   ScreenRecordingService screenRecording = ScreenRecordingService(backend: createScreenRecorderBackend());
-  /// Where finished rides are saved. Not final: tests swap in one that keeps
-  /// them off the disk.
-  late WorkoutRepository workoutRepository = WorkoutRepository();
 
   late final supabase = Supabase.instance.client;
   late final whooshLink = WhooshLink();
@@ -116,46 +113,56 @@ class Core {
     onError: (context, e, s) => recordError(e, s, context: context),
   );
 
-  final HealthWorkoutChannel _healthWorkoutChannel = MethodChannelHealthWorkout();
+  /// Apple Health on iPhone/iPad, Health Connect on Android, none elsewhere.
+  late final HealthWorkoutChannel? _healthWorkoutChannel = kIsWeb
+      ? null
+      : Platform.isIOS
+      ? MethodChannelHealthWorkout.appleHealth()
+      : Platform.isAndroid
+      ? MethodChannelHealthWorkout.healthConnect()
+      : null;
 
-  /// "Save rides to Apple Health": detects/records rides on its own and
-  /// writes finished ones to Health. Not final: tests swap in a fresh
-  /// instance (fake channel, in-memory prefs) to assert call sites without a
-  /// platform.
-  late HealthRideService healthRide = HealthRideService(
+  /// Every ride: recorded automatically from the first pedal stroke (or by
+  /// hand), saved as .fit with its summary, sent to Health once the rider
+  /// said yes. Not final: tests swap in a fresh instance (fake channel,
+  /// in-memory repository and prefs).
+  late RideService rides = RideService(
     recorder: workoutRecorder,
-    prefs: HealthRidePreferences(settings.prefs),
-    channel: _healthWorkoutChannel,
-    feedback: HealthRideToastFeedback(channel: _healthWorkoutChannel),
-    isPlatformSupported: () => !kIsWeb && Platform.isIOS,
-    isPro: () => IAPManager.instance.isProEnabledForCurrentDevice,
+    prefs: RidePreferences(settings.prefs),
+    repository: WorkoutRepository(onError: (e, s, context) => recordError(e, s, context: context)),
+    source: rideSource,
+    health: _healthWorkoutChannel,
+    feedback: RideToastFeedback(
+      notifications: flutterLocalNotificationsPlugin,
+      openHealthSettings: () => rides.openHealthSettings(),
+    ),
+    trainerName: () => rideSource()?.sourceName,
+    appName: () => switch (settings.getTrainerApp()?.name) {
+      final name? => shownTrainerAppName(name),
+      null => null,
+    },
     trainerApp: () => settings.getTrainerApp(),
     target: () => settings.getLastTarget(),
-    connectedTrainer: _connectedTrainerMetrics,
-    saveFit: _saveAutoRideFit,
+    isForeground: () => WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
     onError: (e, s, context) => recordError(e, s, context: context),
-    // Debug builds: quick on-device testing without a real 5-min ride.
-    minRide: kDebugMode ? const Duration(seconds: 20) : HealthRideService.defaultMinRide,
-    log: (message) => connection.signalNotification(LogNotification('HealthRide: $message')),
+    log: (message) => connection.signalNotification(LogNotification('Rides: $message')),
   );
 
-  /// The first BLE-connected trainer's live metrics, for [healthRide] to
-  /// watch. Same construction `MiniWorkoutCard` uses for a manual recording,
-  /// just picked automatically rather than from a specific device's page.
-  TrainerMetrics? _connectedTrainerMetrics() {
+  /// What a ride records from: the first connected trainer BikeControl
+  /// bridges, else an external power or cadence sensor. A heart-rate strap
+  /// alone is not a ride.
+  TrainerMetrics? rideSource() {
     for (final device in connection.proxyDevices) {
       if (!device.isConnected) continue;
-      final metrics = TrainerMetrics.fromDefinition(device.emulator.activeDefinition);
-      if (metrics != null) return metrics;
+      final metrics =
+          TrainerMetrics.fromDefinition(device.emulator.activeDefinition) ??
+          TrainerMetrics.fromDefinition(device.fitnessBike);
+      if (metrics != null) return metrics.named(device.toString());
     }
-    return null;
-  }
-
-  /// Persists an automatic ride's FIT file exactly like `MiniWorkoutCard`'s
-  /// manual stop does.
-  Future<void> _saveAutoRideFit(WorkoutResult result) async {
-    final bytes = FitFileWriter.encode(samples: result.samples, summary: result.summary);
-    await workoutRepository.save(startedAt: result.startedAt, fitBytes: bytes, summary: result.summary);
+    return metricsFromSensors(
+      sensors.sources,
+      selected: (quantity) => sensors.selectionFor(quantity),
+    );
   }
 
   late final logic = CoreLogic();

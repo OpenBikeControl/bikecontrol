@@ -1120,8 +1120,9 @@ Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async
   _pedal(studio);
   final realClock = core.workoutRecorder.nowProvider;
   core.workoutRecorder.nowProvider = _now;
-  final realRepository = core.workoutRepository;
-  final repository = core.workoutRepository = _MemoryWorkoutRepository();
+  final realRepository = core.rides.repository;
+  final repository = _MemoryWorkoutRepository();
+  core.rides.repository = repository;
   final l10n = AppLocalizations.current;
 
   final boundary = GlobalKey();
@@ -1148,7 +1149,7 @@ Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async
   await rec.frames(60);
 
   core.workoutRecorder.nowProvider = realClock;
-  core.workoutRepository = realRepository;
+  core.rides.repository = realRepository;
   await _wrapUp(tester, studio);
   return rec.capture;
 }

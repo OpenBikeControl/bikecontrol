@@ -20,5 +20,5 @@ class PastWorkout {
     this.summary,
   });
 
-  String get fileName => file.path.split(Platform.pathSeparator).last;
+  String get fileName => file.uri.pathSegments.last;
 }

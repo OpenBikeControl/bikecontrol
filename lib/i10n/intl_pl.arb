@@ -2550,5 +2550,16 @@
   "restorePurchasesNone": "Nie znaleziono zakupów dla tego konta sklepu.",
   "restorePurchasesFailed": "Nie udało się przywrócić zakupów. Spróbuj ponownie.",
   "helpHeader": "Pomoc",
-  "syncFailed": "Synchronizacja się nie powiodła. Spróbuj ponownie."
+  "syncFailed": "Synchronizacja się nie powiodła. Spróbuj ponownie.",
+  "ridesGearChangeCount": "{count, plural, =1{1 zmiana biegu} few{{count} zmiany biegu} many{{count} zmian biegu} other{{count} zmiany biegu}}",
+  "@ridesGearChangeCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesHealthSaved": "Jazda zapisana w {store}",
+  "@ridesHealthSaved": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFailed": "Nie udało się zapisać jazdy w {store}",
+  "@ridesHealthFailed": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthDenied": "Dostęp do {store} jest wyłączony",
+  "@ridesHealthDenied": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOpenSettings": "Otwórz uprawnienia",
+  "ridesTooShort": "Za krótka, by ją zapisać: poniżej 2 minut i 10 kJ.",
+  "ridesTab": "Jazdy"
 }
