@@ -26,6 +26,7 @@ import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:ui' show Tristate;
 
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
@@ -589,6 +590,28 @@ Future<void> main() async {
       expect(buttons.left, greaterThan(vs.right), reason: 'two columns');
       await disposeShell(tester);
     });
+
+    for (final size in const [Size(1280, 800), Size(1000, 800)]) {
+      testWidgets('${size.width.toInt()} wide: every button and its whole action listed with the pods', (
+        tester,
+      ) async {
+        await pumpShellWithRide(tester, size);
+        expect(tester.takeException(), isNull);
+
+        final list = find.byKey(const ValueKey('ride-button-list'));
+        expect(list, findsOneWidget);
+        final play = core.connection.controllerDevices.single;
+        for (final button in play.availableButtons) {
+          expect(find.descendant(of: list, matching: find.text(button.displayName)), findsOneWidget);
+        }
+        final cut = find.descendant(of: list, matching: find.byType(RichText)).evaluate().where((e) {
+          final paragraph = e.renderObject! as RenderParagraph;
+          return paragraph.didExceedMaxLines;
+        });
+        expect(cut, isEmpty, reason: 'no name or action is cut off');
+        await disposeShell(tester);
+      });
+    }
 
     for (final size in const [Size(1300, 800), Size(1440, 900)]) {
       testWidgets('${size.width.toInt()} wide: two columns like a tablet, the last press under the pods', (

@@ -1413,11 +1413,13 @@ void _droppedAppTests() {
     }
 
     /// ... and goes away again: the rider quit it. A frame more, because a
-    /// drop re-reads the advertised address.
+    /// drop re-reads the advertised address — then long enough for the
+    /// banner's change (the old count fading out) to finish.
     Future<void> dropApp(WidgetTester tester) async {
       core.obpMdnsEmulator.isConnected.value = false;
       await rebuild(tester);
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     }
 
     Future<void> pumpDroppedApp(WidgetTester tester, {List<NavigatorObserver> navigatorObservers = const []}) async {
@@ -1695,6 +1697,8 @@ void _droppedAppTests() {
       await _leaveAndReturn(tester);
       await tester.pump();
       await tester.pump();
+      // The banner crossfades from the one-line "disconnected" to the step.
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(appStatusLine(l.chainStepNetworkAddressPending), findsOneWidget);
       expect(inAppCard(find.text(l.chainStepNetworkAddressHint('10.5.0.2', 'MyWhoosh'))), findsOneWidget);

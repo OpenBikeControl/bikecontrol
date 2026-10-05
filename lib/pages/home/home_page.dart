@@ -815,16 +815,46 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       dailyLimit: core.bridgeUsageTracker.dailyLimit,
     );
 
+    // Right after launch the remembered devices are on their way back and
+    // their cards say "Connecting…". "Switch it on" in the banner would
+    // contradict that — and vanish a second later, shifting the screen — so
+    // their steps wait until the window has run out.
+    final reconnecting = core.connection.startupReconnecting.value;
+    final reconnectingLinks = banner.kind == ChainBannerKind.pending
+        ? links.where((l) => l.deviceId != null && reconnecting.contains(l.deviceId) && l.isBlocking).toList()
+        : const <ChainLink>[];
+    final reconnectingIds = {for (final l in reconnectingLinks) l.id};
+    final shownBanner = reconnectingLinks.isEmpty
+        ? banner
+        : ChainBanner(
+            kind: banner.kind,
+            status: banner.status,
+            stepsLeft: banner.stepsLeft - reconnectingLinks.fold<int>(0, (sum, l) => sum + l.remainingSteps),
+            targetLinkId: reconnectingIds.contains(banner.targetLinkId)
+                ? banner.outstandingLinkIds.firstOrNullWhere((id) => !reconnectingIds.contains(id))
+                : banner.targetLinkId,
+            targetKey: banner.targetKey,
+            outstandingKeys: banner.outstandingKeys,
+            outstandingLinkIds: banner.outstandingLinkIds.where((id) => !reconnectingIds.contains(id)).toList(),
+            soleStep: banner.soleStep,
+            appDropped: banner.appDropped,
+          );
+    final steps = _bannerSteps(links, shownBanner, inputs);
+
     final status = <Widget>[
       ReadyBanner(
-        banner: banner,
+        banner: shownBanner,
         appName: inputs.app.name,
-        brokenLinkName: _linkName(links, banner.targetLinkId),
-        onAction: banner.hasAction
-            ? () => _openInstructions(links.firstWhere((l) => l.id == banner.targetLinkId))
+        brokenLinkName: _linkName(links, shownBanner.targetLinkId),
+        onAction: shownBanner.hasAction
+            ? () => _openInstructions(links.firstWhere((l) => l.id == shownBanner.targetLinkId))
             : null,
-        onRevealOutstanding: () => _showOutstanding(links, banner.outstandingLinkIds),
-        steps: _bannerSteps(links, banner, inputs),
+        onRevealOutstanding: () => _showOutstanding(links, shownBanner.outstandingLinkIds),
+        steps: steps,
+        // Nothing left but the devices on their way back: say so, calmly.
+        connectingNames: shownBanner.outstandingLinkIds.isEmpty && reconnectingLinks.isNotEmpty
+            ? [for (final l in reconnectingLinks) _linkName(links, l.id) ?? chainLinkName(context, l.key)]
+            : null,
       ),
       HealthRideChip(service: core.healthRide),
       if (trial != null) ...[
@@ -874,6 +904,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           final vs = _vsSlot(inputs, links, stacked: twoColumns);
           final buttons = _yourButtons(
             wide: !twoColumns && constraints.maxWidth >= Breakpoints.compact,
+            // On a desktop the button list is the map at a glance; the right
+            // column puts it under the pods (see [ControllerButtonsCard]).
+            showButtonList: twoColumns || constraints.maxWidth >= Breakpoints.compact,
           );
           final extras = _rideExtras();
           if (twoColumns) {
@@ -1215,11 +1248,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   // ── Ride: your buttons ────────────────────────────────────────────────
 
-  Widget _yourButtons({required bool wide}) {
+  /// [wide] lets a controller list its buttons beside its picture;
+  /// [showButtonList] lists them at all — beside the picture where the column
+  /// has room, else under it.
+  Widget _yourButtons({required bool wide, required bool showButtonList}) {
     final l = context.i18n;
-    final connected = core.connection.controllerDevices.where((d) => d.isConnected).toList();
+    // Right after launch the remembered controllers stand in until they are
+    // back (see [Connection.startupReconnecting]) — on the cards they will
+    // have, so the one that connects swaps in where it already stands.
+    final reconnecting = core.connection.startupReconnecting.value;
+    final shown = _knownControllers
+        .where((d) => d.isConnected || reconnecting.contains(d.uniqueId))
+        .distinctBy((d) => d.uniqueId)
+        .toList();
     final keymap = core.actionHandler.supportedApp?.keymap;
-    final single = connected.length == 1 ? connected.single : null;
+    final single = shown.length == 1 ? shown.single : null;
     return Column(
       key: const ValueKey('ride-your-buttons'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1229,27 +1272,38 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           linkLabel: single != null ? l.rideEditButtons : null,
           onLink: single != null ? () => _openController(single) : null,
         ),
-        if (connected.isEmpty)
-          RidePromptCard(
-            icon: LucideIcons.gamepad2,
-            title: l.rideNoControllerTitle,
-            body: l.rideNoControllerBody,
-            actionLabel: l.connect,
-            onAction: () => _openController(null),
-          ),
-        for (final (i, device) in connected.indexed) ...[
-          if (i > 0) const Gap(10),
-          ControllerButtonsCard(
-            key: ValueKey('ride-buttons-${device.uniqueId}'),
-            device: device,
-            keymap: keymap,
-            presses: _pressesFor(device.uniqueId),
-            onUpdate: _update,
-            onEdit: () => _openController(device),
-            showDeviceHeader: single == null,
-            wide: wide,
-          ),
-        ],
+        // A controller arriving grows in, one leaving shrinks out, and the
+        // "no controller" prompt gives way to the first one the same way.
+        BkAnimatedColumn(
+          children: [
+            if (shown.isEmpty)
+              RidePromptCard(
+                key: const ValueKey('ride-no-controller'),
+                icon: LucideIcons.gamepad2,
+                title: l.rideNoControllerTitle,
+                body: l.rideNoControllerBody,
+                actionLabel: l.connect,
+                onAction: () => _openController(null),
+              ),
+            for (final (i, device) in shown.indexed)
+              Padding(
+                key: ValueKey('ride-buttons-slot-${device.uniqueId}'),
+                padding: EdgeInsets.only(top: i > 0 ? 10 : 0),
+                child: ControllerButtonsCard(
+                  key: ValueKey('ride-buttons-${device.uniqueId}'),
+                  device: device,
+                  keymap: keymap,
+                  presses: _pressesFor(device.uniqueId),
+                  onUpdate: _update,
+                  onEdit: () => _openController(device),
+                  showDeviceHeader: single == null,
+                  connecting: !device.isConnected,
+                  wide: wide,
+                  showButtonList: showButtonList,
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -1447,6 +1501,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (device != null && device.isConnected) {
       return _unlockStatusLabel(device) ?? context.i18n.connected;
     }
+    // Right after launch, on its way back on its own.
+    if (device != null && core.connection.startupReconnecting.value.contains(device.uniqueId)) {
+      return context.i18n.chainStatusConnecting;
+    }
     return switch (link.status) {
       LinkStatus.ready => context.i18n.connected,
       LinkStatus.problem => context.i18n.chainStatusLostConnection,
@@ -1524,7 +1582,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
 
     // A connect in flight has its own answer — see [DevicePresence.connecting].
-    final connecting = inputs.trainer?.presence == DevicePresence.connecting && link.status == LinkStatus.attention;
+    // Or, right after launch, the remembered one expected back on its own.
+    final connecting =
+        (inputs.trainer?.presence == DevicePresence.connecting && link.status == LinkStatus.attention) ||
+        (inputs.trainer?.presence == DevicePresence.remembered &&
+            core.connection.startupReconnecting.value.contains(inputs.trainer!.deviceId));
 
     final String statusLabel;
     if (link.status == LinkStatus.problem) {

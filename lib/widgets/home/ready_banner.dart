@@ -44,6 +44,7 @@ class ReadyBanner extends StatelessWidget {
     this.onAction,
     this.onRevealOutstanding,
     this.steps = const [],
+    this.connectingNames,
   });
 
   /// How many steps the banner lists before "+N more".
@@ -71,6 +72,12 @@ class ReadyBanner extends StatelessWidget {
   /// [onRevealOutstanding] — instead of a count and a Show button.
   final List<ReadyBannerStep> steps;
 
+  /// Right after launch, when all that stands between the rider and riding
+  /// is the remembered devices reconnecting on their own: their names. The
+  /// banner then reads "Connecting…" over them, calm — the same one line as
+  /// "Ready to ride", so when they are back it changes words, not shape.
+  final List<String>? connectingNames;
+
   @override
   Widget build(BuildContext context) {
     // The list and the one-line banner are different shapes: going from one
@@ -84,12 +91,18 @@ class ReadyBanner extends StatelessWidget {
   Widget _line(BuildContext context) {
     final theme = Theme.of(context);
     final style = AmpelStyle.of(context, banner.status);
-    final calm = banner.kind == ChainBannerKind.ready;
+    final connecting = connectingNames;
+    final calm = banner.kind == ChainBannerKind.ready || connecting != null;
     final l = context.i18n;
 
     final String title;
     final String subtitle;
     switch (banner.kind) {
+      case ChainBannerKind.pending when connecting != null:
+        title = l.chainStatusConnecting;
+        subtitle = connecting.length <= 1
+            ? connecting.join()
+            : '${connecting.take(connecting.length - 1).join(', ')} & ${connecting.last}';
       case ChainBannerKind.ready:
         title = l.chainReadyTitle;
         final app = appName;
@@ -146,8 +159,20 @@ class ReadyBanner extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(color: style.text, shape: BoxShape.circle),
-            child: Icon(calm ? LucideIcons.check : style.icon, size: 18, color: style.onText),
+            // On their way back is neither good nor bad news yet: a quiet grey.
+            decoration: BoxDecoration(
+              color: connecting != null ? theme.colorScheme.muted : style.text,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              connecting != null
+                  ? LucideIcons.bluetooth
+                  : calm
+                  ? LucideIcons.check
+                  : style.icon,
+              size: 18,
+              color: connecting != null ? theme.colorScheme.foreground : style.onText,
+            ),
           ),
           const Gap(12),
           Expanded(
@@ -170,7 +195,7 @@ class ReadyBanner extends StatelessWidget {
               ],
             ),
           ),
-          if (banner.hasAction && action != null) ...[
+          if (banner.hasAction && action != null && connecting == null) ...[
             const Gap(8),
             BkTouchTarget(
               child: PrimaryButton(
@@ -326,12 +351,16 @@ class _StepCount extends StatelessWidget {
         alignment: AlignmentDirectional.centerStart,
         children: [...previous, ?current],
       ),
+      // The new count rises into place; the old one only fades — two
+      // numbers sliding past each other would read as a blur.
       transitionBuilder: (child, animation) => FadeTransition(
         opacity: animation,
-        child: SlideTransition(
-          position: Tween(begin: const Offset(0, 0.35), end: Offset.zero).animate(animation),
-          child: child,
-        ),
+        child: child.key == label.key
+            ? SlideTransition(
+                position: Tween(begin: const Offset(0, 0.35), end: Offset.zero).animate(animation),
+                child: child,
+              )
+            : child,
       ),
       child: label,
     );

@@ -9,6 +9,9 @@ import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
 import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
+import 'package:bike_control/utils/reduced_motion.dart';
+import 'package:bike_control/widgets/ui/bk_motion.dart';
+import 'package:bike_control/widgets/ui/bk_skeleton.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
@@ -141,7 +144,13 @@ bool get _touchPlatform => switch (defaultTargetPlatform) {
 /// connected), the hint, the picture and the last-press strip.
 ///
 /// [wide] puts the picture on the left and the hint, strip and the list of
-/// buttons on the right.
+/// buttons on the right; without the room for that, [showButtonList] puts the
+/// list under the picture.
+///
+/// [connecting] is the card of a remembered controller on its way back: the
+/// same card, its picture faded under a slow shimmer and its name with
+/// "Connecting…" where the hint goes — so when it connects nothing moves, the
+/// picture just comes up to full strength.
 class ControllerButtonsCard extends StatelessWidget {
   const ControllerButtonsCard({
     super.key,
@@ -152,6 +161,8 @@ class ControllerButtonsCard extends StatelessWidget {
     required this.onEdit,
     this.showDeviceHeader = false,
     this.wide = false,
+    this.showButtonList = false,
+    this.connecting = false,
   });
 
   final BaseDevice device;
@@ -161,11 +172,17 @@ class ControllerButtonsCard extends StatelessWidget {
   final VoidCallback onEdit;
   final bool showDeviceHeader;
   final bool wide;
+  final bool showButtonList;
+  final bool connecting;
+
+  /// Below this a list beside the picture would squeeze both; the list goes
+  /// under it instead.
+  static const double sideBySideMinWidth = 560;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final picture = controllerButtonsPicture(
+    final rawPicture = controllerButtonsPicture(
       device: device,
       keymap: keymap,
       presses: presses,
@@ -173,59 +190,119 @@ class ControllerButtonsCard extends StatelessWidget {
       onUpdate: onUpdate,
       maxHeight: wide ? 260 : null,
     );
+    // Faded while it connects, then up to full strength and a touch larger:
+    // the pods and their badges arrive rather than appear.
+    final duration = BkMotion.of(context);
+    final picture = rawPicture == null
+        ? null
+        : AnimatedOpacity(
+            key: const ValueKey('ride-buttons-picture'),
+            opacity: connecting ? 0.45 : 1,
+            duration: duration,
+            curve: BkMotion.curve,
+            child: AnimatedScale(
+              scale: connecting ? 0.97 : 1,
+              duration: duration,
+              curve: BkMotion.curve,
+              child: connecting ? BkShimmer(child: rawPicture) : rawPicture,
+            ),
+          );
     final canEdit = keymap != null;
-    final hint = canEdit && picture != null
-        ? Text(
-            _touchPlatform ? context.i18n.rideTapButtonHint : context.i18n.rideClickButtonHint,
-            style: context.typography.small.copyWith(color: cs.mutedForeground),
-          )
-        : null;
+    final hint = canEdit && picture != null ? _hint(context) : null;
     final strip = picture != null
         ? LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate)
         : null;
-
-    final Widget content;
-    if (wide && picture != null) {
-      content = Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(flex: 5, child: picture),
-          const Gap(16),
-          Expanded(
-            flex: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ?hint,
-                if (strip != null) ...[const Gap(8), strip],
-                const Gap(8),
-                if (canEdit) _ButtonList(device: device, keymap: keymap!, onUpdate: onUpdate),
-              ],
-            ),
-          ),
-        ],
-      );
-    } else {
-      content = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (hint != null) Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: hint),
-          if (picture != null) ...[const Gap(8), picture],
-          if (strip != null) ...[const Gap(8), strip],
-        ],
-      );
-    }
+    final list = canEdit && (wide || showButtonList)
+        ? _ButtonList(key: const ValueKey('ride-button-list'), device: device, keymap: keymap!, onUpdate: onUpdate)
+        : null;
 
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (showDeviceHeader) ...[_DeviceHeader(device: device, onEdit: onEdit), const Gap(4)],
-          content,
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final Widget content;
+          if (wide && picture != null && constraints.maxWidth >= sideBySideMinWidth) {
+            content = Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 5, child: picture),
+                const Gap(16),
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ?hint,
+                      if (strip != null) ...[const Gap(8), strip],
+                      if (list != null) ...[const Gap(8), list],
+                    ],
+                  ),
+                ),
+              ],
+            );
+          } else {
+            content = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (hint != null) Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: hint),
+                if (picture != null) ...[const Gap(8), picture],
+                if (strip != null) ...[const Gap(8), strip],
+                if (list != null && picture != null) ...[
+                  const Gap(8),
+                  Divider(height: 1, color: cs.border),
+                  const Gap(4),
+                  list,
+                ],
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showDeviceHeader) ...[_DeviceHeader(device: device, onEdit: onEdit), const Gap(4)],
+              content,
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  /// "Tap a button to change what it does." — or, while connecting, the
+  /// controller's name and "Connecting…" in the same slot, at the hint's
+  /// height either way.
+  Widget _hint(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final style = context.typography.small.copyWith(color: cs.mutedForeground);
+    final text = Text(
+      _touchPlatform ? context.i18n.rideTapButtonHint : context.i18n.rideClickButtonHint,
+      style: style,
+    );
+    final Widget slot = connecting
+        ? Stack(
+            children: [
+              // Holds the hint's height, so the swap moves nothing.
+              Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: text),
+              Text(
+                '${device.displayName(context)} · ${context.i18n.chainStatusConnecting}',
+                key: const ValueKey('ride-buttons-connecting'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: style,
+              ),
+            ],
+          )
+        : text;
+    if (prefersReducedMotion(context)) return slot;
+    return AnimatedSwitcher(
+      duration: BkMotion.standard,
+      switchInCurve: BkMotion.curve,
+      layoutBuilder: (current, previous) => Stack(
+        alignment: AlignmentDirectional.topStart,
+        children: [...previous, ?current],
+      ),
+      child: KeyedSubtree(key: ValueKey(connecting), child: slot),
     );
   }
 }
@@ -309,8 +386,7 @@ class LastPressStrip extends StatelessWidget {
         final cs = Theme.of(context).colorScheme;
         final action = _actionFor(keymap, button);
         // Its single click is an action that only works while held.
-        final holdOnClick =
-            keymap?.getKeyPair(button, trigger: ButtonTrigger.singleClick)?.holdActionOnClick == true;
+        final holdOnClick = keymap?.getKeyPair(button, trigger: ButtonTrigger.singleClick)?.holdActionOnClick == true;
         final muted = context.typography.small.copyWith(color: cs.mutedForeground);
         return Container(
           constraints: const BoxConstraints(minHeight: 44),
@@ -388,7 +464,7 @@ class LastPressStrip extends StatelessWidget {
 /// Every button and the action it sends, for windows wide enough to list
 /// them beside the picture. A row opens that button's assignment.
 class _ButtonList extends StatelessWidget {
-  const _ButtonList({required this.device, required this.keymap, required this.onUpdate});
+  const _ButtonList({super.key, required this.device, required this.keymap, required this.onUpdate});
 
   final BaseDevice device;
   final Keymap keymap;
@@ -422,22 +498,21 @@ class _ButtonList extends StatelessWidget {
                     children: [
                       ButtonWidget(button: button, size: 22),
                       const Gap(10),
+                      // The button's name gives way first; the action is the
+                      // point of the list and is never cut — it wraps instead.
                       Expanded(
-                        flex: 3,
                         child: Text(
                           button.displayName,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: context.typography.small,
                         ),
                       ),
                       const Gap(8),
-                      Expanded(
+                      Flexible(
                         flex: 2,
                         child: Text(
                           _actionFor(keymap, button) ?? '–',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.end,
                           style: context.typography.small.copyWith(
                             color: cs.mutedForeground,
