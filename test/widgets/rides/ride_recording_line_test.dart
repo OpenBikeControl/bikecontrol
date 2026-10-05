@@ -79,7 +79,7 @@ void main() {
       );
       expect(find.text(l10n.miniWorkoutPaused), findsOneWidget);
       expect(find.textContaining(l10n.ridesResumesOnPedal), findsOneWidget);
-      expect(find.text(l10n.miniWorkoutResume), findsNothing);
+      expect(find.byType(Button), findsNWidgets(2), reason: 'Beenden and Verwerfen only: no resume button');
     });
 
     testWidgets('Verwerfen asks first; Abbrechen keeps the ride', (tester) async {

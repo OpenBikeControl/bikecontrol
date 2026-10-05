@@ -87,7 +87,7 @@ Future<void> main() async {
     // and overlay (Settings), the live metrics and the Mini Workout (Ride).
     expect(find.byType(DrivetrainView), findsNothing);
     expect(find.text(l.overlaySection), findsNothing);
-    expect(find.text(l.miniWorkout), findsNothing);
+    expect(find.text(l.miniWorkoutStart), findsNothing);
     expect(find.text(l.bikeWeight), findsNothing);
     expect(find.text(l.gearSettings), findsNothing);
     expect(tester.takeException(), isNull);

@@ -330,7 +330,7 @@ Future<void> main() async {
       final vs = tester.getRect(find.byType(VirtualShiftingCard));
       expect(tester.getTopLeft(line).dy, closeTo(vs.bottom + 12, 1));
       expect(tester.getTopLeft(line).dy, lessThan(tester.getTopLeft(find.text(l.rideYourButtons.toUpperCase())).dy));
-      expect(find.text(l.miniWorkout.toUpperCase()), findsNothing, reason: 'the old record card is gone');
+      expect(find.text(l.miniWorkoutStart), findsNothing, reason: 'no record card while recording automatically');
 
       rig.service.discard();
       await tester.pump();

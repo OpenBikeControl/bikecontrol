@@ -277,7 +277,7 @@ Future<void> main() async {
 
     expect(find.text(l.shiftFeedbackSound), findsNothing);
     expect(find.text(l.shiftFeedbackHaptics), findsNothing);
-    expect(find.text(l.healthRideToggleTitle), findsNothing);
+    expect(find.text(l.ridesAutoRecordTitle), findsNothing);
     expect(find.text(l.chainCloseAndQuit), findsNothing);
   });
 }
