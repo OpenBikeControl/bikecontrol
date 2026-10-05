@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
@@ -132,7 +133,7 @@ class _Card extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Gap(12),
-                _Numbers(summary: summary, scale: wide ? 1.4 : 1.25),
+                _Numbers(summary: summary, scale: wide ? 1.4 : 1.15),
                 if (summary.chart case final chart? when chart.hasPower || chart.hasHeartRate) ...[
                   const Gap(14),
                   SizedBox(height: 1, child: ColoredBox(color: cs.border)),
@@ -207,11 +208,17 @@ class _Card extends StatelessWidget {
 }
 
 /// Dauer · Distanz · Ø Leistung · Arbeit; Distanz only with a speed source.
+/// Each stat is its own column (value and unit on one baseline, the label
+/// under it). They share one row when all four fit at their natural width
+/// with [_gap] between them; otherwise they go two by two.
 class _Numbers extends StatelessWidget {
   const _Numbers({required this.summary, required this.scale});
 
   final WorkoutSummary summary;
   final double scale;
+
+  static const double _gap = 16;
+  static const double _rowGap = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -219,50 +226,80 @@ class _Numbers extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final locale = intl.Intl.getCurrentLocale();
     final units = unitSystemOf(context);
-    final label = context.typography.xSmall.copyWith(color: cs.mutedForeground);
-    Widget cell(String key, InlineSpan value, String caption, {int flex = 10}) => Expanded(
-      flex: flex,
-      child: Semantics(
-        key: ValueKey('ride-summary-$key'),
-        container: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text.rich(value, maxLines: 1),
-            ),
-            const Gap(6),
-            Text(caption, style: label, maxLines: 1, overflow: TextOverflow.ellipsis),
-          ],
+    final label = DefaultTextStyle.of(
+      context,
+    ).style.merge(context.typography.xSmall.copyWith(color: cs.mutedForeground));
+    final km = summary.shownDistanceKm;
+    final stats = <(String, InlineSpan, String)>[
+      (
+        'duration',
+        rideNumber(context, formatRideDuration(summary.activeDuration), scale: scale),
+        l10n.miniWorkoutSummaryDuration,
+      ),
+      if (km != null)
+        (
+          'distance',
+          rideNumber(context, formatRideDistance(km, units, locale), unit: units.distanceSymbol, scale: scale),
+          l10n.miniWorkoutSummaryDistance,
         ),
+      if (summary.avgPowerW > 0)
+        (
+          'power',
+          rideNumber(context, '${summary.avgPowerW}', unit: 'W', scale: scale),
+          l10n.miniWorkoutSummaryAvgPower,
+        ),
+      ('work', rideNumber(context, formatInt(summary.workKj, locale), unit: 'kJ', scale: scale), l10n.ridesWork),
+    ];
+    final textScaler = MediaQuery.textScalerOf(context);
+    double naturalWidth(InlineSpan span) {
+      final painter = TextPainter(text: span, textDirection: TextDirection.ltr, textScaler: textScaler, maxLines: 1)
+        ..layout();
+      final w = painter.width;
+      painter.dispose();
+      return w;
+    }
+
+    final widths = [
+      for (final (_, value, caption) in stats)
+        math.max(naturalWidth(value), naturalWidth(TextSpan(text: caption, style: label))).ceilToDouble(),
+    ];
+
+    // [fit]: in a half column a value at a very large text scale shrinks
+    // rather than breaking mid-number.
+    Widget stat((String, InlineSpan, String) s, {bool fit = false}) => Semantics(
+      key: ValueKey('ride-summary-${s.$1}'),
+      container: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (fit)
+            FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text.rich(s.$2, maxLines: 1))
+          else
+            Text.rich(s.$2, maxLines: 1),
+          const Gap(4),
+          Text(s.$3, style: label),
+        ],
       ),
     );
-    final km = summary.shownDistanceKm;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        cell(
-          'duration',
-          rideNumber(context, formatRideDuration(summary.activeDuration), scale: scale),
-          l10n.miniWorkoutSummaryDuration,
-          flex: 11,
-        ),
-        if (km != null)
-          cell(
-            'distance',
-            rideNumber(context, formatRideDistance(km, units, locale), unit: units.distanceSymbol, scale: scale),
-            l10n.miniWorkoutSummaryDistance,
-          ),
-        if (summary.avgPowerW > 0)
-          cell(
-            'power',
-            rideNumber(context, '${summary.avgPowerW}', unit: 'W', prefix: 'Ø', scale: scale),
-            l10n.sensorQuantityPower,
-          ),
-        cell('work', rideNumber(context, formatInt(summary.workKj, locale), unit: 'kJ', scale: scale), l10n.ridesWork),
-      ],
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final oneRow = widths.fold<double>(0, (a, b) => a + b) + _gap * (stats.length - 1) <= constraints.maxWidth;
+        if (oneRow) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [for (final s in stats) stat(s)],
+          );
+        }
+        final column = (constraints.maxWidth - _gap) / 2;
+        return Wrap(
+          spacing: _gap,
+          runSpacing: _rowGap,
+          children: [for (final s in stats) SizedBox(width: column, child: stat(s, fit: true))],
+        );
+      },
     );
   }
 }

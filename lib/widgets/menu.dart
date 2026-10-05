@@ -245,8 +245,21 @@ class DebugMenuButton extends StatelessWidget {
   const DebugMenuButton({super.key});
 
   @override
+  Widget build(BuildContext context) => const SectionMenuButton();
+}
+
+/// A top bar's one ⋮: the section's own [items] first, then, in debug builds,
+/// the developer tools under a divider. Renders nothing when both are empty,
+/// so a top bar never shows two ⋮ side by side.
+class SectionMenuButton extends StatelessWidget {
+  const SectionMenuButton({super.key, this.items});
+
+  /// The section's entries, built when the menu opens.
+  final List<MenuItem> Function(BuildContext context)? items;
+
+  @override
   Widget build(BuildContext context) {
-    if (!kDebugMode) return const SizedBox.shrink();
+    if (items == null && !kDebugMode) return const SizedBox.shrink();
     return BkIconButton.menu(
       label: context.i18n.a11yMoreOptions,
       tooltip: false,
@@ -255,76 +268,82 @@ class DebugMenuButton extends StatelessWidget {
         context: context,
         builder: (c) => DropdownMenu(
           children: [
-            MenuButton(
-              subMenu: [
-                for (final profile in allEmulationProfiles)
-                  MenuButton(
-                    onPressed: (c) {
-                      core.emulation.start(profile);
-                      unawaited(core.connection.performScanning());
-                    },
-                    child: Text(profile.name),
-                  ),
-              ],
-              child: const Text('Emulate device'),
-            ),
-            MenuButton(
-              child: Text(context.i18n.reset),
-              onPressed: (c) async {
-                await core.settings.reset();
-              },
-            ),
-            // The real prompt needs six successful sessions, a three-day-old
-            // install and no ride in progress, so there is no practical way to
-            // see it on demand. Calls the flow directly and therefore bypasses
-            // FeedbackPromptTrigger's once-per-launch guard as well.
-            MenuButton(
-              child: const Text('Show feedback prompt'),
-              onPressed: (c) => showFeedbackPromptFlow(context, service: core.feedbackPromptService),
-            ),
-            MenuButton(
-              child: const Text('Send Key'),
-              onPressed: (c) async {
-                await Future.delayed(const Duration(seconds: 2));
-                await keyPressSimulator.simulateKeyDown(
-                  PhysicalKeyboardKey.keyK,
-                  [],
-                  core.settings.getTrainerApp()?.packageName,
-                );
-                await keyPressSimulator.simulateKeyUp(
-                  PhysicalKeyboardKey.keyK,
-                  [],
-                  core.settings.getTrainerApp()?.packageName,
-                );
-              },
-            ),
-            MenuButton(
-              child: const Text('Disconnect'),
-              onPressed: (c) async {
-                core.connection.disconnectAll();
-              },
-            ),
-            MenuButton(
-              child: const Text('Show Paywall'),
-              onPressed: (c) async {
-                openDrawer(
-                  context: context,
-                  builder: (c) => Paywall(),
-                  position: OverlayPosition.bottom,
-                );
-              },
-            ),
-            const MenuDivider(),
-            MenuButton(
-              child: const Text('Reset IAP State'),
-              onPressed: (c) async {
-                IAPManager.instance.reset(false);
-                core.settings.init();
-              },
-            ),
+            ...?items?.call(context),
+            if (items != null && kDebugMode) const MenuDivider(),
+            if (kDebugMode) ..._debugItems(context),
           ],
         ),
       ),
     );
   }
+
+  List<MenuItem> _debugItems(BuildContext context) => [
+    MenuButton(
+      subMenu: [
+        for (final profile in allEmulationProfiles)
+          MenuButton(
+            onPressed: (c) {
+              core.emulation.start(profile);
+              unawaited(core.connection.performScanning());
+            },
+            child: Text(profile.name),
+          ),
+      ],
+      child: const Text('Emulate device'),
+    ),
+    MenuButton(
+      child: Text(context.i18n.reset),
+      onPressed: (c) async {
+        await core.settings.reset();
+      },
+    ),
+    // The real prompt needs six successful sessions, a three-day-old
+    // install and no ride in progress, so there is no practical way to
+    // see it on demand. Calls the flow directly and therefore bypasses
+    // FeedbackPromptTrigger's once-per-launch guard as well.
+    MenuButton(
+      child: const Text('Show feedback prompt'),
+      onPressed: (c) => showFeedbackPromptFlow(context, service: core.feedbackPromptService),
+    ),
+    MenuButton(
+      child: const Text('Send Key'),
+      onPressed: (c) async {
+        await Future.delayed(const Duration(seconds: 2));
+        await keyPressSimulator.simulateKeyDown(
+          PhysicalKeyboardKey.keyK,
+          [],
+          core.settings.getTrainerApp()?.packageName,
+        );
+        await keyPressSimulator.simulateKeyUp(
+          PhysicalKeyboardKey.keyK,
+          [],
+          core.settings.getTrainerApp()?.packageName,
+        );
+      },
+    ),
+    MenuButton(
+      child: const Text('Disconnect'),
+      onPressed: (c) async {
+        core.connection.disconnectAll();
+      },
+    ),
+    MenuButton(
+      child: const Text('Show Paywall'),
+      onPressed: (c) async {
+        openDrawer(
+          context: context,
+          builder: (c) => Paywall(),
+          position: OverlayPosition.bottom,
+        );
+      },
+    ),
+    const MenuDivider(),
+    MenuButton(
+      child: const Text('Reset IAP State'),
+      onPressed: (c) async {
+        IAPManager.instance.reset(false);
+        core.settings.init();
+      },
+    ),
+  ];
 }

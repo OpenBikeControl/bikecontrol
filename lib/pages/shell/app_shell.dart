@@ -493,17 +493,21 @@ class ShellTopBar extends StatelessWidget {
         if (section == AppSection.activity && activity != null)
           ValueListenableBuilder<ActivityTab>(
             valueListenable: activityTab ?? const _FixedTab(ActivityTab.log),
-            builder: (context, tab, _) => switch (tab) {
-              ActivityTab.log => ActivityClearButton(controller: activity!),
-              ActivityTab.rides => const RidesMenuButton(),
-              ActivityTab.news => const SizedBox.shrink(),
-            },
+            builder: (context, tab, _) =>
+                tab == ActivityTab.log ? ActivityClearButton(controller: activity!) : const SizedBox.shrink(),
           ),
         AppUpdateButton(compact: compact),
         if (showPlanAndHelp) const PlanBadge(),
         if (showPlanAndHelp) const HelpButton(),
-        // Developer tools; renders nothing outside debug builds.
-        const DebugMenuButton(),
+        // The bar's one ⋮: the section's own entries (Rides: "Alle löschen")
+        // and, in debug builds, the developer tools.
+        if (section == AppSection.activity && activity != null)
+          ValueListenableBuilder<ActivityTab>(
+            valueListenable: activityTab ?? const _FixedTab(ActivityTab.log),
+            builder: (context, tab, _) => tab == ActivityTab.rides ? const RidesMenuButton() : const DebugMenuButton(),
+          )
+        else
+          const DebugMenuButton(),
       ],
     );
   }

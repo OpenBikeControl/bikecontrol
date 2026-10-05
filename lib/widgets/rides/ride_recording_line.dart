@@ -146,24 +146,49 @@ class RideRecordingLine extends StatelessWidget {
                 const Gap(2),
                 ValueListenableBuilder<Duration>(
                   valueListenable: elapsed,
-                  builder: (context, d, _) => Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: formatRideDuration(d),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: cs.foreground,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                        if (sub != null) TextSpan(text: ' · $sub'),
-                      ],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: typography.xSmall.copyWith(color: cs.mutedForeground),
-                  ),
+                  builder: (context, d, _) {
+                    final caption = typography.xSmall.copyWith(color: cs.mutedForeground);
+                    final time = TextSpan(
+                      text: formatRideDuration(d),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: cs.foreground,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    );
+                    if (sub == null) return Text.rich(time, style: caption, maxLines: 1);
+                    // "12:34 · automatisch gestartet" on one line when it
+                    // fits; otherwise how it started moves, whole, onto the
+                    // next line instead of being cut off.
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final inline = TextSpan(
+                          children: [
+                            time,
+                            TextSpan(text: ' · $sub'),
+                          ],
+                          style: caption,
+                        );
+                        final painter = TextPainter(
+                          text: inline,
+                          textDirection: Directionality.of(context),
+                          textScaler: MediaQuery.textScalerOf(context),
+                          maxLines: 1,
+                        )..layout(maxWidth: constraints.maxWidth);
+                        final fits = !painter.didExceedMaxLines;
+                        painter.dispose();
+                        if (fits) return Text.rich(inline, maxLines: 1);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text.rich(time, style: caption, maxLines: 1),
+                            Text(sub, style: caption),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
               ],
             ),

@@ -22,6 +22,7 @@ import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:bike_control/widgets/menu.dart' show SectionMenuButton;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One calendar week (Monday start) of rides, newest first.
@@ -503,8 +504,9 @@ Future<void> confirmDeleteAllRides(BuildContext context) async {
   }
 }
 
-/// The phone's ⋯ in Activity's top bar while Rides shows: the folder (on a
-/// desktop-sized phone layout) and "Alle löschen".
+/// The phone's ⋮ in Activity's top bar while Rides shows: the folder (on a
+/// desktop-sized phone layout) and "Alle löschen", plus the developer tools
+/// in debug builds, all in the bar's one menu.
 class RidesMenuButton extends StatelessWidget {
   const RidesMenuButton({super.key});
 
@@ -512,32 +514,24 @@ class RidesMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.i18n;
     final cs = Theme.of(context).colorScheme;
-    return BkIconButton.menu(
+    return SectionMenuButton(
       key: const ValueKey('rides-menu'),
-      label: l10n.a11yMoreOptions,
-      tooltip: false,
-      icon: const Icon(LucideIcons.ellipsisVertical),
-      onPressed: () => showDropdown(
-        context: context,
-        builder: (_) => DropdownMenu(
-          children: [
-            if (RideExportActions.isDesktop) ...[
-              MenuButton(
-                leading: const Icon(LucideIcons.folder, size: 16),
-                onPressed: (_) => unawaited(RideExportActions.openRidesFolder()),
-                child: Text(l10n.miniWorkoutOpenFolder),
-              ),
-              const MenuDivider(),
-            ],
-            MenuButton(
-              key: const ValueKey('rides-delete-all'),
-              leading: Icon(LucideIcons.trash2, size: 16, color: cs.destructive),
-              onPressed: (_) => unawaited(confirmDeleteAllRides(context)),
-              child: Text(l10n.ridesDeleteAll, style: TextStyle(color: cs.destructive)),
-            ),
-          ],
+      items: (context) => [
+        if (RideExportActions.isDesktop) ...[
+          MenuButton(
+            leading: const Icon(LucideIcons.folder, size: 16),
+            onPressed: (_) => unawaited(RideExportActions.openRidesFolder()),
+            child: Text(l10n.miniWorkoutOpenFolder),
+          ),
+          const MenuDivider(),
+        ],
+        MenuButton(
+          key: const ValueKey('rides-delete-all'),
+          leading: Icon(LucideIcons.trash2, size: 16, color: cs.destructive),
+          onPressed: (_) => unawaited(confirmDeleteAllRides(context)),
+          child: Text(l10n.ridesDeleteAll, style: TextStyle(color: cs.destructive)),
         ),
-      ),
+      ],
     );
   }
 }

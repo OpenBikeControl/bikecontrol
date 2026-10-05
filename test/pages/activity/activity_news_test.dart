@@ -262,6 +262,48 @@ Future<void> main() async {
     });
   });
 
+  group('one ⋮ per top bar', () {
+    Finder menus() => find.byWidgetPredicate((w) => w is Icon && w.icon == LucideIcons.ellipsisVertical);
+
+    testWidgets('every section and every Activity segment has at most one ⋮', (tester) async {
+      await pumpShell(tester, const Size(390, 844));
+      for (final section in [AppSection.ride, AppSection.devices, AppSection.settings]) {
+        await tester.tap(
+          find.descendant(
+            of: find.byType(ShellTabBar),
+            matching: find.text(section.label(tester.element(find.byType(ShellTabBar)))),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(menus().evaluate().length, lessThanOrEqualTo(1), reason: section.name);
+      }
+      await openActivity(tester);
+      for (final label in [l().activity, l().activityTabNews, l().ridesTab]) {
+        await tester.tap(segment(label));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(menus().evaluate().length, lessThanOrEqualTo(1), reason: label);
+      }
+      await disposeShell(tester);
+    });
+
+    testWidgets('Fahrten: one ⋮ with "Alle löschen" (and, in debug builds, the developer entries)', (tester) async {
+      await pumpShell(tester, const Size(390, 844));
+      await openActivity(tester);
+      await tester.tap(find.byKey(const ValueKey('activity-segment-rides')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(menus(), findsOneWidget);
+      await tester.tap(menus());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const ValueKey('rides-delete-all')), findsOneWidget);
+      expect(find.text('Emulate device'), findsOneWidget, reason: 'tests run as a debug build');
+      await disposeShell(tester);
+    });
+  });
+
   group('News states', () {
     Future<void> openNews(WidgetTester tester) async {
       await pumpShell(tester, const Size(390, 844));
