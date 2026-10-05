@@ -9,6 +9,10 @@ import '../emulation_profile.dart';
 const _kickrShiftServiceUuid = 'a026ee0d-0a7d-4ab3-97fa-f1500f9feb8b';
 const _kickrShiftCharacteristicUuid = 'a026e03c-0a7d-4ab3-97fa-f1500f9feb8b';
 
+/// The Wahoo shifter characteristic, for tests that push button frames
+/// straight through the fake platform.
+const kickrShiftCharacteristicUuid = _kickrShiftCharacteristicUuid;
+
 // Headwind.
 const _headwindServiceUuid = 'a026ee0c-0a7d-4ab3-97fa-f1500f9feb8b';
 const _headwindCharacteristicUuid = 'a026e038-0a7d-4ab3-97fa-f1500f9feb8b';
@@ -52,6 +56,51 @@ final wahooKickrBikeShiftProfile = EmulationProfile(
     ]);
     return peripheral;
   },
+  inputs: (session) => [
+    for (final entry in _kickrShiftButtons.entries)
+      EmulatedButton(
+        entry.key,
+        onDown: () =>
+            session.notify(_kickrShiftCharacteristicUuid, kickrBikeShiftFrame(entry.value, pressed: true)),
+        onUp: () =>
+            session.notify(_kickrShiftCharacteristicUuid, kickrBikeShiftFrame(entry.value, pressed: false)),
+      ),
+  ],
+);
+
+/// A KICKR BIKE: one peripheral that is both a smart trainer (the FTMS +
+/// Cycling Power GATT of [buildFtmsTrainer]) and the host of its own shifters
+/// (the Wahoo shifter service). Detection is by NAME — the advertisement
+/// carries no service UUIDs by default, so the trainer side has to be found
+/// in the GATT database at connect time, not in the scan result.
+///
+/// [withTrainerServices] false leaves only the shifter service, i.e. a bike
+/// that exposes no trainer service BikeControl can drive.
+FakePeripheral buildKickrBike({
+  String deviceId = 'emulated:kickr-bike',
+  String name = 'KICKR BIKE 1337',
+  bool withTrainerServices = true,
+  List<String> advertisedServices = const [],
+}) {
+  final peripheral = withTrainerServices
+      ? buildFtmsTrainer(deviceId: deviceId, name: name)
+      : FakePeripheral(deviceId: deviceId, name: name);
+  peripheral.advertisedServices
+    ..clear()
+    ..addAll(advertisedServices);
+  if (!withTrainerServices) peripheral.services.addAll(deviceInfoServices(peripheral));
+  peripheral.services.add(
+    BleService(_kickrShiftServiceUuid, [
+      bleChar(_kickrShiftCharacteristicUuid, [CharacteristicProperty.notify]),
+    ]),
+  );
+  return peripheral;
+}
+
+final wahooKickrBikeProfile = EmulationProfile(
+  name: 'Wahoo Kickr Bike (trainer + shifters)',
+  category: EmulationCategory.controller,
+  build: buildKickrBike,
   inputs: (session) => [
     for (final entry in _kickrShiftButtons.entries)
       EmulatedButton(

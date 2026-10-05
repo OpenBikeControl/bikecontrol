@@ -492,6 +492,12 @@ abstract class BluetoothDevice extends BaseDevice {
   /// keepalive experiment runs, so each reconnect can try the next candidate.
   bool get keepsReconnectingWhileDropping => false;
 
+  /// When true, the inactivity battery saver leaves this controller connected
+  /// (see `Connection._onInactivityTimeout`). Default false. A KICKR BIKE
+  /// returns true while its trainer role is in use, since its link carries
+  /// the trainer bridge too.
+  bool get exemptFromBatterySaver => false;
+
   @override
   Future<void> connect() async {
     try {

@@ -16,6 +16,7 @@ List<EmulationProfile> get allEmulationProfiles => [
       zwiftRideProfile,
       eliteSquareProfile,
       wahooKickrBikeShiftProfile,
+      wahooKickrBikeProfile,
       cycplusBc2Profile,
       thinkRiderVs200Profile,
       sramAxsProfile,

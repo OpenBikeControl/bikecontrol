@@ -736,7 +736,8 @@ class Connection {
     _inactivityDisconnector = InactivityDisconnector(
       isTrainerAppConnected: () => core.logic.connectedNonLocalTrainerConnections.isNotEmpty,
       isOnlyLocalActive: () => core.logic.enabledNonLocalTrainerConnections.isEmpty && core.settings.getLocalEnabled(),
-      hasEligibleControllers: () => controllerDevices.whereType<BluetoothDevice>().any((d) => d.isConnected),
+      hasEligibleControllers: () =>
+          controllerDevices.whereType<BluetoothDevice>().any((d) => d.isConnected && !d.exemptFromBatterySaver),
       onTimeout: _onInactivityTimeout,
     );
 
@@ -1848,7 +1849,10 @@ class Connection {
   /// action and an OS push notification. [timeout] is the elapsed window, used
   /// for the human-readable message.
   void _onInactivityTimeout(Duration timeout) {
-    final controllers = controllerDevices.whereType<BluetoothDevice>().where((d) => d.isConnected).toList();
+    final controllers = controllerDevices
+        .whereType<BluetoothDevice>()
+        .where((d) => d.isConnected && !d.exemptFromBatterySaver)
+        .toList();
     if (controllers.isEmpty) return;
 
     for (final device in controllers) {

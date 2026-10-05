@@ -1,7 +1,12 @@
 import 'dart:collection';
-import 'dart:typed_data';
 
+import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_trainer.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -13,34 +18,95 @@ class WahooKickrBikeShift extends BluetoothDevice {
         availableButtons: WahooKickrBikeShiftConstants.prefixToButton.values.toList(),
       );
 
+  /// The bike's trainer role, when its service discovery found a trainer
+  /// service (see [WahooKickrBikeTrainer]); null for a bike that exposes only
+  /// its shifters, which then stays a controller exactly as before.
+  WahooKickrBikeTrainer? get trainer => _trainer;
+  WahooKickrBikeTrainer? _trainer;
+
+  /// A smart bike's link is not a battery to save, and cutting it would take a
+  /// running bridge down with it — mid-ride, without a single button press.
+  @override
+  bool get exemptFromBatterySaver => _trainer?.isConnectedOrConnecting ?? false;
+
   @override
   Future<void> handleServices(List<BleService> services) async {
-    final service = services.firstWhere(
-      (e) => e.uuid == WahooKickrBikeShiftConstants.SERVICE_UUID,
-      orElse: () => throw Exception('Service not found: ${WahooKickrBikeShiftConstants.SERVICE_UUID}'),
-    );
-    final characteristic = service.characteristics.firstWhere(
+    final service = services.firstOrNullWhere((e) => e.uuid == WahooKickrBikeShiftConstants.SERVICE_UUID);
+    final characteristic = service?.characteristics.firstOrNullWhere(
       (e) => e.uuid == WahooKickrBikeShiftConstants.CHARACTERISTIC_UUID,
-      orElse: () => throw Exception('Characteristic not found: ${WahooKickrBikeShiftConstants.CHARACTERISTIC_UUID}'),
     );
 
-    await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
+    if (characteristic != null) {
+      await UniversalBle.subscribeNotifications(device.deviceId, service!.uuid, characteristic.uuid);
+    }
+
+    await _attachTrainer(services);
+
+    if (characteristic == null) {
+      final missing = service == null
+          ? 'Service not found: ${WahooKickrBikeShiftConstants.SERVICE_UUID}'
+          : 'Characteristic not found: ${WahooKickrBikeShiftConstants.CHARACTERISTIC_UUID}';
+      // Nothing to offer without the shifters unless the bike is a trainer.
+      if (_trainer == null) throw Exception(missing);
+      core.connection.signalNotification(LogNotification('$this: $missing — trainer only'));
+    }
+  }
+
+  /// Lists the bike a second time, as a trainer, when it exposes a trainer
+  /// service — over this same connection. Not on web, where BikeControl has no
+  /// trainer bridge at all.
+  Future<void> _attachTrainer(List<BleService> services) async {
+    if (kIsWeb) return;
+    // A previous connection's role cannot outlive it (see [disconnect]); this
+    // only guards a repeated discovery on the same link.
+    await _releaseTrainer();
+    final trainer = WahooKickrBikeTrainer.forHost(this, services);
+    if (trainer == null) return;
+    _trainer = trainer;
+    core.connection.signalNotification(LogNotification('$this: trainer services found, also listed as a trainer'));
+    core.connection.addDevices([trainer]);
+  }
+
+  /// Removes the trainer role together with this connection, so the bike is
+  /// never left listed as a trainer whose link is gone.
+  Future<void> _releaseTrainer() async {
+    final trainer = _trainer;
+    _trainer = null;
+    if (trainer == null) return;
+    try {
+      await core.connection.disconnect(
+        trainer,
+        forget: false,
+        persistForget: false,
+        dropped: trainer.isConnectedOrConnecting,
+      );
+    } catch (e, s) {
+      await recordError(e, s, context: 'KICKR BIKE: release trainer role');
+    }
+  }
+
+  @override
+  Future<void> disconnect() async {
+    await _releaseTrainer();
+    return super.disconnect();
   }
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
-    if (characteristic == WahooKickrBikeShiftConstants.CHARACTERISTIC_UUID) {
-      final hex = toHex(bytes);
+    // Notifications are routed by device id, which the trainer role shares —
+    // everything that is not a shifter frame is the trainer's.
+    if (characteristic != WahooKickrBikeShiftConstants.CHARACTERISTIC_UUID) {
+      return _trainer?.processCharacteristic(characteristic, bytes) ?? Future.value();
+    }
+    final hex = toHex(bytes);
 
-      // Short-frame detection (hard-coded families)
-      final s = parseShortFrame(hex);
-      if (s != null) {
-        if (s.pressed) {
-          handleButtonsClicked([s.button]);
-        } else {
-          handleButtonsClicked([]);
-        }
-        return Future.value();
+    // Short-frame detection (hard-coded families)
+    final s = parseShortFrame(hex);
+    if (s != null) {
+      if (s.pressed) {
+        handleButtonsClicked([s.button]);
+      } else {
+        handleButtonsClicked([]);
       }
     }
     return Future.value();
