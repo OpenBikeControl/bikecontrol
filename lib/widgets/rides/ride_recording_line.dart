@@ -4,10 +4,10 @@ import 'package:bike_control/services/rides/ride_format.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
-import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -98,7 +98,7 @@ class RideRecordingLine extends StatelessWidget {
       child: Button(
         key: const ValueKey('ride-status-finish'),
         style: BkPillButton.shape(
-          const ButtonStyle.secondary().withPadding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+          const ButtonStyle.secondary().withPadding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8)),
         ),
         alignment: Alignment.center,
         onPressed: onFinish,
@@ -160,17 +160,16 @@ class RideRecordingLine extends StatelessWidget {
                         if (sub != null) TextSpan(text: ' · $sub'),
                       ],
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: typography.small.copyWith(color: cs.mutedForeground),
+                    style: typography.xSmall.copyWith(color: cs.mutedForeground),
                   ),
                 ),
               ],
             ),
           ),
-          const Gap(4),
           discard,
-          const Gap(4),
+          const Gap(2),
           finish,
         ],
       ),
@@ -343,16 +342,23 @@ class RideManualStartCard extends StatelessWidget {
               children: [
                 Text('${l10n.ridesAutoOff} · ', style: caption),
                 if (shell != null)
-                  BkTouchTarget(
-                    child: Button.ghost(
-                      style: ButtonStyle.ghost(
-                        density: isCompactWindow(context) ? ButtonDensity.compact : ButtonDensity.normal,
-                      ),
-                      onPressed: () => shell.section.value = AppSection.settings,
-                      trailing: Icon(LucideIcons.chevronRight, size: 14, color: bkAccentText(context)),
-                      child: Text(
-                        l10n.navSettings,
-                        style: caption.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+                  // An inline link: padding gives the target its height, the
+                  // text stays on the caption's line.
+                  BkTappable(
+                    key: const ValueKey('ride-manual-settings'),
+                    label: l10n.navSettings,
+                    onPressed: () => shell.section.value = AppSection.settings,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.navSettings,
+                            style: caption.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+                          ),
+                          Icon(LucideIcons.chevronRight, size: 14, color: bkAccentText(context)),
+                        ],
                       ),
                     ),
                   ),

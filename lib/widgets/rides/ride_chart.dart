@@ -45,7 +45,10 @@ class _RideChartViewState extends State<RideChartView> {
     if (chart == null || (!chart.hasPower && !chart.hasHeartRate)) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
+    // A painter has no DefaultTextStyle: give its text the app's family.
+    final base = DefaultTextStyle.of(context).style;
     final typography = context.typography;
+    TextStyle ui(TextStyle s) => base.merge(s);
     final style = _ChartStyle(
       accent: cs.primary,
       heart: cs.mutedForeground,
@@ -53,9 +56,9 @@ class _RideChartViewState extends State<RideChartView> {
       ink: cs.foreground,
       muted: cs.mutedForeground,
       card: cs.card,
-      label: typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
-      unit: typography.xSmall.copyWith(fontWeight: FontWeight.w500, color: cs.mutedForeground),
-      tick: typography.xSmall.copyWith(color: cs.mutedForeground, fontFeatures: BkNumerals.tabular),
+      label: ui(typography.xSmall.copyWith(fontWeight: FontWeight.w600, color: cs.foreground)),
+      unit: ui(typography.xSmall.copyWith(fontWeight: FontWeight.w500, color: cs.mutedForeground)),
+      tick: ui(typography.xSmall.copyWith(color: cs.mutedForeground, fontFeatures: BkNumerals.tabular)),
     );
     final hrAvg = widget.summary.avgHeartRateBpm;
     final labels = _Labels(

@@ -78,7 +78,7 @@ class ActivitySection extends StatelessWidget {
                     ValueListenableBuilder<ActivityTab>(
                       valueListenable: shell.paneTab,
                       builder: (context, tab, _) => tab == ActivityTab.rides
-                          ? const RidesView(desktop: true)
+                          ? const Padding(padding: EdgeInsets.only(top: 12), child: RidesView(desktop: true))
                           : NewsView(controller: shell.news, singleColumn: true),
                     ),
                   ],

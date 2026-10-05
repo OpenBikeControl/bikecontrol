@@ -298,10 +298,13 @@ class _RideRowState extends State<_RideRow> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // The theme's ink on destructive fills (white in both themes).
+            // ignore: deprecated_member_use
             Icon(LucideIcons.trash2, size: 19, color: cs.destructiveForeground),
             const Gap(4),
             Text(
               l10n.delete,
+              // ignore: deprecated_member_use
               style: context.typography.small.copyWith(color: cs.destructiveForeground, fontWeight: FontWeight.w600),
             ),
           ],

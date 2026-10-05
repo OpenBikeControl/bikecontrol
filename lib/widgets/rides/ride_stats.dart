@@ -26,7 +26,8 @@ TextSpan rideNumber(BuildContext context, String value, {String? unit, String? p
       ),
       if (unit != null)
         TextSpan(
-          text: unit,
+          // A hair of space, as the display face sets "29,4 km".
+          text: '\u2009$unit',
           style: BkNumerals.display(big * 0.57, color: cs.mutedForeground, fontWeight: FontWeight.w600),
         ),
     ],
