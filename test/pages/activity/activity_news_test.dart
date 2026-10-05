@@ -7,6 +7,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/activity/activity_section.dart';
 import 'package:bike_control/pages/activity/news_view.dart';
+import 'package:bike_control/pages/activity/rides_view.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/services/blog_service.dart';
@@ -17,6 +18,7 @@ import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../helpers/ride_rig.dart';
 import '../../helpers/shell_harness.dart';
 import '../../widget_snapshot.dart';
 
@@ -153,9 +155,12 @@ Future<void> main() async {
         // of its own, and Clear sits in the page's title bar. News keeps its
         // header.
         expect(find.descendant(of: logPane, matching: find.text(l().activity)), findsNothing);
-        expect(find.byType(ActivityPaneHeader), findsOneWidget, reason: 'News only');
-        expect(find.descendant(of: newsPane, matching: find.byType(ActivityPaneHeader)), findsOneWidget);
-        expect(find.descendant(of: find.byType(ShellTopBar), matching: find.byType(ActivityClearButton)), findsOneWidget);
+        expect(find.byType(ActivityPaneTabs), findsOneWidget, reason: 'the News | Rides tabs only');
+        expect(find.descendant(of: newsPane, matching: find.byType(ActivityPaneTabs)), findsOneWidget);
+        expect(
+          find.descendant(of: find.byType(ShellTopBar), matching: find.byType(ActivityClearButton)),
+          findsOneWidget,
+        );
         expect(find.byType(ActivityClearButton), findsOneWidget, reason: 'only in the title bar');
 
         // Each scrolls on its own.
@@ -178,7 +183,7 @@ Future<void> main() async {
       await tester.tap(sidebarItem(l().activity));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      final newsHeader = tester.getRect(find.byType(ActivityPaneHeader));
+      final newsHeader = tester.getRect(find.byType(ActivityPaneTabs));
       expect(
         tester.getRect(find.byKey(const ValueKey('activity-empty'))).top,
         moreOrLessEquals(newsHeader.top, epsilon: 0.5),
@@ -192,7 +197,7 @@ Future<void> main() async {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       final caption = tester.getRect(find.text(l().activityLastMinute.toUpperCase()));
-      final header = tester.getRect(find.byType(ActivityPaneHeader));
+      final header = tester.getRect(find.byType(ActivityPaneTabs));
       expect(caption.top, moreOrLessEquals(header.top, epsilon: 0.5));
       final firstRow = tester.getRect(find.byType(ActivityRow).first);
       final firstPost = tester.getRect(find.byType(NewsCard).first);
@@ -216,6 +221,32 @@ Future<void> main() async {
       expect(core.settings.getSeenBlogPosts(), contains('seven-one'));
       expect(find.byKey(const ValueKey('news-segment-dot')), findsNothing);
       await disposeShell(tester);
+    });
+
+    testWidgets('the pane\'s Rides tab swaps News for the rides, on the same caption line', (tester) async {
+      await RideRig.install();
+      await openWideActivity(tester, const Size(1280, 800));
+      final newsPane = find.byKey(const ValueKey('activity-news-pane'));
+      final tabs = tester.getRect(find.byType(ActivityPaneTabs));
+      await tester.tap(find.byKey(const ValueKey('activity-pane-tab-rides')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.descendant(of: newsPane, matching: find.byType(RidesView)), findsOneWidget);
+      expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsNothing);
+      expect(find.byKey(const ValueKey('rides-delete-all-pane')), findsOneWidget);
+      expect(tester.getRect(find.byType(ActivityPaneTabs)).height, moreOrLessEquals(tabs.height));
+      await disposeShell(tester);
+    });
+
+    test('Rides in the pane leaves the news unread', () {
+      final shell = ShellController(news: BlogNewsController());
+      addTearDown(shell.dispose);
+      shell.newsBesideLog.value = true;
+      shell.paneTab.value = ActivityTab.rides;
+      shell.section.value = AppSection.activity;
+      expect(shell.viewingNews, isFalse);
+      shell.paneTab.value = ActivityTab.news;
+      expect(shell.viewingNews, isTrue);
     });
 
     testWidgets('below 840 the segments stay', (tester) async {

@@ -3000,5 +3000,20 @@
   "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
   "ridesAskHealthBody": "Applies to every ride from now on. You can change it in Settings → During the ride.",
   "ridesGearChangesNoun": "{count, plural, =1{gear change} other{gear changes}}",
-  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}},
+  "ridesThisWeek": "This week",
+  "ridesLastWeek": "Last week",
+  "ridesCount": "{count, plural, =1{1 ride} other{{count} rides}}",
+  "@ridesCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesBadgeHealth": "Health",
+  "ridesEmptyTitle": "No rides yet",
+  "ridesEmptyBody": "Just start pedalling. BikeControl records your ride automatically as soon as power or cadence comes in.",
+  "ridesEmptyBodyManual": "Automatic recording is off. Start a ride yourself, or turn it on in Settings.",
+  "ridesDeleteAll": "Delete all",
+  "ridesDeleteAllTitle": "Delete all rides?",
+  "ridesDeleteAllBodyNoHealth": "{count, plural, =1{1 ride and its .fit file is removed from this device.} other{{count} rides and their .fit files are removed from this device.}}",
+  "@ridesDeleteAllBodyNoHealth": {"placeholders": {"count": {"type": "int"}}},
+  "activityClearLog": "Clear log",
+  "ridesHealthStaysNote": "Anything already in {store} stays there.",
+  "@ridesHealthStaysNote": {"placeholders": {"store": {"type": "String"}}}
 }

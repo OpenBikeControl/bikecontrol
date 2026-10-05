@@ -24,6 +24,7 @@ import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:bike_control/pages/activity/rides_view.dart' show RidesMenuButton;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The app's four top-level sections.
@@ -52,7 +53,7 @@ enum AppSection {
 }
 
 /// Activity's two segments: the session's log and the blog.
-enum ActivityTab { log, news }
+enum ActivityTab { log, news, rides }
 
 /// What the shell's chrome and its content share: the selected section, the
 /// session's activity log, and the blog behind Activity's News segment.
@@ -61,6 +62,7 @@ class ShellController {
     section.addListener(_markNewsReadIfViewed);
     activityTab.addListener(_markNewsReadIfViewed);
     newsBesideLog.addListener(_markNewsReadIfViewed);
+    paneTab.addListener(_markNewsReadIfViewed);
     this.news.hasUnread.addListener(_markNewsReadIfViewed);
   }
 
@@ -69,6 +71,10 @@ class ShellController {
 
   /// Which of Activity's segments is showing.
   final ValueNotifier<ActivityTab> activityTab = ValueNotifier(ActivityTab.log);
+
+  /// From 840, the right pane beside the log: News or Rides (never the log).
+  /// Remembers the last choice.
+  final ValueNotifier<ActivityTab> paneTab = ValueNotifier(ActivityTab.news);
 
   final BlogNewsController news;
 
@@ -79,9 +85,11 @@ class ShellController {
   void select(AppSection value) => section.value = value;
 
   /// Whether News is on screen right now: Activity is open and shows News,
-  /// as its chosen segment or in its pane beside the log.
+  /// as its chosen segment or in its pane beside the log. Rides in that pane
+  /// leave the news unread.
   bool get viewingNews =>
-      section.value == AppSection.activity && (newsBesideLog.value || activityTab.value == ActivityTab.news);
+      section.value == AppSection.activity &&
+      (newsBesideLog.value ? paneTab.value == ActivityTab.news : activityTab.value == ActivityTab.news);
 
   /// Posts on screen are posts read: the dot goes the moment News shows.
   void _markNewsReadIfViewed() {
@@ -92,9 +100,11 @@ class ShellController {
     section.removeListener(_markNewsReadIfViewed);
     activityTab.removeListener(_markNewsReadIfViewed);
     newsBesideLog.removeListener(_markNewsReadIfViewed);
+    paneTab.removeListener(_markNewsReadIfViewed);
     news.hasUnread.removeListener(_markNewsReadIfViewed);
     section.dispose();
     activityTab.dispose();
+    paneTab.dispose();
     newsBesideLog.dispose();
     activity.dispose();
     news.dispose();
@@ -483,8 +493,11 @@ class ShellTopBar extends StatelessWidget {
         if (section == AppSection.activity && activity != null)
           ValueListenableBuilder<ActivityTab>(
             valueListenable: activityTab ?? const _FixedTab(ActivityTab.log),
-            builder: (context, tab, _) =>
-                tab == ActivityTab.log ? ActivityClearButton(controller: activity!) : const SizedBox.shrink(),
+            builder: (context, tab, _) => switch (tab) {
+              ActivityTab.log => ActivityClearButton(controller: activity!),
+              ActivityTab.rides => const RidesMenuButton(),
+              ActivityTab.news => const SizedBox.shrink(),
+            },
           ),
         AppUpdateButton(compact: compact),
         if (showPlanAndHelp) const PlanBadge(),

@@ -1,6 +1,7 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/activity/news_view.dart';
+import 'package:bike_control/pages/activity/rides_view.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
@@ -35,6 +36,7 @@ class ActivitySection extends StatelessWidget {
           switch (tab) {
             ActivityTab.log => ActivityLogView(controller: shell.activity, fixAction: fixAction),
             ActivityTab.news => NewsView(controller: shell.news),
+            ActivityTab.rides => const RidesView(),
           },
         ],
       ),
@@ -70,8 +72,15 @@ class ActivitySection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ActivityPaneHeader(title: l10n.activityTabNews),
-                    NewsView(controller: shell.news, singleColumn: true),
+                    // News and Rides as caption-height tabs on the log
+                    // caption's baseline, so both panes' first cards align.
+                    ActivityPaneTabs(shell: shell),
+                    ValueListenableBuilder<ActivityTab>(
+                      valueListenable: shell.paneTab,
+                      builder: (context, tab, _) => tab == ActivityTab.rides
+                          ? const RidesView(desktop: true)
+                          : NewsView(controller: shell.news, singleColumn: true),
+                    ),
                   ],
                 ),
               ),
@@ -83,7 +92,7 @@ class ActivitySection extends StatelessWidget {
   }
 }
 
-/// "Activity | News": a muted track with the chosen segment lifted onto the
+/// "Activity | News | Rides": a muted track with the chosen segment lifted onto the
 /// card surface. News carries a dot while a recent post is unread.
 class ActivitySegments extends StatelessWidget {
   const ActivitySegments({super.key, required this.shell});
@@ -122,6 +131,12 @@ class ActivitySegments extends StatelessWidget {
                 dot: unread,
                 onPressed: () => shell.activityTab.value = ActivityTab.news,
               ),
+              _Segment(
+                key: const ValueKey('activity-segment-rides'),
+                label: l10n.ridesTab,
+                selected: tab == ActivityTab.rides,
+                onPressed: () => shell.activityTab.value = ActivityTab.rides,
+              ),
             ],
           ),
         );
@@ -132,6 +147,7 @@ class ActivitySegments extends StatelessWidget {
 
 class _Segment extends StatefulWidget {
   const _Segment({
+    super.key,
     required this.label,
     required this.selected,
     required this.onPressed,

@@ -2610,5 +2610,20 @@
   "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
   "ridesAskHealthBody": "Dotyczy od teraz każdej przejażdżki. Możesz to zmienić w Ustawienia → Podczas jazdy.",
   "ridesGearChangesNoun": "{count, plural, =1{zmiana biegu} few{zmiany biegu} many{zmian biegu} other{zmiany biegu}}",
-  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}},
+  "ridesThisWeek": "Ten tydzień",
+  "ridesLastWeek": "Zeszły tydzień",
+  "ridesCount": "{count, plural, =1{1 przejażdżka} few{{count} przejażdżki} many{{count} przejażdżek} other{{count} przejażdżki}}",
+  "@ridesCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesBadgeHealth": "Zdrowie",
+  "ridesEmptyTitle": "Nie ma jeszcze przejażdżek",
+  "ridesEmptyBody": "Po prostu zacznij pedałować. BikeControl nagra przejażdżkę automatycznie, gdy tylko dotrze moc lub kadencja.",
+  "ridesEmptyBodyManual": "Automatyczne nagrywanie jest wyłączone. Rozpocznij przejażdżkę samodzielnie albo włącz je w Ustawieniach.",
+  "ridesDeleteAll": "Usuń wszystko",
+  "ridesDeleteAllTitle": "Usunąć wszystkie przejażdżki?",
+  "ridesDeleteAllBodyNoHealth": "{count, plural, =1{1 przejażdżka i jej plik .fit zostaną usunięte z tego urządzenia.} few{{count} przejażdżki i ich pliki .fit zostaną usunięte z tego urządzenia.} many{{count} przejażdżek i ich pliki .fit zostaną usunięte z tego urządzenia.} other{{count} przejażdżki i ich pliki .fit zostaną usunięte z tego urządzenia.}}",
+  "@ridesDeleteAllBodyNoHealth": {"placeholders": {"count": {"type": "int"}}},
+  "activityClearLog": "Wyczyść dziennik",
+  "ridesHealthStaysNote": "To, co jest już w {store}, tam zostanie.",
+  "@ridesHealthStaysNote": {"placeholders": {"store": {"type": "String"}}}
 }

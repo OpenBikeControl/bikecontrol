@@ -2610,5 +2610,20 @@
   "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
   "ridesAskHealthBody": "Gilt ab jetzt für jede Fahrt. Ändern kannst du das unter Einstellungen → Während der Fahrt.",
   "ridesGearChangesNoun": "{count, plural, =1{Gangwechsel} other{Gangwechsel}}",
-  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}},
+  "ridesThisWeek": "Diese Woche",
+  "ridesLastWeek": "Letzte Woche",
+  "ridesCount": "{count, plural, =1{1 Fahrt} other{{count} Fahrten}}",
+  "@ridesCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesBadgeHealth": "Health",
+  "ridesEmptyTitle": "Noch keine Fahrten",
+  "ridesEmptyBody": "Tritt einfach los. BikeControl zeichnet deine Fahrt automatisch auf, sobald Leistung oder Trittfrequenz ankommen.",
+  "ridesEmptyBodyManual": "Automatische Aufzeichnung ist aus. Starte eine Fahrt selbst oder schalte sie unter Einstellungen ein.",
+  "ridesDeleteAll": "Alle löschen",
+  "ridesDeleteAllTitle": "Alle Fahrten löschen?",
+  "ridesDeleteAllBodyNoHealth": "{count, plural, =1{1 Fahrt und ihre .fit-Datei werden von diesem Gerät entfernt.} other{{count} Fahrten und ihre .fit-Dateien werden von diesem Gerät entfernt.}}",
+  "@ridesDeleteAllBodyNoHealth": {"placeholders": {"count": {"type": "int"}}},
+  "activityClearLog": "Protokoll leeren",
+  "ridesHealthStaysNote": "Was schon in {store} ist, bleibt dort.",
+  "@ridesHealthStaysNote": {"placeholders": {"store": {"type": "String"}}}
 }

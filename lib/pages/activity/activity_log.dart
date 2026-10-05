@@ -309,9 +309,12 @@ class _ActivityLogViewState extends State<ActivityLogView> {
 
 /// A group's caption in the grouped-list style: "LAST MINUTE", "EARLIER".
 class ActivityGroupCaption extends StatelessWidget {
-  const ActivityGroupCaption({super.key, required this.title, this.top = 0});
+  const ActivityGroupCaption({super.key, required this.title, this.top = 0, this.color});
 
   final String title;
+
+  /// The caption's ink; secondary by default (a pane tab sets it).
+  final Color? color;
 
   /// Space above the caption: none for a pane's first, more between groups.
   final double top;
@@ -325,7 +328,7 @@ class ActivityGroupCaption extends StatelessWidget {
         child: Text(
           title.toUpperCase(),
           style: context.typography.caption.copyWith(
-            color: Theme.of(context).colorScheme.mutedForeground,
+            color: color ?? Theme.of(context).colorScheme.mutedForeground,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.6,
           ),
@@ -362,7 +365,7 @@ class ActivityClearButton extends StatelessWidget {
         key: const ValueKey('activity-clear'),
         onPressed: empty ? null : controller.clear,
         child: Text(
-          AppLocalizations.of(context).clear,
+          AppLocalizations.of(context).activityClearLog,
           style: context.typography.small.copyWith(
             color: empty ? Theme.of(context).colorScheme.mutedForeground : bkAccentText(context),
             fontWeight: FontWeight.w500,

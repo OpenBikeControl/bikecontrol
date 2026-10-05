@@ -25,6 +25,7 @@ class BkTappable extends StatelessWidget {
     this.focusNode,
     this.excludeChildSemantics = false,
     this.onHover,
+    this.onLongPress,
     this.wash = false,
     this.color,
   });
@@ -65,6 +66,9 @@ class BkTappable extends StatelessWidget {
   /// Hover changes, for a custom hover effect of the caller's own.
   final ValueChanged<bool>? onHover;
 
+  /// A press and hold, e.g. a row's menu on a phone.
+  final VoidCallback? onLongPress;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -79,10 +83,12 @@ class BkTappable extends StatelessWidget {
       // With excludeSemantics the Clickable's own tap action and focus flag
       // are dropped too, so they are re-declared here.
       onTap: excludeChildSemantics ? onPressed : null,
+      onLongPress: excludeChildSemantics ? onLongPress : null,
       focusable: excludeChildSemantics ? onPressed != null : null,
       child: Clickable(
         enabled: onPressed != null,
         onPressed: onPressed,
+        onLongPress: onLongPress,
         focusNode: focusNode,
         onHover: onHover,
         mouseCursor: WidgetStatePropertyAll(onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic),

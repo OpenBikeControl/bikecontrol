@@ -2610,5 +2610,20 @@
   "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
   "ridesAskHealthBody": "S'applique désormais à chaque sortie. Tu peux le modifier dans Réglages → Pendant la sortie.",
   "ridesGearChangesNoun": "{count, plural, =1{changement de vitesse} other{changements de vitesse}}",
-  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}}
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}},
+  "ridesThisWeek": "Cette semaine",
+  "ridesLastWeek": "La semaine dernière",
+  "ridesCount": "{count, plural, =1{1 sortie} other{{count} sorties}}",
+  "@ridesCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesBadgeHealth": "Santé",
+  "ridesEmptyTitle": "Pas encore de sorties",
+  "ridesEmptyBody": "Commence simplement à pédaler. BikeControl enregistre ta sortie automatiquement dès que la puissance ou la cadence arrive.",
+  "ridesEmptyBodyManual": "L'enregistrement automatique est désactivé. Lance toi-même une sortie ou active-le dans Réglages.",
+  "ridesDeleteAll": "Tout supprimer",
+  "ridesDeleteAllTitle": "Supprimer toutes les sorties ?",
+  "ridesDeleteAllBodyNoHealth": "{count, plural, =1{1 sortie et son fichier .fit sont supprimés de cet appareil.} other{{count} sorties et leurs fichiers .fit sont supprimés de cet appareil.}}",
+  "@ridesDeleteAllBodyNoHealth": {"placeholders": {"count": {"type": "int"}}},
+  "activityClearLog": "Vider le journal",
+  "ridesHealthStaysNote": "Ce qui est déjà dans {store} y reste.",
+  "@ridesHealthStaysNote": {"placeholders": {"store": {"type": "String"}}}
 }
