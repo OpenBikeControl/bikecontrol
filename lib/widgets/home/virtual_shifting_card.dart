@@ -3,7 +3,9 @@ import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart' show FrontRingToggle;
+import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/widgets/drivetrain/trainer_drivetrain.dart';
+import 'package:bike_control/widgets/ui/bk_skeleton.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
@@ -39,7 +41,7 @@ enum VsCardLayout {
 class VirtualShiftingCard extends StatelessWidget {
   const VirtualShiftingCard({
     super.key,
-    required this.definition,
+    required FitnessBikeDefinition this.definition,
     required this.trainerName,
     this.dim = false,
     this.onOpenSettings,
@@ -48,8 +50,30 @@ class VirtualShiftingCard extends StatelessWidget {
     this.layout = VsCardLayout.beside,
   });
 
-  final FitnessBikeDefinition definition;
+  /// The card while [trainerName] is still connecting: the live card's
+  /// layout, at its size, with nothing live in it — the drivetrain still and
+  /// muted, no gear, no readings, the controls inert, and a quiet shimmer
+  /// over the parts that are on their way. When the trainer arrives the live
+  /// card takes its place without anything around it moving.
+  const VirtualShiftingCard.connecting({
+    super.key,
+    required this.trainerName,
+    this.onOpenTrainer,
+    this.layout = VsCardLayout.beside,
+  }) : definition = null,
+       dim = true,
+       onOpenSettings = null,
+       footer = null;
+
+  /// Null while connecting — see [VirtualShiftingCard.connecting].
+  final FitnessBikeDefinition? definition;
   final String trainerName;
+
+  bool get _connecting => definition == null;
+
+  /// Until the trainer says otherwise, the most common cassette.
+  int get _maxGear => definition?.maxGear ?? 24;
+  bool get _frontShift => definition?.frontShiftEnabled ?? false;
 
   /// Paired, but not carrying gears right now — see [TrainerDrivetrain.dim].
   final bool dim;
@@ -66,7 +90,8 @@ class VirtualShiftingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final definition = this.definition;
+    if (definition == null) return _card(context, erg: false);
     return AnimatedBuilder(
       animation: Listenable.merge([
         definition.trainerMode,
@@ -78,42 +103,64 @@ class VirtualShiftingCard extends StatelessWidget {
         definition.cadenceRpm,
         definition.heartRateBpm,
       ]),
-      builder: (context, _) {
-        final erg = definition.trainerMode.value == TrainerMode.ergMode;
-        // On touch the header links are 48 tall and take over the card's top
-        // padding and the gap below them (see [_HeaderLink]), so the text
-        // stays about where it was.
-        final touch = _HeaderLink.touch;
-        return Container(
-          padding: EdgeInsets.fromLTRB(16, touch ? 0 : 16, 16, 16),
-          decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _header(context, erg),
-                  if (!touch) const Gap(12),
-                  if (layout == VsCardLayout.stacked)
-                    ..._stacked(context, erg, width)
-                  else
-                    _beside(context, erg, width),
-                  if (footer case final footer?) ...[
-                    const Gap(14),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border(top: BorderSide(color: cs.border, width: 1)),
-                      ),
-                      child: Padding(padding: const EdgeInsets.only(top: 6), child: footer),
-                    ),
-                  ],
-                ],
-              );
-            },
+      builder: (context, _) => _card(context, erg: definition.trainerMode.value == TrainerMode.ergMode),
+    );
+  }
+
+  Widget _card(BuildContext context, {required bool erg}) {
+    final cs = Theme.of(context).colorScheme;
+    // On touch the header links are 48 tall and take over the card's top
+    // padding and the gap below them (see [_HeaderLink]), so the text
+    // stays about where it was.
+    final touch = _HeaderLink.touch;
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, touch ? 0 : 16, 16, 16),
+      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _header(context, erg),
+              if (!touch) const Gap(12),
+              if (layout == VsCardLayout.stacked) ..._stacked(context, erg, width) else _beside(context, erg, width),
+              if (_footer(context) case final footer?) ...[
+                const Gap(14),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: cs.border, width: 1)),
+                  ),
+                  child: Padding(padding: const EdgeInsets.only(top: 6), child: footer),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// While connecting, a bone where the settings line will be — the live
+  /// card always has one, so the placeholder keeps its height.
+  Widget? _footer(BuildContext context) {
+    if (!_connecting) return footer;
+    final cs = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: BkTouchTarget.minSize,
+      child: Row(
+        children: [
+          Icon(LucideIcons.slidersHorizontal, size: 15, color: cs.mutedForeground),
+          const Gap(8),
+          const Expanded(
+            child: FractionallySizedBox(
+              alignment: AlignmentDirectional.centerStart,
+              widthFactor: 0.6,
+              child: BkShimmer(child: BkBone(height: 12)),
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -149,7 +196,7 @@ class VirtualShiftingCard extends StatelessWidget {
                 key: const ValueKey('ride-vs-trainer-link'),
                 alignment: AlignmentDirectional.topStart,
                 onPressed: onOpenTrainer,
-                label: trainerName,
+                label: _trainerLine(context),
                 children: [
                   Container(
                     width: 7,
@@ -162,7 +209,7 @@ class VirtualShiftingCard extends StatelessWidget {
                   const Gap(6),
                   Flexible(
                     child: Text(
-                      trainerName,
+                      _trainerLine(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.typography.small.copyWith(color: cs.mutedForeground),
@@ -179,6 +226,10 @@ class VirtualShiftingCard extends StatelessWidget {
       ],
     );
   }
+
+  /// "KICKR CORE", or "KICKR CORE · Connecting…" while it is on its way.
+  String _trainerLine(BuildContext context) =>
+      _connecting ? '$trainerName · ${context.i18n.chainStatusConnecting}' : trainerName;
 
   // ── Layouts ───────────────────────────────────────────────────────────
 
@@ -210,7 +261,7 @@ class VirtualShiftingCard extends StatelessWidget {
                   child: _picture(erg),
                 ),
               ),
-              if (definition.frontShiftEnabled) Align(child: FrontRingToggle(definition: definition)),
+              if (_frontShift) Align(child: FrontRingToggle(definition: definition!)),
               if (statsBeside) ...[const Gap(8), _StatsRow(stats: stats)],
             ],
           ),
@@ -245,7 +296,7 @@ class VirtualShiftingCard extends StatelessWidget {
   /// How wide the gear column beside the drivetrain is: the widest value the
   /// numeral box holds, its "of 24" / "W" line, or − / + side by side.
   double _gearColumnWidth(BuildContext context, bool erg, double numeral, double button) {
-    final widest = erg ? '000' : '0' * '${definition.maxGear}'.length;
+    final widest = erg ? '000' : '0' * '$_maxGear'.length;
     final number = _measure(
       context,
       TextSpan(text: widest, style: BkNumerals.gear(erg ? numeral * 0.72 : numeral, height: 0.8)),
@@ -253,7 +304,7 @@ class VirtualShiftingCard extends StatelessWidget {
     final caption = _measure(
       context,
       TextSpan(
-        text: erg ? 'W' : context.i18n.gearOfMax('${definition.maxGear}'),
+        text: erg ? 'W' : context.i18n.gearOfMax('$_maxGear'),
         style: BkNumerals.display((context.typography.base.fontSize ?? 16) * 1.1, fontWeight: FontWeight.w600),
       ),
     );
@@ -261,7 +312,7 @@ class VirtualShiftingCard extends StatelessWidget {
   }
 
   /// Heart rate is a reading only while a source reports a real one.
-  int? get _heart => switch (definition.heartRateBpm.value) {
+  int? get _heart => switch (definition?.heartRateBpm.value) {
     final bpm? when bpm > 0 => bpm,
     _ => null,
   };
@@ -281,7 +332,7 @@ class VirtualShiftingCard extends StatelessWidget {
       Center(
         child: SizedBox(width: (width * 0.8).clamp(0.0, 420.0), child: _picture(erg)),
       ),
-      if (definition.frontShiftEnabled) Align(child: FrontRingToggle(definition: definition)),
+      if (_frontShift) Align(child: FrontRingToggle(definition: definition!)),
       const Gap(12),
       _StatsRow(stats: _statItems(context, erg)),
     ];
@@ -291,17 +342,42 @@ class VirtualShiftingCard extends StatelessWidget {
 
   /// Dimmed in ERG too: the trainer holds a power target there, and the gear
   /// the picture shows is not what the rider feels.
-  Widget _picture(bool erg) =>
-      TrainerDrivetrain(definition: definition, showGear: false, framed: false, dim: dim || erg);
+  Widget _picture(bool erg) {
+    final definition = this.definition;
+    if (definition == null) {
+      // Still and muted, mid-cassette: the shape of what is coming, not a
+      // gear anyone is in.
+      return BkShimmer(
+        child: DrivetrainView(
+          gear: _maxGear ~/ 2,
+          gearCount: _maxGear,
+          moving: false,
+          dim: true,
+          showGear: false,
+          framed: false,
+        ),
+      );
+    }
+    return TrainerDrivetrain(definition: definition, showGear: false, framed: false, dim: dim || erg);
+  }
 
   /// The gear (or ERG target) in a box sized for the widest value it can
   /// show, so − / + never move under a thumb as the number changes width.
   Widget _number(BuildContext context, bool erg, double size) {
     final cs = Theme.of(context).colorScheme;
     // Three-digit ERG targets get a smaller face so they fit the same box.
-    final style = BkNumerals.gear(erg ? size * 0.72 : size, color: cs.foreground, height: 0.8);
-    final value = erg ? '${definition.ergTargetPower.value ?? 0}' : '${definition.currentGear.value}';
-    final widest = erg ? '000' : '0' * '${definition.maxGear}'.length;
+    final style = BkNumerals.gear(
+      erg ? size * 0.72 : size,
+      color: _connecting ? cs.mutedForeground : cs.foreground,
+      height: 0.8,
+    );
+    final definition = this.definition;
+    final value = definition == null
+        ? '–'
+        : erg
+        ? '${definition.ergTargetPower.value ?? 0}'
+        : '${definition.currentGear.value}';
+    final widest = erg ? '000' : '0' * '$_maxGear'.length;
     return Column(
       key: const ValueKey('ride-vs-number'),
       mainAxisSize: MainAxisSize.min,
@@ -320,7 +396,7 @@ class VirtualShiftingCard extends StatelessWidget {
           ],
         ),
         Text(
-          erg ? 'W' : context.i18n.gearOfMax('${definition.maxGear}'),
+          erg ? 'W' : context.i18n.gearOfMax('$_maxGear'),
           style: BkNumerals.display(
             (context.typography.base.fontSize ?? 16) * 1.1,
             color: cs.mutedForeground,
@@ -333,13 +409,16 @@ class VirtualShiftingCard extends StatelessWidget {
 
   Widget _down(BuildContext context, bool erg, double size) {
     final l = context.i18n;
-    final target = definition.ergTargetPower.value;
+    final definition = this.definition;
+    final target = definition?.ergTargetPower.value;
     return _ShiftButton(
       icon: LucideIcons.minus,
       filled: false,
       size: size,
       label: erg ? l.a11yDecrease : l.actionShiftDown,
-      onTap: erg
+      onTap: definition == null
+          ? null
+          : erg
           ? (target != null && target > 0 ? () => definition.stepManualErgPower(up: false) : null)
           : () => definition.shiftDown(),
     );
@@ -347,13 +426,16 @@ class VirtualShiftingCard extends StatelessWidget {
 
   Widget _up(BuildContext context, bool erg, double size) {
     final l = context.i18n;
-    final target = definition.ergTargetPower.value;
+    final definition = this.definition;
+    final target = definition?.ergTargetPower.value;
     return _ShiftButton(
       icon: LucideIcons.plus,
       filled: true,
       size: size,
       label: erg ? l.a11yIncrease : l.actionShiftUp,
-      onTap: erg
+      onTap: definition == null
+          ? null
+          : erg
           ? (target != null && target < ErgPowerStepping.maxManualW
                 ? () => definition.stepManualErgPower(up: true)
                 : null)
@@ -365,8 +447,8 @@ class VirtualShiftingCard extends StatelessWidget {
   /// their places) and heart rate while a source reports one.
   List<_Stat> _statItems(BuildContext context, bool erg) {
     final l = context.i18n;
-    final power = definition.powerW.value;
-    final cadence = definition.cadenceRpm.value;
+    final power = definition?.powerW.value;
+    final cadence = definition?.cadenceRpm.value;
     return [
       _Stat(
         RideStat(value: power?.toString() ?? '--', unit: 'W', label: l.sensorQuantityPower),
@@ -379,7 +461,10 @@ class VirtualShiftingCard extends StatelessWidget {
       erg
           ? const _Stat.blank()
           : _Stat(
-              RideStat(value: formatGearRatio(definition.gearRatio.value), label: l.rideRatio),
+              RideStat(
+                value: definition == null ? '--' : formatGearRatio(definition!.gearRatio.value),
+                label: l.rideRatio,
+              ),
               widest: '×0.00',
             ),
       if (_heart case final heart?)
@@ -551,14 +636,16 @@ class _HeaderLink extends StatelessWidget {
 class _ModeSwitch extends StatelessWidget {
   const _ModeSwitch({required this.definition, required this.erg});
 
-  final FitnessBikeDefinition definition;
+  /// Null while the trainer connects: the switch is drawn, inert.
+  final FitnessBikeDefinition? definition;
   final bool erg;
 
   /// What ERG starts at when there is no target yet; the button action's.
   static const int defaultErgW = 150;
 
   void _select(bool toErg) {
-    if (toErg == erg) return;
+    final definition = this.definition;
+    if (definition == null || toErg == erg) return;
     if (toErg) {
       definition.setManualErgPower(definition.ergTargetPower.value ?? defaultErgW);
     } else {
@@ -577,7 +664,7 @@ class _ModeSwitch extends StatelessWidget {
       final on = forErg == erg;
       return BkTappable(
         key: ValueKey(forErg ? 'ride-vs-mode-erg' : 'ride-vs-mode-sim'),
-        onPressed: () => _select(forErg),
+        onPressed: definition == null ? null : () => _select(forErg),
         label: text,
         selected: on,
         inMutuallyExclusiveGroup: true,
@@ -587,13 +674,16 @@ class _ModeSwitch extends StatelessWidget {
           constraints: const BoxConstraints(minWidth: 52),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: on ? cs.primary : null, borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            color: on ? (definition == null ? cs.border : cs.primary) : null,
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Text(
             text,
             style: context.typography.small.copyWith(
               fontWeight: FontWeight.w600,
               letterSpacing: 0.3,
-              color: on ? cs.primaryForeground : cs.mutedForeground,
+              color: on && definition != null ? cs.primaryForeground : cs.mutedForeground,
             ),
           ),
         ),

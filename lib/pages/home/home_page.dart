@@ -19,6 +19,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/widgets/ui/bk_motion.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
@@ -320,8 +321,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       listenable.addListener(_onBroadcastChanged);
     }
 
+    // Right after launch the remembered devices stand in as placeholders
+    // until they are back or the window runs out — see
+    // [Connection.startupReconnecting].
+    core.connection.startupReconnecting.addListener(_onStartupReconnectChanged);
+
     _maybeShowRideFirmwareDialog();
     if (!_isRide) widget.reveal?.addListener(_onRevealRequested);
+  }
+
+  void _onStartupReconnectChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -419,6 +429,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       proxy.isConnectedListenable.removeListener(_onProxyChanged);
     }
     widget.reveal?.removeListener(_onRevealRequested);
+    core.connection.startupReconnecting.removeListener(_onStartupReconnectChanged);
     _connectionListener.cancel();
     _actionListener.cancel();
     for (final presses in _presses.values) {
@@ -1049,6 +1060,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final proxy = chainProxy();
     final trainer = inputs.trainer;
     final l = context.i18n;
+    final layout = stacked ? VsCardLayout.stacked : VsCardLayout.beside;
     final Widget slot;
     if (proxy != null && proxy.fitnessBike != null) {
       slot = _LiveTrainerBody(
@@ -1058,16 +1070,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           definition: definition,
           trainerName: proxy.toString(),
           dim: !connected,
-          layout: stacked ? VsCardLayout.stacked : VsCardLayout.beside,
+          layout: layout,
           onOpenSettings: () => _openVsSettings(proxy),
           onOpenTrainer: () => _openTrainerPage(proxy),
           footer: _vsFooter(proxy),
         ),
       );
-    } else if (trainer?.presence == DevicePresence.connecting) {
-      slot = RidePromptCard(icon: LucideIcons.bike, title: trainer!.name, body: l.chainStatusConnecting);
+    } else if (trainer != null &&
+        (trainer.presence == DevicePresence.connecting ||
+            (trainer.presence == DevicePresence.remembered &&
+                core.connection.startupReconnecting.value.contains(trainer.deviceId)))) {
+      // On its way — connecting now, or remembered and expected back right
+      // after launch: the live card's footprint, so it swaps in in place.
+      slot = VirtualShiftingCard.connecting(
+        key: const ValueKey('ride-vs-placeholder'),
+        trainerName: trainer.name,
+        layout: layout,
+      );
     } else if (trainer != null && trainer.presence == DevicePresence.lost) {
       slot = RidePromptCard(
+        key: const ValueKey('ride-vs-lost'),
         icon: LucideIcons.bike,
         title: trainer.name,
         body: l.chainStatusLostConnection,
@@ -1077,6 +1099,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
     } else if (inputs.app.isConnected && inputs.app.name != null && !inputs.app.selfHosted) {
       slot = RideStatusLine(
+        key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
         text: l.chainStatusHandledByApp(inputs.app.name!),
         actionLabel: l.connect,
@@ -1084,6 +1107,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
     } else {
       slot = RidePromptCard(
+        key: const ValueKey('ride-vs-invite'),
         icon: LucideIcons.bike,
         title: l.rideVirtualShifting,
         body: l.rideVsInviteBody,
@@ -1091,7 +1115,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         onAction: () => _openTrainer(proxy, bridged: false),
       );
     }
-    return KeyedSubtree(key: const ValueKey('ride-vs-slot'), child: slot);
+    // Each state crossfades into the next while the height eases; the live
+    // card also grows in from a touch smaller, so the trainer arriving reads
+    // as an arrival.
+    return KeyedSubtree(
+      key: const ValueKey('ride-vs-slot'),
+      child: BkAnimatedSwap(scaleIn: slot.key == const ValueKey('ride-vs-live'), child: slot),
+    );
   }
 
   /// Settings → Virtual shifting, for the trainer on Ride's card.
