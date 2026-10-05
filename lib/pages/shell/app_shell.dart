@@ -14,6 +14,7 @@ import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_brand_mark.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -382,12 +383,20 @@ class ShellSidebar extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-            child: Semantics(
-              header: true,
-              child: Text(
-                'BikeControl',
-                style: context.typography.large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3),
-              ),
+            child: Row(
+              spacing: 10,
+              children: [
+                const BkBrandMark(size: 30),
+                Flexible(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      'BikeControl',
+                      style: context.typography.large.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           for (final section in AppSection.values)
@@ -455,9 +464,17 @@ class ShellTopBar extends StatelessWidget {
     return AppBar(
       padding: EdgeInsets.fromLTRB(phone ? 16 : 24, compact ? 10 : 16, phone ? 8 : 20, 8),
       backgroundColor: Theme.of(context).colorScheme.background,
-      title: Semantics(
-        header: true,
-        child: Text(title, style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+      title: Row(
+        children: [
+          // The phone's Ride title is the wordmark: the mark leads it.
+          if (compact && section == AppSection.ride) ...[const BkBrandMark(size: 34), const Gap(8)],
+          Flexible(
+            child: Semantics(
+              header: true,
+              child: Text(title, style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
+          ),
+        ],
       ),
       trailingGap: 4,
       trailing: [
