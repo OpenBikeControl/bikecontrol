@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/overlay_app.dart';
+import 'package:bike_control/widgets/overlay/overlay_window_fit.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:multi_window_native/multi_window_native.dart';
@@ -52,17 +53,12 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   // one at a time post-engine-boot, matching the package example's pattern.
   try {
     await wm.windowManager.setAlwaysOnTop(true);
-    // Sized around the gear numeral at the rider's text size, never the
-    // other way round: the numeral is not shrunk to fit a window.
+    // As wide as what it shows, sized around the gear numeral at the rider's
+    // text size (never the other way round). This is the first guess; the
+    // overlay refits itself once it has drawn and whenever the fields change
+    // (see [OverlayWindowFit]).
     final textScaler = TextScaler.linear(WidgetsBinding.instance.platformDispatcher.textScaleFactor);
-    final needed = TrainerOverlayView.windowSize(textScaler);
-    await wm.windowManager.setMinimumSize(needed);
-    await wm.windowManager.setSize(
-      Size(
-        needed.width > TrainerOverlayView.defaultWindowWidth ? needed.width : TrainerOverlayView.defaultWindowWidth,
-        needed.height,
-      ),
-    );
+    await _fitWindow(TrainerOverlayView.fitWindowSize(state: _emptyState(), textScaler: textScaler));
     await wm.windowManager.setHasShadow(false);
     if (Platform.isMacOS) {
       await wm.windowManager.setVisibleOnAllWorkspaces(
@@ -270,6 +266,29 @@ class _OverlayWindowListener extends wm.WindowListener {
 // Shared UI widget
 // ---------------------------------------------------------------------------
 
+/// Resizes the overlay window so its content is [content]: the minimum
+/// first, so a window that gets narrower isn't held at its old width.
+///
+/// The same on macOS and Windows. window_manager sizes the whole window, so
+/// whatever frame the platform draws around the content (none on macOS's
+/// borderless panel; the border and caption of the Windows overlay window)
+/// is measured — the window's size less the Flutter view's — and added.
+Future<void> _fitWindow(Size content) async {
+  var frame = Size.zero;
+  final view = WidgetsBinding.instance.platformDispatcher.views.firstOrNull;
+  if (view != null && !view.physicalSize.isEmpty) {
+    final inner = view.physicalSize / view.devicePixelRatio;
+    final outer = await wm.windowManager.getSize();
+    frame = Size(
+      (outer.width - inner.width).clamp(0, 64).toDouble(),
+      (outer.height - inner.height).clamp(0, 96).toDouble(),
+    );
+  }
+  final size = Size(content.width + frame.width, content.height + frame.height);
+  await wm.windowManager.setMinimumSize(size);
+  await wm.windowManager.setSize(size);
+}
+
 /// Guards the native `setOpacity` call against an out-of-range value arriving
 /// over the cross-window channel. Mirrors `Settings.minOverlayOpacity`; kept as
 /// a literal here to avoid pulling the settings layer into the overlay isolate.
@@ -307,15 +326,25 @@ class _OverlayApp extends StatelessWidget {
     // It used to be hard-coded white, which glared in dark mode.
     return OverlayShadcnApp(
       home: Builder(
-        builder: (context) => Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.card,
-          child: Center(
-            child: TrainerOverlayView(
-              state: state,
-              onModeToggle: onModeToggle,
-              onDragStart: () => wm.windowManager.startDragging(),
-              onPrimaryDecrement: onPrimaryDecrement,
-              onPrimaryIncrement: onPrimaryIncrement,
+        builder: (context) => OverlayWindowFit(
+          state: state,
+          onSize: (size) async {
+            try {
+              await _fitWindow(size);
+            } catch (e, s) {
+              recordError(e, s, context: 'overlay.window.fit');
+            }
+          },
+          child: Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.card,
+            child: Center(
+              child: TrainerOverlayView(
+                state: state,
+                onModeToggle: onModeToggle,
+                onDragStart: () => wm.windowManager.startDragging(),
+                onPrimaryDecrement: onPrimaryDecrement,
+                onPrimaryIncrement: onPrimaryIncrement,
+              ),
             ),
           ),
         ),

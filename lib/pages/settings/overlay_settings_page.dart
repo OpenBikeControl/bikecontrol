@@ -7,6 +7,7 @@ import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -136,10 +137,14 @@ class _OverlayPreviewState extends State<OverlayPreview> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final size = TrainerOverlayView.windowSize(
-      MediaQuery.textScalerOf(context),
-      controls: widget.fields.contains(OverlayField.controls),
-    );
+    // The desktop window fits what it shows (and follows the mode); Android's
+    // keeps room for everything.
+    Size sizeFor(TrainerOverlayState s) => defaultTargetPlatform == TargetPlatform.android
+        ? TrainerOverlayView.windowSize(
+            MediaQuery.textScalerOf(context),
+            controls: widget.fields.contains(OverlayField.controls),
+          )
+        : TrainerOverlayView.fitWindowSizeOf(context, s);
     return Container(
       key: const ValueKey('overlay-preview'),
       height: 150,
@@ -160,8 +165,9 @@ class _OverlayPreviewState extends State<OverlayPreview> {
         duration: const Duration(milliseconds: 200),
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: SizedBox(
-            width: size.width,
+          child: ValueListenableBuilder<TrainerOverlayState>(
+            valueListenable: _state,
+            builder: (context, s, child) => SizedBox(width: sizeFor(s).width, child: child),
             child: TrainerOverlayView(
               state: _state,
               pill: true,

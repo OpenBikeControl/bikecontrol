@@ -153,6 +153,96 @@ class TrainerOverlayView extends StatelessWidget {
     return Size((width + 2).ceilToDouble(), (height + _padding.vertical + 2).ceilToDouble());
   }
 
+  /// The widest value each reading keeps room for: four-digit watts,
+  /// three-digit rpm, a ratio under ten. In tabular figures every digit is as
+  /// wide as an 8, so values within these ranges never change the width.
+  static const (String, String) _widestPower = ('8888', 'W');
+  static const (String, String) _widestCadence = ('188', 'rpm');
+  static const (String, String) _widestRatio = ('×8.88', '');
+
+  /// What the gear numeral keeps room for in [mode]: two digits, with the
+  /// chainring in front when front shifting is on; three-digit watts in ERG.
+  static String _widestNumeral(TrainerMode mode, {required bool frontShift}) =>
+      mode == TrainerMode.ergMode ? '888 W' : (frontShift ? '2×88' : '88');
+
+  /// The desktop window for [state]'s mode and fields at [textScaler]: as
+  /// wide as the content, with room for the widest value of each reading
+  /// that is on and none for the ones that are off. Only the fields, the
+  /// mode and front shifting change it, never the values. The gear numeral
+  /// is measured at its full size; nothing is scaled down to fit.
+  static Size fitWindowSize({
+    required TrainerOverlayState state,
+    required TextScaler textScaler,
+    Typography typography = const Typography.geist(),
+    String gearLabel = 'GEAR',
+    bool? touch,
+  }) {
+    final isErg = state.mode == TrainerMode.ergMode;
+    final controls = state.fields.contains(OverlayField.controls);
+    final hit = _hitFor(touch ?? _isTouchPlatform);
+    final numeral = _measure(
+      _widestNumeral(state.mode, frontShift: state.frontShiftEnabled),
+      typography.sans.merge(_gearStyle(null)),
+      textScaler,
+    );
+    final microStyle = typography.sans.merge(_microStyle(typography, null));
+    // In ERG the label line stays (empty), so the height doesn't jump.
+    final labelHeight = _measure('GEAR', microStyle, textScaler).height;
+    final label = isErg ? 0.0 : _measure(gearLabel, microStyle, textScaler).width;
+    final numeralWidth = numeral.width > label ? numeral.width : label;
+
+    final pill = _measure(isErg ? 'ERG' : 'SIM', typography.sans.merge(_pillTextStyle(typography, null)), textScaler);
+    final readings = [
+      if (state.fields.contains(OverlayField.power)) _widestPower,
+      if (state.fields.contains(OverlayField.cadence)) _widestCadence,
+      if (!isErg && state.fields.contains(OverlayField.gearRatio)) _widestRatio,
+    ];
+    final unitStyle = typography.sans.merge(typography.caption);
+    var readingsWidth = 0.0;
+    var readingHeight = 0.0;
+    for (final (i, r) in readings.indexed) {
+      final painter = TextPainter(
+        text: TextSpan(
+          style: unitStyle,
+          children: [
+            TextSpan(text: r.$1, style: _readingStyle(null)),
+            if (r.$2.isNotEmpty) TextSpan(text: ' ${r.$2}', style: unitStyle),
+          ],
+        ),
+        textDirection: TextDirection.ltr,
+        textScaler: textScaler,
+      )..layout();
+      readingsWidth += painter.width + (i == 0 ? 0 : _readingGap);
+      if (painter.height > readingHeight) readingHeight = painter.height;
+      painter.dispose();
+    }
+    final pillWidth = pill.width + 16;
+    // A pixel to spare, so a rounding step never drops the last reading.
+    final side = (pillWidth > readingsWidth ? pillWidth : readingsWidth) + 1;
+
+    final width =
+        (controls ? 2 * (hit + _gap) : 0) + numeralWidth + _dividerSlot + side + _gap + _dragSlot + _padding.horizontal;
+    final numeralBlock = numeral.height + labelHeight;
+    final sideBlock = pill.height + 4 + (readings.isEmpty ? 0 : _sideGap + readingHeight);
+    var height = controls ? hit : 0.0;
+    if (numeralBlock > height) height = numeralBlock;
+    if (sideBlock > height) height = sideBlock;
+    // + a hairline each side, for when it is drawn as the bordered pill.
+    return Size((width + 2).ceilToDouble(), (height + _padding.vertical + 2).ceilToDouble());
+  }
+
+  /// [fitWindowSize] for [state] with [context]'s text size, type and
+  /// language.
+  static Size fitWindowSizeOf(BuildContext context, TrainerOverlayState state) => fitWindowSize(
+    state: state,
+    textScaler: MediaQuery.textScalerOf(context),
+    typography: Theme.of(context).typography,
+    gearLabel: AppLocalizations.maybeOf(context)?.rideGear.toUpperCase() ?? 'GEAR',
+  );
+
+  /// Space between two readings.
+  static const double _readingGap = 10;
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -283,7 +373,7 @@ class TrainerOverlayView extends StatelessWidget {
     ];
     final valueStyle = _readingStyle(cs.foreground);
     final unitStyle = context.typography.caption.copyWith(color: cs.mutedForeground);
-    const readingGap = 10.0;
+    const readingGap = _readingGap;
 
     Widget reading((String, String) r) => Text.rich(
       TextSpan(
