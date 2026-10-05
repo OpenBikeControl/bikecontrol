@@ -200,6 +200,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           key: ValueKey('mapping-row-${button.name}'),
           button: button,
           summary: _summary(context, button),
+          trigger: _summaryTrigger(button),
           selected: selected,
           master: widget.master,
           onPressed: () => _toggle(device, button),
@@ -226,8 +227,18 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
   /// Where a row's text starts: the inset, the 32 px key and the gap.
   static const double _rowIndent = BkGroupedSection.inset + 32 + 12;
 
-  /// What a closed row says the button does: its single click on its own,
-  /// another trigger named ("Long press · Ride On Bomb"), or nothing.
+  /// The trigger a closed row's summary is for, named under the button's
+  /// name ("Long press"); null for a single click (the default needs no
+  /// name) or when nothing is assigned.
+  String? _summaryTrigger(ControllerButton button) {
+    final active = mappingActiveTriggers(widget.keymap, button);
+    if (active.isEmpty || active.first == ButtonTrigger.singleClick) return null;
+    return active.first.title;
+  }
+
+  /// What a closed row says the button does: its first assigned trigger's
+  /// action ("Steer left"; the trigger itself is the row's subtitle), how
+  /// many more triggers do something, or nothing.
   InlineSpan? _summary(BuildContext context, ControllerButton button) {
     final active = mappingActiveTriggers(widget.keymap, button);
     if (active.isEmpty) return null;
@@ -241,11 +252,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           const WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: Padding(padding: EdgeInsets.only(right: 6), child: HoldActionMarker(announce: true)),
-          ),
-        if (first != ButtonTrigger.singleClick || widget.master == false)
-          TextSpan(
-            text: '${first.title} · ',
-            style: TextStyle(color: cs.mutedForeground),
           ),
         TextSpan(
           text: action,
@@ -420,6 +426,7 @@ class _ButtonRow extends StatefulWidget {
     super.key,
     required this.button,
     required this.summary,
+    this.trigger,
     required this.selected,
     required this.master,
     required this.onPressed,
@@ -427,6 +434,9 @@ class _ButtonRow extends StatefulWidget {
 
   final ControllerButton button;
   final InlineSpan? summary;
+
+  /// The trigger [summary] is for, under the name; null for a single click.
+  final String? trigger;
   final bool selected;
   final bool master;
   final VoidCallback onPressed;
@@ -458,40 +468,53 @@ class _ButtonRowState extends State<_ButtonRow> {
               children: [
                 _KeyChip(button: widget.button, selected: widget.selected),
                 const Gap(12),
-                // The name takes its own width (up to about half the row, so
-                // a long one still leaves the value room); the value takes
-                // the rest and ends at the chevron.
+                // The name, with the trigger under it when it isn't a single
+                // click, takes what the value leaves; the value (just the
+                // action) takes its own width, up to two thirds of the row,
+                // and ends at the chevron.
                 Expanded(
                   child: LayoutBuilder(
-                    builder: (context, constraints) => Row(
-                      children: [
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: !open && widget.summary != null
-                                ? constraints.maxWidth * 0.55
-                                : constraints.maxWidth,
-                          ),
-                          child: Text(
-                            widget.button.displayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.typography.base.copyWith(fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                        if (!open && widget.summary != null) ...[
-                          const Gap(8),
+                    builder: (context, constraints) {
+                      final showSummary = !open && widget.summary != null;
+                      return Row(
+                        children: [
                           Expanded(
-                            child: Text.rich(
-                              widget.summary!,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
-                              style: context.typography.small,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.button.displayName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.typography.base.copyWith(fontWeight: FontWeight.w500),
+                                ),
+                                if (showSummary && widget.trigger != null)
+                                  Text(
+                                    widget.trigger!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                  ),
+                              ],
                             ),
                           ),
+                          if (showSummary) ...[
+                            const Gap(8),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.66),
+                              child: Text.rich(
+                                widget.summary!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.end,
+                                style: context.typography.small,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ),
                 const Gap(4),

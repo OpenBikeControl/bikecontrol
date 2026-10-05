@@ -56,7 +56,12 @@ Future<void> main() async {
     Size size, {
     bool realFonts = false,
     BaseDevice? controller,
+    Locale? locale,
   }) async {
+    if (locale != null) {
+      await AppLocalizations.load(locale);
+      addTearDown(() => AppLocalizations.load(const Locale('en')));
+    }
     tester.view.physicalSize = size * 3;
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -64,6 +69,7 @@ Future<void> main() async {
       debugShowCheckedModeBanner: false,
       scaling: BkTheme.scaling,
       theme: BkTheme.build(Brightness.dark),
+      locale: locale,
       localizationsDelegates: [
         ...ShadcnLocalizations.localizationsDelegates,
         const OtherLocalizationsDelegate(),
@@ -151,6 +157,54 @@ Future<void> main() async {
       final summary = paragraphIn(tester, row, actionOf(b));
       expect(summary.didExceedMaxLines, isFalse, reason: '${b.name}: "${summary.text.toPlainText()}" is cut');
     }
+  });
+
+  group('a button whose action is on another trigger', () {
+    const left = ZwiftButtons.navigationLeft;
+    setUp(() async {
+      final app = CustomApp(profileName: 'Trigger subtitle');
+      app.keymap.keyPairs.add(
+        KeyPair(
+          buttons: [left],
+          physicalKey: null,
+          logicalKey: null,
+          inGameAction: InGameAction.steerLeft,
+          trigger: ButtonTrigger.longPress,
+        ),
+      );
+      await core.settings.setKeyMap(app);
+      core.actionHandler.init(app);
+      app.keymap.keyPairs.removeWhere((k) => k.buttons.contains(left) && k.trigger != ButtonTrigger.longPress);
+    });
+
+    // German, the longest of the six: "Navigation Left" over "Langes Drücken",
+    // and "Nach links lenken" whole at the row's end.
+    for (final size in const [Size(390, 844), Size(1280, 800)]) {
+      testWidgets('${size.width.toInt()} wide: the trigger is a subtitle; the action reads whole', (tester) async {
+        final l = await pump(tester, size, realFonts: true, locale: const Locale('de'));
+        final row = find.byKey(ValueKey('mapping-row-${left.name}'));
+        await tester.ensureVisible(row);
+        await tester.pump();
+        final action = paragraphIn(tester, row, l.actionSteerLeft);
+        expect(action.text.toPlainText(), isNot(contains(l.triggerLongPress)), reason: 'the value is the action only');
+        expect(action.didExceedMaxLines, isFalse, reason: '"${action.text.toPlainText()}" is cut');
+        final subtitle = find.descendant(of: row, matching: find.text(l.triggerLongPress));
+        expect(subtitle, findsOneWidget);
+        final name = find.descendant(of: row, matching: find.text(left.displayName));
+        expect(tester.getRect(subtitle).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
+        expect(tester.getRect(subtitle).left, moreOrLessEquals(tester.getRect(name).left, epsilon: 1));
+      });
+    }
+
+    testWidgets('a single click has no subtitle', (tester) async {
+      final l = await pump(tester, const Size(1280, 800), locale: const Locale('de'));
+      final b = buttons.firstWhere((b) {
+        final active = mappingActiveTriggers(shown(), b);
+        return active.isNotEmpty && active.first == ButtonTrigger.singleClick && b.name != left.name;
+      });
+      final row = find.byKey(ValueKey('mapping-row-${b.name}'));
+      expect(find.descendant(of: row, matching: find.textContaining(l.triggerSingleClick)), findsNothing);
+    });
   });
 
   testWidgets('390 wide: a trigger with nothing on it says (none), on one line', (tester) async {
@@ -321,19 +375,22 @@ Future<void> main() async {
       Focus.of(tester.element(inner)).requestFocus();
       await tester.pump(const Duration(milliseconds: 300));
       expect(
-        tester.widgetList<FocusOutline>(find.descendant(of: card, matching: find.byType(FocusOutline))).any((o) => o.focused),
+        tester
+            .widgetList<FocusOutline>(find.descendant(of: card, matching: find.byType(FocusOutline)))
+            .any((o) => o.focused),
         isTrue,
       );
     });
   });
 
   group('vibration on shift', () {
-    ZwiftPlay vibratingController() => ZwiftPlay(
-      BleDevice(name: 'Zwift Play', deviceId: 'mapping-play'),
-      deviceType: ZwiftDeviceType.playLeft,
-    )
-      ..isConnected = true
-      ..batteryLevel = 70;
+    ZwiftPlay vibratingController() =>
+        ZwiftPlay(
+            BleDevice(name: 'Zwift Play', deviceId: 'mapping-play'),
+            deviceType: ZwiftDeviceType.playLeft,
+          )
+          ..isConnected = true
+          ..batteryLevel = 70;
 
     testWidgets('is a grouped row with a switch, right above Reset to defaults', (tester) async {
       final play = vibratingController();
@@ -350,7 +407,11 @@ Future<void> main() async {
       final reset = find.widgetWithText(BkGroupedRow, l.resetToDefaults);
       expect(reset, findsOneWidget);
       final section = find.ancestor(of: reset, matching: find.byType(BkGroupedSection));
-      expect(find.descendant(of: section, matching: row), findsOneWidget, reason: 'the same group as Reset');
+      expect(
+        find.descendant(of: section, matching: row),
+        findsOneWidget,
+        reason: 'the same group as Reset',
+      );
       final rowRect = tester.getRect(row);
       final resetRect = tester.getRect(reset);
       expect(rowRect.bottom, lessThanOrEqualTo(resetRect.top));

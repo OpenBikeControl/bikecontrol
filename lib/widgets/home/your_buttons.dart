@@ -8,6 +8,7 @@ import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
 import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
+import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/bk_motion.dart';
@@ -479,52 +480,73 @@ class _ButtonList extends StatelessWidget {
       children: [
         for (final button in buttons)
           Builder(
-            builder: (context) => BkTappable(
-              onPressed: () => showTriggerAssignmentPopup(
-                context: context,
-                device: device,
-                button: button,
-                keymap: keymap,
-                onUpdate: onUpdate,
-              ),
-              label: context.i18n.a11yEditButtonMapping(button.displayName),
-              excludeChildSemantics: true,
-              borderRadius: BorderRadius.circular(8),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 32),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                  child: Row(
-                    children: [
-                      ButtonWidget(button: button, size: 22),
-                      const Gap(10),
-                      // The button's name gives way first; the action is the
-                      // point of the list and is never cut — it wraps instead.
-                      Expanded(
-                        child: Text(
-                          button.displayName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.typography.small,
-                        ),
-                      ),
-                      const Gap(8),
-                      Flexible(
-                        flex: 2,
-                        child: Text(
-                          _actionFor(keymap, button) ?? '–',
-                          textAlign: TextAlign.end,
-                          style: context.typography.small.copyWith(
-                            color: cs.mutedForeground,
-                            fontWeight: FontWeight.w500,
+            builder: (context) {
+              // Its first trigger that does something: the action at the
+              // row's end, the trigger under the name unless a single click.
+              final trigger = mappingActiveTriggers(keymap, button).firstOrNull;
+              final action = trigger == null ? null : keymap.getKeyPair(button, trigger: trigger)?.toString();
+              final triggerName = trigger != null && trigger != ButtonTrigger.singleClick ? trigger.title : null;
+              return BkTappable(
+                key: ValueKey('ride-button-row-${button.name}'),
+                onPressed: () => showTriggerAssignmentPopup(
+                  context: context,
+                  device: device,
+                  button: button,
+                  keymap: keymap,
+                  onUpdate: onUpdate,
+                ),
+                label: context.i18n.a11yEditButtonMapping(button.displayName),
+                excludeChildSemantics: true,
+                borderRadius: BorderRadius.circular(8),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 32),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    child: Row(
+                      children: [
+                        ButtonWidget(button: button, size: 22),
+                        const Gap(10),
+                        // The button's name gives way first; the action is the
+                        // point of the list and is never cut — it wraps instead.
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                button.displayName,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.typography.small,
+                              ),
+                              if (triggerName != null)
+                                Text(
+                                  triggerName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                        const Gap(8),
+                        Flexible(
+                          flex: 2,
+                          child: Text(
+                            (action == null || action.isEmpty) ? '–' : action,
+                            textAlign: TextAlign.end,
+                            style: context.typography.small.copyWith(
+                              color: cs.mutedForeground,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
       ],
     );
