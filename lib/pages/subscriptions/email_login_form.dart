@@ -25,6 +25,7 @@ class EmailLoginForm extends StatefulWidget {
     this.onCodeSentChanged,
     EmailOtpAuth? auth,
     this.cooldown = resendCooldown,
+    @visibleForTesting this.clock = DateTime.now,
   }) : _auth = auth;
 
   /// Called once the code has been redeemed and a session exists.
@@ -39,6 +40,10 @@ class EmailLoginForm extends StatefulWidget {
   /// How long "send a new code" stays shut after a send. Overridable so tests
   /// don't have to sit out a real minute.
   final Duration cooldown;
+
+  /// What the cooldown reads the time from. Tests move it by hand, so the gate
+  /// never races a busy machine's wall clock.
+  final DateTime Function() clock;
 
   static const Key emailFieldKey = Key('email_login_email_field');
   static const Key sendButtonKey = Key('email_login_send_button');
@@ -73,7 +78,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
   Duration get _cooldownLeft {
     final until = _resendAllowedAt;
     if (until == null) return Duration.zero;
-    final left = until.difference(DateTime.now());
+    final left = until.difference(widget.clock());
     return left.isNegative ? Duration.zero : left;
   }
 
@@ -147,7 +152,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
 
   void _startCooldown() {
     _cooldownTimer?.cancel();
-    setState(() => _resendAllowedAt = DateTime.now().add(widget.cooldown));
+    setState(() => _resendAllowedAt = widget.clock().add(widget.cooldown));
     // Only redraws the countdown label — the gate itself reads the deadline,
     // so a missed tick can never hand out an early code or withhold a due one.
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {

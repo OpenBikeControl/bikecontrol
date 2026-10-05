@@ -45,9 +45,13 @@ Future<void> main() async {
     signedIn = 0;
   });
 
-  /// The real form waits a minute; the binding these tests run under pumps in
-  /// real time, so shrink it rather than sitting out the wait.
-  const cooldown = Duration(milliseconds: 300);
+  /// The form's own clock. The binding these tests run under pumps in real
+  /// time, so a wall-clock cooldown raced the machine: a busy full-suite run
+  /// could sit out the whole wait before the first resend tap. The tests move
+  /// this clock by hand instead.
+  late DateTime now;
+  setUp(() => now = DateTime(2026, 10, 5, 9));
+  const cooldown = EmailLoginForm.resendCooldown;
 
   Future<void> pumpForm(WidgetTester tester) async {
     await tester.pumpWidget(
@@ -66,6 +70,7 @@ Future<void> main() async {
             child: EmailLoginForm(
               auth: auth,
               cooldown: cooldown,
+              clock: () => now,
               onSignedIn: () => signedIn++,
             ),
           ),
@@ -177,8 +182,13 @@ Future<void> main() async {
     await tester.pumpAndSettle();
     expect(auth.sentTo, hasLength(1), reason: 'still inside the cooldown');
 
-    await tester.pump(cooldown);
+    now = now.add(cooldown - const Duration(seconds: 1));
+    await tester.tap(find.byKey(EmailLoginForm.resendButtonKey));
     await tester.pumpAndSettle();
+    expect(auth.sentTo, hasLength(1), reason: 'a second before the cooldown ends');
+
+    now = now.add(const Duration(seconds: 1));
+    await tester.pump();
     await tester.tap(find.byKey(EmailLoginForm.resendButtonKey));
     await tester.pumpAndSettle();
 
