@@ -447,6 +447,8 @@
   "main": "BikeControl",
   "manageIgnoredDevices": "Ignorierte Geräte verwalten",
   "manageProfile": "Profil verwalten",
+  "keymapSyncLabel": "Deine Tastenbelegungen zwischen deinen Geräten synchronisieren",
+  "keymapManageLabel": "Tastenbelegungen umbenennen, duplizieren, importieren, exportieren oder löschen",
   "manageSubscription": "Abonnement verwalten",
   "manageYourDevices": "Geräte verwalten",
   "manualyControllingButton": "{trainerApp} manuell steuern!",

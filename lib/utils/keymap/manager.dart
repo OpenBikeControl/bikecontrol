@@ -1,5 +1,6 @@
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
@@ -45,8 +46,9 @@ class KeymapManager {
   }) {
     return Builder(
       builder: (context) {
-        return Button.outline(
-          child: Icon(LucideIcons.settings),
+        return BkIconButton.outline(
+          icon: Icon(LucideIcons.settings),
+          label: context.i18n.keymapManageLabel,
           onPressed: () => showDropdown(
             context: context,
             builder: (c) => DropdownMenu(
@@ -77,7 +79,7 @@ class KeymapManager {
                   MenuButton(
                     child: Text(context.i18n.duplicate),
                     onPressed: (c) async {
-                      final newName = await duplicate(
+                      await duplicate(
                         context,
                         currentProfile,
                       );

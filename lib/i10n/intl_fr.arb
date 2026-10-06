@@ -447,6 +447,8 @@
   "main": "Principal",
   "manageIgnoredDevices": "Gérer les périphériques ignorés",
   "manageProfile": "Gérer mon profil",
+  "keymapSyncLabel": "Synchronise tes configurations de boutons entre tes appareils",
+  "keymapManageLabel": "Renommer, dupliquer, importer, exporter ou supprimer des configurations de boutons",
   "manageSubscription": "Gérer mon abonnement",
   "manageYourDevices": "Gère tes appareils",
   "manualyControllingButton": "Contrôle {trainerApp} manuellement!",

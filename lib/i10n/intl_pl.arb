@@ -447,6 +447,8 @@
   "main": "Główny",
   "manageIgnoredDevices": "Zarządzaj ignorowanymi urządzeniami",
   "manageProfile": "Zarządzaj profilem",
+  "keymapSyncLabel": "Synchronizuj swoje układy przycisków między urządzeniami",
+  "keymapManageLabel": "Zmień nazwę, duplikuj, importuj, eksportuj lub usuń układy przycisków",
   "manageSubscription": "Zarządzaj subskrypcją",
   "manageYourDevices": "Zarządzaj swoimi urządzeniami",
   "manualyControllingButton": "Steruj {trainerApp} manualnie!",

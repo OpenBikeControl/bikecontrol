@@ -135,9 +135,13 @@ class _CustomizeState extends State<CustomizePage> {
                   },
                 ),
               ),
+              // A cloud and a dot say nothing on their own: the tooltip and
+              // the label name what it does; StatusIcon reads its on/off.
               Tooltip(
-                tooltip: (c) => Text(context.i18n.synchronizeAcrossDevices),
-                child: StatusIcon(
+                tooltip: (c) => TooltipContainer(child: Text(context.i18n.keymapSyncLabel)),
+                child: Semantics(
+                  label: context.i18n.keymapSyncLabel,
+                  child: StatusIcon(
                   status: IAPManager.instance.isProEnabled,
                   icon: LucideIcons.cloudUpload,
                   started: IAPManager.instance.isProEnabled,
@@ -151,6 +155,7 @@ class _CustomizeState extends State<CustomizePage> {
                             featureName: context.i18n.synchronizeAcrossDevices,
                           );
                         },
+                  ),
                 ),
               ),
               KeymapManager().getManageProfileDialog(

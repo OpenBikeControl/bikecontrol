@@ -451,6 +451,8 @@
   "main": "Main",
   "manageIgnoredDevices": "Manage Ignored Devices",
   "manageProfile": "Manage Profile",
+  "keymapSyncLabel": "Sync your button mappings across your devices",
+  "keymapManageLabel": "Rename, duplicate, import, export or delete button mappings",
   "manageSubscription": "Manage Subscription",
   "manageYourDevices": "Manage your devices",
   "manualyControllingButton": "Control {trainerApp} manually!",
