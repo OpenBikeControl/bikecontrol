@@ -8,7 +8,7 @@ import 'package:bike_control/pages/onboarding/onboarding_network_precheck.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart' show NetworkFixId;
 import 'package:bike_control/services/network_self_test/network_fixes.dart' show runNetworkFix;
 import 'package:bike_control/services/network_self_test/network_method_target.dart' show currentNetworkMethodTarget;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel;
@@ -56,6 +56,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 const double kOnboardingDesktopBreakpoint = Breakpoints.twoPane;
 const double kOnboardingBodyMaxWidth = 640;
+
+/// Brings up the connection methods the rider turned on. The launch-time start
+/// is skipped while the wizard holds the screen, so every way out of it — Start
+/// riding, plan options, Later, and X — calls this. Replaceable so tests can
+/// see it happen without opening real sockets.
+@visibleForTesting
+void Function() onboardingStartConnectionMethods = () => core.logic.startEnabledConnectionMethod(userInitiated: true);
 
 String onboardingStepLabel(BuildContext context, OnboardingStep step) => switch (step) {
   OnboardingStep.app => context.i18n.onboardingStepApp,
@@ -1091,7 +1098,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
           // The launch-time start was skipped while the wizard held the
           // screen; leaving it is when the enabled methods must come up.
-          core.logic.startEnabledConnectionMethod(userInitiated: true);
+          onboardingStartConnectionMethods();
           if (context.mounted) Navigator.of(context).pop();
         } catch (e, s) {
           recordError(e, s, context: 'onboarding done start riding');
@@ -1100,7 +1107,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       onSeePlanOptions: () async {
         try {
           await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-          core.logic.startEnabledConnectionMethod(userInitiated: true);
+          onboardingStartConnectionMethods();
           if (!mounted || !context.mounted) return;
           // Platform-correct paywall: RevenueCat's hosted sheet on
           // iOS/Android, the in-app Paywall drawer on desktop. Going
@@ -1121,11 +1128,23 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _onWelcomeLater() async {
     try {
       await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-      core.logic.startEnabledConnectionMethod(userInitiated: true);
+      onboardingStartConnectionMethods();
     } catch (e, s) {
       recordError(e, s, context: 'onboarding welcome later');
     }
     if (mounted) Navigator.of(context).maybePop();
+  }
+
+  /// X leaves the wizard like "Later" minus recording it as done: the
+  /// launch-time start was skipped while the wizard held the screen, so the
+  /// methods the rider turned on come up now instead of staying silent.
+  void _onClose() {
+    try {
+      onboardingStartConnectionMethods();
+    } catch (e, s) {
+      recordError(e, s, context: 'onboarding close');
+    }
+    Navigator.of(context).maybePop();
   }
 
   @override
@@ -1169,7 +1188,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         footerActions: _footer(overlayContext),
         onBack: _step == OnboardingStep.app || _step == OnboardingStep.done ? null : _back,
         onHelp: () => openOnboardingHelpSheet(overlayContext, _step),
-        onClose: () => Navigator.of(context).maybePop(),
+        onClose: _onClose,
         stepValues: {
           if (_selectedApp case final app?) OnboardingStep.app: app.name,
           if (!_selfHosted && _selectedTarget != null) OnboardingStep.where: _selectedTarget!.getTitle(context),
