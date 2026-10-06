@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/main.dart' show recordError;
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart' as nsd;
@@ -62,7 +63,14 @@ class WifiTrainerScanner {
     _known.clear();
     if (discovery != null) {
       discovery.removeServiceListener(handleService);
-      await nsd.stopDiscovery(discovery);
+      try {
+        await nsd.stopDiscovery(discovery);
+      } catch (e, s) {
+        // iOS forgets the browser once the OS ends the search itself (app
+        // suspended, radio/network change) and then rejects the stop with
+        // "Unknown handle". Already stopped is the state we want.
+        recordError(e, s, context: 'WifiTrainerScanner.stop');
+      }
     }
   }
 
