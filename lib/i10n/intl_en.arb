@@ -2183,6 +2183,7 @@
   "helpAnswerControllerDisconnectingBody": "A few different things cause this — check which matches:\n\nDropping only after a while, not right away: that's BikeControl's own battery saver. While your trainer app is connected there's no timer at all — it never disconnects your controller from under you. The moment it disconnects, your controller gets about 5 more minutes before BikeControl drops it to save its battery; without any trainer-app connection at all, that stretches to about 60 minutes. Any button press resets the countdown. In practice, a controller dropping mid-ride almost always means BikeControl stopped seeing your trainer app — fix that connection first.\n\nA Zwift Click V2 set to \"Unlock with Zwift\": it restarts roughly once a minute by design. A quick flash and a reconnect every minute is expected, not a fault.\n\nA Zwift Click V1 (the single-puck model) dropping every few seconds: almost always a weak coin-cell contact. Take the CR2032 out, reseat it, and gently bend the contact tab up. Its battery percentage is only a rough voltage estimate, so a high reading doesn't rule this out.",
   "helpAnswerControllerDisconnectingAction": "Why does it restart every minute?",
   "helpCenterControllerNotFoundEntry": "My controller isn't found",
+  "helpCenterButtonsStoppedEntry": "My buttons stopped working",
   "faqOneTimeQ": "I paid for the app once — what did that include?",
   "faqOneTimeA": "The one-time purchase unlocks Base: connecting your controllers, basic button mapping (one action per button), and unlimited button presses per day in your trainer app. It was never a subscription and it doesn't expire.",
   "faqProQ": "Why is there a Pro subscription now?",
@@ -2741,6 +2742,19 @@
   "helpCheckAppConnectedSub": "Your trainer app connects to BikeControl separately from your trainer. The home screen shows whether it's connected; if it isn't, run the network test.",
   "helpCheckGearOverlayTitle": "Shifts land, but the gear number doesn't change?",
   "helpCheckGearOverlaySub": "When BikeControl steers your trainer, your trainer app keeps showing its own gear. The overlay shows BikeControl's gear instead.",
+  "helpCheckDailyLimitTitle": "Used up today's button presses?",
+  "helpCheckDailyLimitSub": "Without Base or Pro, BikeControl carries out {limit} button presses a day, during the trial too. Once they're used up, presses do nothing until tomorrow and BikeControl tells you the daily limit is reached. Base or Pro removes the limit.",
+  "@helpCheckDailyLimitSub": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "helpCheckControllerAwakeTitle": "Is your controller awake and connected?",
+  "helpCheckControllerAwakeSub": "Controllers go to sleep when you don't use them. Press a button to wake it, then look under Devices: if it isn't connected there, connect it again.",
+  "helpCheckConnectionMethodTitle": "Is the connection to your trainer app on?",
+  "helpCheckConnectionMethodSub": "Open Settings → Trainer app & connection and check that the connection method you use (Bluetooth, Network or Local) is switched on and your trainer app is connected.",
   "helpSelfTestNeedsTrainer": "Connect your trainer in BikeControl first — the self-test needs a live connection. You'll then find it on your trainer's page.",
   "onboardingDoneOverlayNote": "{app} keeps showing its own gear number. BikeControl's gear is shown in the overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},

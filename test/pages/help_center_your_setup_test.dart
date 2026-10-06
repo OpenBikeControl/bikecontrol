@@ -40,6 +40,7 @@ const _gearOverlayRowKey = ValueKey('help-gear-overlay');
 const _controllerDisconnectingRowKey = ValueKey('help-controller-disconnecting');
 const _controllerNotFoundRowKey = ValueKey('help-controller-not-found');
 const _setupGuideRowKey = ValueKey('help-run-setup-guide');
+const _buttonsStoppedRowKey = ValueKey('help-buttons-stopped');
 const _overlayActionKey = ValueKey('help-check-overlay-settings');
 const _networkTestActionKey = ValueKey('help-check-network-test');
 const _searchAgainActionKey = ValueKey('help-answer-action-search-again');
@@ -83,6 +84,7 @@ Future<void> _pump(
   List<TrainerConnection>? connections,
   VoidCallback? onSearchAgain,
   void Function(String? controllerId)? onContactSupport,
+  bool? commandLimited,
 }) {
   return tester.pumpWidget(
     ShadcnApp(
@@ -95,6 +97,7 @@ Future<void> _pump(
           connectionsOverride: connections,
           onSearchAgain: onSearchAgain,
           onContactSupport: onContactSupport,
+          commandLimitedOverride: commandLimited,
         ),
       ),
     ),
@@ -430,6 +433,50 @@ Future<void> main() async {
 
       expect(find.text(l10n.zwiftCompanionApp), findsNothing);
       expect(find.text(l10n.helpCheckFirmwareMakerSub), findsOneWidget);
+    });
+  });
+
+  // "My buttons stopped working": they worked, now nothing happens. The
+  // likeliest cause first: today's button presses are used up (only without
+  // Base or Pro), then the controller fell asleep or dropped, then the
+  // connection to the trainer app is off.
+  group('buttons stopped working row', () {
+    testWidgets('shown once a controller is known, absent without one', (tester) async {
+      await _pump(tester, devices: const [], connections: const []);
+      await tester.pump();
+      expect(find.byKey(_buttonsStoppedRowKey), findsNothing);
+
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+      await _pump(tester, devices: [rightSide], connections: const []);
+      await tester.pump();
+      expect(find.byKey(_buttonsStoppedRowKey), findsOneWidget);
+    });
+
+    testWidgets('with a daily limit: the limit, then the controller, then the connection method', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+      await _pump(tester, devices: [rightSide], connections: const [], commandLimited: true);
+      await tester.pump();
+      await _openSheet(tester, _buttonsStoppedRowKey);
+
+      final titles = buttonsStoppedChecks(l10n, commandLimited: true).map((c) => c.title).toList();
+      expect(titles, [
+        l10n.helpCheckDailyLimitTitle,
+        l10n.helpCheckControllerAwakeTitle,
+        l10n.helpCheckConnectionMethodTitle,
+      ]);
+      final ys = [for (final t in titles) tester.getTopLeft(find.text(t)).dy];
+      expect(ys, orderedEquals([...ys]..sort()));
+    });
+
+    testWidgets('without a daily limit (Base or Pro) the limit step is left out', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+      await _pump(tester, devices: [rightSide], connections: const [], commandLimited: false);
+      await tester.pump();
+      await _openSheet(tester, _buttonsStoppedRowKey);
+
+      expect(find.text(l10n.helpCheckDailyLimitTitle), findsNothing);
+      expect(find.text(l10n.helpCheckControllerAwakeTitle), findsOneWidget);
+      expect(find.text(l10n.helpCheckConnectionMethodTitle), findsOneWidget);
     });
   });
 
