@@ -110,6 +110,9 @@ Widget onboardingShell(
         ],
       );
       final scrolledBody = SingleChildScrollView(
+        // Keyed per step: the next step starts at the top, not wherever the
+        // last one was scrolled to.
+        key: ValueKey('onboarding-scroll-$step'),
         padding: EdgeInsets.fromLTRB(desktop ? 24 : 16, 8, desktop ? 24 : 16, 16),
         child: desktop
             ? Center(

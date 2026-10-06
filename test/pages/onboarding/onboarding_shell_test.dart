@@ -164,4 +164,56 @@ Future<void> main() async {
     expect(find.text(l.onboardingTrialUnlimited), findsOneWidget);
     expect(find.text(l.onboardingTrialKeepVs), findsOneWidget);
   });
+
+  testWidgets('the next step starts at the top, not where the last one was scrolled to', (tester) async {
+    final step = ValueNotifier(OnboardingStep.controller);
+    addTearDown(step.dispose);
+    await pump(
+      tester,
+      (c) => ValueListenableBuilder<OnboardingStep>(
+        valueListenable: step,
+        builder: (c, s, _) => onboardingShell(
+          c,
+          step: s,
+          body: SizedBox(key: ValueKey('tall-$s'), height: 3000),
+          footerActions: const [],
+          onBack: () {},
+          onHelp: () {},
+        ),
+      ),
+    );
+    ScrollPosition position() => tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+
+    position().jumpTo(1200);
+    await tester.pump();
+    expect(position().pixels, 1200);
+
+    step.value = OnboardingStep.virtualShifting;
+    await tester.pump();
+    expect(position().pixels, 0);
+  });
+
+  testWidgets('a status that wraps hugs its longest line, so it sits flush right', (tester) async {
+    const label = 'Waiting for MyWhoosh to connect …';
+    await pump(
+      tester,
+      (c) => const Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 120,
+          child: Align(alignment: AlignmentDirectional.centerEnd, child: BkStatusDot(label: label)),
+        ),
+      ),
+    );
+    final paragraph = tester.renderObject<RenderParagraph>(find.text(label));
+    final lines = TextPainter(
+      text: paragraph.text,
+      textDirection: TextDirection.ltr,
+      textScaler: paragraph.textScaler,
+      textWidthBasis: TextWidthBasis.longestLine,
+    )..layout(maxWidth: paragraph.constraints.maxWidth);
+    addTearDown(lines.dispose);
+    expect(lines.computeLineMetrics().length, greaterThan(1), reason: 'the label has to wrap for this to matter');
+    expect(paragraph.size.width, moreOrLessEquals(lines.width, epsilon: 0.5), reason: 'no slack right of the text');
+  });
 }

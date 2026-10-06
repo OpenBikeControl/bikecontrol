@@ -33,6 +33,9 @@ class BkStatusDot extends StatelessWidget {
         Flexible(
           child: Text(
             label,
+            // A wrapped label is as wide as its longest line, not the whole
+            // space offered, so an end-aligned status sits flush right.
+            textWidthBasis: TextWidthBasis.longestLine,
             style: context.typography.xSmall.copyWith(color: color, fontWeight: FontWeight.w500),
           ),
         ),
