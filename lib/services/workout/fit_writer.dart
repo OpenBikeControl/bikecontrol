@@ -10,7 +10,9 @@ import 'workout_summary.dart';
 ///
 /// Layout mirrors the Garmin FIT cookbook recipe for Activity files:
 /// FileId → Event(timer start) → Record × N, with a timer stop/start event
-/// pair at each pause → Event(stop all) → Lap → Session → Activity.
+/// pair at each pause → Event(stop all) → Lap → Session → Activity. A
+/// virtual shift is a rear gear change event (its rear_gear_num) just before
+/// the first record in the new gear.
 class FitFileWriter {
   static const int _manufacturerDevelopment = 255; // development manufacturer id
 
@@ -66,9 +68,20 @@ class FitFileWriter {
       }
     }
 
+    int? gear;
     for (final s in samples) {
       final at = s.timestamp.toUtc().millisecondsSinceEpoch;
       flushEventsUntil(at);
+      if (s.gear case final g? when g != gear) {
+        gear = g;
+        builder.add(
+          EventMessage()
+            ..timestamp = at
+            ..event = Event.rearGearChange
+            ..eventType = EventType.marker
+            ..rearGearNum = g,
+        );
+      }
       final msg = RecordMessage()..timestamp = at;
       if (s.powerW != null) msg.power = s.powerW;
       if (s.cadenceRpm != null) msg.cadence = s.cadenceRpm;

@@ -116,4 +116,47 @@ void main() {
       expect(result.activeDuration, const Duration(seconds: 120));
     });
   });
+
+  group('gears', () {
+    final start = DateTime.utc(2026, 10, 6, 18);
+    final samples = [
+      for (var i = 1; i <= 10; i++)
+        WorkoutSample(
+          timestamp: start.add(Duration(seconds: i)),
+          powerW: 200,
+          gear: i <= 4 ? 8 : (i <= 7 ? 9 : 7),
+        ),
+    ];
+    final summary = WorkoutSummary.fromSamples(samples, startedAt: start, activeDuration: const Duration(seconds: 10));
+    final bytes = FitFileWriter.encode(samples: samples, summary: summary);
+
+    test('writes a rear gear change event whenever the gear changes', () {
+      final shifts = FitFile.fromBytes(bytes).records
+          .where((r) => !r.isDefinition && r.message is EventMessage)
+          .map((r) => r.message as EventMessage)
+          .where((e) => e.event == Event.rearGearChange)
+          .toList();
+      expect(shifts.map((e) => e.rearGearNum), [8, 9, 7]);
+      expect(shifts.map((e) => e.eventType), everyElement(EventType.marker));
+      expect(shifts.first.timestamp, start.add(const Duration(seconds: 1)).millisecondsSinceEpoch);
+    });
+
+    test('reads the gears back onto the samples', () {
+      final result = FitFileReader.decode(bytes, summary: summary);
+      expect(result.samples.map((s) => s.gear), [8, 8, 8, 8, 9, 9, 9, 7, 7, 7]);
+    });
+
+    test('a ride without gears writes no gear events', () {
+      final plain = [for (var i = 1; i <= 3; i++) WorkoutSample(timestamp: start.add(Duration(seconds: i)), powerW: 1)];
+      final b = FitFileWriter.encode(
+        samples: plain,
+        summary: WorkoutSummary.fromSamples(plain, startedAt: start, activeDuration: const Duration(seconds: 3)),
+      );
+      final events = FitFile.fromBytes(b).records
+          .where((r) => !r.isDefinition && r.message is EventMessage)
+          .map((r) => (r.message as EventMessage).event);
+      expect(events, isNot(contains(Event.rearGearChange)));
+      expect(FitFileReader.decode(b, summary: summary).samples.map((s) => s.gear), everyElement(isNull));
+    });
+  });
 }

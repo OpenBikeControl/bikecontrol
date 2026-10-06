@@ -7,7 +7,8 @@ import 'workout_sample.dart';
 import 'workout_summary.dart';
 
 /// Reads a ride back from the `.fit` file [FitFileWriter] wrote: its records
-/// as samples and its timer stop/start events as pauses. Lets a ride saved
+/// as samples, its timer stop/start events as pauses and its rear gear
+/// change events as each sample's gear. Lets a ride saved
 /// earlier still go to Apple Health / Health Connect, which need the series,
 /// not just the sidecar's averages.
 class FitFileReader {
@@ -18,6 +19,7 @@ class FitFileReader {
     DateTime? start;
     DateTime? end;
     DateTime? pausedAt;
+    int? gear;
     DateTime at(int ms) => DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
 
     for (final record in fit.records) {
@@ -34,8 +36,11 @@ class FitFileReader {
             cadenceRpm: message.cadence,
             speedKph: speed == null ? null : speed * 3.6,
             heartRateBpm: message.heartRate,
+            gear: gear,
           ),
         );
+      } else if (message is EventMessage && message.event == Event.rearGearChange) {
+        gear = message.rearGearNum ?? gear;
       } else if (message is EventMessage && message.event == Event.timer) {
         final ms = message.timestamp;
         if (ms == null) continue;
