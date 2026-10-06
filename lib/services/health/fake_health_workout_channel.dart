@@ -14,6 +14,7 @@ class FakeHealthWorkoutChannel implements HealthWorkoutChannel {
   HealthKitAuthorization authorization = HealthKitAuthorization.granted;
   int authorizeCalls = 0;
   int openSettingsCalls = 0;
+  int openAppCalls = 0;
   int openInstallCalls = 0;
 
   /// Thrown by the next [authorize] (after counting it) when set.
@@ -45,6 +46,9 @@ class FakeHealthWorkoutChannel implements HealthWorkoutChannel {
 
   @override
   Future<void> openHealthSettings() async => openSettingsCalls++;
+
+  @override
+  Future<void> openHealthApp() async => openAppCalls++;
 
   @override
   Future<void> openInstall() async => openInstallCalls++;

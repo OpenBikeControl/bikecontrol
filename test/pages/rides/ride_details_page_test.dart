@@ -120,7 +120,7 @@ Future<void> main() async {
     expect(find.byKey(const ValueKey('ride-stat-gears')), findsNothing);
   });
 
-  testWidgets('iOS: Apple Health once, then a status, no second write', (tester) async {
+  testWidgets('iOS: Apple Health once, then a status that opens Health, no second write', (tester) async {
     debugHostPlatformOverride = TargetPlatform.iOS;
     final rig = await RideRig.install();
     final ride = await saveSampleRide(rig.repository);
@@ -136,6 +136,22 @@ Future<void> main() async {
     await tester.tap(find.text(l10n.ridesInHealth(store)));
     await tester.pumpAndSettle();
     expect(rig.channel!.saved, hasLength(1));
+    expect(rig.channel!.openAppCalls, 1, reason: 'the saved row opens the Health app');
+  });
+
+  testWidgets('Android: a ride in Health Connect opens Health Connect\'s data', (tester) async {
+    debugHostPlatformOverride = TargetPlatform.android;
+    final rig = await RideRig.install(store: HealthStore.healthConnect);
+    final ride = await saveSampleRide(rig.repository);
+    await pump(tester, ride);
+
+    final store = healthStoreName(HealthStore.healthConnect, l10n);
+    await tester.tap(find.text(l10n.ridesSaveToHealth(store)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l10n.ridesInHealth(store)));
+    await tester.pumpAndSettle();
+    expect(rig.channel!.saved, hasLength(1));
+    expect(rig.channel!.openAppCalls, 1);
   });
 
   testWidgets('Android without Health Connect: the row installs it', (tester) async {

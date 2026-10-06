@@ -322,6 +322,14 @@ class RideService {
     }
   }
 
+  Future<void> openHealthApp() async {
+    try {
+      await health?.openHealthApp();
+    } catch (e, s) {
+      onError(e, s, 'RideService.openHealthApp');
+    }
+  }
+
   Future<void> installHealth() async {
     try {
       await health?.openInstall();

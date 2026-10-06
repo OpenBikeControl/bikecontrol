@@ -34,6 +34,9 @@ final class HealthKitWorkoutWriter: NSObject {
       case "openHealthSettings":
         self.openHealthSettings()
         result(nil)
+      case "openHealthApp":
+        self.openHealthApp()
+        result(nil)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -240,6 +243,13 @@ final class HealthKitWorkoutWriter: NSObject {
 
   /// The Health app is where sharing permissions live; fall back to the
   /// app's own Settings page if it can't be opened (e.g. on iPad without it).
+  /// The Health app itself, where the saved rides are. Apple offers no link
+  /// to a single workout.
+  private func openHealthApp() {
+    guard let health = URL(string: "x-apple-health://") else { return }
+    UIApplication.shared.open(health)
+  }
+
   private func openHealthSettings() {
     guard let health = URL(string: "x-apple-health://") else { return }
     UIApplication.shared.open(health) { opened in

@@ -110,6 +110,8 @@ class RideExportRows extends StatelessWidget {
               title: storeName,
               subtitle: inSheet ? l10n.ridesHealthKeptNote : null,
               trailing: BkStatusDot(label: l10n.ridesInHealth(storeName)),
+              chevron: true,
+              onPressed: () => unawaited(core.rides.openHealthApp()),
             )
           else
             BkGroupedRow(

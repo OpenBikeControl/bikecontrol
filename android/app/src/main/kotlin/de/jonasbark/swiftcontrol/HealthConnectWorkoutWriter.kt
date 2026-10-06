@@ -111,6 +111,10 @@ class HealthConnectWorkoutWriter private constructor(private val activity: Fragm
                 openSettings()
                 result.success(null)
             }
+            "openHealthApp" -> {
+                openData()
+                result.success(null)
+            }
             "openInstall" -> {
                 openInstall()
                 result.success(null)
@@ -278,6 +282,16 @@ class HealthConnectWorkoutWriter private constructor(private val activity: Fragm
             ActiveCaloriesBurnedRecord(a, offset(a), b, offset(b), Energy.kilocalories(kcal), md)
         }
         return records
+    }
+
+    // Health Connect's data, where the saved rides are. It offers no link to
+    // a single session; older devices fall back to its settings.
+    private fun openData() {
+        try {
+            activity.startActivity(HealthConnectClient.getHealthConnectManageDataIntent(activity, PROVIDER))
+        } catch (e: ActivityNotFoundException) {
+            openSettings()
+        }
     }
 
     private fun openSettings() {

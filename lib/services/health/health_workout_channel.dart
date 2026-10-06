@@ -33,6 +33,10 @@ abstract class HealthWorkoutChannel {
   /// what BikeControl may write.
   Future<void> openHealthSettings();
 
+  /// Opens the store itself, where saved rides are: the Health app, or
+  /// Health Connect's data. Neither links to one workout.
+  Future<void> openHealthApp();
+
   /// Opens the Play Store page of Health Connect. No-op for Apple Health.
   Future<void> openInstall();
 }
@@ -83,6 +87,9 @@ class MethodChannelHealthWorkout implements HealthWorkoutChannel {
 
   @override
   Future<void> openHealthSettings() => _method.invokeMethod<void>('openHealthSettings');
+
+  @override
+  Future<void> openHealthApp() => _method.invokeMethod<void>('openHealthApp');
 
   @override
   Future<void> openInstall() async {
