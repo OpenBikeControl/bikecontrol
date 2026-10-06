@@ -2565,7 +2565,7 @@
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
   "rideOverlayOfferShow": "Overlay zeigen",
   "a11yChangeChainring": "Kettenblatt wechseln",
-  "rideVsSettingsLink": "Einstellungen",
+  "rideVsSettingsLink": "Gang-Einstellungen",
   "rideVsTrainerNotConnected": "{trainer} ist nicht verbunden – du spürst die Schaltvorgänge erst, wenn er wieder da ist.",
   "@rideVsTrainerNotConnected": {"description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.", "placeholders": {"trainer": {"type": "String"}}},
   "rideVsSimExplainer": "SIM: Gänge und Steigungen fühlen sich echt an.",
