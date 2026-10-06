@@ -496,6 +496,7 @@
   "@noActionAssignedShort": {
     "description": "Compact value for a button trigger with no action, shown at the end of a mapping row"
   },
+  "actionWaitsForConnectionMethod": "Won't work yet: turn on a connection method",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
   "trainerAppNotConnectedForButton": "Could not perform {button}: {app} is not connected",
   "@trainerAppNotConnectedForButton": {
@@ -528,7 +529,6 @@
   "noDevicesRegistered": "No devices registered",
   "noIgnoredDevices": "No ignored devices.",
   "noTrainerSelected": "No Trainer selected",
-  "notAssignedOrNoConnectionMethodActive": "Not assigned",
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",
   "officiallySupported": "Officially supported",

@@ -422,6 +422,11 @@ class KeyPair {
       (screenshotPath != null && screenshotPath!.trim().isNotEmpty) ||
       (command != null && command!.trim().isNotEmpty);
 
+  /// True when this keypair has an action, but no connection method that's
+  /// on right now can carry it — so pressing the button does nothing yet.
+  bool get waitsForConnectionMethod =>
+      !hasNoAction && toString() == AppLocalizations.current.actionWaitsForConnectionMethod;
+
   @override
   String toString() {
     final text = (inGameAction != null && (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp))
@@ -457,12 +462,17 @@ class KeyPair {
     if (text != null && text.isNotEmpty) {
       return text;
     }
-    final baseKey = logicalKey?.keyLabel ?? text ?? AppLocalizations.current.notAssignedOrNoConnectionMethodActive;
+    // Nothing on the button, or an action that nothing turned on can carry
+    // yet — two different things for the rider, so two different labels.
+    final notShown = hasNoAction
+        ? AppLocalizations.current.noActionAssigned
+        : AppLocalizations.current.actionWaitsForConnectionMethod;
+    final baseKey = logicalKey?.keyLabel ?? text ?? notShown;
 
     if (physicalKey == null || !core.actionHandler.supportedModes.contains(SupportedMode.keyboard)) {
-      return AppLocalizations.current.notAssignedOrNoConnectionMethodActive;
+      return notShown;
     }
-    if (modifiers.isEmpty || baseKey == AppLocalizations.current.notAssignedOrNoConnectionMethodActive) {
+    if (modifiers.isEmpty || baseKey == notShown) {
       if (baseKey.trim().isEmpty) {
         return 'Space';
       }

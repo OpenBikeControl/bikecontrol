@@ -8,6 +8,7 @@ import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
@@ -46,6 +47,26 @@ void main() {
     core.settings.setTrainerApp(MyWhoosh());
     core.actionHandler.init(MyWhoosh());
     await AppLocalizations.load(const Locale('en'));
+  });
+
+  group('a mapping row tells "no action" from "waits for a connection method"', () {
+    test('nothing on the button', () {
+      final kp = KeyPair(buttons: [ZwiftButtons.y], physicalKey: null, logicalKey: null);
+      expect(kp.toString(), AppLocalizations.current.noActionAssigned);
+      expect(kp.waitsForConnectionMethod, isFalse);
+    });
+
+    test('an action no connection method carries yet', () {
+      final kp = KeyPair(
+        buttons: [ZwiftButtons.y],
+        physicalKey: null,
+        logicalKey: null,
+        inGameAction: InGameAction.shiftUp,
+      );
+      expect(core.logic.hasNoConnectionMethod, isTrue);
+      expect(kp.toString(), AppLocalizations.current.actionWaitsForConnectionMethod);
+      expect(kp.waitsForConnectionMethod, isTrue);
+    });
   });
 
   Future<void> pumpEditor(WidgetTester tester, KeyPair keyPair) async {

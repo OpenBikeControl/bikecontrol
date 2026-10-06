@@ -245,6 +245,17 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         _openConnectionSettingsButton(),
                       ],
                     ),
+                  )
+                else if (_keyPair.waitsForConnectionMethod)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 300),
+                    child: Warning(
+                      important: false,
+                      children: [
+                        Text(AppLocalizations.of(context).actionWaitsForConnectionMethod),
+                        _openConnectionSettingsButton(),
+                      ],
+                    ),
                   ),
                 if (widget.trigger == ButtonTrigger.longPress)
                   Builder(
@@ -1515,7 +1526,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                     Text(switch (supportedMode) {
                       SupportedMode.keyboard =>
-                        keyPairAction.logicalKey?.keyLabel ?? context.i18n.notAssignedOrNoConnectionMethodActive,
+                        keyPairAction.logicalKey?.keyLabel ?? context.i18n.noActionAssigned,
                       SupportedMode.touch =>
                         'X:${keyPairAction.touchPosition.dx.toInt()}, Y:${keyPairAction.touchPosition.dy.toInt()}',
                       SupportedMode.media => throw UnimplementedError(),
