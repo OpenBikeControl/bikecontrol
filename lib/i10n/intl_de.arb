@@ -942,7 +942,7 @@
   "failedToOpenChat": "Support-Chat konnte nicht geöffnet werden",
   "senderYou": "Du",
   "senderAdmin": "Support",
-  "viewThread": "Thread erstellen",
+  "viewThread": "Antworten",
   "threadTitle": "Thread",
   "replyCount": "Antworten ({count})",
   "@replyCount": {

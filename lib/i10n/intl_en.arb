@@ -1482,7 +1482,7 @@
   "failedToOpenChat": "Failed to open support chat",
   "senderYou": "You",
   "senderAdmin": "Support",
-  "viewThread": "Create Thread",
+  "viewThread": "Reply",
   "threadTitle": "Thread",
   "replyCount": "Replies ({count})",
   "@replyCount": {

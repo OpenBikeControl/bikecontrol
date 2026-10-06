@@ -930,7 +930,7 @@
   "failedToOpenChat": "Impossible d'ouvrir le chat de support",
   "senderYou": "Toi",
   "senderAdmin": "Support",
-  "viewThread": "Créer un fil",
+  "viewThread": "Répondre",
   "threadTitle": "Fil",
   "replyCount": "Réponses ({count})",
   "@replyCount": {

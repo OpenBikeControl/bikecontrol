@@ -930,7 +930,7 @@
   "failedToOpenChat": "Nie udało się otworzyć czatu wsparcia",
   "senderYou": "Ty",
   "senderAdmin": "Wsparcie",
-  "viewThread": "Utwórz wątek",
+  "viewThread": "Odpowiedz",
   "threadTitle": "Wątek",
   "replyCount": "Odpowiedzi ({count})",
   "@replyCount": {
