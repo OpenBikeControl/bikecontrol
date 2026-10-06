@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 
@@ -53,9 +54,17 @@ class RideDetector {
   static const stopAfterDisconnect = Duration(minutes: 2);
 
   /// TUNABLE. A ride with less moving time AND less work than this is a
-  /// spin-up, not a ride: it is dropped without a word.
-  static const minMovingTime = Duration(minutes: 2);
+  /// spin-up, not a ride: it is dropped without a word. Debug builds keep
+  /// rides from 10 s, so one can be recorded at the desk (not under
+  /// `flutter test`, which also runs in debug mode).
+  static final minMovingTime = minMovingTimeFor(
+    shortDebugRides: kDebugMode && (kIsWeb || !Platform.environment.containsKey('FLUTTER_TEST')),
+  );
   static const minWorkKj = 10.0;
+
+  @visibleForTesting
+  static Duration minMovingTimeFor({required bool shortDebugRides}) =>
+      shortDebugRides ? const Duration(seconds: 10) : const Duration(minutes: 2);
 
   static bool isTooShort(WorkoutResult result) =>
       result.activeDuration < minMovingTime && result.summary.workKj < minWorkKj;

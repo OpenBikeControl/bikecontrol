@@ -303,6 +303,11 @@ void main() {
       // 100 s at 110 W = 11 kJ.
       expect(RideDetector.isTooShort(ride(const Duration(seconds: 100), 110)), isFalse);
     });
+
+    test('debug builds keep a ride from 10 s of pedalling, so one can be recorded at the desk', () {
+      expect(RideDetector.minMovingTimeFor(shortDebugRides: true), const Duration(seconds: 10));
+      expect(RideDetector.minMovingTimeFor(shortDebugRides: false), const Duration(minutes: 2));
+    });
   });
 
   test('a heart-rate strap alone never starts a ride', () {
