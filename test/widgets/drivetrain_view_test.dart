@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:bike_control/widgets/drivetrain/chain_geometry.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -126,4 +129,25 @@ void main() {
       expect(drawing(tester), box);
     });
   });
+
+  // The chainring is drawn left of the cassette, so pedalling forward turns
+  // everything counter-clockwise and the ring pulls the top run towards itself.
+  test('pedalling forward turns crank and cassette counter-clockwise, top run towards the ring', () {
+    final motion = DrivetrainMotion(front: 36, rear: 18, idle: 0);
+    addTearDown(motion.dispose);
+    motion.march(0.01, 90);
+
+    // canvas.rotate's positive angle is clockwise on screen (y points down),
+    // so a small counter-clockwise turn wraps to just under a full turn.
+    expect(motion.frontTurn, greaterThan(math.pi), reason: 'crank counter-clockwise');
+    expect(motion.rearTurn, greaterThan(math.pi), reason: 'cassette counter-clockwise');
+
+    // The chain path starts with the top run, drawn ring → cog (rightwards);
+    // a growing dash phase slides the links back along the path: leftwards.
+    final topRun = chainPath(36, 18).computeMetrics().first.getTangentForOffset(1)!.vector;
+    expect(topRun.dx, greaterThan(0));
+    expect(motion.chainPhase, lessThan(kChainPitch / 2), reason: 'phase grew a little from 0');
+    expect(motion.chainPhase, greaterThan(0));
+  });
 }
+

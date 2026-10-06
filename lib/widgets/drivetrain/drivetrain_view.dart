@@ -71,7 +71,7 @@ const double _pulseSeconds = 0.5;
 
 class DrivetrainViewState extends State<DrivetrainView> with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_onTick);
-  late final _Motion _motion = _Motion(front: _frontTarget, rear: _rearTarget, idle: _idleTarget);
+  late final DrivetrainMotion _motion = DrivetrainMotion(front: _frontTarget, rear: _rearTarget, idle: _idleTarget);
 
   /// The chainring's drawn radius right now, mid-ease included.
   @visibleForTesting
@@ -211,8 +211,9 @@ class DrivetrainViewState extends State<DrivetrainView> with SingleTickerProvide
 ///
 /// Kept out of the widget tree deliberately: the painter listens to this, so a
 /// marching chain repaints without rebuilding anything.
-class _Motion extends ChangeNotifier {
-  _Motion({required double front, required double rear, required double idle})
+@visibleForTesting
+class DrivetrainMotion extends ChangeNotifier {
+  DrivetrainMotion({required double front, required double rear, required double idle})
     : front = _Eased(front),
       rear = _Eased(rear),
       idle = _Eased(idle);
@@ -266,12 +267,16 @@ class _Motion extends ChangeNotifier {
   /// Winds the chain on by [dt] seconds of pedalling at [cadence] rpm. Both
   /// rings turn at the speed that much chain implies, which is what puts the
   /// cassette's spin and the crank's in true proportion.
+  ///
+  /// The ring is drawn left of the cassette, so pedalling forward turns
+  /// everything counter-clockwise (negative angles on screen) and the top run
+  /// travels towards the ring: back along the chain path, hence a growing phase.
   void march(double dt, int cadence) {
     final rFront = math.max(1.0, front.value);
     final travel = (math.max(20, cadence) / 60) * kTau * rFront * dt;
-    chainPhase = (chainPhase - travel) % kChainPitch;
-    frontTurn = (frontTurn + travel / rFront) % kTau;
-    rearTurn = (rearTurn + travel / math.max(4.0, rear.value)) % kTau;
+    chainPhase = (chainPhase + travel) % kChainPitch;
+    frontTurn = (frontTurn - travel / rFront) % kTau;
+    rearTurn = (rearTurn - travel / math.max(4.0, rear.value)) % kTau;
   }
 
   void notify() => notifyListeners();
@@ -334,7 +339,7 @@ class _DrivetrainPainter extends CustomPainter {
     // picture would keep the fallback glyphs it was first recorded with.
   }) : super(repaint: Listenable.merge([motion, PaintingBinding.instance.systemFonts]));
 
-  final _Motion motion;
+  final DrivetrainMotion motion;
   final int gear;
   final int gearCount;
   final bool frontShift;
