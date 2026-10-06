@@ -2279,6 +2279,8 @@
   "purchaseBaseDoneTitle": "You now have Base",
   "purchaseBaseDoneBody": "Unlimited button commands in your trainer app. Letting BikeControl shift your trainer itself stays limited to 20 min/day — that part is Pro.",
   "purchaseProDoneTitle": "Pro is active on your account",
+  "purchaseProSignInTitle": "Pro is active on this device",
+  "purchaseProSignInBody": "Sign in so Pro works on your other devices too. You can also do this later in Settings → Plan & account.",
   "purchaseProUnregisteredBody": "This device isn't registered yet, so Pro features stay off here.",
   "registerThisDevice": "Register this device",
   "proUnregisteredTitle": "Pro is on your account, not on this device",

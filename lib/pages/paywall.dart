@@ -61,11 +61,16 @@ enum PaywallConfirmation {
 
   /// The account's device limit kept Pro from reaching this device.
   proDeviceLimit,
+
+  /// Pro went through without an account: it stays on this device until the
+  /// rider signs in, which brings it to their other devices.
+  proSignIn,
 }
 
 /// Decides [PaywallConfirmation] from the IAP state before an attempt and
 /// now. Pure, so the cases can be pinned down without a store.
 /// [isBasePurchase] is true for the Base plan; false for Pro plans and restore.
+/// [isSignedIn] is whether a real account is signed in on this device.
 PaywallConfirmation? paywallConfirmationFor({
   required bool isBasePurchase,
   required bool wasPurchased,
@@ -74,12 +79,16 @@ PaywallConfirmation? paywallConfirmationFor({
   required bool isPro,
   required bool isProForDevice,
   bool deviceLimitReached = false,
+  bool isSignedIn = true,
 }) {
   // The device limit answered instead of an entitlement: nothing else will
   // tell the rider why Pro didn't turn on.
   if (!isBasePurchase && !wasPro && !isProForDevice && deviceLimitReached) {
     return PaywallConfirmation.proDeviceLimit;
   }
+  // Pro without an account lives on this device only, and registering needs
+  // an account: signing in is the next step either way.
+  if (!wasPro && isPro && !isSignedIn) return PaywallConfirmation.proSignIn;
   // Pro landing on the account outranks a Base receipt: the rider who now
   // has Pro should not be told Base's limits.
   if (!wasPro && isPro && !isProForDevice) return PaywallConfirmation.proUnregistered;
@@ -344,6 +353,7 @@ class _PaywallState extends State<Paywall> {
       isPro: _iapManager.isProEnabled,
       isProForDevice: _iapManager.isProEnabledForCurrentDevice,
       deviceLimitReached: _iapManager.entitlements.lastDeviceLimitError != null,
+      isSignedIn: _iapManager.isLoggedIn,
     );
     final rootContext = navigatorKey.currentContext;
     if (confirmation == null || rootContext == null || !rootContext.mounted) return;
@@ -352,6 +362,7 @@ class _PaywallState extends State<Paywall> {
       PaywallConfirmation.baseDone => showPurchaseBaseDoneDialog(rootContext),
       PaywallConfirmation.proUnregistered => showPurchaseProUnregisteredDialog(rootContext),
       PaywallConfirmation.proDeviceLimit => _showDeviceLimit(rootContext),
+      PaywallConfirmation.proSignIn => showPurchaseProSignInDialog(rootContext),
     });
   }
 

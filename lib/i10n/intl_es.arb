@@ -2102,6 +2102,8 @@
   "purchaseBaseDoneTitle": "Ya tienes Base",
   "purchaseBaseDoneBody": "Comandos de botones ilimitados en tu app de entrenamiento. Que BikeControl cambie las marchas de tu rodillo por sí mismo sigue limitado a 20 min/día; esa parte es Pro.",
   "purchaseProDoneTitle": "Pro está activo en tu cuenta",
+  "purchaseProSignInTitle": "Pro está activo en este dispositivo",
+  "purchaseProSignInBody": "Inicia sesión para que Pro también funcione en tus otros dispositivos. También puedes hacerlo más tarde en Ajustes → Plan y cuenta.",
   "purchaseProUnregisteredBody": "Este dispositivo aún no está registrado, así que las funciones Pro siguen desactivadas aquí.",
   "registerThisDevice": "Registrar este dispositivo",
   "proUnregisteredTitle": "Pro está en tu cuenta, no en este dispositivo",

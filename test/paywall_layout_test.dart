@@ -139,6 +139,7 @@ Future<void> main() async {
       bool isPro = false,
       bool isProForDevice = false,
       bool deviceLimitReached = false,
+      bool isSignedIn = true,
     }) => paywallConfirmationFor(
       isBasePurchase: basePurchase,
       wasPurchased: wasPurchased,
@@ -147,6 +148,7 @@ Future<void> main() async {
       isPro: isPro,
       isProForDevice: isProForDevice,
       deviceLimitReached: deviceLimitReached,
+      isSignedIn: isSignedIn,
     );
 
     // The store took the payment, but the account's device limit kept this
@@ -184,6 +186,26 @@ Future<void> main() async {
 
     test('Pro that was already on the account before the attempt is not news', () {
       expect(outcome(wasPurchased: true, wasPro: true, isPurchased: true, isPro: true), isNull);
+    });
+
+    // Store Pro bought without an account stays on this device only; the
+    // rider needs to hear that signing in brings it to their other devices.
+    test('Pro bought while signed out asks to sign in', () {
+      expect(
+        outcome(isPurchased: true, isPro: true, isProForDevice: true, isSignedIn: false),
+        PaywallConfirmation.proSignIn,
+      );
+      expect(
+        outcome(isPurchased: true, isPro: true, isSignedIn: false),
+        PaywallConfirmation.proSignIn,
+        reason: 'registering needs an account, so sign-in comes first',
+      );
+    });
+
+    test('signed out, Base or no new Pro asks nothing about signing in', () {
+      expect(outcome(basePurchase: true, isPurchased: true, isSignedIn: false), PaywallConfirmation.baseDone);
+      expect(outcome(wasPro: true, isPro: true, isProForDevice: true, isSignedIn: false), isNull);
+      expect(outcome(isSignedIn: false), isNull);
     });
 
     test('a Base attempt that turns out to unlock account Pro reports the Pro state, not Base', () {

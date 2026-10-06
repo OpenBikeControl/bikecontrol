@@ -2102,6 +2102,8 @@
   "purchaseBaseDoneTitle": "Tu as maintenant Base",
   "purchaseBaseDoneBody": "Commandes de boutons illimitées dans ton appli d'entraînement. Laisser BikeControl passer lui-même les vitesses de ton home trainer reste limité à 20 min/jour – cette partie est Pro.",
   "purchaseProDoneTitle": "Pro est actif sur ton compte",
+  "purchaseProSignInTitle": "Pro est actif sur cet appareil",
+  "purchaseProSignInBody": "Connecte-toi pour que Pro fonctionne aussi sur tes autres appareils. Tu peux aussi le faire plus tard dans Réglages → Offre et compte.",
   "purchaseProUnregisteredBody": "Cet appareil n'est pas encore enregistré, les fonctions Pro restent donc désactivées ici.",
   "registerThisDevice": "Enregistrer cet appareil",
   "proUnregisteredTitle": "Pro est sur ton compte, pas sur cet appareil",

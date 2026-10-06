@@ -2102,6 +2102,8 @@
   "purchaseBaseDoneTitle": "Ora hai Base",
   "purchaseBaseDoneBody": "Comandi dei pulsanti illimitati nella tua app di allenamento. Lasciare che BikeControl cambi da solo le marce del rullo resta limitato a 20 min/giorno: quella parte è Pro.",
   "purchaseProDoneTitle": "Pro è attivo sul tuo account",
+  "purchaseProSignInTitle": "Pro è attivo su questo dispositivo",
+  "purchaseProSignInBody": "Accedi perché Pro funzioni anche sugli altri tuoi dispositivi. Puoi farlo anche più tardi in Impostazioni → Piano e account.",
   "purchaseProUnregisteredBody": "Questo dispositivo non è ancora registrato, quindi le funzioni Pro restano disattivate qui.",
   "registerThisDevice": "Registra questo dispositivo",
   "proUnregisteredTitle": "Pro è sul tuo account, non su questo dispositivo",

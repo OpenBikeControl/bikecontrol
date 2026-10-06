@@ -2104,6 +2104,8 @@
   "purchaseBaseDoneTitle": "Du hast jetzt die Basis-Version",
   "purchaseBaseDoneBody": "Unbegrenzt viele Tastenbefehle in deiner Trainer-App. Dass BikeControl deinen Trainer selbst schaltet, bleibt auf 20 Min/Tag begrenzt – das ist Teil von Pro.",
   "purchaseProDoneTitle": "Pro ist auf deinem Konto aktiv",
+  "purchaseProSignInTitle": "Pro ist auf diesem Gerät aktiv",
+  "purchaseProSignInBody": "Melde dich an, damit Pro auch auf deinen anderen Geräten funktioniert. Das geht auch später unter Einstellungen → Plan & Konto.",
   "purchaseProUnregisteredBody": "Dieses Gerät ist noch nicht registriert, deshalb bleiben die Pro-Funktionen hier aus.",
   "registerThisDevice": "Dieses Gerät registrieren",
   "proUnregisteredTitle": "Pro ist auf deinem Konto, nicht auf diesem Gerät",
