@@ -19,13 +19,15 @@ enum TriggerConflictResolution {
 ///
 /// [title] replaces "Additional trigger assignment"; [offerPro] false leaves
 /// out Go Pro where Pro wouldn't resolve the conflict (replacing what a
-/// trigger already does).
+/// trigger already does). [removes] names, per trigger, the actions that
+/// Replace would delete (see [actionsRemovedByReplacing]).
 Future<TriggerConflictResolution?> showTriggerConflictDialog(
   BuildContext context,
   ButtonTrigger trigger, {
   String? hintText,
   String? title,
   bool? offerPro,
+  Map<ButtonTrigger, String> removes = const {},
 }) {
   return showDialog<TriggerConflictResolution>(
     context: context,
@@ -35,6 +37,7 @@ Future<TriggerConflictResolution?> showTriggerConflictDialog(
       hintText: hintText,
       title: title,
       offerPro: offerPro,
+      removes: removes,
       onResolved: (resolution) => Navigator.of(c).pop(resolution),
     ),
   );
@@ -49,6 +52,7 @@ Widget buildTriggerConflictDialog({
   String? hintText,
   String? title,
   bool? offerPro,
+  Map<ButtonTrigger, String> removes = const {},
   required void Function(TriggerConflictResolution? resolution) onResolved,
 }) {
   final showPro = offerPro ?? !IAPManager.instance.hasActiveSubscription;
@@ -64,8 +68,18 @@ Widget buildTriggerConflictDialog({
           Flexible(child: Text(title ?? AppLocalizations.of(context).additionalTriggerAssignment)),
         ],
       ),
-      content: Text(
-        hintText ?? AppLocalizations.of(context).anotherTriggerIsAlreadyAssignedForThisButton(trigger.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Text(
+            hintText ?? AppLocalizations.of(context).anotherTriggerIsAlreadyAssignedForThisButton(trigger.title),
+          ),
+          // Replace deletes these: say which, so nothing goes silently.
+          for (final MapEntry(key: removed, value: action) in removes.entries)
+            Text(AppLocalizations.of(context).triggerConflictRemoves(removed.title, action)).semiBold,
+        ],
       ),
       actions: [
         Column(
@@ -90,6 +104,25 @@ Widget buildTriggerConflictDialog({
       ],
     ),
   );
+}
+
+/// What [clearOtherTriggerAssignments] would delete on [button] when
+/// [keepTrigger] stays: each other trigger with an action, and that action as
+/// the rider knows it (its in-game name, or the key / command it sends).
+Map<ButtonTrigger, String> actionsRemovedByReplacing(
+  Keymap keymap,
+  ControllerButton button,
+  ButtonTrigger keepTrigger, {
+  Set<ButtonTrigger> except = const {},
+}) {
+  return {
+    for (final trigger in ButtonTrigger.values)
+      if (trigger != keepTrigger && !except.contains(trigger))
+        if (keymap.getKeyPair(button, trigger: trigger) case final kp? when !kp.hasNoAction)
+          trigger: kp.inGameAction != null
+              ? [kp.inGameAction!.title, if (kp.inGameActionValue != null) '${kp.inGameActionValue}'].join(': ')
+              : kp.toString(),
+  };
 }
 
 /// True when [button] has at least one assigned trigger other than [trigger]

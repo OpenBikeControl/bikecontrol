@@ -124,7 +124,7 @@
   "actAsBluetoothKeyboard": "Działa jako klawiatura Bluetooth",
   "action": "Działanie",
   "activity": "Działalność",
-  "additionalTriggerAssignment": "Dodatkowe przypisanie wyzwalacza",
+  "additionalTriggerAssignment": "Ten przycisk już coś robi",
   "adjustControllerButtons": "Dostosuj przyciski kontrolera",
   "afterDate": "Po {date}",
   "allow": "Zezwól",
@@ -138,7 +138,18 @@
   "alreadyBoughtTheAppPreviously": "Już wcześniej kupiłeś aplikację?",
   "androidAccessibilityHint": "Aby działał poprawnie, nawet gdy BikeControl działa w tle, należy włączyć „Uprawnienia dostępu” dla BikeControl. Można to zrobić, włączając metodę połączenia lokalnego.",
   "androidSystemAction": "Akcja systemu Android",
-  "anotherTriggerIsAlreadyAssignedForThisButton": "Do tego przycisku przypisano już inny wyzwalacz. Wybierz wersję Pro, aby zachować wiele typów wyzwalaczy, lub zastąp istniejące przypisanie wyzwalacza i kontynuuj {triggerTitle} .",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Bez Pro każdy przycisk robi jedną rzecz. Przejdź na Pro, aby używać na tym przycisku także: {triggerTitle}, albo zastąp to, co robi teraz.",
+  "triggerConflictRemoves": "{trigger}: {action} zostanie usunięte",
+  "@triggerConflictRemoves": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
   "appIdActions": "{appId} działania",
   "@appIdActions": {
     "placeholders": {

@@ -128,7 +128,12 @@ Future<Keymap?> resolveTriggerEdit(
 
   var clearOtherTriggers = false;
   if (askFirst && (!isPro || hintText != null) && shouldAsk) {
-    final resolution = await showTriggerConflictDialog(context, trigger, hintText: hintText);
+    final resolution = await showTriggerConflictDialog(
+      context,
+      trigger,
+      hintText: hintText,
+      removes: actionsRemovedByReplacing(keymap, button, trigger),
+    );
     if (!context.mounted || resolution == null) return null;
     if (resolution == TriggerConflictResolution.goPro) {
       await IAPManager.instance.purchaseSubscription(context);
@@ -227,7 +232,12 @@ Future<Keymap?> moveHoldActionToLongPress(
   final staying = mappingActiveTriggers(keymap, button).where((t) => t != from && t != to);
   var clearOthers = false;
   if (staying.isNotEmpty && !IAPManager.instance.hasActiveSubscription) {
-    final resolution = await showTriggerConflictDialog(context, to);
+    final resolution = await showTriggerConflictDialog(
+      context,
+      to,
+      // [from] moves onto the long press; only the others are lost.
+      removes: actionsRemovedByReplacing(keymap, button, to, except: {from}),
+    );
     if (!context.mounted || resolution == null) return null;
     if (resolution == TriggerConflictResolution.goPro) {
       await IAPManager.instance.purchaseSubscription(context);

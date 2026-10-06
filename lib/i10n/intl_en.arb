@@ -93,7 +93,7 @@
   "actAsBluetoothKeyboard": "Act as Bluetooth Keyboard",
   "action": "Action",
   "activity": "Activity",
-  "additionalTriggerAssignment": "Additional trigger assignment",
+  "additionalTriggerAssignment": "This button already does something",
   "adjustControllerButtons": "Adjust Controller Buttons",
   "afterDate": "After {date}",
   "allow": "Allow",
@@ -107,7 +107,18 @@
   "alreadyBoughtTheAppPreviously": "Already bought the app previously?",
   "androidAccessibilityHint": "For it to work properly, even when BikeControl is in the background, please enable the \"Accessibility Permission\" for BikeControl. You can do so by enabling the Local Connection Method.",
   "androidSystemAction": "Android System Action",
-  "anotherTriggerIsAlreadyAssignedForThisButton": "Another trigger is already assigned for this button. Go Pro to keep multiple trigger types, or replace the existing trigger assignment and continue with {triggerTitle}.",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Without Pro, each button does one thing. Go Pro to also use {triggerTitle} on this button, or replace what it does now.",
+  "triggerConflictRemoves": "{trigger}: {action} will be removed",
+  "@triggerConflictRemoves": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
   "appIdActions": "{appId} actions",
   "@appIdActions": {
     "placeholders": {

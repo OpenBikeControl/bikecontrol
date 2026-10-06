@@ -124,7 +124,7 @@
   "actAsBluetoothKeyboard": "Als Bluetooth-Tastatur fungieren",
   "action": "Aktion",
   "activity": "Aktivität",
-  "additionalTriggerAssignment": "Zusätzliche Zuweisung",
+  "additionalTriggerAssignment": "Diese Taste hat schon eine Aktion",
   "adjustControllerButtons": "Controller-Tasten anpassen",
   "afterDate": "Nach dem {date}",
   "allow": "Erlauben",
@@ -138,7 +138,18 @@
   "alreadyBoughtTheAppPreviously": "App zuvor bereits gekauft?",
   "androidAccessibilityHint": "Damit BikeControl auch im Hintergrund einwandfrei funktioniert, aktiviere die Bedienungshilfen-Zugriff für BikeControl, z.B. durch Aktivieren der Lokalen Verbindungsmethode.",
   "androidSystemAction": "Android-Systemaktion",
-  "anotherTriggerIsAlreadyAssignedForThisButton": "Für diese Schaltfläche ist bereits ein anderer Auslöser zugewiesen. Wechsel zur Pro-Version, um mehrere Auslösertypen zu verwenden, oder ersetze die bestehende Zuweisung und fahre fort mit {triggerTitle}.",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Ohne Pro hat jede Taste eine Aktion. Hol dir Pro, um auf dieser Taste zusätzlich {triggerTitle} zu nutzen, oder ersetze, was sie jetzt tut.",
+  "triggerConflictRemoves": "{trigger}: {action} wird entfernt",
+  "@triggerConflictRemoves": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
   "appIdActions": "{appId} Aktionen",
   "@appIdActions": {
     "placeholders": {

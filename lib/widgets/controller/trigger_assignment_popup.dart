@@ -143,7 +143,11 @@ Future<void> _openEditorForTrigger({
   bool clearOtherTriggers = false;
 
   if (!isPro && !hasAction && hasOtherAssignedTrigger) {
-    final resolution = await showTriggerConflictDialog(context, trigger);
+    final resolution = await showTriggerConflictDialog(
+      context,
+      trigger,
+      removes: actionsRemovedByReplacing(selectedKeymap, button, trigger),
+    );
     if (!context.mounted || resolution == null) return;
 
     if (resolution == TriggerConflictResolution.goPro) {
