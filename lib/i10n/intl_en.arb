@@ -775,7 +775,7 @@
   },
   "onboardingConnectionMethods": "Connection methods",
   "onboardingMethodNetwork": "Network",
-  "onboardingMethodNetworkDesc": "Enabled for {app} by default. Both devices need to be on the same Wi-Fi.",
+  "onboardingMethodNetworkDesc": "{app} finds BikeControl over your Wi-Fi — on two devices, keep both on the same network.",
   "@onboardingMethodNetworkDesc": {
     "placeholders": {
       "app": {
@@ -901,6 +901,7 @@
     }
   },
   "onboardingFinishSetup": "Finish setup",
+  "onboardingConnectionTurnOnMethod": "Turn on a connection method to continue.",
   "onboardingDoneTitle": "You're ready to ride",
   "onboardingYourController": "Your controller",
   "onboardingDoneSubtitle": "{controller} is connected to {app}.",

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bike_control/main.dart' show ConnectionType;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
@@ -88,7 +89,7 @@ Future<void> applyTrainerAppSelection(
   }
 }
 
-/// Applies the target selection, enabling OBP methods or local connection
+/// Applies the target selection, enabling the recommended network method or local connection
 /// as appropriate, and starting the enabled connection method.
 ///
 /// Shared by [ConfigurationPage] and the onboarding wizard.
@@ -99,6 +100,18 @@ Future<void> applyTargetSelection(Target target) async {
           core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpMdns) == true) &&
       !core.logic.emulatorEnabled) {
     core.settings.setObpMdnsEnabled(true);
+  }
+
+  // Zwift and Rouvy find BikeControl over the network too — the method the
+  // connection step recommends. Without it on, a first-time rider faces a
+  // greyed-out "Finish setup". An app on this device is driven by the Local
+  // method instead, where that exists.
+  final app = core.settings.getTrainerApp();
+  if (app != null &&
+      (app.supports(AppConnectionMethod.zwiftMdns) || app.supports(AppConnectionMethod.rouvyMdns)) &&
+      target.connectionType != ConnectionType.local &&
+      !core.logic.emulatorEnabled) {
+    core.settings.setZwiftMdnsEmulatorEnabled(true);
   }
 
   // enable local connection on Windows if the app doesn't support OBP

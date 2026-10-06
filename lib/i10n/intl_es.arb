@@ -1343,7 +1343,7 @@
   },
   "onboardingConnectionMethods": "Métodos de conexión",
   "onboardingMethodNetwork": "Red",
-  "onboardingMethodNetworkDesc": "Activado para {app} por defecto. Ambos dispositivos deben estar en el mismo wifi.",
+  "onboardingMethodNetworkDesc": "{app} encuentra BikeControl por tu wifi; con dos dispositivos, ambos deben estar en la misma red.",
   "@onboardingMethodNetworkDesc": {
     "placeholders": {
       "app": {
@@ -1469,6 +1469,7 @@
     }
   },
   "onboardingFinishSetup": "Finalizar configuración",
+  "onboardingConnectionTurnOnMethod": "Activa un método de conexión para continuar.",
   "onboardingDoneTitle": "Todo listo para rodar",
   "onboardingYourController": "Tu mando",
   "onboardingDoneSubtitle": "{controller} está conectado a {app}.",

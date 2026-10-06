@@ -406,6 +406,34 @@ Widget onboardingStepList(
   return BkGroupedSection(dividerIndent: BkGroupedSection.inset + 24 + BkGroupedRow.gap, children: rows);
 }
 
+/// The connection step's "Finish setup". A greyed-out button alone doesn't say
+/// why, so while no connection method is on a short line under it does.
+Widget onboardingConnectionFinishAction(
+  BuildContext context, {
+  required VoidCallback? onFinish,
+  required bool noConnectionMethod,
+}) {
+  final button = PrimaryButton(
+    alignment: Alignment.center,
+    onPressed: onFinish,
+    child: Text(context.i18n.onboardingFinishSetup),
+  );
+  if (!noConnectionMethod) return button;
+  // IntrinsicWidth: stretches to the footer's width on phones, and keeps the
+  // pair as wide as its widest line in the desktop footer's Row.
+  return IntrinsicWidth(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        button,
+        const Gap(6),
+        Text(context.i18n.onboardingConnectionTurnOnMethod, textAlign: TextAlign.center).xSmall.muted,
+      ],
+    ),
+  );
+}
+
 /// Rounds the footer's primary buttons into full-width pills and colours its
 /// ghost buttons (Back, "Set up later") as accent text.
 class _PillFooter extends StatelessWidget {
@@ -1042,16 +1070,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
         ),
     ],
     OnboardingStep.connection => [
-      PrimaryButton(
-        alignment: Alignment.center,
-        onPressed:
+      onboardingConnectionFinishAction(
+        context,
+        onFinish:
             onboardingConnectionCanFinish(
               hasNoConnectionMethod: core.logic.hasNoConnectionMethod,
               networkBlocking: _precheckGate.blocking,
             )
             ? _next
             : null,
-        child: Text(context.i18n.onboardingFinishSetup),
+        noConnectionMethod: core.logic.hasNoConnectionMethod,
       ),
     ],
     OnboardingStep.done => onboardingDoneFooter(
