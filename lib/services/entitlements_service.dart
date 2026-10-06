@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/entitlement.dart';
 import 'package:bike_control/services/device_identity_service.dart';
@@ -114,8 +115,7 @@ class EntitlementsService extends ChangeNotifier {
 
   Future<void> _refreshInternal() async {
     try {
-      final session = _supabase.auth.currentSession;
-      if (session == null) {
+      if (_supabase.auth.currentSession == null) {
         return;
       }
       final platform = await _deviceIdentityService.currentPlatform();
@@ -124,15 +124,28 @@ class EntitlementsService extends ChangeNotifier {
       }
       final deviceId = await _deviceIdentityService.getOrCreateDeviceId();
 
-      final response = await _supabase.functions.invoke(
+      // No explicit Authorization header: the client's AuthHttpClient attaches
+      // the session token and refreshes it first when it has expired. Passing
+      // `currentSession.accessToken` here overrode that and sent stale JWTs.
+      Future<FunctionResponse> invoke() => _supabase.functions.invoke(
         _entitlementsFunction,
         method: HttpMethod.get,
         headers: {
-          'Authorization': 'Bearer ${session.accessToken}',
           'X-Device-Platform': platform,
           'X-Device-Id': deviceId,
         },
       );
+
+      FunctionResponse response;
+      try {
+        response = await invoke();
+      } on FunctionException catch (error) {
+        if (error.status != 401) rethrow;
+        // Token rejected although it looked valid locally (clock skew,
+        // revoked): refresh once and retry once.
+        await _supabase.auth.refreshSession();
+        response = await invoke();
+      }
 
       final payload = response.data;
       Logger.debug('Entitlements response: $payload');
@@ -160,11 +173,9 @@ class EntitlementsService extends ChangeNotifier {
           return;
         }
       }
-      debugPrint('Failed to refresh entitlements: $error');
-      debugPrintStack(stackTrace: stackTrace);
+      recordError(error, stackTrace, context: 'entitlements.refresh');
     } catch (error, stackTrace) {
-      debugPrint('Failed to refresh entitlements: $error');
-      debugPrintStack(stackTrace: stackTrace);
+      recordError(error, stackTrace, context: 'entitlements.refresh');
     }
   }
 

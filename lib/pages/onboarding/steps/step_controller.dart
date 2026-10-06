@@ -8,8 +8,10 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
+import 'package:bike_control/pages/onboarding/zwift_controller_expectation.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
@@ -204,6 +206,7 @@ Widget onboardingControllerBody(
   required ControllerPhase phase,
   required List<BaseDevice> devices,
   required String appName,
+  SupportedApp? trainerApp,
   Map<String, ControllerButton> pressedButtons = const {},
   Map<String, int> pressGenerations = const {},
   Map<String, ValueListenable<ControllerPress>> presses = const {},
@@ -212,6 +215,7 @@ Widget onboardingControllerBody(
 }) {
   final reduceMotion = MediaQuery.of(context).disableAnimations;
   final anyConnected = devices.any((d) => d.isConnected);
+  final zwiftExpectation = zwiftControllerExpectation(devices: devices, app: trainerApp);
 
   switch (phase) {
     case ControllerPhase.permission:
@@ -337,6 +341,20 @@ Widget onboardingControllerBody(
                 onSetup: onSetupDevice == null ? null : () => onSetupDevice(d),
               ),
 
+          // A Zwift-made controller works best in Zwift. Say up front what it
+          // can do in the app the rider picked, so a button with nothing to do
+          // there doesn't read as a broken controller.
+          if (zwiftExpectation != null) ...[
+            Gap(4),
+            OnboardingNote(
+              zwiftExpectation.text(
+                context.i18n,
+                deviceName: zwiftExpectation.device.displayName(context),
+              ),
+            ),
+            Gap(8),
+          ],
+
           // Once a controller is connected the job is done — don't keep
           // suggesting the wizard is waiting for something.
           if (!anyConnected) ...[
@@ -350,7 +368,9 @@ Widget onboardingControllerBody(
               ],
             ),
           ],
-          if (anyConnected) ...[
+          // Only claim the buttons are mapped when there is a preset to map
+          // them onto — FulGaz takes no buttons, a custom app has no preset.
+          if (anyConnected && appHasButtonPreset(trainerApp)) ...[
             Gap(12),
             _infoRow(context, LucideIcons.lightbulb, context.i18n.onboardingControllerMapped(appName), ''),
           ],

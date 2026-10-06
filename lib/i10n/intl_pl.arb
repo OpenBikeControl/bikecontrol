@@ -668,7 +668,14 @@
   "unlockTheFullVersionOrGoPro": "Odblokuj wersję podstawową lub Go Pro",
   "unlock_bikecontrolAndZwiftNetwork": "BikeControl i Zwift muszą być podłączone do tej samej sieci lub urządzenia. Pojawienie się aplikacji może potrwać kilka sekund.",
   "unlock_confirmByPressingAButtonOnYourDevice": "Potwierdź, naciskając przycisk na swoim urządzeniu.",
-  "unlock_connectToBikecontrol": "Połącz się z „BikeControl”, np. jako źródło zasilania",
+  "unlock_connectToBikecontrol": "Połącz się z „{name}”, np. jako źródło mocy",
+  "@unlock_connectToBikecontrol": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unlock_deviceIsCurrentlyLocked": "Urządzenie jest obecnie zablokowane",
   "unlock_isnowunlocked": "{device} jest teraz odblokowany",
   "unlock_markAsUnlocked": "Oznacz jako odblokowane",
@@ -1971,6 +1978,7 @@
   "networkHintBonjourNsp": "Brakuje zaczepu resolvera Bonjour. Zainstaluj ponownie Bonjour — bez niego przycisk BikeControl w MyWhoosh nie zadziała.",
   "networkHintResolveFail": "Ten komputer nie mógł rozwiązać adresu BikeControl — dokładnie na tym kroku zawodzi aplikacja treningowa. W systemie Windows uszkodzona instalacja Bonjour może to powodować, nawet gdy usługa działa; pomaga czysta ponowna instalacja.",
   "supportDiagnosticsNotice": "Aby pomóc rozwiązać twój problem, ten czat dołącza zrzut ekranu BikeControl i dane diagnostyczne. Możesz je sprawdzić lub usunąć przed wysłaniem.",
+  "supportRetentionNotice": "Rozmowy są automatycznie usuwane 30 dni po ostatniej wiadomości. Zanonimizowane dane trenażera (model, firmware, wyniki testów) przechowujemy, aby poprawiać kompatybilność.",
   "supportDeleteConversation": "Usuń rozmowę",
   "supportDeleteAccount": "Usuń konto i wszystkie dane",
   "supportDeleteConversationTitle": "Usunąć rozmowę?",
@@ -2247,6 +2255,70 @@
   "onboardingTrialKeepVs": "Aby zachować wirtualną zmianę biegów: Pro",
   "onboardingTrialUnlimited": "Nielimitowane komendy: Base lub Pro",
   "onboardingSkipControllerNote": "Bez kontrolera BikeControl nie może zmieniać biegów. Możesz sparować go później na ekranie głównym.",
+  "onboardingZwiftNoteZwift": "Zwift obsługuje Twój {device} natywnie – do jazdy nie potrzebujesz BikeControl. BikeControl nadal się przyda, jeśli chcesz zmienić przypisanie przycisków, dodać akcje, których Zwift nie przypisuje, zwolnić miejsce na połączenie Bluetooth lub bezpośrednio sterować wirtualną zmianą biegów.",
+  "@onboardingZwiftNoteZwift": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteOfficial": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. {app} jest oficjalnie obsługiwany przez BikeControl: zmiana biegów i główne funkcje działają, ale kilka przycisków nie ma odpowiednika w {app}. BikeControl przypisuje wszystko, co obsługuje {app}.",
+  "@onboardingZwiftNoteOfficial": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteActions": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. {app} oferuje tylko kilka funkcji, które BikeControl może wywołać: {actions}. Pozostałe przyciski nie mają w {app} nic do zrobienia – ale wszystkie funkcje dostępne w {app} obsłużysz urządzeniem {device}.",
+  "@onboardingZwiftNoteActions": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      },
+      "actions": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteAppDefined": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. Każda aplikacja {app} sama decyduje, jakie funkcje przyjmuje, więc niektóre przyciski mogą nie mieć tam nic do zrobienia. BikeControl przypisuje wszystko, co oferuje aplikacja.",
+  "@onboardingZwiftNoteAppDefined": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteCustom": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. BikeControl nie ma gotowego ustawienia dla twojej aplikacji treningowej, więc sam wybierasz, co robi każdy przycisk – na przykład skrót klawiszowy lub dotknięcie ekranu.",
+  "@onboardingZwiftNoteCustom": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteNoInput": "{device} został zaprojektowany dla Zwift, więc tam działa najlepiej. {app} nie przyjmuje sygnałów z przycisków, więc nie mają tam czym sterować. BikeControl może jednak używać ich do własnej wirtualnej zmiany biegów.",
+  "@onboardingZwiftNoteNoInput": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsProNote": "Wirtualna zmiana biegów BikeControl jest częścią Pro. Bez Pro masz codziennie {minutes} minut okresu próbnego; Base jej nie obejmuje.",
   "onboardingStillNotConnected": "Nadal brak połączenia? Sprawdź sieć",
   "paywall_vsByBikeControl": "Wirtualna zmiana biegów BikeControl (każdy trenażer, własne biegi)",
   "paywall_shareSensors": "Udostępniaj tętno i czujniki aplikacji treningowej",
