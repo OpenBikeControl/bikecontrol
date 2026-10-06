@@ -60,7 +60,7 @@ Future<void> main() async {
   Future<void> pump(
     WidgetTester tester,
     PastWorkout ride, {
-    Size size = const Size(390, 1800),
+    Size size = const Size(390, 2800),
     bool popovers = false,
   }) async {
     tester.view.physicalSize = size;
@@ -223,6 +223,117 @@ Future<void> main() async {
     expect(item.top - more.bottom, lessThan(40), reason: 'right below it');
     expect(item.right, greaterThan(more.left), reason: 'under the button, not across the page');
     expect(item.left, lessThan(more.right));
+  });
+
+  group('cadence, gears and zones', () {
+    Finder card(String key) => find.byKey(ValueKey(key));
+
+    testWidgets('scrubbing the chart reads out cadence and the gear too', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      final chart = tester.getRect(find.byType(RideChartView));
+      final gesture = await tester.startGesture(chart.center);
+      await tester.pump();
+      expect(find.text(' rpm'), findsOneWidget);
+      expect(find.byKey(const ValueKey('ride-chart-tooltip-gear')), findsOneWidget);
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('time in each gear ridden, from the lowest gear up', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      expect(card('ride-details-gears'), findsOneWidget);
+      final rows = [for (var g = 9; g <= 13; g++) find.byKey(ValueKey('ride-gear-$g'))];
+      for (final row in rows) {
+        expect(row, findsOneWidget);
+      }
+      expect(find.byKey(const ValueKey('ride-gear-8')), findsNothing, reason: 'never ridden');
+      expect(tester.getTopLeft(rows.first).dy, lessThan(tester.getTopLeft(rows.last).dy));
+    });
+
+    testWidgets('a ride without virtual shifting has no gear time', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository, gearChanges: null);
+      await pump(tester, ride);
+
+      expect(card('ride-details-gears'), findsNothing);
+      final chart = tester.getRect(find.byType(RideChartView));
+      final gesture = await tester.startGesture(chart.center);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('ride-chart-tooltip-gear')), findsNothing);
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('without FTP or max heart rate: one quiet line each, no zones', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      expect(card('ride-details-power-zones'), findsNothing);
+      expect(card('ride-details-heart-rate-zones'), findsNothing);
+      expect(find.text(l10n.ridesSetFtpForZones), findsOneWidget);
+      expect(find.text(l10n.ridesSetMaxHeartRateForZones), findsOneWidget);
+    });
+
+    testWidgets('setting the FTP from the line shows the seven power zones at once', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      await tester.ensureVisible(find.text(l10n.ridesSetFtpForZones));
+      await tester.tap(find.text(l10n.ridesSetFtpForZones));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '200');
+      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      await tester.pumpAndSettle();
+
+      expect(rig.prefs.ftpWatts, 200);
+      expect(card('ride-details-power-zones'), findsOneWidget);
+      expect(find.text(l10n.ridesSetFtpForZones), findsNothing);
+      for (var z = 1; z <= 7; z++) {
+        expect(find.byKey(ValueKey('ride-power-zone-$z')), findsOneWidget);
+      }
+    });
+
+    testWidgets('both set: power and heart rate zones, recomputed when the FTP changes', (tester) async {
+      final rig = await RideRig.install(
+        store: null,
+        prefs: {'rides_ftp_watts': 200, 'rides_max_heart_rate_bpm': 190},
+      );
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      expect(card('ride-details-power-zones'), findsOneWidget);
+      expect(card('ride-details-heart-rate-zones'), findsOneWidget);
+      for (var z = 1; z <= 5; z++) {
+        expect(find.byKey(ValueKey('ride-heart-rate-zone-$z')), findsOneWidget);
+      }
+      String z7() => tester
+          .widgetList<Text>(
+            find.descendant(of: find.byKey(const ValueKey('ride-power-zone-7')), matching: find.byType(Text)),
+          )
+          .map((t) => t.data)
+          .join(' ');
+      final before = z7();
+      await rig.prefs.setFtpWatts(140); // everything above 210 W is now Neuromuscular
+      await tester.pumpAndSettle();
+      expect(z7(), isNot(before));
+    });
+
+    testWidgets('no heart rate: no heart rate zones and no line asking for max', (tester) async {
+      final rig = await RideRig.install(store: null, prefs: {'rides_max_heart_rate_bpm': 190});
+      final ride = await saveSampleRide(rig.repository, heartRate: false);
+      await pump(tester, ride);
+
+      expect(card('ride-details-heart-rate-zones'), findsNothing);
+      expect(find.text(l10n.ridesSetMaxHeartRateForZones), findsNothing);
+    });
   });
 
   group('platform share', () {

@@ -9,6 +9,8 @@ import 'package:bike_control/services/workout/workout_summary.dart';
 
 /// A believable ride (the mock's: 42:18 moving, a 1:44 pause, Ø ≈ 212 W),
 /// saved into [repo] with its .fit so exports can read the series back.
+/// With [gearChanges] it was ridden with virtual shifting: every second has
+/// a gear, from 9 up to 13 and down again every few minutes.
 Future<PastWorkout> saveSampleRide(
   MemoryWorkoutRepository repo, {
   DateTime? start,
@@ -44,6 +46,7 @@ Future<PastWorkout> saveSampleRide(
         cadenceRpm: 84 + rnd.nextInt(8),
         speedKph: speed ? 34 + w / 40 : null,
         heartRateBpm: heartRate ? math.min(176, hr.round()) : null,
+        gear: gearChanges == null ? null : 9 + (m ~/ 3) % 5,
       ),
     );
   }

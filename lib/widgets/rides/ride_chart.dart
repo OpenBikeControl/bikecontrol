@@ -6,13 +6,14 @@ import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// Power and heart rate as two stacked strips on one time axis — no dual
-/// axis — with pauses hatched across both and the lines broken there. Power
+/// Power and heart rate as stacked strips on one time axis — no dual axis —
+/// with pauses hatched across all of them and the lines broken there. Power
 /// in the brand accent, heart rate in secondary ink (red means error here).
 ///
 /// [compact] is the summary card's strip pair; the full chart on Details adds
-/// value ticks, the dashed average, the time axis and a scrub (hover, or
-/// press and drag) that reads out both series at a moment.
+/// cadence and (with virtual shifting) the gear as a step line, value ticks,
+/// the dashed average, the time axis and a scrub (hover, or press and drag)
+/// that reads out every series at a moment.
 class RideChartView extends StatefulWidget {
   const RideChartView({super.key, required this.summary, this.compact = false});
 
@@ -32,7 +33,7 @@ class _RideChartViewState extends State<RideChartView> {
   void _scrubAt(Offset local, Size size, _Geometry g) {
     final chart = _chart;
     if (chart == null) return;
-    final count = math.max(chart.power.length, chart.heartRate.length);
+    final count = _Geometry.countOf(chart);
     if (count == 0) return;
     final t = ((local.dx - g.left) / g.width).clamp(0.0, 1.0);
     final i = (t * (count - 1)).round();
@@ -42,7 +43,7 @@ class _RideChartViewState extends State<RideChartView> {
   @override
   Widget build(BuildContext context) {
     final chart = _chart;
-    if (chart == null || (!chart.hasPower && !chart.hasHeartRate)) return const SizedBox.shrink();
+    if (chart == null || !_Geometry.hasStrips(chart, compact: widget.compact)) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
     // A painter has no DefaultTextStyle: give its text the app's family.
@@ -52,6 +53,7 @@ class _RideChartViewState extends State<RideChartView> {
     final style = _ChartStyle(
       accent: cs.primary,
       heart: cs.mutedForeground,
+      cadence: cs.foreground.withValues(alpha: 0.7),
       grid: cs.border,
       ink: cs.foreground,
       muted: cs.mutedForeground,
@@ -64,6 +66,8 @@ class _RideChartViewState extends State<RideChartView> {
     final labels = _Labels(
       power: l10n.sensorQuantityPower,
       heart: l10n.sensorQuantityHeartRate,
+      cadence: l10n.sensorQuantityCadence,
+      gear: l10n.ridesGear,
       heartUnit: widget.compact && hrAvg > 0 ? 'Ø $hrAvg bpm' : 'bpm',
       pause: l10n.ridesPause,
       minutes: 'min',
@@ -111,8 +115,11 @@ class _RideChartViewState extends State<RideChartView> {
 
   Widget _tooltip(BuildContext context, RideChart chart, _Geometry g, int i, AppLocalizations l10n) {
     final cs = Theme.of(context).colorScheme;
-    final p = i < chart.power.length ? chart.power[i] : null;
-    final h = i < chart.heartRate.length ? chart.heartRate[i] : null;
+    int? at(List<int?> values) => i < values.length ? values[i] : null;
+    final p = at(chart.power);
+    final h = at(chart.heartRate);
+    final c = at(chart.cadence);
+    final gear = at(chart.gear);
     final x = g.xAt(i);
     final bold = context.typography.xSmall.copyWith(
       fontWeight: FontWeight.w600,
@@ -121,7 +128,7 @@ class _RideChartViewState extends State<RideChartView> {
     );
     final muted = context.typography.xSmall.copyWith(color: cs.mutedForeground);
     Widget key(Color c) => Container(width: 8, height: 2, margin: const EdgeInsets.only(right: 5), color: c);
-    final paused = p == null && h == null;
+    final paused = p == null && h == null && c == null;
     return Positioned(
       left: math.min(math.max(0, x + 10), g.left + g.width - 96),
       top: 0,
@@ -157,6 +164,24 @@ class _RideChartViewState extends State<RideChartView> {
                     Text(' bpm', style: muted),
                   ],
                 ),
+              if (c != null && g.cadenceTop != null)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    key(cs.foreground.withValues(alpha: 0.7)),
+                    Text('$c', style: bold),
+                    Text(' rpm', style: muted),
+                  ],
+                ),
+              if (gear != null && !paused && g.gearTop != null)
+                Row(
+                  key: const ValueKey('ride-chart-tooltip-gear'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    key(cs.primary),
+                    Text(l10n.gearNumber(gear), style: bold),
+                  ],
+                ),
             ],
           ),
         ),
@@ -169,6 +194,7 @@ class _ChartStyle {
   const _ChartStyle({
     required this.accent,
     required this.heart,
+    required this.cadence,
     required this.grid,
     required this.ink,
     required this.muted,
@@ -178,7 +204,7 @@ class _ChartStyle {
     required this.tick,
   });
 
-  final Color accent, heart, grid, ink, muted, card;
+  final Color accent, heart, cadence, grid, ink, muted, card;
   final TextStyle label, unit, tick;
 }
 
@@ -186,13 +212,15 @@ class _Labels {
   const _Labels({
     required this.power,
     required this.heart,
+    required this.cadence,
+    required this.gear,
     required this.heartUnit,
     required this.pause,
     required this.minutes,
     required this.avg,
   });
 
-  final String power, heart, heartUnit, pause, minutes;
+  final String power, heart, cadence, gear, heartUnit, pause, minutes;
   final String? avg;
 }
 
@@ -206,27 +234,52 @@ class _Geometry {
     required this.powerHeight,
     required this.heartTop,
     required this.heartHeight,
+    required this.cadenceTop,
+    required this.cadenceHeight,
+    required this.gearTop,
+    required this.gearHeight,
+    required this.plotBottom,
     required this.height,
     required this.powerMax,
     required this.heartMin,
     required this.heartMax,
+    required this.cadenceMax,
+    required this.gearMin,
+    required this.gearMax,
     required this.axisY,
   });
 
   final double left, width;
   final int count;
   final double? powerTop, powerHeight, heartTop, heartHeight;
+
+  /// Cadence and gear: the full chart only.
+  final double? cadenceTop, cadenceHeight, gearTop, gearHeight;
+
+  /// Where the last strip ends.
+  final double plotBottom;
   final double height;
   final double powerMax, heartMin, heartMax;
+  final double cadenceMin = 0, cadenceMax;
+  final int gearMin, gearMax;
   final double? axisY;
 
   double xAt(int i) => left + (count <= 1 ? 0 : i / (count - 1) * width);
 
   double xAtSeconds(int s, int step) => left + (count <= 1 ? 0 : (s / step) / (count - 1) * width).clamp(0, width);
 
+  static int countOf(RideChart chart) =>
+      [chart.power.length, chart.heartRate.length, chart.cadence.length, chart.gear.length].reduce(math.max);
+
+  /// Whether there is anything to draw: the compact strip pair shows power
+  /// and heart rate only.
+  static bool hasStrips(RideChart chart, {required bool compact}) =>
+      chart.hasPower || chart.hasHeartRate || (!compact && (chart.hasCadence || chart.hasGear));
+
   static _Geometry of(RideChart chart, {required double width, required bool compact, required TextStyle tick}) {
-    final count = math.max(chart.power.length, chart.heartRate.length);
+    final count = countOf(chart);
     final hasP = chart.hasPower, hasH = chart.hasHeartRate;
+    final hasC = !compact && chart.hasCadence, hasG = !compact && chart.hasGear;
     final peak = chart.power.whereType<int>().fold<int>(0, math.max);
     final powerMax = compact ? math.max(peak * 1.05, 100.0) : (math.max(peak, 100) / 100).ceil() * 100.0;
     final hrs = chart.heartRate.whereType<int>().where((v) => v > 0);
@@ -234,11 +287,19 @@ class _Geometry {
     final hrHi = hrs.isEmpty ? 180 : hrs.reduce(math.max);
     final heartMin = compact ? hrLo - 5.0 : ((hrLo - 5) / 20).floor() * 20.0;
     final heartMax = compact ? hrHi + 5.0 : math.max(heartMin + 40, ((hrHi + 5) / 20).ceil() * 20.0);
+    // Cadence from 0, so coasting reads as the drop it is.
+    final cadenceMax = (math.max(chart.cadence.whereType<int>().fold<int>(0, math.max), 60) / 30).ceil() * 30.0;
+    final gears = chart.gear.whereType<int>();
+    final gearLo = gears.isEmpty ? 1 : gears.reduce(math.min);
+    final gearHi = gears.isEmpty ? 1 : gears.reduce(math.max);
+    // A ride in one gear still gets a strip with room above and below.
+    final gearMin = gearHi > gearLo ? gearLo : gearLo - 1;
+    final gearMax = gearHi > gearLo ? gearHi : gearHi + 1;
     final labelH = (tick.fontSize ?? 11) + 8;
     final left = compact ? 0.0 : 30.0;
     final plotW = width - left - (compact ? 0 : 4);
     double y = compact ? labelH + 2 : labelH + 6;
-    double? pTop, pH, hTop, hH;
+    double? pTop, pH, hTop, hH, cTop, cH, gTop, gH;
     if (hasP) {
       pTop = y;
       pH = compact ? 40 : 96;
@@ -250,6 +311,22 @@ class _Geometry {
       hH = compact ? 22 : 58;
       y += hH;
     }
+    if (hasC) {
+      if (hasP || hasH) y += 14;
+      y += labelH;
+      cTop = y;
+      cH = 48;
+      y += cH;
+    }
+    if (hasG) {
+      if (hasP || hasH || hasC) y += 14;
+      y += labelH;
+      gTop = y;
+      gH = 48;
+      // Room under the lowest gear, so it never reads as the time axis.
+      y += gH + 6;
+    }
+    final plotBottom = y;
     double? axis;
     if (!compact) {
       axis = y;
@@ -265,10 +342,18 @@ class _Geometry {
       powerHeight: pH,
       heartTop: hTop,
       heartHeight: hH,
+      cadenceTop: cTop,
+      cadenceHeight: cH,
+      gearTop: gTop,
+      gearHeight: gH,
+      plotBottom: plotBottom,
       height: y,
       powerMax: powerMax,
       heartMin: heartMin,
       heartMax: heartMax,
+      cadenceMax: cadenceMax,
+      gearMin: gearMin,
+      gearMax: gearMax,
       axisY: axis,
     );
   }
@@ -312,8 +397,8 @@ class _RideChartPainter extends CustomPainter {
     final grid = Paint()
       ..color = style.grid
       ..strokeWidth = 1;
-    final top = g.powerTop ?? g.heartTop ?? 0;
-    final bottom = (g.heartTop != null ? g.heartTop! + g.heartHeight! : g.powerTop! + g.powerHeight!);
+    final top = g.powerTop ?? g.heartTop ?? g.cadenceTop ?? g.gearTop ?? 0;
+    final bottom = g.plotBottom;
 
     // Pauses: a hatched column across both strips.
     for (final (start, end) in chart.pauses) {
@@ -396,6 +481,34 @@ class _RideChartPainter extends CustomPainter {
       );
     }
 
+    if (g.cadenceTop case final cTop?) {
+      final cH = g.cadenceHeight!;
+      double y(num v) => _cadenceY(v, cTop, cH);
+      for (final v in [0, g.cadenceMax / 2, g.cadenceMax]) {
+        canvas.drawLine(Offset(g.left, y(v)), Offset(g.left + g.width, y(v)), grid);
+        _text(canvas, '${v.round()}', style.tick, Offset(g.left - 6, y(v) + 5), align: TextAlign.right);
+      }
+      _series(canvas, chart.cadence, y, baseline: cTop + cH, color: style.cadence, fill: false);
+      _text(
+        canvas,
+        labels.cadence,
+        style.label,
+        Offset(g.left, cTop - 8),
+        tail: TextSpan(text: ' · rpm', style: style.unit),
+      );
+    }
+
+    if (g.gearTop case final gTop?) {
+      final gH = g.gearHeight!;
+      double y(num v) => _gearY(v, gTop, gH);
+      for (final v in {g.gearMin, g.gearMax}) {
+        canvas.drawLine(Offset(g.left, y(v)), Offset(g.left + g.width, y(v)), grid);
+        _text(canvas, '$v', style.tick, Offset(g.left - 6, y(v) + 5), align: TextAlign.right);
+      }
+      _steps(canvas, chart.gear, y, color: style.accent);
+      _text(canvas, labels.gear, style.label, Offset(g.left, gTop - 8));
+    }
+
     if (g.axisY case final axis?) {
       canvas.drawLine(
         Offset(g.left, axis),
@@ -452,7 +565,53 @@ class _RideChartPainter extends CustomPainter {
           style.heart,
         );
       }
+      if (g.cadenceTop case final cTop?) {
+        final c = i < chart.cadence.length ? chart.cadence[i] : null;
+        dot(c?.toDouble(), (v) => _cadenceY(v, cTop, g.cadenceHeight!), style.cadence);
+      }
+      if (g.gearTop case final gTop?) {
+        final gear = i < chart.gear.length ? chart.gear[i] : null;
+        dot(gear?.toDouble(), (v) => _gearY(v, gTop, g.gearHeight!), style.accent);
+      }
     }
+  }
+
+  double _cadenceY(num v, double top, double height) =>
+      top + height - ((v - geometry.cadenceMin) / (geometry.cadenceMax - geometry.cadenceMin)).clamp(0, 1) * height;
+
+  double _gearY(num v, double top, double height) =>
+      top + height - ((v - geometry.gearMin) / (geometry.gearMax - geometry.gearMin)).clamp(0, 1) * height;
+
+  /// The gear as a step line: level while held, straight up or down at a
+  /// shift, broken where there is no gear (a pause).
+  void _steps(Canvas canvas, List<int?> values, double Function(num) y, {required Color color}) {
+    final g = geometry;
+    final path = Path();
+    int? last;
+    for (var i = 0; i < values.length; i++) {
+      final v = values[i];
+      final x = g.xAt(i);
+      if (v == null) {
+        last = null;
+        continue;
+      }
+      if (last == null) {
+        path.moveTo(x, y(v));
+      } else {
+        path
+          ..lineTo(x, y(last))
+          ..lineTo(x, y(v));
+      }
+      last = v;
+    }
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.75
+        ..strokeJoin = StrokeJoin.miter,
+    );
   }
 
   void _series(

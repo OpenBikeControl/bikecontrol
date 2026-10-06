@@ -6,9 +6,11 @@ import 'package:bike_control/services/workout/past_workout.dart';
 import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/main.dart' show navigatorKey, recordError;
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/rides/ride_breakdown.dart';
 import 'package:bike_control/widgets/rides/ride_chart.dart';
 import 'package:bike_control/widgets/rides/ride_export.dart';
 import 'package:bike_control/widgets/rides/ride_stats.dart';
+import 'package:bike_control/widgets/rides/ride_zone_settings.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
@@ -21,8 +23,10 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// One ride: when, its values, power and heart rate over time, and the ways
-/// it leaves BikeControl. Delete sits in the ⋯ menu, not under Export.
+/// One ride: when, its values, power, heart rate, cadence and gear over
+/// time, time in each gear, power and heart rate zones (once FTP / max heart
+/// rate are set), and the ways it leaves BikeControl. Delete sits in the ⋯
+/// menu, not under Export.
 class RideDetailsPage extends StatefulWidget {
   const RideDetailsPage({super.key, required this.ride});
 
@@ -145,7 +149,8 @@ class _RideDetailsPageState extends State<RideDetailsPage> {
                   child: BkGroupedHeader(l10n.ridesValues),
                 ),
                 RideStatGrid(summary: summary),
-                if (summary.chart != null && (summary.chart!.hasPower || summary.chart!.hasHeartRate)) ...[
+                if (summary.chart case final chart?
+                    when chart.hasPower || chart.hasHeartRate || chart.hasCadence || chart.hasGear) ...[
                   const Gap(24),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 6),
@@ -168,6 +173,8 @@ class _RideDetailsPageState extends State<RideDetailsPage> {
                       style: context.typography.caption.copyWith(color: cs.mutedForeground),
                     ),
                   ),
+                  if (chart.hasGear) ...[const Gap(24), RideGearTime(chart: chart)],
+                  _zones(context, l10n, chart),
                 ],
                 const Gap(24),
               ],
@@ -182,6 +189,41 @@ class _RideDetailsPageState extends State<RideDetailsPage> {
       ),
     );
   }
+}
+
+/// Power and heart rate zones, for the series the ride has: the zones once
+/// the FTP / max heart rate is set (redrawn when it changes), else one quiet
+/// line that opens the setting.
+Widget _zones(BuildContext context, AppLocalizations l10n, RideChart chart) {
+  final prefs = core.rides.prefs;
+  return ListenableBuilder(
+    listenable: prefs,
+    builder: (context, _) {
+      final ftp = prefs.ftpWatts;
+      final maxHr = prefs.maxHeartRateBpm;
+      final prompts = [
+        if (chart.hasPower && ftp == null)
+          RideZonePrompt(label: l10n.ridesSetFtpForZones, onPressed: () => editFtp(context)),
+        if (chart.hasHeartRate && maxHr == null)
+          RideZonePrompt(label: l10n.ridesSetMaxHeartRateForZones, onPressed: () => editMaxHeartRate(context)),
+      ];
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (chart.hasPower && ftp != null) ...[
+            const Gap(24),
+            RidePowerZones(chart: chart, ftpWatts: ftp, onEdit: () => editFtp(context)),
+          ],
+          if (chart.hasHeartRate && maxHr != null) ...[
+            const Gap(24),
+            RideHeartRateZones(chart: chart, maxHeartRateBpm: maxHr, onEdit: () => editMaxHeartRate(context)),
+          ],
+          if (prompts.isNotEmpty) ...[const Gap(16), ...prompts],
+        ],
+      );
+    },
+  );
 }
 
 /// "Fahrt löschen?": true when the rider confirmed. Says that what is
