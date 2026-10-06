@@ -1939,7 +1939,7 @@
   "networkFixOpenFirewallSettings": "Firewall-Einstellungen öffnen",
   "networkFixOpenBonjourDownload": "Apple Bonjour herunterladen",
   "networkFixOpenLocalNetworkSettings": "Einstellungen öffnen",
-  "networkFixFailed": "Das hat nicht funktioniert — Details findest du in den Protokollen.",
+  "networkFixFailed": "Das hat nicht funktioniert. Versuch es noch einmal oder melde dich beim Support: Hilfe-Center → Sag uns, was nicht stimmt.",
   "networkFixRefusedConnected": "Nicht, solange {app} verbunden ist.",
   "@networkFixRefusedConnected": {
     "placeholders": {

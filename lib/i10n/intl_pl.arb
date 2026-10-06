@@ -1927,7 +1927,7 @@
   "networkFixOpenFirewallSettings": "Otwórz ustawienia zapory",
   "networkFixOpenBonjourDownload": "Pobierz Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Otwórz ustawienia",
-  "networkFixFailed": "To nie zadziałało — szczegóły znajdziesz w dziennikach.",
+  "networkFixFailed": "To nie zadziałało. Spróbuj ponownie albo napisz do pomocy technicznej: Centrum pomocy → Powiedz nam, co jest nie tak.",
   "networkFixRefusedConnected": "Nie, dopóki trwa połączenie z {app}.",
   "@networkFixRefusedConnected": {
     "placeholders": {

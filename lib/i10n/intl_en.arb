@@ -2117,7 +2117,7 @@
   "networkFixOpenFirewallSettings": "Open firewall settings",
   "networkFixOpenBonjourDownload": "Get Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Open settings",
-  "networkFixFailed": "That didn't work — see the logs for details.",
+  "networkFixFailed": "That didn't work. Try again, or contact support: Help Center → Tell us what's wrong.",
   "networkFixRefusedConnected": "Not while {app} is connected.",
   "@networkFixRefusedConnected": { "placeholders": { "app": { "type": "String" } } },
   "networkFixRefusedConnectedNoApp": "Not while the trainer app is connected.",

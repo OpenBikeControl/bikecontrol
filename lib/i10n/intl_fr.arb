@@ -1927,7 +1927,7 @@
   "networkFixOpenFirewallSettings": "Ouvrir les réglages du pare-feu",
   "networkFixOpenBonjourDownload": "Obtenir Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Ouvrir les réglages",
-  "networkFixFailed": "Ça n'a pas marché — consulte les journaux pour les détails.",
+  "networkFixFailed": "Ça n'a pas marché. Réessaie, ou contacte le support : Centre d'aide → Dis-nous ce qui ne va pas.",
   "networkFixRefusedConnected": "Pas tant que {app} est connecté.",
   "@networkFixRefusedConnected": {
     "placeholders": {

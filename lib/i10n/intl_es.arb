@@ -1927,7 +1927,7 @@
   "networkFixOpenFirewallSettings": "Abrir la configuración del firewall",
   "networkFixOpenBonjourDownload": "Obtener Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Abrir ajustes",
-  "networkFixFailed": "No funcionó: consulta los registros para más detalles.",
+  "networkFixFailed": "No funcionó. Inténtalo de nuevo o contacta con soporte: Centro de ayuda → Cuéntanos qué falla.",
   "networkFixRefusedConnected": "No mientras {app} esté conectado.",
   "@networkFixRefusedConnected": {
     "placeholders": {
