@@ -16,6 +16,7 @@ import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The ways a ride leaves BikeControl, no Pro: the Health store (Apple
@@ -50,6 +51,7 @@ class RideExportActions {
       }
     } catch (e, s) {
       await recordError(e, s, context: 'RideExport.share');
+      _failed();
     }
   }
 
@@ -63,10 +65,15 @@ class RideExportActions {
       onChanged?.call(await core.rides.markFitExported(ride));
     } catch (e, s) {
       await recordError(e, s, context: 'RideExport.save');
+      _failed();
     }
   }
 
   Future<void> openFolder() => openRidesFolder();
+
+  /// The rider tapped and nothing happened: say so.
+  static void _failed() =>
+      buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.ridesExportFailed);
 
   /// The folder the rides' .fit files live in (desktop).
   static Future<void> openRidesFolder() async {
@@ -74,6 +81,7 @@ class RideExportActions {
       await RideFileActions.instance.openFolder(await core.rides.repository.rootDirectory());
     } catch (e, s) {
       await recordError(e, s, context: 'RideExport.openFolder');
+      _failed();
     }
   }
 }

@@ -3,7 +3,9 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/services.dart';
+import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// TUNABLE. What a rider can plausibly enter; anything else is a typo.
@@ -14,7 +16,7 @@ const maxHeartRateRange = (min: 100, max: 230);
 Future<void> editFtp(BuildContext context) {
   final l10n = AppLocalizations.of(context);
   final prefs = core.rides.prefs;
-  return _editValue(
+  return editRideZoneValue(
     context,
     title: l10n.ridesFtpTitle,
     body: l10n.ridesFtpBody,
@@ -31,7 +33,7 @@ Future<void> editFtp(BuildContext context) {
 Future<void> editMaxHeartRate(BuildContext context) {
   final l10n = AppLocalizations.of(context);
   final prefs = core.rides.prefs;
-  return _editValue(
+  return editRideZoneValue(
     context,
     title: l10n.ridesMaxHeartRateTitle,
     body: l10n.ridesMaxHeartRateBody,
@@ -46,7 +48,8 @@ Future<void> editMaxHeartRate(BuildContext context) {
 /// One number in a dialog: Save takes it when it is in [range] (else the
 /// range is shown), Cancel leaves it, and — once set — Clear unsets it.
 /// Clear sits under the field: three actions don't fit a phone's dialog.
-Future<void> _editValue(
+@visibleForTesting
+Future<void> editRideZoneValue(
   BuildContext context, {
   required String title,
   required String body,
@@ -75,6 +78,7 @@ Future<void> _editValue(
     await save(result.value);
   } catch (e, s) {
     await recordError(e, s, context: errorContext);
+    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.ridesValueSaveFailed);
   }
 }
 
