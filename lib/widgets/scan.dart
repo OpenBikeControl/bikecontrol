@@ -134,7 +134,9 @@ class _ScanWidgetState extends State<ScanWidget> with WidgetsBindingObserver {
       setState(() {
         _needsPermissions = permissions;
       });
-      if (permissions.isEmpty && !kIsWeb) {
+      // Still listed above so the rider can grant them, but a declined
+      // notification permission never stops the scan.
+      if (Permissions.blockingScan(permissions).isEmpty && !kIsWeb) {
         core.connection.performScanning();
       }
     });

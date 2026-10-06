@@ -450,6 +450,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Target? _selectedTarget;
 
   ControllerPhase _controllerPhase = ControllerPhase.permission;
+  // Set once the permission sheet has been shown, so a declined notification
+  // permission is asked for once rather than on every visit to the step.
+  bool _askedScanPermissions = false;
   // Mobile opens on a welcome screen; the desktop rail already frames the
   // flow, so it starts on step 1. Re-runs from the menu skip it too.
   bool _showWelcome = core.settings.getOnboardingState() != Settings.onboardingStateCompleted;
@@ -691,7 +694,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
     try {
       final requirements = await core.permissions.getScanRequirements();
       if (!mounted) return;
-      if (requirements.isEmpty) {
+      // Only notifications missing and already asked once: look for the
+      // controller anyway rather than ask again on every visit.
+      if (requirements.isEmpty ||
+          (_askedScanPermissions && Permissions.blockingScan(requirements).isEmpty)) {
         _startScanPhase();
       } else {
         setState(() => _controllerPhase = ControllerPhase.permission);
@@ -729,11 +735,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
         _startScanPhase();
         return;
       }
+      _askedScanPermissions = true;
       await openPermissionSheet(_sheetContext, requirements);
       if (!mounted) return;
       final recheck = await core.permissions.getScanRequirements();
       if (!mounted) return;
-      if (recheck.isEmpty) _startScanPhase();
+      // Declining notifications must not leave "Allow Bluetooth" doing nothing.
+      if (Permissions.blockingScan(recheck).isEmpty) _startScanPhase();
     } catch (e, s) {
       recordError(e, s, context: 'onboarding allow bluetooth');
     }

@@ -1033,7 +1033,7 @@ class Connection {
       _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
       if (available == AvailabilityState.poweredOn && !kIsWeb && !core.logic.deferLaunchPermissions) {
         core.permissions.getScanRequirements().then((perms) {
-          if (perms.isEmpty) {
+          if (Permissions.blockingScan(perms).isEmpty) {
             performScanning();
           }
         });
@@ -1174,7 +1174,7 @@ class Connection {
       // silently dead connection.
       if (!core.logic.deferLaunchPermissions) {
         core.permissions.getScanRequirements().then((perms) {
-          if (perms.isEmpty) {
+          if (Permissions.blockingScan(perms).isEmpty) {
             performScanning();
           }
         });

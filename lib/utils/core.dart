@@ -203,10 +203,17 @@ class Core {
 }
 
 class Permissions {
-  /// Permissions needed to *scan for Bluetooth devices*.
+  /// The part of [getScanRequirements] a scan can't run without. Notifications
+  /// are asked for in the same breath, but a rider who declines them must
+  /// still find their controller — every scan gate reads this, not the full
+  /// list.
+  static List<PlatformRequirement> blockingScan(List<PlatformRequirement> missing) =>
+      missing.where((r) => r is! NotificationRequirement).toList();
+
+  /// Permissions to ask for before *scanning for Bluetooth devices*.
   ///
-  /// Every caller treats a non-empty result as "don't scan", so this must stay
-  /// Bluetooth-only. Local Network deliberately isn't here: a denial would
+  /// Callers gate the scan on [blockingScan] of this list, so everything else
+  /// here must stay Bluetooth-only. Local Network deliberately isn't here: a denial would
   /// silently kill BLE scanning, and probing it pops the system dialog at app
   /// start, before onboarding has been shown. It's gated per connection method
   /// instead — see [localNetworkRequirements].
