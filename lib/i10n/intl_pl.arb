@@ -1367,7 +1367,7 @@
   "onboardingMethodLocalFeature1": "Sterowanie muzyką i multimediami",
   "onboardingMethodLocalFeature2": "Dodatkowe akcje trenażera",
   "onboardingMethodLocalFeature3": "Pełna personalizacja przycisków",
-  "onboardingMethodLocalIosNote": "Niedostępne na iOS — użyj sieci lub Bluetooth.",
+  "onboardingMethodLocalIosNote": "Niedostępne na iOS — użyj sieci.",
   "onboardingSelectItFor": "Wybierz to dla",
   "onboardingSlotPower": "Źródło mocy",
   "onboardingSlotControllable": "Sterowanie / opór",

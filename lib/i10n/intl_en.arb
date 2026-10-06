@@ -799,7 +799,7 @@
   "onboardingMethodLocalFeature1": "Music and media control",
   "onboardingMethodLocalFeature2": "Extra trainer actions",
   "onboardingMethodLocalFeature3": "Full button customization",
-  "onboardingMethodLocalIosNote": "Not available on iOS — use Network or Bluetooth.",
+  "onboardingMethodLocalIosNote": "Not available on iOS — use Network.",
   "onboardingSelectItFor": "Select it for",
   "onboardingSlotPower": "Power source",
   "onboardingSlotControllable": "Controllable / Resistance",

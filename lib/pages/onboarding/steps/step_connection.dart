@@ -237,7 +237,9 @@ Widget onboardingConnectionBody(
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
     OnboardingHeadline(context.i18n.onboardingConnectionTitle(app.name)),
     Gap(6),
-    Text(target == Target.thisDevice
+    // On iOS a same-device app is reached over the network, not driven
+    // directly — there is no Local method there.
+    Text(onboardingWhereUsesLocal(target)
             ? context.i18n.onboardingConnectionSubtitleLocal(app.name)
             // Apps that only find trainers over Bluetooth never see the network
             // advertisement, so promising them one sends riders looking for it.

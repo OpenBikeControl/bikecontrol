@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -37,7 +38,7 @@ bool _supportsNetwork(SupportedApp app) => _supportsObpNetwork(app) || _supports
 bool _supportsBluetooth(SupportedApp app) =>
     app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.zwiftBle);
 
-bool get _localPlatform => !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isAndroid);
+bool get _localPlatform => HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isAndroid;
 
 /// MyWhoosh on Android cannot pair a virtual bike over the network, so a
 /// BikeControl bridge on that same device is unreachable — the rider has to
@@ -45,13 +46,22 @@ bool get _localPlatform => !kIsWeb && (Platform.isMacOS || Platform.isWindows ||
 bool onboardingVirtualShiftingBlocked(SupportedApp app) =>
     !kIsWeb && Platform.isAndroid && app is MyWhoosh && core.settings.getLastTarget() == Target.thisDevice;
 
+/// Whether the Where step's target turns on the Local method. Only for an app
+/// on this device, and only where Local exists — on iOS a same-device app is
+/// reached over the network.
+bool onboardingWhereUsesLocal(Target target) =>
+    target == Target.thisDevice && target.connectionType == ConnectionType.local;
+
 /// Whether the tile is shown at all for [app]. Mirrors the settings page:
 /// Local drives the app running on THIS device (CoreLogic.showLocalControl),
 /// Bluetooth advertises to an app on ANOTHER device. On iOS the Local tile is
 /// still shown for the same-device target but rendered disabled with a note,
 /// so riders learn why it isn't an option there.
 bool onboardingMethodVisible(OnboardingMethod method, SupportedApp app) {
-  final sameDevice = core.settings.getLastTarget()?.connectionType == ConnectionType.local;
+  // The target itself, not its connectionType: on iOS "This Device" reports
+  // remote (there is no Local method), yet Bluetooth still can't reach an app
+  // on the same device.
+  final sameDevice = core.settings.getLastTarget() == Target.thisDevice;
   return switch (method) {
     OnboardingMethod.network => _supportsNetwork(app),
     OnboardingMethod.bluetooth => _supportsBluetooth(app) && !sameDevice,

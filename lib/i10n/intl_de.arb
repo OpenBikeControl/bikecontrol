@@ -1379,7 +1379,7 @@
   "onboardingMethodLocalFeature1": "Musik- und Mediensteuerung",
   "onboardingMethodLocalFeature2": "Zusätzliche Trainer-Aktionen",
   "onboardingMethodLocalFeature3": "Volle Tastenanpassung",
-  "onboardingMethodLocalIosNote": "Unter iOS nicht verfügbar — nutze Netzwerk oder Bluetooth.",
+  "onboardingMethodLocalIosNote": "Unter iOS nicht verfügbar — nutze Netzwerk.",
   "onboardingSelectItFor": "Auswählen für",
   "onboardingSlotPower": "Leistungsquelle",
   "onboardingSlotControllable": "Steuerbar / Widerstand",
