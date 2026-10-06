@@ -15,6 +15,7 @@ import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -38,6 +39,7 @@ import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/services/rides/ride_format.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthState, SupabaseClient;
 
 /// The Settings section: the plan, what BikeControl rides with, what happens
 /// during the ride, help, and the app itself.
@@ -381,89 +383,105 @@ class _DuringRideSectionState extends State<DuringRideSection> {
 
 /// The plan on top of Settings: its name, the way up (Go Pro) or to manage it,
 /// and — without Pro on this device — how much of today's virtual shifting
-/// trial is left.
+/// trial is left. Signed out, "Sign in" sits beside Go Pro, so a rider who
+/// bought Pro on another device finds the way to it.
 class SettingsPlanCard extends StatelessWidget {
-  const SettingsPlanCard({super.key});
+  const SettingsPlanCard({super.key, this.client});
+
+  /// Test seam; null uses the app's Supabase client.
+  final SupabaseClient? client;
 
   @override
   Widget build(BuildContext context) {
     final iap = IAPManager.instance;
-    return ListenableBuilder(
-      listenable: Listenable.merge([iap.entitlements, iap.isPurchased]),
-      builder: (context, _) {
-        final l10n = AppLocalizations.of(context);
-        final tier = currentPlanTier();
-        final name = planName(context, tier);
-        final status = iap.getStatusMessage();
-        final showMeter = vsTrialMeterShown();
-        return BkTappable(
-          key: const ValueKey('settings-plan'),
-          onPressed: () => openPlanAccount(context),
-          borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-          // The plan wears the brand band: white text, a white Go Pro.
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-              boxShadow: bkCardShadow(context),
-            ),
-            child: BkBrandBand(
-              borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-              contours: const BkContourPlacement.card(),
-              child: Builder(
-                builder: (context) {
-                  final cs = Theme.of(context).colorScheme;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  l10n.currentPlan,
-                                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
-                                ),
-                                Text(name.toUpperCase(), style: BkDisplay.title(context)),
-                                if (status.isNotEmpty && status != name)
+    final auth = (client ?? core.supabase).auth;
+    return StreamBuilder<AuthState>(
+      stream: auth.onAuthStateChange,
+      builder: (context, _) => ListenableBuilder(
+        listenable: Listenable.merge([iap.entitlements, iap.isPurchased]),
+        builder: (context, _) {
+          final signedIn = hasAccount(auth.currentSession?.user);
+          final l10n = AppLocalizations.of(context);
+          final tier = currentPlanTier();
+          final name = planName(context, tier);
+          final status = iap.getStatusMessage();
+          final showMeter = vsTrialMeterShown();
+          return BkTappable(
+            key: const ValueKey('settings-plan'),
+            onPressed: () => openPlanAccount(context),
+            borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+            // The plan wears the brand band: white text, a white Go Pro.
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+                boxShadow: bkCardShadow(context),
+              ),
+              child: BkBrandBand(
+                borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                contours: const BkContourPlacement.card(),
+                child: Builder(
+                  builder: (context) {
+                    final cs = Theme.of(context).colorScheme;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
                                   Text(
-                                    status,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                                    l10n.currentPlan,
                                     style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                                   ),
-                              ],
+                                  Text(name.toUpperCase(), style: BkDisplay.title(context)),
+                                  if (status.isNotEmpty && status != name)
+                                    Text(
+                                      status,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
+                            const Gap(12),
+                            if (tier == PlanTier.pro)
+                              Button.ghost(
+                                onPressed: () => openPlanAccount(context),
+                                child: Text(l10n.manageAction),
+                              )
+                            else ...[
+                              if (!signedIn)
+                                Button.ghost(
+                                  key: const ValueKey('settings-plan-sign-in'),
+                                  onPressed: () => openPlanAccount(context),
+                                  child: Text(l10n.signIn),
+                                ),
+                              BkPillButton(
+                                expand: false,
+                                onPressed: () => openPlanAccount(context),
+                                child: Text(l10n.goPro),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (showMeter) ...[
                           const Gap(12),
-                          if (tier == PlanTier.pro)
-                            Button.ghost(
-                              onPressed: () => openPlanAccount(context),
-                              child: Text(l10n.manageAction),
-                            )
-                          else
-                            BkPillButton(
-                              expand: false,
-                              onPressed: () => openPlanAccount(context),
-                              child: Text(l10n.goPro),
-                            ),
+                          const VsTrialMeter(),
                         ],
-                      ),
-                      if (showMeter) ...[
-                        const Gap(12),
-                        const VsTrialMeter(),
                       ],
-                    ],
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
