@@ -536,7 +536,7 @@ class RidesMenuButton extends StatelessWidget {
   }
 }
 
-/// The desktop pane's caption tabs: NEUIGKEITEN · FAHRTEN, the same caps on
+/// The desktop pane's caption tabs: FAHRTEN · NEUIGKEITEN, the same caps on
 /// the same baseline as the log's caption, "Alle löschen" trailing on Rides.
 class ActivityPaneTabs extends StatelessWidget {
   const ActivityPaneTabs({super.key, required this.shell});
@@ -585,8 +585,8 @@ class ActivityPaneTabs extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                tabLabel(ActivityTab.news, l10n.activityTabNews),
                 tabLabel(ActivityTab.rides, l10n.ridesTab),
+                tabLabel(ActivityTab.news, l10n.activityTabNews),
                 const Spacer(),
               ],
             ),

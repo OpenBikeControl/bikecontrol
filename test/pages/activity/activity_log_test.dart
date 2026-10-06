@@ -15,11 +15,12 @@ final DateTime _now = DateTime(2026, 9, 29, 10);
 Future<ActivityLogController> _pumpLog(
   WidgetTester tester, {
   ActivityFixAction? fixAction,
+  ActivityLogController? controller,
 }) async {
   tester.view.physicalSize = const Size(430, 1600);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  final controller = ActivityLogController();
+  controller ??= ActivityLogController();
   await tester.pumpWidget(
     ShadcnApp(
       localizationsDelegates: [
@@ -173,6 +174,33 @@ void main() {
 
     expect(find.text(l.activityLastMinute.toUpperCase()), findsNothing);
     expect(find.text(l.activityEarlier.toUpperCase()), findsOneWidget);
+    await _done(tester, log);
+  });
+
+  // The log is unmounted whenever another section or segment is showing, while
+  // entries keep coming and Clear can run from the title bar. Coming back must
+  // show exactly what the log holds — a stale row count threw a RangeError per
+  // row on 7.0's phone layout.
+  testWidgets('cleared or logged to while off-screen, it shows exactly what it holds on return', (tester) async {
+    ActivityEntry entry(String message) =>
+        ActivityEntry(button: _plus, time: _now, result: Success(message, button: _plus));
+    final log = await _pumpLog(tester);
+    for (var i = 0; i < 5; i++) {
+      log.insert(entry('Shifted $i'));
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Shifted 4'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    log.clear();
+    log.insert(entry('Shifted again'));
+
+    await _pumpLog(tester, controller: log);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(ErrorWidget), findsNothing);
+    expect(find.text('Shifted again'), findsOneWidget);
+    expect(find.text('Shifted 4'), findsNothing);
     await _done(tester, log);
   });
 }

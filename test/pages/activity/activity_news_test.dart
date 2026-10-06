@@ -128,6 +128,12 @@ Future<void> main() async {
   group('from 840: the log and News side by side', () {
     Finder sidebarItem(String label) => find.descendant(of: find.byType(ShellSidebar), matching: find.text(label));
 
+    Future<void> showPane(WidgetTester tester, ActivityTab tab) async {
+      await tester.tap(find.byKey(ValueKey('activity-pane-tab-${tab.name}')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
     Future<void> openWideActivity(WidgetTester tester, Size size) async {
       await pumpShell(tester, size);
       await tester.pump();
@@ -139,6 +145,7 @@ Future<void> main() async {
     for (final size in const [Size(1180, 820), Size(1280, 800)]) {
       testWidgets('${size.width.toInt()}: two panes, no segments, each with its own header', (tester) async {
         await openWideActivity(tester, size);
+        await showPane(tester, ActivityTab.news);
 
         expect(find.byType(ActivitySegments), findsNothing);
         final logPane = find.byKey(const ValueKey('activity-log-pane'));
@@ -199,13 +206,22 @@ Future<void> main() async {
       final caption = tester.getRect(find.text(l().activityLastMinute.toUpperCase()));
       final header = tester.getRect(find.byType(ActivityPaneTabs));
       expect(caption.top, moreOrLessEquals(header.top, epsilon: 0.5));
-      final firstRow = tester.getRect(find.byType(ActivityRow).first);
-      final firstPost = tester.getRect(find.byType(NewsCard).first);
-      expect(firstRow.top, moreOrLessEquals(firstPost.top, epsilon: 0.5));
       await disposeShell(tester);
     });
 
-    testWidgets('opening Activity reads the news: News is on screen', (tester) async {
+    testWidgets('the tabs keep a gap above whatever the pane shows', (tester) async {
+      await RideRig.install();
+      await openWideActivity(tester, const Size(1280, 800));
+      final tabs = tester.getRect(find.byType(ActivityPaneTabs));
+      expect(tester.getRect(find.byType(RidesView)).top - tabs.bottom, moreOrLessEquals(12, epsilon: 0.5));
+
+      await showPane(tester, ActivityTab.news);
+      final firstPost = tester.getRect(find.byType(NewsCard).first);
+      expect(firstPost.top - tabs.bottom, moreOrLessEquals(12, epsilon: 0.5), reason: 'not flush on the tab line');
+      await disposeShell(tester);
+    });
+
+    testWidgets('the pane opens on Fahrten, listed before News; News reads the news', (tester) async {
       await pumpShell(tester, const Size(1280, 800));
       await tester.pump();
       final dot = find.descendant(
@@ -217,23 +233,34 @@ Future<void> main() async {
       await tester.tap(sidebarItem(l().activity));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
+      final newsPane = find.byKey(const ValueKey('activity-news-pane'));
+      expect(find.descendant(of: newsPane, matching: find.byType(RidesView)), findsOneWidget);
+      expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsNothing);
+      expect(
+        tester.getRect(find.byKey(const ValueKey('activity-pane-tab-rides'))).left,
+        lessThan(tester.getRect(find.byKey(const ValueKey('activity-pane-tab-news'))).left),
+        reason: 'Fahrten first',
+      );
+      expect(dot, findsOneWidget, reason: 'Fahrten on screen leaves the news unread');
+      expect(core.settings.getSeenBlogPosts(), isNot(contains('seven-one')));
+
+      await showPane(tester, ActivityTab.news);
       expect(dot, findsNothing);
       expect(core.settings.getSeenBlogPosts(), contains('seven-one'));
       expect(find.byKey(const ValueKey('news-segment-dot')), findsNothing);
       await disposeShell(tester);
     });
 
-    testWidgets('the pane\'s Rides tab swaps News for the rides, on the same caption line', (tester) async {
+    testWidgets('the pane\'s News tab swaps the rides for News, on the same caption line', (tester) async {
       await RideRig.install();
       await openWideActivity(tester, const Size(1280, 800));
       final newsPane = find.byKey(const ValueKey('activity-news-pane'));
       final tabs = tester.getRect(find.byType(ActivityPaneTabs));
-      await tester.tap(find.byKey(const ValueKey('activity-pane-tab-rides')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.descendant(of: newsPane, matching: find.byType(RidesView)), findsOneWidget);
-      expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsNothing);
       expect(find.byKey(const ValueKey('rides-delete-all-pane')), findsOneWidget);
+      await showPane(tester, ActivityTab.news);
+      expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsOneWidget);
+      expect(find.descendant(of: newsPane, matching: find.byType(RidesView)), findsNothing);
+      expect(find.byKey(const ValueKey('rides-delete-all-pane')), findsNothing);
       expect(tester.getRect(find.byType(ActivityPaneTabs)).height, moreOrLessEquals(tabs.height));
       await disposeShell(tester);
     });

@@ -72,9 +72,9 @@ class ShellController {
   /// Which of Activity's segments is showing.
   final ValueNotifier<ActivityTab> activityTab = ValueNotifier(ActivityTab.log);
 
-  /// From 840, the right pane beside the log: News or Rides (never the log).
-  /// Remembers the last choice.
-  final ValueNotifier<ActivityTab> paneTab = ValueNotifier(ActivityTab.news);
+  /// From 840, the right pane beside the log: Rides or News (never the log).
+  /// Opens on Rides; remembers the last choice.
+  final ValueNotifier<ActivityTab> paneTab = ValueNotifier(ActivityTab.rides);
 
   final BlogNewsController news;
 

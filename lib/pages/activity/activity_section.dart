@@ -72,13 +72,14 @@ class ActivitySection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // News and Rides as caption-height tabs on the log
-                    // caption's baseline, so both panes' first cards align.
+                    // Rides and News as caption-height tabs on the log
+                    // caption's baseline, with a gap below their line.
                     ActivityPaneTabs(shell: shell),
+                    const Gap(12),
                     ValueListenableBuilder<ActivityTab>(
                       valueListenable: shell.paneTab,
                       builder: (context, tab, _) => tab == ActivityTab.rides
-                          ? const Padding(padding: EdgeInsets.only(top: 12), child: RidesView(desktop: true))
+                          ? const RidesView(desktop: true)
                           : NewsView(controller: shell.news, singleColumn: true),
                     ),
                   ],
