@@ -432,8 +432,33 @@ class Settings {
     return prefs.getStringList('customapp_$profileName');
   }
 
+  /// The trainer app whose built-in mapping [profileName] was copied from, or
+  /// null when it was made from scratch. Mappings saved before the origin was
+  /// recorded are recognised by the automatic copy name ("MyWhoosh (Copy)").
+  ///
+  /// Kept under its own prefix: `customapp_` keys are listed as mappings.
+  String? getCustomKeymapOrigin(String profileName) {
+    final stored = prefs.getString('customkeymap_origin_$profileName');
+    if (stored != null) return stored;
+    var base = profileName;
+    while (base.endsWith(' (Copy)')) {
+      base = base.substring(0, base.length - ' (Copy)'.length);
+    }
+    if (base == profileName) return null;
+    return SupportedApp.supportedApps.firstOrNullWhere((a) => a is! CustomApp && a.name == base)?.name;
+  }
+
+  Future<void> setCustomKeymapOrigin(String profileName, String? appName) async {
+    if (appName == null) {
+      await prefs.remove('customkeymap_origin_$profileName');
+    } else {
+      await prefs.setString('customkeymap_origin_$profileName', appName);
+    }
+  }
+
   Future<void> deleteCustomAppProfile(String profileName) async {
     await prefs.remove('customapp_$profileName');
+    await prefs.remove('customkeymap_origin_$profileName');
     // If the current app is the one being deleted, reset
     if (prefs.getString('app') == profileName) {
       core.actionHandler.init(getTrainerApp());
@@ -444,9 +469,12 @@ class Settings {
 
   Future<void> duplicateCustomAppProfile(String sourceProfileName, String newProfileName) async {
     final sourceData = prefs.getStringList('customapp_$sourceProfileName');
+    // Origin first: callers that don't await still see it right away.
+    final origin = setCustomKeymapOrigin(newProfileName, getCustomKeymapOrigin(sourceProfileName));
     if (sourceData != null) {
       await prefs.setStringList('customapp_$newProfileName', sourceData);
     }
+    await origin;
     _triggerAutoSync();
   }
 

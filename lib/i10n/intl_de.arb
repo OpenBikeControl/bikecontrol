@@ -256,6 +256,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "Deine eigenen Tasten behalten?",
+  "keymapSwitchBody": "Du nutzt deine eigene Tastenbelegung „{profile}“. {app} braucht vielleicht andere Tasten.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Tasten von {app} nutzen",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Meine Tasten behalten",
   "currentDeviceIsNotRegistered": "Das aktuelle Gerät ist nicht registriert",
   "currentPlan": "Aktueller Plan",
   "customizeControllerButtons": "Controller-Tasten anpassen für {appName}",

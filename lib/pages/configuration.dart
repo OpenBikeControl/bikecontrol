@@ -7,6 +7,7 @@ import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
+import 'package:bike_control/widgets/keymap/trainer_app_keymap_prompt.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
@@ -390,7 +391,9 @@ class TrainerAppSelect extends StatelessWidget {
       placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
       value: core.settings.getTrainerApp(),
       onChanged: (selectedApp) async {
-        await applyTrainerAppSelection(selectedApp!);
+        // Asks first when the rider's own button mapping was made for
+        // another app; dismissing it leaves the trainer app unchanged.
+        if (!await pickTrainerApp(context, selectedApp!)) return;
         onUpdate();
       },
     );

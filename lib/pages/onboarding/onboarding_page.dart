@@ -49,6 +49,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
+import 'package:bike_control/widgets/keymap/trainer_app_keymap_prompt.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -930,8 +931,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
         onPressed: _selectedApp == null
             ? null
             : () async {
+                // The rider's own mapping made for another app: ask before
+                // replacing it (or keeping it) for this one.
+                final keymapChoice = await askKeymapForTrainerApp(context, _selectedApp!);
+                if (keymapChoice == null || !mounted) return;
                 try {
-                  await applyTrainerAppSelection(_selectedApp!);
+                  await applyTrainerAppSelection(_selectedApp!, keymapChoice: keymapChoice);
                 } catch (e, s) {
                   recordError(e, s, context: 'onboarding apply trainer app selection');
                 }

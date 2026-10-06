@@ -256,6 +256,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "Zachować własne przyciski?",
+  "keymapSwitchBody": "Używasz własnego układu przycisków „{profile}”. {app} może potrzebować innych przycisków.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Użyj przycisków {app}",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Zachowaj moje przyciski",
   "currentDeviceIsNotRegistered": "Obecne urządzenie nie jest zarejestrowane",
   "currentPlan": "Aktualny plan",
   "customizeControllerButtons": "Dostosuj przyciski kontrolera dla {appName}",

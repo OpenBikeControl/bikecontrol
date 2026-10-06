@@ -256,6 +256,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "¿Mantener tus propios botones?",
+  "keymapSwitchBody": "Estás usando tu propia asignación de botones, «{profile}». {app} puede necesitar otros botones.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Usar los botones de {app}",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Mantener mis botones",
   "currentDeviceIsNotRegistered": "El dispositivo actual no está registrado",
   "currentPlan": "Plan actual",
   "customizeControllerButtons": "Personaliza los botones del controlador para {appName}",

@@ -256,6 +256,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "Garder tes propres boutons ?",
+  "keymapSwitchBody": "Tu utilises ta propre configuration des boutons, « {profile} ». {app} peut avoir besoin d'autres boutons.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Utiliser les boutons de {app}",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Garder mes boutons",
   "currentDeviceIsNotRegistered": "L'appareil actuel n'est pas enregistré.",
   "currentPlan": "Plan actuel",
   "customizeControllerButtons": "Personnalisez les boutons de la manette pour {appName}",

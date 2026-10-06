@@ -246,6 +246,7 @@ class KeymapManager {
         return newName;
       } else {
         final customApp = CustomApp(profileName: newName);
+        await core.settings.setCustomKeymapOrigin(newName, core.actionHandler.supportedApp!.name);
 
         final connectedDeviceButtons = IterableFlatMap(
           core.connection.controllerDevices,
@@ -289,6 +290,7 @@ class KeymapManager {
       return newName;
     } else {
       final customApp = CustomApp(profileName: newName);
+      core.settings.setCustomKeymapOrigin(newName, core.actionHandler.supportedApp!.name);
 
       final connectedDeviceButtons = IterableFlatMap(
         core.connection.controllerDevices,

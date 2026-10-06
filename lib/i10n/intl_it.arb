@@ -256,6 +256,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "Tenere i tuoi pulsanti?",
+  "keymapSwitchBody": "Stai usando la tua configurazione dei pulsanti, «{profile}». {app} potrebbe aver bisogno di pulsanti diversi.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Usa i pulsanti di {app}",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Tieni i miei pulsanti",
   "currentDeviceIsNotRegistered": "Il dispositivo corrente non è registrato",
   "currentPlan": "Piano attuale",
   "customizeControllerButtons": "Personalizza i pulsanti del controller per{appName}",

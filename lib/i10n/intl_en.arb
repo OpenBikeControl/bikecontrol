@@ -247,6 +247,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "Keep your own buttons?",
+  "keymapSwitchBody": "You're using your own button mapping, “{profile}”. {app} may need different buttons.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Use {app}'s buttons",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Keep my buttons",
   "currentDeviceIsNotRegistered": "Current Device is not registered",
   "currentPlan": "Current Plan",
   "customizeControllerButtons": "Customize Controller buttons for {appName}",
