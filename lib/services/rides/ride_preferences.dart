@@ -16,7 +16,8 @@ bool healthDefaultsToNo(SupportedApp? app, Target? target) =>
     mayAlreadySaveToHealth(app) && target == Target.thisDevice;
 
 /// Persisted state of ride recording: the automatic setting, the Health
-/// answer, and which ride the summary card shows.
+/// answer, which ride the summary card shows, and the rider's FTP and max
+/// heart rate for zones.
 class RidePreferences extends ChangeNotifier {
   RidePreferences(this._prefs);
 
@@ -29,6 +30,8 @@ class RidePreferences extends ChangeNotifier {
   static const _saveToHealthKey = 'health_rides_enabled';
   static const _healthAnsweredKey = 'health_rides_prompt_dismissed';
   static const _summaryRideKey = 'rides_summary_card';
+  static const _ftpKey = 'rides_ftp_watts';
+  static const _maxHeartRateKey = 'rides_max_heart_rate_bpm';
 
   /// "Record rides automatically". On unless the rider turned it off.
   bool get autoRecord => _prefs.getBool(_autoRecordKey) ?? true;
@@ -64,6 +67,25 @@ class RidePreferences extends ChangeNotifier {
       await _prefs.remove(_summaryRideKey);
     } else {
       await _prefs.setString(_summaryRideKey, fileName);
+    }
+    notifyListeners();
+  }
+
+  /// Functional threshold power for power zones; null until the rider sets it.
+  int? get ftpWatts => _prefs.getInt(_ftpKey);
+
+  Future<void> setFtpWatts(int? watts) => _setOptionalInt(_ftpKey, watts);
+
+  /// Max heart rate for heart rate zones; null until the rider sets it.
+  int? get maxHeartRateBpm => _prefs.getInt(_maxHeartRateKey);
+
+  Future<void> setMaxHeartRateBpm(int? bpm) => _setOptionalInt(_maxHeartRateKey, bpm);
+
+  Future<void> _setOptionalInt(String key, int? value) async {
+    if (value == null) {
+      await _prefs.remove(key);
+    } else {
+      await _prefs.setInt(key, value);
     }
     notifyListeners();
   }

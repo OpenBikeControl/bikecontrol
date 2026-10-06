@@ -22,6 +22,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
+import 'package:bike_control/widgets/rides/ride_zone_settings.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
@@ -229,8 +230,9 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 /// "During the ride": recording rides automatically and saving them to the
-/// Health store, the gear overlay and shift feedback on this device — each
-/// only where the platform has it.
+/// Health store, the FTP and max heart rate the rides' zones use, the gear
+/// overlay and shift feedback on this device — each only where the platform
+/// has it.
 class DuringRideSection extends StatefulWidget {
   const DuringRideSection({super.key, this.onOpen});
 
@@ -315,6 +317,27 @@ class _DuringRideSectionState extends State<DuringRideSection> {
             () => rides.healthReady ? rides.setSavesToHealth(!rides.savesToHealth) : rides.installHealth(),
           ),
         ),
+      // What the ride details' zones are measured against; optional.
+      BkGroupedRow(
+        key: const ValueKey('settings-ftp'),
+        icon: LucideIcons.zap,
+        title: l10n.ridesFtpTitle,
+        subtitle: l10n.ridesFtpSubtitle,
+        trailing: Text(rides.prefs.ftpWatts == null ? l10n.ridesNotSet : '${rides.prefs.ftpWatts} W'),
+        chevron: true,
+        onPressed: () => editFtp(context),
+      ),
+      BkGroupedRow(
+        key: const ValueKey('settings-max-heart-rate'),
+        icon: LucideIcons.heartPulse,
+        title: l10n.ridesMaxHeartRateTitle,
+        subtitle: l10n.ridesMaxHeartRateSubtitle,
+        trailing: Text(
+          rides.prefs.maxHeartRateBpm == null ? l10n.ridesNotSet : '${rides.prefs.maxHeartRateBpm} bpm',
+        ),
+        chevron: true,
+        onPressed: () => editMaxHeartRate(context),
+      ),
       // The overlay draws the gear of a shifting trainer; without one there
       // is nothing for it to show.
       if (proxy != null && definition != null && TrainerOverlayService.isSupportedPlatform)

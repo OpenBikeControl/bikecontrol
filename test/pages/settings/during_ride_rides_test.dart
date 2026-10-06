@@ -1,7 +1,8 @@
 // Settings → During the ride: "Record rides automatically" (on by default,
 // every platform), then "Save rides to Apple Health / Health Connect" only
 // where the store exists, never Pro-gated, with a hint under it when the
-// selected trainer app may already save the ride itself.
+// selected trainer app may already save the ride itself. Then the optional
+// FTP and max heart rate the ride details' zones are based on.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/settings/settings_page.dart';
@@ -129,5 +130,64 @@ Future<void> main() async {
     await tester.pumpAndSettle();
     expect(rig.channel!.openInstallCalls, 1);
     expect(rig.channel!.authorizeCalls, 0);
+  });
+
+  group('FTP and max heart rate', () {
+    testWidgets('not set until the rider gives them', (tester) async {
+      await RideRig.install(store: null);
+      await pump(tester);
+
+      expect(find.byKey(const ValueKey('settings-ftp')), findsOneWidget);
+      expect(find.byKey(const ValueKey('settings-max-heart-rate')), findsOneWidget);
+      expect(find.text(AppLocalizations.current.ridesNotSet), findsNWidgets(2));
+    });
+
+    testWidgets('next to the recording setting, before anything about the ride itself', (tester) async {
+      await RideRig.install();
+      await pump(tester);
+      final health = tester.getTopLeft(find.text(toggle(apple))).dy;
+      final ftp = tester.getTopLeft(find.byKey(const ValueKey('settings-ftp'))).dy;
+      final hr = tester.getTopLeft(find.byKey(const ValueKey('settings-max-heart-rate'))).dy;
+      expect(ftp, greaterThan(health));
+      expect(hr, greaterThan(ftp));
+    });
+
+    testWidgets('FTP: entered, saved and shown; cleared again', (tester) async {
+      final rig = await RideRig.install(store: null);
+      await pump(tester);
+
+      await tester.tap(find.byKey(const ValueKey('settings-ftp')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '250');
+      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      await tester.pumpAndSettle();
+      expect(rig.prefs.ftpWatts, 250);
+      expect(find.textContaining('250'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('settings-ftp')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('ride-zone-value-clear')));
+      await tester.pumpAndSettle();
+      expect(rig.prefs.ftpWatts, isNull);
+    });
+
+    testWidgets('an impossible value is not saved; the dialog says the range', (tester) async {
+      final rig = await RideRig.install(store: null);
+      await pump(tester);
+
+      await tester.tap(find.byKey(const ValueKey('settings-max-heart-rate')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '20');
+      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      await tester.pumpAndSettle();
+      expect(rig.prefs.maxHeartRateBpm, isNull);
+      expect(find.byKey(const ValueKey('ride-zone-value-error')), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '188');
+      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      await tester.pumpAndSettle();
+      expect(rig.prefs.maxHeartRateBpm, 188);
+      expect(find.byKey(const ValueKey('ride-zone-value-field')), findsNothing);
+    });
   });
 }

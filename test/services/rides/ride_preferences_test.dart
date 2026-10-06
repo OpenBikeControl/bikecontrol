@@ -66,6 +66,22 @@ void main() {
       expect(prefs.summaryRide, isNull);
     });
 
+    test('FTP and max heart rate: unset until given, cleared again with null', () async {
+      expect(prefs.ftpWatts, isNull);
+      expect(prefs.maxHeartRateBpm, isNull);
+      await prefs.setFtpWatts(250);
+      await prefs.setMaxHeartRateBpm(188);
+      expect(prefs.ftpWatts, 250);
+      expect(prefs.maxHeartRateBpm, 188);
+      final reloaded = RidePreferences(await SharedPreferences.getInstance());
+      expect(reloaded.ftpWatts, 250);
+      expect(reloaded.maxHeartRateBpm, 188);
+      await prefs.setFtpWatts(null);
+      await prefs.setMaxHeartRateBpm(null);
+      expect(prefs.ftpWatts, isNull);
+      expect(prefs.maxHeartRateBpm, isNull);
+    });
+
     test('changes notify listeners', () async {
       var calls = 0;
       prefs.addListener(() => calls++);
@@ -73,7 +89,9 @@ void main() {
       await prefs.setSaveToHealth(true);
       await prefs.setHealthQuestionAnswered();
       await prefs.setSummaryRide('x.fit');
-      expect(calls, 4);
+      await prefs.setFtpWatts(200);
+      await prefs.setMaxHeartRateBpm(180);
+      expect(calls, 6);
     });
   });
 }
