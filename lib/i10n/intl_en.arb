@@ -69,7 +69,7 @@
   "actionCategoryShifting": "Shifting",
   "actionCategorySteering": "Steering",
   "actionCategoryOther": "Other",
-  "trialDaysAvailable": "{days} day trial available",
+  "trialDaysAvailable": "{days}-day trial period available",
   "@trialDaysAvailable": {
     "placeholders": {
       "days": {
@@ -121,7 +121,7 @@
   "battery": "Battery",
   "beforeDate": "Before {date}",
   "bluetoothAdvertiseAccess": "Bluetooth Advertise access",
-  "bridgeMinutesRemainingToday": "{minutes} min remaining today",
+  "bridgeMinutesRemainingToday": "{minutes} min of trial left today",
   "@bridgeMinutesRemainingToday": {
     "placeholders": {
       "minutes": {
@@ -1101,10 +1101,10 @@
       }
     }
   },
-  "trialDaysRemaining": "{trialDaysRemaining} days remaining",
-  "trialExpired": "Trial expired. Commands limited to {dailyCommandLimit} per day.",
-  "trialPeriodActive": "Trial Period Active - {trialDaysRemaining} days remaining",
-  "trialPeriodDescription": "You get {dailyCommandLimit} commands per day during your trial. The daily limit drops once it ends — upgrade for unlimited commands.",
+  "trialDaysRemaining": "Trial period: {trialDaysRemaining} days left",
+  "trialExpired": "Trial period over. Button presses limited to {dailyCommandLimit} per day.",
+  "trialPeriodActive": "Trial period: {trialDaysRemaining} days left",
+  "trialPeriodDescription": "During your trial period you get {dailyCommandLimit} button presses per day. Once it ends the daily limit drops — Base or Pro makes them unlimited.",
   "troubleshootingGuide": "Help & Support",
   "tryingToConnectAgain": "Trying to connect again...",
   "unassignAction": "Unassign action",
@@ -2190,7 +2190,7 @@
   "faqStillTrialQ": "I paid, but the app still shows the trial or Base",
   "faqStillTrialA": "Pro needs two things: being logged into the same BikeControl account you subscribed with, and this device registered under Manage Subscription → Registered Devices (each platform has its own device limit). A one-time Base purchase instead just needs the same store account you bought it with — use Restore Purchases on the paywall screen. Bought on Windows outside the Microsoft Store? That's Stripe, not the store, so log into the same BikeControl account you checked out with instead — Restore Purchases won't find it there.",
   "faqTrialQ": "Why is virtual shifting limited to 20 minutes?",
-  "faqTrialA": "Without a subscription, BikeControl's own virtual shifting runs 20 minutes a day — it resets daily, not per ride. Without Pro, your trainer app handles virtual shifting instead. With Pro, BikeControl's virtual shifting has no limit.",
+  "faqTrialA": "BikeControl's own virtual shifting is a Pro feature. Without Pro you can try it 20 minutes a day — the trial resets daily, not per ride. Without Pro, your trainer app can do the virtual shifting instead. With Pro, BikeControl's virtual shifting has no limit.",
   "faqGrandfatherQ": "I bought the app before the subscription existed. What do I keep?",
   "faqGrandfatherA": "Everything the one-time purchase included, you keep forever — unlimited button presses, basic button mapping, connecting your controllers. Virtual shifting (connecting your Smart Trainer to BikeControl) was always part of Pro, even for early purchases, so it isn't included automatically.",
   "faqRefundQ": "Can I get a refund?",
@@ -2925,7 +2925,7 @@
   "@subscriptionRenewsOn": {"placeholders": {"date": {"type": "String"}}},
   "subscriptionActiveUntil": "Active until {date}",
   "@subscriptionActiveUntil": {"placeholders": {"date": {"type": "String"}}},
-  "subscriptionTrialUntil": "Trial until {date}",
+  "subscriptionTrialUntil": "Pro trial until {date}",
   "@subscriptionTrialUntil": {"placeholders": {"date": {"type": "String"}}},
   "subscriptionBillingIssue": "Payment problem",
   "subscriptionBillingIssueBody": "Your last payment didn't go through. Update your payment method to keep Pro.",

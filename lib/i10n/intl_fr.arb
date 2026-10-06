@@ -100,7 +100,7 @@
   "actionCategoryShifting": "Vitesses",
   "actionCategorySteering": "Direction",
   "actionCategoryOther": "Autres",
-  "trialDaysAvailable": "Essai de {days} jours disponible",
+  "trialDaysAvailable": "Période d'essai de {days} jours disponible",
   "@trialDaysAvailable": {
     "placeholders": {
       "days": {
@@ -655,10 +655,10 @@
   "touchSimulationForegroundMessage": "Pour simuler les touches, l'application doit rester au premier plan.",
   "trainer": "Trainer",
   "trainerConnection": "Connexion avec le formateur",
-  "trialDaysRemaining": "{trialDaysRemaining} jours restants",
-  "trialExpired": "Période d'essai expirée. Commandes limitées à {dailyCommandLimit} par jour.",
-  "trialPeriodActive": "Période d'essai active -{trialDaysRemaining} jours restants",
-  "trialPeriodDescription": "Pendant ta période d'essai, tu disposes de {dailyCommandLimit} commandes par jour. La limite quotidienne baisse à la fin de l'essai — passe à la version supérieure pour des commandes illimitées.",
+  "trialDaysRemaining": "Période d'essai : encore {trialDaysRemaining} jours",
+  "trialExpired": "Période d'essai terminée. Appuis sur les boutons limités à {dailyCommandLimit} par jour.",
+  "trialPeriodActive": "Période d'essai : encore {trialDaysRemaining} jours",
+  "trialPeriodDescription": "Pendant ta période d'essai, tu as {dailyCommandLimit} appuis sur les boutons par jour. Ensuite, la limite quotidienne baisse — avec Base ou Pro, ils sont illimités.",
   "troubleshootingGuide": "Questions et réponses",
   "tryingToConnectAgain": "Tentative de reconnexion...",
   "unassignAction": "Action de désaffectation",
@@ -961,7 +961,7 @@
   "trainerFrontShiftUnavailable": "Changement avant indisponible",
   "successRatingMessage": "Merci d'utiliser BikeControl ! Pense à noter BikeControl sur le {store} — ça aide beaucoup !",
   "rateBikeControl": "Noter BikeControl",
-  "bridgeMinutesRemainingToday": "Encore {minutes} min aujourd'hui",
+  "bridgeMinutesRemainingToday": "Encore {minutes} min d'essai aujourd'hui",
   "@bridgeMinutesRemainingToday": {
     "placeholders": {
       "minutes": {
@@ -1827,7 +1827,7 @@
   "faqStillTrialQ": "J'ai payé, mais l'appli affiche toujours l'essai ou Base",
   "faqStillTrialA": "Pro a besoin de deux choses : que tu sois connecté avec le même compte BikeControl que celui utilisé pour l'abonnement, et que cet appareil soit enregistré dans Gérer mon abonnement → Appareils enregistrés (chaque plateforme a sa propre limite d'appareils). L'achat unique de la version de base, lui, a juste besoin du même compte store que celui utilisé pour l'achat — utilise Restaurer les achats sur l'écran de paiement. Acheté sur Windows en dehors du Microsoft Store ? Ça passe par Stripe, pas par le store — connecte-toi plutôt avec le même compte BikeControl que celui utilisé au paiement ; Restaurer les achats ne le trouvera pas.",
   "faqTrialQ": "Pourquoi le changement de vitesses virtuel est-il limité à 20 minutes ?",
-  "faqTrialA": "Sans abonnement, les vitesses virtuelles de BikeControl fonctionnent 20 minutes par jour — ça se réinitialise chaque jour, pas à chaque sortie. Sans Pro, c'est ton appli d'entraînement qui gère les vitesses virtuelles. Avec Pro, les vitesses virtuelles de BikeControl n'ont pas de limite.",
+  "faqTrialA": "Les vitesses virtuelles de BikeControl sont une fonction Pro. Sans Pro, tu peux les essayer 20 minutes par jour — l'essai se réinitialise chaque jour, pas à chaque sortie. Sans Pro, ton appli d'entraînement peut gérer les vitesses virtuelles à la place. Avec Pro, les vitesses virtuelles de BikeControl n'ont pas de limite.",
   "faqGrandfatherQ": "J'ai acheté l'appli avant que l'abonnement existe. Qu'est-ce que je garde ?",
   "faqGrandfatherA": "Tout ce que l'achat unique incluait, tu le gardes pour toujours — appuis sur les boutons illimités, mapping de boutons basique, connexion de tes contrôleurs. Le changement de vitesses virtuel (la connexion de ton Smart Trainer à BikeControl) a toujours fait partie de Pro, même pour les achats anciens, donc il n'est pas inclus automatiquement.",
   "faqRefundQ": "Puis-je obtenir un remboursement ?",
@@ -2542,7 +2542,7 @@
   "@subscriptionRenewsOn": {"placeholders": {"date": {"type": "String"}}},
   "subscriptionActiveUntil": "Actif jusqu'au {date}",
   "@subscriptionActiveUntil": {"placeholders": {"date": {"type": "String"}}},
-  "subscriptionTrialUntil": "Essai jusqu'au {date}",
+  "subscriptionTrialUntil": "Essai Pro jusqu'au {date}",
   "@subscriptionTrialUntil": {"placeholders": {"date": {"type": "String"}}},
   "subscriptionBillingIssue": "Problème de paiement",
   "subscriptionBillingIssueBody": "Ton dernier paiement n'est pas passé. Mets à jour ton moyen de paiement pour garder Pro.",

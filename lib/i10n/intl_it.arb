@@ -100,7 +100,7 @@
   "actionCategoryShifting": "Cambio",
   "actionCategorySteering": "Sterzo",
   "actionCategoryOther": "Altro",
-  "trialDaysAvailable": "Prova di {days} giorni disponibile",
+  "trialDaysAvailable": "Periodo di prova di {days} giorni disponibile",
   "@trialDaysAvailable": {
     "placeholders": {
       "days": {
@@ -655,10 +655,10 @@
   "touchSimulationForegroundMessage": "Per simulare i tocchi, l'app deve rimanere in primo piano.",
   "trainer": "Trainer",
   "trainerConnection": "Collegamento con l'allenatore",
-  "trialDaysRemaining": "{trialDaysRemaining}giorni rimanenti",
-  "trialExpired": "Prova scaduta. Comandi limitati a{dailyCommandLimit} al giorno.",
-  "trialPeriodActive": "Periodo di prova attivo -{trialDaysRemaining} giorni rimanenti",
-  "trialPeriodDescription": "Durante il periodo di prova hai {dailyCommandLimit} comandi al giorno. Al termine il limite giornaliero si riduce: esegui l'upgrade per avere comandi illimitati.",
+  "trialDaysRemaining": "Periodo di prova: mancano {trialDaysRemaining} giorni",
+  "trialExpired": "Periodo di prova terminato. Pressioni dei pulsanti limitate a {dailyCommandLimit} al giorno.",
+  "trialPeriodActive": "Periodo di prova: mancano {trialDaysRemaining} giorni",
+  "trialPeriodDescription": "Durante il periodo di prova hai {dailyCommandLimit} pressioni dei pulsanti al giorno. Al termine il limite giornaliero si riduce: con Base o Pro sono illimitate.",
   "troubleshootingGuide": "Aiuto e supporto",
   "tryingToConnectAgain": "Sto provando a connettermi di nuovo...",
   "unassignAction": "Annulla assegnazione azione",
@@ -961,7 +961,7 @@
   "trainerFrontShiftUnavailable": "Cambio anteriore non disponibile",
   "successRatingMessage": "Grazie per usare BikeControl! Valuta BikeControl sull'{store} — è davvero d'aiuto.",
   "rateBikeControl": "Valuta BikeControl",
-  "bridgeMinutesRemainingToday": "Ancora {minutes} min oggi",
+  "bridgeMinutesRemainingToday": "Ancora {minutes} min di prova oggi",
   "@bridgeMinutesRemainingToday": {
     "placeholders": {
       "minutes": {
@@ -1827,7 +1827,7 @@
   "faqStillTrialQ": "Ho pagato, ma l'app mostra ancora la prova o Base",
   "faqStillTrialA": "Pro richiede due cose: essere connesso con lo stesso account BikeControl con cui ti sei abbonato, e che questo dispositivo sia registrato in Gestisci abbonamento → Dispositivi registrati (ogni piattaforma ha il proprio limite di dispositivi). L'acquisto una tantum della versione base, invece, richiede solo lo stesso account store con cui hai acquistato — usa Ripristina gli acquisti nella schermata di pagamento. Acquistato su Windows fuori dal Microsoft Store? In quel caso passa da Stripe, non dallo store — accedi invece con lo stesso account BikeControl con cui hai pagato: Ripristina gli acquisti lì non lo troverà.",
   "faqTrialQ": "Perché il cambio virtuale è limitato a 20 minuti?",
-  "faqTrialA": "Senza abbonamento, il cambio virtuale di BikeControl funziona 20 minuti al giorno; si azzera ogni giorno, non a ogni uscita. Senza Pro, è la tua app di allenamento a gestire il cambio virtuale. Con Pro, il cambio virtuale di BikeControl non ha limiti.",
+  "faqTrialA": "Il cambio virtuale di BikeControl è una funzione Pro. Senza Pro puoi provarlo 20 minuti al giorno; la prova si azzera ogni giorno, non a ogni uscita. Senza Pro, può essere la tua app di allenamento a gestire il cambio virtuale. Con Pro, il cambio virtuale di BikeControl non ha limiti.",
   "faqGrandfatherQ": "Ho comprato l'app prima che esistesse l'abbonamento. Cosa mantengo?",
   "faqGrandfatherA": "Tutto ciò che includeva l'acquisto una tantum lo mantieni per sempre: pressioni dei pulsanti illimitate, mapping dei pulsanti di base, connessione dei tuoi controller. Il cambio virtuale (collegare il tuo Smart Trainer a BikeControl) è sempre stato parte di Pro, anche per gli acquisti passati, quindi non è incluso automaticamente.",
   "faqRefundQ": "Posso ottenere un rimborso?",
@@ -2542,7 +2542,7 @@
   "@subscriptionRenewsOn": {"placeholders": {"date": {"type": "String"}}},
   "subscriptionActiveUntil": "Attivo fino al {date}",
   "@subscriptionActiveUntil": {"placeholders": {"date": {"type": "String"}}},
-  "subscriptionTrialUntil": "Prova fino al {date}",
+  "subscriptionTrialUntil": "Prova Pro fino al {date}",
   "@subscriptionTrialUntil": {"placeholders": {"date": {"type": "String"}}},
   "subscriptionBillingIssue": "Problema di pagamento",
   "subscriptionBillingIssueBody": "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere Pro.",
