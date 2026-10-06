@@ -190,6 +190,25 @@ Future<void> main() async {
       expect(definition.currentGear.value, 11);
     });
 
+    // − / + still move the number while the trainer is away, but nothing
+    // the rider feels changes: the dimmed card says so.
+    testWidgets('a trainer that is not connected: the card says shifts won\'t be felt', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      proxy.isConnected = false;
+      await pumpRide(tester);
+      final card = find.byType(VirtualShiftingCard);
+      expect(
+        find.descendant(of: card, matching: find.text(l.rideVsTrainerNotConnected(proxy.toString()))),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a connected trainer carries no such line', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+      expect(find.byKey(const ValueKey('ride-vs-dim-notice')), findsNothing);
+    });
+
     testWidgets('the shift buttons are at least 48 dp', (tester) async {
       liveTrainer();
       await pumpRide(tester);

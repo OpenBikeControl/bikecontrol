@@ -45,6 +45,7 @@ class VirtualShiftingCard extends StatelessWidget {
     required FitnessBikeDefinition this.definition,
     required this.trainerName,
     this.dim = false,
+    this.dimNotice,
     this.onOpenSettings,
     this.onOpenTrainer,
     this.footer,
@@ -63,6 +64,7 @@ class VirtualShiftingCard extends StatelessWidget {
     this.layout = VsCardLayout.beside,
   }) : definition = null,
        dim = true,
+       dimNotice = null,
        onOpenSettings = null,
        footer = null;
 
@@ -78,6 +80,10 @@ class VirtualShiftingCard extends StatelessWidget {
 
   /// Paired, but not carrying gears right now — see [TrainerDrivetrain.dim].
   final bool dim;
+
+  /// One line under the gear while [dim]: why − / + change the number but
+  /// nothing the rider feels. Not shown when null.
+  final String? dimNotice;
 
   /// Opens Settings → Virtual shifting.
   final VoidCallback? onOpenSettings;
@@ -143,6 +149,10 @@ class VirtualShiftingCard extends StatelessWidget {
                       ..._stacked(context, erg, width)
                     else
                       _beside(context, erg, width),
+                    if (dim && dimNotice != null) ...[
+                      const Gap(12),
+                      _DimNotice(key: const ValueKey('ride-vs-dim-notice'), text: dimNotice!),
+                    ],
                     if (_footer(context) case final footer?) ...[
                       const Gap(14),
                       DecoratedBox(
@@ -455,10 +465,11 @@ class VirtualShiftingCard extends StatelessWidget {
       filled: false,
       size: size,
       label: erg ? l.a11yDecrease : l.actionShiftDown,
+      felt: !dim,
       onTap: definition == null
           ? null
           : erg
-          ? (target != null && target > 0 ? () => definition.stepManualErgPower(up: false) : null)
+          ? (target != null && target > 0 ? () => definition.stepManualErgPower(up: false) != null : null)
           : () => definition.shiftDown(),
     );
   }
@@ -472,11 +483,12 @@ class VirtualShiftingCard extends StatelessWidget {
       filled: true,
       size: size,
       label: erg ? l.a11yIncrease : l.actionShiftUp,
+      felt: !dim,
       onTap: definition == null
           ? null
           : erg
           ? (target != null && target < ErgPowerStepping.maxManualW
-                ? () => definition.stepManualErgPower(up: true)
+                ? () => definition.stepManualErgPower(up: true) != null
                 : null)
           : () => definition.shiftUp(),
     );
@@ -754,13 +766,22 @@ class _ShiftButton extends StatelessWidget {
     required this.size,
     required this.label,
     required this.onTap,
+    this.felt = true,
   });
 
   final IconData icon;
   final bool filled;
   final double size;
   final String label;
-  final VoidCallback? onTap;
+
+  /// Shifts, and says whether anything changed — false at the top or bottom
+  /// gear, or at the end of the ERG range.
+  final bool Function()? onTap;
+
+  /// Whether a shift reaches the trainer. While it does not (the card is
+  /// dimmed), the number still moves but nothing buzzes: the haptic is the
+  /// promise that the rider will feel it.
+  final bool felt;
 
   @override
   Widget build(BuildContext context) {
@@ -770,8 +791,8 @@ class _ShiftButton extends StatelessWidget {
       onPressed: onTap == null
           ? null
           : () {
-              onTap!();
-              HapticFeedback.selectionClick();
+              final changed = onTap!();
+              if (changed && felt) HapticFeedback.selectionClick();
             },
       label: label,
       excludeChildSemantics: true,
@@ -945,6 +966,31 @@ class RidePromptCard extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Under the gear of a dimmed card: why the gears change nothing right now.
+class _DimNotice extends StatelessWidget {
+  const _DimNotice({super.key, required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(LucideIcons.info, size: 15, color: cs.mutedForeground),
+        ),
+        const Gap(8),
+        Expanded(
+          child: Text(text, style: context.typography.small.copyWith(color: cs.mutedForeground)),
+        ),
+      ],
     );
   }
 }

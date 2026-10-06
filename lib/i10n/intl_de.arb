@@ -2562,6 +2562,8 @@
   "rideOverlayOfferShow": "Overlay zeigen",
   "a11yChangeChainring": "Kettenblatt wechseln",
   "rideVsSettingsLink": "Einstellungen",
+  "rideVsTrainerNotConnected": "{trainer} ist nicht verbunden – du spürst die Schaltvorgänge erst, wenn er wieder da ist.",
+  "@rideVsTrainerNotConnected": {"description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.", "placeholders": {"trainer": {"type": "String"}}},
   "changelogKindAdded": "Neu",
   "changelogKindImproved": "Verbessert",
   "changelogKindFixed": "Behoben",

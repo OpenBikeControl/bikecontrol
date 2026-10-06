@@ -2562,6 +2562,8 @@
   "rideOverlayOfferShow": "Mostrar Overlay",
   "a11yChangeChainring": "Cambiar de plato",
   "rideVsSettingsLink": "Ajustes",
+  "rideVsTrainerNotConnected": "{trainer} no está conectado: no notarás los cambios hasta que vuelva.",
+  "@rideVsTrainerNotConnected": {"description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.", "placeholders": {"trainer": {"type": "String"}}},
   "changelogKindAdded": "Novedades",
   "changelogKindImproved": "Mejoras",
   "changelogKindFixed": "Correcciones",

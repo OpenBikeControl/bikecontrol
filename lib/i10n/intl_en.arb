@@ -2966,6 +2966,8 @@
   "rideOverlayOfferShow": "Show overlay",
   "a11yChangeChainring": "Change chainring",
   "rideVsSettingsLink": "Settings",
+  "rideVsTrainerNotConnected": "{trainer} isn't connected — you won't feel shifts until it's back.",
+  "@rideVsTrainerNotConnected": {"description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.", "placeholders": {"trainer": {"type": "String"}}},
   "changelogKindAdded": "New",
   "changelogKindImproved": "Improved",
   "changelogKindFixed": "Fixed",

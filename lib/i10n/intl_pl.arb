@@ -2562,6 +2562,8 @@
   "rideOverlayOfferShow": "Pokaż Overlay",
   "a11yChangeChainring": "Zmień tarczę",
   "rideVsSettingsLink": "Ustawienia",
+  "rideVsTrainerNotConnected": "{trainer} nie jest połączony — nie poczujesz zmian biegów, dopóki nie wróci.",
+  "@rideVsTrainerNotConnected": {"description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.", "placeholders": {"trainer": {"type": "String"}}},
   "changelogKindAdded": "Nowości",
   "changelogKindImproved": "Ulepszenia",
   "changelogKindFixed": "Poprawki",

@@ -1119,6 +1119,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           definition: definition,
           trainerName: proxy.toString(),
           dim: !connected,
+          dimNotice: connected ? null : l.rideVsTrainerNotConnected(proxy.toString()),
           layout: layout,
           onOpenSettings: () => _openVsSettings(proxy),
           onOpenTrainer: () => _openTrainerPage(proxy),
