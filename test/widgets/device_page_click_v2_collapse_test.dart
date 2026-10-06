@@ -82,9 +82,14 @@ void main() {
     // the integration suite.
     UniversalBle.setInstance(FakeUniversalBlePlatform());
     FlutterLocalNotificationsPlatform.instance = _FakeLocalNotificationsPlatform();
+    // A missing notification permission no longer holds the scan back, so
+    // ScanWidget would start a real one (and leave its timers pending).
+    // performScanning returns early while a scan is already running.
+    core.connection.isScanning.value = true;
   });
 
   tearDown(() {
+    core.connection.isScanning.value = false;
     core.connection.devices.clear();
   });
 
