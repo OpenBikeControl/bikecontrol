@@ -217,7 +217,7 @@
   "close": "Chiudi",
   "commandsRemainingToday": "Ancora {commandsRemainingToday}/{dailyCommandLimit} pressioni dei pulsanti oggi",
   "configuration": "Configurazione",
-  "connectControllerToPreview": "Collega un dispositivo controller per visualizzare in anteprima e personalizzare la mappa dei tasti.",
+  "connectControllerToPreview": "Collega un controller per vedere e personalizzare la mappatura dei pulsanti.",
   "connectControllers": "Connetti i controller",
   "connectDirectlyOverNetwork": "Connettiti direttamente tramite la rete",
   "connectToTrainerApp": "Connettiti all'app di allenamento",
@@ -248,10 +248,10 @@
   "controllerConnectedClickButton": "Ottimo! Il tuo controller è connesso. Clicca su un pulsante del controller per continuare.",
   "controllerSettings": "Impostazioni del controller",
   "controllers": "Controller",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Non è stato possibile eseguire{button} : Nessuna mappa dei tasti impostata",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Impossibile eseguire {button}: nessuna mappatura dei pulsanti impostata",
   "create": "Crea",
-  "createNewKeymap": "Crea una nuova mappa dei tasti",
-  "createNewProfileByDuplicating": "Crea un nuovo profilo personalizzato duplicando \"{profileName}\"",
+  "createNewKeymap": "Crea una nuova mappatura",
+  "createNewProfileByDuplicating": "Crea una nuova mappatura duplicando \"{profileName}\"",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -259,7 +259,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Creato un nuovo profilo personalizzato:{profileName}",
+  "createdNewCustomProfile": "Hai creato la tua mappatura: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -268,7 +268,7 @@
     }
   },
   "keymapSwitchTitle": "Tenere i tuoi pulsanti?",
-  "keymapSwitchBody": "Stai usando la tua configurazione dei pulsanti, «{profile}». {app} potrebbe aver bisogno di pulsanti diversi.",
+  "keymapSwitchBody": "Stai usando la tua mappatura dei pulsanti, «{profile}». {app} potrebbe aver bisogno di pulsanti diversi.",
   "@keymapSwitchBody": {
     "placeholders": {
       "profile": {
@@ -298,11 +298,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Personalizza la mappa dei tasti, se riscontri problemi (ad esempio, output della tastiera errato o posizionamenti del tocco non allineati)",
+  "customizeKeymapHint": "Personalizza la mappatura dei pulsanti se riscontri problemi (ad esempio, output della tastiera errato o posizionamenti del tocco non allineati)",
   "dailyCommandLimitReachedNotification": "Hai esaurito le pressioni dei pulsanti di oggi. Con Base o Pro sono illimitate.",
   "dailyLimitReached": "Limite giornaliero raggiunto ({dailyCommandCount} /{dailyCommandLimit} usato)",
   "delete": "Cancella",
-  "deleteProfile": "Elimina profilo",
+  "deleteProfile": "Elimina mappatura",
   "deleteProfileConfirmation": "Sei sicuro di voler eliminare \"{profileName}\" ? Questa azione non può essere annullata.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -367,7 +367,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Errore durante l'avvio del server Bluetooth OpenBikeControl.",
   "errorStartingOpenBikeControlServer": "Errore durante l'avvio del server OpenBikeControl.",
   "exportAction": "Esporta",
-  "failedToImportProfile": "Impossibile importare il profilo. Formato non valido.",
+  "failedToImportProfile": "Impossibile importare la mappatura. Formato non valido.",
   "failedToUpdate": "Aggiornamento non riuscito:{error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -397,7 +397,7 @@
   "howBikeControlUsesPermission": "In che modo BikeControl utilizza questa autorizzazione?",
   "ignoredDevices": "Dispositivi ignorati",
   "importAction": "Importa",
-  "importProfile": "Importa profilo",
+  "importProfile": "Importa mappatura",
   "instructionVideo": "Video di istruzioni",
   "instructions": "Istruzioni",
   "jsonData": "Dati JSON",
@@ -446,9 +446,9 @@
   "mailSupportExplanation": "Fornire supporto individuale via email è un impegno notevole per me. \n\nVi invito a utilizzare Reddit, Facebook o GitHub per domande e problemi, in modo che l'intera comunità possa trarne beneficio.",
   "main": "Principale",
   "manageIgnoredDevices": "Gestisci dispositivi ignorati",
-  "manageProfile": "Gestisci profilo",
-  "keymapSyncLabel": "Sincronizza le tue configurazioni dei pulsanti tra i tuoi dispositivi",
-  "keymapManageLabel": "Rinomina, duplica, importa, esporta o elimina configurazioni dei pulsanti",
+  "manageProfile": "Gestisci mappatura",
+  "keymapSyncLabel": "Sincronizza le tue mappature dei pulsanti tra i tuoi dispositivi",
+  "keymapManageLabel": "Rinomina, duplica, importa, esporta o elimina mappature dei pulsanti",
   "manageSubscription": "Gestisci abbonamento",
   "manageYourDevices": "Gestisci i tuoi dispositivi",
   "manualyControllingButton": "Controlla {trainerApp} manualmente!",
@@ -485,8 +485,8 @@
   "needHelpDontHesitate": "pulsante in alto e non esitare a contattarci.",
   "never": "Mai",
   "newConnectionMethodAnnouncement": "{trainerApp}supporterà presto metodi di connessione molto migliori e affidabili: restate sintonizzati per gli aggiornamenti!",
-  "newCustomProfile": "Nuovo profilo personalizzato",
-  "newProfileName": "Nuovo nome del profilo",
+  "newCustomProfile": "Nuova mappatura",
+  "newProfileName": "Nome della nuova mappatura",
   "newVersionAvailable": "Nuova versione disponibile",
   "newVersionAvailableWithVersion": "Nuova versione disponibile:{version}",
   "@newVersionAvailableWithVersion": {
@@ -590,7 +590,7 @@
   },
   "previous": "Precedente",
   "privacyPolicy": "politica sulla riservatezza",
-  "profileExportedToClipboard": "Profilo \"{profileName}\" esportato negli appunti",
+  "profileExportedToClipboard": "Mappatura \"{profileName}\" copiata negli appunti",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -598,8 +598,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Profilo importato con successo",
-  "profileName": "Nome del profilo",
+  "profileImportedSuccessfully": "Mappatura importata",
+  "profileName": "Nome della mappatura",
   "purchase": "Acquista",
   "recommendedConnectionMethods": "Metodi di connessione consigliati",
   "registerCurrentDevice": "Registra il dispositivo corrente",
@@ -607,7 +607,7 @@
   "removeFromIgnoredList": "Rimuovi dall'elenco degli ignorati",
   "removeOnePressAction": "Il {device} non supporta nativamente la pressione prolungata. Per utilizzare questa tipologia è necessario rimuovere l'azione di pressione prolungata.",
   "rename": "Rinomina",
-  "renameProfile": "Rinomina profilo",
+  "renameProfile": "Rinomina mappatura",
   "replaceExisting": "Sostituisci esistente",
   "requirement": "Requisiti",
   "reset": "Reset",
@@ -629,7 +629,7 @@
   "scanningForDevices": "Ricerca dispositivi in corso... Assicurarsi che siano accesi e nel raggio d'azione e che non siano connessi a un altro dispositivo.",
   "lookingForSmartTrainers": "Ricerca Smart Trainer…",
   "selectADeviceToSyncFrom": "Seleziona un dispositivo da cui sincronizzare",
-  "selectKeymap": "Seleziona la mappa dei tasti",
+  "selectKeymap": "Seleziona mappatura",
   "warningInstallOnTargetDevice": "BikeControl è disponibile anche su iOS, Android, Windows e macOS. Per un supporto completo di {appName}, scarica BikeControl su quel dispositivo.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -679,7 +679,7 @@
   "syncSettings": "Impostazioni di sincronizzazione",
   "syncStatus": "Stato di sincronizzazione",
   "synchronizeAcrossDevices": "Sincronizzazione tra dispositivi",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Sincronizza le impostazioni della tua app su tutti i tuoi dispositivi. Questo include le mappe dei tasti, le configurazioni dei pulsanti e le preferenze.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Sincronizza le impostazioni della tua app su tutti i tuoi dispositivi. Questo include le tue mappature dei pulsanti e le preferenze.",
   "targetOtherDevice": "Altro dispositivo",
   "targetThisDevice": "Questo dispositivo",
   "termsOfUse": "Termini di utilizzo",
@@ -741,7 +741,7 @@
   "unlockingNotPossible": "Al momento non è ancora possibile sbloccarlo, quindi per il momento goditi un utilizzo illimitato!",
   "update": "Aggiorna",
   "uploadSettings": "Carica le impostazioni",
-  "useCustomKeymapForButton": "Utilizzare una mappa dei tasti personalizzata per supportare",
+  "useCustomKeymapForButton": "Usa la tua mappatura per supportare",
   "version": "Versione{version}",
   "@version": {
     "placeholders": {

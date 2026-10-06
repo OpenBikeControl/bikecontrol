@@ -198,7 +198,7 @@
   "commandsRemainingToday": "{commandsRemainingToday}/{dailyCommandLimit} button presses left today",
   "configuration": "Configuration",
   "connect": "Connect",
-  "connectControllerToPreview": "Connect a controller device to preview and customize the keymap.",
+  "connectControllerToPreview": "Connect a controller device to preview and customize the button mapping.",
   "connectControllers": "Connect Controllers",
   "connectDirectlyOverNetwork": "Connect directly over Network",
   "connectToTrainerApp": "Connect to Trainer app",
@@ -239,10 +239,10 @@
   "controllerConnectedClickButton": "Great! Your controller is connected. Click a button on your controller to continue.",
   "controllerSettings": "Controller Settings",
   "controllers": "Controllers",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Could not perform {button}: No keymap set",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Could not perform {button}: no button mapping set",
   "create": "Create",
-  "createNewKeymap": "Create new keymap",
-  "createNewProfileByDuplicating": "Create new custom profile by duplicating \"{profileName}\"",
+  "createNewKeymap": "Create new mapping",
+  "createNewProfileByDuplicating": "Make a new mapping by duplicating \"{profileName}\"",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -250,7 +250,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Created a new custom profile: {profileName}",
+  "createdNewCustomProfile": "Made your own mapping: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -289,11 +289,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Customize the keymap if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)",
+  "customizeKeymapHint": "Customize the button mapping if you experience any issues (e.g. wrong keyboard output, or misaligned touch placements)",
   "dailyCommandLimitReachedNotification": "You've used up today's button presses. Base or Pro makes them unlimited.",
   "dailyLimitReached": "Daily limit reached ({dailyCommandCount}/{dailyCommandLimit} used)",
   "delete": "Delete",
-  "deleteProfile": "Delete Profile",
+  "deleteProfile": "Delete mapping",
   "deleteProfileConfirmation": "Are you sure you want to delete \"{profileName}\"? This action cannot be undone.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -368,7 +368,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Error starting OpenBikeControl Bluetooth server.",
   "errorStartingOpenBikeControlServer": "Error starting OpenBikeControl server.",
   "exportAction": "Export",
-  "failedToImportProfile": "Failed to import profile. Invalid format.",
+  "failedToImportProfile": "Couldn't import the mapping. Invalid format.",
   "failedToUpdate": "Failed to update: {error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -398,7 +398,7 @@
   "howBikeControlUsesPermission": "How does BikeControl use this permission?",
   "ignoredDevices": "Ignored Devices",
   "importAction": "Import",
-  "importProfile": "Import Profile",
+  "importProfile": "Import mapping",
   "instructionVideo": "Instruction Video",
   "instructions": "Instructions",
   "jsonData": "JSON Data",
@@ -450,7 +450,7 @@
   "mailSupportExplanation": "Providing individual support via email is a lot of work for me.\n\nPlease consider using Reddit, Facebook or GitHub for questions and issues so that the whole community can benefit from it.",
   "main": "Main",
   "manageIgnoredDevices": "Manage Ignored Devices",
-  "manageProfile": "Manage Profile",
+  "manageProfile": "Manage mapping",
   "keymapSyncLabel": "Sync your button mappings across your devices",
   "keymapManageLabel": "Rename, duplicate, import, export or delete button mappings",
   "manageSubscription": "Manage Subscription",
@@ -489,8 +489,8 @@
   "needHelpDontHesitate": "button on top and don't hesitate to contact us.",
   "never": "Never",
   "newConnectionMethodAnnouncement": "{trainerApp} will soon support much better, reliable connection methods - stay tuned for updates!",
-  "newCustomProfile": "New Custom Profile",
-  "newProfileName": "New Profile Name",
+  "newCustomProfile": "New mapping",
+  "newProfileName": "New mapping name",
   "newVersionAvailable": "New version available",
   "newVersionAvailableWithVersion": "New version available: {version}",
   "@newVersionAvailableWithVersion": {
@@ -1019,7 +1019,7 @@
   },
   "previous": "Previous",
   "privacyPolicy": "Privacy Policy",
-  "profileExportedToClipboard": "Profile \"{profileName}\" exported to clipboard",
+  "profileExportedToClipboard": "Mapping \"{profileName}\" copied to the clipboard",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -1027,8 +1027,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Profile imported successfully",
-  "profileName": "Profile name",
+  "profileImportedSuccessfully": "Mapping imported",
+  "profileName": "Mapping name",
   "purchase": "Purchase",
   "recommendedConnectionMethods": "Recommended Connection Methods",
   "registerCurrentDevice": "Register current device",
@@ -1036,7 +1036,7 @@
   "removeFromIgnoredList": "Remove from ignored list",
   "removeOnePressAction": "The {device} does not support long press natively. To use this type you the long press action needs to be removed.",
   "rename": "Rename",
-  "renameProfile": "Rename Profile",
+  "renameProfile": "Rename mapping",
   "replaceExisting": "Replace Existing",
   "requirement": "Requirement",
   "reset": "Reset",
@@ -1058,7 +1058,7 @@
   "scanningForDevices": "Scanning for devices... Make sure they are powered on and in range and not connected to another device.",
   "lookingForSmartTrainers": "Looking for Smart Trainers…",
   "selectADeviceToSyncFrom": "Select a device to sync from",
-  "selectKeymap": "Select Keymap",
+  "selectKeymap": "Select mapping",
   "warningInstallOnTargetDevice": "BikeControl is also available on iOS, Android, Windows and macOS. For proper support for {appName} please download BikeControl on that device.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -1109,7 +1109,7 @@
   "syncSettings": "Sync Settings",
   "syncStatus": "Sync Status",
   "synchronizeAcrossDevices": "Synchronize across devices",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronize your app settings across all your devices. This includes your keymaps, button configurations, and preferences.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronize your app settings across all your devices. This includes your button mappings and preferences.",
   "targetOtherDevice": "Other Device",
   "targetThisDevice": "This Device",
   "termsOfUse": "Terms of Use",
@@ -1187,7 +1187,7 @@
   "unlockingNotPossible": "Unlocking is currently not yet possible, so enjoy unlimited usage for the time being!",
   "update": "Update",
   "uploadSettings": "Upload Settings",
-  "useCustomKeymapForButton": "Use a custom keymap to support the",
+  "useCustomKeymapForButton": "Use your own mapping to support the",
   "version": "Version {version}",
   "@version": {
     "placeholders": {
@@ -2478,7 +2478,7 @@
       }
     }
   },
-  "syncDeviceSummary": "Version: {version} • Keymaps: {count}",
+  "syncDeviceSummary": "Version: {version} • Mappings: {count}",
   "@syncDeviceSummary": {
     "placeholders": {
       "version": {

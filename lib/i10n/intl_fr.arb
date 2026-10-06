@@ -217,7 +217,7 @@
   "close": "Fermer",
   "commandsRemainingToday": "Encore {commandsRemainingToday}/{dailyCommandLimit} appuis sur les boutons aujourd'hui",
   "configuration": "Configuration",
-  "connectControllerToPreview": "Connecte un périphérique de contrôle pour prévisualiser et personnaliser la configuration des touches.",
+  "connectControllerToPreview": "Connecte une manette pour voir et personnaliser l'affectation des boutons.",
   "connectControllers": "Connecte les contrôleurs",
   "connectDirectlyOverNetwork": "Connexion directe via le réseau",
   "connectToTrainerApp": "Se connecter à l'application Trainer",
@@ -248,10 +248,10 @@
   "controllerConnectedClickButton": "Super ! Ta manette est connectée. Clique sur un bouton de ta manette pour continuer.",
   "controllerSettings": "Paramètres de la manette",
   "controllers": "Contrôleurs",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Impossible d'effectuer {button}: Aucun clavier défini",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Impossible d'effectuer {button} : aucune affectation des boutons définie",
   "create": "Créer",
-  "createNewKeymap": "Créer un nouveau clavier",
-  "createNewProfileByDuplicating": "Créer un nouveau profil personnalisé en dupliquant «{profileName} ».",
+  "createNewKeymap": "Créer une nouvelle affectation",
+  "createNewProfileByDuplicating": "Créer une nouvelle affectation en dupliquant « {profileName} »",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -259,7 +259,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Création d'un nouveau profil personnalisé : {profileName}",
+  "createdNewCustomProfile": "Ta propre affectation est créée : {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -268,7 +268,7 @@
     }
   },
   "keymapSwitchTitle": "Garder tes propres boutons ?",
-  "keymapSwitchBody": "Tu utilises ta propre configuration des boutons, « {profile} ». {app} peut avoir besoin d'autres boutons.",
+  "keymapSwitchBody": "Tu utilises ta propre affectation des boutons, « {profile} ». {app} peut avoir besoin d'autres boutons.",
   "@keymapSwitchBody": {
     "placeholders": {
       "profile": {
@@ -298,11 +298,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Personnalise la configuration des touches si tu rencontres des problèmes (par exemple, une sortie clavier incorrecte ou un placement des touches mal aligné).",
+  "customizeKeymapHint": "Personnalise l'affectation des boutons si tu rencontres des problèmes (par exemple, une sortie clavier incorrecte ou un placement des touches mal aligné).",
   "dailyCommandLimitReachedNotification": "Tu as utilisé tous les appuis sur les boutons d'aujourd'hui. Avec Base ou Pro, ils sont illimités.",
   "dailyLimitReached": "Limite journalière atteinte ({dailyCommandCount} /{dailyCommandLimit} utilisé)",
   "delete": "Supprimer",
-  "deleteProfile": "Supprimer le profil",
+  "deleteProfile": "Supprimer l'affectation",
   "deleteProfileConfirmation": "Tu es sûr de vouloir supprimer «{profileName} » ? Cette action ne peut pas être annulée.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -367,7 +367,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Erreur lors du démarrage du serveur Bluetooth OpenBikeControl.",
   "errorStartingOpenBikeControlServer": "Erreur lors du démarrage du serveur OpenBikeControl.",
   "exportAction": "Exporter",
-  "failedToImportProfile": "Échec de l'importation du profil. Format non valide.",
+  "failedToImportProfile": "Impossible d'importer l'affectation. Format non valide.",
   "failedToUpdate": "Échec de la mise à jour: {error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -397,7 +397,7 @@
   "howBikeControlUsesPermission": "Comment BikeControl utilise-t-il cette autorisation ?",
   "ignoredDevices": "Appareils ignorés",
   "importAction": "Importer",
-  "importProfile": "Profil d'importation",
+  "importProfile": "Importer une affectation",
   "instructionVideo": "Vidéo d'instructions",
   "instructions": "Mode d'emploi",
   "jsonData": "Données JSON",
@@ -446,9 +446,9 @@
   "mailSupportExplanation": "Répondre à tout le monde individuellement par e-mail, ça me prend beaucoup de temps.\n\nSi t'as des questions ou des problèmes, pense à utiliser Reddit, Facebook ou GitHub pour que tout le monde puisse en profiter.",
   "main": "Principal",
   "manageIgnoredDevices": "Gérer les périphériques ignorés",
-  "manageProfile": "Gérer mon profil",
-  "keymapSyncLabel": "Synchronise tes configurations de boutons entre tes appareils",
-  "keymapManageLabel": "Renommer, dupliquer, importer, exporter ou supprimer des configurations de boutons",
+  "manageProfile": "Gérer l'affectation",
+  "keymapSyncLabel": "Synchronise tes affectations des boutons entre tes appareils",
+  "keymapManageLabel": "Renommer, dupliquer, importer, exporter ou supprimer des affectations des boutons",
   "manageSubscription": "Gérer mon abonnement",
   "manageYourDevices": "Gère tes appareils",
   "manualyControllingButton": "Contrôle {trainerApp} manuellement!",
@@ -485,8 +485,8 @@
   "needHelpDontHesitate": "bouton en haut et n'hésitez pas à nous contacter.",
   "never": "Jamais",
   "newConnectionMethodAnnouncement": "{trainerApp} prendra bientôt en charge des méthodes de connexion bien meilleures et plus fiables - restez à l'écoute pour les mises à jour !",
-  "newCustomProfile": "Nouveau profil personnalisé",
-  "newProfileName": "Nouveau nom de profil",
+  "newCustomProfile": "Nouvelle affectation",
+  "newProfileName": "Nom de la nouvelle affectation",
   "newVersionAvailable": "Nouvelle version disponible",
   "newVersionAvailableWithVersion": "Nouvelle version disponible: {version}",
   "@newVersionAvailableWithVersion": {
@@ -590,7 +590,7 @@
   },
   "previous": "Précédent",
   "privacyPolicy": "Politique de Confidentialité",
-  "profileExportedToClipboard": "Profil «{profileName} » exporté vers le presse-papiers",
+  "profileExportedToClipboard": "Affectation « {profileName} » copiée dans le presse-papiers",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -598,8 +598,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Profil importé avec succès",
-  "profileName": "Nom du profil",
+  "profileImportedSuccessfully": "Affectation importée",
+  "profileName": "Nom de l'affectation",
   "purchase": "Achat",
   "recommendedConnectionMethods": "Méthodes de connexion recommandées",
   "registerCurrentDevice": "Enregistrer l'appareil actuel",
@@ -607,7 +607,7 @@
   "removeFromIgnoredList": "Supprimer de la liste ignorée",
   "removeOnePressAction": "Le{device} La fonction d'appui long n'est pas prise en charge nativement. Pour utiliser ce type d'appareil, il est nécessaire de désactiver cette fonction.",
   "rename": "Rebaptiser",
-  "renameProfile": "Renommer le profil",
+  "renameProfile": "Renommer l'affectation",
   "replaceExisting": "Remplacer l'existant",
   "requirement": "Exigence",
   "reset": "Réinitialiser",
@@ -629,7 +629,7 @@
   "scanningForDevices": "Recherche d'appareils en cours… Assure-toi qu'ils sont allumés, à portée et non connectés à un autre appareil.",
   "selectADeviceToSyncFrom": "Sélectionne un appareil à synchroniser depuis",
   "lookingForSmartTrainers": "Recherche de Smart Trainers…",
-  "selectKeymap": "Sélectionner le clavier",
+  "selectKeymap": "Choisir l'affectation",
   "warningInstallOnTargetDevice": "BikeControl est aussi disponible sur iOS, Android, Windows et macOS. Pour une prise en charge complète de {appName}, téléchargez BikeControl sur l’appareil en question.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -679,7 +679,7 @@
   "syncSettings": "Paramètres de synchronisation",
   "syncStatus": "État de la synchronisation",
   "synchronizeAcrossDevices": "Synchroniser entre les appareils",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronise les paramètres de ton application sur tous tes appareils. Cela inclut tes raccourcis clavier, la configuration des boutons et tes préférences.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronise les paramètres de ton application sur tous tes appareils. Cela inclut tes affectations des boutons et tes préférences.",
   "targetOtherDevice": "Autre appareil",
   "targetThisDevice": "Cet appareil",
   "termsOfUse": "Conditions d'utilisation",
@@ -741,7 +741,7 @@
   "unlockingNotPossible": "Le déverrouillage n'est pas encore possible pour le moment, alors profitez d'une utilisation illimitée pour l'instant !",
   "update": "Mise à jour",
   "uploadSettings": "Envoyer les paramètres",
-  "useCustomKeymapForButton": "Utilisez une configuration de touches personnalisée pour prendre en charge",
+  "useCustomKeymapForButton": "Utilise ta propre affectation pour prendre en charge",
   "version": "Version {version}",
   "@version": {
     "placeholders": {

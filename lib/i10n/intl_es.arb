@@ -217,7 +217,7 @@
   "close": "Cerrar",
   "commandsRemainingToday": "Te quedan {commandsRemainingToday}/{dailyCommandLimit} pulsaciones de botón hoy",
   "configuration": "Configuración",
-  "connectControllerToPreview": "Conecte un dispositivo controlador para obtener una vista previa y personalizar el mapa de teclas.",
+  "connectControllerToPreview": "Conecta un mando para ver y personalizar la asignación de botones.",
   "connectControllers": "Conectar dispositivos de control",
   "connectDirectlyOverNetwork": "Conectar directamente a través de la red",
   "connectToTrainerApp": "Conectar la app de entrenamiento",
@@ -248,10 +248,10 @@
   "controllerConnectedClickButton": "Perfecto. Tu controlador está conectado. Pulsa un botón en tu controlador para continuar.",
   "controllerSettings": "Configuración del controlador",
   "controllers": "Dispositivos de control",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "No se pudo ejecutar {button}: no hay un mapa de teclas configurado",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "No se pudo ejecutar {button}: no hay ninguna asignación de botones",
   "create": "Crear",
-  "createNewKeymap": "Crear un nuevo mapa de teclas",
-  "createNewProfileByDuplicating": "Crear un perfil personalizado nuevo duplicando \"{profileName}\"",
+  "createNewKeymap": "Crear nueva asignación",
+  "createNewProfileByDuplicating": "Crear una asignación nueva duplicando \"{profileName}\"",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -259,7 +259,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Se creó un perfil personalizado nuevo: {profileName}",
+  "createdNewCustomProfile": "Creaste tu propia asignación: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -298,11 +298,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Personalice el mapa de teclas si experimenta algún problema (por ejemplo, teclas pulsadas incorrectas o pulsaciones táctiles mal localizadas)",
+  "customizeKeymapHint": "Personaliza la asignación de botones si tienes algún problema (por ejemplo, teclas pulsadas incorrectas o pulsaciones táctiles mal localizadas)",
   "dailyCommandLimitReachedNotification": "Has gastado las pulsaciones de botón de hoy. Con Base o Pro son ilimitadas.",
   "dailyLimitReached": "Límite diario alcanzado ({dailyCommandCount}/{dailyCommandLimit} usados)",
   "delete": "Eliminar",
-  "deleteProfile": "Eliminar perfil",
+  "deleteProfile": "Eliminar asignación",
   "deleteProfileConfirmation": "¿Seguro que quieres eliminar \"{profileName}\"? Esta acción no se puede deshacer.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -367,7 +367,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Error al iniciar el servidor Bluetooth de OpenBikeControl.",
   "errorStartingOpenBikeControlServer": "Error al iniciar el servidor OpenBikeControl.",
   "exportAction": "Exportar",
-  "failedToImportProfile": "No se pudo importar el perfil. Formato no válido.",
+  "failedToImportProfile": "No se pudo importar la asignación. Formato no válido.",
   "failedToUpdate": "No se pudo actualizar: {error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -397,7 +397,7 @@
   "howBikeControlUsesPermission": "¿Cómo usa BikeControl este permiso?",
   "ignoredDevices": "Dispositivos ignorados",
   "importAction": "Importar",
-  "importProfile": "Importar perfil",
+  "importProfile": "Importar asignación",
   "instructionVideo": "Vídeo instructivo",
   "instructions": "Instrucciones",
   "jsonData": "Datos JSON",
@@ -446,7 +446,7 @@
   "mailSupportExplanation": "Dar soporte individual por correo me lleva mucho trabajo.\n\nSi puedes, usa Reddit, Facebook o GitHub para dudas y problemas, así toda la comunidad puede beneficiarse.",
   "main": "Principal",
   "manageIgnoredDevices": "Administrar dispositivos ignorados",
-  "manageProfile": "Gestionar perfil",
+  "manageProfile": "Gestionar asignación",
   "keymapSyncLabel": "Sincroniza tus asignaciones de botones entre tus dispositivos",
   "keymapManageLabel": "Renombrar, duplicar, importar, exportar o eliminar asignaciones de botones",
   "manageSubscription": "Gestionar suscripción",
@@ -485,8 +485,8 @@
   "needHelpDontHesitate": "botón de arriba y no dudes en ponerte en contacto con nosotros.",
   "never": "Nunca",
   "newConnectionMethodAnnouncement": "{trainerApp} pronto admitirá métodos de conexión mucho mejores y más fiables. Estate atento a las actualizaciones.",
-  "newCustomProfile": "Nuevo perfil personalizado",
-  "newProfileName": "Nombre del nuevo perfil",
+  "newCustomProfile": "Nueva asignación",
+  "newProfileName": "Nombre de la nueva asignación",
   "newVersionAvailable": "Nueva versión disponible",
   "newVersionAvailableWithVersion": "Nueva versión disponible: {version}",
   "@newVersionAvailableWithVersion": {
@@ -590,7 +590,7 @@
   },
   "previous": "Anterior",
   "privacyPolicy": "política de privacidad",
-  "profileExportedToClipboard": "El perfil \"{profileName}\" se ha exportado al portapapeles",
+  "profileExportedToClipboard": "Asignación \"{profileName}\" copiada al portapapeles",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -598,8 +598,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Perfil importado correctamente",
-  "profileName": "Nombre del perfil",
+  "profileImportedSuccessfully": "Asignación importada",
+  "profileName": "Nombre de la asignación",
   "purchase": "Comprar",
   "recommendedConnectionMethods": "Métodos de conexión recomendados",
   "registerCurrentDevice": "Registrar dispositivo actual",
@@ -607,7 +607,7 @@
   "removeFromIgnoredList": "Eliminar de la lista de ignorados",
   "removeOnePressAction": "El {device} no es compatible con la pulsación prolongada de forma nativa. Para usar este tipo, es necesario eliminar la acción de pulsación prolongada.",
   "rename": "Renombrar",
-  "renameProfile": "Renombrar perfil",
+  "renameProfile": "Renombrar asignación",
   "replaceExisting": "Reemplazar existente",
   "requirement": "Requisito",
   "reset": "Restablecer",
@@ -629,7 +629,7 @@
   "scanningForDevices": "Buscando dispositivos... Asegúrese de que estén encendidos, dentro del alcance y no conectados a otro dispositivo.",
   "lookingForSmartTrainers": "Buscando Smart Trainers…",
   "selectADeviceToSyncFrom": "Selecciona un dispositivo del que sincronizar",
-  "selectKeymap": "Seleccionar mapa de teclas",
+  "selectKeymap": "Seleccionar asignación",
   "warningInstallOnTargetDevice": "BikeControl también está disponible para iOS, Android, Windows y macOS. Para que {appName} funcione correctamente, descarga BikeControl en ese dispositivo.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -679,7 +679,7 @@
   "syncSettings": "Sincronizar ajustes",
   "syncStatus": "Estado de sincronización",
   "synchronizeAcrossDevices": "Sincronizar entre dispositivos",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Sincroniza los ajustes de la app entre todos tus dispositivos. Esto incluye tus mapas de teclas, configuraciones de botones y preferencias.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Sincroniza los ajustes de la app entre todos tus dispositivos. Esto incluye tus asignaciones de botones y preferencias.",
   "targetOtherDevice": "Otro dispositivo",
   "targetThisDevice": "Este dispositivo",
   "termsOfUse": "Condiciones de uso",
@@ -741,7 +741,7 @@
   "unlockingNotPossible": "De momento todavía no es posible desbloquearlo, así que disfruta del uso ilimitado mientras tanto.",
   "update": "Actualizar",
   "uploadSettings": "Subir ajustes",
-  "useCustomKeymapForButton": "Usa un mapa de teclas personalizado para que sea compatible con el",
+  "useCustomKeymapForButton": "Usa tu propia asignación para que sea compatible con el",
   "version": "Versión {version}",
   "@version": {
     "placeholders": {

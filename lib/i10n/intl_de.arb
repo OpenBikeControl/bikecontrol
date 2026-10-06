@@ -217,7 +217,7 @@
   "close": "Schließen",
   "commandsRemainingToday": "Noch {commandsRemainingToday}/{dailyCommandLimit} Tastendrücke heute",
   "configuration": "Konfiguration",
-  "connectControllerToPreview": "Schließe ein Controller-Gerät an, um die Tastaturbelegung in der Vorschau anzuzeigen und anzupassen.",
+  "connectControllerToPreview": "Verbinde einen Controller, um die Tastenbelegung zu sehen und anzupassen.",
   "connectControllers": "Controller verbinden",
   "connectDirectlyOverNetwork": "Direkte Verbindung über das Netzwerk",
   "connectToTrainerApp": "Mit der Trainer-App verbinden",
@@ -248,10 +248,10 @@
   "controllerConnectedClickButton": "Super! Dein Controller ist verbunden. Drücke eine Taste auf deinem Controller, um fortzufahren.",
   "controllerSettings": "Controller-Einstellungen",
   "controllers": "Controller",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "{button} konnte nicht ausgeführt werden: Keine Konfiguration festgelegt",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "{button} konnte nicht ausgeführt werden: keine Tastenbelegung festgelegt",
   "create": "Erstellen",
-  "createNewKeymap": "Neue Tastaturbelegung erstellen",
-  "createNewProfileByDuplicating": "Erstelle ein neues benutzerdefiniertes Profil, indem „{profileName} “ dupliziert wird.",
+  "createNewKeymap": "Neue Belegung erstellen",
+  "createNewProfileByDuplicating": "Neue Belegung als Kopie von „{profileName}“ erstellen",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -259,7 +259,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Ein neues benutzerdefiniertes Profil wurde erstellt: {profileName}",
+  "createdNewCustomProfile": "Deine eigene Belegung erstellt: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -298,11 +298,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Passe die Tastaturbelegung an, falls Probleme auftreten (z. B. falsche Tastatureingaben oder falsch ausgerichtete Touch-Positionen).",
+  "customizeKeymapHint": "Passe die Tastenbelegung an, falls Probleme auftreten (z. B. falsche Tastatureingaben oder falsch ausgerichtete Touch-Positionen).",
   "dailyCommandLimitReachedNotification": "Die Tastendrücke für heute sind aufgebraucht. Mit Basis oder Pro sind sie unbegrenzt.",
   "dailyLimitReached": "Tageslimit erreicht ({dailyCommandCount} / {dailyCommandLimit} verbraucht)",
   "delete": "Löschen",
-  "deleteProfile": "Profil löschen",
+  "deleteProfile": "Belegung löschen",
   "deleteProfileConfirmation": "„{profileName} “ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -367,7 +367,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Fehler beim Starten des OpenBikeControl Bluetooth-Servers.",
   "errorStartingOpenBikeControlServer": "Fehler beim Starten des OpenBikeControl-Servers.",
   "exportAction": "Export",
-  "failedToImportProfile": "Profilimport fehlgeschlagen. Ungültiges Format.",
+  "failedToImportProfile": "Belegung konnte nicht importiert werden. Ungültiges Format.",
   "failedToUpdate": "Aktualisierung fehlgeschlagen: {error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -397,7 +397,7 @@
   "howBikeControlUsesPermission": "Wie nutzt BikeControl diese Berechtigung?",
   "ignoredDevices": "Ignorierte Geräte",
   "importAction": "Import",
-  "importProfile": "Profil importieren",
+  "importProfile": "Belegung importieren",
   "instructionVideo": "Anleitungsvideo",
   "instructions": "Anleitung",
   "jsonData": "JSON-Daten",
@@ -446,7 +446,7 @@
   "mailSupportExplanation": "Die individuelle Unterstützung per E-Mail ist für mich sehr aufwendig.\n\nBitte nutze daher Reddit, Facebook oder GitHub für Fragen und Probleme, damit die gesamte Community davon profitieren kann.",
   "main": "BikeControl",
   "manageIgnoredDevices": "Ignorierte Geräte verwalten",
-  "manageProfile": "Profil verwalten",
+  "manageProfile": "Belegung verwalten",
   "keymapSyncLabel": "Deine Tastenbelegungen zwischen deinen Geräten synchronisieren",
   "keymapManageLabel": "Tastenbelegungen umbenennen, duplizieren, importieren, exportieren oder löschen",
   "manageSubscription": "Abonnement verwalten",
@@ -485,8 +485,8 @@
   "needHelpDontHesitate": "den Button oben und zögere nicht, uns zu kontaktieren.",
   "never": "Niemals",
   "newConnectionMethodAnnouncement": "{trainerApp} wird in Kürze deutlich bessere und zuverlässigere Verbindungsmethoden unterstützen!",
-  "newCustomProfile": "Neues benutzerdefiniertes Profil",
-  "newProfileName": "Neuer Profilname",
+  "newCustomProfile": "Neue Belegung",
+  "newProfileName": "Name der neuen Belegung",
   "newVersionAvailable": "Neue Version verfügbar",
   "newVersionAvailableWithVersion": "Neue Version verfügbar: {version}",
   "@newVersionAvailableWithVersion": {
@@ -590,7 +590,7 @@
   },
   "previous": "Vorherige",
   "privacyPolicy": "Datenschutzrichtlinie",
-  "profileExportedToClipboard": "Profil „{profileName} “ in die Zwischenablage kopiert",
+  "profileExportedToClipboard": "Belegung „{profileName}“ in die Zwischenablage kopiert",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -598,8 +598,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Profil erfolgreich importiert",
-  "profileName": "Profilname",
+  "profileImportedSuccessfully": "Belegung importiert",
+  "profileName": "Name der Belegung",
   "purchase": "Kaufen",
   "recommendedConnectionMethods": "Empfohlene Verbindungsmethoden",
   "registerCurrentDevice": "Aktuelles Gerät registrieren",
@@ -607,7 +607,7 @@
   "removeFromIgnoredList": "Aus der Ignorierliste entfernen",
   "removeOnePressAction": "Der {device} unterstützt kein langes Drücken nativ. Um diesen Typ zu verwenden, muss die Funktion für langes Drücken entfernt werden.",
   "rename": "Umbenennen",
-  "renameProfile": "Profil umbenennen",
+  "renameProfile": "Belegung umbenennen",
   "replaceExisting": "Vorhandene ersetzen",
   "requirement": "Anforderung",
   "reset": "Zurücksetzen",
@@ -629,7 +629,7 @@
   "scanningForDevices": "Suche nach Geräten... Stelle sicher, dass diese eingeschaltet und in Reichweite sind und nicht mit einem anderen Gerät verbunden sind.",
   "selectADeviceToSyncFrom": "Wähle ein Gerät aus, von dem synchronisiert werden soll.",
   "lookingForSmartTrainers": "Suche nach Smart Trainern…",
-  "selectKeymap": "Tastaturbelegung auswählen",
+  "selectKeymap": "Belegung auswählen",
   "warningInstallOnTargetDevice": "BikeControl ist auch für iOS, Android, Windows und macOS verfügbar. Für die volle Unterstützung von {appName} lade BikeControl bitte auf jenem Gerät herunter.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -679,7 +679,7 @@
   "syncSettings": "Synchronisierungseinstellungen",
   "syncStatus": "Synchronisierungsstatus",
   "synchronizeAcrossDevices": "Synchronisierung über verschiedene Geräte hinweg",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronisiere die App-Einstellungen auf allen Geräten. Dies umfasst deine Tastaturbelegungen, Tastenkonfigurationen und Präferenzen.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronisiere die App-Einstellungen auf allen Geräten. Dies umfasst deine Tastenbelegungen und Präferenzen.",
   "targetOtherDevice": "Anderes Gerät",
   "targetThisDevice": "Dieses Gerät",
   "termsOfUse": "Nutzungsbedingungen",
@@ -741,7 +741,7 @@
   "unlockingNotPossible": "Eine Freischaltung ist derzeit noch nicht möglich, daher ist die App vorerst uneingeschränkt nutzbar!",
   "update": "Aktualisieren",
   "uploadSettings": "Einstellungen hochladen",
-  "useCustomKeymapForButton": "Verwende eine benutzerdefinierte Tastaturbelegung, um die",
+  "useCustomKeymapForButton": "Verwende deine eigene Tastenbelegung, um die",
   "version": "Version {version}",
   "@version": {
     "placeholders": {

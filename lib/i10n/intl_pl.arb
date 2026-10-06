@@ -217,7 +217,7 @@
   "close": "Zamknij",
   "commandsRemainingToday": "Pozostało {commandsRemainingToday}/{dailyCommandLimit} naciśnięć przycisków dzisiaj",
   "configuration": "Konfiguracja",
-  "connectControllerToPreview": "Podłącz urządzenie sterujące, aby wyświetlić podgląd i dostosować mapę klawiszy.",
+  "connectControllerToPreview": "Podłącz kontroler, aby zobaczyć i dostosować mapowanie przycisków.",
   "connectControllers": "Połącz kontrolery",
   "connectDirectlyOverNetwork": "Połącz bezpośrednio przez sieć",
   "connectToTrainerApp": "Połącz z aplikacją treningową",
@@ -248,10 +248,10 @@
   "controllerConnectedClickButton": "Świetnie! Twój kontroler jest połączony. Kliknij przycisk na kontrolerze, aby kontynuować.",
   "controllerSettings": "Ustawienia kontrolera",
   "controllers": "Kontrolery",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Nie można wykonać {button}: Nie zmapowano klawisza",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "Nie można wykonać {button}: brak mapowania przycisków",
   "create": "Utwórz",
-  "createNewKeymap": "Utwórz nową mapę klawiszy",
-  "createNewProfileByDuplicating": "Utwórz nowy profil niestandardowy, kopiując „{profileName}\"",
+  "createNewKeymap": "Utwórz nowe mapowanie",
+  "createNewProfileByDuplicating": "Utwórz nowe mapowanie, kopiując „{profileName}”",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -259,7 +259,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Utworzono nowy profil niestandardowy: {profileName}",
+  "createdNewCustomProfile": "Utworzono twoje własne mapowanie: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -268,7 +268,7 @@
     }
   },
   "keymapSwitchTitle": "Zachować własne przyciski?",
-  "keymapSwitchBody": "Używasz własnego układu przycisków „{profile}”. {app} może potrzebować innych przycisków.",
+  "keymapSwitchBody": "Używasz własnego mapowania przycisków „{profile}”. {app} może potrzebować innych przycisków.",
   "@keymapSwitchBody": {
     "placeholders": {
       "profile": {
@@ -298,11 +298,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Jeśli występują jakiekolwiek problemy (np. nieprawidłowe działanie klawiatury lub nieprawidłowe rozmieszczenie przycisków dotykowych), dostosuj mapę klawiszy.",
+  "customizeKeymapHint": "Jeśli występują jakiekolwiek problemy (np. nieprawidłowe działanie klawiatury lub nieprawidłowe rozmieszczenie przycisków dotykowych), dostosuj mapowanie przycisków.",
   "dailyCommandLimitReachedNotification": "Dzisiejsze naciśnięcia przycisków się wyczerpały. Z Base lub Pro są nieograniczone.",
   "dailyLimitReached": "Osiągnięto dzienny limit ({dailyCommandCount} /{dailyCommandLimit} wykorzystanych)",
   "delete": "Usuń",
-  "deleteProfile": "Usuń profil",
+  "deleteProfile": "Usuń mapowanie",
   "deleteProfileConfirmation": "Czy na pewno chcesz usunąć „{profileName}\"? Tej czynności nie można cofnąć.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -367,7 +367,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Błąd podczas uruchamiania serwera Bluetooth OpenBikeControl.",
   "errorStartingOpenBikeControlServer": "Błąd podczas uruchamiania serwera OpenBikeControl.",
   "exportAction": "Eksport",
-  "failedToImportProfile": "Nie udało się zaimportować profilu. Nieprawidłowy format.",
+  "failedToImportProfile": "Nie udało się zaimportować mapowania. Nieprawidłowy format.",
   "failedToUpdate": "Nie udało się zaktualizować: {error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -397,7 +397,7 @@
   "howBikeControlUsesPermission": "W jaki sposób BikeControl wykorzystuje to uprawnienie?",
   "ignoredDevices": "Zignorowane urządzenia",
   "importAction": "Import",
-  "importProfile": "Importuj profil",
+  "importProfile": "Importuj mapowanie",
   "instructionVideo": "Film instruktażowy",
   "instructions": "Instrukcje",
   "jsonData": "Dane JSON",
@@ -446,9 +446,9 @@
   "mailSupportExplanation": "Udzielanie indywidualnego wsparcia przez e-mail to dla mnie dużo pracy.\n\nProszę rozważyć korzystanie z Reddita, Facebooka lub GitHuba w celu zadawania pytań i zgłaszania problemów, aby cała społeczność mogła z tego skorzystać.",
   "main": "Główny",
   "manageIgnoredDevices": "Zarządzaj ignorowanymi urządzeniami",
-  "manageProfile": "Zarządzaj profilem",
-  "keymapSyncLabel": "Synchronizuj swoje układy przycisków między urządzeniami",
-  "keymapManageLabel": "Zmień nazwę, duplikuj, importuj, eksportuj lub usuń układy przycisków",
+  "manageProfile": "Zarządzaj mapowaniem",
+  "keymapSyncLabel": "Synchronizuj swoje mapowania przycisków między urządzeniami",
+  "keymapManageLabel": "Zmień nazwę, duplikuj, importuj, eksportuj lub usuń mapowania przycisków",
   "manageSubscription": "Zarządzaj subskrypcją",
   "manageYourDevices": "Zarządzaj swoimi urządzeniami",
   "manualyControllingButton": "Steruj {trainerApp} manualnie!",
@@ -485,8 +485,8 @@
   "needHelpDontHesitate": "przycisk na górze i skontaktuj się z nami.",
   "never": "Nigdy",
   "newConnectionMethodAnnouncement": "{trainerApp} już wkrótce będzie wspierać znacznie lepsze i bardziej niezawodne metody połączeń — bądź na bieżąco z aktualizacjami!",
-  "newCustomProfile": "Nowy profil niestandardowy",
-  "newProfileName": "Nowa nazwa profilu",
+  "newCustomProfile": "Nowe mapowanie",
+  "newProfileName": "Nazwa nowego mapowania",
   "newVersionAvailable": "Dostępna jest nowa wersja",
   "newVersionAvailableWithVersion": "Dostępna jest nowa wersja: {version}",
   "@newVersionAvailableWithVersion": {
@@ -590,7 +590,7 @@
   },
   "previous": "Poprzedni",
   "privacyPolicy": "Polityka prywatności",
-  "profileExportedToClipboard": "Wyeksportowano profil „{profileName}\" do schowka",
+  "profileExportedToClipboard": "Skopiowano mapowanie „{profileName}” do schowka",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -598,8 +598,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Pomyślnie zaimportowano profil",
-  "profileName": "Nazwa profilu",
+  "profileImportedSuccessfully": "Zaimportowano mapowanie",
+  "profileName": "Nazwa mapowania",
   "purchase": "Zakup",
   "recommendedConnectionMethods": "Zalecane metody połączenia",
   "registerCurrentDevice": "Zarejestruj aktualne urządzenie",
@@ -607,7 +607,7 @@
   "removeFromIgnoredList": "Usuń z listy ignorowanych",
   "removeOnePressAction": "Ten {device} Nie obsługuje natywnie długiego naciśnięcia. Aby korzystać z tego typu, należy usunąć akcję długiego naciśnięcia.",
   "rename": "Zmiana nazwy",
-  "renameProfile": "Zmień nazwę profilu",
+  "renameProfile": "Zmień nazwę mapowania",
   "replaceExisting": "Zastąp istniejące",
   "requirement": "Wymóg",
   "reset": "Reset",
@@ -629,7 +629,7 @@
   "scanningForDevices": "Skanowanie urządzeń... Upewnij się, że są włączone, znajdują się w zasięgu i nie są podłączone do innego urządzenia.",
   "lookingForSmartTrainers": "Szukam Smart Trainerów…",
   "selectADeviceToSyncFrom": "Wybierz urządzenie, z którego chcesz przeprowadzić synchronizację",
-  "selectKeymap": "Wybierz mapę klawiszy",
+  "selectKeymap": "Wybierz mapowanie",
   "warningInstallOnTargetDevice": "BikeControl jest dostępny także na iOS, Android, Windows i macOS. Aby w pełni korzystać z aplikacji {appName}, pobierz BikeControl na tamtym urządzeniu.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -679,7 +679,7 @@
   "syncSettings": "Ustawienia synchronizacji",
   "syncStatus": "Status synchronizacji",
   "synchronizeAcrossDevices": "Synchronizuj na różnych urządzeniach",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronizuj ustawienia aplikacji na wszystkich urządzeniach. Dotyczy to map klawiszy, konfiguracji przycisków i preferencji.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronizuj ustawienia aplikacji na wszystkich urządzeniach. Dotyczy to mapowań przycisków i preferencji.",
   "targetOtherDevice": "Inne urządzenie",
   "targetThisDevice": "To urządzenie",
   "termsOfUse": "Warunki korzystania",
@@ -741,7 +741,7 @@
   "unlockingNotPossible": "Odblokowanie nie jest obecnie możliwe, więc ciesz się nieograniczonym użytkowaniem!",
   "update": "Aktualizacja",
   "uploadSettings": "Prześlij ustawienia",
-  "useCustomKeymapForButton": "Użyj niestandardowej mapy klawiszy, aby obsługiwać",
+  "useCustomKeymapForButton": "Użyj własnego mapowania, aby obsługiwać",
   "version": "Wersja {version}",
   "@version": {
     "placeholders": {
