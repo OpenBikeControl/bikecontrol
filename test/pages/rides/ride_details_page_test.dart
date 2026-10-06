@@ -57,12 +57,20 @@ Future<void> main() async {
     });
   });
 
-  Future<void> pump(WidgetTester tester, PastWorkout ride) async {
-    tester.view.physicalSize = const Size(390, 1800);
+  Future<void> pump(
+    WidgetTester tester,
+    PastWorkout ride, {
+    Size size = const Size(390, 1800),
+    bool popovers = false,
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ShadcnApp(
+        // As in main.dart: menus are popovers at their anchor.
+        menuHandler: popovers ? OverlayHandler.popover : null,
+        popoverHandler: popovers ? OverlayHandler.popover : null,
         localizationsDelegates: const [
           ...ShadcnLocalizations.localizationsDelegates,
           OtherLocalizationsDelegate(),
@@ -196,6 +204,25 @@ Future<void> main() async {
     await tester.tap(find.text(l10n.delete).last);
     await tester.pumpAndSettle();
     expect(await rig.repository.find(ride.fileName), isNull);
+  });
+
+  testWidgets('on desktop the ⋯ menu opens at the button, not at the page', (tester) async {
+    debugHostPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugHostPlatformOverride = null);
+    final rig = await RideRig.install();
+    final ride = await saveSampleRide(rig.repository);
+    await pump(tester, ride, size: const Size(1280, 800), popovers: true);
+
+    final more = tester.getRect(find.byKey(const ValueKey('ride-details-more')));
+    await tester.tap(find.byKey(const ValueKey('ride-details-more')));
+    // A popover follows its anchor every frame: it never settles.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    final item = tester.getRect(find.byKey(const ValueKey('ride-details-delete')));
+    expect(item.top, greaterThanOrEqualTo(more.bottom - 1), reason: 'below the button');
+    expect(item.top - more.bottom, lessThan(40), reason: 'right below it');
+    expect(item.right, greaterThan(more.left), reason: 'under the button, not across the page');
+    expect(item.left, lessThan(more.right));
   });
 
   group('platform share', () {

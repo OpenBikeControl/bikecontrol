@@ -85,22 +85,25 @@ class _RideDetailsPageState extends State<RideDetailsPage> {
         BkPageHeader(
           title: l10n.ridesRideTitle,
           actions: [
-            BkIconButton.ghost(
-              key: const ValueKey('ride-details-more'),
-              icon: const Icon(LucideIcons.ellipsisVertical, size: 22),
-              label: l10n.a11yMoreOptions,
-              tooltip: false,
-              onPressed: () => showDropdown(
-                context: context,
-                builder: (_) => DropdownMenu(
-                  children: [
-                    MenuButton(
-                      key: const ValueKey('ride-details-delete'),
-                      leading: Icon(LucideIcons.trash2, size: 16, color: cs.destructive),
-                      onPressed: (_) => unawaited(_delete()),
-                      child: Text(l10n.delete, style: TextStyle(color: cs.destructive)),
-                    ),
-                  ],
+            // The button's own context: the dropdown anchors to it.
+            Builder(
+              builder: (anchor) => BkIconButton.ghost(
+                key: const ValueKey('ride-details-more'),
+                icon: const Icon(LucideIcons.ellipsisVertical, size: 22),
+                label: l10n.a11yMoreOptions,
+                tooltip: false,
+                onPressed: () => showDropdown(
+                  context: anchor,
+                  builder: (_) => DropdownMenu(
+                    children: [
+                      MenuButton(
+                        key: const ValueKey('ride-details-delete'),
+                        leading: Icon(LucideIcons.trash2, size: 16, color: cs.destructive),
+                        onPressed: (_) => unawaited(_delete()),
+                        child: Text(l10n.delete, style: TextStyle(color: cs.destructive)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
