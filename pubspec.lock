@@ -547,10 +547,9 @@ packages:
   flutter_screen_recording:
     dependency: "direct main"
     description:
-      name: flutter_screen_recording
-      sha256: "0fb52011aa11ac4dc3e89bea3aaee4a709321af374b3b318e74fa8ed8338412e"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/flutter_screen_recording"
+      relative: true
+    source: path
     version: "2.0.25"
   flutter_screen_recording_platform_interface:
     dependency: transitive

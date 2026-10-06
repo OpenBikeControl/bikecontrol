@@ -50,7 +50,10 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^10.3.10
   flutter_screen_capture: ^2.0.1
-  flutter_screen_recording: ^2.0.25
+  # 2.0.25 with jcenter() removed from android/build.gradle: Gradle 9 has no
+  # jcenter() and the package has no release without it.
+  flutter_screen_recording:
+    path: packages/flutter_screen_recording
   gal: ^2.3.1
   screen_recorder:
     path: packages/screen_recorder
