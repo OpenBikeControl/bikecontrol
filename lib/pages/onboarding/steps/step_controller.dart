@@ -212,6 +212,7 @@ Widget onboardingControllerBody(
   Map<String, ValueListenable<ControllerPress>> presses = const {},
   void Function(BaseDevice)? onSetupDevice,
   VoidCallback? onUpdate,
+  bool locationNeededForBluetooth = false,
 }) {
   final reduceMotion = MediaQuery.of(context).disableAnimations;
   final anyConnected = devices.any((d) => d.isConnected);
@@ -249,6 +250,10 @@ Widget onboardingControllerBody(
           ),
           Gap(6),
           _infoRow(context, LucideIcons.shieldCheck, context.i18n.onboardingBluetoothPrivacy, ''),
+          // Android 11 and older ask for Location to scan for Bluetooth — say
+          // why before that prompt contradicts the line above.
+          if (locationNeededForBluetooth)
+            _infoRow(context, LucideIcons.mapPin, context.i18n.onboardingBluetoothLocationNote, ''),
         ]),
       );
     case ControllerPhase.scanning:

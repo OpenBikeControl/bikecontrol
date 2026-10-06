@@ -46,6 +46,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/android.dart' show LocationRequirement;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
@@ -488,6 +489,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
   // Set once the permission sheet has been shown, so a declined notification
   // permission is asked for once rather than on every visit to the step.
   bool _askedScanPermissions = false;
+  // Android 11 and older need Location to scan for Bluetooth devices.
+  bool _scanNeedsLocation = false;
   // Mobile opens on a welcome screen; the desktop rail already frames the
   // flow, so it starts on step 1. Re-runs from the menu skip it too.
   bool _showWelcome = core.settings.getOnboardingState() != Settings.onboardingStateCompleted;
@@ -729,6 +732,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     try {
       final requirements = await core.permissions.getScanRequirements();
       if (!mounted) return;
+      _scanNeedsLocation = requirements.any((r) => r is LocationRequirement);
       // Only notifications missing and already asked once: look for the
       // controller anyway rather than ask again on every visit.
       if (requirements.isEmpty ||
@@ -911,6 +915,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       presses: _presses,
       onSetupDevice: (d) => unawaited(_openSetupFor(d)),
       onUpdate: () => setState(() {}),
+      locationNeededForBluetooth: _scanNeedsLocation,
     ),
     OnboardingStep.virtualShifting => onboardingTrainerBody(
       context,

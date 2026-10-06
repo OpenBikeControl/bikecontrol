@@ -1233,6 +1233,7 @@
   "onboardingBluetoothNotifyTitle": "Tenerti aggiornato",
   "onboardingBluetoothNotifySub": "Ti avvisa quando un dispositivo si collega o cade.",
   "onboardingBluetoothPrivacy": "BikeControl non lo usa mai per posizione o tracciamento.",
+  "onboardingBluetoothLocationNote": "Android richiede il permesso di posizione per trovare i dispositivi Bluetooth. BikeControl non traccia dove ti trovi.",
   "onboardingNotNow": "Non ora",
   "onboardingScanTitle": "Sto cercando il tuo controller",
   "onboardingScanSubtitle": "Assicurati che sia acceso, a portata e non collegato a un'altra app.",
