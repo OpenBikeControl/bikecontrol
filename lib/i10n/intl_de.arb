@@ -1708,7 +1708,7 @@
       }
     }
   },
-  "chainStatusBridged": "Verbunden über Bridge",
+  "chainStatusBridged": "Über BikeControl verbunden",
   "chainTrialTitle": "Testphase",
   "chainTrialExpiredTitle": "Testphase abgelaufen",
   "chainTrialDaysMeter": "Testtage",
@@ -2063,7 +2063,7 @@
   },
   "sensorsUseSensorsOnlyQuestion": "Trainer läuft nicht über BikeControl?",
   "sensorsUseSensorsOnly": "Stattdessen Sensoren teilen",
-  "sensorsConnectTrainerQuestion": "Soll BikeControl den Trainer verbinden?",
+  "sensorsConnectTrainerQuestion": "Soll BikeControl deinen Trainer steuern?",
   "sensorsConnectTrainer": "Trainer verbinden",
   "sensorsPageTitle": "Sensoren",
   "sensorsBroadcastEyebrow": "Übertragung",
@@ -2132,7 +2132,7 @@
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "Wähle im Kopplungsbildschirm von {app} „{bridge}“ als Trainer — nicht „{trainer}“ unter seinem eigenen Namen, das umgeht BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
-  "chainPendingSubtitleController": "Dein Trainer ist über die Bridge verbunden, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",
+  "chainPendingSubtitleController": "{app} hat deinen Trainer über BikeControl, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Warte darauf, dass {app} ihn erkennt",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},

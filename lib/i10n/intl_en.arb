@@ -1849,7 +1849,7 @@
   },
   "sensorsUseSensorsOnlyQuestion": "Trainer not going through BikeControl?",
   "sensorsUseSensorsOnly": "Share sensors instead",
-  "sensorsConnectTrainerQuestion": "Want BikeControl to bridge the trainer?",
+  "sensorsConnectTrainerQuestion": "Let BikeControl control your trainer?",
   "sensorsConnectTrainer": "Connect trainer",
   "sensorsPageTitle": "Sensors",
   "sensorsBroadcastEyebrow": "Broadcast",
@@ -2001,7 +2001,7 @@
       }
     }
   },
-  "chainStatusBridged": "Bridged",
+  "chainStatusBridged": "Connected through BikeControl",
   "chainCloseAndQuit": "Close connections & quit app",
   "ratioCurveLabel": "RATIO CURVE",
   "easier": "Easier",
@@ -2321,7 +2321,7 @@
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "In {app}'s pairing screen choose “{bridge}” as the trainer — not “{trainer}” under its own name, that bypasses BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
-  "chainPendingSubtitleController": "Your trainer is bridged, but your buttons won't reach {app} until you also connect the BikeControl controller in its pairing screen.",
+  "chainPendingSubtitleController": "{app} has your trainer through BikeControl, but your buttons won't reach {app} until you also connect the BikeControl controller in its pairing screen.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Waiting for {app} to pick it up",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},

@@ -1696,7 +1696,7 @@
       }
     }
   },
-  "chainStatusBridged": "Połączony przez mostek",
+  "chainStatusBridged": "Połączony przez BikeControl",
   "chainTrialTitle": "Okres próbny",
   "chainTrialExpiredTitle": "Okres próbny wygasł",
   "chainTrialDaysMeter": "Dni próbne",
@@ -2061,7 +2061,7 @@
   },
   "sensorsUseSensorsOnlyQuestion": "Trenażer nie działa przez BikeControl?",
   "sensorsUseSensorsOnly": "Zamiast tego udostępnij czujniki",
-  "sensorsConnectTrainerQuestion": "Chcesz, aby BikeControl łączył trenażer?",
+  "sensorsConnectTrainerQuestion": "Pozwolić BikeControl sterować trenażerem?",
   "sensorsConnectTrainer": "Połącz trenażer",
   "sensorsPageTitle": "Czujniki",
   "sensorsBroadcastEyebrow": "Nadawanie",
@@ -2130,7 +2130,7 @@
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "Na ekranie parowania w {app} wybierz „{bridge}” jako trenażer — nie „{trainer}” pod jego własną nazwą, bo to omija BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
-  "chainPendingSubtitleController": "Twój trenażer działa przez mostek, ale Twoje przyciski nie dotrą do {app}, dopóki nie połączysz też kontrolera BikeControl na jego ekranie parowania.",
+  "chainPendingSubtitleController": "{app} ma Twój trenażer przez BikeControl, ale Twoje przyciski nie dotrą do {app}, dopóki nie połączysz też kontrolera BikeControl na jego ekranie parowania.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Czekam, aż {app} go wykryje",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},

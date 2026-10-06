@@ -1696,7 +1696,7 @@
       }
     }
   },
-  "chainStatusBridged": "Connecté via le pont",
+  "chainStatusBridged": "Connecté via BikeControl",
   "chainTrialTitle": "Essai",
   "chainTrialExpiredTitle": "Essai expiré",
   "chainTrialDaysMeter": "Jours d’essai",
@@ -2061,7 +2061,7 @@
   },
   "sensorsUseSensorsOnlyQuestion": "Le home trainer ne passe pas par BikeControl ?",
   "sensorsUseSensorsOnly": "Partager les capteurs à la place",
-  "sensorsConnectTrainerQuestion": "BikeControl doit-il relayer le home trainer ?",
+  "sensorsConnectTrainerQuestion": "Laisser BikeControl piloter ton home trainer ?",
   "sensorsConnectTrainer": "Connecter le home trainer",
   "sensorsPageTitle": "Capteurs",
   "sensorsBroadcastEyebrow": "Diffusion",
@@ -2130,7 +2130,7 @@
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "Sur l'écran d'association de {app}, choisis « {bridge} » comme home trainer — pas « {trainer} » sous son propre nom, cela contourne BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
-  "chainPendingSubtitleController": "Ton home trainer passe par le pont, mais tes boutons n'atteindront pas {app} tant que tu n'auras pas aussi connecté le contrôleur BikeControl sur son écran d'association.",
+  "chainPendingSubtitleController": "{app} a ton home trainer via BikeControl, mais tes boutons n'atteindront pas {app} tant que tu n'auras pas aussi connecté le contrôleur BikeControl sur son écran d'association.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "En attente que {app} le détecte",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},

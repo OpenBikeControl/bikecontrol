@@ -1696,7 +1696,7 @@
       }
     }
   },
-  "chainStatusBridged": "Conectado mediante puente",
+  "chainStatusBridged": "Conectado a través de BikeControl",
   "chainTrialTitle": "Prueba",
   "chainTrialExpiredTitle": "Prueba caducada",
   "chainTrialDaysMeter": "Días de prueba",
@@ -2061,7 +2061,7 @@
   },
   "sensorsUseSensorsOnlyQuestion": "¿El rodillo no pasa por BikeControl?",
   "sensorsUseSensorsOnly": "Compartir sensores en su lugar",
-  "sensorsConnectTrainerQuestion": "¿Quieres que BikeControl haga de puente con el rodillo?",
+  "sensorsConnectTrainerQuestion": "¿Quieres que BikeControl controle tu rodillo?",
   "sensorsConnectTrainer": "Conectar rodillo",
   "sensorsPageTitle": "Sensores",
   "sensorsBroadcastEyebrow": "Emisión",
@@ -2130,7 +2130,7 @@
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "En la pantalla de emparejamiento de {app}, elige «{bridge}» como rodillo — no «{trainer}» con su propio nombre, eso deja a BikeControl fuera.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
-  "chainPendingSubtitleController": "Tu rodillo ya pasa por el puente, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
+  "chainPendingSubtitleController": "{app} ya tiene tu rodillo a través de BikeControl, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Esperando a que {app} lo detecte",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
