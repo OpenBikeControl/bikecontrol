@@ -3,28 +3,73 @@ import 'dart:math' as math;
 import 'workout_recorder.dart' show WorkoutPause;
 import 'workout_sample.dart';
 
-/// Power and heart rate over a ride, bucketed for the summary card and the
-/// details chart. Bucket `i` covers `[i * stepSeconds, (i + 1) * stepSeconds)`
-/// from the ride's start; a bucket without samples (a pause, a dropout) is
-/// null so the line breaks there.
+/// Power, heart rate, cadence and gear over a ride, bucketed for the summary
+/// card and the details charts. Bucket `i` covers
+/// `[i * stepSeconds, (i + 1) * stepSeconds)` from the ride's start; a bucket
+/// without samples (a pause, a dropout) is null so the line breaks there.
+///
+/// Beside the buckets it keeps how many seconds were ridden at each gear,
+/// power and heart rate, so time in gear and time in zone come from every
+/// second rather than from bucket averages. Series added after the first
+/// version are optional in the json.
 class RideChart {
   final int stepSeconds;
   final List<int?> power;
   final List<int?> heartRate;
+  final List<int?> cadence;
+
+  /// The gear held longest in each bucket.
+  final List<int?> gear;
 
   /// Paused stretches as (start, end) seconds from the ride's start.
   final List<(int, int)> pauses;
 
-  const RideChart({required this.stepSeconds, required this.power, required this.heartRate, required this.pauses});
+  /// Seconds ridden in each gear.
+  final Map<int, int> gearSeconds;
+
+  final Map<int, int>? _powerSeconds;
+  final Map<int, int>? _heartRateSeconds;
+
+  const RideChart({
+    required this.stepSeconds,
+    required this.power,
+    required this.heartRate,
+    required this.pauses,
+    this.cadence = const [],
+    this.gear = const [],
+    this.gearSeconds = const {},
+    Map<int, int>? powerSeconds,
+    Map<int, int>? heartRateSeconds,
+  }) : _powerSeconds = powerSeconds,
+       _heartRateSeconds = heartRateSeconds;
 
   /// TUNABLE. More points than a phone-width chart can show is wasted json.
   static const maxPoints = 360;
   static const minStepSeconds = 5;
 
-  int get totalSeconds => math.max(power.length, heartRate.length) * stepSeconds;
+  int get totalSeconds => [power.length, heartRate.length, cadence.length, gear.length].reduce(math.max) * stepSeconds;
 
   bool get hasPower => power.any((v) => v != null && v > 0);
   bool get hasHeartRate => heartRate.any((v) => v != null && v > 0);
+  bool get hasCadence => cadence.any((v) => v != null && v > 0);
+  bool get hasGear => gear.any((v) => v != null);
+
+  /// Seconds ridden per watt (a ride spans a few hundred distinct values).
+  /// A chart saved without it falls back to its buckets.
+  Map<int, int> get powerSeconds => _powerSeconds ?? _fromBuckets(power, keep: (w) => w >= 0);
+
+  /// Seconds ridden per bpm. A chart saved without it falls back to its
+  /// buckets.
+  Map<int, int> get heartRateSeconds => _heartRateSeconds ?? _fromBuckets(heartRate, keep: (h) => h > 0);
+
+  Map<int, int> _fromBuckets(List<int?> values, {required bool Function(int) keep}) {
+    final out = <int, int>{};
+    for (final v in values) {
+      if (v == null || !keep(v)) continue;
+      out.update(v, (n) => n + stepSeconds, ifAbsent: () => stepSeconds);
+    }
+    return out;
+  }
 
   static RideChart build(
     List<WorkoutSample> samples, {
@@ -37,6 +82,10 @@ class RideChart {
     final count = (seconds / step).ceil();
     final pSum = List<int>.filled(count, 0), pN = List<int>.filled(count, 0);
     final hSum = List<int>.filled(count, 0), hN = List<int>.filled(count, 0);
+    final cSum = List<int>.filled(count, 0), cN = List<int>.filled(count, 0);
+    final gears = List<Map<int, int>>.generate(count, (_) => {});
+    final gearSeconds = <int, int>{}, powerSeconds = <int, int>{}, heartRateSeconds = <int, int>{};
+    void add(Map<int, int> m, int key) => m.update(key, (n) => n + 1, ifAbsent: () => 1);
     for (final s in samples) {
       final at = s.timestamp.difference(startedAt).inSeconds;
       if (at < 0) continue;
@@ -44,43 +93,89 @@ class RideChart {
       if (s.powerW case final p?) {
         pSum[i] += p;
         pN[i]++;
+        if (p >= 0) add(powerSeconds, p);
       }
       if (s.heartRateBpm case final h? when h > 0) {
         hSum[i] += h;
         hN[i]++;
+        add(heartRateSeconds, h);
+      }
+      if (s.cadenceRpm case final c?) {
+        cSum[i] += c;
+        cN[i]++;
+      }
+      if (s.gear case final g?) {
+        add(gears[i], g);
+        add(gearSeconds, g);
       }
     }
+    // The gear held longest in the bucket; on a tie the later one.
+    int? mostHeld(Map<int, int> held) {
+      int? best;
+      var most = 0;
+      for (final MapEntry(key: g, value: n) in held.entries) {
+        if (n >= most) (best, most) = (g, n);
+      }
+      return best;
+    }
+
+    final anyCadence = cN.any((n) => n > 0);
+    final anyGear = gearSeconds.isNotEmpty;
     return RideChart(
       stepSeconds: step,
       power: [for (var i = 0; i < count; i++) pN[i] == 0 ? null : (pSum[i] / pN[i]).round()],
       heartRate: [for (var i = 0; i < count; i++) hN[i] == 0 ? null : (hSum[i] / hN[i]).round()],
+      cadence: anyCadence ? [for (var i = 0; i < count; i++) cN[i] == 0 ? null : (cSum[i] / cN[i]).round()] : const [],
+      gear: anyGear ? [for (final held in gears) mostHeld(held)] : const [],
       pauses: [
         for (final p in pauses) (p.start.difference(startedAt).inSeconds, p.end.difference(startedAt).inSeconds),
       ],
+      gearSeconds: gearSeconds,
+      powerSeconds: powerSeconds,
+      heartRateSeconds: heartRateSeconds,
     );
   }
 
-  Map<String, Object?> toJson() => {
-    'step': stepSeconds,
-    'power': power,
-    'heartRate': heartRate,
-    'pauses': [
-      for (final p in pauses) [p.$1, p.$2],
-    ],
-  };
+  Map<String, Object?> toJson() {
+    Map<String, int> counts(Map<int, int> m) => {for (final e in m.entries) '${e.key}': e.value};
+    return {
+      'step': stepSeconds,
+      'power': power,
+      'heartRate': heartRate,
+      'pauses': [
+        for (final p in pauses) [p.$1, p.$2],
+      ],
+      if (cadence.isNotEmpty) 'cadence': cadence,
+      if (gear.isNotEmpty) 'gear': gear,
+      if (gearSeconds.isNotEmpty) 'gearSeconds': counts(gearSeconds),
+      if (_powerSeconds case final p?) 'powerSeconds': counts(p),
+      if (_heartRateSeconds case final h?) 'heartRateSeconds': counts(h),
+    };
+  }
 
   static RideChart? fromJson(Object? raw) {
     if (raw is! Map) return null;
     List<int?> ints(Object? v) => v is List ? [for (final x in v) (x as num?)?.toInt()] : const [];
+    Map<int, int>? counts(Object? v) => v is Map
+        ? {
+            for (final e in v.entries)
+              if (int.tryParse('${e.key}') case final k?) k: (e.value as num).toInt(),
+          }
+        : null;
     return RideChart(
       stepSeconds: (raw['step'] as num?)?.toInt() ?? minStepSeconds,
       power: ints(raw['power']),
       heartRate: ints(raw['heartRate']),
+      cadence: ints(raw['cadence']),
+      gear: ints(raw['gear']),
       pauses: [
         if (raw['pauses'] case final List list)
           for (final p in list)
             if (p is List && p.length == 2) ((p[0] as num).toInt(), (p[1] as num).toInt()),
       ],
+      gearSeconds: counts(raw['gearSeconds']) ?? const {},
+      powerSeconds: counts(raw['powerSeconds']),
+      heartRateSeconds: counts(raw['heartRateSeconds']),
     );
   }
 }

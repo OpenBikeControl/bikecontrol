@@ -6,12 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final start = DateTime(2026, 4, 24, 10, 0, 0);
 
-  WorkoutSample s(int sec, {int? p, int? c, double? sp, int? hr}) => WorkoutSample(
+  WorkoutSample s(int sec, {int? p, int? c, double? sp, int? hr, int? g}) => WorkoutSample(
     timestamp: start.add(Duration(seconds: sec)),
     powerW: p,
     cadenceRpm: c,
     speedKph: sp,
     heartRateBpm: hr,
+    gear: g,
   );
 
   test('empty samples produce zeroed summary', () {
@@ -125,9 +126,70 @@ void main() {
       expect(chart.pauses, [(20, 30)]);
     });
 
+    test('chart buckets cadence and keeps the gear held longest in each bucket', () {
+      final samples = [
+        for (var i = 0; i < 5; i++) s(i, p: 200, c: 90, g: i < 2 ? 10 : 11),
+        for (var i = 5; i < 10; i++) s(i, p: 200, c: 80, g: 12),
+      ];
+      final chart = WorkoutSummary.fromSamples(
+        samples,
+        startedAt: start,
+        activeDuration: const Duration(seconds: 10),
+        endedAt: start.add(const Duration(seconds: 10)),
+      ).chart!;
+      expect(chart.cadence, [90, 80]);
+      expect(chart.gear, [11, 12]);
+      expect(chart.hasCadence, isTrue);
+      expect(chart.hasGear, isTrue);
+    });
+
+    test('a ride without gears or cadence has neither series', () {
+      final chart = WorkoutSummary.fromSamples(
+        [for (var i = 0; i < 10; i++) s(i, p: 200)],
+        startedAt: start,
+        activeDuration: const Duration(seconds: 10),
+      ).chart!;
+      expect(chart.hasCadence, isFalse);
+      expect(chart.hasGear, isFalse);
+      expect(chart.gearSeconds, isEmpty);
+    });
+
+    test('time at each gear, power and heart rate counts every second ridden', () {
+      final samples = [
+        for (var i = 0; i < 7; i++) s(i, p: 150, hr: 120, g: 10),
+        for (var i = 7; i < 10; i++) s(i, p: 302, hr: 121, g: 11),
+        s(10, p: null, hr: 0, g: 11),
+      ];
+      final chart = WorkoutSummary.fromSamples(
+        samples,
+        startedAt: start,
+        activeDuration: const Duration(seconds: 11),
+      ).chart!;
+      expect(chart.gearSeconds, {10: 7, 11: 4});
+      expect(chart.powerSeconds, {150: 7, 302: 3});
+      expect(chart.heartRateSeconds, {120: 7, 121: 3});
+    });
+
+    test('a chart saved before cadence and gears were kept still loads', () {
+      final chart = RideChart.fromJson({
+        'step': 5,
+        'power': [200, 210],
+        'heartRate': [140, 141],
+        'pauses': [],
+      })!;
+      expect(chart.cadence, isEmpty);
+      expect(chart.gear, isEmpty);
+      expect(chart.hasCadence, isFalse);
+      expect(chart.hasGear, isFalse);
+      expect(chart.gearSeconds, isEmpty);
+      // Zones still have something to go on: the buckets.
+      expect(chart.powerSeconds, {200: 5, 210: 5});
+      expect(chart.heartRateSeconds, {140: 5, 141: 5});
+    });
+
     test('round-trips everything through json', () {
       final sum = WorkoutSummary.fromSamples(
-        [s(0, p: 200, c: 90, sp: 30, hr: 140), s(1, p: 220, c: 92, sp: 31, hr: 141)],
+        [s(0, p: 200, c: 90, sp: 30, hr: 140, g: 9), s(1, p: 220, c: 92, sp: 31, hr: 141, g: 10)],
         startedAt: start,
         activeDuration: const Duration(minutes: 3),
         endedAt: start.add(const Duration(minutes: 4)),
@@ -146,6 +208,11 @@ void main() {
       expect(back.fitExported, isTrue);
       expect(back.gearChanges, 3);
       expect(back.chart!.power, sum.chart!.power);
+      expect(back.chart!.cadence, sum.chart!.cadence);
+      expect(back.chart!.gear, sum.chart!.gear);
+      expect(back.chart!.gearSeconds, {9: 1, 10: 1});
+      expect(back.chart!.powerSeconds, sum.chart!.powerSeconds);
+      expect(back.chart!.heartRateSeconds, sum.chart!.heartRateSeconds);
     });
 
     test('reads a ride saved before this version', () {

@@ -11,6 +11,10 @@ class WorkoutSample {
   /// be written back to Health with the ride — they are already there.
   final bool heartRateFromHealth;
 
+  /// The virtual rear gear BikeControl had the trainer in; null without
+  /// virtual shifting.
+  final int? gear;
+
   const WorkoutSample({
     required this.timestamp,
     this.powerW,
@@ -18,5 +22,6 @@ class WorkoutSample {
     this.speedKph,
     this.heartRateBpm,
     this.heartRateFromHealth = false,
+    this.gear,
   });
 }

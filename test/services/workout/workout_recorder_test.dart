@@ -213,6 +213,35 @@ void main() {
       });
     });
 
+    test('each sample carries the gear it was ridden in', () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        final gear = ValueNotifier<int>(12);
+        final metrics = TrainerMetrics(
+          powerW: fake.power,
+          cadenceRpm: fake.cadence,
+          speedKph: fake.speed,
+          heartRateBpm: fake.hr,
+          gear: gear,
+        );
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(metrics);
+        async.elapse(const Duration(seconds: 1));
+        gear.value = 14;
+        async.elapse(const Duration(seconds: 2));
+        expect(rec.stop().samples.map((s) => s.gear), [12, 14, 14]);
+      });
+    });
+
+    test('without a gear source samples have no gear', () {
+      fakeAsync((async) {
+        final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));
+        rec.start(_Fake().metrics);
+        async.elapse(const Duration(seconds: 2));
+        expect(rec.stop().samples.map((s) => s.gear), [null, null]);
+      });
+    });
+
     test('without a gear source the count stays unknown', () {
       fakeAsync((async) {
         final rec = WorkoutRecorder(nowProvider: () => base().add(async.elapsed));

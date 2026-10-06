@@ -199,6 +199,7 @@ class WorkoutRecorder {
         speedKph: m.speedKph.value,
         heartRateBpm: m.heartRateBpm.value,
         heartRateFromHealth: m.isHeartRateFromHealth?.call() ?? false,
+        gear: m.gear?.value,
       ),
     );
     elapsed.value = _accumulatedActive + now.difference(_lastResumedAt!);
