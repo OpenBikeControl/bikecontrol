@@ -443,7 +443,7 @@
   "mustChooseAllowOrDeny": "Debes elegir entre Permitir o Denegar este permiso para continuar.",
   "myWhooshDirectConnectAction": "Acción de MyWhoosh \"Link\"",
   "myWhooshGearHintTitle": "BikeControl gestiona tus cambios",
-  "myWhooshGearHintBody": "Desactiva el cambio virtual en los ajustes de MyWhoosh u oculta la interfaz de cambios en MyWhoosh. De lo contrario, ambas aplicaciones pueden intentar controlar la resistencia y los cambios pueden sentirse inconsistentes.",
+  "myWhooshGearHintBody": "Esto aplica cuando el cambio virtual de BikeControl controla tu rodillo: desactiva el cambio virtual en los ajustes de MyWhoosh u oculta la interfaz de cambios en MyWhoosh. De lo contrario, ambas aplicaciones pueden intentar controlar la resistencia y los cambios pueden sentirse inconsistentes.",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" conectado",
   "myWhooshLinkDescriptionLocal": "Conectar directamente a MyWhoosh mediante el método MyWoosh \"Link\". Las acciones compatibles incluyen cambios de marcha, reacciones y dirección virtual, entre otras. La aplicación complementaria MyWhoosh Link NO debe estar ejecutándose simultáneamente.",
   "myWhooshLinkInfo": "Si tienes algún problema, revisa la sección de solución de problemas. Muy pronto llegará un método de conexión mucho más fiable.",

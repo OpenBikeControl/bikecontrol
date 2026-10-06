@@ -443,7 +443,7 @@
   "mustChooseAllowOrDeny": "Aby kontynuować, musisz zezwolić lub odmówić tego uprawnienia.",
   "myWhooshDirectConnectAction": "Akcja „Link” MyWhoosh",
   "myWhooshGearHintTitle": "BikeControl zarządza Twoimi biegami",
-  "myWhooshGearHintBody": "Wyłącz wirtualną zmianę biegów w ustawieniach MyWhoosh lub ukryj interfejs biegów w MyWhoosh. W przeciwnym razie obie aplikacje mogą próbować sterować oporem, a zmiany biegów mogą wydawać się niespójne.",
+  "myWhooshGearHintBody": "Dotyczy sytuacji, gdy trenażerem steruje wirtualna zmiana biegów BikeControl: wyłącz wirtualną zmianę biegów w ustawieniach MyWhoosh lub ukryj interfejs biegów w MyWhoosh. W przeciwnym razie obie aplikacje mogą próbować sterować oporem, a zmiany biegów mogą wydawać się niespójne.",
   "myWhooshLinkConnected": "Połączono MyWhoosh „Link”",
   "myWhooshLinkDescriptionLocal": "Połącz się bezpośrednio z MyWhoosh za pomocą metody „Link”. Sprawdź instrukcje, aby upewnić się, że połączenie jest możliwe. Aplikacja „MyWhoosh Link” nie może być jednocześnie aktywna.",
   "myWhooshLinkInfo": "W razie napotkania błędów prosimy o sprawdzenie sekcji rozwiązywania problemów. Wkrótce pojawi się znacznie bardziej niezawodna metoda połączenia!",

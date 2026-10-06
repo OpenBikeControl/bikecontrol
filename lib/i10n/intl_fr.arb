@@ -443,7 +443,7 @@
   "mustChooseAllowOrDeny": "Tu dois choisir d'autoriser ou de refuser cette autorisation pour continuer.",
   "myWhooshDirectConnectAction": "Action «Link» de MyWhoosh",
   "myWhooshGearHintTitle": "BikeControl gère tes vitesses",
-  "myWhooshGearHintBody": "Désactive le changement de vitesse virtuel dans les paramètres de MyWhoosh, ou masque l'interface des vitesses dans MyWhoosh. Sinon, les deux applications peuvent essayer de contrôler la résistance et tes changements de vitesse peuvent sembler incohérents.",
+  "myWhooshGearHintBody": "Ceci vaut quand le changement de vitesse virtuel de BikeControl pilote ton home-trainer : désactive le changement de vitesse virtuel dans les paramètres de MyWhoosh, ou masque l'interface des vitesses dans MyWhoosh. Sinon, les deux applications peuvent essayer de contrôler la résistance et tes changements de vitesse peuvent sembler incohérents.",
   "myWhooshLinkConnected": "MyWhoosh « Link » connecté",
   "myWhooshLinkDescriptionLocal": "Connecte-toi directement à MyWhoosh via la méthode « Link ». Consulte les instructions pour vérifier la compatibilité de la connexion. L’application « MyWhoosh Link » ne doit pas être active simultanément.",
   "myWhooshLinkInfo": "Si tu rencontres des problèmes, jette un œil à la section dépannage. Une méthode de connexion bien plus fiable sera bientôt disponible !",

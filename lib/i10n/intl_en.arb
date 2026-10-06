@@ -447,7 +447,7 @@
   "mustChooseAllowOrDeny": "You must choose to either Allow or Deny this permission to continue.",
   "myWhooshDirectConnectAction": "MyWhoosh \"Link\" Action",
   "myWhooshGearHintTitle": "BikeControl handles your gearing",
-  "myWhooshGearHintBody": "Disable virtual shifting in MyWhoosh's settings, or hide the gear UI in MyWhoosh. Otherwise both apps may try to control resistance and your shifts can feel inconsistent.",
+  "myWhooshGearHintBody": "This is for when BikeControl's own virtual shifting steers your trainer: disable virtual shifting in MyWhoosh's settings, or hide the gear UI in MyWhoosh. Otherwise both apps may try to control resistance and your shifts can feel inconsistent.",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connected",
   "myWhooshLinkDescriptionLocal": "Connect directly to MyWhoosh via the \"Link\" method. Check the instructions to ensure a connection is possible. The \"MyWhoosh Link\" app must not be active at the same time.",
   "myWhooshLinkInfo": "Please check the troubleshooting section if you encounter any issues. A much more reliable connection method is coming soon!",

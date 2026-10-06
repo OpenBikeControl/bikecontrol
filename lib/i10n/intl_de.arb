@@ -443,7 +443,7 @@
   "mustChooseAllowOrDeny": "Diese Berechtigung muss entweder erteilt oder verweigert werden, um fortfahren zu können.",
   "myWhooshDirectConnectAction": "MyWhoosh „Link”-Aktion",
   "myWhooshGearHintTitle": "BikeControl verwaltet deine Gangschaltung",
-  "myWhooshGearHintBody": "Deaktiviere das virtuelle Schalten in den MyWhoosh-Einstellungen oder blende die Gangschaltungsanzeige in MyWhoosh aus. Sonst versuchen beide Apps, den Widerstand zu steuern, und Schaltvorgänge können sich inkonsistent anfühlen.",
+  "myWhooshGearHintBody": "Das gilt, wenn das virtuelle Schalten von BikeControl deinen Trainer steuert: Deaktiviere das virtuelle Schalten in den MyWhoosh-Einstellungen oder blende die Gangschaltungsanzeige in MyWhoosh aus. Sonst versuchen beide Apps, den Widerstand zu steuern, und Schaltvorgänge können sich inkonsistent anfühlen.",
   "myWhooshLinkConnected": "MyWhoosh „Link“ verbunden",
   "myWhooshLinkDescriptionLocal": "Direkte Verbindung zu MyWhoosh über die „Link“-Methode. Beachte die Anleitung, um sicherzustellen, dass eine Verbindung möglich ist. Die „MyWhoosh Link“-App darf nicht gleichzeitig aktiv sein.",
   "myWhooshLinkInfo": "Schau mal im Abschnitt zur Fehlerbehebung nach, wenn du Probleme hast. Eine deutlich zuverlässigere Verbindungsmethode kommt bald!",

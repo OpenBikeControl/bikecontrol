@@ -45,4 +45,6 @@ Details/updates: [GitHub issue](https://github.com/OpenBikeControl/bikecontrol/i
 
 ## My Clicks do not get recognized in MyWhoosh, but I am connected / use local control
 *
-Make sure you've enabled Virtual Shifting in MyWhoosh's settings
+If MyWhoosh does the shifting (BikeControl only passes on your button presses, e.g. via local control), make sure you've enabled Virtual Shifting in MyWhoosh's settings.
+
+If BikeControl's own virtual shifting steers your trainer instead, it's the other way round: turn Virtual Shifting off in MyWhoosh (or hide its gear UI), so both apps don't fight over the resistance.

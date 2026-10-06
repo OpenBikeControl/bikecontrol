@@ -443,7 +443,7 @@
   "mustChooseAllowOrDeny": "Per continuare, devi scegliere se consentire o negare questa autorizzazione.",
   "myWhooshDirectConnectAction": "Azione MyWhoosh \"Link\"",
   "myWhooshGearHintTitle": "BikeControl gestisce le tue marce",
-  "myWhooshGearHintBody": "Disattiva il cambio virtuale nelle impostazioni di MyWhoosh oppure nascondi l'interfaccia delle marce in MyWhoosh. Altrimenti entrambe le app potrebbero provare a controllare la resistenza e i cambi possono sembrare incoerenti.",
+  "myWhooshGearHintBody": "Vale quando è il cambio virtuale di BikeControl a controllare il tuo rullo: disattiva il cambio virtuale nelle impostazioni di MyWhoosh oppure nascondi l'interfaccia delle marce in MyWhoosh. Altrimenti entrambe le app potrebbero provare a controllare la resistenza e i cambi possono sembrare incoerenti.",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" connesso",
   "myWhooshLinkDescriptionLocal": "Connettiti direttamente a MyWhoosh tramite il metodo \"Link\". Controlla le istruzioni per assicurarti che la connessione sia possibile. L'app \"MyWhoosh Link\" non deve essere attiva contemporaneamente.",
   "myWhooshLinkInfo": "In caso di problemi, consulta la sezione relativa alla risoluzione dei problemi. Presto sarà disponibile un metodo di connessione molto più affidabile!",
