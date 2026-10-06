@@ -627,25 +627,28 @@ class _PaywallState extends State<Paywall> {
                       ),
                     ),
                   ),
-                  BkTouchTarget(
-                    child: Button.ghost(
-                      alignment: Alignment.center,
-                      onPressed: _isRestoring ? null : _onRestorePressed,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (_isRestoring) ...[
-                            CircularProgressIndicator(size: 14),
-                            const SizedBox(width: 8),
+                  // Only the app stores can restore; elsewhere the button
+                  // would do nothing (Plan & account hides it there too).
+                  if (_iapManager.purchaseChannel.canRestore)
+                    BkTouchTarget(
+                      child: Button.ghost(
+                        alignment: Alignment.center,
+                        onPressed: _isRestoring ? null : _onRestorePressed,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_isRestoring) ...[
+                              CircularProgressIndicator(size: 14),
+                              const SizedBox(width: 8),
+                            ],
+                            Text(
+                              _isRestoring ? l10n.restoringPurchases : l10n.restorePurchases,
+                              style: context.typography.small,
+                            ),
                           ],
-                          Text(
-                            _isRestoring ? l10n.restoringPurchases : l10n.restorePurchases,
-                            style: context.typography.small,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
               // Side by side while they fit; a long translation or a large

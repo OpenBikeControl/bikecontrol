@@ -191,6 +191,23 @@ Future<void> main() async {
     });
   });
 
+  // Restore asks the app store; the Windows download and the Microsoft Store
+  // build have nothing for it to find, so the button would do nothing there.
+  group('restore purchases on the paywall', () {
+    tearDown(() => IAPManager.instance.purchaseChannelForTesting = null);
+
+    for (final channel in PurchaseChannel.values) {
+      testWidgets('${channel.name}: shown only where the store can restore', (tester) async {
+        IAPManager.instance.isPurchased.value = false;
+        addTearDown(() => IAPManager.instance.isPurchased.value = true);
+        IAPManager.instance.purchaseChannelForTesting = channel;
+        await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
+        final l10n = AppLocalizations.current;
+        expect(find.text(l10n.restorePurchases), channel.canRestore ? findsOneWidget : findsNothing);
+      });
+    }
+  });
+
   testWidgets('SelectableCard lays out inside a scroll view', (tester) async {
     await pumpInScrollView(
       tester,
