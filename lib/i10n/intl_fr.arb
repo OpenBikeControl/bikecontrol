@@ -345,7 +345,7 @@
   },
   "enableLocalConnectionMethodFirst": "Active d'abord le mode de connexion locale.",
   "enableMediaKeyDetection": "Activer la détection des touches multimédias",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Active d'abord MyWhoosh Link dans les paramètres de connexion.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Active d'abord MyWhoosh Link dans Réglages de connexion.",
   "enablePairingProcess": "Fonctionne comme une souris Bluetooth",
   "enablePermissions": "Activer les autorisations",
   "enableSteeringWithPhone": "Active la direction avec les capteurs de ton téléphone",
@@ -556,7 +556,7 @@
     }
   },
   "playPause": "Lecture/Pause",
-  "pleaseSelectAConnectionMethodFirst": "Commence par choisir une méthode de connexion dans les paramètres du Trainer.",
+  "pleaseSelectAConnectionMethodFirst": "Active d'abord une méthode de connexion dans Réglages de connexion.",
   "predefinedAction": "Action prédéfinie d'{appName}",
   "@predefinedAction": {
     "placeholders": {

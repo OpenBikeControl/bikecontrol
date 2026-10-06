@@ -345,7 +345,7 @@
   },
   "enableLocalConnectionMethodFirst": "Najpierw włącz metodę połączenia lokalnego.",
   "enableMediaKeyDetection": "Włącz piloty multimedialne Bluetooth",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Najpierw włącz MyWhoosh Link w ustawieniach połączenia.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Najpierw włącz MyWhoosh Link w Ustawieniach połączenia.",
   "enablePairingProcess": "Działa jako mysz Bluetooth",
   "enablePermissions": "Nadaj uprawnienia",
   "enableSteeringWithPhone": "Włącz sterowanie za pomocą czujników telefonu",
@@ -556,7 +556,7 @@
     }
   },
   "playPause": "Start/Pauza",
-  "pleaseSelectAConnectionMethodFirst": "Najpierw wybierz metodę połączenia w ustawieniach trenażera.",
+  "pleaseSelectAConnectionMethodFirst": "Najpierw włącz metodę połączenia w Ustawieniach połączenia.",
   "predefinedAction": "Predefiniowana akcja {appName}",
   "@predefinedAction": {
     "placeholders": {

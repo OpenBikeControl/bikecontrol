@@ -345,7 +345,7 @@
   },
   "enableLocalConnectionMethodFirst": "Activa primero el método de conexión local.",
   "enableMediaKeyDetection": "Habilitar controles remotos multimedia Bluetooth",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Activa primero MyWhoosh Link en los ajustes de conexión.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Primero activa MyWhoosh Link en Ajustes de conexión.",
   "enablePairingProcess": "Habilita el proceso de emparejamiento",
   "enablePermissions": "Habilitar permisos",
   "enableSteeringWithPhone": "Activar dirección con los sensores de tu teléfono",
@@ -556,7 +556,7 @@
     }
   },
   "playPause": "Reproducir/Pausar",
-  "pleaseSelectAConnectionMethodFirst": "Primero selecciona un método de conexión en los ajustes de la app de entrenamiento.",
+  "pleaseSelectAConnectionMethodFirst": "Primero activa un método de conexión en Ajustes de conexión.",
   "predefinedAction": "Acción predefinida de {appName}",
   "@predefinedAction": {
     "placeholders": {

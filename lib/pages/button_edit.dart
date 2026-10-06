@@ -25,6 +25,7 @@ import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
@@ -139,6 +140,15 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     return [_holdWarning()];
   }
 
+  /// The way forward from a "turn on … first" message: the page that does it.
+  Widget _openConnectionSettingsButton() => Button.outline(
+    onPressed: () async {
+      await context.push(const TrainerConnectionSettingsPage());
+      if (mounted) setState(() {});
+    },
+    child: Text(context.i18n.openConnectionSettings),
+  );
+
   Widget _holdWarning() => HoldActionWarning(
     action: _keyPair.inGameAction!,
     onAssignToLongPress: _moveToLongPress,
@@ -232,6 +242,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     child: Warning(
                       children: [
                         Text(AppLocalizations.of(context).pleaseSelectAConnectionMethodFirst),
+                        _openConnectionSettingsButton(),
                       ],
                     ),
                   ),
@@ -283,6 +294,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       important: false,
                       children: [
                         Text(AppLocalizations.of(context).enableMywhooshLinkInTheConnectionSettingsFirst),
+                        _openConnectionSettingsButton(),
                       ],
                     )
                   else

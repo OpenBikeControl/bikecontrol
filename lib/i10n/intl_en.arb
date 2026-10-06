@@ -346,7 +346,7 @@
   "enableLocalConnectionMethodTitle": "Enable Local connection method?",
   "enableLocalConnectionMethodFirst": "Enable Local Connection method, first.",
   "enableMediaKeyDetection": "Enable Bluetooth Media remotes",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Enable MyWhoosh Link in the connection settings first.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Turn on MyWhoosh Link in Connection Settings first.",
   "enablePairingProcess": "Act as Bluetooth Mouse",
   "enablePermissions": "Enable Permissions",
   "enableSteeringWithPhone": "Enable Steering with your phone's sensors",
@@ -985,7 +985,7 @@
     }
   },
   "playPause": "Play/Pause",
-  "pleaseSelectAConnectionMethodFirst": "Please select a connection method in the Trainer settings, first.",
+  "pleaseSelectAConnectionMethodFirst": "Turn on a connection method in Connection Settings first.",
   "predefinedAction": "Predefined {appName} action",
   "@predefinedAction": {
     "placeholders": {

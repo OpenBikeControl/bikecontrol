@@ -345,7 +345,7 @@
   },
   "enableLocalConnectionMethodFirst": "Aktiviere zuerst die Methode „Lokale Verbindung“.",
   "enableMediaKeyDetection": "Bluetooth-Medienfernbedienungen aktivieren",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Aktiviere zuerst MyWhoosh Link in den Verbindungseinstellungen.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Schalte zuerst MyWhoosh Link in den Verbindungseinstellungen ein.",
   "enablePairingProcess": "Als Bluetooth-Maus fungieren",
   "enablePermissions": "Berechtigungen aktivieren",
   "enableSteeringWithPhone": "Lenkung über Handy-Sensoren aktivieren",
@@ -556,7 +556,7 @@
     }
   },
   "playPause": "Wiedergabe/Pause",
-  "pleaseSelectAConnectionMethodFirst": "Wähle bitte zuerst in den Trainereinstellungen eine Verbindungsmethode aus.",
+  "pleaseSelectAConnectionMethodFirst": "Schalte zuerst in den Verbindungseinstellungen eine Verbindungsmethode ein.",
   "predefinedAction": "Vordefinierte {appName} Aktion",
   "@predefinedAction": {
     "placeholders": {

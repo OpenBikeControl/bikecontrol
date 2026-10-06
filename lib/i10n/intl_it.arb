@@ -345,7 +345,7 @@
   },
   "enableLocalConnectionMethodFirst": "Abilitare prima il metodo di connessione locale.",
   "enableMediaKeyDetection": "Abilita i telecomandi multimediali Bluetooth",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Per prima cosa, abilita MyWhoosh Link nelle impostazioni di connessione.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Prima attiva MyWhoosh Link in Impostazioni connessione.",
   "enablePairingProcess": "Funziona come un mouse Bluetooth",
   "enablePermissions": "Abilita autorizzazioni",
   "enableSteeringWithPhone": "Abilita lo sterzo con i sensori del tuo telefono",
@@ -556,7 +556,7 @@
     }
   },
   "playPause": "Riproduci/Pausa",
-  "pleaseSelectAConnectionMethodFirst": "Per prima cosa seleziona un metodo di connessione nelle impostazioni del Trainer.",
+  "pleaseSelectAConnectionMethodFirst": "Prima attiva un metodo di connessione in Impostazioni connessione.",
   "predefinedAction": "Predefinito{appName} azione",
   "@predefinedAction": {
     "placeholders": {
