@@ -1,7 +1,7 @@
 // Android 11 and older only find Bluetooth devices with the Location
 // permission, so the system asks for Location right after the step promised
 // BikeControl "never uses this for location". The step explains why on those
-// phones.
+// phones. The scanning screen gives its "powered on, in range" advice once.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
@@ -51,5 +51,11 @@ Future<void> main() async {
   testWidgets('newer systems: no Location explanation', (tester) async {
     final l = await pump(tester, ControllerPhase.permission);
     expect(find.text(l.onboardingBluetoothLocationNote), findsNothing);
+  });
+
+  testWidgets('scanning: the hint appears once', (tester) async {
+    final l = await pump(tester, ControllerPhase.scanning);
+    expect(find.text(l.onboardingScanSubtitle), findsOneWidget);
+    expect(find.text(l.scanningForDevices), findsNothing, reason: 'same advice, said twice');
   });
 }

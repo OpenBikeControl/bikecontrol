@@ -264,9 +264,9 @@ Widget onboardingControllerBody(
           Gap(6),
           Text(context.i18n.onboardingScanSubtitle).small.muted,
           Gap(24),
+          // The subtitle already says to power it on and bring it close — no
+          // second caption repeating it under the animation.
           Center(child: SmoothWifiAnimation()),
-          Gap(20),
-          Center(child: Text(context.i18n.scanningForDevices).small.muted),
         ]),
       );
     case ControllerPhase.empty:
