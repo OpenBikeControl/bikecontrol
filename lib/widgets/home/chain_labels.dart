@@ -31,8 +31,12 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.controllerButtonsMapped => step.done
         ? ChainStepText(l.chainStepButtonsMapped)
         : ChainStepText(l.chainStepButtonsMappedPending, l.chainStepButtonsMappedHint),
+    // A controller remembered from an earlier ride is asleep, not lost:
+    // "wake it up", not "bring it back in range".
     SetupStepId.controllerInRange => step.done
         ? ChainStepText(l.chainStepInRange)
+        : step.variant == SetupStepVariant.controllerAsleep
+        ? ChainStepText(l.chainStepWakePending, l.chainStepInRangeHint)
         : ChainStepText(l.chainStepInRangePending, l.chainStepInRangeHint),
     // The one done step that says more than "done". An unlock expires, so the
     // deadline is the useful part — a bare tick would hide the fact that this

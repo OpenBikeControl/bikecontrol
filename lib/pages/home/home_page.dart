@@ -474,6 +474,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ...core.connection.offlineControllers,
   ];
 
+  /// Whether a controller remembered from an earlier ride is waiting to be
+  /// woken: none is connected, and none went away during this session.
+  bool get _hasSleepingController {
+    if (core.connection.controllerDevices.any((d) => d.isConnected)) return false;
+    final known = _knownControllers;
+    return core.connection.offlineControllers.isNotEmpty &&
+        !known.any((d) => core.connection.wasConnectedThisSession(d.uniqueId));
+  }
+
   BaseDevice? _controllerById(String? uniqueId) =>
       uniqueId == null ? null : _knownControllers.firstOrNullWhere((d) => d.uniqueId == uniqueId);
 
@@ -1270,7 +1279,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // "no controller" prompt gives way to the first one the same way.
         BkAnimatedColumn(
           children: [
-            if (shown.isEmpty)
+            // A controller remembered from an earlier ride, not back yet and
+            // not lost in this session, is asleep: the card says how to wake
+            // it, and pairing a new one is the quieter option.
+            if (shown.isEmpty && _hasSleepingController)
+              RidePromptCard(
+                key: const ValueKey('ride-no-controller'),
+                icon: LucideIcons.gamepad2,
+                title: l.rideControllerAsleepTitle,
+                body: l.rideControllerAsleepBody,
+                actionLabel: l.rideControllerPairNew,
+                actionIsSecondary: true,
+                onAction: () => _openController(null),
+              )
+            else if (shown.isEmpty)
               RidePromptCard(
                 key: const ValueKey('ride-no-controller'),
                 icon: LucideIcons.gamepad2,
@@ -1499,9 +1521,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (device != null && core.connection.startupReconnecting.value.contains(device.uniqueId)) {
       return context.i18n.chainStatusConnecting;
     }
+    // Remembered from an earlier ride and not back yet: asleep, almost always.
+    final asleep = link.steps.any(
+      (s) => s.id == SetupStepId.controllerInRange && !s.done && s.variant == SetupStepVariant.controllerAsleep,
+    );
     return switch (link.status) {
       LinkStatus.ready => context.i18n.connected,
       LinkStatus.problem => context.i18n.chainStatusLostConnection,
+      LinkStatus.attention when asleep => context.i18n.chainStatusAsleep,
       LinkStatus.attention => context.i18n.chainStatusOutOfRange,
       LinkStatus.off => context.i18n.chainStatusNotSetUp,
     };

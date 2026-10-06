@@ -92,6 +92,12 @@ enum SetupStepVariant {
   /// [SetupStepId.controllerUnlocked] for a Zwift Ride V2: the hint names the
   /// Ride V2 instead of the Click V2.
   zwiftRideV2,
+
+  /// [SetupStepId.controllerInRange] for a controller remembered from an
+  /// earlier ride that has not connected in this session. It is almost always
+  /// just asleep: the step asks to wake it rather than to bring it back in
+  /// range, and nothing calls it an unfinished setup.
+  controllerAsleep,
 }
 
 /// One line of a card's checklist.

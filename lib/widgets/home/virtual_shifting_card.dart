@@ -876,11 +876,16 @@ class RidePromptCard extends StatelessWidget {
     this.bodyColor,
     this.actionLabel,
     this.onAction,
+    this.actionIsSecondary = false,
   });
 
   final IconData icon;
   final String title;
   final String body;
+
+  /// Whether the action is the quieter option rather than the thing to do —
+  /// the body already says what to do, and the button offers an alternative.
+  final bool actionIsSecondary;
 
   /// For a body that is a status ("Lost connection").
   final Color? bodyColor;
@@ -923,12 +928,19 @@ class RidePromptCard extends StatelessWidget {
           if (actionLabel != null && onAction != null) ...[
             const Gap(8),
             BkTouchTarget(
-              child: PrimaryButton(
-                alignment: Alignment.center,
-                size: ButtonSize.small,
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
+              child: actionIsSecondary
+                  ? OutlineButton(
+                      alignment: Alignment.center,
+                      size: ButtonSize.small,
+                      onPressed: onAction,
+                      child: Text(actionLabel!),
+                    )
+                  : PrimaryButton(
+                      alignment: Alignment.center,
+                      size: ButtonSize.small,
+                      onPressed: onAction,
+                      child: Text(actionLabel!),
+                    ),
             ),
           ],
         ],

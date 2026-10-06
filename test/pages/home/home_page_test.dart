@@ -205,6 +205,7 @@ Future<void> main() async {
   _bannerShowTests();
   _bannerStepTests();
   _droppedAppTests();
+  _asleepControllerTests();
 }
 
 // ── The banner lists the outstanding steps ───────────────────────────────
@@ -244,7 +245,7 @@ void _bannerStepTests() {
       // Its own row keeps what it would take, as optional.
       final row = find.byWidgetPredicate((w) => w is ChainLinkRow && w.link.deviceId == click.uniqueId);
       expect(row, findsOneWidget);
-      expect(find.descendant(of: row, matching: find.text(l.chainStepInRangePending)), findsOneWidget);
+      expect(find.descendant(of: row, matching: find.text(l.chainStepWakePending)), findsOneWidget);
       expect(find.descendant(of: row, matching: find.byType(OptionalTag)), findsWidgets);
     });
 
@@ -1860,6 +1861,76 @@ void _droppedAppTests() {
       expect(pushed.pages.whereType<NetworkTroubleshootingPage>(), hasLength(1));
 
       await tester.pumpWidget(const SizedBox());
+    });
+  });
+}
+
+// ── A remembered controller that is not back yet ─────────────────────────
+//
+// At launch a remembered controller that has not reconnected is asleep, not
+// "out of range" and not an unfinished setup: pressing a button wakes it.
+
+void _asleepControllerTests() {
+  group('a remembered controller that is asleep', () {
+    late AppLocalizations l;
+    late ZwiftPlay play;
+
+    setUp(() {
+      l = AppLocalizations.current;
+      play = ZwiftPlay(
+        BleDevice(name: 'Zwift Play', deviceId: 'asleep-play'),
+        deviceType: ZwiftDeviceType.playLeft,
+      );
+      core.connection.debugRememberController(play);
+      core.actionHandler.init(MyWhoosh());
+      core.obpMdnsEmulator.isConnected.value = true;
+    });
+
+    tearDown(() {
+      core.connection.debugForgetOfflineControllers();
+      core.connection.debugSetConnectedThisSession(play.uniqueId, false);
+      core.obpMdnsEmulator.isConnected.value = false;
+      core.connection.isScanning.value = false;
+    });
+
+    Finder controllerStatus(String text) => find.descendant(
+      of: find.descendant(of: _chainCard(ChainLinkKey.controller), matching: find.byType(BkStatusDot)),
+      matching: find.text(text),
+    );
+
+    testWidgets('its card says it is asleep, not out of range', (tester) async {
+      await _pumpHome(tester);
+      expect(controllerStatus(l.chainStatusAsleep), findsOneWidget);
+      expect(controllerStatus(l.chainStatusOutOfRange), findsNothing);
+    });
+
+    testWidgets('the banner says how to wake it rather than to finish its setup', (tester) async {
+      await _pumpHome(tester);
+      expect(find.text(l.chainPendingSubtitleAsleep), findsOneWidget);
+      expect(find.text(l.chainPendingSubtitleSingle(l.chainControllerTitle)), findsNothing);
+    });
+
+    testWidgets('Ride says it is asleep, with pairing a new one as the quieter option', (tester) async {
+      await _pumpHome(tester);
+      final card = find.byKey(const ValueKey('ride-no-controller'));
+      expect(find.descendant(of: card, matching: find.text(l.rideControllerAsleepTitle)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.rideNoControllerTitle)), findsNothing);
+      final pairNew = find.descendant(of: card, matching: find.text(l.rideControllerPairNew));
+      expect(pairNew, findsOneWidget);
+      expect(find.descendant(of: card, matching: find.byType(PrimaryButton)), findsNothing);
+
+      await tester.tap(pairNew);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(ScanWidget), findsOneWidget);
+    });
+
+    testWidgets('one that dropped in this session is not called asleep', (tester) async {
+      core.connection.debugSetConnectedThisSession(play.uniqueId, true);
+      await _pumpHome(tester);
+      expect(controllerStatus(l.chainStatusAsleep), findsNothing);
+      final card = find.byKey(const ValueKey('ride-no-controller'));
+      expect(find.descendant(of: card, matching: find.text(l.rideControllerAsleepTitle)), findsNothing);
     });
   });
 }

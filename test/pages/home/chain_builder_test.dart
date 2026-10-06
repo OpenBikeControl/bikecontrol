@@ -114,6 +114,30 @@ void main() {
     });
   });
 
+  // A controller remembered from an earlier ride and not back yet is almost
+  // always just asleep — "out of range" and "finish the setup" both scared
+  // riders who only had to press a button.
+  group('a remembered controller that is not here yet', () {
+    SetupStep inRangeStep(DevicePresence presence) => buildChain(
+      ChainInputs(controllers: [controller(presence: presence)], app: _readyApp),
+    ).first.steps.firstWhere((s) => s.id == SetupStepId.controllerInRange);
+
+    test('asks to wake it', () {
+      expect(inRangeStep(DevicePresence.remembered).variant, SetupStepVariant.controllerAsleep);
+    });
+
+    test('one lost in this session keeps the ordinary wording', () {
+      expect(inRangeStep(DevicePresence.lost).variant, SetupStepVariant.standard);
+    });
+
+    test('the waking step is the banner\'s one step', () {
+      final banner = deriveBanner(
+        buildChain(ChainInputs(controllers: [controller(presence: DevicePresence.remembered)], app: _readyApp)),
+      );
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerAsleep);
+    });
+  });
+
   // A Click V2 from an earlier ride, out of reach and locked, while the rider
   // is on a Zwift Play that works: the Click V2's steps are not what stands
   // between the rider and riding.

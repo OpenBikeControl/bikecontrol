@@ -202,7 +202,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('ride-vs-placeholder')), findsNothing);
       expect(find.byKey(const ValueKey('ride-buttons-motion-play')), findsNothing);
-      expect(find.text(l.rideNoControllerTitle), findsOneWidget);
+      // Remembered and not back: asleep, not "no controller".
+      expect(find.text(l.rideControllerAsleepTitle), findsOneWidget);
       _closeWindow();
     });
 

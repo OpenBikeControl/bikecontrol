@@ -103,7 +103,13 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
             // work with nothing to work on — see [ControllerInput.hasKnownButtons].
             if (controller.hasKnownButtons || controller.hasMappedButtons)
               SetupStep(id: SetupStepId.controllerButtonsMapped, done: controller.hasMappedButtons),
-            SetupStep(id: SetupStepId.controllerInRange, done: inRange),
+            SetupStep(
+              id: SetupStepId.controllerInRange,
+              done: inRange,
+              variant: controller.presence == DevicePresence.remembered
+                  ? SetupStepVariant.controllerAsleep
+                  : SetupStepVariant.standard,
+            ),
             // Last, because unlocking needs the controller present. Omitted entirely
             // for anything that has no such concept — see [ControllerInput.unlocked].
             if (controller.unlocked != null)
