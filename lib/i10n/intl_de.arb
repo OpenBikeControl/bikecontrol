@@ -1207,8 +1207,8 @@
     }
   },
   "onboardingWhereSubtitle": "Das entscheidet, wie BikeControl mit der App spricht.",
-  "onboardingWhereEnablesLocal": "Aktiviert die lokale Methode — Tastendrücke und Tipps gehen direkt an die App.",
-  "onboardingWhereEnablesNetwork": "Aktiviert die Netzwerk-Methode — BikeControl findet die App über dein WLAN.",
+  "onboardingWhereEnablesLocal": "BikeControl drückt die Tasten in {app} für dich — kein zweites Gerät nötig.",
+  "onboardingWhereEnablesNetwork": "{app} findet BikeControl über dein WLAN.",
   "onboardingWhereChangeLater": "Du kannst das später in den Verbindungseinstellungen ändern.",
   "onboardingHelp": "Hilfe",
   "onboardingHelpAndSupport": "Hilfe & Support",
@@ -1219,7 +1219,7 @@
   "onboardingHelpAppTitle": "Welche App soll ich wählen?",
   "onboardingHelpAppBody": "Wähle die App, in der du tatsächlich fährst. Offizielle Integrationen werden mit BikeControl getestet; die anderen verbinden sich über allgemeine Methoden.",
   "onboardingHelpWhereTitle": "Gleiches Gerät oder ein anderes?",
-  "onboardingHelpWhereBody": "Wenn deine Trainer-App auf einem Apple TV, PC oder Tablet läuft und BikeControl woanders, wähle „Auf einem anderen Gerät“.",
+  "onboardingHelpWhereBody": "Wenn deine Trainer-App auf einem Apple TV, PC oder Tablet läuft und BikeControl woanders, wähle „Anderes Gerät“.",
   "onboardingHelpControllerTitle": "Mein Controller taucht nicht auf",
   "onboardingHelpControllerBody": "Wecke ihn mit einem Tastendruck, schließe jede App, die ihn schon belegt (vor allem Zwift), und halte ihn ein paar Meter in der Nähe.",
   "onboardingHelpVsTitle": "Brauche ich einen Smart Trainer?",
@@ -1312,7 +1312,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Lass BikeControl auf diesem Handy und fahre {app} auf PC, Apple TV oder Tablet — dort findet {app} deinen Trainer über BikeControl in deinem WLAN. Gehe einen Schritt zurück und wähle „Auf einem anderen Gerät“.",
+  "onboardingVsBlockedAltAppBody": "Lass BikeControl auf diesem Handy und fahre {app} auf PC, Apple TV oder Tablet — dort findet {app} deinen Trainer über BikeControl in deinem WLAN. Gehe einen Schritt zurück und wähle „Anderes Gerät“.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {

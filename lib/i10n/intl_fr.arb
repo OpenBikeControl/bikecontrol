@@ -1195,8 +1195,8 @@
     }
   },
   "onboardingWhereSubtitle": "Cela détermine comment BikeControl lui parle.",
-  "onboardingWhereEnablesLocal": "Active la méthode Locale — les appuis et les touchers vont directement à l'app.",
-  "onboardingWhereEnablesNetwork": "Active la méthode Réseau — BikeControl trouve l'app via ton Wi-Fi.",
+  "onboardingWhereEnablesLocal": "BikeControl appuie sur les boutons de {app} pour toi — pas besoin d'un autre appareil.",
+  "onboardingWhereEnablesNetwork": "{app} trouve BikeControl via ton Wi-Fi.",
   "onboardingWhereChangeLater": "Tu pourras changer cela plus tard dans les réglages de connexion.",
   "onboardingHelp": "Aide",
   "onboardingHelpAndSupport": "Aide et assistance",
@@ -1207,7 +1207,7 @@
   "onboardingHelpAppTitle": "Quelle app choisir ?",
   "onboardingHelpAppBody": "Choisis l'app dans laquelle tu roules vraiment. Les intégrations officielles sont testées avec BikeControl ; les autres se connectent via des méthodes génériques.",
   "onboardingHelpWhereTitle": "Même appareil ou un autre ?",
-  "onboardingHelpWhereBody": "Si ton app d'entraînement est sur une Apple TV, un PC ou une tablette et BikeControl ailleurs, choisis « Sur un autre appareil ».",
+  "onboardingHelpWhereBody": "Si ton app d'entraînement est sur une Apple TV, un PC ou une tablette et BikeControl ailleurs, choisis « Autre appareil ».",
   "onboardingHelpControllerTitle": "Ma commande n'apparaît pas",
   "onboardingHelpControllerBody": "Réveille-la avec un appui, ferme toute app qui la retient déjà (Zwift surtout) et garde-la à deux mètres.",
   "onboardingHelpVsTitle": "Ai-je besoin d'un home-trainer connecté ?",
@@ -1300,7 +1300,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Garde BikeControl sur ce téléphone et roule avec {app} sur un PC, une Apple TV ou une tablette — il y trouvera ton home-trainer via BikeControl sur ton Wi-Fi. Reviens d'une étape et choisis « Sur un autre appareil ».",
+  "onboardingVsBlockedAltAppBody": "Garde BikeControl sur ce téléphone et roule avec {app} sur un PC, une Apple TV ou une tablette — il y trouvera ton home-trainer via BikeControl sur ton Wi-Fi. Reviens d'une étape et choisis « Autre appareil ».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {

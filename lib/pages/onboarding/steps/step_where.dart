@@ -83,7 +83,9 @@ Widget _whereTile(
 Widget onboardingWhereBody(BuildContext context,
     {required SupportedApp app, required Target? selected, required ValueChanged<Target> onSelect}) {
   String enables(Target t) =>
-      onboardingWhereUsesLocal(t) ? context.i18n.onboardingWhereEnablesLocal : context.i18n.onboardingWhereEnablesNetwork;
+      onboardingWhereUsesLocal(t)
+          ? context.i18n.onboardingWhereEnablesLocal(app.name)
+          : context.i18n.onboardingWhereEnablesNetwork(app.name);
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: onboardingReveal([

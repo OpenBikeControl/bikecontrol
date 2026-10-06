@@ -1195,8 +1195,8 @@
     }
   },
   "onboardingWhereSubtitle": "Questo decide come BikeControl le parla.",
-  "onboardingWhereEnablesLocal": "Attiva il metodo Locale: pressioni e tocchi vanno direttamente all'app.",
-  "onboardingWhereEnablesNetwork": "Attiva il metodo Rete: BikeControl trova l'app tramite il tuo Wi-Fi.",
+  "onboardingWhereEnablesLocal": "BikeControl preme i pulsanti di {app} per te: non serve un altro dispositivo.",
+  "onboardingWhereEnablesNetwork": "{app} trova BikeControl tramite il tuo Wi-Fi.",
   "onboardingWhereChangeLater": "Potrai cambiarlo più tardi nelle impostazioni di connessione.",
   "onboardingHelp": "Aiuto",
   "onboardingHelpAndSupport": "Aiuto e assistenza",
@@ -1207,7 +1207,7 @@
   "onboardingHelpAppTitle": "Quale app devo scegliere?",
   "onboardingHelpAppBody": "Scegli l'app in cui pedali davvero. Le integrazioni ufficiali sono testate con BikeControl; le altre si collegano con metodi generici.",
   "onboardingHelpWhereTitle": "Stesso dispositivo o un altro?",
-  "onboardingHelpWhereBody": "Se la tua app di allenamento è su Apple TV, PC o tablet e BikeControl è altrove, scegli «Su un altro dispositivo».",
+  "onboardingHelpWhereBody": "Se la tua app di allenamento è su Apple TV, PC o tablet e BikeControl è altrove, scegli «Altro dispositivo».",
   "onboardingHelpControllerTitle": "Il mio controller non compare",
   "onboardingHelpControllerBody": "Sveglialo premendo un pulsante, chiudi ogni app che lo tiene già occupato (soprattutto Zwift) e tienilo a un paio di metri.",
   "onboardingHelpVsTitle": "Mi serve uno smart trainer?",
@@ -1300,7 +1300,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Lascia BikeControl su questo telefono e pedala con {app} su PC, Apple TV o tablet: troverà il trainer tramite BikeControl sul tuo Wi-Fi. Torna indietro di un passo e scegli «Su un altro dispositivo».",
+  "onboardingVsBlockedAltAppBody": "Lascia BikeControl su questo telefono e pedala con {app} su PC, Apple TV o tablet: troverà il trainer tramite BikeControl sul tuo Wi-Fi. Torna indietro di un passo e scegli «Altro dispositivo».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {

@@ -625,8 +625,22 @@
     }
   },
   "onboardingWhereSubtitle": "This decides how BikeControl talks to it.",
-  "onboardingWhereEnablesLocal": "Enables the Local method — key presses and taps go straight to the app.",
-  "onboardingWhereEnablesNetwork": "Enables the Network method — BikeControl finds the app over your Wi-Fi.",
+  "onboardingWhereEnablesLocal": "BikeControl presses the buttons in {app} for you — no other device needed.",
+  "@onboardingWhereEnablesLocal": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWhereEnablesNetwork": "{app} finds BikeControl over your Wi-Fi.",
+  "@onboardingWhereEnablesNetwork": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingWhereChangeLater": "You can change this later in Connection Settings.",
   "onboardingHelp": "Help",
   "onboardingHelpAndSupport": "Help & Support",
@@ -637,7 +651,7 @@
   "onboardingHelpAppTitle": "Which app should I pick?",
   "onboardingHelpAppBody": "Pick the app you actually ride in. Official integrations are tested with BikeControl; the others connect through generic methods.",
   "onboardingHelpWhereTitle": "Same device or another?",
-  "onboardingHelpWhereBody": "If your trainer app is on an Apple TV, PC or tablet and BikeControl is elsewhere, choose 'On another device'.",
+  "onboardingHelpWhereBody": "If your trainer app is on an Apple TV, PC or tablet and BikeControl is elsewhere, choose “Other Device”.",
   "onboardingHelpControllerTitle": "My controller isn't showing up",
   "onboardingHelpControllerBody": "Wake it with a button press, close any app already holding it (Zwift especially), and keep it within a couple of metres.",
   "onboardingHelpVsTitle": "Do I need a smart trainer?",
@@ -732,7 +746,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Keep BikeControl on this phone and ride {app} on a PC, Apple TV or tablet — it finds your trainer through BikeControl over your Wi-Fi. Go back a step and pick “On another device”.",
+  "onboardingVsBlockedAltAppBody": "Keep BikeControl on this phone and ride {app} on a PC, Apple TV or tablet — it finds your trainer through BikeControl over your Wi-Fi. Go back a step and pick “Other Device”.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -2016,7 +2030,7 @@
   "vsStageMoreHint": "Fine-tuning for every ride",
   "vsStageMoreInstantTitle": "Direct gear changes",
   "vsStageMoreInstantSub": "No round trip through the app",
-  "vsStageMoreWifiTitle": "Bluetooth → WiFi",
+  "vsStageMoreWifiTitle": "Bluetooth → Wi-Fi",
   "vsStageMoreWifiSub": "Reaches Apple TV too",
   "vsStageMoreControllersTitle": "Full controller support",
   "vsStageMoreControllersSub": "Every paired shifter shifts",

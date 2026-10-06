@@ -1195,8 +1195,8 @@
     }
   },
   "onboardingWhereSubtitle": "To decyduje, jak BikeControl się z nią komunikuje.",
-  "onboardingWhereEnablesLocal": "Włącza metodę lokalną — naciśnięcia i dotknięcia trafiają prosto do aplikacji.",
-  "onboardingWhereEnablesNetwork": "Włącza metodę sieciową — BikeControl znajduje aplikację przez Wi-Fi.",
+  "onboardingWhereEnablesLocal": "BikeControl naciska przyciski w {app} za Ciebie — bez drugiego urządzenia.",
+  "onboardingWhereEnablesNetwork": "{app} znajduje BikeControl przez Twoje Wi-Fi.",
   "onboardingWhereChangeLater": "Możesz to zmienić później w ustawieniach połączenia.",
   "onboardingHelp": "Pomoc",
   "onboardingHelpAndSupport": "Pomoc i wsparcie",
@@ -1207,7 +1207,7 @@
   "onboardingHelpAppTitle": "Którą aplikację wybrać?",
   "onboardingHelpAppBody": "Wybierz aplikację, w której naprawdę jeździsz. Oficjalne integracje są testowane z BikeControl; pozostałe łączą się metodami ogólnymi.",
   "onboardingHelpWhereTitle": "To samo urządzenie czy inne?",
-  "onboardingHelpWhereBody": "Jeśli aplikacja treningowa działa na Apple TV, PC lub tablecie, a BikeControl gdzie indziej, wybierz „Na innym urządzeniu”.",
+  "onboardingHelpWhereBody": "Jeśli aplikacja treningowa działa na Apple TV, PC lub tablecie, a BikeControl gdzie indziej, wybierz „Inne urządzenie”.",
   "onboardingHelpControllerTitle": "Mój kontroler się nie pojawia",
   "onboardingHelpControllerBody": "Obudź go naciśnięciem przycisku, zamknij aplikacje, które już go zajmują (zwłaszcza Zwift), i trzymaj w odległości kilku metrów.",
   "onboardingHelpVsTitle": "Czy potrzebuję trenażera?",
@@ -1300,7 +1300,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Zostaw BikeControl na tym telefonie i jeźdź w {app} na PC, Apple TV lub tablecie — znajdzie trenażer przez BikeControl w Wi-Fi. Cofnij się o krok i wybierz „Na innym urządzeniu”.",
+  "onboardingVsBlockedAltAppBody": "Zostaw BikeControl na tym telefonie i jeźdź w {app} na PC, Apple TV lub tablecie — znajdzie trenażer przez BikeControl w Wi-Fi. Cofnij się o krok i wybierz „Inne urządzenie”.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {

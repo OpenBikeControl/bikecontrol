@@ -1195,8 +1195,8 @@
     }
   },
   "onboardingWhereSubtitle": "Esto decide cómo se comunica BikeControl con ella.",
-  "onboardingWhereEnablesLocal": "Activa el método Local: las pulsaciones y toques van directos a la app.",
-  "onboardingWhereEnablesNetwork": "Activa el método de Red: BikeControl encuentra la app por tu wifi.",
+  "onboardingWhereEnablesLocal": "BikeControl pulsa los botones de {app} por ti; no hace falta otro dispositivo.",
+  "onboardingWhereEnablesNetwork": "{app} encuentra BikeControl por tu wifi.",
   "onboardingWhereChangeLater": "Puedes cambiarlo más tarde en los ajustes de conexión.",
   "onboardingHelp": "Ayuda",
   "onboardingHelpAndSupport": "Ayuda y soporte",
@@ -1207,7 +1207,7 @@
   "onboardingHelpAppTitle": "¿Qué app debo elegir?",
   "onboardingHelpAppBody": "Elige la app en la que ruedas de verdad. Las integraciones oficiales se prueban con BikeControl; las demás se conectan por métodos genéricos.",
   "onboardingHelpWhereTitle": "¿Mismo dispositivo u otro?",
-  "onboardingHelpWhereBody": "Si tu app de entrenamiento está en un Apple TV, PC o tablet y BikeControl en otro sitio, elige «En otro dispositivo».",
+  "onboardingHelpWhereBody": "Si tu app de entrenamiento está en un Apple TV, PC o tablet y BikeControl en otro sitio, elige «Otro dispositivo».",
   "onboardingHelpControllerTitle": "Mi mando no aparece",
   "onboardingHelpControllerBody": "Despiértalo pulsando un botón, cierra cualquier app que ya lo tenga ocupado (sobre todo Zwift) y mantenlo a un par de metros.",
   "onboardingHelpVsTitle": "¿Necesito un rodillo inteligente?",
@@ -1300,7 +1300,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Deja BikeControl en este móvil y rueda con {app} en un PC, Apple TV o tablet: encontrará tu rodillo a través de BikeControl por tu wifi. Vuelve un paso y elige «En otro dispositivo».",
+  "onboardingVsBlockedAltAppBody": "Deja BikeControl en este móvil y rueda con {app} en un PC, Apple TV o tablet: encontrará tu rodillo a través de BikeControl por tu wifi. Vuelve un paso y elige «Otro dispositivo».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
