@@ -54,7 +54,6 @@ import 'package:bike_control/widgets/home/trial_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart';
 import 'package:bike_control/widgets/rides/ride_recording_line.dart';
-import 'package:bike_control/widgets/rides/ride_summary_card.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/utils/window_size.dart';
@@ -913,9 +912,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    // The last ride heads the left column (above Ready).
                     children: [
-                      const RideSummaryCard(key: ValueKey('ride-summary'), wide: true),
                       ...status,
                       ?vs,
                     ],
@@ -927,7 +924,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       buttons,
-                      // While a ride records: where the record card was.
+                      // While a ride records: where the record card was;
+                      // the finished ride's card takes its place.
                       const RideRecordingSlot(key: ValueKey('ride-recording-slot'), textActions: true, spacing: 20),
                       if (widget.activityPreview case final preview?) ...[const Gap(20), preview],
                     ],
@@ -939,11 +937,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // The last ride heads Ride, above the Ready banner.
-              const RideSummaryCard(key: ValueKey('ride-summary')),
               ...status,
               // Recording status right under Virtual shifting, in the first
-              // viewport: a rider sees "recording" without scrolling.
+              // viewport: a rider sees "recording" without scrolling — and the
+              // finished ride's card in the same place.
               if (vs != null) vs,
               RideRecordingSlot(key: const ValueKey('ride-recording-slot'), spacing: vs != null ? 12 : 0),
               if (vs != null) const Gap(20) else const _GapWhenRecording(),
@@ -2144,7 +2141,11 @@ class _GapWhenRecording extends StatelessWidget {
     return ListenableBuilder(
       listenable: core.rides.changes,
       builder: (context, _) {
-        final shows = core.rides.recorder.state.value != WorkoutState.idle || !core.rides.autoRecord;
+        final rides = core.rides;
+        final shows =
+            rides.recorder.state.value != WorkoutState.idle ||
+            !rides.autoRecord ||
+            rides.summaryRide.value?.summary != null;
         return shows ? const Gap(20) : const SizedBox.shrink();
       },
     );

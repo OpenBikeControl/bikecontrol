@@ -2,6 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/services/rides/ride_format.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
+import 'package:bike_control/widgets/rides/ride_summary_card.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
@@ -15,9 +16,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Ride's recording slot: the status line while a ride records, the manual
-/// start while automatic recording is off, nothing otherwise. On a phone it
-/// sits right under the Virtual shifting card; on a desktop in the right
-/// column under Your buttons ([textActions]).
+/// start while automatic recording is off, nothing otherwise — and above
+/// those the last ride's card, so a finished ride shows where Beenden was. On
+/// a phone it sits right under the Virtual shifting card; on a desktop in the
+/// right column under Your buttons ([textActions]).
 class RideRecordingSlot extends StatelessWidget {
   const RideRecordingSlot({super.key, this.textActions = false, this.spacing = 0});
 
@@ -34,7 +36,8 @@ class RideRecordingSlot extends StatelessWidget {
       listenable: rides.changes,
       builder: (context, _) {
         final state = rides.recorder.state.value;
-        final Widget child;
+        final hasSummary = rides.summaryRide.value?.summary != null;
+        final Widget? child;
         if (state != WorkoutState.idle) {
           child = RideRecordingLine(
             key: const ValueKey('ride-status-line'),
@@ -52,11 +55,19 @@ class RideRecordingSlot extends StatelessWidget {
             onStart: rides.startManual,
           );
         } else {
-          return const SizedBox.shrink();
+          child = null;
         }
+        if (!hasSummary && child == null) return const SizedBox.shrink();
         return Padding(
           padding: EdgeInsets.only(top: spacing),
-          child: child,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 12,
+            children: [
+              if (hasSummary) RideSummaryCard(key: const ValueKey('ride-summary'), wide: textActions),
+              ?child,
+            ],
+          ),
         );
       },
     );

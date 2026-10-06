@@ -46,10 +46,7 @@ class RideSummaryCard extends StatelessWidget {
         final ride = core.rides.summaryRide.value;
         final summary = ride?.summary;
         if (ride == null || summary == null) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _Card(key: ValueKey('ride-summary-${ride.fileName}'), ride: ride, summary: summary, wide: wide),
-        );
+        return _Card(key: ValueKey('ride-summary-${ride.fileName}'), ride: ride, summary: summary, wide: wide);
       },
     );
   }

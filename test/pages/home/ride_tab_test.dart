@@ -11,6 +11,7 @@ import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screens
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/services/workout/memory_workout_repository.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/widgets/rides/ride_recording_line.dart';
 import 'package:bike_control/pages/settings/overlay_settings_page.dart';
@@ -37,6 +38,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../helpers/fake_overlay_controller.dart';
+import '../../helpers/ride_fixtures.dart';
 import '../../helpers/ride_rig.dart';
 import '../../helpers/shell_harness.dart';
 import '../../helpers/touch_targets.dart';
@@ -334,6 +336,22 @@ Future<void> main() async {
 
       rig.service.discard();
       await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a finished ride\'s card takes the recording card\'s place, not the top of Ride', (tester) async {
+      final (proxy: _, :definition) = liveTrainer();
+      connectedPlay();
+      RideRig.reset();
+      RideRig.source = TrainerMetrics.fromDefinition(definition);
+      final ride = await saveSampleRide(MemoryWorkoutRepository());
+      await RideRig.install(rides: [ride], prefs: {'rides_summary_card': ride.fileName});
+      await pumpRide(tester);
+
+      final card = find.byKey(const ValueKey('ride-summary'));
+      expect(card, findsOneWidget);
+      final vs = tester.getRect(find.byType(VirtualShiftingCard));
+      expect(tester.getTopLeft(card).dy, closeTo(vs.bottom + 12, 1), reason: 'where Fahrt beenden was');
       expect(tester.takeException(), isNull);
     });
 
