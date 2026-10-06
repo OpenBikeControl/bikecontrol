@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_group_label.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
@@ -207,7 +208,8 @@ Widget onboardingConnectionBody(
       OnboardingMethod.bluetooth => _MethodTile(
           icon: LucideIcons.bluetooth,
           title: context.i18n.onboardingMethodBluetooth,
-          badge: context.i18n.onboardingMethodBluetoothBadge,
+          // Platform badges only where they apply.
+          badge: HostPlatform.isIOS ? context.i18n.onboardingMethodBluetoothBadge : null,
           description: context.i18n.onboardingMethodBluetoothDesc(app.name),
           enabled: enabled,
           connection: connection,
@@ -217,7 +219,7 @@ Widget onboardingConnectionBody(
       OnboardingMethod.local => _MethodTile(
           icon: LucideIcons.keyboard,
           title: context.i18n.onboardingMethodLocal,
-          badge: context.i18n.onboardingMethodLocalBadge,
+          badge: available ? context.i18n.onboardingMethodLocalBadge : null,
           description: context.i18n.onboardingMethodLocalDesc,
           features: [
             context.i18n.onboardingMethodLocalFeature1,
