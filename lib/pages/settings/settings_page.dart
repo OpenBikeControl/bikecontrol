@@ -111,18 +111,13 @@ class _SettingsPageState extends State<SettingsPage> {
           key: const ValueKey('settings-riding-with'),
           header: l10n.settingsSectionRidingWith,
           children: [
+            // The trainer app and how it connects are picked on one page:
+            // one row, the app below its name, the method on the right.
             BkGroupedRow(
               key: const ValueKey('settings-trainer-app'),
               icon: LucideIcons.monitor,
-              title: l10n.chainAppTitle,
-              trailing: Text(app?.name ?? l10n.chainStatusNotSetUp),
-              chevron: true,
-              onPressed: () => _open(const TrainerConnectionSettingsPage()),
-            ),
-            BkGroupedRow(
-              key: const ValueKey('settings-connection'),
-              icon: LucideIcons.wifi,
-              title: l10n.connectionSettings,
+              title: l10n.settingsTrainerAppConnection,
+              subtitle: app?.name ?? l10n.chainStatusNotSetUp,
               trailing: switch (connectionMethodSummary(context)) {
                 final summary? => Text(summary),
                 null => null,

@@ -93,6 +93,13 @@ Future<void> main() async {
       expect(find.byType(TrainerConnectionSettingsPage), findsOneWidget);
     });
 
+    testWidgets('one row for the trainer app and its connection, not two to the same page', (tester) async {
+      await _pumpSettings(tester);
+
+      expect(find.byKey(const ValueKey('settings-connection')), findsNothing);
+      final row = find.byKey(const ValueKey('settings-trainer-app'));
+      expect(find.descendant(of: row, matching: find.text(l.settingsTrainerAppConnection)), findsOneWidget);
+    });
   });
 
   testWidgets('during the ride: sound everywhere, vibration and Quit only on a phone', (tester) async {
