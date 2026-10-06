@@ -1006,8 +1006,12 @@
       }
     }
   },
-  "bridgeTrialTimeOverTitle": "Tempo di prova del Bridge esaurito",
-  "bridgeTrialTimeOverBody": "Hai usato i 20 minuti di oggi del cambio virtuale di BikeControl. È una funzione Pro, e l'acquisto di Base non la include. Senza Pro, la tua app di allenamento gestisce il cambio virtuale: associa il rullo direttamente nell'app e BikeControl invia i tuoi pulsanti del cambio.",
+  "bridgeTrialTimeOverTitle": "La prova di oggi del cambio virtuale è finita",
+  "bridgeTrialTimeOverBody": "La tua uscita continua per ora: non cambia nulla finché la tua app di allenamento resta collegata. Dopo, il rullo di BikeControl non comparirà più nell'app per oggi: associa il rullo direttamente nell'app e BikeControl continuerà a inviare i tuoi pulsanti del cambio. Pro elimina il limite giornaliero.",
+  "bridgeTrialAlreadyOverBody": "Il rullo di BikeControl non comparirà più nella tua app di allenamento fino a domani. Fino ad allora, associa il rullo direttamente nell'app e BikeControl continuerà a inviare i tuoi pulsanti del cambio. Pro elimina il limite giornaliero.",
+  "bridgeTrialEndingSoonTitle": "{minutes, plural, =1{Resta 1 minuto} other{Restano {minutes} minuti}} della prova di oggi del cambio virtuale",
+  "@bridgeTrialEndingSoonTitle": {"placeholders": {"minutes": {"type": "int"}}},
+  "bridgeTrialEndingSoonBody": "Quando finisce, questa uscita continua finché la tua app di allenamento resta collegata. Pro elimina il limite giornaliero.",
   "connect": "Connetti",
   "smartTrainerAndAccessories": "Smart trainer e accessori",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} non lo supporta ancora",
@@ -2568,6 +2572,8 @@
   "@rideVsSimExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining SIM while SIM is selected."},
   "rideVsErgExplainer": "ERG: il rullo mantiene una potenza fissa, con qualsiasi rapporto.",
   "@rideVsErgExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining ERG while ERG is selected."},
+  "rideVsTrialOver": "La prova di oggi del cambio virtuale è finita. Questa uscita continua finché la tua app di allenamento resta collegata.",
+  "@rideVsTrialOver": {"description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."},
   "changelogKindAdded": "Novità",
   "changelogKindImproved": "Miglioramenti",
   "changelogKindFixed": "Correzioni",

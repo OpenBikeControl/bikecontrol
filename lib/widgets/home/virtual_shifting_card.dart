@@ -46,6 +46,7 @@ class VirtualShiftingCard extends StatelessWidget {
     required this.trainerName,
     this.dim = false,
     this.dimNotice,
+    this.trialNotice,
     this.onOpenSettings,
     this.onOpenTrainer,
     this.footer,
@@ -65,6 +66,7 @@ class VirtualShiftingCard extends StatelessWidget {
   }) : definition = null,
        dim = true,
        dimNotice = null,
+       trialNotice = null,
        onOpenSettings = null,
        footer = null;
 
@@ -84,6 +86,10 @@ class VirtualShiftingCard extends StatelessWidget {
   /// One line under the gear while [dim]: why − / + change the number but
   /// nothing the rider feels. Not shown when null.
   final String? dimNotice;
+
+  /// One line under the gear once today's virtual shifting trial is over:
+  /// what that means for the ride. Not shown when null.
+  final String? trialNotice;
 
   /// Opens Settings → Virtual shifting.
   final VoidCallback? onOpenSettings;
@@ -156,6 +162,10 @@ class VirtualShiftingCard extends StatelessWidget {
                         icon: LucideIcons.info,
                         text: dimNotice!,
                       ),
+                    ],
+                    if (trialNotice case final notice?) ...[
+                      const Gap(12),
+                      _CardNote(key: const ValueKey('ride-vs-trial-notice'), icon: LucideIcons.clock, text: notice),
                     ],
                     // What the selected mode does, in one line: "SIM" and
                     // "ERG" say nothing to a rider who has not met them.

@@ -1006,8 +1006,12 @@
       }
     }
   },
-  "bridgeTrialTimeOverTitle": "Czas próbny Bridge zakończony",
-  "bridgeTrialTimeOverBody": "Wykorzystano dzisiejsze 20 minut wirtualnej zmiany biegów BikeControl. To funkcja Pro, której zakup wersji Base nie obejmuje. Bez Pro wirtualną zmianą biegów zajmuje się Twoja aplikacja treningowa: sparuj trenażer bezpośrednio w aplikacji, a BikeControl wyśle Twoje przyciski zmiany biegów.",
+  "bridgeTrialTimeOverTitle": "Dzisiejszy okres próbny wirtualnej zmiany biegów się skończył",
+  "bridgeTrialTimeOverBody": "Twoja jazda na razie trwa dalej — nic się nie zmieni, dopóki aplikacja treningowa się nie rozłączy. Potem trenażer BikeControl nie pojawi się już dziś w aplikacji: sparuj trenażer bezpośrednio w aplikacji, a BikeControl nadal będzie wysyłać Twoje przyciski zmiany biegów. Pro znosi dzienny limit.",
+  "bridgeTrialAlreadyOverBody": "Trenażer BikeControl nie pojawi się w aplikacji treningowej aż do jutra. Do tego czasu sparuj trenażer bezpośrednio w aplikacji, a BikeControl nadal będzie wysyłać Twoje przyciski zmiany biegów. Pro znosi dzienny limit.",
+  "bridgeTrialEndingSoonTitle": "{minutes, plural, =1{Została 1 minuta} few{Zostały {minutes} minuty} other{Zostało {minutes} minut}} dzisiejszego okresu próbnego wirtualnej zmiany biegów",
+  "@bridgeTrialEndingSoonTitle": {"placeholders": {"minutes": {"type": "int"}}},
+  "bridgeTrialEndingSoonBody": "Gdy się skończy, ta jazda potrwa dalej, dopóki aplikacja treningowa się nie rozłączy. Pro znosi dzienny limit.",
   "connect": "Połącz",
   "smartTrainerAndAccessories": "Smart trainer i akcesoria",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} jeszcze tego nie obsługuje",
@@ -2568,6 +2572,8 @@
   "@rideVsSimExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining SIM while SIM is selected."},
   "rideVsErgExplainer": "ERG: trenażer utrzymuje stałą moc, niezależnie od biegu.",
   "@rideVsErgExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining ERG while ERG is selected."},
+  "rideVsTrialOver": "Dzisiejszy okres próbny wirtualnej zmiany biegów się skończył. Ta jazda trwa dalej, dopóki aplikacja treningowa się nie rozłączy.",
+  "@rideVsTrialOver": {"description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."},
   "changelogKindAdded": "Nowości",
   "changelogKindImproved": "Ulepszenia",
   "changelogKindFixed": "Poprawki",

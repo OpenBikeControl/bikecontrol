@@ -36,7 +36,12 @@ void main() {
     );
   });
 
-  Future<void> pumpCard(WidgetTester tester, FitnessBikeDefinition definition, {bool dim = false}) async {
+  Future<void> pumpCard(
+    WidgetTester tester,
+    FitnessBikeDefinition definition, {
+    bool dim = false,
+    String? trialNotice,
+  }) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -52,6 +57,7 @@ void main() {
               trainerName: 'KICKR CORE',
               dim: dim,
               dimNotice: dim ? 'not connected notice' : null,
+              trialNotice: trialNotice,
             ),
           ),
         ),
@@ -110,5 +116,20 @@ void main() {
     await tester.pump();
     expect(haptics, isEmpty);
     await settleShift(tester);
+  });
+
+  // The daily trial running out mid-ride used to leave the card looking
+  // exactly as before.
+  testWidgets('a trial that is over for today shows on the card', (tester) async {
+    final definition = attachLiveTrainer(register: false).definition;
+    await pumpCard(tester, definition, trialNotice: 'trial over notice');
+    expect(find.byKey(const ValueKey('ride-vs-trial-notice')), findsOneWidget);
+    expect(find.text('trial over notice'), findsOneWidget);
+  });
+
+  testWidgets('no trial notice, no line', (tester) async {
+    final definition = attachLiveTrainer(register: false).definition;
+    await pumpCard(tester, definition);
+    expect(find.byKey(const ValueKey('ride-vs-trial-notice')), findsNothing);
   });
 }

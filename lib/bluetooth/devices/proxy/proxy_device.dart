@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -164,6 +165,14 @@ class ProxyDevice extends BluetoothDevice {
   DirconEmulator? _currentlyListening;
 
   StreamSubscription<void>? _bridgeBudgetSub;
+
+  /// Whether this device listens to the daily budget for the heads-up — see
+  /// [_checkTrialHeadsUp].
+  bool _listensForTrialHeadsUp = false;
+
+  /// The day the "trial ends soon" heads-up was last given, shared by every
+  /// trainer so one ride hears it once.
+  static String? _trialHeadsUpDay;
 
   /// Latest [FitnessBikeDefinition] created during [_buildDefinitions]. In VS
   /// mode this is the same as [_fbd]. Kept separate so the bridge-usage
@@ -346,8 +355,12 @@ class ProxyDevice extends BluetoothDevice {
       core.bridgeUsageTracker.startSession(isActive: _isTrainerActive);
       _bridgeBudgetSub ??= core.bridgeUsageTracker.onBudgetExhausted.listen((_) {
         scheduleMicrotask(() => unawaited(emulator.pauseAdvertising()));
-        _announceBridgeTrialOver();
+        _announceBridgeTrialOver(midRide: true);
       });
+      if (!_listensForTrialHeadsUp) {
+        _listensForTrialHeadsUp = true;
+        core.bridgeUsageTracker.usedTodayListenable.addListener(_checkTrialHeadsUp);
+      }
     } else {
       core.bridgeUsageTracker.stopSession();
     }
@@ -356,20 +369,51 @@ class ProxyDevice extends BluetoothDevice {
   /// True when the current retrofit mode needs a Bridge transport (wifi /
   /// bluetooth) but the non-Pro user has already burned today's 20-minute
   /// budget. Proxy mode is unaffected.
-  bool get _isBridgeTrialOver {
-    if (_retrofitModeN.value == RetrofitMode.proxy) return false;
-    if (IAPManager.instance.isProEnabledForCurrentDevice) return false;
-    return core.bridgeUsageTracker.isExhausted;
+  bool get _isBridgeTrialOver => isBridgeTrialOver;
+
+  /// Whether today's virtual shifting trial is over for this trainer — see
+  /// [vsTrialOver]. Ride's shifting card shows it.
+  bool get isBridgeTrialOver => vsTrialOver(
+    mode: _retrofitModeN.value,
+    isPro: IAPManager.instance.isProEnabledForCurrentDevice,
+    exhausted: core.bridgeUsageTracker.isExhausted,
+  );
+
+  /// A couple of minutes before the daily budget runs out, while it is
+  /// counting down: say so once, so the end is not a surprise mid-ride.
+  void _checkTrialHeadsUp() {
+    final tracker = core.bridgeUsageTracker;
+    if (!tracker.isCountingDown) return;
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month}-${now.day}';
+    final remaining = tracker.remainingToday;
+    if (!vsTrialEndingSoon(remaining: remaining, alreadyWarned: _trialHeadsUpDay == today)) return;
+    _trialHeadsUpDay = today;
+    // Rounded up: with 1:30 left, "2 minutes" is the honest reading.
+    final minutes = (remaining.inSeconds / 60).ceil();
+    final title = AppLocalizations.current.bridgeTrialEndingSoonTitle(minutes);
+    final body = AppLocalizations.current.bridgeTrialEndingSoonBody;
+    core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_INFO, '$title — $body'));
+    _showTrialNotification(id: 1341, title: title, body: body);
   }
 
-  void _announceBridgeTrialOver() {
+  /// [midRide]: the budget ran out while the trainer app was connected — it
+  /// keeps its connection, so the ride goes on. Otherwise the trainer just
+  /// connected with the budget already gone, and the app won't find it.
+  void _announceBridgeTrialOver({required bool midRide}) {
     final title = AppLocalizations.current.bridgeTrialTimeOverTitle;
-    final body = AppLocalizations.current.bridgeTrialTimeOverBody;
+    final body = midRide
+        ? AppLocalizations.current.bridgeTrialTimeOverBody
+        : AppLocalizations.current.bridgeTrialAlreadyOverBody;
     core.connection.signalNotification(
       AlertNotification(LogLevel.LOGLEVEL_WARNING, '$title — $body'),
     );
+    _showTrialNotification(id: 1340, title: title, body: body);
+  }
+
+  void _showTrialNotification({required int id, required String title, required String body}) {
     core.flutterLocalNotificationsPlugin.show(
-      id: 1340,
+      id: id,
       title: title,
       body: body,
       notificationDetails: const NotificationDetails(
@@ -738,7 +782,7 @@ class ProxyDevice extends BluetoothDevice {
       onChange.value = 'Connected to ${scanResult.name}';
 
       if (_isBridgeTrialOver) {
-        _announceBridgeTrialOver();
+        _announceBridgeTrialOver(midRide: false);
       }
     } catch (e, s) {
       recordError(e, s, context: 'Emulator start');
@@ -1333,6 +1377,10 @@ class ProxyDevice extends BluetoothDevice {
 
     _bridgeBudgetSub?.cancel();
     _bridgeBudgetSub = null;
+    if (_listensForTrialHeadsUp) {
+      _listensForTrialHeadsUp = false;
+      core.bridgeUsageTracker.usedTodayListenable.removeListener(_checkTrialHeadsUp);
+    }
     core.bridgeUsageTracker.stopSession();
 
     // Detach FBD from shared emulator if we contributed one.

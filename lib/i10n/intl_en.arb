@@ -141,8 +141,12 @@
       }
     }
   },
-  "bridgeTrialTimeOverTitle": "Bridge trial time is over",
-  "bridgeTrialTimeOverBody": "You've used today's 20 minutes of BikeControl's virtual shifting. It's a Pro feature, and the Base purchase doesn't include it. Without Pro, your trainer app handles virtual shifting: pair the trainer directly in the app and BikeControl sends your shift buttons.",
+  "bridgeTrialTimeOverTitle": "Today's virtual shifting trial is over",
+  "bridgeTrialTimeOverBody": "Your ride keeps going for now — nothing changes until your trainer app disconnects. After that, BikeControl's trainer won't show up in the app again today: pair the trainer directly in the app and BikeControl keeps sending your shift buttons. Pro removes the daily limit.",
+  "bridgeTrialAlreadyOverBody": "BikeControl's trainer won't show up in your trainer app again until tomorrow. Until then, pair the trainer directly in the app and BikeControl keeps sending your shift buttons. Pro removes the daily limit.",
+  "bridgeTrialEndingSoonTitle": "{minutes, plural, =1{1 minute} other{{minutes} minutes}} left of today's virtual shifting trial",
+  "@bridgeTrialEndingSoonTitle": {"placeholders": {"minutes": {"type": "int"}}},
+  "bridgeTrialEndingSoonBody": "When it runs out, this ride keeps going until your trainer app disconnects. Pro removes the daily limit.",
   "bluetoothKeyboardExplanation": "This will allow you to use your phone as a Bluetooth keyboard to control compatible apps. Once paired, you can use the buttons on your bike controller to send keyboard inputs to the app.",
   "bluetoothTurnedOn": "Bluetooth turned on",
   "bluetoothPermissionRequired": "Allow Bluetooth for BikeControl",
@@ -2972,6 +2976,8 @@
   "@rideVsSimExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining SIM while SIM is selected."},
   "rideVsErgExplainer": "ERG: the trainer holds a set wattage, whatever gear you're in.",
   "@rideVsErgExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining ERG while ERG is selected."},
+  "rideVsTrialOver": "Today's virtual shifting trial is over. This ride keeps going until your trainer app disconnects.",
+  "@rideVsTrialOver": {"description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."},
   "changelogKindAdded": "New",
   "changelogKindImproved": "Improved",
   "changelogKindFixed": "Fixed",

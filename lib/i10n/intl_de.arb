@@ -1018,8 +1018,12 @@
       }
     }
   },
-  "bridgeTrialTimeOverTitle": "Bridge-Testzeit ist vorbei",
-  "bridgeTrialTimeOverBody": "Du hast die 20 Minuten Virtual Shifting von BikeControl für heute aufgebraucht. Das ist eine Pro-Funktion, die der Kauf der Basis-Version nicht enthält. Ohne Pro übernimmt deine Trainer-App das Virtual Shifting: Kopple den Trainer direkt in der App, und BikeControl sendet deine Schalttasten.",
+  "bridgeTrialTimeOverTitle": "Die heutige Testzeit für Virtual Shifting ist vorbei",
+  "bridgeTrialTimeOverBody": "Deine Fahrt läuft vorerst weiter – nichts ändert sich, bis sich deine Trainer-App trennt. Danach taucht der Trainer von BikeControl heute nicht mehr in der App auf: Kopple den Trainer direkt in der App, und BikeControl sendet weiter deine Schalttasten. Mit Pro fällt das Tageslimit weg.",
+  "bridgeTrialAlreadyOverBody": "Der Trainer von BikeControl taucht erst morgen wieder in deiner Trainer-App auf. Bis dahin kopple den Trainer direkt in der App, und BikeControl sendet weiter deine Schalttasten. Mit Pro fällt das Tageslimit weg.",
+  "bridgeTrialEndingSoonTitle": "{minutes, plural, =1{Noch 1 Minute} other{Noch {minutes} Minuten}} der heutigen Testzeit für Virtual Shifting",
+  "@bridgeTrialEndingSoonTitle": {"placeholders": {"minutes": {"type": "int"}}},
+  "bridgeTrialEndingSoonBody": "Wenn sie abläuft, läuft diese Fahrt weiter, bis sich deine Trainer-App trennt. Mit Pro fällt das Tageslimit weg.",
   "connect": "Verbinden",
   "smartTrainerAndAccessories": "Smart-Trainer & Zubehör",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} unterstützt das noch nicht",
@@ -2568,6 +2572,8 @@
   "@rideVsSimExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining SIM while SIM is selected."},
   "rideVsErgExplainer": "ERG: Der Trainer hält eine feste Wattzahl, egal in welchem Gang.",
   "@rideVsErgExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining ERG while ERG is selected."},
+  "rideVsTrialOver": "Die heutige Testzeit für Virtual Shifting ist vorbei. Diese Fahrt läuft weiter, bis sich deine Trainer-App trennt.",
+  "@rideVsTrialOver": {"description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."},
   "changelogKindAdded": "Neu",
   "changelogKindImproved": "Verbessert",
   "changelogKindFixed": "Behoben",

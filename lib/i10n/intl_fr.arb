@@ -1006,8 +1006,12 @@
       }
     }
   },
-  "bridgeTrialTimeOverTitle": "Temps d'essai du Bridge écoulé",
-  "bridgeTrialTimeOverBody": "Tu as utilisé tes 20 minutes de vitesses virtuelles BikeControl pour aujourd'hui. C'est une fonction Pro, que l'achat de Base n'inclut pas. Sans Pro, ton appli d'entraînement gère les vitesses virtuelles : associe le home trainer directement dans l'appli et BikeControl envoie tes boutons de vitesse.",
+  "bridgeTrialTimeOverTitle": "L'essai du jour des vitesses virtuelles est terminé",
+  "bridgeTrialTimeOverBody": "Ta séance continue pour l'instant : rien ne change tant que ton appli d'entraînement reste connectée. Ensuite, le home trainer de BikeControl n'apparaîtra plus dans l'appli aujourd'hui : associe le home trainer directement dans l'appli et BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne.",
+  "bridgeTrialAlreadyOverBody": "Le home trainer de BikeControl n'apparaîtra plus dans ton appli d'entraînement avant demain. D'ici là, associe le home trainer directement dans l'appli et BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne.",
+  "bridgeTrialEndingSoonTitle": "{minutes, plural, =1{Plus qu'1 minute} other{Plus que {minutes} minutes}} d'essai des vitesses virtuelles aujourd'hui",
+  "@bridgeTrialEndingSoonTitle": {"placeholders": {"minutes": {"type": "int"}}},
+  "bridgeTrialEndingSoonBody": "Quand il se termine, ta séance continue jusqu'à ce que ton appli d'entraînement se déconnecte. Pro supprime la limite quotidienne.",
   "connect": "Connecter",
   "smartTrainerAndAccessories": "Home trainer & accessoires",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} ne le prend pas encore en charge",
@@ -2568,6 +2572,8 @@
   "@rideVsSimExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining SIM while SIM is selected."},
   "rideVsErgExplainer": "ERG : le home trainer maintient une puissance fixe, quel que soit le braquet.",
   "@rideVsErgExplainer": {"description": "Ride tab: one line on the virtual shifting card explaining ERG while ERG is selected."},
+  "rideVsTrialOver": "L'essai du jour des vitesses virtuelles est terminé. Ta séance continue jusqu'à ce que ton appli d'entraînement se déconnecte.",
+  "@rideVsTrialOver": {"description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."},
   "changelogKindAdded": "Nouveautés",
   "changelogKindImproved": "Améliorations",
   "changelogKindFixed": "Corrections",

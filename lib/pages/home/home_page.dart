@@ -1115,15 +1115,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       slot = _LiveTrainerBody(
         key: const ValueKey('ride-vs-live'),
         proxy: proxy,
-        builder: (definition, connected) => VirtualShiftingCard(
-          definition: definition,
-          trainerName: proxy.toString(),
-          dim: !connected,
-          dimNotice: connected ? null : l.rideVsTrainerNotConnected(proxy.toString()),
-          layout: layout,
-          onOpenSettings: () => _openVsSettings(proxy),
-          onOpenTrainer: () => _openTrainerPage(proxy),
-          footer: _vsFooter(proxy),
+        // The daily trial ticks down while riding: the card hears the moment
+        // it runs out.
+        builder: (definition, connected) => ValueListenableBuilder<Duration>(
+          valueListenable: core.bridgeUsageTracker.usedTodayListenable,
+          builder: (context, _, _) => VirtualShiftingCard(
+            definition: definition,
+            trainerName: proxy.toString(),
+            dim: !connected,
+            dimNotice: connected ? null : l.rideVsTrainerNotConnected(proxy.toString()),
+            trialNotice: proxy.isBridgeTrialOver && !screenshotMode ? l.rideVsTrialOver : null,
+            layout: layout,
+            onOpenSettings: () => _openVsSettings(proxy),
+            onOpenTrainer: () => _openTrainerPage(proxy),
+            footer: _vsFooter(proxy),
+          ),
         ),
       );
     } else if (trainer != null &&
