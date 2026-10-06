@@ -2673,7 +2673,7 @@
   "ridesMaxHeartRateTitle": "Tętno maksymalne",
   "ridesMaxHeartRateSubtitle": "Pokazuje strefy tętna w przejażdżkach",
   "ridesNotSet": "Nie ustawiono",
-  "ridesFtpBody": "Najwyższa moc, jaką utrzymasz przez mniej więcej godzinę. Na jej podstawie wyznaczane są strefy mocy.",
+  "ridesFtpBody": "FTP (Functional Threshold Power) to najwyższa moc, jaką utrzymasz przez mniej więcej godzinę. Na jej podstawie wyznaczane są strefy mocy. Nie znasz swojego? Wpisz FTP z profilu w swojej aplikacji treningowej.",
   "ridesMaxHeartRateBody": "Najwyższe tętno, jakie osiągasz przy maksymalnym wysiłku. Na jego podstawie wyznaczane są strefy tętna.",
   "ridesValueRange": "Wpisz wartość od {min} do {max}.",
   "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},

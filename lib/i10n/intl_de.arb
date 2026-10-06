@@ -2673,7 +2673,7 @@
   "ridesMaxHeartRateTitle": "Maximale Herzfrequenz",
   "ridesMaxHeartRateSubtitle": "Zeigt Herzfrequenzzonen bei deinen Fahrten",
   "ridesNotSet": "Nicht festgelegt",
-  "ridesFtpBody": "Die höchste Leistung, die du etwa eine Stunde halten kannst. Die Leistungszonen richten sich danach.",
+  "ridesFtpBody": "FTP (Functional Threshold Power) ist die höchste Leistung, die du etwa eine Stunde halten kannst. Die Leistungszonen richten sich danach. Du kennst deine nicht? Nimm die FTP aus dem Profil deiner Trainings-App.",
   "ridesMaxHeartRateBody": "Die höchste Herzfrequenz, die du bei voller Anstrengung erreichst. Die Herzfrequenzzonen richten sich danach.",
   "ridesValueRange": "Gib einen Wert von {min} bis {max} ein.",
   "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},

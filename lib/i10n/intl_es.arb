@@ -2673,7 +2673,7 @@
   "ridesMaxHeartRateTitle": "Frecuencia cardíaca máxima",
   "ridesMaxHeartRateSubtitle": "Muestra las zonas de frecuencia cardíaca de tus salidas",
   "ridesNotSet": "Sin definir",
-  "ridesFtpBody": "La potencia más alta que puedes mantener durante una hora aproximadamente. Las zonas de potencia se basan en ella.",
+  "ridesFtpBody": "El FTP (Functional Threshold Power) es la potencia más alta que puedes mantener durante una hora aproximadamente. Las zonas de potencia se basan en él. ¿No sabes el tuyo? Usa el FTP del perfil de tu app de entrenamiento.",
   "ridesMaxHeartRateBody": "La frecuencia cardíaca más alta que alcanzas en un esfuerzo máximo. Las zonas de frecuencia cardíaca se basan en ella.",
   "ridesValueRange": "Introduce un valor entre {min} y {max}.",
   "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},

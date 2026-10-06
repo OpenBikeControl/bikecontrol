@@ -3056,7 +3056,7 @@
   "ridesMaxHeartRateTitle": "Max heart rate",
   "ridesMaxHeartRateSubtitle": "Shows heart rate zones on your rides",
   "ridesNotSet": "Not set",
-  "ridesFtpBody": "The highest power you can hold for about an hour. Power zones are based on it.",
+  "ridesFtpBody": "FTP (Functional Threshold Power) is the highest power you can hold for about an hour. Power zones are based on it. Don't know yours? Use the FTP from your trainer app's profile.",
   "ridesMaxHeartRateBody": "The highest heart rate you reach in an all-out effort. Heart rate zones are based on it.",
   "ridesValueRange": "Enter a value from {min} to {max}.",
   "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
