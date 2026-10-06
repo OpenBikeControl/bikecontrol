@@ -2171,6 +2171,8 @@
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
   "chainPendingSubtitleAppDropped": "{app} s'est déconnecté. Reconnecte-le depuis son écran d'association à ta prochaine séance.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleOpenApp": "Tout le reste est prêt — ouvre simplement {app}.",
+  "@chainPendingSubtitleOpenApp": {"placeholders": {"app": {"type": "String"}}},
   "healthRideDiscard": "Ignorer",
   "healthRideDiscardConfirmTitle": "Ignorer cette sortie ?",
   "healthRideDiscardConfirmAction": "Ignorer la sortie",

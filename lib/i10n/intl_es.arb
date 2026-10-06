@@ -2171,6 +2171,8 @@
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
   "chainPendingSubtitleAppDropped": "{app} se ha desconectado. Vuelve a conectarla desde su pantalla de emparejamiento cuando vuelvas a rodar.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleOpenApp": "Todo lo demás está listo: solo abre {app}.",
+  "@chainPendingSubtitleOpenApp": {"placeholders": {"app": {"type": "String"}}},
   "healthRideDiscard": "Descartar",
   "healthRideDiscardConfirmTitle": "¿Descartar esta salida?",
   "healthRideDiscardConfirmAction": "Descartar salida",

@@ -1678,6 +1678,33 @@ void _droppedAppTests() {
       await tester.pumpWidget(const SizedBox());
     });
 
+    // A fresh launch: controller and trainer back, the bridge running, the
+    // trainer app just not open yet. That is one thing to do — open the app —
+    // not "2 steps left" across two cards.
+    testWidgets('a fresh launch waiting only for the app to open is one step', (tester) async {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-fresh-launch', name: 'KICKR CORE 1234'));
+      trainer.emulator.isStarted.value = true;
+      core.connection.devices.add(trainer);
+      useTallSurface(tester);
+      await _pumpHome(tester);
+
+      expect(find.text(l.chainStepsLeftTitle(1)), findsOneWidget);
+      expect(find.text(l.chainStepsLeftTitle(2)), findsNothing);
+      expect(find.text(l.chainPendingSubtitleOpenApp('MyWhoosh')), findsOneWidget);
+      final banner = tester.widget<ReadyBanner>(find.byType(ReadyBanner));
+      expect(banner.steps.map((s) => s.step.id), [SetupStepId.appConnected]);
+      // The trainer card keeps its own step.
+      expect(
+        find.descendant(
+          of: _chainCard(ChainLinkKey.trainer),
+          matching: find.text(l.chainStepTrainerBridgedPending('MyWhoosh')),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(const SizedBox());
+    });
+
     // What is new since the app connected is news, though: a VPN that comes
     // up is a classic reason for an app to drop, and the card says so.
     testWidgets('an address flag that was not there when the app connected brings the step back', (tester) async {

@@ -2171,6 +2171,8 @@
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
   "chainPendingSubtitleAppDropped": "{app} rozłączyła się. Gdy znów będziesz jeździć, połącz ją ponownie na ekranie parowania aplikacji.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleOpenApp": "Cała reszta jest gotowa — po prostu otwórz {app}.",
+  "@chainPendingSubtitleOpenApp": {"placeholders": {"app": {"type": "String"}}},
   "healthRideDiscard": "Odrzuć",
   "healthRideDiscardConfirmTitle": "Odrzucić tę przejażdżkę?",
   "healthRideDiscardConfirmAction": "Odrzuć przejażdżkę",

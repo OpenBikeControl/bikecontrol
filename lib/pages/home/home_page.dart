@@ -837,6 +837,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             outstandingLinkIds: banner.outstandingLinkIds.where((id) => !reconnectingIds.contains(id)).toList(),
             soleStep: banner.soleStep,
             appDropped: banner.appDropped,
+            waitingForApp: banner.waitingForApp,
           );
     final steps = _bannerSteps(links, shownBanner, inputs);
 
@@ -983,13 +984,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// went away after working is one cause with one fix: its step alone.
   List<ReadyBannerStep> _bannerSteps(List<ChainLink> links, ChainBanner banner, ChainInputs inputs) {
     if (banner.kind != ChainBannerKind.pending) return const [];
-    final ids = banner.appDropped ? [banner.targetLinkId] : banner.outstandingLinkIds;
+    final oneCause = banner.appDropped || banner.waitingForApp;
+    final ids = oneCause ? [banner.targetLinkId] : banner.outstandingLinkIds;
     final steps = <ReadyBannerStep>[];
     for (final id in ids) {
       final link = links.firstOrNullWhere((l) => l.id == id);
       if (link == null) continue;
       final pending = link.requiredSteps.where((s) => !s.done).toList();
-      if (banner.appDropped) pending.removeWhere((s) => s.id != SetupStepId.appConnected);
+      if (oneCause) pending.removeWhere((s) => s.id != SetupStepId.appConnected);
       final active = link.activeStep;
       // Ride's shifting card carries the overlay offer, with its "Not now";
       // listing it here as well would ask the same question twice.

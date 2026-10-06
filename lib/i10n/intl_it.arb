@@ -2171,6 +2171,8 @@
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
   "chainPendingSubtitleAppDropped": "{app} si è disconnessa. Ricollegala dalla sua schermata di associazione quando torni a pedalare.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleOpenApp": "Tutto il resto è pronto: apri {app}.",
+  "@chainPendingSubtitleOpenApp": {"placeholders": {"app": {"type": "String"}}},
   "healthRideDiscard": "Scarta",
   "healthRideDiscardConfirmTitle": "Scartare questa uscita?",
   "healthRideDiscardConfirmAction": "Scarta uscita",

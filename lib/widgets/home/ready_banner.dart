@@ -126,6 +126,9 @@ class ReadyBanner extends StatelessWidget {
             // plainly open, and the line above is its answer.)
             : banner.appDropped
             ? l.chainPendingSubtitleAppDropped(appName ?? l.chainAppTitle)
+            // Everything set up, the app just not open yet: one calm step.
+            : banner.waitingForApp
+            ? l.chainPendingSubtitleOpenApp(appName ?? l.chainAppTitle)
             : names.length == 1
             ? l.chainPendingSubtitleSingle(names.single)
             // "A, B and C" — the last name joined with "and", the rest with commas.
@@ -227,12 +230,15 @@ class ReadyBanner extends StatelessWidget {
     final shown = steps.take(maxSteps).toList();
     final more = steps.length - shown.length;
 
-    // Two cases say more than their step's own line: an app that went away
-    // after working, and an app missing only its controller tile.
+    // Three cases say more than their step's own line: an app that went away
+    // after working, an app missing only its controller tile, and an app that
+    // is all that is left and simply not open yet.
     final String? subtitle = banner.soleStep?.variant == SetupStepVariant.controllerLinkMissing
         ? l.chainPendingSubtitleController(appName ?? l.chainAppTitle)
         : banner.appDropped
         ? l.chainPendingSubtitleAppDropped(appName ?? l.chainAppTitle)
+        : banner.waitingForApp
+        ? l.chainPendingSubtitleOpenApp(appName ?? l.chainAppTitle)
         : null;
 
     return Container(

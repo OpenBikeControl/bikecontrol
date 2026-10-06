@@ -2360,6 +2360,8 @@
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
   "chainPendingSubtitleAppDropped": "{app} disconnected. Reconnect it from its pairing screen when you ride again.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleOpenApp": "Everything else is set up — just open {app}.",
+  "@chainPendingSubtitleOpenApp": {"placeholders": {"app": {"type": "String"}}},
   "healthRideDiscard": "Discard",
   "healthRideDiscardConfirmTitle": "Discard this ride?",
   "healthRideDiscardConfirmAction": "Discard ride",
