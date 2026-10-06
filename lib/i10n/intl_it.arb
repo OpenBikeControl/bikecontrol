@@ -772,6 +772,8 @@
   "unlockAfterMinuteCheck": "Dopo un minuto, ricontrolla premendo un pulsante",
   "unlockConfirmByButton": "Conferma lo sblocco premendo un pulsante",
   "tuneGearsIntro": "Regola ogni rapporto virtuale come piace a te. Le modifiche si applicano subito.",
+  "vsResetTitle": "Ripristinare le marce?",
+  "vsResetBody": "Il numero di marce torna a quello della tua app di allenamento, lo smussamento pendenza si attiva e i tuoi rapporti per marcia tornano a quelli standard. I tuoi rapporti personalizzati non si possono recuperare.",
   "virtualShiftingMode": "Modalità Virtual Shifting",
   "virtualShiftingModeDesc": "Come viene calcolata la resistenza per ogni rapporto",
   "targetPowerMode": "Potenza target",

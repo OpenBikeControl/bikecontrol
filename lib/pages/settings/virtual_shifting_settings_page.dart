@@ -112,6 +112,27 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   Future<void> _update(ShiftingConfig Function(ShiftingConfig) mutate) =>
       updateActiveShiftingConfig(widget.device, mutate);
 
+  /// Reset wipes the rider's own gears for good: ask first.
+  Future<void> _confirmReset() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.vsResetTitle),
+        content: Text(l10n.vsResetBody),
+        actions: [
+          Button.outline(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
+          Button.destructive(
+            key: const ValueKey('vs-reset-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.reset),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) await _reset();
+  }
+
   /// Back to the trainer app's gear count, smoothing on, the stock curve.
   Future<void> _reset() async {
     final app = core.settings.getTrainerApp();
@@ -133,7 +154,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
           actions: [
             Button.ghost(
               key: const ValueKey('vs-reset'),
-              onPressed: _reset,
+              onPressed: _confirmReset,
               child: Text(
                 l10n.reset,
                 style: TextStyle(color: cs.primary, fontWeight: FontWeight.w600),

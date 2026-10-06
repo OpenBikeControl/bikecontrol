@@ -772,6 +772,8 @@
   "unlockAfterMinuteCheck": "Po upływie minuty potwierdź, naciskając przycisk",
   "unlockConfirmByButton": "Potwierdź odblokowanie, naciskając przycisk",
   "tuneGearsIntro": "Dostrój każdy wirtualny bieg pod swój styl jazdy. Zmiany działają od razu.",
+  "vsResetTitle": "Zresetować biegi?",
+  "vsResetBody": "Liczba biegów wraca do tej z aplikacji treningowej, wygładzanie nachylenia się włącza, a Twoje przełożenia dla poszczególnych biegów zostają zastąpione standardowymi. Własnych przełożeń nie da się przywrócić.",
   "virtualShiftingMode": "Tryb Virtual Shifting",
   "virtualShiftingModeDesc": "Jak liczony jest opór dla każdego biegu",
   "targetPowerMode": "Moc docelowa",

@@ -772,6 +772,8 @@
   "unlockAfterMinuteCheck": "Après une minute, revérifie en appuyant sur un bouton",
   "unlockConfirmByButton": "Confirme le déverrouillage en appuyant sur un bouton",
   "tuneGearsIntro": "Règle chaque vitesse virtuelle pour qu'elle colle à ta sensation. Les changements s'appliquent tout de suite.",
+  "vsResetTitle": "Réinitialiser tes vitesses ?",
+  "vsResetBody": "Le nombre de vitesses revient à celui de ton app d'entraînement, le lissage de la pente s'active et ton développement par vitesse revient aux valeurs par défaut. Tes propres valeurs ne pourront pas être récupérées.",
   "virtualShiftingMode": "Mode Virtual Shifting",
   "virtualShiftingModeDesc": "Comment la résistance est calculée pour chaque vitesse",
   "targetPowerMode": "Puissance cible",

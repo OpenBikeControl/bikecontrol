@@ -772,6 +772,8 @@
   "unlockAfterMinuteCheck": "Tras un minuto, vuelve a comprobarlo pulsando un botón",
   "unlockConfirmByButton": "Confirma el desbloqueo pulsando un botón",
   "tuneGearsIntro": "Ajusta cada marcha virtual a tu gusto. Los cambios se aplican al instante.",
+  "vsResetTitle": "¿Restablecer tus marchas?",
+  "vsResetBody": "El número de marchas vuelve al de tu app de entrenamiento, se activa el suavizado de pendiente y tu desarrollo por marcha vuelve al estándar. Tus valores propios no se pueden recuperar.",
   "virtualShiftingMode": "Modo de Virtual Shifting",
   "virtualShiftingModeDesc": "Cómo se calcula la resistencia por marcha",
   "targetPowerMode": "Potencia objetivo",

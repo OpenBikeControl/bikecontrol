@@ -1249,6 +1249,8 @@
   "unlockAfterMinuteCheck": "After a minute has passed, double check by pressing a button",
   "unlockConfirmByButton": "Confirm unlock by pressing a button",
   "tuneGearsIntro": "Tune each virtual gear to match your ride feel. Changes apply instantly.",
+  "vsResetTitle": "Reset your gears?",
+  "vsResetBody": "The gear count goes back to your trainer app's, grade smoothing turns on, and your per-gear ratios are replaced by the standard ones. Your own ratios can't be brought back.",
   "virtualShiftingMode": "Virtual Shifting Mode",
   "virtualShiftingModeDesc": "How resistance is computed per gear",
   "targetPowerMode": "Target Power",

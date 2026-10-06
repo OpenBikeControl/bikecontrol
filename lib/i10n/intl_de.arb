@@ -772,6 +772,8 @@
   "unlockAfterMinuteCheck": "Nach einer Minute drücke zur Bestätigung eine Taste",
   "unlockConfirmByButton": "Bestätige das Entsperren durch Drücken einer Taste",
   "tuneGearsIntro": "Stell jeden virtuellen Gang so ein, wie es sich für dich richtig anfühlt. Änderungen werden sofort übernommen.",
+  "vsResetTitle": "Gänge zurücksetzen?",
+  "vsResetBody": "Die Ganganzahl springt auf die deiner Trainer-App zurück, die Steigungsglättung wird eingeschaltet und deine Übersetzungen pro Gang werden durch die Standardwerte ersetzt. Deine eigenen Übersetzungen lassen sich nicht wiederherstellen.",
   "virtualShiftingMode": "Virtual-Shifting-Modus",
   "virtualShiftingModeDesc": "Wie der Widerstand pro Gang berechnet wird",
   "targetPowerMode": "Zielleistung",

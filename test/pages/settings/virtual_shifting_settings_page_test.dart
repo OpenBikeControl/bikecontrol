@@ -231,6 +231,34 @@ Future<void> main() async {
       expect(find.descendant(of: row, matching: find.byType(GhostButton)), findsNothing);
     });
 
+    // Reset wipes the rider's own gears; it asks first, and Cancel keeps them.
+    testWidgets('Reset asks first: Cancel keeps the gears, confirming resets them', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      definition.setMaxGear(24);
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      await tester.tap(find.byKey(const ValueKey('vs-reset')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(definition.maxGear, 24, reason: 'nothing changes before the rider confirms');
+      expect(find.byKey(const ValueKey('vs-reset-confirm')), findsOneWidget);
+
+      await tester.tap(find.text(l.cancel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const ValueKey('vs-reset-confirm')), findsNothing);
+      expect(definition.maxGear, 24);
+
+      await tester.tap(find.byKey(const ValueKey('vs-reset')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('vs-reset-confirm')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(definition.maxGear, MyWhoosh().virtualGearAmount);
+    });
+
     testWidgets('Per-gear ratios opens the steppers with the curve pinned above them', (tester) async {
       final (:proxy, :definition) = attachLiveTrainer();
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy), height: 844);
