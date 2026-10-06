@@ -175,6 +175,21 @@ Future<void> main() async {
       handle.dispose();
     });
 
+    // "SIM" and "ERG" mean nothing to a new rider: the card says in one line
+    // what the selected mode does, and the line follows the switch.
+    testWidgets('one line explains the selected mode, and follows the switch', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+      final card = find.byType(VirtualShiftingCard);
+      expect(find.descendant(of: card, matching: find.text(l.rideVsSimExplainer)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.rideVsErgExplainer)), findsNothing);
+
+      await tester.tap(find.bySemanticsLabel(l.ergMode));
+      await tester.pump();
+      expect(find.descendant(of: card, matching: find.text(l.rideVsErgExplainer)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.rideVsSimExplainer)), findsNothing);
+    });
+
     testWidgets('+ and − shift the trainer, like the old drivetrain buttons', (tester) async {
       final (:proxy, :definition) = liveTrainer();
       await pumpRide(tester);

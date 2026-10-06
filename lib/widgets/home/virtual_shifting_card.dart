@@ -151,7 +151,23 @@ class VirtualShiftingCard extends StatelessWidget {
                       _beside(context, erg, width),
                     if (dim && dimNotice != null) ...[
                       const Gap(12),
-                      _DimNotice(key: const ValueKey('ride-vs-dim-notice'), text: dimNotice!),
+                      _CardNote(
+                        key: const ValueKey('ride-vs-dim-notice'),
+                        icon: LucideIcons.info,
+                        text: dimNotice!,
+                      ),
+                    ],
+                    // What the selected mode does, in one line: "SIM" and
+                    // "ERG" say nothing to a rider who has not met them.
+                    // Shown while connecting too (the switch is drawn on
+                    // SIM), so the placeholder keeps the live card's height.
+                    ...[
+                      const Gap(10),
+                      _CardNote(
+                        key: const ValueKey('ride-vs-mode-explainer'),
+                        icon: erg ? LucideIcons.zap : LucideIcons.mountain,
+                        text: erg ? context.i18n.rideVsErgExplainer : context.i18n.rideVsSimExplainer,
+                      ),
                     ],
                     if (_footer(context) case final footer?) ...[
                       const Gap(14),
@@ -970,10 +986,12 @@ class RidePromptCard extends StatelessWidget {
   }
 }
 
-/// Under the gear of a dimmed card: why the gears change nothing right now.
-class _DimNotice extends StatelessWidget {
-  const _DimNotice({super.key, required this.text});
+/// One quiet line under the gear: what the selected mode does, or, on a
+/// dimmed card, why the gears change nothing right now.
+class _CardNote extends StatelessWidget {
+  const _CardNote({super.key, required this.icon, required this.text});
 
+  final IconData icon;
   final String text;
 
   @override
@@ -984,7 +1002,7 @@ class _DimNotice extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Icon(LucideIcons.info, size: 15, color: cs.mutedForeground),
+          child: Icon(icon, size: 15, color: cs.mutedForeground),
         ),
         const Gap(8),
         Expanded(

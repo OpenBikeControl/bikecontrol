@@ -42,12 +42,14 @@ Future<void> main() async {
 
 /// Measured on the layout before the touch-up; the numeral and everything
 /// under it since moved down once, on purpose, for room under the brand band
-/// (ride_vs_band_gap_test.dart).
+/// (ride_vs_band_gap_test.dart). The card has since grown by one line, on
+/// purpose too: what the selected SIM / ERG mode does, under the readings —
+/// everything above that line stays put.
 const _before = (
   cardTop: 629.0,
-  cardHeight: 476.0,
+  cardHeight: 517.0,
   numberTop: 749.0,
   ergCenterY: 677.0,
-  buttonsTop: 1125.0,
+  buttonsTop: 1166.0,
   titleCenterY: 32.0,
 );
