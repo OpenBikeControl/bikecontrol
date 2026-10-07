@@ -116,11 +116,17 @@ void main() {
 
     double backLeft(WidgetTester tester) => tester.getRect(find.byKey(const ValueKey('page-header-back'))).left;
 
-    testWidgets('back arrow and title sit on the page column\'s edge', (tester) async {
+    testWidgets('back arrow at the window\'s left edge; title on the page column\'s edge', (tester) async {
       await pumpWide(tester, const BkPageHeader(title: 'Gear Settings', actions: [Text('Reset')]));
       final column = tester.getRect(find.byKey(BkPageColumn.columnKey));
       expect(column.center.dx, moreOrLessEquals(640, epsilon: 1));
-      expect(backLeft(tester), moreOrLessEquals(column.left - 4, epsilon: 1));
+      expect(backLeft(tester), lessThan(20), reason: 'back is where it is on every desktop app: top left');
+      expect(tester.getRect(find.text('Gear Settings')).left, moreOrLessEquals(column.left, epsilon: 16));
+      // Back and title share a row.
+      expect(
+        tester.getRect(find.byKey(const ValueKey('page-header-back'))).center.dy,
+        moreOrLessEquals(tester.getRect(find.text('Gear Settings')).center.dy, epsilon: 2),
+      );
       // The actions end at the column's other edge, not the window's.
       expect(tester.getRect(find.text('Reset')).right, lessThanOrEqualTo(column.right + 16));
       // The divider still spans the window.

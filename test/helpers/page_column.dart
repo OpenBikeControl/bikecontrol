@@ -1,5 +1,6 @@
 // A pushed page in a wide window: its content column centred in the window,
-// the header's back arrow and title inset to the same column.
+// the header's title inset to the same column, its back arrow at the window's
+// left edge.
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +19,5 @@ void expectCentredPageColumn(
   expect(rect.center.dx, moreOrLessEquals(window.width / 2, epsilon: 1), reason: 'centred in the window');
   if (!hasHeader) return;
   final back = tester.getRect(find.byKey(const ValueKey('page-header-back')));
-  expect(back.left, greaterThanOrEqualTo(rect.left - 16), reason: 'back arrow sits at the column edge');
-  expect(back.left, lessThanOrEqualTo(rect.left + 16), reason: 'back arrow sits at the column edge');
+  expect(back.left, lessThan(20), reason: 'back arrow sits at the window\'s left edge');
 }
