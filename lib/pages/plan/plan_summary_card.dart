@@ -5,6 +5,7 @@ import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
 import 'package:bike_control/pages/paywall.dart' show paywallProOnlyFeatures, paywallShiftAppName;
 import 'package:bike_control/pages/shell/app_shell.dart' show PlanTier, currentPlanTier, planName;
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/widgets/home/ampel.dart' show AmpelStyle;
@@ -30,6 +31,7 @@ class PlanSummaryCard extends StatelessWidget {
     required this.onRegister,
     required this.registering,
     required this.onQuestions,
+    this.onBoughtBefore,
   });
 
   /// Where the subscription is managed from here; null hides the compact
@@ -40,6 +42,11 @@ class PlanSummaryCard extends StatelessWidget {
   final VoidCallback onRegister;
   final bool registering;
   final VoidCallback onQuestions;
+
+  /// Opens support for a rider who bought BikeControl on Google Play when it
+  /// was a paid download, and whose restore finds nothing. Offered on the
+  /// trial, on Android only (the paid download was Android's).
+  final VoidCallback? onBoughtBefore;
 
   static String? periodLabel(AppLocalizations l10n, SubscriptionPeriod? period) => switch (period) {
     SubscriptionPeriod.monthly => l10n.paywall_monthly,
@@ -232,8 +239,42 @@ class PlanSummaryCard extends StatelessWidget {
           child: Text(l10n.buyFullVersion),
         ),
       ],
+      if (onBoughtBefore != null && HostPlatform.isAndroid) ...[const Gap(14), _boughtBefore(context)],
       _questions(context),
     ];
+  }
+
+  Widget _boughtBefore(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('plan-bought-before'),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.planBoughtBefore, style: context.typography.small),
+          BkTouchTarget(
+            child: Button.ghost(
+              style: const ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(vertical: 8)),
+              onPressed: onBoughtBefore,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 6,
+                children: [
+                  Icon(LucideIcons.messageCircle, size: 16, color: bkAccentText(context)),
+                  Text(
+                    l10n.planBoughtBeforeAction,
+                    style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _goPro(BuildContext context) => BkPillButton(

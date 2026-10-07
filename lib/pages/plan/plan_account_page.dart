@@ -1,6 +1,10 @@
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/utils/support/intake_options.dart';
+import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/subscription_term.dart';
@@ -380,6 +384,17 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
       onRegister: _register,
       registering: _registering,
       onQuestions: () => context.push(const PlanFaqPage()),
+      onBoughtBefore: () => context.push(
+        SupportChatPage(
+          initialText: AppLocalizations.of(context).supportPrefillBoughtBefore,
+          initialIntake: const IntakeAnswers(
+            category: IntakeCategory.account,
+            subcategory: 'issue',
+            subcategoryValue: 'purchase_not_restored',
+          ),
+          telemetryBuilder: () async => TelemetrySnapshot.general(freetext: await debugText()),
+        ),
+      ),
     );
     final account = AccountSection(
       key: const ValueKey('plan-account'),
