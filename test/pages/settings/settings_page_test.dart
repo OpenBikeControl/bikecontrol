@@ -1,6 +1,7 @@
 // The Settings tab: the plan card on top (with today's virtual shifting trial
 // while Pro is off on this device), Riding with, During the ride, Help &
 // support and App — each row only where it applies.
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/settings/settings_page.dart';
@@ -12,6 +13,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:universal_ble/universal_ble.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../widget_snapshot.dart';
@@ -55,8 +57,10 @@ Future<void> main() async {
   });
 
   group('plan card', () {
-    testWidgets('without Pro: Go Pro and what is left of today\'s virtual shifting', (tester) async {
+    testWidgets('on the trial: Go Pro and what is left of today\'s virtual shifting', (tester) async {
       IAPManager.instance.setProForTesting(enabled: false);
+      IAPManager.instance.isPurchased.value = false;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
       // Store renders leave the daily limit out; this is the real app.
       screenshotMode = false;
       addTearDown(() => screenshotMode = true);
@@ -68,6 +72,37 @@ Future<void> main() async {
       expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsOneWidget);
       final minutes = core.bridgeUsageTracker.remainingToday.inMinutes;
       expect(find.descendant(of: plan, matching: find.text(l.bridgeMinutesRemainingToday(minutes))), findsOneWidget);
+    });
+
+    testWidgets('Base without a smart trainer: no trial meter, it only counts while a trainer runs', (tester) async {
+      IAPManager.instance.setProForTesting(enabled: false);
+      IAPManager.instance.isPurchased.value = true;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
+      await _pumpSettings(tester);
+
+      final plan = find.byKey(const ValueKey('settings-plan'));
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsNothing);
+    });
+
+    testWidgets('Base with a smart trainer: the meter appears, and goes when the trainer disconnects', (tester) async {
+      IAPManager.instance.setProForTesting(enabled: false);
+      IAPManager.instance.isPurchased.value = true;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
+      screenshotMode = false;
+      addTearDown(() => screenshotMode = true);
+      final trainer = ProxyDevice(BleDevice(deviceId: 'settings-meter-kickr', name: 'Wahoo KICKR'))..isConnected = true;
+      core.connection.devices.add(trainer);
+      await _pumpSettings(tester);
+
+      final plan = find.byKey(const ValueKey('settings-plan'));
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsOneWidget);
+
+      trainer.isConnected = false;
+      core.connection.signalChange(trainer);
+      await tester.pump();
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsNothing);
     });
 
     testWidgets('with Pro on this device: no meter and no Go Pro', (tester) async {

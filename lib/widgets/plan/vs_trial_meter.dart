@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
@@ -11,11 +12,39 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Whether the plan cards (Settings, the sidebar) show today's virtual
 /// shifting trial. Virtual shifting is Pro per device; everyone else gets the
-/// daily trial of it. Store renders stage a finished setup, not a limit.
+/// daily trial of it. Base riders only see it while a smart trainer is
+/// connected: without one their buttons shift in the trainer app and the
+/// trial minutes are beside the point. Store renders stage a finished setup,
+/// not a limit.
 bool vsTrialMeterShown() =>
     !IAPManager.instance.isProEnabledForCurrentDevice &&
     core.bridgeUsageTracker.dailyLimit > Duration.zero &&
-    !screenshotMode;
+    !screenshotMode &&
+    (!IAPManager.instance.isPurchased.value || core.connection.proxyDevices.any((d) => d.isConnected));
+
+/// [VsTrialMeter] behind a [gap], or nothing when [vsTrialMeterShown] says so.
+/// Rebuilds as trainers connect and disconnect.
+class VsTrialMeterSlot extends StatelessWidget {
+  const VsTrialMeterSlot({super.key, required this.gap, this.compact = false});
+
+  final double gap;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<BaseDevice>(
+      stream: core.connection.connectionStream,
+      builder: (context, _) {
+        if (!vsTrialMeterShown()) return const SizedBox.shrink();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [Gap(gap), VsTrialMeter(compact: compact)],
+        );
+      },
+    );
+  }
+}
 
 /// "Virtual shifting today · 14 min remaining today" over a bar, following
 /// the day's usage. [compact] (the sidebar) drops the title and thins the

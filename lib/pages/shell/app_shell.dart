@@ -649,10 +649,7 @@ class SidebarPlanCard extends StatelessWidget {
                           style: context.typography.caption.copyWith(color: cs.mutedForeground),
                         ),
                       // Today's virtual shifting trial, as on Settings' plan card.
-                      if (vsTrialMeterShown()) ...[
-                        const Gap(6),
-                        const VsTrialMeter(compact: true),
-                      ],
+                      const VsTrialMeterSlot(gap: 6, compact: true),
                     ],
                   );
                 },

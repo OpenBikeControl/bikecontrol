@@ -195,8 +195,10 @@ Future<void> main() async {
       screenshotMode = true;
     });
 
-    testWidgets('without Pro: what is left of today\'s virtual shifting, as in Settings', (tester) async {
+    testWidgets('on the trial: what is left of today\'s virtual shifting, as in Settings', (tester) async {
       IAPManager.instance.setProForTesting(enabled: false);
+      IAPManager.instance.isPurchased.value = false;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
       screenshotMode = false;
       await pumpShell(tester, const Size(1000, 760));
       final card = find.byKey(const ValueKey('plan-card'));

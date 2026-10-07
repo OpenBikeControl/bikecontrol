@@ -68,6 +68,9 @@ Future<void> main() async {
 
       testWidgets('desktop: the sidebar wordmark carries the mark; its plan card wears the band', (tester) async {
         screenshotMode = false;
+        // On the trial the card also carries today's virtual shifting meter.
+        IAPManager.instance.isPurchased.value = false;
+        addTearDown(() => IAPManager.instance.isPurchased.value = true);
         await pumpShell(tester, const Size(1280, 800), brightness: brightness);
         final sidebar = find.byType(ShellSidebar);
         expect(find.descendant(of: sidebar, matching: find.byType(BkBrandMark)), findsOneWidget);

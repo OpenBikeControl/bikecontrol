@@ -400,7 +400,6 @@ class SettingsPlanCard extends StatelessWidget {
           final tier = currentPlanTier();
           final name = planName(context, tier);
           final status = iap.getStatusMessage();
-          final showMeter = vsTrialMeterShown();
           return BkTappable(
             key: const ValueKey('settings-plan'),
             onPressed: () => openPlanAccount(context),
@@ -464,10 +463,7 @@ class SettingsPlanCard extends StatelessWidget {
                             ],
                           ],
                         ),
-                        if (showMeter) ...[
-                          const Gap(12),
-                          const VsTrialMeter(),
-                        ],
+                        const VsTrialMeterSlot(gap: 12),
                       ],
                     );
                   },

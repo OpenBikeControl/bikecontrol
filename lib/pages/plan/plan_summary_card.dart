@@ -162,7 +162,7 @@ class PlanSummaryCard extends StatelessWidget {
       _Check(l10n.planBaseUnlimitedCommands),
       const Gap(6),
       _Check(_shiftLine(l10n)),
-      if (vsTrialMeterShown()) ...[const Gap(14), const VsTrialMeter()],
+      const VsTrialMeterSlot(gap: 14),
       const Gap(16),
       _goPro(context),
       _questions(context),
@@ -186,7 +186,7 @@ class PlanSummaryCard extends StatelessWidget {
         const Gap(6),
         Text(status, style: context.typography.small.copyWith(color: cs.mutedForeground)),
       ],
-      if (vsTrialMeterShown()) ...[const Gap(14), const VsTrialMeter()],
+      const VsTrialMeterSlot(gap: 14),
       const Gap(16),
       _goPro(context),
       if (!iap.isOutsideStoreWindowsBuild) ...[
