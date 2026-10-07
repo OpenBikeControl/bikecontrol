@@ -21,6 +21,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/your_setup_section.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -85,6 +86,7 @@ Future<void> _pump(
   VoidCallback? onSearchAgain,
   void Function(String? controllerId)? onContactSupport,
   bool? commandLimited,
+  Set<String> excludedArticleUrls = const {},
 }) {
   return tester.pumpWidget(
     ShadcnApp(
@@ -98,6 +100,7 @@ Future<void> _pump(
           onSearchAgain: onSearchAgain,
           onContactSupport: onContactSupport,
           commandLimitedOverride: commandLimited,
+          excludedArticleUrls: excludedArticleUrls,
         ),
       ),
     ),
@@ -477,6 +480,32 @@ Future<void> main() async {
       expect(find.text(l10n.helpCheckDailyLimitTitle), findsNothing);
       expect(find.text(l10n.helpCheckControllerAwakeTitle), findsOneWidget);
       expect(find.text(l10n.helpCheckConnectionMethodTitle), findsOneWidget);
+    });
+  });
+
+  group('how-to article rows', () {
+    const clickV2ArticleUrl = 'https://bikecontrol.app/use-zwift-click-v2-with-mywhoosh/';
+
+    testWidgets('a known controller gets its how-to article row', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      final unified = ZwiftClickV2(BleDevice(deviceId: 'l1', name: 'Zwift Click'));
+
+      await _pump(tester, devices: [unified], connections: const []);
+      await tester.pump();
+
+      expect(find.byIcon(LucideIcons.bookOpen), findsOneWidget);
+    });
+
+    testWidgets('an article already listed elsewhere on the page is left out', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      final unified = ZwiftClickV2(BleDevice(deviceId: 'l1', name: 'Zwift Click'));
+
+      await _pump(tester, devices: [unified], connections: const [], excludedArticleUrls: {clickV2ArticleUrl});
+      await tester.pump();
+
+      expect(find.byIcon(LucideIcons.bookOpen), findsNothing);
+      // The rest of the card is untouched.
+      expect(find.byKey(_controllerDisconnectingRowKey), findsOneWidget);
     });
   });
 

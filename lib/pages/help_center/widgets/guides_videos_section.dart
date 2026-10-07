@@ -15,17 +15,24 @@ import 'package:bike_control/utils/help_article.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+/// The how-to article this section lists: the first connected controller's
+/// guide for the active trainer app, or null. Exposed so the page can keep
+/// the personalized "Your setup" card from repeating it.
+HelpArticle? guidesSectionArticle(BuildContext context) {
+  final controllers = core.connection.controllerDevices;
+  return helpArticleFor(
+    context,
+    controller: controllers.isEmpty ? null : controllers.first,
+    app: core.settings.getTrainerApp(),
+  );
+}
+
 class GuidesVideosSection extends StatelessWidget {
   const GuidesVideosSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controllers = core.connection.controllerDevices;
-    final article = helpArticleFor(
-      context,
-      controller: controllers.isEmpty ? null : controllers.first,
-      app: core.settings.getTrainerApp(),
-    );
+    final article = guidesSectionArticle(context);
 
     // Matches the mockup's row padding (`padding:11px 14px`) now that the
     // card itself carries no padding — rows run edge-to-edge and supply

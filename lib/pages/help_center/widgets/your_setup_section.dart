@@ -1,6 +1,7 @@
 // "Your setup" personalized section (Task 9) — rows built from the rider's
 // actual configured controllers instead of static links: one help-article
-// row per distinct controller (deduped by article URL), a network
+// row per distinct controller (deduped by article URL, and skipping any
+// article the "Guides & videos" card already lists), a network
 // troubleshooting row while a network trainer connection is active, a Zwift
 // Click V2 setup-options row while a Click V2 side is known (live or
 // remembered), and a muted nudge toward the setup wizard when nothing is
@@ -66,6 +67,11 @@ class YourSetupSection extends StatelessWidget {
   /// no Pro). Production asks [IAPManager].
   final bool? commandLimitedOverride;
 
+  /// How-to article URLs already listed elsewhere on the Help Center page
+  /// (the "Guides & videos" card). Those stay in the general list and are
+  /// left out here, so the same link never shows twice on one page.
+  final Set<String> excludedArticleUrls;
+
   const YourSetupSection({
     super.key,
     this.devicesOverride,
@@ -73,6 +79,7 @@ class YourSetupSection extends StatelessWidget {
     this.onSearchAgain,
     this.onContactSupport,
     this.commandLimitedOverride,
+    this.excludedArticleUrls = const {},
   });
 
   @override
@@ -88,7 +95,7 @@ class YourSetupSection extends StatelessWidget {
     final articles = <String, HelpArticle>{};
     for (final controller in articleDevices) {
       final article = helpArticleFor(context, controller: controller, app: app);
-      if (article != null) articles[article.url] = article;
+      if (article != null && !excludedArticleUrls.contains(article.url)) articles[article.url] = article;
     }
 
     final hasNetworkConnection = connections.any(

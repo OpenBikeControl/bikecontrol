@@ -88,6 +88,9 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
     // used to be. KnownIssuesSection folds this same top-12 gap into its own
     // conditional build, so the two approaches agree on spacing either way.
     const sectionGap = EdgeInsets.only(top: 12);
+    // The how-to article "Guides & videos" lists; "Your setup" skips it so
+    // the same link isn't shown twice on the page.
+    final guidesArticle = guidesSectionArticle(context);
     final sections = <Widget>[
       HelpCenterSectionCard(
         index: 0,
@@ -111,7 +114,9 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
             title: l10n.helpCenterYourSetup,
             microLabel: l10n.helpCenterYourSetupMicroLabel,
             focused: _yourSetupExpanded,
-            child: const YourSetupSection(),
+            child: YourSetupSection(
+              excludedArticleUrls: {if (guidesArticle != null) guidesArticle.url},
+            ),
           ),
         ),
       ),

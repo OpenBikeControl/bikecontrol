@@ -5,16 +5,20 @@
 // `focus: HelpCenterFocus.yourSetup` constructor scrolls the your-setup
 // placeholder into view, and the help button pushes this page instead of
 // opening the old dropdown.
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/help_center/help_center_page.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) {
   return tester.pumpWidget(
@@ -63,6 +67,30 @@ Future<void> main() async {
     expect(find.text(l10n.helpCenterYourSetup), findsOneWidget);
     expect(find.text(l10n.helpCenterPricingFaq), findsOneWidget);
     expect(find.text(l10n.helpCenterContact), findsOneWidget);
+  });
+
+  testWidgets('a how-to article already under Guides & videos is not repeated under Your setup', (tester) async {
+    // Jonas: "Zwift Play mit MyWhoosh verwenden" showed twice on the page —
+    // once in Guides & videos, once again in the personalized Your setup
+    // card. The general list keeps it; Your setup drops it.
+    final play = ZwiftPlay(
+      BleDevice(name: 'Zwift Play', deviceId: 'help-dedupe-play'),
+      deviceType: ZwiftDeviceType.playLeft,
+    );
+    core.connection.devices.add(play);
+    addTearDown(() => core.connection.devices.remove(play));
+    core.settings.setTrainerApp(MyWhoosh());
+
+    await _pump(tester, const HelpCenterPage());
+    await tester.pump();
+
+    final articleLabel = find.text(l10n.useControllerWithApp('Zwift Play', 'MyWhoosh'));
+    expect(articleLabel, findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('help-your-setup')), matching: articleLabel),
+      findsNothing,
+      reason: 'the one remaining copy lives in Guides & videos, not Your setup',
+    );
   });
 
   testWidgets('Known Issues renders nothing — not even its header — when the fetch fails', (tester) async {
