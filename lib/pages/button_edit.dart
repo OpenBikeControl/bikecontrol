@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -1190,7 +1191,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => SafeArea(
-        child: AlertDialog(
+        child: BkInputDialog(
           title: Text(context.i18n.launchShortcut),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1322,7 +1323,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => SafeArea(
-        child: AlertDialog(
+        child: BkInputDialog(
           title: Text(context.i18n.broadcastIntent),
           content: Column(
             mainAxisSize: MainAxisSize.min,

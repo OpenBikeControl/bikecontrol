@@ -2,6 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class ShiftingConfigPicker extends StatefulWidget {
@@ -42,7 +43,7 @@ class _ShiftingConfigPickerState extends State<ShiftingConfigPicker> {
     final controller = TextEditingController(text: initial);
     final name = await showDialog<String>(
       context: context,
-      builder: (c) => AlertDialog(
+      builder: (c) => BkInputDialog(
         title: Text(title),
         content: TextField(
           controller: controller,
