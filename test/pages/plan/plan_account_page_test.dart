@@ -239,6 +239,21 @@ Future<void> main() async {
       );
     });
 
+    testWidgets('on the trial: what Base includes and what Pro adds, above both buttons', (tester) async {
+      IAPManager.instance.isPurchased.value = false;
+      await pumpPage(tester);
+
+      final base = find.byKey(const ValueKey('plan-base-includes'));
+      final adds = find.byKey(const ValueKey('plan-pro-adds'));
+      expect(inKey('plan-summary', base), findsOneWidget);
+      expect(find.descendant(of: base, matching: find.text(l.planBaseUnlimitedCommands)), findsOneWidget);
+      expect(inKey('plan-summary', adds), findsOneWidget);
+      expect(find.descendant(of: adds, matching: find.text(l.paywall_vsByBikeControl)), findsOneWidget);
+      final goPro = tester.getTopLeft(inKey('plan-summary', find.text(l.goPro))).dy;
+      expect(tester.getTopLeft(base).dy, lessThan(tester.getTopLeft(adds).dy));
+      expect(tester.getTopLeft(adds).dy, lessThan(goPro));
+    });
+
     testWidgets('names the picked trainer app on the shifting line, like the paywall', (tester) async {
       final wasScreenshotMode = screenshotMode;
       addTearDown(() {

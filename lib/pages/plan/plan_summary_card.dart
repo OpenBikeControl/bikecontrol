@@ -171,7 +171,8 @@ class PlanSummaryCard extends StatelessWidget {
     ];
   }
 
-  /// Why Go Pro: what Pro adds on top of Base, in the paywall's words.
+  /// Why Go Pro: what Pro adds on top of Base, in the paywall's words. The
+  /// trial card lists Base's lines above it, so both buttons have a reason.
   Widget _proAdds(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Column(
@@ -209,6 +210,19 @@ class PlanSummaryCard extends StatelessWidget {
         Text(status, style: context.typography.small.copyWith(color: cs.mutedForeground)),
       ],
       const VsTrialMeterSlot(gap: 14),
+      const Gap(16),
+      Column(
+        key: const ValueKey('plan-base-includes'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 6,
+        children: [
+          Text(l10n.planBaseIncludes, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+          _Check(l10n.planBaseUnlimitedCommands),
+          _Check(_shiftLine(l10n)),
+        ],
+      ),
+      const Gap(16),
+      _proAdds(context),
       const Gap(16),
       _goPro(context),
       if (!iap.isOutsideStoreWindowsBuild) ...[
