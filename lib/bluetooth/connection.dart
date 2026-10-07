@@ -757,6 +757,31 @@ class Connection {
   /// test seam.
   Duration autoConnectBackoffCooldown = const Duration(seconds: 90);
 
+  /// Delay before the first automatic retry of a connect attempt that failed
+  /// without the platform ever reporting a disconnect (a macOS/iOS connect
+  /// timeout). Doubles per consecutive failure, capped at
+  /// [connectRetryMaxDelay]. Mutable as a test seam.
+  Duration connectRetryBaseDelay = const Duration(seconds: 5);
+
+  /// Upper bound for the growing [connectRetryBaseDelay].
+  static const connectRetryMaxDelay = Duration(seconds: 60);
+
+  /// Pending automatic connect retries, keyed by BLE device id. At most one
+  /// per device; cancelled by any [disconnect] of it (forget, in-place
+  /// "No connection", a drop the listener already cleaned up), by an explicit
+  /// [connectDevice] and by [disconnectAll].
+  final _connectRetryTimers = <String, Timer>{};
+
+  /// Consecutive failed connects per BLE device id that were followed by a
+  /// scheduled retry — drives the growing delay; reset by a successful connect.
+  final _connectRetryCounts = <String, int>{};
+
+  /// BLE device ids [disconnect]ed since their current connect attempt
+  /// started — the rider (or the drop listener) already decided about the
+  /// device while it was still connecting, so that attempt's failure must not
+  /// schedule a retry. Cleared when the queue starts the next attempt.
+  final _disconnectedDuringConnect = <String>{};
+
   /// Pending cooldown timers from [_recordConnectFailure], keyed by BLE device
   /// id. Backoff shares [_suppressedAutoReconnect] with the battery saver, so a
   /// stale timer left running past a Retry/reconnect could lift a later —
@@ -1405,13 +1430,17 @@ class Connection {
     if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
+      if (device is BluetoothDevice) _disconnectedDuringConnect.remove(device.device.deviceId);
 
       final willConnect = device.shouldAutoConnect;
       // Reconnections after an automatic reset happen every minute — keep
       // them silent. Captured here because the flag clears during handshake.
       // A device that already gave up (backoff) only gets quiet cooldown
       // rounds from here on — the guidance alert already said its piece.
-      final notify = willConnect && !device.isResetting && !_isInBackoff(device);
+      // Automatic retries after a failed connect stay quiet too — the first
+      // failure already told the rider; the card shows the state.
+      final isRetry = device is BluetoothDevice && _connectRetryCounts.containsKey(device.device.deviceId);
+      final notify = willConnect && !device.isResetting && !_isInBackoff(device) && !isRetry;
       if (notify) {
         _actionStreams.add(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connectingToDevice(device.toString())),
@@ -1436,6 +1465,7 @@ class Connection {
           .catchError((e) {
             device.isConnected = false;
             _handlingConnectionQueue = false;
+            _scheduleConnectRetry(device);
             if (device is BluetoothDevice && device.keepsReconnectingWhileDropping) {
               // Keepalive probe: the reconnect churn is expected and is NOT
               // rear-derailleur contention, so the "claimed by the derailleur"
@@ -1444,6 +1474,8 @@ class Connection {
             } else if (_recordConnectFailure(device)) {
               // Backoff engaged — _recordConnectFailure emitted the guidance alert
               // (or the silent per-round log) in place of the generic toast.
+            } else if (isRetry) {
+              _actionStreams.add(LogNotification('${device.toString()}: connect attempt failed ($e)'));
             } else if (e is TimeoutException) {
               _actionStreams.add(
                 AlertNotification(
@@ -1464,6 +1496,55 @@ class Connection {
             }
           });
     }
+  }
+
+  /// Schedules another connect attempt for [device] after a failed one.
+  ///
+  /// A connect that fails with a disconnected event (Android GATT 133/147)
+  /// is retried by the connectionStream listener: it drops the device and
+  /// clears the scan dedupe so the next advertisement re-adds it. A connect
+  /// that simply times out (macOS/iOS: `UniversalBle.connect` throws
+  /// TimeoutException, no event ever follows) gets neither — the device would
+  /// sit in [devices] unconnected, filtered out of every later [addDevices],
+  /// and never be tried again. This timer is that path's retry; the
+  /// listener's [disconnect] cancels it when the event does arrive.
+  ///
+  /// Trainers ([ProxyDevice]) are left out: their connect is gated on the
+  /// rider's choice and coordinated with a twin entry, so an unprompted retry
+  /// could start a second upstream next to the twin's.
+  void _scheduleConnectRetry(BaseDevice device) {
+    if (device is! BluetoothDevice || device is ProxyDevice || !device.shouldAutoConnect) return;
+    final id = device.device.deviceId;
+    if (_disconnectedDuringConnect.contains(id)) return;
+    final attempt = (_connectRetryCounts[id] ?? 0) + 1;
+    _connectRetryCounts[id] = attempt;
+    final delay = connectRetryBaseDelay * (1 << (attempt - 1).clamp(0, 10));
+    _connectRetryTimers.remove(id)?.cancel();
+    _connectRetryTimers[id] = Timer(delay > connectRetryMaxDelay ? connectRetryMaxDelay : delay, () {
+      _connectRetryTimers.remove(id);
+      // Only this exact instance, still listed and idle: a removed/forgotten
+      // device is gone from [devices]; a rediscovered fresh instance (equal
+      // by id, not identical) is already handled by its own queue entry.
+      final stillWanted =
+          devices.any((d) => identical(d, device)) &&
+          !device.isConnected &&
+          !_connectionQueue.contains(device) &&
+          !_suppressedAutoReconnect.contains(id) &&
+          !core.settings.getIgnoredDevices().any((d) => d.id == id);
+      if (!stillWanted) return;
+      _actionStreams.add(LogNotification('${device.toString()}: retrying connect (attempt ${attempt + 1})'));
+      _connectionQueue.add(device);
+      _handleConnectionQueue();
+    });
+  }
+
+  /// Drops [device]'s pending retry and its failure streak.
+  void _cancelConnectRetry(BaseDevice device, {bool blockInFlight = false}) {
+    if (device is! BluetoothDevice) return;
+    final id = device.device.deviceId;
+    if (blockInFlight) _disconnectedDuringConnect.add(id);
+    _connectRetryTimers.remove(id)?.cancel();
+    _connectRetryCounts.remove(id);
   }
 
   /// Records a failed auto-connect attempt. Returns true when the device has
@@ -1558,6 +1639,9 @@ class Connection {
     // An explicit reconnect (e.g. the device picker) clears any battery-saver
     // suppression so the controller auto-reconnects normally again afterwards.
     if (device is BluetoothDevice) _suppressedAutoReconnect.remove(device.device.deviceId);
+    // The rider is connecting it right now — a pending automatic retry would
+    // race this attempt.
+    _cancelConnectRetry(device);
     // A twin that would not let go is refused here, by the manual path itself
     // — not left to the auto-connect gate inside ProxyDevice.connect(), which
     // would decline silently and leave the rider staring at a picker that
@@ -1714,6 +1798,7 @@ class Connection {
       await device.connect();
       if (device is BluetoothDevice) {
         _consecutiveConnectFailures.remove(device.device.deviceId);
+        _cancelConnectRetry(device);
       }
       // Deliberately gated on isConnected, not on connect() returning:
       // ProxyDevice.connect() is a no-op unless the rider has actually asked
@@ -1776,6 +1861,9 @@ class Connection {
     bool dropped = false,
   }) async {
     if (keepInList) _inPlaceDisconnects.add(device);
+    // Removed, forgotten, put on "No connection" or dropped (whose listener
+    // path owns the retry via rediscovery): no automatic connect retry.
+    _cancelConnectRetry(device, blockInFlight: true);
     final tearingDown = _disconnecting.contains(device);
     if (!tearingDown) _disconnecting.add(device);
     try {
@@ -1879,6 +1967,12 @@ class Connection {
       timer.cancel();
     }
     _backoffCooldownTimers.clear();
+    for (final timer in _connectRetryTimers.values) {
+      timer.cancel();
+    }
+    _connectRetryTimers.clear();
+    _connectRetryCounts.clear();
+    _disconnectedDuringConnect.clear();
     hasDevices.value = false;
     _inactivityDisconnector?.onDeviceConnectionChanged();
   }
