@@ -27,6 +27,7 @@ import 'package:bike_control/widgets/rides/ride_zone_settings.dart';
 import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_switch_row.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
@@ -315,20 +316,24 @@ class _DuringRideSectionState extends State<DuringRideSection> {
           ),
         ),
       // What the ride details' zones are measured against; optional, and
-      // typed right into the row.
-      BkGroupedRow(
-        key: const ValueKey('settings-ftp'),
+      // typed right into the row where there is room for it.
+      _ZoneValueRow(
+        rowKey: const ValueKey('settings-ftp'),
         icon: LucideIcons.zap,
         title: l10n.ridesFtpTitle,
-        subtitle: l10n.ridesFtpBody,
-        trailing: const RideFtpField(),
+        body: l10n.ridesFtpBody,
+        unit: 'W',
+        value: () => core.rides.prefs.ftpWatts,
+        field: ({autofocus = false, onDone}) => RideFtpField(autofocus: autofocus, onDone: onDone),
       ),
-      BkGroupedRow(
-        key: const ValueKey('settings-max-heart-rate'),
+      _ZoneValueRow(
+        rowKey: const ValueKey('settings-max-heart-rate'),
         icon: LucideIcons.heartPulse,
         title: l10n.ridesMaxHeartRateTitle,
-        subtitle: l10n.ridesMaxHeartRateBody,
-        trailing: const RideMaxHeartRateField(),
+        body: l10n.ridesMaxHeartRateBody,
+        unit: 'bpm',
+        value: () => core.rides.prefs.maxHeartRateBpm,
+        field: ({autofocus = false, onDone}) => RideMaxHeartRateField(autofocus: autofocus, onDone: onDone),
       ),
       // The overlay draws the gear of a shifting trainer; without one there
       // is nothing for it to show.
@@ -468,6 +473,89 @@ class SettingsPlanCard extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// FTP or max heart rate in Settings. With room (a wide column) the value is
+/// typed right into the row, its explanation under the title. In a narrow
+/// column that crowds the row into a tall strip, so the row shows the value
+/// and opens a small dialog with the explanation and the field.
+class _ZoneValueRow extends StatelessWidget {
+  const _ZoneValueRow({
+    required this.rowKey,
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.unit,
+    required this.value,
+    required this.field,
+  });
+
+  /// Below this row width the field moves into a dialog.
+  static const double inlineMinWidth = 520;
+
+  final Key rowKey;
+  final IconData icon;
+  final String title;
+  final String body;
+  final String unit;
+  final int? Function() value;
+  final Widget Function({bool autofocus, VoidCallback? onDone}) field;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= inlineMinWidth) {
+          return BkGroupedRow(key: rowKey, icon: icon, title: title, subtitle: body, trailing: field());
+        }
+        return ListenableBuilder(
+          listenable: core.rides.prefs,
+          builder: (context, _) {
+            final current = value();
+            return BkGroupedRow(
+              key: rowKey,
+              icon: icon,
+              title: title,
+              trailing: Text(current == null ? '–' : '$current $unit'),
+              chevron: true,
+              onPressed: () => _openDialog(context),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        // Saving, Escape and Done all end here; the field also commits as the
+        // dialog takes its focus away, so close only once.
+        var closed = false;
+        void close() {
+          if (closed) return;
+          closed = true;
+          Navigator.of(dialogContext).pop();
+        }
+
+        return BkInputDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(body).small.muted,
+              const Gap(16),
+              field(autofocus: true, onDone: close),
+            ],
+          ),
+          actions: [Button.ghost(onPressed: close, child: Text(l10n.done))],
+        );
+      },
     );
   }
 }
