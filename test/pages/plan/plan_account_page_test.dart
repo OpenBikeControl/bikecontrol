@@ -223,6 +223,22 @@ Future<void> main() async {
       }
     });
 
+    testWidgets('Go Pro says why: what Pro adds on top of Base, above the button', (tester) async {
+      await pumpPage(tester);
+
+      final adds = find.byKey(const ValueKey('plan-pro-adds'));
+      expect(inKey('plan-summary', adds), findsOneWidget);
+      // BikeControl's own virtual shifting, the line Base buyers miss most.
+      expect(find.descendant(of: adds, matching: find.text(l.paywall_vsByBikeControl)), findsOneWidget);
+      expect(find.descendant(of: adds, matching: find.text(l.paywall_configure3ActionsPerButton)), findsOneWidget);
+      // Nothing Base already has.
+      expect(find.descendant(of: adds, matching: find.text(l.planBaseUnlimitedCommands)), findsNothing);
+      expect(
+        tester.getTopLeft(adds).dy,
+        lessThan(tester.getTopLeft(inKey('plan-summary', find.text(l.goPro))).dy),
+      );
+    });
+
     testWidgets('names the picked trainer app on the shifting line, like the paywall', (tester) async {
       final wasScreenshotMode = screenshotMode;
       addTearDown(() {

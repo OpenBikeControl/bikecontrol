@@ -107,6 +107,35 @@ String? paywallShiftAppName(SupportedApp? app) {
 }
 
 /// One line of a plan card's feature list.
+List<_FeatureLine> _paywallFeatures(AppLocalizations l10n, {required bool pro}) {
+  final app = paywallShiftAppName(core.settings.getTrainerApp());
+  return [
+    _FeatureLine(l10n.paywall_amountOfActions, unlimited: true, inBase: true),
+    _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
+    _FeatureLine(
+      switch ((app, pro)) {
+        (null, true) => l10n.paywall_shiftInYourAppShort,
+        (null, false) => l10n.paywall_shiftInYourApp,
+        (final String app, true) => l10n.paywall_shiftInNamedAppShort(app),
+        (final String app, false) => l10n.paywall_shiftInNamedApp(app),
+      },
+      inBase: true,
+      clip: PaywallFeatureClip.virtualGearShifting,
+    ),
+    _FeatureLine(l10n.paywall_configure3ActionsPerButton, clip: PaywallFeatureClip.buttonGestures),
+    _FeatureLine(l10n.paywall_useBikecontrolOnAllPlatforms),
+    _FeatureLine(l10n.paywall_shareSensors, clip: PaywallFeatureClip.heartRate),
+    _FeatureLine(l10n.paywall_startAnyCommandShortcutWithAnyButton, clip: PaywallFeatureClip.launchCommand),
+    _FeatureLine(l10n.paywall_controlYourDeviceMusic, clip: PaywallFeatureClip.music),
+    _FeatureLine(l10n.paywall_createScreenshots, clip: PaywallFeatureClip.screenshots),
+  ];
+}
+
+/// What Pro adds on top of Base, in the paywall's words and order — so the
+/// Base plan card can say why Go Pro without a second list to keep in step.
+List<String> paywallProOnlyFeatures(AppLocalizations l10n) =>
+    _paywallFeatures(l10n, pro: true).where((f) => !f.inBase).map((f) => f.label).toList();
+
 class _FeatureLine {
   final String label;
 
@@ -213,29 +242,7 @@ class _PaywallState extends State<Paywall> {
   // A line whose feature has a website demo clip offers it (Pro card only).
   // On the Pro card the shift line stops at "in {app}": with Pro, BikeControl
   // can do the gears, so "the app computes them" only holds for Base.
-  List<_FeatureLine> _features(AppLocalizations l10n, {required bool pro}) {
-    final app = paywallShiftAppName(core.settings.getTrainerApp());
-    return [
-      _FeatureLine(l10n.paywall_amountOfActions, unlimited: true, inBase: true),
-      _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
-      _FeatureLine(
-        switch ((app, pro)) {
-          (null, true) => l10n.paywall_shiftInYourAppShort,
-          (null, false) => l10n.paywall_shiftInYourApp,
-          (final String app, true) => l10n.paywall_shiftInNamedAppShort(app),
-          (final String app, false) => l10n.paywall_shiftInNamedApp(app),
-        },
-        inBase: true,
-        clip: PaywallFeatureClip.virtualGearShifting,
-      ),
-      _FeatureLine(l10n.paywall_configure3ActionsPerButton, clip: PaywallFeatureClip.buttonGestures),
-      _FeatureLine(l10n.paywall_useBikecontrolOnAllPlatforms),
-      _FeatureLine(l10n.paywall_shareSensors, clip: PaywallFeatureClip.heartRate),
-      _FeatureLine(l10n.paywall_startAnyCommandShortcutWithAnyButton, clip: PaywallFeatureClip.launchCommand),
-      _FeatureLine(l10n.paywall_controlYourDeviceMusic, clip: PaywallFeatureClip.music),
-      _FeatureLine(l10n.paywall_createScreenshots, clip: PaywallFeatureClip.screenshots),
-    ];
-  }
+  List<_FeatureLine> _features(AppLocalizations l10n, {required bool pro}) => _paywallFeatures(l10n, pro: pro);
 
   final IAPManager _iapManager = IAPManager.instance;
 

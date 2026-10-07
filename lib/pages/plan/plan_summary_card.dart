@@ -2,7 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
-import 'package:bike_control/pages/paywall.dart' show paywallShiftAppName;
+import 'package:bike_control/pages/paywall.dart' show paywallProOnlyFeatures, paywallShiftAppName;
 import 'package:bike_control/pages/shell/app_shell.dart' show PlanTier, currentPlanTier, planName;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -164,9 +164,31 @@ class PlanSummaryCard extends StatelessWidget {
       _Check(_shiftLine(l10n)),
       const VsTrialMeterSlot(gap: 14),
       const Gap(16),
+      _proAdds(context),
+      const Gap(16),
       _goPro(context),
       _questions(context),
     ];
+  }
+
+  /// Why Go Pro: what Pro adds on top of Base, in the paywall's words.
+  Widget _proAdds(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      key: const ValueKey('plan-pro-adds'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 6,
+      children: [
+        Row(
+          spacing: 8,
+          children: [
+            Text(l10n.planProAdds, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+            const ProBadge(),
+          ],
+        ),
+        for (final line in paywallProOnlyFeatures(l10n)) _Check(line, icon: LucideIcons.plus),
+      ],
+    );
   }
 
   /// The paywall's line: names the picked trainer app where it shifts.
@@ -337,9 +359,10 @@ class _Tag extends StatelessWidget {
 }
 
 class _Check extends StatelessWidget {
-  const _Check(this.text);
+  const _Check(this.text, {this.icon = LucideIcons.check});
 
   final String text;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +372,7 @@ class _Check extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Icon(LucideIcons.check, size: 16, color: bkAccentText(context)),
+          child: Icon(icon, size: 16, color: bkAccentText(context)),
         ),
         Expanded(child: Text(text, style: context.typography.small)),
       ],
