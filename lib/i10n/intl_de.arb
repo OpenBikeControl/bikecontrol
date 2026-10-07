@@ -2232,7 +2232,6 @@
   "ignore": "Ignorieren",
   "subscription": "Abo",
   "tutorials": "Anleitungen",
-  "instructionVideos": "Anleitungsvideos",
   "wheeltopShifterBattery": "Schalter-Akku: {volts} V",
   "wheeltopSlideSwitchHint": "Schiebeschalter auf R: die obere/untere Taste schaltet. Schiebeschalter auf T: die Tasten werden zu zwei zusätzlichen, frei belegbaren Tasten.",
   "wheeltopKeepaliveTitle": "Keepalive-Experiment (Beta)",

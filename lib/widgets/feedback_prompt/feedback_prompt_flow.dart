@@ -23,7 +23,7 @@ enum FeedbackFlowStep { gate, positive, negative, composer, thanks }
 /// dialog at `width >= 600`, which wasn't what the mockups showed).
 ///
 /// Content width is capped on wide windows (`Center` + `ConstrainedBox`,
-/// same treatment as `instruction_videos_section.dart`'s Bug 3 fix and
+/// same treatment as
 /// `home_sheets.dart`'s `_frame`) so the sheet isn't stretched full-width on
 /// desktop, while staying full-width on phones.
 Future<void> showFeedbackPromptFlow(

@@ -2481,7 +2481,6 @@
   "ignore": "Ignore",
   "subscription": "Subscription",
   "tutorials": "Tutorials",
-  "instructionVideos": "Instruction videos",
   "wheeltopShifterBattery": "Shifter battery: {volts} V",
   "@wheeltopShifterBattery": {
     "placeholders": {

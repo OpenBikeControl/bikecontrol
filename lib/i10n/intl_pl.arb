@@ -2232,7 +2232,6 @@
   "ignore": "Ignoruj",
   "subscription": "Subskrypcja",
   "tutorials": "Poradniki",
-  "instructionVideos": "Filmy instruktażowe",
   "wheeltopShifterBattery": "Bateria manetki: {volts} V",
   "wheeltopSlideSwitchHint": "Przełącznik na R: górny/dolny przycisk zmienia biegi. Przełącznik na T: przyciski stają się dwoma dodatkowymi przyciskami do przypisania.",
   "wheeltopKeepaliveTitle": "Eksperyment keepalive (beta)",

@@ -2232,7 +2232,6 @@
   "ignore": "Ignora",
   "subscription": "Abbonamento",
   "tutorials": "Tutorial",
-  "instructionVideos": "Video di istruzioni",
   "wheeltopShifterBattery": "Batteria del comando: {volts} V",
   "wheeltopSlideSwitchHint": "Selettore su R: i pulsanti superiore/inferiore cambiano marcia. Selettore su T: i pulsanti diventano due pulsanti aggiuntivi assegnabili.",
   "wheeltopKeepaliveTitle": "Esperimento keepalive (beta)",

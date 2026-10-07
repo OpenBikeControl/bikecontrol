@@ -1,7 +1,8 @@
-// "Tutorials & Videos" section body — the how-to-connect article link, the
-// Tutorials link, and the instruction-videos drawer. The article link and
-// the videos drawer are lifted unchanged from the old help-button dropdown
-// (Task 8); the tutorials link replaced the blog list that used to sit below
+// "Tutorials & Videos" section body — the how-to-connect article link and
+// the Tutorials link. The article link is lifted unchanged from the old
+// help-button dropdown (Task 8). The YouTube instruction-videos drawer that
+// used to close this list was removed (its videos were mostly outdated). The
+// tutorials link replaced the blog list that used to sit below
 // this card in design round 1 (blog coverage now lives only on the overview
 // page). Bug 4: the tutorials link used to point at
 // bikecontrol.app/tutorials, which 404s — the website only has /blog and
@@ -13,8 +14,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-
-import 'instruction_videos_section.dart';
 
 class GuidesVideosSection extends StatelessWidget {
   const GuidesVideosSection({super.key});
@@ -55,21 +54,6 @@ class GuidesVideosSection extends StatelessWidget {
         child: Basic(
           leading: const Icon(LucideIcons.circlePlay, size: 18),
           title: Text(AppLocalizations.of(context).tutorials),
-          trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
-        ),
-      ),
-      Button.ghost(
-        style: rowStyle,
-        onPressed: () {
-          openDrawer(
-            context: context,
-            position: OverlayPosition.bottom,
-            builder: (c) => const InstructionVideosDrawer(),
-          );
-        },
-        child: Basic(
-          leading: const Icon(LucideIcons.monitorPlay, size: 18),
-          title: Text(AppLocalizations.of(context).instructionVideos),
           trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
         ),
       ),

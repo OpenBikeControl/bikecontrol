@@ -2232,7 +2232,6 @@
   "ignore": "Ignorer",
   "subscription": "Abonnement",
   "tutorials": "Tutoriels",
-  "instructionVideos": "Vidéos explicatives",
   "wheeltopShifterBattery": "Batterie du levier : {volts} V",
   "wheeltopSlideSwitchHint": "Curseur sur R : les boutons haut/bas changent de vitesse. Curseur sur T : les boutons deviennent deux boutons supplémentaires attribuables.",
   "wheeltopKeepaliveTitle": "Expérience keepalive (bêta)",

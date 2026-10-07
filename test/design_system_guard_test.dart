@@ -92,8 +92,6 @@ void main() {
       // Markers and key caps drawn over the rider's own screenshot of their
       // trainer app: they must read on arbitrary imagery, not on our grounds.
       'lib/pages/touch_area.dart': {'Colors.white', 'Colors.black', 'Colors.green', 'Colors.red'},
-      // The scrim and play glyph over a video thumbnail.
-      'lib/pages/help_center/widgets/instruction_videos_section.dart': {'Colors.black', 'Colors.white'},
     };
     final literal = RegExp(
       r'Color\(0x(?!00000000\))[0-9A-Fa-f]{8}\)|(?<![A-Za-z_])Colors\.(?!transparent\b)[A-Za-z]+|BKColor\.[A-Za-z]+',
@@ -186,7 +184,6 @@ void main() {
     // surface, and a card inside the support chat's own column.
     const handRolledAllowlist = {
       'lib/pages/support_chat/widgets/support_account_link_card.dart',
-      'lib/pages/help_center/widgets/instruction_videos_section.dart',
       'lib/pages/subscriptions/login.dart',
     };
     final centred = RegExp(

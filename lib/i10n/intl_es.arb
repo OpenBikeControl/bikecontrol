@@ -2232,7 +2232,6 @@
   "ignore": "Ignorar",
   "subscription": "Suscripción",
   "tutorials": "Tutoriales",
-  "instructionVideos": "Vídeos de instrucciones",
   "wheeltopShifterBattery": "Batería del cambio: {volts} V",
   "wheeltopSlideSwitchHint": "Interruptor en R: los botones superior/inferior cambian de marcha. Interruptor en T: los botones pasan a ser dos botones asignables adicionales.",
   "wheeltopKeepaliveTitle": "Experimento de keepalive (beta)",

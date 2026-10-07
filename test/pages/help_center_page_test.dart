@@ -86,8 +86,9 @@ Future<void> main() async {
     // starts out of view — otherwise "scrolled into view" is a no-op. Design
     // round 1 dropped the Troubleshooting card ahead of "Your setup", so it
     // now sits higher up the page — the viewport needs to be shorter than
-    // before to still push it below the fold.
-    const viewportHeight = 250.0;
+    // before to still push it below the fold. Dropping the instruction
+    // videos row from Guides & videos moved it up again.
+    const viewportHeight = 180.0;
     tester.view.physicalSize = const Size(400, viewportHeight);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
