@@ -20,7 +20,6 @@ import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One ride: when, its values, power, heart rate, cadence and gear over
@@ -203,9 +202,17 @@ Widget _zones(BuildContext context, AppLocalizations l10n, RideChart chart) {
       final maxHr = prefs.maxHeartRateBpm;
       final prompts = [
         if (chart.hasPower && ftp == null)
-          RideZonePrompt(label: l10n.ridesSetFtpForZones, onPressed: () => editFtp(context)),
+          RideZonePrompt(
+            key: const ValueKey('ride-zone-prompt-ftp'),
+            label: l10n.ridesSetFtpForZones,
+            field: const RideFtpField(),
+          ),
         if (chart.hasHeartRate && maxHr == null)
-          RideZonePrompt(label: l10n.ridesSetMaxHeartRateForZones, onPressed: () => editMaxHeartRate(context)),
+          RideZonePrompt(
+            key: const ValueKey('ride-zone-prompt-max-heart-rate'),
+            label: l10n.ridesSetMaxHeartRateForZones,
+            field: const RideMaxHeartRateField(),
+          ),
       ];
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -213,11 +220,19 @@ Widget _zones(BuildContext context, AppLocalizations l10n, RideChart chart) {
         children: [
           if (chart.hasPower && ftp != null) ...[
             const Gap(24),
-            RidePowerZones(chart: chart, ftpWatts: ftp, onEdit: () => editFtp(context)),
+            RidePowerZones(
+              chart: chart,
+              ftpWatts: ftp,
+              editor: (onDone) => RideFtpField(autofocus: true, onDone: onDone),
+            ),
           ],
           if (chart.hasHeartRate && maxHr != null) ...[
             const Gap(24),
-            RideHeartRateZones(chart: chart, maxHeartRateBpm: maxHr, onEdit: () => editMaxHeartRate(context)),
+            RideHeartRateZones(
+              chart: chart,
+              maxHeartRateBpm: maxHr,
+              editor: (onDone) => RideMaxHeartRateField(autofocus: true, onDone: onDone),
+            ),
           ],
           if (prompts.isNotEmpty) ...[const Gap(16), ...prompts],
         ],

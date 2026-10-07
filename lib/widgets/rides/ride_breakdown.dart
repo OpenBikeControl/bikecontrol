@@ -34,14 +34,16 @@ class RideGearTime extends StatelessWidget {
   }
 }
 
-/// Time in Coggan's seven power zones at [ftpWatts]; the header's FTP opens
-/// [onEdit].
+/// Time in Coggan's seven power zones at [ftpWatts]; tapping the header's FTP
+/// swaps it for [editor] in place.
 class RidePowerZones extends StatelessWidget {
-  const RidePowerZones({super.key, required this.chart, required this.ftpWatts, required this.onEdit});
+  const RidePowerZones({super.key, required this.chart, required this.ftpWatts, required this.editor});
 
   final RideChart chart;
   final int ftpWatts;
-  final VoidCallback onEdit;
+
+  /// Builds the FTP field; it calls back once the edit is through.
+  final Widget Function(VoidCallback onDone) editor;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,7 @@ class RidePowerZones extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primary;
     return _Breakdown(
       key: const ValueKey('ride-details-power-zones'),
-      header: _ZoneHeader(title: l10n.ridesPowerZones, reference: l10n.ridesFtpValue(ftpWatts), onEdit: onEdit),
+      header: _ZoneHeader(title: l10n.ridesPowerZones, reference: l10n.ridesFtpValue(ftpWatts), editor: editor),
       rows: [
         for (final z in PowerZone.values)
           _Bar(
@@ -66,13 +68,15 @@ class RidePowerZones extends StatelessWidget {
 }
 
 /// Time in the five heart rate zones at [maxHeartRateBpm]; the header's max
-/// opens [onEdit].
+/// is swapped for [editor] in place.
 class RideHeartRateZones extends StatelessWidget {
-  const RideHeartRateZones({super.key, required this.chart, required this.maxHeartRateBpm, required this.onEdit});
+  const RideHeartRateZones({super.key, required this.chart, required this.maxHeartRateBpm, required this.editor});
 
   final RideChart chart;
   final int maxHeartRateBpm;
-  final VoidCallback onEdit;
+
+  /// Builds the max heart rate field; it calls back once the edit is through.
+  final Widget Function(VoidCallback onDone) editor;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +89,7 @@ class RideHeartRateZones extends StatelessWidget {
       header: _ZoneHeader(
         title: l10n.ridesHeartRateZones,
         reference: l10n.ridesMaxHeartRateValue(maxHeartRateBpm),
-        onEdit: onEdit,
+        editor: editor,
       ),
       rows: [
         for (final z in HeartRateZone.values)
@@ -101,37 +105,29 @@ class RideHeartRateZones extends StatelessWidget {
   }
 }
 
-/// The quiet line in place of zones until their reference value is set.
+/// The quiet line in place of zones until their reference value is set,
+/// with the [field] to type it right there.
 class RideZonePrompt extends StatelessWidget {
-  const RideZonePrompt({super.key, required this.label, required this.onPressed});
+  const RideZonePrompt({super.key, required this.label, required this.field});
 
   final String label;
-  final VoidCallback onPressed;
+  final Widget field;
 
   @override
   Widget build(BuildContext context) {
-    final accent = bkAccentText(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset - 4),
-      child: Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: Button.ghost(
-          style: const ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8)),
-          onPressed: onPressed,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 2,
-            children: [
-              Flexible(
-                child: Text(
-                  label,
-                  style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600),
-                ),
-              ),
-              Icon(LucideIcons.chevronRight, size: 14, color: accent),
-            ],
+      padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset, vertical: 4),
+      child: Row(
+        spacing: 12,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: context.typography.small.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+            ),
           ),
-        ),
+          field,
+        ],
       ),
     );
   }
@@ -197,38 +193,54 @@ class _Breakdown extends StatelessWidget {
   }
 }
 
-/// A zone header with the value it is measured against at the end, which
-/// opens its setting.
-class _ZoneHeader extends StatelessWidget {
-  const _ZoneHeader({required this.title, required this.reference, required this.onEdit});
+/// A zone header with the value it is measured against at the end; tapping
+/// the value swaps it for its field until the edit is through.
+class _ZoneHeader extends StatefulWidget {
+  const _ZoneHeader({required this.title, required this.reference, required this.editor});
 
   final String title, reference;
-  final VoidCallback onEdit;
+  final Widget Function(VoidCallback onDone) editor;
+
+  @override
+  State<_ZoneHeader> createState() => _ZoneHeaderState();
+}
+
+class _ZoneHeaderState extends State<_ZoneHeader> {
+  bool _editing = false;
+
+  void _done() {
+    if (mounted && _editing) setState(() => _editing = false);
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Expanded(child: BkGroupedHeader(title)),
-        Button.ghost(
-          style: const ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2)),
-          onPressed: onEdit,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 4,
-            children: [
-              Text(
-                reference,
-                style: context.typography.small.copyWith(
-                  color: cs.mutedForeground,
-                  fontFeatures: BkNumerals.tabular,
+        Expanded(child: BkGroupedHeader(widget.title)),
+        if (_editing)
+          widget.editor(_done)
+        else
+          Button.ghost(
+            style: const ButtonStyle.ghost().withPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            ),
+            onPressed: () => setState(() => _editing = true),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                Text(
+                  widget.reference,
+                  style: context.typography.small.copyWith(
+                    color: cs.mutedForeground,
+                    fontFeatures: BkNumerals.tabular,
+                  ),
                 ),
-              ),
-              Icon(LucideIcons.pencil, size: 12, color: cs.mutedForeground),
-            ],
+                Icon(LucideIcons.pencil, size: 12, color: cs.mutedForeground),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

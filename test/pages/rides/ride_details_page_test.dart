@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
@@ -66,6 +65,12 @@ Future<void> main() async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    // The harness's live binding leaves the fake keyboard off; the FTP and
+    // max heart rate fields are typed into and submitted with it.
+    if (!tester.testTextInput.isRegistered) {
+      tester.testTextInput.register();
+      addTearDown(tester.testTextInput.unregister);
+    }
     await tester.pumpWidget(
       ShadcnApp(
         // As in main.dart: menus are popovers at their anchor.
@@ -302,11 +307,12 @@ Future<void> main() async {
       final ride = await saveSampleRide(rig.repository);
       await pump(tester, ride);
 
-      await tester.ensureVisible(find.text(l10n.ridesSetFtpForZones));
-      await tester.tap(find.text(l10n.ridesSetFtpForZones));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '200');
-      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      // The field sits right in the line: no dialog to open first.
+      final line = find.byKey(const ValueKey('ride-zone-prompt-ftp'));
+      final field = find.descendant(of: line, matching: find.byKey(const ValueKey('ride-zone-value-field')));
+      await tester.ensureVisible(field);
+      await tester.enterText(field, '200');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
 
       expect(rig.prefs.ftpWatts, 200);
@@ -340,6 +346,28 @@ Future<void> main() async {
       await rig.prefs.setFtpWatts(140); // everything above 210 W is now Neuromuscular
       await tester.pumpAndSettle();
       expect(z7(), isNot(before));
+    });
+
+    testWidgets('the FTP in the zones header is edited in place', (tester) async {
+      final rig = await RideRig.install(store: null, prefs: {'rides_ftp_watts': 200});
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      final header = find.byKey(const ValueKey('ride-details-power-zones'));
+      final field = find.descendant(of: header, matching: find.byKey(const ValueKey('ride-zone-value-field')));
+      expect(field, findsNothing);
+      await tester.ensureVisible(find.text(l10n.ridesFtpValue(200)));
+      await tester.tap(find.text(l10n.ridesFtpValue(200)));
+      await tester.pumpAndSettle();
+      expect(field, findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+
+      await tester.enterText(field, '240');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(rig.prefs.ftpWatts, 240);
+      expect(field, findsNothing);
+      expect(find.text(l10n.ridesFtpValue(240)), findsOneWidget);
     });
 
     testWidgets('no heart rate: no heart rate zones and no line asking for max', (tester) async {

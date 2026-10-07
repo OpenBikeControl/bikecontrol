@@ -22,7 +22,8 @@ import '../../helpers/ride_rig.dart';
 
 class _FailingFiles implements RideFileActions {
   @override
-  Future<bool> share(PastWorkout ride, Uint8List bytes, {Rect? origin}) async => throw const FileSystemException('share');
+  Future<bool> share(PastWorkout ride, Uint8List bytes, {Rect? origin}) async =>
+      throw const FileSystemException('share');
 
   @override
   Future<String?> save(PastWorkout ride, Uint8List bytes, {required String dialogTitle}) async =>
@@ -96,26 +97,19 @@ Future<void> main() async {
   testWidgets('an FTP that cannot be stored shows a toast', (tester) async {
     await pump(
       tester,
-      Builder(
-        builder: (context) => Button.primary(
-          onPressed: () => editRideZoneValue(
-            context,
-            title: 'FTP',
-            body: '',
-            unit: 'W',
-            current: null,
-            range: ftpRange,
-            save: (_) async => throw StateError('disk full'),
-            errorContext: 'test',
-          ),
-          child: const Text('open'),
+      Center(
+        child: RideZoneValueField(
+          label: 'FTP',
+          unit: 'W',
+          current: null,
+          range: ftpRange,
+          save: (_) async => throw StateError('disk full'),
+          errorContext: 'test',
         ),
       ),
     );
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '250');
-    await tester.tap(find.text(l10n.save));
+    await tester.testTextInput.receiveAction(TextInputAction.done);
     await expectToast(tester, l10n.ridesValueSaveFailed);
   });
 }

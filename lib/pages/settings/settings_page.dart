@@ -314,26 +314,21 @@ class _DuringRideSectionState extends State<DuringRideSection> {
             () => rides.healthReady ? rides.setSavesToHealth(!rides.savesToHealth) : rides.installHealth(),
           ),
         ),
-      // What the ride details' zones are measured against; optional.
+      // What the ride details' zones are measured against; optional, and
+      // typed right into the row.
       BkGroupedRow(
         key: const ValueKey('settings-ftp'),
         icon: LucideIcons.zap,
         title: l10n.ridesFtpTitle,
-        subtitle: l10n.ridesFtpSubtitle,
-        trailing: Text(rides.prefs.ftpWatts == null ? l10n.ridesNotSet : '${rides.prefs.ftpWatts} W'),
-        chevron: true,
-        onPressed: () => editFtp(context),
+        subtitle: l10n.ridesFtpBody,
+        trailing: const RideFtpField(),
       ),
       BkGroupedRow(
         key: const ValueKey('settings-max-heart-rate'),
         icon: LucideIcons.heartPulse,
         title: l10n.ridesMaxHeartRateTitle,
-        subtitle: l10n.ridesMaxHeartRateSubtitle,
-        trailing: Text(
-          rides.prefs.maxHeartRateBpm == null ? l10n.ridesNotSet : '${rides.prefs.maxHeartRateBpm} bpm',
-        ),
-        chevron: true,
-        onPressed: () => editMaxHeartRate(context),
+        subtitle: l10n.ridesMaxHeartRateBody,
+        trailing: const RideMaxHeartRateField(),
       ),
       // The overlay draws the gear of a shifting trainer; without one there
       // is nothing for it to show.

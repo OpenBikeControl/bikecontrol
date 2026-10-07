@@ -11,6 +11,7 @@ import 'package:bike_control/services/rides/ride_format.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -24,6 +25,12 @@ Future<void> main() async {
   tearDown(() => IAPManager.instance.setProForTesting(enabled: false));
 
   Future<void> pump(WidgetTester tester) async {
+    // The harness's live binding leaves the fake keyboard off; the FTP and
+    // max heart rate fields are typed into and submitted with it.
+    if (!tester.testTextInput.isRegistered) {
+      tester.testTextInput.register();
+      addTearDown(tester.testTextInput.unregister);
+    }
     await tester.pumpWidget(
       ShadcnApp(
         localizationsDelegates: const [
@@ -133,13 +140,31 @@ Future<void> main() async {
   });
 
   group('FTP and max heart rate', () {
-    testWidgets('not set until the rider gives them', (tester) async {
+    Finder field(String row) =>
+        find.descendant(of: find.byKey(ValueKey(row)), matching: find.byKey(const ValueKey('ride-zone-value-field')));
+    String text(WidgetTester tester, String row) => tester.widget<TextField>(field(row)).controller!.text;
+    Finder error(String row) =>
+        find.descendant(of: find.byKey(ValueKey(row)), matching: find.byKey(const ValueKey('ride-zone-value-error')));
+
+    testWidgets('edited right in the row, empty until the rider gives them', (tester) async {
       await RideRig.install(store: null);
       await pump(tester);
 
-      expect(find.byKey(const ValueKey('settings-ftp')), findsOneWidget);
-      expect(find.byKey(const ValueKey('settings-max-heart-rate')), findsOneWidget);
-      expect(find.text(AppLocalizations.current.ridesNotSet), findsNWidgets(2));
+      expect(field('settings-ftp'), findsOneWidget);
+      expect(field('settings-max-heart-rate'), findsOneWidget);
+      expect(text(tester, 'settings-ftp'), isEmpty);
+      expect(text(tester, 'settings-max-heart-rate'), isEmpty);
+      // What the dialog used to explain now sits under the row's title.
+      expect(find.text(AppLocalizations.current.ridesFtpBody), findsOneWidget);
+      expect(find.text(AppLocalizations.current.ridesMaxHeartRateBody), findsOneWidget);
+    });
+
+    testWidgets('a stored value is in its field', (tester) async {
+      await RideRig.install(store: null, prefs: {'rides_ftp_watts': 240, 'rides_max_heart_rate_bpm': 185});
+      await pump(tester);
+
+      expect(text(tester, 'settings-ftp'), '240');
+      expect(text(tester, 'settings-max-heart-rate'), '185');
     });
 
     testWidgets('next to the recording setting, before anything about the ride itself', (tester) async {
@@ -152,42 +177,83 @@ Future<void> main() async {
       expect(hr, greaterThan(ftp));
     });
 
-    testWidgets('FTP: entered, saved and shown; cleared again', (tester) async {
+    testWidgets('FTP: entered and submitted, saved and kept; emptied, unset again', (tester) async {
       final rig = await RideRig.install(store: null);
       await pump(tester);
 
-      await tester.tap(find.byKey(const ValueKey('settings-ftp')));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '250');
-      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      await tester.enterText(field('settings-ftp'), '250');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(rig.prefs.ftpWatts, 250);
-      expect(find.textContaining('250'), findsOneWidget);
+      expect(text(tester, 'settings-ftp'), '250');
 
-      await tester.tap(find.byKey(const ValueKey('settings-ftp')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('ride-zone-value-clear')));
+      await tester.enterText(field('settings-ftp'), '');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(rig.prefs.ftpWatts, isNull);
     });
 
-    testWidgets('an impossible value is not saved; the dialog says the range', (tester) async {
+    testWidgets('leaving the field saves it too', (tester) async {
       final rig = await RideRig.install(store: null);
       await pump(tester);
 
-      await tester.tap(find.byKey(const ValueKey('settings-max-heart-rate')));
+      await tester.enterText(field('settings-max-heart-rate'), '190');
+      FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '20');
-      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+      expect(rig.prefs.maxHeartRateBpm, 190);
+    });
+
+    testWidgets('an impossible FTP is not saved; the row says the range', (tester) async {
+      final rig = await RideRig.install(store: null);
+      await pump(tester);
+
+      await tester.enterText(field('settings-ftp'), '20');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(rig.prefs.ftpWatts, isNull);
+      expect(error('settings-ftp'), findsOneWidget);
+
+      await tester.enterText(field('settings-ftp'), '1001');
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      expect(rig.prefs.ftpWatts, isNull);
+      expect(error('settings-ftp'), findsOneWidget);
+
+      await tester.enterText(field('settings-ftp'), '280');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(rig.prefs.ftpWatts, 280);
+      expect(error('settings-ftp'), findsNothing);
+    });
+
+    testWidgets('max heart rate keeps its own range', (tester) async {
+      final rig = await RideRig.install(store: null);
+      await pump(tester);
+
+      await tester.enterText(field('settings-max-heart-rate'), '250');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(rig.prefs.maxHeartRateBpm, isNull);
-      expect(find.byKey(const ValueKey('ride-zone-value-error')), findsOneWidget);
+      expect(error('settings-max-heart-rate'), findsOneWidget);
+    });
 
-      await tester.enterText(find.byKey(const ValueKey('ride-zone-value-field')), '188');
-      await tester.tap(find.byKey(const ValueKey('ride-zone-value-save')));
+    testWidgets('Escape puts the stored value back, nothing saved', (tester) async {
+      final rig = await RideRig.install(store: null, prefs: {'rides_ftp_watts': 240});
+      await pump(tester);
+
+      await tester.enterText(field('settings-ftp'), '300');
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
       await tester.pumpAndSettle();
-      expect(rig.prefs.maxHeartRateBpm, 188);
-      expect(find.byKey(const ValueKey('ride-zone-value-field')), findsNothing);
+      expect(rig.prefs.ftpWatts, 240);
+      expect(text(tester, 'settings-ftp'), '240');
+    });
+
+    testWidgets('only digits go in', (tester) async {
+      await RideRig.install(store: null);
+      await pump(tester);
+
+      await tester.enterText(field('settings-ftp'), '2a5-0');
+      expect(text(tester, 'settings-ftp'), '250');
     });
   });
 }
