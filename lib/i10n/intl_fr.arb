@@ -2560,6 +2560,7 @@
   "vsGroupGears": "Vitesses",
   "vsGroupPhysics": "Physique",
   "perGearRatiosTitle": "Développement par vitesse",
+  "perGearRatiosSubtitle": "Règle chaque vitesse séparément",
   "rideOverlayOff": "L'Overlay de vitesse est désactivé",
   "rideOverlayOfferNote": "{app} affiche sa propre vitesse",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},

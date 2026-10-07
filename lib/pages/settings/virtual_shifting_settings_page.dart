@@ -5,7 +5,6 @@ import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
@@ -304,9 +303,9 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
             key: const ValueKey('vs-per-gear'),
             icon: LucideIcons.slidersHorizontal,
             title: l10n.perGearRatiosTitle,
-            subtitle: perGearRatiosSummary(context, ratios),
+            subtitle: l10n.perGearRatiosSubtitle,
             chevron: true,
-            onPressed: () => context.push(PerGearRatiosPage(definition: def, device: widget.device)),
+            onPressed: () => openPerGearRatios(context, definition: def, device: widget.device),
           ),
         ),
       ],

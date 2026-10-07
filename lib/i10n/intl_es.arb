@@ -2560,6 +2560,7 @@
   "vsGroupGears": "Marchas",
   "vsGroupPhysics": "Física",
   "perGearRatiosTitle": "Desarrollo por marcha",
+  "perGearRatiosSubtitle": "Ajusta cada marcha por separado",
   "rideOverlayOff": "El Overlay de marchas está desactivado",
   "rideOverlayOfferNote": "{app} muestra su propia marcha",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},

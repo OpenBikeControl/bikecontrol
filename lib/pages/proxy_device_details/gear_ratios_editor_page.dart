@@ -4,6 +4,9 @@ import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/setting_tile.dart';
@@ -50,11 +53,25 @@ GearRatioPreset? matchingGearRatioPreset(BuildContext context, List<double> rati
   return null;
 }
 
-/// "Default · 24 gears", or "Custom ratios · 24 gears" once a gear was edited.
-String perGearRatiosSummary(BuildContext context, List<double> ratios) {
-  final l10n = AppLocalizations.of(context);
-  final preset = matchingGearRatioPreset(context, ratios);
-  return '${preset?.label ?? l10n.customRatios} · ${l10n.gearsCount(ratios.length)}';
+/// Opens the per-gear steppers: a side panel on the right in a wide window,
+/// where the settings they belong to stay in view; a pushed page on a phone.
+Future<void> openPerGearRatios(
+  BuildContext context, {
+  required FitnessBikeDefinition definition,
+  required ProxyDevice device,
+}) async {
+  if (MediaQuery.sizeOf(context).width >= Breakpoints.medium && DrawerOverlay.maybeFind(context) != null) {
+    await openDrawer<void>(
+      context: context,
+      position: OverlayPosition.end,
+      builder: (c) => SizedBox(
+        width: PerGearRatiosPage.panelWidth,
+        child: PerGearRatiosPage(definition: definition, device: device, inPanel: true),
+      ),
+    );
+    return;
+  }
+  await context.push(PerGearRatiosPage(definition: definition, device: device));
 }
 
 /// PRESETS and the four one-tap curves under it. They sit right under the
@@ -176,7 +193,14 @@ class GearCountRow extends StatelessWidget {
 class PerGearRatiosPage extends StatefulWidget {
   final FitnessBikeDefinition definition;
   final ProxyDevice device;
-  const PerGearRatiosPage({super.key, required this.definition, required this.device});
+
+  /// Shown in [openPerGearRatios]'s side panel: closed with X, not Back.
+  final bool inPanel;
+
+  /// The side panel's width in a wide window.
+  static const double panelWidth = 440;
+
+  const PerGearRatiosPage({super.key, required this.definition, required this.device, this.inPanel = false});
 
   @override
   State<PerGearRatiosPage> createState() => _PerGearRatiosPageState();
@@ -189,7 +213,23 @@ class _PerGearRatiosPageState extends State<PerGearRatiosPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      headers: [BkPageHeader(title: l10n.perGearRatiosTitle, columnGutter: 0)],
+      headers: [
+        widget.inPanel
+            ? BkPageHeader(
+                title: l10n.perGearRatiosTitle,
+                showBack: false,
+                columnWidth: null,
+                actions: [
+                  BkIconButton.ghost(
+                    key: const ValueKey('per-gear-close'),
+                    icon: const Icon(LucideIcons.x, size: 20),
+                    label: l10n.close,
+                    onPressed: () => closeDrawer(context),
+                  ),
+                ],
+              )
+            : BkPageHeader(title: l10n.perGearRatiosTitle, columnGutter: 0),
+      ],
       child: BkPageColumn(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

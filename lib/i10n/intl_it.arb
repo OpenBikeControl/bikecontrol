@@ -2560,6 +2560,7 @@
   "vsGroupGears": "Marce",
   "vsGroupPhysics": "Fisica",
   "perGearRatiosTitle": "Rapporti per marcia",
+  "perGearRatiosSubtitle": "Regola ogni marcia singolarmente",
   "rideOverlayOff": "L'Overlay marce è disattivato",
   "rideOverlayOfferNote": "{app} mostra la propria marcia",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},

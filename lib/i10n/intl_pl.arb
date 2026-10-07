@@ -2560,6 +2560,7 @@
   "vsGroupGears": "Biegi",
   "vsGroupPhysics": "Fizyka",
   "perGearRatiosTitle": "Przełożenia biegów",
+  "perGearRatiosSubtitle": "Dostosuj każdy bieg osobno",
   "rideOverlayOff": "Overlay biegów jest wyłączony",
   "rideOverlayOfferNote": "{app} pokazuje własny bieg",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},

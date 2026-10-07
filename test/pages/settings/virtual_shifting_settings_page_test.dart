@@ -25,8 +25,14 @@ import '../../helpers/live_trainer.dart';
 import '../../helpers/text_breaks.dart';
 import '../../widget_snapshot.dart';
 
-Future<void> _pump(WidgetTester tester, Widget home, {bool reducedMotion = false, double height = 3200}) async {
-  tester.view.physicalSize = Size(430, height);
+Future<void> _pump(
+  WidgetTester tester,
+  Widget home, {
+  bool reducedMotion = false,
+  double height = 3200,
+  double width = 430,
+}) async {
+  tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
@@ -280,6 +286,46 @@ Future<void> main() async {
       await tester.pump();
       expect(_top(tester, curve), curveTop, reason: 'pinned while the rows scroll');
       expect(find.text(l.gearNumber(1)), findsNothing);
+    });
+  });
+
+  group('per-gear ratios on desktop', () {
+    testWidgets('opens in a side panel beside the settings, closed with X', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy), width: 1280, height: 900);
+      await tester.pump();
+
+      final row = find.text(l.perGearRatiosTitle);
+      await tester.ensureVisible(row);
+      await tester.pump();
+      await tester.tap(row);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final panel = find.byType(PerGearRatiosPage);
+      expect(panel, findsOneWidget);
+      expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget, reason: 'the settings stay underneath');
+      final rect = tester.getRect(panel);
+      expect(rect.width, lessThanOrEqualTo(480), reason: 'a side panel, not the whole window');
+      expect(rect.right, moreOrLessEquals(1280, epsilon: 1), reason: 'docked on the right');
+      expect(find.descendant(of: panel, matching: find.byKey(const ValueKey('page-header-back'))), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('per-gear-close')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(PerGearRatiosPage), findsNothing);
+    });
+
+    testWidgets('the row says what the panel holds, not the preset and gear count set elsewhere', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      final row = find.byKey(const ValueKey('vs-per-gear'));
+      expect(
+        find.descendant(of: row, matching: find.textContaining(l.gearsCount(definition.gearRatios.value.length))),
+        findsNothing,
+      );
     });
   });
 

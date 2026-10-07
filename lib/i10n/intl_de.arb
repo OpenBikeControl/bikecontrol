@@ -2560,6 +2560,7 @@
   "vsGroupGears": "Gänge",
   "vsGroupPhysics": "Physik",
   "perGearRatiosTitle": "Übersetzung pro Gang",
+  "perGearRatiosSubtitle": "Jeden Gang einzeln feinjustieren",
   "rideOverlayOff": "Gang-Overlay ist aus",
   "rideOverlayOfferNote": "{app} zeigt den eigenen Gang",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},

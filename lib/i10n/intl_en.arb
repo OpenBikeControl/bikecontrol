@@ -2964,6 +2964,7 @@
   "vsGroupGears": "Gears",
   "vsGroupPhysics": "Physics",
   "perGearRatiosTitle": "Per-gear ratios",
+  "perGearRatiosSubtitle": "Fine-tune each gear on its own",
   "rideOverlayOff": "Gear overlay is off",
   "rideOverlayOfferNote": "{app} shows its own gear",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
