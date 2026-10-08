@@ -23,13 +23,11 @@ abstract interface class SteeringAngleSink {
   Future<void> sendSteeringAngle(int value);
 }
 
-/// Whether [app] should receive the angle at all: it either asked for `0x1B`,
-/// or it steers from Steer Left / Right (the angle rides along, per the
-/// protocol's "Combining" rules). Apps without any steering never get it.
-bool appWantsSteeringAngle(AppInfo app) =>
-    app.supportsSteeringAngle ||
-    app.supportedActions.contains(InGameAction.steerLeft) ||
-    app.supportedActions.contains(InGameAction.steerRight);
+/// Whether [app] should receive the angle at all: only when it listed `0x1B`
+/// in its App Information. The protocol allows sending it alongside Steer
+/// Left / Right to every app, but an app that predates `0x1B` may reject a
+/// message with an ID it doesn't know, so the angle is opt-in.
+bool appWantsSteeringAngle(AppInfo app) => app.supportsSteeringAngle;
 
 /// Steer Left / Right presses from an angle input are left out for an app
 /// that listed `0x1B`: it steers from the angle, which is already streaming

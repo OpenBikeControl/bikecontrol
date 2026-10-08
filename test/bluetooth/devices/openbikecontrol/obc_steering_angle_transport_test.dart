@@ -119,12 +119,14 @@ Future<void> main() async {
       expect(sent(), isEmpty);
     });
 
-    test('app without 0x1B: angle and Steer Left both go out', () async {
+    test('app without 0x1B: Steer Left as before, no angle it did not ask for', () async {
       emulator.onAppInfoWrite('central-1', _appInfo([0x18, 0x19]));
+      device.steeringAngle.value = -10;
+      await Future<void>.delayed(const Duration(milliseconds: 60));
       final result = await emulator.sendAction(_steerLeft(device.steerLeftButton), isKeyDown: true, isKeyUp: false);
       expect(result, isA<Success>());
       expect(sent(), contains(equals([0x01, 0x18, 0x01])));
-      expect(sent(), contains(equals([0x01, 0x1B, 0x80])));
+      expect(sent().where((m) => m[1] == 0x1B), isEmpty);
     });
 
     test('app with 0x1B: the angle input steers by angle only, no Steer Left', () async {
@@ -185,22 +187,19 @@ Future<void> main() async {
       expect(messages().last, [0x01, 0x1B, 0x77]);
     });
 
-    test('app without 0x1B: angle and Steer Left both go out', () async {
+    test('app without 0x1B: Steer Left as before, no angle it did not ask for', () async {
       await connectApp([0x18, 0x19]);
+      device.steeringAngle.value = -10;
       final result = await core.obpMdnsEmulator.sendAction(
         _steerLeft(device.steerLeftButton),
         isKeyDown: true,
         isKeyUp: false,
       );
       expect(result, isA<Success>());
-      await IntegrationEnv.waitFor(() => received.length >= 6, description: 'angle + press');
-      expect(
-        messages(),
-        containsAll([
-          [0x01, 0x1B, 0x80],
-          [0x01, 0x18, 0x01],
-        ]),
-      );
+      await IntegrationEnv.waitFor(() => received.length >= 3, description: 'the press');
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(messages(), contains(equals([0x01, 0x18, 0x01])));
+      expect(messages().where((m) => m[1] == 0x1B), isEmpty);
     });
 
     test('app with 0x1B: the angle input steers by angle only, no Steer Left', () async {
@@ -299,7 +298,7 @@ class _TestActions extends BaseActions {
 class _RecordingSink implements SteeringAngleSink {
   @override
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(
-    OpenBikeProtocolParser.parseAppInfo(_appInfo([0x18, 0x19])),
+    OpenBikeProtocolParser.parseAppInfo(_appInfo([0x18, 0x19, 0x1B])),
   );
   @override
   bool get canSendSteeringAngle => true;

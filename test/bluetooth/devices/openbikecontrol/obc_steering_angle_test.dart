@@ -134,7 +134,7 @@ void main() {
 
     setUp(() {
       device = _FakeSteering();
-      sink = _FakeSink(_app([0x18, 0x19]));
+      sink = _FakeSink(_app([0x18, 0x19, 0x1B]));
       allowed = true;
     });
 
@@ -306,6 +306,18 @@ void main() {
     test('never gated in: nothing is sent at all', () {
       fakeAsync((async) {
         allowed = false;
+        final b = build()..attach(device);
+        device.steeringCalibrated.value = true;
+        device.steerRight(15);
+        async.elapse(const Duration(milliseconds: 100));
+        expect(sink.sent, isEmpty);
+        b.dispose();
+      });
+    });
+
+    test('apps that steer with Steer Left / Right but did not list 0x1B get no angle', () {
+      fakeAsync((async) {
+        sink = _FakeSink(_app([0x18, 0x19]));
         final b = build()..attach(device);
         device.steeringCalibrated.value = true;
         device.steerRight(15);
