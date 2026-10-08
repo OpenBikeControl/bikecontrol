@@ -31,6 +31,7 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart' show StandardMessageCodec;
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -579,6 +580,16 @@ Future<void> main() async {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(ControllerSettingsPage), findsOneWidget);
+    });
+
+    testWidgets('on a phone Ride ends just below "Something not working?", not a hand\'s width later', (tester) async {
+      tester.view.padding = const FakeViewPadding(bottom: 34);
+      tester.view.viewPadding = const FakeViewPadding(bottom: 34);
+      await pumpRide(tester);
+      final help = find.ancestor(of: find.text(l.chainSomethingNotWorking), matching: find.byType(BkTouchTarget)).first;
+      final below = tester.getRect(find.byType(HomePage)).bottom - tester.getRect(help).bottom;
+      // The tab bar under the content clears the home indicator itself.
+      expect(below, lessThanOrEqualTo(32));
     });
 
     testWidgets('without a controller, Ride invites the rider to pair one', (tester) async {

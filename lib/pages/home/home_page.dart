@@ -957,7 +957,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               if (vs != null) const Gap(20) else const _GapWhenRecording(),
               buttons,
               if (widget.showHelpRow) ...[const Gap(20), _helpRow()],
-              if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 32),
             ],
           );
         },
