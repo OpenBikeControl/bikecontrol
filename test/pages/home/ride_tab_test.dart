@@ -2,6 +2,7 @@
 // buttons". The setup chain's cards live on Devices now (HomeView.setup); Ride
 // keeps the banner that points at them.
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
@@ -560,6 +561,21 @@ Future<void> main() async {
         findsOneWidget,
       );
       expect(find.text(l.rideChange), findsOneWidget);
+    });
+
+    testWidgets('phone steering alone: no "Edit buttons", "Adjust" opens its steering page', (tester) async {
+      final phone = GyroscopeSteering()..isConnected = true;
+      phone.isCalibratedNotifier.value = true;
+      core.connection.devices.add(phone);
+      core.actionHandler.init(MyWhoosh());
+      await pumpRide(tester);
+
+      expect(find.text(l.rideEditButtons), findsNothing);
+      expect(find.text(l.rideTapButtonHint), findsNothing);
+      await tester.tap(find.text(l.steeringAdjust));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(ControllerSettingsPage), findsOneWidget);
     });
 
     testWidgets('without a controller, Ride invites the rider to pair one', (tester) async {

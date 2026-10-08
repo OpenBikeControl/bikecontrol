@@ -54,6 +54,11 @@ class ButtonEditPage extends StatefulWidget {
   /// Called after the hold-only action on this click moved to the button's
   /// long press (see [HoldActionWarning]). Without it the drawer closes.
   final VoidCallback? onMovedToLongPress;
+
+  /// Edits one direction of a steering input (phone steering, Elite Sterzo):
+  /// the drawer is headed by that direction, not a button, and says nothing
+  /// of triggers — an angle is held past the dead zone, never clicked.
+  final ({IconData icon, String label})? steeringInput;
   const ButtonEditPage({
     super.key,
     required this.keyPair,
@@ -63,6 +68,7 @@ class ButtonEditPage extends StatefulWidget {
     required this.trigger,
     this.embedded = false,
     this.onMovedToLongPress,
+    this.steeringInput,
   });
 
   @override
@@ -93,7 +99,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   bool get _usesFallbackLongPressMode {
     final button = _keyPair.buttons.firstOrNull;
-    if (button == null || widget.trigger != ButtonTrigger.longPress) {
+    if (button == null || widget.trigger != ButtonTrigger.longPress || widget.steeringInput != null) {
       return false;
     }
     return widget.device.supportsLongPress == false;
@@ -110,6 +116,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       }
       // Embedded, the pane picks the pressed button and rebuilds this.
       if (widget.embedded) return;
+      // A steering input "presses" whenever the bars move; that is not the
+      // rider picking another button to edit.
+      if (widget.steeringInput != null) return;
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
         final keyPair = widget.keymap.getOrCreateKeyPair(clickedButton, trigger: widget.trigger);
@@ -150,6 +159,28 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     child: Text(context.i18n.openConnectionSettings),
   );
 
+  /// The drawer's head for a steering direction: its arrow and its name.
+  Widget _steeringHead(({IconData icon, String label}) steering) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      spacing: 12,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(color: cs.muted, shape: BoxShape.circle),
+          child: Icon(steering.icon, size: 22, color: cs.foreground),
+        ),
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(steering.label).base.semiBold,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _holdWarning() => HoldActionWarning(
     action: _keyPair.inGameAction!,
     onAssignToLongPress: _moveToLongPress,
@@ -184,6 +215,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 8,
                   children: [
+                    if (widget.steeringInput case final steering?)
+                      Expanded(child: _steeringHead(steering))
+                    else
                     Row(
                       children: [
                         TweenAnimationBuilder<double>(
@@ -209,7 +243,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         Text(_keyPair.buttons.first.name).small,
                       ],
                     ),
-                    Expanded(child: SizedBox()),
+                    if (widget.steeringInput == null) Expanded(child: SizedBox()),
                     BkIconButton.ghost(
                       icon: Icon(LucideIcons.x),
                       label: context.i18n.close,
@@ -219,7 +253,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
-                if (!widget.embedded) Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
+                if (!widget.embedded && widget.steeringInput == null)
+                  Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
                 if (_usesFallbackLongPressMode)
                   Warning(
                     important: false,
@@ -258,7 +293,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ],
                     ),
                   ),
-                if (widget.trigger == ButtonTrigger.longPress)
+                if (widget.trigger == ButtonTrigger.longPress && widget.steeringInput == null)
                   Builder(
                     builder: (context) {
                       final singleClickPair = widget.keymap.getKeyPair(

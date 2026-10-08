@@ -1,7 +1,6 @@
 @Tags(['screenshots'])
 library;
 
-import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -14,7 +13,6 @@ import 'widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  final device = GyroscopeSteering();
   final angle = ValueNotifier<double>(8.0);
   final calibrated = ValueNotifier<bool>(true);
 
@@ -22,10 +20,8 @@ Future<void> main() async {
         angle: angle,
         calibrated: calibrated,
         threshold: 5,
-        device: device,
-        leftButton: GyroscopeSteeringButtons.leftSteer,
-        rightButton: GyroscopeSteeringButtons.rightSteer,
-        // keymap/onUpdate omitted ⇒ halves are inert (snapshot only).
+        leftAction: 'Steer Left',
+        rightAction: 'Steer Right',
       );
 
   testWidgets('SteeringGauge (active left) → PNG light/dark', (tester) async {

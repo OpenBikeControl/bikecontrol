@@ -111,17 +111,15 @@ Widget? controllerButtonsPicture({
     );
   }
 
+  // An angle, not buttons: the live gauge and the two actions it drives.
   if (device is SteeringDevice) {
     final steering = device as SteeringDevice;
     return SteeringGauge(
       angle: steering.steeringAngle,
       calibrated: steering.steeringCalibrated,
       threshold: steering.steeringThreshold,
-      device: device,
-      leftButton: steering.steerLeftButton,
-      rightButton: steering.steerRightButton,
-      keymap: keymap,
-      onUpdate: onUpdate,
+      leftAction: steeringActionFor(keymap, steering.steerLeftButton),
+      rightAction: steeringActionFor(keymap, steering.steerRightButton),
     );
   }
   final layout = device.controllerLayout;
@@ -217,9 +215,16 @@ class ControllerButtonsCard extends StatelessWidget {
               child: connecting ? BkShimmer(child: rawPicture) : rawPicture,
             ),
           );
-    final canEdit = keymap != null;
-    final hint = canEdit && picture != null ? _hint(context) : null;
-    final strip = picture != null
+    // A steering input has no buttons to tap, no presses to show and no
+    // list of them: it says what it does and shows its angle.
+    final steering = device is SteeringDevice;
+    final canEdit = keymap != null && !steering;
+    final hint = steering
+        ? _steeringHint(context)
+        : canEdit && picture != null
+        ? _hint(context, _touchPlatform ? context.i18n.rideTapButtonHint : context.i18n.rideClickButtonHint)
+        : null;
+    final strip = picture != null && !steering
         ? LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate)
         : null;
     final list = canEdit && (wide || showButtonList)
@@ -236,7 +241,7 @@ class ControllerButtonsCard extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final Widget content;
-          if (wide && picture != null && constraints.maxWidth >= sideBySideMinWidth) {
+          if (wide && !steering && picture != null && constraints.maxWidth >= sideBySideMinWidth) {
             content = Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -283,16 +288,43 @@ class ControllerButtonsCard extends StatelessWidget {
     );
   }
 
+  /// "Turn your handlebar to steer." and, for an input that drifts (phone
+  /// steering), a one-tap Recalibrate at its end.
+  Widget _steeringHint(BuildContext context) {
+    final hint = _hint(context, context.i18n.steeringRideHint);
+    final steering = device;
+    if (connecting || steering is! RecalibratableSteering || steering is! SteeringDevice) return hint;
+    return Row(
+      children: [
+        Expanded(child: hint),
+        ValueListenableBuilder<bool>(
+          valueListenable: (steering as SteeringDevice).steeringCalibrated,
+          builder: (context, calibrated, _) => BkTouchTarget(
+            child: Button.ghost(
+              key: const ValueKey('ride-steering-recalibrate'),
+              style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8)),
+              onPressed: calibrated ? (steering as RecalibratableSteering).recalibrate : null,
+              child: Text(
+                context.i18n.steeringRecalibrate,
+                style: context.typography.small.copyWith(
+                  color: calibrated ? bkAccentText(context) : Theme.of(context).colorScheme.mutedForeground,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   /// "Tap a button to change what it does." — or, while connecting, the
   /// controller's name and "Connecting…" in the same slot, at the hint's
   /// height either way.
-  Widget _hint(BuildContext context) {
+  Widget _hint(BuildContext context, String hint) {
     final cs = Theme.of(context).colorScheme;
     final style = context.typography.small.copyWith(color: cs.mutedForeground);
-    final text = Text(
-      _touchPlatform ? context.i18n.rideTapButtonHint : context.i18n.rideClickButtonHint,
-      style: style,
-    );
+    final text = Text(hint, style: style);
     final Widget slot = connecting
         ? Stack(
             children: [

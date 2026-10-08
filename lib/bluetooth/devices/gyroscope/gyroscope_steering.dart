@@ -5,19 +5,16 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
-import 'package:bike_control/widgets/ui/device_info.dart';
-import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Gyroscope and Accelerometer based steering device
 /// Detects handlebar movement when the phone is mounted on the handlebar
-class GyroscopeSteering extends BaseDevice implements SteeringDevice {
+class GyroscopeSteering extends BaseDevice implements SteeringDevice, RecalibratableSteering {
   GyroscopeSteering()
     : super(
         'Phone Steering',
@@ -49,6 +46,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
 
   /// Live signed steering angle (degrees) for the UI gauge. Positive ⇒ steer
   /// LEFT, negative ⇒ steer RIGHT (see [_applyPWMSteering]).
+  @override
   final ValueNotifier<double> steeringAngle = ValueNotifier(0.0);
 
   /// Mirrors [_isCalibrated] for the UI gauge.
@@ -84,7 +82,6 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
   // Magnetometer mode
   bool _useMagnetometer = false;
   double? _magnetometerCalibrationHeading;
-  double _currentMagnetometerAngle = 0.0;
   final List<double> _magnetometerCalibrationSamples = [];
 
   // Magnetometer filtering state
@@ -278,7 +275,6 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
       angleDeg += 360;
     }
 
-    _currentMagnetometerAngle = angleDeg;
 
     _processSteeringAngle(angleDeg);
   }
@@ -341,20 +337,9 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
     _estimator.reset();
     _magnetometerCalibrationHeading = null;
     _magnetometerCalibrationSamples.clear();
-    _currentMagnetometerAngle = 0.0;
     _filteredMagX = null;
     _filteredMagY = null;
     actionStreamInternal.add(LogNotification('Gyroscope Steering: Disconnected'));
-  }
-
-  @override
-  List<Widget> showMetaInformation(BuildContext context, {required bool showFull}) {
-    return [
-      Text(_isCalibrated ? 'Calibrated' : 'Calibrating...').xSmall.muted,
-      Text(
-        'Steering Angle: ${_isCalibrated ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°' : 'Calibrating...'}',
-      ).xSmall.muted,
-    ];
   }
 
   void _setCalibrated(bool value) {
@@ -364,12 +349,12 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
 
   /// Reset calibration so the sensors re-learn their neutral reference. Safe to
   /// call any time (also used by the assignable Calibrate action).
+  @override
   void recalibrate() {
     _setCalibrated(false);
     if (_useMagnetometer) {
       _magnetometerCalibrationHeading = null;
       _magnetometerCalibrationSamples.clear();
-      _currentMagnetometerAngle = 0.0;
       _filteredMagX = null;
       _filteredMagY = null;
     } else {
@@ -382,133 +367,21 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice {
     steeringAngle.value = 0.0;
   }
 
-  @override
-  Widget? buildPreferences(BuildContext context) {
-    return StatefulBuilder(
-      builder: (c, setState) => Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12,
-        children: [
-          // Magnetometer mode toggle
-          Checkbox(
-            trailing: Expanded(child: Text(AppLocalizations.of(context).useMagnetometerMode)),
-            state: _useMagnetometer ? CheckboxState.checked : CheckboxState.unchecked,
-            onChanged: (value) async {
-              setState(() {
-                _useMagnetometer = value == CheckboxState.checked;
-                // Reset calibration when switching modes
-                recalibrate();
-              });
+  /// Steers from the compass heading instead of the gyroscope — for phones
+  /// whose gyroscope drifts.
+  bool get useMagnetometer => _useMagnetometer;
 
-              // Restart sensor streams if device is connected
-              if (isConnected) {
-                await _startSensorStreams();
-                actionStreamInternal.add(
-                  LogNotification(
-                    'Switched to ${_useMagnetometer ? "magnetometer" : "gyroscope + accelerometer"} mode',
-                  ),
-                );
-              }
-            },
-          ),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              DeviceInfo(
-                title: AppLocalizations.of(context).steeringCalibration,
-                icon: LucideIcons.wrench,
-                value: _isCalibrated
-                    ? AppLocalizations.of(context).calibrationComplete
-                    : AppLocalizations.of(context).calibrationInProgress,
-              ),
-              DeviceInfo(
-                title: AppLocalizations.of(context).steeringAngle,
-                icon: LucideIcons.moveHorizontal,
-                value: _isCalibrated
-                    ? '${(_useMagnetometer ? _currentMagnetometerAngle : _estimator.angleDeg).toStringAsFixed(2)}°'
-                    : AppLocalizations.of(context).steeringCalibrating,
-              ),
-              if (kDebugMode && !_useMagnetometer)
-                DeviceInfo(
-                  title: 'Gyro Bias',
-                  icon: LucideIcons.gauge,
-                  value: '${_estimator.biasZRadPerSec.toStringAsFixed(4)} rad/s',
-                ),
-              if (kDebugMode && _useMagnetometer && _magnetometerCalibrationHeading != null)
-                DeviceInfo(
-                  title: 'Mag Heading',
-                  icon: LucideIcons.compass,
-                  value: '${_magnetometerCalibrationHeading!.toStringAsFixed(2)}°',
-                ),
-            ],
-          ),
-          Row(
-            spacing: 8,
-            children: [
-              PrimaryButton(
-                size: ButtonSize.small,
-                leading: !_isCalibrated ? SmallProgressIndicator() : null,
-                onPressed: !_isCalibrated
-                    ? null
-                    : () {
-                        recalibrate();
-                        // setState needed until the button wires to isCalibratedNotifier.
-                        setState(() {});
-                      },
-                child: Text(
-                  _isCalibrated
-                      ? AppLocalizations.of(context).calibrate
-                      : AppLocalizations.of(context).steeringCalibrating,
-                ),
-              ),
-              Builder(
-                builder: (context) {
-                  return PrimaryButton(
-                    size: ButtonSize.small,
-                    trailing: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.destructive,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text('${core.settings.getPhoneSteeringThreshold().toInt()}°'),
-                    ),
-                    onPressed: () {
-                      final values = [for (var i = 3; i <= 12; i += 1) i];
-                      showDropdown(
-                        context: context,
-                        builder: (b) => DropdownMenu(
-                          children: values
-                              .map(
-                                (v) => MenuButton(
-                                  child: Text('$v°'),
-                                  onPressed: (c) {
-                                    core.settings.setPhoneSteeringThreshold(v);
-                                    setState(() {});
-                                  },
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      );
-                    },
-                    child: Text(AppLocalizations.of(context).triggerThreshold),
-                  );
-                },
-              ),
-            ],
-          ),
-          if (!_isCalibrated)
-            Text(
-              _useMagnetometer
-                  ? AppLocalizations.of(context).calibratingMagnetometerHint
-                  : AppLocalizations.of(context).calibratingSensorsHint,
-            ).xSmall,
-        ],
-      ),
-    );
+  /// Switches the sensor the angle comes from and calibrates afresh.
+  Future<void> setUseMagnetometer(bool value) async {
+    if (value == _useMagnetometer) return;
+    _useMagnetometer = value;
+    recalibrate();
+    if (isConnected) {
+      await _startSensorStreams();
+      actionStreamInternal.add(
+        LogNotification('Switched to ${_useMagnetometer ? "magnetometer" : "gyroscope + accelerometer"} mode'),
+      );
+    }
   }
 }
 

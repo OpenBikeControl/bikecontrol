@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/utils/trainer_connect.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
@@ -1279,7 +1280,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       children: [
         RideSectionHeader(
           title: l.rideYourButtons,
-          linkLabel: single != null ? l.rideEditButtons : null,
+          // A steering input has no buttons to edit; its page tunes it.
+          linkLabel: single == null
+              ? null
+              : single is SteeringDevice
+              ? l.steeringAdjust
+              : l.rideEditButtons,
           onLink: single != null ? () => _openController(single) : null,
         ),
         // A controller arriving grows in, one leaving shrinks out, and the

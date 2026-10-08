@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 
 /// A device that reports a steering angle and drives steerLeft/steerRight —
-/// used to render the shared SteeringGauge (phone steering, Elite Sterzo, Rizer).
+/// an analog input, not buttons. Rendered by the shared SteeringGauge (phone
+/// steering, Elite Sterzo, Rizer) on Ride and on its steering page.
 abstract interface class SteeringDevice {
   /// Live calibrated steering angle in degrees, in the gauge's convention:
   /// positive ⇒ steering LEFT, negative ⇒ steering RIGHT (as phone steering
@@ -19,4 +20,10 @@ abstract interface class SteeringDevice {
 
   ControllerButton get steerLeftButton;
   ControllerButton get steerRightButton;
+}
+
+/// A [SteeringDevice] whose straight-ahead reference the rider can set again
+/// (phone steering drifts; it re-learns centre while the bars are still).
+abstract interface class RecalibratableSteering {
+  void recalibrate();
 }

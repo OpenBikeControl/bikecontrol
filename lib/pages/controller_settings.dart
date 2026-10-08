@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
@@ -20,7 +21,7 @@ import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
-import 'package:bike_control/widgets/controller/steering_gauge.dart';
+import 'package:bike_control/widgets/controller/steering_sections.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/emulation_card.dart';
 import 'package:bike_control/widgets/ui/loading_widget.dart';
@@ -102,6 +103,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
           final wide =
               MediaQuery.sizeOf(context).width >= Breakpoints.keymapSideBySide &&
               device is! Accessory &&
+              device is! SteeringDevice &&
               core.actionHandler.supportedApp != null &&
               mappingButtonsOf(device).isNotEmpty;
           if (wide) _selection.ensureFor(device);
@@ -110,6 +112,8 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
               BkPageHeader(
                 title: device is Accessory
                     ? AppLocalizations.of(context).deviceSettings
+                    : device is SteeringDevice
+                    ? AppLocalizations.of(context).steeringPageTitle
                     : AppLocalizations.of(context).controllerSettings,
                 columnWidth: wide ? _wideColumnWidth : BkPageColumn.defaultMaxWidth,
                 columnGutter: wide ? _wideGutter : 16,
@@ -121,7 +125,9 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                   // Button mapping. An accessory — a Headwind fan, a Climb —
                   // has no buttons of its own, so the section would render an
                   // empty mapping table under a heading that promises one.
-                  if (device is! Accessory) ...[
+                  // A steering input has an angle, not buttons: its two
+                  // directions and their actions are in [SteeringSections].
+                  if (device is! Accessory && device is! SteeringDevice) ...[
                     _buildSectionHeader(
                       AppLocalizations.of(context).buttonMapping,
                       trailing: _buildTrainerLabel(trainerApp == null ? '-' : shownKeymapName(trainerApp.name)),
@@ -150,8 +156,20 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                     const Gap(24),
                   ],
 
+                  // What steering drives and how it is tuned.
+                  if (device is SteeringDevice) ...[
+                    SteeringSections(
+                      device: device,
+                      keymap: keymap,
+                      onUpdate: () {
+                        if (mounted) setState(() {});
+                      },
+                    ),
+                    const Gap(24),
+                  ],
+
                   // Preferences
-                  if (device.buildPreferences(context) != null) ...[
+                  if (device is! SteeringDevice && device.buildPreferences(context) != null) ...[
                     _buildSectionHeader(AppLocalizations.of(context).preferences),
                     const Gap(8),
                     device.buildPreferences(context)!,
@@ -242,33 +260,15 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
   }
 
   Widget _buildDeviceCard(BaseDevice device) {
-    Widget? footer;
     if (device is SteeringDevice) {
-      final steering = device as SteeringDevice;
-      footer = Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: SteeringGauge(
-          angle: steering.steeringAngle,
-          calibrated: steering.steeringCalibrated,
-          threshold: steering.steeringThreshold,
-          device: device,
-          leftButton: steering.steerLeftButton,
-          rightButton: steering.steerRightButton,
-          keymap: core.actionHandler.supportedApp?.keymap,
-          onUpdate: () => setState(() {}),
-        ),
-      );
+      return SteeringHeroCard(device: device, keymap: core.actionHandler.supportedApp?.keymap);
     }
-
-    if (ZwiftRide.hasUnsupportedFirmware(device)) {
-      final notice = Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: ZwiftRideFirmwareNotice(device: device as ZwiftRide),
-      );
-      footer = footer == null
-          ? notice
-          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [footer, notice]);
-    }
+    final footer = ZwiftRide.hasUnsupportedFirmware(device)
+        ? Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: ZwiftRideFirmwareNotice(device: device as ZwiftRide),
+          )
+        : null;
 
     return Container(
       width: double.infinity,
@@ -416,7 +416,20 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
             );
           },
         ),
-        if (_isRemembered(device))
+        if (device is GyroscopeSteering)
+          // The phone is not a device to forget: steering with it is a
+          // setting, and this is the way back out of it.
+          BkGroupedRow(
+            key: const ValueKey('steering-turn-off'),
+            icon: LucideIcons.power,
+            title: AppLocalizations.of(context).steeringTurnOff,
+            onPressed: () {
+              core.settings.setPhoneSteeringEnabled(false);
+              core.connection.toggleGyroscopeSteering(false);
+              Navigator.of(context).maybePop();
+            },
+          )
+        else if (_isRemembered(device))
           // A remembered controller is a picture of a device, not a device:
           // there is no link to drop, so both disconnect variants collapse
           // into the one thing that can actually be done to it.
