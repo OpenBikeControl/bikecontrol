@@ -109,11 +109,18 @@ Future<NetworkCheck> guidedWatchCheck(
     await ctx.sleep(tick);
   }
 
+  // The system mDNS service (Android NSD — the recommended setting there —
+  // or Bonjour) answers every query itself, so nothing the trainer app asked
+  // ever reaches this probe: there is no failure to see, only a connection
+  // that did not happen yet. A warning here told every rider on the
+  // recommended setting that "something on this network could interfere";
+  // it is an informational pass, and the page's next-step line tells them to
+  // pick BikeControl in the app.
   if (osResponder) {
     return const NetworkCheck(
       id: NetworkCheckId.guidedWatch,
-      verdict: NetworkVerdict.warn,
-      detail: {'note': 'OS responder answers queries; only the TCP accept is visible'},
+      verdict: NetworkVerdict.pass,
+      detail: {'note': 'OS responder answers queries; only the TCP accept is visible', 'connected': 'false'},
     );
   }
 

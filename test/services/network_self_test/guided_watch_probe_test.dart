@@ -175,14 +175,22 @@ void main() {
       expect(check.verdict, NetworkVerdict.pass);
     });
 
-    test('warn: osResponder backend, never connects — only the TCP accept is observable', () async {
-      final check = await guidedWatchCheck(
-        ctx(backend: ObpMdnsBackend.osResponder),
-        window: _defaultWindow,
-        tick: _defaultTick,
-      );
-      expect(check.verdict, NetworkVerdict.warn);
-      expect(check.detail['note'], contains('TCP accept'));
+    // The system mDNS service (Android NSD) is the recommended setting, and
+    // under it the queries never reach BikeControl — so the watch can see
+    // nothing go wrong. Counting that as a warning told every rider on the
+    // recommended setting "something on this network could interfere".
+    test('pass with a note: osResponder backend, never connects — nothing to observe is not a warning', () async {
+      for (final platform in ['android', 'windows', 'macos']) {
+        final check = await guidedWatchCheck(
+          ctx(backend: ObpMdnsBackend.osResponder, platform: platform),
+          window: _defaultWindow,
+          tick: _defaultTick,
+        );
+        expect(check.verdict, NetworkVerdict.pass, reason: platform);
+        expect(check.detail['note'], contains('TCP accept'));
+        expect(check.detail['connected'], 'false');
+        expect(check.fixes, isEmpty);
+      }
     });
 
     test('count increase on an existing entry (no new list entry) still counts as a new ask', () async {
