@@ -24,6 +24,9 @@ BkStatusTone chainStatusTone(LinkStatus status) => switch (status) {
 /// Where a link row's text starts: the row inset, the icon tile and the gap.
 const double chainRowTextInset = BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap;
 
+/// The chevron a row with somewhere to go ends its header with.
+const Key chainRowChevronKey = ValueKey('chain-row-chevron');
+
 /// One link of the setup chain as a row of a Devices group: the device's tile,
 /// its name and a detail line, and its status as a dot and words at the end.
 ///
@@ -342,6 +345,13 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                   ],
                 ),
               ),
+            ],
+            // The whole header opens the link's page, and a green row has no
+            // button left to hint at that — the same quiet chevron as every
+            // other row that opens something, and Ride's step rows.
+            if (widget.onTap != null) ...[
+              const Gap(4),
+              Icon(LucideIcons.chevronRight, key: chainRowChevronKey, size: 16, color: cs.mutedForeground),
             ],
           ],
         ),

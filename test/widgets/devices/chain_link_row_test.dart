@@ -143,4 +143,51 @@ void main() {
     expect(during, lessThan(before));
     expect(during, greaterThan(after));
   });
+
+  group('a tappable row says so with a trailing chevron', () {
+    Future<void> pumpRow(WidgetTester tester, {VoidCallback? onTap}) async {
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ShadcnApp(
+          localizationsDelegates: [
+            ...ShadcnLocalizations.localizationsDelegates,
+            const OtherLocalizationsDelegate(),
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          theme: BkTheme.build(Brightness.dark),
+          home: Scaffold(
+            child: BkGroupedSection(
+              children: [
+                ChainLinkRow(
+                  link: _appLink(addressWarning: false, allDone: true),
+                  leading: const SizedBox(width: 36, height: 36),
+                  title: 'MyWhoosh',
+                  statusLabel: 'Empfängt Befehle',
+                  onTap: onTap,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('present, at the end of the header, when the row opens something', (tester) async {
+      await pumpRow(tester, onTap: () {});
+      final chevron = find.byKey(chainRowChevronKey);
+      expect(chevron, findsOneWidget);
+      expect(tester.widget<Icon>(chevron).icon, LucideIcons.chevronRight);
+      // After the status, not before it.
+      expect(tester.getCenter(chevron).dx, greaterThan(tester.getRect(find.text('Empfängt Befehle')).right));
+    });
+
+    testWidgets('absent when the row opens nothing', (tester) async {
+      await pumpRow(tester);
+      expect(find.byKey(chainRowChevronKey), findsNothing);
+    });
+  });
 }
