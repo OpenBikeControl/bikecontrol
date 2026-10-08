@@ -706,7 +706,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _runPrecheckFix(NetworkFixId fix) async {
     try {
-      await runNetworkFix(context, fix);
+      // _sheetContext: "Switch to Local" opens a permission sheet.
+      await runNetworkFix(_sheetContext, fix);
     } catch (e, s) {
       recordError(e, s, context: 'onboarding network precheck fix');
     }

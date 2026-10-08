@@ -12,7 +12,9 @@ import 'package:bike_control/services/network_self_test/network_fixes.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
 import 'package:bike_control/services/network_self_test/network_self_test_engine.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/widgets/network_check_row.dart';
+import 'package:bike_control/widgets/ui/permissions_list.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/utils/shared.dart' show Logger;
@@ -189,6 +191,25 @@ Future<void> main() async {
     await tester.pump();
 
     expect(find.byKey(const ValueKey('network-recommended-fix')), findsOneWidget);
+  });
+
+  testWidgets('a recommended "Switch to Local" opens its permission sheet instead of failing', (tester) async {
+    // An Android build without the accessibility service granted: the local
+    // control requirement reports not-granted, so the fix has to ask for it.
+    debugHostPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugHostPlatformOverride = null);
+    await _pumpFinished(tester, [
+      _probe(NetworkCheckId.resolveOwnHostname, NetworkVerdict.fail, fixes: [NetworkFixId.switchToLocal]),
+    ]);
+    final l10n = _l10n(tester);
+
+    await tester.ensureVisible(find.byKey(const ValueKey('network-recommended-fix')));
+    await tester.tap(find.byKey(const ValueKey('network-recommended-fix')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(PermissionList), findsOneWidget);
+    expect(find.text(l10n.networkFixFailed), findsNothing);
   });
 
   testWidgets('while connected, a recommended backend-switch fix is disabled like restart is', (tester) async {

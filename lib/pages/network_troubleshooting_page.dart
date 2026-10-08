@@ -117,6 +117,11 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   DateTime? _startedAt;
   String? _version;
 
+  /// Inside the page's [Scaffold], which is what provides the DrawerOverlay a
+  /// fix's permission sheet opens into. This State's own context sits above
+  /// it, and as a pushed route there is no other Scaffold to fall back on.
+  final _bodyKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -211,7 +216,9 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       }
       return;
     }
-    await runNetworkFix(context, fix);
+    final bodyContext = _bodyKey.currentContext;
+    if (bodyContext == null) return;
+    await runNetworkFix(bodyContext, fix);
     // A full re-run: the checks are cheap and the watch row is skippable, so
     // there is no reason to re-verify just the one fixed check.
     await _start();
@@ -286,6 +293,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
         ),
       ],
       child: Container(
+        key: _bodyKey,
         color: tokens.pageBg,
         child: SingleChildScrollView(
           child: BkPageColumn(
