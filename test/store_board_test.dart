@@ -356,6 +356,51 @@ void main() {
     });
   });
 
+  group('headline contrast', () {
+    // The headline is large bold type, so WCAG's large-text floor (3:1) is the
+    // legal minimum — but it is the one line a shopper reads, on a thumbnail,
+    // so the white claim is held to the body-text 4.5:1 and only the accent
+    // phrase gets the 3:1 allowance. Measured against the worst background the
+    // strip can sit on: either gradient stop, hue-shifted for the scene, with
+    // the glow's light added at that point of the strip.
+    double luminance(Color c) {
+      double ch(double v) => v <= 0.03928 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
+      return 0.2126 * ch(c.r) + 0.7152 * ch(c.g) + 0.0722 * ch(c.b);
+    }
+
+    double contrast(Color a, Color b) {
+      final la = luminance(a), lb = luminance(b);
+      return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+    }
+
+    for (final slot in _boardSlots) {
+      test('${slot.type.name}: every scene headline reads on its board', () {
+        final canvas = slot.size / kStorePixelRatio;
+        final side = canvas.width * 0.07;
+        final top = canvas.height * 0.035;
+        final strip = Rect.fromLTWH(side, top, canvas.width - 2 * side, CustomFrame.band(slot.type, canvas));
+        final points = <Offset>[
+          strip.topLeft, strip.topCenter, strip.topRight,
+          strip.centerLeft, strip.center, strip.centerRight,
+          strip.bottomLeft, strip.bottomCenter, strip.bottomRight,
+        ];
+        for (final scene in kSceneOrder) {
+          final style = kStoreBrandStyle.forScene(scene);
+          for (final stop in <Color>[style.gradientTop, style.gradientBottom]) {
+            for (final p in points) {
+              final glow = CustomFrame.glowAlphaAt(p, canvas);
+              final bg = Color.lerp(stop, const Color(0xFFFFFFFF), glow)!;
+              expect(contrast(style.titleColor, bg), greaterThanOrEqualTo(4.5),
+                  reason: '$scene: white headline on $bg at $p');
+              expect(contrast(style.accentColor, bg), greaterThanOrEqualTo(3.0),
+                  reason: '$scene: accent on $bg at $p');
+            }
+          }
+        }
+      });
+    }
+  });
+
   group('the copy', () {
     test('every scene in the listing has a headline in every locale', () {
       for (final scene in kSceneOrder) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/main.dart' show shownTrainerAppName;
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -748,7 +749,10 @@ class _ShellDeviceChipsState extends State<ShellDeviceChips> {
         final muted = context.typography.xSmall.copyWith(color: cs.mutedForeground);
         final strong = context.typography.xSmall.copyWith(color: cs.foreground, fontWeight: FontWeight.w500);
         final battery = controller is BluetoothDevice ? controller.batteryLevel : null;
-        final appName = core.settings.getTrainerApp()?.name;
+        final appName = switch (core.settings.getTrainerApp()?.name) {
+          final name? => shownTrainerAppName(name),
+          null => null,
+        };
         return Row(
           key: const ValueKey('shell-device-chips'),
           mainAxisSize: MainAxisSize.min,

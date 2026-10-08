@@ -6,6 +6,8 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode, screenshotTrainerAppName;
 import 'package:bike_control/pages/controller_settings.dart';
+import 'package:bike_control/pages/navigation.dart';
+import 'package:bike_control/pages/shell/app_shell.dart' show AppSection;
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -61,6 +63,10 @@ Future<void> main() async {
   final pages = <String, Widget Function()>{
     'controller settings': () => ControllerSettingsPage(device: device),
     'connection settings': () => const TrainerConnectionSettingsPage(),
+    // The Ride tab's ready banner ("Your buttons are reaching …") and, on
+    // wide layouts, the shell's trainer chip both name the app.
+    'ride': () => const Navigation(),
+    'devices': () => const Navigation(initialSection: AppSection.devices),
   };
 
   for (final MapEntry(key: name, value: page) in pages.entries) {
@@ -83,5 +89,11 @@ Future<void> main() async {
     addTearDown(() => screenshotMode = true);
     await pump(tester, ControllerSettingsPage(device: device));
     expect(find.text(AppLocalizations.current.mappingForApp('MyWhoosh')), findsOneWidget);
+  });
+
+  testWidgets('the generic name is in the rider\'s language', (tester) async {
+    await AppLocalizations.load(const Locale('de'));
+    addTearDown(() => AppLocalizations.load(const Locale('en')));
+    expect(screenshotTrainerAppName, 'Trainer-App');
   });
 }

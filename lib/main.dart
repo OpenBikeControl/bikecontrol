@@ -85,8 +85,9 @@ bool debugShowsRealKeymapsInScreenshotMode = false;
 /// Whether [screenshotMode] is dressing keymaps up for the store boards.
 bool get screenshotKeymapsStaged => screenshotMode && !debugShowsRealKeymapsInScreenshotMode;
 
-/// The generic name the store boards show in place of a trainer app's.
-const screenshotTrainerAppName = 'Trainer app';
+/// The generic name the store boards show in place of a trainer app's, in the
+/// board's language — an English "Trainer app" in a German UI read as a bug.
+String get screenshotTrainerAppName => AppLocalizations.current.chainAppTitle;
 
 /// [name] as a screen may show it: the generic [screenshotTrainerAppName]
 /// under [screenshotMode], so every label on a store board names the app the

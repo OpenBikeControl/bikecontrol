@@ -16,6 +16,8 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/pages/shell/app_shell.dart' show AppSection;
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -39,7 +41,6 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
-import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
@@ -233,8 +234,15 @@ Future<void> main() async {
 
   debugDisableShadows = true;
 
-  // Locales to render — see kScreenshotLocales.
-  const screenshotLocales = kScreenshotLocales;
+  // Locales to render — see kScreenshotLocales. `--dart-define=STORE_LOCALES=en`
+  // and `--dart-define=STORE_SLOTS=iPhone,desktop` narrow a run to a quick
+  // preview; a full regeneration leaves both unset.
+  const localeFilter = String.fromEnvironment('STORE_LOCALES');
+  const slotFilter = String.fromEnvironment('STORE_SLOTS');
+  final screenshotLocales =
+      localeFilter.isEmpty ? kScreenshotLocales : kScreenshotLocales.where(localeFilter.split(',').contains).toList();
+  final boardSlots =
+      slotFilter.isEmpty ? sizes : sizes.where((s) => slotFilter.split(',').contains(s.type.name)).toList();
 
   // Marketing copy, the brand gradient and the per-scene hue ramp all live in
   // store_copy.dart, so the board tests can read them without booting the app.
@@ -256,10 +264,14 @@ Future<void> main() async {
     // core.settings.reset() (in main) clears this, so re-assert the Base version
     // is active — otherwise the overview shows the "N day trial available" banner.
     IAPManager.instance.isPurchased.value = true;
+    // Every board is shot with Pro: the listing shows the full app, and a
+    // "Base" plan pill next to BikeControl's own virtual shifting read as
+    // "Base includes virtual shifting", which it does not.
+    IAPManager.instance.setProForTesting(enabled: true);
     for (final loc in screenshotLocales) {
       await AppLocalizations.load(Locale(loc));
       screenshotLocale = Locale(loc);
-      for (final size in sizes) {
+      for (final size in boardSlots) {
         await tester.pumpWidget(
           ScreenshotApp(
             locale: Locale(loc),
@@ -436,6 +448,27 @@ Future<void> main() async {
     activityLogClock = () => base;
   }
 
+  // The trainer app connected over the Network method (OpenBikeControl over
+  // mDNS): the app's own hello, through the emulator's message handler, as a
+  // real connection arrives. Named generically — the boards keep other apps'
+  // names off the listing.
+  Future<void> connectAppOverNetwork() async {
+    await core.settings.setObpMdnsEnabled(true);
+    core.obpMdnsEmulator.isStarted.value = true;
+    core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
+      appId: screenshotTrainerAppName,
+      appVersion: '1.0',
+      supportedButtons: MyWhoosh().defaultObpSupportedButtons,
+    ));
+  }
+
+  Future<void> disconnectAppOverNetwork() async {
+    await core.settings.setObpMdnsEnabled(false);
+    core.obpMdnsEmulator.isStarted.value = false;
+    core.obpMdnsEmulator.connectedApp.value = null;
+    core.obpMdnsEmulator.isConnected.value = false;
+  }
+
   // The home screen — the first board on the listing, so it has to show a
   // FINISHED setup. The home chain derives its top banner from the cards below
   // it, and anything outstanding turns that banner amber ("3 steps left —
@@ -535,14 +568,16 @@ Future<void> main() async {
     core.settings.setTrainerApp(MyWhoosh());
     core.settings.setKeyMap(MyWhoosh());
     core.settings.setLastTarget(Target.thisDevice);
-    core.settings.setObpMdnsEnabled(false);
-    core.obpMdnsEmulator.isStarted.value = false;
-    core.obpMdnsEmulator.connectedApp.value = null;
-    await shoot(
-      tester,
-      'trainer',
-      () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
-    );
+    await connectAppOverNetwork();
+    try {
+      await shoot(
+        tester,
+        'trainer',
+        () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
+      );
+    } finally {
+      await disconnectAppOverNetwork();
+    }
   });
 
   testGoldens('Customization', (WidgetTester tester) async {
@@ -555,32 +590,55 @@ Future<void> main() async {
     );
   });
 
+  // The on-screen remote, sending over the Network method — the generic
+  // connection, so the board does not lead with one app's own method name.
   testGoldens('Trainer Controls', (WidgetTester tester) async {
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
-    core.settings.setMyWhooshLinkEnabled(true);
-    core.whooshLink.isConnected.value = true;
-    await shoot(
-      tester,
-      'companion',
-      () => BikeControlApp(customChild: ButtonSimulator()),
-    );
+    core.settings.setMyWhooshLinkEnabled(false);
+    core.whooshLink.isConnected.value = false;
+    await connectAppOverNetwork();
+    try {
+      await shoot(
+        tester,
+        'companion',
+        () => BikeControlApp(customChild: ButtonSimulator()),
+      );
+    } finally {
+      await disconnectAppOverNetwork();
+    }
   });
 
-  testGoldens('Virtual Shifting', (WidgetTester tester) async {
+  // The Devices tab: the whole chain — controller, smart trainer, trainer
+  // app — set up and green, in the same state the Ride board shows.
+  testGoldens('Devices', (WidgetTester tester) async {
+    final savedDevices = core.connection.devices.toList();
+    core.connection.devices
+      ..clear()
+      ..addAll([device, proxy]);
+    core.connection.hasDevices.value = true;
+    await core.settings.setClickV2OnboardingDone(true);
+    propPrefs.setZwiftClickV2LastUnlock(device.scanResult.deviceId, DateTime.now());
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
-    // Put the proxy into virtual-shifting mode: the board is Settings →
-    // Virtual shifting for that trainer (the Smart Trainer page is hardware
-    // only now).
+    proxy.debugSetTrainerAppConnected(true);
     proxy.debugAttachFitnessBike(fbd);
-    await shoot(
-      tester,
-      'virtualshifting',
-      () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
-    );
+    try {
+      await shoot(
+        tester,
+        'devices',
+        () => BikeControlApp(customChild: const Navigation(initialSection: AppSection.devices)),
+      );
+    } finally {
+      proxy.debugAttachFitnessBike(null);
+      proxy.debugSetTrainerAppConnected(false);
+      core.connection.devices
+        ..clear()
+        ..addAll(savedDevices);
+      core.connection.hasDevices.value = core.connection.devices.isNotEmpty;
+    }
   });
 
   // Virtual shifting → Per-gear ratios, with the front derailleur switched on
@@ -588,8 +646,8 @@ Future<void> main() async {
   // changes what the drivetrain reports (2× notation, ring-aware ratios),
   // which every later scene sharing this trainer would otherwise inherit.
   testGoldens('Virtual Shifting Settings', (WidgetTester tester) async {
-    core.settings.setTrainerApp(Zwift());
-    core.settings.setKeyMap(Zwift());
+    core.settings.setTrainerApp(keymap);
+    core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
     final savedConfig = core.shiftingConfigs.activeFor(proxy.trainerKey);

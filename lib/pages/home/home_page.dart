@@ -662,7 +662,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       trainer: sensorsOnly ? null : trainer,
       sensors: sensorsOnly ? _readSensors() : null,
       app: AppInput(
-        name: trainerApp?.name,
+        // Display only: the store boards hide the app's name (see
+        // shownTrainerAppName), and every label on the chain reads it here.
+        name: trainerApp == null ? null : shownTrainerAppName(trainerApp.name),
         selfHosted: trainerApp is BikeControl,
         hasEnabledConnection: core.logic.enabledTrainerConnections.isNotEmpty,
         isConnected: core.logic.appFacingConnections.isNotEmpty,

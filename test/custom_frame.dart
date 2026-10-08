@@ -197,10 +197,33 @@ class CustomFrame extends StatelessWidget {
   /// to zero across nine tenths of the canvas, behind a phone covering most of
   /// it, is invisible. [_glowStops] holds better than half the strength through
   /// the inner half before dropping, which is what gives the light a centre.
-  static const double _glowPeak = 0.34;
-  static const double _glowRadius = 0.62;
-  static const Alignment _glowCenter = Alignment(-0.1, -0.35);
+  ///
+  /// It sits behind the device, below the headline, not behind the type: lit
+  /// from under the claim, the board's light end took white type down to 3:1
+  /// and the accent phrase to 2:1. `store_board_test.dart` holds the strip's
+  /// contrast against exactly this falloff.
+  static const double _glowPeak = 0.20;
+  static const double _glowRadius = 0.50;
+  static const Alignment _glowCenter = Alignment(0, 0.3);
   static const List<double> _glowStops = <double>[0.0, 0.45, 1.0];
+
+  /// The glow's white opacity at [point] on a [canvas] — the same falloff the
+  /// `RadialGradient` below paints, so `store_board_test.dart` can hold the
+  /// headline's contrast against the light it actually sits in.
+  static double glowAlphaAt(Offset point, Size canvas) {
+    final centre = _glowCenter.withinRect(Offset.zero & canvas);
+    final reach = _glowRadius * canvas.shortestSide;
+    final t = (point - centre).distance / reach;
+    final peaks = <double>[_glowPeak, _glowPeak * 0.55, 0];
+    if (t >= _glowStops.last) return 0;
+    for (var i = 1; i < _glowStops.length; i++) {
+      if (t <= _glowStops[i]) {
+        final f = (t - _glowStops[i - 1]) / (_glowStops[i] - _glowStops[i - 1]);
+        return peaks[i - 1] + (peaks[i] - peaks[i - 1]) * f;
+      }
+    }
+    return 0;
+  }
 
   /// The width the headline is laid out at: [strip] — the reserved band — or
   /// the widest single word in [title], whichever is larger.
