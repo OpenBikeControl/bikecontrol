@@ -56,4 +56,14 @@ Future<void> main() async {
       await tester.pumpWidget(const SizedBox());
     });
   }
+
+  testWidgets('the icons sit a breath below the bar\'s top line, not against it', (tester) async {
+    final shell = ShellController();
+    addTearDown(shell.dispose);
+    await pump(tester, shell, bottomInset: 0, dpr: 1);
+    final bar = tester.getRect(find.byType(ShellTabBar));
+    final firstItem = tester.getRect(find.byType(ShellNavItem).first);
+    expect(firstItem.top - bar.top, greaterThanOrEqualTo(8));
+    await tester.pumpWidget(const SizedBox());
+  });
 }

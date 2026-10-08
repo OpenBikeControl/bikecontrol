@@ -342,7 +342,8 @@ class ShellTabBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            // Room under the bar's top line before the icons.
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 2),
             child: Center(
               heightFactor: 1,
               child: ConstrainedBox(
