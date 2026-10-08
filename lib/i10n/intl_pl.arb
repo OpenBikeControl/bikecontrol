@@ -87,6 +87,7 @@
   "actionCalibratePhoneSteering": "Kalibruj kierowanie",
   "steeringRecalibrating": "Ponowna kalibracja kierowania…",
   "phoneSteeringNotEnabled": "Kierowanie telefonem nie jest włączone",
+  "phoneSteeringName": "Kierowanie telefonem",
   "steeringCalibrating": "Kalibrowanie…",
   "steeringRideHint": "Skręć kierownicą, aby sterować.",
   "steeringAdjust": "Dostosuj",

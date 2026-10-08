@@ -87,6 +87,7 @@
   "actionCalibratePhoneSteering": "Calibrer la direction",
   "steeringRecalibrating": "Recalibrage de la direction…",
   "phoneSteeringNotEnabled": "La direction au téléphone n'est pas activée",
+  "phoneSteeringName": "Direction au téléphone",
   "steeringCalibrating": "Calibrage…",
   "steeringRideHint": "Tourne ton guidon pour diriger.",
   "steeringAdjust": "Ajuster",

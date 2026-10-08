@@ -87,6 +87,7 @@
   "actionCalibratePhoneSteering": "Calibra lo sterzo",
   "steeringRecalibrating": "Ricalibrazione dello sterzo…",
   "phoneSteeringNotEnabled": "Lo sterzo con il telefono non è attivo",
+  "phoneSteeringName": "Sterzo con il telefono",
   "steeringCalibrating": "Calibrazione…",
   "steeringRideHint": "Gira il manubrio per sterzare.",
   "steeringAdjust": "Regola",

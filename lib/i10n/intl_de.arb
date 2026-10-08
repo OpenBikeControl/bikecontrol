@@ -87,6 +87,7 @@
   "actionCalibratePhoneSteering": "Lenkung kalibrieren",
   "steeringRecalibrating": "Lenkung wird neu kalibriert…",
   "phoneSteeringNotEnabled": "Handy-Lenkung ist nicht aktiviert",
+  "phoneSteeringName": "Handy-Lenkung",
   "steeringCalibrating": "Wird kalibriert…",
   "steeringRideHint": "Dreh den Lenker, um zu lenken.",
   "steeringAdjust": "Anpassen",

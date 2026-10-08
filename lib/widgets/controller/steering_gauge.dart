@@ -195,10 +195,13 @@ class SteeringGauge extends StatelessWidget {
                       ),
                     ),
                     const Gap(4),
+                    // Each end takes the room its words need, so two short
+                    // labels never wrap just because the row is split in half.
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
+                        Flexible(
                           child: _ActionEnd(
                             icon: LucideIcons.chevronsLeft,
                             label: leftAction ?? l.noActionAssigned,
@@ -207,7 +210,7 @@ class SteeringGauge extends StatelessWidget {
                           ),
                         ),
                         const Gap(12),
-                        Expanded(
+                        Flexible(
                           child: _ActionEnd(
                             icon: LucideIcons.chevronsRight,
                             label: rightAction ?? l.noActionAssigned,
@@ -253,23 +256,26 @@ class _ActionEnd extends StatelessWidget {
       padding: const EdgeInsets.only(top: 1),
       child: Icon(icon, size: 16, color: active ? color : cs.mutedForeground),
     );
-    final text = Flexible(
-      child: Text(
-        label,
-        textAlign: end ? TextAlign.end : TextAlign.start,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: context.typography.small.copyWith(
-          color: color,
-          fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-        ),
+    final text = Text(
+      label,
+      maxLines: 1,
+      softWrap: false,
+      style: context.typography.small.copyWith(
+        color: color,
+        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
       ),
     );
-    return Row(
-      mainAxisAlignment: end ? MainAxisAlignment.end : MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 4,
-      children: end ? [text, glyph] : [glyph, text],
+    // One line, always: when both actions don't fit side by side at full
+    // size, each shrinks a little rather than breaking onto a second line.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: end ? Alignment.centerRight : Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 4,
+        children: end ? [text, glyph] : [glyph, text],
+      ),
     );
   }
 }

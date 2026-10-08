@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -24,6 +25,11 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
         buttonPrefix: 'gyro',
         icon: LucideIcons.phone,
       );
+
+  /// 'Phone Steering' stays the device's id in logs; riders see it in their
+  /// language.
+  @override
+  String displayName(BuildContext context) => AppLocalizations.of(context).phoneSteeringName;
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(

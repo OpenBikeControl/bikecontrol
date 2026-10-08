@@ -572,6 +572,9 @@ Future<void> main() async {
 
       expect(find.text(l.rideEditButtons), findsNothing);
       expect(find.text(l.rideTapButtonHint), findsNothing);
+      // A steering sensor has no buttons: the section is "Steering".
+      expect(find.text(l.rideYourButtons.toUpperCase()), findsNothing);
+      expect(find.text(l.steeringPageTitle.toUpperCase()), findsOneWidget);
       await tester.tap(find.text(l.steeringAdjust));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));

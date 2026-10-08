@@ -56,6 +56,7 @@
   "actionCalibratePhoneSteering": "Calibrate Steering",
   "steeringRecalibrating": "Recalibrating steering…",
   "phoneSteeringNotEnabled": "Phone steering isn't enabled",
+  "phoneSteeringName": "Phone steering",
   "steeringCalibrating": "Calibrating…",
   "steeringRideHint": "Turn your handlebar to steer.",
   "@steeringRideHint": {"description": "Ride tab: line above the live steering gauge of a steering input (phone steering, Elite Sterzo/Rizer), in place of the tap-a-button hint."},

@@ -12,7 +12,9 @@ import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -72,6 +74,26 @@ Future<void> main() async {
       expect(find.byKey(const ValueKey('steering-angle-readout')), findsOneWidget);
     });
   }
+
+  testWidgets('phone steering goes by its name in the app\'s language', (tester) async {
+    final l = await pump(tester);
+    expect(find.text(l.phoneSteeringName), findsOneWidget);
+    expect(find.text('Phone Steering'), findsNothing);
+  });
+
+  group('with the real fonts', () {
+    setUpAll(loadAppFonts);
+
+    testWidgets('at phone width each direction\'s action under the gauge stays on one line', (tester) async {
+      final l = await pump(tester);
+      for (final text in [l.actionSteerLeft, l.actionSteerRight]) {
+        final label = find.descendant(of: find.byType(SteeringGauge), matching: find.text(text));
+        final style = tester.widget<Text>(label).style!;
+        final lineHeight = (style.fontSize ?? 14) * (style.height ?? 1.6);
+        expect(tester.getSize(label).height, lessThan(lineHeight * 1.5), reason: '$text wraps');
+      }
+    });
+  });
 
   testWidgets('each direction names the action it drives', (tester) async {
     final l = await pump(tester);

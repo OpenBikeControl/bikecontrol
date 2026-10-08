@@ -1279,7 +1279,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         RideSectionHeader(
-          title: l.rideYourButtons,
+          // A steering sensor alone has no buttons: the section is Steering.
+          title: shown.isNotEmpty && shown.every((d) => d is SteeringDevice) ? l.steeringPageTitle : l.rideYourButtons,
           // A steering input has no buttons to edit; its page tunes it.
           linkLabel: single == null
               ? null
