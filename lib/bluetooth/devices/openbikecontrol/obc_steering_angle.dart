@@ -7,6 +7,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:flutter/foundation.dart';
 
 /// An OpenBikeControl transport (BLE or network) that can carry the `0x1B`
@@ -29,6 +30,16 @@ bool appWantsSteeringAngle(AppInfo app) =>
     app.supportsSteeringAngle ||
     app.supportedActions.contains(InGameAction.steerLeft) ||
     app.supportedActions.contains(InGameAction.steerRight);
+
+/// Steer Left / Right presses from an angle input are left out for an app
+/// that listed `0x1B`: it steers from the angle, which is already streaming
+/// for every button of [keyPair]. Presses from plain buttons (a controller
+/// key mapped to Steer Left) are never dropped.
+bool steersByAngleOnly(AppInfo app, KeyPair keyPair) =>
+    app.supportsSteeringAngle &&
+    (keyPair.inGameAction == InGameAction.steerLeft || keyPair.inGameAction == InGameAction.steerRight) &&
+    keyPair.buttons.isNotEmpty &&
+    keyPair.buttons.every(core.obcSteeringAngle.coversSteeringButton);
 
 /// The same conditions under which this device's Steer Left / Right presses
 /// would reach the trainer app: one of its steering buttons is mapped to a

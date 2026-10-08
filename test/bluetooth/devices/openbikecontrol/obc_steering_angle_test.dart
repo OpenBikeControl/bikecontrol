@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';

@@ -868,6 +868,10 @@ class Connection {
     for (final connection in appConnections) {
       connection.isConnected.addListener(() => _inactivityDisconnector?.onTrainerConnectionChanged());
     }
+    // Steering devices' calibrated angle rides to OpenBikeControl apps as 0x1B.
+    core.obcSteeringAngle
+      ..watchDevices(connectionStream)
+      ..watchApps([core.obpMdnsEmulator, core.obpBluetoothEmulator]);
     // It is also what tells the home screen an app that disconnected from one
     // that never connected — whichever tab the rider was on at the time.
     core.appConnectionLatch.watch([

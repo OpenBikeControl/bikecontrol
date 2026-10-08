@@ -7,6 +7,8 @@ abstract interface class SteeringDevice {
   /// Live calibrated steering angle in degrees, in the gauge's convention:
   /// positive ⇒ steering LEFT, negative ⇒ steering RIGHT (as phone steering
   /// reports it). Devices whose physical angle is the other way round negate it.
+  /// OpenBikeControl's `0x1B` Steering Angle is positive ⇒ RIGHT; the
+  /// ObcSteeringAngleBroadcaster flips the sign on the way out.
   ValueListenable<double> get steeringAngle;
 
   /// True once the device has finished its initial calibration.

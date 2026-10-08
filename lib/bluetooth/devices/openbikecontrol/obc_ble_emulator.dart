@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/app_info_reassembler.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -24,8 +25,11 @@ import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' hide ButtonState;
 import 'package:universal_ble/universal_ble.dart';
 
-class OpenBikeControlBluetoothEmulator extends TrainerConnection with PeripheralAdvertisingRecovery {
-  final _server = PeripheralServer();
+class OpenBikeControlBluetoothEmulator extends TrainerConnection
+    with PeripheralAdvertisingRecovery
+    implements SteeringAngleSink {
+  final PeripheralServer _server;
+  @override
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
@@ -35,8 +39,9 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
   @override
   PeripheralServer get advertisingServer => _server;
 
-  OpenBikeControlBluetoothEmulator()
-    : super(
+  OpenBikeControlBluetoothEmulator({@visibleForTesting PeripheralServer? server})
+    : _server = server ?? PeripheralServer(),
+      super(
         title: () => AppLocalizations.current.connectUsingBluetooth,
         type: ConnectionMethodType.openBikeControl,
         supportedActions: InGameAction.values,
@@ -112,29 +117,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
           value,
         ) {
           if (value == null) return PeripheralWriteRequestResult();
-          if (kDebugMode) {
-            print('Write request for characteristic: $characteristicId: ${bytesToReadableHex(value)}');
-          }
-          final appInfo = _appInfoReassembler.offer(value);
-          if (appInfo == null) {
-            core.connection.signalNotification(
-              LogNotification('Error parsing App Info ${bytesToHex(value)}: ${_appInfoReassembler.lastError}'),
-            );
-            return PeripheralWriteRequestResult();
-          }
-          isConnected.value = true;
-          _currentDeviceId = deviceId;
-          connectedApp.value = appInfo;
-          supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
-          final trainerApp = core.settings.getTrainerApp();
-          if (trainerApp != null) {
-            unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
-          }
-          core.connection.signalNotification(
-            AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
-          );
-          core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
-          return PeripheralWriteRequestResult();
+          return onAppInfoWrite(deviceId, value);
         });
       }
 
@@ -194,6 +177,34 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
     await restartAdvertising();
   }
 
+  /// An App Information write from the central (possibly one fragment of it).
+  @visibleForTesting
+  PeripheralWriteRequestResult onAppInfoWrite(String deviceId, Uint8List value) {
+    if (kDebugMode) {
+      print('App info write from $deviceId: ${bytesToReadableHex(value)}');
+    }
+    final appInfo = _appInfoReassembler.offer(value);
+    if (appInfo == null) {
+      core.connection.signalNotification(
+        LogNotification('Error parsing App Info ${bytesToHex(value)}: ${_appInfoReassembler.lastError}'),
+      );
+      return PeripheralWriteRequestResult();
+    }
+    isConnected.value = true;
+    _currentDeviceId = deviceId;
+    connectedApp.value = appInfo;
+    supportedActions = appInfo.supportedButtons.mapNotNull((b) => b.action).toList();
+    final trainerApp = core.settings.getTrainerApp();
+    if (trainerApp != null) {
+      unawaited(core.settings.setObpSupportedButtons(trainerApp.name, appInfo.supportedButtons));
+    }
+    core.connection.signalNotification(
+      AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
+    );
+    core.connection.signalNotification(LogNotification('Parsed App Info: $appInfo'));
+    return PeripheralWriteRequestResult();
+  }
+
   @override
   Future<void> startServiceAdvertising() => _server.startAdvertising(
     services: [OpenBikeControlConstants.SERVICE_UUID],
@@ -242,6 +253,13 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
       );
     }
 
+    if (steersByAngleOnly(app, keyPair)) {
+      return Success(
+        '${inGameAction.title} sent as steering angle',
+        button: keyPair.buttons.firstOrNull,
+      );
+    }
+
     final mappedButtons = app.supportedButtons.filter(
       (supportedButton) => supportedButton.action == inGameAction,
     );
@@ -286,6 +304,16 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection with Peripheral
       button: keyPair.buttons.firstOrNull,
     );
   }
+
+  @override
+  bool get canSendSteeringAngle => _currentDeviceId != null && connectedApp.value != null;
+
+  @override
+  Future<void> sendSteeringAngle(int value) => _server.notify(
+    characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+    value: OpenBikeProtocolParser.encodeSteeringAngleState(value),
+    deviceId: _currentDeviceId,
+  );
 
   @override
   TrainerConnectionType? get virtualShiftingTransport => TrainerConnectionType.bluetooth;

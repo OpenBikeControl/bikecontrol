@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/app_connection_latch.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
@@ -97,6 +98,13 @@ class Core {
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final local = Local();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
+
+  /// Streams steering devices' calibrated angle to connected OpenBikeControl
+  /// apps as `0x1B`. Not final: tests swap in their own.
+  late ObcSteeringAngleBroadcaster obcSteeringAngle = ObcSteeringAngleBroadcaster(
+    sinks: () => logic.connectedTrainerConnections.whereType<SteeringAngleSink>(),
+    isAllowed: obcSteeringAngleAllowed,
+  );
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
   late final emulation = EmulationManager();
@@ -460,7 +468,7 @@ class CoreLogic {
   bool get hasOfficialConnectionMethods =>
       showObpBluetoothEmulator || showObpMdnsEmulator || showZwiftBleEmulator || showZwiftMsdnEmulator;
 
-  List<TrainerConnection> get connectedTrainerConnections => [
+  List<TrainerConnection> get connectedTrainerConnections => <TrainerConnection>[
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (core.settings.getLocalEnabled()) core.local,
@@ -471,7 +479,7 @@ class CoreLogic {
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
 
-  List<TrainerConnection> get connectedNonLocalTrainerConnections => [
+  List<TrainerConnection> get connectedNonLocalTrainerConnections => <TrainerConnection>[
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
@@ -481,7 +489,7 @@ class CoreLogic {
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ].filter((e) => e.isConnected.value).toList();
 
-  List<TrainerConnection> get enabledTrainerConnections => [
+  List<TrainerConnection> get enabledTrainerConnections => <TrainerConnection>[
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (core.settings.getLocalEnabled() && showLocalControl) core.local,
@@ -529,7 +537,7 @@ class CoreLogic {
     return onlyLocal ? connectedTrainerConnections : connectedNonLocalTrainerConnections;
   }
 
-  List<TrainerConnection> get enabledNonLocalTrainerConnections => [
+  List<TrainerConnection> get enabledNonLocalTrainerConnections => <TrainerConnection>[
     if (isObpBleEnabled) core.obpBluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
@@ -539,7 +547,7 @@ class CoreLogic {
     if (isRemoteKeyboardControlEnabled) core.remoteKeyboardPairing,
   ];
 
-  List<TrainerConnection> get trainerConnections => [
+  List<TrainerConnection> get trainerConnections => <TrainerConnection>[
     if (showObpMdnsEmulator) core.obpMdnsEmulator,
     if (showObpBluetoothEmulator) core.obpBluetoothEmulator,
     if (showMyWhooshLink) core.whooshLink,
