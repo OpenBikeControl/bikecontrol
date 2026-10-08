@@ -210,7 +210,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
                   'manufacturer-data': Uint8List.fromList(BikeControlMdnsMarkers.manufacturerData.codeUnits),
                 }
               : {
-                  'version': Uint8List.fromList([0x01]),
+                  'version': Uint8List.fromList('1'.codeUnits),
                   'id': Uint8List.fromList('1337'.codeUnits),
                   'name': Uint8List.fromList('BikeControl'.codeUnits),
                   'service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
