@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -397,9 +398,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
 }
 
 Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDone) {
-  return openSheet(
+  return openBottomSheet(
     context: context,
-    draggable: true,
     builder: (context) => Padding(
       padding: const EdgeInsets.all(16.0),
       child: PermissionList(
@@ -409,7 +409,6 @@ Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDo
         },
       ),
     ),
-    position: OverlayPosition.bottom,
   );
 }
 

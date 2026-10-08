@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/rides/ride_files.dart';
 import 'package:bike_control/services/rides/ride_format.dart';
@@ -171,10 +172,8 @@ class RideExportRows extends StatelessWidget {
 
 /// "Exportieren" on a phone: the ride's line, the rows, Abbrechen.
 Future<void> showRideExportSheet(BuildContext context, PastWorkout ride) {
-  return openSheet(
+  return openBottomSheet(
     context: context,
-    draggable: true,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _RideExportSheet(ride: ride),
   );
 }

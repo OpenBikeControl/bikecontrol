@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async' show unawaited;
 import 'dart:convert' show jsonDecode;
@@ -514,9 +515,8 @@ class _SupportComposerState extends State<SupportComposer> {
         // The payload includes the full log buffer, so it can be far taller
         // than the screen: cap the sheet height (keeps the dismiss barrier
         // reachable) and scroll the payload instead of overflowing.
-        onPressed: () => openSheet(
+        onPressed: () => openBottomSheet(
           context: context,
-          draggable: true,
           constraints: BoxConstraints(
             maxWidth: 360,
             maxHeight: MediaQuery.sizeOf(context).height * 0.6,
@@ -526,7 +526,6 @@ class _SupportComposerState extends State<SupportComposer> {
             screenshotAttached: _attachment?.isImage == true,
             onClose: () => closeSheet(c),
           ),
-          position: OverlayPosition.bottom,
         ),
       ),
     );

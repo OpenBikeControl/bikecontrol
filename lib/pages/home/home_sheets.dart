@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
@@ -39,9 +40,8 @@ Widget _frame(BuildContext context, Widget child) {
 /// Pairing a controller for the first time. The scanner is embedded rather than
 /// described, so the next action is on screen instead of a page away.
 Future<void> openControllerSetupSheet(BuildContext context) {
-  return openSheet<void>(
+  return openBottomSheet<void>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _frame(
       sheetContext,
       Column(
@@ -92,9 +92,8 @@ Future<void> openAppGuideSheet(BuildContext context) {
   final app = core.settings.getTrainerApp();
   if (app == null) return openOnboardingHelpSheet(context, OnboardingStep.connection);
 
-  return openSheet<void>(
+  return openBottomSheet<void>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _frame(sheetContext, _AppGuide(app: app)),
   );
 }
@@ -147,9 +146,8 @@ Future<void> openPairAsTrainerSheet(BuildContext context, {required String? trai
   final app = core.settings.getTrainerApp();
   if (app == null) return openOnboardingHelpSheet(context, OnboardingStep.connection);
 
-  return openSheet<void>(
+  return openBottomSheet<void>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _frame(
       sheetContext,
       Column(
@@ -191,9 +189,8 @@ Future<void> openPairAsTrainerSheet(BuildContext context, {required String? trai
 /// not a generic help sheet. The app only refines the copy (next-step note,
 /// MyWhoosh-on-Android caveat), so it is passed through as optional.
 Future<void> openTrainerConnectSheet(BuildContext context) {
-  return openSheet<void>(
+  return openBottomSheet<void>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _frame(sheetContext, _TrainerPicker(app: core.settings.getTrainerApp())),
   );
 }

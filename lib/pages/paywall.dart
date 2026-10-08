@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'dart:async';
 
@@ -1020,7 +1021,7 @@ class _PaywallState extends State<Paywall> {
     );
     try {
       if (DrawerOverlay.maybeFind(context) != null) {
-        await openSheet<void>(context: context, position: OverlayPosition.bottom, builder: body);
+        await openBottomSheet<void>(context: context, builder: body);
       } else {
         await showDialog<void>(
           context: context,

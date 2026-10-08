@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/reduced_motion.dart';
@@ -104,7 +105,7 @@ Future<void> showPaywallFeatureClip(
   );
   try {
     if (sheet) {
-      await openSheet<void>(context: context, position: OverlayPosition.bottom, builder: body);
+      await openBottomSheet<void>(context: context, builder: body);
     } else {
       await showDialog<void>(
         context: context,

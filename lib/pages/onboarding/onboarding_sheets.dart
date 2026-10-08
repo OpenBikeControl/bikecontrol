@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/main.dart' show recordError;
@@ -212,9 +213,8 @@ Widget _channel(
 }
 
 Future<void> openOnboardingHelpSheet(BuildContext context, OnboardingStep step) {
-  return openSheet<void>(
+  return openBottomSheet<void>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _sheetFrame(
       sheetContext,
       onboardingHelpSheetBody(sheetContext, step: step, onClose: () => closeSheet(sheetContext)),
@@ -276,9 +276,8 @@ Widget permissionDeniedSheetBody(
 /// `closeDrawer<T>(sheetContext, value)` instead (`closeSheet` itself always
 /// resolves with `null`).
 Future<bool?> openPermissionDeniedSheet(BuildContext context) {
-  return openSheet<bool>(
+  return openBottomSheet<bool>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => _sheetFrame(
       sheetContext,
       permissionDeniedSheetBody(
