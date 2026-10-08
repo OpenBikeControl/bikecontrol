@@ -58,11 +58,26 @@ class RecommendedConnectionMethods extends InheritedWidget {
   bool updateShouldNotify(RecommendedConnectionMethods oldWidget) => false;
 }
 
+/// Shows a method's card without its on/off switch — where the page is about
+/// getting the method connected (Trainer Controls), not about choosing it.
+class ConnectionMethodWithoutSwitch extends InheritedWidget {
+  const ConnectionMethodWithoutSwitch({super.key, required super.child});
+
+  static bool contains(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ConnectionMethodWithoutSwitch>() != null;
+
+  @override
+  bool updateShouldNotify(ConnectionMethodWithoutSwitch oldWidget) => false;
+}
+
 class ConnectionMethod extends StatefulWidget {
   final TrainerConnection trainerConnection;
   final String title;
   final String description;
   final String? instructionLink;
+
+  /// Opens the method's instructions in-app, in place of [instructionLink].
+  final VoidCallback? onInstructions;
   final Widget? additionalChild;
   final bool isRecommended;
   final bool isEnabled;
@@ -84,6 +99,7 @@ class ConnectionMethod extends StatefulWidget {
     this.additionalChild,
     required this.description,
     this.instructionLink,
+    this.onInstructions,
     this.showTroubleshooting = false,
     this.supportLevel,
     required this.onChange,
@@ -193,7 +209,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             ],
           ),
           subtitle: Text(widget.description).xSmall.textMuted,
-          trailing: widget.instructionLink != null && !widget.trainerConnection.isConnected.value
+          trailing:
+              (widget.instructionLink != null || widget.onInstructions != null) &&
+                  !widget.trainerConnection.isConnected.value
               ? Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -202,7 +220,10 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                       style: isSmallWidth ? ButtonStyle.outlineIcon() : ButtonStyle.outline(),
                       leading: isSmallWidth ? null : icon,
                       onPressed: () {
-                        if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
+                        if (widget.onInstructions != null) {
+                          widget.onInstructions!();
+                        } else if (widget.instructionLink!.contains("youtube") ||
+                            widget.instructionLink!.contains("http")) {
                           launchUrlString(widget.instructionLink!);
                         } else {
                           openDrawer(
@@ -254,7 +275,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     );
 
     final links = <Widget>[
-      if (widget.instructionLink != null)
+      if (widget.onInstructions != null)
+        link(l10n.instructions, widget.onInstructions!)
+      else if (widget.instructionLink != null)
         link(l10n.instructions, () {
           if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
             launchUrlString(widget.instructionLink!);
@@ -280,18 +303,20 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             ),
           ),
         ),
-      if (widget.onTroubleshoot != null)
-        Button(
-          key: const ValueKey('connection-troubleshoot'),
-          style: started && !connected ? ButtonStyle.outline() : ButtonStyle.ghost(),
-          leading: const Icon(LucideIcons.wrench, size: 16),
-          onPressed: widget.onTroubleshoot,
-          child: Text(l10n.networkTroubleshootTroubleshoot),
-        ),
     ];
+    // The network check: a link like the others, named for what it does
+    // (it analyses the network, it does not fix anything), against the right
+    // edge so it does not read as one more step of the instructions.
+    final analyze = widget.onTroubleshoot == null
+        ? null
+        : KeyedSubtree(
+            key: const ValueKey('connection-troubleshoot'),
+            child: link(l10n.networkAnalyze, widget.onTroubleshoot!),
+          );
+    final withSwitch = !ConnectionMethodWithoutSwitch.contains(context);
 
     return BkTappable(
-      onPressed: callback,
+      onPressed: withSwitch ? callback : null,
       borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
       child: Container(
         width: double.infinity,
@@ -326,13 +351,15 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   const BetaPill(text: 'EXPER.')
                 else if (widget.isRecommended && !screenshotMode && !RecommendedConnectionMethods.contains(context))
                   SecondaryBadge(child: Text(l10n.recommended)),
-                const Gap(8),
-                Semantics(
-                  container: true,
-                  label: widget.title,
-                  toggled: widget.isEnabled,
-                  child: Switch(value: widget.isEnabled, onChanged: (_) => callback()),
-                ),
+                if (withSwitch) ...[
+                  const Gap(8),
+                  Semantics(
+                    container: true,
+                    label: widget.title,
+                    toggled: widget.isEnabled,
+                    child: Switch(value: widget.isEnabled, onChanged: (_) => callback()),
+                  ),
+                ],
               ],
             ),
             Padding(
@@ -350,7 +377,14 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                     style: context.typography.small.copyWith(color: cs.mutedForeground, height: 1.4),
                   ),
                   if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
-                  if (links.isNotEmpty) Wrap(spacing: 20, runSpacing: 4, children: links),
+                  if (links.isNotEmpty || analyze != null)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: Wrap(spacing: 20, runSpacing: 4, children: links)),
+                        ?analyze,
+                      ],
+                    ),
                 ],
               ),
             ),

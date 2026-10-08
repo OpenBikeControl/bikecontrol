@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodWithoutSwitch;
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/bk_word_safe_text.dart';
 
@@ -326,10 +327,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                 ],
               ),
             ),
-            // Not connected yet: the method's own card, with its switch and
-            // instructions, so the rider can fix it right here.
+            // Not connected yet: the method's own card, with its instructions
+            // and network check, so the rider can fix it right here. No
+            // switch: this page is for using the method, not turning it off.
             if (!connected && !screenshotMode) ...[
-              connection.getTile(),
+              ConnectionMethodWithoutSwitch(child: connection.getTile()),
               const Gap(16),
             ],
             if (hasShift || hasSteer)

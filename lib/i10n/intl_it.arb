@@ -1985,6 +1985,7 @@
   "networkTroubleshootResultsCopied": "Risultati copiati negli appunti",
   "networkTroubleshootSendToSupport": "Invia al supporto",
   "networkTroubleshootTroubleshoot": "Risolvi problemi",
+  "networkAnalyze": "Analizza rete",
   "networkCheckMethodListening": "Metodo di rete in esecuzione",
   "networkCheckAdvertisedAddress": "Indirizzo annunciato",
   "networkCheckVpn": "VPN",

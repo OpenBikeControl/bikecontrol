@@ -1997,6 +1997,7 @@
   "networkTroubleshootResultsCopied": "Ergebnisse in die Zwischenablage kopiert",
   "networkTroubleshootSendToSupport": "An den Support senden",
   "networkTroubleshootTroubleshoot": "Fehler beheben",
+  "networkAnalyze": "Netzwerk analysieren",
   "networkCheckMethodListening": "Netzwerk-Methode läuft",
   "networkCheckAdvertisedAddress": "Angemeldete Adresse",
   "networkCheckVpn": "VPN",

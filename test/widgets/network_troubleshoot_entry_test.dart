@@ -84,30 +84,24 @@ Future<void> main() async {
     expect(find.byKey(_troubleshootKey), findsNothing);
   });
 
-  testWidgets('uses the outline style while started and not connected', (tester) async {
-    final connection = _FakeConnection()..isStarted.value = true;
-
-    // Not pumpAndSettle: `started && !isConnected` renders a
-    // CircularProgressIndicator (StatusIcon's "connecting" spinner), which
-    // animates forever and would make pumpAndSettle time out.
-    await _pump(tester, connection: connection, onTroubleshoot: () {});
-    await tester.pump();
-
-    final button = tester.widget<Button>(find.byKey(_troubleshootKey));
-    final style = button.style as ButtonStyle;
-    expect(style.variance, same(ButtonVariance.outline));
-  });
-
-  testWidgets('uses the ghost style once connected', (tester) async {
-    final connection = _FakeConnection()
-      ..isStarted.value = true
-      ..isConnected.value = true;
-
-    await _pump(tester, connection: connection, onTroubleshoot: () {});
-    await tester.pumpAndSettle();
-
-    final button = tester.widget<Button>(find.byKey(_troubleshootKey));
-    final style = button.style as ButtonStyle;
-    expect(style.variance, same(ButtonVariance.ghost));
-  });
+  // The network check is a link like "Instructions" in every state — it used
+  // to turn into an outlined button while waiting, which read as the next
+  // step rather than a diagnostic.
+  for (final (name, started, connected) in const [('waiting', true, false), ('connected', true, true)]) {
+    testWidgets('is a plain link while $name', (tester) async {
+      final connection = _FakeConnection()
+        ..isStarted.value = started
+        ..isConnected.value = connected;
+      await _pump(tester, connection: connection, onTroubleshoot: () {});
+      await tester.pump();
+      final button = tester.widget<Button>(
+        find.descendant(of: find.byKey(_troubleshootKey), matching: find.byType(Button)),
+      );
+      final style = button.style;
+      expect(style is ButtonStyle && identical(style.variance, ButtonVariance.outline), isFalse,
+          reason: 'never the outlined button');
+      expect(find.descendant(of: find.byKey(_troubleshootKey), matching: find.byType(Icon)), findsNothing,
+          reason: 'a text link like Instructions, no wrench');
+    });
+  }
 }

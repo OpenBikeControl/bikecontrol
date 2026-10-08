@@ -2194,6 +2194,7 @@
   "networkTroubleshootResultsCopied": "Results copied to clipboard",
   "networkTroubleshootSendToSupport": "Send to support",
   "networkTroubleshootTroubleshoot": "Troubleshoot",
+  "networkAnalyze": "Analyze network",
   "networkCheckMethodListening": "Network method running",
   "networkCheckAdvertisedAddress": "Advertised address",
   "networkCheckVpn": "VPN",
