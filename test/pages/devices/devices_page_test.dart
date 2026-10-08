@@ -225,6 +225,32 @@ Future<void> main() async {
     expect(find.byType(TrainerConnectionSettingsPage), findsOneWidget);
   });
 
+  testWidgets('the trainer app row turns to "receiving commands" the moment the app connects', (tester) async {
+    // MyWhoosh connecting over the network is not a Bluetooth connection
+    // event; the row used to sit on its pending checklist until the rider
+    // switched tabs and back.
+    core.settings.setObpMdnsEnabled(true);
+    core.obpMdnsEmulator.isStarted.value = true;
+    addTearDown(() {
+      core.obpMdnsEmulator.isConnected.value = false;
+      core.obpMdnsEmulator.isStarted.value = false;
+      core.settings.setObpMdnsEnabled(false);
+    });
+    await _pumpDevices(tester);
+    expect(_inRow(ChainLinkKey.app, find.text(l.chainStatusReceivingCommands)), findsNothing);
+
+    core.obpMdnsEmulator.isConnected.value = true;
+    await tester.pump();
+
+    expect(_inRow(ChainLinkKey.app, find.text(l.chainStatusReceivingCommands)), findsOneWidget);
+    expect(tester.widget<ChainLinkRow>(_row(ChainLinkKey.app)).link.status, LinkStatus.ready);
+
+    // And back when it goes away again.
+    core.obpMdnsEmulator.isConnected.value = false;
+    await tester.pump();
+    expect(_inRow(ChainLinkKey.app, find.text(l.chainStatusReceivingCommands)), findsNothing);
+  });
+
   testWidgets('the trainer app row offers its optional Local control step a button of its own', (tester) async {
     // Waiting for MyWhoosh is the step in front; "Add keyboard and mouse
     // actions" is the optional one behind it and still needs a way to act.

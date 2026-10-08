@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/utils/trainer_connect.dart';
+import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
@@ -442,8 +443,32 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
+  /// Whether the trainer app is connected is each enabled connection
+  /// method's own `isStarted`/`isConnected` — MyWhoosh joining over the
+  /// network is not a connection-stream event. Without these the trainer-app
+  /// row kept its pending checklist after the app had connected, until the
+  /// rider switched tabs and back. Synced on every build, because the
+  /// enabled methods change with the rider's settings.
+  final Set<TrainerConnection> _watchedAppConnections = {};
+
+  void _syncAppConnectionListeners() {
+    for (final connection in core.logic.enabledTrainerConnections) {
+      if (!_watchedAppConnections.add(connection)) continue;
+      connection.isStarted.addListener(_onAppConnectionChanged);
+      connection.isConnected.addListener(_onAppConnectionChanged);
+    }
+  }
+
+  void _onAppConnectionChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    for (final connection in _watchedAppConnections) {
+      connection.isStarted.removeListener(_onAppConnectionChanged);
+      connection.isConnected.removeListener(_onAppConnectionChanged);
+    }
     for (final proxy in _watchedProxies) {
       proxy.isStarting.removeListener(_onProxyChanged);
       proxy.isStartedListenable.removeListener(_onProxyChanged);
@@ -779,6 +804,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // [Connection.initialize]); looking once more here keeps the card right
     // wherever nothing else has looked yet.
     core.appConnectionLatch.sync();
+    _syncAppConnectionListeners();
     final inputs = _readInputs();
 
     final links = buildChain(inputs);
