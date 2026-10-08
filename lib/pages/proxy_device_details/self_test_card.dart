@@ -525,13 +525,19 @@ class _SelfTestCardState extends State<SelfTestCard> {
     );
   }
 
-  static String _verdictBody(AppLocalizations l10n, SelfTestVerdict verdict) {
+  String _verdictBody(AppLocalizations l10n, SelfTestVerdict verdict) {
     return switch (verdict) {
       SelfTestVerdict.pass => l10n.selfTestVerdictPassBody,
       SelfTestVerdict.ergOkVsFail => l10n.selfTestVerdictErgOkBody,
       SelfTestVerdict.vsOkErgFail => l10n.selfTestVerdictVsOkErgFailBody,
       SelfTestVerdict.noControl => l10n.selfTestVerdictNoControlBody,
-      SelfTestVerdict.noData => l10n.selfTestVerdictNoDataBody,
+      // No samples at all is most often something else holding the trainer:
+      // another app, or the trainer app paired to it directly rather than to
+      // the bridge. Name both, and the entry to pick instead.
+      SelfTestVerdict.noData => switch (core.settings.getTrainerApp()?.name) {
+        final app? => l10n.selfTestVerdictNoDataHeldBody(app, widget.device.advertisementName),
+        null => l10n.selfTestVerdictNoDataHeldBodyNoApp(widget.device.advertisementName),
+      },
       SelfTestVerdict.aborted => l10n.selfTestVerdictAbortedBody,
     };
   }

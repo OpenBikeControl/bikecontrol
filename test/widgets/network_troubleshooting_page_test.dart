@@ -9,10 +9,12 @@ import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_fixes.dart';
+import 'package:bike_control/services/network_self_test/network_method_target.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
 import 'package:bike_control/services/network_self_test/network_self_test_engine.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/network_check_row.dart';
 import 'package:bike_control/widgets/ui/permissions_list.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -529,6 +531,57 @@ Future<void> main() async {
       expect(ok, isFalse);
       expect(core.settings.getObpMdnsBackend(), ObpMdnsBackend.platformDefault);
       expect(find.text(l10n.networkFixBonjourMissing), findsOneWidget);
+    });
+  });
+
+  // A clean check with the app still not connected is the most common dead
+  // end: nothing is wrong with the network, and the rider has not yet told
+  // the trainer app to use BikeControl. The verdict says what to do next.
+  group('next step after a pass', () {
+    Future<AppLocalizations> l10nOnly(WidgetTester tester) async {
+      await _pump(tester, const Scaffold(child: SizedBox(key: ValueKey('host'))));
+      return AppLocalizations.of(tester.element(find.byKey(const ValueKey('host'))));
+    }
+
+    testWidgets('an OpenBikeControl app: tap the BikeControl tile under Controllers', (tester) async {
+      final l10n = await l10nOnly(tester);
+      final body = networkPassBody(l10n, app: 'MyWhoosh', kind: NetworkMethodKind.openBikeControl, connected: false);
+      expect(body, l10n.networkNextStepControllerTile('MyWhoosh'));
+    });
+
+    testWidgets('another network method: pick BikeControl in the pairing screen', (tester) async {
+      final l10n = await l10nOnly(tester);
+      final body = networkPassBody(l10n, app: 'Zwift', kind: NetworkMethodKind.zwiftMdns, connected: false);
+      expect(body, l10n.networkNextStepPairingScreen('Zwift'));
+    });
+
+    testWidgets('already connected, or no app chosen: the plain pass sentence', (tester) async {
+      final l10n = await l10nOnly(tester);
+      expect(
+        networkPassBody(l10n, app: 'MyWhoosh', kind: NetworkMethodKind.openBikeControl, connected: true),
+        l10n.networkOverallPassBody,
+      );
+      expect(
+        networkPassBody(l10n, app: null, kind: NetworkMethodKind.openBikeControl, connected: false),
+        l10n.networkOverallPassBody,
+      );
+    });
+
+    testWidgets('the verdict card shows it after a clean run', (tester) async {
+      final previous = core.settings.getTrainerApp();
+      core.settings.setTrainerApp(MyWhoosh());
+      addTearDown(() async {
+        if (previous == null) {
+          await core.settings.prefs.remove('trainer_app');
+          core.settings.trainerAppListenable.value = null;
+        } else {
+          core.settings.setTrainerApp(previous);
+        }
+      });
+
+      await _pumpFinished(tester, [_probe(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+
+      expect(find.text(_l10n(tester).networkNextStepControllerTile('MyWhoosh')), findsOneWidget);
     });
   });
 }

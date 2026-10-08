@@ -7,6 +7,7 @@ import 'package:bike_control/services/trainer_self_test/self_test_engine.dart';
 import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -95,6 +96,58 @@ Future<void> main() async {
     );
     await tester.pump();
   }
+
+  // No data at all usually means something else holds the trainer: another
+  // app, or the trainer app paired to it directly instead of to the bridge.
+  // "Reconnect" alone sent riders round in circles.
+  group('NO_DATA names what may be holding the trainer', () {
+    Future<void> runSilentTrainer(WidgetTester tester, ProxyDevice device) async {
+      final harness = FakeSelfTestHarness();
+      await tester.pumpWidget(
+        ShadcnApp(
+          localizationsDelegates: const [AppLocalizations.delegate],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          home: Scaffold(
+            child: SelfTestCard(
+              device: device,
+              // Never publishes a sample: the trainer stays silent.
+              engineFactory: () => SelfTestEngine(
+                harness: harness,
+                sleep: (_) => Future<void>.delayed(Duration.zero),
+                now: () => DateTime(2026, 8, 20),
+              ),
+              reconnectDevice: () async {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text(AppLocalizations.current.selfTestStart));
+      await tester.pumpAndSettle();
+      expect(find.text(AppLocalizations.current.selfTestVerdictNoDataTitle), findsOneWidget);
+    }
+
+    testWidgets('with an app chosen: its name and the bridge to pair instead', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      final device = connectedTrainer();
+      await runSilentTrainer(tester, device);
+
+      expect(
+        find.text(AppLocalizations.current.selfTestVerdictNoDataHeldBody('MyWhoosh', device.advertisementName)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('without an app chosen: still names the bridge', (tester) async {
+      final device = connectedTrainer();
+      await runSilentTrainer(tester, device);
+
+      expect(
+        find.text(AppLocalizations.current.selfTestVerdictNoDataHeldBodyNoApp(device.advertisementName)),
+        findsOneWidget,
+      );
+    });
+  });
 
   testWidgets('idle card shows start button when trainer connected', (tester) async {
     await pumpCard(tester, connectedTrainer(), FakeSelfTestHarness());

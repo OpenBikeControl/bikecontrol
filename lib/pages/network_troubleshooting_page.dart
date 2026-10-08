@@ -80,6 +80,27 @@ NetworkProbeContext buildProductionContext({DebugDiagnostics? snapshot, Object? 
   );
 }
 
+/// The verdict card's sentence on a pass.
+///
+/// A clean check with the trainer app still not connected is where most riders
+/// stall: nothing is wrong with the network, and the app has simply not been
+/// told to use BikeControl yet. So it says what to do in the app — the
+/// controller tile for an OpenBikeControl app (MyWhoosh, TPV), the pairing
+/// screen for the others. Once the app is connected, or with no app chosen to
+/// name, there is no next step to give.
+String networkPassBody(
+  AppLocalizations l10n, {
+  required String? app,
+  required NetworkMethodKind kind,
+  required bool connected,
+}) {
+  if (connected || app == null) return l10n.networkOverallPassBody;
+  return switch (kind) {
+    NetworkMethodKind.openBikeControl => l10n.networkNextStepControllerTile(app),
+    NetworkMethodKind.rouvyMdns || NetworkMethodKind.zwiftMdns => l10n.networkNextStepPairingScreen(app),
+  };
+}
+
 /// Guided, step-by-step "why can't my trainer app find BikeControl" page:
 /// runs [NetworkSelfTestEngine] and renders its live progress, a one-tap
 /// recommended fix, and ways to hand the result to support.
@@ -707,8 +728,14 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   }
 
   String _overallBody(AppLocalizations l10n, NetworkVerdict verdict) {
+    final target = currentNetworkMethodTarget();
     return switch (verdict) {
-      NetworkVerdict.pass || NetworkVerdict.skipped => l10n.networkOverallPassBody,
+      NetworkVerdict.pass || NetworkVerdict.skipped => networkPassBody(
+        l10n,
+        app: core.settings.getTrainerApp()?.name,
+        kind: target.kind,
+        connected: target.isConnected.value,
+      ),
       NetworkVerdict.warn => l10n.networkOverallWarnBody,
       NetworkVerdict.fail => l10n.networkOverallFailBody,
       NetworkVerdict.unknown => l10n.networkOverallUnknownBody,
