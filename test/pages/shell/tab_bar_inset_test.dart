@@ -66,4 +66,15 @@ Future<void> main() async {
     expect(firstItem.top - bar.top, greaterThanOrEqualTo(8));
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('iPhone: the labels sit closer to the home indicator, still clear of it', (tester) async {
+    final shell = ShellController();
+    addTearDown(shell.dispose);
+    await pump(tester, shell, bottomInset: 0, dpr: 3);
+    final bare = tester.getSize(find.byType(ShellTabBar)).height;
+    await pump(tester, shell, bottomInset: 34, dpr: 3);
+    final inset = tester.getSize(find.byType(ShellTabBar)).height;
+    expect(inset - bare, closeTo(34 - ShellTabBar.homeIndicatorOverlap, 0.5));
+    await tester.pumpWidget(const SizedBox());
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 }

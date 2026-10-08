@@ -23,7 +23,7 @@ import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/foundation.dart' show ValueListenable, defaultTargetPlatform;
 import 'package:bike_control/pages/activity/rides_view.dart' show RidesMenuButton;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -324,10 +324,21 @@ class _ShellNavItemState extends State<ShellNavItem> {
 class ShellTabBar extends StatelessWidget {
   const ShellTabBar({super.key, required this.controller});
 
+  static double _bottomInset(BuildContext context) {
+    final inset = MediaQuery.paddingOf(context).bottom;
+    if (defaultTargetPlatform != TargetPlatform.iOS) return inset;
+    return (inset - homeIndicatorOverlap).clamp(0, inset);
+  }
+
   final ShellController controller;
 
   /// The widest the four items get together.
   static const double maxWidth = 480;
+
+  /// How far the labels may reach into an iPhone's home-indicator inset. The
+  /// indicator itself is a thin bar near the very bottom; the full inset left
+  /// a wide empty band under the tab labels.
+  static const double homeIndicatorOverlap = 14;
 
   @override
   Widget build(BuildContext context) {
@@ -341,9 +352,13 @@ class ShellTabBar extends StatelessWidget {
         ),
         child: SafeArea(
           top: false,
+          bottom: false,
           child: Padding(
-            // Room under the bar's top line before the icons.
-            padding: const EdgeInsets.fromLTRB(4, 8, 4, 2),
+            // Room under the bar's top line before the icons; below them the
+            // system's bottom inset — on iOS a little less of it (see
+            // [homeIndicatorOverlap]). Android's inset can hold its 3-button
+            // bar, so it is cleared in full.
+            padding: EdgeInsets.fromLTRB(4, 8, 4, 2 + _bottomInset(context)),
             child: Center(
               heightFactor: 1,
               child: ConstrainedBox(
