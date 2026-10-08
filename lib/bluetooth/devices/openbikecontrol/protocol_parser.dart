@@ -124,11 +124,10 @@ class OpenBikeProtocolParser {
       if (i + 1 < data.length) {
         final buttonId = data[i];
         final state = data[i + 1];
-        if (BUTTON_NAMES[buttonId] != null) {
-          buttons.add(ButtonState(BUTTON_NAMES[buttonId]!, state));
-        } else {
-          throw ProtocolParseException('Unknown button ID: 0x${buttonId.toRadixString(16).padLeft(2, '0')}', data);
-        }
+        // An ID this version doesn't know (0x1B steering angle, a later
+        // addition) is skipped: parsers MUST NOT drop the IDs they do know.
+        final button = BUTTON_NAMES[buttonId];
+        if (button != null) buttons.add(ButtonState(button, state));
       }
     }
 
