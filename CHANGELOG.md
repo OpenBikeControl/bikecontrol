@@ -2,11 +2,11 @@
 **Features**:
 - A new look with Ride, Devices, Activity and Settings tabs.
 - Rides are recorded automatically, with zones, gears and .fit export to Strava, Apple Health or Health Connect.
-- Reworked phone steering; OpenBikeControl apps can steer from the real handlebar angle.
+- Reworked phone steering with improved accuracy and calibration; OpenBikeControl apps can steer from the real handlebar angle - including Elite Sterzo and Rizer (thanks @michidk).
 - Clearer setup steps and a new Plan & account page.
 
 **Fixes**:
-- More reliable network check and connections (e.g. Zwift Play on macOS).
+- More reliable network check and connections
 - Friendlier messages and in-app answers when something doesn't work.
 
 ### 7.1.0 (29-09-2026)
