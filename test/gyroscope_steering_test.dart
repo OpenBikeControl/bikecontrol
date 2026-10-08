@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -123,6 +124,21 @@ void main() {
       device.steeringAngle.value = 42.0; // simulate a live angle
       device.recalibrate();
       expect(device.steeringAngle.value, 0.0);
+    });
+
+    test('recalibrate() releases steering output', () async {
+      final device = GyroscopeSteering();
+      final released = expectLater(
+        device.actionStream
+            .where((event) => event is LogNotification)
+            .cast<LogNotification>()
+            .map((event) => event.message),
+        emits('Buttons released'),
+      );
+
+      device.recalibrate();
+
+      await released;
     });
   });
 }

@@ -22,8 +22,9 @@ abstract interface class SteeringDevice {
   ControllerButton get steerRightButton;
 }
 
-/// A [SteeringDevice] whose straight-ahead reference the rider can set again
-/// (phone steering drifts; it re-learns centre while the bars are still).
+/// A [SteeringDevice] whose straight-ahead reference the rider can set again:
+/// it clears the current centre and re-learns it from live input (phone
+/// steering drifts; Elite Sterzo / Rizer re-sample while the bars are still).
 abstract interface class RecalibratableSteering {
   void recalibrate();
 }

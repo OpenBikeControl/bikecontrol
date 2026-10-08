@@ -351,6 +351,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   /// call any time (also used by the assignable Calibrate action).
   @override
   void recalibrate() {
+    _keypressTimer?.cancel();
     _setCalibrated(false);
     if (_useMagnetometer) {
       _magnetometerCalibrationHeading = null;
@@ -365,6 +366,7 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
     _lastRoundedAngle = null;
     _lastSteeringButton = null;
     steeringAngle.value = 0.0;
+    unawaited(handleButtonsClicked([]));
   }
 
   /// Steers from the compass heading instead of the gyroscope — for phones

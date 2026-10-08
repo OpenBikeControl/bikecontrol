@@ -126,7 +126,7 @@ Future<void> main() async {
     expect(core.settings.getPhoneSteeringEnabled(), isFalse);
   });
 
-  testWidgets('an Elite Sterzo keeps its fixed dead zone and Bluetooth disconnect', (tester) async {
+  testWidgets('an Elite Sterzo keeps its fixed dead zone and Bluetooth disconnect, and can recalibrate', (tester) async {
     final sterzo = EliteSterzo(BleDevice(name: 'STERZO', deviceId: 'sterzo'))..isConnected = true;
     sterzo.steeringCalibratedN.value = true;
     core.connection.devices.add(sterzo);
@@ -134,7 +134,7 @@ Future<void> main() async {
     expect(find.byType(CustomizePage), findsNothing);
     expect(find.descendant(of: find.byKey(const ValueKey('steering-dead-zone')), matching: find.text('±10°')), findsOneWidget);
     expect(find.byKey(const ValueKey('steering-turn-off')), findsNothing);
-    expect(find.byKey(const ValueKey('steering-recalibrate')), findsNothing);
+    expect(find.byKey(const ValueKey('steering-recalibrate')), findsOneWidget);
     expect(find.text(l.disconnectAndForget), findsOneWidget);
   });
 }
