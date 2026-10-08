@@ -98,6 +98,14 @@ enum SetupStepVariant {
   /// just asleep: the step asks to wake it rather than to bring it back in
   /// range, and nothing calls it an unfinished setup.
   controllerAsleep,
+
+  /// [SetupStepId.appNetworkAddress] when this device is on mobile data only:
+  /// the advice is to join the trainer app's Wi-Fi, not to turn a VPN off.
+  networkNoWifi,
+
+  /// [SetupStepId.appNetworkAddress] when the address itself is fine but a
+  /// second real network could be the one the trainer app is on.
+  networkTwoNetworks,
 }
 
 /// One line of a card's checklist.

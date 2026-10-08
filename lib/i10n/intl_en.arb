@@ -2237,6 +2237,10 @@
   "networkHintBonjourService": "MyWhoosh needs Apple's Bonjour service. Start it, then restart MyWhoosh.",
   "networkHintBonjourNsp": "Bonjour's resolver hook is missing. Reinstall Bonjour — without it the BikeControl button in MyWhoosh cannot work.",
   "networkHintResolveFail": "This computer could not look up BikeControl's address — the exact step the trainer app fails at. On Windows a broken Bonjour install can cause this even when its service is running; a clean reinstall fixes it.",
+  "networkHintVpn": "A VPN is on, and it can block {app} from reaching BikeControl. Turn off the VPN, or allow local network access in the VPN app.",
+  "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoWifi": "This device isn't on Wi-Fi, so {app} can't reach BikeControl over mobile data. Join the same Wi-Fi as {app}.",
+  "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
   "feedbackPromptTitle": "How is BikeControl working for you?",
   "feedbackPromptNotNow": "Not now",
   "feedbackPositiveTitle": "Great to hear!",
@@ -2404,6 +2408,10 @@
       }
     }
   },
+  "chainStepNetworkAddressNoWifiHint": "This device isn't on Wi-Fi, and {app} can't reach BikeControl over mobile data. Join the same Wi-Fi as {app}.",
+  "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressTwoNetworksHint": "This device is on more than one network, and BikeControl is advertising {address}. If {app} is on the other one, it won't find BikeControl — put both on the same Wi-Fi.",
+  "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Run network check",
   "chainStatusAppDisconnected": "{app} disconnected",
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},

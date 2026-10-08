@@ -1,6 +1,7 @@
 import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show AddressWarningKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 
@@ -1119,6 +1120,34 @@ void main() {
         expect(step.hintArg, '10.5.0.2');
         expect(link.requiredSteps, contains(step));
         expect(link.status, isNot(LinkStatus.ready));
+      });
+
+      // Turning a VPN off is the wrong advice for a phone on mobile data, and
+      // for a desktop on two real networks — each gets words of its own.
+      group('says why the address looks wrong', () {
+        SetupStep stepFor(AddressWarningKind? kind) => buildChain(
+          ChainInputs(
+            app: AppInput(
+              advertisedAddressWarning: '10.140.12.7',
+              advertisedAddressWarningKind: kind,
+              isConnected: false,
+              hasEnabledConnection: true,
+            ),
+          ),
+        ).byKey(ChainLinkKey.app).steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+
+        test('mobile data only: join the app\'s Wi-Fi', () {
+          expect(stepFor(AddressWarningKind.noWifi).variant, SetupStepVariant.networkNoWifi);
+        });
+
+        test('two real networks: check which one the app is on', () {
+          expect(stepFor(AddressWarningKind.twoNetworks).variant, SetupStepVariant.networkTwoNetworks);
+        });
+
+        test('a VPN or bridge keeps the standard wording', () {
+          expect(stepFor(AddressWarningKind.unreachable).variant, SetupStepVariant.standard);
+          expect(stepFor(null).variant, SetupStepVariant.standard);
+        });
       });
 
       test('disappears once the app connects', () {

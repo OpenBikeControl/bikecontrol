@@ -1,5 +1,6 @@
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/services/network_self_test/address_warning_kind.dart';
 
 /// Turns [ChainInputs] into the cards the home screen renders, in signal-path
 /// order: your buttons → the gears BikeControl computes → the app that
@@ -334,7 +335,16 @@ ChainLink _appLink(ChainInputs inputs) {
         !app.trainerBridgedOverNetwork &&
         app.advertisedAddressWarning != null &&
         !(connectedEarlier && app.advertisedAddressWarning == app.advertisedAddressWarningAtConnect))
-      SetupStep(id: SetupStepId.appNetworkAddress, done: false, hintArg: app.advertisedAddressWarning),
+      SetupStep(
+        id: SetupStepId.appNetworkAddress,
+        done: false,
+        hintArg: app.advertisedAddressWarning,
+        variant: switch (app.advertisedAddressWarningKind) {
+          AddressWarningKind.noWifi => SetupStepVariant.networkNoWifi,
+          AddressWarningKind.twoNetworks => SetupStepVariant.networkTwoNetworks,
+          AddressWarningKind.unreachable || null => SetupStepVariant.standard,
+        },
+      ),
     SetupStep(
       id: SetupStepId.appConnected,
       done: selected && connected,

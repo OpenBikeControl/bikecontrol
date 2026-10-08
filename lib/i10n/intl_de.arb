@@ -2070,6 +2070,10 @@
   "networkHintBonjourService": "MyWhoosh benötigt Apples Bonjour-Dienst. Starte ihn und starte dann MyWhoosh neu.",
   "networkHintBonjourNsp": "Der Resolver-Hook von Bonjour fehlt. Installiere Bonjour neu — ohne ihn kann die Schaltfläche BikeControl in MyWhoosh nicht funktionieren.",
   "networkHintResolveFail": "Dieser Computer konnte die Adresse von BikeControl nicht auflösen — genau der Schritt, an dem die Trainer-App scheitert. Unter Windows kann eine defekte Bonjour-Installation das verursachen, selbst wenn der Dienst läuft; eine saubere Neuinstallation behebt es.",
+  "networkHintVpn": "Ein VPN ist aktiv und kann verhindern, dass {app} BikeControl erreicht. Schalte das VPN aus oder erlaube in der VPN-App den Zugriff aufs lokale Netzwerk.",
+  "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoWifi": "Dieses Gerät ist nicht im WLAN, deshalb erreicht {app} BikeControl über mobile Daten nicht. Verbinde dich mit demselben WLAN wie {app}.",
+  "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
   "ltwooHintCloseApp": "Schließe die LTWOO-App während der Fahrt — das Schaltwerk erlaubt nur eine Bluetooth-Verbindung gleichzeitig.",
   "ltwooHintCassetteEnds": "Am Ende der Kassette sendet das Schaltwerk kein Signal mehr — es kann nicht weiter schalten.",
   "ltwooWrongPinAlert": "Das L-TWOO-Schaltwerk hat die PIN abgelehnt. Prüfe die Geräte-PIN in den Einstellungen dieses Controllers.",
@@ -2210,6 +2214,10 @@
       }
     }
   },
+  "chainStepNetworkAddressNoWifiHint": "Dieses Gerät ist nicht im WLAN, und über mobile Daten erreicht {app} BikeControl nicht. Verbinde dich mit demselben WLAN wie {app}.",
+  "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressTwoNetworksHint": "Dieses Gerät ist in mehr als einem Netzwerk, und BikeControl meldet sich unter {address}. Ist {app} im anderen, findet es BikeControl nicht — bring beide ins selbe WLAN.",
+  "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Netzwerk prüfen",
   "chainStatusAppDisconnected": "{app} hat die Verbindung getrennt",
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},

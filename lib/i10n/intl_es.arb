@@ -2058,6 +2058,10 @@
   "networkHintBonjourService": "MyWhoosh necesita el servicio Bonjour de Apple. Inícialo y luego reinicia MyWhoosh.",
   "networkHintBonjourNsp": "Falta el enganche del resolutor de Bonjour. Reinstala Bonjour: sin él, el botón BikeControl en MyWhoosh no puede funcionar.",
   "networkHintResolveFail": "Este equipo no pudo resolver la dirección de BikeControl, que es justo el paso en el que falla la app de entrenamiento. En Windows, una instalación dañada de Bonjour puede causarlo aunque su servicio esté en marcha; una reinstalación limpia lo soluciona.",
+  "networkHintVpn": "Hay una VPN activa y puede impedir que {app} llegue a BikeControl. Desactiva la VPN o permite el acceso a la red local en la app de la VPN.",
+  "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoWifi": "Este dispositivo no está en una red WiFi, así que {app} no puede llegar a BikeControl por datos móviles. Conéctate a la misma WiFi que {app}.",
+  "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
   "supportDiagnosticsNotice": "Para ayudar a resolver tu problema, este chat adjunta una captura de pantalla de BikeControl e información de diagnóstico. Puedes revisarlas o quitarlas antes de enviar.",
   "supportRetentionNotice": "Las conversaciones se eliminan automáticamente 30 días después del último mensaje. Conservamos datos anonimizados del rodillo (modelo, firmware, resultados de pruebas) para mejorar la compatibilidad.",
   "supportDeleteConversation": "Eliminar conversación",
@@ -2208,6 +2212,10 @@
       }
     }
   },
+  "chainStepNetworkAddressNoWifiHint": "Este dispositivo no está conectado a una red WiFi, y {app} no puede llegar a BikeControl por datos móviles. Conéctate a la misma WiFi que {app}.",
+  "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressTwoNetworksHint": "Este dispositivo está en más de una red, y BikeControl anuncia la dirección {address}. Si {app} está en la otra, no encontrará BikeControl: conecta ambos a la misma WiFi.",
+  "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Comprobar la red",
   "supportAccountLinkEmailTaken": "{email} ya tiene una cuenta de BikeControl, así que no se puede añadir a este chat. Para usar esa cuenta, inicia sesión en Ajustes → Plan y cuenta. Esta conversación no se trasladará, así que vuelve a enviar tu mensaje desde allí. O introduce otro correo electrónico.",
   "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},

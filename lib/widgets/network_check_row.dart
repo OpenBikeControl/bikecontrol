@@ -56,12 +56,24 @@ String networkFixLabel(BuildContext context, NetworkFixId fix) {
   };
 }
 
-/// Optional plain-language hint under a non-pass row. Only these three check
-/// ids get one, and only when they actually failed — a warn/unknown on the
-/// same id isn't specific enough to justify the extra sentence.
-String? networkCheckHint(BuildContext context, NetworkCheck check) {
-  if (check.verdict != NetworkVerdict.fail) return null;
+/// Optional plain-language advice for a non-pass row: what to actually do,
+/// in the rider's words. [app] is the trainer app's name, when one is chosen.
+///
+/// Fails get one only where the failure is specific enough to say something
+/// useful. A few warnings get one too — the ones where "check this" alone
+/// leaves the rider guessing what to change: a full-tunnel VPN, and a phone
+/// that is on mobile data instead of Wi-Fi.
+String? networkCheckHint(BuildContext context, NetworkCheck check, {String? app}) {
   final l10n = AppLocalizations.of(context);
+  final appName = app ?? l10n.yourTrainerApp;
+  if (check.verdict == NetworkVerdict.warn) {
+    return switch (check.id) {
+      NetworkCheckId.vpn => l10n.networkHintVpn(appName),
+      NetworkCheckId.advertisedAddress when check.detail['note'] == 'no wifi' => l10n.networkHintNoWifi(appName),
+      _ => null,
+    };
+  }
+  if (check.verdict != NetworkVerdict.fail) return null;
   return switch (check.id) {
     NetworkCheckId.bonjourService => l10n.networkHintBonjourService,
     NetworkCheckId.bonjourNsp => l10n.networkHintBonjourNsp,
@@ -160,6 +172,9 @@ class NetworkCheckRow extends StatefulWidget {
   /// Draws the hairline under the row. False on the last row of a card.
   final bool showDivider;
 
+  /// The selected trainer app's name, for hints that name it.
+  final String? appName;
+
   const NetworkCheckRow({
     super.key,
     required this.check,
@@ -169,6 +184,7 @@ class NetworkCheckRow extends StatefulWidget {
     this.onSkipWatch,
     this.isFixDisabled,
     this.showDivider = true,
+    this.appName,
   });
 
   @override
@@ -203,7 +219,13 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
                 ),
                 Builder(
                   builder: (context) {
-                    final summary = networkCheckSummary(context, check) ?? _verdictWord(l10n, check.verdict);
+                    // Advice, when the check has any, replaces the description
+                    // of what it looked at: it is the line a rider needs, and
+                    // tucked into the expandable block nobody found it.
+                    final summary =
+                        networkCheckHint(context, check, app: widget.appName) ??
+                        networkCheckSummary(context, check) ??
+                        _verdictWord(l10n, check.verdict);
                     return Padding(
                       padding: const EdgeInsets.only(top: 1),
                       child: Text(summary, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
@@ -323,16 +345,11 @@ class _NetworkCheckRowState extends State<NetworkCheckRow> {
   Widget _detailBlock(BuildContext context, ColorScheme cs, NetworkTokens tokens, NetworkCheck check) {
     final entries = check.detail.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
     final width = entries.map((e) => e.key.length).fold(0, (a, b) => a > b ? a : b);
-    final hint = networkCheckHint(context, check);
     return Padding(
       padding: const EdgeInsets.fromLTRB(54, 0, 18, 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (hint != null) ...[
-            Text(hint, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
-            const Gap(8),
-          ],
           Container(
             padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 13),
             decoration: BoxDecoration(

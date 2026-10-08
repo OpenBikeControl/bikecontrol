@@ -42,7 +42,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/services/local_network_access.dart';
-import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show advertisedAddressWarning;
+import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show AddressWarningKind, advertisedAddressWarning, advertisedAddressWarningKind;
 import 'package:bike_control/utils/requirements/local_network.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
@@ -239,17 +239,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// never says something that page would not.
   String? _advertisedAddressWarning;
 
+  /// Why [_advertisedAddressWarning] was raised — see [AppInput.advertisedAddressWarningKind].
+  AddressWarningKind? _advertisedAddressWarningKind;
+
   Future<void> _refreshAdvertisedAddress() async {
     // The store board sells a finished setup, and a VPN on the screenshot
     // machine must not end up in a listing. The web has no interfaces to
     // list, and without a network method nothing is advertised at all.
     final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
     try {
-      final warning = applies ? advertisedAddressWarning(await AdvertisedAddressPicker.report()) : null;
+      final report = applies ? await AdvertisedAddressPicker.report() : null;
+      final warning = report == null ? null : advertisedAddressWarning(report);
+      final kind = report == null ? null : advertisedAddressWarningKind(report);
       // The session keeps the reading an app connected through, whether or
       // not this page is still around to show it.
       core.appConnectionLatch.noteAddressWarning(warning);
-      if (mounted && warning != _advertisedAddressWarning) setState(() => _advertisedAddressWarning = warning);
+      if (mounted && (warning != _advertisedAddressWarning || kind != _advertisedAddressWarningKind)) {
+        setState(() {
+          _advertisedAddressWarning = warning;
+          _advertisedAddressWarningKind = kind;
+        });
+      }
     } catch (e, s) {
       recordError(e, s, context: 'home advertised address');
     }
@@ -685,6 +695,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         trainerBridgedOverNetwork:
             (trainer?.appHoldsBridge ?? false) && proxy != null && proxy.retrofitMode.value != RetrofitMode.bluetooth,
         advertisedAddressWarning: _advertisedAddressWarning,
+        advertisedAddressWarningKind: _advertisedAddressWarningKind,
         advertisedAddressWarningAtConnect: core.appConnectionLatch.addressWarningAtConnect,
       ),
     );

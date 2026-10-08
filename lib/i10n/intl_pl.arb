@@ -2058,6 +2058,10 @@
   "networkHintBonjourService": "MyWhoosh potrzebuje usługi Bonjour firmy Apple. Uruchom ją, a następnie zrestartuj MyWhoosh.",
   "networkHintBonjourNsp": "Brakuje zaczepu resolvera Bonjour. Zainstaluj ponownie Bonjour — bez niego przycisk BikeControl w MyWhoosh nie zadziała.",
   "networkHintResolveFail": "Ten komputer nie mógł rozwiązać adresu BikeControl — dokładnie na tym kroku zawodzi aplikacja treningowa. W systemie Windows uszkodzona instalacja Bonjour może to powodować, nawet gdy usługa działa; pomaga czysta ponowna instalacja.",
+  "networkHintVpn": "Włączony jest VPN, który może blokować {app} dostęp do BikeControl. Wyłącz VPN albo zezwól na dostęp do sieci lokalnej w aplikacji VPN.",
+  "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoWifi": "To urządzenie nie jest w sieci Wi-Fi, więc {app} nie dotrze do BikeControl przez dane komórkowe. Połącz się z tą samą siecią Wi-Fi co {app}.",
+  "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
   "supportDiagnosticsNotice": "Aby pomóc rozwiązać twój problem, ten czat dołącza zrzut ekranu BikeControl i dane diagnostyczne. Możesz je sprawdzić lub usunąć przed wysłaniem.",
   "supportRetentionNotice": "Rozmowy są automatycznie usuwane 30 dni po ostatniej wiadomości. Zanonimizowane dane trenażera (model, firmware, wyniki testów) przechowujemy, aby poprawiać kompatybilność.",
   "supportDeleteConversation": "Usuń rozmowę",
@@ -2208,6 +2212,10 @@
       }
     }
   },
+  "chainStepNetworkAddressNoWifiHint": "To urządzenie nie jest połączone z Wi-Fi, a {app} nie dotrze do BikeControl przez dane komórkowe. Połącz się z tą samą siecią Wi-Fi co {app}.",
+  "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressTwoNetworksHint": "To urządzenie jest w więcej niż jednej sieci, a BikeControl ogłasza adres {address}. Jeśli {app} jest w tej drugiej, nie znajdzie BikeControl — połącz oba z tą samą siecią Wi-Fi.",
+  "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Sprawdź sieć",
   "supportAccountLinkEmailTaken": "{email} ma już konto BikeControl, więc nie można go dodać do tego czatu. Aby użyć tego konta, zaloguj się w Ustawienia → Plan i konto. Ta rozmowa nie zostanie przeniesiona, więc wyślij swoją wiadomość ponownie stamtąd. Możesz też podać inny adres e-mail.",
   "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},

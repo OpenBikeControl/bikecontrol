@@ -482,6 +482,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
               check: check,
               onFix: _runFix,
               isFixDisabled: _fixDisabled,
+              appName: core.settings.getTrainerApp()?.name,
               watch: check.id == NetworkCheckId.guidedWatch ? state.watch : null,
               onSkipWatch: _engine?.cancelWatch,
             ),
@@ -522,6 +523,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
           onFix: last.onFix,
           onSkipWatch: last.onSkipWatch,
           isFixDisabled: last.isFixDisabled,
+          appName: last.appName,
           showDivider: false,
         ),
       );
