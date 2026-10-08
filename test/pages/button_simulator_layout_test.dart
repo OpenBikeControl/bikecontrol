@@ -105,6 +105,20 @@ Future<void> main() async {
     });
   }
 
+  // The value rows' names sit beside two 52 pt chips, so on a 367 pt phone
+  // "Kamerawinkel ändern" has little room — it must shrink, never break.
+  for (final locale in const ['en', 'de', 'fr']) {
+    testWidgets('on a small phone the value rows read whole ($locale)', (tester) async {
+      connectMyWhoosh();
+      await render(tester, locale: locale, width: 367);
+      for (final action in InGameAction.values.where((a) => a.possibleValues != null)) {
+        final row = find.byKey(ValueKey('quick-values-${action.name}'));
+        if (row.evaluate().isEmpty) continue;
+        expectReadsWhole(tester, row, reason: '[$locale] ${action.name}');
+      }
+    });
+  }
+
   testWidgets('on a phone a shortcut is cleared from its edit state', (tester) async {
     connectMyWhoosh();
     await core.settings.setButtonSimulatorHotkeys({InGameAction.shiftUp: '1'});

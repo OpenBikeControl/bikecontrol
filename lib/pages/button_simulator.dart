@@ -470,7 +470,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                       BkIconTile(icon: action.icon ?? LucideIcons.listOrdered),
                       const Gap(BkGroupedRow.gap),
                       Flexible(
-                        child: Text(
+                        // Beside two chips on a small phone: shrink rather
+                        // than break "Kamerawinkel" mid-word.
+                        child: BkWordSafeText(
                           action.title,
                           style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
                         ),
