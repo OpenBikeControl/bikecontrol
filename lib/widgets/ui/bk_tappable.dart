@@ -18,6 +18,7 @@ class BkTappable extends StatelessWidget {
     required this.child,
     required this.onPressed,
     this.label,
+    this.hint,
     this.selected,
     this.expanded,
     this.inMutuallyExclusiveGroup = false,
@@ -44,6 +45,10 @@ class BkTappable extends StatelessWidget {
 
   /// Spoken label. When null the child's own text is read.
   final String? label;
+
+  /// Spoken after the label: what pressing does, for a surface whose look
+  /// does not say it in words (a row ending in a chevron).
+  final String? hint;
 
   /// For a choice among options (plan cards, radio-like tiles).
   final bool? selected;
@@ -79,6 +84,7 @@ class BkTappable extends StatelessWidget {
       expanded: expanded,
       inMutuallyExclusiveGroup: inMutuallyExclusiveGroup ? true : null,
       label: label,
+      hint: hint,
       excludeSemantics: excludeChildSemantics,
       // With excludeSemantics the Clickable's own tap action and focus flag
       // are dropped too, so they are re-declared here.

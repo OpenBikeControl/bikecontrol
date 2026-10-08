@@ -5,6 +5,7 @@ import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_motion.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -264,6 +265,8 @@ class ReadyBanner extends StatelessWidget {
     return Container(
       key: const ValueKey('ready-banner-steps'),
       margin: const EdgeInsets.only(bottom: 12),
+      // The rows' hover and pressed washes stop at the card's corners.
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: cs.card,
         borderRadius: BorderRadius.circular(16),
@@ -409,7 +412,10 @@ class _StepCount extends StatelessWidget {
 const double _stepTextInset = 16 + 32 + 12;
 
 /// One outstanding step: a hollow ring in the banner's tone, the step and its
-/// reason, and its fix at the end.
+/// reason. A step the rider can act on now is one big button: the whole row
+/// runs its fix, and a quiet chevron at the end says so — every step alike,
+/// with no button competing with the words. The fix's label ("Set up", "Show
+/// me how") is still read out, as the row's hint.
 class _StepLine extends StatelessWidget {
   const _StepLine({required this.step, required this.appName, required this.tone});
 
@@ -419,72 +425,80 @@ class _StepLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final key = ValueKey('ready-step-${step.linkId}-${step.step.id.name}');
+    final fix = step.onFix;
+    final line = _line(context, fix != null);
+    if (fix == null) return KeyedSubtree(key: key, child: line);
+    return BkTappable(
+      key: key,
+      onPressed: fix,
+      hint: step.actionLabel ?? context.i18n.chainShowMeHow,
+      wash: true,
+      child: line,
+    );
+  }
+
+  Widget _line(BuildContext context, bool actionable) {
     final cs = Theme.of(context).colorScheme;
     final text = chainStepText(context, step.step, appName: appName);
     final hint = text.hint;
-    final fix = step.onFix;
-    return Padding(
-      key: ValueKey('ready-step-${step.linkId}-${step.step.id.name}'),
-      padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Under the header icon's centre.
-          SizedBox(
-            width: 32,
-            child: Center(
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  // The step to do now in the banner's tone; one that waits on
-                  // it, quieter.
-                  border: Border.all(color: fix != null ? tone : cs.mutedForeground, width: 2),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: BkGroupedRow.minHeight),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Under the header icon's centre.
+            SizedBox(
+              width: 32,
+              child: Center(
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    // The step to do now in the banner's tone; one that waits on
+                    // it, quieter.
+                    border: Border.all(color: actionable ? tone : cs.mutedForeground, width: 2),
+                  ),
                 ),
               ),
             ),
-          ),
-          const Gap(12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 2,
-              children: [
-                if (step.linkTitle case final title? when title.isNotEmpty)
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 2,
+                children: [
+                  if (step.linkTitle case final title? when title.isNotEmpty)
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500),
+                    ),
                   Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500),
+                    text.label,
+                    style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
                   ),
-                Text(
-                  text.label,
-                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
-                ),
-                if (hint != null && hint.isNotEmpty)
-                  Text(
-                    hint,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.typography.xSmall.copyWith(height: 1.35, color: cs.mutedForeground),
-                  ),
-              ],
-            ),
-          ),
-          if (fix != null) ...[
-            const Gap(8),
-            BkTouchTarget(
-              child: PrimaryButton(
-                alignment: Alignment.center,
-                size: ButtonSize.small,
-                onPressed: fix,
-                child: Text(step.actionLabel ?? context.i18n.chainShowMeHow),
+                  if (hint != null && hint.isNotEmpty)
+                    Text(
+                      hint,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.typography.xSmall.copyWith(height: 1.35, color: cs.mutedForeground),
+                    ),
+                ],
               ),
             ),
+            if (actionable) ...[
+              const Gap(8),
+              Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

@@ -233,8 +233,10 @@ void _bannerStepTests() {
       core.connection.debugRememberController(click);
       addTearDown(core.connection.debugForgetOfflineControllers);
       await core.settings.setClickV2OnboardingDone(true);
-      final play = ZwiftPlay(BleDevice(name: 'Zwift Play', deviceId: 'banner-play'), deviceType: ZwiftDeviceType.playLeft)
-        ..isConnected = true;
+      final play = ZwiftPlay(
+        BleDevice(name: 'Zwift Play', deviceId: 'banner-play'),
+        deviceType: ZwiftDeviceType.playLeft,
+      )..isConnected = true;
       core.connection.devices.add(play);
       core.actionHandler.init(MyWhoosh());
       core.obpMdnsEmulator.isConnected.value = true;
@@ -307,14 +309,17 @@ void _bannerStepTests() {
       }
       expect(inBanner(find.text(l.chainStepControllerPairedPending)), findsOneWidget);
       expect(inBanner(find.text(l.chainStepAppConnectedPending('MyWhoosh'))), findsOneWidget);
-      // The controller's fix reads as on Devices.
-      expect(inBanner(find.text(l.chainSetUp)), findsOneWidget);
+      // The controller's fix reads as on Devices — to a screen reader; on
+      // screen the row is the button, with a chevron rather than a label.
+      final controllerStep = banner.steps.firstWhere((s) => s.step.id == SetupStepId.controllerPaired);
+      expect(controllerStep.actionLabel, l.chainSetUp);
+      expect(inBanner(find.text(l.chainSetUp)), findsNothing);
       expect(inDevices(find.text(l.chainSetUp)), findsOneWidget);
     });
 
-    testWidgets('tapping a step\'s fix opens what the Devices row\'s fix opens', (tester) async {
+    testWidgets('tapping a step opens what the Devices row\'s fix opens', (tester) async {
       await _pumpHome(tester);
-      await tester.tap(inBanner(find.text(l.chainSetUp)));
+      await tester.tap(inBanner(find.text(l.chainStepControllerPairedPending)));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(ScanWidget), findsOneWidget, reason: 'the banner opens the controller search');
@@ -1290,11 +1295,14 @@ void _networkAddressStepTests() {
         findsOneWidget,
       );
       expect(find.descendant(of: card, matching: find.text(l.chainStepNetworkAddressAction)), findsOneWidget);
-      // Ride's banner lists the same step with the same fix.
-      expect(
-        find.descendant(of: find.byType(ReadyBanner), matching: find.text(l.chainStepNetworkAddressAction)),
-        findsOneWidget,
-      );
+      // Ride's banner lists the same step with the same fix — the row itself,
+      // its label read out as the row's hint.
+      final step = tester
+          .widget<ReadyBanner>(find.byType(ReadyBanner))
+          .steps
+          .firstWhere((s) => s.step.id == SetupStepId.appNetworkAddress);
+      expect(step.actionLabel, l.chainStepNetworkAddressAction);
+      expect(step.onFix, isNotNull);
 
       // Unmount before the test ends: with screenshot mode off, HomePage's
       // periodic metrics timer is running, and a pending timer fails the test.
@@ -1498,7 +1506,11 @@ void _droppedAppTests() {
       matching: find.text(text),
     );
 
-    Finder bannerButton() => find.descendant(of: find.byType(ReadyBanner), matching: find.byType(PrimaryButton));
+    // The one step left — the app reconnecting — is itself the button.
+    Finder bannerButton() => find.descendant(
+      of: find.byType(ReadyBanner),
+      matching: find.byKey(const ValueKey('ready-step-app-appConnected')),
+    );
 
     Future<void> tapAndSettleSheet(WidgetTester tester, Finder finder) async {
       await tester.tap(finder);

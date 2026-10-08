@@ -44,12 +44,14 @@ Future<void> main() async {
 /// under it since moved down once, on purpose, for room under the brand band
 /// (ride_vs_band_gap_test.dart). The card has since grown by one line, on
 /// purpose too: what the selected SIM / ERG mode does, under the readings —
-/// everything above that line stays put.
+/// everything above that line stays put. And the whole card sits 29 dp
+/// higher since the banner's steps lost their buttons for a chevron: rows
+/// with the full width for their words wrap less.
 const _before = (
-  cardTop: 629.0,
+  cardTop: 600.0,
   cardHeight: 517.0,
-  numberTop: 749.0,
-  ergCenterY: 677.0,
-  buttonsTop: 1166.0,
+  numberTop: 720.0,
+  ergCenterY: 648.0,
+  buttonsTop: 1137.0,
   titleCenterY: 32.0,
 );

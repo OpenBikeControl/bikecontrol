@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
@@ -306,9 +308,10 @@ void main() async {
       ),
     ];
 
-    testWidgets('lists every step with its title, reason and fix', (tester) async {
-      final fixed = <String>[];
-      await pumpBanner(tester, pending, steps: fourSteps(fixed));
+    Finder row(String linkId, SetupStepId id) => find.byKey(ValueKey('ready-step-$linkId-${id.name}'));
+
+    testWidgets('lists every step with its title and reason, each row ending in a chevron', (tester) async {
+      await pumpBanner(tester, pending, steps: fourSteps([]));
 
       expect(find.text(l.chainStepsLeftTitle(4)), findsOneWidget);
       for (final title in [
@@ -320,21 +323,58 @@ void main() async {
         expect(find.text(title), findsOneWidget, reason: title);
       }
       expect(find.text(l.chainStepControllerPairedHint), findsOneWidget);
-      expect(find.text(l.chainSetUp), findsOneWidget);
-      expect(find.text(l.chainStepOverlayAction), findsOneWidget);
-      // No label of its own: the Devices row's default.
-      expect(find.text(l.chainShowMeHow), findsNWidgets(2));
       // Nothing to reveal: every step is on screen.
       expect(find.text(l.chainBannerShow), findsNothing);
 
-      await tester.tap(find.text(l.chainSetUp));
-      await tester.tap(find.text(l.chainStepOverlayAction));
-      await tester.tap(find.text(l.chainShowMeHow).last);
+      // One quiet chevron per step instead of a button each, all alike.
+      final steps = find.byKey(const ValueKey('ready-banner-steps'));
+      expect(find.descendant(of: steps, matching: find.byType(PrimaryButton)), findsNothing);
+      for (final label in [l.chainSetUp, l.chainStepOverlayAction, l.chainShowMeHow]) {
+        expect(find.text(label), findsNothing, reason: 'no button reading "$label"');
+      }
+      expect(find.descendant(of: steps, matching: find.byIcon(LucideIcons.chevronRight)), findsNWidgets(4));
+    });
+
+    testWidgets('tapping anywhere on a step runs its fix', (tester) async {
+      final fixed = <String>[];
+      await pumpBanner(tester, pending, steps: fourSteps(fixed));
+
+      // On the step's words, on another's, at a row's far end.
+      await tester.tap(find.text(l.chainStepControllerPairedPending));
+      await tester.tap(find.text(l.chainStepOverlayPending('MyWhoosh')));
+      await tester.tapAt(tester.getCenter(row('app', SetupStepId.appLocalNetwork)).translate(150, 0));
       await tester.pump();
       expect(fixed, ['controller-a', 'trainer', 'app']);
     });
 
-    testWidgets('a step whose fix comes after an earlier one shows without a button', (tester) async {
+    testWidgets('a step row is a button that says what tapping it does', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+
+      final setUp = tester.getSemantics(row('controller-a', SetupStepId.controllerPaired));
+      expect(setUp.getSemanticsData().flagsCollection.isButton, isTrue);
+      expect(setUp.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      expect(setUp.label, contains(l.chainStepControllerPairedPending));
+      expect(setUp.hint, l.chainSetUp);
+      // No label of its own: the Devices row's default.
+      expect(tester.getSemantics(row('controller-b', SetupStepId.controllerUnlocked)).hint, l.chainShowMeHow);
+      expect(tester.getSemantics(row('trainer', SetupStepId.trainerGearOverlay)).hint, l.chainStepOverlayAction);
+      semantics.dispose();
+    });
+
+    testWidgets('a row is at least 48 dp tall', (tester) async {
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+      for (final (id, step) in [
+        ('controller-a', SetupStepId.controllerPaired),
+        ('controller-b', SetupStepId.controllerUnlocked),
+        ('trainer', SetupStepId.trainerGearOverlay),
+        ('app', SetupStepId.appLocalNetwork),
+      ]) {
+        expect(tester.getSize(row(id, step)).height, greaterThanOrEqualTo(48), reason: id);
+      }
+    });
+
+    testWidgets('a step whose fix comes after an earlier one is neither tappable nor chevroned', (tester) async {
       await pumpBanner(
         tester,
         pending,
@@ -347,6 +387,11 @@ void main() async {
       );
       expect(find.text(l.chainStepControllerPairedPending), findsOneWidget);
       expect(find.byType(PrimaryButton), findsNothing);
+      expect(find.byIcon(LucideIcons.chevronRight), findsNothing);
+      expect(
+        find.ancestor(of: find.text(l.chainStepControllerPairedPending), matching: find.byType(Clickable)),
+        findsNothing,
+      );
     });
 
     testWidgets('past four, the rest is "+N more", which reveals them on Devices', (tester) async {
