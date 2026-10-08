@@ -269,4 +269,32 @@ Future<void> main() async {
       });
     });
   });
+
+  // "Public" is set per connection in Windows' network settings. The page that
+  // holds the switch is the connection's own; the status page is the way in
+  // when the connection's kind cannot be told from its name.
+  group('networkProfileSettingsUri', () {
+    test('a Wi-Fi connection opens the Wi-Fi settings, in any Windows language', () {
+      expect(networkProfileSettingsUri('Wi-Fi'), 'ms-settings:network-wifi');
+      expect(networkProfileSettingsUri('Wi-Fi 2'), 'ms-settings:network-wifi');
+      expect(networkProfileSettingsUri('WLAN'), 'ms-settings:network-wifi');
+    });
+
+    test('an Ethernet connection opens the Ethernet settings', () {
+      expect(networkProfileSettingsUri('Ethernet'), 'ms-settings:network-ethernet');
+      expect(networkProfileSettingsUri('Ethernet 3'), 'ms-settings:network-ethernet');
+    });
+
+    test('anything else, or nothing known, opens the network status page', () {
+      expect(networkProfileSettingsUri(null), 'ms-settings:network-status');
+      expect(networkProfileSettingsUri('vEthernet (WSL)'), 'ms-settings:network-status');
+      expect(networkProfileSettingsUri('Mobilfunk'), 'ms-settings:network-status');
+    });
+
+    test('never the firewall page', () {
+      for (final alias in [null, 'Wi-Fi', 'Ethernet', 'Other']) {
+        expect(networkProfileSettingsUri(alias), isNot(contains('windowsdefender')));
+      }
+    });
+  });
 }

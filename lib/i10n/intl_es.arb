@@ -82,12 +82,29 @@
   "actionTrainerSwitchMode": "Rodillo: cambiar ERG/SIM",
   "actionTrainerIntensityUp": "Rodillo: subir intensidad",
   "actionTrainerIntensityDown": "Rodillo: bajar intensidad",
-  "actionWorkoutPauseResume": "Entrenamiento: pausar/reanudar",
+  "actionWorkoutPauseResume": "Grabación: pausar/reanudar",
   "actionScreenRecording": "Grabar pantalla",
   "actionCalibratePhoneSteering": "Calibrar dirección",
   "steeringRecalibrating": "Recalibrando la dirección…",
   "phoneSteeringNotEnabled": "La dirección con el teléfono no está activada",
+  "phoneSteeringName": "Dirección con el teléfono",
   "steeringCalibrating": "Calibrando…",
+  "steeringRideHint": "Gira el manillar para dirigir.",
+  "steeringAdjust": "Ajustar",
+  "steeringRecalibrate": "Recalibrar",
+  "steeringPageTitle": "Dirección",
+  "steeringDescription": "Gira el manillar y tu ciclista gira en la app de entrenamiento. Dentro de la zona muerta sigues recto.",
+  "steeringReady": "Lista",
+  "steeringHoldStill": "Mantén el manillar recto y quieto un momento.",
+  "steeringInTrainerApp": "En la app de entrenamiento",
+  "steeringTurnLeft": "Manillar a la izquierda",
+  "steeringTurnRight": "Manillar a la derecha",
+  "steeringExactAngle": "Ángulo exacto",
+  "steeringExactAngleBody": "{app} sigue el ángulo exacto de tu manillar, no solo izquierda y derecha.",
+  "steeringExactAngleActive": "Activo",
+  "steeringDeadZone": "Zona muerta",
+  "steeringDeadZoneBody": "Cuánto giras antes de que empiece la dirección",
+  "steeringTurnOff": "Desactivar la dirección con el teléfono",
   "openFolder": "Abrir carpeta",
   "openGallery": "Abrir galería",
   "screenRecordingStarted": "Grabación de pantalla iniciada",
@@ -100,7 +117,7 @@
   "actionCategoryShifting": "Cambios",
   "actionCategorySteering": "Dirección",
   "actionCategoryOther": "Otros",
-  "trialDaysAvailable": "Prueba de {days} días disponible",
+  "trialDaysAvailable": "Periodo de prueba de {days} días disponible",
   "@trialDaysAvailable": {
     "placeholders": {
       "days": {
@@ -124,7 +141,7 @@
   "actAsBluetoothKeyboard": "Actuar como teclado Bluetooth",
   "action": "Acción",
   "activity": "Actividad",
-  "additionalTriggerAssignment": "Asignación de disparador adicional",
+  "additionalTriggerAssignment": "Este botón ya hace algo",
   "adjustControllerButtons": "Ajustar los botones del controlador",
   "afterDate": "Después de {date}",
   "allow": "Permitir",
@@ -134,11 +151,22 @@
   "allowLocationForBluetooth": "Permite la ubicación para que funcione el escaneo Bluetooth",
   "allowPersistentNotification": "Permitir notificaciones",
   "allowsRunningInBackground": "Permite que BikeControl siga ejecutándose en segundo plano",
-  "alreadyBoughtTheApp": "¿Ya compraste la app? No necesitas volver a pagar por BikeControl. Por limitaciones técnicas no es posible saber si la app ya se compró.\n\nIntroduce tu ID de compra de Play Store (por ejemplo, GPA.3356-1337-1338-1339) para desbloquear la versión completa. Si no lo encuentras, ponte en contacto conmigo directamente.",
+  "alreadyBoughtTheApp": "¿Ya compraste la app? No necesitas volver a pagar por BikeControl. Por limitaciones técnicas no es posible saber si la app ya se compró.\n\nIntroduce tu ID de compra de Play Store (por ejemplo, GPA.3356-1337-1338-1339) para desbloquear Base. Si no lo encuentras, ponte en contacto conmigo directamente.",
   "alreadyBoughtTheAppPreviously": "¿Ya habías comprado la app antes?",
   "androidAccessibilityHint": "Para que funcione correctamente, incluso cuando BikeControl se ejecuta en segundo plano, active el permiso de accesibilidad para BikeControl. Para ello, active el método de conexión local.",
   "androidSystemAction": "Acción del sistema Android",
-  "anotherTriggerIsAlreadyAssignedForThisButton": "Ya hay otro disparador asignado a este botón. Acceda a la versión Pro para conservar varios tipos de disparadores o reemplace la asignación de disparador existente y continúe con {triggerTitle} .",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "Sin Pro, cada botón hace una sola cosa. Hazte Pro para usar también {triggerTitle} en este botón, o reemplaza lo que hace ahora.",
+  "triggerConflictRemoves": "{trigger}: se quitará {action}",
+  "@triggerConflictRemoves": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
   "appIdActions": "Acciones de {appId}",
   "@appIdActions": {
     "placeholders": {
@@ -158,8 +186,10 @@
   "browserNotSupported": "Este navegador no es compatible con Web Bluetooth y la plataforma no es compatible :(",
   "button": "botón.",
   "buttonMapping": "Asignación de botones",
-  "buyFullVersion": "Comprar versión completa",
-  "bySigningInYouAgreeToOur": "Al iniciar sesión, aceptas nuestros {privacyPolicy} .",
+  "mappingForApp": "para {app}",
+  "mappingEditMakesCopy": "La asignación de {app} viene integrada. Al editarla se crea tu propia copia.",
+  "buyFullVersion": "Comprar Base",
+  "bySigningInYouAgreeToOur": "Al iniciar sesión, aceptas nuestra {privacyPolicy}.",
   "@bySigningInYouAgreeToOur": {
     "placeholders": {
       "privacyPolicy": {
@@ -173,7 +203,7 @@
   "checkPurchasingOptions": "Consultar opciones de compra",
   "chooseAnotherScreenshot": "Elegir otra captura de pantalla",
   "chooseBikeControlInConnectionScreen": "Seleccione BikeControl en la pantalla de conexión.",
-  "clear": "Claro",
+  "clear": "Borrar",
   "clickAButtonOnYourController": "Pulsa un botón de tu controlador para editar su acción o toca el icono de edición.",
   "clickV2EventInfo": "Es posible que tu Click V2 ya no esté enviando eventos de botón. Compruébalo pulsando algunos botones y viendo si aparecen en BikeControl.",
   "clickV2Instructions": "Para que tu Zwift Click V2 funcione lo mejor posible, deberías conectarlo en la app de Zwift antes de cada sesión de entrenamiento.\nSi no lo haces, el Click V2 dejará de funcionar al cabo de un minuto.\n\n1. Abre la app de Zwift (no Companion)\n2. Inicia sesión (no hace falta suscripción) y abre la pantalla de conexión de dispositivos\n3. Conecta tu rodillo y luego conecta el Zwift Click V2\n4. Vuelve a cerrar la app de Zwift y conéctate otra vez en BikeControl",
@@ -202,9 +232,9 @@
   "clickV2Onboarding_zwiftRecap": "Los dos mandos · desbloqueo cada 24 horas",
   "clickV2Onboarding_connectFailed": "No se pudo conectar tu Zwift Click V2. Tócalo para intentarlo de nuevo.",
   "close": "Cerrar",
-  "commandsRemainingToday": "Te quedan {commandsRemainingToday}/{dailyCommandLimit} comandos hoy",
+  "commandsRemainingToday": "Te quedan {commandsRemainingToday}/{dailyCommandLimit} pulsaciones de botón hoy",
   "configuration": "Configuración",
-  "connectControllerToPreview": "Conecte un dispositivo controlador para obtener una vista previa y personalizar el mapa de teclas.",
+  "connectControllerToPreview": "Conecta un mando para ver y personalizar la asignación de botones.",
   "connectControllers": "Conectar dispositivos de control",
   "connectDirectlyOverNetwork": "Conectar directamente a través de la red",
   "connectToTrainerApp": "Conectar la app de entrenamiento",
@@ -235,10 +265,10 @@
   "controllerConnectedClickButton": "Perfecto. Tu controlador está conectado. Pulsa un botón en tu controlador para continuar.",
   "controllerSettings": "Configuración del controlador",
   "controllers": "Dispositivos de control",
-  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "No se pudo ejecutar {button}: no hay un mapa de teclas configurado",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "No se pudo ejecutar {button}: no hay ninguna asignación de botones",
   "create": "Crear",
-  "createNewKeymap": "Crear un nuevo mapa de teclas",
-  "createNewProfileByDuplicating": "Crear un perfil personalizado nuevo duplicando \"{profileName}\"",
+  "createNewKeymap": "Crear nueva asignación",
+  "createNewProfileByDuplicating": "Crear una asignación nueva duplicando \"{profileName}\"",
   "@createNewProfileByDuplicating": {
     "placeholders": {
       "profileName": {
@@ -246,7 +276,7 @@
       }
     }
   },
-  "createdNewCustomProfile": "Se creó un perfil personalizado nuevo: {profileName}",
+  "createdNewCustomProfile": "Creaste tu propia asignación: {profileName}",
   "@createdNewCustomProfile": {
     "placeholders": {
       "profileName": {
@@ -254,6 +284,27 @@
       }
     }
   },
+  "keymapSwitchTitle": "¿Mantener tus propios botones?",
+  "keymapSwitchBody": "Estás usando tu propia asignación de botones, «{profile}». {app} puede necesitar otros botones.",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "Usar los botones de {app}",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "Mantener mis botones",
   "currentDeviceIsNotRegistered": "El dispositivo actual no está registrado",
   "currentPlan": "Plan actual",
   "customizeControllerButtons": "Personaliza los botones del controlador para {appName}",
@@ -264,11 +315,11 @@
       }
     }
   },
-  "customizeKeymapHint": "Personalice el mapa de teclas si experimenta algún problema (por ejemplo, teclas pulsadas incorrectas o pulsaciones táctiles mal localizadas)",
-  "dailyCommandLimitReachedNotification": "Se ha alcanzado el límite diario de comandos. Actualiza a la versión básica o Pro para desbloquear comandos ilimitados.",
+  "customizeKeymapHint": "Personaliza la asignación de botones si tienes algún problema (por ejemplo, teclas pulsadas incorrectas o pulsaciones táctiles mal localizadas)",
+  "dailyCommandLimitReachedNotification": "Has gastado las pulsaciones de botón de hoy. Con Base o Pro son ilimitadas.",
   "dailyLimitReached": "Límite diario alcanzado ({dailyCommandCount}/{dailyCommandLimit} usados)",
   "delete": "Eliminar",
-  "deleteProfile": "Eliminar perfil",
+  "deleteProfile": "Eliminar asignación",
   "deleteProfileConfirmation": "¿Seguro que quieres eliminar \"{profileName}\"? Esta acción no se puede deshacer.",
   "@deleteProfileConfirmation": {
     "placeholders": {
@@ -322,7 +373,7 @@
   },
   "enableLocalConnectionMethodFirst": "Activa primero el método de conexión local.",
   "enableMediaKeyDetection": "Habilitar controles remotos multimedia Bluetooth",
-  "enableMywhooshLinkInTheConnectionSettingsFirst": "Activa primero MyWhoosh Link en los ajustes de conexión.",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "Primero activa MyWhoosh Link en Ajustes de conexión.",
   "enablePairingProcess": "Habilita el proceso de emparejamiento",
   "enablePermissions": "Habilitar permisos",
   "enableSteeringWithPhone": "Activar dirección con los sensores de tu teléfono",
@@ -333,7 +384,7 @@
   "errorStartingOpenBikeControlBluetoothServer": "Error al iniciar el servidor Bluetooth de OpenBikeControl.",
   "errorStartingOpenBikeControlServer": "Error al iniciar el servidor OpenBikeControl.",
   "exportAction": "Exportar",
-  "failedToImportProfile": "No se pudo importar el perfil. Formato no válido.",
+  "failedToImportProfile": "No se pudo importar la asignación. Formato no válido.",
   "failedToUpdate": "No se pudo actualizar: {error}",
   "@failedToUpdate": {
     "placeholders": {
@@ -363,7 +414,7 @@
   "howBikeControlUsesPermission": "¿Cómo usa BikeControl este permiso?",
   "ignoredDevices": "Dispositivos ignorados",
   "importAction": "Importar",
-  "importProfile": "Importar perfil",
+  "importProfile": "Importar asignación",
   "instructionVideo": "Vídeo instructivo",
   "instructions": "Instrucciones",
   "jsonData": "Datos JSON",
@@ -412,38 +463,27 @@
   "mailSupportExplanation": "Dar soporte individual por correo me lleva mucho trabajo.\n\nSi puedes, usa Reddit, Facebook o GitHub para dudas y problemas, así toda la comunidad puede beneficiarse.",
   "main": "Principal",
   "manageIgnoredDevices": "Administrar dispositivos ignorados",
-  "manageProfile": "Gestionar perfil",
+  "manageProfile": "Gestionar asignación",
+  "keymapSyncLabel": "Sincroniza tus asignaciones de botones entre tus dispositivos",
+  "keymapManageLabel": "Renombrar, duplicar, importar, exportar o eliminar asignaciones de botones",
   "manageSubscription": "Gestionar suscripción",
   "manageYourDevices": "Gestiona tus dispositivos",
   "manualyControllingButton": "Controla {trainerApp} manualmente",
   "mediaKeyDetectionTooltip": "Habilite esta opción para que BikeControl detecte controles remotos Bluetooth. \nPara ello, BikeControl debe funcionar como reproductor multimedia.",
-  "miniWorkout": "Mini Workout",
-  "miniWorkoutStart": "Start Workout",
-  "miniWorkoutPause": "Pause",
-  "miniWorkoutResume": "Resume",
-  "miniWorkoutStop": "Stop",
-  "miniWorkoutRecording": "Recording",
-  "miniWorkoutPaused": "Paused",
-  "miniWorkoutNoTrainerConnected": "Connect a smart trainer to start a workout.",
-  "miniWorkoutConfirmStopTitle": "Stop workout?",
-  "miniWorkoutConfirmStopBody": "Your workout will be saved and you can view the summary.",
-  "miniWorkoutSummaryTitle": "Workout summary",
-  "miniWorkoutSummaryDuration": "Duration",
-  "miniWorkoutSummaryAvgPower": "Avg power",
-  "miniWorkoutSummaryMaxPower": "Max power",
-  "miniWorkoutSummaryAvgCadence": "Avg cadence",
-  "miniWorkoutSummaryAvgSpeed": "Avg speed",
-  "miniWorkoutSummaryDistance": "Distance",
-  "miniWorkoutSummaryAvgHeartRate": "Avg heart rate",
-  "miniWorkoutSummaryMaxHeartRate": "Max heart rate",
-  "miniWorkoutShareFit": "Share .fit file",
-  "miniWorkoutOpenFolder": "Open workouts folder",
-  "miniWorkoutPastWorkouts": "Past workouts",
-  "miniWorkoutNoPastWorkouts": "No past workouts yet.",
-  "miniWorkoutDelete": "Delete",
-  "miniWorkoutConfirmDeleteTitle": "Delete workout?",
-  "miniWorkoutConfirmDeleteBody": "This removes the .fit file from your device.",
-  "miniWorkoutRecordingTooShort": "Workout too short to save (minimum 10 seconds).",
+  "miniWorkoutStart": "Iniciar grabación",
+  "miniWorkoutStop": "Detener",
+  "miniWorkoutRecording": "Grabando",
+  "miniWorkoutPaused": "En pausa",
+  "miniWorkoutNoTrainerConnected": "Conecta un rodillo inteligente para grabar una actividad.",
+  "miniWorkoutSummaryDuration": "Duración",
+  "miniWorkoutSummaryAvgPower": "Potencia media",
+  "miniWorkoutSummaryMaxPower": "Potencia máx.",
+  "miniWorkoutSummaryAvgCadence": "Cadencia media",
+  "miniWorkoutSummaryDistance": "Distancia",
+  "miniWorkoutSummaryAvgHeartRate": "FC media",
+  "miniWorkoutSummaryMaxHeartRate": "FC máx.",
+  "miniWorkoutShareFit": "Compartir en Strava, Garmin y más",
+  "miniWorkoutOpenFolder": "Abrir carpeta de actividades",
   "miuiDeviceDetected": "Dispositivo MIUI detectado",
   "miuiDisableBatteryOptimization": "• Deshabilitar la optimización de la batería para BikeControl",
   "miuiEnableAutostart": "• Habilitar el inicio automático para BikeControl",
@@ -454,7 +494,7 @@
   "mustChooseAllowOrDeny": "Debes elegir entre Permitir o Denegar este permiso para continuar.",
   "myWhooshDirectConnectAction": "Acción de MyWhoosh \"Link\"",
   "myWhooshGearHintTitle": "BikeControl gestiona tus cambios",
-  "myWhooshGearHintBody": "Desactiva el cambio virtual en los ajustes de MyWhoosh u oculta la interfaz de cambios en MyWhoosh. De lo contrario, ambas aplicaciones pueden intentar controlar la resistencia y los cambios pueden sentirse inconsistentes.",
+  "myWhooshGearHintBody": "Esto aplica cuando el cambio virtual de BikeControl controla tu rodillo: desactiva el cambio virtual en los ajustes de MyWhoosh u oculta la interfaz de cambios en MyWhoosh. De lo contrario, ambas aplicaciones pueden intentar controlar la resistencia y los cambios pueden sentirse inconsistentes.",
   "myWhooshLinkConnected": "MyWhoosh \"Link\" conectado",
   "myWhooshLinkDescriptionLocal": "Conectar directamente a MyWhoosh mediante el método MyWoosh \"Link\". Las acciones compatibles incluyen cambios de marcha, reacciones y dirección virtual, entre otras. La aplicación complementaria MyWhoosh Link NO debe estar ejecutándose simultáneamente.",
   "myWhooshLinkInfo": "Si tienes algún problema, revisa la sección de solución de problemas. Muy pronto llegará un método de conexión mucho más fiable.",
@@ -462,8 +502,8 @@
   "needHelpDontHesitate": "botón de arriba y no dudes en ponerte en contacto con nosotros.",
   "never": "Nunca",
   "newConnectionMethodAnnouncement": "{trainerApp} pronto admitirá métodos de conexión mucho mejores y más fiables. Estate atento a las actualizaciones.",
-  "newCustomProfile": "Nuevo perfil personalizado",
-  "newProfileName": "Nombre del nuevo perfil",
+  "newCustomProfile": "Nueva asignación",
+  "newProfileName": "Nombre de la nueva asignación",
   "newVersionAvailable": "Nueva versión disponible",
   "newVersionAvailableWithVersion": "Nueva versión disponible: {version}",
   "@newVersionAvailableWithVersion": {
@@ -478,10 +518,12 @@
   "next": "Siguiente",
   "no": "No",
   "noActionAssigned": "Sin acción asignada",
+  "noActionAssignedShort": "(ninguna)",
+  "actionWaitsForConnectionMethod": "Aún no funciona: activa un método de conexión",
   "noActionAssignedForButton": "No se pudo ejecutar {button}: no hay ninguna acción asignada",
   "trainerAppNotConnectedForButton": "No se pudo ejecutar {button}: {app} no está conectado",
   "trainerAppActionUnsupportedForButton": "No se pudo ejecutar {button}: {app} no lo admite",
-  "noActiveWorkout": "Sin entrenamiento activo",
+  "noActiveWorkout": "No hay ninguna grabación en curso",
   "noProxyTrainerConnected": "No hay un smart trainer conectado",
   "noConnectionMethodIsConnectedOrActive": "No hay ningún método de conexión conectado ni activo.",
   "noConnectionMethodSelected": "No se ha seleccionado ningún método de conexión",
@@ -490,7 +532,6 @@
   "noDevicesRegistered": "No hay dispositivos registrados",
   "noIgnoredDevices": "No hay dispositivos ignorados.",
   "noTrainerSelected": "No has seleccionado ninguna app de entrenamiento",
-  "notAssignedOrNoConnectionMethodActive": "No asignado",
   "notConnected": "No conectado",
   "notificationDescription": "Esto mantiene la app viva en segundo plano y te avisa cuando cambia la conexión con tus dispositivos.",
   "officiallySupported": "Respaldado oficialmente",
@@ -512,17 +553,17 @@
   "pairingInstructionsIOS": "En tu iPad, ve a Ajustes > Accesibilidad > Táctil > AssistiveTouch > Dispositivos de puntero > Dispositivos y vincula tu dispositivo. Asegúrate de que AssistiveTouch esté activado.",
   "pasteExportedJsonData": "Pega abajo los datos JSON exportados:",
   "pathCopiedToClipboard": "La ruta se ha copiado al portapapeles",
-  "paywall_amountOfActions": "Comandos de botones al día",
+  "paywall_amountOfActions": "Pulsaciones de botón al día",
   "paywall_billedAtPricemo": "Se cobra {price}/mes",
   "paywall_billedAtYearly": "Se cobra {cost}/año",
-  "paywall_configure3ActionsPerButton": "Configurar 3 acciones por botón",
+  "paywall_configure3ActionsPerButton": "Hasta 3 acciones por botón: un clic, doble clic, pulsación larga",
   "paywall_controlYourDeviceMusic": "Controla tu dispositivo/música",
   "paywall_createScreenshots": "Crear capturas de pantalla",
   "paywall_monthly": "Mensual",
   "paywall_startAnyCommandShortcutWithAnyButton": "Inicie cualquier comando/acceso directo con cualquier botón",
   "paywall_supportDevelopmentOfNewFeaturesDevicesAndMore": "Apoyar el desarrollo de nuevas funciones/dispositivos y más",
   "paywall_synchronizeAndBackup": "Sincronizar y realizar copias de seguridad",
-  "paywall_useBikecontrolOnAllPlatforms": "Utilice BikeControl en todas las plataformas",
+  "paywall_useBikecontrolOnAllPlatforms": "BikeControl en iPhone y iPad, Android, Mac y Windows, con una sola cuenta",
   "paywall_yearly": "Anual",
   "permissionsRequired": "Para que BikeControl busque dispositivos cercanos y le notifique cuando cambie la conexión, habilite los siguientes permisos:",
   "proSubscriptionRequiredForAction": "Suscripción Pro necesaria para esta acción",
@@ -545,7 +586,7 @@
     }
   },
   "playPause": "Reproducir/Pausar",
-  "pleaseSelectAConnectionMethodFirst": "Primero selecciona un método de conexión en los ajustes de la app de entrenamiento.",
+  "pleaseSelectAConnectionMethodFirst": "Primero activa un método de conexión en Ajustes de conexión.",
   "predefinedAction": "Acción predefinida de {appName}",
   "@predefinedAction": {
     "placeholders": {
@@ -566,7 +607,7 @@
   },
   "previous": "Anterior",
   "privacyPolicy": "política de privacidad",
-  "profileExportedToClipboard": "El perfil \"{profileName}\" se ha exportado al portapapeles",
+  "profileExportedToClipboard": "Asignación \"{profileName}\" copiada al portapapeles",
   "@profileExportedToClipboard": {
     "placeholders": {
       "profileName": {
@@ -574,8 +615,8 @@
       }
     }
   },
-  "profileImportedSuccessfully": "Perfil importado correctamente",
-  "profileName": "Nombre del perfil",
+  "profileImportedSuccessfully": "Asignación importada",
+  "profileName": "Nombre de la asignación",
   "purchase": "Comprar",
   "recommendedConnectionMethods": "Métodos de conexión recomendados",
   "registerCurrentDevice": "Registrar dispositivo actual",
@@ -583,7 +624,7 @@
   "removeFromIgnoredList": "Eliminar de la lista de ignorados",
   "removeOnePressAction": "El {device} no es compatible con la pulsación prolongada de forma nativa. Para usar este tipo, es necesario eliminar la acción de pulsación prolongada.",
   "rename": "Renombrar",
-  "renameProfile": "Renombrar perfil",
+  "renameProfile": "Renombrar asignación",
   "replaceExisting": "Reemplazar existente",
   "requirement": "Requisito",
   "reset": "Restablecer",
@@ -591,8 +632,6 @@
   "restart": "Reiniciar",
   "restorePurchaseInfo": "Haz clic en el botón de arriba y luego en \"Restore Purchase\". Si tienes algún problema, ponte en contacto conmigo directamente.",
   "restorePurchases": "Restaurar compras",
-  "revoke": "Revocar",
-  "revoked": "Revocado",
   "runAppOnThisDevice": "Ejecuta {appName} en este dispositivo.",
   "@runAppOnThisDevice": {
     "placeholders": {
@@ -607,15 +646,7 @@
   "scanningForDevices": "Buscando dispositivos... Asegúrese de que estén encendidos, dentro del alcance y no conectados a otro dispositivo.",
   "lookingForSmartTrainers": "Buscando Smart Trainers…",
   "selectADeviceToSyncFrom": "Selecciona un dispositivo del que sincronizar",
-  "selectKeymap": "Seleccionar mapa de teclas",
-  "selectTargetWhereAppRuns": "Seleccione en qué dispositivo se usa {appName}",
-  "@selectTargetWhereAppRuns": {
-    "placeholders": {
-      "appName": {
-        "type": "String"
-      }
-    }
-  },
+  "selectKeymap": "Seleccionar asignación",
   "warningInstallOnTargetDevice": "BikeControl también está disponible para iOS, Android, Windows y macOS. Para que {appName} funcione correctamente, descarga BikeControl en ese dispositivo.",
   "@warningInstallOnTargetDevice": {
     "placeholders": {
@@ -665,7 +696,7 @@
   "syncSettings": "Sincronizar ajustes",
   "syncStatus": "Estado de sincronización",
   "synchronizeAcrossDevices": "Sincronizar entre dispositivos",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Sincroniza los ajustes de la app entre todos tus dispositivos. Esto incluye tus mapas de teclas, configuraciones de botones y preferencias.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Sincroniza los ajustes de la app entre todos tus dispositivos. Esto incluye tus asignaciones de botones y preferencias.",
   "targetOtherDevice": "Otro dispositivo",
   "targetThisDevice": "Este dispositivo",
   "termsOfUse": "Condiciones de uso",
@@ -675,10 +706,10 @@
   "touchSimulationForegroundMessage": "Para simular toques, la app necesita permanecer en primer plano.",
   "trainer": "Rodillo",
   "trainerConnection": "Conexión de entrenadores",
-  "trialDaysRemaining": "Quedan {trialDaysRemaining} días",
-  "trialExpired": "El periodo de prueba ha caducado. Los comandos están limitados a {dailyCommandLimit} por día.",
-  "trialPeriodActive": "Periodo de prueba activo: quedan {trialDaysRemaining} días",
-  "trialPeriodDescription": "Durante el periodo de prueba tienes {dailyCommandLimit} comandos al día. Cuando termine, el límite diario será menor: actualiza para tener comandos ilimitados.",
+  "trialDaysRemaining": "Periodo de prueba: quedan {trialDaysRemaining} días",
+  "trialExpired": "El periodo de prueba ha terminado. Pulsaciones de botón limitadas a {dailyCommandLimit} al día.",
+  "trialPeriodActive": "Periodo de prueba: quedan {trialDaysRemaining} días",
+  "trialPeriodDescription": "Durante el periodo de prueba tienes {dailyCommandLimit} pulsaciones de botón al día. Cuando termine, el límite diario baja; con Base o Pro son ilimitadas.",
   "troubleshootingGuide": "Ayuda y soporte",
   "tryingToConnectAgain": "Intentando conectar de nuevo...",
   "unassignAction": "Quitar asignación de la acción",
@@ -688,7 +719,14 @@
   "unlockTheFullVersionOrGoPro": "Desbloquea la versión básica o hazte Pro.",
   "unlock_bikecontrolAndZwiftNetwork": "BikeControl y Zwift deben estar en la misma red o en el mismo dispositivo. Puede tardar unos segundos en aparecer.",
   "unlock_confirmByPressingAButtonOnYourDevice": "Confirma pulsando un botón en tu dispositivo.",
-  "unlock_connectToBikecontrol": "Conéctate a \"BikeControl\", por ejemplo como fuente de potencia",
+  "unlock_connectToBikecontrol": "Conéctate a \"{name}\", por ejemplo como fuente de potencia",
+  "@unlock_connectToBikecontrol": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unlock_deviceIsCurrentlyLocked": "El dispositivo está bloqueado en este momento",
   "unlock_isnowunlocked": "{device} ya está desbloqueado",
   "unlock_markAsUnlocked": "Marcar como desbloqueado",
@@ -715,12 +753,12 @@
   "unlock_unlockedUntilAroundDate": "Desbloqueado hasta aproximadamente {date}",
   "unlock_waitingForZwift": "Esperando a que Zwift desbloquee tu dispositivo...",
   "unlock_youCanNowCloseZwift": "Ya puedes cerrar Zwift y volver a BikeControl.",
-  "unlock_yourTrialPhaseHasExpired": "Tu periodo de prueba ha finalizado. Adquiere la versión Básica o Pro para desbloquear la función de desbloqueo automático.",
+  "unlock_yourTrialPhaseHasExpired": "Tu periodo de prueba ha terminado. Consigue Base o Pro para desbloquear la función de desbloqueo automático :)",
   "unlock_yourZwiftClickMightBeUnlockedAlready": "Puede que tu Zwift Click ya esté desbloqueado.",
   "unlockingNotPossible": "De momento todavía no es posible desbloquearlo, así que disfruta del uso ilimitado mientras tanto.",
   "update": "Actualizar",
   "uploadSettings": "Subir ajustes",
-  "useCustomKeymapForButton": "Usa un mapa de teclas personalizado para que sea compatible con el",
+  "useCustomKeymapForButton": "Usa tu propia asignación para que sea compatible con el",
   "version": "Versión {version}",
   "@version": {
     "placeholders": {
@@ -729,6 +767,20 @@
       }
     }
   },
+  "versionPatch": "Parche {number}",
+  "@versionPatch": {
+    "description": "The Shorebird code-push patch the app runs, after the version (e.g. 'Version 7.1.0 · Patch 4').",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "versionBetaTrack": "Beta",
+  "@versionBetaTrack": {
+    "description": "After the version: the app gets its updates from the beta lane."
+  },
+  "versionCopied": "Versión copiada al portapapeles",
   "viewDetailedInstructions": "Ver instrucciones detalladas",
   "volumeDown": "Bajar volumen",
   "volumeUp": "Subir volumen",
@@ -773,7 +825,7 @@
   "smoothingOn": "Suavizado activado",
   "smoothingOff": "Suavizado desactivado",
   "customRatios": "Relaciones personalizadas",
-  "trainerControl": "Control del rodillo",
+  "trainerControl": "Modo de resistencia: SIM o ERG",
   "fixedTargetPowerMode": "Modo de potencia objetivo fija",
   "virtualGearShifting": "Cambio virtual de marchas",
   "ergMode": "ERG",
@@ -785,6 +837,8 @@
   "unlockAfterMinuteCheck": "Tras un minuto, vuelve a comprobarlo pulsando un botón",
   "unlockConfirmByButton": "Confirma el desbloqueo pulsando un botón",
   "tuneGearsIntro": "Ajusta cada marcha virtual a tu gusto. Los cambios se aplican al instante.",
+  "vsResetTitle": "¿Restablecer tus marchas?",
+  "vsResetBody": "El número de marchas vuelve al de tu app de entrenamiento, se activa el suavizado de pendiente y tu desarrollo por marcha vuelve al estándar. Tus valores propios no se pueden recuperar.",
   "virtualShiftingMode": "Modo de Virtual Shifting",
   "virtualShiftingModeDesc": "Cómo se calcula la resistencia por marcha",
   "targetPowerMode": "Potencia objetivo",
@@ -792,8 +846,6 @@
   "basicMode": "Básico",
   "gearCount": "Número de marchas",
   "gearCountDesc": "Tamaño del cambio virtual",
-  "gearCountMismatch": "{appName} usa {expected} marchas, esta configuración usa {actual}. La marcha mostrada en {appName} puede no coincidir.",
-  "useGearCount": "Usar {count}",
   "gradeSmoothing": "Suavizado de pendiente",
   "gradeSmoothingDesc": "Promedia los cambios bruscos de pendiente",
   "cadenceFilter": "Filtro de cadencia",
@@ -881,6 +933,10 @@
   "customModeAction": "Acción {mode} personalizada",
   "customLabel": "Personalizada",
   "blogTab": "Blog",
+  "activityTabNews": "Novedades",
+  "newsEmpty": "Aún no hay novedades.",
+  "newsLoadFailed": "No se pudieron cargar las novedades. Comprueba tu conexión e inténtalo de nuevo.",
+  "newsNewBadge": "Nuevo",
   "openConnectionSettings": "Abrir ajustes de conexión",
   "noTargetSelected": "No has elegido un destino",
   "stay": "Quedarme",
@@ -890,9 +946,8 @@
   "languageSystemDefault": "Predeterminado del sistema",
   "notSupportedOnWeb": "No soportado en Web :)",
   "recommended": "Recomendado",
-  "workoutPaused": "Entrenamiento pausado",
-  "workoutResumed": "Entrenamiento reanudado",
-  "workoutShareText": "Entrenamiento {fileName}",
+  "workoutPaused": "Grabación en pausa",
+  "workoutResumed": "Grabación reanudada",
   "connectionSettings": "Ajustes de conexión",
   "needsTargetLeavePrompt": "{appName} necesita un destino antes de poder conectar. ¿Salir sin elegir uno?",
   "feedbackQuestion": "¿Funciona?",
@@ -940,7 +995,7 @@
   "failedToOpenChat": "No se pudo abrir el chat de soporte",
   "senderYou": "Tú",
   "senderAdmin": "Soporte",
-  "viewThread": "Crear hilo",
+  "viewThread": "Responder",
   "threadTitle": "Hilo",
   "replyCount": "Respuestas ({count})",
   "@replyCount": {
@@ -955,7 +1010,7 @@
   "proxyFeatureAddVirtualShifting": "Añadir Virtual Shifting",
   "proxyFeatureAdjustGears": "Ajustar marchas de Virtual Shifting",
   "proxyFeatureDirectControl": "Cambios directos de marcha / intensidad / modo con {controller}",
-  "proxyFeatureMiniWorkout": "Iniciar un mini-entrenamiento",
+  "proxyFeatureMiniWorkout": "Grabar tu sesión como actividad",
   "proxyFeatureWifiProxy": "Proxy por WiFi",
   "trainerErgTarget": "Objetivo ERG: {watts} W",
   "trainerErgTargetGameControlled": "El objetivo ERG lo controla la aplicación",
@@ -973,7 +1028,7 @@
   "trainerFrontShiftUnavailable": "Cambio delantero no disponible",
   "successRatingMessage": "¡Gracias por usar BikeControl! Considera valorar BikeControl en el {store} — nos ayuda mucho.",
   "rateBikeControl": "Valorar BikeControl",
-  "bridgeMinutesRemainingToday": "Quedan {minutes} min hoy",
+  "bridgeMinutesRemainingToday": "Quedan {minutes} min de prueba hoy",
   "@bridgeMinutesRemainingToday": {
     "placeholders": {
       "minutes": {
@@ -982,8 +1037,12 @@
       }
     }
   },
-  "bridgeTrialTimeOverTitle": "Tiempo de prueba del Bridge agotado",
-  "bridgeTrialTimeOverBody": "Has usado los 20 minutos de hoy de cambio de marchas virtual por BikeControl. Es una función Pro; la compra de Base no la amplía. Sin Pro, deja que tu app de entrenamiento haga el cambio: empareja el rodillo directamente en la app y BikeControl envía tus botones de cambio.",
+  "bridgeTrialTimeOverTitle": "Se acabó la prueba de hoy del cambio virtual",
+  "bridgeTrialTimeOverBody": "Tu sesión sigue por ahora: nada cambia hasta que tu app de entrenamiento se desconecte. Después, el rodillo de BikeControl no volverá a aparecer en la app hoy: empareja el rodillo directamente en la app y BikeControl seguirá enviando tus botones de cambio. Pro elimina el límite diario.",
+  "bridgeTrialAlreadyOverBody": "El rodillo de BikeControl no volverá a aparecer en tu app de entrenamiento hasta mañana. Mientras tanto, empareja el rodillo directamente en la app y BikeControl seguirá enviando tus botones de cambio. Pro elimina el límite diario.",
+  "bridgeTrialEndingSoonTitle": "{minutes, plural, =1{Queda 1 minuto} other{Quedan {minutes} minutos}} de la prueba de hoy del cambio virtual",
+  "@bridgeTrialEndingSoonTitle": {"placeholders": {"minutes": {"type": "int"}}},
+  "bridgeTrialEndingSoonBody": "Cuando se acabe, esta sesión seguirá hasta que tu app de entrenamiento se desconecte. Pro elimina el límite diario.",
   "connect": "Conectar",
   "smartTrainerAndAccessories": "Smart trainer y accesorios",
   "trainerAppDoesNotSupportConnectionYet": "{trainerApp} todavía no admite esto",
@@ -994,18 +1053,12 @@
       }
     }
   },
-  "trainerMissingFtmsWarning": "{trainerName} no anuncia el servicio FTMS, por lo que el cambio de marchas virtual puede no funcionar. Usa el botón \"Enviar feedback\" más abajo para reportar este trainer.",
+  "trainerMissingFtmsWarning": "{trainerName} no anuncia el servicio FTMS, por lo que el cambio de marchas virtual puede no funcionar. Usa \"¿Necesitas ayuda?\" más abajo para reportar este trainer.",
+  "trainerConnectTimeout": "No se pudo contactar con {trainer}. Asegúrate de que esté encendido, cerca y sin conectar a otra app, e inténtalo de nuevo.",
+  "trainerConnectFailed": "No se pudo conectar con {trainer}. Inténtalo de nuevo en un momento.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
-        "type": "String"
-      }
-    }
-  },
-  "virtualShiftingProNote": "El cambio de marchas virtual es una función Pro, pero puedes probar todos los ajustes dentro de BikeControl. Conectarlo en {trainerApp} está limitado a 20 min al día, para que veas cómo funciona.",
-  "@virtualShiftingProNote": {
-    "placeholders": {
-      "trainerApp": {
         "type": "String"
       }
     }
@@ -1179,8 +1232,8 @@
     }
   },
   "onboardingWhereSubtitle": "Esto decide cómo se comunica BikeControl con ella.",
-  "onboardingWhereEnablesLocal": "Activa el método Local: las pulsaciones y toques van directos a la app.",
-  "onboardingWhereEnablesNetwork": "Activa el método de Red: BikeControl encuentra la app por tu wifi.",
+  "onboardingWhereEnablesLocal": "BikeControl pulsa los botones de {app} por ti; no hace falta otro dispositivo.",
+  "onboardingWhereEnablesNetwork": "{app} encuentra BikeControl por tu wifi.",
   "onboardingWhereChangeLater": "Puedes cambiarlo más tarde en los ajustes de conexión.",
   "onboardingHelp": "Ayuda",
   "onboardingHelpAndSupport": "Ayuda y soporte",
@@ -1191,11 +1244,11 @@
   "onboardingHelpAppTitle": "¿Qué app debo elegir?",
   "onboardingHelpAppBody": "Elige la app en la que ruedas de verdad. Las integraciones oficiales se prueban con BikeControl; las demás se conectan por métodos genéricos.",
   "onboardingHelpWhereTitle": "¿Mismo dispositivo u otro?",
-  "onboardingHelpWhereBody": "Si tu app de entrenamiento está en un Apple TV, PC o tablet y BikeControl en otro sitio, elige «En otro dispositivo».",
+  "onboardingHelpWhereBody": "Si tu app de entrenamiento está en un Apple TV, PC o tablet y BikeControl en otro sitio, elige «Otro dispositivo».",
   "onboardingHelpControllerTitle": "Mi mando no aparece",
   "onboardingHelpControllerBody": "Despiértalo pulsando un botón, cierra cualquier app que ya lo tenga ocupado (sobre todo Zwift) y mantenlo a un par de metros.",
   "onboardingHelpVsTitle": "¿Necesito un rodillo inteligente?",
-  "onboardingHelpVsBody": "No: este paso es opcional. Conéctalo solo si quieres que BikeControl calcule tus marchas y la resistencia. Eso es el cambio virtual de BikeControl, parte de Pro: sin Pro tienes una prueba diaria, y Base no lo incluye.",
+  "onboardingHelpVsBody": "No: este paso es opcional. Conéctalo solo si quieres que BikeControl calcule tus marchas y la resistencia. Eso es el cambio virtual de BikeControl, parte de Pro. Sin Pro, tu app de entrenamiento se encarga del cambio virtual.",
   "onboardingHelpConnectionTitle": "No se conecta",
   "onboardingHelpConnectionBody": "Para Red, comprueba que ambos dispositivos están en el mismo wifi, o activa Local como alternativa en macOS, Windows y Android.",
   "onboardingHelpDoneTitle": "¿Cuáles son los límites de la prueba?",
@@ -1217,6 +1270,7 @@
   "onboardingBluetoothNotifyTitle": "Mantenerte informado",
   "onboardingBluetoothNotifySub": "Te avisa cuando un dispositivo se conecta o se cae.",
   "onboardingBluetoothPrivacy": "BikeControl nunca lo usa para ubicación ni seguimiento.",
+  "onboardingBluetoothLocationNote": "Android exige el permiso de ubicación para encontrar dispositivos Bluetooth. BikeControl no rastrea dónde estás.",
   "onboardingNotNow": "Ahora no",
   "onboardingScanTitle": "Buscando tu mando",
   "onboardingScanSubtitle": "Asegúrate de que está encendido, dentro del alcance y no conectado a otra app.",
@@ -1259,7 +1313,7 @@
     }
   },
   "onboardingVsBlockedTitle": "Opcional: conecta tu rodillo inteligente",
-  "onboardingVsBlockedSubtitle": "BikeControl puede calcular tus marchas para cualquier app; con {app} en Android solo necesita otra disposición.",
+  "onboardingVsBlockedSubtitle": "BikeControl puede calcular tus marchas para cualquier app; con {app} en este dispositivo solo necesita otra disposición.",
   "@onboardingVsBlockedSubtitle": {
     "placeholders": {
       "app": {
@@ -1267,7 +1321,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "El cambio virtual funciona con {app}, pero no con las dos apps en este mismo móvil: BikeControl publica tu rodillo por wifi, la versión Android de {app} solo empareja rodillos por Bluetooth, y BikeControl no puede anunciarse por Bluetooth a una app del mismo dispositivo.",
+  "onboardingVsBlockedExplainer": "El cambio virtual funciona con {app}, pero no con las dos apps en este mismo dispositivo: aquí {app} solo empareja rodillos por Bluetooth, y BikeControl no puede anunciarse por Bluetooth a una app del mismo dispositivo.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -1275,6 +1329,8 @@
       }
     }
   },
+  "onboardingVsBlockedExplainerStoreApp": "El cambio virtual funciona con {app}, pero no con las dos apps en este mismo PC: {app} viene de Microsoft Store y Windows no deja que las apps de la Store se conecten a BikeControl en el mismo PC. Y el Bluetooth tampoco llega a una app del mismo dispositivo.",
+  "@onboardingVsBlockedExplainerStoreApp": {"description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.", "placeholders": {"app": {"type": "String"}}},
   "onboardingVsBlockedAlternatives": "Dos configuraciones que funcionan",
   "onboardingVsBlockedAltAppTitle": "Usa {app} en otro dispositivo",
   "@onboardingVsBlockedAltAppTitle": {
@@ -1284,7 +1340,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Deja BikeControl en este móvil y rueda con {app} en un PC, Apple TV o tablet: encontrará tu rodillo a través de BikeControl por tu wifi. Vuelve un paso y elige «En otro dispositivo».",
+  "onboardingVsBlockedAltAppBody": "Deja BikeControl aquí y rueda con {app} en otro PC, Apple TV, tablet o móvil: encontrará tu rodillo a través de BikeControl. Vuelve un paso y elige «Otro dispositivo».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1294,7 +1350,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "Usa BikeControl en otro dispositivo",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Instala BikeControl en un segundo móvil o tablet junto a tu bici y deja que publique el rodillo por Bluetooth: eso es lo que acepta {app} en Android.",
+  "onboardingVsBlockedAltBtBody": "Instala BikeControl en un segundo móvil o tablet junto a tu bici y deja que pase el rodillo a {app} desde allí.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -1327,7 +1383,7 @@
   },
   "onboardingConnectionMethods": "Métodos de conexión",
   "onboardingMethodNetwork": "Red",
-  "onboardingMethodNetworkDesc": "Activado para {app} por defecto. Ambos dispositivos deben estar en el mismo wifi.",
+  "onboardingMethodNetworkDesc": "{app} encuentra BikeControl por tu wifi; con dos dispositivos, ambos deben estar en la misma red.",
   "@onboardingMethodNetworkDesc": {
     "placeholders": {
       "app": {
@@ -1351,7 +1407,7 @@
   "onboardingMethodLocalFeature1": "Control de música y multimedia",
   "onboardingMethodLocalFeature2": "Acciones adicionales del rodillo",
   "onboardingMethodLocalFeature3": "Personalización total de botones",
-  "onboardingMethodLocalIosNote": "No disponible en iOS: usa Red o Bluetooth.",
+  "onboardingMethodLocalIosNote": "No disponible en iOS: usa Red.",
   "onboardingSelectItFor": "Selecciónalo para",
   "onboardingSlotPower": "Fuente de potencia",
   "onboardingSlotControllable": "Controlable / Resistencia",
@@ -1453,6 +1509,7 @@
     }
   },
   "onboardingFinishSetup": "Finalizar configuración",
+  "onboardingConnectionTurnOnMethod": "Activa un método de conexión para continuar.",
   "onboardingDoneTitle": "Todo listo para rodar",
   "onboardingYourController": "Tu mando",
   "onboardingDoneSubtitle": "{controller} está conectado a {app}.",
@@ -1528,7 +1585,7 @@
     }
   },
   "chainBrokenSubtitle": "Tus botones no harán nada hasta que se vuelva a conectar.",
-  "chainPendingSubtitleSingle": "Completa la tarjeta «{name}» de abajo y estarás listo.",
+  "chainPendingSubtitleSingle": "Completa la configuración de «{name}» y estarás listo.",
   "@chainPendingSubtitleSingle": {
     "placeholders": {
       "name": {
@@ -1546,12 +1603,15 @@
   },
   "chainBannerFix": "Solucionar",
   "chainBannerShow": "Mostrar",
+  "readyBannerMoreSteps": "+{count} más",
+  "readyBannerSettlingSubtitle": "Buscando tus dispositivos y apps",
   "chainOptional": "Opcional",
   "chainEdit": "Editar",
   "chainSetUp": "Configurar",
   "chainShowMeHow": "Muéstrame cómo",
   "chainSomethingNotWorking": "¿Algo no funciona?",
   "chainStatusOutOfRange": "Fuera de alcance",
+  "chainStatusAsleep": "Dormido: pulsa un botón para despertarlo",
   "chainStatusLostConnection": "Conexión perdida",
   "chainStatusConnecting": "Conectando…",
   "chainStatusNotSetUp": "Sin configurar",
@@ -1587,6 +1647,7 @@
   "chainStepInRange": "Dentro del alcance",
   "chainStepInRangePending": "Ponlo de nuevo dentro del alcance",
   "chainStepInRangeHint": "Pulsa cualquier botón para despertarlo y cierra cualquier otra app que pueda estar usándolo.",
+  "chainStepWakePending": "Despiértalo",
   "chainStepUnlocked": "Desbloqueado",
   "chainStepUnlockedPending": "Desbloquéalo con Zwift",
   "chainStepUnlockedHint": "Zwift limita el Click V2 a su propia aplicación: abre Zwift una vez y seguirá funcionando durante 24 horas.",
@@ -1671,7 +1732,7 @@
       }
     }
   },
-  "chainStatusBridged": "Conectado mediante puente",
+  "chainStatusBridged": "Conectado a través de BikeControl",
   "chainTrialTitle": "Prueba",
   "chainTrialExpiredTitle": "Prueba caducada",
   "chainTrialDaysMeter": "Días de prueba",
@@ -1777,7 +1838,10 @@
   "selfTestVerdictNoControlTitle": "El rodillo no responde a BikeControl",
   "selfTestVerdictNoControlBody": "El rodillo ignoró todos los comandos. Busca una actualización de firmware en la app del fabricante y luego envíanos el resultado: señala el problema con precisión.",
   "selfTestVerdictNoDataTitle": "Sin datos del rodillo",
-  "selfTestVerdictNoDataBody": "No llegó ninguna lectura de potencia. Vuelve a conectar el rodillo; si está conectado por WiFi, prueba con Bluetooth.",
+  "selfTestVerdictNoDataHeldBody": "No llegó ninguna lectura de potencia. Puede que otra app u otro dispositivo esté ocupando el rodillo. Cierra las demás apps que lo usen y, si está emparejado directamente en {app}, quítalo de ahí y empareja «{bridge}» en su lugar. Después vuelve a conectar el rodillo.",
+  "@selfTestVerdictNoDataHeldBody": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
+  "selfTestVerdictNoDataHeldBodyNoApp": "No llegó ninguna lectura de potencia. Puede que otra app u otro dispositivo esté ocupando el rodillo. Cierra las demás apps que lo usen y, si tu app de entrenamiento lo empareja directamente, quítalo de ahí y empareja «{bridge}» en su lugar. Después vuelve a conectar el rodillo.",
+  "@selfTestVerdictNoDataHeldBodyNoApp": {"placeholders": {"bridge": {"type": "String"}}},
   "selfTestVerdictAbortedTitle": "Prueba detenida",
   "selfTestVerdictAbortedBody": "La prueba no terminó. Necesita un pedaleo constante de principio a fin: sigue pedaleando en todo momento e inténtalo de nuevo.",
   "selfTestCtaOverlay": "Ver la configuración del Overlay",
@@ -1832,29 +1896,30 @@
   "helpCenterClickV2Entry": "Opciones de configuración del Zwift Click V2",
   "helpCenterNoSetup": "Todavía no tienes ningún controlador configurado: el asistente de configuración es el mejor punto de partida.",
   "helpCenterGearOverlayEntry": "El cambio funciona, pero la marcha no cambia",
-  "helpAnswerGearBody": "BikeControl no puede hacer que tu app de entrenamiento muestre su propia marcha virtual: cuando BikeControl controla el rodillo, es el Overlay el que muestra la marcha en su lugar. Abre la página de detalles de tu rodillo → Overlay → «Mostrar el Overlay durante la sesión»: una actividad en vivo o Dynamic Island en iOS (Picture-in-Picture opcional), una ventana flotante en Windows y Android.\n\nSi el cambio no llega a registrarse, revisa la otra conexión: la conexión de BikeControl con tu rodillo y la conexión con tu controlador son independientes. Los datos pueden fluir desde el rodillo aunque ninguna app de entrenamiento esté conectada a BikeControl como controlador, y también al revés — «el rodillo funciona pero no puedo cambiar de marcha» suele significar que tu app de entrenamiento todavía no se ha conectado a BikeControl como controlador.\n\n¿Sigue sin funcionar? Algunas apps de entrenamiento pueden cambiar de marcha por sí mismas en lugar de a través de BikeControl — merece la pena comparar antes de seguir investigando.",
+  "helpAnswerGearBody": "BikeControl no puede hacer que tu app de entrenamiento muestre su propia marcha virtual: cuando BikeControl controla el rodillo, es el Overlay el que muestra la marcha en su lugar. Abre Ajustes → Durante la ruta → Overlay (la fila aparece mientras BikeControl está conectado a tu rodillo) → «Mostrar el Overlay durante la sesión»: una actividad en vivo o Dynamic Island en iOS (Picture-in-Picture opcional), una ventana flotante en Windows y Android.\n\nSi el cambio no llega a registrarse, revisa la otra conexión: la conexión de BikeControl con tu rodillo y la conexión con tu controlador son independientes. Los datos pueden fluir desde el rodillo aunque ninguna app de entrenamiento esté conectada a BikeControl como controlador, y también al revés — «el rodillo funciona pero no puedo cambiar de marcha» suele significar que tu app de entrenamiento todavía no se ha conectado a BikeControl como controlador.\n\n¿Sigue sin funcionar? Algunas apps de entrenamiento pueden cambiar de marcha por sí mismas en lugar de a través de BikeControl — merece la pena comparar antes de seguir investigando.",
   "helpAnswerGearOverlayAction": "Abrir ajustes del Overlay",
   "helpAnswerGearFallbackAction": "Comparar el cambio de marchas virtual con y sin BikeControl",
   "helpCenterControllerDisconnectingEntry": "Mi controlador se desconecta todo el rato",
   "helpAnswerControllerDisconnectingBody": "Hay varias causas posibles — comprueba cuál encaja:\n\nSe desconecta solo después de un rato, no enseguida: es el ahorro de batería propio de BikeControl. Mientras tu app de entrenamiento está conectada no hay ningún temporizador — nunca te desconecta el controlador a mitad de sesión. En cuanto se desconecta, tu controlador tiene unos 5 minutos más antes de que BikeControl lo desconecte para ahorrar batería; sin ninguna conexión a una app de entrenamiento, ese margen sube a unos 60 minutos. Cualquier pulsación de botón reinicia la cuenta atrás. En la práctica, que un controlador se desconecte a mitad de sesión casi siempre significa que BikeControl ha dejado de ver tu app de entrenamiento — soluciona antes esa conexión.\n\nUn Zwift Click V2 en modo «Desbloquear con Zwift»: se reinicia aproximadamente una vez por minuto por diseño. Un parpadeo rápido y una reconexión cada minuto son normales, no una avería.\n\nUn Zwift Click V1 (el modelo de un solo mando) que se desconecta cada pocos segundos: casi siempre es un contacto flojo de la pila de botón. Saca la CR2032, vuelve a colocarla y dobla con cuidado la lengüeta de contacto hacia arriba. El porcentaje de batería que muestra es solo una estimación aproximada por voltaje, así que un valor alto no descarta esto.",
   "helpAnswerControllerDisconnectingAction": "¿Por qué se reinicia cada minuto?",
   "helpCenterControllerNotFoundEntry": "No se encuentra mi controlador",
+  "helpCenterButtonsStoppedEntry": "Mis botones han dejado de funcionar",
   "faqOneTimeQ": "Pagué la app una sola vez, ¿qué incluía eso?",
-  "faqOneTimeA": "El pago único desbloquea la versión básica de BikeControl: conectar tus controladores, asignación básica de botones (una acción por botón) y comandos ilimitados por día en tu app de entrenamiento. Nunca fue una suscripción y no caduca.",
+  "faqOneTimeA": "El pago único desbloquea Base: conectar tus controladores, asignación básica de botones (una acción por botón) y pulsaciones de botón ilimitadas al día en tu app de entrenamiento. Nunca fue una suscripción y no caduca.",
   "faqProQ": "¿Por qué hay ahora una suscripción Pro?",
   "faqProA": "Pro incluye el cambio de marchas virtual, la asignación avanzada de botones (3 acciones por botón), el uso multiplataforma y el resto de funciones premium: generan trabajo y costes de servidor continuos, porque los protocolos e integraciones con las apps de entrenamiento cambian todo el tiempo y necesitan mantenimiento constante. El precio único por sí solo no podía sostener eso.",
-  "faqStillTrialQ": "Pagué, pero la app sigue mostrando Prueba o Básica",
-  "faqStillTrialA": "Pro necesita dos cosas: que hayas iniciado sesión con la misma cuenta de BikeControl con la que te suscribiste, y que este dispositivo esté registrado en Gestionar suscripción → Dispositivos registrados (cada plataforma tiene su propio límite de dispositivos). La compra única de la versión básica, en cambio, solo necesita la misma cuenta de la tienda con la que compraste — usa Restaurar compras en la pantalla de pago. ¿La compraste en Windows fuera de la Microsoft Store? Eso pasa por Stripe, no por la tienda — inicia sesión ahí con la misma cuenta de BikeControl con la que pagaste; Restaurar compras no la encontrará.",
+  "faqStillTrialQ": "Pagué, pero la app sigue mostrando la prueba o Base",
+  "faqStillTrialA": "Pro necesita dos cosas: haber iniciado sesión con la misma cuenta de BikeControl con la que te suscribiste, y que este dispositivo esté registrado para Pro; si no lo está, Ajustes → Plan y cuenta muestra «Registrar este dispositivo» (cada plataforma tiene su propio límite de dispositivos). La compra única de Base solo necesita la misma cuenta de la tienda con la que compraste: usa Restaurar compras en Ajustes → Plan y cuenta. ¿La compraste en Windows fuera de la Microsoft Store? Ahí no hay tienda desde la que restaurar, así que inicia sesión con la misma cuenta de BikeControl con la que pagaste.",
   "faqTrialQ": "¿Por qué el cambio de marchas virtual está limitado a 20 minutos?",
-  "faqTrialA": "Esa es la prueba de Pro: sin suscripción tienes 20 minutos de cambio de marchas virtual en tu app de entrenamiento al día, y se reinicia cada día, no por salida. Así puedes comprobar que el cambio de marchas virtual realmente funciona con tu rodillo y tu app de entrenamiento antes de pagar. Con Pro no hay límite.",
+  "faqTrialA": "El cambio virtual propio de BikeControl es una función Pro. Sin Pro puedes probarlo 20 minutos al día; la prueba se reinicia cada día, no por salida. Sin Pro, tu app de entrenamiento puede encargarse del cambio virtual. Con Pro, el cambio virtual de BikeControl no tiene límite.",
   "faqGrandfatherQ": "Compré la app antes de que existiera la suscripción. ¿Qué conservo?",
-  "faqGrandfatherA": "Todo lo que incluía el pago único lo conservas para siempre: comandos ilimitados, asignación básica de botones, conexión de tus controladores. El cambio de marchas virtual (conectar tu Smart Trainer a BikeControl) siempre fue parte de Pro, incluso para compras antiguas, así que no está incluido automáticamente.",
+  "faqGrandfatherA": "Todo lo que incluía el pago único lo conservas para siempre: pulsaciones de botón ilimitadas, asignación básica de botones, conexión de tus controladores. El cambio de marchas virtual (conectar tu Smart Trainer a BikeControl) siempre fue parte de Pro, incluso para compras antiguas, así que no está incluido automáticamente.",
   "faqRefundQ": "¿Puedo pedir un reembolso?",
   "faqRefundA": "Los reembolsos los gestiona la tienda donde compraste (App Store, Google Play, Microsoft Store) según sus políticas. Si algo no funciona, contacta primero con soporte: la mayoría de los problemas se pueden resolver, y prefiero arreglar el tuyo antes que perderte.",
   "faqCrossStoreQ": "Compré en una tienda — ¿puedo usar BikeControl en otra?",
-  "faqCrossStoreA": "El pago único pertenece a la tienda donde lo compraste (App Store, Google Play, Mac App Store, Microsoft Store) y no se puede trasladar a otra — volver a comprar es la única forma de desbloquear la versión de otra tienda. Pro es distinto: está ligado a tu cuenta de BikeControl y no a una tienda, así que iniciar sesión con esa cuenta también lo desbloquea en otras plataformas.",
+  "faqCrossStoreA": "El pago único pertenece a la tienda donde lo compraste (App Store, Google Play, Mac App Store, Microsoft Store) y no se puede trasladar a otra — volver a comprar es la única forma de desbloquear la versión de otra tienda. Pro es distinto: está ligado a tu cuenta de BikeControl y no a una tienda, así que iniciar sesión con esa cuenta también lo desbloquea en otras plataformas. Para eso, inicia sesión antes de comprar Pro, o después en el dispositivo donde lo compraste.",
   "faqRestoreQ": "Restaurar compras no me devuelve mi compra",
-  "faqRestoreA": "Restaurar compras solo comprueba la cuenta de tienda que ha iniciado sesión en este dispositivo ahora mismo — tiene que ser exactamente la cuenta (Apple ID, cuenta de Google, cuenta de Microsoft) con la que compraste, y una compra única solo se restaura en la tienda donde se compró, nunca en otra distinta. En Windows fuera de la Microsoft Store, la compra pasa por Stripe en vez de por la tienda, así que ahí no hay nada que Restaurar compras pueda encontrar — inicia sesión con tu cuenta de BikeControl en su lugar. ¿Sigue sin aparecer? Contacta con soporte desde esta página e indica tu correo de compra.",
+  "faqRestoreA": "Restaurar compras solo comprueba la cuenta de tienda que ha iniciado sesión en este dispositivo ahora mismo — tiene que ser exactamente la cuenta (Apple ID, cuenta de Google, cuenta de Microsoft) con la que compraste, y una compra única solo se restaura en la tienda donde se compró, nunca en otra distinta. En Windows fuera de la Microsoft Store, la compra no pasa por ninguna tienda, así que ahí no hay nada que Restaurar compras pueda encontrar — inicia sesión con tu cuenta de BikeControl en su lugar. ¿Sigue sin aparecer? Contacta con soporte desde esta página e indica tu correo de compra.",
   "localNetworkAccess": "Acceso a la red local",
   "localNetworkAccessDeniedIos": "Sin acceso a la red local, BikeControl no puede comunicarse con tu app de entrenamiento. Actívalo en Ajustes → BikeControl → Red local.",
   "localNetworkAccessDeniedMacos": "Sin acceso a la red local, BikeControl no puede comunicarse con tu app de entrenamiento. Actívalo en Ajustes del sistema → Privacidad y seguridad → Red local.",
@@ -1875,7 +1940,8 @@
   "networkSummaryBonjourService": "El servicio Bonjour de Apple, que Windows necesita para esto",
   "networkSummaryBonjourNsp": "El complemento de resolución de nombres de Windows que instala Bonjour",
   "networkSummaryWindowsMdnsResolver": "La resolución de nombres propia de Windows para direcciones .local",
-  "networkSummaryNetworkProfile": "Windows considera esta red como privada, no pública",
+  "networkSummaryNetworkProfile": "Si Windows considera esta red como privada, algo que la detección necesita",
+  "networkSummaryNetworkProfilePublic": "Windows considera esta red como pública, lo que bloquea la detección: cámbiala a privada",
   "networkSummaryFirewallRule": "Una regla del firewall deja pasar a BikeControl",
   "networkSummaryMulticastLock": "Android mantiene la radio Wi-Fi atenta a los anuncios",
   "networkGroupThisDevice": "Este dispositivo",
@@ -1891,6 +1957,10 @@
     }
   },
   "networkOverallPassBody": "Aquí nada bloquea a BikeControl. Si tu app aún no lo encuentra, la prueba en vivo de abajo lo aclara.",
+  "networkNextStepControllerTile": "La red está bien: en {app}, toca la ficha de BikeControl en «Controladores».",
+  "@networkNextStepControllerTile": {"placeholders": {"app": {"type": "String"}}},
+  "networkNextStepPairingScreen": "La red está bien: abre la pantalla de emparejamiento de {app} y elige BikeControl.",
+  "@networkNextStepPairingScreen": {"placeholders": {"app": {"type": "String"}}},
   "networkOverallWarnBody": "BikeControl es accesible, pero algo en esta red podría interferir. Conviene revisarlo si la conexión se cae.",
   "networkOverallFailBody": "Algo aquí impide que tu app de entrenamiento llegue a BikeControl. Corrige la comprobación marcada y vuelve a ejecutarlo.",
   "networkOverallUnknownBody": "Algunas comprobaciones no se pudieron leer en este sistema. La prueba en vivo de abajo te dice lo que de verdad importa: si tu app consigue conectar.",
@@ -1915,6 +1985,7 @@
   "networkTroubleshootResultsCopied": "Resultados copiados al portapapeles",
   "networkTroubleshootSendToSupport": "Enviar al soporte",
   "networkTroubleshootTroubleshoot": "Solucionar problemas",
+  "networkAnalyze": "Analizar red",
   "networkCheckMethodListening": "Método de red en marcha",
   "networkCheckAdvertisedAddress": "Dirección anunciada",
   "networkCheckVpn": "VPN",
@@ -1941,9 +2012,11 @@
   "networkFixUseResponder": "Volver al respondedor de BikeControl",
   "networkFixSwitchToLocal": "Usar el método Local en su lugar",
   "networkFixOpenFirewallSettings": "Abrir la configuración del firewall",
+  "networkFixOpenNetworkProfileSettings": "Abrir ajustes de red",
   "networkFixOpenBonjourDownload": "Obtener Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Abrir ajustes",
-  "networkFixFailed": "No funcionó: consulta los registros para más detalles.",
+  "networkFixOpenAppLocalNetworkSettings": "Abrir ajustes de red local",
+  "networkFixFailed": "No funcionó. Inténtalo de nuevo o contacta con soporte: Centro de ayuda → Cuéntanos qué falla.",
   "networkFixRefusedConnected": "No mientras {app} esté conectado.",
   "@networkFixRefusedConnected": {
     "placeholders": {
@@ -1996,7 +2069,14 @@
   "networkHintBonjourService": "MyWhoosh necesita el servicio Bonjour de Apple. Inícialo y luego reinicia MyWhoosh.",
   "networkHintBonjourNsp": "Falta el enganche del resolutor de Bonjour. Reinstala Bonjour: sin él, el botón BikeControl en MyWhoosh no puede funcionar.",
   "networkHintResolveFail": "Este equipo no pudo resolver la dirección de BikeControl, que es justo el paso en el que falla la app de entrenamiento. En Windows, una instalación dañada de Bonjour puede causarlo aunque su servicio esté en marcha; una reinstalación limpia lo soluciona.",
+  "networkHintVpn": "Hay una VPN activa y puede impedir que {app} llegue a BikeControl. Desactiva la VPN o permite el acceso a la red local en la app de la VPN.",
+  "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoWifi": "Este dispositivo no está en una red WiFi, así que {app} no puede llegar a BikeControl por datos móviles. Conéctate a la misma WiFi que {app}.",
+  "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoQuery": "{app} nunca buscó BikeControl. Asegúrate de que {app} esté en la misma WiFi que este dispositivo y tenga permiso para usar la red local: en un Mac, Ajustes del Sistema › Privacidad y seguridad › Red local, activa {app}; en iPhone o iPad, Ajustes › {app} › Red local.",
+  "@networkHintNoQuery": {"placeholders": {"app": {"type": "String"}}},
   "supportDiagnosticsNotice": "Para ayudar a resolver tu problema, este chat adjunta una captura de pantalla de BikeControl e información de diagnóstico. Puedes revisarlas o quitarlas antes de enviar.",
+  "supportRetentionNotice": "Las conversaciones se eliminan automáticamente 30 días después del último mensaje. Conservamos datos anonimizados del rodillo (modelo, firmware, resultados de pruebas) para mejorar la compatibilidad.",
   "supportDeleteConversation": "Eliminar conversación",
   "supportDeleteAccount": "Eliminar cuenta y todos los datos",
   "supportDeleteConversationTitle": "¿Eliminar conversación?",
@@ -2034,7 +2114,7 @@
   },
   "sensorsUseSensorsOnlyQuestion": "¿El rodillo no pasa por BikeControl?",
   "sensorsUseSensorsOnly": "Compartir sensores en su lugar",
-  "sensorsConnectTrainerQuestion": "¿Quieres que BikeControl haga de puente con el rodillo?",
+  "sensorsConnectTrainerQuestion": "¿Quieres que BikeControl controle tu rodillo?",
   "sensorsConnectTrainer": "Conectar rodillo",
   "sensorsPageTitle": "Sensores",
   "sensorsBroadcastEyebrow": "Emisión",
@@ -2103,30 +2183,31 @@
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "En la pantalla de emparejamiento de {app}, elige «{bridge}» como rodillo — no «{trainer}» con su propio nombre, eso deja a BikeControl fuera.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
-  "chainPendingSubtitleController": "Tu rodillo ya pasa por el puente, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
+  "chainPendingSubtitleController": "{app} ya tiene tu rodillo a través de BikeControl, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
   "chainStatusWaitingForPickup": "Esperando a que {app} lo detecte",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
   "vsTransportSameDeviceNote": "El Bluetooth no puede llegar a una app en este mismo dispositivo — se usa Wifi.",
+  "vsSameDeviceBlockedFix": "Lo que funciona: BikeControl en un móvil o tablet junto a tu bici, o {app} en otro dispositivo.",
+  "@vsSameDeviceBlockedFix": {"description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.", "placeholders": {"app": {"type": "String"}}},
   "trainerTwinSubtitle": "Mismo rodillo por {transport} — conectar cambia a esta vía",
   "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
   "trainerTwinStillConnecting": "{trainer} todavía se está conectando por {transport}. Espera un momento y vuelve a intentarlo.",
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
-  "paywall_shiftInYourApp": "Cambia de marcha y dirige en tu app de entrenamiento (la app hace el cambio)",
+  "paywall_shiftInYourApp": "Tus botones cambian de marcha y dirigen en tu app de entrenamiento, con el cambio virtual de la propia app",
   "paywall_bikeControlShifts": "BikeControl cambia las marchas de tu rodillo por sí mismo: marchas personalizadas, cambio delantero, cualquier rodillo",
-  "paywall_twentyMinPerDay": "20 min/día",
   "paywall_baseStoreNote": "Compra única para la versión de {store}. No se transfiere a otras tiendas ni plataformas; Pro sí.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "descarga directa",
   "purchaseBaseDoneTitle": "Ya tienes Base",
-  "purchaseBaseDoneBody": "Comandos de botones ilimitados en tu app de entrenamiento. Que BikeControl cambie las marchas de tu rodillo por sí mismo sigue limitado a 20 min/día; esa parte es Pro.",
+  "purchaseBaseDoneBody": "Pulsaciones de botón ilimitadas en tu app de entrenamiento. El cambio virtual propio de BikeControl es parte de Pro; puedes seguir probándolo 20 min al día.",
   "purchaseProDoneTitle": "Pro está activo en tu cuenta",
+  "purchaseProSignInTitle": "Pro está activo en este dispositivo",
+  "purchaseProSignInBody": "Inicia sesión para que Pro también funcione en tus otros dispositivos. También puedes hacerlo más tarde en Ajustes → Plan y cuenta.",
   "purchaseProUnregisteredBody": "Este dispositivo aún no está registrado, así que las funciones Pro siguen desactivadas aquí.",
   "registerThisDevice": "Registrar este dispositivo",
   "proUnregisteredTitle": "Pro está en tu cuenta, no en este dispositivo",
   "proUnregisteredBody": "El cambio de marchas virtual sigue limitado aquí hasta que registres este dispositivo.",
-  "registerDeviceFailed": "No se pudo registrar este dispositivo: {error}",
-  "@registerDeviceFailed": {"placeholders": {"error": {"type": "String"}}},
   "vsModeTrackResistanceDesc": "Simula una pendiente por marcha: la resistencia sigue tu velocidad y cambia en el momento en que cambias de marcha, como en una bici real. Ideal para salidas libres y carreras.",
   "vsModeTargetPowerDesc": "Mantiene una potencia objetivo por marcha, como en modo ERG. Tu cadencia anula parte del cambio, por lo que los cambios de marcha se sienten más suaves y las subidas hacen que la potencia aumente. Para rodillos que no pueden simular pendiente.",
   "vsModeBasicDesc": "Como Potencia objetivo, pero con un escalón fijo por marcha y sin sensación de terreno. Un último recurso para rodillos que ignoran los demás modos.",
@@ -2144,33 +2225,23 @@
       }
     }
   },
+  "chainStepNetworkAddressNoWifiHint": "Este dispositivo no está conectado a una red WiFi, y {app} no puede llegar a BikeControl por datos móviles. Conéctate a la misma WiFi que {app}.",
+  "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressTwoNetworksHint": "Este dispositivo está en más de una red, y BikeControl anuncia la dirección {address}. Si {app} está en la otra, no encontrará BikeControl: conecta ambos a la misma WiFi.",
+  "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Comprobar la red",
-  "supportAccountLinkEmailTaken": "{email} ya tiene una cuenta de BikeControl, así que no se puede añadir a este chat. Para usar esa cuenta, inicia sesión en Pro → Cuenta. Esta conversación no se trasladará, así que vuelve a enviar tu mensaje desde allí. O introduce otro correo electrónico.",
+  "supportAccountLinkEmailTaken": "{email} ya tiene una cuenta de BikeControl, así que no se puede añadir a este chat. Para usar esa cuenta, inicia sesión en Ajustes → Plan y cuenta. Esta conversación no se trasladará, así que vuelve a enviar tu mensaje desde allí. O introduce otro correo electrónico.",
   "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
   "chainStatusAppDisconnected": "{app} se ha desconectado",
   "@chainStatusAppDisconnected": {"placeholders": {"app": {"type": "String"}}},
   "chainPendingSubtitleAppDropped": "{app} se ha desconectado. Vuelve a conectarla desde su pantalla de emparejamiento cuando vuelvas a rodar.",
   "@chainPendingSubtitleAppDropped": {"placeholders": {"app": {"type": "String"}}},
-  "healthRideToggleTitle": "Guardar salidas en Apple Salud",
-  "healthRideToggleSubtitle": "Registra las salidas automáticamente y guarda potencia, cadencia, frecuencia cardíaca y calorías en Salud.",
-  "healthRideDuplicateHint": "{app} puede que ya guarde esta salida en Apple Salud, por lo que podría aparecer duplicada.",
-  "@healthRideDuplicateHint": {"placeholders": {"app": {"type": "String"}}},
-  "healthRideCardTitle": "¿Guardar esta salida en Apple Salud?",
-  "healthRideCardBody": "BikeControl detectó una salida con un rodillo conectado. Actívalo para guardar tus salidas automáticamente a partir de ahora, incluyendo potencia, frecuencia cardíaca y calorías.",
-  "healthRideCardEnable": "Activar",
-  "healthRideCardDismiss": "Ahora no",
-  "healthRideChipLabel": "Grabando para Apple Salud",
-  "healthRideFinishNow": "Finalizar ahora",
+  "chainPendingSubtitleOpenApp": "Todo lo demás está listo: solo abre {app}.",
+  "@chainPendingSubtitleOpenApp": {"placeholders": {"app": {"type": "String"}}},
+  "chainPendingSubtitleAsleep": "Tu mando está dormido. Pulsa cualquier botón y se volverá a conectar solo.",
   "healthRideDiscard": "Descartar",
   "healthRideDiscardConfirmTitle": "¿Descartar esta salida?",
-  "healthRideDiscardConfirmBody": "La grabación se descartará y no se guardará nada en Apple Salud.",
   "healthRideDiscardConfirmAction": "Descartar salida",
-  "healthRideSavedTitle": "Salida guardada en Apple Salud",
-  "healthRideSavedSubtitle": "{duration} · {power} W media · {kcal} kcal",
-  "@healthRideSavedSubtitle": {"placeholders": {"duration": {"type": "String"}, "power": {"type": "int"}, "kcal": {"type": "int"}}},
-  "healthRideFailedTitle": "No se pudo guardar la salida en Apple Salud",
-  "healthRideDeniedTitle": "El acceso a Apple Salud está desactivado",
-  "healthRideOpenSettings": "Abrir ajustes de Salud",
   "perGearCount": "{count, plural, =1{1 marcha} other{{count} marchas}}",
   "a11yBack": "Atrás",
   "a11yMoreOptions": "Más opciones",
@@ -2206,22 +2277,21 @@
   "billingPortalErrorTitle": "Error del portal de facturación",
   "billingPortalErrorBody": "No se pudo abrir el portal de facturación. Inténtalo de nuevo.",
   "loginRequiredTitle": "Inicio de sesión necesario",
-  "loginRequiredWindowsBody": "Para suscribirte en Windows tienes que iniciar sesión. Así podemos gestionar tu suscripción en todos tus dispositivos y procesar el pago de forma segura con Stripe.",
+  "loginRequiredWindowsBody": "Para Pro en Windows tienes que iniciar sesión. Así tu suscripción te acompaña a tus otros dispositivos y puedes gestionarla.",
   "loginRequiredCta": "Inicia sesión o crea una cuenta para continuar.",
   "goToLogin": "Ir a iniciar sesión",
-  "fullVersionOfferingUnavailable": "La versión completa no está disponible en este momento.",
+  "fullVersionOfferingUnavailable": "Base no está disponible en este momento.",
   "subscriptionOfferingUnavailable": "La suscripción no está disponible en este momento.",
   "enableNotificationsAndroid": "Activa las notificaciones de BikeControl en los ajustes de Android",
   "enableNotificationsApple": "Activa las notificaciones de BikeControl en Ajustes → Notificaciones → BikeControl",
   "keyboardShortcuts": "Atajos de teclado",
   "keyboardShortcutsSimulatorHint": "Asigna atajos de teclado a los botones del simulador",
+  "trainerControlsNoConnection": "Activa una conexión con tu app de entrenamiento para enviar pulsaciones desde aquí.",
   "pressAKey": "Pulsa una tecla…",
   "setShortcut": "Asignar",
   "ignore": "Ignorar",
   "subscription": "Suscripción",
-  "couldNotRevokeDevice": "No se pudo revocar el dispositivo: {error}",
   "tutorials": "Tutoriales",
-  "instructionVideos": "Vídeos de instrucciones",
   "wheeltopShifterBattery": "Batería del cambio: {volts} V",
   "wheeltopSlideSwitchHint": "Interruptor en R: los botones superior/inferior cambian de marcha. Interruptor en T: los botones pasan a ser dos botones asignables adicionales.",
   "wheeltopKeepaliveTitle": "Experimento de keepalive (beta)",
@@ -2236,13 +2306,10 @@
   "noDiagnosticsYet": "Aún no hay diagnóstico",
   "logsFile": "Archivo de logs:",
   "useMagnetometerMode": "Usar modo magnetómetro",
-  "steeringCalibration": "Calibración",
-  "calibrationComplete": "Completada",
-  "calibrationInProgress": "En curso",
+  "useMagnetometerModeBody": "Deja que la brújula corrija la deriva lenta del giroscopio.",
+  "steeringCompassLearningHint": "Gira el manillar del todo a la izquierda y a la derecha una vez para que la brújula aprenda tu soporte.",
+  "steeringCompassReady": "La brújula está corrigiendo la deriva.",
   "steeringAngle": "Ángulo de dirección",
-  "calibrate": "Calibrar",
-  "triggerThreshold": "Umbral de activación:",
-  "calibratingMagnetometerHint": "Calibrando el magnetómetro. Coloca el móvil/tablet en el manillar y mantenlo quieto un segundo.",
   "calibratingSensorsHint": "Calibrando los sensores. Coloca el móvil/tablet en el manillar y mantenlo quieto un segundo.",
   "scriptSavedFor": "Script guardado para {device}.",
   "scriptDeletedFor": "Script eliminado para {device}.",
@@ -2294,15 +2361,88 @@
   "onboardingTrialKeepVs": "Para seguir con el cambio virtual: Pro",
   "onboardingTrialUnlimited": "Para comandos ilimitados: Base o Pro",
   "onboardingSkipControllerNote": "Sin mando, BikeControl no puede cambiar de marcha. Puedes emparejar uno más tarde desde la pantalla de inicio.",
+  "onboardingZwiftNoteZwift": "Zwift reconoce tu {device} de forma nativa: no necesitas BikeControl para rodar con él. Aun así, BikeControl te ayuda si quieres reasignar botones, añadir acciones que Zwift no asigna, liberar una conexión Bluetooth o controlar el cambio virtual directamente.",
+  "@onboardingZwiftNoteZwift": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteOfficial": "El {device} está diseñado para Zwift, así que funciona mejor allí. {app} es compatible oficialmente con BikeControl: los cambios y los controles principales funcionan, pero algunos botones no tienen equivalente en {app}. BikeControl asigna todo lo que {app} admite.",
+  "@onboardingZwiftNoteOfficial": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteActions": "El {device} está diseñado para Zwift, así que funciona mejor allí. {app} solo ofrece unos pocos controles que BikeControl puede activar: {actions}. Los demás botones no tienen función en {app}, pero todos los controles que tiene {app} funcionan desde el {device}.",
+  "@onboardingZwiftNoteActions": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      },
+      "actions": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteAppDefined": "El {device} está diseñado para Zwift, así que funciona mejor allí. Cada app {app} decide qué controles acepta, así que puede que algunos botones no tengan función allí. BikeControl asigna todo lo que ofrece la app.",
+  "@onboardingZwiftNoteAppDefined": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteCustom": "El {device} está diseñado para Zwift, así que funciona mejor allí. BikeControl no tiene un ajuste predefinido para tu app de entrenamiento, así que tú eliges qué hace cada botón: por ejemplo, un atajo de teclado o un toque en la pantalla.",
+  "@onboardingZwiftNoteCustom": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteNoInput": "El {device} está diseñado para Zwift, así que funciona mejor allí. {app} no acepta pulsaciones de botones, así que allí no tienen nada que controlar. BikeControl puede usarlos igualmente para su propio cambio virtual.",
+  "@onboardingZwiftNoteNoInput": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingVsProNote": "El cambio virtual de BikeControl forma parte de Pro. Sin Pro tienes una prueba de {minutes} minutos cada día; Base no lo incluye.",
   "onboardingStillNotConnected": "¿Sigue sin conectar? Prueba tu red",
   "paywall_vsByBikeControl": "Cambio virtual de BikeControl (cualquier rodillo, marchas personalizadas)",
   "paywall_shareSensors": "Comparte frecuencia cardiaca y sensores con tu app de entrenamiento",
-  "paywall_vsTrialFootnote": "Sin Pro, puedes probar el cambio virtual de BikeControl {minutes} min al día.",
+  "vsWithoutProNote": "Sin Pro, {app} se encarga del cambio virtual y pierdes las ventajas de BikeControl Pro: cambios de marcha ágiles, control directo, desviador delantero virtual y personalización total.",
+  "@vsWithoutProNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsWithoutProNoteYourApp": "Sin Pro, tu app de entrenamiento se encarga del cambio virtual y pierdes las ventajas de BikeControl Pro: cambios de marcha ágiles, control directo, desviador delantero virtual y personalización total.",
+  "vsWithoutProLearnMore": "Más información ›",
   "paywall_startProYearly": "Empezar Pro anual",
   "paywall_startProMonthly": "Empezar Pro mensual",
   "paywall_buyBase": "Comprar Base",
   "paywall_planQuestions": "¿Dudas sobre los planes?",
+  "paywall_oneTimePurchase": "Compra única",
   "vsBudgetProRemovesLimit": "Pro elimina el límite",
   "supportDescribeFirstMessageHint": "Cuéntanos qué intentas hacer y qué pasa en su lugar. Una captura sola no dice qué falla: basta con una frase.",
   "supportIntakeTryThisFirst": "Prueba esto primero",
@@ -2314,6 +2454,29 @@
   "intakeSelfHelpSelfTestTitle": "Haz el autotest de resistencia",
   "intakeSelfHelpSelfTestBody": "Comprueba si BikeControl puede cambiar la resistencia de tu rodillo y te dice qué corregir si no puede.",
   "intakeSelfHelpSelfTestAction": "Hacer el autotest",
+  "intakeSelfHelpOpenPlanAccount": "Abrir Plan y cuenta",
+  "intakeSelfHelpPlanBody": "Base, la compra única, hace ilimitadas las pulsaciones de botones — el cambio virtual lo hace tu app de entrenamiento. El cambio virtual propio de BikeControl es parte de Pro: sin Pro, sus 20 minutos al día son una prueba diaria, también después de comprar Base.",
+  "intakeSelfHelpPlanSignInTitle": "Pro: inicia sesión con la cuenta con la que lo compraste",
+  "intakeSelfHelpPlanSignInBody": "Pro pertenece a tu cuenta de BikeControl, no a una tienda. En Plan y cuenta, comprueba que has iniciado sesión con el email que usaste al comprar Pro.",
+  "intakeSelfHelpPlanRegisterTitle": "Pro: registra este dispositivo",
+  "intakeSelfHelpPlanRegisterBody": "Si Plan y cuenta muestra «Registrar este dispositivo», tócalo. Cada plataforma tiene su propio límite de dispositivos — si está lleno, quita allí un dispositivo que ya no uses.",
+  "intakeSelfHelpPlanRestoreTitle": "Base: restáurala",
+  "intakeSelfHelpPlanRestoreBody": "Una compra única de Base vuelve con «Restaurar compras» en Plan y cuenta, siempre que este dispositivo use la misma cuenta de la tienda con la que compraste.",
+  "intakeSelfHelpRestoreBody": "«Restaurar compras» solo encuentra lo que ha comprado la cuenta de la tienda con la que este dispositivo tiene sesión ahora mismo.",
+  "intakeSelfHelpRestoreStoreAccountTitle": "Usa la cuenta de la tienda con la que compraste",
+  "intakeSelfHelpRestoreStoreAccountBody": "iPhone, iPad y Mac: el Apple ID con el que pagaste. Android: la cuenta de Google que usó Play Store para la compra — si es otra, cambia de cuenta en Play Store (toca tu foto de perfil) y vuelve a tocar «Restaurar compras». Windows: la cuenta Microsoft de Microsoft Store.",
+  "intakeSelfHelpRestoreProTitle": "Pro: mejor inicia sesión",
+  "intakeSelfHelpRestoreProBody": "Pro no se restaura a través de una tienda: va con tu cuenta de BikeControl en todas las plataformas. Inicia sesión en Plan y cuenta con la cuenta con la que compraste Pro.",
+  "intakeSelfHelpRestoreOtherStoreTitle": "¿Compraste Base en otra tienda?",
+  "intakeSelfHelpRestoreOtherStoreBody": "Una compra única de Base se queda en la tienda donde la hiciste (App Store, Google Play, Microsoft Store) y no se puede restaurar en otra. ¿Compraste BikeControl en Google Play en 2025, cuando era de pago? Escríbeme en el chat y te envío un código para desbloquearlo de nuevo.",
+  "intakeSelfHelpRefundTitle": "Los reembolsos dependen de dónde compraste",
+  "intakeSelfHelpRefundBody": "¿Compraste en Google Play o la descarga para Windows desde la web? Escríbeme en el chat y me encargo del reembolso. Las compras en el App Store o en Microsoft Store las reembolsa la propia tienda; aquí puedes pedirlo:",
+  "intakeSelfHelpRefundAppleTitle": "App Store (iPhone, iPad, Mac)",
+  "intakeSelfHelpRefundAppleBody": "En reportaproblem.apple.com, inicia sesión con tu Apple ID, elige «Solicitar un reembolso» y selecciona BikeControl.",
+  "intakeSelfHelpRefundMicrosoftTitle": "Microsoft Store",
+  "intakeSelfHelpRefundMicrosoftBody": "En el historial de pedidos de tu cuenta Microsoft, busca BikeControl y elige «Solicitar un reembolso».",
+  "intakeSelfHelpRefundLink": "Abrir la página de reembolso",
+  "intakeSelfHelpRefundNote": "¿Algo más sobre tu compra? Escríbeme en el chat.",
   "helpCenterRunSetupGuide": "Abrir la guía de configuración",
   "onboardingDonePickTrainerTitle": "Un paso más: elige tu rodillo",
   "onboardingDonePickTrainerSubtitle": "{app} está conectada, pero aún no ha tomado tu rodillo. Elígelo en {app} así:",
@@ -2354,7 +2517,13 @@
   "helpCheckAppConnectedTitle": "¿Está conectada tu app de entrenamiento?",
   "helpCheckAppConnectedSub": "Tu app de entrenamiento se conecta a BikeControl por separado de tu rodillo. La pantalla de inicio muestra si está conectada; si no, haz la prueba de red.",
   "helpCheckGearOverlayTitle": "¿Los cambios llegan, pero el número de marcha no cambia?",
-  "helpCheckGearOverlaySub": "Cuando BikeControl controla tu rodillo, tu app sigue mostrando su propia marcha. El Overlay muestra la marcha de BikeControl.",
+  "helpCheckGearOverlaySub": "Cuando BikeControl controla tu rodillo, tu app sigue mostrando su propia marcha. El Overlay muestra la marcha de BikeControl. El Overlay aparece en el dispositivo donde corre BikeControl, no en una tele ni en un Apple TV. Si tu app corre allí, mantén a la vista la pantalla de BikeControl para ver tu marcha.",
+  "helpCheckDailyLimitTitle": "¿Has gastado las pulsaciones de hoy?",
+  "helpCheckDailyLimitSub": "Sin Base ni Pro, BikeControl ejecuta {limit} pulsaciones al día, también durante la prueba. Cuando se acaban, los botones no hacen nada hasta mañana y BikeControl te avisa de que has llegado al límite diario. Base o Pro quitan el límite.",
+  "helpCheckControllerAwakeTitle": "¿Tu mando está despierto y conectado?",
+  "helpCheckControllerAwakeSub": "Los mandos se duermen cuando no los usas. Pulsa un botón para despertarlo y mira en Dispositivos: si no aparece conectado, vuelve a conectarlo.",
+  "helpCheckConnectionMethodTitle": "¿Está activada la conexión con tu app de entrenamiento?",
+  "helpCheckConnectionMethodSub": "Abre Ajustes → App de entrenamiento y conexión y comprueba que el método de conexión que usas (Bluetooth, Red o Local) está activado y que tu app de entrenamiento está conectada.",
   "helpSelfTestNeedsTrainer": "Conecta primero tu rodillo en BikeControl: el autotest necesita una conexión activa. Luego lo encontrarás en la página de tu rodillo.",
   "onboardingDoneOverlayNote": "{app} sigue mostrando su propio número de marcha. La marcha de BikeControl se ve en el Overlay.",
   "@onboardingDoneOverlayNote": {"placeholders": {"app": {"type": "String"}}},
@@ -2382,7 +2551,7 @@
   "supportDiagNone": "Ninguno",
   "supportDiagShowTechnical": "Mostrar detalles técnicos",
   "supportDiagHideTechnical": "Ocultar detalles técnicos",
-  "purchaseProDeviceLimitBody": "Este dispositivo aún no se puede activar: tu cuenta ya tiene el máximo de {max} dispositivos {platform}. Quita uno que ya no uses y este dispositivo se activará a continuación.",
+  "purchaseProDeviceLimitBody": "Este dispositivo aún no se puede activar: tu cuenta ya tiene el máximo de {max} dispositivos con {platform}. Quita uno que ya no uses y este dispositivo se activará a continuación.",
   "@purchaseProDeviceLimitBody": {"placeholders": {"max": {"type": "String"}, "platform": {"type": "String"}}},
   "purchaseManageDevices": "Gestionar dispositivos",
   "purchaseProActiveOnDevice": "Pro ya está activo en este dispositivo",
@@ -2416,5 +2585,268 @@
   "rideV2Instructions": "Zwift bloquea el Zwift Ride V2 para su propia app. Desbloquéalo allí y funcionará con BikeControl durante unas 24 horas.\n\n1. Abre la app de Zwift (¡no la Companion!)\n2. Inicia sesión (no hace falta suscripción) y abre la pantalla de conexión de dispositivos\n3. Conecta tu rodillo y después el Zwift Ride V2\n4. Vuelve a cerrar la app de Zwift y conéctate de nuevo en BikeControl",
   "rideV2SupportPrefill": "¡Hola! Mi Zwift Ride V2 tiene el firmware {version} y preferiría no desbloquearlo en Zwift cada día. ¿Me podéis ayudar?",
   "@rideV2SupportPrefill": {"placeholders": {"version": {"type": "String"}}},
-  "intakeControllerRideV2Lock": "Bloqueo del Zwift Ride V2"
+  "intakeControllerRideV2Lock": "Bloqueo del Zwift Ride V2",
+  "navRide": "Rodar",
+  "navDevices": "Dispositivos",
+  "navSettings": "Ajustes",
+  "settingsSectionRidingWith": "Rodando con",
+  "settingsTrainerAppConnection": "App de entrenamiento y conexión",
+  "settingsSectionApp": "App",
+  "rideVirtualShifting": "Cambio virtual",
+  "rideVsInviteBody": "Conecta tu rodillo inteligente y BikeControl cambia sus marchas.",
+  "rideRatio": "Relación",
+  "rideYourButtons": "Tus botones",
+  "rideEditButtons": "Editar botones",
+  "rideTapButtonHint": "Toca un botón para cambiar lo que hace.",
+  "rideClickButtonHint": "Haz clic en un botón para cambiar lo que hace.",
+  "rideJustPressed": "Acabas de pulsar {button}",
+  "rideChange": "Cambiar",
+  "rideNoControllerTitle": "Ningún mando conectado",
+  "rideNoControllerBody": "Despierta tu mando o empareja uno nuevo: sus botones aparecerán aquí.",
+  "rideControllerAsleepTitle": "Tu mando está dormido",
+  "@rideControllerAsleepTitle": {"description": "Ride tab: title of the card under 'Your buttons' while a remembered controller has not reconnected yet."},
+  "rideControllerAsleepBody": "Pulsa cualquier botón para despertarlo: se vuelve a conectar solo y sus botones aparecerán aquí.",
+  "@rideControllerAsleepBody": {"description": "Ride tab: body of the card while a remembered controller has not reconnected yet."},
+  "rideControllerPairNew": "Emparejar uno nuevo",
+  "@rideControllerPairNew": {"description": "Ride tab: secondary button on the controller card that opens pairing for a new controller."},
+  "rideSeeAll": "Ver todo",
+  "statusOn": "Activado",
+  "devicesOtherInputs": "Otras entradas",
+  "devicesPhoneSteering": "Dirección con el móvil",
+  "devicesMediaRemotes": "Mandos multimedia Bluetooth",
+  "devicesShareSensorsSubtitle": "Frecuencia cardíaca, potencia y cadencia",
+  "devicesSignalGood": "Buena señal",
+  "devicesSignalWeak": "Señal débil",
+  "devicesBridgedTo": "a {app}",
+  "activityLastMinute": "Último minuto",
+  "activityEarlier": "Antes",
+  "activityFooter": "Muestra los últimos {count} eventos desde que se inició BikeControl.",
+  "activityEmptyTitle": "Aún no hay actividad",
+  "activityEmptyBody": "Pulsa un botón de tu mando y aparecerá aquí.",
+  "settingsSectionDuringRide": "Durante la ruta",
+  "rideGear": "Marcha",
+  "shellTrainerChipLabel": "{trainer}, enviando a {app}",
+  "@shellTrainerChipLabel": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsGroupGears": "Marchas",
+  "vsGroupPhysics": "Física",
+  "perGearRatiosTitle": "Desarrollo por marcha",
+  "perGearRatiosSubtitle": "Ajusta cada marcha por separado",
+  "rideOverlayOff": "El Overlay de marchas está desactivado",
+  "rideOverlayOfferNote": "{app} muestra su propia marcha",
+  "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferShow": "Mostrar Overlay",
+  "rideOverlayOtherScreen": "{app} en tu otra pantalla sigue mostrando su propia marcha. Tu marcha es la de aquí, así que mantén esta pantalla a la vista.",
+  "@rideOverlayOtherScreen": {"description": "Ride tab: note on the virtual shifting card when the trainer app runs on another device (e.g. Apple TV), where the gear overlay cannot appear.", "placeholders": {"app": {"type": "String"}}},
+  "a11yChangeChainring": "Cambiar de plato",
+  "rideVsSettingsLink": "Ajustes de marchas",
+  "rideVsTrainerNotConnected": "{trainer} no está conectado: no notarás los cambios hasta que vuelva.",
+  "@rideVsTrainerNotConnected": {"description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.", "placeholders": {"trainer": {"type": "String"}}},
+  "rideVsTrialOver": "La prueba de hoy del cambio virtual ha terminado. Esta sesión sigue hasta que tu app de entrenamiento se desconecte.",
+  "@rideVsTrialOver": {"description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."},
+  "changelogKindAdded": "Novedades",
+  "changelogKindImproved": "Mejoras",
+  "changelogKindFixed": "Correcciones",
+  "changelogKindOther": "Cambios",
+  "changelogYourVersion": "Tu versión",
+  "changelogEarlierVersions": "Versiones anteriores",
+  "changelogAllVersions": "Todas las versiones",
+  "changelogLoadFailed": "No se pudo cargar el registro de cambios.",
+  "changelogWhatsNewSince": "Lo que ha cambiado desde tu última actualización.",
+  "holdWarningSteering": "La dirección solo funciona mientras mantienes pulsado el botón. Asígnala a Pulsación larga.",
+  "holdWarningAction": "{action} solo funciona mientras mantienes pulsado el botón. Asígnalo a Pulsación larga.",
+  "holdAssignToLongPress": "Asignar a Pulsación larga",
+  "holdReplaceLongPress": "Pulsación larga ya hace {current}. ¿Sustituirlo por {action}?",
+  "holdMovedToLongPress": "{action} ahora está en Pulsación larga.",
+  "holdOnlyWhileHeld": "Solo funciona manteniéndolo pulsado",
+  "paywall_shiftInNamedApp": "Cambia de marcha y dirige en {app}: {app} calcula las marchas",
+  "@paywall_shiftInNamedApp": {"placeholders": {"app": {"type": "String"}}},
+  "paywall_shiftInYourAppShort": "Cambia de marcha y dirige en tu app de entrenamiento",
+  "paywall_shiftInNamedAppShort": "Cambia de marcha y dirige en {app}",
+  "@paywall_shiftInNamedAppShort": {"placeholders": {"app": {"type": "String"}}},
+  "paywall_watchClip": "Ver: {feature}",
+  "@paywall_watchClip": {"placeholders": {"feature": {"type": "String"}}},
+  "paywall_playClip": "Reproducir clip",
+  "paywall_pauseClip": "Pausar clip",
+  "paywall_openClipInBrowser": "Abrir en el navegador",
+  "paywall_clipLoadError": "No se pudo cargar el clip. Comprueba tu conexión e inténtalo de nuevo.",
+  "planAccountTitle": "Plan y cuenta",
+  "planOneTimePurchase": "Pago único",
+  "planBaseUnlimitedCommands": "Pulsaciones de botón ilimitadas",
+  "planBaseAppShifts": "Tus botones cambian de marcha y dirigen en tu app de entrenamiento, con el cambio virtual de la propia app",
+  "planProAdds": "Lo que añade Pro",
+  "planBaseIncludes": "Lo que incluye Base",
+  "planBoughtBefore": "¿Ya compraste BikeControl en 2025, pero no puedes restaurar la compra?",
+  "planBoughtBeforeAction": "Escríbeme en el soporte de la app",
+  "supportPrefillBoughtBefore": "Compré BikeControl en Google Play en 2025, pero restaurar la compra no funciona. Mi número de pedido de Google Play (GPA.…): ",
+  "planQuestions": "¿Preguntas sobre los planes?",
+  "proActiveOnThisDevice": "Activo en este dispositivo",
+  "proNotOnThisDevice": "No activo en este dispositivo",
+  "subscriptionRenewsOn": "Se renueva el {date}",
+  "@subscriptionRenewsOn": {"placeholders": {"date": {"type": "String"}}},
+  "subscriptionActiveUntil": "Activo hasta el {date}",
+  "@subscriptionActiveUntil": {"placeholders": {"date": {"type": "String"}}},
+  "subscriptionTrialUntil": "Prueba de Pro hasta el {date}",
+  "@subscriptionTrialUntil": {"placeholders": {"date": {"type": "String"}}},
+  "subscriptionBillingIssue": "Problema con el pago",
+  "subscriptionBillingIssueBody": "Tu último pago no se completó. Actualiza tu método de pago para mantener Pro.",
+  "signInWithApple": "Iniciar sesión con Apple",
+  "signInWithGoogle": "Iniciar sesión con Google",
+  "signInWithGithub": "Iniciar sesión con GitHub",
+  "signInWithFacebook": "Iniciar sesión con Facebook",
+  "moreSignInOptions": "Más opciones",
+  "signedInWith": "Sesión iniciada con {provider}",
+  "@signedInWith": {"placeholders": {"provider": {"type": "String"}}},
+  "signInMethodEmailCode": "código por correo",
+  "signInFailed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+  "signInToBringProToOtherDevices": "Inicia sesión para llevar Pro a tus otros dispositivos.",
+  "thisDevice": "Este dispositivo",
+  "deviceNotRegistered": "No registrado",
+  "removeDevice": "Quitar",
+  "deviceRemoved": "Quitado",
+  "removeDeviceTitle": "¿Quitar {device}?",
+  "@removeDeviceTitle": {"placeholders": {"device": {"type": "String"}}},
+  "removeDeviceBody": "Pro dejará de funcionar en ese dispositivo hasta que vuelva a registrarse. Su plaza quedará libre.",
+  "removeDeviceFailed": "No se pudo quitar el dispositivo. Inténtalo de nuevo.",
+  "registerDeviceFailedRetry": "No se pudo registrar este dispositivo. Inténtalo de nuevo.",
+  "devicesLoadFailed": "No se pudieron cargar tus dispositivos.",
+  "deviceLimitRemoveOne": "Límite de dispositivos de {platform} alcanzado. Quita uno abajo para registrar este.",
+  "@deviceLimitRemoveOne": {"placeholders": {"platform": {"type": "String"}}},
+  "devicesRegisteredCount": "{count, plural, =1{1 dispositivo registrado} other{{count} dispositivos registrados}}",
+  "@devicesRegisteredCount": {"placeholders": {"count": {"type": "int"}}},
+  "syncTitle": "Sincronización",
+  "syncSettingsRow": "Sincronizar ajustes",
+  "syncRowSubtitle": "Ajustes en todos tus dispositivos",
+  "syncAndDevices": "Sincronización y dispositivos",
+  "lastSyncedAt": "Última sincronización: {time}",
+  "@lastSyncedAt": {"placeholders": {"time": {"type": "String"}}},
+  "relativeMinutesAgo": "hace {count} min",
+  "@relativeMinutesAgo": {"placeholders": {"count": {"type": "int"}}},
+  "relativeHoursAgo": "hace {count} h",
+  "@relativeHoursAgo": {"placeholders": {"count": {"type": "int"}}},
+  "relativeDaysAgo": "{count, plural, =1{hace 1 día} other{hace {count} días}}",
+  "@relativeDaysAgo": {"placeholders": {"count": {"type": "int"}}},
+  "purchasesHeader": "Compras",
+  "manageInAppStore": "En la App Store",
+  "manageInMacAppStore": "En la Mac App Store",
+  "manageInGooglePlay": "En Google Play",
+  "manageInBillingPortal": "En el portal de facturación",
+  "restorePurchasesDone": "Compras restauradas.",
+  "restorePurchasesNone": "No se encontraron compras para esta cuenta de la tienda.",
+  "restorePurchasesFailed": "No se pudieron restaurar las compras. Inténtalo de nuevo.",
+  "helpHeader": "Ayuda",
+  "syncFailed": "No se pudo sincronizar. Inténtalo de nuevo.",
+  "ridesGearChangeCount": "{count, plural, =1{1 cambio de marcha} other{{count} cambios de marcha}}",
+  "@ridesGearChangeCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesHealthDenied": "El acceso a {store} está desactivado",
+  "@ridesHealthDenied": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOpenSettings": "Abrir permisos",
+  "ridesTooShort": "No se ha guardado: la salida duró menos de 2 minutos.",
+  "ridesHealthSaved": "Salida guardada en {store}",
+  "@ridesHealthSaved": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFailed": "No se pudo guardar la salida en {store}",
+  "@ridesHealthFailed": {"placeholders": {"store": {"type": "String"}}},
+  "ridesTab": "Salidas",
+  "ridesAppleHealth": "Apple Salud",
+  "ridesAutoRecordTitle": "Grabar salidas automáticamente",
+  "ridesAutoRecordSubtitle": "Empieza con la primera pedalada en cuanto llegan potencia o cadencia. Se pausa tras 10 s.",
+  "ridesAutoRecordOffFooter": "Desactivado: inicia tú la grabación en Rodar.",
+  "ridesHealthToggle": "Guardar salidas en {store}",
+  "@ridesHealthToggle": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthOnlyRecorded": "Solo las salidas grabadas.",
+  "ridesHealthDuplicateHint": "{app} puede que ya guarde esta salida en {store}, por lo que podría aparecer duplicada.",
+  "@ridesHealthDuplicateHint": {"placeholders": {"app": {"type": "String"}, "store": {"type": "String"}}},
+  "ridesHealthConnectNotInstalled": "Health Connect no está instalado. Toca para instalarlo.",
+  "ridesAutoStarted": "iniciada automáticamente",
+  "ridesResumesOnPedal": "sigue en cuanto pedalees",
+  "ridesAutoOff": "La grabación automática está desactivada",
+  "ridesDiscardBody": "La grabación se borra y no se guarda en ningún sitio.",
+  "ridesRideTitle": "Salida",
+  "ridesToday": "Hoy",
+  "ridesYesterday": "Ayer",
+  "ridesMoving": "en movimiento",
+  "ridesTotal": "total",
+  "ridesWork": "Trabajo",
+  "ridesMaxCadence": "Cadencia máx.",
+  "ridesGearChangesLabel": "Cambios de marcha",
+  "ridesValues": "Valores",
+  "ridesTimeline": "Evolución",
+  "ridesChartLegend": "Discontinua: potencia media. Rayado: pausa.",
+  "ridesChartA11y": "Potencia, frecuencia cardíaca, cadencia y marcha durante la salida",
+  "ridesPause": "Pausa",
+  "ridesExport": "Exportar",
+  "ridesDetails": "Detalles",
+  "ridesInHealth": "En {store}",
+  "@ridesInHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthKeptNote": "Ya guardada. Borrarla en BikeControl no la elimina de allí.",
+  "ridesSaveToHealth": "Guardar en {store}",
+  "@ridesSaveToHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesHealthFields": "Potencia, frecuencia cardíaca, calorías, distancia",
+  "ridesSaveFit": "Guardar archivo .fit",
+  "ridesSaveFitIos": "Guárdalo en la app Archivos",
+  "ridesSaveFitAndroid": "Guárdalo en Descargas",
+  "ridesShareFitSub": "Envía el archivo .fit a Strava, Garmin Connect, TrainingPeaks u otra app",
+  "ridesFitSaved": "Archivo .fit guardado",
+  "ridesExportFailed": "No se pudo exportar la salida. Inténtalo de nuevo.",
+  "ridesDeleteTitle": "¿Borrar la salida?",
+  "ridesDeleteBody": "La salida y su archivo .fit se eliminan de este dispositivo. Lo que ya esté en {store} se queda allí.",
+  "@ridesDeleteBody": {"placeholders": {"store": {"type": "String"}}},
+  "ridesDeleteBodyNoHealth": "La salida y su archivo .fit se eliminan de este dispositivo.",
+  "ridesAskHealth": "¿Guardar las salidas en {store}?",
+  "@ridesAskHealth": {"placeholders": {"store": {"type": "String"}}},
+  "ridesAskHealthBody": "Se aplica a cada salida a partir de ahora. Puedes cambiarlo en Ajustes → Durante la ruta.",
+  "ridesGearChangesNoun": "{count, plural, =1{cambio de marcha} other{cambios de marcha}}",
+  "@ridesGearChangesNoun": {"placeholders": {"count": {"type": "int"}}},
+  "ridesThisWeek": "Esta semana",
+  "ridesLastWeek": "La semana pasada",
+  "ridesCount": "{count, plural, =1{1 salida} other{{count} salidas}}",
+  "@ridesCount": {"placeholders": {"count": {"type": "int"}}},
+  "ridesBadgeHealth": "Salud",
+  "ridesEmptyTitle": "Aún no hay salidas",
+  "ridesEmptyBody": "Las salidas se graban mientras tu rodillo (o un sensor de potencia o cadencia) está conectado en BikeControl. Empieza a pedalear: la grabación arranca en cuanto llegan potencia o cadencia.",
+  "ridesEmptyBodyManual": "La grabación automática está desactivada. Inicia tú una salida o actívala en Ajustes.",
+  "ridesDeleteAll": "Borrar todo",
+  "ridesDeleteAllTitle": "¿Borrar todas las salidas?",
+  "ridesDeleteAllBodyNoHealth": "{count, plural, =1{Se elimina 1 salida y su archivo .fit de este dispositivo.} other{Se eliminan {count} salidas y sus archivos .fit de este dispositivo.}}",
+  "@ridesDeleteAllBodyNoHealth": {"placeholders": {"count": {"type": "int"}}},
+  "activityClearLog": "Vaciar registro",
+  "ridesHealthStaysNote": "Lo que ya esté en {store} se queda allí.",
+  "@ridesHealthStaysNote": {"placeholders": {"store": {"type": "String"}}},
+  "ridesFtpTitle": "FTP",
+  "ridesMaxHeartRateTitle": "Frecuencia cardíaca máxima",
+  "ridesFtpBody": "El FTP (Functional Threshold Power) es la potencia más alta que puedes mantener durante una hora aproximadamente. Las zonas de potencia se basan en él. ¿No sabes el tuyo? Usa el FTP del perfil de tu app de entrenamiento.",
+  "ridesMaxHeartRateBody": "La frecuencia cardíaca más alta que alcanzas en un esfuerzo máximo. Las zonas de frecuencia cardíaca se basan en ella.",
+  "ridesValueRange": "Introduce un valor entre {min} y {max}.",
+  "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "ridesValueSaveFailed": "No se pudo guardar el valor. Inténtalo de nuevo.",
+  "ridesGear": "Marcha",
+  "ridesTimeInGear": "Tiempo por marcha",
+  "ridesPowerZones": "Zonas de potencia",
+  "ridesHeartRateZones": "Zonas de frecuencia cardíaca",
+  "ridesSetFtpForZones": "Define tu FTP para ver las zonas de potencia",
+  "ridesSetMaxHeartRateForZones": "Define tu frecuencia cardíaca máxima para ver las zonas de frecuencia cardíaca",
+  "ridesFtpValue": "FTP {watts} W",
+  "@ridesFtpValue": {"placeholders": {"watts": {"type": "int"}}},
+  "ridesMaxHeartRateValue": "Máx. {bpm} bpm",
+  "@ridesMaxHeartRateValue": {"placeholders": {"bpm": {"type": "int"}}},
+  "ridesPowerZoneActiveRecovery": "Recuperación activa",
+  "ridesPowerZoneEndurance": "Resistencia",
+  "ridesPowerZoneTempo": "Tempo",
+  "ridesPowerZoneThreshold": "Umbral",
+  "ridesPowerZoneVo2max": "VO2max",
+  "ridesPowerZoneAnaerobic": "Anaeróbico",
+  "ridesPowerZoneNeuromuscular": "Neuromuscular",
+  "ridesHeartRateZoneVeryLight": "Muy suave",
+  "ridesHeartRateZoneLight": "Suave",
+  "ridesHeartRateZoneModerate": "Moderado",
+  "ridesHeartRateZoneHard": "Intenso",
+  "ridesHeartRateZoneMaximum": "Máximo"
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/models/device_limit_reached_error.dart';
+import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -27,7 +28,7 @@ Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
         child: AlertDialog(
           title: Row(
             children: [
-              Icon(LucideIcons.badgeCheck, color: Colors.green),
+              Icon(LucideIcons.badgeCheck, color: BkStatusColors.of(context).success),
               const SizedBox(width: 8),
               Expanded(child: Text(l10n.purchaseBaseDoneTitle)),
             ],
@@ -39,6 +40,61 @@ Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
               child: Text(l10n.gotIt),
             ),
           ],
+        ),
+      );
+    },
+  );
+}
+
+/// After a Pro purchase or restore while signed out: Pro works here, and
+/// signing in brings it to the rider's other devices. "Sign in" opens Plan &
+/// account, where sign-in lives; [openSignIn] is a test seam for that.
+Future<void> showPurchaseProSignInDialog(
+  BuildContext context, {
+  Future<void> Function(BuildContext context)? openSignIn,
+}) {
+  return showDialog<void>(
+    context: context,
+    builder: (c) {
+      final l10n = AppLocalizations.of(c);
+      return Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: AlertDialog(
+          title: Row(
+            children: [
+              Icon(LucideIcons.crown, color: BkTheme.proOrange),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l10n.purchaseProSignInTitle)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.purchaseProSignInBody),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  Button.ghost(
+                    onPressed: () => Navigator.of(c).pop(),
+                    child: Text(l10n.onboardingNotNow),
+                  ),
+                  PrimaryButton(
+                    key: const ValueKey('purchase-pro-sign-in'),
+                    onPressed: () {
+                      Navigator.of(c).pop();
+                      if (!context.mounted) return;
+                      unawaited((openSignIn ?? openPlanAccount)(context));
+                    },
+                    child: Text(l10n.signIn),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       );
     },
@@ -232,7 +288,7 @@ Future<bool> _retryRegistration() async {
     return false;
   } catch (e, s) {
     recordError(e, s, context: 'Device limit: retry registration');
-    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailed('$e'));
+    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: AppLocalizations.current.registerDeviceFailedRetry);
     return false;
   }
 }

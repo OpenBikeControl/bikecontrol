@@ -3,6 +3,7 @@
 // flutter_test_config.dart; this is the only one in the package.
 import 'dart:async';
 
+import 'package:bike_control/pages/home/startup_settling.dart';
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/widgets/menu.dart' show debugDiagnosticsGatherOverride;
 import 'package:flutter_test/flutter_test.dart';
@@ -20,8 +21,13 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // debugDiagnosticsGatherOverride to null in its own setUp or body; the next
   // test gets the fake back.
   debugDiagnosticsGatherOverride = _emptyDiagnostics;
+  // Ride's banner holds a calm "Connecting…" for the first seconds after
+  // launch (see [StartupSettling]). Tests about what the banner says start
+  // past that window; the ones about the window itself install a fresh one.
+  startupSettling = StartupSettling.settled();
   setUp(() {
     debugDiagnosticsGatherOverride = _emptyDiagnostics;
+    startupSettling = StartupSettling.settled();
   });
   await testMain();
 }

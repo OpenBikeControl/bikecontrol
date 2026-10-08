@@ -1,7 +1,7 @@
 name: bike_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 7.1.0+156
+version: 7.2.0+157
 
 environment:
   sdk: ^3.9.0
@@ -50,7 +50,10 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^10.3.10
   flutter_screen_capture: ^2.0.1
-  flutter_screen_recording: ^2.0.25
+  # 2.0.25 with jcenter() removed from android/build.gradle: Gradle 9 has no
+  # jcenter() and the package has no release without it.
+  flutter_screen_recording:
+    path: packages/flutter_screen_recording
   gal: ^2.3.1
   screen_recorder:
     path: packages/screen_recorder
@@ -100,6 +103,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   play_install_referrer: ^0.5.0
+  video_player: ^2.14.1
+  video_player_win: ^3.3.0
+  swipeable_page_route: ^0.4.8
 
 dev_dependencies:
   flutter_test:
@@ -119,6 +125,7 @@ dev_dependencies:
   # supabase/functions_client, which flutter_lints flags if referenced
   # without being declared.
   yet_another_json_isolate: ^2.1.0
+  video_player_platform_interface: ^6.9.0
 
 dependency_overrides:
   path_provider_foundation: ">=2.3.0 <2.6.0"
@@ -148,9 +155,21 @@ flutter:
     - assets/trainingpeaks.png
     - assets/strappo.png
     - assets/contours/
+    - assets/brand/
     - icon.png
     - openbikecontrol.png
     - jonas.jpg
+  # Display face for the gear numeral and big headlines (SIL OFL 1.1, see
+  # assets/fonts/barlow_condensed/OFL.txt). Body/UI text stays Geist.
+  fonts:
+    - family: BarlowCondensed
+      fonts:
+        - asset: assets/fonts/barlow_condensed/BarlowCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/barlow_condensed/BarlowCondensed-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/barlow_condensed/BarlowCondensed-ExtraBold.ttf
+          weight: 800
 
 flutter_intl:
   enabled: true

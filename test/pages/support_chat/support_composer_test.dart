@@ -129,6 +129,28 @@ Future<void> main() async {
     expect(find.byKey(noScreenshotNotice), findsNothing);
   });
 
+  group('retention notice', () {
+    const retentionNotice = ValueKey('support-retention-notice');
+
+    testWidgets('sits with the diagnostics notice when diagnostics are attached', (tester) async {
+      await tester.pumpWidget(app(payload: 'App Version: 6.5.2'));
+      await tester.pump();
+
+      expect(find.byKey(retentionNotice), findsOneWidget);
+      expect(find.text(l10n.supportRetentionNotice), findsOneWidget);
+      expect(find.text(l10n.privacyPolicy), findsOneWidget);
+    });
+
+    testWidgets('is shown even without a diagnostic payload', (tester) async {
+      await tester.pumpWidget(app(payload: null));
+      await tester.pump();
+
+      expect(find.byKey(retentionNotice), findsOneWidget);
+      expect(find.text(l10n.supportRetentionNotice), findsOneWidget);
+      expect(find.text(l10n.privacyPolicy), findsOneWidget);
+    });
+  });
+
   testWidgets('the info sheet leads with a plain summary; the raw payload is behind a toggle', (tester) async {
     const payload = '''
 

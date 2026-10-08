@@ -117,6 +117,8 @@ class TrainingPeaks extends SupportedApp {
                     physicalKey: PhysicalKeyboardKey.arrowRight,
                     logicalKey: LogicalKeyboardKey.arrowRight,
                     inGameAction: InGameAction.steerRight,
+                    // Steering only works while held.
+                    isLongPress: true,
                     touchPosition: Offset(56.75858807279006, 92.42753954973301),
                   ),
                 ),
@@ -129,6 +131,8 @@ class TrainingPeaks extends SupportedApp {
                     physicalKey: PhysicalKeyboardKey.arrowLeft,
                     logicalKey: LogicalKeyboardKey.arrowLeft,
                     inGameAction: InGameAction.steerLeft,
+                    // Steering only works while held.
+                    isLongPress: true,
                     touchPosition: Offset(41.11538461538456, 92.64957264957286),
                   ),
                 ),

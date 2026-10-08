@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
-import 'package:bike_control/pages/home/home_extras.dart';
+import 'package:bike_control/pages/devices/devices_page.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -92,7 +92,7 @@ Future<void> main() async {
           ],
           supportedLocales: AppLocalizations.delegate.supportedLocales,
           theme: snapshotTheme(Brightness.light),
-          home: SingleChildScrollView(child: HomeExtras(isMobile: true, onUpdate: () {})),
+          home: SingleChildScrollView(child: OtherInputsSection(onUpdate: () {})),
         ),
       );
       await tester.pump();
@@ -100,12 +100,12 @@ Future<void> main() async {
 
     debugHostPlatformOverride = TargetPlatform.android;
     await pump();
-    expect(find.text(AppLocalizations.current.enableSteeringWithPhone), findsOneWidget);
-    expect(find.text(AppLocalizations.current.enableMediaKeyDetection), findsNothing);
+    expect(find.text(AppLocalizations.current.devicesPhoneSteering), findsOneWidget);
+    expect(find.text(AppLocalizations.current.devicesMediaRemotes), findsNothing);
 
     debugHostPlatformOverride = TargetPlatform.macOS;
     await tester.pumpWidget(const SizedBox());
     await pump();
-    expect(find.text(AppLocalizations.current.enableSteeringWithPhone), findsNothing);
+    expect(find.text(AppLocalizations.current.devicesPhoneSteering), findsNothing);
   });
 }

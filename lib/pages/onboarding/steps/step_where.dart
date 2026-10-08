@@ -1,3 +1,5 @@
+import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
@@ -23,8 +25,8 @@ Widget _whereTile(
       width: double.infinity,
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        border: Border.all(color: selected ? onboardingAccent(context) : scheme.border, width: 1.5),
-        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: selected ? onboardingAccent(context) : const Color(0x00000000), width: 2),
+        borderRadius: BorderRadius.circular(16),
         color: scheme.card,
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -81,11 +83,13 @@ Widget _whereTile(
 Widget onboardingWhereBody(BuildContext context,
     {required SupportedApp app, required Target? selected, required ValueChanged<Target> onSelect}) {
   String enables(Target t) =>
-      t == Target.thisDevice ? context.i18n.onboardingWhereEnablesLocal : context.i18n.onboardingWhereEnablesNetwork;
+      onboardingWhereUsesLocal(t)
+          ? context.i18n.onboardingWhereEnablesLocal(app.name)
+          : context.i18n.onboardingWhereEnablesNetwork(app.name);
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: onboardingReveal([
-      Text(context.i18n.onboardingWhereTitle(app.name)).h4,
+      OnboardingHeadline(context.i18n.onboardingWhereTitle(app.name)),
       Gap(6),
       Text(context.i18n.onboardingWhereSubtitle).small.muted,
       Gap(18),

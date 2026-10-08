@@ -1,14 +1,13 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/subscriptions/login.dart';
+import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/iap/windows_stripe_service.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
-import 'package:flutter/material.dart' show BackButton;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:windows_iap/windows_iap.dart';
@@ -363,19 +362,7 @@ class WindowsIAPService {
           PrimaryButton(
             onPressed: () async {
               Navigator.pop(context, true);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (c) => Scaffold(
-                    headers: [
-                      AppBar(
-                        leading: [BackButton()],
-                      ),
-                    ],
-                    child: LoginPage(pushed: true),
-                  ),
-                ),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (c) => const PlanAccountPage()));
               // Login completing emits Supabase `signedIn`, which
               // IAPManager resumes the deferred checkout from.
             },

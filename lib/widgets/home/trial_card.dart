@@ -3,6 +3,7 @@ import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// What the licence card has to say, as plain data — so the numbers can be
@@ -60,9 +61,10 @@ class TrialCard extends StatelessWidget {
     return Container(
       decoration: ShapeDecoration(
         color: theme.colorScheme.card,
+        shadows: bkCardShadow(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: state.urgent ? warning.color : theme.colorScheme.border, width: 1.5),
+          side: state.urgent ? BorderSide(color: warning.color, width: 1.5) : BorderSide.none,
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -221,9 +223,10 @@ class VsBudgetCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 12, 6, 8),
       decoration: ShapeDecoration(
         color: theme.colorScheme.card,
+        shadows: bkCardShadow(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: theme.colorScheme.border, width: 1.5),
+          side: BorderSide.none,
         ),
       ),
       child: Column(

@@ -5,11 +5,9 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/subscriptions/email_login_form.dart';
-import 'package:bike_control/pages/subscriptions/login.dart';
 import 'package:bike_control/services/email_otp_auth_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:sign_in_button/sign_in_button.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'widget_snapshot.dart';
@@ -47,9 +45,13 @@ Future<void> main() async {
     signedIn = 0;
   });
 
-  /// The real form waits a minute; the binding these tests run under pumps in
-  /// real time, so shrink it rather than sitting out the wait.
-  const cooldown = Duration(milliseconds: 300);
+  /// The form's own clock. The binding these tests run under pumps in real
+  /// time, so a wall-clock cooldown raced the machine: a busy full-suite run
+  /// could sit out the whole wait before the first resend tap. The tests move
+  /// this clock by hand instead.
+  late DateTime now;
+  setUp(() => now = DateTime(2026, 10, 5, 9));
+  const cooldown = EmailLoginForm.resendCooldown;
 
   Future<void> pumpForm(WidgetTester tester) async {
     await tester.pumpWidget(
@@ -68,6 +70,7 @@ Future<void> main() async {
             child: EmailLoginForm(
               auth: auth,
               cooldown: cooldown,
+              clock: () => now,
               onSignedIn: () => signedIn++,
             ),
           ),
@@ -179,44 +182,28 @@ Future<void> main() async {
     await tester.pumpAndSettle();
     expect(auth.sentTo, hasLength(1), reason: 'still inside the cooldown');
 
-    await tester.pump(cooldown);
+    now = now.add(cooldown - const Duration(seconds: 1));
+    await tester.tap(find.byKey(EmailLoginForm.resendButtonKey));
     await tester.pumpAndSettle();
+    expect(auth.sentTo, hasLength(1), reason: 'a second before the cooldown ends');
+
+    now = now.add(const Duration(seconds: 1));
+    await tester.pump();
     await tester.tap(find.byKey(EmailLoginForm.resendButtonKey));
     await tester.pumpAndSettle();
 
     expect(auth.sentTo, hasLength(2));
   });
 
-  Future<void> pumpLoginPage(WidgetTester tester) async {
-    await tester.pumpWidget(
-      ShadcnApp(
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: [
-          ...ShadcnLocalizations.localizationsDelegates,
-          const OtherLocalizationsDelegate(),
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.7),
-        home: const Scaffold(child: LoginPage(pushed: false)),
-      ),
-    );
-    await tester.pumpAndSettle();
-  }
+  testWidgets('code sent: the resend countdown and "use a different address" sit centred under the code', (tester) async {
+    await pumpForm(tester);
+    await submitEmail(tester, 'rider@example.com');
 
-  testWidgets('the sign-in page offers email alongside the social buttons', (tester) async {
-    await pumpLoginPage(tester);
-
-    expect(find.byType(EmailLoginForm), findsOneWidget);
-    expect(find.byKey(EmailLoginForm.emailFieldKey), findsOneWidget);
-  });
-
-  testWidgets('email sign-in sits below the social buttons, not above them', (tester) async {
-    await pumpLoginPage(tester);
-
-    final lastSocialButton = tester.getBottomLeft(find.byType(SignInButton).last).dy;
-    final emailForm = tester.getTopLeft(find.byType(EmailLoginForm)).dy;
-
-    expect(emailForm, greaterThan(lastSocialButton));
+    final centre = tester.getCenter(find.byType(EmailLoginForm)).dx;
+    // The label itself, not just a button stretched across the form.
+    for (final key in [EmailLoginForm.resendButtonKey, EmailLoginForm.changeEmailKey]) {
+      final label = find.descendant(of: find.byKey(key), matching: find.byType(RichText)).first;
+      expect(tester.getCenter(label).dx, moreOrLessEquals(centre, epsilon: 1));
+    }
   });
 }

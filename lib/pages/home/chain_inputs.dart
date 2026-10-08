@@ -6,6 +6,7 @@
 /// and never touch Bluetooth.
 library;
 
+import 'package:bike_control/services/network_self_test/address_warning_kind.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 
 /// How present a known device is right now.
@@ -196,7 +197,7 @@ class TrainerInput {
   /// Whether the rider has ever answered the overlay step — turned the
   /// overlay on, or said "Not now". The step is required only until then: it
   /// holds the card amber once, not after every ride. An overlay that was on
-  /// and has since been switched off (the trainer page's switch, the Live
+  /// and has since been switched off (the Overlay page's switch, the Live
   /// Activity's "stop ride") is an offer again, never outstanding work.
   final bool overlayAnswered;
 
@@ -228,6 +229,7 @@ class AppInput {
     this.trainerBridgedByApp = false,
     this.trainerBridgedOverNetwork = false,
     this.advertisedAddressWarning,
+    this.advertisedAddressWarningKind,
     this.advertisedAddressWarningAtConnect,
   });
 
@@ -304,6 +306,11 @@ class AppInput {
   /// address rather than a bool because the address is the one thing the
   /// rider can check against their VPN app.
   final String? advertisedAddressWarning;
+
+  /// Why [advertisedAddressWarning] looks wrong, so the card can give the
+  /// advice that fits: "turn the VPN off" is no help to a phone that is
+  /// simply not on Wi-Fi. Null reads as the VPN/bridge wording.
+  final AddressWarningKind? advertisedAddressWarningKind;
 
   /// [advertisedAddressWarning] as it stood when the app connected: the first
   /// reading after it connected or, when none landed before it dropped, the

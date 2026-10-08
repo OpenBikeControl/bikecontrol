@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -11,7 +12,12 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/local_network.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/status_icon.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_status_dot.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/permissions_list.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -40,11 +46,38 @@ extension ConnectionMethodTypeActivityIcon on ConnectionMethodType {
   };
 }
 
+/// Marks the connection methods listed under the "Recommended connection
+/// methods" header, so a method there doesn't repeat "Recommended" as a pill.
+class RecommendedConnectionMethods extends InheritedWidget {
+  const RecommendedConnectionMethods({super.key, required super.child});
+
+  static bool contains(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<RecommendedConnectionMethods>() != null;
+
+  @override
+  bool updateShouldNotify(RecommendedConnectionMethods oldWidget) => false;
+}
+
+/// Shows a method's card without its on/off switch — where the page is about
+/// getting the method connected (Trainer Controls), not about choosing it.
+class ConnectionMethodWithoutSwitch extends InheritedWidget {
+  const ConnectionMethodWithoutSwitch({super.key, required super.child});
+
+  static bool contains(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ConnectionMethodWithoutSwitch>() != null;
+
+  @override
+  bool updateShouldNotify(ConnectionMethodWithoutSwitch oldWidget) => false;
+}
+
 class ConnectionMethod extends StatefulWidget {
   final TrainerConnection trainerConnection;
   final String title;
   final String description;
   final String? instructionLink;
+
+  /// Opens the method's instructions in-app, in place of [instructionLink].
+  final VoidCallback? onInstructions;
   final Widget? additionalChild;
   final bool isRecommended;
   final bool isEnabled;
@@ -66,6 +99,7 @@ class ConnectionMethod extends StatefulWidget {
     this.additionalChild,
     required this.description,
     this.instructionLink,
+    this.onInstructions,
     this.showTroubleshooting = false,
     this.supportLevel,
     required this.onChange,
@@ -175,7 +209,9 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
             ],
           ),
           subtitle: Text(widget.description).xSmall.textMuted,
-          trailing: widget.instructionLink != null && !widget.trainerConnection.isConnected.value
+          trailing:
+              (widget.instructionLink != null || widget.onInstructions != null) &&
+                  !widget.trainerConnection.isConnected.value
               ? Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -184,7 +220,10 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                       style: isSmallWidth ? ButtonStyle.outlineIcon() : ButtonStyle.outline(),
                       leading: isSmallWidth ? null : icon,
                       onPressed: () {
-                        if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
+                        if (widget.onInstructions != null) {
+                          widget.onInstructions!();
+                        } else if (widget.instructionLink!.contains("youtube") ||
+                            widget.instructionLink!.contains("http")) {
                           launchUrlString(widget.instructionLink!);
                         } else {
                           openDrawer(
@@ -203,138 +242,179 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
       );
     }
 
-    return SizedBox(
-      width: double.infinity,
-      child: Button.card(
-        onPressed: callback,
-        child: Basic(
-          leading: StatusIcon(
-            status: widget.trainerConnection.isConnected.value,
-            started: widget.trainerConnection.isStarted.value,
-            icon: widget.trainerConnection.type.icon,
+    return _card(context, callback);
+  }
+
+  /// A method as a card (no outline): its icon tile, name and switch; a
+  /// status line while it runs; what it does; and its links — instructions,
+  /// the network check, the actions it supports. The whole card flips the
+  /// switch, as before.
+  Widget _card(BuildContext context, VoidCallback callback) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final connection = widget.trainerConnection;
+    final connected = connection.isConnected.value;
+    final started = connection.isStarted.value;
+    final realAppName = core.settings.getTrainerApp()?.name;
+    final appName = realAppName == null ? null : shownTrainerAppName(realAppName);
+    final accent = bkAccentText(context);
+    final linkStyle = context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600);
+    const textInset = BkIconTile.size + BkGroupedRow.gap;
+
+    Widget link(String label, VoidCallback onPressed, {Widget? leading}) => Button.ghost(
+      style: const ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8)),
+      onPressed: onPressed,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 6,
+        children: [
+          ?leading,
+          Text(label, style: linkStyle),
+        ],
+      ),
+    );
+
+    final links = <Widget>[
+      if (widget.onInstructions != null)
+        link(l10n.instructions, widget.onInstructions!)
+      else if (widget.instructionLink != null)
+        link(l10n.instructions, () {
+          if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
+            launchUrlString(widget.instructionLink!);
+          } else {
+            openDrawer(
+              context: context,
+              position: OverlayPosition.bottom,
+              builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
+            );
+          }
+        }),
+      if (widget.supportedActions != null)
+        link(
+          l10n.supportedActions,
+          () => _showSupportedActions(context),
+          leading: Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(color: cs.primary, borderRadius: BorderRadius.circular(12)),
+            child: Text(
+              widget.supportedActions!.length.toString(),
+              style: context.typography.xSmall.copyWith(color: cs.primaryForeground, fontWeight: FontWeight.w600),
+            ),
           ),
-          title: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 8,
-            children: [
-              Expanded(child: Text(widget.title)),
-              if (widget.supportLevel == ConnectionSupport.beta)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1.0),
-                  child: BetaPill(),
-                )
-              else if (widget.supportLevel == ConnectionSupport.experimental)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1.0),
-                  child: BetaPill(text: 'EXPER.'),
-                )
-              else if (widget.isRecommended && !screenshotMode)
-                SecondaryBadge(child: Text(AppLocalizations.of(context).recommended)),
-              Switch(
-                value: widget.isEnabled,
-                onChanged: (value) {
-                  callback();
-                },
-              ),
-            ],
-          ),
-          subtitle: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 6,
-            children: [
-              Text(widget.description).xSmall.textMuted,
-              if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
-              if (widget.instructionLink != null || widget.showTroubleshooting) SizedBox(),
-              if (widget.instructionLink != null || widget.onTroubleshoot != null)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (widget.instructionLink != null) ...[
-                      Button(
-                        style: widget.isEnabled
-                            ? ButtonStyle.outline().withBorder(border: Border.all(color: bkStrongBorder(context)))
-                            : ButtonStyle.outline(),
-                        leading: Icon(
-                          widget.instructionLink!.contains("youtube")
-                              ? LucideIcons.monitorPlay
-                              : LucideIcons.circleHelp,
-                        ),
-                        onPressed: () {
-                          if (widget.instructionLink!.contains("youtube") || widget.instructionLink!.contains("http")) {
-                            launchUrlString(widget.instructionLink!);
-                          } else {
-                            openDrawer(
-                              context: context,
-                              position: OverlayPosition.bottom,
-                              builder: (c) => MarkdownPage(assetPath: widget.instructionLink!),
-                            );
-                          }
-                        },
-                        child: Text(AppLocalizations.of(context).instructions),
-                      ),
-                    ],
-                    if (widget.onTroubleshoot != null)
-                      Button(
-                        key: const ValueKey('connection-troubleshoot'),
-                        style: widget.trainerConnection.isStarted.value && !widget.trainerConnection.isConnected.value
-                            ? ButtonStyle.outline()
-                            : ButtonStyle.ghost(),
-                        leading: const Icon(LucideIcons.wrench, size: 16),
-                        onPressed: widget.onTroubleshoot,
-                        child: Text(AppLocalizations.of(context).networkTroubleshootTroubleshoot),
-                      ),
-                    if (widget.supportedActions != null)
-                      Button.outline(
-                        leading: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: EdgeInsets.symmetric(horizontal: 6),
-                          margin: EdgeInsets.only(right: 4),
-                          child: Text(
-                            widget.supportedActions!.length.toString(),
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primaryForeground,
-                            ),
-                          ),
-                        ),
-                        onPressed: () {
-                          openDrawer(
-                            context: context,
-                            position: OverlayPosition.right,
-                            builder: (c) => Container(
-                              padding: EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                              width: 230,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                spacing: 12,
-                                children: [
-                                  ColoredTitle(
-                                    text: AppLocalizations.of(context).supportedActions,
-                                  ),
-                                  Gap(12),
-                                  ...widget.supportedActions!.map(
-                                    (e) => Basic(
-                                      leading: e.icon != null ? Icon(e.icon) : null,
-                                      title: Text(e.title),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        child: Text(AppLocalizations.of(context).supportedActions),
-                      ),
-                  ],
+        ),
+    ];
+    // The network check: a link like the others, named for what it does
+    // (it analyses the network, it does not fix anything), against the right
+    // edge so it does not read as one more step of the instructions.
+    final analyze = widget.onTroubleshoot == null
+        ? null
+        : KeyedSubtree(
+            key: const ValueKey('connection-troubleshoot'),
+            child: link(l10n.networkAnalyze, widget.onTroubleshoot!),
+          );
+    final withSwitch = !ConnectionMethodWithoutSwitch.contains(context);
+
+    return BkTappable(
+      onPressed: withSwitch ? callback : null,
+      borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: BoxDecoration(
+          color: cs.card,
+          borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+          boxShadow: bkCardShadow(context),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 6,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                BkIconTile(
+                  icon:
+                      connection.type.icon ??
+                      (identical(connection, core.obpBluetoothEmulator) ? LucideIcons.bluetooth : LucideIcons.wifi),
                 ),
-            ],
-          ),
+                const Gap(BkGroupedRow.gap),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                if (widget.supportLevel == ConnectionSupport.beta)
+                  const BetaPill()
+                else if (widget.supportLevel == ConnectionSupport.experimental)
+                  const BetaPill(text: 'EXPER.')
+                else if (widget.isRecommended && !screenshotMode && !RecommendedConnectionMethods.contains(context))
+                  SecondaryBadge(child: Text(l10n.recommended)),
+                if (withSwitch) ...[
+                  const Gap(8),
+                  Semantics(
+                    container: true,
+                    label: widget.title,
+                    toggled: widget.isEnabled,
+                    child: Switch(value: widget.isEnabled, onChanged: (_) => callback()),
+                  ),
+                ],
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: textInset),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 6,
+                children: [
+                  if (connected)
+                    BkStatusDot(label: appName != null ? l10n.chainStepAppConnected(appName) : l10n.statusConnected)
+                  else if (started && widget.isEnabled)
+                    BkStatusDot(label: l10n.waitingForConnection, tone: BkStatusTone.warning),
+                  Text(
+                    widget.description,
+                    style: context.typography.small.copyWith(color: cs.mutedForeground, height: 1.4),
+                  ),
+                  if (widget.isEnabled && widget.additionalChild != null) widget.additionalChild!,
+                  if (links.isNotEmpty || analyze != null)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: Wrap(spacing: 20, runSpacing: 4, children: links)),
+                        ?analyze,
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSupportedActions(BuildContext context) {
+    openDrawer(
+      context: context,
+      position: OverlayPosition.right,
+      builder: (c) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        width: 230,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 12,
+          children: [
+            ColoredTitle(text: AppLocalizations.of(context).supportedActions),
+            const Gap(12),
+            ...widget.supportedActions!.map(
+              (e) => Basic(
+                leading: e.icon != null ? Icon(e.icon) : null,
+                title: Text(e.title),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -352,9 +432,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
 }
 
 Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDone) {
-  return openSheet(
+  return openBottomSheet(
     context: context,
-    draggable: true,
     builder: (context) => Padding(
       padding: const EdgeInsets.all(16.0),
       child: PermissionList(
@@ -364,7 +443,6 @@ Future openPermissionSheet(BuildContext context, List<PlatformRequirement> notDo
         },
       ),
     ),
-    position: OverlayPosition.bottom,
   );
 }
 
@@ -446,4 +524,24 @@ Future<bool> enableLocalControl(BuildContext context) async {
   }
   core.connection.signalNotification(LogNotification('Local Control: true'));
   return core.settings.getLocalEnabled();
+}
+
+/// The trainer app's connection in a word or two ("Network", "Bluetooth,
+/// Local"): the methods carrying it right now, else the ones switched on.
+/// Null while none is switched on.
+String? connectionMethodSummary(BuildContext context) {
+  final l = AppLocalizations.of(context);
+  final connected = core.logic.appFacingConnections;
+  final methods = connected.isNotEmpty ? connected : core.logic.enabledTrainerConnections;
+  final labels = <String>[];
+  for (final method in methods) {
+    final label = switch (method) {
+      _ when identical(method, core.local) => l.onboardingMethodLocal,
+      _ when identical(method, core.obpBluetoothEmulator) || identical(method, core.zwiftEmulator) =>
+        l.onboardingMethodBluetooth,
+      _ => l.onboardingMethodNetwork,
+    };
+    if (!labels.contains(label)) labels.add(label);
+  }
+  return labels.isEmpty ? null : labels.join(', ');
 }

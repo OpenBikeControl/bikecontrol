@@ -10,39 +10,106 @@ void main() {
   group('light theme', () {
     final cs = BkTheme.build(Brightness.light).colorScheme;
 
-    test('muted text reads at >= 4.5:1 on white and on the activity rail', () {
-      expect(contrast(cs.mutedForeground, const Color(0xFFFFFFFF)), greaterThanOrEqualTo(4.5));
-      expect(contrast(cs.mutedForeground, const Color(0xFFF8FAFB)), greaterThanOrEqualTo(4.5));
-      expect(contrast(cs.mutedForeground, cs.background), greaterThanOrEqualTo(4.5));
+    test('is the grouped palette: white cards on a grey page', () {
+      expect(cs.background, const Color(0xFFF2F2F7));
+      expect(cs.card, const Color(0xFFFFFFFF));
+      expect(cs.popover, const Color(0xFFFFFFFF));
+      expect(cs.foreground, const Color(0xFF1C1C1E));
     });
 
-    test('primary is the brand blue and its foreground is legible on it', () {
+    test('body and secondary text read at >= 4.5:1 on the page, a card and a fill', () {
+      for (final surface in [cs.background, cs.card, cs.muted, cs.secondary, cs.accent]) {
+        expect(contrast(cs.foreground, surface), greaterThanOrEqualTo(4.5), reason: 'foreground on $surface');
+        expect(contrast(cs.mutedForeground, surface), greaterThanOrEqualTo(4.5), reason: 'muted on $surface');
+      }
+      expect(contrast(cs.secondaryForeground, cs.secondary), greaterThanOrEqualTo(4.5));
+      expect(contrast(cs.accentForeground, cs.accent), greaterThanOrEqualTo(4.5));
+    });
+
+    test('primary is the brand blue with white text; accent text clears 4.5:1 everywhere', () {
       expect(cs.primary, BKColor.main);
+      expect(cs.primaryForeground, const Color(0xFFFFFFFF));
       expect(contrast(cs.primaryForeground, cs.primary), greaterThanOrEqualTo(4.5));
-      expect(contrast(cs.primary, cs.background), greaterThanOrEqualTo(4.5));
+      expect(contrast(cs.primary, cs.card), greaterThanOrEqualTo(4.5));
+      for (final surface in [cs.background, cs.card, cs.muted]) {
+        expect(contrast(BkTheme.lightAccentText, surface), greaterThanOrEqualTo(4.5), reason: 'link on $surface');
+      }
+    });
+
+    test('destructive buttons keep legible text', () {
+      // ignore: deprecated_member_use
+      expect(contrast(cs.destructiveForeground, cs.destructive), greaterThanOrEqualTo(4.5));
+    });
+
+    test('hairlines and fills are visible on both the page and a card', () {
+      for (final surface in [cs.background, cs.card]) {
+        expect(contrast(cs.border, surface), greaterThan(1.15), reason: 'border on $surface');
+      }
+      expect(contrast(cs.muted, cs.card), greaterThan(1.15));
     });
   });
 
   group('dark theme', () {
     final cs = BkTheme.build(Brightness.dark).colorScheme;
 
+    test('is a tonal ladder: page, card, raised', () {
+      expect(cs.background, const Color(0xFF101318));
+      expect(cs.card, const Color(0xFF1B1F25));
+      expect(cs.muted, const Color(0xFF262B33));
+      expect(cs.foreground, const Color(0xFFFFFFFF));
+      expect(cs.mutedForeground, const Color(0xFFA3A3A3));
+      expect(cs.card.computeLuminance(), greaterThan(cs.background.computeLuminance()));
+      expect(cs.muted.computeLuminance(), greaterThan(cs.card.computeLuminance()));
+    });
+
     test('primary is a brand blue, not the slate near-white', () {
+      expect(cs.primary, BkTheme.darkPrimary);
       expect(cs.primary.b, greaterThan(cs.primary.r));
-      expect(contrast(cs.primary, cs.background), greaterThanOrEqualTo(4.5));
-      expect(contrast(cs.primary, cs.card), greaterThanOrEqualTo(4.5));
       expect(contrast(cs.primaryForeground, cs.primary), greaterThanOrEqualTo(4.5));
     });
 
-    test('muted text reads at >= 4.5:1 on background and card', () {
-      expect(contrast(cs.mutedForeground, cs.background), greaterThanOrEqualTo(4.5));
-      expect(contrast(cs.mutedForeground, cs.card), greaterThanOrEqualTo(4.5));
+    test('body, secondary and accent text read at >= 4.5:1 on page, card and raised fills', () {
+      for (final surface in [cs.background, cs.card, cs.muted, cs.popover]) {
+        expect(contrast(cs.foreground, surface), greaterThanOrEqualTo(4.5), reason: 'foreground on $surface');
+        expect(contrast(cs.mutedForeground, surface), greaterThanOrEqualTo(4.5), reason: 'muted on $surface');
+        expect(contrast(cs.primary, surface), greaterThanOrEqualTo(4.5), reason: 'primary on $surface');
+      }
+      // ignore: deprecated_member_use
+      expect(contrast(cs.destructiveForeground, cs.destructive), greaterThanOrEqualTo(4.5));
     });
 
-    test('card and background come from one neutral family', () {
-      for (final c in [cs.card, cs.background, cs.popover]) {
-        expect((c.r - c.b).abs(), lessThan(0.02), reason: '$c is tinted, not neutral');
+    test('card and background are graphite with the same faint cool tint', () {
+      for (final c in [cs.card, cs.background, cs.popover, cs.muted]) {
+        expect(c.b - c.r, greaterThan(0), reason: '$c leans toward the brand blue');
+        expect(c.b - c.r, lessThan(0.06), reason: '$c is tinted, not coloured');
       }
     });
+  });
+
+  testWidgets('accent text resolves per brightness', (tester) async {
+    final seen = <Brightness, Color>{};
+    for (final brightness in Brightness.values) {
+      await tester.pumpWidget(
+        ShadcnApp(
+          theme: BkTheme.build(brightness),
+          home: Builder(
+            builder: (context) {
+              seen[brightness] = bkAccentText(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+    expect(seen[Brightness.light], BkTheme.lightAccentText);
+    expect(seen[Brightness.dark], BkTheme.darkPrimary);
+  });
+
+  test('success is the approved green in both brightnesses', () {
+    expect(BkStatusColors.dark.success, const Color(0xFF22C55E));
+    // #15803D is 4.49:1 on the grouped page; one notch darker clears 4.5.
+    expect(contrast(BkStatusColors.light.success, BkTheme.lightColorScheme.background), greaterThanOrEqualTo(4.5));
   });
 
   test('both brightnesses share typography and radius', () {
@@ -106,4 +173,48 @@ void main() {
       });
     }
   });
+
+  for (final brightness in Brightness.values) {
+    for (final on in [true, false]) {
+      testWidgets('$brightness: ${on ? 'an on' : 'an off'} switch has a white thumb on the '
+          '${on ? 'primary' : 'muted'} track', (tester) async {
+        await tester.pumpWidget(
+          ShadcnApp(
+            theme: BkTheme.build(brightness),
+            home: BkComponentThemes(
+              child: Center(
+                child: Switch(value: on, onChanged: (_) {}),
+              ),
+            ),
+          ),
+        );
+        final cs = BkTheme.build(brightness).colorScheme;
+        final thumb = tester
+            .widgetList<Container>(find.descendant(of: find.byType(Switch), matching: find.byType(Container)))
+            .map((c) => (c.decoration as BoxDecoration?)?.color)
+            .whereType<Color>()
+            .toList();
+        // The track (an AnimatedContainer, itself a Container) comes first.
+        expect(thumb.last, const Color(0xFFFFFFFF), reason: 'thumb');
+        final track = tester
+            .widgetList<AnimatedContainer>(
+              find.descendant(of: find.byType(Switch), matching: find.byType(AnimatedContainer)),
+            )
+            .map((c) => (c.decoration as BoxDecoration?)?.color)
+            .whereType<Color>()
+            .single;
+        if (on) {
+          expect(track, cs.primary);
+        } else {
+          expect(track, BkComponentThemes.switchOffTrack(brightness));
+          // The off track reads as a control on the page and on a card.
+          for (final surface in [cs.background, cs.card]) {
+            expect(contrast(track, surface), greaterThan(1.1), reason: 'off track on $surface');
+          }
+          // …and the white thumb stands off it.
+          expect(contrast(const Color(0xFFFFFFFF), track), greaterThan(1.15), reason: 'thumb on off track');
+        }
+      });
+    }
+  }
 }

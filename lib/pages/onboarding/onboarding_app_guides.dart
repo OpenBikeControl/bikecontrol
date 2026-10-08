@@ -77,11 +77,11 @@ class OnboardingAppGuideCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(bordered ? 14 : 0),
+      padding: EdgeInsets.all(bordered ? 16 : 0),
       decoration: bordered
           ? BoxDecoration(
-              border: Border.all(color: scheme.border, width: 1.5),
-              borderRadius: BorderRadius.circular(12),
+              color: scheme.card,
+              borderRadius: BorderRadius.circular(16),
             )
           : null,
       child: Column(
@@ -99,7 +99,7 @@ class OnboardingAppGuideCard extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(shape: BoxShape.circle, color: onboardingAccent(context)),
                     child: DefaultTextStyle.merge(
-                      style: const TextStyle(color: Color(0xFFFFFFFF)),
+                      style: TextStyle(color: onboardingOnAccent(context)),
                       child: Text('${i + 1}').xSmall.semiBold,
                     ),
                   ),
@@ -173,9 +173,8 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: Border.all(color: onboardingAccent(context), width: 1.5),
-        borderRadius: BorderRadius.circular(12),
-        color: onboardingAccent(context).withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        color: scheme.card,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(context.i18n.onboardingPairAsTrainerBody(app.name)).small,
@@ -183,7 +182,7 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
-              color: scheme.card, border: Border.all(color: scheme.border), borderRadius: BorderRadius.circular(10)),
+              color: scheme.muted, borderRadius: BorderRadius.circular(10)),
           child: Row(children: [
             Icon(LucideIcons.radio, size: 20, color: onboardingAccent(context)),
             Gap(12),
@@ -197,13 +196,13 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
-                color: _success.withValues(alpha: 0.12),
+                color: BkStatusColors.of(context).successWash,
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Container(
                   width: 7,
                   height: 7,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: _success),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: BkStatusColors.of(context).success),
                 ),
                 Gap(5),
                 DefaultTextStyle.merge(
@@ -230,8 +229,8 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: _warning.withValues(alpha: 0.12),
-            border: Border.all(color: _warning.withValues(alpha: 0.5)),
+            color: BkStatusColors.of(context).warningWash,
+            border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.5)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(LucideIcons.triangleAlert, size: 16, color: BkStatusColors.of(context).warning),
@@ -260,5 +259,3 @@ Widget _slotRow(BuildContext context, IconData icon, String slot, String entryNa
   );
 }
 
-const Color _success = Color(0xFF22C55E);
-const Color _warning = Color(0xFFF59E0B);

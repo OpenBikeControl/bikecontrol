@@ -1,16 +1,19 @@
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile, BkGroupedHeader;
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
-import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/plan/vs_without_pro_note.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 bool onboardingTrainerBridged(List<ProxyDevice> trainers) => trainers.any((t) => t.isBridged);
 
@@ -28,6 +31,24 @@ String onboardingTrainerSubtitleFor(BuildContext context, ProxyDevice trainer) {
   final transport = trainer.isWifiUpstream ? context.i18n.connectionWifi : context.i18n.connectionBluetooth;
   return '$transport · ${context.i18n.onboardingTrainerMeta}';
 }
+
+/// The amber box that says why this same device won't do for virtual
+/// shifting.
+Widget _sameDeviceWarning(BuildContext context, Widget child, {Key? key}) => Container(
+  key: key,
+  width: double.infinity,
+  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(10),
+    color: BkStatusColors.of(context).warningWash,
+    border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.5)),
+  ),
+  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Icon(LucideIcons.triangleAlert, size: 16, color: BkStatusColors.of(context).warning),
+    Gap(10),
+    Expanded(child: child),
+  ]),
+);
 
 Widget _alternative(BuildContext context, IconData icon, String title, String body) {
   final scheme = Theme.of(context).colorScheme;
@@ -56,33 +77,25 @@ Widget onboardingTrainerBody(BuildContext context,
     required List<ProxyDevice> trainers,
     required void Function(ProxyDevice) onPick,
     VoidCallback? onRescan,
-    bool virtualShiftingBlocked = false}) {
+    bool virtualShiftingBlocked = false,
+    bool needsSecondDevice = false}) {
   final bridged = trainers.where((t) => t.isBridged).toList();
 
-  // MyWhoosh on Android can't see a network virtual bike, so a bridge on this
-  // same device would never be found — explain it and name the two setups
-  // that do work instead of silently hiding the step. The block is only
-  // meaningful for a chosen app — its copy names it.
+  // The trainer app on this same device can't pick up a bridge here (see
+  // [vsSameDeviceBlock]: Bluetooth only, or a Microsoft Store app on Windows)
+  // — explain it and name the two setups that do work instead of silently
+  // hiding the step. The block is only meaningful for a chosen app — its copy
+  // names it.
   if (bridged.isEmpty && virtualShiftingBlocked && app != null) {
+    final explainer = vsSameDeviceBlock(app) == VsSameDeviceBlock.storeAppIsolation
+        ? context.i18n.onboardingVsBlockedExplainerStoreApp(app.name)
+        : context.i18n.onboardingVsBlockedExplainer(app.name);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-      Text(context.i18n.onboardingVsBlockedTitle).h4,
+      OnboardingHeadline(context.i18n.onboardingVsBlockedTitle),
       Gap(6),
       Text(context.i18n.onboardingVsBlockedSubtitle(app.name)).small.muted,
       Gap(16),
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: const Color(0x1AF59E0B),
-          border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5)),
-        ),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(LucideIcons.triangleAlert, size: 16, color: const Color(0xFFF59E0B)),
-          Gap(10),
-          Expanded(child: Text(context.i18n.onboardingVsBlockedExplainer(app.name)).xSmall),
-        ]),
-      ),
+      _sameDeviceWarning(context, Text(explainer).xSmall),
       Gap(16),
       Text(context.i18n.onboardingVsBlockedAlternatives).xSmall.semiBold.muted,
       Gap(8),
@@ -93,9 +106,7 @@ Widget onboardingTrainerBody(BuildContext context,
       Gap(6),
       Button.ghost(
         style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-        onPressed: () => launchUrlString(
-            'https://bikecontrol.app/blog/virtual-shifting-with-and-without-bikecontrol/',
-            mode: LaunchMode.externalApplication),
+        onPressed: () => openVsBlogPost(context),
         child: Row(children: [
           Icon(LucideIcons.bookOpen, size: 15),
           Gap(8),
@@ -110,18 +121,18 @@ Widget onboardingTrainerBody(BuildContext context,
   if (bridged.isNotEmpty) {
     final t = bridged.first;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-      Text(context.i18n.onboardingTrainerConnectedTitle).h4,
+      OnboardingHeadline(context.i18n.onboardingTrainerConnectedTitle),
       Gap(6),
       Text(context.i18n.onboardingTrainerConnectedSubtitle).small.muted,
       Gap(18),
       Container(
-        padding: const EdgeInsets.all(13),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFF22C55E), width: 1.5),
-          borderRadius: BorderRadius.circular(12),
+          color: Theme.of(context).colorScheme.card,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Row(children: [
-          Icon(onboardingTrainerIcon(t), size: 20, color: const Color(0xFF22C55E)),
+          BkIconTile(icon: onboardingTrainerIcon(t), color: BkStatusColors.of(context).success),
           Gap(12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -143,22 +154,37 @@ Widget onboardingTrainerBody(BuildContext context,
     // The PRO badge sits on the title itself: this is the Pro feature, and
     // the rider should know before connecting a trainer, not at the paywall.
     Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Expanded(child: Text(context.i18n.onboardingTrainerTitle).h4),
+      Expanded(child: OnboardingHeadline(context.i18n.onboardingTrainerTitle)),
       Gap(10),
       const Padding(padding: EdgeInsets.only(top: 4), child: ProBadge()),
     ]),
     Gap(6),
     Text(context.i18n.onboardingTrainerSubtitle).small.muted,
     Gap(16),
+    // An app that can only ever run on a second device (FulGaz) was never asked
+    // "this or another device" — say it here, before riders put it on the same
+    // iPad and wait for a trainer that will never show up in it.
+    if (needsSecondDevice && app != null) ...[
+      _sameDeviceWarning(
+        context,
+        key: const ValueKey('onboarding-vs-second-device-note'),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(context.i18n.onboardingVsBlockedAltAppTitle(app.name)).xSmall.semiBold,
+          Text(context.i18n.onboardingVsBlockedExplainer(app.name)).xSmall,
+        ]),
+      ),
+      Gap(16),
+    ],
     // Once a trainer is found, connecting it is the step's job: the list
     // (with Connect) moves above the animation so it is on the first screen.
     if (trainers.isNotEmpty) ...[
+      _NearbyTrainers(trainers: trainers, onPick: onPick, onRescan: onRescan),
+      Gap(16),
       OnboardingNote(
-        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        vsWithoutProText(context, app),
         icon: LucideIcons.award,
+        action: const VsWithoutProLearnMore(alignStart: true),
       ),
-      Gap(10),
-      _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
       Gap(14),
       const VirtualShiftingStage(),
     ] else ...[
@@ -167,15 +193,16 @@ Widget onboardingTrainerBody(BuildContext context,
       const VirtualShiftingStage(),
       Gap(14),
       OnboardingNote(
-        context.i18n.onboardingVsProNote('${core.bridgeUsageTracker.dailyLimit.inMinutes}'),
+        vsWithoutProText(context, app),
         icon: LucideIcons.award,
+        action: const VsWithoutProLearnMore(alignStart: true),
       ),
       Gap(10),
       _ScanCard(trainers: trainers, onPick: onPick, onRescan: onRescan),
     ],
     Gap(10),
     Button.ghost(
-      onPressed: () => launchUrlString('https://bikecontrol.app/blog/virtual-shifting-with-and-without-bikecontrol/', mode: LaunchMode.externalApplication),
+      onPressed: () => openVsBlogPost(context),
       child: Row(children: [
         Icon(LucideIcons.bookOpen, size: 15),
         Gap(8),
@@ -185,6 +212,85 @@ Widget onboardingTrainerBody(BuildContext context,
       ]),
     ),
   ]));
+}
+
+/// The trainers the scan found, each a device card of its own under a
+/// "Nearby smart trainers" header with a primary Connect — so a found trainer
+/// reads as the thing to do on this step, not as a line of its explanation.
+class _NearbyTrainers extends StatelessWidget {
+  const _NearbyTrainers({required this.trainers, required this.onPick, this.onRescan});
+
+  final List<ProxyDevice> trainers;
+  final void Function(ProxyDevice) onPick;
+  final VoidCallback? onRescan;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Row(children: [
+            Expanded(child: BkGroupedHeader(context.i18n.onboardingNearbyTrainers)),
+            if (onRescan != null)
+              BkIconButton.ghost(
+                icon: Icon(LucideIcons.refreshCw, size: 15),
+                label: context.i18n.a11yRefresh,
+                onPressed: onRescan,
+              ),
+          ]),
+        ),
+        Gap(4),
+        for (final (i, t) in trainers.indexed) ...[
+          if (i > 0) Gap(8),
+          _TrainerCard(trainer: t, onPick: onPick),
+        ],
+      ],
+    );
+  }
+}
+
+class _TrainerCard extends StatelessWidget {
+  const _TrainerCard({required this.trainer, required this.onPick});
+
+  final ProxyDevice trainer;
+  final void Function(ProxyDevice) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = trainer;
+    return ValueListenableBuilder<bool>(
+      valueListenable: t.isStarting,
+      builder: (context, starting, _) => Container(
+        key: ValueKey('onboarding-trainer-${t.uniqueId}'),
+        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+        decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+        child: Row(children: [
+          BkIconTile(icon: onboardingTrainerIcon(t), color: onboardingAccent(context)),
+          Gap(12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 2, children: [
+              Text(t.name, maxLines: 2, overflow: TextOverflow.ellipsis).base.semiBold,
+              Text(onboardingTrainerSubtitleFor(context, t)).xSmall.muted,
+            ]),
+          ),
+          Gap(10),
+          if (starting) ...[
+            Text(context.i18n.onboardingDeviceConnecting).xSmall.muted,
+            Gap(8),
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(size: 16)),
+          ] else
+            BkPillButton(
+              expand: false,
+              onPressed: () => onPick(t),
+              child: Text(context.i18n.connect),
+            ),
+        ]),
+      ),
+    );
+  }
 }
 
 /// The scan, as its own card: a pulsing radar, what the scan is doing right
@@ -205,8 +311,7 @@ class _ScanCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: cs.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: trainers.isEmpty ? accent.withValues(alpha: 0.3) : cs.border),
+        borderRadius: BorderRadius.circular(16),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(

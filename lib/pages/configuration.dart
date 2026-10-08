@@ -7,11 +7,15 @@ import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
+import 'package:bike_control/widgets/keymap/trainer_app_keymap_prompt.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/gradient_text.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:d4rt/d4rt.dart';
@@ -29,6 +33,10 @@ class ConfigurationPage extends StatefulWidget {
 }
 
 class _ConfigurationPageState extends State<ConfigurationPage> {
+  /// Whether the trainer-app picker is open under the app's card. Always open
+  /// while no app is picked yet.
+  bool _changingApp = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +45,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ColoredTitle(text: context.i18n.setupTrainer),
         Builder(
           builder: (context) {
             return StatefulBuilder(
@@ -46,40 +53,28 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TrainerAppSelect(
-                    onUpdate: () {
-                      widget.onUpdate();
-                      setState(() {});
-                    },
+                  _TrainerAppCard(
+                    changing: _changingApp || core.settings.getTrainerApp() == null,
+                    onChange: () => setState(() => _changingApp = !_changingApp),
+                    picker: TrainerAppSelect(
+                      onUpdate: () {
+                        widget.onUpdate();
+                        setState(() => _changingApp = false);
+                      },
+                    ),
                   ),
                   if (core.settings.getTrainerApp() != null) ...[
                     if ((core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpBle) ||
                             core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpMdns)) &&
                         !screenshotMode &&
                         !widget.onboardingMode)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12.0),
-                        child: Button.ghost(
-                          onPressed: () {
-                            launchUrlString('https://openbikecontrol.org', mode: LaunchMode.externalApplication);
-                          },
-                          child: Basic(
-                            leading: OpenBikeControlLogo(),
-                            title: Text(
-                              AppLocalizations.of(
-                                context,
-                              ).openBikeControlAnnouncement(core.settings.getTrainerApp()!.name),
-                            ).muted.xSmall.normal,
-                            trailing: Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
-                          ),
-                        ),
-                      ),
+                      _OpenBikeControlNote(appName: core.settings.getTrainerApp()!.name),
                     // BikeControl is self-hosted — no external target to pick.
                     if (core.settings.getTrainerApp() is! BikeControl) ...[
                       SizedBox(height: 0),
                       Text(
-                        context.i18n.selectTargetWhereAppRuns(
-                          screenshotMode ? 'Trainer app' : core.settings.getTrainerApp()?.name ?? 'the Trainer app',
+                        context.i18n.onboardingWhereTitle(
+                          shownTrainerAppName(core.settings.getTrainerApp()!.name),
                         ),
                       ).small,
                       Row(
@@ -150,6 +145,125 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
 /// [ConfigurationPage] so it can be rendered standalone (e.g. golden
 /// snapshots). Behaviour is unchanged — it mutates the same `core.*`
 /// singletons and notifies via [onUpdate].
+/// The trainer app on top of Connection settings: its logo, "Trainer app"
+/// over its name, and Change, which opens the picker underneath.
+/// The note that the trainer app speaks the OpenBikeControl Protocol: a quiet card
+/// that opens the protocol's site.
+class _OpenBikeControlNote extends StatelessWidget {
+  const _OpenBikeControlNote({required this.appName});
+
+  final String appName;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final radius = BorderRadius.circular(BkComponentThemes.cardRadius);
+    return BkTappable(
+      key: const ValueKey('connection-obc-announcement'),
+      borderRadius: radius,
+      onPressed: () => launchUrlString('https://openbikecontrol.org', mode: LaunchMode.externalApplication),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        decoration: BoxDecoration(color: cs.card, borderRadius: radius),
+        child: Row(
+          children: [
+            ExcludeSemantics(
+              child: Container(
+                width: BkIconTile.size,
+                height: BkIconTile.size,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(8)),
+                child: OpenBikeControlLogo(size: 18, color: bkAccentText(context)),
+              ),
+            ),
+            const Gap(BkGroupedRow.gap),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).openBikeControlAnnouncement(appName),
+                style: context.typography.small.copyWith(color: cs.mutedForeground, height: 1.4),
+              ),
+            ),
+            const Gap(8),
+            Icon(LucideIcons.chevronRight, size: 16, color: cs.mutedForeground),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrainerAppCard extends StatelessWidget {
+  const _TrainerAppCard({required this.changing, required this.onChange, required this.picker});
+
+  final bool changing;
+  final VoidCallback onChange;
+  final Widget picker;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final app = core.settings.getTrainerApp();
+    final logo = app?.logoAsset;
+    final name = app == null ? null : shownTrainerAppName(app.name);
+    return Container(
+      key: const ValueKey('connection-trainer-app'),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (logo != null && !screenshotMode)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(logo, width: BkIconTile.size, height: BkIconTile.size),
+                )
+              else
+                const BkIconTile(icon: LucideIcons.monitor),
+              const Gap(BkGroupedRow.gap),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.i18n.chainAppTitle,
+                      style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                    ),
+                    Text(
+                      name ?? context.i18n.selectTrainerAppPlaceholder,
+                      style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              if (app != null)
+                Button.ghost(
+                  onPressed: onChange,
+                  child: Text(
+                    context.i18n.rideChange,
+                    style: context.typography.base.copyWith(color: bkAccentText(context)),
+                  ),
+                ),
+            ],
+          ),
+          if (changing) ...[
+            const Gap(10),
+            Padding(padding: const EdgeInsets.only(right: 8), child: picker),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 /// Tells the rider to put BikeControl on the device their trainer app runs on.
 ///
 /// Apps that speak no controller protocol at all (Tacx Training) get two more
@@ -197,7 +311,7 @@ class TrainerAppSelect extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               child: Image.asset(app.logoAsset!, width: 22, height: 22),
             ),
-          Expanded(child: Text(screenshotMode && !showRealName ? 'Trainer app' : app.name)),
+          Expanded(child: Text(showRealName ? app.name : shownTrainerAppName(app.name))),
           if (app.supports(AppConnectionMethod.obpBle) ||
               app.supports(AppConnectionMethod.obpMdns) ||
               app.supports(AppConnectionMethod.obpDirCon))
@@ -208,10 +322,9 @@ class TrainerAppSelect extends StatelessWidget {
         items: SelectItemList(
           children: [
             if (groupedByOfficial.get(true)?.isNotEmpty == true)
-              Container(
-                color: Theme.of(context).colorScheme.accent,
-                padding: const EdgeInsets.all(8.0),
-                child: GradientText(AppLocalizations.of(context).officiallySupported).xSmall,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+                child: BkGroupedHeader(AppLocalizations.of(context).officiallySupported),
               ),
             ...groupedByOfficial.get(true)?.map((app) {
               final supportsObp =
@@ -246,10 +359,9 @@ class TrainerAppSelect extends StatelessWidget {
               );
             }),
             if (groupedByOfficial.get(true)?.isNotEmpty == true)
-              Container(
-                color: Theme.of(context).colorScheme.accent,
-                padding: const EdgeInsets.all(8.0),
-                child: GradientText(AppLocalizations.of(context).otherTrainerApps).xSmall,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+                child: BkGroupedHeader(AppLocalizations.of(context).otherTrainerApps),
               ),
             ...groupedByOfficial.get(false)?.map((app) {
               return SelectItemButton(
@@ -279,7 +391,9 @@ class TrainerAppSelect extends StatelessWidget {
       placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
       value: core.settings.getTrainerApp(),
       onChanged: (selectedApp) async {
-        await applyTrainerAppSelection(selectedApp!);
+        // Asks first when the rider's own button mapping was made for
+        // another app; dismissing it leaves the trainer app unchanged.
+        if (!await pickTrainerApp(context, selectedApp!)) return;
         onUpdate();
       },
     );

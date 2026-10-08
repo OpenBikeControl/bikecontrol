@@ -1,5 +1,6 @@
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/services/network_self_test/address_warning_kind.dart';
 
 /// Turns [ChainInputs] into the cards the home screen renders, in signal-path
 /// order: your buttons → the gears BikeControl computes → the app that
@@ -65,7 +66,7 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
     ];
   }
 
-  return inputs.controllers.map((controller) {
+  final links = inputs.controllers.map((controller) {
     final inRange = _isPresent(controller.presence);
     final guidedSetupDone = controller.sramSetupDone;
     // A Click V2 waiting for its unlock-mode choice gets that one step and
@@ -103,7 +104,13 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
             // work with nothing to work on — see [ControllerInput.hasKnownButtons].
             if (controller.hasKnownButtons || controller.hasMappedButtons)
               SetupStep(id: SetupStepId.controllerButtonsMapped, done: controller.hasMappedButtons),
-            SetupStep(id: SetupStepId.controllerInRange, done: inRange),
+            SetupStep(
+              id: SetupStepId.controllerInRange,
+              done: inRange,
+              variant: controller.presence == DevicePresence.remembered
+                  ? SetupStepVariant.controllerAsleep
+                  : SetupStepVariant.standard,
+            ),
             // Last, because unlocking needs the controller present. Omitted entirely
             // for anything that has no such concept — see [ControllerInput.unlocked].
             if (controller.unlocked != null)
@@ -153,7 +160,35 @@ List<ChainLink> _controllerLinks(ChainInputs inputs) {
       dismissible: !inRange && !_isArriving(controller.presence),
     );
   }).toList();
+
+  // Once one controller is connected with nothing left to do, the ones that
+  // are merely remembered (or only ever found) are not what stands between
+  // the rider and riding: a Click V2 from an earlier ride, out of reach and
+  // locked, beside the Zwift Play the rider is on now. Their steps stay on
+  // their own cards, as offers, and stop counting. One lost in this session
+  // is different — that was working minutes ago, and its break stays news.
+  if (!links.any((l) => l.status == LinkStatus.ready)) return links;
+  return [
+    for (final (i, link) in links.indexed)
+      if (_canStandBy(inputs.controllers[i].presence))
+        ChainLink(
+          key: link.key,
+          id: link.id,
+          status: link.status,
+          title: link.title,
+          steps: [for (final step in link.steps) step.optional ? step : step.copyWith(optional: true)],
+          deviceId: link.deviceId,
+          dismissible: link.dismissible,
+          standby: true,
+        )
+      else
+        link,
+  ];
 }
+
+/// A controller that is not here and was not here in this session either.
+bool _canStandBy(DevicePresence presence) =>
+    presence == DevicePresence.remembered || presence == DevicePresence.discovered;
 
 ChainLink _trainerLink(ChainInputs inputs) {
   final trainer = inputs.trainer;
@@ -201,11 +236,13 @@ ChainLink _trainerLink(ChainInputs inputs) {
           // on this card — so the step blocks "Ready to ride" until the rider
           // either turns the overlay on or says "not now". Either answer is
           // final for the blocking: an overlay switched off afterwards (the
-          // trainer page's switch, the Live Activity's "stop ride" on every
+          // Overlay page's switch, the Live Activity's "stop ride" on every
           // ride end) leaves the line as the offer it used to be, never as
           // work outstanding. A decline takes the step off the card entirely
           // (a greyed-out offer would still read as unfinished) until the
-          // overlay is switched on somewhere, which clears it. Only offered
+          // overlay is switched on somewhere, which clears it, or until the
+          // next app start — a decline is a snooze, not a "never", and the
+          // step comes back as the optional offer. Only offered
           // once the bridge is up: before that there is no gear.
           if (paired && trainer.overlayOffered && (trainer.overlayEnabled || !trainer.overlayDeclined))
             SetupStep(
@@ -298,7 +335,16 @@ ChainLink _appLink(ChainInputs inputs) {
         !app.trainerBridgedOverNetwork &&
         app.advertisedAddressWarning != null &&
         !(connectedEarlier && app.advertisedAddressWarning == app.advertisedAddressWarningAtConnect))
-      SetupStep(id: SetupStepId.appNetworkAddress, done: false, hintArg: app.advertisedAddressWarning),
+      SetupStep(
+        id: SetupStepId.appNetworkAddress,
+        done: false,
+        hintArg: app.advertisedAddressWarning,
+        variant: switch (app.advertisedAddressWarningKind) {
+          AddressWarningKind.noWifi => SetupStepVariant.networkNoWifi,
+          AddressWarningKind.twoNetworks => SetupStepVariant.networkTwoNetworks,
+          AddressWarningKind.unreachable || null => SetupStepVariant.standard,
+        },
+      ),
     SetupStep(
       id: SetupStepId.appConnected,
       done: selected && connected,

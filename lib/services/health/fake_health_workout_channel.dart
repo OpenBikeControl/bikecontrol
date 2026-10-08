@@ -5,10 +5,17 @@ import 'health_workout_payload.dart';
 /// Scripted [HealthWorkoutChannel] for unit and widget tests. Lives in `lib/`
 /// like `FakeHealthKitChannel`, so widget tests can inject it.
 class FakeHealthWorkoutChannel implements HealthWorkoutChannel {
-  bool available = true;
+  FakeHealthWorkoutChannel({this.store = HealthStore.appleHealth});
+
+  @override
+  final HealthStore store;
+
+  HealthAvailability status = HealthAvailability.available;
   HealthKitAuthorization authorization = HealthKitAuthorization.granted;
   int authorizeCalls = 0;
   int openSettingsCalls = 0;
+  int openAppCalls = 0;
+  int openInstallCalls = 0;
 
   /// Thrown by the next [authorize] (after counting it) when set.
   Object? authorizeError;
@@ -19,7 +26,7 @@ class FakeHealthWorkoutChannel implements HealthWorkoutChannel {
   final List<HealthWorkoutPayload> saved = [];
 
   @override
-  Future<bool> isAvailable() async => available;
+  Future<HealthAvailability> availability() async => status;
 
   @override
   Future<HealthKitAuthorization> authorize() async {
@@ -39,4 +46,10 @@ class FakeHealthWorkoutChannel implements HealthWorkoutChannel {
 
   @override
   Future<void> openHealthSettings() async => openSettingsCalls++;
+
+  @override
+  Future<void> openHealthApp() async => openAppCalls++;
+
+  @override
+  Future<void> openInstall() async => openInstallCalls++;
 }

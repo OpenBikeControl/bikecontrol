@@ -1,18 +1,31 @@
+// Devices → Smart Trainer: the trainer's hardware page. Is it connected, how,
+// over which control protocol, and is it healthy — plus one link out to its
+// virtual shifting settings, which live in Settings now. Gears, live metrics,
+// the Mini Workout and the overlay are not here any more.
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
-import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
+import 'package:bike_control/pages/proxy_device_details/control_protocol_section.dart';
+import 'package:bike_control/pages/proxy_device_details/need_help_card.dart';
+import 'package:bike_control/pages/proxy_device_details/self_test_card.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../helpers/live_trainer.dart';
+
 Future<void> main() async {
   await AppLocalizations.load(const Locale('en'));
+  final l = AppLocalizations.current;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -20,10 +33,19 @@ Future<void> main() async {
     core.actionHandler = StubActions();
   });
 
+  tearDown(() => core.connection.devices.clear());
+
   Future<void> pumpPage(WidgetTester tester, ProxyDevice device) async {
+    tester.view.physicalSize = const Size(430, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ShadcnApp(
-        localizationsDelegates: const [AppLocalizations.delegate],
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         home: ProxyDeviceDetailsPage(device: device),
       ),
@@ -36,9 +58,58 @@ Future<void> main() async {
 
     await pumpPage(tester, device);
 
-    expect(find.text('Smart Trainer'), findsOneWidget);
-    expect(find.text('Disconnect'), findsOneWidget);
-    expect(find.text('Disconnect & forget'), findsOneWidget);
+    expect(find.text(l.smartTrainer), findsOneWidget);
+    expect(find.text(l.disconnectAndForgetForThisSession), findsOneWidget);
+    expect(find.text(l.disconnectAndForget), findsOneWidget);
+  });
+
+  testWidgets('a shifting trainer: connection, protocol, health, one link out, disconnect', (tester) async {
+    final (:proxy, :definition) = attachLiveTrainer();
+    await pumpPage(tester, proxy);
+
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    final connection = find.byType(ConnectionCard);
+    final protocol = find.byType(ControlProtocolSection);
+    final selfTest = find.byType(SelfTestCard);
+    final needHelp = find.byType(NeedHelpCard);
+    final link = find.byKey(const ValueKey('trainer-vs-settings'));
+    final disconnect = find.text(l.disconnectAndForgetForThisSession);
+    for (final f in [connection, protocol, selfTest, needHelp, link, disconnect]) {
+      expect(f, findsOneWidget);
+    }
+    expect(top(connection), lessThan(top(protocol)));
+    expect(top(protocol), lessThanOrEqualTo(top(selfTest)));
+    expect(top(selfTest), lessThan(top(needHelp)));
+    expect(top(needHelp), lessThan(top(link)));
+    expect(top(link), lessThan(top(disconnect)));
+
+    // What moved away: the gear hero and its drivetrain (Ride), the settings
+    // and overlay (Settings), the live metrics and the Mini Workout (Ride).
+    expect(find.byType(DrivetrainView), findsNothing);
+    expect(find.text(l.overlaySection), findsNothing);
+    expect(find.text(l.miniWorkoutStart), findsNothing);
+    expect(find.text(l.bikeWeight), findsNothing);
+    expect(find.text(l.gearSettings), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    // Need help? is the secondary action; the self-test keeps the primary.
+    final help = tester.widget<Button>(find.byKey(const ValueKey('need-help-open')));
+    expect(help.style, ButtonVariance.secondary);
+  });
+
+  testWidgets('Virtual Shifting Settings opens the settings page', (tester) async {
+    final (:proxy, :definition) = attachLiveTrainer();
+    await pumpPage(tester, proxy);
+
+    final link = find.byKey(const ValueKey('trainer-vs-settings'));
+    expect(find.descendant(of: link, matching: find.text(l.virtualShiftingSettings)), findsOneWidget);
+    await tester.tap(link);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget);
+    // Opening the settings pushes the active config to the definition, which
+    // opens its one-shot control-write pacing window; let it close.
+    await tester.pump(FitnessBikeDefinition.minControlWriteInterval);
   });
 
   testWidgets('FTMS warning appearing does not remount ConnectionCard (accordion survives)', (tester) async {
@@ -46,8 +117,8 @@ Future<void> main() async {
 
     await pumpPage(tester, device);
 
-    // Disconnected → no FTMS warning above the ConnectionCard.
-    expect(find.textContaining('does not advertise the FTMS service'), findsNothing);
+    final warning = l.trainerMissingFtmsWarning(device.name);
+    expect(find.text(warning), findsNothing);
     final stateBefore = tester.state(find.byType(ConnectionCard));
 
     // Connect a trainer that lacks FTMS VS support (no fitnessBike) so the
@@ -57,39 +128,12 @@ Future<void> main() async {
     device.setRetrofitMode(RetrofitMode.wifi);
     await tester.pump();
 
-    // The warning is now shown above the card…
-    expect(find.textContaining('does not advertise the FTMS service'), findsOneWidget);
-    // …but the ConnectionCard must NOT have been torn down and rebuilt — its
-    // State (and the accordion's open/closed state) has to survive the insertion
-    // of a sibling above it.
+    expect(find.text(warning), findsOneWidget);
     final stateAfter = tester.state(find.byType(ConnectionCard));
     expect(identical(stateBefore, stateAfter), isTrue);
   });
 
-  // Sensor sourcing now lives inside the signals grid itself (each tile's
-  // optional source row — see `live_metrics_section_test.dart`), not a
-  // separate section. This page still has to wire `LiveMetricsSection` in
-  // unconditionally, with `hideWhenDeviceHasNoMetrics: true` so a trainer
-  // with nothing to report yet (no FBD at all, exactly this fixture) renders
-  // it as nothing rather than a "--"-filled grid — see that flag's own doc
-  // comment for why this page needs it and the home page does not.
-  testWidgets('wires LiveMetricsSection in regardless of whether the trainer has virtual shifting', (tester) async {
-    final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
-    expect(device.fitnessBike, isNull);
-
-    await pumpPage(tester, device);
-
-    final section = tester.widget<LiveMetricsSection>(find.byKey(const ValueKey('live-metrics')));
-    expect(section.hideWhenDeviceHasNoMetrics, isTrue);
-  });
-
   testWidgets('ConnectionCard carries a stable key so connection-state reflows cannot remount it', (tester) async {
-    // On (dis)connect, conditional siblings appear/disappear both ABOVE
-    // (FTMS warning) and BELOW (gear/settings/VS-notice) the ConnectionCard.
-    // When both toggle in one frame an *unkeyed* card falls into the middle of
-    // the Column's child list, which Flutter deactivates and re-inflates —
-    // remounting it and collapsing the accordion. A stable key keeps its
-    // Element (and accordion state) across the reflow.
     final device = ProxyDevice(BleDevice(deviceId: 'x', name: 'Wahoo KICKR'));
 
     await pumpPage(tester, device);

@@ -31,8 +31,12 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.controllerButtonsMapped => step.done
         ? ChainStepText(l.chainStepButtonsMapped)
         : ChainStepText(l.chainStepButtonsMappedPending, l.chainStepButtonsMappedHint),
+    // A controller remembered from an earlier ride is asleep, not lost:
+    // "wake it up", not "bring it back in range".
     SetupStepId.controllerInRange => step.done
         ? ChainStepText(l.chainStepInRange)
+        : step.variant == SetupStepVariant.controllerAsleep
+        ? ChainStepText(l.chainStepWakePending, l.chainStepInRangeHint)
         : ChainStepText(l.chainStepInRangePending, l.chainStepInRangeHint),
     // The one done step that says more than "done". An unlock expires, so the
     // deadline is the useful part — a bare tick would hide the fact that this
@@ -111,9 +115,15 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     // Only ever emitted while outstanding — it clears itself the moment the
     // app connects — so there is no done wording. The hint names the address
     // because that is the one thing the rider can check against their VPN app.
+    // Each reason gets its own advice: "turn the VPN off" means nothing to a
+    // phone that is simply not on Wi-Fi.
     SetupStepId.appNetworkAddress => ChainStepText(
       l.chainStepNetworkAddressPending,
-      l.chainStepNetworkAddressHint(step.hintArg ?? '', app),
+      switch (step.variant) {
+        SetupStepVariant.networkNoWifi => l.chainStepNetworkAddressNoWifiHint(app),
+        SetupStepVariant.networkTwoNetworks => l.chainStepNetworkAddressTwoNetworksHint(step.hintArg ?? '', app),
+        _ => l.chainStepNetworkAddressHint(step.hintArg ?? '', app),
+      },
     ),
     // The trainer app pairs BikeControl twice, as a trainer and as a
     // controller. With the trainer already picked up, the pending copy names

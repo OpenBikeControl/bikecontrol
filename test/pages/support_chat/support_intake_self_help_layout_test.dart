@@ -44,6 +44,17 @@ const _appNotReacting = IntakeAnswers(
   symptom: 'shifts_not_recognized',
 );
 
+const _planNotActive = IntakeAnswers(
+  category: IntakeCategory.account,
+  subcategory: 'issue',
+  subcategoryValue: 'wrong_plan_shown',
+);
+const _refund = IntakeAnswers(
+  category: IntakeCategory.account,
+  subcategory: 'issue',
+  subcategoryValue: 'refund_request',
+);
+
 Future<void> main() async {
   await ensureSnapshotHarness();
 
@@ -126,6 +137,8 @@ Future<void> main() async {
     for (final (name, answers, help) in [
       ('not found', _notPairing, IntakeSelfHelp.controllerNotFound),
       ('app not reacting', _appNotReacting, IntakeSelfHelp.appNotReacting),
+      ('plan not active', _planNotActive, IntakeSelfHelp.planNotActive),
+      ('refund', _refund, IntakeSelfHelp.refundThroughStore),
     ]) {
       testWidgets('${brightness.name}: the $name panel text clears 4.5:1', (tester) async {
         await pump(tester, answers, brightness: brightness);

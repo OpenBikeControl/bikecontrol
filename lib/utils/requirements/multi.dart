@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -211,7 +212,7 @@ enum Target {
 
   ConnectionType get connectionType {
     return switch (this) {
-      Target.thisDevice when !kIsWeb && !Platform.isIOS => ConnectionType.local,
+      Target.thisDevice when !kIsWeb && !HostPlatform.isIOS => ConnectionType.local,
       _ => ConnectionType.remote,
     };
   }

@@ -12,12 +12,17 @@ class ControllerCanvas extends StatelessWidget {
   final ControllerButtonBuilder buttonBuilder;
   final double buttonSize;
 
+  /// Tallest the picture may grow, before scaling. Defaults to 200 for a pill
+  /// and 250 for everything else; Ride's wider layouts give it more.
+  final double? maxHeight;
+
   const ControllerCanvas({
     super.key,
     required this.layout,
     required this.availableButtons,
     required this.buttonBuilder,
     this.buttonSize = 56,
+    this.maxHeight,
   });
 
   /// When a device sets `allowMultiple: true`, its `availableButtons` are
@@ -40,9 +45,7 @@ class ControllerCanvas extends StatelessWidget {
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: layout.padding),
         constraints: BoxConstraints(
-          maxHeight: layout.shape == ContourShape.pill
-              ? 200 / Theme.of(context).scaling
-              : 250 / Theme.of(context).scaling,
+          maxHeight: (maxHeight ?? (layout.shape == ContourShape.pill ? 200 : 250)) / Theme.of(context).scaling,
         ),
         child: AspectRatio(
           aspectRatio: layout.aspectRatio,
@@ -63,6 +66,10 @@ class ControllerCanvas extends StatelessWidget {
                                 child: SvgPicture.asset(
                                   layout.svgAsset!,
                                   fit: BoxFit.contain,
+                                  // The flip mirrors the alignment too.
+                                  alignment: layout.mirrorX
+                                      ? Alignment(-layout.svgAlignment.x, layout.svgAlignment.y)
+                                      : layout.svgAlignment,
                                   colorFilter: Theme.of(context).brightness == Brightness.dark
                                       ? ColorFilter.mode(cs.primary.withValues(alpha: 1), BlendMode.srcIn)
                                       : null,

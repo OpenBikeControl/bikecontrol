@@ -112,6 +112,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.3"
+  black_hole_flutter:
+    dependency: transitive
+    description:
+      name: black_hole_flutter
+      sha256: "91ca95379296fdedd11ac8c320c270ee05c28dd72ad9c70810c618a603e094dc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   bluez:
     dependency: transitive
     description:
@@ -216,6 +224,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
+  csslib:
+    dependency: transitive
+    description:
+      name: csslib
+      sha256: "09bad715f418841f976c77db72d5398dc1253c21fb9c0c7f0b0b985860b2d58e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   csv:
     dependency: transitive
     description:
@@ -539,10 +555,9 @@ packages:
   flutter_screen_recording:
     dependency: "direct main"
     description:
-      name: flutter_screen_recording
-      sha256: "0fb52011aa11ac4dc3e89bea3aaee4a709321af374b3b318e74fa8ed8338412e"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/flutter_screen_recording"
+      relative: true
+    source: path
     version: "2.0.25"
   flutter_screen_recording_platform_interface:
     dependency: transitive
@@ -831,6 +846,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  html:
+    dependency: transitive
+    description:
+      name: html
+      sha256: "43b67b8f43321ab066817dfac5619596c98bb1b61624e77203bb4351785f9699"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.15.7"
   http:
     dependency: "direct main"
     description:
@@ -1120,6 +1143,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  list_diff:
+    dependency: transitive
+    description:
+      name: list_diff
+      sha256: ac2d99c4379d5175f1e4943850808e1bf4d5604fd46c1ec3060e7fb0c0fdab05
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   live_activities:
     dependency: "direct main"
     description:
@@ -1876,6 +1907,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.12.0"
+  swipeable_page_route:
+    dependency: "direct main"
+    description:
+      name: swipeable_page_route
+      sha256: "2ec747f65100d670a997b6209cb442d81bec08eb5bffa21867394513c65efee8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.8"
   sync_http:
     dependency: transitive
     description:
@@ -2061,6 +2100,54 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  video_player:
+    dependency: "direct main"
+    description:
+      name: video_player
+      sha256: "07ae1e03f2d4c8e2e9a75ee678f90acbc4506d4458a9c628512d119a1eee5754"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.14.1"
+  video_player_android:
+    dependency: transitive
+    description:
+      name: video_player_android
+      sha256: d27054dea34d748a44f06d433a57005d2aac69944485b0abbaed3303dbcfa3f1
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.12.2"
+  video_player_avfoundation:
+    dependency: transitive
+    description:
+      name: video_player_avfoundation
+      sha256: "2fc56e537324a19eb649fca991aa308ac961b5406292876fa657b062de461fd8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.12.0"
+  video_player_platform_interface:
+    dependency: "direct dev"
+    description:
+      name: video_player_platform_interface
+      sha256: "92c0fbabe20c788e71fd10d26cea998d0d253282e65d145aed0818731cf593ce"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.9.0"
+  video_player_web:
+    dependency: transitive
+    description:
+      name: video_player_web
+      sha256: "9f3c00be2ef9b76a95d94ac5119fb843dca6f2c69e6c9968f6f2b6c9e7afbdeb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
+  video_player_win:
+    dependency: "direct main"
+    description:
+      name: video_player_win
+      sha256: df03760c1498ee0c0efe2688b302c331acf46489e9821761d1adb137148502f1
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.0"
   vm_service:
     dependency: transitive
     description:
@@ -2190,4 +2277,4 @@ packages:
     version: "2.1.0"
 sdks:
   dart: ">=3.12.0 <4.0.0"
-  flutter: ">=3.41.0"
+  flutter: ">=3.44.0"

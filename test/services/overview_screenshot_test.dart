@@ -24,8 +24,7 @@ import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/overview.dart';
 import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
-import 'package:bike_control/widgets/title.dart';
-import 'package:bike_control/widgets/ui/help_button.dart';
+import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/utils/shared.dart' show Logger;
@@ -48,10 +47,8 @@ const Size _desktop = Size(1000, 700);
 
 Future<void> main() async {
   await ensureSnapshotHarness();
-  // The comparisons below need a page that holds still. The desktop rail's
-  // blog list fetches bikecontrol.app and shows animated skeletons until that
-  // returns, so take the network away (the fetch fails at once and the list
-  // settles empty) instead of racing a real request.
+  // The comparisons below need a page that holds still, so take the network
+  // away (every fetch fails at once) instead of racing a real request.
   HttpOverrides.global = _NoNetwork();
   // Every recordError() otherwise starts the full diagnostics gather (mDNS
   // scans and all) in the background; a plain log is all these tests need.
@@ -146,7 +143,7 @@ Future<void> main() async {
   /// it, and returns how many pixel rows that header takes.
   int expectHeaderOnTop(WidgetTester tester, _Rgba shot, _Rgba screen) {
     expect(shot.width, screen.width);
-    final appBar = find.ancestor(of: find.byType(AppTitle), matching: find.byType(AppBar));
+    final appBar = find.byType(ShellTopBar);
     final headerRows = (tester.getBottomLeft(appBar).dy * _pixelRatio).floor();
     expect(
       screen.distinctColors(toRow: headerRows),
@@ -242,7 +239,7 @@ Future<void> main() async {
       // The phone's footer floats over the bottom of the screen, but the
       // screenshot puts it after the unrolled page (next test).
       final pageRows = size == _phone
-          ? (tester.getTopLeft(find.byType(HelpButton)).dy * _pixelRatio).floor()
+          ? (tester.getTopLeft(find.byType(ShellTabBar)).dy * _pixelRatio).floor()
           : screen.height;
       expect(
         shot.differingPixels(screen, fromRow: headerRows, toRow: pageRows, tolerance: _roundOff),
@@ -266,7 +263,7 @@ Future<void> main() async {
     await tester.pump();
     final screenAtEnd = await captureWholeShell(tester);
 
-    final footerRows = screenAtEnd.height - (tester.getTopLeft(find.byType(HelpButton)).dy * _pixelRatio).floor();
+    final footerRows = screenAtEnd.height - (tester.getTopLeft(find.byType(ShellTabBar)).dy * _pixelRatio).floor();
     expect(
       shot.differingPixels(
         screenAtEnd,
@@ -285,8 +282,8 @@ Future<void> main() async {
     // never been painted and cannot be captured.
     tester.view.viewInsets = const FakeViewPadding(bottom: 300 * _pixelRatio);
     await pumpShell(tester, _phone);
-    expect(find.byType(HelpButton), findsNothing);
-    expect(find.byType(HelpButton, skipOffstage: false), findsOneWidget);
+    expect(find.byType(ShellTabBar), findsNothing);
+    expect(find.byType(ShellTabBar, skipOffstage: false), findsOneWidget);
 
     final screen = await captureWholeShell(tester);
     // Fails if the capture fails.

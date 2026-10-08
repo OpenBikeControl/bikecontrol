@@ -8,9 +8,9 @@
 // Content-round addition: three explainer rows opening a `HelpAnswerSheet`
 // (help_answer_sheet.dart) — "the gear doesn't move" while a trainer app is
 // configured, and "keeps disconnecting" / "isn't found" while any controller
-// is known. Pins: visibility conditions, the overlay row's deep link to
-// `ProxyDeviceDetailsPage(revealOverlaySection: true)` when a ProxyDevice is
-// known (and its link-only fallback when none is), and the exact blog URLs
+// is known. Pins: visibility conditions, the overlay row's deep link (the
+// Overlay page in a virtual shifting session, else the trainer's page where
+// that session starts) when a ProxyDevice is known (and its link-only fallback when none is), and the exact blog URLs
 // wired into the two link actions.
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -21,6 +21,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/your_setup_section.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -40,6 +41,7 @@ const _gearOverlayRowKey = ValueKey('help-gear-overlay');
 const _controllerDisconnectingRowKey = ValueKey('help-controller-disconnecting');
 const _controllerNotFoundRowKey = ValueKey('help-controller-not-found');
 const _setupGuideRowKey = ValueKey('help-run-setup-guide');
+const _buttonsStoppedRowKey = ValueKey('help-buttons-stopped');
 const _overlayActionKey = ValueKey('help-check-overlay-settings');
 const _networkTestActionKey = ValueKey('help-check-network-test');
 const _searchAgainActionKey = ValueKey('help-answer-action-search-again');
@@ -83,6 +85,8 @@ Future<void> _pump(
   List<TrainerConnection>? connections,
   VoidCallback? onSearchAgain,
   void Function(String? controllerId)? onContactSupport,
+  bool? commandLimited,
+  Set<String> excludedArticleUrls = const {},
 }) {
   return tester.pumpWidget(
     ShadcnApp(
@@ -95,6 +99,8 @@ Future<void> _pump(
           connectionsOverride: connections,
           onSearchAgain: onSearchAgain,
           onContactSupport: onContactSupport,
+          commandLimitedOverride: commandLimited,
+          excludedArticleUrls: excludedArticleUrls,
         ),
       ),
     ),
@@ -257,8 +263,9 @@ Future<void> main() async {
 
       expect(tester.takeException(), isNull);
       final page = tester.widget<ProxyDeviceDetailsPage>(find.byType(ProxyDeviceDetailsPage));
+      // No virtual shifting session yet, so no gear to draw: the trainer's
+      // page, where that session starts, rather than the Overlay page.
       expect(page.device, same(proxy));
-      expect(page.revealOverlaySection, isTrue);
     });
 
     testWidgets('shows the same numbered checks as the support intake, with the network test', (tester) async {
@@ -429,6 +436,76 @@ Future<void> main() async {
 
       expect(find.text(l10n.zwiftCompanionApp), findsNothing);
       expect(find.text(l10n.helpCheckFirmwareMakerSub), findsOneWidget);
+    });
+  });
+
+  // "My buttons stopped working": they worked, now nothing happens. The
+  // likeliest cause first: today's button presses are used up (only without
+  // Base or Pro), then the controller fell asleep or dropped, then the
+  // connection to the trainer app is off.
+  group('buttons stopped working row', () {
+    testWidgets('shown once a controller is known, absent without one', (tester) async {
+      await _pump(tester, devices: const [], connections: const []);
+      await tester.pump();
+      expect(find.byKey(_buttonsStoppedRowKey), findsNothing);
+
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+      await _pump(tester, devices: [rightSide], connections: const []);
+      await tester.pump();
+      expect(find.byKey(_buttonsStoppedRowKey), findsOneWidget);
+    });
+
+    testWidgets('with a daily limit: the limit, then the controller, then the connection method', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+      await _pump(tester, devices: [rightSide], connections: const [], commandLimited: true);
+      await tester.pump();
+      await _openSheet(tester, _buttonsStoppedRowKey);
+
+      final titles = buttonsStoppedChecks(l10n, commandLimited: true).map((c) => c.title).toList();
+      expect(titles, [
+        l10n.helpCheckDailyLimitTitle,
+        l10n.helpCheckControllerAwakeTitle,
+        l10n.helpCheckConnectionMethodTitle,
+      ]);
+      final ys = [for (final t in titles) tester.getTopLeft(find.text(t)).dy];
+      expect(ys, orderedEquals([...ys]..sort()));
+    });
+
+    testWidgets('without a daily limit (Base or Pro) the limit step is left out', (tester) async {
+      final rightSide = ZwiftClickV2RightSide(BleDevice(deviceId: 'r1', name: 'Zwift Click'))..isConnected = true;
+      await _pump(tester, devices: [rightSide], connections: const [], commandLimited: false);
+      await tester.pump();
+      await _openSheet(tester, _buttonsStoppedRowKey);
+
+      expect(find.text(l10n.helpCheckDailyLimitTitle), findsNothing);
+      expect(find.text(l10n.helpCheckControllerAwakeTitle), findsOneWidget);
+      expect(find.text(l10n.helpCheckConnectionMethodTitle), findsOneWidget);
+    });
+  });
+
+  group('how-to article rows', () {
+    const clickV2ArticleUrl = 'https://bikecontrol.app/use-zwift-click-v2-with-mywhoosh/';
+
+    testWidgets('a known controller gets its how-to article row', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      final unified = ZwiftClickV2(BleDevice(deviceId: 'l1', name: 'Zwift Click'));
+
+      await _pump(tester, devices: [unified], connections: const []);
+      await tester.pump();
+
+      expect(find.byIcon(LucideIcons.bookOpen), findsOneWidget);
+    });
+
+    testWidgets('an article already listed elsewhere on the page is left out', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      final unified = ZwiftClickV2(BleDevice(deviceId: 'l1', name: 'Zwift Click'));
+
+      await _pump(tester, devices: [unified], connections: const [], excludedArticleUrls: {clickV2ArticleUrl});
+      await tester.pump();
+
+      expect(find.byIcon(LucideIcons.bookOpen), findsNothing);
+      // The rest of the card is untouched.
+      expect(find.byKey(_controllerDisconnectingRowKey), findsOneWidget);
     });
   });
 

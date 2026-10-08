@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart' show RichText;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -36,7 +37,29 @@ void expectBreaksOnlyBetweenWords(WidgetTester tester, Finder finder, {String? r
   final text = tester.renderObject<RenderParagraph>(finder).text.toPlainText();
   for (final b in lineBreaks(tester, finder)) {
     final atWordGap = text[b - 1] == ' ' || text[b] == ' ';
-    expect(atWordGap, isTrue,
-        reason: '${reason ?? '"$text"'} breaks mid-word: "${text.substring(0, b)}" / "${text.substring(b)}"');
+    expect(
+      atWordGap,
+      isTrue,
+      reason: '${reason ?? '"$text"'} breaks mid-word: "${text.substring(0, b)}" / "${text.substring(b)}"',
+    );
+  }
+}
+
+/// Fails when any paragraph under [scope] is cut short (an ellipsis, or a
+/// last line clipped by maxLines) or breaks anywhere but between words or
+/// after a hyphen.
+void expectReadsWhole(WidgetTester tester, Finder scope, {String? reason}) {
+  final paragraphs = find.descendant(of: scope, matching: find.byType(RichText)).evaluate().toList();
+  expect(paragraphs, isNotEmpty, reason: reason);
+  for (final element in paragraphs) {
+    final paragraph = element.renderObject! as RenderParagraph;
+    final text = paragraph.text.toPlainText();
+    if (text.trim().length < 2) continue; // icons
+    final label = '${reason == null ? '' : '$reason '}"$text"';
+    expect(paragraph.didExceedMaxLines, isFalse, reason: '$label is cut short');
+    for (final b in lineBreaks(tester, find.byElementPredicate((e) => identical(e, element)))) {
+      final ok = text[b - 1] == ' ' || text[b] == ' ' || text[b - 1] == '-' || text[b - 1] == '\n';
+      expect(ok, isTrue, reason: '$label breaks mid-word: "${text.substring(0, b)}" / "${text.substring(b)}"');
+    }
   }
 }

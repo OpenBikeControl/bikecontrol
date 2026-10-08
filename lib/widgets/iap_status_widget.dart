@@ -1,3 +1,5 @@
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -66,12 +68,12 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                       if (hasPremiumAccess) ...[
                         Row(
                           children: [
-                            Icon(LucideIcons.circleCheck, color: Colors.green),
+                            Icon(LucideIcons.circleCheck, color: BkStatusColors.of(context).success),
                             const SizedBox(width: 8),
                             Text(
                               AppLocalizations.of(context).fullVersion,
                               style: TextStyle(
-                                color: Colors.green,
+                                color: BkStatusColors.of(context).success,
                               ),
                             ),
                           ],
@@ -80,7 +82,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                         if (!Platform.isAndroid)
                           Basic(
                             leadingAlignment: Alignment.centerLeft,
-                            leading: Icon(LucideIcons.clock, color: Colors.blue),
+                            leading: Icon(LucideIcons.clock, color: bkAccentText(context)),
                             title: Text(AppLocalizations.of(context).trialPeriodActive(trialDaysRemaining)),
                             subtitle: Text(
                               AppLocalizations.of(context).trialPeriodDescription(IAPManager.dailyCommandLimit),
@@ -118,8 +120,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                     width: 300,
                                     child: LinearProgressIndicator(
                                       value: dailyCommandCount.toDouble() / IAPManager.dailyCommandLimit.toDouble(),
-                                      backgroundColor: Colors.gray[300],
-                                      color: commandsRemaining > 0 ? Colors.orange : Colors.red,
+                                      backgroundColor: Theme.of(context).colorScheme.muted,
+                                      color: commandsRemaining > 0 ? BkStatusColors.of(context).warning : BkStatusColors.of(context).danger,
                                     ),
                                   ),
                               ],
@@ -152,8 +154,8 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                   width: 300,
                                   child: LinearProgressIndicator(
                                     value: dailyCommandCount.toDouble() / IAPManager.dailyCommandLimit.toDouble(),
-                                    backgroundColor: Colors.gray[300],
-                                    color: commandsRemaining > 0 ? Colors.orange : Colors.red,
+                                    backgroundColor: Theme.of(context).colorScheme.muted,
+                                    color: commandsRemaining > 0 ? BkStatusColors.of(context).warning : BkStatusColors.of(context).danger,
                                   ),
                                 ),
                             ],
@@ -254,7 +256,7 @@ class _IAPStatusWidgetState extends State<IAPStatusWidget> {
                                           return PrimaryButton(
                                             onPressed: errors.isEmpty ? () => context.submitForm() : null,
                                             child: _isLoading
-                                                ? SmallProgressIndicator(color: Colors.black)
+                                                ? SmallProgressIndicator(color: Theme.of(context).colorScheme.primaryForeground)
                                                 : const Text('Submit'),
                                           );
                                         },

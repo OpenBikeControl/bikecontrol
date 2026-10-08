@@ -24,6 +24,17 @@ enum IntakeSelfHelp {
 
   /// Resistance or shifting feels wrong on a bridged trainer: the self-test.
   trainerSelfTest,
+
+  /// Paid, but the app still shows Base or the daily virtual-shifting trial:
+  /// what Base and Pro cover, and how Pro gets active on this device.
+  planNotActive,
+
+  /// Restore purchases doesn't bring a purchase back: the right store
+  /// account, signing in for Pro, and that Base stays with its store.
+  purchaseNotRestored,
+
+  /// A refund: the store it was bought in handles it.
+  refundThroughStore,
 }
 
 IntakeSelfHelp? intakeSelfHelpFor(IntakeAnswers answers) => switch (answers.category) {
@@ -43,5 +54,12 @@ IntakeSelfHelp? intakeSelfHelpFor(IntakeAnswers answers) => switch (answers.cate
     'no_resistance_change' || 'wrong_resistance' || 'gear_shift_not_working' => IntakeSelfHelp.trainerSelfTest,
     _ => null,
   },
-  IntakeCategory.account || IntakeCategory.somethingElse => null,
+  // The account branch, like the smart-trainer one, uses subcategoryValue.
+  IntakeCategory.account => switch (answers.subcategoryValue) {
+    'wrong_plan_shown' || 'trial_expired_after_purchase' => IntakeSelfHelp.planNotActive,
+    'purchase_not_restored' => IntakeSelfHelp.purchaseNotRestored,
+    'refund_request' => IntakeSelfHelp.refundThroughStore,
+    _ => null,
+  },
+  IntakeCategory.somethingElse => null,
 };

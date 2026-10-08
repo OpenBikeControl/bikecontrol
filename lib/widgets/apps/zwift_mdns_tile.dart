@@ -51,10 +51,10 @@ class _ZwiftTileState extends State<ZwiftMdnsTile> {
                       ? context.i18n.connected
                       : isRouvy
                       ? context.i18n
-                            .waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? '')
+                            .waitingForConnectionKickrBike(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? ''))
                             .replaceAll('KICKR BIKE PRO', 'BikeControl')
                       : context.i18n
-                            .waitingForConnectionKickrBike(core.settings.getTrainerApp()?.name ?? '')
+                            .waitingForConnectionKickrBike(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? ''))
                             .replaceAll('KICKR BIKE PRO', ftmsEmulator.advertisementName),
                   instructionLink: 'INSTRUCTIONS_ZWIFT.md',
                   onChange: (start) {

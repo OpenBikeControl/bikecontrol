@@ -138,8 +138,9 @@ Future<void> main() async {
       // said nothing about either row is no longer used for trainers.
       expect(find.byIcon(LucideIcons.bike), findsNothing);
       expect(find.byIcon(LucideIcons.wifi), findsOneWidget);
-      // One in each row's leading slot… plus the scan card's own radar mark.
-      expect(find.byIcon(LucideIcons.bluetooth), findsNWidgets(2));
+      // One in the Bluetooth card's leading tile; the radar is only shown
+      // while nothing has been found.
+      expect(find.byIcon(LucideIcons.bluetooth), findsOneWidget);
     });
 
     testWidgets('the connected variant names the transport as well', (tester) async {

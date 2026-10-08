@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -18,17 +19,20 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
+import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
 import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedHeader;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -40,6 +44,21 @@ class ButtonEditPage extends StatefulWidget {
   final KeyPair keyPair;
   final ButtonTrigger trigger;
   final VoidCallback onUpdate;
+
+  /// Laid out in place (the wide button mapping's detail pane) instead of in
+  /// its drawer: no head or close, the page scrolls it, and the actions sit
+  /// in a grid under their group headers. It edits only the key pair it was
+  /// built with; the pane rebuilds it for another button.
+  final bool embedded;
+
+  /// Called after the hold-only action on this click moved to the button's
+  /// long press (see [HoldActionWarning]). Without it the drawer closes.
+  final VoidCallback? onMovedToLongPress;
+
+  /// Edits one direction of a steering input (phone steering, Elite Sterzo):
+  /// the drawer is headed by that direction, not a button, and says nothing
+  /// of triggers — an angle is held past the dead zone, never clicked.
+  final ({IconData icon, String label})? steeringInput;
   const ButtonEditPage({
     super.key,
     required this.keyPair,
@@ -47,6 +66,9 @@ class ButtonEditPage extends StatefulWidget {
     required this.onUpdate,
     required this.keymap,
     required this.trigger,
+    this.embedded = false,
+    this.onMovedToLongPress,
+    this.steeringInput,
   });
 
   @override
@@ -77,7 +99,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   bool get _usesFallbackLongPressMode {
     final button = _keyPair.buttons.firstOrNull;
-    if (button == null || widget.trigger != ButtonTrigger.longPress) {
+    if (button == null || widget.trigger != ButtonTrigger.longPress || widget.steeringInput != null) {
       return false;
     }
     return widget.device.supportsLongPress == false;
@@ -92,6 +114,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       if (!mounted) {
         return;
       }
+      // Embedded, the pane picks the pressed button and rebuilds this.
+      if (widget.embedded) return;
+      // A steering input "presses" whenever the bars move; that is not the
+      // rider picking another button to edit.
+      if (widget.steeringInput != null) return;
       if (data is ButtonNotification && data.buttonsClicked.length == 1) {
         final clickedButton = data.buttonsClicked.first;
         final keyPair = widget.keymap.getOrCreateKeyPair(clickedButton, trigger: widget.trigger);
@@ -110,27 +137,87 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     super.dispose();
   }
 
+  /// Whether this build already put the hold warning under its action.
+  bool _holdWarningPlaced = false;
+
+  /// The [HoldActionWarning] under the card for [action] when it is the
+  /// picked one and only works while held, but this is a click.
+  List<Widget> _holdWarningAfter(InGameAction action, {required bool isActive}) {
+    if (!isActive || _holdWarningPlaced || !_keyPair.holdActionOnClick || _keyPair.inGameAction != action) {
+      return const [];
+    }
+    _holdWarningPlaced = true;
+    return [_holdWarning()];
+  }
+
+  /// The way forward from a "turn on … first" message: the page that does it.
+  Widget _openConnectionSettingsButton() => Button.outline(
+    onPressed: () async {
+      await context.push(const TrainerConnectionSettingsPage());
+      if (mounted) setState(() {});
+    },
+    child: Text(context.i18n.openConnectionSettings),
+  );
+
+  /// The drawer's head for a steering direction: its arrow and its name.
+  Widget _steeringHead(({IconData icon, String label}) steering) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      spacing: 12,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(color: cs.muted, shape: BoxShape.circle),
+          child: Icon(steering.icon, size: 22, color: cs.foreground),
+        ),
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(steering.label).base.semiBold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _holdWarning() => HoldActionWarning(
+    action: _keyPair.inGameAction!,
+    onAssignToLongPress: _moveToLongPress,
+  );
+
+  Future<void> _moveToLongPress() async {
+    final moved = await moveHoldActionToLongPress(
+      context,
+      keymap: widget.keymap,
+      button: _keyPair.buttons.first,
+      from: widget.trigger,
+    );
+    if (!mounted || moved == null) return;
+    widget.onUpdate();
+    if (widget.onMovedToLongPress != null) {
+      widget.onMovedToLongPress!();
+    } else if (!widget.embedded) {
+      closeDrawer(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return IntrinsicWidth(
-      child: Scrollbar(
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 300),
-            padding: const EdgeInsets.only(right: 26.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 8,
-              children: [
-                SizedBox(height: 16),
-                Row(
+    _holdWarningPlaced = false;
+    final children = <Widget>[
+                // The drawer's own head; embedded, the pane around it names
+                // the button and trigger.
+                if (!widget.embedded) SizedBox(height: 16),
+                if (!widget.embedded) Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   spacing: 8,
                   children: [
+                    if (widget.steeringInput case final steering?)
+                      Expanded(child: _steeringHead(steering))
+                    else
                     Row(
                       children: [
                         TweenAnimationBuilder<double>(
@@ -156,7 +243,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         Text(_keyPair.buttons.first.name).small,
                       ],
                     ),
-                    Expanded(child: SizedBox()),
+                    if (widget.steeringInput == null) Expanded(child: SizedBox()),
                     BkIconButton.ghost(
                       icon: Icon(LucideIcons.x),
                       label: context.i18n.close,
@@ -166,7 +253,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                   ],
                 ),
-                Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
+                if (!widget.embedded && widget.steeringInput == null)
+                  Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
                 if (_usesFallbackLongPressMode)
                   Warning(
                     important: false,
@@ -190,10 +278,22 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     child: Warning(
                       children: [
                         Text(AppLocalizations.of(context).pleaseSelectAConnectionMethodFirst),
+                        _openConnectionSettingsButton(),
+                      ],
+                    ),
+                  )
+                else if (_keyPair.waitsForConnectionMethod)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 300),
+                    child: Warning(
+                      important: false,
+                      children: [
+                        Text(AppLocalizations.of(context).actionWaitsForConnectionMethod),
+                        _openConnectionSettingsButton(),
                       ],
                     ),
                   ),
-                if (widget.trigger == ButtonTrigger.longPress)
+                if (widget.trigger == ButtonTrigger.longPress && widget.steeringInput == null)
                   Builder(
                     builder: (context) {
                       final singleClickPair = widget.keymap.getKeyPair(
@@ -241,6 +341,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       important: false,
                       children: [
                         Text(AppLocalizations.of(context).enableMywhooshLinkInTheConnectionSettingsFirst),
+                        _openConnectionSettingsButton(),
                       ],
                     )
                   else
@@ -879,7 +980,27 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   child: Text(context.i18n.unassignAction),
                 ),
                 SizedBox(height: 16),
-              ],
+              ];
+    // The picked action's card isn't listed (its connection is off): say it
+    // under the head instead.
+    if (!_holdWarningPlaced && _keyPair.holdActionOnClick) {
+      children.insert(widget.embedded ? 0 : 3, _holdWarning());
+    }
+    if (widget.embedded) {
+      return _EmbeddedPicker(children: children);
+    }
+    return IntrinsicWidth(
+      child: Scrollbar(
+        controller: _scrollController,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 300),
+            padding: const EdgeInsets.only(right: 26.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
+              children: children,
             ),
           ),
         ),
@@ -893,67 +1014,75 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 
   List<Widget> _buildTrainerConnectionActions(List<InGameAction> supportedActions) {
-    return supportedActions.map((action) {
-      return Builder(
-        builder: (context) {
-          return SelectableCard(
-            icon: action.icon,
-            title: Text(switch (action) {
-              InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
-              InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
-              _ => action.title,
-            }),
-            subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
-                ? Text(_keyPair.inGameActionValue!.toString())
-                : action.alternativeTitle != null
-                ? Text(action.alternativeTitle!)
-                : null,
-            isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
-            onPressed: () {
-              if (action.possibleValues?.isNotEmpty == true) {
-                showDropdown(
-                  context: context,
-                  builder: (c) => DropdownMenu(
-                    children: action.possibleValues!.map(
-                      (ingame) {
-                        return MenuButton(
-                          child: Text(ingame.toString()),
-                          onPressed: (_) {
-                            _keyPair.touchPosition = Offset.zero;
-                            _keyPair.physicalKey = null;
-                            _keyPair.logicalKey = null;
-                            _keyPair.androidAction = null;
-                            _keyPair.androidIntentAction = null;
-                            _keyPair.command = null;
-                            _keyPair.screenshotPath = null;
-                            _keyPair.inGameAction = action;
-                            _keyPair.inGameActionValue = ingame;
-                            widget.onUpdate();
-                            setState(() {});
-                          },
-                        );
-                      },
-                    ).toList(),
-                  ),
-                );
-              } else {
-                _keyPair.touchPosition = Offset.zero;
-                _keyPair.physicalKey = null;
-                _keyPair.logicalKey = null;
-                _keyPair.androidAction = null;
-                _keyPair.androidIntentAction = null;
-                _keyPair.command = null;
-                _keyPair.screenshotPath = null;
-                _keyPair.inGameAction = action;
-                _keyPair.inGameActionValue = null;
-                widget.onUpdate();
-                setState(() {});
-              }
-            },
-          );
-        },
-      );
+    return supportedActions.expand((action) {
+      final isActive = _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction);
+      return [
+        _trainerConnectionAction(action, supportedActions),
+        ..._holdWarningAfter(action, isActive: isActive),
+      ];
     }).toList();
+  }
+
+  Widget _trainerConnectionAction(InGameAction action, List<InGameAction> supportedActions) {
+    return Builder(
+      builder: (context) {
+        return SelectableCard(
+          icon: action.icon,
+          title: Text(switch (action) {
+            InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
+            InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
+            _ => action.title,
+          }),
+          subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
+              ? Text(_keyPair.inGameActionValue!.toString())
+              : action.alternativeTitle != null
+              ? Text(action.alternativeTitle!)
+              : null,
+          isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
+          onPressed: () {
+            if (action.possibleValues?.isNotEmpty == true) {
+              showDropdown(
+                context: context,
+                builder: (c) => DropdownMenu(
+                  children: action.possibleValues!.map(
+                    (ingame) {
+                      return MenuButton(
+                        child: Text(ingame.toString()),
+                        onPressed: (_) {
+                          _keyPair.touchPosition = Offset.zero;
+                          _keyPair.physicalKey = null;
+                          _keyPair.logicalKey = null;
+                          _keyPair.androidAction = null;
+                          _keyPair.androidIntentAction = null;
+                          _keyPair.command = null;
+                          _keyPair.screenshotPath = null;
+                          _keyPair.inGameAction = action;
+                          _keyPair.inGameActionValue = ingame;
+                          widget.onUpdate();
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ).toList(),
+                ),
+              );
+            } else {
+              _keyPair.touchPosition = Offset.zero;
+              _keyPair.physicalKey = null;
+              _keyPair.logicalKey = null;
+              _keyPair.androidAction = null;
+              _keyPair.androidIntentAction = null;
+              _keyPair.command = null;
+              _keyPair.screenshotPath = null;
+              _keyPair.inGameAction = action;
+              _keyPair.inGameActionValue = null;
+              widget.onUpdate();
+              setState(() {});
+            }
+          },
+        );
+      },
+    );
   }
 
   List<Widget> _buildObpControllerButtonActions(List<ControllerButton> buttons) {
@@ -965,92 +1094,99 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             ...actionable.where((b) => _myWhooshPoorlySupportedObpActions.contains(b.action)),
           ]
         : actionable;
-    return ordered.map((button) {
+    return ordered.expand((button) {
       final action = button.action!;
       final showMyWhooshWarning = isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action);
-      return Builder(
-        builder: (context) {
-          final card = SelectableCard(
-            icon: button.icon ?? action.icon,
-            title: Text(button.name),
-            subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
-                ? Text(_keyPair.inGameActionValue!.toString())
-                : action.alternativeTitle != null
-                ? Text(action.alternativeTitle!)
-                : null,
-            isActive: _keyPair.inGameAction == action,
-            onPressed: () {
-              if (action.possibleValues?.isNotEmpty == true) {
-                showDropdown(
-                  context: context,
-                  builder: (c) => DropdownMenu(
-                    children: action.possibleValues!.map(
-                      (ingame) {
-                        return MenuButton(
-                          child: Text(ingame.toString()),
-                          onPressed: (_) {
-                            _keyPair.touchPosition = Offset.zero;
-                            _keyPair.physicalKey = null;
-                            _keyPair.logicalKey = null;
-                            _keyPair.androidAction = null;
-                            _keyPair.androidIntentAction = null;
-                            _keyPair.command = null;
-                            _keyPair.screenshotPath = null;
-                            _keyPair.inGameAction = action;
-                            _keyPair.inGameActionValue = ingame;
-                            widget.onUpdate();
-                            setState(() {});
-                          },
-                        );
-                      },
-                    ).toList(),
-                  ),
-                );
-              } else {
-                _keyPair.touchPosition = Offset.zero;
-                _keyPair.physicalKey = null;
-                _keyPair.logicalKey = null;
-                _keyPair.androidAction = null;
-                _keyPair.androidIntentAction = null;
-                _keyPair.command = null;
-                _keyPair.screenshotPath = null;
-                _keyPair.inGameAction = action;
-                _keyPair.inGameActionValue = null;
-                widget.onUpdate();
-                setState(() {});
-              }
-            },
-          );
-          if (!showMyWhooshWarning) {
-            return card;
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 4,
-            children: [
-              card,
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  spacing: 4,
-                  children: [
-                    Icon(
-                      LucideIcons.triangleAlert,
-                      size: 12,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                    Expanded(
-                      child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      );
+      return [
+        _obpControllerButtonAction(button, action, showMyWhooshWarning),
+        ..._holdWarningAfter(action, isActive: _keyPair.inGameAction == action),
+      ];
     }).toList();
+  }
+
+  Widget _obpControllerButtonAction(ControllerButton button, InGameAction action, bool showMyWhooshWarning) {
+    return Builder(
+      builder: (context) {
+        final card = SelectableCard(
+          icon: button.icon ?? action.icon,
+          title: Text(button.name),
+          subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
+              ? Text(_keyPair.inGameActionValue!.toString())
+              : action.alternativeTitle != null
+              ? Text(action.alternativeTitle!)
+              : null,
+          isActive: _keyPair.inGameAction == action,
+          onPressed: () {
+            if (action.possibleValues?.isNotEmpty == true) {
+              showDropdown(
+                context: context,
+                builder: (c) => DropdownMenu(
+                  children: action.possibleValues!.map(
+                    (ingame) {
+                      return MenuButton(
+                        child: Text(ingame.toString()),
+                        onPressed: (_) {
+                          _keyPair.touchPosition = Offset.zero;
+                          _keyPair.physicalKey = null;
+                          _keyPair.logicalKey = null;
+                          _keyPair.androidAction = null;
+                          _keyPair.androidIntentAction = null;
+                          _keyPair.command = null;
+                          _keyPair.screenshotPath = null;
+                          _keyPair.inGameAction = action;
+                          _keyPair.inGameActionValue = ingame;
+                          widget.onUpdate();
+                          setState(() {});
+                        },
+                      );
+                    },
+                  ).toList(),
+                ),
+              );
+            } else {
+              _keyPair.touchPosition = Offset.zero;
+              _keyPair.physicalKey = null;
+              _keyPair.logicalKey = null;
+              _keyPair.androidAction = null;
+              _keyPair.androidIntentAction = null;
+              _keyPair.command = null;
+              _keyPair.screenshotPath = null;
+              _keyPair.inGameAction = action;
+              _keyPair.inGameActionValue = null;
+              widget.onUpdate();
+              setState(() {});
+            }
+          },
+        );
+        if (!showMyWhooshWarning) {
+          return card;
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
+          children: [
+            card,
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 4,
+                children: [
+                  Icon(
+                    LucideIcons.triangleAlert,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  Expanded(
+                    child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   static const Set<InGameAction> _myWhooshPoorlySupportedObpActions = {
@@ -1090,7 +1226,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => SafeArea(
-        child: AlertDialog(
+        child: BkInputDialog(
           title: Text(context.i18n.launchShortcut),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1222,7 +1358,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => SafeArea(
-        child: AlertDialog(
+        child: BkInputDialog(
           title: Text(context.i18n.broadcastIntent),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1426,7 +1562,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                     ),
                     Text(switch (supportedMode) {
                       SupportedMode.keyboard =>
-                        keyPairAction.logicalKey?.keyLabel ?? context.i18n.notAssignedOrNoConnectionMethodActive,
+                        keyPairAction.logicalKey?.keyLabel ?? context.i18n.noActionAssigned,
                       SupportedMode.touch =>
                         'X:${keyPairAction.touchPosition.dx.toInt()}, Y:${keyPairAction.touchPosition.dy.toInt()}',
                       SupportedMode.media => throw UnimplementedError(),
@@ -1486,6 +1622,62 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   }
 }
 
+/// The action picker laid out in place: each group's header in the grouped
+/// style, its actions as tiles in a grid (three across when there is room,
+/// two otherwise), anything else (notes, warnings, Unassign) full width.
+class _EmbeddedPicker extends StatelessWidget {
+  const _EmbeddedPicker({required this.children});
+
+  final List<Widget> children;
+
+  static bool _isTile(Widget w) => w is SelectableCard || w is Builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 8.0;
+        final columns = constraints.maxWidth >= 520 ? 3 : 2;
+        final tileWidth = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        final out = <Widget>[];
+        var run = <Widget>[];
+        void flush() {
+          if (run.isEmpty) return;
+          out.add(
+            Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [for (final tile in run) SizedBox(width: tileWidth, child: tile)],
+            ),
+          );
+          run = [];
+        }
+
+        for (final child in children) {
+          if (_isTile(child)) {
+            run.add(child);
+            continue;
+          }
+          flush();
+          if (child is SizedBox && child.child == null) continue;
+          out.add(
+            switch (child) {
+              ColoredTitle(:final text) => Padding(
+                padding: const EdgeInsets.only(top: 14, bottom: 2),
+                child: BkGroupedHeader(text),
+              ),
+              DestructiveButton() => Align(alignment: AlignmentDirectional.centerStart, child: child),
+              _ => child,
+            },
+          );
+        }
+        flush();
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 8, children: out);
+      },
+    );
+  }
+}
+
 class SelectableCard extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
@@ -1522,6 +1714,8 @@ class SelectableCard extends StatelessWidget {
     // handed the card an unbounded height inside scrolling drawers (the
     // subscription sheet), which crashed layout. The onboarding app grid
     // that once needed passthrough has its own tile widget now.
+    final cs = Theme.of(context).colorScheme;
+    const radius = BorderRadius.all(Radius.circular(12));
     return Stack(
       children: [
         Button.outline(
@@ -1530,17 +1724,16 @@ class SelectableCard extends StatelessWidget {
                     variance: ButtonVariance.outline,
                   )
                   .withBorder(
-                    border: Border.all(color: Theme.of(context).colorScheme.border, width: 2),
-                    hoverBorder: Border.all(color: BKColor.mainEnd, width: 2),
-                    focusBorder: Border.all(color: BKColor.main, width: 2),
+                    // A tile, not an outlined box: the fill separates it; the
+                    // hairline only shows on hover/focus.
+                    border: Border.all(color: const Color(0x00000000), width: 2),
+                    hoverBorder: Border.all(color: cs.border, width: 2),
+                    focusBorder: Border.all(color: cs.ring, width: 2),
                   )
+                  .withBorderRadius(borderRadius: radius, hoverBorderRadius: radius, focusBorderRadius: radius)
                   .withBackgroundColor(
-                    color: isActive
-                        ? Theme.of(context).brightness == Brightness.dark
-                              ? Theme.of(context).colorScheme.card
-                              : Theme.of(context).colorScheme.card.withLuminance(0.97)
-                        : Theme.of(context).colorScheme.background,
-                    hoverColor: bkCardHover(context),
+                    color: isActive ? Color.alphaBlend(cs.primary.withValues(alpha: 0.14), cs.muted) : cs.muted,
+                    hoverColor: Color.alphaBlend(cs.foreground.withValues(alpha: 0.05), cs.muted),
                   ),
           onPressed: () async {
             if (isProOnly && !isPro) {
@@ -1578,8 +1771,8 @@ class SelectableCard extends StatelessWidget {
               opacity: isActive ? 1.0 : 0.0,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: BKColor.main, width: 2),
+                  borderRadius: radius,
+                  border: Border.all(color: cs.primary, width: 2),
                 ),
               ),
             ),
@@ -1592,7 +1785,7 @@ class SelectableCard extends StatelessWidget {
             child: const ProBadge(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
+                topRight: Radius.circular(12),
               ),
             ),
           ),

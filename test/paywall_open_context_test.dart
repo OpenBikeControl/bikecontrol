@@ -137,7 +137,7 @@ Future<void> main() async {
 
     expect(tester.takeException(), isNull);
     expect(find.text('You now have Base'), findsOneWidget);
-    expect(find.textContaining('that part is Pro'), findsOneWidget);
+    expect(find.textContaining('is part of Pro'), findsOneWidget);
     expect(find.byType(Paywall), findsNothing, reason: 'the drawer closes on the entitlement change');
 
     // Nothing is left running once the rider has read it.

@@ -229,14 +229,12 @@ Future<void> main() async {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('translated labels wrap at a phone width without overflowing, and cards stay equal height', (
+  testWidgets('at a phone width the options stack as rows without overflowing, the tag inside its card', (
     tester,
   ) async {
     // iPhone-class width (390 logical px @3x): three ~100px-wide card
-    // columns is tight enough that a longer translated label ("Resistencia
-    // del recorrido", "Résistance terrain", "Opór trasy") wraps to 2 lines —
-    // exactly the case a fixed card height can't accommodate without
-    // clipping against RadioCard's ancestor Card (Clip.antiAlias).
+    // columns are too narrow for "Resistencia" in one piece, so the card
+    // stacks its options (see VirtualShiftingModeCard._stacks).
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -253,12 +251,16 @@ Future<void> main() async {
     // labels at this width.
     expect(tester.takeException(), isNull);
 
-    // (c) All three cards share the tallest card's height — IntrinsicHeight +
-    // CrossAxisAlignment.stretch, not a guess sized for the English labels.
+    // (c) At a phone width the options stack as full-width rows rather than
+    // squeezing three ~100px columns until a long word breaks mid-word
+    // ("Resisten" / "cia"): same width, one under the other.
     final cardFinder = find.byType(RadioCard<VirtualShiftingMode>);
     expect(cardFinder, findsNWidgets(3));
-    final heights = tester.renderObjectList<RenderBox>(cardFinder).map((box) => box.size.height).toSet();
-    expect(heights, hasLength(1));
+    final rects = [for (final box in tester.renderObjectList<RenderBox>(cardFinder)) box.localToGlobal(Offset.zero) & box.size];
+    expect(rects.map((r) => r.width).toSet(), hasLength(1));
+    for (var i = 1; i < rects.length; i++) {
+      expect(rects[i].top, greaterThanOrEqualTo(rects[i - 1].bottom), reason: 'stacked, not side by side');
+    }
 
     // (b) The "Recomendado" tag's box is fully inside its own card's box —
     // the point of dropping the hard-coded SizedBox height.
@@ -280,5 +282,18 @@ Future<void> main() async {
     expect(tagRect.top, greaterThanOrEqualTo(cardRect.top));
     expect(tagRect.right, lessThanOrEqualTo(cardRect.right));
     expect(tagRect.bottom, lessThanOrEqualTo(cardRect.bottom));
+  });
+
+  testWidgets('where every word fits, the three options stay side by side, equal height', (tester) async {
+    tester.view.physicalSize = const Size(900, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCard(tester, fecTrainer());
+    expect(tester.takeException(), isNull);
+
+    final cardFinder = find.byType(RadioCard<VirtualShiftingMode>);
+    final rects = [for (final box in tester.renderObjectList<RenderBox>(cardFinder)) box.localToGlobal(Offset.zero) & box.size];
+    expect(rects.map((r) => r.top).toSet(), hasLength(1), reason: 'one row');
+    expect(rects.map((r) => r.height).toSet(), hasLength(1), reason: 'equal height');
   });
 }

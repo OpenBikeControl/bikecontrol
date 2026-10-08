@@ -72,7 +72,7 @@ class _LogviewerState extends State<LogViewer> {
   Widget build(BuildContext context) {
     return Scaffold(
       headers: [
-        BkPageHeader(title: context.i18n.logs, showDivider: false),
+        BkPageHeader(title: context.i18n.logs, showDivider: false, columnWidth: null),
       ],
       child: Padding(
         padding: const EdgeInsets.all(16.0),

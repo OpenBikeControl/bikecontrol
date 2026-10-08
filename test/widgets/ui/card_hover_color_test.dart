@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -37,9 +38,12 @@ void main() {
     expect(hover.computeLuminance(), greaterThan(appDark.card.computeLuminance()));
   });
 
-  testWidgets('light mode: the existing soft grey is unchanged', (tester) async {
-    final context = await pumpTheme(tester, ColorSchemes.lightSlate);
+  testWidgets('light mode: white cards hover toward the grouped fill, still light', (tester) async {
+    final light = BkTheme.lightColorScheme;
+    final context = await pumpTheme(tester, light);
+    final hover = bkCardHover(context);
 
-    expect(bkCardHover(context), ColorSchemes.lightSlate.border.withLuminance(0.94));
+    expect(hover.computeLuminance(), lessThan(light.card.computeLuminance()));
+    expect(hover.computeLuminance(), greaterThan(0.8));
   });
 }

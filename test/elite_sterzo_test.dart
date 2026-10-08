@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
+import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -9,6 +10,7 @@ void main() {
   group('Elite Sterzo Smart Calibration Tests', () {
     test('recalibrate clears the old center and learns a new one', () async {
       final device = EliteSterzo(BleDevice(name: 'STERZO', deviceId: 'test-sterzo'));
+      expect(device, isA<RecalibratableSteering>());
 
       Future<void> sendAngle(double degrees) {
         final bytes = ByteData(4)..setFloat32(0, degrees, Endian.little);

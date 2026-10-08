@@ -6,13 +6,17 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/utils/keymap/apps/supported_app.dart' show SupportedApp, TrainerConnectionType;
+import 'package:bike_control/utils/keymap/apps/supported_app.dart'
+    show SupportedApp, TrainerConnectionType, VsSameDeviceBlock, vsSameDeviceBlock;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedHeader;
+import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText, bkCardShadow;
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
@@ -43,19 +47,6 @@ class _ConnectionCardState extends State<ConnectionCard> {
     _ConnectSelection.none,
   ];
 
-  /// Whether the picker accordion is open. Starts expanded when the user lands
-  /// disconnected (options visible), collapsed when they arrive already
-  /// connected. A user-initiated connect keeps it open across the brief
-  /// "connecting" teardown so it doesn't collapse out from under them; after
-  /// that the accordion's own trigger drives expand/collapse.
-  late bool _expanded;
-
-  @override
-  void initState() {
-    super.initState();
-    _expanded = !(widget.device.isConnected || widget.device.isStartedListenable.value);
-  }
-
   /// Resolves which concrete Virtual Shifting [RetrofitMode] a fresh connect
   /// should start in: the last saved VS transport if there is one (already
   /// folded into WiFi on a same-device setup, see
@@ -75,6 +66,16 @@ class _ConnectionCardState extends State<ConnectionCard> {
   /// invisible to a central on the same adapter — so Bluetooth is not a
   /// Virtual Shifting transport here. (Only WiFi loops back.)
   bool get _isSameDevice => core.settings.getLastTarget() == Target.thisDevice;
+
+  /// Why the trainer app, on this same device, can never pick up the bridge
+  /// (see [vsSameDeviceBlock]) — null when it can, or when it runs elsewhere.
+  /// Then the Virtual Shifting row says so instead of offering a WiFi that
+  /// can't work.
+  VsSameDeviceBlock? get _sameDeviceBlock {
+    final app = core.settings.getTrainerApp();
+    if (!_isSameDevice || app == null) return null;
+    return vsSameDeviceBlock(app);
+  }
 
   /// Whether a Bluetooth resolution for this trainer is being folded into WiFi
   /// by [_isSameDevice] (see [ProxyDevice.sameDeviceFoldsBluetooth]). Read
@@ -166,10 +167,6 @@ class _ConnectionCardState extends State<ConnectionCard> {
       return;
     }
 
-    // Keep the picker open through the connect and its brief "connecting"
-    // teardown so the accordion doesn't collapse out from under the user.
-    if (!_expanded) setState(() => _expanded = true);
-
     if (IAPManager.instance.isTrialExpired) {
       await showGoProDialog(context);
       return;
@@ -236,9 +233,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
             return ValueListenableBuilder<RetrofitMode>(
               valueListenable: widget.device.retrofitMode,
               builder: (context, mode, _) {
-                // While connecting/switching we keep the bridge accordion mounted
-                // and surface progress inline (a spinner in the status icon),
-                // rather than swapping the whole card for a placeholder.
+                // While connecting/switching the choice stays on screen and
+                // progress shows inline (a spinner in the status icon), rather
+                // than swapping the whole card for a placeholder.
                 final bool connecting = starting && !started;
                 final bool connected = widget.device.isConnected || started;
                 final _ConnectSelection selection = (!connected && !connecting)
@@ -247,7 +244,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
                         RetrofitMode.proxy => _ConnectSelection.proxy,
                         RetrofitMode.wifi || RetrofitMode.bluetooth => _ConnectSelection.virtualShifting,
                       };
-                return _modePickerAccordion(selection, mode, connecting: connecting, expanded: _expanded);
+                return _openPicker(selection, mode, connecting: connecting);
               },
             );
           },
@@ -256,40 +253,33 @@ class _ConnectionCardState extends State<ConnectionCard> {
     );
   }
 
-  Widget _card({required Color bg, required Color border, required Widget child}) {
+  /// The bridge's status on top, then the connection choice, always open:
+  /// which way BikeControl connects this trainer is the page's main decision,
+  /// and folding it away behind the status hid it from the riders who came
+  /// here to change it. The selected option carries its own options (Virtual
+  /// Shifting's WiFi / Bluetooth).
+  Widget _openPicker(_ConnectSelection selection, RetrofitMode mode, {required bool connecting}) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: border),
+        color: cs.card,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: bkCardShadow(context),
       ),
-      child: child,
-    );
-  }
-
-  Widget _modePickerAccordion(
-    _ConnectSelection selection,
-    RetrofitMode mode, {
-    required bool connecting,
-    required bool expanded,
-  }) {
-    return ComponentTheme<DividerTheme>(
-      data: DividerTheme(color: Colors.transparent),
-      child: Accordion(
-        items: [
-          AccordionItem(
-            expanded: expanded,
-            trigger: AccordionTrigger(child: _bridgeStatusRow(mode, selection, connecting)),
-            content: _modePicker(selection, mode),
-          ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _bridgeStatusRow(mode, selection, connecting),
+          const Gap(14),
+          _modePicker(selection, mode),
         ],
       ),
     );
   }
 
-  /// Bridge (trainer-app-side) connection status used as the accordion trigger.
+  /// Bridge (trainer-app-side) connection status, at the top of the card.
   /// Green dot when the trainer app has connected to our advertised bridge,
   /// a spinner while connecting/switching, muted otherwise.
   ///
@@ -324,47 +314,38 @@ class _ConnectionCardState extends State<ConnectionCard> {
 
   Widget _modePicker(_ConnectSelection selection, RetrofitMode mode) {
     final cs = Theme.of(context).colorScheme;
-    return _card(
-      bg: cs.card,
-      border: cs.border,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 10,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 8,
+      children: [
+        Row(
+          children: [
+            Expanded(child: BkGroupedHeader(AppLocalizations.of(context).connectModeLabel)),
+            // Links out to the blog post comparing BikeControl's virtual
+            // shifting against the trainer app's own — the decision this
+            // picker is asking the user to make.
+            Button(
+              style: const ButtonStyle.text(size: ButtonSize.small, density: ButtonDensity.compact),
+              onPressed: () => launchUrlString(_helpMeDecideUrl, mode: LaunchMode.externalApplication),
+              child: Text(
+                AppLocalizations.of(context).helpMeDecide,
+                style: context.typography.xSmall.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        RadioGroup<_ConnectSelection>(
+          value: selection,
+          onChanged: (s) => _onSelect(s),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 8,
             children: [
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context).connectModeLabel,
-                  style: context.typography.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: cs.mutedForeground,
-                  ),
-                ),
-              ),
-              // Links out to the blog post comparing BikeControl's virtual
-              // shifting against the trainer app's own — the decision this
-              // picker is asking the user to make.
-              Button(
-                style: const ButtonStyle.text(size: ButtonSize.small, density: ButtonDensity.compact),
-                onPressed: () => launchUrlString(_helpMeDecideUrl, mode: LaunchMode.externalApplication),
-                child: Text(AppLocalizations.of(context).helpMeDecide, style: context.typography.xSmall),
-              ),
+              for (final s in _selections) _radioCard(s, selection, mode, cs),
             ],
           ),
-          RadioGroup<_ConnectSelection>(
-            value: selection,
-            onChanged: (s) => _onSelect(s),
-            child: Column(
-              spacing: 8,
-              children: [
-                for (final s in _selections) _radioCard(s, selection, mode, cs),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -374,7 +355,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
     RetrofitMode mode,
     ColorScheme cs,
   ) {
-    final bool showToggle = s == _ConnectSelection.virtualShifting && active == _ConnectSelection.virtualShifting;
+    final block = s == _ConnectSelection.virtualShifting ? _sameDeviceBlock : null;
+    final bool showToggle =
+        s == _ConnectSelection.virtualShifting && active == _ConnectSelection.virtualShifting && block == null;
     // The rider chose Bluetooth for this trainer, but the toggle no longer
     // offers it: say why the row runs over WiFi instead of silently dropping
     // their choice. Plain muted text — nothing to dismiss, it goes away on its
@@ -383,13 +366,18 @@ class _ConnectionCardState extends State<ConnectionCard> {
     // "using WiFi" would be untrue.
     final bool liveOverBluetooth = active == _ConnectSelection.virtualShifting && mode == RetrofitMode.bluetooth;
     final bool showSameDeviceNote =
-        s == _ConnectSelection.virtualShifting && _sameDeviceOverridesBluetooth && !liveOverBluetooth;
+        s == _ConnectSelection.virtualShifting && _sameDeviceOverridesBluetooth && !liveOverBluetooth && block == null;
+    final selected = s == active;
     return RadioCard<_ConnectSelection>(
       value: s,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 12,
         children: [
-          Icon(_selectionIcon(s), size: 20, color: cs.mutedForeground),
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(_selectionIcon(s), size: 20, color: selected ? bkAccentText(context) : cs.mutedForeground),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,17 +389,65 @@ class _ConnectionCardState extends State<ConnectionCard> {
                 ),
                 Text(
                   _selectionHint(s),
-                  style: context.typography.caption.copyWith(color: cs.mutedForeground),
+                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                 ),
                 if (showSameDeviceNote)
                   Text(
                     AppLocalizations.of(context).vsTransportSameDeviceNote,
-                    style: context.typography.caption.copyWith(color: cs.mutedForeground),
+                    style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                   ),
+                if (block != null) ...[
+                  const Gap(8),
+                  _sameDeviceBlockNote(block),
+                ],
+                // The chosen option's own choice, inside its card.
+                if (showToggle) ...[
+                  const Gap(10),
+                  _transportToggle(mode),
+                ],
               ],
             ),
           ),
-          if (showToggle) _transportToggle(mode),
+        ],
+      ),
+    );
+  }
+
+  /// Why virtual shifting can't reach the trainer app on this device, and
+  /// the two setups that work — the same explanation onboarding gives.
+  Widget _sameDeviceBlockNote(VsSameDeviceBlock block) {
+    final l10n = AppLocalizations.of(context);
+    final status = BkStatusColors.of(context);
+    final explainer = switch (block) {
+      VsSameDeviceBlock.bluetoothOnly => l10n.onboardingVsBlockedExplainer(_trainerAppName),
+      VsSameDeviceBlock.storeAppIsolation => l10n.onboardingVsBlockedExplainerStoreApp(_trainerAppName),
+    };
+    return Container(
+      key: const ValueKey('vs-same-device-blocked'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: status.warningWash,
+        border: Border.all(color: status.warning.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Icon(LucideIcons.triangleAlert, size: 14, color: status.warning),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 4,
+              children: [
+                Text(explainer, style: context.typography.xSmall),
+                Text(
+                  l10n.vsSameDeviceBlockedFix(_trainerAppName),
+                  style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

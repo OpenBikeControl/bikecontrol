@@ -44,7 +44,7 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlBluetoothTile> {
                     )
                   : isStarted
                   ? context.i18n.chooseBikeControlInConnectionScreen
-                  : context.i18n.letsAppConnectOverBluetooth(core.settings.getTrainerApp()?.name ?? ''),
+                  : context.i18n.letsAppConnectOverBluetooth(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '')),
               requirements: _requirements,
               onChange: (value) async {
                 if (value) {

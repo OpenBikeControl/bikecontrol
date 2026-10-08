@@ -33,6 +33,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// `Platform.operatingSystem`-shaped, `kIsWeb`-aware — matches
 /// [NetworkProbeContext.platform]'s documented shape. The page is never
@@ -79,6 +80,27 @@ NetworkProbeContext buildProductionContext({DebugDiagnostics? snapshot, Object? 
   );
 }
 
+/// The verdict card's sentence on a pass.
+///
+/// A clean check with the trainer app still not connected is where most riders
+/// stall: nothing is wrong with the network, and the app has simply not been
+/// told to use BikeControl yet. So it says what to do in the app — the
+/// controller tile for an OpenBikeControl app (MyWhoosh, TPV), the pairing
+/// screen for the others. Once the app is connected, or with no app chosen to
+/// name, there is no next step to give.
+String networkPassBody(
+  AppLocalizations l10n, {
+  required String? app,
+  required NetworkMethodKind kind,
+  required bool connected,
+}) {
+  if (connected || app == null) return l10n.networkOverallPassBody;
+  return switch (kind) {
+    NetworkMethodKind.openBikeControl => l10n.networkNextStepControllerTile(app),
+    NetworkMethodKind.rouvyMdns || NetworkMethodKind.zwiftMdns => l10n.networkNextStepPairingScreen(app),
+  };
+}
+
 /// Guided, step-by-step "why can't my trainer app find BikeControl" page:
 /// runs [NetworkSelfTestEngine] and renders its live progress, a one-tap
 /// recommended fix, and ways to hand the result to support.
@@ -115,6 +137,11 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   /// when it was taken.
   DateTime? _startedAt;
   String? _version;
+
+  /// Inside the page's [Scaffold], which is what provides the DrawerOverlay a
+  /// fix's permission sheet opens into. This State's own context sits above
+  /// it, and as a pushed route there is no other Scaffold to fall back on.
+  final _bodyKey = GlobalKey();
 
   @override
   void initState() {
@@ -210,7 +237,12 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       }
       return;
     }
-    await runNetworkFix(context, fix);
+    final bodyContext = _bodyKey.currentContext;
+    if (bodyContext == null) return;
+    // The check the fix was offered on: a fix that needs to know which
+    // connection it is about reads it from there.
+    final from = _engine?.state.value.checks.firstOrNullWhere((c) => c.fixes.contains(fix));
+    await runNetworkFix(bodyContext, fix, from: from);
     // A full re-run: the checks are cheap and the watch row is skippable, so
     // there is no reason to re-verify just the one fixed check.
     await _start();
@@ -276,6 +308,8 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
       headers: [
         BkPageHeader(
           title: l10n.networkTroubleshootingTitle,
+          // The column sits flush and pads its content inside.
+          columnGutter: 0,
           // Only beside the title where there is room for both: on a narrow
           // window the stamp wins the space and the title wraps a character at
           // a time. It moves into the body instead.
@@ -283,25 +317,23 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
         ),
       ],
       child: Container(
+        key: _bodyKey,
         color: tokens.pageBg,
         child: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 880),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(26, 22, 26, 26),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_narrow(context)) ...[
-                      Align(alignment: AlignmentDirectional.centerStart, child: _runStamp(context)),
-                      const Gap(12),
-                    ],
-                    _showConnectedRefusal && _engine == null
-                        ? _refusalCard(context, l10n)
-                        : _engineSection(context, l10n),
+          child: BkPageColumn(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 22, 16, 26),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_narrow(context)) ...[
+                    Align(alignment: AlignmentDirectional.centerStart, child: _runStamp(context)),
+                    const Gap(12),
                   ],
-                ),
+                  _showConnectedRefusal && _engine == null
+                      ? _refusalCard(context, l10n)
+                      : _engineSection(context, l10n),
+                ],
               ),
             ),
           ),
@@ -474,6 +506,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
               check: check,
               onFix: _runFix,
               isFixDisabled: _fixDisabled,
+              appName: core.settings.getTrainerApp()?.name,
               watch: check.id == NetworkCheckId.guidedWatch ? state.watch : null,
               onSkipWatch: _engine?.cancelWatch,
             ),
@@ -514,6 +547,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
           onFix: last.onFix,
           onSkipWatch: last.onSkipWatch,
           isFixDisabled: last.isFixDisabled,
+          appName: last.appName,
           showDivider: false,
         ),
       );
@@ -697,8 +731,14 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
   }
 
   String _overallBody(AppLocalizations l10n, NetworkVerdict verdict) {
+    final target = currentNetworkMethodTarget();
     return switch (verdict) {
-      NetworkVerdict.pass || NetworkVerdict.skipped => l10n.networkOverallPassBody,
+      NetworkVerdict.pass || NetworkVerdict.skipped => networkPassBody(
+        l10n,
+        app: core.settings.getTrainerApp()?.name,
+        kind: target.kind,
+        connected: target.isConnected.value,
+      ),
       NetworkVerdict.warn => l10n.networkOverallWarnBody,
       NetworkVerdict.fail => l10n.networkOverallFailBody,
       NetworkVerdict.unknown => l10n.networkOverallUnknownBody,
@@ -753,9 +793,6 @@ class _Panel extends StatelessWidget {
         color: cs.card,
         border: Border.all(color: cs.border),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: const Color(0x0F0F1520), blurRadius: 2, offset: const Offset(0, 1)),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: child,

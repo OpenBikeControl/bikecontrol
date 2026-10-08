@@ -93,7 +93,7 @@ Future<void> main() async {
             }
           }
 
-          final gear = renderedSize(tester, tester.renderObject(find.text('14/24')));
+          final gear = renderedSize(tester, tester.renderObject(find.text('14')));
           expect(gear, greaterThanOrEqualTo(36 * textScale - 0.01), reason: 'the gear is drawn at its design size');
           for (final metric in ['250 W', '90 rpm', '×3.53']) {
             final finder = find.text(metric);

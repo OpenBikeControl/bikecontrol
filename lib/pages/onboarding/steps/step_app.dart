@@ -1,3 +1,5 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -9,7 +11,6 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-const _success = Color(0xFF22C55E);
 
 /// 10 padding + 40 logo + 9 gap + two xSmall caption lines + 10 padding, with
 /// a little slack.
@@ -36,8 +37,8 @@ class OnboardingAppTile extends StatelessWidget {
           height: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            border: Border.all(color: selected ? onboardingAccent(context) : scheme.border, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: selected ? onboardingAccent(context) : const Color(0x00000000), width: 2),
+            borderRadius: BorderRadius.circular(16),
             color: scheme.card,
           ),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -143,10 +144,10 @@ Widget _verifiedBadge(BuildContext context) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: _success.withValues(alpha: 0.12),
+        color: BkStatusColors.of(context).successWash,
       ),
       child: DefaultTextStyle.merge(
-        style: const TextStyle(color: _success, letterSpacing: 0.6),
+        style: TextStyle(color: BkStatusColors.of(context).success, letterSpacing: 0.6),
         child: Text(context.i18n.onboardingVerified.toUpperCase()).xSmall.semiBold,
       ),
     );
@@ -184,7 +185,7 @@ Widget onboardingAppBody(BuildContext context,
     children: onboardingReveal([
       // Shown only when the welcome screen didn't already make the offer.
       if (showUpdateBanner) const OnboardingUpdateBanner(),
-      Text(context.i18n.onboardingAppTitle).h4,
+      OnboardingHeadline(context.i18n.onboardingAppTitle),
       Gap(6),
       Text(context.i18n.onboardingAppSubtitle).small.muted,
       Gap(18),

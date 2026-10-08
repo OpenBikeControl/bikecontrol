@@ -31,9 +31,23 @@ void main() {
     expect(help(IntakeCategory.smartTrainer, value: 'no_pairing'), isNull);
   });
 
-  test('nothing to offer before a symptom is picked, or for account questions', () {
+  test('account: plan questions -> how Pro gets active; restore -> restore advice; refund -> the store refunds', () {
+    expect(help(IntakeCategory.account, value: 'wrong_plan_shown'), IntakeSelfHelp.planNotActive);
+    expect(help(IntakeCategory.account, value: 'trial_expired_after_purchase'), IntakeSelfHelp.planNotActive);
+    expect(help(IntakeCategory.account, value: 'purchase_not_restored'), IntakeSelfHelp.purchaseNotRestored);
+    expect(help(IntakeCategory.account, value: 'refund_request'), IntakeSelfHelp.refundThroughStore);
+    expect(help(IntakeCategory.account, value: 'other'), isNull);
+  });
+
+  test('every account option but "other" has an answer', () {
+    for (final option in accountSymptoms.where((o) => o.id != 'other')) {
+      expect(help(IntakeCategory.account, value: option.id), isNotNull, reason: option.id);
+    }
+  });
+
+  test('nothing to offer before a symptom is picked', () {
     expect(help(IntakeCategory.controller), isNull);
-    expect(help(IntakeCategory.account, value: 'purchase_not_restored'), isNull);
+    expect(help(IntakeCategory.account), isNull);
     expect(help(IntakeCategory.somethingElse), isNull);
   });
 }

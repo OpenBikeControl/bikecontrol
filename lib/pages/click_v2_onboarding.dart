@@ -6,6 +6,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/click_v2/click_contours.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 const _whyUrl = 'https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps/';
 const _alternativesUrl = 'https://bikecontrol.app/blog/best-controller-for-indoor-cycling/';
@@ -106,88 +107,80 @@ class _ClickV2OnboardingPageState extends State<ClickV2OnboardingPage> with Sing
     final l10n = context.i18n;
     return Scaffold(
       child: SafeArea(
-        // Stretched full window width on desktop before this fix. Capped
-        // the same way the Help Center and the instruction-videos drawer
-        // already are on this branch (Center + ConstrainedBox — see
-        // instruction_videos_section.dart's own "Bug 3" fix, which wraps
-        // its whole content column, header included, the same shape this
-        // page's Column has), rather than only the scrollable body the way
-        // help_center_page.dart does it. No effect on phones, where the
-        // window is already narrower than the cap.
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(child: Text(l10n.clickV2Onboarding_title).large.semiBold),
-                          BkIconButton.ghost(
-                            key: const ValueKey('click-onboarding-close'),
-                            icon: const Icon(LucideIcons.x),
-                            label: context.i18n.close,
-                            onPressed: () => Navigator.of(context).maybePop(),
-                          ),
-                        ],
-                      ),
-                      Text(l10n.clickV2Onboarding_intro).small.muted,
-                      Button.link(
-                        onPressed: () => launchUrlString(_whyUrl),
-                        trailing: const Icon(LucideIcons.externalLink, size: 14),
-                        child: Text(l10n.clickV2Onboarding_whyLink),
-                      ),
-                    ],
-                  ),
+        // The whole column, header included, is capped at a page's width
+        // and centred like every pushed page. No effect on phones,
+        // where the window is already narrower than the cap.
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(l10n.clickV2Onboarding_title).large.semiBold),
+                        BkIconButton.ghost(
+                          key: const ValueKey('click-onboarding-close'),
+                          icon: const Icon(LucideIcons.x),
+                          label: context.i18n.close,
+                          onPressed: () => Navigator.of(context).maybePop(),
+                        ),
+                      ],
+                    ),
+                    Text(l10n.clickV2Onboarding_intro).small.muted,
+                    Button.link(
+                      onPressed: () => launchUrlString(_whyUrl),
+                      trailing: const Icon(LucideIcons.externalLink, size: 14),
+                      child: Text(l10n.clickV2Onboarding_whyLink),
+                    ),
+                  ],
                 ),
-                const Gap(12),
-                // The pager owns the full height between the header and the dot
-                // indicator, hero included -- so a drag anywhere in that region
-                // (contours included) swipes the pager, and short viewports can
-                // scroll the whole page content, hero included. Each page now
-                // carries its own fixed-state hero (see _option/_decision)
-                // instead of one shared hero scrubbing above the PageView.
-                Expanded(
-                  child: PageView(
-                    controller: _controller,
-                    children: [
-                      _option(
-                        heroPage: 0,
-                        fromPage: 0,
-                        title: l10n.clickV2Onboarding_rightOnlyTitle,
-                        pros: [l10n.clickV2Onboarding_rightOnlyPro1, l10n.clickV2Onboarding_rightOnlyPro2],
-                        cons: [l10n.clickV2Onboarding_rightOnlyCon1],
-                      ),
-                      _option(
-                        heroPage: 1,
-                        fromPage: 1,
-                        title: l10n.clickV2Onboarding_zwiftTitle,
-                        pros: [l10n.clickV2Onboarding_zwiftPro1, l10n.clickV2Onboarding_zwiftPro2],
-                        cons: [l10n.clickV2Onboarding_zwiftCon1, l10n.clickV2Onboarding_zwiftCon2],
-                      ),
-                      _decision(),
-                    ],
-                  ),
+              ),
+              const Gap(12),
+              // The pager owns the full height between the header and the dot
+              // indicator, hero included -- so a drag anywhere in that region
+              // (contours included) swipes the pager, and short viewports can
+              // scroll the whole page content, hero included. Each page now
+              // carries its own fixed-state hero (see _option/_decision)
+              // instead of one shared hero scrubbing above the PageView.
+              Expanded(
+                child: PageView(
+                  controller: _controller,
+                  children: [
+                    _option(
+                      heroPage: 0,
+                      fromPage: 0,
+                      title: l10n.clickV2Onboarding_rightOnlyTitle,
+                      pros: [l10n.clickV2Onboarding_rightOnlyPro1, l10n.clickV2Onboarding_rightOnlyPro2],
+                      cons: [l10n.clickV2Onboarding_rightOnlyCon1],
+                    ),
+                    _option(
+                      heroPage: 1,
+                      fromPage: 1,
+                      title: l10n.clickV2Onboarding_zwiftTitle,
+                      pros: [l10n.clickV2Onboarding_zwiftPro1, l10n.clickV2Onboarding_zwiftPro2],
+                      cons: [l10n.clickV2Onboarding_zwiftCon1, l10n.clickV2Onboarding_zwiftCon2],
+                    ),
+                    _decision(),
+                  ],
                 ),
-                Center(child: _dots()),
-                const Gap(8),
-                const Divider(),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: Button.link(
-                    onPressed: () => launchUrlString(_alternativesUrl),
-                    trailing: const Icon(LucideIcons.externalLink, size: 14),
-                    child: Text(l10n.clickV2Onboarding_alternativesLink),
-                  ),
+              ),
+              Center(child: _dots()),
+              const Gap(8),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: Button.link(
+                  onPressed: () => launchUrlString(_alternativesUrl),
+                  trailing: const Icon(LucideIcons.externalLink, size: 14),
+                  child: Text(l10n.clickV2Onboarding_alternativesLink),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

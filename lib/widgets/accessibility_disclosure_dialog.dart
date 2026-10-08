@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 
@@ -57,7 +58,7 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
                   SizedBox(height: 16),
                   Text(
                     context.i18n.mustChooseAllowOrDeny,
-                    style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: BkStatusColors.of(context).warning),
                   ),
                 ],
               ),

@@ -18,7 +18,7 @@ ANDROID_LOCALES="en-US de-DE fr-FR es-ES it-IT pl-PL"
 IOS_LOCALES="en-US de-DE fr-FR es-ES it pl"
 
 # Order in which the scenes appear in the store listing.
-SCENES="device trainer virtualshifting virtualshifting-settings customization companion"
+SCENES="device devices virtualshifting-settings customization trainer companion"
 
 if [ ! -d "$SRC" ]; then
   echo "Source screenshots folder not found: $SRC" >&2

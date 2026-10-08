@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'dart:async';
 
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
@@ -7,6 +8,9 @@ import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_status_dot.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Where the done step stands, in the order a rider has to fix things.
@@ -58,17 +62,10 @@ List<Widget> onboardingDoneFooter(
     }),
   ),
   if (showPlanOptions)
-    OutlineButton(
+    GhostButton(
       alignment: Alignment.center,
       onPressed: onSeePlanOptions,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(LucideIcons.award, size: 16),
-          Gap(8),
-          Text(context.i18n.onboardingSeeProOptions),
-        ],
-      ),
+      child: Text(context.i18n.onboardingSeeProOptions),
     ),
 ];
 
@@ -123,8 +120,6 @@ Widget onboardingDoneBody(
   bool offerOverlay = false,
   VoidCallback? onShowOverlay,
 }) {
-  final status = BkStatusColors.of(context);
-  final success = status.success;
   final hasController = controllerName != null;
   final state = onboardingDoneState(
     hasController: hasController,
@@ -178,41 +173,46 @@ Widget onboardingDoneBody(
   return Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: onboardingReveal([
-      Gap(8),
+      Gap(24),
       _SuccessBurst(reduceMotion: reduceMotion, ready: allReady),
-      Gap(14),
-      Text(title, textAlign: TextAlign.center).h4,
+      Gap(24),
+      OnboardingHeadline(title, textAlign: TextAlign.center),
       Gap(8),
-      Text(subtitle, textAlign: TextAlign.center).small.muted,
-      Gap(18),
-      for (final (icon, title, sub, ok, action) in rows)
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: ok ? status.successWash : Theme.of(context).colorScheme.muted,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 17, color: ok ? success : Theme.of(context).colorScheme.mutedForeground),
-              Gap(11),
-              Expanded(flex: 3, child: Text(title).small.semiBold),
-              Gap(8),
-              // Right-aligned like before; Flexible only so a long "Waiting
-              // for {app}…" or the Pair button can't push the title off.
-              Flexible(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(sub, textAlign: TextAlign.end).xSmall.muted,
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Text(subtitle, textAlign: TextAlign.center).small.muted,
+      ),
+      Gap(28),
+      BkGroupedSection(
+        children: [
+          for (final (icon, title, sub, ok, action) in rows)
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    BkIconTile(icon: icon),
+                    Gap(12),
+                    Expanded(flex: 3, child: Text(title).small.semiBold),
+                    Gap(8),
+                    // Flexible so a long "Waiting for {app}…" or the Pair
+                    // button can't push the name off.
+                    Flexible(
+                      flex: 2,
+                      child: Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: BkStatusDot(label: sub, tone: ok ? BkStatusTone.success : BkStatusTone.neutral),
+                      ),
+                    ),
+                    if (action != null) ...[Gap(10), action],
+                  ],
                 ),
               ),
-              if (action != null) ...[Gap(10), action],
-            ],
-          ),
-        ),
+            ),
+        ],
+      ),
+      Gap(4),
       // The check needs the app to hold the trainer; until then it would
       // only report what the pickup card below already says.
       if (onRunTrainerCheck != null && trainerName != null && trainerAppConnected)
@@ -237,10 +237,10 @@ Widget onboardingDoneBody(
         Gap(10),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.border, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.card,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,39 +288,39 @@ Widget onboardingDoneBody(
         Gap(10),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: status.warning, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
-            color: status.warningWash,
+            color: Theme.of(context).colorScheme.card,
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(LucideIcons.flaskConical, size: 18, color: status.warning),
-                  Gap(9),
-                  Expanded(child: Text(context.i18n.onboardingTestModeTitle).small.semiBold),
-                ],
+              BkIconTile(icon: LucideIcons.clock, color: bkAccentText(context)),
+              Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(context.i18n.onboardingTestModeTitle).small.semiBold,
+                    Gap(4),
+                    Text(
+                      trainerName != null
+                          ? context.i18n.onboardingTestModeBodyVs(
+                              '${IAPManager.dailyCommandLimit}',
+                              '${core.bridgeUsageTracker.dailyLimit.inMinutes}',
+                            )
+                          : context.i18n.onboardingTestModeBody('${IAPManager.dailyCommandLimit}'),
+                    ).xSmall.muted,
+                    Gap(6),
+                    // What each plan lifts: the daily command budget goes with
+                    // Base or Pro; the trainer bridge is BikeControl's virtual
+                    // shifting, Pro only.
+                    Text(context.i18n.onboardingTrialUnlimited).xSmall.semiBold,
+                    if (trainerName != null) Text(context.i18n.onboardingTrialKeepVs).xSmall.semiBold,
+                  ],
+                ),
               ),
-              Gap(6),
-              Text(
-                trainerName != null
-                    ? context.i18n.onboardingTestModeBodyVs(
-                        '${IAPManager.dailyCommandLimit}',
-                        '${core.bridgeUsageTracker.dailyLimit.inMinutes}',
-                      )
-                    : context.i18n.onboardingTestModeBody('${IAPManager.dailyCommandLimit}'),
-              ).xSmall,
-              Gap(8),
-              // What the rider would pay for, given what they set up: the
-              // trainer bridge is BikeControl's virtual shifting (Pro only);
-              // without one, the trial's limit is the daily command budget,
-              // which Base lifts as well.
-              Text(
-                trainerName != null ? context.i18n.onboardingTrialKeepVs : context.i18n.onboardingTrialUnlimited,
-              ).xSmall.semiBold,
             ],
           ),
         ),
@@ -408,13 +408,13 @@ class _SuccessBurst extends StatelessWidget {
     final color = ready ? status.success : status.warning;
     final glyph = ready ? status.successForeground : status.warningForeground;
     final badge = Container(
-      width: 84,
-      height: 84,
+      width: 88,
+      height: 88,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 30, offset: const Offset(0, 10))],
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.25), blurRadius: 24, offset: const Offset(0, 8))],
       ),
       child: Icon(ready ? LucideIcons.check : LucideIcons.clock, size: 44, color: glyph),
     );

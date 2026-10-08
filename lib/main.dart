@@ -19,6 +19,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:multi_window_native/multi_window_native.dart';
@@ -83,6 +84,29 @@ bool debugShowsRealKeymapsInScreenshotMode = false;
 
 /// Whether [screenshotMode] is dressing keymaps up for the store boards.
 bool get screenshotKeymapsStaged => screenshotMode && !debugShowsRealKeymapsInScreenshotMode;
+
+/// The generic name the store boards show in place of a trainer app's, in the
+/// board's language — an English "Trainer app" in a German UI read as a bug.
+String get screenshotTrainerAppName => AppLocalizations.current.chainAppTitle;
+
+/// [name] as a screen may show it: the generic [screenshotTrainerAppName]
+/// under [screenshotMode], so every label on a store board names the app the
+/// same way. Route every trainer app name on a screen that hides it through
+/// here, not just the headline one.
+String shownTrainerAppName(String name) => screenshotTrainerAppNamesHidden ? screenshotTrainerAppName : name;
+
+/// Keeps real trainer app names under [screenshotMode], for widget tests that
+/// run the snapshot harness (which turns screenshot mode on) but assert the
+/// copy a rider sees. Off everywhere else.
+@visibleForTesting
+bool debugKeepsTrainerAppNamesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is replacing trainer app names with the generic one.
+bool get screenshotTrainerAppNamesHidden => screenshotMode && !debugKeepsTrainerAppNamesInScreenshotMode;
+
+/// [name] for a keymap profile, and for the labels next to the keymap picker:
+/// generic while [screenshotKeymapsStaged] names every profile that way.
+String shownKeymapName(String name) => screenshotKeymapsStaged ? screenshotTrainerAppName : name;
 
 /// True while the onboarding wizard route is on screen — toasts lift above
 /// its sticky footer on mobile (see lib/widgets/ui/toast.dart).
@@ -753,34 +777,37 @@ class _BikeControlAppState extends State<BikeControlApp> {
     // the splash — so this is safe before core.settings.init() completes.
     return ValueListenableBuilder<Locale?>(
       valueListenable: core.settings.localeListenable,
-      builder: (context, localeOverride, _) => ShadcnApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        menuHandler: OverlayHandler.popover,
-        popoverHandler: OverlayHandler.popover,
-        localizationsDelegates: [
-          ...ShadcnLocalizations.localizationsDelegates,
-          OtherLocalizationsDelegate(),
-          AppLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.delegate.supportedLocales,
-        title: 'BikeControl',
-        scaling: BkTheme.scaling,
-        darkTheme: BkTheme.build(Brightness.dark),
-        locale: demoLocaleOverride.isNotEmpty
-            ? Locale(demoLocaleOverride)
-            : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
-        theme: BkTheme.build(Brightness.light),
-        materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark ? m.ThemeData.dark() : m.ThemeData(),
-        //themeMode: ThemeMode.dark,
-        // Swap splash → content in place inside the always-mounted ShadcnApp so
-        // the themed background is painted the whole time — no black flash while
-        // the real content takes over from the splash. The Builder gives _home a
-        // context *below* ShadcnApp, where its Theme is available.
-        home: m.Builder(
-          builder: (context) => AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: _home(context, isMobile),
+      // Toasts go to shadcn's root layer inside the app; this places them.
+      builder: (context, localeOverride, _) => BkToastTheme(
+        child: ShadcnApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          menuHandler: OverlayHandler.popover,
+          popoverHandler: OverlayHandler.popover,
+          localizationsDelegates: [
+            ...ShadcnLocalizations.localizationsDelegates,
+            OtherLocalizationsDelegate(),
+            AppLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.delegate.supportedLocales,
+          title: 'BikeControl',
+          scaling: BkTheme.scaling,
+          darkTheme: BkTheme.build(Brightness.dark),
+          locale: demoLocaleOverride.isNotEmpty
+              ? Locale(demoLocaleOverride)
+              : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
+          theme: BkTheme.build(Brightness.light),
+          materialTheme: BkTheme.material(MediaQuery.platformBrightnessOf(context)),
+          //themeMode: ThemeMode.dark,
+          // Swap splash → content in place inside the always-mounted ShadcnApp so
+          // the themed background is painted the whole time — no black flash while
+          // the real content takes over from the splash. The Builder gives _home a
+          // context *below* ShadcnApp, where its Theme is available.
+          home: m.Builder(
+            builder: (context) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _home(context, isMobile),
+            ),
           ),
         ),
       ),
@@ -823,24 +850,15 @@ class _BikeControlAppState extends State<BikeControlApp> {
       );
     }
 
-    return ToastLayer(
+    return m.Builder(
       key: const ValueKey('Test'),
-      padding: isMobile ? EdgeInsets.only(bottom: 60, left: 24, right: 24, top: 60) : null,
-      child: m.Builder(
-        builder: (context) {
-          return ComponentTheme<CardTheme>(
-            data: CardTheme(
-              borderWidth: 1.5,
-            ),
-            child: ComponentTheme<DividerTheme>(
-              data: DividerTheme(color: Theme.of(context).colorScheme.border),
-              child: _Starter(
-                child: widget.customChild ?? Navigation(),
-              ),
-            ),
-          );
-        },
-      ),
+      builder: (context) {
+        return BkComponentThemes(
+          child: _Starter(
+            child: widget.customChild ?? Navigation(),
+          ),
+        );
+      },
     );
   }
 }
@@ -865,7 +883,7 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
     core.connection.initialize();
     core.feedbackPromptService.start();
     unawaited(core.shiftFeedback.prepare());
-    unawaited(core.healthRide.start());
+    unawaited(core.rides.start());
     WindowsProtocolHandler().registerForOutsideStoreBuild('bikecontrol');
     WidgetsBinding.instance.addObserver(this);
     if (!kIsWeb && !screenshotMode) {

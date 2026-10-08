@@ -12,6 +12,7 @@
 // underneath a still-visible sheet (matches the same file's "Dismiss the
 // sheet first ... the page must not open underneath a still-visible sheet"
 // idiom for `NetworkTroubleshootingPage`/support chat).
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart' show StageBadge;
@@ -49,9 +50,8 @@ Future<void> openHelpAnswerSheet(
   List<HelpCheck> checks = const [],
   List<HelpAnswerAction> actions = const [],
 }) {
-  return openSheet<void>(
+  return openBottomSheet<void>(
     context: context,
-    position: OverlayPosition.bottom,
     builder: (sheetContext) => HelpAnswerSheet(icon: icon, title: title, body: body, checks: checks, actions: actions),
   );
 }

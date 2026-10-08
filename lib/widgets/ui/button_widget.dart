@@ -75,7 +75,7 @@ class ButtonWidget extends StatelessWidget {
             Icon(button.icon, size: size * 0.42, color: onBg)
           else
             Text(
-              button.initials,
+              button.shortLabel,
               style: TextStyle(
                 fontSize: size * 0.26,
                 fontWeight: FontWeight.w700,
@@ -90,8 +90,10 @@ class ButtonWidget extends StatelessWidget {
               duration: const Duration(milliseconds: 240),
               switchInCurve: Curves.elasticOut,
               switchOutCurve: Curves.easeIn,
-              transitionBuilder: (child, anim) =>
-                  ScaleTransition(scale: anim, child: FadeTransition(opacity: anim, child: child)),
+              transitionBuilder: (child, anim) => ScaleTransition(
+                scale: anim,
+                child: FadeTransition(opacity: anim, child: child),
+              ),
               child: actionIcon == null
                   ? SizedBox(key: const ValueKey('no-badge'), width: badgeSize, height: badgeSize)
                   : Container(

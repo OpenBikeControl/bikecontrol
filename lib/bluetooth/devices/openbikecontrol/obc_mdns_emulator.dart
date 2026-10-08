@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_bike_definition.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -28,11 +29,12 @@ import 'package:prop/utils/network_address.dart';
 import 'package:prop/utils/resilient_tcp_server.dart';
 import 'package:prop/utils/serialized_lifecycle.dart';
 
-class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage {
+class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage, SteeringAngleSink {
   ResilientTcpServer? _server;
   ServiceAdvertisement? _mdnsRegistration;
   ({String name, int port})? _registeredEntry;
 
+  @override
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier(null);
 
   NetworkTransporter? _dirCon;
@@ -300,11 +302,13 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       // A drop to null is the server winding down, not a move to announce.
       if (next == null || next == _lastAdvertisedAddress) return;
       _lastAdvertisedAddress = next;
-      core.connection.signalNotification(AlertNotification(
-        LogLevel.LOGLEVEL_WARNING,
-        'Network changed — re-advertising BikeControl at $next',
-        connectionType: ConnectionMethodType.network,
-      ));
+      core.connection.signalNotification(
+        AlertNotification(
+          LogLevel.LOGLEVEL_WARNING,
+          'Network changed — re-advertising BikeControl at $next',
+          connectionType: ConnectionMethodType.network,
+        ),
+      );
     }
 
     listenable.addListener(onChange);
@@ -340,6 +344,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
+        // App Information is optional: an app on the line is connected, and
+        // the App Info, if it comes, only tells us which buttons it takes.
+        isConnected.value = true;
         if (_useDirCon) {
           _dirCon = NetworkTransporter(
             socket: socket,
@@ -399,14 +406,18 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         'No client connected',
         button: keyPair.buttons.firstOrNull,
       );
-    } else if (app == null) {
-      return Error(
-        'No app info received from central',
+    }
+
+    if (app != null && steersByAngleOnly(app, keyPair)) {
+      return Success(
+        '${inGameAction.title} sent as steering angle',
         button: keyPair.buttons.firstOrNull,
       );
     }
 
-    final mappedButtons = app.supportedButtons.filter(
+    // Without App Info the protocol says to assume every button is supported.
+    final supported = app?.supportedButtons ?? OpenBikeProtocolParser.BUTTON_NAMES.values;
+    final mappedButtons = supported.filter(
       (supportedButton) => supportedButton.action == inGameAction,
     );
 
@@ -437,6 +448,16 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       'Sent ${inGameAction.title} button press',
       button: keyPair.buttons.firstOrNull,
     );
+  }
+
+  @override
+  bool get canSendSteeringAngle => _server?.client != null && connectedApp.value != null;
+
+  @override
+  Future<void> sendSteeringAngle(int value) async {
+    final client = _server?.client;
+    if (client == null) return;
+    _write(client, OpenBikeProtocolParser.encodeSteeringAngleState(value));
   }
 
   void _write(Socket socket, List<int> responseData) {

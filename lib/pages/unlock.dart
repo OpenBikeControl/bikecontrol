@@ -44,6 +44,10 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     }
   }
 
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +90,10 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         }
 
         ftmsEmulator.isConnected.addListener(_isConnectedUpdate);
+        // The instruction names the bridge entry Zwift lists, and that name
+        // ("BikeControl" alone, "<trainer> - BikeControl" with a trainer
+        // bridged) is only settled once the bridge (re)starts.
+        ftmsEmulator.isStarted.addListener(_rebuild);
         widget.device.isUnlocked.addListener(_isConnectedUpdate);
         widget.device.alreadyUnlocked.addListener(_isConnectedUpdate);
 
@@ -112,6 +120,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _ticker.dispose();
     if (!_isInTrialPhase) {
       ftmsEmulator.isConnected.removeListener(_isConnectedUpdate);
+      ftmsEmulator.isStarted.removeListener(_rebuild);
       widget.device.isUnlocked.removeListener(_isConnectedUpdate);
       widget.device.alreadyUnlocked.removeListener(_isConnectedUpdate);
 
@@ -182,7 +191,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
             ),
           ] else if (!ftmsEmulator.isConnected.value) ...[
             Text(AppLocalizations.of(context).unlock_openZwift).li,
-            Text(AppLocalizations.of(context).unlock_connectToBikecontrol).li,
+            Text(AppLocalizations.of(context).unlock_connectToBikecontrol(ftmsEmulator.advertisementName)).li,
             // The video walks through a Click V2.
             if (!widget.device.isRideV2) GhostButton(
               leading: Icon(LucideIcons.circlePlay),

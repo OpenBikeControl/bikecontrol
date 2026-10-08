@@ -1,3 +1,5 @@
+import 'package:bike_control/utils/reduced_motion.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A custom-drawn tappable surface that behaves like a button everywhere a
@@ -6,12 +8,17 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// focus ring), and shows the click cursor.
 ///
 /// Use it for cards and pills whose look a stock `Button` variant can't give.
+///
+/// With [wash] it also paints the card surfaces' hover and pressed washes
+/// ([bkCardHover], [bkCardPressed]) over its resting [color] — the feedback
+/// every grouped row and tappable card shares.
 class BkTappable extends StatelessWidget {
   const BkTappable({
     super.key,
     required this.child,
     required this.onPressed,
     this.label,
+    this.hint,
     this.selected,
     this.expanded,
     this.inMutuallyExclusiveGroup = false,
@@ -19,7 +26,17 @@ class BkTappable extends StatelessWidget {
     this.focusNode,
     this.excludeChildSemantics = false,
     this.onHover,
+    this.onLongPress,
+    this.wash = false,
+    this.color,
   });
+
+  /// Paint the hover and pressed washes behind [child].
+  final bool wash;
+
+  /// The resting fill behind [child] (none when null); the washes replace it
+  /// while hovered or pressed.
+  final Color? color;
 
   final Widget child;
 
@@ -28,6 +45,10 @@ class BkTappable extends StatelessWidget {
 
   /// Spoken label. When null the child's own text is read.
   final String? label;
+
+  /// Spoken after the label: what pressing does, for a surface whose look
+  /// does not say it in words (a row ending in a chevron).
+  final String? hint;
 
   /// For a choice among options (plan cards, radio-like tiles).
   final bool? selected;
@@ -50,6 +71,9 @@ class BkTappable extends StatelessWidget {
   /// Hover changes, for a custom hover effect of the caller's own.
   final ValueChanged<bool>? onHover;
 
+  /// A press and hold, e.g. a row's menu on a phone.
+  final VoidCallback? onLongPress;
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -60,18 +84,33 @@ class BkTappable extends StatelessWidget {
       expanded: expanded,
       inMutuallyExclusiveGroup: inMutuallyExclusiveGroup ? true : null,
       label: label,
+      hint: hint,
       excludeSemantics: excludeChildSemantics,
       // With excludeSemantics the Clickable's own tap action and focus flag
       // are dropped too, so they are re-declared here.
       onTap: excludeChildSemantics ? onPressed : null,
+      onLongPress: excludeChildSemantics ? onLongPress : null,
       focusable: excludeChildSemantics ? onPressed != null : null,
       child: Clickable(
         enabled: onPressed != null,
         onPressed: onPressed,
+        onLongPress: onLongPress,
         focusNode: focusNode,
         onHover: onHover,
         mouseCursor: WidgetStatePropertyAll(onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic),
-        decoration: borderRadius == null
+        disableTransition: prefersReducedMotion(context),
+        decoration: wash || color != null
+            ? WidgetStateProperty.resolveWith(
+                (states) => BoxDecoration(
+                  borderRadius: borderRadius,
+                  color: wash && states.contains(WidgetState.pressed)
+                      ? bkCardPressed(context)
+                      : wash && states.contains(WidgetState.hovered)
+                      ? bkCardHover(context)
+                      : color,
+                ),
+              )
+            : borderRadius == null
             ? null
             : WidgetStatePropertyAll(BoxDecoration(borderRadius: borderRadius)),
         child: child,

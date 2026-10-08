@@ -142,15 +142,9 @@ class DrivetrainControls extends StatelessWidget {
   /// 9, and the target moves under a thumb already on its way down.
   Widget _gearNumber(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final style = TextStyle(
-      fontSize: _gearFontSize,
-      fontWeight: FontWeight.w700,
-      letterSpacing: -1.5,
-      color: cs.foreground,
-      // Equal-width digits, so the reserved box is exact for any value of the
-      // same length rather than merely close.
-      fontFeatures: BkNumerals.tabular,
-    );
+    // Tabular display figures: equal-width digits, so the reserved box is
+    // exact for any value of the same length rather than merely close.
+    final style = BkNumerals.gear(_gearFontSize, color: cs.foreground, fontWeight: FontWeight.w700);
     final gear = definition.currentGear.value;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -185,45 +179,7 @@ class DrivetrainControls extends StatelessWidget {
 
   String _ratio() => definition.gearRatio.value.toStringAsFixed(2);
 
-  /// Which chainring the drivetrain is on, and a way to change it.
-  ///
-  /// The rider already has this on a controller button; having it under the
-  /// picture is what makes a virtual front derailleur checkable from the page
-  /// that draws one.
-  Widget _frontRing(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return ValueListenableBuilder<FrontRing>(
-      valueListenable: definition.frontRing,
-      builder: (context, ring, _) {
-        final large = ring == FrontRing.large;
-        final teeth = large ? definition.largeChainringTeeth : definition.smallChainringTeeth;
-        return Button.ghost(
-          style: ButtonStyle.ghost().withPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          ),
-          onPressed: () {
-            definition.toggleFrontChainring();
-            HapticFeedback.selectionClick();
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${large ? 2 : 1}× · ${teeth}T',
-                style: context.typography.xSmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.mutedForeground,
-                  fontFeatures: BkNumerals.tabular,
-                ),
-              ),
-              const Gap(6),
-              Icon(LucideIcons.repeat, size: 13, color: cs.primary),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  Widget _frontRing(BuildContext context) => FrontRingToggle(definition: definition);
 
   Widget _shiftButton(
     BuildContext context, {
@@ -272,6 +228,67 @@ class DrivetrainControls extends StatelessWidget {
           color: filled ? cs.primaryForeground : cs.mutedForeground,
         ),
       ),
+    );
+  }
+}
+
+/// Which chainring the drivetrain is on, and a way to change it.
+///
+/// The rider already has this on a controller button; having it under the
+/// picture is what makes a virtual front derailleur checkable from the page
+/// that draws one.
+class FrontRingToggle extends StatelessWidget {
+  const FrontRingToggle({super.key, required this.definition});
+
+  final FitnessBikeDefinition definition;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ValueListenableBuilder<FrontRing>(
+      valueListenable: definition.frontRing,
+      builder: (context, ring, _) {
+        final large = ring == FrontRing.large;
+        final teeth = large ? definition.largeChainringTeeth : definition.smallChainringTeeth;
+        final readout = '${large ? 2 : 1}× · ${teeth}T';
+        // Announced as what it does, with the ring it is on as its value; a
+        // bare "1× · 34T" said nothing about being a button.
+        return Semantics(
+          container: true,
+          button: true,
+          label: context.i18n.a11yChangeChainring,
+          value: readout,
+          excludeSemantics: true,
+          child: ConstrainedBox(
+            // A thumb target under the drivetrain, not just the text's height.
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Button.ghost(
+              style: ButtonStyle.ghost().withPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              ),
+              onPressed: () {
+                definition.toggleFrontChainring();
+                HapticFeedback.selectionClick();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    readout,
+                    style: context.typography.xSmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.mutedForeground,
+                      fontFeatures: BkNumerals.tabular,
+                    ),
+                  ),
+                  const Gap(6),
+                  Icon(LucideIcons.repeat, size: 13, color: cs.primary),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

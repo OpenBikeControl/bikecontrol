@@ -34,6 +34,11 @@ class Tacx extends SupportedApp {
   @override
   Map<String, String> get trainerMdnsTxt => const {'product-id': mdnsProductId};
 
+  /// Tacx Training for Windows is a Microsoft Store (UWP) app: it lists the
+  /// Bridge on the same PC but can never open a connection to it.
+  @override
+  bool get windowsStoreApp => true;
+
   Tacx()
     : super(
         name: 'Tacx Training',

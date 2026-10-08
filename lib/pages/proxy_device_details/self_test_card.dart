@@ -430,7 +430,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
     return harness.supportsPowerTarget ? 'targetPower' : null;
   }
 
-  /// Mirrors the settings-UI path (`TrainerSettingsSection`'s virtual-
+  /// Mirrors the settings-UI path (`VirtualShiftingModeCard`'s virtual-
   /// shifting-mode radio, via `_updateActive`): the CTA's own mode switch
   /// must stick the same way a manual pick in settings does, or the rider's
   /// next connect quietly reverts to whatever the active [ShiftingConfig] on
@@ -482,7 +482,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
     return null;
   }
 
-  /// Mirrors `TrainerSettingsSection._protocolLabel`: the three protocols the
+  /// Mirrors `ControlProtocolSection._protocolLabel`: the three protocols the
   /// settings picker knows about get their translated name; anything else
   /// (a name this build doesn't recognize) falls back to the raw value
   /// rather than crashing.
@@ -525,13 +525,19 @@ class _SelfTestCardState extends State<SelfTestCard> {
     );
   }
 
-  static String _verdictBody(AppLocalizations l10n, SelfTestVerdict verdict) {
+  String _verdictBody(AppLocalizations l10n, SelfTestVerdict verdict) {
     return switch (verdict) {
       SelfTestVerdict.pass => l10n.selfTestVerdictPassBody,
       SelfTestVerdict.ergOkVsFail => l10n.selfTestVerdictErgOkBody,
       SelfTestVerdict.vsOkErgFail => l10n.selfTestVerdictVsOkErgFailBody,
       SelfTestVerdict.noControl => l10n.selfTestVerdictNoControlBody,
-      SelfTestVerdict.noData => l10n.selfTestVerdictNoDataBody,
+      // No samples at all is most often something else holding the trainer:
+      // another app, or the trainer app paired to it directly rather than to
+      // the bridge. Name both, and the entry to pick instead.
+      SelfTestVerdict.noData => switch (core.settings.getTrainerApp()?.name) {
+        final app? => l10n.selfTestVerdictNoDataHeldBody(app, widget.device.advertisementName),
+        null => l10n.selfTestVerdictNoDataHeldBodyNoApp(widget.device.advertisementName),
+      },
       SelfTestVerdict.aborted => l10n.selfTestVerdictAbortedBody,
     };
   }

@@ -42,18 +42,20 @@ WorkoutResult _ride({
 }
 
 void main() {
-  test('skipped below 5 min of active time', () {
-    expect(HealthWorkoutPayload.fromResult(_ride(seconds: 299), syncId: 'x'), isNull);
-    expect(HealthWorkoutPayload.fromResult(_ride(seconds: 300), syncId: 'x'), isNotNull);
+  test('every saved ride qualifies by default: rides are filtered when they end', () {
+    expect(HealthWorkoutPayload.fromResult(_ride(seconds: 90), syncId: 'x'), isNotNull);
   });
 
-  test('a long ride with a long pause still needs 5 min of ACTIVE time', () {
+  test('a minimum, when given, counts ACTIVE time, not the pause', () {
+    const min = Duration(minutes: 5);
+    expect(HealthWorkoutPayload.fromResult(_ride(seconds: 299), syncId: 'x', minActiveDuration: min), isNull);
+    expect(HealthWorkoutPayload.fromResult(_ride(seconds: 300), syncId: 'x', minActiveDuration: min), isNotNull);
     final ride = _ride(
       seconds: 600,
       active: const Duration(seconds: 240),
       pauses: [WorkoutPause(start: _t(240), end: _t(600))],
     );
-    expect(HealthWorkoutPayload.fromResult(ride, syncId: 'x'), isNull);
+    expect(HealthWorkoutPayload.fromResult(ride, syncId: 'x', minActiveDuration: min), isNull);
   });
 
   test('carries the sync id, window and pauses', () {

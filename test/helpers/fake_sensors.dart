@@ -1,6 +1,7 @@
 // A phone's motion sensors, scripted: stands in for sensors_plus' platform so
-// tests can feed the app's phone steering exactly the gyroscope and
-// accelerometer samples they want, on the fake clock.
+// tests can feed the app's phone steering exactly the gyroscope,
+// accelerometer and magnetometer samples they want, stamped with the time
+// they want.
 import 'dart:async';
 
 // ignore: depend_on_referenced_packages
@@ -11,6 +12,9 @@ class FakeSensorsPlatform extends SensorsPlatform {
   final _accelerometer = StreamController<AccelerometerEvent>.broadcast();
   final _magnetometer = StreamController<MagnetometerEvent>.broadcast();
 
+  /// The sampling period each sensor was last asked for, by sensor name.
+  final Map<String, Duration> requestedPeriods = {};
+
   /// Installs a fresh fake as sensors_plus' platform and returns it.
   static FakeSensorsPlatform install() {
     final fake = FakeSensorsPlatform();
@@ -18,17 +22,27 @@ class FakeSensorsPlatform extends SensorsPlatform {
     return fake;
   }
 
-  @override
-  Stream<GyroscopeEvent> gyroscopeEventStream({Duration samplingPeriod = SensorInterval.normalInterval}) =>
-      _gyroscope.stream;
+  bool get gyroscopeListened => _gyroscope.hasListener;
+  bool get accelerometerListened => _accelerometer.hasListener;
+  bool get magnetometerListened => _magnetometer.hasListener;
 
   @override
-  Stream<AccelerometerEvent> accelerometerEventStream({Duration samplingPeriod = SensorInterval.normalInterval}) =>
-      _accelerometer.stream;
+  Stream<GyroscopeEvent> gyroscopeEventStream({Duration samplingPeriod = SensorInterval.normalInterval}) {
+    requestedPeriods['gyroscope'] = samplingPeriod;
+    return _gyroscope.stream;
+  }
 
   @override
-  Stream<MagnetometerEvent> magnetometerEventStream({Duration samplingPeriod = SensorInterval.normalInterval}) =>
-      _magnetometer.stream;
+  Stream<AccelerometerEvent> accelerometerEventStream({Duration samplingPeriod = SensorInterval.normalInterval}) {
+    requestedPeriods['accelerometer'] = samplingPeriod;
+    return _accelerometer.stream;
+  }
+
+  @override
+  Stream<MagnetometerEvent> magnetometerEventStream({Duration samplingPeriod = SensorInterval.normalInterval}) {
+    requestedPeriods['magnetometer'] = samplingPeriod;
+    return _magnetometer.stream;
+  }
 
   /// A handlebar-mounted phone at rest: gravity on z, nothing else.
   void still(DateTime at) {
@@ -41,5 +55,10 @@ class FakeSensorsPlatform extends SensorsPlatform {
   void turning(double yawRadPerSec, DateTime at) {
     _accelerometer.add(AccelerometerEvent(0, 0, 9.80665, at));
     _gyroscope.add(GyroscopeEvent(0, 0, yawRadPerSec, at));
+  }
+
+  /// A magnetometer reading, microtesla in the phone's frame.
+  void magnetic(double x, double y, double z, DateTime at) {
+    _magnetometer.add(MagnetometerEvent(x, y, z, at));
   }
 }

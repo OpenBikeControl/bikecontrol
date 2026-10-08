@@ -58,7 +58,7 @@ class DrivetrainView extends StatefulWidget {
   final bool framed;
 
   @override
-  State<DrivetrainView> createState() => _DrivetrainViewState();
+  State<DrivetrainView> createState() => DrivetrainViewState();
 }
 
 /// How long a shift takes to travel to the new cog. Long enough to read as
@@ -69,9 +69,21 @@ const double _easeSeconds = 0.26;
 /// travel on a 24-speed cassette, so the landing needs its own signal.
 const double _pulseSeconds = 0.5;
 
-class _DrivetrainViewState extends State<DrivetrainView> with SingleTickerProviderStateMixin {
+class DrivetrainViewState extends State<DrivetrainView> with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker(_onTick);
-  late final _Motion _motion = _Motion(front: _frontTarget, rear: _rearTarget);
+  late final DrivetrainMotion _motion = DrivetrainMotion(front: _frontTarget, rear: _rearTarget, idle: _idleTarget);
+
+  /// The chainring's drawn radius right now, mid-ease included.
+  @visibleForTesting
+  double get debugFrontRadius => _motion.front.value;
+
+  /// How far the second chainring has faded in: 0 on a 1× drivetrain, 1 once
+  /// the front derailleur's second ring is fully drawn.
+  @visibleForTesting
+  double get debugIdleRingOpacity => _motion.idle.value;
+
+  /// The second ring is there only with a front derailleur.
+  double get _idleTarget => widget.frontShift ? 1 : 0;
 
   Duration _lastTick = Duration.zero;
   bool _reducedMotion = false;
@@ -97,9 +109,13 @@ class _DrivetrainViewState extends State<DrivetrainView> with SingleTickerProvid
   @override
   void didUpdateWidget(DrivetrainView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _motion.rear.retarget(_rearTarget);
-    _motion.front.retarget(_frontTarget);
-    if (oldWidget.gear != widget.gear) _motion.startPulse();
+    // Under reduced motion everything lands where it is going at once: the
+    // chain on its cog, the chainring on its new size, the second ring in.
+    final instant = _reducedMotion;
+    _motion.rear.retarget(_rearTarget, instant: instant);
+    _motion.front.retarget(_frontTarget, instant: instant);
+    _motion.idle.retarget(_idleTarget, instant: instant);
+    if (oldWidget.gear != widget.gear && !instant) _motion.startPulse();
     _syncTicker();
   }
 
@@ -195,11 +211,19 @@ class _DrivetrainViewState extends State<DrivetrainView> with SingleTickerProvid
 ///
 /// Kept out of the widget tree deliberately: the painter listens to this, so a
 /// marching chain repaints without rebuilding anything.
-class _Motion extends ChangeNotifier {
-  _Motion({required double front, required double rear}) : front = _Eased(front), rear = _Eased(rear);
+@visibleForTesting
+class DrivetrainMotion extends ChangeNotifier {
+  DrivetrainMotion({required double front, required double rear, required double idle})
+    : front = _Eased(front),
+      rear = _Eased(rear),
+      idle = _Eased(idle);
 
   final _Eased front;
   final _Eased rear;
+
+  /// The second chainring's presence, 0 to 1: it fades and grows in when the
+  /// front derailleur is switched on, while the chain slides onto the ring.
+  final _Eased idle;
 
   /// Where the dashed inner line of the chain currently starts.
   double chainPhase = 0;
@@ -215,7 +239,7 @@ class _Motion extends ChangeNotifier {
   /// chain just left rather than out of the one it is easing towards.
   double pulseRadius = 0;
 
-  bool get settled => front.settled && rear.settled && pulseElapsed >= _pulseSeconds;
+  bool get settled => front.settled && rear.settled && idle.settled && pulseElapsed >= _pulseSeconds;
 
   bool get pulsing => pulseElapsed < _pulseSeconds;
 
@@ -231,7 +255,8 @@ class _Motion extends ChangeNotifier {
     // Both have to be ticked, so no short-circuiting here.
     final frontMoving = front.tick(dt);
     final rearMoving = rear.tick(dt);
-    var busy = frontMoving || rearMoving;
+    final idleMoving = idle.tick(dt);
+    var busy = frontMoving || rearMoving || idleMoving;
     if (pulsing) {
       pulseElapsed += dt;
       busy = true;
@@ -242,12 +267,16 @@ class _Motion extends ChangeNotifier {
   /// Winds the chain on by [dt] seconds of pedalling at [cadence] rpm. Both
   /// rings turn at the speed that much chain implies, which is what puts the
   /// cassette's spin and the crank's in true proportion.
+  ///
+  /// The ring is drawn left of the cassette, so pedalling forward turns
+  /// everything counter-clockwise (negative angles on screen) and the top run
+  /// travels towards the ring: back along the chain path, hence a growing phase.
   void march(double dt, int cadence) {
     final rFront = math.max(1.0, front.value);
     final travel = (math.max(20, cadence) / 60) * kTau * rFront * dt;
-    chainPhase = (chainPhase - travel) % kChainPitch;
-    frontTurn = (frontTurn + travel / rFront) % kTau;
-    rearTurn = (rearTurn + travel / math.max(4.0, rear.value)) % kTau;
+    chainPhase = (chainPhase + travel) % kChainPitch;
+    frontTurn = (frontTurn - travel / rFront) % kTau;
+    rearTurn = (rearTurn - travel / math.max(4.0, rear.value)) % kTau;
   }
 
   void notify() => notifyListeners();
@@ -267,7 +296,13 @@ class _Eased {
 
   bool get settled => _t >= 1;
 
-  void retarget(double target) {
+  /// Heads for [target]; lands on it at once when [instant].
+  void retarget(double target, {bool instant = false}) {
+    if (instant) {
+      _value = _from = _target = target;
+      _t = 1;
+      return;
+    }
     if ((target - _target).abs() < 0.001) return;
     _from = _value;
     _target = target;
@@ -304,7 +339,7 @@ class _DrivetrainPainter extends CustomPainter {
     // picture would keep the fallback glyphs it was first recorded with.
   }) : super(repaint: Listenable.merge([motion, PaintingBinding.instance.systemFonts]));
 
-  final _Motion motion;
+  final DrivetrainMotion motion;
   final int gear;
   final int gearCount;
   final bool frontShift;
@@ -333,7 +368,7 @@ class _DrivetrainPainter extends CustomPainter {
     _paintCassetteHub(canvas);
     if (motion.pulsing) _paintLandingRipple(canvas);
     _paintActiveCog(canvas, rRear);
-    if (frontShift) _paintIdleChainring(canvas);
+    if (motion.idle.value > 0.001) _paintIdleChainring(canvas, motion.idle.value);
     _paintCage(canvas, guide, tension);
     _paintChain(canvas, rFront, rRear);
     _paintPulley(canvas, guide);
@@ -414,10 +449,12 @@ class _DrivetrainPainter extends CustomPainter {
   }
 
   /// The ring the chain is not on — only worth drawing when there are two.
-  void _paintIdleChainring(Canvas canvas) {
-    final radius = idleChainringTeeth * kRadiusPerTooth;
-    _paintTeeth(canvas, kChainringCentre, radius + 1, idleChainringTeeth, hardBorder, width: 2.4, opacity: 0.75);
-    canvas.drawCircle(kChainringCentre, radius, _stroke(hardBorder, 1.2, opacity: 0.75));
+  /// [presence] fades and grows it in as the front derailleur comes on.
+  void _paintIdleChainring(Canvas canvas, double presence) {
+    final radius = idleChainringTeeth * kRadiusPerTooth * (0.86 + 0.14 * presence);
+    final opacity = 0.75 * presence;
+    _paintTeeth(canvas, kChainringCentre, radius + 1, idleChainringTeeth, hardBorder, width: 2.4, opacity: opacity);
+    canvas.drawCircle(kChainringCentre, radius, _stroke(hardBorder, 1.2, opacity: opacity));
   }
 
   void _paintCage(Canvas canvas, Offset guide, Offset tension) {

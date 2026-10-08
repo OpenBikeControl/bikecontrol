@@ -7,7 +7,6 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/single_line_exception.dart';
@@ -15,7 +14,6 @@ import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
-import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -251,15 +249,6 @@ abstract class ZwiftDevice extends BluetoothDevice {
     );
   }
 
-  @override
-  Widget? buildPreferences(BuildContext context) {
-    if (!canVibrate) return null;
-    return Checkbox(
-      trailing: Expanded(child: Text(context.i18n.enableVibrationFeedback)),
-      state: core.settings.getVibrationEnabled() ? CheckboxState.checked : CheckboxState.unchecked,
-      onChanged: (value) async {
-        await core.settings.setVibrationEnabled(value == CheckboxState.checked);
-      },
-    );
-  }
+  // Vibration on shift is a row of the controller page's actions (above
+  // Reset to defaults), not a loose preference: see ControllerSettingsPage.
 }

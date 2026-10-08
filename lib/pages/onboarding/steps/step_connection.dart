@@ -1,16 +1,18 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_group_label.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-const _success = Color(0xFF22C55E);
 
 /// One design-language method tile: icon square, title + badge, description,
 /// optional feature checks, radio check-dot on the right. Selection state is
@@ -66,8 +68,8 @@ class _MethodTile extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            border: Border.all(color: on ? onboardingAccent(context) : scheme.border, width: 1.5),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: on ? onboardingAccent(context) : const Color(0x00000000), width: 2),
+            borderRadius: BorderRadius.circular(16),
             color: scheme.card,
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -97,7 +99,7 @@ class _MethodTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Row(children: [
-                      Icon(LucideIcons.check, size: 13, color: _success),
+                      Icon(LucideIcons.check, size: 13, color: BkStatusColors.of(context).success),
                       Gap(7),
                       Text(f).xSmall,
                     ]),
@@ -125,13 +127,13 @@ class _MethodTile extends StatelessWidget {
                             height: 7,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isConnected ? _success : Theme.of(context).colorScheme.mutedForeground,
+                              color: isConnected ? BkStatusColors.of(context).success : Theme.of(context).colorScheme.mutedForeground,
                             ),
                           ),
                           Gap(7),
                           isConnected
                               ? DefaultTextStyle.merge(
-                                  style: const TextStyle(color: _success),
+                                  style: TextStyle(color: BkStatusColors.of(context).success),
                                   child: Text(context.i18n.onboardingDeviceConnected).xSmall.semiBold,
                                 )
                               : Text(context.i18n.onboardingSummaryWaitingFor(appName)).xSmall.muted,
@@ -206,7 +208,8 @@ Widget onboardingConnectionBody(
       OnboardingMethod.bluetooth => _MethodTile(
           icon: LucideIcons.bluetooth,
           title: context.i18n.onboardingMethodBluetooth,
-          badge: context.i18n.onboardingMethodBluetoothBadge,
+          // Platform badges only where they apply.
+          badge: HostPlatform.isIOS ? context.i18n.onboardingMethodBluetoothBadge : null,
           description: context.i18n.onboardingMethodBluetoothDesc(app.name),
           enabled: enabled,
           connection: connection,
@@ -216,7 +219,7 @@ Widget onboardingConnectionBody(
       OnboardingMethod.local => _MethodTile(
           icon: LucideIcons.keyboard,
           title: context.i18n.onboardingMethodLocal,
-          badge: context.i18n.onboardingMethodLocalBadge,
+          badge: available ? context.i18n.onboardingMethodLocalBadge : null,
           description: context.i18n.onboardingMethodLocalDesc,
           features: [
             context.i18n.onboardingMethodLocalFeature1,
@@ -234,9 +237,11 @@ Widget onboardingConnectionBody(
   }
 
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-    Text(context.i18n.onboardingConnectionTitle(app.name)).h4,
+    OnboardingHeadline(context.i18n.onboardingConnectionTitle(app.name)),
     Gap(6),
-    Text(target == Target.thisDevice
+    // On iOS a same-device app is reached over the network, not driven
+    // directly — there is no Local method there.
+    Text(onboardingWhereUsesLocal(target)
             ? context.i18n.onboardingConnectionSubtitleLocal(app.name)
             // Apps that only find trainers over Bluetooth never see the network
             // advertisement, so promising them one sends riders looking for it.

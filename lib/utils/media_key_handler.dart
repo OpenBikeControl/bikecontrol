@@ -10,6 +10,21 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'smtc_stub.dart' if (dart.library.io) 'package:smtc_windows/smtc_windows.dart';
 
+/// Volume keys are only seen as a change in system volume. At 0 % or 100 %
+/// a press in that direction changes nothing and the button is lost, so the
+/// starting volume is kept at least this far from either end.
+const double _volumeHeadroom = 0.1;
+
+/// Volume reported back after [FlutterVolumeController.setVolume] may differ
+/// by float rounding; anything closer than this is not a key press.
+const double _volumeTolerance = 0.005;
+
+@visibleForTesting
+double volumeWithHeadroom(double volume) => volume.clamp(_volumeHeadroom, 1 - _volumeHeadroom);
+
+@visibleForTesting
+bool isVolumeKeyChange(double volume, double lastVolume) => (volume - lastVolume).abs() >= _volumeTolerance;
+
 class MediaKeyHandler {
   final ValueNotifier<bool> isMediaKeyDetectionEnabled = ValueNotifier(false);
 
@@ -21,6 +36,7 @@ class MediaKeyHandler {
     isMediaKeyDetectionEnabled.addListener(() async {
       if (!isMediaKeyDetectionEnabled.value) {
         FlutterVolumeController.removeListener();
+        _lastVolume = null;
         if (Platform.isWindows) {
           _smtc?.disableSmtc();
         } else {
@@ -37,8 +53,16 @@ class MediaKeyHandler {
         _ensureHidDevice();
         FlutterVolumeController.addListener(
           (volume) {
-            _lastVolume ??= volume;
-            if (volume != _lastVolume) {
+            if (_lastVolume == null) {
+              // Windows: a mapped volume key is reverted, so the volume never
+              // moves away from 0 % / 100 % on its own once it's there.
+              _lastVolume = Platform.isWindows ? volumeWithHeadroom(volume) : volume;
+              if (_lastVolume != volume) {
+                FlutterVolumeController.setVolume(_lastVolume!);
+              }
+              return;
+            }
+            if (isVolumeKeyChange(volume, _lastVolume!)) {
               final bool hasAction;
               if (volume > _lastVolume!) {
                 hasAction = _onMediaKeyDetectedListener(MediaKey.volumeUp);

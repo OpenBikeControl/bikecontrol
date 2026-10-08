@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
@@ -37,7 +38,7 @@ Future<void> showZwiftRideFirmwareDialog(BuildContext context, ZwiftRide device)
       child: AlertDialog(
         title: Row(
           children: [
-            const Icon(LucideIcons.triangleAlert, color: Colors.orange),
+            Icon(LucideIcons.triangleAlert, color: BkStatusColors.of(c).warning),
             const SizedBox(width: 8),
             Expanded(child: Text(c.i18n.zwiftRideFirmwareNoticeTitle)),
           ],
@@ -62,8 +63,8 @@ Future<void> showZwiftRideFirmwareDialog(BuildContext context, ZwiftRide device)
 }
 
 /// Persistent advisory shown on the Zwift Ride's controller card when its
-/// firmware is past the last supported version. Mirrors
-/// [VirtualShiftingProNotice]; routes to support without mentioning any tooling.
+/// firmware is past the last supported version. Routes to support without
+/// mentioning any tooling.
 class ZwiftRideFirmwareNotice extends StatelessWidget {
   final ZwiftRide device;
 
@@ -89,7 +90,7 @@ class ZwiftRideFirmwareNotice extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 10,
             children: [
-              const Icon(LucideIcons.triangleAlert, color: Colors.orange, size: 18),
+              Icon(LucideIcons.triangleAlert, color: BkStatusColors.of(context).warning, size: 18),
               Expanded(
                 child: Text(
                   l10n.zwiftRideFirmwareNoticeBody(device.firmwareVersion ?? ''),

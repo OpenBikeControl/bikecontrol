@@ -1,6 +1,7 @@
 import 'package:bike_control/pages/home/chain_builder.dart';
 import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/services/network_self_test/probes/passive_probes.dart' show AddressWarningKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 
@@ -111,6 +112,91 @@ void main() {
       final controllers = chain.allOf(ChainLinkKey.controller).toList();
       expect(controllers, hasLength(2));
       expect(controllers.map((l) => l.id), ['controller:left', 'controller:right']);
+    });
+  });
+
+  // A controller remembered from an earlier ride and not back yet is almost
+  // always just asleep — "out of range" and "finish the setup" both scared
+  // riders who only had to press a button.
+  group('a remembered controller that is not here yet', () {
+    SetupStep inRangeStep(DevicePresence presence) => buildChain(
+      ChainInputs(controllers: [controller(presence: presence)], app: _readyApp),
+    ).first.steps.firstWhere((s) => s.id == SetupStepId.controllerInRange);
+
+    test('asks to wake it', () {
+      expect(inRangeStep(DevicePresence.remembered).variant, SetupStepVariant.controllerAsleep);
+    });
+
+    test('one lost in this session keeps the ordinary wording', () {
+      expect(inRangeStep(DevicePresence.lost).variant, SetupStepVariant.standard);
+    });
+
+    test('the waking step is the banner\'s one step', () {
+      final banner = deriveBanner(
+        buildChain(ChainInputs(controllers: [controller(presence: DevicePresence.remembered)], app: _readyApp)),
+      );
+      expect(banner.soleStep?.variant, SetupStepVariant.controllerAsleep);
+    });
+  });
+
+  // A Click V2 from an earlier ride, out of reach and locked, while the rider
+  // is on a Zwift Play that works: the Click V2's steps are not what stands
+  // between the rider and riding.
+  group('an absent controller beside a working one', () {
+    final absentClick = controller(
+      deviceId: 'click',
+      name: 'Zwift Click V2',
+      presence: DevicePresence.remembered,
+      unlocked: false,
+    );
+    final play = controller(deviceId: 'play', name: 'Zwift Play');
+
+    test('does not block Ready and adds nothing to the steps left', () {
+      final chain = buildChain(ChainInputs(controllers: [absentClick, play], trainer: trainer(), app: _readyApp));
+      final banner = deriveBanner(chain);
+      expect(banner.kind, ChainBannerKind.ready);
+      expect(banner.stepsLeft, 0);
+    });
+
+    test('keeps its steps on its own card, as optional', () {
+      final chain = buildChain(ChainInputs(controllers: [absentClick, play], app: _readyApp));
+      final click = chain.firstWhere((l) => l.id == 'controller:click');
+      expect(click.pendingSteps.map((s) => s.id), [SetupStepId.controllerInRange, SetupStepId.controllerUnlocked]);
+      expect(click.pendingSteps.every((s) => s.optional), isTrue);
+      expect(click.isBlocking, isFalse);
+      expect(click.standby, isTrue);
+    });
+
+    test('a controller never set up stays out of the way too', () {
+      final found = controller(deviceId: 'found', presence: DevicePresence.discovered);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [found, play], app: _readyApp)));
+      expect(banner.kind, ChainBannerKind.ready);
+    });
+
+    test('other steps still count', () {
+      const waiting = AppInput(name: 'MyWhoosh', hasEnabledConnection: true);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [absentClick, play], app: waiting)));
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.outstandingLinkIds, ['app']);
+      expect(banner.stepsLeft, 1);
+    });
+
+    test('alone, it is still the thing to fix', () {
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [absentClick], app: _readyApp)));
+      expect(banner.kind, ChainBannerKind.pending);
+      expect(banner.outstandingLinkIds, ['controller:click']);
+    });
+
+    test('beside a controller that is itself unfinished, it still counts', () {
+      final unmapped = controller(deviceId: 'play', name: 'Zwift Play', hasMappedButtons: false);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [absentClick, unmapped], app: _readyApp)));
+      expect(banner.outstandingLinkIds, contains('controller:click'));
+    });
+
+    test('one lost this session is still news', () {
+      final lost = controller(deviceId: 'click', presence: DevicePresence.lost);
+      final banner = deriveBanner(buildChain(ChainInputs(controllers: [lost, play], app: _readyApp)));
+      expect(banner.kind, ChainBannerKind.broken);
     });
   });
 
@@ -1034,6 +1120,34 @@ void main() {
         expect(step.hintArg, '10.5.0.2');
         expect(link.requiredSteps, contains(step));
         expect(link.status, isNot(LinkStatus.ready));
+      });
+
+      // Turning a VPN off is the wrong advice for a phone on mobile data, and
+      // for a desktop on two real networks — each gets words of its own.
+      group('says why the address looks wrong', () {
+        SetupStep stepFor(AddressWarningKind? kind) => buildChain(
+          ChainInputs(
+            app: AppInput(
+              advertisedAddressWarning: '10.140.12.7',
+              advertisedAddressWarningKind: kind,
+              isConnected: false,
+              hasEnabledConnection: true,
+            ),
+          ),
+        ).byKey(ChainLinkKey.app).steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+
+        test('mobile data only: join the app\'s Wi-Fi', () {
+          expect(stepFor(AddressWarningKind.noWifi).variant, SetupStepVariant.networkNoWifi);
+        });
+
+        test('two real networks: check which one the app is on', () {
+          expect(stepFor(AddressWarningKind.twoNetworks).variant, SetupStepVariant.networkTwoNetworks);
+        });
+
+        test('a VPN or bridge keeps the standard wording', () {
+          expect(stepFor(AddressWarningKind.unreachable).variant, SetupStepVariant.standard);
+          expect(stepFor(null).variant, SetupStepVariant.standard);
+        });
       });
 
       test('disappears once the app connects', () {

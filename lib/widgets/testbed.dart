@@ -146,14 +146,12 @@ class _TestbedState extends State<Testbed> with SingleTickerProviderStateMixin, 
         }
       } else if (data is ActionNotification && data.result is! actions.Ignored) {
         buildToast(
-          location: ToastLocation.bottomLeft,
           level: data.result is actions.Error ? LogLevel.LOGLEVEL_WARNING : LogLevel.LOGLEVEL_INFO,
           title: data.result.message,
           duration: Duration(seconds: 1),
         );
       } else if (data is AlertNotification) {
         buildToast(
-          location: ToastLocation.bottomRight,
           level: data.level,
           title: data.alertMessage,
           closeTitle: data.buttonTitle ?? 'Close',

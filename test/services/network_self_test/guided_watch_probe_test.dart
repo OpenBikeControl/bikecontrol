@@ -22,6 +22,7 @@ NetworkProbeContext ctx({
   List<MdnsQueryLogEntry> Function()? queryLog,
   bool Function()? trainerAppConnectedNow,
   WatchProgressCallback? onWatchProgress,
+  String platform = 'macos',
 }) {
   var nowCalls = 0;
   final base = DateTime(2026, 8, 21);
@@ -34,7 +35,7 @@ NetworkProbeContext ctx({
     trainerAppName: null,
     backend: backend,
     advertisedHostname: advertisedHostname,
-    platform: 'macos',
+    platform: platform,
     resolve: (host) async => const [],
     tcpProbe: (address, port) async {},
     runProcess: (executable, arguments) async => ProcessResult(0, 0, '', ''),
@@ -114,6 +115,24 @@ void main() {
       expect(check.fixes, contains(NetworkFixId.switchToLocal));
     });
 
+    // The trainer app never even searched: most often it is not allowed to
+    // use the local network, or is on another Wi-Fi. Using the Local method
+    // instead is one way out, but the cause is in the trainer app's settings.
+    group('no query arrived', () {
+      test('on a Mac, offers the Local Network settings first, where the trainer app is switched on', () async {
+        final check = await guidedWatchCheck(ctx(platform: 'macos'), window: _defaultWindow, tick: _defaultTick);
+        expect(check.fixes, [NetworkFixId.openAppLocalNetworkSettings, NetworkFixId.switchToLocal]);
+      });
+
+      for (final platform in ['windows', 'android', 'linux']) {
+        test('on $platform, there is no such settings page to open', () async {
+          final check = await guidedWatchCheck(ctx(platform: platform), window: _defaultWindow, tick: _defaultTick);
+          expect(check.verdict, NetworkVerdict.fail);
+          expect(check.fixes, [NetworkFixId.switchToLocal]);
+        });
+      }
+    });
+
     test('warn: browsed but never resolved', () async {
       final browse = _entry(const ['PTR _openbikecontrol._tcp.local']);
       final check = await guidedWatchCheck(
@@ -156,14 +175,22 @@ void main() {
       expect(check.verdict, NetworkVerdict.pass);
     });
 
-    test('warn: osResponder backend, never connects — only the TCP accept is observable', () async {
-      final check = await guidedWatchCheck(
-        ctx(backend: ObpMdnsBackend.osResponder),
-        window: _defaultWindow,
-        tick: _defaultTick,
-      );
-      expect(check.verdict, NetworkVerdict.warn);
-      expect(check.detail['note'], contains('TCP accept'));
+    // The system mDNS service (Android NSD) is the recommended setting, and
+    // under it the queries never reach BikeControl — so the watch can see
+    // nothing go wrong. Counting that as a warning told every rider on the
+    // recommended setting "something on this network could interfere".
+    test('pass with a note: osResponder backend, never connects — nothing to observe is not a warning', () async {
+      for (final platform in ['android', 'windows', 'macos']) {
+        final check = await guidedWatchCheck(
+          ctx(backend: ObpMdnsBackend.osResponder, platform: platform),
+          window: _defaultWindow,
+          tick: _defaultTick,
+        );
+        expect(check.verdict, NetworkVerdict.pass, reason: platform);
+        expect(check.detail['note'], contains('TCP accept'));
+        expect(check.detail['connected'], 'false');
+        expect(check.fixes, isEmpty);
+      }
     });
 
     test('count increase on an existing entry (no new list entry) still counts as a new ask', () async {

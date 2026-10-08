@@ -34,10 +34,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "de.jonasbark.swiftcontrol"
@@ -68,15 +64,25 @@ android {
             // flutter_overlay_window OverlayService fields by reflection, which
             // R8 cannot see, so keep them (see proguard-rules.pro) or the
             // overlay re-top and keep-screen-on calls throw at runtime.
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // Writes finished rides to Health Connect (HealthConnectWorkoutWriter).
+    // Needs API 26+; minSdk stays 24 and the writer reports "unsupported"
+    // below 26 (see tools:overrideLibrary in the manifest).
+    implementation("androidx.health.connect:connect-client:1.1.0")
 }
 
 flutter {
     source = "../.."
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
+    }
 }

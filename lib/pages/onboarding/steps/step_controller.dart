@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
@@ -7,14 +8,21 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
+import 'package:bike_control/pages/onboarding/zwift_controller_expectation.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile;
+import 'package:bike_control/widgets/ui/bk_status_dot.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerPress, LastPressStrip;
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:bike_control/widgets/ui/wifi_animation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -80,15 +88,11 @@ Widget onboardingDeviceRow(BuildContext context, BaseDevice device, {bool needsS
   final scheme = Theme.of(context).colorScheme;
   return Container(
     margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      border: Border.all(color: connected ? const Color(0xFF22C55E) : scheme.border, width: 1.5),
-      borderRadius: BorderRadius.circular(12),
-      color: scheme.card,
-    ),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: scheme.card),
     child: Row(
       children: [
-        Icon(connected ? LucideIcons.check : device.icon, size: 20, color: connected ? const Color(0xFF22C55E) : null),
+        BkIconTile(icon: device.icon),
         Gap(12),
         Expanded(
           child: Column(
@@ -100,13 +104,10 @@ Widget onboardingDeviceRow(BuildContext context, BaseDevice device, {bool needsS
               Text(device.displayName(context)).small.semiBold,
               // A device held for setup (Click V2 pending its unlock-mode choice)
               // is deliberately not connecting — don't pretend it is.
-              Text(
-                connected
-                    ? context.i18n.onboardingDeviceConnected
-                    : needsSetup
-                    ? context.i18n.onboardingSetupNeeded
-                    : context.i18n.onboardingDeviceConnecting,
-              ).xSmall.muted,
+              if (!connected)
+                Text(
+                  needsSetup ? context.i18n.onboardingSetupNeeded : context.i18n.onboardingDeviceConnecting,
+                ).xSmall.muted,
             ],
           ),
         ),
@@ -129,17 +130,20 @@ Widget onboardingDeviceRow(BuildContext context, BaseDevice device, {bool needsS
             ),
           )
         else if (connected)
-          SecondaryBadge(child: Text(context.i18n.onboardingDeviceConnected)),
+          BkStatusDot(label: context.i18n.onboardingDeviceConnected),
       ],
     ),
   );
 }
 
+/// A connected controller: its name and status, the picture of its buttons
+/// (a press lights the button up) and what the last press did.
 Widget _contourCard(
   BuildContext context,
   BaseDevice device, {
   required Map<String, ControllerButton> pressedButtons,
   required Map<String, int> pressGenerations,
+  ValueListenable<ControllerPress>? presses,
   VoidCallback? onUpdate,
 }) {
   final scheme = Theme.of(context).colorScheme;
@@ -150,25 +154,49 @@ Widget _contourCard(
   return Container(
     width: double.infinity,
     margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      border: Border.all(color: scheme.border, width: 1.5),
-      borderRadius: BorderRadius.circular(12),
-      color: scheme.card,
-    ),
-    child: ControllerCanvas(
-      layout: device.controllerLayout!,
-      availableButtons: device.availableButtons,
-      buttonSize: size,
-      buttonBuilder: (btn) => AnimatedButtonWidget(
-        key: ValueKey(btn.name),
-        button: btn,
-        pressGeneration: pressed?.name == btn.name ? generation : 0,
-        keymap: keymap,
-        device: device,
-        size: size,
-        onUpdate: onUpdate ?? () {},
-      ),
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+    decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: scheme.card),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 44,
+          child: Row(
+            children: [
+              BkIconTile(icon: device.icon),
+              Gap(12),
+              Expanded(
+                child: Text(
+                  device.displayName(context),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              BkStatusDot(label: context.i18n.onboardingDeviceConnected),
+            ],
+          ),
+        ),
+        Gap(8),
+        ControllerCanvas(
+          layout: device.controllerLayout!,
+          availableButtons: device.availableButtons,
+          buttonSize: size,
+          buttonBuilder: (btn) => AnimatedButtonWidget(
+            key: ValueKey(btn.name),
+            button: btn,
+            pressGeneration: pressed?.name == btn.name ? generation : 0,
+            keymap: keymap,
+            device: device,
+            size: size,
+            onUpdate: onUpdate ?? () {},
+          ),
+        ),
+        if (presses != null) ...[
+          Gap(8),
+          LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate ?? () {}),
+        ],
+      ],
     ),
   );
 }
@@ -178,20 +206,24 @@ Widget onboardingControllerBody(
   required ControllerPhase phase,
   required List<BaseDevice> devices,
   required String appName,
+  SupportedApp? trainerApp,
   Map<String, ControllerButton> pressedButtons = const {},
   Map<String, int> pressGenerations = const {},
+  Map<String, ValueListenable<ControllerPress>> presses = const {},
   void Function(BaseDevice)? onSetupDevice,
   VoidCallback? onUpdate,
+  bool locationNeededForBluetooth = false,
 }) {
   final reduceMotion = MediaQuery.of(context).disableAnimations;
   final anyConnected = devices.any((d) => d.isConnected);
+  final zwiftExpectation = zwiftControllerExpectation(devices: devices, app: trainerApp);
 
   switch (phase) {
     case ControllerPhase.permission:
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: onboardingReveal([
-          Text(context.i18n.onboardingBluetoothTitle).h4,
+          OnboardingHeadline(context.i18n.onboardingBluetoothTitle),
           Gap(6),
           Text(context.i18n.onboardingBluetoothSubtitle).small.muted,
           Gap(16),
@@ -218,26 +250,30 @@ Widget onboardingControllerBody(
           ),
           Gap(6),
           _infoRow(context, LucideIcons.shieldCheck, context.i18n.onboardingBluetoothPrivacy, ''),
+          // Android 11 and older ask for Location to scan for Bluetooth — say
+          // why before that prompt contradicts the line above.
+          if (locationNeededForBluetooth)
+            _infoRow(context, LucideIcons.mapPin, context.i18n.onboardingBluetoothLocationNote, ''),
         ]),
       );
     case ControllerPhase.scanning:
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: onboardingReveal([
-          Text(context.i18n.onboardingScanTitle).h4,
+          OnboardingHeadline(context.i18n.onboardingScanTitle),
           Gap(6),
           Text(context.i18n.onboardingScanSubtitle).small.muted,
           Gap(24),
+          // The subtitle already says to power it on and bring it close — no
+          // second caption repeating it under the animation.
           Center(child: SmoothWifiAnimation()),
-          Gap(20),
-          Center(child: Text(context.i18n.scanningForDevices).small.muted),
         ]),
       );
     case ControllerPhase.empty:
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: onboardingReveal([
-          Text(context.i18n.onboardingScanEmptyTitle).h4,
+          OnboardingHeadline(context.i18n.onboardingScanEmptyTitle),
           Gap(6),
           Text(context.i18n.onboardingScanEmptySubtitle).small.muted,
           Gap(18),
@@ -279,9 +315,9 @@ Widget onboardingControllerBody(
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: onboardingReveal([
-          Text(
+          OnboardingHeadline(
             anyConnected ? context.i18n.onboardingControllerReadyTitle : context.i18n.onboardingControllerListTitle,
-          ).h4,
+          ),
           Gap(6),
           Text(
             anyConnected
@@ -289,24 +325,39 @@ Widget onboardingControllerBody(
                 : context.i18n.onboardingControllerListSubtitle,
           ).small.muted,
           Gap(16),
-          for (final d in devices) ...[
-            onboardingDeviceRow(
-              context,
-              d,
-              needsSetup: onboardingDeviceNeedsSetup(d),
-              onSetup: onSetupDevice == null ? null : () => onSetupDevice(d),
-            ),
-            // Each connected controller shows its contour right below its row
-            // so riders can see the buttons they just gained (same canvas the
-            // home screen uses).
-            if (d.isConnected && d.controllerLayout != null)
+          for (final d in devices)
+            // A connected controller shows its buttons so riders can see what
+            // they just gained (same canvas Ride uses) and try them; the rest
+            // are a row with their status.
+            if (d.isConnected && d.controllerLayout != null && !onboardingDeviceNeedsSetup(d))
               _contourCard(
                 context,
                 d,
                 pressedButtons: pressedButtons,
                 pressGenerations: pressGenerations,
+                presses: presses[d.uniqueId],
                 onUpdate: onUpdate,
+              )
+            else
+              onboardingDeviceRow(
+                context,
+                d,
+                needsSetup: onboardingDeviceNeedsSetup(d),
+                onSetup: onSetupDevice == null ? null : () => onSetupDevice(d),
               ),
+
+          // A Zwift-made controller works best in Zwift. Say up front what it
+          // can do in the app the rider picked, so a button with nothing to do
+          // there doesn't read as a broken controller.
+          if (zwiftExpectation != null) ...[
+            Gap(4),
+            OnboardingNote(
+              zwiftExpectation.text(
+                context.i18n,
+                deviceName: zwiftExpectation.device.displayName(context),
+              ),
+            ),
+            Gap(8),
           ],
 
           // Once a controller is connected the job is done — don't keep
@@ -322,7 +373,9 @@ Widget onboardingControllerBody(
               ],
             ),
           ],
-          if (anyConnected) ...[
+          // Only claim the buttons are mapped when there is a preset to map
+          // them onto — FulGaz takes no buttons, a custom app has no preset.
+          if (anyConnected && appHasButtonPreset(trainerApp)) ...[
             Gap(12),
             _infoRow(context, LucideIcons.lightbulb, context.i18n.onboardingControllerMapped(appName), ''),
           ],

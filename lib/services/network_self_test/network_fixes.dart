@@ -26,7 +26,10 @@ import 'network_method_target.dart';
 /// that it helped). Failures toast + recordError and return false; a refusal
 /// (restart / backend switch while the trainer app is connected) toasts the
 /// reason and returns false without recordError — nothing went wrong.
-Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix) async {
+///
+/// [from] is the check the fix was offered on, when the caller knows it — the
+/// network-profile fix reads which connection to open from its detail.
+Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix, {NetworkCheck? from}) async {
   switch (fix) {
     case NetworkFixId.restartMethod:
       // The method the selected trainer app rides on — OpenBikeControl for
@@ -69,6 +72,12 @@ Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix) async {
     case NetworkFixId.openFirewallSettings:
       return _launch('ms-settings:windowsdefender', context: 'runNetworkFix.openFirewallSettings');
 
+    case NetworkFixId.openNetworkProfileSettings:
+      return _launch(
+        networkProfileSettingsUri(from?.detail['interface']),
+        context: 'runNetworkFix.openNetworkProfileSettings',
+      );
+
     case NetworkFixId.openBonjourDownload:
       return _launch(
         'https://octoclip.app/learn/how-to-install-bonjour-on-windows/',
@@ -86,6 +95,15 @@ Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix) async {
         return false;
       }
 
+    case NetworkFixId.openAppLocalNetworkSettings:
+      // System Settings › Privacy & Security › Local Network: the per-app list
+      // the trainer app has to be switched on in. Same URL scheme as the
+      // Bluetooth privacy pane the requirements screen opens.
+      return _launch(
+        'x-apple.systempreferences:com.apple.preference.security?Privacy_LocalNetwork',
+        context: 'runNetworkFix.openAppLocalNetworkSettings',
+      );
+
     case NetworkFixId.sendToSupport:
       // Owned by the page (it needs to push SupportChatPage) — a caller
       // that dispatches this here instead of routing it itself is a wiring
@@ -93,6 +111,19 @@ Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix) async {
       assert(false, 'sendToSupport must be handled by the page, not runNetworkFix');
       return false;
   }
+}
+
+/// The Windows settings page holding the Public/Private switch for the
+/// connection called [interfaceAlias] (`Get-NetConnectionProfile`'s
+/// InterfaceAlias). Windows names its adapters "Wi-Fi"/"WLAN" and "Ethernet"
+/// (numbered when there are several) in every language; anything else, or no
+/// name at all, gets the network status page, which links to the active
+/// connection's properties.
+String networkProfileSettingsUri(String? interfaceAlias) {
+  final alias = interfaceAlias?.trim().toLowerCase() ?? '';
+  if (RegExp(r'^(wi-?fi|wlan|wireless)').hasMatch(alias)) return 'ms-settings:network-wifi';
+  if (RegExp(r'^ethernet').hasMatch(alias)) return 'ms-settings:network-ethernet';
+  return 'ms-settings:network-status';
 }
 
 /// Opens [url] externally; a launcher that throws OR reports it could not

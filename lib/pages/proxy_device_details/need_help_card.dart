@@ -57,7 +57,9 @@ class NeedHelpCard extends StatelessWidget {
             ],
           ),
           Text(l10n.needHelpBody, style: context.typography.small.copyWith(color: cs.mutedForeground)),
-          Button.primary(
+          // Secondary: the self-test above keeps the page's one primary
+          // action, so checking reads as the first thing to do.
+          Button.secondary(
             key: const ValueKey('need-help-open'),
             onPressed: onOpenHelp,
             child: Text(l10n.needHelpOpen),

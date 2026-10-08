@@ -28,7 +28,7 @@ Future<void> main() async {
     core.emulation.attach(env.ble);
     // OpenBikeControlDevice.handleServices writes an app-info payload that
     // reads packageInfoValue!.version. Production sets this global from
-    // AppTitle's initState (PackageInfo.fromPlatform()); the harness never
+    // AppUpdateButton's initState (PackageInfo.fromPlatform()); the harness never
     // runs that widget, so seed it directly or the write crashes with a
     // null-check error before the app-info write test assertion ever runs.
     packageInfoValue = PackageInfo(

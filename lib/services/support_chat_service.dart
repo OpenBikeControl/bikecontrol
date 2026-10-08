@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/support_chat_models.dart';
+import 'package:bike_control/utils/auth/fresh_access_token.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
@@ -85,12 +86,11 @@ class SupportChatService {
   SupabaseClient get client => _supabase;
 
   Future<SupportChat> openChat() async {
-    final session = _requireSession();
+    _requireSession();
     try {
       final response = await _supabase.functions.invoke(
         _createOrGetFunction,
         method: HttpMethod.post,
-        headers: _authHeaders(session),
         body: const <String, dynamic>{},
       );
       final data = _asMap(response.data);
@@ -145,13 +145,12 @@ class SupportChatService {
   }
 
   Future<({SupportChat? chat, List<SupportMessage> messages})> fetchChat({required bool skipLastSeen}) async {
-    final session = _requireSession();
+    _requireSession();
     try {
       final response = await _supabase.functions.invoke(
         _getChatFunction,
         method: HttpMethod.get,
         queryParameters: {'skipLastSeen': skipLastSeen.toString()},
-        headers: _authHeaders(session),
       );
       final data = _asMap(response.data);
       final rawChat = data['chat'];
@@ -178,7 +177,7 @@ class SupportChatService {
     Map<String, dynamic> telemetry = const {},
     Map<String, dynamic>? intakeAnswers,
   }) async {
-    final session = _requireSession();
+    _requireSession();
     // An image-only message is legitimate, but the send-support-message edge
     // function rejects an empty body. Substitute a minimal placeholder so the
     // screenshot goes through; remove this once the function accepts empty
@@ -200,7 +199,6 @@ class SupportChatService {
       final response = await _supabase.functions.invoke(
         _sendMessageFunction,
         method: HttpMethod.post,
-        headers: _authHeaders(session),
         body: payload,
       );
       final data = _asMap(response.data);
@@ -234,7 +232,7 @@ class SupportChatService {
     String? attachmentTooLargeMessage,
     String? unsupportedMimeMessage,
   }) async {
-    final session = _requireSession();
+    _requireSession();
     final fileName = file.name;
     final fileBytes = file.bytes;
     final filePath = file.path;
@@ -251,7 +249,8 @@ class SupportChatService {
 
     final uri = Uri.parse('$_supabaseUrl/functions/v1/$_uploadAttachmentFunction');
     final request = http.MultipartRequest('POST', uri);
-    request.headers['Authorization'] = 'Bearer ${session.accessToken}';
+    // Raw request: the Supabase client's AuthHttpClient doesn't refresh for us.
+    request.headers['Authorization'] = 'Bearer ${await freshAccessToken(_supabase.auth)}';
     request.headers['apikey'] = _supabaseAnonKey;
     request.fields['chat_id'] = chatId;
 
@@ -315,12 +314,11 @@ class SupportChatService {
   /// longer exists. Sign-out / RevenueCat teardown for [SupportDeleteScope.account]
   /// is the caller's responsibility — the session's own user is gone.
   Future<void> deleteSupportData(SupportDeleteScope scope) async {
-    final session = _requireSession();
+    _requireSession();
     try {
       await _supabase.functions.invoke(
         _deleteFunction,
         method: HttpMethod.post,
-        headers: _authHeaders(session),
         body: {'scope': scope.name},
       );
       await core.settings.setSupportChatActive(false);
@@ -339,10 +337,6 @@ class SupportChatService {
       throw const SupportChatException('Not signed in');
     }
     return session;
-  }
-
-  Map<String, String> _authHeaders(Session session) {
-    return {'Authorization': 'Bearer ${session.accessToken}'};
   }
 
   String? _extractError(dynamic details) {

@@ -1,3 +1,16 @@
+### 7.2.0 (08-10-2026)
+**Features**:
+- A new look with Ride, Devices, Activity and Settings tabs.
+- Rides are recorded automatically, with zones, gears and .fit export to Strava, Apple Health or Health Connect.
+- Reworked phone steering with improved accuracy and calibration; OpenBikeControl apps can steer from the real handlebar angle - including Elite Sterzo and Rizer (thanks @michidk).
+- Clearer setup steps and a new Plan & account page.
+- BKool Trainer support
+
+**Fixes**:
+- More reliable network check and connections
+- Wahoo KICKR Bike adjustments
+- Friendlier messages and in-app answers when something doesn't work.
+
 ### 7.1.0 (29-09-2026)
 **Features**:
 - Smoother first-time setup, with a clearer Help Center and support flow.

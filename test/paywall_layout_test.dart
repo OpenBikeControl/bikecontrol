@@ -52,7 +52,7 @@ Future<void> main() async {
   // Base had some of it. BikeControl's virtual shifting now leads the table
   // (Pro only; the trial is a footnote — see paywall_plan_chooser_test.dart),
   // then what Base covers: the app shifts, BikeControl presses the buttons.
-  testWidgets('paywall rows spell out Base vs Pro, virtual shifting first', (tester) async {
+  testWidgets('the Pro card spells out what Pro adds: unlimited commands, then virtual shifting', (tester) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
     await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
@@ -60,16 +60,18 @@ Future<void> main() async {
 
     final l10n = AppLocalizations.current;
     final labelsInOrder = [
-      l10n.paywall_vsByBikeControl,
       l10n.paywall_amountOfActions,
-      l10n.paywall_shiftInYourApp,
+      l10n.paywall_vsByBikeControl,
+      l10n.paywall_shiftInYourAppShort,
       l10n.paywall_configure3ActionsPerButton,
       l10n.paywall_useBikecontrolOnAllPlatforms,
     ];
+    final proCard = find.byKey(const ValueKey('paywall-pro-card'));
+    Finder inPro(String label) => find.descendant(of: proCard, matching: find.text(label));
     for (final label in labelsInOrder) {
-      expect(find.text(label), findsOneWidget, reason: 'row "$label" missing');
+      expect(inPro(label), findsOneWidget, reason: 'line "$label" missing');
     }
-    final tops = [for (final label in labelsInOrder) tester.getTopLeft(find.text(label)).dy];
+    final tops = [for (final label in labelsInOrder) tester.getTopLeft(inPro(label)).dy];
     for (var i = 1; i < tops.length; i++) {
       expect(
         tops[i],
@@ -137,6 +139,7 @@ Future<void> main() async {
       bool isPro = false,
       bool isProForDevice = false,
       bool deviceLimitReached = false,
+      bool isSignedIn = true,
     }) => paywallConfirmationFor(
       isBasePurchase: basePurchase,
       wasPurchased: wasPurchased,
@@ -145,6 +148,7 @@ Future<void> main() async {
       isPro: isPro,
       isProForDevice: isProForDevice,
       deviceLimitReached: deviceLimitReached,
+      isSignedIn: isSignedIn,
     );
 
     // The store took the payment, but the account's device limit kept this
@@ -184,9 +188,46 @@ Future<void> main() async {
       expect(outcome(wasPurchased: true, wasPro: true, isPurchased: true, isPro: true), isNull);
     });
 
+    // Store Pro bought without an account stays on this device only; the
+    // rider needs to hear that signing in brings it to their other devices.
+    test('Pro bought while signed out asks to sign in', () {
+      expect(
+        outcome(isPurchased: true, isPro: true, isProForDevice: true, isSignedIn: false),
+        PaywallConfirmation.proSignIn,
+      );
+      expect(
+        outcome(isPurchased: true, isPro: true, isSignedIn: false),
+        PaywallConfirmation.proSignIn,
+        reason: 'registering needs an account, so sign-in comes first',
+      );
+    });
+
+    test('signed out, Base or no new Pro asks nothing about signing in', () {
+      expect(outcome(basePurchase: true, isPurchased: true, isSignedIn: false), PaywallConfirmation.baseDone);
+      expect(outcome(wasPro: true, isPro: true, isProForDevice: true, isSignedIn: false), isNull);
+      expect(outcome(isSignedIn: false), isNull);
+    });
+
     test('a Base attempt that turns out to unlock account Pro reports the Pro state, not Base', () {
       expect(outcome(basePurchase: true, isPurchased: true, isPro: true), PaywallConfirmation.proUnregistered);
     });
+  });
+
+  // Restore asks the app store; the Windows download and the Microsoft Store
+  // build have nothing for it to find, so the button would do nothing there.
+  group('restore purchases on the paywall', () {
+    tearDown(() => IAPManager.instance.purchaseChannelForTesting = null);
+
+    for (final channel in PurchaseChannel.values) {
+      testWidgets('${channel.name}: shown only where the store can restore', (tester) async {
+        IAPManager.instance.isPurchased.value = false;
+        addTearDown(() => IAPManager.instance.isPurchased.value = true);
+        IAPManager.instance.purchaseChannelForTesting = channel;
+        await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
+        final l10n = AppLocalizations.current;
+        expect(find.text(l10n.restorePurchases), channel.canRestore ? findsOneWidget : findsNothing);
+      });
+    }
   });
 
   testWidgets('SelectableCard lays out inside a scroll view', (tester) async {

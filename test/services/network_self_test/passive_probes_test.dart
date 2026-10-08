@@ -325,6 +325,158 @@ void main() {
     });
   });
 
+  // An iPhone always carries an `ipsec` interface with a 192.0.0.x address
+  // (and Android a CLAT one from the same range). Neither is a LAN anyone can
+  // reach, so it must never count as "a second network the app could be on".
+  group('extra interfaces next to the LAN are not a competing network', () {
+    const iphoneOnWifi = [
+      AddressCandidate(interfaceName: 'en0', address: '192.168.1.23', score: 40, isVirtual: false),
+      AddressCandidate(interfaceName: 'ipsec2', address: '192.0.0.6', score: -199, isVirtual: false),
+      AddressCandidate(interfaceName: 'pdp_ip0', address: '10.140.12.7', score: -70, isVirtual: true),
+    ];
+
+    test('advertisedAddressCheck passes for an iPhone on Wi-Fi', () {
+      final check = advertisedAddressCheck(
+        ctx(
+          platform: 'ios',
+          snapshot: _diag(
+            addressReport: AddressPickReport(chosen: InternetAddress('192.168.1.23'), candidates: iphoneOnWifi),
+          ),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.pass);
+    });
+
+    test('the Ride card does not flag the LAN address', () {
+      final report = AddressPickReport(chosen: InternetAddress('192.168.1.23'), candidates: iphoneOnWifi);
+      expect(advertisedAddressWarning(report), isNull);
+      expect(advertisedAddressWarningKind(report), isNull);
+    });
+
+    test('a link-local adapter is no competing network either', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.23'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'en0', address: '192.168.1.23', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'en7', address: '169.254.10.3', score: -199, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+    });
+
+    test('a VPN tunnel is reported by the VPN row, not as a second network', () {
+      // A real IKEv2 VPN on iOS rides on ipsec with a routable address; the
+      // LAN still wins the pick, and the VPN row is the one that says so.
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.23'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'en0', address: '192.168.1.23', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'ipsec0', address: '10.7.0.2', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+    });
+
+    // Field report (Oplus/OnePlus/Realme phones): a vendor gateway NIC `vgate0`
+    // sits next to the home Wi-Fi, and the Ride card called the rider's real
+    // 192.168.178.x address "a VPN or hotspot address".
+    test('an Android vendor vgate0 interface does not flag the home Wi-Fi address', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.178.133'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'wlan0', address: '192.168.178.133', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'vgate0', address: '172.30.225.86', score: 20, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+      expect(advertisedAddressWarningKind(report), isNull);
+      final check = advertisedAddressCheck(ctx(platform: 'android', snapshot: _diag(addressReport: report)));
+      expect(check.verdict, NetworkVerdict.pass);
+    });
+
+    test('an unrecognised extra interface is no second network either', () {
+      // Only adapters that look like a real Wi-Fi/Ethernet port can be the
+      // network the app is on; vendor and virtual NICs come and go by name.
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.23'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'wlan0', address: '192.168.1.23', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'oem_vnic3', address: '10.33.0.4', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+    });
+
+    test('Windows Ethernet and Wi-Fi on different subnets still warn as two networks', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.5'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'Ethernet', address: '192.168.1.5', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'Wi-Fi', address: '10.0.0.5', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarningKind(report), AddressWarningKind.twoNetworks);
+    });
+
+    test('two real adapters on different subnets still warn, as a second network', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.5'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'en0', address: '192.168.1.5', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'en1', address: '10.0.0.5', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarningKind(report), AddressWarningKind.twoNetworks);
+    });
+
+    test('a tunnel pick is the VPN kind', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('10.5.0.2'),
+        candidates: const [AddressCandidate(interfaceName: 'utun3', address: '10.5.0.2', score: 30, isVirtual: false)],
+      );
+      expect(advertisedAddressWarningKind(report), AddressWarningKind.unreachable);
+    });
+  });
+
+  // A phone with Wi-Fi off advertises its mobile-data address. Turning a VPN
+  // off does nothing for that — joining the trainer app's Wi-Fi does.
+  group('a phone on mobile data only', () {
+    const iphoneOnCellular = [
+      AddressCandidate(interfaceName: 'pdp_ip0', address: '10.140.12.7', score: -70, isVirtual: true),
+      AddressCandidate(interfaceName: 'ipsec2', address: '192.0.0.6', score: -199, isVirtual: false),
+    ];
+
+    test('the Ride card flags it as "not on Wi-Fi"', () {
+      final report = AddressPickReport(chosen: InternetAddress('10.140.12.7'), candidates: iphoneOnCellular);
+      expect(advertisedAddressWarning(report), '10.140.12.7');
+      expect(advertisedAddressWarningKind(report), AddressWarningKind.noWifi);
+    });
+
+    test('an Android phone on rmnet is the same', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('100.81.4.9'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'rmnet_data0', address: '100.81.4.9', score: -90, isVirtual: true),
+        ],
+      );
+      expect(advertisedAddressWarningKind(report), AddressWarningKind.noWifi);
+    });
+
+    test('advertisedAddressCheck warns with a no-Wi-Fi note and no pointless restart', () {
+      final check = advertisedAddressCheck(
+        ctx(
+          platform: 'ios',
+          snapshot: _diag(
+            addressReport: AddressPickReport(chosen: InternetAddress('10.140.12.7'), candidates: iphoneOnCellular),
+          ),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.warn);
+      expect(check.detail['note'], 'no wifi');
+      expect(check.fixes, isNot(contains(NetworkFixId.restartMethod)));
+    });
+  });
+
   group('vpnCheck', () {
     test('pass: no tunnel candidates', () {
       final check = vpnCheck(
@@ -373,6 +525,24 @@ void main() {
       expect(check.verdict, NetworkVerdict.warn);
       expect(check.detail['utun3'], '10.8.0.5');
       expect(check.fixes, isEmpty);
+    });
+
+    test('pass: the iPhone ipsec interface on 192.0.0.x is no VPN', () {
+      final check = vpnCheck(
+        ctx(
+          platform: 'ios',
+          snapshot: _diag(
+            addressReport: const AddressPickReport(
+              chosen: null,
+              candidates: [
+                AddressCandidate(interfaceName: 'en0', address: '192.168.1.23', score: 40, isVirtual: false),
+                AddressCandidate(interfaceName: 'ipsec2', address: '192.0.0.6', score: -199, isVirtual: false),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.pass);
     });
   });
 

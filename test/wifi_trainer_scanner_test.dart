@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsd/nsd.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -9,6 +10,8 @@ import 'package:prop/utils/constants.dart';
 import 'package:prop/utils/self_advertisement_registry.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUp(() => SelfAdvertisementRegistry.instance.clear());
 
   group('isSelfAdvertisement', () {
@@ -90,6 +93,40 @@ void main() {
 
       scanner.handleService(service, ServiceStatus.lost);
       expect(lost.single, 'dircon://KICKR CORE 1A2B');
+    });
+  });
+
+  group('stop', () {
+    const channel = MethodChannel('com.haberey/nsd');
+    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    // iOS drops its NetServiceBrowser when the OS ends the search on its own
+    // (app suspended, radio/network change), so a later stopDiscovery for that
+    // handle fails with "Unknown handle". Seen in a 7.1.0 support bundle as an
+    // uncaught NsdError on Bluetooth teardown.
+    test('survives the platform no longer knowing the discovery handle', () async {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        final handle = (call.arguments as Map)['handle'] as String;
+        switch (call.method) {
+          case 'startDiscovery':
+            scheduleMicrotask(() => messenger.handlePlatformMessage(
+                  channel.name,
+                  channel.codec.encodeMethodCall(MethodCall('onDiscoveryStartSuccessful', {'handle': handle})),
+                  (_) {},
+                ));
+            return null;
+          case 'stopDiscovery':
+            throw PlatformException(code: 'illegalArgument', message: 'Unknown handle: $handle');
+        }
+        return null;
+      });
+
+      final scanner = WifiTrainerScanner(onFound: (_) {}, onLost: (_) {});
+      await scanner.start();
+
+      await expectLater(scanner.stop(), completes);
     });
   });
 }

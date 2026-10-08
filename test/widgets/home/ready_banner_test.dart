@@ -1,6 +1,9 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -9,6 +12,8 @@ Future<void> pumpBanner(
   ChainBanner banner, {
   VoidCallback? onAction,
   VoidCallback? onRevealOutstanding,
+  List<ReadyBannerStep> steps = const [],
+  bool settling = false,
 }) async {
   await tester.pumpWidget(
     ShadcnApp(
@@ -16,12 +21,16 @@ Future<void> pumpBanner(
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
       home: Scaffold(
-        child: ReadyBanner(
-          banner: banner,
-          brokenLinkName: null,
-          appName: 'MyWhoosh',
-          onAction: onAction,
-          onRevealOutstanding: onRevealOutstanding,
+        child: SingleChildScrollView(
+          child: ReadyBanner(
+            banner: banner,
+            brokenLinkName: null,
+            appName: 'MyWhoosh',
+            onAction: onAction,
+            onRevealOutstanding: onRevealOutstanding,
+            steps: steps,
+            settling: settling,
+          ),
         ),
       ),
     ),
@@ -258,5 +267,214 @@ void main() async {
       expect(find.text(l.chainPendingSubtitleController('MyWhoosh')), findsOneWidget);
       expect(find.text(l.chainPendingSubtitleAppDropped('MyWhoosh')), findsNothing);
     });
+  });
+
+  // "3 steps left" with only a Show button said nothing about what was wrong.
+  // The banner lists the steps themselves, each with the fix the Devices row
+  // offers for it.
+  group('the outstanding steps', () {
+    const pending = ChainBanner(
+      kind: ChainBannerKind.pending,
+      status: LinkStatus.attention,
+      stepsLeft: 4,
+      targetLinkId: 'controller-a',
+      targetKey: ChainLinkKey.controller,
+      outstandingKeys: [ChainLinkKey.controller, ChainLinkKey.trainer, ChainLinkKey.app],
+      outstandingLinkIds: ['controller-a', 'controller-b', 'trainer', 'app'],
+    );
+
+    List<ReadyBannerStep> fourSteps(List<String> fixed) => [
+      ReadyBannerStep(
+        linkId: 'controller-a',
+        step: const SetupStep(id: SetupStepId.controllerPaired, done: false),
+        actionLabel: l.chainSetUp,
+        onFix: () => fixed.add('controller-a'),
+      ),
+      ReadyBannerStep(
+        linkId: 'controller-b',
+        step: const SetupStep(id: SetupStepId.controllerUnlocked, done: false),
+        onFix: () => fixed.add('controller-b'),
+      ),
+      ReadyBannerStep(
+        linkId: 'trainer',
+        step: const SetupStep(id: SetupStepId.trainerGearOverlay, done: false),
+        actionLabel: l.chainStepOverlayAction,
+        onFix: () => fixed.add('trainer'),
+      ),
+      ReadyBannerStep(
+        linkId: 'app',
+        step: const SetupStep(id: SetupStepId.appLocalNetwork, done: false),
+        onFix: () => fixed.add('app'),
+      ),
+    ];
+
+    Finder row(String linkId, SetupStepId id) => find.byKey(ValueKey('ready-step-$linkId-${id.name}'));
+
+    testWidgets('lists every step with its title and reason, each row ending in a chevron', (tester) async {
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+
+      expect(find.text(l.chainStepsLeftTitle(4)), findsOneWidget);
+      for (final title in [
+        l.chainStepControllerPairedPending,
+        l.chainStepUnlockedPending,
+        l.chainStepOverlayPending('MyWhoosh'),
+        l.chainStepAppLocalNetworkPending,
+      ]) {
+        expect(find.text(title), findsOneWidget, reason: title);
+      }
+      expect(find.text(l.chainStepControllerPairedHint), findsOneWidget);
+      // Nothing to reveal: every step is on screen.
+      expect(find.text(l.chainBannerShow), findsNothing);
+
+      // One quiet chevron per step instead of a button each, all alike.
+      final steps = find.byKey(const ValueKey('ready-banner-steps'));
+      expect(find.descendant(of: steps, matching: find.byType(PrimaryButton)), findsNothing);
+      for (final label in [l.chainSetUp, l.chainStepOverlayAction, l.chainShowMeHow]) {
+        expect(find.text(label), findsNothing, reason: 'no button reading "$label"');
+      }
+      expect(find.descendant(of: steps, matching: find.byIcon(LucideIcons.chevronRight)), findsNWidgets(4));
+    });
+
+    testWidgets('a step\'s reason is shown in full, never cut off', (tester) async {
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+      final steps = find.byKey(const ValueKey('ready-banner-steps'));
+      for (final text in tester.widgetList<Text>(find.descendant(of: steps, matching: find.byType(Text)))) {
+        if (text.data == l.chainStepControllerPairedHint) {
+          expect(text.maxLines, isNull);
+          expect(text.overflow, isNot(TextOverflow.ellipsis));
+        }
+      }
+      expect(find.descendant(of: steps, matching: find.text(l.chainStepControllerPairedHint)), findsOneWidget);
+    });
+
+    testWidgets('tapping anywhere on a step runs its fix', (tester) async {
+      final fixed = <String>[];
+      await pumpBanner(tester, pending, steps: fourSteps(fixed));
+
+      // On the step's words, on another's, at a row's far end.
+      await tester.tap(find.text(l.chainStepControllerPairedPending));
+      await tester.tap(find.text(l.chainStepOverlayPending('MyWhoosh')));
+      await tester.tapAt(tester.getCenter(row('app', SetupStepId.appLocalNetwork)).translate(150, 0));
+      await tester.pump();
+      expect(fixed, ['controller-a', 'trainer', 'app']);
+    });
+
+    testWidgets('a step row is a button that says what tapping it does', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+
+      final setUp = tester.getSemantics(row('controller-a', SetupStepId.controllerPaired));
+      expect(setUp.getSemanticsData().flagsCollection.isButton, isTrue);
+      expect(setUp.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      expect(setUp.label, contains(l.chainStepControllerPairedPending));
+      expect(setUp.hint, l.chainSetUp);
+      // No label of its own: the Devices row's default.
+      expect(tester.getSemantics(row('controller-b', SetupStepId.controllerUnlocked)).hint, l.chainShowMeHow);
+      expect(tester.getSemantics(row('trainer', SetupStepId.trainerGearOverlay)).hint, l.chainStepOverlayAction);
+      semantics.dispose();
+    });
+
+    testWidgets('a row is at least 48 dp tall', (tester) async {
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+      for (final (id, step) in [
+        ('controller-a', SetupStepId.controllerPaired),
+        ('controller-b', SetupStepId.controllerUnlocked),
+        ('trainer', SetupStepId.trainerGearOverlay),
+        ('app', SetupStepId.appLocalNetwork),
+      ]) {
+        expect(tester.getSize(row(id, step)).height, greaterThanOrEqualTo(48), reason: id);
+      }
+    });
+
+    testWidgets('a step whose fix comes after an earlier one is neither tappable nor chevroned', (tester) async {
+      await pumpBanner(
+        tester,
+        pending,
+        steps: const [
+          ReadyBannerStep(
+            linkId: 'controller-a',
+            step: SetupStep(id: SetupStepId.controllerPaired, done: false),
+          ),
+        ],
+      );
+      expect(find.text(l.chainStepControllerPairedPending), findsOneWidget);
+      expect(find.byType(PrimaryButton), findsNothing);
+      expect(find.byIcon(LucideIcons.chevronRight), findsNothing);
+      expect(
+        find.ancestor(of: find.text(l.chainStepControllerPairedPending), matching: find.byType(Clickable)),
+        findsNothing,
+      );
+    });
+
+    testWidgets('past four, the rest is "+N more", which reveals them on Devices', (tester) async {
+      var revealed = 0;
+      final fixed = <String>[];
+      await pumpBanner(
+        tester,
+        pending,
+        onRevealOutstanding: () => revealed++,
+        steps: [
+          ...fourSteps(fixed),
+          const ReadyBannerStep(
+            linkId: 'app',
+            step: SetupStep(id: SetupStepId.appConnected, done: false),
+          ),
+          const ReadyBannerStep(
+            linkId: 'app',
+            step: SetupStep(id: SetupStepId.appLocalControl, done: false),
+          ),
+        ],
+      );
+
+      expect(find.text(l.chainStepAppLocalNetworkPending), findsOneWidget);
+      expect(find.text(l.chainStepAppConnectedPending('MyWhoosh')), findsNothing);
+      await tester.tap(find.text(l.readyBannerMoreSteps(2)));
+      await tester.pump();
+      expect(revealed, 1);
+    });
+  });
+
+  // Right after launch the steps flip as devices turn up and drop again: one
+  // calm line stands in for all of them until the setup has settled.
+  testWidgets('while settling: one calm "Connecting…" line instead of the steps', (tester) async {
+    await pumpBanner(
+      tester,
+      const ChainBanner(
+        kind: ChainBannerKind.pending,
+        status: LinkStatus.attention,
+        stepsLeft: 2,
+        targetLinkId: 'controller-a',
+        targetKey: ChainLinkKey.controller,
+        outstandingKeys: [ChainLinkKey.controller],
+        outstandingLinkIds: ['controller-a'],
+      ),
+      settling: true,
+      steps: [
+        ReadyBannerStep(
+          linkId: 'controller-a',
+          step: const SetupStep(id: SetupStepId.controllerPaired, done: false),
+          onFix: () {},
+        ),
+      ],
+    );
+    expect(find.text(l.chainStatusConnecting), findsOneWidget);
+    expect(find.byKey(const ValueKey('ready-banner-steps')), findsNothing);
+    expect(find.text(l.chainStepsLeftTitle(2)), findsNothing);
+    expect(find.text(l.chainStepControllerPairedPending), findsNothing);
+    expect(find.byType(PrimaryButton), findsNothing, reason: 'nothing to act on yet');
+  });
+
+  // Ready is calm: a green tick with a quiet halo, no wash, no outline.
+  testWidgets('ready: the tick wears a quiet halo of the success colour', (tester) async {
+    await pumpBanner(
+      tester,
+      const ChainBanner(kind: ChainBannerKind.ready, status: LinkStatus.ready, stepsLeft: 0),
+    );
+    final tick = tester.widget<Container>(find.byKey(const ValueKey('ready-banner-tick')));
+    final shadows = (tick.decoration! as BoxDecoration).boxShadow!;
+    expect(shadows, hasLength(1));
+    expect(shadows.single.color, BkBrandColors.light.readyHalo);
+    expect(shadows.single.blurRadius, 0, reason: 'a crisp ring, not a glow');
+    expect(shadows.single.spreadRadius, 5);
   });
 }

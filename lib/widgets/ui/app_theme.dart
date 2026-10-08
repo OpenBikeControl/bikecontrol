@@ -1,6 +1,8 @@
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swipeable_page_route/swipeable_page_route.dart';
 
 /// The one place BikeControl's shadcn themes are built.
 ///
@@ -26,28 +28,40 @@ abstract final class BkTheme {
   /// near-black; white on this orange is about 2.8:1.
   static const Color proOrange = Color(0xFFF97316);
 
+  /// Brand blue for TEXT (links, accent labels) on light grounds. The brand
+  /// blue itself is 4.48:1 on the grouped page (#F2F2F7), a hair under
+  /// 4.5:1; this one notch darker clears it on the page, cards and fills.
+  /// Read it through `bkAccentText(context)`.
+  static const Color lightAccentText = Color(0xFF0C6AA8);
+
+  /// Apple-style grouped palette: white cards on a light grey page, so cards
+  /// separate by tone rather than by a border.
   static const ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
-    background: Color(0xFFFFFFFF),
-    foreground: Color(0xFF020817),
+    background: Color(0xFFF2F2F7),
+    foreground: Color(0xFF1C1C1E),
     card: Color(0xFFFFFFFF),
-    cardForeground: Color(0xFF020817),
+    cardForeground: Color(0xFF1C1C1E),
     popover: Color(0xFFFFFFFF),
-    popoverForeground: Color(0xFF020817),
+    popoverForeground: Color(0xFF1C1C1E),
     primary: BKColor.main,
     primaryForeground: Color(0xFFFFFFFF),
-    secondary: Color(0xFFF1F5F9),
-    secondaryForeground: Color(0xFF0F172A),
-    muted: Color(0xFFF1F5F9),
-    // Zinc-500: >= 4.5:1 on white and on the activity rail's #F8FAFB. The old
-    // #A1A1AA override read at 2.56:1.
-    mutedForeground: Color(0xFF71717A),
-    accent: Color(0xFFF1F5F9),
-    accentForeground: Color(0xFF0F172A),
-    destructive: Color(0xFFEF4444),
-    destructiveForeground: Color(0xFFF8FAFC),
-    border: Color(0xFFE2E8F0),
-    input: Color(0xFFE2E8F0),
+    // Fills (secondary buttons, segmented tracks, chips) read on both the
+    // grey page and a white card.
+    secondary: Color(0xFFE9E9EE),
+    secondaryForeground: Color(0xFF1C1C1E),
+    muted: Color(0xFFE9E9EE),
+    // #6C6C70 is only 4.3:1 on the fills above; this clears 4.5:1 on the
+    // page (5.4), a card (6.0) and a fill.
+    mutedForeground: Color(0xFF636366),
+    accent: Color(0xFFE9E9EE),
+    accentForeground: Color(0xFF1C1C1E),
+    // Red-600: white text on it is 4.8:1 (red-500 was 3.8:1).
+    destructive: Color(0xFFDC2626),
+    destructiveForeground: Color(0xFFFFFFFF),
+    // Hairline separators: visible on white and on the page, never loud.
+    border: Color(0xFFDCDCE0),
+    input: Color(0xFFD1D1D6),
     ring: BKColor.main,
     chart1: Color(0xFFE76E50),
     chart2: Color(0xFF2A9D90),
@@ -56,28 +70,32 @@ abstract final class BkTheme {
     chart5: Color(0xFFF4A462),
   );
 
-  /// One neutral-grey family for every dark surface. Cards used to be navy
-  /// (#001A29) on a grey background, which read as two unrelated palettes.
+  /// One graphite tonal ladder for every dark surface, nudged 3% toward the
+  /// brand blue: page #101318, card #1B1F25, raised/fill #262B33. Cards
+  /// separate by tone, not borders. Secondary text (#A3A3A3) is 7.4:1 on the
+  /// page, 6.6:1 on a card and 5.6:1 on a fill.
   static const ColorScheme darkColorScheme = ColorScheme(
     brightness: Brightness.dark,
-    background: Color(0xFF232323),
-    foreground: Color(0xFFF8FAFC),
-    card: Color(0xFF2A2A2A),
-    cardForeground: Color(0xFFF8FAFC),
-    popover: Color(0xFF2A2A2A),
-    popoverForeground: Color(0xFFF8FAFC),
+    background: Color(0xFF101318),
+    foreground: Color(0xFFFFFFFF),
+    card: Color(0xFF1B1F25),
+    cardForeground: Color(0xFFFFFFFF),
+    // Menus and popovers float over cards, so they sit one step up.
+    popover: Color(0xFF262B33),
+    popoverForeground: Color(0xFFFFFFFF),
     primary: darkPrimary,
     primaryForeground: darkPrimaryForeground,
-    secondary: Color(0xFF3A3A3A),
-    secondaryForeground: Color(0xFFF8FAFC),
-    muted: Color(0xFF3A3A3A),
-    mutedForeground: Color(0xFFA1A1AA),
-    accent: Color(0xFF3A3A3A),
-    accentForeground: Color(0xFFF8FAFC),
+    secondary: Color(0xFF262B33),
+    secondaryForeground: Color(0xFFFFFFFF),
+    muted: Color(0xFF262B33),
+    mutedForeground: Color(0xFFA3A3A3),
+    accent: Color(0xFF262B33),
+    accentForeground: Color(0xFFFFFFFF),
     destructive: Color(0xFFDC2626),
-    destructiveForeground: Color(0xFFF8FAFC),
-    border: Color(0xFF3A3A3A),
-    input: Color(0xFF3A3A3A),
+    destructiveForeground: Color(0xFFFFFFFF),
+    border: Color(0xFF2A3038),
+    // Text-field outlines need a touch more than a hairline.
+    input: Color(0xFF383E47),
     ring: darkPrimary,
     chart1: Color(0xFF2662D9),
     chart2: Color(0xFF2EB88A),
@@ -106,11 +124,90 @@ abstract final class BkTheme {
   ///
   /// Deliberately unscaled: every app shell passes [scaling] to `ShadcnApp`,
   /// which applies it on top of this.
+  /// The Material theme under the shadcn one: Material only still drives the
+  /// page routes. On iOS a pushed page goes back with a swipe from anywhere on
+  /// the screen, as in iOS's own apps; Flutter's iOS transition only takes the
+  /// 20 px at the left edge. Every other platform keeps Flutter's default.
+  static m.ThemeData material(Brightness brightness) {
+    final base = brightness == Brightness.dark ? m.ThemeData.dark() : m.ThemeData();
+    return base.copyWith(
+      pageTransitionsTheme: m.PageTransitionsTheme(
+        builders: {
+          ...const m.PageTransitionsTheme().builders,
+          TargetPlatform.iOS: const SwipeablePageTransitionsBuilder(),
+        },
+      ),
+    );
+  }
+
   static ThemeData build(Brightness brightness) => ThemeData(
     colorScheme: brightness == Brightness.dark ? darkColorScheme : lightColorScheme,
     typography: const Typography.geist(),
     radius: radius,
   );
+}
+
+/// Component defaults every BikeControl app shell puts around its content
+/// (main app, overlay, test harnesses), so a plain `Card` is the design's
+/// card everywhere: 16 px corners and no outline. Cards separate from the
+/// page by tone (dark: #1E1E1E on #121212; light: white on #F2F2F7).
+///
+/// A card that needs an outline (a selected plan, a warning) still sets
+/// `borderColor` itself.
+class BkComponentThemes extends StatelessWidget {
+  const BkComponentThemes({super.key, required this.child});
+
+  /// Corner radius of a card, in logical px.
+  static const double cardRadius = 16;
+
+  static const CardTheme cardTheme = CardTheme(
+    borderRadius: BorderRadius.all(Radius.circular(cardRadius)),
+    // Border.all(width: 0) still paints a one-pixel hairline, so the default
+    // outline is also made transparent.
+    borderWidth: 0,
+    borderColor: Color(0x00000000),
+  );
+
+  /// [cardTheme] in light mode: white cards lift off the grouped page with
+  /// [BkBrandColors.cardShadow].
+  static final CardTheme cardThemeLight = CardTheme(
+    borderRadius: cardTheme.borderRadius,
+    borderWidth: 0,
+    borderColor: const Color(0x00000000),
+    boxShadow: BkBrandColors.light.cardShadow,
+  );
+
+  /// The off switch's track: a muted fill a step off the page and the card,
+  /// so the white thumb has something to sit on in both brightnesses.
+  static Color switchOffTrack(Brightness brightness) =>
+      brightness == Brightness.dark ? const Color(0xFF262B33) : const Color(0xFFDCDCE1);
+
+  /// A switch keeps a white thumb in every state and brightness: on, on the
+  /// primary track; off, on a muted one. shadcn paints the on thumb in the
+  /// page colour (a near-black dot on the blue in dark mode) and the off
+  /// thumb in the text colour (a black dot in light mode).
+  static SwitchTheme switchTheme(Brightness brightness) => SwitchTheme(
+    activeThumbColor: const Color(0xFFFFFFFF),
+    inactiveThumbColor: const Color(0xFFFFFFFF),
+    inactiveColor: switchOffTrack(brightness),
+  );
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return ComponentTheme<CardTheme>(
+      data: brightness == Brightness.light ? cardThemeLight : cardTheme,
+      child: ComponentTheme<SwitchTheme>(
+        data: switchTheme(brightness),
+        child: ComponentTheme<DividerTheme>(
+          data: DividerTheme(color: Theme.of(context).colorScheme.border),
+          child: child,
+        ),
+      ),
+    );
+  }
 }
 
 /// Status colours, which shadcn's [ColorScheme] has no slots for: success,
@@ -152,7 +249,8 @@ class BkStatusColors {
   final Color dangerWash;
 
   static const BkStatusColors light = BkStatusColors._(
-    success: Color(0xFF15803D),
+    // Green-700 (#15803D) is 4.49:1 on the grouped page; one notch darker.
+    success: Color(0xFF147A3B),
     successForeground: Color(0xFFFFFFFF),
     successWash: Color(0xFFF0FDF4),
     warning: Color(0xFFB45309),
@@ -169,9 +267,9 @@ class BkStatusColors {
   /// Lifted hues for dark surfaces, dark text on the filled colours, and
   /// low-alpha washes of the colour itself.
   static const BkStatusColors dark = BkStatusColors._(
-    success: Color(0xFF4ADE80),
+    success: Color(0xFF22C55E),
     successForeground: Color(0xFF052E16),
-    successWash: Color(0x264ADE80),
+    successWash: Color(0x2622C55E),
     warning: Color(0xFFFBBF24),
     warningForeground: Color(0xFF1C1917),
     warningWash: Color(0x26FBBF24),
@@ -186,6 +284,94 @@ class BkStatusColors {
   static BkStatusColors forBrightness(Brightness brightness) => brightness == Brightness.dark ? dark : light;
 
   static BkStatusColors of(BuildContext context) => forBrightness(Theme.of(context).brightness);
+}
+
+/// The brand line's colours, which shadcn's [ColorScheme] has no slots for:
+/// the icon tile's blue wash, the group header ink, the blue→teal brand band
+/// (Ride's virtual shifting header and the plan cards — nowhere else, never
+/// on buttons or state indicators) and what sits on it, the selected tab's
+/// pill, the Ready tick's halo and the light cards' shadow.
+///
+/// Every text pair clears 4.5:1 (pinned in brand_tokens_test): tile glyph
+/// 4.9 / 5.6, group header 6.5 on the light page / 8.5 on the dark one,
+/// white on the band 5.0–5.6 light / 6.8–7.4 dark, the selected segment's
+/// #0A5A91 on white 7.3.
+@immutable
+class BkBrandColors {
+  const BkBrandColors._({
+    required this.tileWash,
+    required this.tileInk,
+    required this.groupHeader,
+    required this.bandStart,
+    required this.bandEnd,
+    required this.navPill,
+    required this.readyHalo,
+    required this.cardShadow,
+  });
+
+  /// An icon tile's fill.
+  final Color tileWash;
+
+  /// An icon tile's glyph on [tileWash]; the accent text colour.
+  final Color tileInk;
+
+  /// Grouped-section and page-group headers.
+  final Color groupHeader;
+
+  /// The brand band's gradient, brand blue to the website's deep teal.
+  final Color bandStart;
+  final Color bandEnd;
+
+  /// The selected tab's pill behind its icon: the accent at 14%.
+  final Color navPill;
+
+  /// The ring around the Ready tick: the success colour at 16%.
+  final Color readyHalo;
+
+  /// Card elevation: a soft brand-tinted shadow on light cards; none in dark,
+  /// where cards separate by tone.
+  final List<BoxShadow> cardShadow;
+
+  /// Text and glyphs on the band, and the fill of its selected segment / CTA.
+  Color get onBand => const Color(0xFFFFFFFF);
+
+  /// Text on a white segment or CTA on the band.
+  Color get onBandSelectedText => const Color(0xFF0A5A91);
+
+  /// The track under the band's segmented control: black at 18% over it.
+  Color get bandTrack => const Color(0x2E000000);
+
+  /// The band's topographic contour lines: white at 16%.
+  Color get contourStroke => const Color(0x29FFFFFF);
+
+  static const BkBrandColors light = BkBrandColors._(
+    tileWash: Color(0xFFE3EEF7),
+    tileInk: BkTheme.lightAccentText,
+    groupHeader: Color(0xFF3D5A73),
+    bandStart: Color(0xFF0E74B7),
+    bandEnd: Color(0xFF0B7478),
+    navPill: Color(0x240E74B7),
+    readyHalo: Color(0x29147A3B),
+    cardShadow: [
+      BoxShadow(color: Color(0x0A0F2D46), offset: Offset(0, 1), blurRadius: 1),
+      BoxShadow(color: Color(0x290F2D46), offset: Offset(0, 6), blurRadius: 16, spreadRadius: -10),
+    ],
+  );
+
+  static const BkBrandColors dark = BkBrandColors._(
+    tileWash: Color(0xFF1A2C3A),
+    tileInk: BkTheme.darkPrimary,
+    groupHeader: Color(0xFF8DB4D1),
+    bandStart: Color(0xFF0C5F96),
+    bandEnd: Color(0xFF0A5F63),
+    navPill: Color(0x244DA9E8),
+    readyHalo: Color(0x2922C55E),
+    cardShadow: [],
+  );
+
+  static BkBrandColors forBrightness(Brightness brightness) => brightness == Brightness.dark ? dark : light;
+
+  static BkBrandColors of(BuildContext context) => forBrightness(Theme.of(context).brightness);
 }
 
 /// [BkTheme.mobileScaling]: shadcn scales icons with text; this keeps them at

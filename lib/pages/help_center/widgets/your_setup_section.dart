@@ -1,6 +1,7 @@
 // "Your setup" personalized section (Task 9) — rows built from the rider's
 // actual configured controllers instead of static links: one help-article
-// row per distinct controller (deduped by article URL), a network
+// row per distinct controller (deduped by article URL, and skipping any
+// article the "Guides & videos" card already lists), a network
 // troubleshooting row while a network trainer connection is active, a Zwift
 // Click V2 setup-options row while a Click V2 side is known (live or
 // remembered), and a muted nudge toward the setup wizard when nothing is
@@ -15,6 +16,7 @@
 // "Run the setup guide" row whenever no controller is connected.
 import 'dart:async';
 
+import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -26,12 +28,13 @@ import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/help_center/widgets/help_answer_sheet.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
-import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:dartx/dartx.dart';
@@ -60,12 +63,23 @@ class YourSetupSection extends StatelessWidget {
   /// chat with the intake answered for that controller not pairing.
   final void Function(String? controllerId)? onContactSupport;
 
+  /// Test seam: whether this rider has a daily button-press limit (no Base,
+  /// no Pro). Production asks [IAPManager].
+  final bool? commandLimitedOverride;
+
+  /// How-to article URLs already listed elsewhere on the Help Center page
+  /// (the "Guides & videos" card). Those stay in the general list and are
+  /// left out here, so the same link never shows twice on one page.
+  final Set<String> excludedArticleUrls;
+
   const YourSetupSection({
     super.key,
     this.devicesOverride,
     this.connectionsOverride,
     this.onSearchAgain,
     this.onContactSupport,
+    this.commandLimitedOverride,
+    this.excludedArticleUrls = const {},
   });
 
   @override
@@ -81,7 +95,7 @@ class YourSetupSection extends StatelessWidget {
     final articles = <String, HelpArticle>{};
     for (final controller in articleDevices) {
       final article = helpArticleFor(context, controller: controller, app: app);
-      if (article != null) articles[article.url] = article;
+      if (article != null && !excludedArticleUrls.contains(article.url)) articles[article.url] = article;
     }
 
     final hasNetworkConnection = connections.any(
@@ -148,7 +162,7 @@ class YourSetupSection extends StatelessWidget {
               onNetworkTest: () => context.push(const NetworkTroubleshootingPage()),
               onOverlay: proxy == null
                   ? null
-                  : () => context.push(ProxyDeviceDetailsPage(device: proxy, revealOverlaySection: true)),
+                  : () => context.push(overlaySettingsDestination(proxy)),
             ),
             actions: [
               HelpAnswerAction.link(
@@ -197,6 +211,38 @@ class YourSetupSection extends StatelessWidget {
           child: Basic(
             leading: const Icon(LucideIcons.bluetoothOff, size: 18),
             title: Text(l10n.helpCenterControllerDisconnectingEntry),
+            trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
+          ),
+        ),
+      // They worked, now nothing happens: for a rider with a controller.
+      if (hasControllers)
+        Button.ghost(
+          key: const ValueKey('help-buttons-stopped'),
+          style: rowStyle,
+          onPressed: () {
+            final [...before, connection] = buttonsStoppedChecks(
+              l10n,
+              commandLimited: commandLimitedOverride ?? IAPManager.instance.commandsRemainingToday >= 0,
+            );
+            openHelpAnswerSheet(
+              context,
+              icon: LucideIcons.mousePointerClick,
+              title: l10n.helpCenterButtonsStoppedEntry,
+              body: l10n.helpAnswerChecksIntro,
+              checks: [
+                ...before,
+                connection.withAction(
+                  key: const ValueKey('help-check-connection-settings'),
+                  label: l10n.settingsTrainerAppConnection,
+                  icon: LucideIcons.monitor,
+                  onPressed: () => context.push(const TrainerConnectionSettingsPage()),
+                ),
+              ],
+            );
+          },
+          child: Basic(
+            leading: const Icon(LucideIcons.mousePointerClick, size: 18),
+            title: Text(l10n.helpCenterButtonsStoppedEntry),
             trailing: const Icon(LucideIcons.chevronRight, size: 16).iconMutedForeground,
           ),
         ),

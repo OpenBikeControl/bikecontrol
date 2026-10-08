@@ -23,6 +23,9 @@ Future<void> main() async {
     addTearDown(tester.view.resetDevicePixelRatio);
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
+    // A store build, where Restore purchases is on the paywall.
+    IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.appStore;
+    addTearDown(() => IAPManager.instance.purchaseChannelForTesting = null);
     final theme = BkTheme.build(brightness);
     await tester.pumpWidget(
       ShadcnApp(

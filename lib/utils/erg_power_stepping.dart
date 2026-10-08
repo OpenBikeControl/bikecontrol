@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
 /// Manual ERG-target stepping shared by every +/- control: the physical
-/// shifter buttons (proxy_device), the on-screen buttons and slider
-/// (gear_hero_card), and the overlay controls (desktop/android/ios overlay
+/// shifter buttons (proxy_device), the on-screen buttons (Ride's virtual
+/// shifting card), and the overlay controls (desktop/android/ios overlay
 /// controllers). One home for the step size and the manual range so the
 /// controls can't drift apart again (physical buttons once stepped 10 W while
 /// the screen stepped 5 W).

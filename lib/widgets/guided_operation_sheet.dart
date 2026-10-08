@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -89,16 +90,16 @@ class ProgressChecklist extends StatefulWidget {
   final bool reduceMotion;
   final int initialStep;
   final bool autoAdvance;
-  final Color doneColor;
-  final Color checkColor;
+  final Color? doneColor;
+  final Color? checkColor;
   const ProgressChecklist({
     super.key,
     required this.items,
     required this.reduceMotion,
     this.initialStep = 0,
     this.autoAdvance = true,
-    this.doneColor = const Color(0xFF22C55E),
-    this.checkColor = const Color(0xFFFFFFFF),
+    this.doneColor,
+    this.checkColor,
   });
 
   @override
@@ -166,8 +167,15 @@ class _ProgressChecklistState extends State<ProgressChecklist> {
         width: d,
         height: d,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: widget.doneColor, shape: BoxShape.circle),
-        child: Icon(LucideIcons.check, size: 12, color: widget.checkColor),
+        decoration: BoxDecoration(
+          color: widget.doneColor ?? BkStatusColors.of(context).success,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          LucideIcons.check,
+          size: 12,
+          color: widget.checkColor ?? BkStatusColors.of(context).successForeground,
+        ),
       );
     }
     if (i == _current) {

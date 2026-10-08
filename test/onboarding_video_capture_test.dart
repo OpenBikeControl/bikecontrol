@@ -31,12 +31,12 @@
 //     derailleur asks to be authorised → the AXS button is held (a hardware
 //     beat on the fake derailleur) → Retry → all set → Done. Two shifter
 //     paddles are then pressed; like Di2, AXS has no contour in onboarding.
-// * `vs-settings` — a cutaway on the bridged trainer's page: gearing presets,
-//   gear count and a second chainring; a gear change from a Ride press; the
-//   SIM / ERG switch. Its `chapters.json` names those three beats. The rider
-//   is pedalling (the trainer streams Indoor Bike Data), so the chain on the
-//   gear card runs; the gear-count warning and the Mini Workout card are kept
-//   off it with test-only flags. Because the chain never rests, the beat
+// * `vs-settings` — a cutaway on Settings → Virtual shifting for the bridged
+//   trainer: a second chainring, gear count and gearing presets under the
+//   live drivetrain; a gear change from a Ride press. Its `chapters.json`
+//   names those two beats. The rider is pedalling (the trainer streams Indoor
+//   Bike Data), so the chain on the drivetrain runs; the gear-count warning is
+//   kept off it with a test-only flag. Because the chain never rests, the beat
 //   boundaries here are not settled frames — it is one continuous take.
 //
 // Output (per scene):
@@ -131,17 +131,14 @@ import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart' show O
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart' show debugVirtualShiftingStageOpeningScene;
-import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart' show debugHideGearCountMismatch;
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
-import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/settings/settings.dart';
-import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -164,10 +161,9 @@ import 'widget_snapshot.dart';
 const _vsStageOpeningScene = 1;
 const _vsStageFrames = 150;
 
-/// Cutaway holds: the opening page, the chosen preset, and each of SIM / ERG.
+/// Cutaway holds: the opening page and the chosen preset.
 const _cutawayOpeningFrames = 45;
 const _presetHoldFrames = 54;
-const _modeHoldFrames = 60;
 
 /// The cutaway starts the gear count here so two taps on + reach MyWhoosh's.
 const _cutawayStartGears = 28;
@@ -796,7 +792,7 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   // Step 6 — done, and ready.
   rec.chapter('done');
   await rec.tap(find.byType(PrimaryButton).last, 'Finish setup');
-  expect(find.text(l10n.onboardingDoneTitle), findsOneWidget, reason: 'the take should end ready to ride');
+  expect(find.text(l10n.onboardingDoneTitle.toUpperCase()), findsOneWidget, reason: 'the take should end ready to ride');
   expect(find.text(l10n.onboardingDoneStartRiding), findsOneWidget);
 
   final ride = withCutaway;
@@ -806,7 +802,7 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
     return (onboarding: rec.capture, cutaway: null);
   }
 
-  // ── The cutaway: the bridged trainer's own page. ─────────────────────────
+  // ── The cutaway: Settings → Virtual shifting for the bridged trainer. ─────
   // Its own take, on the same bridged trainer. Shifts go through the real
   // action pipeline from here on, so a Ride press changes the trainer's gear.
   core.actionHandler = FilmActions()..init(core.settings.getTrainerApp());
@@ -829,34 +825,37 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
   final cut = VideoRecorder(tester, boundary);
   await tester.pumpWidget(app(const SizedBox()));
   await tester.pump();
-  await tester.pumpWidget(app(ProxyDeviceDetailsPage(device: trainer)));
+  await tester.pumpWidget(app(VirtualShiftingSettingsPage(definition: definition, device: trainer)));
   await cut.first('gearing');
   expect(definition.cadenceRpm.value, _pedallingRpm, reason: 'the trainer should be reporting cadence');
-  expect(find.text(l10n.miniWorkout), findsNothing, reason: 'the Mini Workout card is kept off this video');
   // The page opens on the running chain; hold it before the first tap.
   await cut.frames(_cutawayOpeningFrames - 1);
 
-  // (a) Your gearing, your way.
-  await cut.tap(find.text(l10n.gearSettings), 'Gear settings');
-  await cut.tap(find.byWidgetPredicate((w) => w is Switch).first, 'Front derailleur');
-  final plus = find.descendant(of: find.widgetWithText(SettingTile, l10n.gearCount), matching: find.byIcon(LucideIcons.plus));
+  // (a) Your gearing, your way: the drivetrain sits right above Gears, so the
+  // second ring and the new cogs appear in view.
+  final frontDerailleur = find.descendant(
+    of: find.byKey(const ValueKey('vs-front-derailleur')),
+    matching: find.byWidgetPredicate((w) => w is Switch),
+  );
+  await cut.swipe(const Offset(190, 640), const Offset(190, 340), 'Scroll to the drivetrain');
+  await cut.tap(frontDerailleur.first, 'Front derailleur');
+  final plus = find.descendant(of: find.widgetWithText(BkGroupedRow, l10n.gearCount), matching: find.byIcon(LucideIcons.plus));
   await cut.tap(plus, 'Gear count +');
   await cut.tap(plus, 'Gear count + again');
   expect(definition.maxGear, MyWhoosh().virtualGearAmount);
-  final mismatch = l10n.gearCountMismatch(MyWhoosh().name, MyWhoosh().virtualGearAmount, _cutawayStartGears);
-  expect(find.text(mismatch), findsNothing, reason: 'the gear-count warning is kept off this video');
   await cut.swipe(const Offset(190, 640), const Offset(190, 300), 'Scroll to presets');
   await cut.tap(find.text(l10n.presetCompact), 'Compact preset');
   // Rest on the chosen preset.
   final compact = cut.capture.taps.last.frame;
   await cut.holdUntil(compact, _presetHoldFrames);
-  // Back on the page the chain is running again: nothing settles from here.
-  await cut.tap(find.byIcon(LucideIcons.arrowLeft), 'Back', thenFrames: 30);
+  // Back up to the drivetrain; the chain is running again: nothing settles
+  // from here.
+  await cut.swipe(const Offset(190, 300), const Offset(190, 640), 'Scroll back to the drivetrain');
 
-  // (b) Direct gear changes: two Ride shifts land on the gear card, and the
+  // (b) Direct gear changes: two Ride shifts land on the drivetrain, and the
   // chain walks to the next cog each time.
   cut.chapter('direct-gear-changes', settled: false);
-  final gearCard = find.byType(GearHeroCard);
+  final gearCard = find.byKey(const ValueKey('vs-drivetrain'));
   for (final label in ['Ride button: Shift up', 'Ride button: Shift up again']) {
     final before = definition.currentGear.value;
     await cut.hardwarePress(ride, RideButtonMask.SHFT_UP_R_BTN, ZwiftButtons.shiftUpRight, label,
@@ -864,13 +863,8 @@ Future<({VideoCapture onboarding, VideoCapture? cutaway})> _captureMyWhoosh(
     expect(definition.currentGear.value, before + 1, reason: '"$label" should shift the trainer up a gear');
   }
 
-  // (c) SIM & ERG: the card's own mode switch, each held so it reads.
-  cut.chapter('sim-erg', settled: false);
-  final modeSwitch = find.descendant(of: gearCard, matching: find.byWidgetPredicate((w) => w is Switch));
-  await cut.tap(modeSwitch, 'ERG', thenFrames: _modeHoldFrames - 3);
-  expect(definition.trainerMode.value, TrainerMode.ergMode);
-  await cut.tap(modeSwitch, 'SIM', thenFrames: _modeHoldFrames - 3);
-  expect(definition.trainerMode.value, TrainerMode.simMode);
+  // The SIM / ERG chapter went with the trainer page's gear card: neither
+  // Ride nor Settings → Virtual shifting has a mode switch.
   pedalling.cancel();
 
   await _unbridge(tester, stage, peripheral.deviceId);
@@ -924,15 +918,11 @@ void main() {
     debugClickV2OnboardingInScreenshotMode = true;
     debugKeepsControllerNamesInScreenshotMode = true;
     debugVirtualShiftingStageOpeningScene = _vsStageOpeningScene;
-    debugHideGearCountMismatch = true;
-    debugHideMiniWorkoutCard = true;
     addTearDown(() {
       debugAnimatesInScreenshotMode = false;
       debugClickV2OnboardingInScreenshotMode = false;
       debugKeepsControllerNamesInScreenshotMode = false;
       debugVirtualShiftingStageOpeningScene = null;
-      debugHideGearCountMismatch = false;
-      debugHideMiniWorkoutCard = false;
     });
   });
 
@@ -1026,31 +1016,33 @@ void main() {
     expectStepChangesAnimate(onboarding, ['Continue to controller']);
 
     expect(cutaway.taps.map((t) => (t.kind, t.label)), [
-      ('tap', 'Gear settings'),
+      ('swipe', 'Scroll to the drivetrain'),
       ('tap', 'Front derailleur'),
       ('tap', 'Gear count +'),
       ('tap', 'Gear count + again'),
       ('swipe', 'Scroll to presets'),
       ('tap', 'Compact preset'),
-      ('tap', 'Back'),
+      ('swipe', 'Scroll back to the drivetrain'),
       ('hardware', 'Ride button: Shift up'),
       ('hardware', 'Ride button: Shift up again'),
-      ('tap', 'ERG'),
-      ('tap', 'SIM'),
     ]);
-    expect(cutaway.chapters.map((c) => c.name), ['gearing', 'direct-gear-changes', 'sim-erg']);
-    // The chain runs whenever the gear card is on screen, so taps on that page
+    expect(cutaway.chapters.map((c) => c.name), ['gearing', 'direct-gear-changes']);
+    // The chain runs whenever the drivetrain is on screen, so taps on that page
     // and the beat boundaries there can't wait for a still frame.
     expectWellFormed(
       cutaway,
-      unsettledTaps: const {'Gear settings', 'Ride button: Shift up', 'Ride button: Shift up again', 'ERG'},
+      unsettledTaps: const {
+        'Scroll to the drivetrain',
+        'Front derailleur',
+        'Ride button: Shift up',
+        'Ride button: Shift up again',
+      },
       settledCuts: false,
     );
     int at(String label) => cutaway.taps.firstWhere((t) => t.label == label).frame;
-    expect(at('Gear settings'), greaterThanOrEqualTo(_cutawayOpeningFrames), reason: 'hold the opening page');
-    expect(at('Back') - at('Compact preset'), greaterThanOrEqualTo(_presetHoldFrames), reason: 'hold the preset');
-    expect(at('SIM') - at('ERG'), greaterThanOrEqualTo(_modeHoldFrames), reason: 'hold ERG');
-    expect(cutaway.frames.length - at('SIM'), greaterThanOrEqualTo(_modeHoldFrames), reason: 'hold SIM');
+    expect(at('Scroll to the drivetrain'), greaterThanOrEqualTo(_cutawayOpeningFrames), reason: 'hold the opening page');
+    expect(at('Scroll back to the drivetrain') - at('Compact preset'), greaterThanOrEqualTo(_presetHoldFrames),
+        reason: 'hold the preset');
     // The chain on the gear card runs.
     expect(cutaway.frames.sublist(0, _cutawayOpeningFrames).map(sha256.convert).toSet().length, greaterThan(30),
         reason: 'the chain should be running on film');

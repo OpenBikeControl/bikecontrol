@@ -14,7 +14,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';
 
-class EliteSterzo extends BluetoothDevice implements SteeringDevice {
+class EliteSterzo extends BluetoothDevice implements SteeringDevice, RecalibratableSteering {
   EliteSterzo(super.scanResult) : super(availableButtons: SterzoButtons.values);
 
   @override

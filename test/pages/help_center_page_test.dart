@@ -5,16 +5,21 @@
 // `focus: HelpCenterFocus.yourSetup` constructor scrolls the your-setup
 // placeholder into view, and the help button pushes this page instead of
 // opening the old dropdown.
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/help_center/help_center_page.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/widgets/app_version_line.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child) {
   return tester.pumpWidget(
@@ -65,6 +70,30 @@ Future<void> main() async {
     expect(find.text(l10n.helpCenterContact), findsOneWidget);
   });
 
+  testWidgets('a how-to article already under Guides & videos is not repeated under Your setup', (tester) async {
+    // Jonas: "Zwift Play mit MyWhoosh verwenden" showed twice on the page —
+    // once in Guides & videos, once again in the personalized Your setup
+    // card. The general list keeps it; Your setup drops it.
+    final play = ZwiftPlay(
+      BleDevice(name: 'Zwift Play', deviceId: 'help-dedupe-play'),
+      deviceType: ZwiftDeviceType.playLeft,
+    );
+    core.connection.devices.add(play);
+    addTearDown(() => core.connection.devices.remove(play));
+    core.settings.setTrainerApp(MyWhoosh());
+
+    await _pump(tester, const HelpCenterPage());
+    await tester.pump();
+
+    final articleLabel = find.text(l10n.useControllerWithApp('Zwift Play', 'MyWhoosh'));
+    expect(articleLabel, findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('help-your-setup')), matching: articleLabel),
+      findsNothing,
+      reason: 'the one remaining copy lives in Guides & videos, not Your setup',
+    );
+  });
+
   testWidgets('Known Issues renders nothing — not even its header — when the fetch fails', (tester) async {
     // KnownIssuesSection fires a real, unmocked network fetch on initState
     // (see the "help button push" test below) against the bogus
@@ -86,8 +115,9 @@ Future<void> main() async {
     // starts out of view — otherwise "scrolled into view" is a no-op. Design
     // round 1 dropped the Troubleshooting card ahead of "Your setup", so it
     // now sits higher up the page — the viewport needs to be shorter than
-    // before to still push it below the fold.
-    const viewportHeight = 250.0;
+    // before to still push it below the fold. Dropping the instruction
+    // videos row from Guides & videos moved it up again.
+    const viewportHeight = 180.0;
     tester.view.physicalSize = const Size(400, viewportHeight);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -120,7 +150,7 @@ Future<void> main() async {
   });
 
   testWidgets('help button push opens HelpCenterPage', (tester) async {
-    await _pump(tester, const HelpButton(isMobile: false));
+    await _pump(tester, const HelpButton());
     await tester.pump();
 
     expect(find.byType(HelpCenterPage), findsNothing);
@@ -134,6 +164,12 @@ Future<void> main() async {
     expect(find.byType(HelpCenterPage), findsOneWidget);
   });
 
+  testWidgets('ends with the version, patch and update lane line', (tester) async {
+    await _pump(tester, const HelpCenterPage());
+    await tester.pump();
+    expect(find.byType(AppVersionLine), findsOneWidget);
+  });
+
   testWidgets('help button awaits the pushed HelpCenterPage and re-checks unread on return', (tester) async {
     // Regression: HelpButton stays mounted under the pushed route and its
     // own `_hasUnread` badge was never re-synced when the rider returned —
@@ -142,7 +178,7 @@ Future<void> main() async {
     // pins that the round trip completes cleanly (no session in tests, so
     // `_checkForUnread` no-ops past its `currentSession == null` guard, but
     // the awaited continuation must still run without throwing).
-    await _pump(tester, const HelpButton(isMobile: false));
+    await _pump(tester, const HelpButton());
     await tester.pump();
 
     await tester.tap(find.byType(HelpButton));
@@ -152,7 +188,7 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(HelpCenterPage), findsOneWidget);
 
-    await tester.tap(find.byType(IconButton).first);
+    await tester.tap(find.byKey(const ValueKey('page-header-back')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 1000));
 

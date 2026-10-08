@@ -17,6 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// The unlock post's Zwift Ride V2 section.
 const zwiftRideV2HelpUrl = '$zwiftUnlockBlogUrl#zwift-ride-v2';
@@ -154,95 +155,92 @@ class ZwiftRideV2ExplainerPage extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       child: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(l10n.rideV2Explainer_title).large.semiBold),
+                        BkIconButton.ghost(
+                          key: const ValueKey('ride-v2-explainer-close'),
+                          icon: const Icon(LucideIcons.x),
+                          label: l10n.close,
+                          onPressed: () => Navigator.of(context).maybePop(),
+                        ),
+                      ],
+                    ),
+                    Text(l10n.rideV2Explainer_intro).small.muted,
+                    Button.link(
+                      onPressed: () => launchUrlString(zwiftRideV2HelpUrl),
+                      trailing: const Icon(LucideIcons.externalLink, size: 14),
+                      child: Text(l10n.clickV2Onboarding_whyLink),
+                    ),
+                  ],
+                ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 8,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(child: Text(l10n.rideV2Explainer_title).large.semiBold),
-                          BkIconButton.ghost(
-                            key: const ValueKey('ride-v2-explainer-close'),
-                            icon: const Icon(LucideIcons.x),
-                            label: l10n.close,
-                            onPressed: () => Navigator.of(context).maybePop(),
-                          ),
-                        ],
+                      const SizedBox(
+                        height: 180,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: _RideV2Hero(),
+                        ),
                       ),
-                      Text(l10n.rideV2Explainer_intro).small.muted,
-                      Button.link(
-                        onPressed: () => launchUrlString(zwiftRideV2HelpUrl),
-                        trailing: const Icon(LucideIcons.externalLink, size: 14),
-                        child: Text(l10n.clickV2Onboarding_whyLink),
+                      const Gap(12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 12,
+                          children: [
+                            Text(l10n.rideV2Explainer_heading).large.semiBold,
+                            _row(
+                              context,
+                              LucideIcons.circleCheck,
+                              l10n.rideV2Explainer_row2,
+                              BkStatusColors.of(context).success,
+                            ),
+                            _row(context, LucideIcons.clock, l10n.rideV2Explainer_row3, cs.mutedForeground),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const Gap(12),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(
-                          height: 180,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 32),
-                            child: _RideV2Hero(),
-                          ),
-                        ),
-                        const Gap(12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 12,
-                            children: [
-                              Text(l10n.rideV2Explainer_heading).large.semiBold,
-                              _row(
-                                context,
-                                LucideIcons.circleCheck,
-                                l10n.rideV2Explainer_row2,
-                                BkStatusColors.of(context).success,
-                              ),
-                              _row(context, LucideIcons.clock, l10n.rideV2Explainer_row3, cs.mutedForeground),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+              ),
+              const Gap(12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Button.primary(
+                    key: const ValueKey('ride-v2-explainer-got-it'),
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    child: Center(child: Text(l10n.rideV2Explainer_gotIt)),
                   ),
                 ),
-                const Gap(12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Button.primary(
-                      key: const ValueKey('ride-v2-explainer-got-it'),
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      child: Center(child: Text(l10n.rideV2Explainer_gotIt)),
-                    ),
-                  ),
+              ),
+              const Gap(4),
+              Center(
+                child: ZwiftRideV2SupportLine(
+                  device: device,
+                  onBeforeOpen: () => Navigator.of(context).maybePop(),
                 ),
-                const Gap(4),
-                Center(
-                  child: ZwiftRideV2SupportLine(
-                    device: device,
-                    onBeforeOpen: () => Navigator.of(context).maybePop(),
-                  ),
-                ),
-                const Gap(12),
-              ],
-            ),
+              ),
+              const Gap(12),
+            ],
           ),
         ),
       ),

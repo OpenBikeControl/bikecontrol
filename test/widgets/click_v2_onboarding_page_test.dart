@@ -4,6 +4,7 @@ import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/click_v2/click_contours.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -199,7 +200,10 @@ void main() {
     // Scoped to the dot row itself — shadcn's own widgets use AnimatedContainer
     // internally too, so a blanket byType(AnimatedContainer) would overcount.
     expect(
-      find.descendant(of: find.byKey(const ValueKey('click-onboarding-dots')), matching: find.byType(AnimatedContainer)),
+      find.descendant(
+        of: find.byKey(const ValueKey('click-onboarding-dots')),
+        matching: find.byType(AnimatedContainer),
+      ),
       findsNWidgets(3),
     );
   });
@@ -222,8 +226,9 @@ void main() {
     }
   });
 
-  testWidgets('caps content width and centers it on a wide desktop window, matching the Help Center / '
-      'instruction-videos idiom', (tester) async {
+  testWidgets('caps content width and centres it on a wide desktop window, like every pushed page', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1400, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -232,18 +237,13 @@ void main() {
     await pumpPage(tester);
 
     // The whole page's content — header, pager and footer link alike — sits
-    // inside one Center + ConstrainedBox(maxWidth: 720), the same idiom
-    // instruction_videos_section.dart's "Bug 3" fix uses. On this 1400-wide
-    // window that must actually clamp the rendered width, not just exist
-    // somewhere unused in the tree.
-    final cap = find.byWidgetPredicate((w) => w is ConstrainedBox && w.constraints.maxWidth == 720);
+    // in one page column. On this 1400-wide window that must actually clamp
+    // the rendered width, not just exist somewhere unused in the tree.
+    final cap = find.byKey(BkPageColumn.columnKey);
     expect(cap, findsOneWidget);
-    expect(tester.getSize(cap).width, 720);
+    expect(tester.getSize(cap).width, BkPageColumn.defaultMaxWidth);
 
-    // Centered, not pinned to an edge: equal empty space on both sides of
-    // the capped content within the 1400-wide window.
-    final capLeft = tester.getTopLeft(cap).dx;
-    final capRight = tester.getTopRight(cap).dx;
-    expect(capLeft, closeTo(1400 - capRight, 0.5));
+    // Centred in the window, like every pushed page.
+    expect(tester.getTopLeft(cap).dx, (1400 - BkPageColumn.defaultMaxWidth) / 2);
   });
 }

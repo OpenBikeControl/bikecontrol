@@ -43,7 +43,7 @@ class RizerButtons {
 /// grade, via [ManualInclineDevice]) and steering (angle float from the
 /// steering characteristic). It is a standalone BLE device, so it works
 /// with any trainer.
-class EliteRizer extends BluetoothDevice with ManualInclineDevice implements SteeringDevice {
+class EliteRizer extends BluetoothDevice with ManualInclineDevice implements SteeringDevice, RecalibratableSteering {
   EliteRizer(super.scanResult) : super(availableButtons: RizerButtons.values, isBeta: true);
 
   @visibleForTesting

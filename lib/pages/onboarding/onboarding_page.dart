@@ -1,8 +1,14 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerPress;
 import 'package:bike_control/pages/onboarding/onboarding_network_precheck.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart' show NetworkFixId;
 import 'package:bike_control/services/network_self_test/network_fixes.dart' show runNetworkFix;
 import 'package:bike_control/services/network_self_test/network_method_target.dart' show currentNetworkMethodTarget;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel;
@@ -40,15 +46,24 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/requirements/android.dart' show LocationRequirement;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
+import 'package:bike_control/widgets/keymap/trainer_app_keymap_prompt.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 const double kOnboardingDesktopBreakpoint = Breakpoints.twoPane;
 const double kOnboardingBodyMaxWidth = 640;
+
+/// Brings up the connection methods the rider turned on. The launch-time start
+/// is skipped while the wizard holds the screen, so every way out of it — Start
+/// riding, plan options, Later, and X — calls this. Replaceable so tests can
+/// see it happen without opening real sockets.
+@visibleForTesting
+void Function() onboardingStartConnectionMethods = () => core.logic.startEnabledConnectionMethod(userInitiated: true);
 
 String onboardingStepLabel(BuildContext context, OnboardingStep step) => switch (step) {
   OnboardingStep.app => context.i18n.onboardingStepApp,
@@ -68,9 +83,14 @@ String onboardingStepSub(BuildContext context, OnboardingStep step) => switch (s
   OnboardingStep.done => context.i18n.onboardingStepDoneSub,
 };
 
-/// Pure shell — mobile: header + progress bar + body + sticky footer;
-/// desktop (>=800): left step rail + centred column + right-aligned footer.
+/// Pure shell — mobile: "Step N of 6" header with Help, a segmented progress
+/// bar, the step's eyebrow, body and the list of steps, then a full-width pill
+/// with Back under it; desktop (>=800): a step rail (grouped list) beside a
+/// centred column and a right-aligned footer.
 /// Kept as a top-level function so snapshot tests can render any state.
+///
+/// [stepValues] is what a finished step settled on ("MyWhoosh", "This
+/// device"), shown at the end of its row in the list of steps.
 Widget onboardingShell(
   BuildContext context, {
   required OnboardingStep step,
@@ -80,114 +100,114 @@ Widget onboardingShell(
   required VoidCallback onHelp,
   VoidCallback? onClose,
   void Function(OnboardingStep)? onSelectStep,
+  Map<OnboardingStep, String> stepValues = const {},
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
       final desktop = constraints.maxWidth >= kOnboardingDesktopBreakpoint;
+      final cs = Theme.of(context).colorScheme;
+      // The done step is its own summary: no list of steps.
+      final inProgress = step != OnboardingStep.done;
+      final content = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          body,
+          if (!desktop && inProgress && step != OnboardingStep.app) ...[
+            const Gap(16),
+            onboardingStepList(context, current: step, values: stepValues, onSelectStep: onSelectStep),
+          ],
+        ],
+      );
       final scrolledBody = SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        // Keyed per step: the next step starts at the top, not wherever the
+        // last one was scrolled to.
+        key: ValueKey('onboarding-scroll-$step'),
+        padding: EdgeInsets.fromLTRB(desktop ? 24 : 16, 8, desktop ? 24 : 16, 16),
         child: desktop
             ? Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
-                  child: body,
+                  child: content,
                 ),
               )
-            : body,
+            : content,
       );
 
       if (!desktop) {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
               child: Row(
                 children: [
-                  if (onBack != null)
-                    BkIconButton.ghost(
-                      icon: Icon(LucideIcons.arrowLeft),
-                      label: context.i18n.a11yBack,
-                      onPressed: onBack,
-                    ),
-                  Image.asset('icon.png', width: 30, height: 30),
+                  SizedBox(
+                    width: 48,
+                    child: onClose == null
+                        ? null
+                        : BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
+                  ),
                   Expanded(
-                    child: Text(
-                      context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}'),
-                      textAlign: TextAlign.center,
-                    ).xSmall.semiBold.muted,
-                  ),
-                  Button.ghost(
-                    style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-                    onPressed: onHelp,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).colorScheme.border),
-                        borderRadius: BorderRadius.circular(999),
-                        color: Theme.of(context).colorScheme.card,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(LucideIcons.lifeBuoy, size: 14, color: onboardingAccent(context)),
-                          Gap(5),
-                          Text(context.i18n.onboardingHelp).xSmall.semiBold,
-                        ],
+                    // Read as "Step 3 of 6, Controller: Find and connect" —
+                    // the step's name lives in the rail on wide windows and
+                    // only here on the phone.
+                    child: Semantics(
+                      label:
+                          '${context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}')}, '
+                          '${onboardingStepLabel(context, step)}: ${onboardingStepSub(context, step)}',
+                      excludeSemantics: true,
+                      child: Text(
+                        context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}'),
+                        textAlign: TextAlign.center,
+                        style: context.typography.small.copyWith(
+                          color: cs.mutedForeground,
+                          fontWeight: FontWeight.w500,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
                   ),
-                  if (onClose != null)
-                    BkIconButton.ghost(icon: Icon(LucideIcons.x), label: context.i18n.close, onPressed: onClose),
+                  SizedBox(
+                    width: 48,
+                    child: BkIconButton.ghost(
+                      icon: Icon(LucideIcons.circleHelp, color: bkAccentText(context)),
+                      label: context.i18n.onboardingHelp,
+                      onPressed: onHelp,
+                    ),
+                  ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              child: Row(
-                children: [
-                  for (var i = 0; i < OnboardingStep.values.length; i++) ...[
-                    if (i > 0) Gap(4),
-                    Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          final bar = AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            height: 4,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(3),
-                              color: i <= step.index ? onboardingAccent(context) : Theme.of(context).colorScheme.border,
-                            ),
-                          );
-                          // Completed segments navigate back — a taller hit
-                          // target wraps the 4px bar.
-                          if (i < step.index && onSelectStep != null) {
-                            return Button.ghost(
-                              style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-                              onPressed: () => onSelectStep(OnboardingStep.values[i]),
-                              child: SizedBox(height: 24, child: Center(child: bar)),
-                            );
-                          }
-                          return SizedBox(height: 24, child: Center(child: bar));
-                        },
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: _progressBar(context, step, onSelectStep),
             ),
             Expanded(child: scrolledBody),
-            if (footerActions.isNotEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.card,
-                  border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var i = 0; i < footerActions.length; i++) ...[if (i > 0) Gap(8), footerActions[i]],
-                  ],
+            if (footerActions.isNotEmpty || onBack != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: _PillFooter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < footerActions.length; i++) ...[
+                        if (i > 0) const Gap(4),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: BkPillButton.minHeight),
+                          child: footerActions[i],
+                        ),
+                      ],
+                      if (onBack != null) ...[
+                        const Gap(4),
+                        BkTouchTarget(
+                          child: GhostButton(
+                            alignment: Alignment.center,
+                            onPressed: onBack,
+                            child: Text(context.i18n.onboardingBack),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -198,51 +218,50 @@ Widget onboardingShell(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            width: 268,
-            padding: const EdgeInsets.fromLTRB(14, 18, 14, 14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.muted,
-              border: Border(right: BorderSide(color: Theme.of(context).colorScheme.border)),
-            ),
+            width: 280,
+            padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+            color: bkSunkenSurface(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Horizontal padding lines the logo up with the step badges
-                // below (their tiles carry 12px inner padding).
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Image.asset('icon.png', width: 30, height: 30),
+                      Image.asset('icon.png', width: 28, height: 28),
                       Gap(10),
-                      Text('BikeControl').semiBold,
+                      Text('BikeControl', style: context.typography.base.copyWith(fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
-                Gap(18),
-                for (final s in OnboardingStep.values) _railStep(context, s, step, onSelectStep: onSelectStep),
-                const Spacer(),
-                Button.ghost(
-                  style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-                  onPressed: onHelp,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.card,
-                      border: Border.all(color: Theme.of(context).colorScheme.border),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(LucideIcons.lifeBuoy, size: 16, color: onboardingAccent(context)),
-                        Gap(9),
-                        Expanded(child: Text(context.i18n.onboardingHelpAndSupport).small.semiBold),
-                        Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                      ],
-                    ),
+                Gap(20),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                  child: Text(
+                    context.i18n.onboardingStepOf('${step.index + 1}', '${OnboardingStep.values.length}'),
+                    style: context.typography.small.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500),
                   ),
+                ),
+                _progressBar(context, step, onSelectStep),
+                Gap(12),
+                onboardingStepList(
+                  context,
+                  current: step,
+                  values: stepValues,
+                  onSelectStep: onSelectStep,
+                  showSubtitles: true,
+                ),
+                const Spacer(),
+                BkGroupedSection(
+                  children: [
+                    BkGroupedRow(
+                      icon: LucideIcons.circleHelp,
+                      title: context.i18n.onboardingHelpAndSupport,
+                      chevron: true,
+                      onPressed: onHelp,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -261,28 +280,31 @@ Widget onboardingShell(
                     ),
                   ),
                 Expanded(child: scrolledBody),
-                Container(
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.card,
-                    border: Border(top: BorderSide(color: Theme.of(context).colorScheme.border)),
-                  ),
-                  child: Row(
-                    children: [
-                      if (onBack != null)
-                        BkTouchTarget(
-                          child: GhostButton(
-                            alignment: Alignment.center,
-                            onPressed: onBack,
-                            child: Text(context.i18n.onboardingBack),
-                          ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
+                      child: _PillFooter(
+                        child: Row(
+                          children: [
+                            if (onBack != null)
+                              BkTouchTarget(
+                                child: GhostButton(
+                                  alignment: Alignment.center,
+                                  onPressed: onBack,
+                                  child: Text(context.i18n.onboardingBack),
+                                ),
+                              ),
+                            const Spacer(),
+                            for (var i = 0; i < footerActions.length; i++) ...[
+                              if (i > 0) Gap(10),
+                              BkTouchTarget(child: footerActions[i]),
+                            ],
+                          ],
                         ),
-                      const Spacer(),
-                      for (var i = 0; i < footerActions.length; i++) ...[
-                        if (i > 0) Gap(10),
-                        BkTouchTarget(child: footerActions[i]),
-                      ],
-                    ],
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -294,68 +316,161 @@ Widget onboardingShell(
   );
 }
 
-Widget _railStep(
-  BuildContext context,
-  OnboardingStep s,
-  OnboardingStep current, {
-  void Function(OnboardingStep)? onSelectStep,
-}) {
-  final done = s.index < current.index;
-  final active = s == current;
-  final scheme = Theme.of(context).colorScheme;
-  final tile = Container(
-    margin: const EdgeInsets.only(bottom: 2),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(8),
-      color: active ? scheme.card : null,
-      border: Border.all(color: active ? scheme.border : const Color(0x00000000)),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: done
-                ? const Color(0xFF22C55E)
-                : active
-                ? onboardingAccent(context)
-                : scheme.border,
-          ),
-          child: done
-              ? Icon(LucideIcons.check, size: 13, color: onboardingOnAccent(context))
-              : DefaultTextStyle.merge(
-                  style: TextStyle(color: active ? onboardingOnAccent(context) : scheme.mutedForeground),
-                  child: Text('${s.index + 1}').xSmall.semiBold,
-                ),
-        ),
-        Gap(12),
+/// Six segments, filled in the accent up to the current step. Finished
+/// segments take you back to their step.
+Widget _progressBar(BuildContext context, OnboardingStep step, void Function(OnboardingStep)? onSelectStep) {
+  final cs = Theme.of(context).colorScheme;
+  final motion = prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 250);
+  return Row(
+    children: [
+      for (var i = 0; i < OnboardingStep.values.length; i++) ...[
+        if (i > 0) const Gap(4),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(onboardingStepLabel(context, s)).small.semiBold,
-              Text(onboardingStepSub(context, s)).xSmall.muted,
-            ],
+          child: Builder(
+            builder: (context) {
+              final bar = AnimatedContainer(
+                key: ValueKey('onboarding-progress-$i'),
+                duration: motion,
+                height: 4,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(2),
+                  color: i <= step.index ? onboardingAccent(context) : cs.border,
+                ),
+              );
+              // Completed segments navigate back — a taller hit target wraps
+              // the 4px bar.
+              if (i < step.index && onSelectStep != null) {
+                return Button.ghost(
+                  style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
+                  onPressed: () => onSelectStep(OnboardingStep.values[i]),
+                  child: SizedBox(height: 24, child: Center(child: bar)),
+                );
+              }
+              return SizedBox(height: 24, child: Center(child: bar));
+            },
           ),
         ),
       ],
-    ),
+    ],
   );
-  // Completed steps are re-enterable — the wizard's state is settings-backed,
-  // so revisiting is safe and lands with current values pre-selected.
-  if (done && onSelectStep != null) {
-    return Button.ghost(
-      style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-      onPressed: () => onSelectStep(s),
-      child: tile,
+}
+
+/// The wizard's steps as a grouped list: a green tick for a finished step
+/// (with what it settled on at the end), the step's number otherwise, the
+/// current one in the accent. Finished steps are re-enterable — the
+/// wizard's state is settings-backed, so revisiting is safe and lands with
+/// current values pre-selected.
+Widget onboardingStepList(
+  BuildContext context, {
+  required OnboardingStep current,
+  Map<OnboardingStep, String> values = const {},
+  void Function(OnboardingStep)? onSelectStep,
+  bool showSubtitles = false,
+}) {
+  final cs = Theme.of(context).colorScheme;
+  final status = BkStatusColors.of(context);
+  final steps = OnboardingStep.values;
+  final rows = <Widget>[];
+  for (final s in steps) {
+    final done = s.index < current.index;
+    final active = s == current;
+    final value = done ? values[s] : null;
+    final tile = SizedBox.square(
+      dimension: 24,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: done
+              ? status.success
+              : active
+              ? onboardingAccent(context)
+              : cs.muted,
+        ),
+        child: Center(
+          child: done
+              ? Icon(LucideIcons.check, size: 14, color: status.successForeground)
+              : Text(
+                  '${s.index + 1}',
+                  style: context.typography.xSmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: active ? onboardingOnAccent(context) : cs.mutedForeground,
+                  ),
+                ),
+        ),
+      ),
+    );
+    rows.add(
+      BkGroupedRow(
+        key: ValueKey('onboarding-step-row-${s.name}'),
+        leading: tile,
+        title: onboardingStepLabel(context, s),
+        subtitle: showSubtitles || (!done && !active) ? onboardingStepSub(context, s) : null,
+        titleColor: active ? cs.foreground : (done ? cs.foreground : cs.mutedForeground),
+        trailing: value == null ? null : Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
+        onPressed: done && onSelectStep != null ? () => onSelectStep(s) : null,
+      ),
     );
   }
-  return tile;
+  return BkGroupedSection(dividerIndent: BkGroupedSection.inset + 24 + BkGroupedRow.gap, children: rows);
+}
+
+/// The connection step's "Finish setup". A greyed-out button alone doesn't say
+/// why, so while no connection method is on a short line under it does.
+Widget onboardingConnectionFinishAction(
+  BuildContext context, {
+  required VoidCallback? onFinish,
+  required bool noConnectionMethod,
+}) {
+  final button = PrimaryButton(
+    alignment: Alignment.center,
+    onPressed: onFinish,
+    child: Text(context.i18n.onboardingFinishSetup),
+  );
+  if (!noConnectionMethod) return button;
+  // IntrinsicWidth: stretches to the footer's width on phones, and keeps the
+  // pair as wide as its widest line in the desktop footer's Row.
+  return IntrinsicWidth(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        button,
+        const Gap(6),
+        Text(context.i18n.onboardingConnectionTurnOnMethod, textAlign: TextAlign.center).xSmall.muted,
+      ],
+    ),
+  );
+}
+
+/// Rounds the footer's primary buttons into full-width pills and colours its
+/// ghost buttons (Back, "Set up later") as accent text.
+class _PillFooter extends StatelessWidget {
+  const _PillFooter({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    const pill = BorderRadius.all(Radius.circular(999));
+    const padding = EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    final accent = bkAccentText(context);
+    return ComponentTheme<PrimaryButtonTheme>(
+      data: PrimaryButtonTheme(
+        decoration: (context, states, value) => value is BoxDecoration ? value.copyWith(borderRadius: pill) : value,
+        padding: (context, states, value) => padding,
+        textStyle: (context, states, value) => value.copyWith(fontWeight: FontWeight.w600),
+      ),
+      child: ComponentTheme<GhostButtonTheme>(
+        data: GhostButtonTheme(
+          decoration: (context, states, value) => value is BoxDecoration ? value.copyWith(borderRadius: pill) : value,
+          textStyle: (context, states, value) => states.contains(WidgetState.disabled)
+              ? value
+              : value.copyWith(color: accent, fontWeight: FontWeight.w600),
+        ),
+        child: child,
+      ),
+    );
+  }
 }
 
 class OnboardingPage extends StatefulWidget {
@@ -371,6 +486,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Target? _selectedTarget;
 
   ControllerPhase _controllerPhase = ControllerPhase.permission;
+  // Set once the permission sheet has been shown, so a declined notification
+  // permission is asked for once rather than on every visit to the step.
+  bool _askedScanPermissions = false;
+  // Android 11 and older need Location to scan for Bluetooth devices.
+  bool _scanNeedsLocation = false;
   // Mobile opens on a welcome screen; the desktop rail already frames the
   // flow, so it starts on step 1. Re-runs from the menu skip it too.
   bool _showWelcome = core.settings.getOnboardingState() != Settings.onboardingStateCompleted;
@@ -415,6 +535,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   // _onButtonPressed: generation bumps re-trigger AnimatedButtonWidget.
   final Map<String, ControllerButton> _pressedButton = {};
   final Map<String, int> _pressGeneration = {};
+  // The same presses as notifiers, for the controller card's "Just pressed"
+  // strip (shared with Ride's).
+  final Map<String, ValueNotifier<ControllerPress>> _presses = {};
   final Set<ProxyDevice> _proxyListenerDevices = {};
 
   bool get _selfHosted => core.settings.getTrainerApp() is BikeControl;
@@ -450,6 +573,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
         final id = notification.device.uniqueId;
         _pressGeneration[id] = (_pressGeneration[id] ?? 0) + 1;
         setState(() => _pressedButton[id] = notification.buttonsClicked.first);
+        final notifier = _presses.putIfAbsent(id, () => ValueNotifier((button: null, generation: 0)));
+        notifier.value = (button: notification.buttonsClicked.first, generation: _pressGeneration[id]!);
       }
     });
   }
@@ -465,6 +590,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
     _connectionSub?.cancel();
     _actionSub?.cancel();
+    for (final notifier in _presses.values) {
+      notifier.dispose();
+    }
     _emptyScanTimer?.cancel();
     for (final proxy in _proxyListenerDevices) {
       proxy.isStarting.removeListener(_onProxyStateChanged);
@@ -578,7 +706,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _runPrecheckFix(NetworkFixId fix) async {
     try {
-      await runNetworkFix(context, fix);
+      // _sheetContext: "Switch to Local" opens a permission sheet.
+      await runNetworkFix(_sheetContext, fix);
     } catch (e, s) {
       recordError(e, s, context: 'onboarding network precheck fix');
     }
@@ -604,7 +733,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
     try {
       final requirements = await core.permissions.getScanRequirements();
       if (!mounted) return;
-      if (requirements.isEmpty) {
+      _scanNeedsLocation = requirements.any((r) => r is LocationRequirement);
+      // Only notifications missing and already asked once: look for the
+      // controller anyway rather than ask again on every visit.
+      if (requirements.isEmpty ||
+          (_askedScanPermissions && Permissions.blockingScan(requirements).isEmpty)) {
         _startScanPhase();
       } else {
         setState(() => _controllerPhase = ControllerPhase.permission);
@@ -642,11 +775,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
         _startScanPhase();
         return;
       }
+      _askedScanPermissions = true;
       await openPermissionSheet(_sheetContext, requirements);
       if (!mounted) return;
       final recheck = await core.permissions.getScanRequirements();
       if (!mounted) return;
-      if (recheck.isEmpty) _startScanPhase();
+      // Declining notifications must not leave "Allow Bluetooth" doing nothing.
+      if (Permissions.blockingScan(recheck).isEmpty) _startScanPhase();
     } catch (e, s) {
       recordError(e, s, context: 'onboarding allow bluetooth');
     }
@@ -775,10 +910,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
       phase: _controllerPhase,
       devices: core.connection.controllerDevices,
       appName: _selectedApp?.name ?? '',
+      trainerApp: _selectedApp,
       pressedButtons: _pressedButton,
       pressGenerations: _pressGeneration,
+      presses: _presses,
       onSetupDevice: (d) => unawaited(_openSetupFor(d)),
       onUpdate: () => setState(() {}),
+      locationNeededForBluetooth: _scanNeedsLocation,
     ),
     OnboardingStep.virtualShifting => onboardingTrainerBody(
       context,
@@ -790,6 +928,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         setState(() {});
       },
       virtualShiftingBlocked: onboardingVirtualShiftingBlocked(_selectedApp!),
+      needsSecondDevice: onboardingVsNeedsSecondDevice(_selectedApp!),
     ),
     OnboardingStep.connection => onboardingConnectionBody(
       context,
@@ -842,8 +981,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
         onPressed: _selectedApp == null
             ? null
             : () async {
+                // The rider's own mapping made for another app: ask before
+                // replacing it (or keeping it) for this one.
+                final keymapChoice = await askKeymapForTrainerApp(context, _selectedApp!);
+                if (keymapChoice == null || !mounted) return;
                 try {
-                  await applyTrainerAppSelection(_selectedApp!);
+                  await applyTrainerAppSelection(_selectedApp!, keymapChoice: keymapChoice);
                 } catch (e, s) {
                   recordError(e, s, context: 'onboarding apply trainer app selection');
                 }
@@ -941,16 +1084,16 @@ class _OnboardingPageState extends State<OnboardingPage> {
         ),
     ],
     OnboardingStep.connection => [
-      PrimaryButton(
-        alignment: Alignment.center,
-        onPressed:
+      onboardingConnectionFinishAction(
+        context,
+        onFinish:
             onboardingConnectionCanFinish(
               hasNoConnectionMethod: core.logic.hasNoConnectionMethod,
               networkBlocking: _precheckGate.blocking,
             )
             ? _next
             : null,
-        child: Text(context.i18n.onboardingFinishSetup),
+        noConnectionMethod: core.logic.hasNoConnectionMethod,
       ),
     ],
     OnboardingStep.done => onboardingDoneFooter(
@@ -962,7 +1105,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
           await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
           // The launch-time start was skipped while the wizard held the
           // screen; leaving it is when the enabled methods must come up.
-          core.logic.startEnabledConnectionMethod(userInitiated: true);
+          onboardingStartConnectionMethods();
           if (context.mounted) Navigator.of(context).pop();
         } catch (e, s) {
           recordError(e, s, context: 'onboarding done start riding');
@@ -971,7 +1114,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       onSeePlanOptions: () async {
         try {
           await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-          core.logic.startEnabledConnectionMethod(userInitiated: true);
+          onboardingStartConnectionMethods();
           if (!mounted || !context.mounted) return;
           // Platform-correct paywall: RevenueCat's hosted sheet on
           // iOS/Android, the in-app Paywall drawer on desktop. Going
@@ -992,11 +1135,23 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _onWelcomeLater() async {
     try {
       await core.settings.setOnboardingState(Settings.onboardingStateCompleted);
-      core.logic.startEnabledConnectionMethod(userInitiated: true);
+      onboardingStartConnectionMethods();
     } catch (e, s) {
       recordError(e, s, context: 'onboarding welcome later');
     }
     if (mounted) Navigator.of(context).maybePop();
+  }
+
+  /// X leaves the wizard like "Later" minus recording it as done: the
+  /// launch-time start was skipped while the wizard held the screen, so the
+  /// methods the rider turned on come up now instead of staying silent.
+  void _onClose() {
+    try {
+      onboardingStartConnectionMethods();
+    } catch (e, s) {
+      recordError(e, s, context: 'onboarding close');
+    }
+    Navigator.of(context).maybePop();
   }
 
   @override
@@ -1040,7 +1195,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
         footerActions: _footer(overlayContext),
         onBack: _step == OnboardingStep.app || _step == OnboardingStep.done ? null : _back,
         onHelp: () => openOnboardingHelpSheet(overlayContext, _step),
-        onClose: () => Navigator.of(context).maybePop(),
+        onClose: _onClose,
+        stepValues: {
+          if (_selectedApp case final app?) OnboardingStep.app: app.name,
+          if (!_selfHosted && _selectedTarget != null) OnboardingStep.where: _selectedTarget!.getTitle(context),
+        },
         onSelectStep: (s) {
           // Self-hosted apps skip the where step — route the tap onward.
           if (s == OnboardingStep.where && _selfHosted) {

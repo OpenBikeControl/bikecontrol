@@ -3,8 +3,11 @@ import 'package:prop/utils/network_address.dart';
 
 import '../../../bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import '../../debug_diagnostics.dart';
+import '../address_warning_kind.dart';
 import '../network_check.dart';
 import '../network_probe_context.dart';
+
+export '../address_warning_kind.dart';
 
 /// The seven passive checks (spec checks 1–6, 14): everything derivable from
 /// one `DebugDiagnostics.gather()` snapshot plus the cheap emulator/settings
@@ -79,17 +82,72 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
 bool _chosenLooksUnreachable(AddressPickReport report, String chosen) {
   final chosenCandidate = report.candidates.firstOrNullWhere((c) => c.address == chosen);
   final chosenIsTunnel = DebugDiagnostics.tunnelCandidatesIn(report.candidates).any((c) => c.address == chosen);
-  return (chosenCandidate?.isVirtual ?? false) || chosenIsTunnel;
+  final chosenIsExtraVirtual = _extraVirtualNamePattern.hasMatch(chosenCandidate?.interfaceName ?? '');
+  return (chosenCandidate?.isVirtual ?? false) || chosenIsTunnel || chosenIsExtraVirtual;
 }
+
+/// Addresses no other device can ever route to: link-local 169.254/16, and the
+/// IANA 192.0.0.0/24 block — the iPhone's always-present `ipsec` interface and
+/// Android's 464XLAT CLAT interface both carry a 192.0.0.x dummy from it.
+bool _isUnreachableAddress(String address) => address.startsWith('169.254.') || address.startsWith('192.0.0.');
+
+/// Mobile-data interfaces: iOS `pdp_ip`, Android `rmnet`/`ccmni` and the
+/// 464XLAT `v4-`/`clat` ones. An address on one of them is the carrier's, and
+/// no device on the rider's Wi-Fi can reach it.
+final _cellularNamePattern = RegExp(r'^(pdp_ip|rmnet|ccmni|v4-|clat)', caseSensitive: false);
+
+/// Interface names of a real Wi-Fi or Ethernet port: `en0`/`enp3s0`/`eth0`,
+/// `wlan0`/`wlp2s0`, and Windows' "Ethernet"/"Wi-Fi"/"WLAN" (numbered when
+/// there are several, the same in every Windows language).
+final _lanPortNamePattern = RegExp(r'^(en|eth|wl|wi-?fi)', caseSensitive: false);
+
+/// Virtual adapters the address picker's own list (in prop) does not know:
+/// the iPhone's `ipsec` and the `vgate` gateway NIC some Android vendors
+/// (Oplus/OnePlus/Realme) add next to the Wi-Fi.
+final _extraVirtualNamePattern = RegExp(r'^(ipsec|vgate)', caseSensitive: false);
 
 /// The physical candidates when they are spread over more than one subnet —
 /// a second adapter that could just as well be the one the trainer app is on,
 /// so whichever the picker chose is a coin toss. Empty when the pick is
 /// unambiguous.
+///
+/// Only real Wi-Fi/Ethernet ports count: a network the trainer app could be
+/// on is one a rider plugs into or joins. The address picker's own virtual
+/// list misses the iPhone's `ipsec` interface (192.0.0.x) and Android vendor
+/// NICs like `vgate0` (172.30.x), and each flagged the rider's real Wi-Fi
+/// address as "a VPN or hotspot address". A VPN tunnel is the VPN row's
+/// business, not a second LAN.
 List<AddressCandidate> _competingPhysical(AddressPickReport report) {
-  final physical = report.candidates.where((c) => !c.isVirtual).toList();
+  final tunnels = DebugDiagnostics.tunnelCandidatesIn(report.candidates).map((c) => c.address).toSet();
+  final physical = report.candidates
+      .where(
+        (c) =>
+            !c.isVirtual &&
+            !_isUnreachableAddress(c.address) &&
+            !tunnels.contains(c.address) &&
+            _lanPortNamePattern.hasMatch(c.interfaceName),
+      )
+      .toList();
   final subnets = physical.map((c) => _subnetPrefix(c.address)).toSet();
   return physical.length >= 2 && subnets.length >= 2 ? physical : const [];
+}
+
+/// The kind of [advertisedAddressWarning], or null when that is null.
+AddressWarningKind? advertisedAddressWarningKind(AddressPickReport report) {
+  final chosen = report.chosen?.address;
+  if (chosen == null) return null;
+  if (_chosenIsCellular(report, chosen)) return AddressWarningKind.noWifi;
+  if (_chosenLooksUnreachable(report, chosen)) return AddressWarningKind.unreachable;
+  if (_competingPhysical(report).isNotEmpty) return AddressWarningKind.twoNetworks;
+  return null;
+}
+
+/// True when the pick is a mobile-data address — the picker only falls back
+/// to one when there is no Wi-Fi or Ethernet address to choose instead.
+bool _chosenIsCellular(AddressPickReport report, String chosen) {
+  final candidate = report.candidates.firstOrNullWhere((c) => c.address == chosen);
+  if (candidate == null) return false;
+  return _cellularNamePattern.hasMatch(candidate.interfaceName) || _isUnreachableAddress(chosen);
 }
 
 /// The advertised address [advertisedAddressCheck] would flag, or null when
@@ -99,12 +157,8 @@ List<AddressCandidate> _competingPhysical(AddressPickReport report) {
 /// The home card's "your network looks unusual" step reads this, so a rider
 /// hears about a VPN address before they ever find the self-test page — and
 /// hears the same verdict, because it is the same rule.
-String? advertisedAddressWarning(AddressPickReport report) {
-  final chosen = report.chosen?.address;
-  if (chosen == null) return null;
-  final suspect = _chosenLooksUnreachable(report, chosen) || _competingPhysical(report).isNotEmpty;
-  return suspect ? chosen : null;
-}
+String? advertisedAddressWarning(AddressPickReport report) =>
+    advertisedAddressWarningKind(report) == null ? null : report.chosen?.address;
 
 /// Check 2: is the address picked for the mDNS advertisement one that other
 /// devices on the LAN can actually reach?
@@ -124,6 +178,17 @@ NetworkCheck advertisedAddressCheck(NetworkProbeContext ctx) {
       id: NetworkCheckId.advertisedAddress,
       verdict: NetworkVerdict.fail,
       fixes: [NetworkFixId.restartMethod],
+    );
+  }
+
+  // Before the tunnel rule: a mobile-data interface is "virtual" to the
+  // picker too, but restarting the method or turning a VPN off does nothing
+  // for it — the rider has to join the trainer app's Wi-Fi.
+  if (_chosenIsCellular(report, chosen.address)) {
+    return NetworkCheck(
+      id: NetworkCheckId.advertisedAddress,
+      verdict: NetworkVerdict.warn,
+      detail: {'address': chosen.address, 'note': 'no wifi'},
     );
   }
 

@@ -8,11 +8,11 @@
 // Copy was fact-checked against `IAPManager` (isProEnabledForCurrentDevice /
 // hasPurchasedBefore50RVC / ensureProForFeature / isRegisteredDevice),
 // `windows_iap_service.dart`, `revenuecat_service.dart`, `paywall.dart`'s
-// feature matrix, and the existing `virtualShiftingProNote` /
+// feature matrix, and the existing `vsWithoutProNote` /
 // `bridgeTrialTimeOverBody` strings before being written — see
 // task-11-report.md (original six) and content-round-report.md (the three
 // content-round additions) for the corrections that came out of each check
-// (most notably: the free virtual-shifting trial is a 20-minute *daily*
+// (most notably: the virtual-shifting trial is a 20-minute *daily*
 // allowance that resets every day, not a per-ride limit; the pre-subscription
 // grandfather explicitly does not extend to virtual shifting; and Windows
 // purchases made outside the Microsoft Store go through Stripe, not

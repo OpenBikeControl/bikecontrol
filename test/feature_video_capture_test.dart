@@ -76,11 +76,12 @@ import 'package:bike_control/services/workout/workout_summary.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 // ignore: depend_on_referenced_packages
 import 'package:image/image.dart' as img;
-import 'package:bike_control/pages/proxy_device_details.dart';
+import 'package:bike_control/pages/home/home_page.dart' show HomePage;
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/trainer_connect.dart';
-import 'package:bike_control/widgets/ui/setting_tile.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart' show buildFtmsTrainer;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -89,7 +90,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart' show HotKeyListenerDialog;
 import 'package:bike_control/pages/overview.dart' show activityLogClock;
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart' show debugHideMiniWorkoutCard;
+import 'package:bike_control/services/workout/memory_workout_repository.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -835,16 +836,19 @@ Future<VideoCapture> _filmHandsFreeSteering(WidgetTester tester, _Studio studio)
   final rec = await _roll(tester, boundary, () => const Navigation());
   await rec.frames(_endHold);
 
+  // Phone steering is a device option, in the Devices section.
+  await rec.tap(find.text(l10n.navDevices).hitTestable().first, 'Devices');
   final toggle = find.text(l10n.enableSteeringWithPhone);
   await _scrollTo(rec, toggle, 'Scroll to phone steering');
   await rec.tap(toggle, 'Enable steering with the phone', thenFrames: 0);
   // What the connection queue does for a newly added device (it doesn't run
   // under screenshotMode): connect it. It then calibrates on its own.
-  final phone = core.connection.gyroscopeDevices.single..nowFn = _now;
+  final phone = core.connection.gyroscopeDevices.single;
   await phone.connect();
   await rec.untilStill(maxFrames: 120);
   expect(phone.steeringCalibrated.value, isTrue, reason: 'it calibrates while the bars are still');
 
+  await rec.tap(find.text(l10n.navRide).hitTestable().first, 'Ride');
   final gauge = find.byType(SteeringGauge);
   await _scrollTo(rec, gauge, 'Scroll back to the controllers', up: false, by: 400);
   rec.sighting('phone-steering-gauge', gauge);
@@ -949,8 +953,8 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
   final roll = await _roll(
     tester,
     boundary,
-    () => ProxyDeviceDetailsPage(device: trainer),
-    before: () => _startAt(tester, find.text(l10n.overlaySection), alignment: 0.15),
+    () => OverlaySettingsPage(device: trainer, definition: trainer.fitnessBike!),
+    before: () => _startAt(tester, find.byKey(const ValueKey('overlay-preview')), alignment: 0.05),
   );
   await roll.frames(_endHold);
 
@@ -958,12 +962,7 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
     of: find.ancestor(of: find.text(title), matching: find.byType(Row)).first,
     matching: find.byType(Switch),
   );
-  final overlaySwitch = find
-      .descendant(
-        of: find.ancestor(of: find.text(l10n.overlayEnabled), matching: find.byType(SettingTile)).first,
-        matching: find.byType(Switch),
-      )
-      .first;
+  final overlaySwitch = switchIn(l10n.overlayEnabled);
   await roll.tap(overlaySwitch, 'Show the overlay');
   expect(TrainerOverlayService.forCurrentPlatform().isShowing.value, isTrue);
   await roll.tap(switchIn(l10n.overlayFieldGearRatio), 'Field: gear ratio');
@@ -986,7 +985,7 @@ Future<VideoCapture> _filmOverlaySettings(WidgetTester tester, _Studio studio) a
   expect(find.text('75%'), findsOneWidget, reason: 'the overlay is faded to 75 %');
   await roll.frames(30);
 
-  await _scrollToTopOf(roll, tester, find.text(l10n.overlaySection), 'Scroll back');
+  await _scrollToTopOf(roll, tester, find.byKey(const ValueKey('overlay-preview')), 'Scroll back');
   await roll.tap(overlaySwitch, 'Hide the overlay');
   await roll.frames(_endHold);
   await _wrapUp(tester, studio);
@@ -1100,52 +1099,46 @@ void _checkOverlayView(VideoCapture c) {
 
 // ── 13. Mini workout ──────────────────────────────────────────────────────
 
-/// A saved ride that goes nowhere: the summary dialog needs a file to share.
-class _MemoryWorkoutRepository extends WorkoutRepository {
-  final saved = <WorkoutSummary?>[];
-
-  @override
-  Future<File> save({required DateTime startedAt, required List<int> fitBytes, WorkoutSummary? summary}) async {
-    saved.add(summary);
-    return File('/Users/rider/Documents/workouts/BikeControl ride.fit');
-  }
-}
-
-/// The Mini Workout card on the trainer's page: the rider starts a workout,
-/// it records for a while (the clip cuts from its 3rd to its 11th second),
-/// then stops it and gets the summary.
+/// Recording a ride on Ride: with automatic recording off the rider starts
+/// it by hand (the same ride an automatic start makes), it records for a
+/// while (the clip cuts from its 3rd to its 11th second), then Beenden.
 Future<VideoCapture> _filmMiniWorkout(WidgetTester tester, _Studio studio) async {
   await _resetApp();
   await _connectMyWhoosh(tester, studio);
-  final trainer = await _bridgeTrainer(tester, studio);
+  await _bridgeTrainer(tester, studio);
   _pedal(studio);
   final realClock = core.workoutRecorder.nowProvider;
   core.workoutRecorder.nowProvider = _now;
-  final realRepository = core.workoutRepository;
-  final repository = core.workoutRepository = _MemoryWorkoutRepository();
+  final realRepository = core.rides.repository;
+  final repository = MemoryWorkoutRepository();
+  core.rides.repository = repository;
+  final wasAuto = core.rides.autoRecord;
+  await core.rides.setAutoRecord(false);
   final l10n = AppLocalizations.current;
 
   final boundary = GlobalKey();
   final rec = await _roll(
     tester,
     boundary,
-    () => ProxyDeviceDetailsPage(device: trainer),
-    before: () => _startAt(tester, find.text(l10n.miniWorkout), alignment: 0.05),
+    () => SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: HomePage(isMobile: true, onUpdate: () {}),
+    ),
+    before: () => _startAt(tester, find.text(l10n.miniWorkoutStart), alignment: 0.3),
   );
-  rec.sighting('mini-workout', find.text(l10n.miniWorkout));
+  rec.sighting('manual-start', find.text(l10n.miniWorkoutStart));
   await rec.frames(_endHold);
 
-  await rec.tap(find.text(l10n.miniWorkoutStart), 'Start workout', thenFrames: 100);
+  await rec.tap(find.text(l10n.miniWorkoutStart), 'Start recording', thenFrames: 100);
   await rec.cut('recording', const Duration(seconds: 8));
   await rec.frames(24);
-  await rec.tap(find.byIcon(LucideIcons.square), 'Stop', thenFrames: 20);
-  await rec.tap(find.text(l10n.miniWorkoutStop).hitTestable().last, 'Stop and save');
-  expect(repository.saved, hasLength(1), reason: 'the ride is saved');
-  rec.sighting('summary', find.text(l10n.miniWorkoutSummaryTitle));
+  await rec.tap(find.text(l10n.miniWorkoutStop), 'Stop', thenFrames: 20);
+  expect(repository.saves, 1, reason: 'the ride is saved');
   await rec.frames(60);
 
   core.workoutRecorder.nowProvider = realClock;
-  core.workoutRepository = realRepository;
+  core.rides.repository = realRepository;
+  await core.rides.setAutoRecord(wasAuto);
   await _wrapUp(tester, studio);
   return rec.capture;
 }
@@ -1175,7 +1168,7 @@ Future<VideoCapture> _filmSettingProfiles(WidgetTester tester, _Studio studio) a
   final rec = await _roll(
     tester,
     boundary,
-    () => ProxyDeviceDetailsPage(device: trainer),
+    () => VirtualShiftingSettingsPage(definition: trainer.fitnessBike!, device: trainer),
     before: () => _startAt(tester, find.byType(ShiftingConfigPicker), alignment: 0.05),
   );
   await rec.frames(_endHold);
@@ -1410,7 +1403,6 @@ void main() {
       debugAnimatesInScreenshotMode = false;
       debugKeepsControllerNamesInScreenshotMode = false;
       debugShowsRealKeymapsInScreenshotMode = false;
-      debugHideMiniWorkoutCard = false;
       debugHostPlatformOverride = null;
       debugDefaultTargetPlatformOverride = null;
       activityLogClock = DateTime.now;

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -364,11 +365,12 @@ Future<void> main() async {
       );
 
       final cs = Theme.of(tester.element(find.byType(MetricCard).first)).colorScheme;
+      final status = BkStatusColors.of(tester.element(find.byType(MetricCard).first));
       expect(dotColor(tester, 'trainer'), cs.mutedForeground);
-      expect(dotColor(tester, 'a'), const Color(0xFF22C55E));
-      expect(dotColor(tester, 'b'), const Color(0xFFF59E0B));
-      expect(dotColor(tester, 'c'), const Color(0xFFF59E0B));
-      expect(dotColor(tester, 'd'), const Color(0xFFEF4444));
+      expect(dotColor(tester, 'a'), status.success);
+      expect(dotColor(tester, 'b'), status.warning);
+      expect(dotColor(tester, 'c'), status.warning);
+      expect(dotColor(tester, 'd'), status.danger);
       expect(dotColor(tester, 'e'), cs.mutedForeground);
 
       // Distinguishable from one another: connected/lost read as visibly
@@ -541,7 +543,10 @@ Future<void> main() async {
       );
 
       final dot = tester.widget<Container>(find.byKey(const Key('metric-card-source-picker-dot')));
-      expect((dot.decoration as BoxDecoration?)?.color, const Color(0xFFEF4444));
+      expect(
+        (dot.decoration as BoxDecoration?)?.color,
+        BkStatusColors.of(tester.element(find.byType(MetricCard).first)).danger,
+      );
     });
 
     testWidgets('tapping the picker opens every option with its subtitle', (tester) async {

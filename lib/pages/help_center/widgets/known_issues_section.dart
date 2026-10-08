@@ -37,12 +37,6 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-/// Known Issues' header accent (mockup's `--bk-warning` design token — there
-/// is no equivalent in the shadcn `ColorScheme`, so this follows the app's
-/// existing convention of a module-private amber constant, e.g.
-/// `onboarding_app_guides.dart`'s `_warning`).
-const Color _warningAccent = Color(0xFFF59E0B);
-
 class KnownIssuesSection extends StatefulWidget {
   /// Where this section falls in the page's staggered entrance animation —
   /// see `HelpCenterSectionCard.index`. Fixed at the page's call site
@@ -103,7 +97,7 @@ class _KnownIssuesSectionState extends State<KnownIssuesSection> {
         index: widget.index,
         icon: LucideIcons.triangleAlert,
         title: context.i18n.helpCenterKnownIssues,
-        accent: _warningAccent,
+        tone: HelpSectionTone.warning,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

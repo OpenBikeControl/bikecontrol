@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/proxy_device_details/control_protocol_section.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,7 +140,7 @@ Future<void> main() async {
           child: SingleChildScrollView(
             child: SizedBox(
               width: 380,
-              child: TrainerSettingsSection(
+              child: ControlProtocolSection(
                 definition: device.fitnessBike!,
                 device: device,
                 reconnectDevice: () async {},

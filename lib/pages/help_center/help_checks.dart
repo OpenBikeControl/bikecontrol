@@ -4,6 +4,7 @@
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -77,6 +78,17 @@ List<HelpCheck> controllerNotFoundChecks(AppLocalizations l, {required String? c
 List<HelpCheck> appNotReactingChecks(AppLocalizations l) => [
   HelpCheck(title: l.helpCheckAppConnectedTitle, body: l.helpCheckAppConnectedSub),
   HelpCheck(title: l.helpCheckGearOverlayTitle, body: l.helpCheckGearOverlaySub),
+];
+
+/// "My buttons stopped working": they worked, now nothing happens. Today's
+/// button presses used up first — only when this rider has a daily limit
+/// ([commandLimited]: no Base, no Pro) — then a sleeping or dropped
+/// controller, then the connection to the trainer app.
+List<HelpCheck> buttonsStoppedChecks(AppLocalizations l, {required bool commandLimited}) => [
+  if (commandLimited)
+    HelpCheck(title: l.helpCheckDailyLimitTitle, body: l.helpCheckDailyLimitSub(IAPManager.dailyCommandLimit)),
+  HelpCheck(title: l.helpCheckControllerAwakeTitle, body: l.helpCheckControllerAwakeSub),
+  HelpCheck(title: l.helpCheckConnectionMethodTitle, body: l.helpCheckConnectionMethodSub),
 ];
 
 /// [appNotReactingChecks] with their direct actions: the network test on

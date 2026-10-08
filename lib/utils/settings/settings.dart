@@ -432,8 +432,33 @@ class Settings {
     return prefs.getStringList('customapp_$profileName');
   }
 
+  /// The trainer app whose built-in mapping [profileName] was copied from, or
+  /// null when it was made from scratch. Mappings saved before the origin was
+  /// recorded are recognised by the automatic copy name ("MyWhoosh (Copy)").
+  ///
+  /// Kept under its own prefix: `customapp_` keys are listed as mappings.
+  String? getCustomKeymapOrigin(String profileName) {
+    final stored = prefs.getString('customkeymap_origin_$profileName');
+    if (stored != null) return stored;
+    var base = profileName;
+    while (base.endsWith(' (Copy)')) {
+      base = base.substring(0, base.length - ' (Copy)'.length);
+    }
+    if (base == profileName) return null;
+    return SupportedApp.supportedApps.firstOrNullWhere((a) => a is! CustomApp && a.name == base)?.name;
+  }
+
+  Future<void> setCustomKeymapOrigin(String profileName, String? appName) async {
+    if (appName == null) {
+      await prefs.remove('customkeymap_origin_$profileName');
+    } else {
+      await prefs.setString('customkeymap_origin_$profileName', appName);
+    }
+  }
+
   Future<void> deleteCustomAppProfile(String profileName) async {
     await prefs.remove('customapp_$profileName');
+    await prefs.remove('customkeymap_origin_$profileName');
     // If the current app is the one being deleted, reset
     if (prefs.getString('app') == profileName) {
       core.actionHandler.init(getTrainerApp());
@@ -444,9 +469,12 @@ class Settings {
 
   Future<void> duplicateCustomAppProfile(String sourceProfileName, String newProfileName) async {
     final sourceData = prefs.getStringList('customapp_$sourceProfileName');
+    // Origin first: callers that don't await still see it right away.
+    final origin = setCustomKeymapOrigin(newProfileName, getCustomKeymapOrigin(sourceProfileName));
     if (sourceData != null) {
       await prefs.setStringList('customapp_$newProfileName', sourceData);
     }
+    await origin;
     _triggerAutoSync();
   }
 
@@ -862,6 +890,15 @@ class Settings {
     return prefs.getInt('phone_steering_threshold')?.toDouble() ?? GyroscopeSteering.STEERING_THRESHOLD;
   }
 
+  /// Whether phone steering lets the compass correct the gyroscope's drift.
+  void setPhoneSteeringMagnetometer(bool value) {
+    prefs.setBool('phone_steering_magnetometer', value);
+  }
+
+  bool getPhoneSteeringMagnetometer() {
+    return prefs.getBool('phone_steering_magnetometer') ?? false;
+  }
+
   // L-TWOO eRX/eR9 Settings
 
   /// 3-digit ASCII PIN sent in every request frame; "000" is the factory default.
@@ -1057,13 +1094,27 @@ class Settings {
     await prefs.setBool('overlay_answered', answered);
   }
 
-  /// Whether the rider answered the home screen's gear-overlay step with
-  /// "Not now". Keeps the step off the trainer card until the overlay is
-  /// turned on somewhere, which clears it again — see [setOverlayEnabled].
-  bool getOverlayDeclined() => prefs.getBool('overlay_declined') ?? false;
+  /// Slugs of the recent blog posts the rider has seen on Activity → News;
+  /// the rest of the recent ones carry the unread dot.
+  List<String> getSeenBlogPosts() => prefs.getStringList('blog_seen_posts') ?? const [];
+
+  Future<void> setSeenBlogPosts(List<String> slugs) => prefs.setStringList('blog_seen_posts', slugs);
+
+  /// Whether the rider answered the gear-overlay offer with "Not now" since
+  /// the app started. Keeps the step off the trainer card (and shrinks Ride's
+  /// offer to one line) until the overlay is turned on somewhere, which clears
+  /// it — see [setOverlayEnabled] — or until the next app start.
+  ///
+  /// Deliberately not persisted: a "Not now" kept for good is how riders who
+  /// declined once ended up asking why their trainer app shows the wrong gear.
+  /// The answer itself is persisted ([getOverlayAnswered]), so after a restart
+  /// the step is back as an optional offer, never as blocking work. A decline
+  /// stored by 7.1.0 under `overlay_declined` is ignored for the same reason.
+  bool getOverlayDeclined() => _overlayDeclinedThisSession;
+  bool _overlayDeclinedThisSession = false;
 
   Future<void> setOverlayDeclined(bool declined) async {
-    await prefs.setBool('overlay_declined', declined);
+    _overlayDeclinedThisSession = declined;
     // A "no" is an answer too; clearing the decline is not.
     if (declined) await setOverlayAnswered(true);
   }

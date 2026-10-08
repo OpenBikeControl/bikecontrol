@@ -92,6 +92,20 @@ enum SetupStepVariant {
   /// [SetupStepId.controllerUnlocked] for a Zwift Ride V2: the hint names the
   /// Ride V2 instead of the Click V2.
   zwiftRideV2,
+
+  /// [SetupStepId.controllerInRange] for a controller remembered from an
+  /// earlier ride that has not connected in this session. It is almost always
+  /// just asleep: the step asks to wake it rather than to bring it back in
+  /// range, and nothing calls it an unfinished setup.
+  controllerAsleep,
+
+  /// [SetupStepId.appNetworkAddress] when this device is on mobile data only:
+  /// the advice is to join the trainer app's Wi-Fi, not to turn a VPN off.
+  networkNoWifi,
+
+  /// [SetupStepId.appNetworkAddress] when the address itself is fine but a
+  /// second real network could be the one the trainer app is on.
+  networkTwoNetworks,
 }
 
 /// One line of a card's checklist.
@@ -196,6 +210,7 @@ class ChainLink {
     this.dismissible = false,
     this.wasConnectedThisSession = false,
     this.dropped = false,
+    this.standby = false,
   });
 
   final ChainLinkKey key;
@@ -251,9 +266,17 @@ class ChainLink {
   /// connected, which has a step of its own.
   final bool dropped;
 
+  /// A controller the rider is riding without: remembered from before (or
+  /// only ever found), out of reach or never set up, while another controller
+  /// is connected and working. Its steps stay on its own card, as optional,
+  /// but it does not stop the rider being ready — a Click V2 from an earlier
+  /// ride is not what stands between a rider on a Zwift Play and riding.
+  final bool standby;
+
   /// Whether this link stops the rider being ready.
   bool get isBlocking {
     if (status == LinkStatus.ready) return false;
+    if (standby) return false;
     if (optional && status == LinkStatus.off) return false;
     return true;
   }
@@ -298,6 +321,7 @@ class ChainLink {
       dismissible: dismissible ?? this.dismissible,
       wasConnectedThisSession: wasConnectedThisSession,
       dropped: dropped,
+      standby: standby,
     );
   }
 
@@ -317,6 +341,7 @@ class ChainBanner {
     this.outstandingLinkIds = const [],
     this.soleStep,
     this.appDropped = false,
+    this.waitingForApp = false,
   });
 
   final ChainBannerKind kind;
@@ -350,7 +375,8 @@ class ChainBanner {
   /// arbitrary. A break keeps its button: it has one fix, and "Fix" goes
   /// straight to it. So does a trainer app that dropped, when the trainer card
   /// only waits for that same app ([appDropped]): two cards, one cause.
-  bool get revealsOutstandingCards => kind == ChainBannerKind.pending && outstandingLinkIds.length >= 2 && !appDropped;
+  bool get revealsOutstandingCards =>
+      kind == ChainBannerKind.pending && outstandingLinkIds.length >= 2 && !appDropped && !waitingForApp;
 
   /// The one required step still outstanding across the whole chain, or null
   /// when there are none or several. With exactly one thing left the banner
@@ -369,6 +395,13 @@ class ChainBanner {
   /// ([targetLinkId]). With anything else outstanding that sentence would
   /// point past it, so the ordinary wording stays.
   final bool appDropped;
+
+  /// Whether the whole story is a trainer app that has not connected yet in
+  /// this session — typically a fresh launch with everything set up and the
+  /// app just not open. Like [appDropped], the trainer card waiting for that
+  /// same app does not count as a second thing to do: opening the app and
+  /// picking BikeControl fixes both. Never set together with [appDropped].
+  final bool waitingForApp;
 
   bool get hasAction => targetLinkId != null;
 
@@ -432,20 +465,31 @@ ChainBanner deriveBanner(List<ChainLink> links) {
       appLink.dropped &&
       appLink.activeStep?.id == SetupStepId.appConnected &&
       outstanding.every((l) => l.key == ChainLinkKey.app || _onlyWaitsForTheApp(l));
-  final target = appDropped ? appLink : outstanding.first;
+  // The same one cause before the app has ever connected: everything on this
+  // side is done, and only opening the app is left.
+  final waitingForApp =
+      appLink != null &&
+      !appLink.dropped &&
+      appLink.activeStep?.id == SetupStepId.appConnected &&
+      appLink.activeStep?.variant == SetupStepVariant.standard &&
+      outstanding.any(_onlyWaitsForTheApp) &&
+      outstanding.every((l) => l.key == ChainLinkKey.app || _onlyWaitsForTheApp(l));
+  final oneCause = appDropped || waitingForApp;
+  final target = oneCause ? appLink : outstanding.first;
 
   return ChainBanner(
     kind: ChainBannerKind.pending,
     status: LinkStatus.attention,
     // One cause is one step left, however many cards it keeps open: "2 steps
     // left" would read as two things to do. The cards keep their own counts.
-    stepsLeft: appDropped ? 1 : stepsLeft,
+    stepsLeft: oneCause ? 1 : stepsLeft,
     targetLinkId: target.id,
     targetKey: target.key,
     outstandingKeys: outstandingKeys,
     outstandingLinkIds: outstandingLinkIds,
     soleStep: soleStep,
     appDropped: appDropped,
+    waitingForApp: waitingForApp,
   );
 }
 

@@ -42,6 +42,7 @@ Future<void> main() async {
     ValueChanged<IntakeAnswers>? onContinue,
     VoidCallback? onSolved,
     ProxyDevice? trainer,
+    VoidCallback? onOpenPlanAccount,
   }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;
@@ -58,6 +59,7 @@ Future<void> main() async {
               onContinue: onContinue ?? (_) {},
               onSolved: onSolved,
               debugTrainer: trainer == null ? null : () => trainer,
+              debugOpenPlanAccount: onOpenPlanAccount,
             ),
           ),
         ),
@@ -66,7 +68,12 @@ Future<void> main() async {
     await tester.pumpAndSettle();
   }
 
-  const notPairing = IntakeAnswers(category: IntakeCategory.controller, subcategory: 'device', subcategoryValue: 'zwift_click', symptom: 'no_pairing');
+  const notPairing = IntakeAnswers(
+    category: IntakeCategory.controller,
+    subcategory: 'device',
+    subcategoryValue: 'zwift_click',
+    symptom: 'no_pairing',
+  );
 
   testWidgets('a matching answer shows inline with "Did this solve it?"', (tester) async {
     await pump(tester, notPairing);
@@ -97,7 +104,12 @@ Future<void> main() async {
   testWidgets('the app not reacting leads with the connection check and the network test', (tester) async {
     await pump(
       tester,
-      const IntakeAnswers(category: IntakeCategory.trainerApp, subcategory: 'app', subcategoryValue: 'MyWhoosh', symptom: 'shifts_not_recognized'),
+      const IntakeAnswers(
+        category: IntakeCategory.trainerApp,
+        subcategory: 'app',
+        subcategoryValue: 'MyWhoosh',
+        symptom: 'shifts_not_recognized',
+      ),
     );
     expect(find.text(l10n.helpCheckAppConnectedTitle), findsOneWidget);
     final network = find.text(l10n.intakeSelfHelpNetworkAction);
@@ -109,7 +121,11 @@ Future<void> main() async {
     );
   });
 
-  const resistance = IntakeAnswers(category: IntakeCategory.smartTrainer, subcategory: 'issue', subcategoryValue: 'wrong_resistance');
+  const resistance = IntakeAnswers(
+    category: IntakeCategory.smartTrainer,
+    subcategory: 'issue',
+    subcategoryValue: 'wrong_resistance',
+  );
 
   testWidgets('the self-test answer runs the self-test directly on a connected trainer', (tester) async {
     final trainer = ProxyDevice(BleDevice(deviceId: 't1', name: 'KICKR CORE'))..isConnected = true;
@@ -137,6 +153,43 @@ Future<void> main() async {
     await pump(tester, notPairing, onSolved: () => solved++);
     await tester.tap(find.text(l10n.supportIntakeSolvedYes));
     expect(solved, 1);
+  });
+
+  IntakeAnswers account(String value) =>
+      IntakeAnswers(category: IntakeCategory.account, subcategory: 'issue', subcategoryValue: value);
+
+  for (final value in ['wrong_plan_shown', 'trial_expired_after_purchase', 'purchase_not_restored']) {
+    testWidgets('$value: an inline answer whose button opens Plan & account', (tester) async {
+      var opened = 0;
+      await pump(tester, account(value), onOpenPlanAccount: () => opened++);
+      expect(find.text(l10n.supportIntakeDidThisSolveIt), findsOneWidget);
+      expect(find.byType(HelpCheckList), findsOneWidget);
+      final open = find.byKey(const ValueKey('intake-open-plan-account'));
+      expect(open, findsOneWidget);
+      await tester.tap(open);
+      expect(opened, 1);
+    });
+  }
+
+  testWidgets('a refund question gets the store refund steps, not a Plan & account detour', (tester) async {
+    await pump(tester, account('refund_request'));
+    expect(find.text(l10n.supportIntakeDidThisSolveIt), findsOneWidget);
+    expect(find.byType(HelpCheckList), findsOneWidget);
+    expect(find.byKey(const ValueKey('intake-open-plan-account')), findsNothing);
+  });
+
+  testWidgets('refunds: only App Store and Microsoft Store get self-service steps; Google Play and the Windows download are mine to refund', (tester) async {
+    await pump(tester, account('refund_request'));
+    final steps = tester.widget<HelpCheckList>(find.byType(HelpCheckList)).checks;
+    expect(steps.map((c) => c.linkUrl), ['https://reportaproblem.apple.com', 'https://account.microsoft.com/billing/orders']);
+    expect(find.text(l10n.intakeSelfHelpRefundTitle), findsOneWidget);
+  });
+
+  testWidgets('after an account answer, No still continues to the composer', (tester) async {
+    IntakeAnswers? continued;
+    await pump(tester, account('refund_request'), onContinue: (a) => continued = a);
+    await tester.tap(find.text(l10n.supportIntakeSolvedNo));
+    expect(continued?.subcategoryValue, 'refund_request');
   });
 
   testWidgets('without a matching answer the form continues as before', (tester) async {

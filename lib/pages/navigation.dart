@@ -11,9 +11,8 @@ import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/widgets/menu.dart';
-import 'package:bike_control/widgets/title.dart';
-import 'package:bike_control/widgets/ui/help_button.dart';
+import 'package:bike_control/pages/shell/app_shell.dart';
+import 'package:bike_control/services/blog_news.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -26,7 +25,10 @@ import '../utils/settings/settings.dart';
 import '../widgets/changelog_dialog.dart';
 
 class Navigation extends StatefulWidget {
-  const Navigation({super.key});
+  const Navigation({super.key, this.initialSection = AppSection.ride});
+
+  /// The section on screen first (Ride). Tests and renders open another.
+  final AppSection initialSection;
 
   @override
   State<Navigation> createState() => _NavigationState();
@@ -34,6 +36,13 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
+  final ShellController _shell = ShellController();
+
+  /// Whether the open tab has scrolled under the top bar: the bar then draws
+  /// a hairline to separate itself from the content.
+  final ValueNotifier<bool> _contentScrolled = ValueNotifier(false);
+
+  void _resetScrolled() => _contentScrolled.value = false;
   StreamSubscription<BaseDevice>? _overlayAutoShowSub;
   OverlayReassertScheduler? _reassertScheduler;
   StreamSubscription<BaseDevice>? _reassertConnSub;
@@ -41,6 +50,12 @@ class _NavigationState extends State<Navigation> {
   @override
   void initState() {
     super.initState();
+    _shell.select(widget.initialSection);
+    // A newly opened tab starts at its top.
+    _shell.section.addListener(_resetScrolled);
+    // Fetched up front so the Activity item can show its new-posts dot before
+    // anyone opens News.
+    if (BlogNewsController.fetchesAtStart) unawaited(_shell.news.load());
 
     core.logic.startEnabledConnectionMethod();
 
@@ -99,9 +114,12 @@ class _NavigationState extends State<Navigation> {
 
   @override
   void dispose() {
+    _shell.section.removeListener(_resetScrolled);
+    _contentScrolled.dispose();
     _overlayAutoShowSub?.cancel();
     _reassertConnSub?.cancel();
     _reassertScheduler?.dispose();
+    _shell.dispose();
     super.dispose();
   }
 
@@ -179,41 +197,76 @@ class _NavigationState extends State<Navigation> {
 
   @override
   Widget build(BuildContext context) {
+    final size = WindowSize.of(context);
+    final content = NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        // The tab's own scroll view, not a list nested inside it.
+        if (n.depth == 0 && n.metrics.axis == Axis.vertical) _contentScrolled.value = n.metrics.extentBefore > 0;
+        return false;
+      },
+      child: KeyedSubtree(
+        key: const ValueKey('shell-content'),
+        child: OverviewPage(isMobile: _isMobile, shell: _shell),
+      ),
+    );
+
     // Not a plain Scaffold: the support screenshot must not show the sheet or
     // toast a rider opens support from, and shadcn paints those inside it.
-    return ScreenshotScaffold(
-      headers: [
-        Stack(
-          children: [
-            AppBar(
-              padding:
-                  const EdgeInsets.only(top: 12, bottom: 8, left: 12, right: 12) *
-                  (screenshotMode ? 2 : Theme.of(context).scaling),
-              title: AppTitle(),
-              backgroundColor: Theme.of(context).colorScheme.background,
-              trailing: buildMenuButtons(context),
-            ),
-            if (!_isMobile && !screenshotMode)
-              Container(
-                alignment: Alignment.topCenter,
-                child: HelpButton(isMobile: false),
+    return ShellScope(
+      controller: _shell,
+      child: ValueListenableBuilder<AppSection>(
+        valueListenable: _shell.section,
+        builder: (context, section, _) {
+          if (size != WindowSize.expanded) {
+            // Below 840: the phone's layout, scaled up — the large title over
+            // the content and the tab bar below it.
+            return ScreenshotScaffold(
+              headers: [
+                ShellTopBar(
+                  section: section,
+                  compact: true,
+                  showPlanAndHelp: section == AppSection.ride,
+                  activity: _shell.activity,
+                  activityTab: _shell.activityTab,
+                  scrolled: _contentScrolled,
+                ),
+              ],
+              // The tab bar has its own space below the content, never on top
+              // of it.
+              footers: [ShellTabBar(controller: _shell)],
+              child: content,
+            );
+          }
+          return ScreenshotScaffold(
+            headers: const [],
+            child: SafeArea(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ShellSidebar(controller: _shell),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Activity's log and News sit side by side here, so
+                        // Clear is always the log's.
+                        ShellTopBar(
+                          section: section,
+                          compact: false,
+                          shell: _shell,
+                          activity: _shell.activity,
+                          scrolled: _contentScrolled,
+                        ),
+                        Expanded(child: content),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-          ],
-        ),
-        Divider(),
-      ],
-      footers: [
-        if (_isMobile)
-          Container(
-            alignment: Alignment.bottomCenter,
-            child: HelpButton(isMobile: true),
-          ),
-      ],
-      // Not floating: the mobile help pill gets its own space below the
-      // content. Floating, it sat on top of whichever card was behind it at
-      // rest (the Smart Trainer card's title on a fresh home).
-      floatingFooter: false,
-      child: OverviewPage(isMobile: _isMobile),
+            ),
+          );
+        },
+      ),
     );
   }
 }

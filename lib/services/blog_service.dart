@@ -10,6 +10,10 @@ const _blogSiteUrl = 'https://bikecontrol.app';
 /// as absent rather than crashing the whole list.
 String? _string(Object? value) => value is String && value.isNotEmpty ? value : null;
 
+/// The manifest's short description of a post, under whichever name it uses.
+String? _excerpt(Map<String, dynamic> json) =>
+    _string(json['excerpt']) ?? _string(json['description']) ?? _string(json['summary']);
+
 /// One localized build of a post as published by the website.
 ///
 /// The German (French, …) build of a post has its OWN slug — it is not a
@@ -23,7 +27,10 @@ class BlogTranslation {
   /// Site-relative path, e.g. `/de/blog/controller-einrichten-tastenbelegung/`.
   final String url;
 
-  const BlogTranslation({required this.slug, required this.title, required this.url});
+  /// The translated excerpt, when the manifest carries one.
+  final String? excerpt;
+
+  const BlogTranslation({required this.slug, required this.title, required this.url, this.excerpt});
 
   static BlogTranslation? fromJson(String languageCode, Map<String, dynamic> json) {
     final slug = _string(json['slug']);
@@ -34,6 +41,7 @@ class BlogTranslation {
       slug: slug,
       title: title,
       url: url != null && url.isNotEmpty ? url : '/$languageCode/blog/$slug/',
+      excerpt: _excerpt(json),
     );
   }
 }
@@ -52,12 +60,20 @@ class BlogPost {
   /// Localized builds keyed by lower-case language code (`de`, `fr`, …).
   final Map<String, BlogTranslation> translations;
 
+  /// A line or two about the post, when the manifest carries one.
+  final String? excerpt;
+
+  /// Absolute URL of the post's cover image, when the manifest carries one.
+  final String? imageUrl;
+
   BlogPost({
     required this.date,
     required this.title,
     required this.slug,
     this.path,
     this.translations = const {},
+    this.excerpt,
+    this.imageUrl,
   });
 
   /// The English (default) URL.
@@ -82,12 +98,19 @@ class BlogPost {
     return translations[normalized];
   }
 
-  static String _absolute(String path) => path.startsWith('http')
-      ? path
-      : '$_blogSiteUrl${path.startsWith('/') ? '' : '/'}$path';
+  static String _absolute(String path) =>
+      path.startsWith('http') ? path : '$_blogSiteUrl${path.startsWith('/') ? '' : '/'}$path';
 
-  /// A post is "new" if it was published within the last 14 days.
-  bool get isNew => DateTime.now().difference(date).inDays < 3;
+  /// How long a post counts as new.
+  static const newForDays = 3;
+
+  /// A post is "new" if it was published within the last [newForDays] days.
+  bool get isNew => isNewAt(DateTime.now());
+
+  bool isNewAt(DateTime now) => now.difference(date).inDays < newForDays;
+
+  /// The excerpt to show for [languageCode], falling back to the English one.
+  String? excerptForLanguage(String? languageCode) => translationFor(languageCode)?.excerpt ?? excerpt;
 
   /// Parse one `entries` object from the manifest. The website publishes the
   /// real frontmatter slug/title/url here, so nothing is re-derived from the
@@ -114,12 +137,15 @@ class BlogPost {
     }
 
     final url = _string(json['url']);
+    final image = _string(json['image']) ?? _string(json['cover']) ?? _string(json['coverImage']);
     return BlogPost(
       date: date,
       title: title,
       slug: slug,
       path: url != null && url.isNotEmpty ? url : '/blog/$slug/',
       translations: translations,
+      excerpt: _excerpt(json),
+      imageUrl: image == null ? null : _absolute(image),
     );
   }
 
@@ -173,6 +199,20 @@ class BlogService {
       recordError(e, s, context: 'BlogService.fetchPosts');
       return _cachedPosts ?? [];
     }
+  }
+
+  /// Like [fetchPosts], but a failed fetch throws instead of answering an
+  /// empty list, so News can tell "no posts" from "could not load". A failure
+  /// is not cached: the next call fetches again.
+  Future<List<BlogPost>> fetchPostsOrThrow() async {
+    final response = await http.get(Uri.parse(_manifestUrl));
+    if (response.statusCode != 200) {
+      if (_cachedPosts case final cached?) return cached;
+      throw http.ClientException('Blog manifest: HTTP ${response.statusCode}', Uri.parse(_manifestUrl));
+    }
+    final posts = parseManifest(jsonDecode(response.body) as Map<String, dynamic>);
+    _cachedPosts = posts;
+    return posts;
   }
 
   /// Build the post list from a decoded manifest, newest first.

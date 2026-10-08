@@ -564,7 +564,7 @@ class _SceneFront extends StatelessWidget {
               ),
             ),
             const Gap(12),
-            // The same drivetrain the rider gets on the trainer page: the chain
+            // The same drivetrain the rider gets on Ride: the chain
             // walks across to the other ring rather than the picture swapping,
             // which is the difference between showing a front shift and
             // captioning one. Marches only while this scene is the live one —

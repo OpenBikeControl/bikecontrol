@@ -377,7 +377,7 @@ class _DeviceScriptDrawerState extends State<DeviceScriptDrawer> {
                               mainAxisSize: MainAxisSize.min,
                               spacing: 8,
                               children: [
-                                const SmallProgressIndicator(color: Colors.black),
+                                SmallProgressIndicator(color: Theme.of(context).colorScheme.primaryForeground),
                                 Text(AppLocalizations.of(context).savingEllipsis),
                               ],
                             )

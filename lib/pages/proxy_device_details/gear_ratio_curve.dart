@@ -7,7 +7,10 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// [GearRatioCurveView], which holds the actual drawing.
 class GearRatioCurve extends StatelessWidget {
   final FitnessBikeDefinition definition;
-  const GearRatioCurve({super.key, required this.definition});
+
+  /// See [GearRatioCurveView.compact].
+  final bool compact;
+  const GearRatioCurve({super.key, required this.definition, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +19,7 @@ class GearRatioCurve extends StatelessWidget {
       builder: (context, _) => GearRatioCurveView(
         ratios: definition.gearRatios.value,
         currentGear: definition.currentGear.value,
+        compact: compact,
       ),
     );
   }
@@ -37,11 +41,16 @@ class GearRatioCurveView extends StatelessWidget {
   /// redraws instantly.
   final bool animated;
 
+  /// Half-height bars and tighter padding: the version pinned above the
+  /// per-gear rows, which has to leave the rows most of the screen.
+  final bool compact;
+
   const GearRatioCurveView({
     super.key,
     required this.ratios,
     required this.currentGear,
     this.animated = false,
+    this.compact = false,
   });
 
   @override
@@ -58,14 +67,16 @@ class GearRatioCurveView extends StatelessWidget {
     final currentRatio = ratios[gear - 1];
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+      padding: compact
+          ? const EdgeInsets.symmetric(vertical: 10, horizontal: 12)
+          : const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
       decoration: BoxDecoration(
         color: cs.muted,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: cs.border),
       ),
       child: Column(
-        spacing: 10,
+        spacing: compact ? 8 : 10,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -97,16 +108,18 @@ class GearRatioCurveView extends StatelessWidget {
           ),
           SizedBox(
             width: double.infinity,
-            height: 80,
+            height: compact ? 40 : 80,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
-                spacing: 4,
+                spacing: compact ? 3 : 4,
                 children: List<Widget>.generate(ratios.length, (i) {
                   final r = ratios[i];
                   final isCurrent = (i + 1) == gear;
-                  final h = (12 + (r - minR) / span * 68).clamp(4.0, 80.0);
+                  final h = compact
+                      ? (6 + (r - minR) / span * 34).clamp(4.0, 40.0)
+                      : (12 + (r - minR) / span * 68).clamp(4.0, 80.0);
                   final t = ratios.length == 1 ? 1.0 : i / (ratios.length - 1);
                   final color = isCurrent ? cs.primary : Color.lerp(cs.border, cs.foreground, t)!;
                   final bar = animated

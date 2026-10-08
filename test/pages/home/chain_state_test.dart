@@ -102,7 +102,11 @@ void main() {
 
     test('attention, problem and off all block a required link', () {
       for (final status in [LinkStatus.attention, LinkStatus.problem, LinkStatus.off]) {
-        expect(link(id: 'a', status: status).isBlocking, isTrue, reason: status.name);
+        expect(
+          link(id: 'a', status: status).isBlocking,
+          isTrue,
+          reason: status.name,
+        );
       }
     });
 
@@ -505,10 +509,41 @@ void main() {
           expect(banner.revealsOutstandingCards, isTrue);
         });
 
-        test('an app that never connected keeps the cards to reveal', () {
+        // A fresh launch with everything set up and the trainer app simply
+        // not open yet: still one cause — opening the app — and one step.
+        test('an app that is not open yet is one step too, without the dropped marker', () {
           final banner = deriveBanner([trainerLink(waitingForPickUp), appLink(dropped: false)]);
           expect(banner.appDropped, isFalse);
-          expect(banner.targetLinkId, 'trainer');
+          expect(banner.waitingForApp, isTrue);
+          expect(banner.stepsLeft, 1);
+          expect(banner.targetLinkId, 'app');
+          expect(banner.revealsOutstandingCards, isFalse);
+        });
+
+        test('an app not open yet with a third card outstanding keeps the cards to reveal', () {
+          final banner = deriveBanner([
+            link(id: 'c', key: ChainLinkKey.controller, status: LinkStatus.attention, steps: [false]),
+            trainerLink(waitingForPickUp),
+            appLink(dropped: false),
+          ]);
+          expect(banner.waitingForApp, isFalse);
+          expect(banner.revealsOutstandingCards, isTrue);
+          expect(banner.stepsLeft, 3);
+        });
+
+        test('an app not open yet with something to do on this side keeps the cards to reveal', () {
+          final banner = deriveBanner([
+            trainerLink(waitingForPickUp),
+            appLink(
+              dropped: false,
+              steps: const [
+                SetupStep(id: SetupStepId.appSelected, done: true),
+                SetupStep(id: SetupStepId.appConnectionMethod, done: false),
+                SetupStep(id: SetupStepId.appConnected, done: false),
+              ],
+            ),
+          ]);
+          expect(banner.waitingForApp, isFalse);
           expect(banner.revealsOutstandingCards, isTrue);
         });
 

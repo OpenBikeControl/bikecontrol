@@ -2,7 +2,6 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
-import 'package:bike_control/widgets/ui/gradient_text.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -83,7 +82,7 @@ class _ChangelogPageState extends State<MarkdownPage> {
                 items: _groups!
                     .map(
                       (group) => AccordionItem(
-                        trigger: AccordionTrigger(child: GradientText(group.title).bold),
+                        trigger: AccordionTrigger(child: Text(group.title).bold),
                         content: MarkdownWidget(
                           markdown: group.markdown,
                           theme: MarkdownThemeData(

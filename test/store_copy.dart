@@ -9,7 +9,6 @@
 // Kept in its own file rather than inside `screenshot_test.dart` so the board
 // tests (`store_board_test.dart`) can read it without dragging in the whole app
 // bootstrap that the screenshot suite needs.
-import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/material.dart' show Color, HSLColor;
 
 /// The scenes that make up the store listing, in the order they are shown in.
@@ -21,10 +20,10 @@ import 'package:flutter/material.dart' show Color, HSLColor;
 /// order a shopper actually scrolls the boards in.
 const List<String> kSceneOrder = <String>[
   'device',
-  'trainer',
-  'virtualshifting',
+  'devices',
   'virtualshifting-settings',
   'customization',
+  'trainer',
   'companion',
 ];
 
@@ -103,10 +102,15 @@ class StoreFrameStyle {
   }
 }
 
-/// The unshifted brand board: the app's own gradient pair, corner to corner.
+/// The unshifted brand board: the app's dark-theme band pair, corner to corner.
+///
+/// Not the light pair (`BKColor.main` → `BKColor.mainEnd`): its teal end is
+/// light enough that white type on it measured 3:1 and the accent 2:1. The
+/// dark band is the same blue-to-teal, a step deeper, and carries the white
+/// claim at 4.5:1 or better across the whole hue ramp.
 const StoreFrameStyle kStoreBrandStyle = StoreFrameStyle(
-  gradientTop: BKColor.main,
-  gradientBottom: BKColor.mainEnd,
+  gradientTop: Color(0xFF0C5F96),
+  gradientBottom: Color(0xFF0A5F63),
 );
 
 Color _rotateHue(Color c, double degrees) {
@@ -115,71 +119,69 @@ Color _rotateHue(Color c, double degrees) {
 }
 
 /// Scene id -> language code -> headline. English is the source of truth.
+///
+/// Each one is what the rider gets, not what the screen is called: a shopper
+/// scrolling past reads a claim, not a settings page. No other company's
+/// product or app names — the boards name the trainer app generically, and so
+/// does the copy. The French copy says "tu", like the app does.
 const Map<String, Map<String, String>> kSceneHeadlines = <String, Map<String, String>>{
   'device': <String, String>{
-    'en': 'Control any trainer with ANY controller',
-    'de': 'Steuere jeden Trainer mit JEDEM Controller',
-    'es': 'Controla cualquier rodillo con CUALQUIER mando',
-    // Shortened from "Contrôlez n'importe quel home-trainer avec N'IMPORTE
-    // QUEL contrôleur" (68 characters), which ran past
-    // [kSceneHeadlineMaxChars] and shrank the whole French board's type to
-    // make room for a fourth line.
-    'fr': 'Contrôlez tout home-trainer avec TOUT contrôleur',
-    'it': 'Controlla qualsiasi rullo con QUALSIASI controller',
-    'pl': 'Steruj każdym trenażerem DOWOLNYM kontrolerem',
+    'en': 'Shift and steer from your handlebars',
+    'de': 'Schalten und lenken direkt vom Lenker',
+    'es': 'Cambia y gira desde el manillar',
+    'fr': 'Passe les vitesses et dirige depuis ton guidon',
+    'it': 'Cambia e sterza direttamente dal manubrio',
+    'pl': 'Zmieniaj biegi i skręcaj prosto z kierownicy',
   },
-  'trainer': <String, String>{
-    'en': 'Connect BikeControl to your trainer',
-    'de': 'Verbinde BikeControl mit deinem Trainer',
-    'es': 'Conecta BikeControl a tu rodillo',
-    'fr': 'Connectez BikeControl à votre home-trainer',
-    'it': 'Collega BikeControl al tuo rullo',
-    'pl': 'Połącz BikeControl ze swoim trenażerem',
-  },
-  'customization': <String, String>{
-    'en': 'Customize every controller button',
-    'de': 'Passe jede Controller-Taste an',
-    'es': 'Personaliza cada botón del mando',
-    'fr': 'Personnalisez chaque bouton du contrôleur',
-    'it': 'Personalizza ogni pulsante del controller',
-    'pl': 'Dostosuj każdy przycisk kontrolera',
-  },
-  'companion': <String, String>{
-    'en': 'Companion App mode with custom hotkeys',
-    'de': 'Companion-App-Modus mit eigenen Tastenkürzeln',
-    'es': 'Modo app complementaria con atajos personalizados',
-    // Shortened from "Mode application compagnon avec raccourcis
-    // personnalisés" (56); "mode compagnon" is what the feature is called in
-    // French anyway.
-    'fr': 'Mode compagnon avec raccourcis personnalisés',
-    'it': 'Modalità app companion con scorciatoie personalizzate',
-    'pl': 'Tryb aplikacji towarzyszącej z własnymi skrótami',
-  },
-  'virtualshifting': <String, String>{
-    'en': 'Add or adjust Virtual Shifting functionality',
-    'de': 'Virtuelles Schalten hinzufügen oder anpassen',
-    'es': 'Añade o ajusta el cambio virtual',
-    'fr': 'Ajoutez ou réglez le passage de vitesses virtuel',
-    'it': 'Aggiungi o regola il cambio virtuale',
-    'pl': 'Dodaj lub dostosuj wirtualną zmianę biegów',
+  'devices': <String, String>{
+    'en': 'Use the controllers you already own',
+    'de': 'Nutze die Controller, die du schon hast',
+    'es': 'Usa los mandos que ya tienes',
+    'fr': 'Utilise les contrôleurs que tu as déjà',
+    'it': 'Usa i controller che hai già',
+    'pl': 'Używaj kontrolerów, które już masz',
   },
   'virtualshifting-settings': <String, String>{
-    'en': 'Full Control of Virtual Shifting',
-    'de': 'Volle Kontrolle über das virtuelle Schalten',
-    'es': 'Control total del cambio virtual',
-    'fr': 'Contrôle total du passage de vitesses virtuel',
-    'it': 'Controllo totale del cambio virtuale',
-    'pl': 'Pełna kontrola nad wirtualną zmianą biegów',
+    'en': 'Real gears on any smart trainer',
+    'de': 'Echte Gänge auf jedem Smart-Trainer',
+    'es': 'Marchas reales en cualquier rodillo inteligente',
+    // A non-breaking hyphen (U+2011): a plain one let the line break after
+    // "home-" and strand "trainer" on the next line.
+    'fr': 'De vraies vitesses sur tout home\u2011trainer connecté',
+    'it': 'Marce vere su qualsiasi rullo smart',
+    'pl': 'Prawdziwe biegi na każdym trenażerze smart',
+  },
+  'customization': <String, String>{
+    'en': 'Every button does exactly what you want',
+    'de': 'Jede Taste macht genau, was du willst',
+    'es': 'Cada botón hace exactamente lo que quieres',
+    'fr': 'Chaque bouton fait exactement ce que tu veux',
+    'it': 'Ogni pulsante fa esattamente ciò che vuoi',
+    'pl': 'Każdy przycisk robi dokładnie to, co chcesz',
+  },
+  'trainer': <String, String>{
+    'en': 'Connect over Wi-Fi or on the same device',
+    'de': 'Verbinde per WLAN oder auf demselben Gerät',
+    'es': 'Conéctate por wifi o en el mismo dispositivo',
+    'fr': 'Connecte-toi en Wi-Fi ou sur le même appareil',
+    'it': 'Collegati via Wi-Fi o sullo stesso dispositivo',
+    'pl': 'Połącz przez Wi-Fi lub na tym samym urządzeniu',
+  },
+  'companion': <String, String>{
+    'en': 'Your phone becomes a remote for your ride',
+    'de': 'Dein Handy wird zur Fernbedienung',
+    'es': 'Tu móvil se convierte en un control remoto',
+    'fr': 'Ton téléphone devient une télécommande',
+    'it': 'Il tuo telefono diventa un telecomando',
+    'pl': 'Twój telefon staje się pilotem',
   },
 };
 
 /// Scene id -> language code -> the run of the headline painted in
 /// [StoreFrameStyle.accentColor].
 ///
-/// Always the SUBJECT of the claim — the thing a rider scanning the listing is
-/// looking for — never the verb: "with **ANY controller**", "**custom
-/// hotkeys**", "**Virtual Shifting**". A headline whose whole point is the
-/// qualifier accents that instead ("**Full Control** of Virtual Shifting").
+/// The part of the claim a rider scanning the listing is looking for — "from
+/// your handlebars", "you already own", "Real gears".
 ///
 /// Per language, because these are substrings of the *translated* headline and
 /// German does not put its noun where English does. A phrase that is off by one
@@ -188,52 +190,52 @@ const Map<String, Map<String, String>> kSceneHeadlines = <String, Map<String, St
 /// is live. `store_board_test.dart` checks all 36.
 const Map<String, Map<String, String>> kSceneAccents = <String, Map<String, String>>{
   'device': <String, String>{
-    'en': 'ANY controller',
-    'de': 'JEDEM Controller',
-    'es': 'CUALQUIER mando',
-    'fr': 'TOUT contrôleur',
-    'it': 'QUALSIASI controller',
-    'pl': 'DOWOLNYM kontrolerem',
+    'en': 'your handlebars',
+    'de': 'direkt vom Lenker',
+    'es': 'desde el manillar',
+    'fr': 'depuis ton guidon',
+    'it': 'dal manubrio',
+    'pl': 'prosto z kierownicy',
   },
-  'trainer': <String, String>{
-    'en': 'your trainer',
-    'de': 'deinem Trainer',
-    'es': 'tu rodillo',
-    'fr': 'votre home-trainer',
-    'it': 'tuo rullo',
-    'pl': 'swoim trenażerem',
-  },
-  'customization': <String, String>{
-    'en': 'controller button',
-    'de': 'Controller-Taste',
-    'es': 'botón del mando',
-    'fr': 'bouton du contrôleur',
-    'it': 'pulsante del controller',
-    'pl': 'przycisk kontrolera',
-  },
-  'companion': <String, String>{
-    'en': 'custom hotkeys',
-    'de': 'eigenen Tastenkürzeln',
-    'es': 'atajos personalizados',
-    'fr': 'raccourcis personnalisés',
-    'it': 'scorciatoie personalizzate',
-    'pl': 'własnymi skrótami',
-  },
-  'virtualshifting': <String, String>{
-    'en': 'Virtual Shifting',
-    'de': 'Virtuelles Schalten',
-    'es': 'cambio virtual',
-    'fr': 'passage de vitesses virtuel',
-    'it': 'cambio virtuale',
-    'pl': 'wirtualną zmianę biegów',
+  'devices': <String, String>{
+    'en': 'you already own',
+    'de': 'die du schon hast',
+    'es': 'que ya tienes',
+    'fr': 'que tu as déjà',
+    'it': 'che hai già',
+    'pl': 'które już masz',
   },
   'virtualshifting-settings': <String, String>{
-    'en': 'Full Control',
-    'de': 'Volle Kontrolle',
-    'es': 'Control total',
-    'fr': 'Contrôle total',
-    'it': 'Controllo totale',
-    'pl': 'Pełna kontrola',
+    'en': 'Real gears',
+    'de': 'Echte Gänge',
+    'es': 'Marchas reales',
+    'fr': 'De vraies vitesses',
+    'it': 'Marce vere',
+    'pl': 'Prawdziwe biegi',
+  },
+  'customization': <String, String>{
+    'en': 'exactly what you want',
+    'de': 'genau, was du willst',
+    'es': 'exactamente lo que quieres',
+    'fr': 'exactement ce que tu veux',
+    'it': 'esattamente ciò che vuoi',
+    'pl': 'dokładnie to, co chcesz',
+  },
+  'trainer': <String, String>{
+    'en': 'Wi-Fi',
+    'de': 'WLAN',
+    'es': 'wifi',
+    'fr': 'Wi-Fi',
+    'it': 'Wi-Fi',
+    'pl': 'Wi-Fi',
+  },
+  'companion': <String, String>{
+    'en': 'a remote',
+    'de': 'Fernbedienung',
+    'es': 'control remoto',
+    'fr': 'une télécommande',
+    'it': 'un telecomando',
+    'pl': 'pilotem',
   },
 };
 

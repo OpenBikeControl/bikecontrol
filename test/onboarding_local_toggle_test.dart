@@ -75,15 +75,16 @@ Future<void> main() async {
     await settle();
     await tapContinue();
 
-    // Step 3 (controller): footer's last GhostButton is "can't find" /
-    // "set up later" depending on phase — press through to step 4.
-    await tester.tap(find.byType(GhostButton).last);
+    // Step 3 (controller): the footer's "can't find" then "set up later"
+    // press through to step 4 (Back sits under them now).
+    final l10n = AppLocalizations.current;
+    await tester.tap(find.text(l10n.onboardingCantFindController));
     await settle();
-    await tester.tap(find.byType(GhostButton).last);
+    await tester.tap(find.text(l10n.onboardingSetUpLater));
     await settle();
 
-    // Step 4 (virtual shifting): ghost footer skips it.
-    await tester.tap(find.byType(GhostButton).last);
+    // Step 4 (virtual shifting): its ghost footer action skips it.
+    await tester.tap(find.textContaining(l10n.onboardingLetAppHandleVs('').split('  ').last.trim()));
     await settle();
 
     // Step 5: tap the Local method tile (keyboard icon).

@@ -1,7 +1,6 @@
 @Tags(['screenshots'])
 library;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -17,20 +16,22 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/pages/shell/app_shell.dart' show AppSection;
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/pages/activity/activity_log.dart' show ActivityLogController, ActivityLogView;
+import 'package:bike_control/pages/activity/activity_preview.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/configuration.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/overview.dart';
-import 'package:bike_control/pages/proxy_device_details.dart';
-import 'package:bike_control/pages/proxy_device_details/front_shift_card.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
-import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
-import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
@@ -40,7 +41,6 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
-import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
@@ -55,6 +55,7 @@ import 'package:bike_control/widgets/apps/zwift_tile.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:bike_control/widgets/ui/animated_button_widget.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart' show BkNumerals;
 import 'package:flutter/material.dart' as ma;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -233,8 +234,15 @@ Future<void> main() async {
 
   debugDisableShadows = true;
 
-  // Locales to render — see kScreenshotLocales.
-  const screenshotLocales = kScreenshotLocales;
+  // Locales to render — see kScreenshotLocales. `--dart-define=STORE_LOCALES=en`
+  // and `--dart-define=STORE_SLOTS=iPhone,desktop` narrow a run to a quick
+  // preview; a full regeneration leaves both unset.
+  const localeFilter = String.fromEnvironment('STORE_LOCALES');
+  const slotFilter = String.fromEnvironment('STORE_SLOTS');
+  final screenshotLocales =
+      localeFilter.isEmpty ? kScreenshotLocales : kScreenshotLocales.where(localeFilter.split(',').contains).toList();
+  final boardSlots =
+      slotFilter.isEmpty ? sizes : sizes.where((s) => slotFilter.split(',').contains(s.type.name)).toList();
 
   // Marketing copy, the brand gradient and the per-scene hue ramp all live in
   // store_copy.dart, so the board tests can read them without booting the app.
@@ -256,10 +264,14 @@ Future<void> main() async {
     // core.settings.reset() (in main) clears this, so re-assert the Base version
     // is active — otherwise the overview shows the "N day trial available" banner.
     IAPManager.instance.isPurchased.value = true;
+    // Every board is shot with Pro: the listing shows the full app, and a
+    // "Base" plan pill next to BikeControl's own virtual shifting read as
+    // "Base includes virtual shifting", which it does not.
+    IAPManager.instance.setProForTesting(enabled: true);
     for (final loc in screenshotLocales) {
       await AppLocalizations.load(Locale(loc));
       screenshotLocale = Locale(loc);
-      for (final size in sizes) {
+      for (final size in boardSlots) {
         await tester.pumpWidget(
           ScreenshotApp(
             locale: Locale(loc),
@@ -291,7 +303,7 @@ Future<void> main() async {
         if (afterPump != null) await afterPump(tester, size.type);
         // golden_screenshot v9+ only loads fonts found in the rendered widget
         // tree, so load after the first pump (then re-render with them).
-        await tester.loadAssets();
+        await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
         // Fonts arriving after the first layout leave intrinsic sizes measured
         // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
         // clips descenders). The app loads its fonts before the first frame, so
@@ -350,7 +362,7 @@ Future<void> main() async {
     );
     await tester.pump();
     if (afterPump != null) await afterPump(tester);
-    await tester.loadAssets();
+    await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
     // Fonts arriving after the first layout leave intrinsic sizes measured
     // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
     // clips descenders). The app loads its fonts before the first frame, so
@@ -404,7 +416,7 @@ Future<void> main() async {
       );
       await tester.pump();
       if (afterPump != null) await afterPump(tester);
-      await tester.loadAssets();
+      await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
       // Fonts arriving after the first layout leave intrinsic sizes measured
       // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
       // clips descenders). The app loads its fonts before the first frame, so
@@ -416,6 +428,54 @@ Future<void> main() async {
         matchesGoldenFile('../screenshots/$loc/$scene.png'),
       );
     }
+  }
+
+  // Half a minute of riding in the activity log, worded as the app words it in
+  // the current locale: the shifts that took the drivetrain up to the gear its
+  // card shows. Three rows, so the list ends inside the tablet frame. The
+  // clock is pinned so the ages read the same on every board.
+  Future<void> seedStoreActivity(AppLocalizations l10n) async {
+    final base = DateTime(2026, 9, 29, 10);
+    final shiftUp = device.availableButtons.firstWhere(
+      (b) => b.action == InGameAction.shiftUp,
+      orElse: () => device.availableButtons.first,
+    );
+    for (final (ago, gear) in [(34, 10), (18, 11), (4, 12)]) {
+      activityLogClock = () => base.subtract(Duration(seconds: ago));
+      core.connection.signalNotification(ActionNotification(Success(l10n.trainerShiftedUp(gear), button: shiftUp)));
+      await Future<void>.value();
+    }
+    activityLogClock = () => base;
+  }
+
+  // The trainer app connected over the Network method (OpenBikeControl over
+  // mDNS): the app's own hello, through the emulator's message handler, as a
+  // real connection arrives. Named generically — the boards keep other apps'
+  // names off the listing.
+  // The app's hello carries its name, so it is re-sent on every board: sent
+  // once, the first locale's name showed on every language's board.
+  void helloOverNetwork() => core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
+    appId: screenshotTrainerAppName,
+    appVersion: '1.0',
+    supportedButtons: MyWhoosh().defaultObpSupportedButtons,
+  ));
+
+  Future<void> connectAppOverNetwork() async {
+    await core.settings.setObpMdnsEnabled(true);
+    core.obpMdnsEmulator.isStarted.value = true;
+    helloOverNetwork();
+  }
+
+  Future<void> sayHelloInBoardLanguage(WidgetTester tester, DeviceType _) async {
+    helloOverNetwork();
+    await tester.pump();
+  }
+
+  Future<void> disconnectAppOverNetwork() async {
+    await core.settings.setObpMdnsEnabled(false);
+    core.obpMdnsEmulator.isStarted.value = false;
+    core.obpMdnsEmulator.connectedApp.value = null;
+    core.obpMdnsEmulator.isConnected.value = false;
   }
 
   // The home screen — the first board on the listing, so it has to show a
@@ -452,8 +512,46 @@ Future<void> main() async {
     proxy.debugSetTrainerAppConnected(true);
     proxy.debugAttachFitnessBike(fbd);
     try {
-      await shoot(tester, 'device', () => BikeControlApp());
+      await shoot(
+        tester,
+        'device',
+        () => BikeControlApp(),
+        // The wide boards carry the Ride tab's activity list next to the
+        // drivetrain; "No activity yet" there reads as a setup that never
+        // worked. Fill it with the shifts that took the drivetrain to the gear
+        // it shows.
+        afterPump: (tester, type) async {
+          // The Ride tab's preview card, or the permanent Activity column on
+          // the widest boards.
+          final ActivityLogController log;
+          final Element host;
+          final preview = find.byType(RideActivityPreview);
+          final column = find.byType(ActivityLogView);
+          if (preview.evaluate().isNotEmpty) {
+            host = tester.element(preview.first);
+            log = tester.widget<RideActivityPreview>(preview.first).controller;
+          } else if (column.evaluate().isNotEmpty) {
+            host = tester.element(column.first);
+            log = tester.widget<ActivityLogView>(column.first).controller;
+          } else {
+            return;
+          }
+          // The shell outlives pumpWidget, so start each board from empty:
+          // otherwise a board inherits the previous one's rows, in its
+          // language.
+          log.clear();
+          // Let the cleared rows finish leaving before the new ones land.
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 1));
+          // The board's own localizations: AppLocalizations.current is not
+          // guaranteed to follow the locale the board is rendered in.
+          await seedStoreActivity(AppLocalizations.of(host));
+          await tester.pump();
+          await tester.pump(const Duration(seconds: 1));
+        },
+      );
     } finally {
+      activityLogClock = DateTime.now;
       // Restored so the scenes stay independent of the order they run in.
       proxy.debugAttachFitnessBike(null);
       proxy.debugSetTrainerAppConnected(false);
@@ -472,44 +570,24 @@ Future<void> main() async {
   // state so the tile's description and height don't depend on what a prior
   // scene left behind.
   //
-  // The wide boards additionally show the trainer-app picker open on the apps
-  // BikeControl speaks to; see afterPump.
+  // The trainer-app picker stays folded into its card on every board. It
+  // used to be opened on the wide ones, but it now spans the card, so its
+  // popup covers the whole page this board is about.
   testGoldens('Trainer', (WidgetTester tester) async {
     core.settings.setTrainerApp(MyWhoosh());
     core.settings.setKeyMap(MyWhoosh());
     core.settings.setLastTarget(Target.thisDevice);
-    core.settings.setObpMdnsEnabled(false);
-    core.obpMdnsEmulator.isStarted.value = false;
-    core.obpMdnsEmulator.connectedApp.value = null;
-    await shoot(
-      tester,
-      'trainer',
-      () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
-      // The picker's popup is a shadcn popover, which ShadcnApp hosts in its
-      // own overlay — inside the frame, so it is part of the capture.
-      afterPump: (tester, type) async {
-        // pumpWidget reuses the element tree between boards, and the popup sits
-        // in an overlay above it — so one opened for an earlier board is still
-        // up, carrying that board's locale in its section headers and covering
-        // the spot the reopening tap aims at (that tap then picks a list item
-        // instead: this scene first came out shot on Rouvy that way). Close it
-        // before deciding anything about this board.
-        final open = find.byType(SelectPopup);
-        if (open.evaluate().isNotEmpty) {
-          unawaited(closeOverlay(tester.element(open)));
-          await tester.pump();
-          await tester.pump(const Duration(milliseconds: 400));
-        }
-        // Opened only where there is room beside it: the popup drops straight
-        // down from the picker, so on a phone it lands on top of the very
-        // connection methods this board exists to show, while a tablet or a
-        // desktop window carries both.
-        if (!CustomFrame.isWide(type)) return;
-        await tester.tap(find.byType(TrainerAppSelect));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 400));
-      },
-    );
+    await connectAppOverNetwork();
+    try {
+      await shoot(
+        tester,
+        'trainer',
+        () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
+        afterPump: sayHelloInBoardLanguage,
+      );
+    } finally {
+      await disconnectAppOverNetwork();
+    }
   });
 
   testGoldens('Customization', (WidgetTester tester) async {
@@ -522,41 +600,65 @@ Future<void> main() async {
     );
   });
 
+  // The on-screen remote, sending over the Network method — the generic
+  // connection, so the board does not lead with one app's own method name.
   testGoldens('Trainer Controls', (WidgetTester tester) async {
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
-    core.settings.setMyWhooshLinkEnabled(true);
-    core.whooshLink.isConnected.value = true;
-    await shoot(
-      tester,
-      'companion',
-      () => BikeControlApp(customChild: ButtonSimulator()),
-    );
+    core.settings.setMyWhooshLinkEnabled(false);
+    core.whooshLink.isConnected.value = false;
+    await connectAppOverNetwork();
+    try {
+      await shoot(
+        tester,
+        'companion',
+        () => BikeControlApp(customChild: ButtonSimulator()),
+        afterPump: sayHelloInBoardLanguage,
+      );
+    } finally {
+      await disconnectAppOverNetwork();
+    }
   });
 
-  testGoldens('Virtual Shifting', (WidgetTester tester) async {
+  // The Devices tab: the whole chain — controller, smart trainer, trainer
+  // app — set up and green, in the same state the Ride board shows.
+  testGoldens('Devices', (WidgetTester tester) async {
+    final savedDevices = core.connection.devices.toList();
+    core.connection.devices
+      ..clear()
+      ..addAll([device, proxy]);
+    core.connection.hasDevices.value = true;
+    await core.settings.setClickV2OnboardingDone(true);
+    propPrefs.setZwiftClickV2LastUnlock(device.scanResult.deviceId, DateTime.now());
     core.settings.setTrainerApp(keymap);
     core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
-    // Put the proxy into virtual-shifting mode so the page shows the gear UI
-    // instead of the "trainer doesn't advertise FTMS" warning.
+    proxy.debugSetTrainerAppConnected(true);
     proxy.debugAttachFitnessBike(fbd);
-    await shoot(
-      tester,
-      'virtualshifting',
-      () => BikeControlApp(customChild: ProxyDeviceDetailsPage(device: proxy)),
-    );
+    try {
+      await shoot(
+        tester,
+        'devices',
+        () => BikeControlApp(customChild: const Navigation(initialSection: AppSection.devices)),
+      );
+    } finally {
+      proxy.debugAttachFitnessBike(null);
+      proxy.debugSetTrainerAppConnected(false);
+      core.connection.devices
+        ..clear()
+        ..addAll(savedDevices);
+      core.connection.hasDevices.value = core.connection.devices.isNotEmpty;
+    }
   });
 
-  // The front derailleur is switched on for this board so its card shows the
-  // chainring steppers and the resulting range rather than just an off switch.
-  // Restored afterwards — it changes what the drivetrain reports (2× notation,
-  // ring-aware ratios), which every later scene sharing this trainer would
-  // otherwise inherit.
+  // Settings → Virtual shifting, with the front derailleur switched on so the
+  // gear reads as a ring position. Restored afterwards — it
+  // changes what the drivetrain reports (2× notation, ring-aware ratios),
+  // which every later scene sharing this trainer would otherwise inherit.
   testGoldens('Virtual Shifting Settings', (WidgetTester tester) async {
-    core.settings.setTrainerApp(Zwift());
-    core.settings.setKeyMap(Zwift());
+    core.settings.setTrainerApp(keymap);
+    core.settings.setKeyMap(keymap);
     core.settings.setMyWhooshLinkEnabled(true);
     core.whooshLink.isConnected.value = true;
     final savedConfig = core.shiftingConfigs.activeFor(proxy.trainerKey);
@@ -571,12 +673,19 @@ Future<void> main() async {
       await shoot(
         tester,
         'virtualshifting-settings',
-        () => BikeControlApp(
-          customChild: GearRatiosEditorPage(
-            device: proxy,
-            definition: fbd,
-          ),
-        ),
+        () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
+        // Settings → Virtual shifting, scrolled to what sells it: the live
+        // drivetrain, then Gears — the ratio curve, the presets and the
+        // settings under them. The config picker and mode cards above are
+        // setup, not the feature.
+        afterPump: (tester, _) async {
+          await tester.pump(const Duration(milliseconds: 300));
+          Scrollable.ensureVisible(
+            tester.element(find.byKey(const ValueKey('vs-drivetrain'))),
+            alignment: 0,
+          );
+          await tester.pump(const Duration(milliseconds: 300));
+        },
       );
     } finally {
       await core.shiftingConfigs.upsert(savedConfig);
@@ -628,8 +737,10 @@ Future<void> main() async {
     );
   });
 
-  // The front-derailleur setting card, enabled so the chainring steppers show.
+  // The front-derailleur setting, enabled so the chainring steppers show: its
+  // rows in the Gears group of Settings → Virtual shifting.
   testGoldens('Front Derailleur Setting', (WidgetTester tester) async {
+    proxy.debugAttachFitnessBike(fbd);
     await core.shiftingConfigs.upsert(
       core.shiftingConfigs
           .activeFor(proxy.trainerKey)
@@ -639,22 +750,12 @@ Future<void> main() async {
             largeChainringTeeth: 50,
           ),
     );
-    const k = ValueKey('shot');
     await shootOne(
       tester,
       'frontderailleur-setting',
-      () => BikeControlApp(
-        customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(
-              key: k,
-              child: FrontShiftCard(device: proxy, definition: fbd),
-            ),
-          ),
-        ),
-      ),
-      capture: () => find.byKey(k),
+      () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
+      capture: () => find.byKey(const ValueKey('vs-front-derailleur')),
+      size: const Size(1080, 6000),
     );
   });
 
@@ -1111,7 +1212,7 @@ Future<void> main() async {
           ),
         );
         await tester.pump();
-        await tester.loadAssets();
+        await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
         // Fonts arriving after the first layout leave intrinsic sizes measured
         // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
         // clips descenders). The app loads its fonts before the first frame, so
@@ -1220,36 +1321,22 @@ Future<void> main() async {
     );
   });
 
-  // 2) Ride-feel / trainer settings: the config picker + gear settings card +
-  // bike-weight + rider-weight steppers.
+  // 2) Ride-feel: the Physics group of Settings → Virtual shifting (bike and
+  // rider weight).
   testGoldens('ride-feel', (WidgetTester tester) async {
     await seedShiftingConfigs();
     proxy.debugAttachFitnessBike(fbd);
-    const k = ValueKey('shot');
     await shootOne(
       tester,
       'ride-feel',
-      () => BikeControlApp(
-        customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: RepaintBoundary(
-              key: k,
-              child: TrainerSettingsSection(definition: fbd, device: proxy),
-            ),
-          ),
-        ),
-      ),
-      capture: () => find.byKey(k),
-      // Wide enough that the embedded config picker's Select shows the active
-      // config name on one line (it sizes to its Expanded slot, which collapses
-      // at phone-narrow widths).
-      size: const Size(1980, 2390),
+      () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
+      capture: () => find.byKey(const ValueKey('vs-physics')),
+      size: const Size(1080, 6000),
     );
   });
 
-  // 3) Overlay settings: the enable tile + the display-field toggles (Power /
-  // Cadence / ERG / Gear / Controls). The field list only renders while the
+  // 3) Overlay settings: Settings → Overlay, its live preview on top, the
+  // enable row and the display-field toggles (ERG / Gear / Controls). The field list only renders while the
   // overlay is "showing", so flip the platform controller (the same singleton
   // the section reads in initState) on up front.
   testGoldens('overlay-settings', (WidgetTester tester) async {
@@ -1277,7 +1364,7 @@ Future<void> main() async {
             padding: const EdgeInsets.all(20),
             child: RepaintBoundary(
               key: k,
-              child: OverlaySettingsSection(definition: fbd, device: proxy),
+              child: SizedBox(height: 900, child: OverlaySettingsPage(device: proxy, definition: fbd)),
             ),
           ),
         ),
@@ -1287,7 +1374,7 @@ Future<void> main() async {
   });
 
   // 4) The Virtual Shifting mode selector (Target Power / Track Resistance /
-  // Basic radio group), extracted from GearRatiosEditorPage as a public widget.
+  // Basic radio group), a public widget of Settings → Virtual shifting.
   testGoldens('vs-mode', (WidgetTester tester) async {
     await seedShiftingConfigs();
     proxy.debugAttachFitnessBike(fbd);

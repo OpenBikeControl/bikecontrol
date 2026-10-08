@@ -16,14 +16,18 @@ void main() {
     });
   });
 
-  group('steeringReadout', () {
+  group('steeringAngleText', () {
     test('a bar a hair right of centre reads 0°, not -0°', () {
-      expect(steeringReadout(-0.0, 10), '0°  ·  ±10°');
-      expect(steeringReadout(-0.4, 10), '0°  ·  ±10°');
+      expect(steeringAngleText(-0.0), '0°');
+      expect(steeringAngleText(-0.4), '0°');
     });
-    test('whole degrees either way', () {
-      expect(steeringReadout(24.6, 10), '25°  ·  ±10°');
-      expect(steeringReadout(-24.6, 10), '-25°  ·  ±10°');
+    test('whole degrees, the direction told by the gauge, not a sign', () {
+      expect(steeringAngleText(24.6), '25°');
+      expect(steeringAngleText(-24.6), '25°');
     });
+  });
+
+  test('the dead zone reads both ways', () {
+    expect(steeringDeadZoneText(5), '±5°');
   });
 }

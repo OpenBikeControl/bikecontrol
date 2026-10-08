@@ -1,3 +1,4 @@
+import 'package:bike_control/pages/home/home_sheets.dart' show openAppGuideSheet;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
@@ -43,14 +44,15 @@ class _OpenBikeProtocolTileState extends State<OpenBikeControlMdnsTile> {
                   supportedActions: isConnected?.supportedActions,
                   isEnabled: core.settings.getObpMdnsEnabled(),
                   title: context.i18n.connectDirectlyOverNetwork,
-                  instructionLink: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership',
+                  // The same steps the onboarding showed for the rider's app.
+                  onInstructions: () => openAppGuideSheet(context),
                   description: isConnected != null
                       ? context.i18n.connectedTo(
                           "${isConnected.appId}:\n${isConnected.supportedActions.joinToString(transform: (s) => s.title)}",
                         )
                       : isStarted
                       ? context.i18n.chooseBikeControlInConnectionScreen
-                      : context.i18n.letsAppConnectOverNetwork(core.settings.getTrainerApp()?.name ?? ''),
+                      : context.i18n.letsAppConnectOverNetwork(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '')),
                   requirements: _requirements,
                   onTroubleshoot: () => context.push(const NetworkTroubleshootingPage()),
                   onChange: (value) {

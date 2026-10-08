@@ -3,6 +3,7 @@ import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/overlay_app.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -87,5 +88,89 @@ void main() {
     } finally {
       debugDefaultTargetPlatformOverride = null;
     }
+  });
+
+  testWidgets('one row: - , the gear with its GEAR label, + , then the mode and readings', (tester) async {
+    await tester.pumpWidget(
+      OverlayShadcnApp(
+        home: Center(
+          child: TrainerOverlayView(state: state(), onPrimaryDecrement: () {}, onPrimaryIncrement: () {}),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final gear = tester.getRect(find.text('14'));
+    final minus = tester.getRect(find.byIcon(LucideIcons.minus));
+    final plus = tester.getRect(find.byIcon(LucideIcons.plus));
+    final label = tester.getRect(find.text('GEAR'));
+    final pill = tester.getRect(find.text('SIM'));
+    expect(minus.right, lessThanOrEqualTo(gear.left), reason: '- before the gear');
+    expect(plus.left, greaterThanOrEqualTo(gear.right), reason: '+ after the gear');
+    expect((minus.center.dy - plus.center.dy).abs(), lessThan(1));
+    expect(label.top, greaterThanOrEqualTo(gear.bottom - 4), reason: 'the label sits under the numeral');
+    expect(pill.left, greaterThan(plus.right), reason: 'mode and readings sit after +');
+  });
+
+  testWidgets('Android: a rounded pill in the card colour, not the page colour', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    try {
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+      await tester.pumpWidget(
+        OverlayShadcnApp(
+          home: Center(
+            child: TrainerOverlayView(state: state(), onPrimaryDecrement: () {}, onPrimaryIncrement: () {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final surface = tester.widget<Container>(
+        find.descendant(of: find.byType(TrainerOverlayView), matching: find.byType(Container)).first,
+      );
+      final decoration = surface.decoration! as BoxDecoration;
+      final card = BkTheme.build(Brightness.dark).colorScheme.card;
+      expect(decoration.color!.withAlpha(255), card.withAlpha(255));
+      expect(decoration.color!.a, greaterThanOrEqualTo(0.9));
+      final height = tester.getSize(find.byType(TrainerOverlayView)).height;
+      final radius = (decoration.borderRadius! as BorderRadius).topLeft.x;
+      expect(radius, greaterThanOrEqualTo(height / 2), reason: "fully rounded ends");
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  // The −/+ circles are a thumb target over the trainer app on a phone; on a
+  // desktop, under a mouse, the smaller circle keeps the window compact.
+  for (final (platform, minimum) in [(TargetPlatform.android, 48.0), (TargetPlatform.macOS, 44.0)]) {
+    testWidgets('−/+ are at least ${minimum.toInt()} px on ${platform.name}', (tester) async {
+      debugDefaultTargetPlatformOverride = platform;
+      try {
+        await tester.pumpWidget(
+          OverlayShadcnApp(
+            home: Center(
+              child: TrainerOverlayView(state: state(), onPrimaryDecrement: () {}, onPrimaryIncrement: () {}),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        for (final icon in [LucideIcons.minus, LucideIcons.plus]) {
+          final circle = tester.getSize(
+            find.ancestor(of: find.byIcon(icon), matching: find.byType(BkTappable)).first,
+          );
+          expect(circle.width, greaterThanOrEqualTo(minimum), reason: '$icon');
+          expect(circle.height, greaterThanOrEqualTo(minimum), reason: '$icon');
+        }
+        expect(tester.takeException(), isNull);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+  }
+
+  test('the touch window makes room for the larger circles', () {
+    final touch = TrainerOverlayView.windowSize(TextScaler.noScaling, touch: true);
+    final desktop = TrainerOverlayView.windowSize(TextScaler.noScaling, touch: false);
+    expect(touch.width - desktop.width, 2 * (TrainerOverlayView.touchHit - TrainerOverlayView.pointerHit));
+    expect(touch.height, greaterThanOrEqualTo(TrainerOverlayView.touchHit));
   });
 }

@@ -64,8 +64,8 @@ Future<void> main() async {
     );
     final l = l10n(tester);
 
-    expect(find.text(l.onboardingDoneTitle), findsNothing, reason: 'nothing can shift yet — not "ready to ride"');
-    expect(find.text(l.onboardingDoneNoControllerTitle), findsOneWidget);
+    expect(find.text(l.onboardingDoneTitle.toUpperCase()), findsNothing, reason: 'nothing can shift yet — not "ready to ride"');
+    expect(find.text(l.onboardingDoneNoControllerTitle.toUpperCase()), findsOneWidget);
     expect(find.text(l.onboardingDoneSubtitle(l.onboardingYourController, 'MyWhoosh')), findsNothing);
     expect(find.text(l.onboardingSummaryNotPaired), findsOneWidget);
 
@@ -89,7 +89,7 @@ Future<void> main() async {
       ),
     );
     final l = l10n(tester);
-    expect(find.text(l.onboardingDoneTitle), findsOneWidget);
+    expect(find.text(l.onboardingDoneTitle.toUpperCase()), findsOneWidget);
     expect(find.byKey(const ValueKey('onboarding-done-pair-controller')), findsNothing);
   });
 
@@ -115,7 +115,9 @@ Future<void> main() async {
     expect(checked, 1);
   });
 
-  testWidgets('the trial card points at Pro when a trainer is bridged, Base or Pro otherwise', (tester) async {
+  testWidgets('the trial card says Base or Pro lifts the commands, and Pro keeps virtual shifting when bridged', (
+    tester,
+  ) async {
     Widget body(BuildContext c, {String? trainer}) => onboardingDoneBody(
       c,
       app: MyWhoosh(),
@@ -130,7 +132,7 @@ Future<void> main() async {
     await pump(tester, (c) => body(c, trainer: 'KICKR CORE'));
     var l = l10n(tester);
     expect(find.text(l.onboardingTrialKeepVs), findsOneWidget);
-    expect(find.text(l.onboardingTrialUnlimited), findsNothing);
+    expect(find.text(l.onboardingTrialUnlimited), findsOneWidget);
 
     await pump(tester, (c) => body(c));
     l = l10n(tester);
@@ -259,7 +261,7 @@ Future<void> main() async {
       await pump(tester, (c) => bridgeWaiting(c));
       final l = l10n(tester);
 
-      expect(find.text(l.onboardingDonePickTrainerTitle), findsOneWidget);
+      expect(find.text(l.onboardingDonePickTrainerTitle.toUpperCase()), findsOneWidget);
       expect(find.text(l.onboardingDonePickTrainerSubtitle('MyWhoosh')), findsOneWidget);
       expect(find.text(l.onboardingAlmostThereSubtitle('MyWhoosh')), findsNothing);
       expect(find.byType(OnboardingPairAsTrainerCard), findsOneWidget);
@@ -287,8 +289,8 @@ Future<void> main() async {
         ),
       );
       final l = l10n(tester);
-      expect(find.text(l.onboardingAlmostThereTitle), findsOneWidget);
-      expect(find.text(l.onboardingDonePickTrainerTitle), findsNothing);
+      expect(find.text(l.onboardingAlmostThereTitle.toUpperCase()), findsOneWidget);
+      expect(find.text(l.onboardingDonePickTrainerTitle.toUpperCase()), findsNothing);
       expect(find.byType(OnboardingAppGuideCard), findsOneWidget);
       expect(find.byKey(const ValueKey('onboarding-done-trainer-check')), findsNothing);
     });

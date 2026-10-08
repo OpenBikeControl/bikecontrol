@@ -305,12 +305,15 @@ class _ScrollableHit {
 }
 
 /// Pre-order walk of [root]'s descendants returning the first
-/// [Scrollable] whose axis is vertical. We want the dashboard's main
-/// vertical scroll view; a [PageView] above it (horizontal) is skipped.
+/// [Scrollable] whose axis is vertical. We want the shown section's main
+/// vertical scroll view: horizontal scrollables are skipped, and so are the
+/// sections kept mounted but [Offstage] behind it.
 _ScrollableHit? _findFirstVerticalScrollable(Element root) {
   _ScrollableHit? result;
   void visit(Element el) {
     if (result != null) return;
+    final widget = el.widget;
+    if (widget is Offstage && widget.offstage) return;
     if (el is StatefulElement && el.state is ScrollableState) {
       final s = el.state as ScrollableState;
       if (s.position.axis == Axis.vertical) {

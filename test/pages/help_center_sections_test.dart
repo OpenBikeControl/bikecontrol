@@ -12,7 +12,8 @@
 // there.
 //
 // Design round 1 added two more groups: "Guides & videos" dropped its blog
-// list for a direct Tutorials link (listed before Instruction Videos), and
+// list for a direct Tutorials link (the Instruction Videos row that followed
+// it was later removed — mostly outdated), and
 // "Contact & community" collapsed its support row + a separate report row
 // into one "Tell us what's wrong" / "Chat with support · no account needed"
 // row, keeping the same tap/unread-dot wiring.
@@ -167,7 +168,7 @@ void main() {
 
   group('GuidesVideosSection', () {
     testWidgets(
-      'shows a Tutorials row before Instruction Videos, linking bikecontrol.app/blog (Bug 4: /tutorials 404s)',
+      'shows a Tutorials row linking bikecontrol.app/blog (Bug 4: /tutorials 404s) and no YouTube videos row',
       (
         tester,
       ) async {
@@ -180,15 +181,12 @@ void main() {
         await tester.pump();
 
         final l10n = AppLocalizations.of(tester.element(find.byType(GuidesVideosSection)));
-        final tutorialsFinder = find.text(l10n.tutorials);
-        final videosFinder = find.text(l10n.instructionVideos);
-        expect(tutorialsFinder, findsOneWidget);
-        expect(videosFinder, findsOneWidget);
-        expect(
-          tester.getTopLeft(tutorialsFinder).dy,
-          lessThan(tester.getTopLeft(videosFinder).dy),
-          reason: 'Tutorials is listed first, Instruction Videos second',
-        );
+        expect(find.text(l10n.tutorials), findsOneWidget);
+        // The instruction-videos drawer (YouTube channel feed, mostly
+        // outdated) is gone: with no controller there is no article row
+        // either, so Tutorials is the only row left.
+        expect(find.byIcon(LucideIcons.monitorPlay), findsNothing);
+        expect(find.byType(Button), findsOneWidget);
 
         await tester.tap(find.byKey(const ValueKey('help-center-tutorials')));
         await tester.pump();

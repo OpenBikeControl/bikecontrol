@@ -55,6 +55,12 @@ class FakePeripheral {
   /// radio-roundtrip later. Set back to null to let connects succeed again.
   Object? connectError;
 
+  /// Whether a failed connect (see [connectError]) is followed by the
+  /// Android-style disconnected event. Set to false to mimic a connect that
+  /// just times out (macOS/iOS CoreBluetooth): the call errors and the
+  /// platform never says anything else about the link.
+  bool connectErrorDeliversDisconnect = true;
+
   /// Connect attempts the app has made against this peripheral.
   int connectAttempts = 0;
 
@@ -156,9 +162,11 @@ class FakeUniversalBlePlatform extends UniversalBlePlatform {
     if (error != null) {
       // Android delivers a failed connect twice: the connect call errors AND
       // onConnectionStateChange reports disconnected (e.g. GATT 133/147).
-      Future<void>.delayed(const Duration(milliseconds: 50)).then((_) {
-        updateConnection(deviceId, false, error.toString());
-      });
+      if (peripheral.connectErrorDeliversDisconnect) {
+        Future<void>.delayed(const Duration(milliseconds: 50)).then((_) {
+          updateConnection(deviceId, false, error.toString());
+        });
+      }
       throw error;
     }
     peripheral.isConnected = true;

@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart' show BkNumerals;
 import 'dart:io';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -161,6 +162,10 @@ Future<List<File>> captureWidget(
   /// widget contains an infinite animation (e.g. a CircularProgressIndicator)
   /// that would cause pumpAndSettle to time out.
   bool settle = true,
+
+  /// Runs once the widget is laid out with its real fonts, just before the
+  /// capture: hover a row, scroll to something, open a group.
+  Future<void> Function(WidgetTester tester)? beforeCapture,
 }) async {
   await ensureSnapshotHarness();
 
@@ -216,7 +221,8 @@ Future<List<File>> captureWidget(
                 child: SizedBox(
                   width: width,
                   height: height,
-                  child: builder(context),
+                  // main.dart's card/divider defaults.
+                  child: BkComponentThemes(child: Builder(builder: builder)),
                 ),
               ),
             ),
@@ -230,7 +236,11 @@ Future<List<File>> captureWidget(
     // First pump builds the tree; loadAssets() loads the fonts it finds there
     // (Geist etc.); the second pump re-renders with real glyphs, not Ahem boxes.
     await tester.pump();
-    await tester.loadAssets();
+    // loadAssets() only reads each paragraph's ROOT span family, so a face
+    // set on child spans alone (the Barlow Condensed numerals in RideStat's
+    // "250 W") would stay Ahem boxes unless some earlier capture of the run
+    // happened to load it. Name the display face explicitly.
+    await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
     // Fonts arriving after the first layout leave intrinsic sizes measured
     // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
     // clips descenders). The app loads its fonts before the first frame, so
@@ -244,6 +254,8 @@ Future<List<File>> captureWidget(
       // would time out. Pump a fixed frame so the widget is rendered.
       await tester.pump(const Duration(milliseconds: 100));
     }
+
+    if (beforeCapture != null) await beforeCapture(tester);
 
     final fileName = locales.length == 1 ? '$name.png' : '$name-$loc.png';
     files.add(

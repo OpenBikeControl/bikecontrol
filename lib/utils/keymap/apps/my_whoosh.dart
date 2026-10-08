@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +28,11 @@ class MyWhoosh extends SupportedApp {
 
   @override
   int get virtualGearAmount => 30;
+
+  /// MyWhoosh for Android can't pair a network virtual bike — only Bluetooth.
+  @override
+  Set<TrainerConnectionType> get virtualShiftingTransportsHere =>
+      HostPlatform.isAndroid ? const {TrainerConnectionType.bluetooth} : virtualShiftingTransports;
 
   @override
   List<ControllerButton> get defaultObpSupportedButtons => const [
@@ -169,9 +175,9 @@ class MyWhoosh extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.arrowRight,
                     logicalKey: LogicalKeyboardKey.arrowRight,
-                    touchPosition: Offset(32, 80),
+                    touchPosition: Offset(60, 80),
                     isLongPress: true,
-                    inGameAction: InGameAction.steerLeft,
+                    inGameAction: InGameAction.steerRight,
                   ),
                 ),
             ...ControllerButton.values

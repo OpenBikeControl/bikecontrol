@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/email_otp_auth_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,18 +22,28 @@ class EmailLoginForm extends StatefulWidget {
   const EmailLoginForm({
     super.key,
     required this.onSignedIn,
+    this.onCodeSentChanged,
     EmailOtpAuth? auth,
     this.cooldown = resendCooldown,
+    @visibleForTesting this.clock = DateTime.now,
   }) : _auth = auth;
 
   /// Called once the code has been redeemed and a session exists.
   final VoidCallback onSignedIn;
+
+  /// Called with true once a code is on its way, false when the rider goes
+  /// back to typing an address — the host can step the rest aside.
+  final ValueChanged<bool>? onCodeSentChanged;
 
   final EmailOtpAuth? _auth;
 
   /// How long "send a new code" stays shut after a send. Overridable so tests
   /// don't have to sit out a real minute.
   final Duration cooldown;
+
+  /// What the cooldown reads the time from. Tests move it by hand, so the gate
+  /// never races a busy machine's wall clock.
+  final DateTime Function() clock;
 
   static const Key emailFieldKey = Key('email_login_email_field');
   static const Key sendButtonKey = Key('email_login_send_button');
@@ -65,7 +78,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
   Duration get _cooldownLeft {
     final until = _resendAllowedAt;
     if (until == null) return Duration.zero;
-    final left = until.difference(DateTime.now());
+    final left = until.difference(widget.clock());
     return left.isNegative ? Duration.zero : left;
   }
 
@@ -93,10 +106,12 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
     try {
       await _auth.sendCode(email);
       if (!mounted) return;
+      final first = _codeSentTo == null;
       setState(() {
         _codeSentTo = email;
         _busy = false;
       });
+      if (first) widget.onCodeSentChanged?.call(true);
       _startCooldown();
     } catch (e, s) {
       recordError(e, s, context: 'Email OTP send');
@@ -137,7 +152,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
 
   void _startCooldown() {
     _cooldownTimer?.cancel();
-    setState(() => _resendAllowedAt = DateTime.now().add(widget.cooldown));
+    setState(() => _resendAllowedAt = widget.clock().add(widget.cooldown));
     // Only redraws the countdown label — the gate itself reads the deadline,
     // so a missed tick can never hand out an early code or withhold a due one.
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -156,6 +171,7 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       _resendAllowedAt = null;
       _error = null;
     });
+    widget.onCodeSentChanged?.call(false);
   }
 
   @override
@@ -166,14 +182,31 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (_codeSentTo == null) ..._buildEmailEntry(context) else ..._buildCodeEntry(context),
-        if (_error != null)
-          Text(
-            _error!,
-            key: EmailLoginForm.errorKey,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Theme.of(context).colorScheme.destructive),
-          ).small,
+        if (_codeSentTo == null && _error != null) _errorView(context),
       ],
+    );
+  }
+
+  Widget _errorView(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Row(
+        key: EmailLoginForm.errorKey,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(LucideIcons.circleAlert, size: 16, color: Theme.of(context).colorScheme.destructive),
+          ),
+          Expanded(
+            child: Text(
+              _error!,
+              style: context.typography.small.copyWith(color: Theme.of(context).colorScheme.destructive),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -186,9 +219,10 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
         autofillHints: const [AutofillHints.email],
         textInputAction: TextInputAction.go,
         placeholder: Text(context.i18n.emailAddress),
+        features: const [InputFeature.leading(Icon(LucideIcons.mail, size: 16))],
         onSubmitted: (_) => _sendCode(isResend: false),
       ),
-      Button.primary(
+      BkPillButton.secondary(
         key: EmailLoginForm.sendButtonKey,
         onPressed: _busy ? null : () => _sendCode(isResend: false),
         child: Text(context.i18n.sendMeACode),
@@ -216,24 +250,40 @@ class _EmailLoginFormState extends State<EmailLoginForm> {
           },
         ),
       ),
-      Button.ghost(
-        key: EmailLoginForm.resendButtonKey,
-        onPressed: () => _sendCode(isResend: true),
-        child: Builder(
-          builder: (context) {
-            final left = _cooldownLeft;
-            return Text(
-              left > Duration.zero
-                  ? context.i18n.sendANewCodeIn((left.inMilliseconds / 1000).ceil())
-                  : context.i18n.sendANewCode,
+      if (_error != null) _errorView(context),
+      Builder(
+        builder: (context) {
+          final left = _cooldownLeft;
+          if (left > Duration.zero) {
+            return Center(
+              child: Button.ghost(
+                key: EmailLoginForm.resendButtonKey,
+                onPressed: () => _sendCode(isResend: true),
+                child: Text(
+                  context.i18n.sendANewCodeIn((left.inMilliseconds / 1000).ceil()),
+                  textAlign: TextAlign.center,
+                  style: context.typography.small.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+                ),
+              ),
             );
-          },
-        ),
+          }
+          return BkPillButton.secondary(
+            key: EmailLoginForm.resendButtonKey,
+            onPressed: () => _sendCode(isResend: true),
+            child: Text(context.i18n.sendANewCode),
+          );
+        },
       ),
-      Button.ghost(
-        key: EmailLoginForm.changeEmailKey,
-        onPressed: _backToEmailEntry,
-        child: Text(context.i18n.useADifferentEmailAddress),
+      Center(
+        child: Button.ghost(
+          key: EmailLoginForm.changeEmailKey,
+          onPressed: _backToEmailEntry,
+          child: Text(
+            context.i18n.useADifferentEmailAddress,
+            textAlign: TextAlign.center,
+            style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+          ),
+        ),
       ),
     ];
   }

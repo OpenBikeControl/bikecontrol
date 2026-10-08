@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
@@ -8,34 +9,35 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/help_center/help_center_page.dart';
 import 'package:bike_control/pages/help_center/help_center_support_context.dart';
 import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
-import 'package:bike_control/pages/proxy_device_details/gear_hero_card.dart';
-import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
-import 'package:bike_control/pages/proxy_device_details/mini_workout_card.dart';
+import 'package:bike_control/pages/proxy_device_details/control_protocol_section.dart';
 import 'package:bike_control/pages/proxy_device_details/need_help_card.dart';
-import 'package:bike_control/pages/proxy_device_details/overlay_settings_section.dart';
 import 'package:bike_control/pages/proxy_device_details/self_test_card.dart';
-import 'package:bike_control/pages/proxy_device_details/trainer_settings_section.dart';
-import 'package:bike_control/pages/proxy_device_details/virtual_shifting_pro_notice.dart';
+import 'package:bike_control/pages/settings/overlay_settings_page.dart';
+import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/lazy_async.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
 import 'package:bike_control/widgets/ui/loading_widget.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
+/// Devices → Smart Trainer: the trainer's hardware page. Is it connected and
+/// how (the connection card, with the WiFi / Bluetooth choice), which control
+/// protocol it speaks, and is it healthy (the resistance self-test, Need
+/// help?) — plus one link out to its virtual shifting settings, which live in
+/// Settings, and the way to disconnect it.
+///
+/// The gear itself is on Ride; how it shifts and the overlay are in Settings.
 class ProxyDeviceDetailsPage extends StatefulWidget {
   final ProxyDevice device;
-
-  /// Scrolls to the Overlay section after the first frame. Used by the home
-  /// screen's gear-overlay step so its button lands the rider directly on the
-  /// "Show overlay during ride" switch.
-  final bool revealOverlaySection;
 
   /// Scrolls to the resistance self-test after the first frame — the setup
   /// guide's "Run the trainer check" lands here.
@@ -44,7 +46,6 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
   const ProxyDeviceDetailsPage({
     super.key,
     required this.device,
-    this.revealOverlaySection = false,
     this.revealSelfTest = false,
   });
 
@@ -54,8 +55,6 @@ class ProxyDeviceDetailsPage extends StatefulWidget {
 
 class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   late StreamSubscription<BaseDevice> _connectionSub;
-  final GlobalKey _overlaySectionKey = GlobalKey();
-  final GlobalKey _settingsSectionKey = GlobalKey();
   final GlobalKey _selfTestKey = GlobalKey();
 
   /// Mirrors the persisted flag so the x tap hides the card in the same
@@ -75,9 +74,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     _connectionSub = core.connection.connectionStream.listen((_) {
       if (mounted) setState(() {});
     });
-    if (widget.revealOverlaySection) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _revealOverlaySection());
-    }
     if (widget.revealSelfTest) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _revealSelfTest());
     }
@@ -96,20 +92,18 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     );
   }
 
-  /// Scrolls the Overlay section into view. No-op when the section isn't in
-  /// the tree (e.g. the VS session ended before the hint's button was tapped,
-  /// so the settings section isn't rendered).
-  void _revealOverlaySection() {
-    final ctx = _overlaySectionKey.currentContext;
-    if (!mounted || ctx == null) return;
-    unawaited(
-      Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-        alignment: 0.1,
-      ),
-    );
+  /// The self-test's "Show gear overlay setup": the overlay's own page.
+  Future<void> _openOverlaySettings() async {
+    final definition = widget.device.fitnessBike;
+    if (definition == null) return;
+    await context.push(OverlaySettingsPage(device: widget.device, definition: definition));
+  }
+
+  Future<void> _openVirtualShiftingSettings() async {
+    final definition = widget.device.fitnessBike;
+    if (definition == null) return;
+    await context.push(VirtualShiftingSettingsPage(definition: definition, device: widget.device));
+    if (mounted) setState(() {});
   }
 
   @override
@@ -132,93 +126,83 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
       ],
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _deviceCard(),
+        child: BkPageColumn(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _deviceCard(),
+              SizedBox(height: 12),
+              if (_ftmsMissingWarning() case final w?) ...[
+                w,
                 SizedBox(height: 12),
-                if (_ftmsMissingWarning() case final w?) ...[
-                  w,
-                  SizedBox(height: 12),
-                ],
-
-                if (!screenshotMode) ...[
-                  // Stable keys keep these persistent stateful cards from being
-                  // remounted when conditional siblings (FTMS warning above;
-                  // gear/settings/VS-notice below) appear/disappear on
-                  // (dis)connect — an unkeyed widget trapped between two
-                  // toggling siblings lands in the reconciliation middle and is
-                  // re-inflated, which would reset ConnectionCard's accordion.
-                  ConnectionCard(key: const ValueKey('connection-card'), device: device),
-                  SizedBox(height: 12),
-                  // Checking comes before asking: the self-test answers "does
-                  // BikeControl control my trainer?" on its own, so it sits
-                  // above the card that routes to support.
-                  if (device.fitnessBike != null) ...[
-                    KeyedSubtree(
-                      key: _selfTestKey,
-                      child: SelfTestCard(
-                        key: const ValueKey('self-test'),
-                        device: device,
-                        onShowOverlaySettings: _revealOverlaySection,
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                  ],
-                  // Keyed for the same reason: dismissing it toggles a sibling
-                  // right next to ConnectionCard.
-                  if (!_needHelpDismissed) ...[
-                    NeedHelpCard(
-                      key: const ValueKey('need-help'),
-                      onOpenHelp: _routeToHelpCenter,
-                      onDismiss: _dismissNeedHelp,
-                    ),
-                    SizedBox(height: 12),
-                  ],
-                ],
-                _gearSection(),
-                SizedBox(height: 20),
-                if (!IAPManager.instance.isProEnabledForCurrentDevice &&
-                    widget.device.fitnessBike != null &&
-                    !screenshotMode) ...[
-                  ValueListenableBuilder<Duration>(
-                    valueListenable: core.bridgeUsageTracker.usedTodayListenable,
-                    builder: (context, used, _) {
-                      final remaining = core.bridgeUsageTracker.dailyLimit - used;
-                      final clamped = remaining.isNegative ? Duration.zero : remaining;
-                      return VirtualShiftingProNotice(
-                        trainerAppName:
-                            core.settings.getTrainerApp()?.name ?? AppLocalizations.of(context).yourTrainerApp,
-                        remainingToday: clamped,
-                      );
-                    },
-                  ),
-                  SizedBox(height: 26),
-                ],
-                // The live readout duplicates the watts/rpm already on the
-                // device card above it, and on a store board it pushes the
-                // Virtual Shifting settings — the thing that board is about —
-                // off the bottom of the phone.
-                if (!screenshotMode) ...[
-                  LiveMetricsSection(
-                    key: const ValueKey('live-metrics'),
-                    device: device,
-                    hideWhenDeviceHasNoMetrics: true,
-                  ),
-                  SizedBox(height: 20),
-                ],
-                if (!debugHideMiniWorkoutCard) ...[
-                  MiniWorkoutCard(key: const ValueKey('mini-workout'), device: device),
-                  SizedBox(height: 20),
-                ],
-                _settingsSection(),
-                SizedBox(height: 32),
-                _actions(),
               ],
-            ),
+
+              if (!screenshotMode) ...[
+                // Stable keys keep these persistent stateful cards from being
+                // remounted when conditional siblings (the FTMS warning above,
+                // the protocol and health cards below) appear/disappear on
+                // (dis)connect — an unkeyed widget trapped between two
+                // toggling siblings lands in the reconciliation middle and is
+                // re-inflated, which would reset ConnectionCard's state.
+                ConnectionCard(key: const ValueKey('connection-card'), device: device),
+                SizedBox(height: 12),
+              ],
+              // How BikeControl talks to this trainer — hardware, so it sits
+              // here, next to the self-test that recommends changing it.
+              if (device.fitnessBike case final definition?)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: ControlProtocolSection(
+                    key: const ValueKey('control-protocol'),
+                    definition: definition,
+                    device: device,
+                  ),
+                ),
+              if (!screenshotMode) ...[
+                // Checking comes before asking: the self-test answers "does
+                // BikeControl control my trainer?" on its own, so it sits
+                // above the card that routes to support.
+                if (device.fitnessBike != null) ...[
+                  KeyedSubtree(
+                    key: _selfTestKey,
+                    child: SelfTestCard(
+                      key: const ValueKey('self-test'),
+                      device: device,
+                      onShowOverlaySettings: _openOverlaySettings,
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                ],
+                // Keyed for the same reason: dismissing it toggles a sibling
+                // right next to ConnectionCard.
+                if (!_needHelpDismissed) ...[
+                  NeedHelpCard(
+                    key: const ValueKey('need-help'),
+                    onOpenHelp: _routeToHelpCenter,
+                    onDismiss: _dismissNeedHelp,
+                  ),
+                  SizedBox(height: 12),
+                ],
+              ],
+              // The one link out: riders who come here for their gears still
+              // find them.
+              if (device.fitnessBike != null) ...[
+                SizedBox(height: 12),
+                BkGroupedSection(
+                  children: [
+                    BkGroupedRow(
+                      key: const ValueKey('trainer-vs-settings'),
+                      icon: LucideIcons.slidersHorizontal,
+                      title: context.i18n.virtualShiftingSettings,
+                      chevron: true,
+                      onPressed: _openVirtualShiftingSettings,
+                    ),
+                  ],
+                ),
+              ],
+              SizedBox(height: 32),
+              _actions(),
+            ],
           ),
         ),
       ),
@@ -293,7 +277,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
         children: [
-          const Icon(LucideIcons.triangleAlert, color: Colors.orange, size: 18),
+          Icon(LucideIcons.triangleAlert, color: BkStatusColors.of(context).warning, size: 18),
           Expanded(
             child: Text(
               AppLocalizations.of(context).trainerMissingFtmsWarning(widget.device.name),
@@ -315,53 +299,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
         border: Border.all(color: Theme.of(context).colorScheme.border),
       ),
       child: widget.device.showInformation(context, showFull: true),
-    );
-  }
-
-  Widget _gearSection() {
-    final def = widget.device.fitnessBike;
-    if (def == null) return const SizedBox.shrink();
-    // No Edit affordance on a store board: it points at the settings section,
-    // which that board already shows in full right below the card.
-    return GearHeroCard(
-      definition: def,
-      onEditSettings: screenshotMode ? null : _revealSettingsSection,
-    );
-  }
-
-  /// Scrolls the Virtual Shifting settings into view — the destination of the
-  /// gear card's Edit, which is on the same page rather than behind a push.
-  void _revealSettingsSection() {
-    final ctx = _settingsSectionKey.currentContext;
-    if (!mounted || ctx == null) return;
-    unawaited(
-      Scrollable.ensureVisible(
-        ctx,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-        alignment: 0.05,
-      ),
-    );
-  }
-
-  Widget _settingsSection() {
-    final def = widget.device.fitnessBike;
-    if (def == null) return const SizedBox.shrink();
-    return Column(
-      key: _settingsSectionKey,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 10,
-      children: [
-        Text(
-          AppLocalizations.of(context).virtualShiftingSettings,
-          style: context.typography.large.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.2),
-        ),
-        TrainerSettingsSection(definition: def, device: widget.device),
-        KeyedSubtree(
-          key: _overlaySectionKey,
-          child: OverlaySettingsSection(definition: def, device: widget.device),
-        ),
-      ],
     );
   }
 

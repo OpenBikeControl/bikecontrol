@@ -1,5 +1,9 @@
+import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +27,7 @@ class KeymapManager {
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => BkInputDialog(
         title: Text(context.i18n.newCustomProfile),
         content: TextField(
           controller: controller,
@@ -45,8 +49,9 @@ class KeymapManager {
   }) {
     return Builder(
       builder: (context) {
-        return Button.outline(
-          child: Icon(LucideIcons.settings),
+        return BkIconButton.outline(
+          icon: Icon(LucideIcons.settings),
+          label: context.i18n.keymapManageLabel,
           onPressed: () => showDropdown(
             context: context,
             builder: (c) => DropdownMenu(
@@ -77,7 +82,7 @@ class KeymapManager {
                   MenuButton(
                     child: Text(context.i18n.duplicate),
                     onPressed: (c) async {
-                      final newName = await duplicate(
+                      await duplicate(
                         context,
                         currentProfile,
                       );
@@ -91,9 +96,9 @@ class KeymapManager {
                     if (jsonData != null && jsonData.isNotEmpty) {
                       final success = await core.settings.importCustomAppProfile(jsonData);
                       if (success) {
-                        buildToast(title: context.i18n.profileImportedSuccessfully);
+                        buildToast(title: AppLocalizations.current.profileImportedSuccessfully);
                       } else {
-                        buildToast(title: context.i18n.failedToImportProfile);
+                        buildToast(title: AppLocalizations.current.failedToImportProfile);
                       }
                     }
                   },
@@ -140,7 +145,7 @@ class KeymapManager {
     final controller = TextEditingController(text: currentName);
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => BkInputDialog(
         title: Text(context.i18n.renameProfile),
         content: TextField(
           controller: controller,
@@ -159,7 +164,7 @@ class KeymapManager {
     final controller = TextEditingController(text: '$currentName (Copy)');
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => BkInputDialog(
         title: Text(context.i18n.createNewProfileByDuplicating(currentName)),
         content: TextField(
           controller: controller,
@@ -201,13 +206,15 @@ class KeymapManager {
       if (clipboardData?.text != null) {
         controller.text = clipboardData!.text!;
       }
-    } catch (e) {
-      // Ignore clipboard errors
+    } catch (e, s) {
+      // The field just starts empty.
+      await recordError(e, s, context: 'KeymapManager.importFromClipboard');
     }
+    if (!context.mounted) return null;
 
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => BkInputDialog(
         title: Text(context.i18n.importProfile),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -246,6 +253,7 @@ class KeymapManager {
         return newName;
       } else {
         final customApp = CustomApp(profileName: newName);
+        await core.settings.setCustomKeymapOrigin(newName, core.actionHandler.supportedApp!.name);
 
         final connectedDeviceButtons = IterableFlatMap(
           core.connection.controllerDevices,
@@ -289,6 +297,7 @@ class KeymapManager {
       return newName;
     } else {
       final customApp = CustomApp(profileName: newName);
+      core.settings.setCustomKeymapOrigin(newName, core.actionHandler.supportedApp!.name);
 
       final connectedDeviceButtons = IterableFlatMap(
         core.connection.controllerDevices,

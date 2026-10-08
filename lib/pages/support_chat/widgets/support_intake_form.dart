@@ -1,6 +1,8 @@
+import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/pages/plan/plan_account_page.dart' show openPlanAccount;
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
@@ -27,6 +29,10 @@ class SupportIntakeForm extends StatefulWidget {
   @visibleForTesting
   final ProxyDevice? Function()? debugTrainer;
 
+  /// Test seam: replaces opening Plan & account from an account answer.
+  @visibleForTesting
+  final VoidCallback? debugOpenPlanAccount;
+
   const SupportIntakeForm({
     super.key,
     required this.service,
@@ -34,6 +40,7 @@ class SupportIntakeForm extends StatefulWidget {
     this.initial,
     this.onSolved,
     this.debugTrainer,
+    this.debugOpenPlanAccount,
   });
 
   @override
@@ -171,6 +178,7 @@ class _SupportIntakeFormState extends State<SupportIntakeForm> {
               help: selfHelp,
               controllerId: _category == IntakeCategory.controller ? _subcategoryValue : null,
               trainer: widget.debugTrainer,
+              onOpenPlanAccount: widget.debugOpenPlanAccount,
               onSolved: widget.onSolved,
               onNotSolved: () => widget.onContinue(_buildAnswers()),
             )
@@ -351,6 +359,7 @@ class _InlineSelfHelp extends StatelessWidget {
     required this.onNotSolved,
     this.onSolved,
     this.trainer,
+    this.onOpenPlanAccount,
   });
 
   final IntakeSelfHelp help;
@@ -364,6 +373,9 @@ class _InlineSelfHelp extends StatelessWidget {
   /// Resolves the trainer the self-test and overlay actions open.
   final ProxyDevice? Function()? trainer;
 
+  /// Opens Settings → Plan & account; defaults to [openPlanAccount].
+  final VoidCallback? onOpenPlanAccount;
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -371,7 +383,13 @@ class _InlineSelfHelp extends StatelessWidget {
     final proxy = (trainer ?? _knownTrainer)();
     final connectedTrainer = proxy != null && proxy.isConnected ? proxy : null;
     void openNetworkTest() => context.push(const NetworkTroubleshootingPage());
-    void openOverlay() => context.push(ProxyDeviceDetailsPage(device: proxy!, revealOverlaySection: true));
+    void openOverlay() => context.push(overlaySettingsDestination(proxy!));
+    final planAccountAction = (
+      const ValueKey('intake-open-plan-account'),
+      LucideIcons.userRound,
+      l10n.intakeSelfHelpOpenPlanAccount,
+      onOpenPlanAccount ?? () => openPlanAccount(context),
+    );
     final (
       IconData icon,
       String title,
@@ -455,6 +473,58 @@ class _InlineSelfHelp extends StatelessWidget {
         ],
         connectedTrainer == null ? l10n.helpSelfTestNeedsTrainer : null,
       ),
+      // Paid, but the app shows Base or the daily trial: what each plan
+      // covers, then what makes Pro active on this device.
+      IntakeSelfHelp.planNotActive => (
+        LucideIcons.badgeCheck,
+        l10n.faqStillTrialQ,
+        l10n.intakeSelfHelpPlanBody,
+        [
+          HelpCheck(title: l10n.intakeSelfHelpPlanSignInTitle, body: l10n.intakeSelfHelpPlanSignInBody),
+          HelpCheck(title: l10n.intakeSelfHelpPlanRegisterTitle, body: l10n.intakeSelfHelpPlanRegisterBody),
+          HelpCheck(title: l10n.intakeSelfHelpPlanRestoreTitle, body: l10n.intakeSelfHelpPlanRestoreBody),
+        ],
+        [planAccountAction],
+        null,
+      ),
+      IntakeSelfHelp.purchaseNotRestored => (
+        LucideIcons.rotateCcw,
+        l10n.faqRestoreQ,
+        l10n.intakeSelfHelpRestoreBody,
+        [
+          HelpCheck(
+            title: l10n.intakeSelfHelpRestoreStoreAccountTitle,
+            body: l10n.intakeSelfHelpRestoreStoreAccountBody,
+          ),
+          HelpCheck(title: l10n.intakeSelfHelpRestoreProTitle, body: l10n.intakeSelfHelpRestoreProBody),
+          HelpCheck(title: l10n.intakeSelfHelpRestoreOtherStoreTitle, body: l10n.intakeSelfHelpRestoreOtherStoreBody),
+        ],
+        [planAccountAction],
+        null,
+      ),
+      // Google Play and the Windows download I refund myself (the body says so);
+      // the App Store and the Microsoft Store refund their own purchases.
+      IntakeSelfHelp.refundThroughStore => (
+        LucideIcons.receipt,
+        l10n.intakeSelfHelpRefundTitle,
+        l10n.intakeSelfHelpRefundBody,
+        [
+          HelpCheck(
+            title: l10n.intakeSelfHelpRefundAppleTitle,
+            body: l10n.intakeSelfHelpRefundAppleBody,
+            linkLabel: l10n.intakeSelfHelpRefundLink,
+            linkUrl: 'https://reportaproblem.apple.com',
+          ),
+          HelpCheck(
+            title: l10n.intakeSelfHelpRefundMicrosoftTitle,
+            body: l10n.intakeSelfHelpRefundMicrosoftBody,
+            linkLabel: l10n.intakeSelfHelpRefundLink,
+            linkUrl: 'https://account.microsoft.com/billing/orders',
+          ),
+        ],
+        const <(Key?, IconData, String, VoidCallback)>[],
+        l10n.intakeSelfHelpRefundNote,
+      ),
     };
     return Container(
       padding: const EdgeInsets.all(12),
@@ -476,7 +546,9 @@ class _InlineSelfHelp extends StatelessWidget {
             children: [
               Icon(icon, size: 16, color: cs.primary),
               const Gap(8),
-              Expanded(child: Text(title, style: context.typography.small.copyWith(fontWeight: FontWeight.w600))),
+              Expanded(
+                child: Text(title, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+              ),
             ],
           ),
           const Gap(6),
@@ -503,7 +575,11 @@ class _InlineSelfHelp extends StatelessWidget {
                 onPressed: onPressed,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [Icon(actionIcon, size: 14), const Gap(6), Flexible(child: Text(label))],
+                  children: [
+                    Icon(actionIcon, size: 14),
+                    const Gap(6),
+                    Flexible(child: Text(label)),
+                  ],
                 ),
               ),
             ),

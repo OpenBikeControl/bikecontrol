@@ -34,7 +34,7 @@ void main() {
 
   setUp(() {
     calls = [];
-    channel = MethodChannelHealthWorkout();
+    channel = MethodChannelHealthWorkout.appleHealth();
     messenger.setMockMethodCallHandler(method, (call) async {
       calls.add(call);
       return switch (call.method) {
@@ -49,7 +49,7 @@ void main() {
   tearDown(() => messenger.setMockMethodCallHandler(method, null));
 
   test('method names and return mapping', () async {
-    expect(await channel.isAvailable(), isTrue);
+    expect(await channel.availability(), HealthAvailability.available);
     expect(await channel.authorize(), HealthKitAuthorization.granted);
     expect(await channel.saveWorkout(payload()), 'workout-uuid');
     await channel.openHealthSettings();
@@ -85,5 +85,49 @@ void main() {
       throwsA(isA<PlatformException>().having((e) => e.code, 'code', 'save')),
     );
     await expectLater(channel.authorize(), throwsA(isA<PlatformException>()));
+  });
+
+  group('Health Connect', () {
+    const hc = MethodChannel('bike_control/health_connect/workouts');
+    late List<MethodCall> hcCalls;
+    late MethodChannelHealthWorkout healthConnect;
+    var status = 'available';
+
+    setUp(() {
+      hcCalls = [];
+      healthConnect = MethodChannelHealthWorkout.healthConnect();
+      messenger.setMockMethodCallHandler(hc, (call) async {
+        hcCalls.add(call);
+        return switch (call.method) {
+          'availability' => status,
+          'authorize' => 'granted',
+          'saveWorkout' => 'record-id',
+          _ => null,
+        };
+      });
+    });
+
+    tearDown(() => messenger.setMockMethodCallHandler(hc, null));
+
+    test('same protocol on its own channel, plus install', () async {
+      expect(healthConnect.store, HealthStore.healthConnect);
+      expect(await healthConnect.availability(), HealthAvailability.available);
+      expect(await healthConnect.authorize(), HealthKitAuthorization.granted);
+      expect(await healthConnect.saveWorkout(payload()), 'record-id');
+      await healthConnect.openHealthSettings();
+      await healthConnect.openInstall();
+      expect(hcCalls.map((c) => c.method), ['availability', 'authorize', 'saveWorkout', 'openHealthSettings', 'openInstall']);
+      expect(hcCalls[2].arguments, payload().toMap());
+    });
+
+    test('availability: not installed, unsupported, anything else', () async {
+      status = 'notInstalled';
+      expect(await healthConnect.availability(), HealthAvailability.notInstalled);
+      status = 'unsupported';
+      expect(await healthConnect.availability(), HealthAvailability.unsupported);
+      status = '??';
+      expect(await healthConnect.availability(), HealthAvailability.unsupported);
+      status = 'available';
+    });
   });
 }

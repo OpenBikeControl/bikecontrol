@@ -7,6 +7,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
+import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/beta_pill.dart';
@@ -18,7 +19,25 @@ class CustomizePage extends StatefulWidget {
   final bool isMobile;
 
   final BaseDevice? filterDevice;
-  const CustomizePage({super.key, required this.isMobile, this.filterDevice});
+
+  /// The picked button, shared with a detail pane beside the list.
+  final MappingSelection? selection;
+
+  /// The list only picks buttons; the detail pane beside it edits them.
+  final bool master;
+
+  /// Called after the mapping changed (another mapping picked, or edited), so
+  /// a detail pane outside this widget can follow.
+  final VoidCallback? onChanged;
+
+  const CustomizePage({
+    super.key,
+    required this.isMobile,
+    this.filterDevice,
+    this.selection,
+    this.master = false,
+    this.onChanged,
+  });
 
   @override
   State<CustomizePage> createState() => _CustomizeState();
@@ -88,7 +107,7 @@ class _CustomizeState extends State<CustomizePage> {
                     spacing: 8,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(screenshotKeymapsStaged ? 'Trainer app' : app!.name)),
+                      Expanded(child: Text(shownKeymapName(app!.name))),
                       if (app is CustomApp) BetaPill(text: 'CUSTOM'),
                     ],
                   ),
@@ -105,18 +124,24 @@ class _CustomizeState extends State<CustomizePage> {
                         await core.settings.setKeyMap(customApp);
 
                         setState(() {});
+                        widget.onChanged?.call();
                       }
                     } else {
                       core.actionHandler.init(app);
                       await core.settings.setKeyMap(app);
                       setState(() {});
+                      widget.onChanged?.call();
                     }
                   },
                 ),
               ),
+              // A cloud and a dot say nothing on their own: the tooltip and
+              // the label name what it does; StatusIcon reads its on/off.
               Tooltip(
-                tooltip: (c) => Text(context.i18n.synchronizeAcrossDevices),
-                child: StatusIcon(
+                tooltip: (c) => TooltipContainer(child: Text(context.i18n.keymapSyncLabel)),
+                child: Semantics(
+                  label: context.i18n.keymapSyncLabel,
+                  child: StatusIcon(
                   status: IAPManager.instance.isProEnabled,
                   icon: LucideIcons.cloudUpload,
                   started: IAPManager.instance.isProEnabled,
@@ -130,6 +155,7 @@ class _CustomizeState extends State<CustomizePage> {
                             featureName: context.i18n.synchronizeAcrossDevices,
                           );
                         },
+                  ),
                 ),
               ),
               KeymapManager().getManageProfileDialog(
@@ -137,19 +163,22 @@ class _CustomizeState extends State<CustomizePage> {
                 core.actionHandler.supportedApp is CustomApp ? core.actionHandler.supportedApp?.name : null,
                 onDone: () {
                   setState(() {});
+                  widget.onChanged?.call();
                 },
               ),
             ],
           ),
 
-        if (!screenshotMode) Gap(12),
         if (core.actionHandler.supportedApp != null && _hasSomethingToMap)
           KeymapExplanation(
             key: Key(core.actionHandler.supportedApp!.keymap.runtimeType.toString()),
             keymap: core.actionHandler.supportedApp!.keymap,
             filterDevice: widget.filterDevice,
+            selection: widget.selection,
+            master: widget.master,
             onUpdate: () {
               setState(() {});
+              widget.onChanged?.call();
             },
           )
         else if (core.actionHandler.supportedApp == null)

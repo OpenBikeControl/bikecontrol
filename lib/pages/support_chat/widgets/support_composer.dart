@@ -1,3 +1,4 @@
+import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async' show unawaited;
 import 'dart:convert' show jsonDecode;
@@ -318,7 +319,7 @@ class _SupportComposerState extends State<SupportComposer> {
           // and a screenshot is pre-staged on the first one. Say so here rather
           // than sending it silently — the ⓘ button and the attachment chip
           // both let the user inspect/remove before sending.
-          if (hasDiagnostic) _diagnosticsNotice(cs),
+          if (hasDiagnostic) _diagnosticsNotice(cs) else _retentionOnlyNotice(cs),
           if (_pinnedContext != null) _pinnedContextChip(cs),
           if (_attachment != null) _stagedAttachmentChip(),
           Row(
@@ -428,15 +429,52 @@ class _SupportComposerState extends State<SupportComposer> {
                   )
                 else
                   _noticeWithInfoIcon(cs),
-                Button.text(
-                  onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
-                  child: Text(context.i18n.privacyPolicy).xSmall.muted.underline,
-                ),
+                const SizedBox(height: 4),
+                _retentionText(cs),
+                _privacyPolicyLink(),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// Without diagnostics there is nothing else to disclose, but how long the
+  /// conversation is kept still applies, so it gets the same compact row.
+  Widget _retentionOnlyNotice(ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(LucideIcons.clock, size: 13, color: cs.mutedForeground),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [_retentionText(cs), _privacyPolicyLink()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// GDPR storage limitation: how long the conversation is kept, and that
+  /// only anonymised trainer data outlives it.
+  Widget _retentionText(ColorScheme cs) {
+    return Text(
+      context.i18n.supportRetentionNotice,
+      key: const ValueKey('support-retention-notice'),
+      style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
+    );
+  }
+
+  Widget _privacyPolicyLink() {
+    return Button.text(
+      onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
+      child: Text(context.i18n.privacyPolicy).xSmall.muted.underline,
     );
   }
 
@@ -477,9 +515,8 @@ class _SupportComposerState extends State<SupportComposer> {
         // The payload includes the full log buffer, so it can be far taller
         // than the screen: cap the sheet height (keeps the dismiss barrier
         // reachable) and scroll the payload instead of overflowing.
-        onPressed: () => openSheet(
+        onPressed: () => openBottomSheet(
           context: context,
-          draggable: true,
           constraints: BoxConstraints(
             maxWidth: 360,
             maxHeight: MediaQuery.sizeOf(context).height * 0.6,
@@ -489,7 +526,6 @@ class _SupportComposerState extends State<SupportComposer> {
             screenshotAttached: _attachment?.isImage == true,
             onClose: () => closeSheet(c),
           ),
-          position: OverlayPosition.bottom,
         ),
       ),
     );

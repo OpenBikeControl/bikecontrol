@@ -6,11 +6,26 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/unread_dot.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// Where the Help & Support entry is drawn.
+enum HelpButtonStyle {
+  /// The (?) icon in the top bar.
+  icon,
+
+  /// The row at the foot of the sidebar.
+  sidebar,
+}
+
+/// Opens the Help Center. Carries a pulsing red dot while a support reply is
+/// unread.
 class HelpButton extends StatefulWidget {
-  final bool isMobile;
-  const HelpButton({super.key, required this.isMobile});
+  final HelpButtonStyle style;
+  const HelpButton({super.key, this.style = HelpButtonStyle.icon});
 
   @override
   State<HelpButton> createState() => _HelpButtonState();
@@ -49,75 +64,102 @@ class _HelpButtonState extends State<HelpButton> {
     }
   }
 
+  Future<void> _open() async {
+    // Awaited so the unread badge re-syncs on return: this button stays
+    // mounted under the pushed route, and ContactCommunitySection only ever
+    // clears its own local unread flag.
+    await context.push(const HelpCenterPage());
+    if (mounted) {
+      setState(() => _hasUnread = false);
+      _checkForUnread();
+    }
+  }
+
+  Widget _icon(BuildContext context, {double size = 20}) {
+    final cs = Theme.of(context).colorScheme;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Icon(
+          widget.style == HelpButtonStyle.icon ? LucideIcons.circleHelp : LucideIcons.lifeBuoy,
+          size: size,
+          color: _hasUnread ? cs.destructive : (widget.style == HelpButtonStyle.icon ? bkAccentText(context) : null),
+        ),
+        if (_hasUnread)
+          const Positioned(
+            right: -8,
+            top: -8,
+            child: PulsingUnreadBadge(),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isMobile = widget.isMobile;
-    final border = isMobile
-        ? BorderRadius.only(topRight: Radius.circular(8), topLeft: Radius.circular(8))
-        : BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8));
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: border,
-      ),
-      child: Builder(
-        builder: (context) {
-          return Button(
-            onPressed: () async {
-              // Awaited so the unread badge re-syncs on return — mirrors the
-              // old dropdown's MenuButton, which reset/re-checked after the
-              // chat page closed. HelpButton stays mounted under the pushed
-              // route, and ContactCommunitySection only ever clears its own
-              // local unread flag, so this button's badge needs its own
-              // re-check too.
-              await context.push(const HelpCenterPage());
-              if (mounted) {
-                setState(() => _hasUnread = false);
-                _checkForUnread();
-              }
-            },
-            leading: Padding(
-              padding: EdgeInsets.only(
-                // viewPadding is already logical — no devicePixelRatio here.
-                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(
-                    LucideIcons.messageCircle,
-                    color: _hasUnread ? Theme.of(context).colorScheme.destructive : null,
-                  ),
-                  if (_hasUnread)
-                    const Positioned(
-                      right: -8,
-                      top: -8,
-                      child: PulsingUnreadBadge(),
-                    ),
-                ],
-              ),
+    final label = context.i18n.troubleshootingGuide;
+    switch (widget.style) {
+      case HelpButtonStyle.icon:
+        return BkIconButton.ghost(
+          key: const ValueKey('help-button'),
+          icon: _icon(context, size: 22),
+          label: label,
+          onPressed: _open,
+        );
+      case HelpButtonStyle.sidebar:
+        return ShellSidebarRow(
+          key: const ValueKey('help-button'),
+          icon: _icon(context, size: 18),
+          label: label,
+          onPressed: _open,
+        );
+    }
+  }
+}
+
+/// A plain row at the sidebar's foot: icon and label, full width, 44 dp.
+class ShellSidebarRow extends StatefulWidget {
+  const ShellSidebarRow({super.key, required this.icon, required this.label, required this.onPressed});
+
+  final Widget icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  State<ShellSidebarRow> createState() => _ShellSidebarRowState();
+}
+
+class _ShellSidebarRowState extends State<ShellSidebarRow> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return BkTappable(
+      onPressed: widget.onPressed,
+      label: widget.label,
+      excludeChildSemantics: true,
+      borderRadius: BorderRadius.circular(10),
+      onHover: (hovered) => setState(() => _hovered = hovered),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: _hovered ? bkCardHover(context) : null,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            IconTheme.merge(
+              data: IconThemeData(color: cs.mutedForeground),
+              child: widget.icon,
             ),
-            style: ButtonStyle.secondary()
-                .withBorderRadius(
-                  borderRadius: border,
-                  hoverBorderRadius: border,
-                )
-                .withBorder(
-                  border: Border.all(
-                    width: _hasUnread ? 1.2 : 0.3,
-                    color: _hasUnread
-                        ? Theme.of(context).colorScheme.destructive
-                        : Theme.of(context).colorScheme.mutedForeground,
-                  ),
-                ),
-            child: Padding(
-              padding: EdgeInsets.only(
-                // viewPadding is already logical — no devicePixelRatio here.
-                bottom: isMobile ? MediaQuery.viewPaddingOf(context).bottom : 0,
-              ),
-              child: Text(context.i18n.troubleshootingGuide),
+            const Gap(12),
+            Expanded(
+              child: Text(widget.label, style: context.typography.small.copyWith(color: cs.foreground)),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

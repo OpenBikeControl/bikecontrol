@@ -256,6 +256,11 @@ Future<void> main() async {
 
   group('sending with no session', () {
     testWidgets('signs in anonymously first, then opens the chat and sends', (tester) async {
+      // Phone-height surface: after the send, the account-link card and the
+      // composer's notices leave the default 600 px no room for the bubble.
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       expect(client.auth.currentSession, isNull);
       await tester.pumpWidget(app());
       await tester.pump();

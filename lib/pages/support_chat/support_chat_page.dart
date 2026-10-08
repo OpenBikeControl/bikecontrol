@@ -360,6 +360,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
       headers: [
         BkPageHeader(
           title: context.i18n.supportChat,
+          columnWidth: null,
           // Standing sign-in affordance: works no matter whether the rider
           // has sent anything yet — it starts the exact same email-link flow
           // as the post-send prompt (SupportAccountLinkCard), just revealed
