@@ -46,12 +46,17 @@ Future<void> main() async {
 /// purpose too: what the selected SIM / ERG mode does, under the readings —
 /// everything above that line stays put. And the whole card sits 29 dp
 /// higher since the banner's steps lost their buttons for a chevron: rows
-/// with the full width for their words wrap less.
+/// with the full width for their words wrap less. SIM / ERG sits one line
+/// lower: under the test font "Virtual shifting" is far wider than in the
+/// app's, too wide to share the header with the switch, so the switch moves
+/// down beside the trainer's name rather than cutting the title (with the
+/// app's fonts English keeps it beside the title — see
+/// virtual_shifting_card_header_fit_test.dart).
 const _before = (
   cardTop: 600.0,
   cardHeight: 517.0,
   numberTop: 720.0,
-  ergCenterY: 648.0,
+  ergCenterY: 674.0,
   buttonsTop: 1137.0,
   titleCenterY: 32.0,
 );

@@ -1,5 +1,6 @@
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
+import 'package:bike_control/widgets/ui/bk_word_safe_text.dart';
 import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -530,11 +531,15 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     return Builder(
       builder: (context) {
         return Button(
-          style: _pressedAction == action
-              ? ButtonStyle.outline()
-              : group.key == 'Other'
-              ? ButtonStyle.outline()
-              : ButtonStyle.primary(),
+          // Narrow side padding: a third of a phone's row is little room
+          // for a label, and the tile's height already gives it air.
+          style:
+              (_pressedAction == action
+                      ? ButtonStyle.outline()
+                      : group.key == 'Other'
+                      ? ButtonStyle.outline()
+                      : ButtonStyle.primary())
+                  .withPadding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -543,12 +548,15 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                 Icon(action.icon),
                 SizedBox(height: 8),
               ],
-              Text(
+              // Three tiles share a phone's row: a long word shrinks to fit
+              // rather than breaking ("Kameraw" / "inkel"), and a long title
+              // takes a third line rather than losing its end.
+              BkWordSafeText(
                 action.title,
                 textAlign: TextAlign.center,
-                style: TextStyle(height: 1),
-                maxLines: 2,
-              ).bold,
+                style: const TextStyle(height: 1, fontWeight: FontWeight.bold),
+                maxLines: 3,
+              ),
               if (action.alternativeTitle != null)
                 Text(
                   action.alternativeTitle!.toUpperCase(),

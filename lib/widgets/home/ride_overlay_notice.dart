@@ -148,7 +148,10 @@ class RideOverlayNotice extends StatelessWidget {
                 style: context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500),
               ),
             ),
-            Text(l.overlaySection, style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600)),
+            Text(
+              l.overlaySection,
+              style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600),
+            ),
             Icon(LucideIcons.chevronRight, size: 15, color: accent),
           ],
         ),
@@ -183,22 +186,30 @@ class RideSettingsLine extends StatelessWidget {
       label: '$text, $linkLabel',
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        height: BkTouchTarget.minSize,
+      // 48 tall at least; a summary too long for one line beside the link
+      // (French on a phone: "24 vitesses · Puissance cible") takes a second
+      // one rather than losing its end.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: BkTouchTarget.minSize),
         child: Row(
           children: [
             Icon(icon, size: 15, color: cs.mutedForeground),
             const Gap(8),
             Expanded(
+              // Two lines of it still fit the 48, so the card keeps the
+              // connecting placeholder's height.
               child: Text(
                 text,
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500),
               ),
             ),
             const Gap(8),
-            Text(linkLabel, style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600)),
+            Text(
+              linkLabel,
+              style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600),
+            ),
             Icon(LucideIcons.chevronRight, size: 15, color: accent),
           ],
         ),

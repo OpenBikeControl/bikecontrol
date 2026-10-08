@@ -12,6 +12,7 @@ import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/bk_word_safe_text.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -262,16 +263,17 @@ class _TriggerCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 10,
           children: [
-            Row(
+            // Three cards share the pane, so on an iPad each is narrow: the
+            // badges go under the trigger when they don't fit beside it, and
+            // neither line ever breaks a word ("Auswähle" / "n") or cuts it.
+            Wrap(
               spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Flexible(
-                  child: Text(
-                    trigger.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: context.typography.small.copyWith(color: cs.mutedForeground),
-                  ),
+                BkWordSafeText(
+                  trigger.title,
+                  style: context.typography.small.copyWith(color: cs.mutedForeground),
                 ),
                 if (pro) const ProBadge(padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1)),
                 if (holdOnClick) const HoldActionMarker(),
@@ -281,11 +283,9 @@ class _TriggerCard extends StatelessWidget {
               spacing: 6,
               children: [
                 if (hasAction && kp.icon != null) Icon(kp.icon, size: 16, color: cs.foreground),
-                Flexible(
-                  child: Text(
+                Expanded(
+                  child: BkWordSafeText(
                     value,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: hasAction
                         ? context.typography.base.copyWith(fontWeight: FontWeight.w600)
                         : context.typography.small.copyWith(color: cs.mutedForeground),

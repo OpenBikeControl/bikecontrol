@@ -554,38 +554,48 @@ class _ButtonList extends StatelessWidget {
                       children: [
                         ButtonWidget(button: button, size: 22),
                         const Gap(10),
-                        // The button's name gives way first; the action is the
-                        // point of the list and is never cut — it wraps instead.
+                        // The action takes its own width, up to half the row;
+                        // the name and its trigger get the rest, so neither
+                        // is starved into breaking mid-word ("Navigatio" /
+                        // "n Left") while a short action leaves room unused.
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                button.displayName,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.typography.small,
-                              ),
-                              if (triggerName != null)
-                                Text(
-                                  triggerName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) => Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        button.displayName,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.typography.small,
+                                      ),
+                                      if (triggerName != null)
+                                        Text(
+                                          triggerName,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                        ),
+                                    ],
+                                  ),
                                 ),
-                            ],
-                          ),
-                        ),
-                        const Gap(8),
-                        Flexible(
-                          flex: 2,
-                          child: Text(
-                            (action == null || action.isEmpty) ? '–' : action,
-                            textAlign: TextAlign.end,
-                            style: context.typography.small.copyWith(
-                              color: cs.mutedForeground,
-                              fontWeight: FontWeight.w500,
+                                const Gap(8),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(maxWidth: (constraints.maxWidth - 8) / 2),
+                                  child: Text(
+                                    (action == null || action.isEmpty) ? '–' : action,
+                                    textAlign: TextAlign.end,
+                                    style: context.typography.small.copyWith(
+                                      color: cs.mutedForeground,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

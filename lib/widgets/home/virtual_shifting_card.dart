@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:bike_control/widgets/drivetrain/chain_geometry.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
@@ -229,68 +231,112 @@ class VirtualShiftingCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final l = context.i18n;
     final accent = bkAccentText(context);
-    return Row(
+    final titleStyle = context.typography.base.copyWith(fontWeight: FontWeight.w600, color: cs.foreground);
+    final trainerStyle = context.typography.small.copyWith(color: cs.mutedForeground);
+    final title = _HeaderLink(
+      key: const ValueKey('ride-vs-settings-link'),
+      alignment: AlignmentDirectional.bottomStart,
+      onPressed: onOpenSettings,
+      label: l.rideVirtualShifting,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _HeaderLink(
-                key: const ValueKey('ride-vs-settings-link'),
-                alignment: AlignmentDirectional.bottomStart,
-                onPressed: onOpenSettings,
-                label: l.rideVirtualShifting,
-                children: [
-                  Flexible(
-                    child: Text(
-                      l.rideVirtualShifting,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.typography.base.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
-                    ),
-                  ),
-                  if (onOpenSettings != null) Icon(LucideIcons.chevronRight, size: 16, color: accent),
-                ],
-              ),
-              _HeaderLink(
-                key: const ValueKey('ride-vs-trainer-link'),
-                alignment: AlignmentDirectional.topStart,
-                onPressed: onOpenTrainer,
-                label: trainerName,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      color: dim ? cs.mutedForeground : BkStatusColors.of(context).success,
-                      shape: BoxShape.circle,
-                      // On the band the green dot wears a white ring, so it
-                      // reads against the blue.
-                      boxShadow: !dim && BkBrandBand.isOn(context)
-                          ? [BoxShadow(color: cs.foreground, spreadRadius: 1.5)]
-                          : null,
-                    ),
-                  ),
-                  const Gap(6),
-                  Flexible(
-                    child: Text(
-                      trainerName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.typography.small.copyWith(color: cs.mutedForeground),
-                    ),
-                  ),
-                  if (onOpenTrainer != null) Icon(LucideIcons.chevronRight, size: 14, color: cs.mutedForeground),
-                ],
-              ),
-            ],
+        Flexible(
+          // Two lines rather than an ellipsis when even the header's full
+          // width is too narrow for it.
+          child: Text(
+            l.rideVirtualShifting,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            // The chevron follows the longer line, not the column's edge.
+            textWidthBasis: TextWidthBasis.longestLine,
+            style: titleStyle,
           ),
         ),
-        const Gap(8),
-        _ModeSwitch(definition: definition, erg: erg),
+        if (onOpenSettings != null) Icon(LucideIcons.chevronRight, size: 16, color: accent),
       ],
     );
+    final trainer = _HeaderLink(
+      key: const ValueKey('ride-vs-trainer-link'),
+      alignment: AlignmentDirectional.topStart,
+      onPressed: onOpenTrainer,
+      label: trainerName,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: dim ? cs.mutedForeground : BkStatusColors.of(context).success,
+            shape: BoxShape.circle,
+            // On the band the green dot wears a white ring, so it
+            // reads against the blue.
+            boxShadow: !dim && BkBrandBand.isOn(context) ? [BoxShadow(color: cs.foreground, spreadRadius: 1.5)] : null,
+          ),
+        ),
+        const Gap(6),
+        Flexible(
+          child: Text(trainerName, maxLines: 1, overflow: TextOverflow.ellipsis, style: trainerStyle),
+        ),
+        if (onOpenTrainer != null) Icon(LucideIcons.chevronRight, size: 14, color: cs.mutedForeground),
+      ],
+    );
+    final modeSwitch = _ModeSwitch(definition: definition, erg: erg);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The title and the trainer's name beside the switch while both fit
+        // there whole; otherwise the title takes the header's full width and
+        // the switch moves down beside the trainer — never "Virtual shi…".
+        // Chevrons counted whether shown or not, so the connecting card picks
+        // the live card's arrangement and nothing moves when it arrives.
+        final titleWidth = _textWidth(context, l.rideVirtualShifting, titleStyle) + 16;
+        final trainerWidth = 13 + _textWidth(context, trainerName, trainerStyle) + 14;
+        final textWidth = math.max(titleWidth, trainerWidth) + _HeaderLink.endPadding;
+        final beside = textWidth + 8 + _ModeSwitch.widthIn(context) <= constraints.maxWidth;
+        if (beside) {
+          return Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [title, trainer],
+                ),
+              ),
+              const Gap(8),
+              modeSwitch,
+            ],
+          );
+        }
+        return Column(
+          key: const ValueKey('ride-vs-header-stacked'),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            title,
+            Row(
+              children: [
+                Expanded(
+                  child: Align(alignment: AlignmentDirectional.centerStart, child: trainer),
+                ),
+                const Gap(8),
+                modeSwitch,
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// [text]'s width on one line in [style], as the header lays it out.
+  static double _textWidth(BuildContext context, String text, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: DefaultTextStyle.of(context).style.merge(style)),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width.ceilToDouble();
   }
 
   // ── Layouts ───────────────────────────────────────────────────────────
@@ -683,6 +729,9 @@ class _HeaderLink extends StatelessWidget {
   /// The height with a mouse: two of them stack in the header.
   static const double pointerHeight = 32;
 
+  /// The room a link keeps after its text.
+  static const double endPadding = 6;
+
   /// Whether the links are thumb-sized: touch platforms get a full 48 each.
   static bool get touch =>
       defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
@@ -698,7 +747,7 @@ class _HeaderLink extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: touch ? BkTouchTarget.minSize : pointerHeight),
         child: Padding(
-          padding: EdgeInsetsDirectional.only(end: 6, top: touch ? 4 : 0, bottom: touch ? 4 : 0),
+          padding: EdgeInsetsDirectional.only(end: endPadding, top: touch ? 4 : 0, bottom: touch ? 4 : 0),
           child: touch ? Align(alignment: alignment, widthFactor: 1, child: row) : row,
         ),
       ),
@@ -719,6 +768,24 @@ class _ModeSwitch extends StatelessWidget {
 
   /// What ERG starts at when there is no target yet; the button action's.
   static const int defaultErgW = 150;
+
+  static const double _segmentMinWidth = 52;
+  static const double _segmentPadding = 12;
+  static const double _trackInset = 2;
+
+  static TextStyle _labelStyle(BuildContext context) =>
+      context.typography.small.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.3);
+
+  /// The switch's width as it lays itself out, so the header can tell
+  /// whether the title still fits beside it.
+  static double widthIn(BuildContext context) {
+    final l = context.i18n;
+    double segment(String text) => math.max(
+      _segmentMinWidth,
+      VirtualShiftingCard._textWidth(context, text, _labelStyle(context)) + 2 * _segmentPadding,
+    );
+    return 2 * _trackInset + segment(l.simMode) + segment(l.ergMode);
+  }
 
   void _select(bool toErg) {
     final definition = this.definition;
@@ -748,8 +815,8 @@ class _ModeSwitch extends StatelessWidget {
         excludeChildSemantics: true,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          constraints: const BoxConstraints(minWidth: 52),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          constraints: const BoxConstraints(minWidth: _segmentMinWidth),
+          padding: const EdgeInsets.symmetric(horizontal: _segmentPadding),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: on ? (definition == null ? cs.border : cs.primary) : null,
@@ -757,9 +824,7 @@ class _ModeSwitch extends StatelessWidget {
           ),
           child: Text(
             text,
-            style: context.typography.small.copyWith(
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
+            style: _labelStyle(context).copyWith(
               color: on && definition != null ? cs.primaryForeground : cs.mutedForeground,
             ),
           ),
@@ -773,7 +838,7 @@ class _ModeSwitch extends StatelessWidget {
       explicitChildNodes: true,
       child: Container(
         height: height,
-        padding: const EdgeInsets.all(2),
+        padding: const EdgeInsets.all(_trackInset),
         decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(10)),
         child: Row(
           mainAxisSize: MainAxisSize.min,

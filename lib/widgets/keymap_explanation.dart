@@ -15,6 +15,7 @@ import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/bk_word_safe_text.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
 import 'package:bike_control/widgets/ui/colored_title.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
@@ -336,11 +337,12 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                             children: [
                               if (hasAction && keyPair.icon != null)
                                 Icon(keyPair.icon, size: 14, color: cs.mutedForeground),
+                              // Beside "Langes Drücken PRO" a phone has
+                              // little room left: a long action takes a
+                              // second line, breaking only between words.
                               Flexible(
-                                child: Text(
+                                child: BkWordSafeText(
                                   hasAction ? keyPair.toString() : context.i18n.noActionAssignedShort,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.end,
                                   style: hasAction
                                       ? context.typography.small.copyWith(
