@@ -335,6 +335,18 @@ void main() async {
       expect(find.descendant(of: steps, matching: find.byIcon(LucideIcons.chevronRight)), findsNWidgets(4));
     });
 
+    testWidgets('a step\'s reason is shown in full, never cut off', (tester) async {
+      await pumpBanner(tester, pending, steps: fourSteps([]));
+      final steps = find.byKey(const ValueKey('ready-banner-steps'));
+      for (final text in tester.widgetList<Text>(find.descendant(of: steps, matching: find.byType(Text)))) {
+        if (text.data == l.chainStepControllerPairedHint) {
+          expect(text.maxLines, isNull);
+          expect(text.overflow, isNot(TextOverflow.ellipsis));
+        }
+      }
+      expect(find.descendant(of: steps, matching: find.text(l.chainStepControllerPairedHint)), findsOneWidget);
+    });
+
     testWidgets('tapping anywhere on a step runs its fix', (tester) async {
       final fixed = <String>[];
       await pumpBanner(tester, pending, steps: fourSteps(fixed));

@@ -483,11 +483,10 @@ class _StepLine extends StatelessWidget {
                     text.label,
                     style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
                   ),
+                  // In full: the reason is often the instruction itself.
                   if (hint != null && hint.isNotEmpty)
                     Text(
                       hint,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: context.typography.xSmall.copyWith(height: 1.35, color: cs.mutedForeground),
                     ),
                 ],
