@@ -87,6 +87,30 @@ class OpenBikeProtocolParser {
   static const int MSG_TYPE_HAPTIC_FEEDBACK = 0x03;
   static const int MSG_TYPE_APP_INFO = 0x04;
 
+  /// Analog button `0x1B` Steering Angle: the calibrated handlebar angle.
+  /// Deliberately NOT in [BUTTON_NAMES] — it is a value, never a press.
+  static const int STEERING_ANGLE_BUTTON_ID = 0x1B;
+
+  /// `0x1B` value for "no angle available" (not calibrated, recalibrating,
+  /// sensor lost, device gone) — apps fall back to their own steering.
+  static const int STEERING_ANGLE_UNAVAILABLE = 0x00;
+
+  /// `0x1B` value for straight ahead.
+  static const int STEERING_ANGLE_CENTER = 0x80;
+
+  /// Encodes a calibrated steering angle for `0x1B`: signed 0.5° steps around
+  /// [STEERING_ANGLE_CENTER], **positive ⇒ right**, clamped to ±63°
+  /// (`0x02`–`0xFE`). Null / non-finite ⇒ [STEERING_ANGLE_UNAVAILABLE]. Never
+  /// yields the reserved `0x01` or `0xFF`.
+  static int encodeSteeringAngle(double? degreesRight) {
+    if (degreesRight == null || !degreesRight.isFinite) return STEERING_ANGLE_UNAVAILABLE;
+    return (STEERING_ANGLE_CENTER + (degreesRight * 2).round()).clamp(0x02, 0xFE);
+  }
+
+  /// A button-state message carrying only the `0x1B` [value].
+  static Uint8List encodeSteeringAngleState(int value) =>
+      Uint8List.fromList([MSG_TYPE_BUTTON_STATE, STEERING_ANGLE_BUTTON_ID, value & 0xFF]);
+
   /// Parse button state data from binary format.
   /// Data format: [Message_Type, Button_ID_1, State_1, Button_ID_2, State_2, ...]
   static List<ButtonState> parseButtonState(Uint8List data) {
@@ -234,6 +258,7 @@ class OpenBikeProtocolParser {
     return AppInfo(
       appId: appId,
       appVersion: appVersion,
+      supportedButtonIds: buttonIds,
       supportedButtons: controllerButtons,
       supportedActions: controllerButtons.mapNotNull((b) => b.action).toList(),
     );
@@ -246,12 +271,21 @@ class AppInfo {
   final List<ControllerButton> supportedButtons;
   final List<InGameAction> supportedActions;
 
+  /// Every button ID the app listed, including ones that are not presses
+  /// (e.g. `0x1B` Steering Angle) and so have no [supportedButtons] entry.
+  final List<int> supportedButtonIds;
+
   AppInfo({
     required this.appId,
     required this.appVersion,
     required this.supportedButtons,
     required this.supportedActions,
+    this.supportedButtonIds = const [],
   });
+
+  /// The app steers from `0x1B` Steering Angle, so Steer Left / Right presses
+  /// from an angle input may be left out for it.
+  bool get supportsSteeringAngle => supportedButtonIds.contains(OpenBikeProtocolParser.STEERING_ANGLE_BUTTON_ID);
 
   @override
   String toString() =>
