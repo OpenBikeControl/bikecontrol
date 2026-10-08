@@ -10,6 +10,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/widgets/app_version_line.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
@@ -165,5 +166,10 @@ Future<void> main() async {
     }
     // The blog lives in Activity → News; one home, not two.
     expect(find.text(l.blogTab), findsNothing);
+  });
+
+  testWidgets('the app section ends with the version, patch and update lane line', (tester) async {
+    await _pumpSettings(tester);
+    expect(_inSection('settings-app', find.byType(AppVersionLine)), findsOneWidget);
   });
 }

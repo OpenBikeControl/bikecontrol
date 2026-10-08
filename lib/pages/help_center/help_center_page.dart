@@ -18,6 +18,7 @@ import 'package:bike_control/pages/help_center/widgets/known_issues_section.dart
 import 'package:bike_control/pages/help_center/widgets/pricing_faq_section.dart';
 import 'package:bike_control/pages/help_center/widgets/your_setup_section.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/app_version_line.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
@@ -143,6 +144,11 @@ class _HelpCenterPageState extends State<HelpCenterPage> {
           title: l10n.helpCenterContact,
           child: ContactCommunitySection(launchContext: widget.launchContext),
         ),
+      ),
+      // What support asks first: the version, patch and update lane.
+      const Padding(
+        padding: EdgeInsets.only(top: 16),
+        child: Center(child: AppVersionLine(textAlign: TextAlign.center)),
       ),
     ];
 

@@ -20,11 +20,11 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/widgets/app_version_line.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/rides/ride_zone_settings.dart';
-import 'package:bike_control/widgets/title.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
@@ -99,7 +99,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final version = appVersionLabel();
     final app = core.settings.getTrainerApp();
     final proxy = chainProxy();
     final definition = proxy?.fitnessBike;
@@ -183,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage> {
         BkGroupedSection(
           key: const ValueKey('settings-app'),
           header: l10n.settingsSectionApp,
-          footer: version == null ? null : l10n.version(version),
+          footerChild: const AppVersionLine(),
           children: [
             BkGroupedRow(
               icon: LucideIcons.globe,

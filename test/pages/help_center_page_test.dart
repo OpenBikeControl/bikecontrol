@@ -12,6 +12,7 @@ import 'package:bike_control/pages/help_center/help_center_page.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/widgets/app_version_line.dart';
 import 'package:bike_control/widgets/ui/help_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -161,6 +162,12 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byType(HelpCenterPage), findsOneWidget);
+  });
+
+  testWidgets('ends with the version, patch and update lane line', (tester) async {
+    await _pump(tester, const HelpCenterPage());
+    await tester.pump();
+    expect(find.byType(AppVersionLine), findsOneWidget);
   });
 
   testWidgets('help button awaits the pushed HelpCenterPage and re-checks unread on return', (tester) async {

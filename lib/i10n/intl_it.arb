@@ -759,14 +759,28 @@
   "update": "Aggiorna",
   "uploadSettings": "Carica le impostazioni",
   "useCustomKeymapForButton": "Usa la tua mappatura per supportare",
-  "version": "Versione{version}",
+  "version": "Versione {version}",
   "@version": {
     "placeholders": {
       "version": {
         "type": "String"
       }
     }
+  },  "versionPatch": "Patch {number}",
+  "@versionPatch": {
+    "description": "The Shorebird code-push patch the app runs, after the version (e.g. 'Version 7.1.0 · Patch 4').",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
   },
+  "versionBetaTrack": "Beta",
+  "@versionBetaTrack": {
+    "description": "After the version: the app gets its updates from the beta lane."
+  },
+  "versionCopied": "Versione copiata negli appunti",
+
   "viewDetailedInstructions": "Visualizza le istruzioni dettagliate",
   "volumeDown": "Abbassa il volume",
   "volumeUp": "Aumenta il volume",

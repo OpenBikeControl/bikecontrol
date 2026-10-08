@@ -767,6 +767,20 @@
       }
     }
   },
+  "versionPatch": "Correctif {number}",
+  "@versionPatch": {
+    "description": "The Shorebird code-push patch the app runs, after the version (e.g. 'Version 7.1.0 · Patch 4').",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "versionBetaTrack": "Bêta",
+  "@versionBetaTrack": {
+    "description": "After the version: the app gets its updates from the beta lane."
+  },
+  "versionCopied": "Version copiée dans le presse-papiers",
   "viewDetailedInstructions": "Consultez les instructions détaillées",
   "volumeDown": "Baisser le volume",
   "volumeUp": "Augmenter le volume",

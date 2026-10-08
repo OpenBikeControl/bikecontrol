@@ -12,16 +12,25 @@ import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:version/version.dart';
 
-PackageInfo? packageInfoValue;
+/// The app version once read; listen to rebuild when it arrives.
+final ValueNotifier<PackageInfo?> packageInfoListenable = ValueNotifier(null);
+PackageInfo? get packageInfoValue => packageInfoListenable.value;
+set packageInfoValue(PackageInfo? value) => packageInfoListenable.value = value;
+
 bool? isFromPlayStore;
-Patch? shorebirdPatch;
+
+/// The installed Shorebird patch once read (null without one); listen to
+/// rebuild when it arrives.
+final ValueNotifier<Patch?> shorebirdPatchListenable = ValueNotifier(null);
+Patch? get shorebirdPatch => shorebirdPatchListenable.value;
+set shorebirdPatch(Patch? value) => shorebirdPatchListenable.value = value;
 
 /// The shell's "New version available" action. Draws nothing until an update
 /// is found.
 ///
 /// Always mounted in the top bar, so it is also what reads the app version
 /// and the Shorebird patch into [packageInfoValue] and [shorebirdPatch] for
-/// the support bundle and the Settings version row.
+/// the support bundle and the version line (Settings, Help Center).
 class AppUpdateButton extends StatefulWidget {
   /// Icon only (the phone's top bar); the version is then the spoken label.
   final bool compact;
@@ -48,9 +57,8 @@ class _AppUpdateButtonState extends State<AppUpdateButton> with WidgetsBindingOb
           .readCurrentPatch()
           .then((patch) {
             core.connection.signalNotification(LogNotification('Current Shorebird patch: $patch'));
-            setState(() {
-              shorebirdPatch = patch;
-            });
+            // The version line listens; this widget needs no rebuild.
+            shorebirdPatch = patch;
           })
           .catchError((e, s) {
             recordError(e, s, context: 'Shorebird');
@@ -59,10 +67,8 @@ class _AppUpdateButtonState extends State<AppUpdateButton> with WidgetsBindingOb
 
     if (packageInfoValue == null) {
       PackageInfo.fromPlatform().then((value) {
-        setState(() {
-          packageInfoValue = value;
-        });
-        _checkForUpdate();
+        packageInfoValue = value;
+        if (mounted) _checkForUpdate();
       });
     }
   }
@@ -115,12 +121,4 @@ class _AppUpdateButtonState extends State<AppUpdateButton> with WidgetsBindingOb
   void _onEntitlementsUpdate() {
     setState(() {});
   }
-}
-
-/// The running version as the Settings row shows it ("7.1.0+3"), or null
-/// before [AppUpdateButton] has read it.
-String? appVersionLabel() {
-  final info = packageInfoValue;
-  if (info == null) return null;
-  return '${info.version}${shorebirdPatch != null ? '+${shorebirdPatch!.number}' : ''}';
 }

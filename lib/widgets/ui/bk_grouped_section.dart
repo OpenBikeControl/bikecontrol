@@ -16,6 +16,7 @@ class BkGroupedSection extends StatelessWidget {
     this.header,
     this.headerTrailing,
     this.footer,
+    this.footerChild,
     this.dividerIndent,
     required this.children,
   });
@@ -32,6 +33,10 @@ class BkGroupedSection extends StatelessWidget {
 
   /// Secondary note under the card.
   final String? footer;
+
+  /// A widget in the footnote's place, for one that does more than read
+  /// (e.g. the version line, which copies itself). Wins over [footer].
+  final Widget? footerChild;
 
   final List<Widget> children;
 
@@ -81,10 +86,12 @@ class BkGroupedSection extends StatelessWidget {
             ),
           ),
         ),
-        if (footer != null)
+        if (footerChild != null || footer != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(inset, 6, inset, 0),
-            child: Text(footer!, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
+            child: footerChild != null
+                ? Align(alignment: AlignmentDirectional.centerStart, child: footerChild)
+                : Text(footer!, style: context.typography.caption.copyWith(color: cs.mutedForeground)),
           ),
       ],
     );
