@@ -116,13 +116,33 @@ class ChainLinkRow extends StatefulWidget {
   State<ChainLinkRow> createState() => _ChainLinkRowState();
 }
 
-class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderStateMixin {
+class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMixin {
   late final AnimationController _highlight = AnimationController(
     vsync: this,
     duration: chainHighlightDuration,
     // Reduced motion keeps the row still; the flash itself must still last.
     animationBehavior: AnimationBehavior.preserve,
   );
+
+  /// 1 while the row has a checklist, 0 once the last step has ticked away.
+  ///
+  /// Only that change is a movement — the checklist growing in, or the row
+  /// shrinking to its header when everything is done. A change inside the
+  /// checklist (a step appearing above the next one, a line rewording itself)
+  /// lands at once: an AnimatedSize here clipped the new content to the old
+  /// height while it caught up, and a step with a long hint showed its button
+  /// cut off at the row's bottom edge.
+  late final AnimationController _checklist = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+    value: widget.link.pendingSteps.isEmpty ? 0 : 1,
+  );
+
+  late final Animation<double> _checklistSize = CurvedAnimation(parent: _checklist, curve: Curves.easeOutCubic);
+
+  /// The steps last shown, so the checklist collapsing away still has its
+  /// lines to collapse rather than vanishing first.
+  late List<SetupStep> _lastPending = widget.link.pendingSteps;
 
   bool _hovered = false;
 
@@ -139,12 +159,21 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
       oldWidget.highlight?.removeListener(_play);
       widget.highlight?.addListener(_play);
     }
+    final hasChecklist = widget.link.pendingSteps.isNotEmpty;
+    if (hasChecklist != oldWidget.link.pendingSteps.isNotEmpty) {
+      if (hasChecklist) {
+        _checklist.forward();
+      } else {
+        _checklist.reverse();
+      }
+    }
   }
 
   @override
   void dispose() {
     widget.highlight?.removeListener(_play);
     _highlight.dispose();
+    _checklist.dispose();
     super.dispose();
   }
 
@@ -182,43 +211,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
             child: body,
           ),
         ],
-        AnimatedSize(
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          child: pending.isEmpty
-              ? const SizedBox(width: double.infinity)
-              : Padding(
-                  // The step's own tick sits where the row's text starts.
-                  padding: const EdgeInsets.fromLTRB(chainRowTextInset - 10, 0, 10, 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final (index, step) in pending.indexed)
-                        // A standby controller's steps are all offers: none
-                        // is "the next thing to do", so none is highlighted,
-                        // and the first keeps its fix as a quiet button.
-                        StepRow(
-                          step: step,
-                          active: index == 0 && !link.standby,
-                          appName: widget.appName,
-                          onInstructions: index == 0 ? widget.onInstructions : null,
-                          instructionsLabel: widget.instructionsLabel,
-                          onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
-                          secondaryActionLabel: widget.secondaryActionLabel,
-                          onOffer: link.standby
-                              ? (index == 0 ? widget.onInstructions : null)
-                              : widget.onOffer == null
-                              ? null
-                              : () => widget.onOffer!(step),
-                          offerLabel: link.standby
-                              ? (index == 0 ? widget.instructionsLabel ?? context.i18n.chainShowMeHow : null)
-                              : widget.offerLabel?.call(step),
-                        ),
-                    ],
-                  ),
-                ),
-        ),
+        _checklistSection(context, link, pending),
         if (widget.footer case final footer?)
           Column(
             key: chainCardFooterKey,
@@ -231,6 +224,51 @@ class _ChainLinkRowState extends State<ChainLinkRow> with SingleTickerProviderSt
       ],
     );
     return _highlighted(context, content);
+  }
+
+  /// What the link still needs, indented to the row's text — see
+  /// [_checklist] for when it moves.
+  Widget _checklistSection(BuildContext context, ChainLink link, List<SetupStep> pending) {
+    if (pending.isNotEmpty) _lastPending = pending;
+    final steps = pending.isNotEmpty ? pending : _lastPending;
+    return AnimatedBuilder(
+      animation: _checklist,
+      builder: (context, child) {
+        if (_checklist.isDismissed || steps.isEmpty) return const SizedBox(width: double.infinity);
+        // At full size this lays the checklist out at exactly its own height.
+        return SizeTransition(sizeFactor: _checklistSize, alignment: Alignment.topCenter, child: child);
+      },
+      child: Padding(
+        // The step's own tick sits where the row's text starts.
+        padding: const EdgeInsets.fromLTRB(chainRowTextInset - 10, 0, 10, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (index, step) in steps.indexed)
+              // A standby controller's steps are all offers: none is "the
+              // next thing to do", so none is highlighted, and the first
+              // keeps its fix as a quiet button.
+              StepRow(
+                step: step,
+                active: index == 0 && !link.standby,
+                appName: widget.appName,
+                onInstructions: index == 0 ? widget.onInstructions : null,
+                instructionsLabel: widget.instructionsLabel,
+                onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
+                secondaryActionLabel: widget.secondaryActionLabel,
+                onOffer: link.standby
+                    ? (index == 0 ? widget.onInstructions : null)
+                    : widget.onOffer == null
+                    ? null
+                    : () => widget.onOffer!(step),
+                offerLabel: link.standby
+                    ? (index == 0 ? widget.instructionsLabel ?? context.i18n.chainShowMeHow : null)
+                    : widget.offerLabel?.call(step),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _header(BuildContext context) {
