@@ -181,37 +181,60 @@ class RideSettingsLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final accent = bkAccentText(context);
+    final textStyle = context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500);
+    final linkStyle = context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600);
     return BkTappable(
       onPressed: onPressed,
       label: '$text, $linkLabel',
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(12),
-      // 48 tall at least; a summary too long for one line beside the link
-      // (French on a phone: "24 vitesses · Puissance cible") takes a second
-      // one rather than losing its end.
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: BkTouchTarget.minSize),
-        child: Row(
-          children: [
-            Icon(icon, size: 15, color: cs.mutedForeground),
-            const Gap(8),
-            Expanded(
-              // Two lines of it still fit the 48, so the card keeps the
-              // connecting placeholder's height.
-              child: Text(
-                text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500),
-              ),
-            ),
-            const Gap(8),
-            Text(
-              linkLabel,
-              style: context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600),
-            ),
-            Icon(LucideIcons.chevronRight, size: 15, color: accent),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // The summary keeps the line. When it and the link's words do not
+            // both fit (German on a phone: "24 Gänge · Zielleistung" beside
+            // "Gang-Einstellungen"), the link becomes a settings icon — the
+            // whole row is the button, so nothing is lost but the words.
+            final scaler = MediaQuery.textScalerOf(context);
+            double width(String s, TextStyle style) {
+              final painter = TextPainter(
+                text: TextSpan(text: s, style: style),
+                textDirection: Directionality.of(context),
+                textScaler: scaler,
+                maxLines: 1,
+              )..layout();
+              final w = painter.width;
+              painter.dispose();
+              return w;
+            }
+
+            const iconGap = 15 + 8.0;
+            final words =
+                iconGap + width(text, textStyle) + 8 + width(linkLabel, linkStyle) + 15 <= constraints.maxWidth;
+            return Row(
+              children: [
+                Icon(icon, size: 15, color: cs.mutedForeground),
+                const Gap(8),
+                Expanded(
+                  // Two lines of it still fit the 48, so the card keeps the
+                  // connecting placeholder's height.
+                  child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: textStyle),
+                ),
+                const Gap(8),
+                if (words) ...[
+                  Text(linkLabel, style: linkStyle),
+                  Icon(LucideIcons.chevronRight, size: 15, color: accent),
+                ] else
+                  Icon(
+                    LucideIcons.settings2,
+                    key: const ValueKey('ride-settings-line-icon'),
+                    size: 18,
+                    color: accent,
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

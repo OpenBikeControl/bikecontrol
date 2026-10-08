@@ -54,9 +54,10 @@ Future<void> main() async {
 /// virtual_shifting_card_header_fit_test.dart).
 const _before = (
   cardTop: 600.0,
-  cardHeight: 517.0,
+  // 36 shorter since the SIM / ERG explainer line left the card.
+  cardHeight: 481.0,
   numberTop: 720.0,
   ergCenterY: 674.0,
-  buttonsTop: 1137.0,
+  buttonsTop: 1101.0,
   titleCenterY: 32.0,
 );

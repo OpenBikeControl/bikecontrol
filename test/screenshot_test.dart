@@ -652,8 +652,8 @@ Future<void> main() async {
     }
   });
 
-  // Virtual shifting → Per-gear ratios, with the front derailleur switched on
-  // so the curve's gear reads as a ring position. Restored afterwards — it
+  // Settings → Virtual shifting, with the front derailleur switched on so the
+  // gear reads as a ring position. Restored afterwards — it
   // changes what the drivetrain reports (2× notation, ring-aware ratios),
   // which every later scene sharing this trainer would otherwise inherit.
   testGoldens('Virtual Shifting Settings', (WidgetTester tester) async {
@@ -673,12 +673,19 @@ Future<void> main() async {
       await shoot(
         tester,
         'virtualshifting-settings',
-        () => BikeControlApp(
-          customChild: PerGearRatiosPage(
-            device: proxy,
-            definition: fbd,
-          ),
-        ),
+        () => BikeControlApp(customChild: VirtualShiftingSettingsPage(definition: fbd, device: proxy)),
+        // Settings → Virtual shifting, scrolled to what sells it: the live
+        // drivetrain, then Gears — the ratio curve, the presets and the
+        // settings under them. The config picker and mode cards above are
+        // setup, not the feature.
+        afterPump: (tester, _) async {
+          await tester.pump(const Duration(milliseconds: 300));
+          Scrollable.ensureVisible(
+            tester.element(find.byKey(const ValueKey('vs-drivetrain'))),
+            alignment: 0,
+          );
+          await tester.pump(const Duration(milliseconds: 300));
+        },
       );
     } finally {
       await core.shiftingConfigs.upsert(savedConfig);

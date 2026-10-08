@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'dart:async';
 
 import 'package:bike_control/main.dart' show shownTrainerAppName;
@@ -26,6 +28,13 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable, defaultTargetPlatform;
 import 'package:bike_control/pages/activity/rides_view.dart' show RidesMenuButton;
+import 'package:flutter/rendering.dart'
+    show
+        BoxHitTestResult,
+        ContainerBoxParentData,
+        ContainerRenderObjectMixin,
+        RenderBoxContainerDefaultsMixin,
+        RenderObjectVisitor;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The app's four top-level sections.
@@ -497,17 +506,17 @@ class ShellTopBar extends StatelessWidget {
     final bar = AppBar(
       padding: EdgeInsets.fromLTRB(phone ? 16 : 24, compact ? 10 : 16, phone ? 8 : 20, 8),
       backgroundColor: Theme.of(context).colorScheme.background,
-      title: Row(
-        children: [
-          // The phone's Ride title is the wordmark: the mark leads it.
-          if (compact && section == AppSection.ride) ...[const BkBrandMark(size: 34), const Gap(8)],
-          Flexible(
-            child: Semantics(
-              header: true,
-              child: Text(title, style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
-            ),
-          ),
-        ],
+      // The phone's Ride title is the wordmark: the mark leads it — unless the
+      // two do not fit (a small phone, with the plan badge, (?) and ⋮ beside
+      // them), where the mark steps aside rather than cutting the name to
+      // "BikeContr…".
+      title: _LeadUnlessTight(
+        gap: 8,
+        lead: compact && section == AppSection.ride ? const BkBrandMark(size: 34) : null,
+        child: Semantics(
+          header: true,
+          child: Text(title, style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
       ),
       trailingGap: 4,
       trailing: [
@@ -825,5 +834,123 @@ class _ShellDeviceChipsState extends State<ShellDeviceChips> {
         ),
       ),
     );
+  }
+}
+
+/// [child] with [lead] before it, vertically centred — and [lead] dropped when
+/// both do not fit the width, so [child] keeps its full width first.
+///
+/// A render box rather than a `LayoutBuilder` because the app bar measures
+/// its title's intrinsic height, which a `LayoutBuilder` cannot report.
+class _LeadUnlessTight extends MultiChildRenderObjectWidget {
+  _LeadUnlessTight({required Widget child, Widget? lead, required this.gap}) : super(children: [child, ?lead]);
+
+  final double gap;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderLeadUnlessTight(gap);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderLeadUnlessTight renderObject) => renderObject.gap = gap;
+}
+
+class _LeadUnlessTightParentData extends ContainerBoxParentData<RenderBox> {}
+
+class _RenderLeadUnlessTight extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _LeadUnlessTightParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _LeadUnlessTightParentData> {
+  _RenderLeadUnlessTight(this._gap);
+
+  double _gap;
+  set gap(double value) {
+    if (value == _gap) return;
+    _gap = value;
+    markNeedsLayout();
+  }
+
+  bool _showLead = false;
+
+  RenderBox get _child => firstChild!;
+  RenderBox? get _lead => childAfter(firstChild!);
+
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _LeadUnlessTightParentData) child.parentData = _LeadUnlessTightParentData();
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) => _child.getMinIntrinsicWidth(height);
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      _child.getMaxIntrinsicWidth(height) + (_lead == null ? 0 : _lead!.getMaxIntrinsicWidth(height) + _gap);
+
+  @override
+  double computeMinIntrinsicHeight(double width) => math.max(
+    _child.getMinIntrinsicHeight(width),
+    _lead?.getMinIntrinsicHeight(double.infinity) ?? 0,
+  );
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => math.max(
+    _child.getMaxIntrinsicHeight(width),
+    _lead?.getMaxIntrinsicHeight(double.infinity) ?? 0,
+  );
+
+  @override
+  void performLayout() {
+    final lead = _lead;
+    final loose = constraints.loosen();
+    var leadWidth = 0.0;
+    var leadHeight = 0.0;
+    _showLead = false;
+    if (lead != null) {
+      lead.layout(loose, parentUsesSize: true);
+      final wanted = _child.getMaxIntrinsicWidth(double.infinity);
+      _showLead = lead.size.width + _gap + wanted <= constraints.maxWidth;
+      if (_showLead) {
+        leadWidth = lead.size.width + _gap;
+        leadHeight = lead.size.height;
+      }
+    }
+    _child.layout(
+      BoxConstraints(maxWidth: math.max(0, constraints.maxWidth - leadWidth), maxHeight: constraints.maxHeight),
+      parentUsesSize: true,
+    );
+    final height = math.max(leadHeight, _child.size.height);
+    size = constraints.constrain(Size(leadWidth + _child.size.width, height));
+    (_child.parentData! as _LeadUnlessTightParentData).offset = Offset(
+      leadWidth,
+      (size.height - _child.size.height) / 2,
+    );
+    if (lead != null) {
+      (lead.parentData! as _LeadUnlessTightParentData).offset = Offset(0, (size.height - lead.size.height) / 2);
+    }
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    context.paintChild(_child, (_child.parentData! as _LeadUnlessTightParentData).offset + offset);
+    final lead = _lead;
+    if (lead != null && _showLead) {
+      context.paintChild(lead, (lead.parentData! as _LeadUnlessTightParentData).offset + offset);
+    }
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final data = _child.parentData! as _LeadUnlessTightParentData;
+    return result.addWithPaintOffset(
+      offset: data.offset,
+      position: position,
+      hitTest: (result, transformed) => _child.hitTest(result, position: transformed),
+    );
+  }
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+    visitor(_child);
+    if (_showLead && _lead != null) visitor(_lead!);
   }
 }

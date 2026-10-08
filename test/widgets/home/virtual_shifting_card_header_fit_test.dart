@@ -83,4 +83,39 @@ Future<void> main() async {
       expectReadsWhole(tester, find.byKey(const ValueKey('line')), reason: '[$locale]');
     });
   }
+
+  // When the summary and the "Gear settings" link do not both fit on one line
+  // (German on a phone: "24 Gänge · Zielleistung" beside "Gang-Einstellungen"),
+  // the link becomes an icon so the summary keeps the line. Where both fit,
+  // the link keeps its words.
+  for (final (locale, width, compact) in const [('de', 358.0, true), ('en', 800.0, false)]) {
+    testWidgets('${width.toInt()} px, $locale: the settings link is ${compact ? 'an icon' : 'words'}', (tester) async {
+      final definition = attachLiveTrainer(register: false).definition;
+      late String label;
+      for (final pass in const ['fonts', 'measured']) {
+        await captureWidget(
+          tester,
+          name: 'vs_settings_line_link_${locale}_${width.toInt()}',
+          width: width,
+          locales: [locale],
+          builder: (context) {
+            label = AppLocalizations.of(context).rideVsSettingsLink;
+            return KeyedSubtree(
+              key: ValueKey(pass),
+              child: RideSettingsLine(
+                key: const ValueKey('line'),
+                icon: LucideIcons.slidersHorizontal,
+                text: rideVirtualShiftingSummary(context, definition),
+                linkLabel: label,
+                onPressed: () {},
+              ),
+            );
+          },
+        );
+      }
+      expect(find.text(label), compact ? findsNothing : findsOneWidget);
+      expect(find.byKey(const ValueKey('ride-settings-line-icon')), compact ? findsOneWidget : findsNothing);
+      expectReadsWhole(tester, find.byKey(const ValueKey('line')), reason: '[$locale]');
+    });
+  }
 }

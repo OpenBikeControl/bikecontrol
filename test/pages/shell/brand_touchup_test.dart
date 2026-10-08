@@ -39,7 +39,10 @@ Future<void> main() async {
 
     group(brightness.name, () {
       testWidgets('phone: the mark stands beside "BikeControl" on Ride only', (tester) async {
-        await pumpShell(tester, const Size(390, 844), brightness: brightness);
+        // Wider than a real phone needs: the test font is far wider than the
+        // app's, and at 390 it leaves the mark no room (see the small-phone
+        // test below for what happens then).
+        await pumpShell(tester, const Size(560, 844), brightness: brightness);
         final topBar = find.byType(ShellTopBar);
         expect(find.descendant(of: topBar, matching: find.byType(BkBrandMark)), findsOneWidget);
         final mark = tester.getRect(find.descendant(of: topBar, matching: find.byType(BkBrandMark)));
@@ -51,6 +54,21 @@ Future<void> main() async {
         shell.select(AppSection.devices);
         await tester.pump();
         expect(find.descendant(of: topBar, matching: find.byType(BkBrandMark)), findsNothing);
+        await disposeShell(tester);
+      });
+
+      // On a small phone the mark, the plan badge, (?) and ⋮ leave too little
+      // room: "BikeContr…". The wordmark is the name; the mark goes first.
+      testWidgets('small phone: the mark steps aside so "BikeControl" reads whole', (tester) async {
+        IAPManager.instance.setProForTesting(enabled: true);
+        addTearDown(() => IAPManager.instance.setProForTesting(enabled: false));
+        await pumpShell(tester, const Size(320, 700), brightness: brightness);
+        final topBar = find.byType(ShellTopBar);
+        // The mark stays mounted but is laid out of the way: the wordmark
+        // starts at the bar's own edge instead of after it.
+        final bar = tester.getRect(topBar);
+        final titleRect = tester.getRect(find.descendant(of: topBar, matching: find.text('BikeControl')));
+        expect(titleRect.left - bar.left, lessThanOrEqualTo(16.5), reason: 'no mark before the wordmark');
         await disposeShell(tester);
       });
 

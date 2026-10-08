@@ -169,18 +169,6 @@ class VirtualShiftingCard extends StatelessWidget {
                       const Gap(12),
                       _CardNote(key: const ValueKey('ride-vs-trial-notice'), icon: LucideIcons.clock, text: notice),
                     ],
-                    // What the selected mode does, in one line: "SIM" and
-                    // "ERG" say nothing to a rider who has not met them.
-                    // Shown while connecting too (the switch is drawn on
-                    // SIM), so the placeholder keeps the live card's height.
-                    ...[
-                      const Gap(10),
-                      _CardNote(
-                        key: const ValueKey('ride-vs-mode-explainer'),
-                        icon: erg ? LucideIcons.zap : LucideIcons.mountain,
-                        text: erg ? context.i18n.rideVsErgExplainer : context.i18n.rideVsSimExplainer,
-                      ),
-                    ],
                     if (_footer(context) case final footer?) ...[
                       const Gap(14),
                       DecoratedBox(
