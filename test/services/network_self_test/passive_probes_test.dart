@@ -328,7 +328,7 @@ void main() {
   // An iPhone always carries an `ipsec` interface with a 192.0.0.x address
   // (and Android a CLAT one from the same range). Neither is a LAN anyone can
   // reach, so it must never count as "a second network the app could be on".
-  group('iOS ipsec / CLAT addresses are not a competing network', () {
+  group('extra interfaces next to the LAN are not a competing network', () {
     const iphoneOnWifi = [
       AddressCandidate(interfaceName: 'en0', address: '192.168.1.23', score: 40, isVirtual: false),
       AddressCandidate(interfaceName: 'ipsec2', address: '192.0.0.6', score: -199, isVirtual: false),
@@ -375,6 +375,47 @@ void main() {
         ],
       );
       expect(advertisedAddressWarning(report), isNull);
+    });
+
+    // Field report (Oplus/OnePlus/Realme phones): a vendor gateway NIC `vgate0`
+    // sits next to the home Wi-Fi, and the Ride card called the rider's real
+    // 192.168.178.x address "a VPN or hotspot address".
+    test('an Android vendor vgate0 interface does not flag the home Wi-Fi address', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.178.133'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'wlan0', address: '192.168.178.133', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'vgate0', address: '172.30.225.86', score: 20, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+      expect(advertisedAddressWarningKind(report), isNull);
+      final check = advertisedAddressCheck(ctx(platform: 'android', snapshot: _diag(addressReport: report)));
+      expect(check.verdict, NetworkVerdict.pass);
+    });
+
+    test('an unrecognised extra interface is no second network either', () {
+      // Only adapters that look like a real Wi-Fi/Ethernet port can be the
+      // network the app is on; vendor and virtual NICs come and go by name.
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.23'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'wlan0', address: '192.168.1.23', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'oem_vnic3', address: '10.33.0.4', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarning(report), isNull);
+    });
+
+    test('Windows Ethernet and Wi-Fi on different subnets still warn as two networks', () {
+      final report = AddressPickReport(
+        chosen: InternetAddress('192.168.1.5'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'Ethernet', address: '192.168.1.5', score: 40, isVirtual: false),
+          AddressCandidate(interfaceName: 'Wi-Fi', address: '10.0.0.5', score: 30, isVirtual: false),
+        ],
+      );
+      expect(advertisedAddressWarningKind(report), AddressWarningKind.twoNetworks);
     });
 
     test('two real adapters on different subnets still warn, as a second network', () {

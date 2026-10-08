@@ -82,7 +82,8 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
 bool _chosenLooksUnreachable(AddressPickReport report, String chosen) {
   final chosenCandidate = report.candidates.firstOrNullWhere((c) => c.address == chosen);
   final chosenIsTunnel = DebugDiagnostics.tunnelCandidatesIn(report.candidates).any((c) => c.address == chosen);
-  return (chosenCandidate?.isVirtual ?? false) || chosenIsTunnel;
+  final chosenIsExtraVirtual = _extraVirtualNamePattern.hasMatch(chosenCandidate?.interfaceName ?? '');
+  return (chosenCandidate?.isVirtual ?? false) || chosenIsTunnel || chosenIsExtraVirtual;
 }
 
 /// Addresses no other device can ever route to: link-local 169.254/16, and the
@@ -95,19 +96,37 @@ bool _isUnreachableAddress(String address) => address.startsWith('169.254.') || 
 /// no device on the rider's Wi-Fi can reach it.
 final _cellularNamePattern = RegExp(r'^(pdp_ip|rmnet|ccmni|v4-|clat)', caseSensitive: false);
 
+/// Interface names of a real Wi-Fi or Ethernet port: `en0`/`enp3s0`/`eth0`,
+/// `wlan0`/`wlp2s0`, and Windows' "Ethernet"/"Wi-Fi"/"WLAN" (numbered when
+/// there are several, the same in every Windows language).
+final _lanPortNamePattern = RegExp(r'^(en|eth|wl|wi-?fi)', caseSensitive: false);
+
+/// Virtual adapters the address picker's own list (in prop) does not know:
+/// the iPhone's `ipsec` and the `vgate` gateway NIC some Android vendors
+/// (Oplus/OnePlus/Realme) add next to the Wi-Fi.
+final _extraVirtualNamePattern = RegExp(r'^(ipsec|vgate)', caseSensitive: false);
+
 /// The physical candidates when they are spread over more than one subnet —
 /// a second adapter that could just as well be the one the trainer app is on,
 /// so whichever the picker chose is a coin toss. Empty when the pick is
 /// unambiguous.
 ///
-/// Only adapters someone could actually be on count. The address picker's
-/// own virtual list misses the iPhone's `ipsec` interface, whose 192.0.0.x
-/// address flagged every iPhone on Wi-Fi as "on two networks"; a VPN tunnel
-/// is the VPN row's business, not a second LAN.
+/// Only real Wi-Fi/Ethernet ports count: a network the trainer app could be
+/// on is one a rider plugs into or joins. The address picker's own virtual
+/// list misses the iPhone's `ipsec` interface (192.0.0.x) and Android vendor
+/// NICs like `vgate0` (172.30.x), and each flagged the rider's real Wi-Fi
+/// address as "a VPN or hotspot address". A VPN tunnel is the VPN row's
+/// business, not a second LAN.
 List<AddressCandidate> _competingPhysical(AddressPickReport report) {
   final tunnels = DebugDiagnostics.tunnelCandidatesIn(report.candidates).map((c) => c.address).toSet();
   final physical = report.candidates
-      .where((c) => !c.isVirtual && !_isUnreachableAddress(c.address) && !tunnels.contains(c.address))
+      .where(
+        (c) =>
+            !c.isVirtual &&
+            !_isUnreachableAddress(c.address) &&
+            !tunnels.contains(c.address) &&
+            _lanPortNamePattern.hasMatch(c.interfaceName),
+      )
       .toList();
   final subnets = physical.map((c) => _subnetPrefix(c.address)).toSet();
   return physical.length >= 2 && subnets.length >= 2 ? physical : const [];
