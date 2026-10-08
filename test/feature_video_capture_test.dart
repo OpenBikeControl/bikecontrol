@@ -843,7 +843,7 @@ Future<VideoCapture> _filmHandsFreeSteering(WidgetTester tester, _Studio studio)
   await rec.tap(toggle, 'Enable steering with the phone', thenFrames: 0);
   // What the connection queue does for a newly added device (it doesn't run
   // under screenshotMode): connect it. It then calibrates on its own.
-  final phone = core.connection.gyroscopeDevices.single..nowFn = _now;
+  final phone = core.connection.gyroscopeDevices.single;
   await phone.connect();
   await rec.untilStill(maxFrames: 120);
   expect(phone.steeringCalibrated.value, isTrue, reason: 'it calibrates while the bars are still');
