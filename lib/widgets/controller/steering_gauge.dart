@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -27,8 +28,7 @@ double displayRangeFor(double threshold) => (threshold * 3).clamp(18.0, 90.0);
 /// The numeric line under the gauge: the tilt in whole degrees, then the
 /// trigger threshold. Rounded as an int, so a bar a hair right of centre
 /// reads "0°" rather than "-0°".
-String steeringReadout(double angle, double threshold) =>
-    '${angle.round()}°  ·  ±${threshold.toStringAsFixed(0)}°';
+String steeringReadout(double angle, double threshold) => '${angle.round()}°  ·  ±${threshold.toStringAsFixed(0)}°';
 
 /// Compact horizontal gauge for the Phone-Steering device card footer. A knob
 /// glides left/right with the live tilt and a fill grows from the center to the
@@ -45,6 +45,7 @@ class SteeringGauge extends StatelessWidget {
   final ControllerButton rightButton;
   final Keymap? keymap;
   final VoidCallback? onUpdate;
+  final VoidCallback? onRecalibrate;
 
   const SteeringGauge({
     super.key,
@@ -56,6 +57,7 @@ class SteeringGauge extends StatelessWidget {
     required this.rightButton,
     this.keymap,
     this.onUpdate,
+    this.onRecalibrate,
   });
 
   bool get _canEdit => keymap != null && onUpdate != null;
@@ -126,19 +128,31 @@ class SteeringGauge extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-                // Numeric readout / calibrating hint, below the bar.
-                isCalibrated
-                    ? Text(
+                // Numeric readout / calibrating hint and optional recalibration action.
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isCalibrated)
+                      Text(
                         steeringReadout(liveAngle, threshold),
                       ).xSmall.muted
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SmallProgressIndicator(),
-                          const SizedBox(width: 6),
-                          Text(AppLocalizations.of(context).steeringCalibrating).xSmall.muted,
-                        ],
+                    else ...[
+                      SmallProgressIndicator(),
+                      const SizedBox(width: 6),
+                      Text(AppLocalizations.of(context).steeringCalibrating).xSmall.muted,
+                    ],
+                    if (onRecalibrate != null) ...[
+                      const SizedBox(width: 4),
+                      BkIconButton.ghost(
+                        icon: const Icon(LucideIcons.wrench, size: 16),
+                        label: AppLocalizations.of(context).calibrate,
+                        onPressed: isCalibrated ? onRecalibrate : null,
+                        size: ButtonSize.small,
+                        density: ButtonDensity.iconDense,
                       ),
+                    ],
+                  ],
+                ),
               ],
             );
           },

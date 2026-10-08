@@ -65,6 +65,7 @@ class EliteRizer extends BluetoothDevice with ManualInclineDevice implements Ste
   bool _isCalibrated = false;
   int? _lastRoundedAngle;
   bool _isProcessingKeypresses = false;
+  int _keypressGeneration = 0;
 
   // SteeringDevice listenable state
   final ValueNotifier<double> steeringAngle = ValueNotifier(0.0);
@@ -79,6 +80,19 @@ class EliteRizer extends BluetoothDevice with ManualInclineDevice implements Ste
   ControllerButton get steerLeftButton => RizerButtons.leftSteer;
   @override
   ControllerButton get steerRightButton => RizerButtons.rightSteer;
+
+  @override
+  void recalibrate() {
+    _keypressGeneration++;
+    _isProcessingKeypresses = false;
+    _calibrationSamples.clear();
+    _calibrationOffset = 0.0;
+    _isCalibrated = false;
+    steeringCalibratedN.value = false;
+    steeringAngle.value = 0.0;
+    _lastRoundedAngle = null;
+    unawaited(handleButtonsClicked([]));
+  }
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -155,12 +169,21 @@ class EliteRizer extends BluetoothDevice with ManualInclineDevice implements Ste
 
   Future<void> _repeatKeypresses(ControllerButton button, int levels) async {
     if (_isProcessingKeypresses) return;
+    final generation = _keypressGeneration;
     _isProcessingKeypresses = true;
-    for (var i = 0; i < levels; i++) {
-      await Future.delayed(Duration(milliseconds: _rizerKeyRepeatMs));
-      handleButtonsClicked([button]);
+    try {
+      for (var i = 0; i < levels; i++) {
+        await Future.delayed(Duration(milliseconds: _rizerKeyRepeatMs));
+        if (generation != _keypressGeneration) {
+          return;
+        }
+        unawaited(handleButtonsClicked([button]));
+      }
+    } finally {
+      if (generation == _keypressGeneration) {
+        _isProcessingKeypresses = false;
+      }
     }
-    _isProcessingKeypresses = false;
   }
 
   @override
@@ -171,7 +194,10 @@ class EliteRizer extends BluetoothDevice with ManualInclineDevice implements Ste
         await debugWriteSink!(bytes);
       } else {
         await UniversalBle.write(
-          device.deviceId, eliteRizerServiceUuid, eliteRizerWriteCharacteristicUuid, bytes,
+          device.deviceId,
+          eliteRizerServiceUuid,
+          eliteRizerWriteCharacteristicUuid,
+          bytes,
           withoutResponse: false,
         );
       }

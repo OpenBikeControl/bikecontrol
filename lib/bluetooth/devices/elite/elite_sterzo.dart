@@ -44,6 +44,7 @@ class EliteSterzo extends BluetoothDevice implements SteeringDevice {
   // Debounce timer for PWM-like keypress behavior
   Timer? _keypressTimer;
   bool _isProcessingKeypresses = false;
+  int _keypressGeneration = 0;
 
   // SteeringDevice listenable state
   final ValueNotifier<double> steeringAngle = ValueNotifier(0.0);
@@ -58,6 +59,21 @@ class EliteSterzo extends BluetoothDevice implements SteeringDevice {
   ControllerButton get steerLeftButton => SterzoButtons.leftSteer;
   @override
   ControllerButton get steerRightButton => SterzoButtons.rightSteer;
+
+  @override
+  void recalibrate() {
+    _keypressTimer?.cancel();
+    _keypressGeneration++;
+    _isProcessingKeypresses = false;
+    _calibrationSamples.clear();
+    _calibrationOffset = 0.0;
+    _isCalibrated = false;
+    steeringCalibratedN.value = false;
+    steeringAngle.value = 0.0;
+    _lastRoundedAngle = null;
+    _lastAngle = 0.0;
+    unawaited(handleButtonsClicked([]));
+  }
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -337,15 +353,23 @@ class EliteSterzo extends BluetoothDevice implements SteeringDevice {
       return;
     }
 
+    final generation = _keypressGeneration;
     _isProcessingKeypresses = true;
 
-    // Send keypresses in sequence with delays between them
-    for (int i = 0; i < levels; i++) {
-      await Future.delayed(Duration(milliseconds: SterzoConstants.KEY_REPEAT_INTERVAL_MS));
-      handleButtonsClicked([button]);
+    try {
+      // Send keypresses in sequence with delays between them
+      for (int i = 0; i < levels; i++) {
+        await Future.delayed(Duration(milliseconds: SterzoConstants.KEY_REPEAT_INTERVAL_MS));
+        if (generation != _keypressGeneration) {
+          return;
+        }
+        unawaited(handleButtonsClicked([button]));
+      }
+    } finally {
+      if (generation == _keypressGeneration) {
+        _isProcessingKeypresses = false;
+      }
     }
-
-    _isProcessingKeypresses = false;
   }
 
   List<int> _getChallengeResponse(int challenge) {

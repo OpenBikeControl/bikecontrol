@@ -15,6 +15,9 @@ abstract interface class SteeringDevice {
   /// Dead-zone threshold in degrees.
   double get steeringThreshold;
 
+  /// Clear the current neutral reference and learn a new one from live input.
+  void recalibrate();
+
   ControllerButton get steerLeftButton;
   ControllerButton get steerRightButton;
 }
