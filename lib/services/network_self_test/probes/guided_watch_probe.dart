@@ -127,11 +127,19 @@ Future<NetworkCheck> guidedWatchCheck(
   }
 
   if (!browsed) {
-    return const NetworkCheck(
+    // The trainer app never searched. Most often it is not allowed to use the
+    // local network (Apple asks per app) or sits on another Wi-Fi — causes in
+    // the trainer app, not here. A Mac running both apps can open the very
+    // list where the trainer app is switched on; elsewhere the hint says
+    // where to look, and Local stays as the way around it.
+    return NetworkCheck(
       id: NetworkCheckId.guidedWatch,
       verdict: NetworkVerdict.fail,
-      detail: {'hint': 'no query arrived'},
-      fixes: [NetworkFixId.switchToLocal],
+      detail: const {'hint': 'no query arrived'},
+      fixes: [
+        if (ctx.platform == 'macos') NetworkFixId.openAppLocalNetworkSettings,
+        NetworkFixId.switchToLocal,
+      ],
     );
   }
 

@@ -95,6 +95,15 @@ Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix, {NetworkCheck
         return false;
       }
 
+    case NetworkFixId.openAppLocalNetworkSettings:
+      // System Settings › Privacy & Security › Local Network: the per-app list
+      // the trainer app has to be switched on in. Same URL scheme as the
+      // Bluetooth privacy pane the requirements screen opens.
+      return _launch(
+        'x-apple.systempreferences:com.apple.preference.security?Privacy_LocalNetwork',
+        context: 'runNetworkFix.openAppLocalNetworkSettings',
+      );
+
     case NetworkFixId.sendToSupport:
       // Owned by the page (it needs to push SupportChatPage) — a caller
       // that dispatches this here instead of routing it itself is a wiring

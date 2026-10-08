@@ -27,6 +27,7 @@ enum NetworkFixId {
   openNetworkProfileSettings,
   openBonjourDownload,
   openLocalNetworkSettings,
+  openAppLocalNetworkSettings,
   sendToSupport,
 }
 

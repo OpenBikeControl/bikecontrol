@@ -238,6 +238,23 @@ Future<void> main() async {
       expect(find.text(hint!), findsOneWidget);
     });
 
+    testWidgets('a trainer app that never searched is pointed at its own Local Network permission', (tester) async {
+      const check = NetworkCheck(
+        id: NetworkCheckId.guidedWatch,
+        verdict: NetworkVerdict.fail,
+        detail: {'hint': 'no query arrived'},
+        fixes: [NetworkFixId.openAppLocalNetworkSettings, NetworkFixId.switchToLocal],
+      );
+      await _pump(tester, const NetworkCheckRow(check: check, appName: 'MyWhoosh'));
+      await tester.pumpAndSettle();
+      final context = ctxOf(tester);
+
+      final hint = networkCheckHint(context, check, app: 'MyWhoosh');
+      expect(hint, contains('MyWhoosh'));
+      expect(find.text(hint!), findsOneWidget);
+      expect(find.text(networkFixLabel(context, NetworkFixId.openAppLocalNetworkSettings)), findsOneWidget);
+    });
+
     testWidgets('a mesh-only VPN pass carries no hint', (tester) async {
       const check = NetworkCheck(id: NetworkCheckId.vpn, verdict: NetworkVerdict.pass, detail: {'note': 'mesh'});
       await _pump(tester, const NetworkCheckRow(check: check));

@@ -2014,6 +2014,7 @@
   "networkFixOpenNetworkProfileSettings": "Ouvrir les paramètres réseau",
   "networkFixOpenBonjourDownload": "Obtenir Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Ouvrir les réglages",
+  "networkFixOpenAppLocalNetworkSettings": "Ouvrir les réglages Réseau local",
   "networkFixFailed": "Ça n'a pas marché. Réessaie, ou contacte le support : Centre d'aide → Dis-nous ce qui ne va pas.",
   "networkFixRefusedConnected": "Pas tant que {app} est connecté.",
   "@networkFixRefusedConnected": {
@@ -2071,6 +2072,8 @@
   "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
   "networkHintNoWifi": "Cet appareil n'est pas en Wi-Fi, donc {app} ne peut pas joindre BikeControl via les données mobiles. Connecte-toi au même Wi-Fi que {app}.",
   "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoQuery": "{app} n'a jamais cherché BikeControl. Vérifie que {app} est sur le même Wi-Fi que cet appareil et a le droit d'utiliser le réseau local — sur Mac : Réglages Système › Confidentialité et sécurité › Réseau local, active {app} ; sur iPhone ou iPad : Réglages › {app} › Réseau local.",
+  "@networkHintNoQuery": {"placeholders": {"app": {"type": "String"}}},
   "supportDiagnosticsNotice": "Pour aider à résoudre ton problème, ce chat joint une capture d'écran de BikeControl et des infos de diagnostic. Tu peux les vérifier ou les retirer avant l'envoi.",
   "supportRetentionNotice": "Les conversations sont supprimées automatiquement 30 jours après le dernier message. Les données anonymisées du home trainer (modèle, firmware, résultats de tests) sont conservées pour améliorer la compatibilité.",
   "supportDeleteConversation": "Supprimer la conversation",

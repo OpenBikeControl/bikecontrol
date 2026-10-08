@@ -2026,6 +2026,7 @@
   "networkFixOpenNetworkProfileSettings": "Netzwerkeinstellungen öffnen",
   "networkFixOpenBonjourDownload": "Apple Bonjour herunterladen",
   "networkFixOpenLocalNetworkSettings": "Einstellungen öffnen",
+  "networkFixOpenAppLocalNetworkSettings": "Einstellungen für lokales Netzwerk öffnen",
   "networkFixFailed": "Das hat nicht funktioniert. Versuch es noch einmal oder melde dich beim Support: Hilfe-Center → Sag uns, was nicht stimmt.",
   "networkFixRefusedConnected": "Nicht, solange {app} verbunden ist.",
   "@networkFixRefusedConnected": {
@@ -2083,6 +2084,8 @@
   "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
   "networkHintNoWifi": "Dieses Gerät ist nicht im WLAN, deshalb erreicht {app} BikeControl über mobile Daten nicht. Verbinde dich mit demselben WLAN wie {app}.",
   "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoQuery": "{app} hat nie nach BikeControl gesucht. Achte darauf, dass {app} im selben WLAN wie dieses Gerät ist und das lokale Netzwerk nutzen darf — auf dem Mac: Systemeinstellungen › Datenschutz & Sicherheit › Lokales Netzwerk, {app} einschalten; auf iPhone oder iPad: Einstellungen › {app} › Lokales Netzwerk.",
+  "@networkHintNoQuery": {"placeholders": {"app": {"type": "String"}}},
   "ltwooHintCloseApp": "Schließe die LTWOO-App während der Fahrt — das Schaltwerk erlaubt nur eine Bluetooth-Verbindung gleichzeitig.",
   "ltwooHintCassetteEnds": "Am Ende der Kassette sendet das Schaltwerk kein Signal mehr — es kann nicht weiter schalten.",
   "ltwooWrongPinAlert": "Das L-TWOO-Schaltwerk hat die PIN abgelehnt. Prüfe die Geräte-PIN in den Einstellungen dieses Controllers.",

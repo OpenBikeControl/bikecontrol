@@ -2014,6 +2014,7 @@
   "networkFixOpenNetworkProfileSettings": "Otwórz ustawienia sieci",
   "networkFixOpenBonjourDownload": "Pobierz Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Otwórz ustawienia",
+  "networkFixOpenAppLocalNetworkSettings": "Otwórz ustawienia sieci lokalnej",
   "networkFixFailed": "To nie zadziałało. Spróbuj ponownie albo napisz do pomocy technicznej: Centrum pomocy → Powiedz nam, co jest nie tak.",
   "networkFixRefusedConnected": "Nie, dopóki trwa połączenie z {app}.",
   "@networkFixRefusedConnected": {
@@ -2071,6 +2072,8 @@
   "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
   "networkHintNoWifi": "To urządzenie nie jest w sieci Wi-Fi, więc {app} nie dotrze do BikeControl przez dane komórkowe. Połącz się z tą samą siecią Wi-Fi co {app}.",
   "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoQuery": "{app} ani razu nie szukała BikeControl. Upewnij się, że {app} jest w tej samej sieci Wi-Fi co to urządzenie i ma dostęp do sieci lokalnej — na Macu: Ustawienia systemowe › Prywatność i ochrona › Sieć lokalna, włącz {app}; na iPhonie lub iPadzie: Ustawienia › {app} › Sieć lokalna.",
+  "@networkHintNoQuery": {"placeholders": {"app": {"type": "String"}}},
   "supportDiagnosticsNotice": "Aby pomóc rozwiązać twój problem, ten czat dołącza zrzut ekranu BikeControl i dane diagnostyczne. Możesz je sprawdzić lub usunąć przed wysłaniem.",
   "supportRetentionNotice": "Rozmowy są automatycznie usuwane 30 dni po ostatniej wiadomości. Zanonimizowane dane trenażera (model, firmware, wyniki testów) przechowujemy, aby poprawiać kompatybilność.",
   "supportDeleteConversation": "Usuń rozmowę",

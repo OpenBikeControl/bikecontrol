@@ -50,6 +50,7 @@ String networkFixLabel(BuildContext context, NetworkFixId fix) {
     NetworkFixId.openNetworkProfileSettings => l10n.networkFixOpenNetworkProfileSettings,
     NetworkFixId.openBonjourDownload => l10n.networkFixOpenBonjourDownload,
     NetworkFixId.openLocalNetworkSettings => l10n.networkFixOpenLocalNetworkSettings,
+    NetworkFixId.openAppLocalNetworkSettings => l10n.networkFixOpenAppLocalNetworkSettings,
     // Never actually shown as a per-row fix button — checks never carry this
     // fix (only the troubleshooting page's footer does) — kept only so this
     // switch stays exhaustive.
@@ -76,6 +77,7 @@ String? networkCheckHint(BuildContext context, NetworkCheck check, {String? app}
   }
   if (check.verdict != NetworkVerdict.fail) return null;
   return switch (check.id) {
+    NetworkCheckId.guidedWatch when check.detail['hint'] == 'no query arrived' => l10n.networkHintNoQuery(appName),
     NetworkCheckId.bonjourService => l10n.networkHintBonjourService,
     NetworkCheckId.bonjourNsp => l10n.networkHintBonjourNsp,
     NetworkCheckId.resolveOwnHostname => l10n.networkHintResolveFail,

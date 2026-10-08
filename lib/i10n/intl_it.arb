@@ -2014,6 +2014,7 @@
   "networkFixOpenNetworkProfileSettings": "Apri impostazioni di rete",
   "networkFixOpenBonjourDownload": "Scarica Apple Bonjour",
   "networkFixOpenLocalNetworkSettings": "Apri le impostazioni",
+  "networkFixOpenAppLocalNetworkSettings": "Apri impostazioni Rete locale",
   "networkFixFailed": "Non ha funzionato. Riprova o contatta il supporto: Centro assistenza → Dicci cosa non va.",
   "networkFixRefusedConnected": "Non mentre {app} è connesso.",
   "@networkFixRefusedConnected": {
@@ -2071,6 +2072,8 @@
   "@networkHintVpn": {"placeholders": {"app": {"type": "String"}}},
   "networkHintNoWifi": "Questo dispositivo non è connesso al Wi-Fi, quindi {app} non può raggiungere BikeControl tramite i dati mobili. Connettiti alla stessa rete Wi-Fi di {app}.",
   "@networkHintNoWifi": {"placeholders": {"app": {"type": "String"}}},
+  "networkHintNoQuery": "{app} non ha mai cercato BikeControl. Assicurati che {app} sia sulla stessa rete Wi-Fi di questo dispositivo e possa usare la rete locale: su Mac, Impostazioni di Sistema › Privacy e sicurezza › Rete locale, attiva {app}; su iPhone o iPad, Impostazioni › {app} › Rete locale.",
+  "@networkHintNoQuery": {"placeholders": {"app": {"type": "String"}}},
   "supportDiagnosticsNotice": "Per aiutarti a risolvere il problema, questa chat allega uno screenshot di BikeControl e informazioni diagnostiche. Puoi rivederle o rimuoverle prima di inviare.",
   "supportRetentionNotice": "Le conversazioni vengono eliminate automaticamente 30 giorni dopo l'ultimo messaggio. I dati anonimizzati dei rulli (modello, firmware, risultati dei test) vengono conservati per migliorare la compatibilità.",
   "supportDeleteConversation": "Elimina conversazione",
