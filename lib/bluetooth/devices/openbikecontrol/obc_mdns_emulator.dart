@@ -344,6 +344,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
+        // App Information is optional: an app on the line is connected, and
+        // the App Info, if it comes, only tells us which buttons it takes.
+        isConnected.value = true;
         if (_useDirCon) {
           _dirCon = NetworkTransporter(
             socket: socket,
@@ -403,21 +406,18 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         'No client connected',
         button: keyPair.buttons.firstOrNull,
       );
-    } else if (app == null) {
-      return Error(
-        'No app info received from central',
-        button: keyPair.buttons.firstOrNull,
-      );
     }
 
-    if (steersByAngleOnly(app, keyPair)) {
+    if (app != null && steersByAngleOnly(app, keyPair)) {
       return Success(
         '${inGameAction.title} sent as steering angle',
         button: keyPair.buttons.firstOrNull,
       );
     }
 
-    final mappedButtons = app.supportedButtons.filter(
+    // Without App Info the protocol says to assume every button is supported.
+    final supported = app?.supportedButtons ?? OpenBikeProtocolParser.BUTTON_NAMES.values;
+    final mappedButtons = supported.filter(
       (supportedButton) => supportedButton.action == inGameAction,
     );
 
