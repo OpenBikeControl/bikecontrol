@@ -178,6 +178,13 @@ Future<void> main() async {
     expect(find.byKey(const ValueKey('intake-open-plan-account')), findsNothing);
   });
 
+  testWidgets('refunds: only App Store and Microsoft Store get self-service steps; Google Play and the Windows download are mine to refund', (tester) async {
+    await pump(tester, account('refund_request'));
+    final steps = tester.widget<HelpCheckList>(find.byType(HelpCheckList)).checks;
+    expect(steps.map((c) => c.linkUrl), ['https://reportaproblem.apple.com', 'https://account.microsoft.com/billing/orders']);
+    expect(find.text(l10n.intakeSelfHelpRefundTitle), findsOneWidget);
+  });
+
   testWidgets('after an account answer, No still continues to the composer', (tester) async {
     IntakeAnswers? continued;
     await pump(tester, account('refund_request'), onContinue: (a) => continued = a);

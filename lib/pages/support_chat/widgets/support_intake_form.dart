@@ -502,7 +502,8 @@ class _InlineSelfHelp extends StatelessWidget {
         [planAccountAction],
         null,
       ),
-      // Store purchases are refunded by the store: where to ask in each.
+      // Google Play and the Windows download I refund myself (the body says so);
+      // the App Store and the Microsoft Store refund their own purchases.
       IntakeSelfHelp.refundThroughStore => (
         LucideIcons.receipt,
         l10n.intakeSelfHelpRefundTitle,
@@ -513,12 +514,6 @@ class _InlineSelfHelp extends StatelessWidget {
             body: l10n.intakeSelfHelpRefundAppleBody,
             linkLabel: l10n.intakeSelfHelpRefundLink,
             linkUrl: 'https://reportaproblem.apple.com',
-          ),
-          HelpCheck(
-            title: l10n.intakeSelfHelpRefundGoogleTitle,
-            body: l10n.intakeSelfHelpRefundGoogleBody,
-            linkLabel: l10n.intakeSelfHelpRefundLink,
-            linkUrl: 'https://play.google.com/store/account/orderhistory',
           ),
           HelpCheck(
             title: l10n.intakeSelfHelpRefundMicrosoftTitle,
