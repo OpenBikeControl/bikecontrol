@@ -1168,6 +1168,10 @@
   "trainer": "Trainer",
   "trainerConnection": "Trainer Connection",
   "trainerMissingFtmsWarning": "{trainerName} does not advertise the FTMS service, so virtual shifting may not work. Please use \"Need help?\" below to report this trainer.",
+  "trainerConnectTimeout": "Couldn't reach {trainer}. Make sure it's awake, nearby and not connected to another app, then try again.",
+  "@trainerConnectTimeout": {"placeholders": {"trainer": {"type": "String"}}},
+  "trainerConnectFailed": "Couldn't connect to {trainer}. Try again in a moment.",
+  "@trainerConnectFailed": {"placeholders": {"trainer": {"type": "String"}}},
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {

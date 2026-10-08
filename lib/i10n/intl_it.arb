@@ -1054,6 +1054,8 @@
     }
   },
   "trainerMissingFtmsWarning": "{trainerName} non pubblicizza il servizio FTMS, quindi il cambio virtuale potrebbe non funzionare. Usa \"Serve aiuto?\" qui sotto per segnalare questo trainer.",
+  "trainerConnectTimeout": "Impossibile raggiungere {trainer}. Assicurati che sia acceso, vicino e non collegato a un'altra app, poi riprova.",
+  "trainerConnectFailed": "Impossibile collegarsi a {trainer}. Riprova tra poco.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {

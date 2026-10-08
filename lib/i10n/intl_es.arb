@@ -1054,6 +1054,8 @@
     }
   },
   "trainerMissingFtmsWarning": "{trainerName} no anuncia el servicio FTMS, por lo que el cambio de marchas virtual puede no funcionar. Usa \"¿Necesitas ayuda?\" más abajo para reportar este trainer.",
+  "trainerConnectTimeout": "No se pudo contactar con {trainer}. Asegúrate de que esté encendido, cerca y sin conectar a otra app, e inténtalo de nuevo.",
+  "trainerConnectFailed": "No se pudo conectar con {trainer}. Inténtalo de nuevo en un momento.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {

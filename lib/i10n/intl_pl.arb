@@ -1054,6 +1054,8 @@
     }
   },
   "trainerMissingFtmsWarning": "{trainerName} nie udostępnia usługi FTMS, więc wirtualne przełączanie może nie działać. Użyj poniżej \"Potrzebujesz pomocy?\", aby zgłosić ten trainer.",
+  "trainerConnectTimeout": "Nie udało się połączyć z {trainer}. Upewnij się, że jest wybudzony, w pobliżu i niepołączony z inną aplikacją, a potem spróbuj ponownie.",
+  "trainerConnectFailed": "Nie udało się połączyć z {trainer}. Spróbuj ponownie za chwilę.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {

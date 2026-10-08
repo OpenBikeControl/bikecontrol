@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -41,7 +44,16 @@ Future<bool> connectTrainerFromPicker(BuildContext context, ProxyDevice device) 
     return true;
   } catch (e, s) {
     recordError(e, s, context: 'connect trainer from picker');
-    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: e.toString());
+    final l10n = AppLocalizations.current;
+    buildToast(
+      level: LogLevel.LOGLEVEL_ERROR,
+      title: trainerConnectErrorMessage(l10n, e, context.mounted ? device.displayName(context) : device.toString()),
+    );
     return false;
   }
 }
+
+/// What a rider reads when connecting [trainer] fails: what to check, never
+/// the raw exception (that goes to the log).
+String trainerConnectErrorMessage(AppLocalizations l10n, Object error, String trainer) =>
+    error is TimeoutException ? l10n.trainerConnectTimeout(trainer) : l10n.trainerConnectFailed(trainer);

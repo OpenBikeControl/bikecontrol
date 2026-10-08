@@ -1054,6 +1054,8 @@
     }
   },
   "trainerMissingFtmsWarning": "{trainerName} n'annonce pas le service FTMS, le changement de vitesses virtuel peut donc ne pas fonctionner. Utilise \"Besoin d'aide ?\" ci-dessous pour signaler ce home trainer.",
+  "trainerConnectTimeout": "Impossible de joindre {trainer}. Vérifie qu'il est réveillé, à proximité et connecté à aucune autre appli, puis réessaie.",
+  "trainerConnectFailed": "Connexion à {trainer} impossible. Réessaie dans un instant.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {

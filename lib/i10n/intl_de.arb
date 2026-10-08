@@ -1066,6 +1066,8 @@
     }
   },
   "trainerMissingFtmsWarning": "{trainerName} bewirbt den FTMS-Service nicht, daher funktioniert das virtuelle Schalten möglicherweise nicht. Bitte nutze unten \"Hilfe benötigt?\", um diesen Trainer zu melden.",
+  "trainerConnectTimeout": "{trainer} war nicht erreichbar. Achte darauf, dass er wach und in der Nähe ist und mit keiner anderen App verbunden ist, und versuch es noch einmal.",
+  "trainerConnectFailed": "Verbindung mit {trainer} fehlgeschlagen. Versuch es gleich noch einmal.",
   "@trainerMissingFtmsWarning": {
     "placeholders": {
       "trainerName": {
