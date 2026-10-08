@@ -294,7 +294,10 @@ class ControllerButtonsCard extends StatelessWidget {
     final hint = _hint(context, context.i18n.steeringRideHint);
     final steering = device;
     if (connecting || steering is! RecalibratableSteering || steering is! SteeringDevice) return hint;
+    // On the hint's first line: a wrapped hint must not push it to the middle.
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
         Expanded(child: hint),
         ValueListenableBuilder<bool>(

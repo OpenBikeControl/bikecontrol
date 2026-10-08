@@ -119,6 +119,15 @@ Future<void> main() async {
     expect(find.bySemanticsLabel(RegExp(RegExp.escape(GyroscopeSteeringButtons.leftSteer.displayName))), findsNothing);
   });
 
+  testWidgets('Recalibrate sits on the hint\'s first line, not centred beside it', (tester) async {
+    final device = calibratedPhone();
+    final l = await pump(tester, device);
+    final hint = tester.getRect(find.text(l.steeringRideHint));
+    final recalibrate = tester.getRect(find.text(l.steeringRecalibrate));
+    expect(hint.height, greaterThan(recalibrate.height * 1.5), reason: 'the hint wraps at phone width');
+    expect(recalibrate.top, moreOrLessEquals(hint.top, epsilon: 1));
+  });
+
   testWidgets('phone steering recalibrates from the card', (tester) async {
     final device = calibratedPhone();
     final l = await pump(tester, device);
