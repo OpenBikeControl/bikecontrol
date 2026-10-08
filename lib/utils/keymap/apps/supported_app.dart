@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
@@ -38,6 +39,32 @@ enum ConnectionSupport {
 /// actually consume. Used by the connection-mode picker on the proxy device
 /// details page to disable unsupported modes with a contextual hint.
 enum TrainerConnectionType { bluetooth, wifi }
+
+/// Why a trainer app running on the same device as BikeControl can never pick
+/// up its Bridge — so virtual shifting needs a second device.
+enum VsSameDeviceBlock {
+  /// The app finds trainers over Bluetooth only here, and a Bluetooth
+  /// peripheral is invisible to a central on the same adapter (MyWhoosh on
+  /// Android, FulGaz everywhere).
+  bluetoothOnly,
+
+  /// A Microsoft Store app on Windows: the AppContainer sandbox blocks it from
+  /// connecting to a network service on the same PC (Tacx Training), and
+  /// Bluetooth can't reach the same device either.
+  storeAppIsolation,
+}
+
+/// Why [app], on this same device, can't reach BikeControl's Bridge — or null
+/// when it can (over Wi-Fi, the one transport that loops back). Read from what
+/// the app declares, not from its name: [SupportedApp.virtualShiftingTransportsHere]
+/// and [SupportedApp.windowsStoreApp].
+VsSameDeviceBlock? vsSameDeviceBlock(SupportedApp app) {
+  if (!app.virtualShiftingTransportsHere.contains(TrainerConnectionType.wifi)) {
+    return VsSameDeviceBlock.bluetoothOnly;
+  }
+  if (HostPlatform.isWindows && app.windowsStoreApp) return VsSameDeviceBlock.storeAppIsolation;
+  return null;
+}
 
 abstract class SupportedApp {
   final String packageName;
@@ -95,6 +122,18 @@ abstract class SupportedApp {
     TrainerConnectionType.bluetooth,
     TrainerConnectionType.wifi,
   };
+
+  /// [virtualShiftingTransports] as the build of this app for the platform
+  /// BikeControl runs on sees them — what counts when both run on this same
+  /// device. The same unless one platform's build differs (MyWhoosh on
+  /// Android pairs trainers over Bluetooth only).
+  Set<TrainerConnectionType> get virtualShiftingTransportsHere => virtualShiftingTransports;
+
+  /// Whether this app, on Windows, ships through the Microsoft Store as a
+  /// sandboxed (UWP) app. Windows blocks those from connecting to a network
+  /// service on the same PC, so they can't pick up a Bridge running beside
+  /// them; see [vsSameDeviceBlock].
+  bool get windowsStoreApp => false;
 
   /// Whether button presses can reach this app as simulated input — keystrokes
   /// typed locally, or the Bluetooth keyboard/mouse we pair to another device.

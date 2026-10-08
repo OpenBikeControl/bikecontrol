@@ -1313,7 +1313,7 @@
     }
   },
   "onboardingVsBlockedTitle": "Opcjonalnie: podłącz trenażer",
-  "onboardingVsBlockedSubtitle": "BikeControl może liczyć biegi dla każdej aplikacji — z {app} na Androidzie potrzebny jest tylko inny układ.",
+  "onboardingVsBlockedSubtitle": "BikeControl może liczyć biegi dla każdej aplikacji — z {app} na tym urządzeniu potrzebny jest tylko inny układ.",
   "@onboardingVsBlockedSubtitle": {
     "placeholders": {
       "app": {
@@ -1321,7 +1321,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "Wirtualna zmiana biegów działa z {app} — tylko nie z obiema aplikacjami na tym jednym telefonie: BikeControl udostępnia trenażer przez Wi-Fi, wersja {app} na Androida paruje trenażery wyłącznie przez Bluetooth, a BikeControl nie może rozgłaszać Bluetooth do aplikacji na tym samym urządzeniu.",
+  "onboardingVsBlockedExplainer": "Wirtualna zmiana biegów działa z {app} — tylko nie z obiema aplikacjami na tym jednym urządzeniu: {app} paruje tu trenażery wyłącznie przez Bluetooth, a BikeControl nie może rozgłaszać Bluetooth do aplikacji na tym samym urządzeniu.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -1329,6 +1329,8 @@
       }
     }
   },
+  "onboardingVsBlockedExplainerStoreApp": "Wirtualna zmiana biegów działa z {app} — tylko nie z obiema aplikacjami na tym jednym PC: {app} pochodzi ze Sklepu Microsoft, a Windows nie pozwala aplikacjom ze Sklepu łączyć się z BikeControl na tym samym PC. Bluetooth też nie dotrze do aplikacji na tym samym urządzeniu.",
+  "@onboardingVsBlockedExplainerStoreApp": {"description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.", "placeholders": {"app": {"type": "String"}}},
   "onboardingVsBlockedAlternatives": "Dwa układy, które działają",
   "onboardingVsBlockedAltAppTitle": "Uruchom {app} na innym urządzeniu",
   "@onboardingVsBlockedAltAppTitle": {
@@ -1338,7 +1340,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Zostaw BikeControl na tym telefonie i jeźdź w {app} na PC, Apple TV lub tablecie — znajdzie trenażer przez BikeControl w Wi-Fi. Cofnij się o krok i wybierz „Inne urządzenie”.",
+  "onboardingVsBlockedAltAppBody": "Zostaw BikeControl tutaj i jeźdź w {app} na innym PC, Apple TV, tablecie lub telefonie — znajdzie trenażer przez BikeControl. Cofnij się o krok i wybierz „Inne urządzenie”.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1348,7 +1350,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "Uruchom BikeControl na innym urządzeniu",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Zainstaluj BikeControl na drugim telefonie lub tablecie obok roweru i pozwól mu udostępnić trenażer przez Bluetooth — to akceptuje {app} na Androidzie.",
+  "onboardingVsBlockedAltBtBody": "Zainstaluj BikeControl na drugim telefonie lub tablecie obok roweru i pozwól mu przekazać stamtąd trenażer do {app}.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -2169,6 +2171,8 @@
   "chainStatusWaitingForPickup": "Czekam, aż {app} go wykryje",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
   "vsTransportSameDeviceNote": "Bluetooth nie dotrze do aplikacji na tym samym urządzeniu — używane jest Wi-Fi.",
+  "vsSameDeviceBlockedFix": "Co działa: BikeControl na telefonie lub tablecie obok roweru albo {app} na innym urządzeniu.",
+  "@vsSameDeviceBlockedFix": {"description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.", "placeholders": {"app": {"type": "String"}}},
   "trainerTwinSubtitle": "Ten sam trenażer przez {transport} — połączenie przełącza na tę ścieżkę",
   "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
   "trainerTwinStillConnecting": "{trainer} wciąż łączy się przez {transport}. Odczekaj chwilę i spróbuj ponownie.",

@@ -1,17 +1,14 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
-import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/local_network.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet, satisfyRequirements;
-import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -40,11 +37,22 @@ bool _supportsBluetooth(SupportedApp app) =>
 
 bool get _localPlatform => HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isAndroid;
 
-/// MyWhoosh on Android cannot pair a virtual bike over the network, so a
-/// BikeControl bridge on that same device is unreachable — the rider has to
-/// move one of the two apps to another device (see step 4's notice).
+/// Whether the trainer app runs on this device and can't reach a BikeControl
+/// bridge here (see [vsSameDeviceBlock]: MyWhoosh on Android, FulGaz, a
+/// Microsoft Store app on Windows) — the rider has to move one of the two apps
+/// to another device (see the trainer step's notice).
 bool onboardingVirtualShiftingBlocked(SupportedApp app) =>
-    !kIsWeb && Platform.isAndroid && app is MyWhoosh && core.settings.getLastTarget() == Target.thisDevice;
+    core.settings.getLastTarget() == Target.thisDevice && vsSameDeviceBlock(app) != null;
+
+/// Whether the trainer step should say up front that [app] has to run on
+/// another device. For apps whose "this or another device" was answered for
+/// the rider ([Target.supportedFor] leaves one choice: FulGaz) and that can't
+/// reach a bridge on the same device either — riders put them on the same
+/// iPad all the same, and nothing else would tell them why it never connects.
+bool onboardingVsNeedsSecondDevice(SupportedApp app) =>
+    core.settings.getLastTarget() != Target.thisDevice &&
+    Target.supportedFor(app).length == 1 &&
+    vsSameDeviceBlock(app) != null;
 
 /// Whether the Where step's target turns on the Local method. Only for an app
 /// on this device, and only where Local exists — on iOS a same-device app is

@@ -243,9 +243,10 @@ class _TrainerPickerState extends State<_TrainerPicker> {
             core.connection.performScanning();
             setState(() {});
           },
-          // The block is a MyWhoosh-specific caveat — with no app chosen yet
-          // there is nothing to block on.
+          // The block names the chosen app — with no app chosen yet there is
+          // nothing to block on.
           virtualShiftingBlocked: app != null && onboardingVirtualShiftingBlocked(app),
+          needsSecondDevice: app != null && onboardingVsNeedsSecondDevice(app),
         ),
         const Gap(16),
         SizedBox(

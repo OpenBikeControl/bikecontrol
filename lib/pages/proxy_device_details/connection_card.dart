@@ -6,11 +6,13 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
-import 'package:bike_control/utils/keymap/apps/supported_app.dart' show SupportedApp, TrainerConnectionType;
+import 'package:bike_control/utils/keymap/apps/supported_app.dart'
+    show SupportedApp, TrainerConnectionType, VsSameDeviceBlock, vsSameDeviceBlock;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedHeader;
@@ -64,6 +66,16 @@ class _ConnectionCardState extends State<ConnectionCard> {
   /// invisible to a central on the same adapter — so Bluetooth is not a
   /// Virtual Shifting transport here. (Only WiFi loops back.)
   bool get _isSameDevice => core.settings.getLastTarget() == Target.thisDevice;
+
+  /// Why the trainer app, on this same device, can never pick up the bridge
+  /// (see [vsSameDeviceBlock]) — null when it can, or when it runs elsewhere.
+  /// Then the Virtual Shifting row says so instead of offering a WiFi that
+  /// can't work.
+  VsSameDeviceBlock? get _sameDeviceBlock {
+    final app = core.settings.getTrainerApp();
+    if (!_isSameDevice || app == null) return null;
+    return vsSameDeviceBlock(app);
+  }
 
   /// Whether a Bluetooth resolution for this trainer is being folded into WiFi
   /// by [_isSameDevice] (see [ProxyDevice.sameDeviceFoldsBluetooth]). Read
@@ -343,7 +355,9 @@ class _ConnectionCardState extends State<ConnectionCard> {
     RetrofitMode mode,
     ColorScheme cs,
   ) {
-    final bool showToggle = s == _ConnectSelection.virtualShifting && active == _ConnectSelection.virtualShifting;
+    final block = s == _ConnectSelection.virtualShifting ? _sameDeviceBlock : null;
+    final bool showToggle =
+        s == _ConnectSelection.virtualShifting && active == _ConnectSelection.virtualShifting && block == null;
     // The rider chose Bluetooth for this trainer, but the toggle no longer
     // offers it: say why the row runs over WiFi instead of silently dropping
     // their choice. Plain muted text — nothing to dismiss, it goes away on its
@@ -352,7 +366,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
     // "using WiFi" would be untrue.
     final bool liveOverBluetooth = active == _ConnectSelection.virtualShifting && mode == RetrofitMode.bluetooth;
     final bool showSameDeviceNote =
-        s == _ConnectSelection.virtualShifting && _sameDeviceOverridesBluetooth && !liveOverBluetooth;
+        s == _ConnectSelection.virtualShifting && _sameDeviceOverridesBluetooth && !liveOverBluetooth && block == null;
     final selected = s == active;
     return RadioCard<_ConnectSelection>(
       value: s,
@@ -382,11 +396,55 @@ class _ConnectionCardState extends State<ConnectionCard> {
                     AppLocalizations.of(context).vsTransportSameDeviceNote,
                     style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
                   ),
+                if (block != null) ...[
+                  const Gap(8),
+                  _sameDeviceBlockNote(block),
+                ],
                 // The chosen option's own choice, inside its card.
                 if (showToggle) ...[
                   const Gap(10),
                   _transportToggle(mode),
                 ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Why virtual shifting can't reach the trainer app on this device, and
+  /// the two setups that work — the same explanation onboarding gives.
+  Widget _sameDeviceBlockNote(VsSameDeviceBlock block) {
+    final l10n = AppLocalizations.of(context);
+    final status = BkStatusColors.of(context);
+    final explainer = switch (block) {
+      VsSameDeviceBlock.bluetoothOnly => l10n.onboardingVsBlockedExplainer(_trainerAppName),
+      VsSameDeviceBlock.storeAppIsolation => l10n.onboardingVsBlockedExplainerStoreApp(_trainerAppName),
+    };
+    return Container(
+      key: const ValueKey('vs-same-device-blocked'),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: status.warningWash,
+        border: Border.all(color: status.warning.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Icon(LucideIcons.triangleAlert, size: 14, color: status.warning),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 4,
+              children: [
+                Text(explainer, style: context.typography.xSmall),
+                Text(
+                  l10n.vsSameDeviceBlockedFix(_trainerAppName),
+                  style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w600),
+                ),
               ],
             ),
           ),

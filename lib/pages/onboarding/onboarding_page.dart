@@ -928,6 +928,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         setState(() {});
       },
       virtualShiftingBlocked: onboardingVirtualShiftingBlocked(_selectedApp!),
+      needsSecondDevice: onboardingVsNeedsSecondDevice(_selectedApp!),
     ),
     OnboardingStep.connection => onboardingConnectionBody(
       context,

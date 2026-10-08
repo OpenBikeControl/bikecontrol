@@ -746,7 +746,7 @@
     }
   },
   "onboardingVsBlockedTitle": "Optional: connect your smart trainer",
-  "onboardingVsBlockedSubtitle": "BikeControl can compute your gears for any app — with {app} on Android it just needs a different arrangement.",
+  "onboardingVsBlockedSubtitle": "BikeControl can compute your gears for any app — with {app} on this device it just needs a different arrangement.",
   "@onboardingVsBlockedSubtitle": {
     "placeholders": {
       "app": {
@@ -754,7 +754,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "Virtual shifting works with {app} — just not with both apps on this one phone: BikeControl passes your trainer on over Wi-Fi, the Android version of {app} pairs trainers over Bluetooth only, and BikeControl can't advertise Bluetooth to an app on the same device.",
+  "onboardingVsBlockedExplainer": "Virtual shifting works with {app} — just not with both apps on this one device: {app} here pairs trainers over Bluetooth only, and BikeControl can't advertise Bluetooth to an app on the same device.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -762,6 +762,8 @@
       }
     }
   },
+  "onboardingVsBlockedExplainerStoreApp": "Virtual shifting works with {app} — just not with both apps on this one PC: {app} comes from the Microsoft Store, and Windows doesn't let Store apps connect to BikeControl on the same PC. Bluetooth can't reach an app on the same device either.",
+  "@onboardingVsBlockedExplainerStoreApp": {"description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.", "placeholders": {"app": {"type": "String"}}},
   "onboardingVsBlockedAlternatives": "Two setups that work",
   "onboardingVsBlockedAltAppTitle": "Run {app} on another device",
   "@onboardingVsBlockedAltAppTitle": {
@@ -771,7 +773,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Keep BikeControl on this phone and ride {app} on a PC, Apple TV or tablet — it finds your trainer through BikeControl over your Wi-Fi. Go back a step and pick “Other Device”.",
+  "onboardingVsBlockedAltAppBody": "Keep BikeControl here and ride {app} on another PC, Apple TV, tablet or phone — it finds your trainer through BikeControl. Go back a step and pick “Other Device”.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -781,7 +783,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "Run BikeControl on another device",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Install BikeControl on a second phone or tablet next to your bike and let it pass the trainer on over Bluetooth — that's what {app} on Android accepts.",
+  "onboardingVsBlockedAltBtBody": "Install BikeControl on a second phone or tablet next to your bike and let it pass the trainer on to {app} from there.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -2365,6 +2367,8 @@
   "chainStatusWaitingForPickup": "Waiting for {app} to pick it up",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
   "vsTransportSameDeviceNote": "Bluetooth can't reach an app on this same device — using WiFi.",
+  "vsSameDeviceBlockedFix": "What works: BikeControl on a phone or tablet next to your bike, or {app} on another device.",
+  "@vsSameDeviceBlockedFix": {"description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.", "placeholders": {"app": {"type": "String"}}},
   "trainerTwinSubtitle": "Same trainer over {transport} — connecting switches to this path",
   "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
   "trainerTwinStillConnecting": "{trainer} is still connecting over {transport}. Wait a moment, then try again.",

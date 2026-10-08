@@ -1325,7 +1325,7 @@
     }
   },
   "onboardingVsBlockedTitle": "Optional: Smart Trainer verbinden",
-  "onboardingVsBlockedSubtitle": "BikeControl kann deine Gänge für jede App berechnen — mit {app} unter Android braucht es nur einen anderen Aufbau.",
+  "onboardingVsBlockedSubtitle": "BikeControl kann deine Gänge für jede App berechnen — mit {app} auf diesem Gerät braucht es nur einen anderen Aufbau.",
   "@onboardingVsBlockedSubtitle": {
     "placeholders": {
       "app": {
@@ -1333,7 +1333,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "Virtual Shifting funktioniert mit {app} — nur nicht mit beiden Apps auf diesem einen Handy: BikeControl stellt deinen Trainer über WLAN bereit, die Android-Version von {app} koppelt Trainer aber nur über Bluetooth, und BikeControl kann Bluetooth nicht an eine App auf demselben Gerät senden.",
+  "onboardingVsBlockedExplainer": "Virtual Shifting funktioniert mit {app} — nur nicht mit beiden Apps auf diesem einen Gerät: {app} koppelt Trainer hier nur über Bluetooth, und BikeControl kann Bluetooth nicht an eine App auf demselben Gerät senden.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -1341,6 +1341,8 @@
       }
     }
   },
+  "onboardingVsBlockedExplainerStoreApp": "Virtual Shifting funktioniert mit {app} — nur nicht mit beiden Apps auf diesem einen PC: {app} kommt aus dem Microsoft Store, und Windows lässt Store-Apps keine Verbindung zu BikeControl auf demselben PC aufbauen. Bluetooth erreicht eine App auf demselben Gerät auch nicht.",
+  "@onboardingVsBlockedExplainerStoreApp": {"description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.", "placeholders": {"app": {"type": "String"}}},
   "onboardingVsBlockedAlternatives": "Zwei Aufbauten, die funktionieren",
   "onboardingVsBlockedAltAppTitle": "{app} auf einem anderen Gerät nutzen",
   "@onboardingVsBlockedAltAppTitle": {
@@ -1350,7 +1352,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Lass BikeControl auf diesem Handy und fahre {app} auf PC, Apple TV oder Tablet — dort findet {app} deinen Trainer über BikeControl in deinem WLAN. Gehe einen Schritt zurück und wähle „Anderes Gerät“.",
+  "onboardingVsBlockedAltAppBody": "Lass BikeControl hier und fahre {app} auf einem anderen PC, Apple TV, Tablet oder Handy — dort findet {app} deinen Trainer über BikeControl. Gehe einen Schritt zurück und wähle „Anderes Gerät“.",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1360,7 +1362,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "BikeControl auf einem anderen Gerät nutzen",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Installiere BikeControl auf einem zweiten Handy oder Tablet neben deinem Rad und lass es den Trainer über Bluetooth bereitstellen — das akzeptiert {app} unter Android.",
+  "onboardingVsBlockedAltBtBody": "Installiere BikeControl auf einem zweiten Handy oder Tablet neben deinem Rad und lass es den Trainer von dort an {app} weitergeben.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -2171,6 +2173,8 @@
   "chainStatusWaitingForPickup": "Warte darauf, dass {app} ihn erkennt",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
   "vsTransportSameDeviceNote": "Bluetooth erreicht keine App auf diesem Gerät — WLAN wird verwendet.",
+  "vsSameDeviceBlockedFix": "Was funktioniert: BikeControl auf einem Handy oder Tablet neben deinem Rad, oder {app} auf einem anderen Gerät.",
+  "@vsSameDeviceBlockedFix": {"description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.", "placeholders": {"app": {"type": "String"}}},
   "trainerTwinSubtitle": "Derselbe Trainer über {transport} — Verbinden wechselt auf diesen Weg",
   "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
   "trainerTwinStillConnecting": "{trainer} verbindet sich noch über {transport}. Warte kurz und versuch es dann noch einmal.",

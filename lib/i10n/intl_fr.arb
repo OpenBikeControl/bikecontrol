@@ -1313,7 +1313,7 @@
     }
   },
   "onboardingVsBlockedTitle": "Facultatif : connecte ton home-trainer",
-  "onboardingVsBlockedSubtitle": "BikeControl peut calculer tes vitesses pour n'importe quelle app — avec {app} sur Android, il faut juste une autre configuration.",
+  "onboardingVsBlockedSubtitle": "BikeControl peut calculer tes vitesses pour n'importe quelle app — avec {app} sur cet appareil, il faut juste une autre configuration.",
   "@onboardingVsBlockedSubtitle": {
     "placeholders": {
       "app": {
@@ -1321,7 +1321,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "Les vitesses virtuelles fonctionnent avec {app} — mais pas avec les deux apps sur ce seul téléphone : BikeControl publie ton home-trainer en Wi-Fi, la version Android de {app} n'associe les home-trainers qu'en Bluetooth, et BikeControl ne peut pas s'annoncer en Bluetooth à une app du même appareil.",
+  "onboardingVsBlockedExplainer": "Les vitesses virtuelles fonctionnent avec {app} — mais pas avec les deux apps sur ce seul appareil : ici, {app} n'associe les home-trainers qu'en Bluetooth, et BikeControl ne peut pas s'annoncer en Bluetooth à une app du même appareil.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -1329,6 +1329,8 @@
       }
     }
   },
+  "onboardingVsBlockedExplainerStoreApp": "Les vitesses virtuelles fonctionnent avec {app} — mais pas avec les deux apps sur ce seul PC : {app} vient du Microsoft Store, et Windows ne laisse pas les apps du Store se connecter à BikeControl sur le même PC. Le Bluetooth n'atteint pas non plus une app du même appareil.",
+  "@onboardingVsBlockedExplainerStoreApp": {"description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.", "placeholders": {"app": {"type": "String"}}},
   "onboardingVsBlockedAlternatives": "Deux configurations qui marchent",
   "onboardingVsBlockedAltAppTitle": "Utilise {app} sur un autre appareil",
   "@onboardingVsBlockedAltAppTitle": {
@@ -1338,7 +1340,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Garde BikeControl sur ce téléphone et roule avec {app} sur un PC, une Apple TV ou une tablette — il y trouvera ton home-trainer via BikeControl sur ton Wi-Fi. Reviens d'une étape et choisis « Autre appareil ».",
+  "onboardingVsBlockedAltAppBody": "Garde BikeControl ici et roule avec {app} sur un autre PC, une Apple TV, une tablette ou un téléphone — il y trouvera ton home-trainer via BikeControl. Reviens d'une étape et choisis « Autre appareil ».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1348,7 +1350,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "Utilise BikeControl sur un autre appareil",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Installe BikeControl sur un deuxième téléphone ou une tablette près de ton vélo et laisse-le publier le home-trainer en Bluetooth — c'est ce que {app} accepte sur Android.",
+  "onboardingVsBlockedAltBtBody": "Installe BikeControl sur un deuxième téléphone ou une tablette près de ton vélo et laisse-le transmettre le home-trainer à {app} depuis là.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -2169,6 +2171,8 @@
   "chainStatusWaitingForPickup": "En attente que {app} le détecte",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
   "vsTransportSameDeviceNote": "Le Bluetooth ne peut pas atteindre une appli sur ce même appareil — le Wi-Fi est utilisé.",
+  "vsSameDeviceBlockedFix": "Ce qui marche : BikeControl sur un téléphone ou une tablette près de ton vélo, ou {app} sur un autre appareil.",
+  "@vsSameDeviceBlockedFix": {"description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.", "placeholders": {"app": {"type": "String"}}},
   "trainerTwinSubtitle": "Même home trainer via {transport} — se connecter bascule sur cette voie",
   "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
   "trainerTwinStillConnecting": "{trainer} est encore en train de se connecter via {transport}. Patiente un instant, puis réessaie.",

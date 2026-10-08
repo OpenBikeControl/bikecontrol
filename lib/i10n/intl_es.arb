@@ -1313,7 +1313,7 @@
     }
   },
   "onboardingVsBlockedTitle": "Opcional: conecta tu rodillo inteligente",
-  "onboardingVsBlockedSubtitle": "BikeControl puede calcular tus marchas para cualquier app; con {app} en Android solo necesita otra disposición.",
+  "onboardingVsBlockedSubtitle": "BikeControl puede calcular tus marchas para cualquier app; con {app} en este dispositivo solo necesita otra disposición.",
   "@onboardingVsBlockedSubtitle": {
     "placeholders": {
       "app": {
@@ -1321,7 +1321,7 @@
       }
     }
   },
-  "onboardingVsBlockedExplainer": "El cambio virtual funciona con {app}, pero no con las dos apps en este mismo móvil: BikeControl publica tu rodillo por wifi, la versión Android de {app} solo empareja rodillos por Bluetooth, y BikeControl no puede anunciarse por Bluetooth a una app del mismo dispositivo.",
+  "onboardingVsBlockedExplainer": "El cambio virtual funciona con {app}, pero no con las dos apps en este mismo dispositivo: aquí {app} solo empareja rodillos por Bluetooth, y BikeControl no puede anunciarse por Bluetooth a una app del mismo dispositivo.",
   "@onboardingVsBlockedExplainer": {
     "placeholders": {
       "app": {
@@ -1329,6 +1329,8 @@
       }
     }
   },
+  "onboardingVsBlockedExplainerStoreApp": "El cambio virtual funciona con {app}, pero no con las dos apps en este mismo PC: {app} viene de Microsoft Store y Windows no deja que las apps de la Store se conecten a BikeControl en el mismo PC. Y el Bluetooth tampoco llega a una app del mismo dispositivo.",
+  "@onboardingVsBlockedExplainerStoreApp": {"description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.", "placeholders": {"app": {"type": "String"}}},
   "onboardingVsBlockedAlternatives": "Dos configuraciones que funcionan",
   "onboardingVsBlockedAltAppTitle": "Usa {app} en otro dispositivo",
   "@onboardingVsBlockedAltAppTitle": {
@@ -1338,7 +1340,7 @@
       }
     }
   },
-  "onboardingVsBlockedAltAppBody": "Deja BikeControl en este móvil y rueda con {app} en un PC, Apple TV o tablet: encontrará tu rodillo a través de BikeControl por tu wifi. Vuelve un paso y elige «Otro dispositivo».",
+  "onboardingVsBlockedAltAppBody": "Deja BikeControl aquí y rueda con {app} en otro PC, Apple TV, tablet o móvil: encontrará tu rodillo a través de BikeControl. Vuelve un paso y elige «Otro dispositivo».",
   "@onboardingVsBlockedAltAppBody": {
     "placeholders": {
       "app": {
@@ -1348,7 +1350,7 @@
   },
   "onboardingVsBlockedAltBtTitle": "Usa BikeControl en otro dispositivo",
   "@onboardingVsBlockedAltBtTitle": {},
-  "onboardingVsBlockedAltBtBody": "Instala BikeControl en un segundo móvil o tablet junto a tu bici y deja que publique el rodillo por Bluetooth: eso es lo que acepta {app} en Android.",
+  "onboardingVsBlockedAltBtBody": "Instala BikeControl en un segundo móvil o tablet junto a tu bici y deja que pase el rodillo a {app} desde allí.",
   "@onboardingVsBlockedAltBtBody": {
     "placeholders": {
       "app": {
@@ -2169,6 +2171,8 @@
   "chainStatusWaitingForPickup": "Esperando a que {app} lo detecte",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}}},
   "vsTransportSameDeviceNote": "El Bluetooth no puede llegar a una app en este mismo dispositivo — se usa Wifi.",
+  "vsSameDeviceBlockedFix": "Lo que funciona: BikeControl en un móvil o tablet junto a tu bici, o {app} en otro dispositivo.",
+  "@vsSameDeviceBlockedFix": {"description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.", "placeholders": {"app": {"type": "String"}}},
   "trainerTwinSubtitle": "Mismo rodillo por {transport} — conectar cambia a esta vía",
   "@trainerTwinSubtitle": {"placeholders": {"transport": {"type": "String"}}},
   "trainerTwinStillConnecting": "{trainer} todavía se está conectando por {transport}. Espera un momento y vuelve a intentarlo.",

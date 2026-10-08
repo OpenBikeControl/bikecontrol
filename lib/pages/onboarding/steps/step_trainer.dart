@@ -32,6 +32,24 @@ String onboardingTrainerSubtitleFor(BuildContext context, ProxyDevice trainer) {
   return '$transport · ${context.i18n.onboardingTrainerMeta}';
 }
 
+/// The amber box that says why this same device won't do for virtual
+/// shifting.
+Widget _sameDeviceWarning(BuildContext context, Widget child, {Key? key}) => Container(
+  key: key,
+  width: double.infinity,
+  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(10),
+    color: BkStatusColors.of(context).warningWash,
+    border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.5)),
+  ),
+  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Icon(LucideIcons.triangleAlert, size: 16, color: BkStatusColors.of(context).warning),
+    Gap(10),
+    Expanded(child: child),
+  ]),
+);
+
 Widget _alternative(BuildContext context, IconData icon, String title, String body) {
   final scheme = Theme.of(context).colorScheme;
   return Container(
@@ -59,33 +77,25 @@ Widget onboardingTrainerBody(BuildContext context,
     required List<ProxyDevice> trainers,
     required void Function(ProxyDevice) onPick,
     VoidCallback? onRescan,
-    bool virtualShiftingBlocked = false}) {
+    bool virtualShiftingBlocked = false,
+    bool needsSecondDevice = false}) {
   final bridged = trainers.where((t) => t.isBridged).toList();
 
-  // MyWhoosh on Android can't see a network virtual bike, so a bridge on this
-  // same device would never be found — explain it and name the two setups
-  // that do work instead of silently hiding the step. The block is only
-  // meaningful for a chosen app — its copy names it.
+  // The trainer app on this same device can't pick up a bridge here (see
+  // [vsSameDeviceBlock]: Bluetooth only, or a Microsoft Store app on Windows)
+  // — explain it and name the two setups that do work instead of silently
+  // hiding the step. The block is only meaningful for a chosen app — its copy
+  // names it.
   if (bridged.isEmpty && virtualShiftingBlocked && app != null) {
+    final explainer = vsSameDeviceBlock(app) == VsSameDeviceBlock.storeAppIsolation
+        ? context.i18n.onboardingVsBlockedExplainerStoreApp(app.name)
+        : context.i18n.onboardingVsBlockedExplainer(app.name);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
       OnboardingHeadline(context.i18n.onboardingVsBlockedTitle),
       Gap(6),
       Text(context.i18n.onboardingVsBlockedSubtitle(app.name)).small.muted,
       Gap(16),
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: BkStatusColors.of(context).warningWash,
-          border: Border.all(color: BkStatusColors.of(context).warning.withValues(alpha: 0.5)),
-        ),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(LucideIcons.triangleAlert, size: 16, color: BkStatusColors.of(context).warning),
-          Gap(10),
-          Expanded(child: Text(context.i18n.onboardingVsBlockedExplainer(app.name)).xSmall),
-        ]),
-      ),
+      _sameDeviceWarning(context, Text(explainer).xSmall),
       Gap(16),
       Text(context.i18n.onboardingVsBlockedAlternatives).xSmall.semiBold.muted,
       Gap(8),
@@ -151,6 +161,20 @@ Widget onboardingTrainerBody(BuildContext context,
     Gap(6),
     Text(context.i18n.onboardingTrainerSubtitle).small.muted,
     Gap(16),
+    // An app that can only ever run on a second device (FulGaz) was never asked
+    // "this or another device" — say it here, before riders put it on the same
+    // iPad and wait for a trainer that will never show up in it.
+    if (needsSecondDevice && app != null) ...[
+      _sameDeviceWarning(
+        context,
+        key: const ValueKey('onboarding-vs-second-device-note'),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(context.i18n.onboardingVsBlockedAltAppTitle(app.name)).xSmall.semiBold,
+          Text(context.i18n.onboardingVsBlockedExplainer(app.name)).xSmall,
+        ]),
+      ),
+      Gap(16),
+    ],
     // Once a trainer is found, connecting it is the step's job: the list
     // (with Connect) moves above the animation so it is on the first screen.
     if (trainers.isNotEmpty) ...[
