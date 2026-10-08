@@ -46,6 +46,7 @@ class ReadyBanner extends StatelessWidget {
     this.onRevealOutstanding,
     this.steps = const [],
     this.connectingNames,
+    this.settling = false,
   });
 
   /// How many steps the banner lists before "+N more".
@@ -79,20 +80,30 @@ class ReadyBanner extends StatelessWidget {
   /// "Ready to ride", so when they are back it changes words, not shape.
   final List<String>? connectingNames;
 
+  /// The first seconds after launch, while the setup is still finding itself
+  /// (see `StartupSettling`): one calm "Connecting…" line stands in for the
+  /// steps, which would otherwise flip as devices turn up. It names the
+  /// remembered devices on their way back, if any ([connectingNames]).
+  final bool settling;
+
   @override
   Widget build(BuildContext context) {
     // The list and the one-line banner are different shapes: going from one
     // to the other crossfades while the height eases, so the cards under the
     // banner glide instead of jumping.
     return BkAnimatedSwap(
-      child: banner.kind == ChainBannerKind.pending && steps.isNotEmpty ? _stepList(context) : _line(context),
+      child: banner.kind == ChainBannerKind.pending && steps.isNotEmpty && !settling
+          ? _stepList(context)
+          : _line(context),
     );
   }
 
   Widget _line(BuildContext context) {
     final theme = Theme.of(context);
     final style = AmpelStyle.of(context, banner.status);
-    final connecting = connectingNames;
+    final connecting = settling && banner.kind == ChainBannerKind.pending
+        ? (connectingNames ?? const <String>[])
+        : connectingNames;
     final calm = banner.kind == ChainBannerKind.ready || connecting != null;
     final l = context.i18n;
 
@@ -101,7 +112,9 @@ class ReadyBanner extends StatelessWidget {
     switch (banner.kind) {
       case ChainBannerKind.pending when connecting != null:
         title = l.chainStatusConnecting;
-        subtitle = connecting.length <= 1
+        subtitle = connecting.isEmpty
+            ? l.readyBannerSettlingSubtitle
+            : connecting.length <= 1
             ? connecting.join()
             : '${connecting.take(connecting.length - 1).join(', ')} & ${connecting.last}';
       case ChainBannerKind.ready:

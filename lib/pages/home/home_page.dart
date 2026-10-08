@@ -29,6 +29,7 @@ import 'package:bike_control/pages/home/chain_inputs.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_sheets.dart';
 import 'package:bike_control/pages/home/pro_unregistered_banner.dart';
+import 'package:bike_control/pages/home/startup_settling.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
@@ -325,6 +326,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // until they are back or the window runs out — see
     // [Connection.startupReconnecting].
     core.connection.startupReconnecting.addListener(_onStartupReconnectChanged);
+    // And for the first seconds Ride's banner holds one calm line while the
+    // scan looks around — see [StartupSettling].
+    _settling = startupSettling..addListener(_onSettlingChanged);
+    core.connection.isScanning.addListener(_onSettlingChanged);
 
     _maybeShowRideFirmwareDialog();
     if (!_isRide) widget.reveal?.addListener(_onRevealRequested);
@@ -332,6 +337,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void _onStartupReconnectChanged() {
     if (mounted) setState(() {});
+  }
+
+  late final StartupSettling _settling;
+
+  void _onSettlingChanged() {
+    if (mounted && _isRide) setState(() {});
   }
 
   @override
@@ -430,6 +441,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
     widget.reveal?.removeListener(_onRevealRequested);
     core.connection.startupReconnecting.removeListener(_onStartupReconnectChanged);
+    _settling.removeListener(_onSettlingChanged);
+    core.connection.isScanning.removeListener(_onSettlingChanged);
     _connectionListener.cancel();
     _actionListener.cancel();
     for (final presses in _presses.values) {
@@ -850,6 +863,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             waitingForApp: banner.waitingForApp,
           );
     final steps = _bannerSteps(links, shownBanner, inputs);
+    // Freshly launched, the chain is still finding itself: the banner holds
+    // one calm line rather than steps that flip as the scan turns things up.
+    // A ready setup ends that at once.
+    final settling = !_settling.observe(
+      ready: banner.kind == ChainBannerKind.ready,
+      reconnecting: reconnecting.isNotEmpty,
+      scanning: core.connection.isScanning.value,
+    );
 
     final status = <Widget>[
       ReadyBanner(
@@ -861,8 +882,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             : null,
         onRevealOutstanding: () => _showOutstanding(links, shownBanner.outstandingLinkIds),
         steps: steps,
+        settling: settling,
         // Nothing left but the devices on their way back: say so, calmly.
-        connectingNames: shownBanner.outstandingLinkIds.isEmpty && reconnectingLinks.isNotEmpty
+        connectingNames: (settling || shownBanner.outstandingLinkIds.isEmpty) && reconnectingLinks.isNotEmpty
             ? [for (final l in reconnectingLinks) _linkName(links, l.id) ?? chainLinkName(context, l.key)]
             : null,
       ),

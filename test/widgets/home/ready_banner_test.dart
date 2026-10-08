@@ -11,6 +11,7 @@ Future<void> pumpBanner(
   VoidCallback? onAction,
   VoidCallback? onRevealOutstanding,
   List<ReadyBannerStep> steps = const [],
+  bool settling = false,
 }) async {
   await tester.pumpWidget(
     ShadcnApp(
@@ -26,6 +27,7 @@ Future<void> pumpBanner(
             onAction: onAction,
             onRevealOutstanding: onRevealOutstanding,
             steps: steps,
+            settling: settling,
           ),
         ),
       ),
@@ -373,6 +375,36 @@ void main() async {
       await tester.pump();
       expect(revealed, 1);
     });
+  });
+
+  // Right after launch the steps flip as devices turn up and drop again: one
+  // calm line stands in for all of them until the setup has settled.
+  testWidgets('while settling: one calm "Connecting…" line instead of the steps', (tester) async {
+    await pumpBanner(
+      tester,
+      const ChainBanner(
+        kind: ChainBannerKind.pending,
+        status: LinkStatus.attention,
+        stepsLeft: 2,
+        targetLinkId: 'controller-a',
+        targetKey: ChainLinkKey.controller,
+        outstandingKeys: [ChainLinkKey.controller],
+        outstandingLinkIds: ['controller-a'],
+      ),
+      settling: true,
+      steps: [
+        ReadyBannerStep(
+          linkId: 'controller-a',
+          step: const SetupStep(id: SetupStepId.controllerPaired, done: false),
+          onFix: () {},
+        ),
+      ],
+    );
+    expect(find.text(l.chainStatusConnecting), findsOneWidget);
+    expect(find.byKey(const ValueKey('ready-banner-steps')), findsNothing);
+    expect(find.text(l.chainStepsLeftTitle(2)), findsNothing);
+    expect(find.text(l.chainStepControllerPairedPending), findsNothing);
+    expect(find.byType(PrimaryButton), findsNothing, reason: 'nothing to act on yet');
   });
 
   // Ready is calm: a green tick with a quiet halo, no wash, no outline.

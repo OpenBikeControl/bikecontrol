@@ -1600,6 +1600,7 @@
   "chainBannerFix": "Corriger",
   "chainBannerShow": "Afficher",
   "readyBannerMoreSteps": "+{count} de plus",
+  "readyBannerSettlingSubtitle": "Recherche de tes appareils et applis",
   "chainOptional": "Facultatif",
   "chainEdit": "Modifier",
   "chainSetUp": "Configurer",

@@ -24,6 +24,7 @@ import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/models/remembered_device.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_page.dart';
+import 'package:bike_control/pages/home/startup_settling.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/proxy_device_details/metric_card.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
@@ -247,6 +248,50 @@ void _bannerStepTests() {
       expect(row, findsOneWidget);
       expect(find.descendant(of: row, matching: find.text(l.chainStepWakePending)), findsOneWidget);
       expect(find.descendant(of: row, matching: find.byType(OptionalTag)), findsWidgets);
+    });
+
+    // Right after launch the steps would flip as the scan finds things and
+    // remembered devices come back. The banner holds one calm line until
+    // that has settled — and never holds back a setup that is ready.
+    group('right after launch', () {
+      tearDown(() {
+        startupSettling.dispose();
+        startupSettling = StartupSettling.settled();
+      });
+
+      ReadyBanner banner(WidgetTester tester) => tester.widget<ReadyBanner>(find.byType(ReadyBanner));
+
+      testWidgets('one calm line while the scan runs, then the steps', (tester) async {
+        // Created inside the test, so its timers run on the test's clock.
+        startupSettling = StartupSettling();
+        core.connection.isScanning.value = true;
+        await _pumpHome(tester);
+
+        expect(banner(tester).settling, isTrue);
+        expect(inBanner(find.text(l.chainStatusConnecting)), findsOneWidget);
+        expect(inBanner(find.text(l.chainStepControllerPairedPending)), findsNothing);
+
+        await tester.pump(StartupSettling.scanQuiet);
+        await tester.pump(const Duration(seconds: 1));
+        expect(banner(tester).settling, isFalse);
+        expect(inBanner(find.text(l.chainStepControllerPairedPending)), findsOneWidget);
+      });
+
+      testWidgets('a setup that is ready says so at once', (tester) async {
+        startupSettling = StartupSettling();
+        final play = ZwiftPlay(
+          BleDevice(name: 'Zwift Play', deviceId: 'settle-play'),
+          deviceType: ZwiftDeviceType.playLeft,
+        )..isConnected = true;
+        core.connection.devices.add(play);
+        core.actionHandler.init(MyWhoosh());
+        core.obpMdnsEmulator.isConnected.value = true;
+        addTearDown(() => core.obpMdnsEmulator.isConnected.value = false);
+        await _pumpHome(tester);
+
+        expect(banner(tester).settling, isFalse);
+        expect(find.text(l.chainReadyTitle), findsOneWidget);
+      });
     });
 
     testWidgets('each outstanding step shows with its title and the Devices row\'s fix', (tester) async {

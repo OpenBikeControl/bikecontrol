@@ -1815,6 +1815,7 @@
   },
   "chainBannerFix": "Fix",
   "chainBannerShow": "Show",
+  "readyBannerSettlingSubtitle": "Looking for your devices and apps",
   "readyBannerMoreSteps": "+{count} more",
   "@readyBannerMoreSteps": {
     "placeholders": {

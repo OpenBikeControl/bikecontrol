@@ -1612,6 +1612,7 @@
   "chainBannerFix": "Beheben",
   "chainBannerShow": "Anzeigen",
   "readyBannerMoreSteps": "+{count} weitere",
+  "readyBannerSettlingSubtitle": "Suche nach deinen Geräten und Apps",
   "chainOptional": "Optional",
   "chainEdit": "Bearbeiten",
   "chainSetUp": "Einrichten",

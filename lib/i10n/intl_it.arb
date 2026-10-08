@@ -1600,6 +1600,7 @@
   "chainBannerFix": "Risolvi",
   "chainBannerShow": "Mostra",
   "readyBannerMoreSteps": "+{count} altri",
+  "readyBannerSettlingSubtitle": "Cerco i tuoi dispositivi e le app",
   "chainOptional": "Facoltativo",
   "chainEdit": "Modifica",
   "chainSetUp": "Configura",
