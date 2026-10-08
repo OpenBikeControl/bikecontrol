@@ -442,7 +442,12 @@ class ShellTopBar extends StatelessWidget {
     this.activity,
     this.activityTab,
     this.shell,
+    this.scrolled,
   });
+
+  /// Whether the content has scrolled under the bar: a hairline then
+  /// separates the two. Flush with the page at the top.
+  final ValueListenable<bool>? scrolled;
 
   /// Activity's segment: Clear belongs to the log, not to News.
   final ValueListenable<ActivityTab>? activityTab;
@@ -472,7 +477,7 @@ class ShellTopBar extends StatelessWidget {
     // On a phone the title sits 4 in from the cards' edge; from 600 it lines
     // up with the cards, as beside the sidebar.
     final phone = isCompactWindow(context);
-    return AppBar(
+    final bar = AppBar(
       padding: EdgeInsets.fromLTRB(phone ? 16 : 24, compact ? 10 : 16, phone ? 8 : 20, 8),
       backgroundColor: Theme.of(context).colorScheme.background,
       title: Row(
@@ -508,6 +513,27 @@ class ShellTopBar extends StatelessWidget {
           )
         else
           const DebugMenuButton(),
+      ],
+    );
+    final scrolled = this.scrolled;
+    if (scrolled == null) return bar;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        bar,
+        ValueListenableBuilder<bool>(
+          valueListenable: scrolled,
+          builder: (context, isScrolled, _) => AnimatedOpacity(
+            opacity: isScrolled ? 1 : 0,
+            duration: const Duration(milliseconds: 150),
+            child: Container(
+              key: const ValueKey('shell-top-bar-separator'),
+              height: 1,
+              color: Theme.of(context).colorScheme.border,
+            ),
+          ),
+        ),
       ],
     );
   }

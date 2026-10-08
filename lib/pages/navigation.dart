@@ -37,6 +37,12 @@ class Navigation extends StatefulWidget {
 class _NavigationState extends State<Navigation> {
   bool _isMobile = false;
   final ShellController _shell = ShellController();
+
+  /// Whether the open tab has scrolled under the top bar: the bar then draws
+  /// a hairline to separate itself from the content.
+  final ValueNotifier<bool> _contentScrolled = ValueNotifier(false);
+
+  void _resetScrolled() => _contentScrolled.value = false;
   StreamSubscription<BaseDevice>? _overlayAutoShowSub;
   OverlayReassertScheduler? _reassertScheduler;
   StreamSubscription<BaseDevice>? _reassertConnSub;
@@ -45,6 +51,8 @@ class _NavigationState extends State<Navigation> {
   void initState() {
     super.initState();
     _shell.select(widget.initialSection);
+    // A newly opened tab starts at its top.
+    _shell.section.addListener(_resetScrolled);
     // Fetched up front so the Activity item can show its new-posts dot before
     // anyone opens News.
     if (BlogNewsController.fetchesAtStart) unawaited(_shell.news.load());
@@ -106,6 +114,8 @@ class _NavigationState extends State<Navigation> {
 
   @override
   void dispose() {
+    _shell.section.removeListener(_resetScrolled);
+    _contentScrolled.dispose();
     _overlayAutoShowSub?.cancel();
     _reassertConnSub?.cancel();
     _reassertScheduler?.dispose();
@@ -188,9 +198,16 @@ class _NavigationState extends State<Navigation> {
   @override
   Widget build(BuildContext context) {
     final size = WindowSize.of(context);
-    final content = KeyedSubtree(
-      key: const ValueKey('shell-content'),
-      child: OverviewPage(isMobile: _isMobile, shell: _shell),
+    final content = NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        // The tab's own scroll view, not a list nested inside it.
+        if (n.depth == 0 && n.metrics.axis == Axis.vertical) _contentScrolled.value = n.metrics.extentBefore > 0;
+        return false;
+      },
+      child: KeyedSubtree(
+        key: const ValueKey('shell-content'),
+        child: OverviewPage(isMobile: _isMobile, shell: _shell),
+      ),
     );
 
     // Not a plain Scaffold: the support screenshot must not show the sheet or
@@ -211,6 +228,7 @@ class _NavigationState extends State<Navigation> {
                   showPlanAndHelp: section == AppSection.ride,
                   activity: _shell.activity,
                   activityTab: _shell.activityTab,
+                  scrolled: _contentScrolled,
                 ),
               ],
               // The tab bar has its own space below the content, never on top
@@ -232,7 +250,13 @@ class _NavigationState extends State<Navigation> {
                       children: [
                         // Activity's log and News sit side by side here, so
                         // Clear is always the log's.
-                        ShellTopBar(section: section, compact: false, shell: _shell, activity: _shell.activity),
+                        ShellTopBar(
+                          section: section,
+                          compact: false,
+                          shell: _shell,
+                          activity: _shell.activity,
+                          scrolled: _contentScrolled,
+                        ),
                         Expanded(child: content),
                       ],
                     ),
