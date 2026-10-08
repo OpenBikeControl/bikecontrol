@@ -93,7 +93,16 @@ String get screenshotTrainerAppName => AppLocalizations.current.chainAppTitle;
 /// under [screenshotMode], so every label on a store board names the app the
 /// same way. Route every trainer app name on a screen that hides it through
 /// here, not just the headline one.
-String shownTrainerAppName(String name) => screenshotMode ? screenshotTrainerAppName : name;
+String shownTrainerAppName(String name) => screenshotTrainerAppNamesHidden ? screenshotTrainerAppName : name;
+
+/// Keeps real trainer app names under [screenshotMode], for widget tests that
+/// run the snapshot harness (which turns screenshot mode on) but assert the
+/// copy a rider sees. Off everywhere else.
+@visibleForTesting
+bool debugKeepsTrainerAppNamesInScreenshotMode = false;
+
+/// Whether [screenshotMode] is replacing trainer app names with the generic one.
+bool get screenshotTrainerAppNamesHidden => screenshotMode && !debugKeepsTrainerAppNamesInScreenshotMode;
 
 /// [name] for a keymap profile, and for the labels next to the keymap picker:
 /// generic while [screenshotKeymapsStaged] names every profile that way.

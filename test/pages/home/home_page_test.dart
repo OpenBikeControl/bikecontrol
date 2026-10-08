@@ -20,7 +20,7 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show screenshotMode, debugKeepsTrainerAppNamesInScreenshotMode;
 import 'package:bike_control/models/remembered_device.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/pages/home/home_page.dart';
@@ -100,6 +100,9 @@ class _RideAndSetupState extends State<RideAndSetup> {
 
 Future<void> main() async {
   await ensureSnapshotHarness();
+  // These assert the copy a rider sees, which names their trainer app; the
+  // harness's screenshot mode would swap in the store boards' generic name.
+  debugKeepsTrainerAppNamesInScreenshotMode = true;
 
   setUp(() {
     // Session-scoped, and `core` outlives every test: a connection one test

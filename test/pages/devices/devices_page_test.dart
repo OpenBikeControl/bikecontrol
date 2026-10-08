@@ -4,7 +4,7 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, debugKeepsTrainerAppNamesInScreenshotMode;
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/devices/devices_page.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
@@ -70,6 +70,9 @@ Finder _inRow(ChainLinkKey key, Finder finder) => find.descendant(of: _row(key),
 
 Future<void> main() async {
   await ensureSnapshotHarness();
+  // These assert the copy a rider sees, which names their trainer app; the
+  // harness's screenshot mode would swap in the store boards' generic name.
+  debugKeepsTrainerAppNamesInScreenshotMode = true;
   late AppLocalizations l;
 
   setUp(() async {
