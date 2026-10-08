@@ -47,6 +47,7 @@ String networkFixLabel(BuildContext context, NetworkFixId fix) {
     NetworkFixId.useResponderForObc => l10n.networkFixUseResponder,
     NetworkFixId.switchToLocal => l10n.networkFixSwitchToLocal,
     NetworkFixId.openFirewallSettings => l10n.networkFixOpenFirewallSettings,
+    NetworkFixId.openNetworkProfileSettings => l10n.networkFixOpenNetworkProfileSettings,
     NetworkFixId.openBonjourDownload => l10n.networkFixOpenBonjourDownload,
     NetworkFixId.openLocalNetworkSettings => l10n.networkFixOpenLocalNetworkSettings,
     // Never actually shown as a per-row fix button — checks never carry this
@@ -112,7 +113,10 @@ String? networkCheckSummary(BuildContext context, NetworkCheck check) {
     NetworkCheckId.bonjourService => l10n.networkSummaryBonjourService,
     NetworkCheckId.bonjourNsp => l10n.networkSummaryBonjourNsp,
     NetworkCheckId.windowsMdnsResolver => l10n.networkSummaryWindowsMdnsResolver,
-    NetworkCheckId.networkProfile => l10n.networkSummaryNetworkProfile,
+    // Says what it found when it found Public: the neutral description of the
+    // check read as the opposite of the warning beside it.
+    NetworkCheckId.networkProfile =>
+      check.detail['category'] == 'Public' ? l10n.networkSummaryNetworkProfilePublic : l10n.networkSummaryNetworkProfile,
     NetworkCheckId.firewallRule => l10n.networkSummaryFirewallRule,
     NetworkCheckId.multicastLock => l10n.networkSummaryMulticastLock,
   };

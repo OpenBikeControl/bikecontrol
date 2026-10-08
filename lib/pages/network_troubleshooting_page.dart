@@ -239,7 +239,10 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     }
     final bodyContext = _bodyKey.currentContext;
     if (bodyContext == null) return;
-    await runNetworkFix(bodyContext, fix);
+    // The check the fix was offered on: a fix that needs to know which
+    // connection it is about reads it from there.
+    final from = _engine?.state.value.checks.firstOrNullWhere((c) => c.fixes.contains(fix));
+    await runNetworkFix(bodyContext, fix, from: from);
     // A full re-run: the checks are cheap and the watch row is skippable, so
     // there is no reason to re-verify just the one fixed check.
     await _start();

@@ -294,7 +294,11 @@ void main() {
         ),
       );
       expect(result.profile.verdict, NetworkVerdict.warn);
-      expect(result.profile.fixes, contains(NetworkFixId.openFirewallSettings));
+      // The fix is the profile switch in Windows' network settings — Defender
+      // firewall settings cannot change a network from Public to Private.
+      expect(result.profile.fixes, [NetworkFixId.openNetworkProfileSettings]);
+      // Names the connection, so the fix can open that connection's own page.
+      expect(result.profile.detail['interface'], 'Wi-Fi');
     });
 
     test('profile warn: alias not found, falls back to the worst category present', () async {
@@ -305,6 +309,9 @@ void main() {
         ),
       );
       expect(result.profile.verdict, NetworkVerdict.warn);
+      expect(result.profile.fixes, [NetworkFixId.openNetworkProfileSettings]);
+      // The Public one is the connection the fallback is about.
+      expect(result.profile.detail['interface'], 'Wi-Fi');
     });
 
     test('firewall pass: an enabled Allow rule exists', () async {

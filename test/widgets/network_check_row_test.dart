@@ -193,6 +193,35 @@ Future<void> main() async {
     expect(find.text(l10n.networkWatchRemaining(42)), findsOneWidget);
   });
 
+  // The row used to read "Windows treats this network as private, not public"
+  // on the very warning that found it Public.
+  testWidgets('a Public network profile is described as Public, not as private', (tester) async {
+    const publicCheck = NetworkCheck(
+      id: NetworkCheckId.networkProfile,
+      verdict: NetworkVerdict.warn,
+      detail: {'category': 'Public', 'interface': 'Wi-Fi'},
+      fixes: [NetworkFixId.openNetworkProfileSettings],
+    );
+    const privateCheck = NetworkCheck(
+      id: NetworkCheckId.networkProfile,
+      verdict: NetworkVerdict.pass,
+      detail: {'category': 'Private'},
+    );
+    await _pump(tester, const NetworkCheckRow(check: publicCheck));
+    await tester.pumpAndSettle();
+    final context = tester.element(find.byType(NetworkCheckRow));
+
+    final publicLine = networkCheckSummary(context, publicCheck);
+    expect(publicLine, isNot(networkCheckSummary(context, privateCheck)));
+    expect(find.text(publicLine!), findsOneWidget);
+    // Its button opens the network settings, not the firewall's.
+    expect(
+      networkFixLabel(context, NetworkFixId.openNetworkProfileSettings),
+      isNot(networkFixLabel(context, NetworkFixId.openFirewallSettings)),
+    );
+    expect(find.text(networkFixLabel(context, NetworkFixId.openNetworkProfileSettings)), findsOneWidget);
+  });
+
   // Which rows carry advice in their own words, and where it shows. A warning
   // that only says "check this" leaves the rider guessing what to change.
   group('hints', () {

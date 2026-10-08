@@ -290,14 +290,20 @@ NetworkCheck _parseProfile(NetworkProbeContext ctx, List<String> lines) {
   }
 
   final String category;
+  // The connection the verdict is about, so the fix can open its own
+  // settings page (where the Public/Private switch lives).
+  final String connection;
   if (alias != null && categories.containsKey(alias)) {
     category = categories[alias]!;
+    connection = alias;
   } else if (categories.values.contains('Public')) {
     // Alias not found (or not advertising yet) — fail safe to the worst
     // category actually present rather than guessing.
     category = 'Public';
+    connection = categories.entries.firstWhere((e) => e.value == 'Public').key;
   } else if (categories.isNotEmpty) {
     category = categories.values.first;
+    connection = categories.keys.first;
   } else {
     return const NetworkCheck(
       id: NetworkCheckId.networkProfile,
@@ -306,15 +312,18 @@ NetworkCheck _parseProfile(NetworkProbeContext ctx, List<String> lines) {
     );
   }
 
+  final detail = {'category': category, 'interface': connection};
   if (category == 'Public') {
+    // Public is a property of the connection, switched in Windows' network
+    // settings — the firewall page this used to open cannot change it.
     return NetworkCheck(
       id: NetworkCheckId.networkProfile,
       verdict: NetworkVerdict.warn,
-      detail: {'category': category},
-      fixes: const [NetworkFixId.openFirewallSettings],
+      detail: detail,
+      fixes: const [NetworkFixId.openNetworkProfileSettings],
     );
   }
-  return NetworkCheck(id: NetworkCheckId.networkProfile, verdict: NetworkVerdict.pass, detail: {'category': category});
+  return NetworkCheck(id: NetworkCheckId.networkProfile, verdict: NetworkVerdict.pass, detail: detail);
 }
 
 NetworkCheck _parseFirewall(List<String> lines, {required bool enabled}) {

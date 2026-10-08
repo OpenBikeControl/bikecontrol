@@ -24,6 +24,7 @@ enum NetworkFixId {
   useResponderForObc,
   switchToLocal,
   openFirewallSettings,
+  openNetworkProfileSettings,
   openBonjourDownload,
   openLocalNetworkSettings,
   sendToSupport,
