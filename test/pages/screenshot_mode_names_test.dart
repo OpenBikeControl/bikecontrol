@@ -41,8 +41,8 @@ Future<void> main() async {
   });
   tearDown(() => core.connection.devices.clear());
 
-  Future<void> pump(WidgetTester tester, Widget page) async {
-    tester.view.physicalSize = const Size(430, 2400);
+  Future<void> pump(WidgetTester tester, Widget page, {Size size = const Size(430, 2400)}) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
@@ -95,5 +95,12 @@ Future<void> main() async {
     await AppLocalizations.load(const Locale('de'));
     addTearDown(() => AppLocalizations.load(const Locale('en')));
     expect(screenshotTrainerAppName, 'Trainer-App');
+  });
+
+  testWidgets('controller settings on a tablet: the button detail pane uses the generic name too', (tester) async {
+    screenshotMode = true;
+    // The iPad board's two-pane layout shows the selected button's detail.
+    await pump(tester, ControllerSettingsPage(device: device), size: const Size(917, 688));
+    expect(find.textContaining('MyWhoosh'), findsNothing);
   });
 }

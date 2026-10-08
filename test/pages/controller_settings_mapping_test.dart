@@ -8,7 +8,7 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, shownKeymapName;
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/utils/core.dart';
@@ -290,7 +290,7 @@ Future<void> main() async {
     tester,
   ) async {
     final l = await pump(tester, const Size(1180, 820));
-    expect(find.text(l.mappingEditMakesCopy('MyWhoosh')), findsOneWidget);
+    expect(find.text(l.mappingEditMakesCopy(shownKeymapName('MyWhoosh'))), findsOneWidget);
     expect(find.byType(ButtonEditPage), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('mapping-trigger-card-singleClick')));

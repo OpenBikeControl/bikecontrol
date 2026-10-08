@@ -452,14 +452,23 @@ Future<void> main() async {
   // mDNS): the app's own hello, through the emulator's message handler, as a
   // real connection arrives. Named generically — the boards keep other apps'
   // names off the listing.
+  // The app's hello carries its name, so it is re-sent on every board: sent
+  // once, the first locale's name showed on every language's board.
+  void helloOverNetwork() => core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
+    appId: screenshotTrainerAppName,
+    appVersion: '1.0',
+    supportedButtons: MyWhoosh().defaultObpSupportedButtons,
+  ));
+
   Future<void> connectAppOverNetwork() async {
     await core.settings.setObpMdnsEnabled(true);
     core.obpMdnsEmulator.isStarted.value = true;
-    core.obpMdnsEmulator.onMessage(OpenBikeProtocolParser.encodeAppInfo(
-      appId: screenshotTrainerAppName,
-      appVersion: '1.0',
-      supportedButtons: MyWhoosh().defaultObpSupportedButtons,
-    ));
+    helloOverNetwork();
+  }
+
+  Future<void> sayHelloInBoardLanguage(WidgetTester tester, DeviceType _) async {
+    helloOverNetwork();
+    await tester.pump();
   }
 
   Future<void> disconnectAppOverNetwork() async {
@@ -574,6 +583,7 @@ Future<void> main() async {
         tester,
         'trainer',
         () => BikeControlApp(customChild: TrainerConnectionSettingsPage()),
+        afterPump: sayHelloInBoardLanguage,
       );
     } finally {
       await disconnectAppOverNetwork();
@@ -603,6 +613,7 @@ Future<void> main() async {
         tester,
         'companion',
         () => BikeControlApp(customChild: ButtonSimulator()),
+        afterPump: sayHelloInBoardLanguage,
       );
     } finally {
       await disconnectAppOverNetwork();

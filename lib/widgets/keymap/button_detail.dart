@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/main.dart' show shownKeymapName;
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
@@ -119,7 +120,7 @@ class _KeymapButtonDetailState extends State<KeymapButtonDetail> {
                       ),
                     ),
                     Text(
-                      '${device.displayName(context)} · ${context.i18n.mappingForApp(app.name)}',
+                      '${device.displayName(context)} · ${context.i18n.mappingForApp(shownKeymapName(app.name))}',
                       style: context.typography.small.copyWith(color: cs.mutedForeground),
                     ),
                   ],
@@ -197,7 +198,7 @@ class _KeymapButtonDetailState extends State<KeymapButtonDetail> {
               spacing: 12,
               children: [
                 Text(
-                  context.i18n.mappingEditMakesCopy(app.name),
+                  context.i18n.mappingEditMakesCopy(shownKeymapName(app.name)),
                   style: context.typography.small.copyWith(color: cs.mutedForeground),
                 ),
                 BkPillButton(

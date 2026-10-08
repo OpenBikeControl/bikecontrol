@@ -145,7 +145,9 @@ const Map<String, Map<String, String>> kSceneHeadlines = <String, Map<String, St
     'en': 'Real gears on any smart trainer',
     'de': 'Echte Gänge auf jedem Smart-Trainer',
     'es': 'Marchas reales en cualquier rodillo inteligente',
-    'fr': 'De vraies vitesses sur tout home-trainer connecté',
+    // A non-breaking hyphen (U+2011): a plain one let the line break after
+    // "home-" and strand "trainer" on the next line.
+    'fr': 'De vraies vitesses sur tout home\u2011trainer connecté',
     'it': 'Marce vere su qualsiasi rullo smart',
     'pl': 'Prawdziwe biegi na każdym trenażerze smart',
   },
