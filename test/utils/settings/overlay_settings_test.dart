@@ -25,6 +25,26 @@ void main() {
     expect(settings.getOverlayDeclined(), isTrue);
   });
 
+  // "Not now" is a snooze, not a "never": riders who said it once kept asking
+  // why their trainer app showed the wrong gear. It lasts until the app
+  // restarts — a fresh Settings over the same prefs — and stays answered, so
+  // the step comes back as an offer rather than as blocking work.
+  test('a decline lasts only until the app restarts, and stays answered', () async {
+    await settings.setOverlayDeclined(true);
+    expect(settings.getOverlayDeclined(), isTrue);
+
+    final restarted = Settings()..prefs = settings.prefs;
+    expect(restarted.getOverlayDeclined(), isFalse);
+    expect(restarted.getOverlayAnswered(), isTrue);
+  });
+
+  // 7.1.0 stored "Not now" for good; those riders get the offer back.
+  test('a decline stored by an earlier version no longer hides the offer', () async {
+    await settings.prefs.setBool('overlay_declined', true);
+    final restarted = Settings()..prefs = settings.prefs;
+    expect(restarted.getOverlayDeclined(), isFalse);
+  });
+
   // "Not now" on the home screen's step must not outlive the rider changing
   // their mind: turning the overlay on anywhere — the step's own button or the
   // trainer page's switch — is that change of mind, so the setter clears it

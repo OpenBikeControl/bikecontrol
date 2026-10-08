@@ -239,7 +239,9 @@ ChainLink _trainerLink(ChainInputs inputs) {
           // ride end) leaves the line as the offer it used to be, never as
           // work outstanding. A decline takes the step off the card entirely
           // (a greyed-out offer would still read as unfinished) until the
-          // overlay is switched on somewhere, which clears it. Only offered
+          // overlay is switched on somewhere, which clears it, or until the
+          // next app start — a decline is a snooze, not a "never", and the
+          // step comes back as the optional offer. Only offered
           // once the bridge is up: before that there is no gear.
           if (paired && trainer.overlayOffered && (trainer.overlayEnabled || !trainer.overlayDeclined))
             SetupStep(

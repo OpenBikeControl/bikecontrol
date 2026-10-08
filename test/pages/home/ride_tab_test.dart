@@ -22,6 +22,7 @@ import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
 import 'package:bike_control/widgets/home/virtual_shifting_card.dart';
 import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerButtonsCard, LastPressStrip;
@@ -519,6 +520,32 @@ Future<void> main() async {
       expect(inCard(find.text(l.rideOverlayOfferShow)), findsNothing);
       expect(inCard(find.text(l.rideOverlayOff)), findsNothing);
       expect(inCard(find.text(l.chainStepOverlayDone)), findsNothing);
+    });
+
+    // MyWhoosh or Rouvy on an Apple TV: nothing BikeControl can draw there,
+    // and the TV keeps showing the app's own gear. Ride says where the real
+    // gear is instead — on this screen — rather than saying nothing.
+    testWidgets('trainer app on another device: says the gear is on this screen, with nothing to switch on', (
+      tester,
+    ) async {
+      await core.settings.setLastTarget(Target.otherDevice);
+      liveTrainer();
+      await pumpRide(tester);
+
+      final note = find.byKey(const ValueKey('ride-overlay-other-screen'));
+      expect(inCard(note), findsOneWidget);
+      expect(find.descendant(of: note, matching: find.textContaining('MyWhoosh')), findsOneWidget);
+      expect(inCard(find.byKey(const ValueKey('ride-overlay-show'))), findsNothing);
+      expect(notNow(), findsNothing);
+    });
+
+    testWidgets('trainer app on another device that shows BikeControl\'s gear: no note', (tester) async {
+      await core.settings.setLastTarget(Target.otherDevice);
+      core.settings.setTrainerApp(SupportedApp.supportedApps.firstWhere((a) => !a.showsOwnGear));
+      liveTrainer();
+      await pumpRide(tester);
+
+      expect(find.byKey(const ValueKey('ride-overlay-other-screen')), findsNothing);
     });
   });
 

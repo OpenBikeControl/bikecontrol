@@ -2864,7 +2864,7 @@
   "helpCheckAppConnectedTitle": "Is your trainer app connected?",
   "helpCheckAppConnectedSub": "Your trainer app connects to BikeControl separately from your trainer. The home screen shows whether it's connected; if it isn't, run the network test.",
   "helpCheckGearOverlayTitle": "Shifts land, but the gear number doesn't change?",
-  "helpCheckGearOverlaySub": "When BikeControl steers your trainer, your trainer app keeps showing its own gear. The overlay shows BikeControl's gear instead.",
+  "helpCheckGearOverlaySub": "When BikeControl steers your trainer, your trainer app keeps showing its own gear. The overlay shows BikeControl's gear instead. The overlay appears on the device running BikeControl, not on a TV or Apple TV. If your trainer app runs there, keep BikeControl's screen in view to see your gear.",
   "helpCheckDailyLimitTitle": "Used up today's button presses?",
   "helpCheckDailyLimitSub": "Without Base or Pro, BikeControl carries out {limit} button presses a day, during the trial too. Once they're used up, presses do nothing until tomorrow and BikeControl tells you the daily limit is reached. Base or Pro removes the limit.",
   "@helpCheckDailyLimitSub": {
@@ -3031,6 +3031,8 @@
   "rideOverlayOfferNote": "{app} shows its own gear",
   "@rideOverlayOfferNote": {"placeholders": {"app": {"type": "String"}}},
   "rideOverlayOfferShow": "Show overlay",
+  "rideOverlayOtherScreen": "{app} on your other screen keeps showing its own gear. Your gear is the one here, so keep this screen in view.",
+  "@rideOverlayOtherScreen": {"description": "Ride tab: note on the virtual shifting card when the trainer app runs on another device (e.g. Apple TV), where the gear overlay cannot appear.", "placeholders": {"app": {"type": "String"}}},
   "a11yChangeChainring": "Change chainring",
   "rideVsSettingsLink": "Gear settings",
   "rideVsTrainerNotConnected": "{trainer} isn't connected — you won't feel shifts until it's back.",

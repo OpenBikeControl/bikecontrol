@@ -1052,7 +1052,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool _rideOffersOverlay() {
     final proxy = chainProxy();
     if (proxy == null || proxy.fitnessBike == null) return false;
-    return _overlayNotice(proxy) != null && !core.settings.getOverlayEnabled() && !core.settings.getOverlayDeclined();
+    return _overlayOffered(proxy) &&
+        _overlayNotice(proxy) != null &&
+        !core.settings.getOverlayEnabled() &&
+        !core.settings.getOverlayDeclined();
   }
 
   /// What a card's step button does on its Devices row.
@@ -1249,7 +1252,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Only where the overlay can be offered at all (see [_overlayOffered]).
   Widget? _overlayNotice(ProxyDevice proxy) {
     final app = core.settings.getTrainerApp();
-    if (app == null || !app.showsOwnGear || !_overlayOffered(proxy)) return null;
+    if (app == null || !app.showsOwnGear) return null;
+    // The trainer app on another device (MyWhoosh or Rouvy on an Apple TV):
+    // no overlay can appear there, so say where the gear is instead.
+    if (!screenshotMode && proxy.fitnessBike != null && core.settings.getLastTarget() == Target.otherDevice) {
+      return RideOverlayNotice(
+        state: RideOverlayState.otherScreen,
+        appName: app.name,
+        onEnable: () {},
+        onDecline: () {},
+        onOpen: () {},
+      );
+    }
+    if (!_overlayOffered(proxy)) return null;
     final state = core.settings.getOverlayEnabled()
         ? RideOverlayState.on
         : core.settings.getOverlayDeclined()
@@ -2027,10 +2042,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// "Not now" on the overlay step (and on Ride's offer): the rider has
-  /// answered, so the step leaves the card and stays away, and Ride's offer
-  /// shrinks to one line. There is no undo here on purpose — the Overlay
-  /// page's switch is the way back, and turning the overlay on there
-  /// (or anywhere) clears the decline again; see `Settings.setOverlayEnabled`.
+  /// answered, so the step leaves the card and Ride's offer shrinks to one
+  /// line — until the next app start, when the offer comes back (optional, no
+  /// longer blocking); see `Settings.getOverlayDeclined`. There is no undo
+  /// here on purpose — the Overlay page's switch is the way back, and turning
+  /// the overlay on there (or anywhere) clears the decline again; see
+  /// `Settings.setOverlayEnabled`.
   /// The decline also records the answer, so the step is never required again.
   Future<void> _declineOverlay() async {
     await core.settings.setOverlayDeclined(true);

@@ -1075,8 +1075,9 @@ void _sensorsOnlyTests() {
 /// now, with an explicit "Not now" as the way off the card. The builder's
 /// rules (when it is offered, that it blocks, that a decline hides it) live
 /// in chain_builder_test.dart; this pins the two things only the page can
-/// prove: that the second button persists the decline and takes the step
-/// away, and that the trainer card shows the live gear beside its numbers.
+/// prove: that the second button takes the step away for this session (and
+/// only this one), and that the trainer card shows the live gear beside its
+/// numbers.
 void _overlayStepTests() {
   group('the gear overlay step', () {
     late AppLocalizations l;
@@ -1137,7 +1138,25 @@ void _overlayStepTests() {
       await _pumpHome(tester);
     }
 
-    testWidgets('"Not now" persists the decline and takes the step off the card', (tester) async {
+    // A "Not now" from an earlier app start (or stored for good by 7.1.0) is
+    // over: the step is back — as the optional offer, since the rider has
+    // answered once, so it never blocks "Ready to ride" again.
+    testWidgets('a "Not now" from an earlier session brings the step back as an optional offer', (tester) async {
+      await core.settings.prefs.setBool('overlay_declined', true);
+      await core.settings.setOverlayAnswered(true);
+      addTearDown(() => core.settings.prefs.remove('overlay_declined'));
+      addTearDown(() => core.settings.prefs.remove('overlay_answered'));
+      await pumpTallHome(tester);
+
+      final card = _chainCard(ChainLinkKey.trainer);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
+      expect(tester.widget<ChainLinkRow>(card).link.isBlocking, isFalse);
+
+      await tester.pumpWidget(const SizedBox());
+    }, skip: unsupported);
+
+    testWidgets('"Not now" takes the step off the card for this session', (tester) async {
       await pumpTallHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);

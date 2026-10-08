@@ -17,6 +17,11 @@ enum RideOverlayState {
 
   /// On: one line saying so, leading to its settings.
   on,
+
+  /// The trainer app runs on another device — an Apple TV, say — where
+  /// BikeControl cannot draw. Nothing to switch on: one note saying the gear
+  /// that counts is the one on this screen.
+  otherScreen,
 }
 
 /// The gear-overlay offer at the foot of Ride's virtual shifting card, next to
@@ -25,7 +30,8 @@ enum RideOverlayState {
 ///
 /// The offer is one row (see [_offer]). It never goes away completely: after
 /// "Not now" (its close button) it shrinks to "Gear overlay
-/// is off · Overlay ›", and once on it reads "Gear overlay is on · Overlay ›".
+/// is off · Overlay ›" for the rest of the session (the full offer is back
+/// after the next app start), and once on it reads "Gear overlay is on · Overlay ›".
 /// Neither line is a second switch: the overlay is turned off in one place,
 /// its page.
 class RideOverlayNotice extends StatelessWidget {
@@ -52,7 +58,31 @@ class RideOverlayNotice extends StatelessWidget {
       RideOverlayState.offer => _offer(context),
       RideOverlayState.declined => _line(context, on: false),
       RideOverlayState.on => _line(context, on: true),
+      RideOverlayState.otherScreen => _otherScreen(context),
     };
+  }
+
+  /// "MyWhoosh on your other screen keeps showing its own gear…": riders on
+  /// an Apple TV looked for the overlay there. A note, not a control — the
+  /// overlay can only appear on the device running BikeControl.
+  Widget _otherScreen(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ConstrainedBox(
+      key: const ValueKey('ride-overlay-other-screen'),
+      constraints: const BoxConstraints(minHeight: BkTouchTarget.minSize),
+      child: Row(
+        children: [
+          Icon(LucideIcons.monitorSmartphone, size: 15, color: cs.mutedForeground),
+          const Gap(8),
+          Expanded(
+            child: Text(
+              context.i18n.rideOverlayOtherScreen(appName),
+              style: context.typography.small.copyWith(color: cs.foreground, height: 1.3),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// One row: the layers icon, one short line, a primary-tinted "Show
