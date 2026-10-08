@@ -1,112 +1,95 @@
+// Phone steering, driven by scripted sensors: it asks the phone for fast
+// samples, times the integration by the samples' own timestamps (so a run
+// turns the bars by the same angle every time), calibrates on a second of
+// stillness, and keeps the gyroscope running when the compass is switched on.
+
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {
-  group('Gyroscope Steering Calibration Tests', () {
-    test('Should compute correct calibration offset from samples', () {
-      // Test offset calculation
-      final samples = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
-      final offset = samples.reduce((a, b) => a + b) / samples.length;
+import 'helpers/fake_sensors.dart';
+import 'widget_snapshot.dart';
 
-      expect(offset, equals(5.5));
-    });
+Future<void> main() async {
+  await ensureSnapshotHarness();
 
-    test('Should round angles to whole degrees', () {
-      // Test rounding behavior
-      expect(4.3.round(), equals(4));
-      expect(4.6.round(), equals(5));
-      expect(4.7.round(), equals(5));
-      expect((-4.3).round(), equals(-4));
-      expect((-4.6).round(), equals(-5));
-    });
-
-    test('Should apply low-pass filter correctly', () {
-      // Test low-pass filter with alpha = 0.9
-      const alpha = 0.9;
-      double filteredValue = 0.0;
-      final newValue = 10.0;
-
-      filteredValue = alpha * filteredValue + (1 - alpha) * newValue;
-
-      expect(filteredValue, closeTo(1.0, 0.01)); // 0.9 * 0 + 0.1 * 10
-    });
-
-    test('Should apply complementary filter correctly', () {
-      // Test complementary filter with alpha = 0.98
-      const alpha = 0.98;
-      final gyroValue = 20.0;
-      final accelValue = 19.0;
-
-      final filtered = alpha * gyroValue + (1 - alpha) * accelValue;
-
-      expect(filtered, closeTo(19.98, 0.01)); // 0.98 * 20 + 0.02 * 19
-    });
+  setUp(() {
+    core.settings.setPhoneSteeringMagnetometer(false);
   });
 
-  group('Gyroscope Steering PWM Keypress Tests', () {
-    test('Should calculate correct keypress levels', () {
-      // Test level calculation with STEERING_THRESHOLD = 15 and LEVEL_DEGREE_STEP = 10
-      const steeringThreshold = 15.0;
-      const levelDegreeStep = 10.0;
-      const maxLevels = 5;
+  /// Calibrates on 1 s of stillness, then turns the bars at 0.5 rad/s for
+  /// 0.5 s, 50 samples a second. Returns the gauge's angle afterwards.
+  Future<double> steer(FakeSensorsPlatform sensors) async {
+    var now = DateTime.utc(2026, 1, 1);
+    final steering = GyroscopeSteering();
+    await steering.connect();
+    Future<void> sample(void Function(DateTime at) feed) async {
+      now = now.add(const Duration(milliseconds: 20));
+      feed(now);
+      // Let the broadcast streams deliver.
+      await Future<void>.delayed(Duration.zero);
+    }
 
-      int calculateLevels(int absAngle) {
-        final levels = ((absAngle - steeringThreshold) / levelDegreeStep).floor() + 1;
-        return levels.clamp(1, maxLevels);
-      }
+    for (var i = 0; i < 50; i++) {
+      await sample(sensors.still);
+    }
+    expect(steering.steeringCalibrated.value, isTrue, reason: 'a second of stillness calibrates');
+    for (var i = 0; i < 25; i++) {
+      await sample((at) => sensors.turning(0.5, at));
+    }
+    final angle = steering.steeringAngle.value;
+    await steering.disconnect();
+    return angle;
+  }
 
-      expect(calculateLevels(15), equals(1)); // (15 - 15) / 10 = 0, floor + 1 = 1
-      expect(calculateLevels(20), equals(1)); // (20 - 15) / 10 = 0.5, floor + 1 = 1
-      expect(calculateLevels(25), equals(2)); // (25 - 15) / 10 = 1.0, floor + 1 = 2
-      expect(calculateLevels(35), equals(3)); // (35 - 15) / 10 = 2.0, floor + 1 = 3
-      expect(calculateLevels(45), equals(4)); // (45 - 15) / 10 = 3.0, floor + 1 = 4
-      expect(calculateLevels(55), equals(5)); // (55 - 15) / 10 = 4.0, floor + 1 = 5
-      expect(calculateLevels(100), equals(5)); // (100 - 15) / 10 = 8.5, floor + 1 = 9 but clamped to 5
-    });
+  test('the steering angle follows the samples, not the wall clock', () async {
+    final first = await steer(FakeSensorsPlatform.install());
+    // A real pause between the runs changes nothing.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    final second = await steer(FakeSensorsPlatform.install());
 
-    test('Should determine correct steering direction', () {
-      // Test direction determination
-      expect(25 > 0, isTrue); // Positive = RIGHT
-      expect(-25 > 0, isFalse); // Negative = LEFT
-    });
+    expect(first, greaterThan(5), reason: '0.5 rad/s for 0.5 s turns the bars ~14° left');
+    expect(second, first);
   });
 
-  group('Gyroscope Steering Threshold Tests', () {
-    test('Should correctly apply steering threshold', () {
-      const steeringThreshold = 15.0;
-
-      // Test threshold logic
-      expect(10.abs() > steeringThreshold, isFalse); // Below threshold
-      expect(15.abs() > steeringThreshold, isFalse); // At threshold
-      expect(16.abs() > steeringThreshold, isTrue); // Above threshold
-      expect((-16).abs() > steeringThreshold, isTrue); // Above threshold (negative)
-    });
+  test('asks the phone for game-rate samples, not the 5 Hz default', () async {
+    final sensors = FakeSensorsPlatform.install();
+    final steering = GyroscopeSteering();
+    await steering.connect();
+    for (final period in sensors.requestedPeriods.values) {
+      expect(period, lessThanOrEqualTo(const Duration(milliseconds: 20)));
+    }
+    expect(sensors.requestedPeriods.keys, containsAll(['gyroscope', 'accelerometer']));
+    await steering.disconnect();
   });
 
-  group('Gyroscope Steering Integration Tests', () {
-    test('Should integrate gyroscope readings correctly', () {
-      // Test gyroscope integration for angle calculation
-      const angularVelocity = 10.0; // degrees per second
-      const timeInterval = 0.1; // seconds
+  test('the compass joins the gyroscope instead of replacing it', () async {
+    final sensors = FakeSensorsPlatform.install();
+    final steering = GyroscopeSteering();
+    await steering.setUseMagnetometer(true);
+    await steering.connect();
+    expect(sensors.gyroscopeListened, isTrue);
+    expect(sensors.accelerometerListened, isTrue);
+    expect(sensors.magnetometerListened, isTrue);
+    expect(sensors.requestedPeriods['magnetometer'], lessThanOrEqualTo(const Duration(milliseconds: 20)));
 
-      final angleDelta = angularVelocity * timeInterval;
-
-      expect(angleDelta, equals(1.0)); // 10 * 0.1 = 1 degree
-    });
-
-    test('Should handle time deltas within reasonable bounds', () {
-      // Test that time deltas are validated
-      const minDt = 0.0;
-      const maxDt = 1.0;
-
-      expect(0.01 > minDt && 0.01 < maxDt, isTrue);
-      expect(0.5 > minDt && 0.5 < maxDt, isTrue);
-      expect(1.5 > minDt && 1.5 < maxDt, isFalse); // Too large
-    });
+    await steering.setUseMagnetometer(false);
+    expect(sensors.magnetometerListened, isFalse);
+    expect(sensors.gyroscopeListened, isTrue);
+    await steering.disconnect();
   });
 
-  group('GyroscopeSteering live data', () {
+  test('the compass switch is remembered across launches', () async {
+    FakeSensorsPlatform.install();
+    final steering = GyroscopeSteering();
+    expect(steering.useMagnetometer, isFalse);
+    await steering.setUseMagnetometer(true);
+    expect(core.settings.getPhoneSteeringMagnetometer(), isTrue);
+    expect(GyroscopeSteering().useMagnetometer, isTrue);
+  });
+
+  group('live data', () {
     test('recalibrate() flips isCalibratedNotifier back to false', () {
       final device = GyroscopeSteering();
       device.isCalibratedNotifier.value = true; // pretend a prior calibration

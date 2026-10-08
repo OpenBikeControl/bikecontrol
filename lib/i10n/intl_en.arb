@@ -2539,8 +2539,10 @@
   "noDiagnosticsYet": "No diagnostics yet",
   "logsFile": "Logs file:",
   "useMagnetometerMode": "Use magnetometer mode",
+  "useMagnetometerModeBody": "Lets the compass take the gyroscope's slow drift out.",
+  "steeringCompassLearningHint": "Turn the handlebar fully left and right once so the compass can learn your mount.",
+  "steeringCompassReady": "Compass is correcting drift.",
   "steeringAngle": "Steering angle",
-  "calibratingMagnetometerHint": "Calibrating the magnetometer now. Attach your phone/tablet on your handlebar and keep it still for a second.",
   "calibratingSensorsHint": "Calibrating the sensors now. Attach your phone/tablet on your handlebar and keep it still for a second.",
   "scriptSavedFor": "Script saved for {device}.",
   "@scriptSavedFor": {

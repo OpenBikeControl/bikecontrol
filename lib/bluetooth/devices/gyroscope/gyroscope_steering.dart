@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
@@ -45,7 +44,8 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   StreamSubscription<AccelerometerEvent>? _accelerometerSubscription;
   StreamSubscription<MagnetometerEvent>? _magnetometerSubscription;
 
-  // Calibration state
+  /// Integrates the gyroscope about the up axis, learns its bias and — with
+  /// the compass on — takes the drift out. See [SteeringEstimator].
   final SteeringEstimator _estimator = SteeringEstimator();
   bool _isCalibrated = false;
   ControllerButton? _lastSteeringButton;
@@ -58,6 +58,10 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   /// Mirrors [_isCalibrated] for the UI gauge.
   final ValueNotifier<bool> isCalibratedNotifier = ValueNotifier(false);
 
+  /// True once the compass has learned the mount's magnetic offset from a
+  /// left and a right turn and corrects the gyroscope's drift.
+  final ValueNotifier<bool> magnetometerLocked = ValueNotifier(false);
+
   // SteeringDevice interface
   @override
   ValueListenable<bool> get steeringCalibrated => isCalibratedNotifier;
@@ -68,16 +72,10 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   @override
   ControllerButton get steerRightButton => GyroscopeSteeringButtons.rightSteer;
 
-  // Accelerometer raw data
-  bool _hasAccelData = false;
-
-  // Time tracking for integration
-  DateTime? _lastGyroUpdate;
-
-  /// The clock the gyroscope integration measures time between samples by.
-  /// Tests that feed samples on a fake clock point it there.
-  @visibleForTesting
-  DateTime Function() nowFn = DateTime.now;
+  /// Timestamp of the previous gyroscope sample, from the sensor itself, so
+  /// the integration measures the samples' own spacing rather than delivery
+  /// jitter.
+  DateTime? _lastGyroTimestamp;
 
   // Last rounded angle for change detection
   int? _lastRoundedAngle;
@@ -85,60 +83,54 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   // Debounce timer for PWM-like keypress behavior
   Timer? _keypressTimer;
 
-  // Magnetometer mode
-  bool _useMagnetometer = false;
-  double? _magnetometerCalibrationHeading;
-  final List<double> _magnetometerCalibrationSamples = [];
+  bool? _useMagnetometer;
 
-  // Magnetometer filtering state
-  double? _filteredMagX;
-  double? _filteredMagY;
-  static const double _magnetometerFilterAlpha = 0.15; // Lower = more smoothing
+  /// Dead zone, degrees, when the rider has not set one.
+  static const double STEERING_THRESHOLD = 5.0;
 
-  // Configuration (can be made customizable later)
-  static const double STEERING_THRESHOLD = 5.0; // degrees
-  static const double LEVEL_DEGREE_STEP = 10.0; // degrees per level
-  static const int MAX_LEVELS = 5;
-  static const int KEY_REPEAT_INTERVAL_MS = 40;
-  static const double COMPLEMENTARY_FILTER_ALPHA = 0.98; // Weight for gyroscope
-  static const double LOW_PASS_FILTER_ALPHA = 0.9; // Smoothing factor
+  /// Stillness after which the sensors count as calibrated.
+  static const double calibrationStillSec = 0.6;
 
-  /// Start listening to the appropriate sensors based on the current mode
+  /// sensors_plus delivers 5 Hz unless asked; steering wants 50 Hz.
+  static const Duration samplingPeriod = SensorInterval.gameInterval;
+
+  /// Start listening to the sensors: gyroscope and accelerometer always, the
+  /// magnetometer on top when the compass is on.
   Future<void> _startSensorStreams() async {
-    // Cancel all existing subscriptions first
+    await _stopSensorStreams();
+
+    _gyroscopeSubscription = gyroscopeEventStream(samplingPeriod: samplingPeriod).listen(
+      _handleGyroscopeEvent,
+      onError: (error) {
+        actionStreamInternal.add(LogNotification('Gyroscope error: $error'));
+      },
+    );
+    _accelerometerSubscription = accelerometerEventStream(samplingPeriod: samplingPeriod).listen(
+      _handleAccelerometerEvent,
+      onError: (error) {
+        actionStreamInternal.add(LogNotification('Accelerometer error: $error'));
+      },
+    );
+    if (useMagnetometer) {
+      _magnetometerSubscription = magnetometerEventStream(samplingPeriod: samplingPeriod).listen(
+        _handleMagnetometerEvent,
+        onError: (error) {
+          actionStreamInternal.add(LogNotification('Magnetometer error: $error'));
+        },
+      );
+    }
+    actionStreamInternal.add(
+      LogNotification('Started gyroscope and accelerometer streams${useMagnetometer ? " and magnetometer" : ""}'),
+    );
+  }
+
+  Future<void> _stopSensorStreams() async {
     await _gyroscopeSubscription?.cancel();
     await _accelerometerSubscription?.cancel();
     await _magnetometerSubscription?.cancel();
     _gyroscopeSubscription = null;
     _accelerometerSubscription = null;
     _magnetometerSubscription = null;
-
-    if (_useMagnetometer) {
-      // Magnetometer mode: only listen to magnetometer
-      _magnetometerSubscription = magnetometerEventStream().listen(
-        _handleMagnetometerEvent,
-        onError: (error) {
-          actionStreamInternal.add(LogNotification('Magnetometer error: $error'));
-        },
-      );
-      actionStreamInternal.add(LogNotification('Started magnetometer stream'));
-    } else {
-      // Gyroscope mode: listen to gyroscope and accelerometer
-      _gyroscopeSubscription = gyroscopeEventStream().listen(
-        _handleGyroscopeEvent,
-        onError: (error) {
-          actionStreamInternal.add(LogNotification('Gyroscope error: $error'));
-        },
-      );
-
-      _accelerometerSubscription = accelerometerEventStream().listen(
-        _handleAccelerometerEvent,
-        onError: (error) {
-          actionStreamInternal.add(LogNotification('Accelerometer error: $error'));
-        },
-      );
-      actionStreamInternal.add(LogNotification('Started gyroscope and accelerometer streams'));
-    }
   }
 
   @override
@@ -148,19 +140,12 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
     }
 
     try {
-      // Start listening to sensors based on current mode
       await _startSensorStreams();
 
       isConnected = true;
       actionStreamInternal.add(LogNotification('Gyroscope Steering: Connected - Calibrating...'));
 
-      // Reset calibration/estimator
-      _setCalibrated(false);
-      _hasAccelData = false;
-      _estimator.reset();
-      _lastGyroUpdate = null;
-      _lastRoundedAngle = null;
-      _lastSteeringButton = null;
+      _resetEstimation();
     } catch (e) {
       actionStreamInternal.add(LogNotification('Failed to connect Gyroscope Steering: $e'));
       isConnected = false;
@@ -169,34 +154,23 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   }
 
   void _handleGyroscopeEvent(GyroscopeEvent event) {
-    final now = nowFn();
+    final previous = _lastGyroTimestamp;
+    _lastGyroTimestamp = event.timestamp;
+    if (previous == null) return;
 
-    if (!_hasAccelData) {
-      _lastGyroUpdate = now;
-      return;
-    }
-
-    final dt = _lastGyroUpdate != null ? (now.difference(_lastGyroUpdate!).inMicroseconds / 1000000.0) : 0.0;
-    _lastGyroUpdate = now;
-
+    final dt = event.timestamp.difference(previous).inMicroseconds / 1000000.0;
     if (dt <= 0 || dt >= 1.0) {
       return;
     }
 
-    // iOS drift fix:
-    // - integrate bias-corrected gyro z (yaw) into an estimator
-    // - learn bias while the device is still
-    final angleDeg = _estimator.updateGyro(wz: event.z, dt: dt);
+    final angleDeg = _estimator.updateGyro(x: event.x, y: event.y, z: event.z, dt: dt);
 
     if (!_isCalibrated) {
-      // Consider calibration complete once we have a bit of stillness and sensor data.
-      // This gives the bias estimator time to settle.
-      if (_estimator.stillTimeSec >= 0.6) {
-        _estimator.calibrate(seedBiasZRadPerSec: _estimator.biasZRadPerSec);
+      // Calibrated once the phone has been still for a moment: that window
+      // seeds the gyro bias and freezes the up axis.
+      if (_estimator.stillTimeSec >= calibrationStillSec) {
+        _estimator.calibrate();
         _setCalibrated(true);
-        /*actionStreamInternal.add(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, 'Calibration complete.'),
-        );*/
       }
       return;
     }
@@ -205,84 +179,16 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   }
 
   void _handleAccelerometerEvent(AccelerometerEvent event) {
-    _hasAccelData = true;
     _estimator.updateAccel(x: event.x, y: event.y, z: event.z);
   }
 
   void _handleMagnetometerEvent(MagnetometerEvent event) {
-    // Magnetometer mode: calculate heading from X and Y components
-    // This is more stable than using a single axis
-
-    // Apply low-pass filter to reduce noise
-    if (_filteredMagX == null || _filteredMagY == null) {
-      // Initialize on first reading
-      _filteredMagX = event.x;
-      _filteredMagY = event.y;
-    } else {
-      // Exponential moving average (low-pass filter)
-      _filteredMagX = _magnetometerFilterAlpha * event.x + (1 - _magnetometerFilterAlpha) * _filteredMagX!;
-      _filteredMagY = _magnetometerFilterAlpha * event.y + (1 - _magnetometerFilterAlpha) * _filteredMagY!;
+    _estimator.updateMag(x: event.x, y: event.y, z: event.z);
+    final locked = _estimator.magnetometerLocked;
+    if (locked != magnetometerLocked.value) {
+      magnetometerLocked.value = locked;
+      actionStreamInternal.add(LogNotification(locked ? 'Compass locked on the mount' : 'Compass lost its lock'));
     }
-
-    // Calculate heading from filtered X and Y components
-    // atan2(y, x) gives the angle in radians, convert to degrees
-    double heading = atan2(_filteredMagY!, _filteredMagX!) * (180 / pi);
-
-    // Normalize heading to 0-360 range
-    if (heading < 0) heading += 360;
-
-    if (kDebugMode) {
-      print(
-        'Magnetometer - X: ${event.x.toStringAsFixed(2)}, Y: ${event.y.toStringAsFixed(2)}, '
-        'Filtered X: ${_filteredMagX!.toStringAsFixed(2)}, Filtered Y: ${_filteredMagY!.toStringAsFixed(2)}, '
-        'Heading: ${heading.toStringAsFixed(2)}°',
-      );
-    }
-
-    // During calibration, collect heading samples
-    if (!_isCalibrated) {
-      _magnetometerCalibrationSamples.add(heading);
-
-      // After 30 samples (~1 second at typical rates), calculate calibration heading
-      if (_magnetometerCalibrationSamples.length >= 30) {
-        // For heading, we need to handle the circular nature (0° and 360° are the same)
-        // Use circular mean calculation
-        double sumSin = 0, sumCos = 0;
-        for (var h in _magnetometerCalibrationSamples) {
-          final radians = h * (pi / 180);
-          sumSin += sin(radians);
-          sumCos += cos(radians);
-        }
-        final avgSin = sumSin / _magnetometerCalibrationSamples.length;
-        final avgCos = sumCos / _magnetometerCalibrationSamples.length;
-        _magnetometerCalibrationHeading = atan2(avgSin, avgCos) * (180 / pi);
-        if (_magnetometerCalibrationHeading! < 0)
-          _magnetometerCalibrationHeading = _magnetometerCalibrationHeading! + 360;
-
-        _magnetometerCalibrationSamples.clear();
-        _setCalibrated(true);
-        actionStreamInternal.add(
-          LogNotification(
-            'Magnetometer calibration complete. Reference heading: ${_magnetometerCalibrationHeading!.toStringAsFixed(2)}°',
-          ),
-        );
-      }
-      return;
-    }
-
-    // Calculate steering angle relative to calibrated heading
-    // This is the angular difference, accounting for wrap-around
-    double angleDeg = heading - _magnetometerCalibrationHeading!;
-
-    // Normalize to -180 to +180 range
-    if (angleDeg > 180) {
-      angleDeg -= 360;
-    } else if (angleDeg < -180) {
-      angleDeg += 360;
-    }
-
-
-    _processSteeringAngle(angleDeg);
   }
 
   void _processSteeringAngle(double steeringAngleDeg) {
@@ -293,7 +199,8 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
       if (kDebugMode) {
         actionStreamInternal.add(
           LogNotification(
-            'Steering angle: $roundedAngle° (biasZ=${_estimator.biasZRadPerSec.toStringAsFixed(4)} rad/s)',
+            'Steering angle: $roundedAngle° (yaw bias=${_estimator.yawBiasRadPerSec.toStringAsFixed(4)} rad/s'
+            '${magnetometerLocked.value ? ", compass" : ""})',
           ),
         );
       }
@@ -329,22 +236,10 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
 
   @override
   Future<void> disconnect() async {
-    await _gyroscopeSubscription?.cancel();
-    await _accelerometerSubscription?.cancel();
-    await _magnetometerSubscription?.cancel();
-    _gyroscopeSubscription = null;
-    _accelerometerSubscription = null;
-    _magnetometerSubscription = null;
+    await _stopSensorStreams();
     _keypressTimer?.cancel();
     isConnected = false;
-    _setCalibrated(false);
-    steeringAngle.value = 0.0;
-    _hasAccelData = false;
-    _estimator.reset();
-    _magnetometerCalibrationHeading = null;
-    _magnetometerCalibrationSamples.clear();
-    _filteredMagX = null;
-    _filteredMagY = null;
+    _resetEstimation();
     actionStreamInternal.add(LogNotification('Gyroscope Steering: Disconnected'));
   }
 
@@ -353,42 +248,40 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
     isCalibratedNotifier.value = value;
   }
 
+  /// Back to square one: uncalibrated, bias and compass model forgotten, so
+  /// the next still moment re-learns the neutral reference.
+  void _resetEstimation() {
+    _setCalibrated(false);
+    _estimator.reset();
+    _lastGyroTimestamp = null;
+    _lastRoundedAngle = null;
+    _lastSteeringButton = null;
+    steeringAngle.value = 0.0;
+    magnetometerLocked.value = false;
+  }
+
   /// Reset calibration so the sensors re-learn their neutral reference. Safe to
   /// call any time (also used by the assignable Calibrate action).
   @override
   void recalibrate() {
     _keypressTimer?.cancel();
-    _setCalibrated(false);
-    if (_useMagnetometer) {
-      _magnetometerCalibrationHeading = null;
-      _magnetometerCalibrationSamples.clear();
-      _filteredMagX = null;
-      _filteredMagY = null;
-    } else {
-      _hasAccelData = false;
-      _estimator.reset();
-      _lastGyroUpdate = null;
-    }
-    _lastRoundedAngle = null;
-    _lastSteeringButton = null;
-    steeringAngle.value = 0.0;
+    _resetEstimation();
     unawaited(handleButtonsClicked([]));
   }
 
-  /// Steers from the compass heading instead of the gyroscope — for phones
-  /// whose gyroscope drifts.
-  bool get useMagnetometer => _useMagnetometer;
+  /// Lets the compass correct the gyroscope's slow drift — for long rides,
+  /// and phones whose gyroscope drifts.
+  bool get useMagnetometer => _useMagnetometer ??= core.settings.getPhoneSteeringMagnetometer();
 
-  /// Switches the sensor the angle comes from and calibrates afresh.
+  /// Switches the compass on or off, remembers it, and calibrates afresh.
   Future<void> setUseMagnetometer(bool value) async {
-    if (value == _useMagnetometer) return;
+    if (value == useMagnetometer) return;
     _useMagnetometer = value;
+    core.settings.setPhoneSteeringMagnetometer(value);
     recalibrate();
     if (isConnected) {
       await _startSensorStreams();
-      actionStreamInternal.add(
-        LogNotification('Switched to ${_useMagnetometer ? "magnetometer" : "gyroscope + accelerometer"} mode'),
-      );
+      actionStreamInternal.add(LogNotification('Compass ${value ? "on" : "off"}'));
     }
   }
 }

@@ -115,11 +115,7 @@ class SteeringHeroCard extends StatelessWidget {
     );
   }
 
-  String _calibratingHint(AppLocalizations l) {
-    final d = device;
-    if (d is GyroscopeSteering) return d.useMagnetometer ? l.calibratingMagnetometerHint : l.calibratingSensorsHint;
-    return l.steeringHoldStill;
-  }
+  String _calibratingHint(AppLocalizations l) => device is GyroscopeSteering ? l.calibratingSensorsHint : l.steeringHoldStill;
 }
 
 /// What a steering input does in the trainer app and how it is tuned: each
@@ -197,6 +193,14 @@ class _SteeringSectionsState extends State<SteeringSections> {
     );
   }
 
+  /// Off: what the compass does. On: the one thing the rider must do before
+  /// it can help, then that it is helping.
+  String _compassSubtitle(AppLocalizations l, GyroscopeSteering phone) {
+    if (!phone.useMagnetometer) return l.useMagnetometerModeBody;
+    if (phone.magnetometerLocked.value) return l.steeringCompassReady;
+    return l.steeringCompassLearningHint;
+  }
+
   Future<void> _setMagnetometer(GyroscopeSteering phone, bool value) async {
     try {
       await phone.setUseMagnetometer(value);
@@ -256,12 +260,16 @@ class _SteeringSectionsState extends State<SteeringSections> {
               ),
             ),
             if (phone != null)
-              BkGroupedRow(
-                key: const ValueKey('steering-magnetometer'),
-                icon: LucideIcons.compass,
-                title: l.useMagnetometerMode,
-                trailing: Switch(value: phone.useMagnetometer, onChanged: (v) => _setMagnetometer(phone, v)),
-                onPressed: () => _setMagnetometer(phone, !phone.useMagnetometer),
+              ListenableBuilder(
+                listenable: Listenable.merge([phone.magnetometerLocked, phone.steeringCalibrated]),
+                builder: (context, _) => BkGroupedRow(
+                  key: const ValueKey('steering-magnetometer'),
+                  icon: LucideIcons.compass,
+                  title: l.useMagnetometerMode,
+                  subtitle: _compassSubtitle(l, phone),
+                  trailing: Switch(value: phone.useMagnetometer, onChanged: (v) => _setMagnetometer(phone, v)),
+                  onPressed: () => _setMagnetometer(phone, !phone.useMagnetometer),
+                ),
               ),
             if (recalibrate != null)
               _RecalibrateRow(calibrated: _steering.steeringCalibrated, onPressed: recalibrate.recalibrate),

@@ -1,173 +1,189 @@
+// Phone steering's estimator: integrates the gyroscope about the world's up
+// axis (so a tilted mount reads the full angle), learns the gyro's bias while
+// the bars are still, and — once the compass has seen a left and a right
+// turn — lets the magnetometer take the slow drift out, even with a magnetic
+// mount sitting on the sensor.
 import 'package:bike_control/bluetooth/devices/gyroscope/steering_estimator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/phone_sim.dart';
+
 void main() {
-  test('learns gyro bias while still and prevents drift', () {
-    final est = SteeringEstimator(
-      biasLearningRate: 0.05,
-      gyroStillThresholdRadPerSec: 0.2,
-      accelStillThresholdMS2: 2.0,
-      minStillTimeForBiasSec: 0.0,
-      minStillTimeForRecenterSec: 999.0,
-      lowPassAlpha: 0.0, // make assertions easier
-      maxAngleAbsDeg: 180,
-    );
+  /// A fresh estimator on [sim], calibrated after a second of stillness.
+  SteeringEstimator calibrated(PhoneSim sim, {bool feedMag = false}) {
+    final est = SteeringEstimator();
+    sim.drive(est, seconds: 1.0, feedMag: feedMag);
+    est.calibrate();
+    return est;
+  }
 
-    // Provide accel close to gravity so estimator considers us still.
-    est.updateAccel(x: 0, y: 0, z: 9.80665);
+  group('gyroscope', () {
+    test('a steer left and back to centre reads zero again', () {
+      final sim = PhoneSim(gyroBiasRadPerSec: [0.004, -0.003, 0.02]);
+      final est = calibrated(sim);
 
-    const bias = 0.02; // rad/s
-    const dt = 0.01;
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 60);
+      sim.drive(est, seconds: 0.3);
+      expect(est.angleDeg, closeTo(30, 1.0));
 
-    // 10 seconds of data with pure bias.
-    for (var i = 0; i < 1000; i++) {
-      est.updateGyro(wz: bias, dt: dt);
-    }
+      sim.drive(est, seconds: 0.5, rateDegPerSec: -60);
+      sim.drive(est, seconds: 0.3);
+      expect(est.angleDeg, closeTo(0, 0.5));
+      expect(sim.yawDeg, closeTo(0, 1e-9));
+    });
 
-    // Bias should converge close to the true bias.
-    expect(est.biasZRadPerSec, closeTo(bias, 0.002));
+    test('a tilted mount still reads the full steering angle', () {
+      final sim = PhoneSim(tiltDeg: 50);
+      final est = calibrated(sim);
 
-    // Angle should remain near 0 because correctedWz ~= 0.
-    expect(est.angleDeg.abs(), lessThan(1.0));
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 60);
+      sim.drive(est, seconds: 0.3);
+      // Reading only the phone's z axis would give cos(50°)·30° ≈ 19°.
+      expect(est.angleDeg, closeTo(30, 1.0));
+
+      sim.drive(est, seconds: 0.5, rateDegPerSec: -60);
+      sim.drive(est, seconds: 0.3);
+      expect(est.angleDeg, closeTo(0, 0.5));
+    });
+
+    test('left is positive, right is negative', () {
+      final sim = PhoneSim();
+      final est = calibrated(sim);
+      expect(sim.drive(est, seconds: 0.5, rateDegPerSec: 40), greaterThan(10));
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -40);
+      expect(est.angleDeg, lessThan(-10));
+    });
+
+    test('a slow sample integrates its whole duration', () {
+      // sensors_plus delivers 5 Hz when nobody asks for more; the estimator
+      // must not quietly shorten such a step.
+      final sim = PhoneSim();
+      final est = calibrated(sim);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: 30, dt: 0.2);
+      sim.drive(est, seconds: 0.5);
+      expect(est.angleDeg, closeTo(30, 1.0));
+    });
+
+    test('learns the gyro bias while still and holds centre', () {
+      final sim = PhoneSim(gyroBiasRadPerSec: [0, 0, 0.02]);
+      final est = calibrated(sim);
+      sim.drive(est, seconds: 20);
+      expect(est.yawBiasRadPerSec, closeTo(0.02, 0.002));
+      expect(est.angleDeg.abs(), lessThan(1.0));
+    });
+
+    test('a held angle neither recentres nor retrains the bias', () {
+      final sim = PhoneSim(gyroBiasRadPerSec: [0, 0, 0.02]);
+      final est = calibrated(sim);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 40);
+      sim.drive(est, seconds: 0.3);
+      final held = est.angleDeg;
+      expect(held, closeTo(20, 1.0));
+
+      sim.drive(est, seconds: 10);
+      expect(est.angleDeg, closeTo(held, 0.5));
+      expect(est.yawBiasRadPerSec, closeTo(0.02, 0.003));
+    });
+
+    test('clamps runaway angles', () {
+      final sim = PhoneSim();
+      final est = calibrated(sim);
+      sim.drive(est, seconds: 5, rateDegPerSec: 90);
+      expect(est.angleDeg, lessThanOrEqualTo(60));
+    });
   });
 
-  test('recenters slowly after being still for long enough', () {
-    final est = SteeringEstimator(
-      biasLearningRate: 0.0,
-      gyroStillThresholdRadPerSec: 1.0,
-      accelStillThresholdMS2: 2.0,
-      minStillTimeForBiasSec: 999.0,
-      minStillTimeForRecenterSec: 0.2,
-      recenterHalfLifeSec: 0.2,
-      recenterDeadbandDeg: 2.0,
-      lowPassAlpha: 0.0,
-      maxAngleAbsDeg: 180,
-    );
+  group('magnetometer', () {
+    test('stays out of it until the bars have turned both ways', () {
+      final sim = PhoneSim(tiltDeg: 45, hardIronMicroTesla: [250, -120, 300]);
+      final est = calibrated(sim, feedMag: true);
+      sim.drive(est, seconds: 5, feedMag: true);
+      expect(est.magnetometerLocked, isFalse);
 
-    est.updateAccel(x: 0, y: 0, z: 9.80665);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -50, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      expect(est.magnetometerLocked, isTrue);
+    });
 
-    // Create a small non-zero yaw within the deadband (so auto-recenter is allowed).
-    // 1.0 rad/s for 0.02s => ~1.15 deg.
-    for (var i = 0; i < 2; i++) {
-      est.updateGyro(wz: 1.0, dt: 0.01);
-    }
+    test('takes the drift out of a held angle despite a magnetic mount', () {
+      final sim = PhoneSim(tiltDeg: 45, hardIronMicroTesla: [250, -120, 300]);
+      final est = calibrated(sim, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -50, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      expect(est.magnetometerLocked, isTrue);
 
-    final initial = est.angleDeg.abs();
-    expect(initial, greaterThan(0.1));
-    expect(initial, lessThan(2.0));
+      // The gyro's bias wanders after calibration: 0.57°/s, 34° a minute.
+      sim.gyroBiasRadPerSec = [0, 0, 0.01];
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 40, feedMag: true);
+      sim.drive(est, seconds: 60, feedMag: true);
+      expect(est.angleDeg, closeTo(20, 2.0));
 
-    // Hold still long enough to pass the recenter delay + apply decay.
-    for (var i = 0; i < 150; i++) {
-      est.updateGyro(wz: 0.0, dt: 0.01);
-    }
+      sim.drive(est, seconds: 0.5, rateDegPerSec: -40, feedMag: true);
+      sim.drive(est, seconds: 5, feedMag: true);
+      expect(est.angleDeg, closeTo(0, 2.0));
+    });
 
-    // It should have decayed noticeably.
-    expect(est.angleDeg.abs(), lessThan(initial * 0.9));
-  });
+    test('the same ride without the compass drifts away', () {
+      final sim = PhoneSim(tiltDeg: 45, hardIronMicroTesla: [250, -120, 300]);
+      final est = calibrated(sim);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -50);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50);
+      sim.gyroBiasRadPerSec = [0, 0, 0.01];
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 40);
+      sim.drive(est, seconds: 60);
+      expect((est.angleDeg - 20).abs(), greaterThan(10));
+    });
 
-  test("doesn't recenter while user holds a constant steering angle", () {
-    final est = SteeringEstimator(
-      biasLearningRate: 0.0,
-      gyroStillThresholdRadPerSec: 1.0,
-      accelStillThresholdMS2: 2.0,
-      minStillTimeForBiasSec: 999.0,
-      // Even if recenter were enabled, it must not recenter away a held angle.
-      minStillTimeForRecenterSec: 0.2,
-      recenterHalfLifeSec: 0.1,
-      recenterDeadbandDeg: 2.0,
-      lowPassAlpha: 0.0,
-      maxAngleAbsDeg: 180,
-    );
+    test('keeps left positive after it locks', () {
+      final sim = PhoneSim(tiltDeg: 30, hardIronMicroTesla: [-80, 40, 500]);
+      final est = calibrated(sim, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: -50, feedMag: true);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: 50, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: -50, feedMag: true);
+      expect(est.magnetometerLocked, isTrue);
 
-    est.updateAccel(x: 0, y: 0, z: 9.80665);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 40, feedMag: true);
+      sim.drive(est, seconds: 10, feedMag: true);
+      expect(est.angleDeg, closeTo(20, 1.5));
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -40, feedMag: true);
+      sim.drive(est, seconds: 10, feedMag: true);
+      expect(est.angleDeg, closeTo(-20, 1.5));
+    });
 
-    // Create a held steering angle (~20 deg).
-    // 0.6 rad/s for 0.6s => ~20.6 deg
-    for (var i = 0; i < 60; i++) {
-      est.updateGyro(wz: 0.6, dt: 0.01);
-    }
+    test('holds through sensor noise and pedalling vibration', () {
+      final sim = PhoneSim(tiltDeg: 45, hardIronMicroTesla: [250, -120, 300], gyroBiasRadPerSec: [0.003, 0.002, 0.01]);
+      final est = calibrated(sim, feedMag: true);
+      sim.gyroNoiseRadPerSec = 0.005;
+      sim.accelNoiseMS2 = 1.0;
+      sim.magNoiseMicroTesla = 1.5;
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -50, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      expect(est.magnetometerLocked, isTrue);
 
-    final held = est.angleDeg;
-    expect(held.abs(), greaterThan(10.0));
+      // The gyro's bias wanders on; with the bars shaking nothing is 'still'.
+      sim.gyroBiasRadPerSec = [0.003, 0.002, 0.02];
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 40, feedMag: true);
+      sim.drive(est, seconds: 120, feedMag: true);
+      expect(est.angleDeg, closeTo(20, 3.0));
+      sim.drive(est, seconds: 0.5, rateDegPerSec: -40, feedMag: true);
+      sim.drive(est, seconds: 10, feedMag: true);
+      expect(est.angleDeg, closeTo(0, 3.0));
+    });
 
-    // Now "hold" that angle: no rotation (wz ~ 0), but device is still.
-    // Previous implementation would recenter here; we must not.
-    for (var i = 0; i < 400; i++) {
-      est.updateGyro(wz: 0.0, dt: 0.01);
-    }
-
-    expect(est.angleDeg, closeTo(held, 0.5));
-  });
-
-  test("doesn't learn bias while held at a non-zero angle", () {
-    final est = SteeringEstimator(
-      biasLearningRate: 0.2,
-      gyroStillThresholdRadPerSec: 0.2,
-      accelStillThresholdMS2: 2.0,
-      minStillTimeForBiasSec: 0.0,
-      biasLearningDeadbandDeg: 3.0,
-      minStillTimeForRecenterSec: double.infinity,
-      lowPassAlpha: 0.0,
-      maxAngleAbsDeg: 180,
-    );
-
-    est.updateAccel(x: 0, y: 0, z: 9.80665);
-
-    // Simulate a true gyro bias.
-    const trueBias = 0.02; // rad/s
-    const dt = 0.01;
-
-    // First, let it learn bias near center.
-    for (var i = 0; i < 300; i++) {
-      est.updateGyro(wz: trueBias, dt: dt);
-    }
-    expect(est.biasZRadPerSec, closeTo(trueBias, 0.004));
-
-    // Now user turns to a steady held angle (~20 deg).
-    for (var i = 0; i < 60; i++) {
-      est.updateGyro(wz: 0.6 + trueBias, dt: dt);
-    }
-    final heldAngle = est.angleDeg;
-    expect(heldAngle.abs(), greaterThan(10.0));
-
-    // User holds that angle still for several seconds.
-    // Gyro reads only bias during the hold.
-    final biasBeforeHold = est.biasZRadPerSec;
-    for (var i = 0; i < 600; i++) {
-      est.updateGyro(wz: trueBias, dt: dt);
-    }
-
-    // Bias should not have drifted significantly.
-    expect(est.biasZRadPerSec, closeTo(biasBeforeHold, 0.003));
-  });
-
-  test('responds quickly to a fast steering change with default filtering', () {
-    final est = SteeringEstimator(
-      // Keep defaults for filtering/responsiveness.
-      // Ensure stillness detector is satisfied when we later go still.
-      gyroStillThresholdRadPerSec: 1.0,
-      accelStillThresholdMS2: 2.0,
-      maxAngleAbsDeg: 180,
-    );
-
-    est.updateAccel(x: 0, y: 0, z: 9.80665);
-
-    const dt = 0.01;
-    const wz = 1.8; // rad/s (~103 deg/s)
-
-    // Integrate for 0.2s => ~20.6 deg raw.
-    for (var i = 0; i < 20; i++) {
-      est.updateGyro(wz: wz, dt: dt);
-    }
-
-    // With the adaptive low-pass, the filtered output should have caught up
-    // substantially by now (the old fixed alpha=0.9 could feel ~1s laggy).
-    expect(est.angleDeg.abs(), greaterThan(14.0));
-
-    // After another 0.2s it should be very close.
-    for (var i = 0; i < 20; i++) {
-      est.updateGyro(wz: wz, dt: dt);
-    }
-    expect(est.angleDeg.abs(), greaterThan(35.0));
+    test('recalibrating forgets the mount it learned', () {
+      final sim = PhoneSim(tiltDeg: 45, hardIronMicroTesla: [250, -120, 300]);
+      final est = calibrated(sim, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      sim.drive(est, seconds: 1.0, rateDegPerSec: -50, feedMag: true);
+      sim.drive(est, seconds: 0.5, rateDegPerSec: 50, feedMag: true);
+      expect(est.magnetometerLocked, isTrue);
+      est.calibrate();
+      expect(est.magnetometerLocked, isFalse);
+      expect(est.angleDeg, 0);
+    });
   });
 }

@@ -890,6 +890,15 @@ class Settings {
     return prefs.getInt('phone_steering_threshold')?.toDouble() ?? GyroscopeSteering.STEERING_THRESHOLD;
   }
 
+  /// Whether phone steering lets the compass correct the gyroscope's drift.
+  void setPhoneSteeringMagnetometer(bool value) {
+    prefs.setBool('phone_steering_magnetometer', value);
+  }
+
+  bool getPhoneSteeringMagnetometer() {
+    return prefs.getBool('phone_steering_magnetometer') ?? false;
+  }
+
   // L-TWOO eRX/eR9 Settings
 
   /// 3-digit ASCII PIN sent in every request frame; "000" is the factory default.
