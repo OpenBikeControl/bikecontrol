@@ -1,21 +1,13 @@
 ### 7.2.0 (08-10-2026)
 **Features**:
-- A new look: Ride, Devices, Activity and Settings tabs. Ride shows your virtual shifting, your buttons and what's still missing in your setup on one screen.
-- Rides: BikeControl records your ride on its own from the first pedal stroke. Activity lists your rides by week; ride details show power and heart rate zones (set your FTP and max heart rate), cadence, gears and time in each gear. Share the .fit file, with every virtual shift, to Strava, Garmin Connect & co., and save rides to Apple Health or, on Android, Health Connect.
-- Phone steering reworked: it reads your handlebar more precisely and shows the live angle. Connected OpenBikeControl apps can now steer proportionally from the real handlebar angle, also with Elite Sterzo and Rizer.
-- Clearer setup: Ride lists each step that's still missing with its fix, and waits for your devices to connect before it shows them.
-- Plan & account in one place: what Base includes and what Pro adds, sign-in and your devices. The support chat answers purchase questions right away.
-- BKOOL smart bikes get resistance control.
-- The Help Center and Settings show the app version and patch.
-- iOS: swipe back from anywhere on a page.
+- A new look with Ride, Devices, Activity and Settings tabs.
+- Rides are recorded automatically, with zones, gears and .fit export to Strava, Apple Health or Health Connect.
+- Reworked phone steering; OpenBikeControl apps can steer from the real handlebar angle.
+- Clearer setup steps and a new Plan & account page.
 
 **Fixes**:
-- Network check: no more false VPN warnings on iPhones and some Android phones, clear next steps (e.g. which tile to tap in MyWhoosh), and on Windows a "Public" network opens the right setting.
-- A controller whose connection times out (e.g. Zwift Play on macOS) is tried again automatically.
-- A trainer app connected over the network shows as connected right away.
-- On Base, the daily virtual shifting trial only shows while a smart trainer is connected.
-- Gear overlay: "Not now" only snoozes the offer, and trainer apps on another screen (e.g. Apple TV) get a hint where your gear is shown.
-- Friendlier messages when a trainer can't be reached.
+- More reliable network check and connections (e.g. Zwift Play on macOS).
+- Friendlier messages and in-app answers when something doesn't work.
 
 ### 7.1.0 (29-09-2026)
 **Features**:
