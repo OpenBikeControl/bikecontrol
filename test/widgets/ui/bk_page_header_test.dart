@@ -3,6 +3,7 @@ import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
+import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -47,6 +48,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Gear Settings'), findsNothing);
     handle.dispose();
+  });
+
+  testWidgets('on iOS, back is the iOS chevron; elsewhere the arrow', (tester) async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    for (final (platform, icon) in [
+      (TargetPlatform.iOS, LucideIcons.chevronLeft),
+      (TargetPlatform.android, LucideIcons.arrowLeft),
+      (TargetPlatform.macOS, LucideIcons.arrowLeft),
+    ]) {
+      debugDefaultTargetPlatformOverride = platform;
+      await pumpPushed(tester, Scaffold(headers: const [BkPageHeader(title: 'Help')], child: const SizedBox()));
+      final back = find.byKey(const ValueKey('page-header-back'));
+      expect(find.descendant(of: back, matching: find.byIcon(icon)), findsOneWidget, reason: '$platform');
+      await tester.pumpWidget(const SizedBox());
+    }
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('back respects a PopScope guard on the page', (tester) async {

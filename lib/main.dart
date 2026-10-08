@@ -787,9 +787,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
               ? Locale(demoLocaleOverride)
               : (screenshotMode ? (screenshotLocale ?? const Locale('en')) : localeOverride),
           theme: BkTheme.build(Brightness.light),
-          materialTheme: MediaQuery.platformBrightnessOf(context) == Brightness.dark
-              ? m.ThemeData.dark()
-              : m.ThemeData(),
+          materialTheme: BkTheme.material(MediaQuery.platformBrightnessOf(context)),
           //themeMode: ThemeMode.dark,
           // Swap splash → content in place inside the always-mounted ShadcnApp so
           // the themed background is painted the whole time — no black flash while

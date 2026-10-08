@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -64,9 +65,11 @@ class BkPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final background = Theme.of(context).colorScheme.background;
+    // iOS's back is a chevron; the arrow is Android's and the desktops'.
+    final ios = defaultTargetPlatform == TargetPlatform.iOS;
     final back = BkIconButton.ghost(
       key: const ValueKey('page-header-back'),
-      icon: const Icon(LucideIcons.arrowLeft, size: 22),
+      icon: ios ? const Icon(LucideIcons.chevronLeft, size: 28) : const Icon(LucideIcons.arrowLeft, size: 22),
       label: context.i18n.a11yBack,
       onPressed: onBack ?? () => Navigator.of(context).maybePop(),
     );

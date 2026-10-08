@@ -1,6 +1,8 @@
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/material.dart' as m;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:swipeable_page_route/swipeable_page_route.dart';
 
 /// The one place BikeControl's shadcn themes are built.
 ///
@@ -122,6 +124,22 @@ abstract final class BkTheme {
   ///
   /// Deliberately unscaled: every app shell passes [scaling] to `ShadcnApp`,
   /// which applies it on top of this.
+  /// The Material theme under the shadcn one: Material only still drives the
+  /// page routes. On iOS a pushed page goes back with a swipe from anywhere on
+  /// the screen, as in iOS's own apps; Flutter's iOS transition only takes the
+  /// 20 px at the left edge. Every other platform keeps Flutter's default.
+  static m.ThemeData material(Brightness brightness) {
+    final base = brightness == Brightness.dark ? m.ThemeData.dark() : m.ThemeData();
+    return base.copyWith(
+      pageTransitionsTheme: m.PageTransitionsTheme(
+        builders: {
+          ...const m.PageTransitionsTheme().builders,
+          TargetPlatform.iOS: const SwipeablePageTransitionsBuilder(),
+        },
+      ),
+    );
+  }
+
   static ThemeData build(Brightness brightness) => ThemeData(
     colorScheme: brightness == Brightness.dark ? darkColorScheme : lightColorScheme,
     typography: const Typography.geist(),
