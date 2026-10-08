@@ -451,7 +451,7 @@ class SettingsPlanCard extends StatelessWidget {
                               if (!signedIn)
                                 Button.ghost(
                                   key: const ValueKey('settings-plan-sign-in'),
-                                  onPressed: () => openPlanAccount(context),
+                                  onPressed: () => openPlanAccount(context, showAccount: true),
                                   child: Text(l10n.signIn),
                                 ),
                               BkPillButton(

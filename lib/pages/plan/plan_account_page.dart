@@ -38,9 +38,9 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 /// Opens Plan & account as a pushed page. In a wide window opened from the
 /// shell, the sidebar stays beside it. [showDevices] scrolls to the
-/// registered devices.
-Future<void> openPlanAccount(BuildContext context, {bool showDevices = false}) {
-  final page = PlanAccountPage(showDevices: showDevices);
+/// registered devices, [showAccount] to Konto (sign in).
+Future<void> openPlanAccount(BuildContext context, {bool showDevices = false, bool showAccount = false}) {
+  final page = PlanAccountPage(showDevices: showDevices, showAccount: showAccount);
   final shell = ShellScope.maybeOf(context);
   if (shell == null) return context.push(page);
   return Navigator.of(context).push(
@@ -96,6 +96,7 @@ class PlanAccountPage extends StatefulWidget {
   const PlanAccountPage({
     super.key,
     this.showDevices = false,
+    this.showAccount = false,
     this.client,
     this.emailAuth,
     this.socialSignIn,
@@ -112,6 +113,9 @@ class PlanAccountPage extends StatefulWidget {
 
   /// Opened to manage devices: scroll them into view.
   final bool showDevices;
+
+  /// Opened to sign in: scroll Konto to the top, past the plan card.
+  final bool showAccount;
 
   final SupabaseClient? client;
   final EmailOtpAuth? emailAuth;
@@ -142,6 +146,7 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
   ]);
   StreamSubscription<AuthState>? _authSub;
   final GlobalKey _devicesKey = GlobalKey();
+  final GlobalKey _accountKey = GlobalKey();
 
   List<UserDevice>? _devices;
   bool _devicesFailed = false;
@@ -174,6 +179,16 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
       onError: (Object e, StackTrace s) => recordError(e, s, context: 'Plan: auth state'),
     );
     unawaited(_load(scrollToDevices: widget.showDevices));
+    if (widget.showAccount) WidgetsBinding.instance.addPostFrameCallback((_) => _revealAccount());
+  }
+
+  void _revealAccount() {
+    final target = _accountKey.currentContext;
+    if (!mounted || target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: MediaQuery.of(context).disableAnimations ? Duration.zero : const Duration(milliseconds: 250),
+    );
   }
 
   @override
@@ -396,18 +411,21 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
         ),
       ),
     );
-    final account = AccountSection(
-      key: const ValueKey('plan-account'),
-      client: _client,
-      emailAuth: widget.emailAuth ?? SupabaseEmailOtpAuth(supabase: _client),
-      signInWith: _signInWith,
-      onSignOut: _signOut,
-      onSignedIn: () => setState(() {}),
-      note: !_signedIn && channel == PurchaseChannel.windowsDirect
-          ? l10n.windowsSubscriptionsRequireYouToBeLoggedIn
-          : !_signedIn && _iap.isProEnabled
-          ? l10n.signInToBringProToOtherDevices
-          : l10n.signInToSyncYourSubscriptionAndManageDevices,
+    final account = KeyedSubtree(
+      key: _accountKey,
+      child: AccountSection(
+        key: const ValueKey('plan-account'),
+        client: _client,
+        emailAuth: widget.emailAuth ?? SupabaseEmailOtpAuth(supabase: _client),
+        signInWith: _signInWith,
+        onSignOut: _signOut,
+        onSignedIn: () => setState(() {}),
+        note: !_signedIn && channel == PurchaseChannel.windowsDirect
+            ? l10n.windowsSubscriptionsRequireYouToBeLoggedIn
+            : !_signedIn && _iap.isProEnabled
+            ? l10n.signInToBringProToOtherDevices
+            : l10n.signInToSyncYourSubscriptionAndManageDevices,
+      ),
     );
     final purchases = _purchases(context, manage, channel);
 

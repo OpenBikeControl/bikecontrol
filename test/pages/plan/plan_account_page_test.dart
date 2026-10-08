@@ -144,6 +144,7 @@ Future<void> main() async {
     Future<void> Function()? restorePurchases,
     Future<void> Function()? manageSubscription,
     bool showDevices = false,
+    bool showAccount = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -160,6 +161,7 @@ Future<void> main() async {
         theme: BkTheme.build(Brightness.dark),
         home: PlanAccountPage(
           showDevices: showDevices,
+          showAccount: showAccount,
           client: client,
           emailAuth: emailAuth ?? _FakeEmailOtpAuth(),
           socialSignIn: socialSignIn ?? (_) async {},
@@ -196,6 +198,13 @@ Future<void> main() async {
         tester.getTopLeft(find.byKey(const ValueKey('plan-summary'))).dy,
         lessThan(tester.getTopLeft(find.byKey(const ValueKey('plan-account'))).dy),
       );
+    });
+
+    testWidgets('opened to sign in: Konto is scrolled into view, not the big plan card', (tester) async {
+      await pumpPage(tester, showAccount: true);
+      final account = tester.getRect(find.byKey(const ValueKey('plan-account')));
+      expect(account.top, greaterThanOrEqualTo(0));
+      expect(account.top, lessThan(844 / 3), reason: 'Konto starts near the top of the screen');
     });
 
     testWidgets('Apple and Google sign in with their own branded buttons, labelled in the app\'s language', (
