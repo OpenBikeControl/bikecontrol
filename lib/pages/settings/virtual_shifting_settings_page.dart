@@ -100,6 +100,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
+    def.setDifficultyPct(cfg.difficultyPct);
     def.setVirtualShiftingMode(cfg.mode);
     // The front derailleur belongs to the config too: picking another config
     // brings its rings with it, and the drivetrain above draws them.

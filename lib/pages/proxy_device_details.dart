@@ -12,6 +12,7 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/control_protocol_section.dart';
 import 'package:bike_control/pages/proxy_device_details/need_help_card.dart';
 import 'package:bike_control/pages/proxy_device_details/self_test_card.dart';
+import 'package:bike_control/pages/proxy_device_details/vs_calibration_page.dart';
 import 'package:bike_control/pages/settings/overlay_settings_page.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/services/overview_screenshot.dart';
@@ -99,6 +100,11 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
     await context.push(OverlaySettingsPage(device: widget.device, definition: definition));
   }
 
+  Future<void> _openCalibrator() async {
+    await context.push(VsCalibrationPage(device: widget.device));
+    if (mounted) setState(() {});
+  }
+
   Future<void> _openVirtualShiftingSettings() async {
     final definition = widget.device.fitnessBike;
     if (definition == null) return;
@@ -170,6 +176,24 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                       device: device,
                       onShowOverlaySettings: _openOverlaySettings,
                     ),
+                  ),
+                  SizedBox(height: 12),
+                  // Right next to the check that the trainer obeys: tuning how
+                  // hard its virtual gears ride, for the trainers where the
+                  // simulated grade comes out too heavy or too light.
+                  BkGroupedSection(
+                    children: [
+                      BkGroupedRow(
+                        key: const ValueKey('vs-calibrate'),
+                        icon: LucideIcons.gauge,
+                        title: AppLocalizations.of(context).vsCalibrateTitle,
+                        subtitle: AppLocalizations.of(context).vsCalibrateRowSubtitle(
+                          device.fitnessBike!.difficultyPct.value,
+                        ),
+                        chevron: true,
+                        onPressed: _openCalibrator,
+                      ),
+                    ],
                   ),
                   SizedBox(height: 12),
                 ],

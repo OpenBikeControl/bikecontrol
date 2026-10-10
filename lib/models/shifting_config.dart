@@ -32,6 +32,10 @@ class ShiftingConfig {
   final int smallChainringTeeth;
   final int largeChainringTeeth;
 
+  /// How hard virtual shifting rides on this trainer, in percent of the
+  /// physics ([FitnessBikeDefinition.setDifficultyPct]); set by the calibrator.
+  final int difficultyPct;
+
   const ShiftingConfig({
     required this.name,
     required this.trainerKey,
@@ -46,6 +50,7 @@ class ShiftingConfig {
     this.frontShiftEnabled = false,
     this.smallChainringTeeth = smallChainringDefault,
     this.largeChainringTeeth = largeChainringDefault,
+    this.difficultyPct = FitnessBikeDefinition.defaultDifficultyPct,
   });
 
   factory ShiftingConfig.defaults({
@@ -100,6 +105,8 @@ class ShiftingConfig {
       largeChainringTeeth:
           ((json['largeChainringTeeth'] as num?)?.toInt() ?? largeChainringDefault)
               .clamp(chainringTeethMin, chainringTeethMax),
+      difficultyPct: ((json['difficultyPct'] as num?)?.toInt() ?? FitnessBikeDefinition.defaultDifficultyPct)
+          .clamp(FitnessBikeDefinition.minDifficultyPct, FitnessBikeDefinition.maxDifficultyPct),
     );
   }
 
@@ -117,6 +124,7 @@ class ShiftingConfig {
         'frontShiftEnabled': frontShiftEnabled,
         'smallChainringTeeth': smallChainringTeeth,
         'largeChainringTeeth': largeChainringTeeth,
+        'difficultyPct': difficultyPct,
       };
 
   ShiftingConfig copyWith({
@@ -134,6 +142,7 @@ class ShiftingConfig {
     bool? frontShiftEnabled,
     int? smallChainringTeeth,
     int? largeChainringTeeth,
+    int? difficultyPct,
   }) {
     final resolvedMaxGear = maxGear ?? this.maxGear;
     final resolvedRatios = clearGearRatios ? null : (gearRatios ?? this.gearRatios);
@@ -156,6 +165,7 @@ class ShiftingConfig {
       frontShiftEnabled: frontShiftEnabled ?? this.frontShiftEnabled,
       smallChainringTeeth: smallChainringTeeth ?? this.smallChainringTeeth,
       largeChainringTeeth: largeChainringTeeth ?? this.largeChainringTeeth,
+      difficultyPct: difficultyPct ?? this.difficultyPct,
     );
   }
 
@@ -175,7 +185,8 @@ class ShiftingConfig {
           listEquals(gearRatios, other.gearRatios) &&
           frontShiftEnabled == other.frontShiftEnabled &&
           smallChainringTeeth == other.smallChainringTeeth &&
-          largeChainringTeeth == other.largeChainringTeeth);
+          largeChainringTeeth == other.largeChainringTeeth &&
+          difficultyPct == other.difficultyPct);
 
   @override
   int get hashCode => Object.hash(
@@ -192,5 +203,6 @@ class ShiftingConfig {
         frontShiftEnabled,
         smallChainringTeeth,
         largeChainringTeeth,
+        difficultyPct,
       );
 }
