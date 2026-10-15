@@ -134,6 +134,9 @@ dependency_overrides:
   # replace this whole section.
   gamepads_windows:
     path: packages/gamepads_windows
+  # Vendored: background input + generic HID pads on macOS (see its pubspec).
+  gamepads_darwin:
+    path: packages/gamepads_darwin
 
 flutter:
   uses-material-design: true

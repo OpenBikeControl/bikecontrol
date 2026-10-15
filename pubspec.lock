@@ -703,13 +703,12 @@ packages:
     source: hosted
     version: "0.1.7"
   gamepads_darwin:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: gamepads_darwin
-      sha256: a7668dc17f2e4b95c29c54e961c3ef6e34e3997718383e96dd0bdf5a5c3b03c8
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.2+4"
+      path: "packages/gamepads_darwin"
+      relative: true
+    source: path
+    version: "0.1.4"
   gamepads_ios:
     dependency: transitive
     description:
