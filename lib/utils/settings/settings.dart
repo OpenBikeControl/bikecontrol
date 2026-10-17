@@ -955,6 +955,33 @@ class Settings {
   Future<void> setSramShiftingDisabled(String serial, bool disabled) async =>
       prefs.setBool('sram_disabled_$serial', disabled);
 
+  // Shimano Di2 D-FLY Settings. The backup is a {slot: switch-config} map
+  // captured BEFORE any D-FLY assignment so the original shifting can be
+  // restored byte-for-byte; mirrors the SRAM backup above.
+
+  Map<int, ShimanoSwitchConfig>? getShimanoBackup(String serial) {
+    final raw = prefs.getString('shimano_config_backup_$serial');
+    if (raw == null) return null;
+    final decoded = jsonDecode(raw) as Map<String, dynamic>;
+    return decoded.map(
+      (k, v) => MapEntry(int.parse(k), ShimanoSwitchConfig.fromJson(v as Map<String, dynamic>)),
+    );
+  }
+
+  Future<void> setShimanoBackup(String serial, Map<int, ShimanoSwitchConfig> backup) async {
+    await prefs.setString(
+      'shimano_config_backup_$serial',
+      jsonEncode(backup.map((k, v) => MapEntry(k.toString(), v.toJson()))),
+    );
+  }
+
+  Future<void> clearShimanoBackup(String serial) async => prefs.remove('shimano_config_backup_$serial');
+
+  bool getShimanoDflyAssigned(String serial) => prefs.getBool('shimano_dfly_assigned_$serial') ?? false;
+
+  Future<void> setShimanoDflyAssigned(String serial, bool assigned) async =>
+      prefs.setBool('shimano_dfly_assigned_$serial', assigned);
+
   List<({int serial, int mask, int? deviceType})> getSramButtons(String serial) {
     final raw = prefs.getStringList('sram_buttons_$serial') ?? const [];
     return raw.map((e) {

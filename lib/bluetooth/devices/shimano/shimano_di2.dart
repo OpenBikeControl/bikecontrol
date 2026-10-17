@@ -1,5 +1,9 @@
+import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
@@ -8,9 +12,19 @@ import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../bluetooth_device.dart';
+import 'shimano_ble_transport.dart';
+import 'shimano_setup_sheet.dart';
 
 class ShimanoDi2 extends BluetoothDevice {
   ShimanoDi2(super.scanResult) : super(availableButtons: [], buttonPrefix: 'D-Fly Channel ');
+
+  /// Config seam (18FF E-TUBE service), present on wireless units such as the
+  /// RD-R7150. Null when the unit only exposes the 18EF runtime D-FLY service.
+  ShimanoBleTransport? _configTransport;
+
+  String get _serialKey => device.deviceId;
+
+  bool get hasConfigService => _configTransport != null;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -24,6 +38,15 @@ class ShimanoDi2 extends BluetoothDevice {
     );
 
     await UniversalBle.subscribeIndications(device.deviceId, service.uuid, characteristic.uuid);
+
+    // The 18FF E-TUBE config service (SERVICE_UUID_ALTERNATIVE) unlocks the
+    // guided D-FLY auto-assign/restore flow. Its GATT dance runs through
+    // [ShimanoConfig] over this transport; notifications are routed back from
+    // [processCharacteristic].
+    final hasConfig = services.any(
+      (e) => e.uuid.toLowerCase() == ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase(),
+    );
+    _configTransport = hasConfig ? ShimanoBleTransport(device.deviceId, services) : null;
   }
 
   final _lastButtons = <int, ({int value, _Di2State type})>{};
@@ -35,6 +58,16 @@ class ShimanoDi2 extends BluetoothDevice {
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     Logger.info('Received data from $characteristic: ${bytesToReadableHex(bytes)}');
+
+    // Route E-TUBE config notifications/indications (PCE response 2AF9, auth
+    // control 2AF3) to the config transport's inbox.
+    final lower = characteristic.toLowerCase();
+    if (_configTransport != null &&
+        (lower == ShimanoDi2Config.pceResponseChar || lower == ShimanoDi2Config.authControlChar)) {
+      _configTransport!.onNotification(lower, bytes);
+      return;
+    }
+
     if (characteristic.toLowerCase() == ShimanoDi2Constants.D_FLY_CHANNEL_UUID) {
       final channels = bytes.sublist(1);
 
@@ -138,8 +171,103 @@ class ShimanoDi2 extends BluetoothDevice {
     });
   }
 
+  // ── Guided D-FLY auto-assign / restore (18FF config service) ──────────────
+
+  /// Whether D-FLY has been auto-assigned (so the buttons report over the
+  /// radio) and the original config is still backed up to put back.
+  bool get isDflyAssigned => core.settings.getShimanoDflyAssigned(_serialKey);
+
+  /// A pending, mandatory restore: once D-FLY is assigned, skipping restore
+  /// leaves the rider without Rear Up/Down outdoors.
+  bool get hasPendingRestore =>
+      isDflyAssigned && core.settings.getShimanoBackup(_serialKey) != null;
+
+  /// A GATT/handshake timeout means the Di2 didn't answer (asleep / out of
+  /// range) — the sheet then prompts the rider to wake it and retry.
+  bool _isUnresponsive(Object error) {
+    if (error is TimeoutException) return true;
+    if (error is ShimanoAuthException) return error.message.contains('TimeoutException');
+    return false;
+  }
+
+  /// Authenticate → back up the ORIGINAL switch config to disk BEFORE any write
+  /// → assign D-FLY channels so each paddle reports over the radio. The backup
+  /// is captured once and never overwritten, so a re-run can't wipe the only
+  /// copy of the rider's configuration.
+  Future<void> setupControl() async {
+    final t = _configTransport;
+    if (t == null) return;
+    try {
+      await ShimanoConfig.authenticate(t);
+      if (core.settings.getShimanoBackup(_serialKey) == null) {
+        final backup = await ShimanoConfig.backup(t);
+        await core.settings.setShimanoBackup(_serialKey, backup);
+      }
+      // Assign the two paddles of each shifter slot to distinct D-FLY channels
+      // (slot 0 → Ch1/Ch2, slot 1 → Ch3/Ch4).
+      final backup = core.settings.getShimanoBackup(_serialKey) ?? const {};
+      const channels = [
+        [ShimanoSwitchFunction.dflyCh1, ShimanoSwitchFunction.dflyCh2],
+        [ShimanoSwitchFunction.dflyCh3, ShimanoSwitchFunction.dflyCh4],
+      ];
+      for (final slot in backup.keys) {
+        final pair = channels[slot % channels.length];
+        await ShimanoConfig.assignDfly(
+          t,
+          slot: slot,
+          config: ShimanoSwitchConfig.fromFunctions(
+            a: pair[0],
+            b: pair[1],
+            c: ShimanoSwitchFunction.none,
+            s: ShimanoSwitchFunction.none,
+          ),
+        );
+      }
+      await core.settings.setShimanoDflyAssigned(_serialKey, true);
+      core.connection.signalChange(this);
+    } catch (e, st) {
+      actionStreamInternal.add(LogNotification('ShimanoDi2 setup failed: $e\n$st'));
+      await recordError(e, st, context: 'ShimanoDi2: D-FLY setup');
+      rethrow;
+    }
+  }
+
+  /// Authenticate → replay the backed-up switch config byte-for-byte, restoring
+  /// the rider's original shifting, then clear the pending-restore state.
+  Future<void> restoreShifting() async {
+    final t = _configTransport;
+    final backup = core.settings.getShimanoBackup(_serialKey);
+    if (t == null || backup == null) return;
+    try {
+      await ShimanoConfig.authenticate(t);
+      await ShimanoConfig.restore(t, backup);
+      await core.settings.setShimanoDflyAssigned(_serialKey, false);
+      await core.settings.clearShimanoBackup(_serialKey);
+      core.connection.signalChange(this);
+    } catch (e, st) {
+      actionStreamInternal.add(LogNotification('ShimanoDi2 restore failed: $e\n$st'));
+      await recordError(e, st, context: 'ShimanoDi2: D-FLY restore');
+      rethrow;
+    }
+  }
+
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
+    if (hasConfigService) {
+      return [
+        shimanoSetupPanel(
+          context,
+          assigned: isDflyAssigned,
+          hasBackup: core.settings.getShimanoBackup(_serialKey) != null,
+          onSetup: () => unawaited(
+            showShimanoSetup(context, operation: setupControl, isUnresponsive: _isUnresponsive),
+          ),
+          onRestore: () => unawaited(
+            showShimanoRestore(context, operation: restoreShifting, isUnresponsive: _isUnresponsive),
+          ),
+        ),
+      ];
+    }
     return [
       Text(
         'Make sure to set your Di2 buttons to D-Fly channels in the Shimano E-TUBE app.',
