@@ -11,6 +11,7 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart'
     show SupportedApp, TrainerConnectionType, VsSameDeviceBlock, vsSameDeviceBlock;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
+import 'package:bike_control/utils/trainer_connect.dart' show trainerConnectErrorMessage;
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
@@ -197,7 +198,20 @@ class _ConnectionCardState extends State<ConnectionCard> {
       // in-place "No connection" disconnect those listeners are gone, and a bare
       // startProxy reconnects BLE but never flips isConnected — the connect
       // appears to hang.
-      await core.connection.connectDevice(device);
+      // onChanged drops this Future, so a failed connect (WiFi: the trainer's
+      // mDNS name not resolving) has to be handled here, not rethrown into an
+      // uncaught crash. Connection._connect has already reset the device.
+      try {
+        await core.connection.connectDevice(device);
+      } catch (e, s) {
+        recordError(e, s, context: 'ConnectionCard connect');
+        core.connection.signalNotification(
+          AlertNotification(
+            LogLevel.LOGLEVEL_ERROR,
+            trainerConnectErrorMessage(AppLocalizations.current, e, device.toString()),
+          ),
+        );
+      }
     }
   }
 

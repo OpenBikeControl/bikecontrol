@@ -1303,7 +1303,26 @@ class ProxyDevice extends BluetoothDevice {
   Future<void> reconnectUpstream() async {
     if (!isConnected && !isStartedListenable.value) return;
     await core.connection.disconnect(this, forget: false, persistForget: false, keepInList: true);
-    await core.connection.connectDevice(this);
+    // Every caller fires this from a UI callback nobody awaits, so a failed
+    // reconnect (WiFi: the trainer's mDNS name not resolving yet, a socket
+    // timeout) must end here — rethrown, it surfaces as an uncaught crash.
+    // Connection._connect has already logged it and reset the device; the
+    // usual rediscovery brings the trainer back.
+    try {
+      await core.connection.connectDevice(this);
+    } catch (e, s) {
+      recordError(e, s, context: 'ProxyDevice.reconnectUpstream');
+      final l10n = AppLocalizations.current;
+      core.connection.signalNotification(
+        AlertNotification(
+          LogLevel.LOGLEVEL_ERROR,
+          e is TimeoutException
+              ? l10n.unableToConnectToDeviceTimeout(toString())
+              : l10n.connectionFailed(toString(), e.toString()),
+        ),
+      );
+      return;
+    }
     // connectDevice resolves before discovery finishes on some transports —
     // wait for the rebuilt definition so callers can start using it.
     final deadline = DateTime.now().add(const Duration(seconds: 15));
