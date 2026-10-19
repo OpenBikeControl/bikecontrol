@@ -15,6 +15,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../bluetooth/devices/base_device.dart';
 import '../actions/base_actions.dart';
+import 'apps/bike_control.dart';
 import 'apps/custom_app.dart';
 import 'apps/supported_app.dart';
 
@@ -422,6 +423,13 @@ class KeyPair {
       (screenshotPath != null && screenshotPath!.trim().isNotEmpty) ||
       (command != null && command!.trim().isNotEmpty);
 
+  /// True when BikeControl itself is the trainer app ("self-hosted") and this
+  /// keypair's action is a trainer action BikeControl runs on the connected
+  /// trainer directly ([BaseActions.performAction] hands [trainerActions] to
+  /// the proxy device) — no other app and no connection method is involved.
+  bool get runsInSelfHostedBikeControl =>
+      inGameAction != null && trainerActions.contains(inGameAction) && core.settings.getTrainerApp() is BikeControl;
+
   /// True when this keypair has an action, but no connection method that's
   /// on right now can carry it — so pressing the button does nothing yet.
   bool get waitsForConnectionMethod =>
@@ -429,7 +437,9 @@ class KeyPair {
 
   @override
   String toString() {
-    final text = (inGameAction != null && (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp))
+    final text =
+        (inGameAction != null &&
+            (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp || runsInSelfHostedBikeControl))
         ? [
             inGameAction!.title,
             if (inGameActionValue != null) '$inGameActionValue',

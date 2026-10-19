@@ -272,7 +272,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                   SizedBox(height: 8),
                 ],
 
-                if (core.logic.hasNoConnectionMethod)
+                // Self-hosted trainer actions run in BikeControl itself, so no
+                // connection method is needed for them.
+                if (core.logic.hasNoConnectionMethod && !_keyPair.runsInSelfHostedBikeControl)
                   ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),
                     child: Warning(
