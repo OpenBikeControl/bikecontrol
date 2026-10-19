@@ -199,7 +199,8 @@ String describeProxyDevice(ProxyDevice device) {
     if (handshake != 'n/a') parts.add('zwiftHandshake=$handshake');
     // Whether the trainer acknowledges our native gear commands. `ignored→ftms`
     // is the one line that explains a proto=ftms on a trainer that advertises
-    // the native path; `missed·N` shows a verdict building up.
+    // the native path; `missed·N` shows a verdict building up; `unjudged` is a
+    // trainer known to apply gears without acknowledging them.
     final gearAck = def.gearEchoSummary;
     if (gearAck != 'n/a') parts.add('zwiftGearAck=$gearAck');
     // The trainer refused to start grade simulation and virtual shifting was
