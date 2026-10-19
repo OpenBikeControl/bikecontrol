@@ -252,7 +252,13 @@ class OpenBikeProtocolParser {
     if (idx + buttonCount > data.length) throw ProtocolParseException('Button count exceeds buffer', data);
     final buttonIds = data.sublist(idx, idx + buttonCount).toList();
 
-    final controllerButtons = buttonIds.mapNotNull((id) => BUTTON_NAMES[id]).toList();
+    // BLE.md: "0 indicates the app supports all button types". One button per
+    // action, since a press sends every supported button of its action (Camera
+    // View, not Camera View + Camera 1-3). The 0x1B steering angle stays
+    // opt-in: steering buttons are then sent only as an angle.
+    final controllerButtons = buttonCount == 0
+        ? BUTTON_NAMES.values.distinctBy((b) => b.action).toList()
+        : buttonIds.mapNotNull((id) => BUTTON_NAMES[id]).toList();
 
     return AppInfo(
       appId: appId,
