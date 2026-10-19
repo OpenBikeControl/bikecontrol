@@ -63,9 +63,12 @@ void main() {
     }
   });
 
-  test('Rouvy is official via its flag', () {
-    expect(Rouvy().officialIntegration, isTrue);
-    expect(zwiftControllerExpectation(devices: [click], app: Rouvy())!.variant, ZwiftExpectationVariant.officialApp);
+  test('Rouvy is not an official integration -> lists its actions instead', () {
+    expect(Rouvy().officialIntegration, isFalse);
+    expect(SupportedApp.supportedApps.where((a) => a.officialIntegration).map((a) => a.name), isNot(contains('Rouvy')));
+    final e = zwiftControllerExpectation(devices: [click], app: Rouvy())!;
+    expect(e.variant, ZwiftExpectationVariant.appActions);
+    expect(e.actions, containsAll([InGameAction.shiftUp, InGameAction.shiftDown]));
   });
 
   test('an app with a keymap lists the distinct actions BikeControl can trigger', () {
