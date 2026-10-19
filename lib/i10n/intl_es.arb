@@ -2893,5 +2893,7 @@
   "chainHintTitle": "Pon la cadena en una marcha intermedia",
   "chainHintVeryBigGear": "La cadena en el rodillo está en una marcha muy grande (desarrollo de aprox. {ratio}). Las marchas virtuales se sienten realistas con la cadena en una marcha intermedia, p. ej. 34/17 o 50/25. Déjala ahí y cambia solo de forma virtual.",
   "chainHintVerySmallGear": "La cadena en el rodillo está en una marcha muy pequeña (desarrollo de aprox. {ratio}). Las marchas virtuales se sienten realistas con la cadena en una marcha intermedia, p. ej. 34/17 o 50/25. Déjala ahí y cambia solo de forma virtual.",
-  "ignoredDevicesNearby": "Se encontraron dispositivos ignorados cerca"
+  "ignoredDevicesNearby": "Se encontraron dispositivos ignorados cerca",
+  "trainerActionGearUpErgUp": "Rodillo: subir marcha / ERG arriba",
+  "trainerActionGearDownErgDown": "Rodillo: bajar marcha / ERG abajo"
 }

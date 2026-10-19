@@ -1031,8 +1031,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         return SelectableCard(
           icon: action.icon,
           title: Text(switch (action) {
-            InGameAction.shiftUp => 'Trainer: Gear Up / ERG up',
-            InGameAction.shiftDown => 'Trainer: Gear Up / ERG down',
+            InGameAction.shiftUp => context.i18n.trainerActionGearUpErgUp,
+            InGameAction.shiftDown => context.i18n.trainerActionGearDownErgDown,
             _ => action.title,
           }),
           subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)

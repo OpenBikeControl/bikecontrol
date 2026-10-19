@@ -2893,5 +2893,7 @@
   "chainHintTitle": "Przełóż łańcuch na środkowy bieg",
   "chainHintVeryBigGear": "Łańcuch na trenażerze jest na bardzo twardym biegu (przełożenie ok. {ratio}). Wirtualne biegi działają realistycznie, gdy łańcuch jest na środkowym biegu, np. 34/17 lub 50/25. Zostaw go tam i zmieniaj biegi tylko wirtualnie.",
   "chainHintVerySmallGear": "Łańcuch na trenażerze jest na bardzo lekkim biegu (przełożenie ok. {ratio}). Wirtualne biegi działają realistycznie, gdy łańcuch jest na środkowym biegu, np. 34/17 lub 50/25. Zostaw go tam i zmieniaj biegi tylko wirtualnie.",
-  "ignoredDevicesNearby": "Znaleziono w pobliżu zignorowane urządzenia"
+  "ignoredDevicesNearby": "Znaleziono w pobliżu zignorowane urządzenia",
+  "trainerActionGearUpErgUp": "Trenażer: bieg w górę / ERG w górę",
+  "trainerActionGearDownErgDown": "Trenażer: bieg w dół / ERG w dół"
 }

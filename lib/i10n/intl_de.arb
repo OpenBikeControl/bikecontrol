@@ -2893,5 +2893,7 @@
   "chainHintTitle": "Leg die Kette auf einen mittleren Gang",
   "chainHintVeryBigGear": "Deine Kette auf dem Trainer liegt auf einem sehr großen Gang (Übersetzung etwa {ratio}). Virtuelle Gänge fühlen sich realistisch an, wenn die Kette auf einem mittleren Gang liegt, z. B. 34/17 oder 50/25. Lass sie dort und schalte nur noch virtuell.",
   "chainHintVerySmallGear": "Deine Kette auf dem Trainer liegt auf einem sehr kleinen Gang (Übersetzung etwa {ratio}). Virtuelle Gänge fühlen sich realistisch an, wenn die Kette auf einem mittleren Gang liegt, z. B. 34/17 oder 50/25. Lass sie dort und schalte nur noch virtuell.",
-  "ignoredDevicesNearby": "Ignorierte Geräte in der Nähe gefunden"
+  "ignoredDevicesNearby": "Ignorierte Geräte in der Nähe gefunden",
+  "trainerActionGearUpErgUp": "Trainer: Gang hoch / ERG hoch",
+  "trainerActionGearDownErgDown": "Trainer: Gang runter / ERG runter"
 }
