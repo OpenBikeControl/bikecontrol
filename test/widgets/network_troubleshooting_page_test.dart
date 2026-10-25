@@ -67,7 +67,8 @@ NetworkProbeContext _ctx() => NetworkProbeContext(
   onWatchProgress: (progress) {},
 );
 
-AppLocalizations _l10n(WidgetTester tester) => AppLocalizations.of(tester.element(find.byType(NetworkTroubleshootingPage)));
+AppLocalizations _l10n(WidgetTester tester) =>
+    AppLocalizations.of(tester.element(find.byType(NetworkTroubleshootingPage)));
 
 /// The variant a [Button] was built with — `Button.primary(...)` stores
 /// `ButtonVariance.primary` directly, `Button(style: ButtonStyle.primary())`
@@ -214,7 +215,10 @@ Future<void> main() async {
     expect(find.text(l10n.networkFixFailed), findsNothing);
   });
 
-  testWidgets('while connected, a recommended backend-switch fix is disabled like restart is', (tester) async {
+  testWidgets('while connected, a fix that would stop the server says why instead of doing nothing', (tester) async {
+    // Zwift was connected, a rider tapped the
+    // recommended "Restart" and nothing happened — the button was silently
+    // disabled, so the refusal toast runNetworkFix already has never showed.
     core.obpMdnsEmulator.isConnected.value = true;
     final probes = [
       ProbeSpec(
@@ -227,9 +231,15 @@ Future<void> main() async {
         ),
       ),
     ];
+    var engines = 0;
     await _pump(
       tester,
-      NetworkTroubleshootingPage(engineFactory: () => NetworkSelfTestEngine(contextBuilder: _ctx, probes: probes)),
+      NetworkTroubleshootingPage(
+        engineFactory: () {
+          engines++;
+          return NetworkSelfTestEngine(contextBuilder: _ctx, probes: probes);
+        },
+      ),
     );
     await tester.pump();
 
@@ -237,25 +247,27 @@ Future<void> main() async {
     await tester.tap(find.text(_l10n(tester).networkTroubleshootRun));
     await tester.pump();
     await tester.pump();
+    expect(engines, 1);
 
-    final switchButton = tester.widget<Button>(find.byKey(const ValueKey('network-recommended-fix')));
-    expect(switchButton.onPressed, isNull, reason: 'switching the backend stops the server and would drop the live connection');
+    final fix = find.byKey(const ValueKey('network-recommended-fix'));
+    expect(tester.widget<Button>(fix).onPressed, isNotNull, reason: 'a dead button reads as broken');
 
-    // The second fix (switchToLocal) does not touch the running server, so it
-    // stays tappable. Found by its label rather than by position in the widget
-    // tree: which container the fixes sit in is a layout decision, and this
-    // test is about which fixes are allowed to run.
-    final localLabel = networkFixLabel(
-      tester.element(find.byType(NetworkTroubleshootingPage)),
-      NetworkFixId.switchToLocal,
-    );
-    final local = tester
-        .widgetList<Button>(find.byType(Button))
-        .firstWhere((b) => b.child is Text && (b.child as Text).data == localLabel);
-    expect(local.onPressed, isNotNull);
+    await tester.ensureVisible(fix);
+    await tester.tap(fix);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final l10n = _l10n(tester);
+    final app = core.settings.getTrainerApp()?.name;
+    final expected = app == null ? l10n.networkFixRefusedConnectedNoApp : l10n.networkFixRefusedConnected(app);
+    expect(find.text(expected), findsOneWidget);
+    expect(core.obpMdnsEmulator.isConnected.value, isTrue, reason: 'the live connection was left alone');
+    expect(engines, 1, reason: 'a refused fix changed nothing, so there is nothing to re-check');
   });
 
-  testWidgets('a second Run again while the engine is still being built does not start a second engine', (tester) async {
+  testWidgets('a second Run again while the engine is still being built does not start a second engine', (
+    tester,
+  ) async {
     // The production factory awaits DebugDiagnostics.gather() before an
     // engine exists; modelled here by a Completer the second call returns.
     var factoryCalls = 0;
@@ -396,7 +408,10 @@ Future<void> main() async {
 
       final send = find.byKey(const ValueKey('network-send-support'));
       expect(find.descendant(of: footer, matching: send), findsOneWidget);
-      expect(tester.widget<Button>(send).child, isA<Text>().having((t) => t.data, 'label', l10n.networkTroubleshootSendToSupport));
+      expect(
+        tester.widget<Button>(send).child,
+        isA<Text>().having((t) => t.data, 'label', l10n.networkTroubleshootSendToSupport),
+      );
       expect(_varianceOf(tester.widget<Button>(send)), same(ButtonVariance.outline));
       expect(find.byKey(const ValueKey('network-get-help')), findsNothing);
 
@@ -412,7 +427,10 @@ Future<void> main() async {
         final l10n = _l10n(tester);
 
         expect(find.text(l10n.networkFooterTitle), findsOneWidget);
-        expect(find.descendant(of: footer, matching: find.byKey(const ValueKey('network-send-support'))), findsOneWidget);
+        expect(
+          find.descendant(of: footer, matching: find.byKey(const ValueKey('network-send-support'))),
+          findsOneWidget,
+        );
         expect(find.byKey(const ValueKey('network-get-help')), findsNothing);
         expect(_primaryButtonsIn(tester, footer), isEmpty);
       });
@@ -514,7 +532,8 @@ Future<void> main() async {
       final previousInstance = ServiceAdvertiser.instance;
       ServiceAdvertiser.instance = advertiser;
       core.obpMdnsEmulator.debugIsWindows = () => true;
-      core.obpMdnsEmulator.debugBonjourFactory = () => BonjourServiceAdvertiser(api: FakeBonjourApi(isAvailable: false));
+      core.obpMdnsEmulator.debugBonjourFactory = () =>
+          BonjourServiceAdvertiser(api: FakeBonjourApi(isAvailable: false));
       addTearDown(() async {
         core.obpMdnsEmulator.debugIsWindows = null;
         core.obpMdnsEmulator.debugBonjourFactory = null;

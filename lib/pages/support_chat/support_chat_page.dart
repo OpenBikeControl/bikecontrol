@@ -112,9 +112,14 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
 
   /// True once either entry point (the post-send prompt or the header's
   /// "Sign In" button) has revealed [SupportAccountLinkCard]. Both entry
-  /// points converge on the same card instance/state machine, so this only
-  /// ever flips false → true.
+  /// points converge on the same card instance/state machine. The card's own
+  /// dismiss button flips it back.
   bool _showAccountLink = false;
+
+  /// Set once the rider dismissed the card: the post-send prompt then stays
+  /// away for the rest of this chat session. The header's "Sign In" button
+  /// still brings it back — that one is the rider asking for it.
+  bool _accountLinkDismissed = false;
 
   @override
   void initState() {
@@ -327,7 +332,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         // support, but nothing comes back to an anonymous rider until they
         // do. Shown once per chat session — _showAccountLink only goes
         // false → true.
-        if (_accountService.isAnonymous) _showAccountLink = true;
+        if (_accountService.isAnonymous && !_accountLinkDismissed) _showAccountLink = true;
       });
     } on SupportChatException catch (e, s) {
       recordError(e, s, context: 'support.chat.send');
@@ -485,6 +490,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         _intakeAnswers = null;
         _editingIntake = false;
         _showAccountLink = false;
+        _accountLinkDismissed = false;
         _retainedUploads.clear();
       });
       buildToast(level: LogLevel.LOGLEVEL_INFO, title: i18n.supportDeleteSuccess);
@@ -519,35 +525,49 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     // is submitted. Once any message exists, the composer is always shown so
     // existing conversations remain unaffected.
     final showComposer = hasMessages || _intakeAnswers != null;
-    return Column(
-      children: [
-        Expanded(child: _messageList()),
-        // Inline, not a modal — sits right above the composer regardless of
-        // which entry point (post-send prompt or header button) revealed it.
-        if (_showAccountLink)
-          SupportAccountLinkCard(
-            accountService: _accountService,
-            onLinked: () => setState(() {}),
-          ),
-        if (showComposer && !_intakeSent && _intakeAnswers != null && !_editingIntake)
-          SupportIntakeSummaryChip(
-            answers: _intakeAnswers!,
-            onEdit: () => setState(() => _editingIntake = true),
-          ),
-        if (showComposer)
-          SupportComposer(
-            sending: _sending,
-            onSend: _send,
-            diagnosticPreview: _diagnosticPreview,
-            initialText: widget.initialText,
-            initialAttachment: widget.initialAttachment,
-            pinnedContext: widget.pinnedContext,
-            pinnedContextLabel: widget.pinnedContextLabel,
-            // The first message of a conversation must say what is wrong;
-            // follow-ups may be a screenshot alone.
-            requireDescription: !hasMessages,
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) => Column(
+        children: [
+          Expanded(child: _messageList()),
+          // Inline, not a modal — sits right above the composer regardless of
+          // which entry point (post-send prompt or header button) revealed it.
+          // Capped and scrollable: at full height (four sign-in buttons plus
+          // the email row) it filled a short desktop window together with the
+          // composer, leaving the message list no room at all.
+          if (_showAccountLink)
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: constraints.maxHeight * 0.4),
+              child: SingleChildScrollView(
+                child: SupportAccountLinkCard(
+                  accountService: _accountService,
+                  onLinked: () => setState(() {}),
+                  onDismiss: () => setState(() {
+                    _showAccountLink = false;
+                    _accountLinkDismissed = true;
+                  }),
+                ),
+              ),
+            ),
+          if (showComposer && !_intakeSent && _intakeAnswers != null && !_editingIntake)
+            SupportIntakeSummaryChip(
+              answers: _intakeAnswers!,
+              onEdit: () => setState(() => _editingIntake = true),
+            ),
+          if (showComposer)
+            SupportComposer(
+              sending: _sending,
+              onSend: _send,
+              diagnosticPreview: _diagnosticPreview,
+              initialText: widget.initialText,
+              initialAttachment: widget.initialAttachment,
+              pinnedContext: widget.pinnedContext,
+              pinnedContextLabel: widget.pinnedContextLabel,
+              // The first message of a conversation must say what is wrong;
+              // follow-ups may be a screenshot alone.
+              requireDescription: !hasMessages,
+            ),
+        ],
+      ),
     );
   }
 

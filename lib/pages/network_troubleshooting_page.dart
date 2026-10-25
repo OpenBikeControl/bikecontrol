@@ -242,7 +242,10 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     // The check the fix was offered on: a fix that needs to know which
     // connection it is about reads it from there.
     final from = _engine?.state.value.checks.firstOrNullWhere((c) => c.fixes.contains(fix));
-    await runNetworkFix(bodyContext, fix, from: from);
+    final done = await runNetworkFix(bodyContext, fix, from: from);
+    // A refused or failed fix changed nothing, and its toast is the answer —
+    // a re-run would only bury it under the same result.
+    if (!done) return;
     // A full re-run: the checks are cheap and the watch row is skippable, so
     // there is no reason to re-verify just the one fixed check.
     await _start();
@@ -267,18 +270,12 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
     );
   }
 
-  /// Fixes that stop the examined method's server are greyed out while a
-  /// trainer app is connected through it — they would drop a connection
-  /// that works. `runNetworkFix` refuses them too (with a toast) should one
-  /// slip through; this is just the visual half of that.
-  static const _stopsServer = {
-    NetworkFixId.restartMethod,
-    NetworkFixId.useOsResponderForObc,
-    NetworkFixId.useResponderForObc,
-  };
-
-  bool _fixDisabled(NetworkFixId fix) =>
-      _starting || (_stopsServer.contains(fix) && currentNetworkMethodTarget().isConnected.value);
+  /// Fixes are only held back while a run is starting. Ones that stop the
+  /// examined method's server stay tappable even while a trainer app is
+  /// connected through it: `runNetworkFix` refuses those with a toast naming
+  /// the app, and a button greyed out without a word read as broken —
+  /// "Restart" seemed to do nothing while Zwift was connected.
+  bool _fixDisabled(NetworkFixId fix) => _starting;
 
   /// Which section of the page a check belongs to. The design groups by where
   /// the problem would be, because that is what tells a rider whether to look
