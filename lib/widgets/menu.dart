@@ -207,6 +207,13 @@ String describeProxyDevice(ProxyDevice device) {
     // switched to power — the line that explains vsMode=targetPower on a
     // bundle whose rider picked Track Resistance.
     if (def.trackResistanceRefused.value) parts.add('simGrade=refused→power');
+    // The trainer refused to start its FTMS session while the rider pedalled:
+    // every target is then acknowledged and none reaches the brake, which
+    // lastCtl=ok below cannot show.
+    if (def.ftmsStartSummary case final start?) parts.add('ftmsStart=$start');
+    // Whether the measured power follows the power targets; `no` is the
+    // trainer acknowledging targets it does not apply.
+    if (def.ergFollowSummary case final follow?) parts.add('ergFollow=$follow');
     final ctl = def.lastControlWrite;
     if (ctl != null) {
       final age = DateTime.now().difference(ctl.at).inSeconds;
