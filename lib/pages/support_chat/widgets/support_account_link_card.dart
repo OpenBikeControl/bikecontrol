@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/feedback_submission_service.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -65,6 +66,11 @@ class SupportAccountLinkCard extends StatefulWidget {
   /// itself (the chat header).
   final VoidCallback? onLinked;
 
+  /// Puts the card away. Without it the card could not be closed at all, and
+  /// on a short desktop window it was the thing standing between the rider
+  /// and their own messages. No button when null.
+  final VoidCallback? onDismiss;
+
   /// Test seam: replaces the real Google-SDK token fetch — see
   /// support_account_link_card_test.dart.
   final Future<GoogleIdTokenResult> Function()? googleIdTokenFetcher;
@@ -76,6 +82,7 @@ class SupportAccountLinkCard extends StatefulWidget {
     super.key,
     required this.accountService,
     this.onLinked,
+    this.onDismiss,
     this.googleIdTokenFetcher,
     this.appleIdTokenFetcher,
   });
@@ -325,6 +332,7 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
                   style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
+              ?_dismissButton(context),
             ],
           ),
         ),
@@ -351,7 +359,17 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.supportAccountLinkTitle, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.supportAccountLinkTitle,
+                    style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                ?_dismissButton(context),
+              ],
+            ),
             const Gap(3),
             Text(l10n.supportAccountLinkBody, style: context.typography.xSmall.copyWith(color: cs.mutedForeground)),
             const Gap(11),
@@ -413,6 +431,18 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget? _dismissButton(BuildContext context) {
+    final onDismiss = widget.onDismiss;
+    if (onDismiss == null) return null;
+    return BkIconButton.ghost(
+      key: const ValueKey('support-account-link-dismiss'),
+      icon: const Icon(LucideIcons.x, size: 16),
+      label: AppLocalizations.of(context).a11yDismiss,
+      size: ButtonSize.small,
+      onPressed: onDismiss,
     );
   }
 
