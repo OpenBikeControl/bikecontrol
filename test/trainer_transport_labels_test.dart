@@ -1,3 +1,4 @@
+import 'dart:async';
 // The same physical trainer is regularly discovered twice — once over BLE and
 // once over mDNS/DirCon — and the two entries used to be indistinguishable:
 // same name, same "Supports virtual shifting" subtitle, same bike icon. These
@@ -371,6 +372,36 @@ Future<void> main() async {
 
       final line = describeProxyDevice(device);
       expect(line, contains('zwiftHandshake=not-started'));
+    });
+
+    test('a forced FTMS delivery reports the Zwift handshake as skipped', () {
+      final device = trainerWithFitnessBike(services: dualProtocolServices());
+      device.fitnessBike!.setControlProtocolOverride(TrainerControlProtocol.ftms);
+
+      expect(describeProxyDevice(device), contains('zwiftHandshake=skipped'));
+    });
+
+    test('a trainer that refused its FTMS session while pedalling says so', () async {
+      // Acknowledged targets that never reach the brake read as lastCtl=ok;
+      // only the refused Start/Resume tells them apart.
+      final device = trainerWithFitnessBike(services: dualProtocolServices());
+      final def = device.fitnessBike!;
+      def.setControlProtocolOverride(TrainerControlProtocol.ftms);
+      def.simulateTrainerSampleForTesting(cadence: 72, powerW: 150);
+      unawaited(def.debugBackendWriteTargetPowerForTesting(150));
+      await pumpEventQueue();
+      def.onNotification(
+        FitnessBikeDefinition.FITNESS_MACHINE_CONTROL_POINT_UUID,
+        Uint8List.fromList([0x80, 0x07, 0x04]),
+      );
+
+      expect(describeProxyDevice(device), contains('ftmsStart=refused·1'));
+    });
+
+    test('a plain FTMS trainer carries no session or ERG-follow field until there is something to say', () {
+      final line = describeProxyDevice(trainerWithFitnessBike());
+      expect(line, isNot(contains('ftmsStart=')));
+      expect(line, isNot(contains('ergFollow=')));
     });
 
     test('a plain FTMS trainer carries no handshake field', () {
