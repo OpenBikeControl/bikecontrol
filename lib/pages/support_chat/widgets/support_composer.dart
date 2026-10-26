@@ -4,11 +4,14 @@ import 'dart:async' show unawaited;
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 
+import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/pages/support_chat/widgets/support_clipboard.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:image_picker/image_picker.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -137,6 +140,9 @@ class SupportComposer extends StatefulWidget {
   /// attachment-only.
   final bool requireDescription;
 
+  /// What Cmd/Ctrl+V attaches instead of pasting text; injectable for tests.
+  final ClipboardAttachmentReader readClipboardAttachment;
+
   const SupportComposer({
     super.key,
     required this.sending,
@@ -147,7 +153,9 @@ class SupportComposer extends StatefulWidget {
     this.pinnedContext,
     this.pinnedContextLabel,
     this.requireDescription = false,
-  }) : assert(pinnedContext == null || pinnedContextLabel != null, 'pinnedContext needs a pinnedContextLabel');
+    ClipboardAttachmentReader? readClipboardAttachment,
+  }) : readClipboardAttachment = readClipboardAttachment ?? readSupportClipboardAttachment,
+       assert(pinnedContext == null || pinnedContextLabel != null, 'pinnedContext needs a pinnedContextLabel');
 
   /// The shortest description that unlocks send while a [pinnedContext] is
   /// attached, or for the first message ([requireDescription]). Trimmed length, so whitespace alone counts as nothing.
@@ -191,6 +199,8 @@ class _SupportComposerState extends State<SupportComposer> {
     _focusNode.dispose();
     super.dispose();
   }
+
+  bool get _isApple => defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.iOS;
 
   /// True while a pinned result is waiting on a description the rider has
   /// not typed yet — the one case where send is disabled despite there
@@ -239,6 +249,25 @@ class _SupportComposerState extends State<SupportComposer> {
     setState(() {
       _attachment = StagedAttachment(result.files.single);
     });
+  }
+
+  /// Cmd/Ctrl+V: a screenshot or copied file on the clipboard becomes the
+  /// staged attachment, anything else is pasted into the text field as usual.
+  Future<void> _paste() async {
+    StagedAttachment? pasted;
+    try {
+      pasted = await widget.readClipboardAttachment();
+    } catch (e, s) {
+      recordError(e, s, context: 'Support composer paste');
+    }
+    if (!mounted) return;
+    if (pasted != null) {
+      setState(() => _attachment = pasted);
+      return;
+    }
+    final editable = _focusNode.context;
+    if (editable == null || !editable.mounted) return;
+    Actions.maybeInvoke(editable, const PasteTextIntent(SelectionChangedCause.keyboard));
   }
 
   void _showAttachSheet(BuildContext context) {
@@ -337,16 +366,26 @@ class _SupportComposerState extends State<SupportComposer> {
               ),
               const SizedBox(width: 4),
               Expanded(
-                child: TextArea(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  placeholder: Text(
-                    _describing
-                        ? context.i18n.supportDescribeProblemPlaceholder
-                        : context.i18n.messageComposerPlaceholder,
+                child: CallbackShortcuts(
+                  bindings: {
+                    SingleActivator(
+                      LogicalKeyboardKey.keyV,
+                      meta: _isApple,
+                      control: !_isApple,
+                    ): () =>
+                        unawaited(_paste()),
+                  },
+                  child: TextArea(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    placeholder: Text(
+                      _describing
+                          ? context.i18n.supportDescribeProblemPlaceholder
+                          : context.i18n.messageComposerPlaceholder,
+                    ),
+                    expandableHeight: true,
+                    initialHeight: 56,
                   ),
-                  expandableHeight: true,
-                  initialHeight: 56,
                 ),
               ),
               const SizedBox(width: 8),
@@ -606,7 +645,10 @@ class _DiagnosticsSheetState extends State<_DiagnosticsSheet> {
       (l.supportDiagDevices, summary.devices ?? l.supportDiagNone),
       (l.supportDiagConnections, summary.connections ?? l.supportDiagNone),
       (l.supportDiagLogLines, '${summary.logLines}'),
-      (l.supportDiagScreenshot, widget.screenshotAttached ? l.supportDiagScreenshotAttached : l.supportDiagScreenshotNone),
+      (
+        l.supportDiagScreenshot,
+        widget.screenshotAttached ? l.supportDiagScreenshotAttached : l.supportDiagScreenshotNone,
+      ),
     ];
     return Container(
       padding: const EdgeInsets.all(12),

@@ -14,6 +14,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_key_detector_windows
   multi_window_native
   nsd_windows
+  pasteboard
   permission_handler_windows
   screen_recorder
   screen_retriever_windows

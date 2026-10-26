@@ -108,6 +108,7 @@ dependencies:
   video_player: ^2.14.1
   video_player_win: ^3.3.0
   swipeable_page_route: ^0.4.8
+  pasteboard: ^0.6.0
 
 dev_dependencies:
   flutter_test:
