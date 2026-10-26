@@ -1895,6 +1895,7 @@
   "controlProtocolIgnored": "Dein Trainer bestätigt die Schaltbefehle über das gewählte Protokoll nicht. BikeControl würde normalerweise wechseln, behält aber deine manuelle Auswahl bei.",
   "controlProtocolIgnoredNoFallback": "Dein Trainer bestätigt die Schaltbefehle nicht und bietet kein anderes Protokoll als Ausweichweg an.",
   "controlProtocolUseAuto": "Auf Automatisch umstellen",
+  "controlProtocolNativeShiftingAvailable": "Dieser Trainer unterstützt das native virtuelle Schalten von BikeControl: Er setzt deinen Gang selbst um. Stell das Protokoll auf Automatisch, damit sich das Schalten am realistischsten anfühlt.",
   "controlProtocolAuto": "Automatisch (empfohlen)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",

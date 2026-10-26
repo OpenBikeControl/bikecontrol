@@ -2182,6 +2182,7 @@
   "controlProtocolIgnored": "Your trainer is not acknowledging gear commands on the protocol you picked. BikeControl would normally switch, but your manual choice is kept.",
   "controlProtocolIgnoredNoFallback": "Your trainer is not acknowledging gear commands, and offers no other protocol to fall back to.",
   "controlProtocolUseAuto": "Switch to Auto",
+  "controlProtocolNativeShiftingAvailable": "This trainer supports BikeControl's native virtual shifting: it applies your gear itself. Set the protocol to Auto for the most realistic shifting.",
   "controlProtocolAuto": "Auto (recommended)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",

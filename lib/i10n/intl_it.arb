@@ -1883,6 +1883,7 @@
   "controlProtocolIgnored": "Il tuo rullo non conferma i comandi del cambio sul protocollo che hai scelto. BikeControl passerebbe a un altro, ma la tua scelta manuale viene mantenuta.",
   "controlProtocolIgnoredNoFallback": "Il tuo rullo non conferma i comandi del cambio e non offre altri protocolli di ripiego.",
   "controlProtocolUseAuto": "Passa ad Auto",
+  "controlProtocolNativeShiftingAvailable": "Questo rullo supporta il cambio virtuale nativo di BikeControl: applica da solo il tuo rapporto. Imposta il protocollo su Auto per una cambiata il più realistica possibile.",
   "controlProtocolAuto": "Auto (consigliato)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",

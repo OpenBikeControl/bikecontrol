@@ -1883,6 +1883,7 @@
   "controlProtocolIgnored": "Trenażer nie potwierdza poleceń zmiany biegów w wybranym protokole. BikeControl normalnie by go zmienił, ale ręczny wybór zostaje zachowany.",
   "controlProtocolIgnoredNoFallback": "Trenażer nie potwierdza poleceń zmiany biegów i nie udostępnia innego protokołu zapasowego.",
   "controlProtocolUseAuto": "Przełącz na Auto",
+  "controlProtocolNativeShiftingAvailable": "Ten trenażer obsługuje natywną wirtualną zmianę biegów BikeControl: sam stosuje wybrany bieg. Ustaw protokół na Auto, aby zmiana biegów była jak najbardziej realistyczna.",
   "controlProtocolAuto": "Auto (zalecane)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",

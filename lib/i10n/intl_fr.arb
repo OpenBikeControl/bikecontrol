@@ -1883,6 +1883,7 @@
   "controlProtocolIgnored": "Ton home-trainer n'accuse pas réception des commandes de vitesses sur le protocole choisi. BikeControl changerait normalement, mais ton choix manuel est conservé.",
   "controlProtocolIgnoredNoFallback": "Ton home-trainer n'accuse pas réception des commandes de vitesses et n'offre aucun autre protocole de repli.",
   "controlProtocolUseAuto": "Passer en Auto",
+  "controlProtocolNativeShiftingAvailable": "Ce home-trainer prend en charge le changement de vitesses virtuel natif de BikeControl : il applique lui-même ta vitesse. Mets le protocole sur Auto pour des changements les plus réalistes.",
   "controlProtocolAuto": "Auto (recommandé)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",

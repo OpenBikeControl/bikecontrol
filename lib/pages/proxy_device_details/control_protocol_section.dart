@@ -37,12 +37,14 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
       builder: (context, verdict, _) {
         final verdictMessage = _gearEchoMessage(verdict);
         final showsSelect = def.supportedControlProtocols.length > 1;
-        if (!showsSelect && verdictMessage == null) return const SizedBox.shrink();
+        final showsNativeHint = def.forcedOffNativeShifting;
+        if (!showsSelect && verdictMessage == null && !showsNativeHint) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 10,
           children: [
             if (showsSelect) _controlProtocolCard(),
+            if (showsNativeHint) _nativeShiftingNotice(),
             if (verdictMessage != null) _gearEchoVerdictNotice(verdict, verdictMessage),
           ],
         );
@@ -95,6 +97,45 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
               onPressed: _clearProtocolOverride,
               child: Text(context.i18n.controlProtocolUseAuto),
             ),
+        ],
+      ),
+    );
+  }
+
+  /// The rider forced FTMS or FE-C on a trainer that Auto would drive through
+  /// its native interface, where the trainer applies the gear itself. Nothing
+  /// is broken, so this is a muted hint rather than a warning, but it is the
+  /// weaker path and the rider usually picked it while chasing another fault.
+  Widget _nativeShiftingNotice() {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      decoration: BoxDecoration(
+        color: cs.muted,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: cs.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 8,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 8,
+            children: [
+              Icon(LucideIcons.info, size: 15, color: cs.mutedForeground),
+              Expanded(
+                child: Text(
+                  context.i18n.controlProtocolNativeShiftingAvailable,
+                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                ),
+              ),
+            ],
+          ),
+          Button.outline(
+            onPressed: _clearProtocolOverride,
+            child: Text(context.i18n.controlProtocolUseAuto),
+          ),
         ],
       ),
     );

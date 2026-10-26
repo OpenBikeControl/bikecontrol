@@ -1883,6 +1883,7 @@
   "controlProtocolIgnored": "Tu rodillo no confirma los cambios de marcha con el protocolo que elegiste. BikeControl cambiaría por su cuenta, pero se respeta tu elección manual.",
   "controlProtocolIgnoredNoFallback": "Tu rodillo no confirma los cambios de marcha y no ofrece otro protocolo al que recurrir.",
   "controlProtocolUseAuto": "Cambiar a Auto",
+  "controlProtocolNativeShiftingAvailable": "Este rodillo admite el cambio virtual nativo de BikeControl: aplica tu marcha por sí mismo. Pon el protocolo en Auto para que los cambios se sientan lo más realistas posible.",
   "controlProtocolAuto": "Auto (recomendado)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
