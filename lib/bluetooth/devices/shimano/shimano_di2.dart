@@ -280,16 +280,35 @@ class ShimanoDi2 extends BluetoothDevice {
     await _buttonSession?.close();
     _buttonSession = null;
     final counted = _CountingShimanoTransport(t);
-    final session = await ShimanoConfig.enterButtonMode(
-      counted,
-      onPaddle: onPaddle,
-      onUnknownFrame: onUnknownFrame,
-      onStepError: (step, e, st) => unawaited(recordError(e, st, context: 'ShimanoDi2: button mode step $step')),
-    );
+    // The paddle presses arrive on 2AF9, the same characteristic the RD
+    // answers the sequence on: no replies there means presses can't arrive
+    // either, although the RD already stopped shifting.
+    var replies = 0;
+    final replyCounter = t.notifications(ShimanoDi2Config.pceResponseChar).listen((_) => replies++);
+    final ShimanoButtonSession session;
+    try {
+      session = await ShimanoConfig.enterButtonMode(
+        counted,
+        onPaddle: onPaddle,
+        onUnknownFrame: onUnknownFrame,
+        onStepError: (step, e, st) {
+          actionStreamInternal.add(LogNotification('ShimanoDi2 button mode step $step failed: $e'));
+          unawaited(recordError(e, st, context: 'ShimanoDi2: button mode step $step'));
+        },
+      );
+    } finally {
+      await replyCounter.cancel();
+    }
     if (counted.answered == 0 && counted.failed > 0) {
       await session.close();
       throw TimeoutException('Di2 answered none of the ${counted.failed} button mode steps');
     }
+    actionStreamInternal.add(
+      LogNotification(
+        'ShimanoDi2 button mode active: ${counted.answered} steps answered, ${counted.failed} failed, '
+        '$replies replies on 2af9',
+      ),
+    );
     _buttonSession = session;
     registerPaddleButtons();
   }
