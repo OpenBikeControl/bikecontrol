@@ -546,7 +546,7 @@ Future<void> main() async {
       final cfg = core.shiftingConfigs.activeFor(proxy.trainerKey);
       expect(cfg.realChainringTeeth, 35);
       expect(cfg.realCogTeeth, 16);
-      expect(find.textContaining('35/16 = 2.19'), findsOneWidget);
+      expect(find.textContaining('35/16\u00A0=\u00A02.19'), findsOneWidget);
     });
 
     testWidgets('Reset leaves it alone: it is the bike, not a preference', (tester) async {

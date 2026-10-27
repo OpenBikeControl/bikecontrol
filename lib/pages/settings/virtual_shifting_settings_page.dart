@@ -535,7 +535,8 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     return BkGroupedSection(
       key: const ValueKey('vs-real-chain'),
       header: l10n.vsGroupRealChain,
-      footer: l10n.realChainFooter('$chainring/$cog = $ratio'),
+      // Non-breaking: the ratio never wraps at the "=".
+      footer: l10n.realChainFooter('$chainring/$cog\u00A0=\u00A0$ratio'),
       children: [
         BkGroupedRow(
           key: const ValueKey('vs-real-chainring'),
