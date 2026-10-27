@@ -79,4 +79,19 @@ Future<void> main() async {
   test('a trainer that was never calibrated rides at the default', () {
     expect(connect(trainer('KICKR CORE 2')).difficultyPct.value, FitnessBikeDefinition.defaultDifficultyPct);
   });
+
+  // The real chain is seeded the same way: the physics need it from the first
+  // grade on.
+  test('a connect seeds the stored real chain', () async {
+    final device = trainer('KICKR CORE 3');
+    await core.shiftingConfigs.upsert(
+      core.shiftingConfigs.activeFor(device.trainerKey).copyWith(realChainringTeeth: 39, realCogTeeth: 14),
+    );
+    expect(connect(device).realChainRatio, closeTo(39 / 14, 1e-9));
+  });
+
+  test('a trainer whose real chain was never set rides on the default 2.0', () {
+    expect(connect(trainer('KICKR CORE 4')).realChainRatio, 2.0);
+  });
 }
+

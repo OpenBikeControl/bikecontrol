@@ -10,6 +10,7 @@ import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/pages/proxy_device_details/vs_calibration_page.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
@@ -162,6 +163,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setDifficultyPct(cfg.difficultyPct);
+    def.setRealChainRatio(cfg.realChainRatio);
     def.setVirtualShiftingMode(cfg.mode);
     // The front derailleur belongs to the config too: picking another config
     // brings its rings with it, and the drivetrain above draws them.
@@ -254,6 +256,11 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
               _drivetrain(context),
               const Gap(20),
               _gears(context),
+              // A smart bike has no chain.
+              if (!def.isSmartBike) ...[
+                const Gap(24),
+                _realChain(context),
+              ],
               const Gap(24),
               _physics(context),
               if (!screenshotMode) ...[
@@ -496,6 +503,62 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
             alignment: Alignment.topCenter,
             child: steppers,
           ),
+      ],
+    );
+  }
+
+  /// Where the rider's real chain sits at the trainer. The physics assume
+  /// 34/17; a rider who leaves the chain elsewhere (a 39 ring on a 14 Zwift
+  /// Cog) sets it here, and every virtual gear feels like its real one.
+  Widget _realChain(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final chainring = config.realChainringTeeth;
+    final cog = config.realCogTeeth;
+    final ratio = NumberFormat('0.00', Localizations.localeOf(context).toString()).format(config.realChainRatio);
+
+    Future<void> set({int? chainring, int? cog}) async {
+      def.setRealChainRatio(config.copyWith(realChainringTeeth: chainring, realCogTeeth: cog).realChainRatio);
+      await _update((c) => c.copyWith(realChainringTeeth: chainring, realCogTeeth: cog));
+    }
+
+    Widget teeth(int value, {required int min, required int max, required ValueChanged<int> onChanged}) =>
+        StepperControl(
+          value: value.toDouble(),
+          step: 1.0,
+          min: min.toDouble(),
+          max: max.toDouble(),
+          format: (v) => v.toStringAsFixed(0),
+          onChanged: (v) => onChanged(v.toInt()),
+        );
+
+    return BkGroupedSection(
+      key: const ValueKey('vs-real-chain'),
+      header: l10n.vsGroupRealChain,
+      footer: l10n.realChainFooter('$chainring/$cog = $ratio'),
+      children: [
+        BkGroupedRow(
+          key: const ValueKey('vs-real-chainring'),
+          icon: LucideIcons.circleDot,
+          title: l10n.realChainringLabel,
+          trailing: teeth(
+            chainring,
+            min: ShiftingConfig.chainringTeethMin,
+            max: ShiftingConfig.chainringTeethMax,
+            onChanged: (next) => set(chainring: next),
+          ),
+        ),
+        BkGroupedRow(
+          key: const ValueKey('vs-real-cog'),
+          icon: LucideIcons.cog,
+          title: l10n.realCogLabel,
+          trailing: teeth(
+            cog,
+            min: ShiftingConfig.realCogTeethMin,
+            max: ShiftingConfig.realCogTeethMax,
+            onChanged: (next) => set(cog: next),
+          ),
+        ),
       ],
     );
   }

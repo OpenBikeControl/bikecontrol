@@ -3348,5 +3348,13 @@
   "@chainHintVerySmallGear": {"placeholders": {"ratio": {"type": "String"}}},
   "ignoredDevicesNearby": "Found ignored devices nearby",
   "trainerActionGearUpErgUp": "Trainer: Gear Up / ERG up",
-  "trainerActionGearDownErgDown": "Trainer: Gear Down / ERG down"
+  "trainerActionGearDownErgDown": "Trainer: Gear Down / ERG down",
+  "vsGroupRealChain": "Chain on the trainer",
+  "realChainringLabel": "Chainring on the bike",
+  "realCogLabel": "Cog on the trainer",
+  "realChainFooter": "The gear your chain really sits in on the trainer: {chain}. BikeControl takes it into account, so every virtual gear feels like the real one. Leave the chain there and only shift virtually. Used by Track Resistance.",
+  "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
+  "chainHintSetTitle": "Your chain isn't where you set it",
+  "chainHintSetBody": "Your chain on the trainer seems to be in a different gear (gear ratio about {measured}) than the one set under \"Chain on the trainer\" ({set}). Move it back, or change the setting.",
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
 }

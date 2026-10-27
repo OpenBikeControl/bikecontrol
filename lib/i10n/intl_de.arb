@@ -2926,5 +2926,13 @@
   "chainHintVerySmallGear": "Deine Kette auf dem Trainer liegt auf einem sehr kleinen Gang (Übersetzung etwa {ratio}). Virtuelle Gänge fühlen sich realistisch an, wenn die Kette auf einem mittleren Gang liegt, z. B. 34/17 oder 50/25. Lass sie dort und schalte nur noch virtuell.",
   "ignoredDevicesNearby": "Ignorierte Geräte in der Nähe gefunden",
   "trainerActionGearUpErgUp": "Trainer: Gang hoch / ERG hoch",
-  "trainerActionGearDownErgDown": "Trainer: Gang runter / ERG runter"
+  "trainerActionGearDownErgDown": "Trainer: Gang runter / ERG runter",
+  "vsGroupRealChain": "Kette am Trainer",
+  "realChainringLabel": "Kettenblatt am Rad",
+  "realCogLabel": "Ritzel am Trainer",
+  "realChainFooter": "Der Gang, in dem deine Kette am Trainer wirklich liegt: {chain}. BikeControl rechnet ihn mit ein, damit sich jeder virtuelle Gang wie der echte anfühlt. Lass die Kette dort und schalte nur noch virtuell. Gilt für Streckenwiderstand.",
+  "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
+  "chainHintSetTitle": "Deine Kette liegt nicht wie eingestellt",
+  "chainHintSetBody": "Deine Kette auf dem Trainer scheint auf einem anderen Gang zu liegen (Übersetzung etwa {measured}) als unter „Kette am Trainer“ eingestellt ({set}). Leg sie zurück oder pass die Einstellung an.",
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
 }

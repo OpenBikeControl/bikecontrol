@@ -595,6 +595,7 @@ class ProxyDevice extends BluetoothDevice {
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setDifficultyPct(cfg.difficultyPct);
+    def.setRealChainRatio(cfg.realChainRatio);
     // A rider who saved a config chose their mode; honour it. With no saved
     // config, let the definition manage the capability-based default (Track
     // Resistance on a grade-capable trainer) rather than the generic Target

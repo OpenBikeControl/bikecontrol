@@ -108,6 +108,21 @@ Future<void> main() async {
     await tester.pump();
   }
 
+  // With the real chain set, the band is around that chain, and the hint says
+  // the chain is not where the rider set it rather than "middle gear".
+  testWidgets('with a real chain set, says the chain is off the set one', (tester) async {
+    final def = trainer().fitnessBike!;
+    def.setRealChainRatio(53 / 12);
+    await pumpCard(tester, def);
+
+    ride(def, 2.0);
+    await tester.pump();
+    expect(find.text(l.chainHintSetTitle), findsOneWidget);
+    expect(find.text(l.chainHintSetBody('2.0', '4.4')), findsOneWidget);
+    expect(find.text(l.chainHintTitle), findsNothing);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
   testWidgets('appears while the chain sits on a very big gear, and goes when it moves', (tester) async {
     final def = trainer().fitnessBike!;
     await pumpCard(tester, def);

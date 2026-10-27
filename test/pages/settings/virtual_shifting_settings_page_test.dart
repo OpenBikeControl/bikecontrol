@@ -519,6 +519,58 @@ Future<void> main() async {
       expect(find.byType(VirtualShiftingSettingsPage), findsNothing);
     });
   });
+
+  // Where the real chain sits at the trainer: the physics need it, so a rider
+  // whose chain is not on 34/17 (a 39 ring on a 14 Zwift Cog) gets gears that
+  // feel like their real counterparts.
+  group('the real chain', () {
+    Finder inRow(String key, String stepper) =>
+        find.descendant(of: find.byKey(ValueKey(key)), matching: find.byKey(ValueKey(stepper)));
+
+    testWidgets('starts on 34/17 and a change goes to the trainer and the config', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('vs-real-chainring')), findsOneWidget);
+      expect(find.byKey(const ValueKey('vs-real-cog')), findsOneWidget);
+      expect(definition.realChainRatio, 2.0);
+
+      await tester.ensureVisible(inRow('vs-real-chainring', 'stepper-plus'));
+      await tester.tap(inRow('vs-real-chainring', 'stepper-plus'));
+      await tester.pump();
+      await tester.tap(inRow('vs-real-cog', 'stepper-minus'));
+      await tester.pump();
+
+      expect(definition.realChainRatio, closeTo(35 / 16, 1e-9));
+      final cfg = core.shiftingConfigs.activeFor(proxy.trainerKey);
+      expect(cfg.realChainringTeeth, 35);
+      expect(cfg.realCogTeeth, 16);
+      expect(find.textContaining('35/16 = 2.19'), findsOneWidget);
+    });
+
+    testWidgets('Reset leaves it alone: it is the bike, not a preference', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await core.shiftingConfigs.upsert(
+        core.shiftingConfigs
+            .activeFor(proxy.trainerKey)
+            .copyWith(realChainringTeeth: 39, realCogTeeth: 14, isActive: true),
+      );
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+      expect(definition.realChainRatio, closeTo(39 / 14, 1e-9));
+
+      await tester.tap(find.byKey(const ValueKey('vs-reset')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('vs-reset-confirm')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(definition.realChainRatio, closeTo(39 / 14, 1e-9));
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).realCogTeeth, 14);
+    });
+  });
 }
 
 /// A stored passing result, as [SelfTestResult.toJsonString] writes it.

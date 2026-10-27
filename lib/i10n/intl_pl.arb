@@ -2926,5 +2926,13 @@
   "chainHintVerySmallGear": "Łańcuch na trenażerze jest na bardzo lekkim biegu (przełożenie ok. {ratio}). Wirtualne biegi działają realistycznie, gdy łańcuch jest na środkowym biegu, np. 34/17 lub 50/25. Zostaw go tam i zmieniaj biegi tylko wirtualnie.",
   "ignoredDevicesNearby": "Znaleziono w pobliżu zignorowane urządzenia",
   "trainerActionGearUpErgUp": "Trenażer: bieg w górę / ERG w górę",
-  "trainerActionGearDownErgDown": "Trenażer: bieg w dół / ERG w dół"
+  "trainerActionGearDownErgDown": "Trenażer: bieg w dół / ERG w dół",
+  "vsGroupRealChain": "Łańcuch na trenażerze",
+  "realChainringLabel": "Tarcza w rowerze",
+  "realCogLabel": "Zębatka trenażera",
+  "realChainFooter": "Bieg, na którym naprawdę jest Twój łańcuch na trenażerze: {chain}. BikeControl go uwzględnia, więc każdy wirtualny bieg działa jak prawdziwy. Zostaw tam łańcuch i zmieniaj biegi tylko wirtualnie. Używane przez Opór trasy.",
+  "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
+  "chainHintSetTitle": "Łańcuch nie jest tam, gdzie go ustawiono",
+  "chainHintSetBody": "Łańcuch na trenażerze wydaje się być na innym biegu (przełożenie ok. {measured}) niż ustawiony w „Łańcuch na trenażerze” ({set}). Przełóż go z powrotem lub zmień ustawienie.",
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
 }

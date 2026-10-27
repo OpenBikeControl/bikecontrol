@@ -2926,5 +2926,13 @@
   "chainHintVerySmallGear": "La cadena en el rodillo está en una marcha muy pequeña (desarrollo de aprox. {ratio}). Las marchas virtuales se sienten realistas con la cadena en una marcha intermedia, p. ej. 34/17 o 50/25. Déjala ahí y cambia solo de forma virtual.",
   "ignoredDevicesNearby": "Se encontraron dispositivos ignorados cerca",
   "trainerActionGearUpErgUp": "Rodillo: subir marcha / ERG arriba",
-  "trainerActionGearDownErgDown": "Rodillo: bajar marcha / ERG abajo"
+  "trainerActionGearDownErgDown": "Rodillo: bajar marcha / ERG abajo",
+  "vsGroupRealChain": "Cadena en el rodillo",
+  "realChainringLabel": "Plato de la bici",
+  "realCogLabel": "Piñón del rodillo",
+  "realChainFooter": "La marcha en la que está realmente tu cadena en el rodillo: {chain}. BikeControl la tiene en cuenta para que cada marcha virtual se sienta como la real. Deja la cadena ahí y cambia solo de forma virtual. Se usa con Resistencia del recorrido.",
+  "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
+  "chainHintSetTitle": "Tu cadena no está donde la configuraste",
+  "chainHintSetBody": "La cadena en el rodillo parece estar en otra marcha (desarrollo de aprox. {measured}) distinta de la configurada en «Cadena en el rodillo» ({set}). Vuelve a ponerla o cambia el ajuste.",
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
 }

@@ -2926,5 +2926,13 @@
   "chainHintVerySmallGear": "La catena sui rulli è su un rapporto molto corto (rapporto di circa {ratio}). I rapporti virtuali risultano realistici con la catena su un rapporto intermedio, ad es. 34/17 o 50/25. Lasciala lì e cambia solo virtualmente.",
   "ignoredDevicesNearby": "Trovati dispositivi ignorati nelle vicinanze",
   "trainerActionGearUpErgUp": "Trainer: marcia su / ERG su",
-  "trainerActionGearDownErgDown": "Trainer: marcia giù / ERG giù"
+  "trainerActionGearDownErgDown": "Trainer: marcia giù / ERG giù",
+  "vsGroupRealChain": "Catena sui rulli",
+  "realChainringLabel": "Corona della bici",
+  "realCogLabel": "Pignone dei rulli",
+  "realChainFooter": "Il rapporto su cui si trova davvero la tua catena sui rulli: {chain}. BikeControl ne tiene conto, così ogni marcia virtuale si sente come quella reale. Lascia la catena lì e cambia solo virtualmente. Usato da Resistenza percorso.",
+  "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
+  "chainHintSetTitle": "La catena non è dove l’hai impostata",
+  "chainHintSetBody": "La catena sui rulli sembra essere su un rapporto diverso (rapporto di circa {measured}) da quello impostato in «Catena sui rulli» ({set}). Rimettila lì o cambia l’impostazione.",
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
 }

@@ -179,9 +179,11 @@ String describeProxyDevice(ProxyDevice device) {
     parts.add('difficulty=${def.difficultyPct.value}%');
     parts.add('ftms=${def.ftmsCapabilitySummary}');
     // Where the rider's real chain sits on the trainer (flywheel speed /
-    // cadence, approximate): the trackResistance physics assume ~2.0, so a
-    // "shifts barely felt" bundle with chainRatio=4.5 is a chain on 50/11.
+    // cadence, approximate) against the ratio the trackResistance physics use
+    // (2.0 unless the rider set their real chain), so a "shifts barely felt"
+    // bundle with chainRatio=4.5 setChain=2.00 is a chain on 50/11.
     if (def.estimatedChainRatio.value case final ratio?) parts.add('chainRatio=${ratio.toStringAsFixed(2)}');
+    if (!def.isSmartBike) parts.add('setChain=${def.realChainRatio.toStringAsFixed(2)}');
     // Live telemetry BikeControl is reading from the trainer: cad shows raw /
     // filtered rpm. The whole VS resistance calc is cadence-driven, so a "no
     // resistance" bundle with cad:0 (while pedalling) means we aren't getting
