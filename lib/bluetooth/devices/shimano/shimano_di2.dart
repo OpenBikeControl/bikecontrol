@@ -310,6 +310,7 @@ class ShimanoDi2 extends BluetoothDevice {
       ),
     );
     _buttonSession = session;
+    _logFramesAfterButtonMode(t);
     registerPaddleButtons();
   }
 
@@ -395,6 +396,8 @@ class ShimanoDi2 extends BluetoothDevice {
     await core.settings.setShimanoButtonMode(_serialKey, false);
     await _buttonSession?.close();
     _buttonSession = null;
+    await _frameLog?.cancel();
+    _frameLog = null;
     await disconnect();
     core.connection.signalChange(this);
   }
@@ -422,6 +425,24 @@ class ShimanoDi2 extends BluetoothDevice {
     unawaited(handleButtonsClicked(_pressed.toList()));
   }
 
+  StreamSubscription<Uint8List>? _frameLog;
+
+  /// Wired Di2 shifters may report presses in a shape the decoder doesn't
+  /// know, which it drops without a trace. Log the first raw frames on 2AF9
+  /// (each distinct frame once in a row) so a rider's log shows what arrives.
+  void _logFramesAfterButtonMode(ShimanoTransport t) {
+    unawaited(_frameLog?.cancel());
+    String? last;
+    var logged = 0;
+    _frameLog = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
+      final hex = frame.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      if (hex == last) return;
+      last = hex;
+      actionStreamInternal.add(LogNotification('ShimanoDi2 frame after button mode: $hex'));
+      if (++logged >= 50) unawaited(_frameLog?.cancel());
+    });
+  }
+
   String? _lastUnknownFrame;
 
   /// Button telemetry the decoder found no press in, e.g. a switch it doesn't
@@ -439,6 +460,8 @@ class ShimanoDi2 extends BluetoothDevice {
   Future<void> disconnect() async {
     await _buttonSession?.close();
     _buttonSession = null;
+    await _frameLog?.cancel();
+    _frameLog = null;
     _pressed.clear();
     await super.disconnect();
   }
