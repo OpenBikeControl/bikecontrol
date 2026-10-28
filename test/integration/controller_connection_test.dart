@@ -255,6 +255,41 @@ Future<void> main() async {
       expect(core.connection.devices, isEmpty);
     });
 
+    test('a controller disconnected for this session stays away when it advertises again', () async {
+      final di2 = buildShimanoDi2();
+      env.ble.addPeripheral(di2);
+
+      await core.connection.performScanning();
+      final device = await waitForDevice<ShimanoDi2>();
+      await IntegrationEnv.waitFor(() => device.isConnected, description: 'Di2 to connect');
+
+      // The rider taps "Disconnect and forget for this session".
+      await core.connection.disconnectForSession(device);
+      expect(core.connection.devices, isEmpty);
+      expect(core.settings.getIgnoredDevices(), isEmpty);
+
+      // The Di2 keeps advertising, and the scan restarts (Bluetooth toggles,
+      // an unlock-mode switch) — neither may bring it back.
+      env.ble.updateScanResult(di2.scanResult);
+      await core.connection.stop();
+      await core.connection.performScanning();
+      env.ble.updateScanResult(di2.scanResult);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(
+        core.connection.devices.whereType<ShimanoDi2>(),
+        isEmpty,
+        reason: 'the Di2 reconnected right after the rider disconnected it',
+      );
+
+      // Connecting it on purpose still works, and lifts the hold.
+      final again = BluetoothDevice.fromScanResult(di2.scanResult)!;
+      core.connection.addDevices([again]);
+      expect(core.connection.devices, isEmpty);
+      await core.connection.connectDevice(again);
+      core.connection.addDevices([again]);
+      await IntegrationEnv.waitFor(() => again.isConnected, description: 'explicit reconnect');
+    });
+
     test('a controller disconnected for inactivity is not auto-reconnected on rediscovery', () async {
       final click = buildZwiftClick();
       autoRespondToZwiftHandshake(env.ble, click);

@@ -766,6 +766,26 @@ class Connection {
   bool isAutoReconnectSuppressed(BaseDevice device) =>
       device is BluetoothDevice && _suppressedAutoReconnect.contains(device.device.deviceId);
 
+  /// BLE ids the rider disconnected with "Disconnect and forget for this
+  /// session". Unlike the ignore list this is not persisted, but it holds for
+  /// the whole session: the device keeps advertising, and the scan dedup entry
+  /// that used to be the only thing keeping it out is dropped by a connection
+  /// change, a scan restart or a Bluetooth toggle — each of which brought the
+  /// device straight back. Lifted only by an explicit [connectDevice].
+  final _disconnectedForSession = <String>{};
+
+  /// Clears what [disconnectForSession] held back, as an app restart does.
+  /// Tests only.
+  @visibleForTesting
+  void debugClearDisconnectedForSession() => _disconnectedForSession.clear();
+
+  /// Disconnects [device] and keeps it from auto-connecting again until the
+  /// app restarts or the rider connects it explicitly.
+  Future<void> disconnectForSession(BaseDevice device) async {
+    if (device is BluetoothDevice) _disconnectedForSession.add(device.device.deviceId);
+    await disconnect(device, forget: true, persistForget: false);
+  }
+
   /// Consecutive failed auto-connect attempts per BLE device id. Only devices
   /// with [BluetoothDevice.maxAutoConnectAttempts] > 0 ever suppress; reset by
   /// a successful connect.
@@ -1434,6 +1454,9 @@ class Connection {
         if (_suppressedAutoReconnect.contains(device.device.deviceId)) {
           return false;
         }
+        if (_disconnectedForSession.contains(device.device.deviceId)) {
+          return false;
+        }
       }
 
       return true;
@@ -1581,6 +1604,7 @@ class Connection {
           !device.isConnected &&
           !_connectionQueue.contains(device) &&
           !_suppressedAutoReconnect.contains(id) &&
+          !_disconnectedForSession.contains(id) &&
           !core.settings.getIgnoredDevices().any((d) => d.id == id);
       if (!stillWanted) return;
       _actionStreams.add(LogNotification('${device.toString()}: retrying connect (attempt ${attempt + 1})'));
@@ -1695,6 +1719,7 @@ class Connection {
     if (device is BluetoothDevice) {
       final id = device.device.deviceId;
       _suppressedAutoReconnect.remove(id);
+      _disconnectedForSession.remove(id);
       _backoffCooldownTimers.remove(id)?.cancel();
       _consecutiveConnectFailures.remove(id);
       _quickDropCounts.remove(id);

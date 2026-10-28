@@ -450,7 +450,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
         else ...[
           LoadingWidget(
             futureCallback: () async {
-              await core.connection.disconnect(device, forget: true, persistForget: false);
+              await core.connection.disconnectForSession(device);
               if (mounted) Navigator.of(context).pop();
             },
             renderChild: (isLoading, tap) => _buildActionButton(
