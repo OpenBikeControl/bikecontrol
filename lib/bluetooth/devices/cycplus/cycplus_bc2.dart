@@ -41,38 +41,51 @@ class CycplusBc2 extends BluetoothDevice {
     await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
   }
 
-  // Track last state for index 6 and 7
-  static const _pressedState = 0x01;
+  // Each lever reports a state byte (6 = shift up, 7 = shift down) and an
+  // event counter (8 = shift up, 9 = shift down). The counter increments on
+  // every press and every release, so only a counter change is a new event.
+  // States: 0x01 pressed, 0x04 pressed (long press), anything else released.
+  static const _stateOffset = 6;
+  static const _counterOffset = 8;
+  static const _pressedStates = {0x01, 0x04};
+
+  final List<int?> _lastCounters = [null, null];
+  final List<bool> _held = [false, false];
 
   @override
-  Future<void> processCharacteristic(String characteristic, Uint8List bytes) {
+  Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     if (characteristic.toLowerCase() == CycplusBc2Constants.TX_CHARACTERISTIC_UUID.toLowerCase()) {
-      if (bytes.length > 7) {
-        final buttonsToPress = <ControllerButton>[];
-
-        // Process index 6 (shift up)
-        final currentByte6 = bytes[6];
-        if (currentByte6 == _pressedState) {
-          buttonsToPress.add(availableButtons[0]);
+      if (bytes.length > _counterOffset + 1) {
+        var changed = false;
+        for (var lever = 0; lever < 2; lever++) {
+          final counter = bytes[_counterOffset + lever];
+          if (counter == _lastCounters[lever]) {
+            continue;
+          }
+          _lastCounters[lever] = counter;
+          final held = _pressedStates.contains(bytes[_stateOffset + lever]);
+          if (held != _held[lever]) {
+            _held[lever] = held;
+            changed = true;
+          }
         }
 
-        // Process index 7 (shift down)
-        final currentByte7 = bytes[7];
-        if (currentByte7 == _pressedState) {
-          buttonsToPress.add(availableButtons[1]);
+        if (changed) {
+          await handleButtonsClicked([
+            for (var lever = 0; lever < 2; lever++)
+              if (_held[lever]) availableButtons[lever],
+          ]);
         }
-
-        handleButtonsClicked(buttonsToPress);
       } else {
         actionStreamInternal.add(
           LogNotification(
             'CYCPLUS BC2 received unexpected packet: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join()}',
           ),
         );
-        handleButtonsClicked([]);
+        _held.fillRange(0, _held.length, false);
+        await handleButtonsClicked([]);
       }
     }
-    return Future.value();
   }
 }
 
