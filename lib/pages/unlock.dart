@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -77,6 +79,10 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
     _wasZwiftMdnsEmulatorActive = core.zwiftMdnsEmulator.isStarted.value;
     _wasObpMdnsEmulatorActive = core.obpMdnsEmulator.isStarted.value;
     if (!_isInTrialPhase) {
+      // The rider pairs the bridge in Zwift now: advertise it as Zwift lists
+      // it until this page closes. Set before the first build, so the
+      // instruction names the entry the bridge advertises meanwhile.
+      unawaited(setZwiftUnlockInProgress(true));
       // only after first frame:
 
       SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -124,6 +130,8 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
       widget.device.isUnlocked.removeListener(_isConnectedUpdate);
       widget.device.alreadyUnlocked.removeListener(_isConnectedUpdate);
 
+      // Back to the name and serial the selected trainer app paired.
+      unawaited(setZwiftUnlockInProgress(false));
       if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();
         core.settings.setZwiftMdnsEmulatorEnabled(true);

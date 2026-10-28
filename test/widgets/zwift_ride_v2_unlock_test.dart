@@ -1,5 +1,6 @@
 // The Zwift Ride V2 screens: its unlock section (no Click V2 unlock modes, a
 // way to support), the unlock page, and the one-time explainer.
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
@@ -7,6 +8,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/unlock_toggle.dart';
 import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -150,6 +152,36 @@ void main() {
         await tester.pump();
         expect(find.textContaining('"KICKR CORE 7234 - BikeControl"'), findsOneWidget);
         await tester.pumpWidget(const SizedBox());
+      });
+
+      group('with a trainer bridged for another trainer app', () {
+        setUp(() {
+          core.settings.setTrainerApp(MyWhoosh());
+          final trainer = ProxyDevice(BleDevice(deviceId: 'trainer', name: 'KICKR CORE 54AF'))
+            ..setRetrofitMode(RetrofitMode.wifi);
+          ftmsEmulator.deviceName = () => 'KICKR CORE 54AF';
+          ftmsEmulator.advertisementNameOverride = trainer.bridgeAdvertisementName;
+        });
+        tearDown(() {
+          ftmsEmulator.advertisementNameOverride = null;
+          zwiftUnlockInProgress.value = false;
+        });
+
+        testWidgets('names the entry the bridge advertises during the unlock', (tester) async {
+          await pumpUnlockPage(tester, _rideV2());
+          expect(zwiftUnlockInProgress.value, isTrue);
+          expect(find.textContaining('"BikeControl 54AF"'), findsOneWidget);
+          expect(find.textContaining('KICKR CORE 54AF - BikeControl'), findsNothing);
+          await tester.pumpWidget(const SizedBox());
+        });
+
+        testWidgets('the bridge gets its usual name back once the page closes', (tester) async {
+          await pumpUnlockPage(tester, _rideV2());
+          await tester.pumpWidget(const SizedBox());
+          await tester.pump();
+          expect(zwiftUnlockInProgress.value, isFalse);
+          expect(ftmsEmulator.advertisementName, 'KICKR CORE 54AF - BikeControl');
+        });
       });
     });
   });

@@ -32,6 +32,32 @@ final DirconEmulator ftmsEmulator = DirconEmulator()..preferStandardPort = bridg
 /// named app keeps the auto-assigned port it had before 7.0.
 bool bridgeServesStandardDirconPort() => core.settings.getTrainerApp() is CustomApp;
 
+/// Whether an unlock page is waiting for Zwift to unlock a controller through
+/// the bridge. While it is, a bridged trainer is advertised under the identity
+/// it has for Zwift (name and serial, see `ProxyDevice.bridgeAdvertisementName`)
+/// whatever trainer app is selected, so Zwift lists it; afterwards it is back
+/// to exactly what the selected trainer app paired. Change it through
+/// [setZwiftUnlockInProgress], which re-advertises the bridge.
+final ValueNotifier<bool> zwiftUnlockInProgress = ValueNotifier(false);
+
+/// Begins or ends the unlock state ([zwiftUnlockInProgress]) and re-advertises
+/// a running [emulator] (default: [ftmsEmulator]) when that changed the name
+/// it advertises. The advertised name and TXT record are read on every
+/// advertisement, so a restart is what puts the change on the wire. A failed
+/// restart is recorded; the state changes regardless.
+Future<void> setZwiftUnlockInProgress(bool value, {DirconEmulator? emulator}) async {
+  if (zwiftUnlockInProgress.value == value) return;
+  final bridge = emulator ?? ftmsEmulator;
+  final before = bridge.advertisementName;
+  zwiftUnlockInProgress.value = value;
+  if (!bridge.isStarted.value || bridge.advertisementName == before) return;
+  try {
+    await bridge.restart();
+  } catch (e, s) {
+    recordError(e, s, context: 'Unlock bridge re-advertise');
+  }
+}
+
 /// The blog post that explains why these controllers need unlocking.
 const zwiftUnlockBlogUrl = 'https://bikecontrol.app/blog/zwift-click-v2-with-other-trainer-apps/';
 

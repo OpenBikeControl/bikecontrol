@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -23,6 +24,7 @@ void main() {
     core.settings.prefs = await SharedPreferences.getInstance();
     core.actionHandler = StubActions();
   });
+  tearDown(() => zwiftUnlockInProgress.value = false);
 
   ProxyDevice deviceNamed(String? name) => ProxyDevice(BleDevice(deviceId: 'trainer', name: name));
 
@@ -222,4 +224,134 @@ void main() {
       expect(deviceIn(RetrofitMode.wifi).trainerMdnsTxt().keys, contains('product-id'));
     });
   });
+
+  // While an unlock page waits for Zwift, the bridge has to be listable in
+  // Zwift, whatever trainer app is selected — and only then.
+  group('while a controller is being unlocked', () {
+    const deviceId = 'E4:3B:1C:73:D3:01';
+    String serialOf(ProxyDevice device) => String.fromCharCodes(device.trainerMdnsTxt()['serial-number']!);
+    ProxyDevice bridged() =>
+        ProxyDevice(BleDevice(deviceId: deviceId, name: 'KICKR CORE 73D3'))..setRetrofitMode(RetrofitMode.wifi);
+    DirconEmulator emulatorFor(ProxyDevice device) => DirconEmulator()
+      ..deviceName = (() => 'KICKR CORE 73D3')
+      ..advertisementNameOverride = device.bridgeAdvertisementName;
+
+    test('MyWhoosh: the Zwift name and serial during the unlock, exactly the old ones after', () {
+      core.settings.setTrainerApp(MyWhoosh());
+      final device = bridged();
+      final emulator = emulatorFor(device);
+      final normalSerial = serialOf(device);
+      expect(emulator.advertisementName, 'KICKR CORE 73D3 - BikeControl');
+      expect(normalSerial, mdnsSerialNumber(deviceId));
+
+      zwiftUnlockInProgress.value = true;
+      expect(emulator.advertisementName, 'BikeControl 73D3');
+      core.settings.setTrainerApp(Zwift());
+      final zwiftSerial = serialOf(device);
+      core.settings.setTrainerApp(MyWhoosh());
+      expect(serialOf(device), zwiftSerial);
+
+      zwiftUnlockInProgress.value = false;
+      expect(emulator.advertisementName, 'KICKR CORE 73D3 - BikeControl');
+      expect(serialOf(device), normalSerial);
+    });
+
+    test('other trainer apps behave like MyWhoosh', () {
+      for (final app in [TrainingPeaks(), Tacx()]) {
+        core.settings.setTrainerApp(app);
+        final emulator = emulatorFor(bridged());
+        zwiftUnlockInProgress.value = true;
+        expect(emulator.advertisementName, 'BikeControl 73D3', reason: app.name);
+        zwiftUnlockInProgress.value = false;
+        expect(emulator.advertisementName, 'KICKR CORE 73D3 - BikeControl', reason: app.name);
+      }
+    });
+
+    test('Zwift is unchanged', () {
+      core.settings.setTrainerApp(Zwift());
+      final device = bridged();
+      final emulator = emulatorFor(device);
+      final serial = serialOf(device);
+      zwiftUnlockInProgress.value = true;
+      expect(emulator.advertisementName, 'BikeControl 73D3');
+      expect(serialOf(device), serial);
+    });
+
+    test('Rouvy keeps its own name and the device serial', () {
+      core.settings.setTrainerApp(Rouvy());
+      final device = bridged();
+      final emulator = emulatorFor(device);
+      zwiftUnlockInProgress.value = true;
+      expect(emulator.advertisementName, 'KICKR CORE 73D3 - Bridge');
+      expect(serialOf(device), mdnsSerialNumber(deviceId));
+    });
+
+    test('proxy mode keeps the device serial', () {
+      core.settings.setTrainerApp(MyWhoosh());
+      final device = ProxyDevice(BleDevice(deviceId: deviceId, name: 'KICKR CORE 73D3'))
+        ..setRetrofitMode(RetrofitMode.proxy);
+      zwiftUnlockInProgress.value = true;
+      expect(serialOf(device), mdnsSerialNumber(deviceId));
+    });
+  });
+
+  group('beginning and ending the unlock', () {
+    late _CountingEmulator emulator;
+    setUp(() {
+      core.settings.setTrainerApp(MyWhoosh());
+      final device = ProxyDevice(BleDevice(deviceId: 'trainer', name: 'KICKR CORE 73D3'))
+        ..setRetrofitMode(RetrofitMode.wifi);
+      emulator = _CountingEmulator()
+        ..deviceName = (() => 'KICKR CORE 73D3')
+        ..advertisementNameOverride = device.bridgeAdvertisementName
+        ..isStarted.value = true;
+    });
+
+    test('re-advertises a running bridge on the way in and on the way out', () async {
+      await setZwiftUnlockInProgress(true, emulator: emulator);
+      expect(zwiftUnlockInProgress.value, isTrue);
+      expect(emulator.restarts, 1);
+      expect(emulator.namesAtRestart, ['BikeControl 73D3']);
+
+      await setZwiftUnlockInProgress(false, emulator: emulator);
+      expect(zwiftUnlockInProgress.value, isFalse);
+      expect(emulator.restarts, 2);
+      expect(emulator.namesAtRestart.last, 'KICKR CORE 73D3 - BikeControl');
+    });
+
+    test('leaves the bridge alone when nothing it advertises changes', () async {
+      core.settings.setTrainerApp(Zwift());
+      await setZwiftUnlockInProgress(true, emulator: emulator);
+      await setZwiftUnlockInProgress(false, emulator: emulator);
+      expect(emulator.restarts, 0);
+    });
+
+    test('does not start a bridge that is not running', () async {
+      emulator.isStarted.value = false;
+      await setZwiftUnlockInProgress(true, emulator: emulator);
+      expect(zwiftUnlockInProgress.value, isTrue);
+      expect(emulator.restarts, 0);
+    });
+
+    test('a failed re-advertise is reported, and the state still changes', () async {
+      emulator.failRestart = true;
+      await setZwiftUnlockInProgress(true, emulator: emulator);
+      expect(zwiftUnlockInProgress.value, isTrue);
+      await setZwiftUnlockInProgress(false, emulator: emulator);
+      expect(zwiftUnlockInProgress.value, isFalse);
+    });
+  });
+}
+
+class _CountingEmulator extends DirconEmulator {
+  int restarts = 0;
+  bool failRestart = false;
+  final namesAtRestart = <String>[];
+
+  @override
+  Future<void> restart() async {
+    restarts++;
+    namesAtRestart.add(advertisementName);
+    if (failRestart) throw StateError('restart failed');
+  }
 }
