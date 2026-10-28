@@ -1,3 +1,16 @@
+### 7.4.0 (DD-MM-2026)
+**Features**:
+- Chain on the trainer: set the chainring and cog your real chain sits on, and every virtual gear feels like its real counterpart.
+- ERG your way: start at your last target or your current power, with a step of 1, 5, 10 or 25 W.
+- Ride Cave and Velotoss are now officially supported via OpenBikeControl.
+- Gamepads rumble when you shift.
+- MUOV smart bike buttons (beta) and better virtual shifting on modern trainers.
+
+**Fixes**:
+- Shimano Di2: hood and satellite buttons work in button mode.
+- A controller you disconnect "for this session" stays disconnected.
+- Magene PES-P power meters are recognised.
+
 ### 7.3.0 (19-10-2026)
 **Features**:
 - Shimano Di2: much better integration. The shifters work as BikeControl buttons right away, without assigning D-Fly channels in the E-Tube app first. The Di2 shifts normally again once BikeControl disconnects, and no Di2 setting is changed.
