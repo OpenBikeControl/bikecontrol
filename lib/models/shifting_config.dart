@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/ble_device_ids.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
@@ -50,6 +51,12 @@ class ShiftingConfig {
   /// physics ([FitnessBikeDefinition.setDifficultyPct]); set by the calibrator.
   final int difficultyPct;
 
+  /// Where entering ERG takes its target from ([ErgPowerStepping.ergStartPower]).
+  final ErgStartSource ergStartSource;
+
+  /// Watts per ERG −/+ press; one of [ErgPowerStepping.stepChoicesW].
+  final int ergStepW;
+
   const ShiftingConfig({
     required this.name,
     required this.trainerKey,
@@ -67,6 +74,8 @@ class ShiftingConfig {
     this.realChainringTeeth = realChainringDefault,
     this.realCogTeeth = realCogDefault,
     this.difficultyPct = FitnessBikeDefinition.defaultDifficultyPct,
+    this.ergStartSource = ErgPowerStepping.defaultStartSource,
+    this.ergStepW = ErgPowerStepping.defaultStepW,
   });
 
   factory ShiftingConfig.defaults({
@@ -98,6 +107,8 @@ class ShiftingConfig {
     final rider = (json['riderWeightKg'] as num?)?.toDouble() ?? riderWeightDefaultKg;
     final rawMaxGear = (json['maxGear'] as num?)?.toInt() ?? maxGearDefault;
     final rawRatios = json['gearRatios'] as List?;
+    final rawErgStart = json['ergStartSource'] as String?;
+    final rawErgStep = (json['ergStepW'] as num?)?.toInt();
     final parsedRatios = rawRatios?.whereType<num>().map((e) => e.toDouble()).toList();
     return ShiftingConfig(
       name: (json['name'] as String?) ?? 'Default',
@@ -128,6 +139,11 @@ class ShiftingConfig {
       realCogTeeth: ((json['realCogTeeth'] as num?)?.toInt() ?? realCogDefault).clamp(realCogTeethMin, realCogTeethMax),
       difficultyPct: ((json['difficultyPct'] as num?)?.toInt() ?? FitnessBikeDefinition.defaultDifficultyPct)
           .clamp(FitnessBikeDefinition.minDifficultyPct, FitnessBikeDefinition.maxDifficultyPct),
+      ergStartSource: ErgStartSource.values.firstWhere(
+        (e) => e.name == rawErgStart,
+        orElse: () => ErgPowerStepping.defaultStartSource,
+      ),
+      ergStepW: ErgPowerStepping.stepChoicesW.contains(rawErgStep) ? rawErgStep! : ErgPowerStepping.defaultStepW,
     );
   }
 
@@ -148,6 +164,8 @@ class ShiftingConfig {
         'realChainringTeeth': realChainringTeeth,
         'realCogTeeth': realCogTeeth,
         'difficultyPct': difficultyPct,
+        'ergStartSource': ergStartSource.name,
+        'ergStepW': ergStepW,
       };
 
   ShiftingConfig copyWith({
@@ -168,6 +186,8 @@ class ShiftingConfig {
     int? realChainringTeeth,
     int? realCogTeeth,
     int? difficultyPct,
+    ErgStartSource? ergStartSource,
+    int? ergStepW,
   }) {
     final resolvedMaxGear = maxGear ?? this.maxGear;
     final resolvedRatios = clearGearRatios ? null : (gearRatios ?? this.gearRatios);
@@ -193,6 +213,8 @@ class ShiftingConfig {
       realChainringTeeth: realChainringTeeth ?? this.realChainringTeeth,
       realCogTeeth: realCogTeeth ?? this.realCogTeeth,
       difficultyPct: difficultyPct ?? this.difficultyPct,
+      ergStartSource: ergStartSource ?? this.ergStartSource,
+      ergStepW: ergStepW ?? this.ergStepW,
     );
   }
 
@@ -215,7 +237,9 @@ class ShiftingConfig {
           largeChainringTeeth == other.largeChainringTeeth &&
           realChainringTeeth == other.realChainringTeeth &&
           realCogTeeth == other.realCogTeeth &&
-          difficultyPct == other.difficultyPct);
+          difficultyPct == other.difficultyPct &&
+          ergStartSource == other.ergStartSource &&
+          ergStepW == other.ergStepW);
 
   @override
   int get hashCode => Object.hash(
@@ -235,5 +259,7 @@ class ShiftingConfig {
         realChainringTeeth,
         realCogTeeth,
         difficultyPct,
+        ergStartSource,
+        ergStepW,
       );
 }

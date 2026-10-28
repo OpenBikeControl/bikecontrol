@@ -754,9 +754,6 @@ class _ModeSwitch extends StatelessWidget {
   final FitnessBikeDefinition? definition;
   final bool erg;
 
-  /// What ERG starts at when there is no target yet; the button action's.
-  static const int defaultErgW = 150;
-
   static const double _segmentMinWidth = 52;
   static const double _segmentPadding = 12;
   static const double _trackInset = 2;
@@ -779,7 +776,7 @@ class _ModeSwitch extends StatelessWidget {
     final definition = this.definition;
     if (definition == null || toErg == erg) return;
     if (toErg) {
-      definition.setManualErgPower(definition.ergTargetPower.value ?? defaultErgW);
+      definition.enterManualErg();
     } else {
       definition.exitErgMode();
     }

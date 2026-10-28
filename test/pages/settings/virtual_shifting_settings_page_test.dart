@@ -15,6 +15,7 @@ import 'package:bike_control/pages/settings/settings_page.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/drivetrain/chain_geometry.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
@@ -517,6 +518,59 @@ Future<void> main() async {
 
       expect(tester.widget<SelfTestPage>(find.byType(SelfTestPage)).device, same(proxy));
       expect(find.byType(VirtualShiftingSettingsPage), findsNothing);
+    });
+  });
+
+  // ERG: where entering ERG starts, and how far one −/+ press moves the
+  // target. Both live on the active shifting config and reach the trainer's
+  // definition at once.
+  group('ERG', () {
+    final section = find.byKey(const ValueKey('vs-erg'));
+    final start = find.byKey(const ValueKey('vs-erg-start'));
+    final step = find.byKey(const ValueKey('vs-erg-step'));
+
+    Future<void> pick(WidgetTester tester, Finder row, String option) async {
+      await tester.ensureVisible(row);
+      await tester.tap(find.descendant(of: row, matching: find.byWidgetPredicate((w) => w is Select)).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text(option).last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('sits after Physics and shows the defaults', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      expect(section, findsOneWidget);
+      expect(_top(tester, section), greaterThan(_top(tester, find.byKey(const ValueKey('vs-physics')))));
+      expect(find.descendant(of: start, matching: find.text(l.ergStartLastTarget)), findsOneWidget);
+      expect(find.descendant(of: step, matching: find.text('5 W')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('picking a step and a start source goes to the config and the trainer', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      addTearDown(
+        () => core.shiftingConfigs.upsert(
+          core.shiftingConfigs
+              .activeFor(proxy.trainerKey)
+              .copyWith(ergStepW: ErgPowerStepping.defaultStepW, ergStartSource: ErgStartSource.lastTarget),
+        ),
+      );
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      await pick(tester, step, '25 W');
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStepW, 25);
+      expect(definition.ergStepW, 25);
+
+      await pick(tester, start, l.ergStartCurrentPower);
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStartSource, ErgStartSource.currentPower);
+      expect(definition.ergStartSource, ErgStartSource.currentPower);
+      expect(find.descendant(of: start, matching: find.text(l.ergStartCurrentPower)), findsOneWidget);
     });
   });
 

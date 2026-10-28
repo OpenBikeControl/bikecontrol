@@ -2934,5 +2934,13 @@
   "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
   "chainHintSetTitle": "Łańcuch nie jest tam, gdzie go ustawiono",
   "chainHintSetBody": "Łańcuch na trenażerze wydaje się być na innym biegu (przełożenie ok. {measured}) niż ustawiony w „Łańcuch na trenażerze” ({set}). Przełóż go z powrotem lub zmień ustawienie.",
-  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}},
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "Moc startowa ERG",
+  "ergStartPowerDesc": "Od czego zaczyna się cel po przełączeniu na ERG",
+  "ergStartLastTarget": "Ostatni cel",
+  "ergStartCurrentPower": "Bieżąca moc",
+  "ergStepLabel": "Krok ERG",
+  "ergStepDesc": "Waty na jedno naciśnięcie − / +",
+  "ergSettingsFooter": "Jeśli wybrana moc startowa jest niedostępna, używana jest druga, a w ostateczności 150 W."
 }

@@ -596,6 +596,7 @@ class ProxyDevice extends BluetoothDevice {
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setDifficultyPct(cfg.difficultyPct);
     def.setRealChainRatio(cfg.realChainRatio);
+    def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
     // A rider who saved a config chose their mode; honour it. With no saved
     // config, let the definition manage the capability-based default (Track
     // Resistance on a grade-capable trainer) rather than the generic Target
@@ -1189,9 +1190,8 @@ class ProxyDevice extends BluetoothDevice {
           def.exitErgMode();
           return Success(l10n.trainerSwitchedToSim, button: button);
         } else {
-          final current = def.ergTargetPower.value ?? 150;
-          def.setManualErgPower(current);
-          return Success(l10n.trainerSwitchedToErg(current), button: button);
+          final target = def.enterManualErg();
+          return Success(l10n.trainerSwitchedToErg(target), button: button);
         }
       case InGameAction.trainerIntensityUp:
         def.adjustIntensity(0.05);

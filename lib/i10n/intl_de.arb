@@ -2934,5 +2934,13 @@
   "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
   "chainHintSetTitle": "Deine Kette liegt nicht wie eingestellt",
   "chainHintSetBody": "Deine Kette auf dem Trainer scheint auf einem anderen Gang zu liegen (Übersetzung etwa {measured}) als unter „Kette am Trainer“ eingestellt ({set}). Leg sie zurück oder pass die Einstellung an.",
-  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}},
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "ERG-Startleistung",
+  "ergStartPowerDesc": "Wo das Ziel beginnt, wenn du zu ERG wechselst",
+  "ergStartLastTarget": "Letztes Ziel",
+  "ergStartCurrentPower": "Aktuelle Leistung",
+  "ergStepLabel": "ERG-Schritt",
+  "ergStepDesc": "Watt pro − / + Druck",
+  "ergSettingsFooter": "Ist die gewählte Startleistung nicht verfügbar, wird die andere verwendet, sonst 150 W."
 }

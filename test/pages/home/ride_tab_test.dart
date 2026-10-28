@@ -21,6 +21,7 @@ import 'package:bike_control/pages/shell/app_shell.dart' show ShellTabBar;
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/home/chain_card.dart';
@@ -247,6 +248,34 @@ Future<void> main() async {
       await tester.pump();
       expect(definition.ergTargetPower.value, 205);
       expect(find.descendant(of: card, matching: find.text('205')), findsOneWidget);
+    });
+
+    testWidgets('in ERG ± steps by the configured step', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      definition
+        ..setErgPreferences(stepW: 25)
+        ..setManualErgPower(200);
+      await pumpRide(tester);
+
+      await tester.tap(find.bySemanticsLabel(l.a11yIncrease));
+      await tester.pump();
+      expect(definition.ergTargetPower.value, 225);
+      await tester.tap(find.bySemanticsLabel(l.a11yDecrease));
+      await tester.pump();
+      expect(definition.ergTargetPower.value, 200);
+    });
+
+    testWidgets('ERG on the card starts at the last target', (tester) async {
+      final (:proxy, :definition) = liveTrainer();
+      definition
+        ..setManualErgPower(235)
+        ..exitErgMode();
+      await pumpRide(tester);
+
+      await tester.tap(find.byKey(const ValueKey('ride-vs-mode-erg')));
+      await tester.pump();
+      expect(definition.trainerMode.value, TrainerMode.ergMode);
+      expect(definition.ergTargetPower.value, 235);
     });
 
     testWidgets('"Virtual shifting ›" opens Settings → Virtual shifting', (tester) async {

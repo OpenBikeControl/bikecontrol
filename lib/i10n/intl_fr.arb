@@ -2934,5 +2934,13 @@
   "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
   "chainHintSetTitle": "Ta chaîne n'est pas là où tu l'as réglée",
   "chainHintSetBody": "Ta chaîne sur le home trainer semble être sur un autre rapport (développement d’environ {measured}) que celui réglé dans « Chaîne sur le home trainer » ({set}). Remets-la en place ou modifie le réglage.",
-  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}},
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "Puissance de départ ERG",
+  "ergStartPowerDesc": "Où démarre la cible quand vous passez en ERG",
+  "ergStartLastTarget": "Dernière cible",
+  "ergStartCurrentPower": "Puissance actuelle",
+  "ergStepLabel": "Pas ERG",
+  "ergStepDesc": "Watts par appui sur − / +",
+  "ergSettingsFooter": "Si la puissance de départ choisie n'est pas disponible, l'autre est utilisée, sinon 150 W."
 }

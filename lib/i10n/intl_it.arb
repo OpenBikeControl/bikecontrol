@@ -2934,5 +2934,13 @@
   "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
   "chainHintSetTitle": "La catena non è dove l’hai impostata",
   "chainHintSetBody": "La catena sui rulli sembra essere su un rapporto diverso (rapporto di circa {measured}) da quello impostato in «Catena sui rulli» ({set}). Rimettila lì o cambia l’impostazione.",
-  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}},
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "Potenza iniziale ERG",
+  "ergStartPowerDesc": "Da dove parte l'obiettivo quando passi a ERG",
+  "ergStartLastTarget": "Ultimo obiettivo",
+  "ergStartCurrentPower": "Potenza attuale",
+  "ergStepLabel": "Passo ERG",
+  "ergStepDesc": "Watt per pressione di − / +",
+  "ergSettingsFooter": "Se la potenza iniziale scelta non è disponibile, si usa l'altra, altrimenti 150 W."
 }

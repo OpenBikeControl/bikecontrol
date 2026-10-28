@@ -2934,5 +2934,13 @@
   "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
   "chainHintSetTitle": "Tu cadena no está donde la configuraste",
   "chainHintSetBody": "La cadena en el rodillo parece estar en otra marcha (desarrollo de aprox. {measured}) distinta de la configurada en «Cadena en el rodillo» ({set}). Vuelve a ponerla o cambia el ajuste.",
-  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}}
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}},
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "Potencia inicial ERG",
+  "ergStartPowerDesc": "Dónde empieza el objetivo al cambiar a ERG",
+  "ergStartLastTarget": "Último objetivo",
+  "ergStartCurrentPower": "Potencia actual",
+  "ergStepLabel": "Paso ERG",
+  "ergStepDesc": "Vatios por pulsación de − / +",
+  "ergSettingsFooter": "Si la potencia inicial elegida no está disponible, se usa la otra y, si no, 150 W."
 }

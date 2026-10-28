@@ -16,6 +16,7 @@ import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
@@ -78,8 +79,9 @@ String rideVirtualShiftingSummary(BuildContext context, FitnessBikeDefinition de
 /// Gears, so a change to the gear count, the front derailleur or a preset
 /// plays out in view; then the Gears group (ratio curve, presets, gear count,
 /// front derailleur, smoothing, cadence filter, and the per-gear steppers one
-/// screen deeper) and Physics. Everything applies to the trainer's active
-/// shifting config and to the live definition at once.
+/// screen deeper), Physics, and ERG (start power and −/+ step). Everything
+/// applies to the trainer's active shifting config and to the live definition
+/// at once.
 ///
 /// Last, "Check and calibrate": the resistance self-test and, right under it,
 /// the shifting calibrator, two rows that each open their own page. Both are
@@ -164,6 +166,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setDifficultyPct(cfg.difficultyPct);
     def.setRealChainRatio(cfg.realChainRatio);
+    def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
     def.setVirtualShiftingMode(cfg.mode);
     // The front derailleur belongs to the config too: picking another config
     // brings its rings with it, and the drivetrain above draws them.
@@ -263,6 +266,8 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
               ],
               const Gap(24),
               _physics(context),
+              const Gap(24),
+              _erg(context),
               if (!screenshotMode) ...[
                 const Gap(24),
                 _checkAndCalibrate(context),
@@ -593,6 +598,73 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
             subtitle: l10n.vsCalibrateRowSubtitle(pct),
             chevron: true,
             onPressed: _openCalibrator,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Where entering ERG starts, and how far one −/+ press moves the target.
+  /// Both go to the active config and to the live definition at once.
+  Widget _erg(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+
+    String sourceLabel(ErgStartSource source) => switch (source) {
+      ErgStartSource.lastTarget => l10n.ergStartLastTarget,
+      ErgStartSource.currentPower => l10n.ergStartCurrentPower,
+    };
+    String stepLabel(int watts) => '$watts W';
+
+    return BkGroupedSection(
+      key: const ValueKey('vs-erg'),
+      header: l10n.vsGroupErg,
+      footer: l10n.ergSettingsFooter,
+      children: [
+        BkGroupedRow(
+          key: const ValueKey('vs-erg-start'),
+          icon: LucideIcons.play,
+          title: l10n.ergStartPowerLabel,
+          subtitle: l10n.ergStartPowerDesc,
+          trailing: Select<ErgStartSource>(
+            value: config.ergStartSource,
+            popup: SelectPopup(
+              items: SelectItemList(
+                children: [
+                  for (final source in ErgStartSource.values)
+                    SelectItemButton<ErgStartSource>(value: source, child: Text(sourceLabel(source))),
+                ],
+              ),
+            ).call,
+            itemBuilder: (context, source) => Text(sourceLabel(source)),
+            onChanged: (source) async {
+              if (source == null) return;
+              def.setErgPreferences(startSource: source);
+              await _update((c) => c.copyWith(ergStartSource: source));
+            },
+          ),
+        ),
+        BkGroupedRow(
+          key: const ValueKey('vs-erg-step'),
+          icon: LucideIcons.chevronsUpDown,
+          title: l10n.ergStepLabel,
+          subtitle: l10n.ergStepDesc,
+          trailing: Select<int>(
+            value: config.ergStepW,
+            popup: SelectPopup(
+              items: SelectItemList(
+                children: [
+                  for (final watts in ErgPowerStepping.stepChoicesW)
+                    SelectItemButton<int>(value: watts, child: Text(stepLabel(watts))),
+                ],
+              ),
+            ).call,
+            itemBuilder: (context, watts) => Text(stepLabel(watts)),
+            onChanged: (watts) async {
+              if (watts == null) return;
+              def.setErgPreferences(stepW: watts);
+              await _update((c) => c.copyWith(ergStepW: watts));
+            },
           ),
         ),
       ],
