@@ -1162,7 +1162,7 @@
   "syncSettings": "Sync Settings",
   "syncStatus": "Sync Status",
   "synchronizeAcrossDevices": "Synchronize across devices",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronize your app settings across all your devices. This includes your button mappings and preferences.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronize your app settings across all your devices. This includes your button mappings, your shifting configs with their gear ratios, and your preferences.",
   "targetOtherDevice": "Other Device",
   "targetThisDevice": "This Device",
   "termsOfUse": "Terms of Use",
@@ -2609,13 +2609,16 @@
       }
     }
   },
-  "syncDeviceSummary": "Version: {version} • Mappings: {count}",
+  "syncDeviceSummary": "Version: {version} • Mappings: {count} • Shifting configs: {shiftingCount}",
   "@syncDeviceSummary": {
     "placeholders": {
       "version": {
         "type": "String"
       },
       "count": {
+        "type": "String"
+      },
+      "shiftingCount": {
         "type": "String"
       }
     }
