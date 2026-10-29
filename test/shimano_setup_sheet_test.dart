@@ -91,6 +91,48 @@ void main() {
     expect(find.text(AppLocalizations.current.shimanoPairTitle), findsNothing);
   });
 
+  group('passkey on a phone with the number pad up', () {
+    // iPhone 12: 390×844 pt, number pad + safe area ≈ 336 pt.
+    const keyboard = 336.0;
+
+    Future<void> showKeyboard(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844) * tester.view.devicePixelRatio;
+      addTearDown(tester.view.reset);
+      await runWith(tester, ArgumentError('wrong passkey'));
+      expect(find.text(AppLocalizations.current.shimanoPasskeyWrongTitle), findsOneWidget);
+      await tester.tap(find.byType(TextField));
+      tester.view.viewInsets = FakeViewPadding(bottom: keyboard * tester.view.devicePixelRatio);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    testWidgets('Retry stays above the keyboard', (tester) async {
+      await showKeyboard(tester);
+      final retry = tester.getRect(find.text(AppLocalizations.current.retry));
+      expect(retry.bottom, lessThanOrEqualTo(844 - keyboard));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('entering all 6 digits closes the number pad', (tester) async {
+      await showKeyboard(tester);
+      expect(FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<TextField>(), isNotNull);
+
+      await tester.enterText(find.byType(TextField), '123456');
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<TextField>(), isNull);
+    });
+
+    testWidgets('tapping outside the field closes the number pad', (tester) async {
+      await showKeyboard(tester);
+
+      await tester.tap(find.text(AppLocalizations.current.shimanoPasskeyWrongTitle));
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.context?.findAncestorWidgetOfExactType<TextField>(), isNull);
+    });
+  });
+
   group('device panel', () {
     Future<void> pumpPanel(WidgetTester tester, {required bool dfly, VoidCallback? onUseDfly}) async {
       await tester.pumpWidget(
