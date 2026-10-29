@@ -1,4 +1,3 @@
-import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
@@ -18,9 +17,8 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/widgets/ui/warning.dart';
-import 'package:d4rt/d4rt.dart';
-import 'package:dartx/dartx.dart';
 import 'package:bike_control/widgets/ui/trainer_app_logo.dart';
+import 'package:bike_control/widgets/trainer_app_picker.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -34,10 +32,6 @@ class ConfigurationPage extends StatefulWidget {
 }
 
 class _ConfigurationPageState extends State<ConfigurationPage> {
-  /// Whether the trainer-app picker is open under the app's card. Always open
-  /// while no app is picked yet.
-  bool _changingApp = false;
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -54,18 +48,11 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _TrainerAppCard(
-                    changing: _changingApp || core.settings.getTrainerApp() == null,
-                    onChange: () => setState(() => _changingApp = !_changingApp),
-                    picker: TrainerAppSelect(
-                      // After Change the list opens at once; with no app
-                      // picked yet the select just waits to be tapped.
-                      openOnShow: _changingApp,
-                      onUpdate: () {
-                        widget.onUpdate();
-                        setState(() => _changingApp = false);
-                      },
-                    ),
+                  TrainerAppCard(
+                    onUpdate: () {
+                      widget.onUpdate();
+                      setState(() {});
+                    },
                   ),
                   if (core.settings.getTrainerApp() != null) ...[
                     if ((core.settings.getTrainerApp()!.supports(AppConnectionMethod.obpBle) ||
@@ -144,13 +131,6 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
   }
 }
 
-/// The trainer-app picker: a [Select] over [SupportedApp.supportedApps] that
-/// reads/writes [core.settings.getTrainerApp]. Extracted from
-/// [ConfigurationPage] so it can be rendered standalone (e.g. golden
-/// snapshots). Behaviour is unchanged — it mutates the same `core.*`
-/// singletons and notifies via [onUpdate].
-/// The trainer app on top of Connection settings: its logo, "Trainer app"
-/// over its name, and Change, which opens the picker underneath.
 /// The note that the trainer app speaks the OpenBikeControl Protocol: a quiet card
 /// that opens the protocol's site.
 class _OpenBikeControlNote extends StatelessWidget {
@@ -197,78 +177,89 @@ class _OpenBikeControlNote extends StatelessWidget {
   }
 }
 
-class _TrainerAppCard extends StatelessWidget {
-  const _TrainerAppCard({required this.changing, required this.onChange, required this.picker});
+/// The trainer app on top of Connection settings: its logo, "Trainer app"
+/// over its name, and Change, which opens the app grid
+/// ([openTrainerAppPicker]). With no app picked yet the whole card opens it.
+class TrainerAppCard extends StatelessWidget {
+  const TrainerAppCard({super.key, required this.onUpdate, this.showRealName = false});
 
-  final bool changing;
-  final VoidCallback onChange;
-  final Widget picker;
+  /// Called after the trainer app changed.
+  final VoidCallback onUpdate;
+
+  /// Shows the real name and logo even under [screenshotMode], which otherwise
+  /// replaces them with a generic "Trainer app" for the anonymized store
+  /// screenshots. The per-app website setup guides need the real one.
+  final bool showRealName;
+
+  Future<void> _pick(BuildContext context) async {
+    final app = await openTrainerAppPicker(context);
+    if (app == null || !context.mounted) return;
+    // Asks first when the rider's own button mapping was made for another
+    // app; dismissing it leaves the trainer app unchanged.
+    if (!await pickTrainerApp(context, app)) return;
+    onUpdate();
+  }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final app = core.settings.getTrainerApp();
     final logo = app?.logoAsset;
-    final name = app == null ? null : shownTrainerAppName(app.name);
-    return Container(
+    final name = app == null ? null : (showRealName ? app.name : shownTrainerAppName(app.name));
+    final radius = BorderRadius.circular(BkComponentThemes.cardRadius);
+    final card = Container(
       key: const ValueKey('connection-trainer-app'),
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-      decoration: BoxDecoration(
-        color: cs.card,
-        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-        boxShadow: bkCardShadow(context),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      decoration: BoxDecoration(color: cs.card, borderRadius: radius, boxShadow: bkCardShadow(context)),
+      child: Row(
         children: [
-          Row(
-            children: [
-              if (logo != null && !screenshotMode)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: TrainerAppLogo(
-                    asset: logo,
-                    url: app?.logoUrl,
-                    width: BkIconTile.size,
-                    height: BkIconTile.size,
-                  ),
-                )
-              else
-                const BkIconTile(icon: LucideIcons.monitor),
-              const Gap(BkGroupedRow.gap),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.i18n.chainAppTitle,
-                      style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
-                    ),
-                    Text(
-                      name ?? context.i18n.selectTrainerAppPlaceholder,
-                      style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ],
+          if (logo != null && (!screenshotMode || showRealName))
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: TrainerAppLogo(asset: logo, url: app?.logoUrl, width: BkIconTile.size, height: BkIconTile.size),
+            )
+          else
+            const BkIconTile(icon: LucideIcons.monitor),
+          const Gap(BkGroupedRow.gap),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.i18n.chainAppTitle,
+                  style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                ),
+                Text(
+                  name ?? context.i18n.selectTrainerAppPlaceholder,
+                  style: context.typography.base.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          if (app != null)
+            // Its own context, so the popover opens under the button.
+            Builder(
+              builder: (buttonContext) => Button.ghost(
+                onPressed: () => _pick(buttonContext),
+                child: Text(
+                  context.i18n.rideChange,
+                  style: context.typography.base.copyWith(color: bkAccentText(context)),
                 ),
               ),
-              if (app != null)
-                Button.ghost(
-                  onPressed: onChange,
-                  child: Text(
-                    context.i18n.rideChange,
-                    style: context.typography.base.copyWith(color: bkAccentText(context)),
-                  ),
-                ),
-            ],
-          ),
-          if (changing) ...[
-            const Gap(10),
-            Padding(padding: const EdgeInsets.only(right: 8), child: picker),
-          ],
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Icon(LucideIcons.chevronRight, size: 18, color: cs.mutedForeground),
+            ),
         ],
       ),
+    );
+    if (app != null) return card;
+    return Builder(
+      builder: (cardContext) => BkTappable(borderRadius: radius, onPressed: () => _pick(cardContext), child: card),
     );
   }
 }
@@ -293,156 +284,4 @@ Widget installOnTargetDeviceWarning(BuildContext context, SupportedApp app) {
       ],
     ],
   );
-}
-
-class TrainerAppSelect extends StatefulWidget {
-  /// Called after the trainer app changes so the host can rebuild.
-  final VoidCallback onUpdate;
-
-  /// Forces the real trainer-app name to show in the closed control even when
-  /// [screenshotMode] is on (which otherwise replaces it with a generic
-  /// "Trainer app" label for the anonymized marketing screenshots). Used by the
-  /// MyWhoosh setup-guide snapshot, which needs the actual "MyWhoosh" name.
-  final bool showRealName;
-
-  /// Opens the list as soon as the select appears — after "Change", the
-  /// rider asked for the list, not for a control to tap again. Focus moves
-  /// to the select, so keyboard and screen-reader users land in the list
-  /// and return to the select when it closes.
-  final bool openOnShow;
-
-  const TrainerAppSelect({super.key, required this.onUpdate, this.showRealName = false, this.openOnShow = false});
-
-  @override
-  State<TrainerAppSelect> createState() => _TrainerAppSelectState();
-}
-
-class _TrainerAppSelectState extends State<TrainerAppSelect> {
-  final FocusNode _focusNode = FocusNode(debugLabel: 'trainer-app-select');
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.openOnShow) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final context = _focusNode.context;
-        if (!mounted || context == null) return;
-        _focusNode.requestFocus();
-        // The select's own activation: the same path as Enter or a tap.
-        Actions.maybeInvoke(context, const ActivateIntent());
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  VoidCallback get onUpdate => widget.onUpdate;
-  bool get showRealName => widget.showRealName;
-
-  @override
-  Widget build(BuildContext context) {
-    final groupedByOfficial = SupportedApp.supportedApps.groupBy((e) => e.officialIntegration);
-    return Select<SupportedApp>(
-      focusNode: _focusNode,
-      constraints: BoxConstraints(maxWidth: 400, minWidth: 400),
-      popupConstraints: BoxConstraints(maxWidth: 400, minWidth: 400, minHeight: 300),
-      itemBuilder: (c, app) => Row(
-        spacing: 8,
-        children: [
-          if (app.logoAsset != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: TrainerAppLogo(asset: app.logoAsset!, url: app.logoUrl, width: 22, height: 22),
-            ),
-          Expanded(child: Text(showRealName ? app.name : shownTrainerAppName(app.name))),
-          if (app.supports(AppConnectionMethod.obpBle) ||
-              app.supports(AppConnectionMethod.obpMdns) ||
-              app.supports(AppConnectionMethod.obpDirCon))
-            OpenBikeControlLogo(),
-        ],
-      ),
-      popup: SelectPopup(
-        items: SelectItemList(
-          children: [
-            if (groupedByOfficial.get(true)?.isNotEmpty == true)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
-                child: BkGroupedHeader(AppLocalizations.of(context).officiallySupported),
-              ),
-            ...groupedByOfficial.get(true)?.map((app) {
-              final supportsObp =
-                  app.supports(AppConnectionMethod.obpBle) ||
-                  app.supports(AppConnectionMethod.obpMdns) ||
-                  app.supports(AppConnectionMethod.obpDirCon);
-              return SelectItemButton(
-                value: app,
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    if (app.logoAsset != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: TrainerAppLogo(asset: app.logoAsset!, url: app.logoUrl, width: 22, height: 22),
-                      ),
-                    Expanded(
-                      child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
-                    ),
-                    if (supportsObp) OpenBikeControlLogo(),
-                    if (app.officialUrl != null)
-                      BkIconButton.ghost(
-                        icon: Icon(LucideIcons.externalLink, size: 16),
-                        label: context.i18n.a11yOpenWebsite,
-                        onPressed: () => launchUrlString(
-                          app.officialUrl!,
-                          mode: LaunchMode.externalApplication,
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }),
-            if (groupedByOfficial.get(true)?.isNotEmpty == true)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
-                child: BkGroupedHeader(AppLocalizations.of(context).otherTrainerApps),
-              ),
-            ...groupedByOfficial.get(false)?.map((app) {
-              return SelectItemButton(
-                value: app,
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    Expanded(
-                      child: app == core.settings.getTrainerApp() ? Text(app.name).semiBold : Text(app.name),
-                    ),
-                    if (app.officialUrl != null)
-                      BkIconButton.ghost(
-                        icon: Icon(LucideIcons.externalLink, size: 16),
-                        label: context.i18n.a11yOpenWebsite,
-                        onPressed: () => launchUrlString(
-                          app.officialUrl!,
-                          mode: LaunchMode.externalApplication,
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ).call,
-      placeholder: Text(context.i18n.selectTrainerAppPlaceholder),
-      value: core.settings.getTrainerApp(),
-      onChanged: (selectedApp) async {
-        // Asks first when the rider's own button mapping was made for
-        // another app; dismissing it leaves the trainer app unchanged.
-        if (!await pickTrainerApp(context, selectedApp!)) return;
-        onUpdate();
-      },
-    );
-  }
 }

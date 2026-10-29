@@ -1,8 +1,9 @@
-// Connection settings → Trainer app → Change: the list of trainer apps opens
-// right away (no second tap on a select underneath), and on a phone it stays
-// clear of the status and navigation bars.
+// Connection settings → Trainer app → Change: the onboarding app grid opens
+// right away, as a bottom sheet on a phone that stays clear of the status and
+// navigation bars.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
+import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -41,7 +42,7 @@ Future<void> main() async {
 
   tearDown(() => screenshotMode = true);
 
-  Finder popup() => find.byWidgetPredicate((w) => w is SelectPopup);
+  Finder popup() => find.byKey(const ValueKey('trainer-app-picker'));
 
   Future<void> openPicker(WidgetTester tester) async {
     final card = find.byKey(const ValueKey('connection-trainer-app'));
@@ -51,7 +52,7 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 400));
   }
 
-  testWidgets('Change opens the list of trainer apps at once', (tester) async {
+  testWidgets('Change opens the grid of trainer apps at once', (tester) async {
     tester.view.physicalSize = const Size(430, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -64,11 +65,12 @@ Future<void> main() async {
     expect(popup(), findsOneWidget);
     expect(find.descendant(of: popup(), matching: find.text(l.officiallySupported.toUpperCase())), findsOneWidget);
     expect(find.descendant(of: popup(), matching: find.text(l.otherTrainerApps.toUpperCase())), findsOneWidget);
+    expect(find.descendant(of: popup(), matching: find.byType(OnboardingAppTile)), findsWidgets);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('on a phone the list stays inside the status and navigation bars', (tester) async {
+  testWidgets('on a phone the grid stays inside the status and navigation bars', (tester) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1;
     tester.view.padding = const FakeViewPadding(top: 40, bottom: 24);

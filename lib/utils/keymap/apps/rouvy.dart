@@ -17,9 +17,6 @@ class Rouvy extends SupportedApp {
   ];
 
   @override
-  String? get logoAsset => 'assets/rouvy.png';
-
-  @override
   String? get officialUrl => 'https://www.rouvy.com';
 
   @override
