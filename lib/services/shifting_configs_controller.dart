@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:flutter/foundation.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart' show VirtualShiftingMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShiftingConfigsController extends ChangeNotifier {
@@ -17,8 +18,16 @@ class ShiftingConfigsController extends ChangeNotifier {
   List<ShiftingConfig> configsFor(String trainerKey) =>
       _configs.where((c) => c.trainerKey == trainerKey).toList(growable: false);
 
-  ShiftingConfig activeFor(String trainerKey) {
-    return storedActiveFor(trainerKey) ?? ShiftingConfig.defaults(trainerKey: trainerKey);
+  /// The rider's active config for [trainerKey], or the defaults when they
+  /// never saved one. [unsavedMode] is the mode those defaults carry — the
+  /// mode the trainer actually runs (its capability default, see
+  /// [ProxyDevice.activeShiftingConfig]) — so a first edit stores that rather
+  /// than the generic [ShiftingConfig.modeDefault].
+  ShiftingConfig activeFor(String trainerKey, {VirtualShiftingMode? unsavedMode}) {
+    final stored = storedActiveFor(trainerKey);
+    if (stored != null) return stored;
+    final defaults = ShiftingConfig.defaults(trainerKey: trainerKey);
+    return unsavedMode == null ? defaults : defaults.copyWith(mode: unsavedMode);
   }
 
   /// The rider's active config for [trainerKey], or null when they have never
@@ -138,10 +147,7 @@ class ShiftingConfigsController extends ChangeNotifier {
   static List<ShiftingConfig> parseStoredJson(String raw) {
     final decoded = jsonDecode(raw);
     if (decoded is! List) return const [];
-    return decoded
-        .whereType<Map<String, dynamic>>()
-        .map(ShiftingConfig.fromJson)
-        .toList(growable: false);
+    return decoded.whereType<Map<String, dynamic>>().map(ShiftingConfig.fromJson).toList(growable: false);
   }
 
   void _enforceSingleActive(String trainerKey, String activeName) {

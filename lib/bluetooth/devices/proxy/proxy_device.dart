@@ -12,6 +12,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/ble_device_ids.dart';
+import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
@@ -150,6 +151,13 @@ class ProxyDevice extends BluetoothDevice {
   /// to [ftmsEmulator]'s composite while VS is active; null in proxy mode.
   FitnessBikeDefinition? _fbd;
   FitnessBikeDefinition? get fitnessBike => _fbd;
+
+  /// The rider's active shifting config for this trainer. Without a saved one
+  /// it carries the mode the definition runs ([_seedFitnessBikeDefinition]
+  /// leaves an unsaved trainer on its capability default, Track Resistance on
+  /// a grade-capable trainer), so the first edit doesn't store Target Power.
+  ShiftingConfig get activeShiftingConfig =>
+      core.shiftingConfigs.activeFor(trainerKey, unsavedMode: _fbd?.virtualShiftingMode.value);
 
   /// Test-only: attach [fbd] as the active virtual-shifting definition without
   /// starting any emulator/server. Lets the screenshot harness render the

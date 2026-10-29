@@ -48,7 +48,7 @@ Future<void> openTrainerSelfTest(BuildContext context, ProxyDevice device) async
 /// the trainer's active shifting config.
 String virtualShiftingSummary(BuildContext context, FitnessBikeDefinition definition, ProxyDevice device) {
   final l10n = AppLocalizations.of(context);
-  final hasCustomRatios = core.shiftingConfigs.activeFor(device.trainerKey).gearRatios != null;
+  final hasCustomRatios = device.activeShiftingConfig.gearRatios != null;
   return [
     l10n.gearsCount(definition.gearRatios.value.length),
     definition.gradeSmoothingEnabled.value ? l10n.smoothingOn : l10n.smoothingOff,
@@ -158,7 +158,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   }
 
   void _applyActiveConfigToDefinition() {
-    final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final cfg = widget.device.activeShiftingConfig;
     def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
@@ -167,7 +167,15 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     def.setDifficultyPct(cfg.difficultyPct);
     def.setRealChainRatio(cfg.realChainRatio);
     def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
-    def.setVirtualShiftingMode(cfg.mode);
+    // Like [ProxyDevice._seedFitnessBikeDefinition]: only a saved config is the
+    // rider's choice. Without one, the trainer stays on its capability default
+    // instead of the generic Target Power — opening this page must not change
+    // how the trainer shifts.
+    if (core.shiftingConfigs.storedActiveFor(widget.device.trainerKey) != null) {
+      def.setVirtualShiftingMode(cfg.mode);
+    } else {
+      def.useDefaultVirtualShiftingMode();
+    }
     // The front derailleur belongs to the config too: picking another config
     // brings its rings with it, and the drivetrain above draws them.
     def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
@@ -419,7 +427,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   /// it is on. Turning it on grows the drivetrain above a second ring.
   Widget _frontDerailleur(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final config = widget.device.activeShiftingConfig;
     final enabled = config.frontShiftEnabled;
     final small = config.smallChainringTeeth;
     final large = config.largeChainringTeeth;
@@ -517,7 +525,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   /// Cog) sets it here, and every virtual gear feels like its real one.
   Widget _realChain(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final config = widget.device.activeShiftingConfig;
     final chainring = config.realChainringTeeth;
     final cog = config.realCogTeeth;
     final ratio = NumberFormat('0.00', Localizations.localeOf(context).toString()).format(config.realChainRatio);
@@ -608,7 +616,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   /// Both go to the active config and to the live definition at once.
   Widget _erg(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final config = widget.device.activeShiftingConfig;
 
     String sourceLabel(ErgStartSource source) => switch (source) {
       ErgStartSource.lastTarget => l10n.ergStartLastTarget,

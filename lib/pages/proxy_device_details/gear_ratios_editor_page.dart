@@ -23,13 +23,13 @@ import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 /// Applies [mutate] to [device]'s active shifting config and stores it.
 Future<void> updateActiveShiftingConfig(ProxyDevice device, ShiftingConfig Function(ShiftingConfig) mutate) async {
-  final current = core.shiftingConfigs.activeFor(device.trainerKey);
+  final current = device.activeShiftingConfig;
   await core.shiftingConfigs.upsert(mutate(current));
 }
 
 /// Stores [ratios] as [device]'s custom curve; null goes back to the stock one.
 Future<void> saveActiveGearRatios(ProxyDevice device, List<double>? ratios) async {
-  final current = core.shiftingConfigs.activeFor(device.trainerKey);
+  final current = device.activeShiftingConfig;
   if (ratios == null) {
     await core.shiftingConfigs.upsert(current.copyWith(clearGearRatios: true));
   } else {
@@ -426,7 +426,7 @@ class VirtualShiftingModeCard extends StatelessWidget {
   });
 
   Future<void> _updateActive(ShiftingConfig Function(ShiftingConfig) mutate) async {
-    final current = core.shiftingConfigs.activeFor(device.trainerKey);
+    final current = device.activeShiftingConfig;
     await core.shiftingConfigs.upsert(mutate(current));
   }
 

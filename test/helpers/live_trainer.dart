@@ -13,12 +13,13 @@ import 'package:universal_ble/universal_ble.dart';
   String id = 'live-kickr',
   String name = 'KICKR CORE',
   bool register = true,
+  List<String> services = const [FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID],
 }) {
   final proxy =
       ProxyDevice(
-          BleDevice(name: name, deviceId: id, services: [FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID]),
+          BleDevice(name: name, deviceId: id, services: services),
         )
-        ..services = [BleService(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID, [])]
+        ..services = [for (final uuid in services) BleService(uuid, [])]
         ..isConnected = true;
   final definition = FitnessBikeDefinition(
     connectedDevice: proxy.scanResult,

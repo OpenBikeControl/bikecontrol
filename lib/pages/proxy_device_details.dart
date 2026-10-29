@@ -150,7 +150,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 ChainPositionHintCard(
                   key: const ValueKey('chain-position-hint'),
                   definition: definition,
-                  chainSet: core.shiftingConfigs.activeFor(device.trainerKey).hasRealChain,
+                  chainSet: device.activeShiftingConfig.hasRealChain,
                 ),
                 BkGroupedSection(
                   children: [

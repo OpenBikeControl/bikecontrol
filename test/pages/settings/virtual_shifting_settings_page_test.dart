@@ -3,6 +3,7 @@
 // on top, the live drivetrain directly above Gears (so every gear change stays
 // in view while it animates), then Physics; the per-gear steppers one screen
 // deeper.
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
@@ -104,6 +105,40 @@ Future<void> main() async {
     });
   });
 
+  // A trainer the rider never saved a config for runs the definition's
+  // capability default — Track Resistance on a grade-capable trainer. Neither
+  // looking at the page nor a first edit may swap that for the generic Target
+  // Power the synthesised config carries.
+  group('a trainer without a saved config', () {
+    ({ProxyDevice proxy, FitnessBikeDefinition definition}) fecTrainer(String id) {
+      final live = attachLiveTrainer(id: id, name: 'Tacx Flux', services: [FitnessBikeDefinition.FEC_BLE_SERVICE_UUID]);
+      live.definition.useDefaultVirtualShiftingMode();
+      expect(live.definition.virtualShiftingMode.value, VirtualShiftingMode.trackResistance);
+      expect(core.shiftingConfigs.storedActiveFor(live.proxy.trainerKey), isNull);
+      return live;
+    }
+
+    testWidgets('opening the page keeps it on its default mode', (tester) async {
+      final (:proxy, :definition) = fecTrainer('unsaved-open');
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      expect(definition.virtualShiftingMode.value, VirtualShiftingMode.trackResistance);
+    });
+
+    testWidgets('a first edit saves the mode it runs, not Target Power', (tester) async {
+      final (:proxy, :definition) = fecTrainer('unsaved-edit');
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      await updateActiveShiftingConfig(proxy, (c) => c.copyWith(maxGear: 20));
+      await tester.pump();
+
+      expect(core.shiftingConfigs.storedActiveFor(proxy.trainerKey)?.mode, VirtualShiftingMode.trackResistance);
+      expect(definition.virtualShiftingMode.value, VirtualShiftingMode.trackResistance);
+    });
+  });
+
   group('the page', () {
     testWidgets('config and mode first, the drivetrain directly above Gears, then Physics', (tester) async {
       final (:proxy, :definition) = attachLiveTrainer();
@@ -189,7 +224,10 @@ Future<void> main() async {
       );
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
       await tester.pump();
-      final view = find.descendant(of: find.byKey(const ValueKey('vs-drivetrain')), matching: find.byType(DrivetrainView));
+      final view = find.descendant(
+        of: find.byKey(const ValueKey('vs-drivetrain')),
+        matching: find.byType(DrivetrainView),
+      );
       final state = tester.state<DrivetrainViewState>(view);
       expect(state.debugFrontRadius, kSingleRingRadius);
       expect(state.debugIdleRingOpacity, 0);
@@ -220,7 +258,10 @@ Future<void> main() async {
       );
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy), reducedMotion: true);
       await tester.pump();
-      final view = find.descendant(of: find.byKey(const ValueKey('vs-drivetrain')), matching: find.byType(DrivetrainView));
+      final view = find.descendant(
+        of: find.byKey(const ValueKey('vs-drivetrain')),
+        matching: find.byType(DrivetrainView),
+      );
       final state = tester.state<DrivetrainViewState>(view);
 
       await flipFrontDerailleur(tester);
