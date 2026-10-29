@@ -1,4 +1,4 @@
-### 7.4.0 (DD-MM-2026)
+### 7.4.0 (29-10-2026)
 **Features**:
 - Chain on the trainer: set the chainring and cog your real chain sits on, and every virtual gear feels like its real counterpart.
 - ERG your way: start at your last target or your current power, with a step of 1, 5, 10 or 25 W.
