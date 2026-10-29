@@ -534,6 +534,7 @@
   "noControllerUseCompanionMode": "¿No tienes controlador? Usa el modo Companion.",
   "noDevicesRegistered": "No hay dispositivos registrados",
   "noIgnoredDevices": "No hay dispositivos ignorados.",
+  "disconnectedForThisSession": "Desconectados en esta sesión",
   "noTrainerSelected": "No has seleccionado ninguna app de entrenamiento",
   "notConnected": "No conectado",
   "notificationDescription": "Esto mantiene la app viva en segundo plano y te avisa cuando cambia la conexión con tus dispositivos.",

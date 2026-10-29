@@ -53,8 +53,11 @@ class SupportDiagnosticsSummary {
       try {
         final json = jsonDecode(trimmed);
         if (json is Map) {
-          final text = json['freetext'] is String ? _parseText(json['freetext'] as String) : const SupportDiagnosticsSummary();
-          String? field(String key) => json[key] is String && (json[key] as String).isNotEmpty ? json[key] as String : null;
+          final text = json['freetext'] is String
+              ? _parseText(json['freetext'] as String)
+              : const SupportDiagnosticsSummary();
+          String? field(String key) =>
+              json[key] is String && (json[key] as String).isNotEmpty ? json[key] as String : null;
           return SupportDiagnosticsSummary(
             appVersion: field('app_version') ?? text.appVersion,
             platform: field('app_platform') ?? text.platform,
@@ -102,7 +105,9 @@ class SupportDiagnosticsSummary {
 
 class SupportComposer extends StatefulWidget {
   final bool sending;
-  final Future<void> Function(String body, StagedAttachment? attachment) onSend;
+
+  /// Sends [body] with every staged attachment, in the order they were added.
+  final Future<void> Function(String body, List<StagedAttachment> attachments) onSend;
 
   /// When non-empty, a collapsible chip is rendered above the composer
   /// showing the diagnostic payload that will be attached to the next
@@ -168,7 +173,10 @@ class SupportComposer extends StatefulWidget {
 class _SupportComposerState extends State<SupportComposer> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  StagedAttachment? _attachment;
+
+  /// Everything staged for the next message: picking or pasting another adds
+  /// to it, never replaces what is already there.
+  final List<StagedAttachment> _attachments = [];
 
   /// The pending [SupportComposer.pinnedContext]; null once it has gone out
   /// with a message, so a follow-up "yes, still happening" is neither gated
@@ -186,7 +194,7 @@ class _SupportComposerState extends State<SupportComposer> {
         if (mounted) _focusNode.requestFocus();
       });
     }
-    _attachment = widget.initialAttachment;
+    if (widget.initialAttachment case final initial?) _attachments.add(initial);
     _pinnedContext = widget.pinnedContext;
     _controller.addListener(() {
       if (mounted) setState(() {});
@@ -207,15 +215,14 @@ class _SupportComposerState extends State<SupportComposer> {
   /// being something to send.
   bool get _describing => _pinnedContext != null || widget.requireDescription;
 
-  bool get _needsDescription =>
-      _describing && _controller.text.trim().length < SupportComposer.minDescriptionLength;
+  bool get _needsDescription => _describing && _controller.text.trim().length < SupportComposer.minDescriptionLength;
 
   bool get _canSend {
     if (widget.sending) return false;
     // A staged screenshot does not stand in for the description: a picture
     // plus a test result still doesn't say what the rider expected to happen.
     if (_describing) return !_needsDescription;
-    if (_attachment != null) return true;
+    if (_attachments.isNotEmpty) return true;
     return _controller.text.trim().isNotEmpty;
   }
 
@@ -226,12 +233,14 @@ class _SupportComposerState extends State<SupportComposer> {
     final bytes = await picked.readAsBytes();
     if (!mounted) return;
     setState(() {
-      _attachment = StagedAttachment(
-        PlatformFile(
-          name: picked.name,
-          size: bytes.length,
-          bytes: bytes,
-          path: kIsWeb ? null : picked.path,
+      _attachments.add(
+        StagedAttachment(
+          PlatformFile(
+            name: picked.name,
+            size: bytes.length,
+            bytes: bytes,
+            path: kIsWeb ? null : picked.path,
+          ),
         ),
       );
     });
@@ -247,12 +256,13 @@ class _SupportComposerState extends State<SupportComposer> {
     if (result == null || result.files.isEmpty) return;
     if (!mounted) return;
     setState(() {
-      _attachment = StagedAttachment(result.files.single);
+      _attachments.add(StagedAttachment(result.files.single));
     });
   }
 
-  /// Cmd/Ctrl+V: a screenshot or copied file on the clipboard becomes the
-  /// staged attachment, anything else is pasted into the text field as usual.
+  /// Cmd/Ctrl+V or Paste in the text field's menu: a screenshot or copied file
+  /// on the clipboard is staged next to what already is, anything else is
+  /// pasted into the text field as usual.
   Future<void> _paste() async {
     StagedAttachment? pasted;
     try {
@@ -262,12 +272,50 @@ class _SupportComposerState extends State<SupportComposer> {
     }
     if (!mounted) return;
     if (pasted != null) {
-      setState(() => _attachment = pasted);
+      setState(() => _attachments.add(pasted!));
       return;
     }
     final editable = _focusNode.context;
     if (editable == null || !editable.mounted) return;
     Actions.maybeInvoke(editable, const PasteTextIntent(SelectionChangedCause.keyboard));
+  }
+
+  /// The text field's menu with a Paste that goes through [_paste], so a
+  /// screenshot pasted from the menu is staged like one pasted with the
+  /// keyboard. Always offered: with only an image on the clipboard the
+  /// field's own menu has no Paste at all.
+  Widget _contextMenu(BuildContext context, EditableTextState state) {
+    final l = ShadcnLocalizations.of(context);
+    final items = state.contextMenuButtonItems;
+    VoidCallback? action(ContextMenuButtonType type) => items.where((i) => i.type == type).firstOrNull?.onPressed;
+    MenuButton button(String label, VoidCallback? onPressed) => MenuButton(
+      enabled: onPressed != null,
+      onPressed: (_) => onPressed?.call(),
+      child: Text(label),
+    );
+    final mobile = defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android;
+    final anchors = state.contextMenuAnchors;
+    return TextFieldTapRegion(
+      child: ContextMenuPopup(
+        anchorSize: Size.zero,
+        anchorContext: context,
+        position: mobile
+            ? (anchors.secondaryAnchor ?? anchors.primaryAnchor) + const Offset(-8, 8)
+            : anchors.primaryAnchor + const Offset(8, -8),
+        direction: mobile ? Axis.horizontal : Axis.vertical,
+        children: [
+          if (!mobile || action(ContextMenuButtonType.cut) != null)
+            button(l.menuCut, action(ContextMenuButtonType.cut)),
+          if (!mobile || action(ContextMenuButtonType.copy) != null)
+            button(l.menuCopy, action(ContextMenuButtonType.copy)),
+          button(l.menuPaste, () {
+            state.hideToolbar();
+            unawaited(_paste());
+          }),
+          button(l.menuSelectAll, action(ContextMenuButtonType.selectAll)),
+        ],
+      ),
+    );
   }
 
   void _showAttachSheet(BuildContext context) {
@@ -302,20 +350,19 @@ class _SupportComposerState extends State<SupportComposer> {
   Future<void> _submit() async {
     if (!_canSend) return;
     final userText = _controller.text.trim();
-    final attachment = _attachment;
+    final attachments = List<StagedAttachment>.of(_attachments);
     final pinned = _pinnedContext;
     // The rider's words first, the machine-readable result last: support
     // reads the top of a chat, and the bundle line is what gets grepped.
     final body = pinned == null ? userText : '$userText\n\n$pinned';
     final preservedText = userText;
-    final preservedAttachment = attachment;
     setState(() {
       _controller.clear();
-      _attachment = null;
+      _attachments.clear();
       _pinnedContext = null;
     });
     try {
-      await widget.onSend(body, attachment);
+      await widget.onSend(body, attachments);
     } catch (_) {
       // Terminal on purpose: the page-level handlers already reported and
       // toasted this failure; their rethrow only exists so we know to restore
@@ -325,7 +372,9 @@ class _SupportComposerState extends State<SupportComposer> {
       if (!mounted) return;
       setState(() {
         _controller.text = preservedText;
-        _attachment = preservedAttachment;
+        _attachments
+          ..clear()
+          ..addAll(attachments);
         _pinnedContext = pinned;
       });
     }
@@ -350,7 +399,7 @@ class _SupportComposerState extends State<SupportComposer> {
           // both let the user inspect/remove before sending.
           if (hasDiagnostic) _diagnosticsNotice(cs) else _retentionOnlyNotice(cs),
           if (_pinnedContext != null) _pinnedContextChip(cs),
-          if (_attachment != null) _stagedAttachmentChip(),
+          for (final attachment in _attachments) _stagedAttachmentChip(attachment),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -385,6 +434,7 @@ class _SupportComposerState extends State<SupportComposer> {
                     ),
                     expandableHeight: true,
                     initialHeight: 56,
+                    contextMenuBuilder: _contextMenu,
                   ),
                 ),
               ),
@@ -461,7 +511,7 @@ class _SupportComposerState extends State<SupportComposer> {
               children: [
                 // Names what actually goes out: the screenshot only while one
                 // is staged.
-                if (_attachment?.isImage == true)
+                if (_attachments.any((a) => a.isImage))
                   Text(
                     context.i18n.supportDiagnosticsNotice,
                     style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
@@ -562,7 +612,7 @@ class _SupportComposerState extends State<SupportComposer> {
           ),
           builder: (c) => _DiagnosticsSheet(
             payload: widget.diagnosticPreview!,
-            screenshotAttached: _attachment?.isImage == true,
+            screenshotAttached: _attachments.any((a) => a.isImage),
             onClose: () => closeSheet(c),
           ),
         ),
@@ -570,8 +620,7 @@ class _SupportComposerState extends State<SupportComposer> {
     );
   }
 
-  Widget _stagedAttachmentChip() {
-    final att = _attachment!;
+  Widget _stagedAttachmentChip(StagedAttachment att) {
     final cs = Theme.of(context).colorScheme;
     Widget? preview;
     if (att.isImage) {
@@ -609,7 +658,7 @@ class _SupportComposerState extends State<SupportComposer> {
             BkIconButton.ghost(
               icon: const Icon(LucideIcons.x, size: 14),
               label: context.i18n.a11yRemoveAttachment,
-              onPressed: widget.sending ? null : () => setState(() => _attachment = null),
+              onPressed: widget.sending ? null : () => setState(() => _attachments.remove(att)),
             ),
           ],
         ),

@@ -47,6 +47,10 @@ class ShiftingConfig {
 
   double get realChainRatio => realChainringTeeth / realCogTeeth;
 
+  /// Whether the rider set where the real chain sits, rather than leaving the
+  /// default 34/17. A chain they set to another 2:1 (36/18) still counts.
+  bool get hasRealChain => realChainringTeeth != realChainringDefault || realCogTeeth != realCogDefault;
+
   /// How hard virtual shifting rides on this trainer, in percent of the
   /// physics ([FitnessBikeDefinition.setDifficultyPct]); set by the calibrator.
   final int difficultyPct;

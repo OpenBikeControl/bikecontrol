@@ -281,6 +281,10 @@ Future<void> main() async {
         reason: 'the Di2 reconnected right after the rider disconnected it',
       );
 
+      // The scan saw it, so the screens can say so and offer it back.
+      expect(core.connection.disconnectedForSession.value.keys, [di2.deviceId]);
+      expect(core.connection.ignoredDevicesNearby.value, contains(di2.deviceId));
+
       // Connecting it on purpose still works, and lifts the hold.
       final again = BluetoothDevice.fromScanResult(di2.scanResult)!;
       core.connection.addDevices([again]);
@@ -288,6 +292,24 @@ Future<void> main() async {
       await core.connection.connectDevice(again);
       core.connection.addDevices([again]);
       await IntegrationEnv.waitFor(() => again.isConnected, description: 'explicit reconnect');
+    });
+
+    test('a controller disconnected for this session comes back from the list', () async {
+      final di2 = buildShimanoDi2();
+      env.ble.addPeripheral(di2);
+      await core.connection.performScanning();
+      final device = await waitForDevice<ShimanoDi2>();
+      await IntegrationEnv.waitFor(() => device.isConnected, description: 'Di2 to connect');
+
+      await core.connection.disconnectForSession(device);
+      expect(core.connection.disconnectedForSession.value, {di2.deviceId: device.toString()});
+
+      // The rider picks Reconnect in the list.
+      await core.connection.reconnectForSession(di2.deviceId);
+      env.ble.updateScanResult(di2.scanResult);
+      final back = await waitForDevice<ShimanoDi2>();
+      await IntegrationEnv.waitFor(() => back.isConnected, description: 'Di2 to reconnect');
+      expect(core.connection.disconnectedForSession.value, isEmpty);
     });
 
     test('a controller disconnected for inactivity is not auto-reconnected on rediscovery', () async {

@@ -206,4 +206,21 @@ void main() {
       expect(r.grade, isNull);
     });
   });
+
+  test('a course that ends far below its start still has altitudes FIT can hold', () {
+    // FIT altitude is unsigned with a 500 m offset: below -500 m it wraps.
+    final start = DateTime.utc(2026, 10, 29, 9);
+    final samples = [
+      for (var i = 0; i <= 150; i++)
+        WorkoutSample(timestamp: start.add(Duration(seconds: i)), speedKph: 36, gradePct: -50),
+    ];
+    final summary = WorkoutSummary.fromSamples(samples, startedAt: start, activeDuration: const Duration(seconds: 150));
+    final records = FitFile.fromBytes(FitFileWriter.encode(samples: samples, summary: summary)).records
+        .map((r) => r.message)
+        .whereType<RecordMessage>()
+        .toList();
+    expect(records.first.altitude, closeTo(670.8, 0.3), reason: 'the lowest point sits at 0 m');
+    expect(records.last.altitude, closeTo(0, 0.3));
+    expect(records.every((r) => r.altitude! >= 0 && r.altitude! < 1000), isTrue);
+  });
 }

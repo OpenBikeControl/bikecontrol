@@ -11,10 +11,11 @@ abstract final class ElevationTrack {
   static const _maxGapSeconds = 2.0;
 
   /// Altitude at each of [samples] in metres, from 0 at the first. Seconds
-  /// without a grade stay level. Null when no sample has a grade: the ride
-  /// has no course.
+  /// without a grade stay level. Null when no sample has a grade other than
+  /// 0: the ride has no course (a trainer in SIM that no app sent a grade to
+  /// still reports 0 %).
   static List<double>? altitudes(List<WorkoutSample> samples) {
-    if (!samples.any((s) => s.gradePct != null)) return null;
+    if (!samples.any((s) => (s.gradePct ?? 0) != 0)) return null;
     final out = <double>[];
     var alt = 0.0;
     for (var i = 0; i < samples.length; i++) {

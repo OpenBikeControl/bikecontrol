@@ -565,6 +565,7 @@
   "noControllerUseCompanionMode": "No Controller? Use Companion Mode.",
   "noDevicesRegistered": "No devices registered",
   "noIgnoredDevices": "No ignored devices.",
+  "disconnectedForThisSession": "Disconnected for this session",
   "noTrainerSelected": "No Trainer selected",
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",

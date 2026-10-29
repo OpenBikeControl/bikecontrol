@@ -233,7 +233,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     }
   }
 
-  Future<void> _send(String body, StagedAttachment? staged) async {
+  Future<void> _send(String body, List<StagedAttachment> staged) async {
     setState(() => _sending = true);
 
     // Write-first, sign-in-afterwards: a rider with no session at all gets
@@ -296,21 +296,21 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
 
     try {
       final attachments = <SupportAttachmentUpload>[];
-      if (staged != null) {
+      for (final file in staged) {
         // The blob is uploaded before the message send, so a failed send would
         // otherwise leak it: there is no client-side delete for the bucket.
         // Instead we remember the successful upload against the staged file the
         // composer hands back, so a retry re-uses that blob instead of
         // orphaning it and uploading a second copy.
         final upload =
-            _retainedUploads[staged] ??
+            _retainedUploads[file] ??
             await _service.uploadAttachment(
               chatId: chat.id,
-              file: staged.file,
+              file: file.file,
               attachmentTooLargeMessage: context.i18n.attachmentTooLarge,
               unsupportedMimeMessage: context.i18n.attachmentMimeUnsupported,
             );
-        _retainedUploads[staged] = upload;
+        _retainedUploads[file] = upload;
         attachments.add(upload);
       }
       final intakePayload = (!_intakeSent && _intakeAnswers != null) ? _intakeAnswers!.toJson() : null;
@@ -321,7 +321,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
         telemetry: telemetry.toJson(),
         intakeAnswers: intakePayload,
       );
-      if (staged != null) _retainedUploads.remove(staged);
+      staged.forEach(_retainedUploads.remove);
       if (!mounted) return;
       setState(() {
         _pendingMessages.removeWhere((m) => m.id == placeholderId);

@@ -147,7 +147,11 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
                 SizedBox(height: 12),
                 // Right above the settings it is about: the rider's real chain
                 // sits where the virtual shifting physics feel wrong.
-                ChainPositionHintCard(key: const ValueKey('chain-position-hint'), definition: definition),
+                ChainPositionHintCard(
+                  key: const ValueKey('chain-position-hint'),
+                  definition: definition,
+                  chainSet: core.shiftingConfigs.activeFor(device.trainerKey).hasRealChain,
+                ),
                 BkGroupedSection(
                   children: [
                     BkGroupedRow(

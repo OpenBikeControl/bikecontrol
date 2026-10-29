@@ -45,6 +45,10 @@ void main() {
     expect(alt[1], alt[2]);
   });
 
+  test('a grade of 0 throughout is no course: nothing sent one', () {
+    expect(ElevationTrack.altitudes([s(0, kph: 30, grade: 0), s(1, kph: 30, grade: 0)]), isNull);
+  });
+
   test('a ride without any grade has no track', () {
     expect(ElevationTrack.altitudes([s(0, kph: 30), s(1, kph: 30)]), isNull);
     expect(ElevationTrack.altitudes([]), isNull);

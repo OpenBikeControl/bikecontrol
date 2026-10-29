@@ -534,6 +534,7 @@
   "noControllerUseCompanionMode": "Nie masz kontrolera? Użyj Companion Mode.",
   "noDevicesRegistered": "Brak zarejestrowanych urządzeń",
   "noIgnoredDevices": "Brak ignorowanych urządzeń.",
+  "disconnectedForThisSession": "Rozłączone w tej sesji",
   "noTrainerSelected": "Nie wybrano trenażera",
   "notConnected": "Nie połączono",
   "notificationDescription": "Dzięki temu aplikacja działa w tle i powiadamia Cię o każdej zmianie połączenia z Twoim urządzeniem.",

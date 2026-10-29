@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:fit_tool/fit_tool.dart';
@@ -71,7 +72,11 @@ class FitFileWriter {
       }
     }
 
-    final altitudes = ElevationTrack.altitudes(samples);
+    // FIT altitude is unsigned with a 500 m offset, so a course that drops
+    // more than 500 m below its start would wrap: the lowest point is 0 m.
+    final track = ElevationTrack.altitudes(samples);
+    final lowest = track == null || track.isEmpty ? 0.0 : track.reduce(math.min);
+    final altitudes = track == null ? null : [for (final a in track) a - lowest];
     int? gear;
     for (final (i, s) in samples.indexed) {
       final at = s.timestamp.toUtc().millisecondsSinceEpoch;

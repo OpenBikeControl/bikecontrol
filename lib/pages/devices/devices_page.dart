@@ -204,9 +204,13 @@ class _OtherInputsSectionState extends State<OtherInputsSection> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final ignored = core.settings.getIgnoredDevices();
-    return ValueListenableBuilder<ScreenRecordingState>(
-      valueListenable: core.screenRecording.state,
-      builder: (context, recording, _) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([core.screenRecording.state, core.connection.disconnectedForSession]),
+      builder: (context, _) {
+        final recording = core.screenRecording.state.value;
+        // Controllers disconnected for this session are listed there too,
+        // with Reconnect.
+        final held = ignored.length + core.connection.disconnectedForSession.value.length;
         final rows = <Widget>[
           // A recording in progress has to be visible somewhere.
           if (recording == ScreenRecordingState.recording)
@@ -241,13 +245,13 @@ class _OtherInputsSectionState extends State<OtherInputsSection> {
                 },
               ),
             ),
-          if (ignored.isNotEmpty)
+          if (held > 0)
             BkGroupedRow(
               key: const ValueKey('devices-ignored'),
               icon: LucideIcons.eyeOff,
               quietIcon: true,
               title: l10n.ignoredDevices,
-              trailing: Text('${ignored.length}'),
+              trailing: Text('$held'),
               chevron: true,
               onPressed: () async {
                 await showDialog(context: context, builder: (_) => const IgnoredDevicesDialog());

@@ -34,7 +34,10 @@ Future<void> main() async {
     core.connection.ignoredDevicesNearby.value = const {};
   });
 
-  tearDown(() => core.connection.ignoredDevicesNearby.value = const {});
+  tearDown(() {
+    core.connection.ignoredDevicesNearby.value = const {};
+    core.connection.debugClearDisconnectedForSession();
+  });
 
   testWidgets('renders nothing while no ignored device is nearby', (tester) async {
     await _pumpHint(tester);
@@ -67,5 +70,27 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(IgnoredDevicesDialog), findsOneWidget);
+  });
+
+  testWidgets('a controller disconnected for this session is listed with Reconnect, which lifts the hold', (
+    tester,
+  ) async {
+    core.connection.disconnectedForSession.value = {'di2-id': 'Shimano Di2'};
+    core.connection.ignoredDevicesNearby.value = {'di2-id'};
+    await _pumpHint(tester);
+
+    await tester.tap(find.text(l.manageAction));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text(l.disconnectedForThisSession), findsOneWidget);
+    expect(find.text('Shimano Di2'), findsOneWidget);
+    expect(find.text(l.noIgnoredDevices), findsNothing, reason: 'the dialog has something to show');
+
+    await tester.tap(find.byKey(const ValueKey('session-reconnect-di2-id')));
+    await tester.pump();
+    expect(core.connection.disconnectedForSession.value, isEmpty);
+    expect(core.connection.ignoredDevicesNearby.value, isEmpty);
+    expect(find.text('Shimano Di2'), findsNothing);
   });
 }

@@ -183,17 +183,21 @@ class Connection {
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
   final ValueNotifier<bool> isScanning = ValueNotifier(false);
 
-  /// Ids of devices on the ignore list that the current scan has seen. They
-  /// are still never added or connected — this only lets the screens tell a
-  /// rider whose controller "won't show up" that it is in fact ignored.
-  /// Cleared when a scan starts; ids leave it when they are un-ignored.
+  /// Ids of devices on the ignore list, or disconnected for this session,
+  /// that the current scan has seen. They are still never added or connected —
+  /// this only lets the screens tell a rider whose controller "won't show up"
+  /// that it is in fact ignored. Cleared when a scan starts; ids leave it when
+  /// they are un-ignored or reconnected.
   final ValueNotifier<Set<String>> ignoredDevicesNearby = ValueNotifier(const {});
 
   /// Drops ids from [ignoredDevicesNearby] that are no longer on the ignore
   /// list. Called whenever the ignore list shrinks.
   void pruneIgnoredDevicesNearby() {
     if (ignoredDevicesNearby.value.isEmpty) return;
-    final stillIgnored = core.settings.getIgnoredDevices().map((d) => d.id).toSet();
+    final stillIgnored = {
+      ...core.settings.getIgnoredDevices().map((d) => d.id),
+      ...disconnectedForSession.value.keys,
+    };
     final pruned = ignoredDevicesNearby.value.intersection(stillIgnored);
     if (pruned.length != ignoredDevicesNearby.value.length) {
       ignoredDevicesNearby.value = Set.unmodifiable(pruned);
@@ -771,19 +775,52 @@ class Connection {
   /// the whole session: the device keeps advertising, and the scan dedup entry
   /// that used to be the only thing keeping it out is dropped by a connection
   /// change, a scan restart or a Bluetooth toggle — each of which brought the
-  /// device straight back. Lifted only by an explicit [connectDevice].
-  final _disconnectedForSession = <String>{};
+  /// device straight back. Lifted by an explicit [connectDevice] or
+  /// [reconnectForSession].
+  ///
+  /// Each held id maps to the name the rider knew the controller by: listed
+  /// under Ignored devices with Reconnect ([reconnectForSession]), so changing
+  /// one's mind needs no app restart.
+  final ValueNotifier<Map<String, String>> disconnectedForSession = ValueNotifier(const {});
+
+  bool _isDisconnectedForSession(String id) => disconnectedForSession.value.containsKey(id);
+
+  void _setDisconnectedForSession(String id, String? name) {
+    if (name == null) {
+      if (!_isDisconnectedForSession(id)) return;
+      disconnectedForSession.value = Map.unmodifiable({...disconnectedForSession.value}..remove(id));
+    } else {
+      disconnectedForSession.value = Map.unmodifiable({...disconnectedForSession.value, id: name});
+    }
+  }
 
   /// Clears what [disconnectForSession] held back, as an app restart does.
   /// Tests only.
   @visibleForTesting
-  void debugClearDisconnectedForSession() => _disconnectedForSession.clear();
+  void debugClearDisconnectedForSession() => disconnectedForSession.value = const {};
 
   /// Disconnects [device] and keeps it from auto-connecting again until the
   /// app restarts or the rider connects it explicitly.
   Future<void> disconnectForSession(BaseDevice device) async {
-    if (device is BluetoothDevice) _disconnectedForSession.add(device.device.deviceId);
+    if (device is BluetoothDevice) _setDisconnectedForSession(device.device.deviceId, device.toString());
     await disconnect(device, forget: true, persistForget: false);
+  }
+
+  /// Lifts [disconnectForSession] for [id]: the controller is added and
+  /// connects again as soon as the scan sees it — at once if it already has.
+  Future<void> reconnectForSession(String id) async {
+    _setDisconnectedForSession(id, null);
+    if (ignoredDevicesNearby.value.contains(id)) {
+      ignoredDevicesNearby.value = Set.unmodifiable({...ignoredDevicesNearby.value}..remove(id));
+    }
+    final seen = _lastScanResult.lastOrNullWhere((d) => d.deviceId == id);
+    final device = seen == null ? null : BluetoothDevice.fromScanResult(seen);
+    if (device != null) {
+      addDevices([device]);
+    } else {
+      // Not seen since: let its next advert through the scan's de-dupe.
+      _lastScanResult.removeWhere((d) => d.deviceId == id);
+    }
   }
 
   /// Consecutive failed auto-connect attempts per BLE device id. Only devices
@@ -1454,7 +1491,9 @@ class Connection {
         if (_suppressedAutoReconnect.contains(device.device.deviceId)) {
           return false;
         }
-        if (_disconnectedForSession.contains(device.device.deviceId)) {
+        if (_isDisconnectedForSession(device.device.deviceId)) {
+          // Shown with the ignored ones, where Reconnect brings it back.
+          seenIgnored.add(device.device.deviceId);
           return false;
         }
       }
@@ -1604,7 +1643,7 @@ class Connection {
           !device.isConnected &&
           !_connectionQueue.contains(device) &&
           !_suppressedAutoReconnect.contains(id) &&
-          !_disconnectedForSession.contains(id) &&
+          !_isDisconnectedForSession(id) &&
           !core.settings.getIgnoredDevices().any((d) => d.id == id);
       if (!stillWanted) return;
       _actionStreams.add(LogNotification('${device.toString()}: retrying connect (attempt ${attempt + 1})'));
@@ -1719,7 +1758,7 @@ class Connection {
     if (device is BluetoothDevice) {
       final id = device.device.deviceId;
       _suppressedAutoReconnect.remove(id);
-      _disconnectedForSession.remove(id);
+      _setDisconnectedForSession(id, null);
       _backoffCooldownTimers.remove(id)?.cancel();
       _consecutiveConnectFailures.remove(id);
       _quickDropCounts.remove(id);

@@ -534,6 +534,7 @@
   "noControllerUseCompanionMode": "Pas de manette ? Utilisez le mode compagnon.",
   "noDevicesRegistered": "Aucun appareil enregistré",
   "noIgnoredDevices": "Aucun appareil ignoré.",
+  "disconnectedForThisSession": "Déconnectés pour cette session",
   "noTrainerSelected": "Aucun Trainer sélectionné",
   "notConnected": "Non connecté",
   "notificationDescription": "Cela permet à l'application de rester active en arrière-plan et de t'informer lorsque la connexion à tes appareils change.",

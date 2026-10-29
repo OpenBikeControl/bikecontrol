@@ -12,9 +12,14 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// every virtual gear feels wrong and nothing else on screen says why. Renders
 /// nothing otherwise.
 class ChainPositionHintCard extends StatelessWidget {
-  const ChainPositionHintCard({super.key, required this.definition});
+  const ChainPositionHintCard({super.key, required this.definition, required this.chainSet});
 
   final FitnessBikeDefinition definition;
+
+  /// Whether the rider set their real chain ([ShiftingConfig.hasRealChain]).
+  /// Not read off the definition's ratio: a chain set to 36/18 is 2:1 like
+  /// the default.
+  final bool chainSet;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +34,6 @@ class ChainPositionHintCard extends StatelessWidget {
         final ratioText = format.format(ratio);
         // A rider who set their real chain gets told it moved off that, not
         // to go to a middle gear: the band is around their chain.
-        final chainSet = definition.realChainRatio != 2.0;
         final title = chainSet ? l10n.chainHintSetTitle : l10n.chainHintTitle;
         final body = chainSet
             ? l10n.chainHintSetBody(ratioText, format.format(definition.realChainRatio))

@@ -23,7 +23,7 @@ Future<void> main() async {
     String? pinnedContextLabel,
     StagedAttachment? initialAttachment,
     bool requireDescription = false,
-    Future<void> Function(String body, StagedAttachment? attachment)? onSend,
+    Future<void> Function(String body, List<StagedAttachment> attachments)? onSend,
     Future<StagedAttachment?> Function()? readClipboardAttachment,
   }) {
     return ShadcnApp(
@@ -432,11 +432,11 @@ Logs:
     testWidgets('Cmd+V with an image on the clipboard stages it as the attachment', (tester) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
       try {
-        StagedAttachment? sent;
+        List<StagedAttachment>? sent;
         await tester.pumpWidget(
           app(
             readClipboardAttachment: () async => pastedImage(),
-            onSend: (_, attachment) async => sent = attachment,
+            onSend: (_, attachments) async => sent = attachments,
           ),
         );
         await tester.tap(find.byType(TextArea));
@@ -447,7 +447,7 @@ Logs:
         expect(find.text('pasted-image-1.png'), findsOneWidget);
         await tester.tap(find.byIcon(LucideIcons.send));
         await tester.pump();
-        expect(sent?.name, 'pasted-image-1.png');
+        expect(sent?.map((a) => a.name), ['pasted-image-1.png']);
       } finally {
         debugDefaultTargetPlatformOverride = null;
       }
@@ -471,6 +471,53 @@ Logs:
         expect(find.byIcon(LucideIcons.x), findsNothing, reason: 'nothing staged');
       } finally {
         tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null);
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('pasting next to a staged screenshot keeps both', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        List<StagedAttachment>? sent;
+        await tester.pumpWidget(
+          app(
+            initialAttachment: StagedAttachment(
+              PlatformFile(name: 'pinned.png', size: onePixelPng.length, bytes: onePixelPng),
+            ),
+            readClipboardAttachment: () async => pastedImage(),
+            onSend: (_, attachments) async => sent = attachments,
+          ),
+        );
+        await tester.tap(find.byType(TextArea));
+        await tester.pump();
+
+        await pressPaste(tester);
+
+        expect(find.text('pinned.png'), findsOneWidget);
+        expect(find.text('pasted-image-1.png'), findsOneWidget);
+        await tester.tap(find.byIcon(LucideIcons.send));
+        await tester.pump();
+        expect(sent?.map((a) => a.name), ['pinned.png', 'pasted-image-1.png']);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('Paste in the right-click menu stages an image too', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        await tester.pumpWidget(app(readClipboardAttachment: () async => pastedImage()));
+        await tester.tap(find.byType(TextArea));
+        await tester.pump();
+
+        tester.state<EditableTextState>(find.byType(EditableText)).showToolbar();
+        await tester.pumpAndSettle();
+        final l = ShadcnLocalizations.of(tester.element(find.byType(TextArea)));
+        await tester.tap(find.text(l.menuPaste));
+        await tester.pumpAndSettle();
+
+        expect(find.text('pasted-image-1.png'), findsOneWidget);
+      } finally {
         debugDefaultTargetPlatformOverride = null;
       }
     });
