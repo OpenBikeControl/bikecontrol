@@ -6,13 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final start = DateTime(2026, 4, 24, 10, 0, 0);
 
-  WorkoutSample s(int sec, {int? p, int? c, double? sp, int? hr, int? g}) => WorkoutSample(
+  WorkoutSample s(int sec, {int? p, int? c, double? sp, int? hr, int? g, double? gr}) => WorkoutSample(
     timestamp: start.add(Duration(seconds: sec)),
     powerW: p,
     cadenceRpm: c,
     speedKph: sp,
     heartRateBpm: hr,
     gear: g,
+    gradePct: gr,
   );
 
   test('empty samples produce zeroed summary', () {
@@ -141,6 +142,37 @@ void main() {
       expect(chart.gear, [11, 12]);
       expect(chart.hasCadence, isTrue);
       expect(chart.hasGear, isTrue);
+    });
+
+    test('chart has the elevation at the end of each bucket, the grade and the ascent', () {
+      final chart = WorkoutSummary.fromSamples(
+        [for (var i = 0; i <= 10; i++) s(i, p: 250, sp: 36, gr: i < 5 ? 10 : 0)],
+        startedAt: start,
+        activeDuration: const Duration(seconds: 10),
+        endedAt: start.add(const Duration(seconds: 10)),
+      ).chart!;
+      expect(chart.hasElevation, isTrue);
+      expect(chart.elevation.length, 2);
+      expect(chart.elevation[0], closeTo(3.98, 0.1), reason: '4 s up 10 % at 10 m/s');
+      expect(chart.elevation[1], closeTo(3.98, 0.1), reason: 'flat from 5 s on');
+      expect(chart.grade, [10.0, 0.0]);
+      expect(chart.ascentM, closeTo(3.98, 0.1));
+
+      final back = RideChart.fromJson(chart.toJson())!;
+      expect(back.elevation, chart.elevation);
+      expect(back.grade, chart.grade);
+      expect(back.ascentM, chart.ascentM);
+    });
+
+    test('a ride without grade has no elevation', () {
+      final chart = WorkoutSummary.fromSamples(
+        [for (var i = 0; i < 10; i++) s(i, p: 200, sp: 30)],
+        startedAt: start,
+        activeDuration: const Duration(seconds: 10),
+      ).chart!;
+      expect(chart.hasElevation, isFalse);
+      expect(chart.elevation, isEmpty);
+      expect(chart.toJson().containsKey('elevation'), isFalse);
     });
 
     test('a ride without gears or cadence has neither series', () {

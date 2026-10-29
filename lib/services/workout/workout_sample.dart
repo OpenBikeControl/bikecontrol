@@ -15,6 +15,10 @@ class WorkoutSample {
   /// virtual shifting.
   final int? gear;
 
+  /// The grade the trainer app had the trainer on, in %; null where it sent
+  /// none (ERG, or a trainer BikeControl doesn't simulate for).
+  final double? gradePct;
+
   const WorkoutSample({
     required this.timestamp,
     this.powerW,
@@ -23,5 +27,6 @@ class WorkoutSample {
     this.heartRateBpm,
     this.heartRateFromHealth = false,
     this.gear,
+    this.gradePct,
   });
 }

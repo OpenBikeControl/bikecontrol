@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:fit_tool/fit_tool.dart';
 
+import 'elevation_track.dart';
 import 'workout_recorder.dart' show WorkoutPause;
 import 'workout_sample.dart';
 import 'workout_summary.dart';
@@ -12,7 +13,9 @@ import 'workout_summary.dart';
 /// FileId → Event(timer start) → Record × N, with a timer stop/start event
 /// pair at each pause → Event(stop all) → Lap → Session → Activity. A
 /// virtual shift is a rear gear change event (its rear_gear_num) just before
-/// the first record in the new gear.
+/// the first record in the new gear. With a grade from the trainer app,
+/// every record carries it and the altitude climbed on it so far
+/// ([ElevationTrack]), and the session its total ascent and descent.
 class FitFileWriter {
   static const int _manufacturerDevelopment = 255; // development manufacturer id
 
@@ -68,8 +71,9 @@ class FitFileWriter {
       }
     }
 
+    final altitudes = ElevationTrack.altitudes(samples);
     int? gear;
-    for (final s in samples) {
+    for (final (i, s) in samples.indexed) {
       final at = s.timestamp.toUtc().millisecondsSinceEpoch;
       flushEventsUntil(at);
       if (s.gear case final g? when g != gear) {
@@ -87,6 +91,12 @@ class FitFileWriter {
       if (s.cadenceRpm != null) msg.cadence = s.cadenceRpm;
       if (s.speedKph != null) msg.speed = s.speedKph! / 3.6; // FIT stores m/s
       if (s.heartRateBpm != null) msg.heartRate = s.heartRateBpm;
+      if (s.gradePct != null) msg.grade = s.gradePct;
+      if (altitudes != null) {
+        msg
+          ..altitude = altitudes[i]
+          ..enhancedAltitude = altitudes[i];
+      }
       builder.add(msg);
     }
 
@@ -109,6 +119,7 @@ class FitFileWriter {
         ..totalTimerTime = timerTimeSeconds,
     );
 
+    final climb = altitudes == null ? null : ElevationTrack.climb(altitudes);
     final avgHr = summary.avgHeartRateBpm == 0 ? null : summary.avgHeartRateBpm;
     final maxHr = summary.maxHeartRateBpm == 0 ? null : summary.maxHeartRateBpm;
 
@@ -130,6 +141,8 @@ class FitFileWriter {
         ..avgSpeed = summary.hasSpeed ? summary.avgSpeedKph / 3.6 : null
         ..avgHeartRate = avgHr
         ..maxHeartRate = maxHr
+        ..totalAscent = climb?.ascent.round()
+        ..totalDescent = climb?.descent.round()
         ..firstLapIndex = 0
         ..numLaps = 1,
     );

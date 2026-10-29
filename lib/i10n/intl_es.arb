@@ -2860,6 +2860,7 @@
   "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
   "ridesValueSaveFailed": "No se pudo guardar el valor. Inténtalo de nuevo.",
   "ridesGear": "Marcha",
+  "ridesElevation": "Altitud",
   "ridesTimeInGear": "Tiempo por marcha",
   "ridesPowerZones": "Zonas de potencia",
   "ridesHeartRateZones": "Zonas de frecuencia cardíaca",
