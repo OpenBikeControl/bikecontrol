@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/ble_device_ids.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 
@@ -18,6 +19,10 @@ class ShiftingConfig {
   static const int chainringTeethMax = 60;
   static const int smallChainringDefault = 34;
   static const int largeChainringDefault = 50;
+  static const int realCogTeethMin = 10;
+  static const int realCogTeethMax = 36;
+  static const int realChainringDefault = 34;
+  static const int realCogDefault = 17;
 
   final String name;
   final String trainerKey;
@@ -33,9 +38,28 @@ class ShiftingConfig {
   final int smallChainringTeeth;
   final int largeChainringTeeth;
 
+  /// Where the rider's real chain sits at the trainer: the chainring on the
+  /// bike and the cog on the trainer. The physics need the ratio
+  /// ([FitnessBikeDefinition.setRealChainRatio]); 34/17 is the 2.0 they
+  /// assumed before it could be set.
+  final int realChainringTeeth;
+  final int realCogTeeth;
+
+  double get realChainRatio => realChainringTeeth / realCogTeeth;
+
+  /// Whether the rider set where the real chain sits, rather than leaving the
+  /// default 34/17. A chain they set to another 2:1 (36/18) still counts.
+  bool get hasRealChain => realChainringTeeth != realChainringDefault || realCogTeeth != realCogDefault;
+
   /// How hard virtual shifting rides on this trainer, in percent of the
   /// physics ([FitnessBikeDefinition.setDifficultyPct]); set by the calibrator.
   final int difficultyPct;
+
+  /// Where entering ERG takes its target from ([ErgPowerStepping.ergStartPower]).
+  final ErgStartSource ergStartSource;
+
+  /// Watts per ERG −/+ press; one of [ErgPowerStepping.stepChoicesW].
+  final int ergStepW;
 
   const ShiftingConfig({
     required this.name,
@@ -51,7 +75,11 @@ class ShiftingConfig {
     this.frontShiftEnabled = false,
     this.smallChainringTeeth = smallChainringDefault,
     this.largeChainringTeeth = largeChainringDefault,
+    this.realChainringTeeth = realChainringDefault,
+    this.realCogTeeth = realCogDefault,
     this.difficultyPct = FitnessBikeDefinition.defaultDifficultyPct,
+    this.ergStartSource = ErgPowerStepping.defaultStartSource,
+    this.ergStepW = ErgPowerStepping.defaultStepW,
   });
 
   factory ShiftingConfig.defaults({
@@ -83,6 +111,8 @@ class ShiftingConfig {
     final rider = (json['riderWeightKg'] as num?)?.toDouble() ?? riderWeightDefaultKg;
     final rawMaxGear = (json['maxGear'] as num?)?.toInt() ?? maxGearDefault;
     final rawRatios = json['gearRatios'] as List?;
+    final rawErgStart = json['ergStartSource'] as String?;
+    final rawErgStep = (json['ergStepW'] as num?)?.toInt();
     final parsedRatios = rawRatios?.whereType<num>().map((e) => e.toDouble()).toList();
     return ShiftingConfig(
       name: (json['name'] as String?) ?? 'Default',
@@ -108,8 +138,16 @@ class ShiftingConfig {
       largeChainringTeeth:
           ((json['largeChainringTeeth'] as num?)?.toInt() ?? largeChainringDefault)
               .clamp(chainringTeethMin, chainringTeethMax),
+      realChainringTeeth: ((json['realChainringTeeth'] as num?)?.toInt() ?? realChainringDefault)
+          .clamp(chainringTeethMin, chainringTeethMax),
+      realCogTeeth: ((json['realCogTeeth'] as num?)?.toInt() ?? realCogDefault).clamp(realCogTeethMin, realCogTeethMax),
       difficultyPct: ((json['difficultyPct'] as num?)?.toInt() ?? FitnessBikeDefinition.defaultDifficultyPct)
           .clamp(FitnessBikeDefinition.minDifficultyPct, FitnessBikeDefinition.maxDifficultyPct),
+      ergStartSource: ErgStartSource.values.firstWhere(
+        (e) => e.name == rawErgStart,
+        orElse: () => ErgPowerStepping.defaultStartSource,
+      ),
+      ergStepW: ErgPowerStepping.stepChoicesW.contains(rawErgStep) ? rawErgStep! : ErgPowerStepping.defaultStepW,
     );
   }
 
@@ -127,7 +165,11 @@ class ShiftingConfig {
         'frontShiftEnabled': frontShiftEnabled,
         'smallChainringTeeth': smallChainringTeeth,
         'largeChainringTeeth': largeChainringTeeth,
+        'realChainringTeeth': realChainringTeeth,
+        'realCogTeeth': realCogTeeth,
         'difficultyPct': difficultyPct,
+        'ergStartSource': ergStartSource.name,
+        'ergStepW': ergStepW,
       };
 
   ShiftingConfig copyWith({
@@ -145,7 +187,11 @@ class ShiftingConfig {
     bool? frontShiftEnabled,
     int? smallChainringTeeth,
     int? largeChainringTeeth,
+    int? realChainringTeeth,
+    int? realCogTeeth,
     int? difficultyPct,
+    ErgStartSource? ergStartSource,
+    int? ergStepW,
   }) {
     final resolvedMaxGear = maxGear ?? this.maxGear;
     final resolvedRatios = clearGearRatios ? null : (gearRatios ?? this.gearRatios);
@@ -168,7 +214,11 @@ class ShiftingConfig {
       frontShiftEnabled: frontShiftEnabled ?? this.frontShiftEnabled,
       smallChainringTeeth: smallChainringTeeth ?? this.smallChainringTeeth,
       largeChainringTeeth: largeChainringTeeth ?? this.largeChainringTeeth,
+      realChainringTeeth: realChainringTeeth ?? this.realChainringTeeth,
+      realCogTeeth: realCogTeeth ?? this.realCogTeeth,
       difficultyPct: difficultyPct ?? this.difficultyPct,
+      ergStartSource: ergStartSource ?? this.ergStartSource,
+      ergStepW: ergStepW ?? this.ergStepW,
     );
   }
 
@@ -189,7 +239,11 @@ class ShiftingConfig {
           frontShiftEnabled == other.frontShiftEnabled &&
           smallChainringTeeth == other.smallChainringTeeth &&
           largeChainringTeeth == other.largeChainringTeeth &&
-          difficultyPct == other.difficultyPct);
+          realChainringTeeth == other.realChainringTeeth &&
+          realCogTeeth == other.realCogTeeth &&
+          difficultyPct == other.difficultyPct &&
+          ergStartSource == other.ergStartSource &&
+          ergStepW == other.ergStepW);
 
   @override
   int get hashCode => Object.hash(
@@ -206,6 +260,10 @@ class ShiftingConfig {
         frontShiftEnabled,
         smallChainringTeeth,
         largeChainringTeeth,
+        realChainringTeeth,
+        realCogTeeth,
         difficultyPct,
+        ergStartSource,
+        ergStepW,
       );
 }

@@ -197,7 +197,7 @@ class DesktopOverlayController implements TrainerOverlayController {
               if (live.trainerMode.value == TrainerMode.ergMode) {
                 live.exitErgMode();
               } else {
-                live.setManualErgPower(live.ergTargetPower.value ?? 150);
+                live.enterManualErg();
               }
               break;
             case 'primaryDecrement':

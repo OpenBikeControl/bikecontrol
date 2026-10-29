@@ -263,6 +263,32 @@ Future<void> main() async {
       await tester.pump();
     });
 
+    testWidgets('a ride with a course draws the elevation and reads it out', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository, grade: true);
+      await pump(tester, ride);
+
+      final chart = tester.getRect(find.byType(RideChartView));
+      final gesture = await tester.startGesture(chart.center);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('ride-chart-tooltip-elevation')), findsOneWidget);
+      await gesture.up();
+      await tester.pump();
+    });
+
+    testWidgets('a ride without a course has no elevation', (tester) async {
+      final rig = await RideRig.install(store: null);
+      final ride = await saveSampleRide(rig.repository);
+      await pump(tester, ride);
+
+      final chart = tester.getRect(find.byType(RideChartView));
+      final gesture = await tester.startGesture(chart.center);
+      await tester.pump();
+      expect(find.byKey(const ValueKey('ride-chart-tooltip-elevation')), findsNothing);
+      await gesture.up();
+      await tester.pump();
+    });
+
     testWidgets('time in each gear ridden, from the lowest gear up', (tester) async {
       final rig = await RideRig.install(store: null);
       final ride = await saveSampleRide(rig.repository);

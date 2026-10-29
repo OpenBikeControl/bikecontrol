@@ -293,7 +293,11 @@ Future<void> main() async {
 
       expect(fakeHttp.openChatRequests, isEmpty, reason: 'never reaches the backend without a session');
       final field = tester.widget<TextArea>(find.byType(TextArea));
-      expect(field.controller!.text, 'please help, nothing pairs', reason: 'composer keeps the typed text so the rider can retry');
+      expect(
+        field.controller!.text,
+        'please help, nothing pairs',
+        reason: 'composer keeps the typed text so the rider can retry',
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -360,6 +364,59 @@ Future<void> main() async {
       expect(find.text(l10n.supportAccountLinkTitle), findsOneWidget);
     });
 
+    // On macOS the card's four sign-in buttons, email
+    // row and the composer filled the window, so the rider could neither see
+    // nor scroll to the message they had just sent — and the card had no way
+    // to put it away.
+    testWidgets('leaves the rider\'s own message in view on a short window', (tester) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+
+      await tester.enterText(find.byType(TextArea), 'help please, nothing shifts');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('support-account-link-card')), findsOneWidget);
+      expect(find.text('help please, nothing shifts').hitTestable(), findsOneWidget);
+      expect(tester.takeException(), isNull, reason: 'no overflow');
+    });
+
+    testWidgets('can be dismissed, stays away on the next send, and the header brings it back', (tester) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+      await tester.enterText(find.byType(TextArea), 'help please, nothing shifts');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('support-account-link-dismiss')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('support-account-link-card')), findsNothing);
+
+      await tester.enterText(find.byType(TextArea), 'and a follow-up');
+      await tester.pump();
+      await tester.tap(find.byIcon(LucideIcons.send));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('support-account-link-card')),
+        findsNothing,
+        reason: 'dismissed means dismissed',
+      );
+
+      await tester.tap(find.byKey(const ValueKey('support-header-sign-in')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('support-account-link-card')), findsOneWidget);
+    });
+
     testWidgets('does not appear when the sender is already fully signed in', (tester) async {
       await client.auth.recoverSession(jsonEncode(_sessionJson(anonymous: false, email: 'rider@example.com')));
       await tester.pumpWidget(app());
@@ -387,12 +444,16 @@ Future<void> main() async {
 
       expect(find.byKey(const ValueKey('support-account-link-card')), findsOneWidget);
 
+      // The card is height-capped and scrolls on its own; the email row sits
+      // below the sign-in buttons.
+      await tester.ensureVisible(find.byKey(const ValueKey('support-account-email-send')));
       await tester.enterText(find.byKey(const ValueKey('support-account-email-field')), 'rider@example.com');
       await tester.tap(find.byKey(const ValueKey('support-account-email-send')));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const ValueKey('support-account-code-field')), findsOneWidget);
 
+      await tester.ensureVisible(find.byKey(const ValueKey('support-account-code-verify')));
       await tester.enterText(find.byKey(const ValueKey('support-account-code-field')), '123456');
       await tester.tap(find.byKey(const ValueKey('support-account-code-verify')));
       await tester.pumpAndSettle();

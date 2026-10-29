@@ -3,6 +3,7 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Locale;
@@ -102,6 +103,31 @@ Future<void> main() async {
       final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.trainerSwitchMode);
       expect(result, isA<Success>());
       expect(def.trainerMode.value, TrainerMode.ergMode);
+    });
+
+    test('trainerSwitchMode re-enters ERG at the last target', () {
+      def.setManualErgPower(230);
+      device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.trainerSwitchMode); // → sim
+      final result = device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.trainerSwitchMode);
+      expect(result, isA<Success>());
+      expect(def.ergTargetPower.value, 230);
+      expect(result.message, AppLocalizations.current.trainerSwitchedToErg(230));
+    });
+
+    test('trainerSwitchMode enters ERG at the current power when configured', () {
+      def.setErgPreferences(startSource: ErgStartSource.currentPower, stepW: 10);
+      def.setManualErgPower(230);
+      def.exitErgMode();
+      def.setExternalPower(176);
+      device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.trainerSwitchMode);
+      expect(def.ergTargetPower.value, 180);
+    });
+
+    test('trainerUp in erg mode steps by the configured step', () {
+      def.setErgPreferences(stepW: 10);
+      def.setManualErgPower(150);
+      device.handleTrainerAction(ZwiftButtons.shiftDownLeft, InGameAction.shiftUp);
+      expect(def.ergTargetPower.value, 160);
     });
 
     test('trainerSwitchMode toggles from erg back to sim', () {

@@ -118,6 +118,9 @@ class IntegrationEnv {
     // suppression so a controller a prior test parked for inactivity does not
     // leak into the next test and silently block its (re)connect.
     await core.connection.disconnectAll();
+    // disconnectAll deliberately keeps the rider's session disconnects (a
+    // Bluetooth toggle must not undo them), so clear them like a restart.
+    core.connection.debugClearDisconnectedForSession();
     core.connection.devices.clear();
     core.connection.hasDevices.value = false;
     core.connection.isScanning.value = false;

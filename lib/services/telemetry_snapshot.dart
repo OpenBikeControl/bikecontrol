@@ -58,7 +58,7 @@ class TelemetrySnapshot {
     String? freetextOverride,
   }) {
     final fitnessDef = device.fitnessBike;
-    final cfg = core.shiftingConfigs.activeFor(device.trainerKey);
+    final cfg = device.activeShiftingConfig;
 
     return TelemetrySnapshot(
       bluetoothName: _computeBluetoothName(device),

@@ -9,12 +9,14 @@ class _Fake {
   final cadence = ValueNotifier<int?>(null);
   final speed = ValueNotifier<double?>(null);
   final hr = ValueNotifier<int?>(null);
+  double? grade;
 
   TrainerMetrics get metrics => TrainerMetrics(
     powerW: power,
     cadenceRpm: cadence,
     speedKph: speed,
     heartRateBpm: hr,
+    gradePct: () => grade,
   );
 }
 
@@ -249,6 +251,24 @@ void main() {
         async.elapse(const Duration(seconds: 1));
         expect(rec.stop().summary.gearChanges, isNull);
       });
+    });
+  });
+
+  test("each sample carries the trainer app's grade, none where it sends none", () {
+    fakeAsync((async) {
+      final fake = _Fake();
+      final rec = WorkoutRecorder(
+        nowProvider: () => DateTime.utc(2026, 10, 29, 9).add(Duration(milliseconds: async.elapsed.inMilliseconds)),
+        tick: const Duration(milliseconds: 100),
+      );
+      rec.start(fake.metrics);
+      fake.grade = 4.5;
+      async.elapse(const Duration(milliseconds: 100));
+      fake.grade = null;
+      async.elapse(const Duration(milliseconds: 100));
+      final result = rec.stop();
+      expect(result.samples[0].gradePct, 4.5);
+      expect(result.samples[1].gradePct, isNull);
     });
   });
 }

@@ -3,6 +3,7 @@
 // on top, the live drivetrain directly above Gears (so every gear change stays
 // in view while it animates), then Physics; the per-gear steppers one screen
 // deeper.
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
@@ -15,6 +16,7 @@ import 'package:bike_control/pages/settings/settings_page.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
 import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/widgets/drivetrain/chain_geometry.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
@@ -103,6 +105,40 @@ Future<void> main() async {
     });
   });
 
+  // A trainer the rider never saved a config for runs the definition's
+  // capability default — Track Resistance on a grade-capable trainer. Neither
+  // looking at the page nor a first edit may swap that for the generic Target
+  // Power the synthesised config carries.
+  group('a trainer without a saved config', () {
+    ({ProxyDevice proxy, FitnessBikeDefinition definition}) fecTrainer(String id) {
+      final live = attachLiveTrainer(id: id, name: 'Tacx Flux', services: [FitnessBikeDefinition.FEC_BLE_SERVICE_UUID]);
+      live.definition.useDefaultVirtualShiftingMode();
+      expect(live.definition.virtualShiftingMode.value, VirtualShiftingMode.trackResistance);
+      expect(core.shiftingConfigs.storedActiveFor(live.proxy.trainerKey), isNull);
+      return live;
+    }
+
+    testWidgets('opening the page keeps it on its default mode', (tester) async {
+      final (:proxy, :definition) = fecTrainer('unsaved-open');
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      expect(definition.virtualShiftingMode.value, VirtualShiftingMode.trackResistance);
+    });
+
+    testWidgets('a first edit saves the mode it runs, not Target Power', (tester) async {
+      final (:proxy, :definition) = fecTrainer('unsaved-edit');
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      await updateActiveShiftingConfig(proxy, (c) => c.copyWith(maxGear: 20));
+      await tester.pump();
+
+      expect(core.shiftingConfigs.storedActiveFor(proxy.trainerKey)?.mode, VirtualShiftingMode.trackResistance);
+      expect(definition.virtualShiftingMode.value, VirtualShiftingMode.trackResistance);
+    });
+  });
+
   group('the page', () {
     testWidgets('config and mode first, the drivetrain directly above Gears, then Physics', (tester) async {
       final (:proxy, :definition) = attachLiveTrainer();
@@ -188,7 +224,10 @@ Future<void> main() async {
       );
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
       await tester.pump();
-      final view = find.descendant(of: find.byKey(const ValueKey('vs-drivetrain')), matching: find.byType(DrivetrainView));
+      final view = find.descendant(
+        of: find.byKey(const ValueKey('vs-drivetrain')),
+        matching: find.byType(DrivetrainView),
+      );
       final state = tester.state<DrivetrainViewState>(view);
       expect(state.debugFrontRadius, kSingleRingRadius);
       expect(state.debugIdleRingOpacity, 0);
@@ -219,7 +258,10 @@ Future<void> main() async {
       );
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy), reducedMotion: true);
       await tester.pump();
-      final view = find.descendant(of: find.byKey(const ValueKey('vs-drivetrain')), matching: find.byType(DrivetrainView));
+      final view = find.descendant(
+        of: find.byKey(const ValueKey('vs-drivetrain')),
+        matching: find.byType(DrivetrainView),
+      );
       final state = tester.state<DrivetrainViewState>(view);
 
       await flipFrontDerailleur(tester);
@@ -517,6 +559,111 @@ Future<void> main() async {
 
       expect(tester.widget<SelfTestPage>(find.byType(SelfTestPage)).device, same(proxy));
       expect(find.byType(VirtualShiftingSettingsPage), findsNothing);
+    });
+  });
+
+  // ERG: where entering ERG starts, and how far one −/+ press moves the
+  // target. Both live on the active shifting config and reach the trainer's
+  // definition at once.
+  group('ERG', () {
+    final section = find.byKey(const ValueKey('vs-erg'));
+    final start = find.byKey(const ValueKey('vs-erg-start'));
+    final step = find.byKey(const ValueKey('vs-erg-step'));
+
+    Future<void> pick(WidgetTester tester, Finder row, String option) async {
+      await tester.ensureVisible(row);
+      await tester.tap(find.descendant(of: row, matching: find.byWidgetPredicate((w) => w is Select)).first);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text(option).last);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('sits after Physics and shows the defaults', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      expect(section, findsOneWidget);
+      expect(_top(tester, section), greaterThan(_top(tester, find.byKey(const ValueKey('vs-physics')))));
+      expect(find.descendant(of: start, matching: find.text(l.ergStartLastTarget)), findsOneWidget);
+      expect(find.descendant(of: step, matching: find.text('5 W')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('picking a step and a start source goes to the config and the trainer', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      addTearDown(
+        () => core.shiftingConfigs.upsert(
+          core.shiftingConfigs
+              .activeFor(proxy.trainerKey)
+              .copyWith(ergStepW: ErgPowerStepping.defaultStepW, ergStartSource: ErgStartSource.lastTarget),
+        ),
+      );
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      await pick(tester, step, '25 W');
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStepW, 25);
+      expect(definition.ergStepW, 25);
+
+      await pick(tester, start, l.ergStartCurrentPower);
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStartSource, ErgStartSource.currentPower);
+      expect(definition.ergStartSource, ErgStartSource.currentPower);
+      expect(find.descendant(of: start, matching: find.text(l.ergStartCurrentPower)), findsOneWidget);
+    });
+  });
+
+  // Where the real chain sits at the trainer: the physics need it, so a rider
+  // whose chain is not on 34/17 (a 39 ring on a 14 Zwift Cog) gets gears that
+  // feel like their real counterparts.
+  group('the real chain', () {
+    Finder inRow(String key, String stepper) =>
+        find.descendant(of: find.byKey(ValueKey(key)), matching: find.byKey(ValueKey(stepper)));
+
+    testWidgets('starts on 34/17 and a change goes to the trainer and the config', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      expect(find.byKey(const ValueKey('vs-real-chainring')), findsOneWidget);
+      expect(find.byKey(const ValueKey('vs-real-cog')), findsOneWidget);
+      expect(definition.realChainRatio, 2.0);
+
+      await tester.ensureVisible(inRow('vs-real-chainring', 'stepper-plus'));
+      await tester.tap(inRow('vs-real-chainring', 'stepper-plus'));
+      await tester.pump();
+      await tester.tap(inRow('vs-real-cog', 'stepper-minus'));
+      await tester.pump();
+
+      expect(definition.realChainRatio, closeTo(35 / 16, 1e-9));
+      final cfg = core.shiftingConfigs.activeFor(proxy.trainerKey);
+      expect(cfg.realChainringTeeth, 35);
+      expect(cfg.realCogTeeth, 16);
+      expect(find.textContaining('35/16\u00A0=\u00A02.19'), findsOneWidget);
+    });
+
+    testWidgets('Reset leaves it alone: it is the bike, not a preference', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await core.shiftingConfigs.upsert(
+        core.shiftingConfigs
+            .activeFor(proxy.trainerKey)
+            .copyWith(realChainringTeeth: 39, realCogTeeth: 14, isActive: true),
+      );
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+      expect(definition.realChainRatio, closeTo(39 / 14, 1e-9));
+
+      await tester.tap(find.byKey(const ValueKey('vs-reset')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('vs-reset-confirm')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(definition.realChainRatio, closeTo(39 / 14, 1e-9));
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).realCogTeeth, 14);
     });
   });
 }

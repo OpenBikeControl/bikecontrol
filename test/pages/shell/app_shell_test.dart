@@ -211,6 +211,27 @@ Future<void> main() async {
       await disposeShell(tester);
     });
 
+    testWidgets('signing in to Pro hides the meter at once, without a trainer connecting', (tester) async {
+      IAPManager.instance.setProForTesting(enabled: false);
+      IAPManager.instance.isPurchased.value = false;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
+      screenshotMode = false;
+      await pumpShell(tester, const Size(1000, 760));
+      final card = find.byKey(const ValueKey('plan-card'));
+      expect(find.descendant(of: card, matching: find.byType(VsTrialMeter)), findsOneWidget);
+
+      // Pro now applies to this device; nothing connects or disconnects.
+      IAPManager.instance.setProForTesting(enabled: true, registeredDevice: true);
+      await tester.pump();
+      expect(find.byType(VsTrialMeter), findsNothing, reason: 'Pro on this device: no trial meter');
+
+      // And back: the trial returns when Pro no longer applies here.
+      IAPManager.instance.setProForTesting(enabled: false);
+      await tester.pump();
+      expect(find.descendant(of: card, matching: find.byType(VsTrialMeter)), findsOneWidget);
+      await disposeShell(tester);
+    });
+
     testWidgets('with Pro on this device, or in a store render: no meter', (tester) async {
       IAPManager.instance.setProForTesting(enabled: true, registeredDevice: true);
       screenshotMode = false;

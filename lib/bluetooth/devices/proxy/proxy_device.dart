@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart' show zwiftUnlockInProgress;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/trainer_connect.dart' show trainerConnectErrorMessage;
@@ -11,6 +12,7 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/ble_device_ids.dart';
+import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
@@ -149,6 +151,13 @@ class ProxyDevice extends BluetoothDevice {
   /// to [ftmsEmulator]'s composite while VS is active; null in proxy mode.
   FitnessBikeDefinition? _fbd;
   FitnessBikeDefinition? get fitnessBike => _fbd;
+
+  /// The rider's active shifting config for this trainer. Without a saved one
+  /// it carries the mode the definition runs ([_seedFitnessBikeDefinition]
+  /// leaves an unsaved trainer on its capability default, Track Resistance on
+  /// a grade-capable trainer), so the first edit doesn't store Target Power.
+  ShiftingConfig get activeShiftingConfig =>
+      core.shiftingConfigs.activeFor(trainerKey, unsavedMode: _fbd?.virtualShiftingMode.value);
 
   /// Test-only: attach [fbd] as the active virtual-shifting definition without
   /// starting any emulator/server. Lets the screenshot harness render the
@@ -474,12 +483,25 @@ class ProxyDevice extends BluetoothDevice {
   /// The name the bridge advertises under for the selected trainer app; null
   /// leaves the usual `<trainer> - BikeControl` in place. Read on every
   /// advertisement, so it follows the trainer app as it changes.
+  ///
+  /// While a controller is being unlocked ([zwiftUnlockInProgress]) the rider
+  /// pairs the bridge in Zwift, so it takes the Zwift name for every app but
+  /// Rouvy, and gives it back when the unlock ends.
   @visibleForTesting
   String? bridgeAdvertisementName() => switch (core.settings.getTrainerApp()) {
     Rouvy() => rouvyAdvertisementNameFor(scanResult.name),
     Zwift() => zwiftAdvertisementNameFor(scanResult.name),
+    _ when zwiftUnlockInProgress.value => zwiftAdvertisementNameFor(scanResult.name),
     _ => null,
   };
+
+  /// Whether the bridge currently advertises the Zwift identity: Zwift is the
+  /// trainer app, or a controller is being unlocked through Zwift (not for
+  /// Rouvy, which keeps its own name).
+  bool get _advertisesZwiftIdentity {
+    final app = core.settings.getTrainerApp();
+    return app is Zwift || (app is! Rouvy && zwiftUnlockInProgress.value);
+  }
 
   /// Rouvy: the trainer name with a neutral suffix. Reasoning in `prop`
   /// ([DirconEmulator.advertisementNameOverride]).
@@ -535,9 +557,11 @@ class ProxyDevice extends BluetoothDevice {
   );
 
   /// The Zwift-named bridge ([zwiftAdvertisementNameFor]) gets its own serial
-  /// so it shows up as a new device. Everything else keeps the device serial.
+  /// so it shows up as a new device. Everything else keeps the device serial,
+  /// which is what other trainer apps paired — so it comes back unchanged once
+  /// an unlock ends.
   String _bridgeSerialNumber() {
-    final zwiftNamed = _retrofitModeN.value != RetrofitMode.proxy && core.settings.getTrainerApp() is Zwift;
+    final zwiftNamed = _retrofitModeN.value != RetrofitMode.proxy && _advertisesZwiftIdentity;
     // Seeded with the id as universal_ble 2 reported it (upper-case on all but
     // Windows): trainer apps recognise the bridge they paired by this serial,
     // so the lower-case ids of universal_ble 3 must not change it.
@@ -595,6 +619,8 @@ class ProxyDevice extends BluetoothDevice {
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setDifficultyPct(cfg.difficultyPct);
+    def.setRealChainRatio(cfg.realChainRatio);
+    def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
     // A rider who saved a config chose their mode; honour it. With no saved
     // config, let the definition manage the capability-based default (Track
     // Resistance on a grade-capable trainer) rather than the generic Target
@@ -1188,9 +1214,8 @@ class ProxyDevice extends BluetoothDevice {
           def.exitErgMode();
           return Success(l10n.trainerSwitchedToSim, button: button);
         } else {
-          final current = def.ergTargetPower.value ?? 150;
-          def.setManualErgPower(current);
-          return Success(l10n.trainerSwitchedToErg(current), button: button);
+          final target = def.enterManualErg();
+          return Success(l10n.trainerSwitchedToErg(target), button: button);
         }
       case InGameAction.trainerIntensityUp:
         def.adjustIntensity(0.05);

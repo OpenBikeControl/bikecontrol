@@ -73,7 +73,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     }
   }
 
-  Future<void> _send(String body, StagedAttachment? staged) async {
+  Future<void> _send(String body, List<StagedAttachment> staged) async {
     final telemetry = await widget.telemetryBuilder();
     final placeholderId = 'pending-${DateTime.now().microsecondsSinceEpoch}';
     final session = core.supabase.auth.currentSession;
@@ -93,19 +93,19 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
     });
     try {
       final attachments = <SupportAttachmentUpload>[];
-      if (staged != null) {
+      for (final file in staged) {
         // Uploaded before the send, so a failed send would orphan the blob —
         // retain it against the staged file the composer restores so a retry
         // re-uses it instead of uploading a second copy.
         final upload =
-            _retainedUploads[staged] ??
+            _retainedUploads[file] ??
             await _service.uploadAttachment(
               chatId: widget.chat.id,
-              file: staged.file,
+              file: file.file,
               attachmentTooLargeMessage: context.i18n.attachmentTooLarge,
               unsupportedMimeMessage: context.i18n.attachmentMimeUnsupported,
             );
-        _retainedUploads[staged] = upload;
+        _retainedUploads[file] = upload;
         attachments.add(upload);
       }
       final sent = await _service.sendMessage(
@@ -115,7 +115,7 @@ class _SupportThreadPageState extends State<SupportThreadPage> {
         attachments: attachments,
         telemetry: telemetry.toJson(),
       );
-      if (staged != null) _retainedUploads.remove(staged);
+      staged.forEach(_retainedUploads.remove);
       if (!mounted) return;
       setState(() {
         _pendingReplies.removeWhere((m) => m.id == placeholderId);

@@ -451,7 +451,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
   /// regardless, and must not go unreported.
   Future<void> _persistVsMode(String modeName) async {
     try {
-      final current = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+      final current = widget.device.activeShiftingConfig;
       await core.shiftingConfigs.upsert(current.copyWith(mode: VirtualShiftingMode.values.byName(modeName)));
     } catch (e, s) {
       recordError(e, s, context: 'self-test mode-switch persist');

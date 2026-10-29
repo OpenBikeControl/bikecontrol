@@ -18,6 +18,13 @@ import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// One-line summary of what a device has synced, shown in its device row.
+String syncDeviceSummaryText(AppLocalizations l10n, UserSettings settings) => l10n.syncDeviceSummary(
+  '${settings.version}',
+  '${settings.keymaps?.length ?? 0}',
+  '${settings.shiftingConfigs?.length ?? 0}',
+);
+
 class SyncSettingsView extends StatefulWidget {
   const SyncSettingsView({super.key});
 
@@ -450,11 +457,7 @@ class _SyncSettingsViewState extends State<SyncSettingsView> {
                       if (hasSettings) ...[
                         const SizedBox(height: 4),
                         Text(_formatDateTime(device.lastSeenAt)).xSmall.muted,
-                        Text(
-                          AppLocalizations.of(
-                            context,
-                          ).syncDeviceSummary('${deviceSettings.version}', '${deviceSettings.keymaps?.length ?? 0}'),
-                        ).xSmall.muted,
+                        Text(syncDeviceSummaryText(AppLocalizations.of(context), deviceSettings)).xSmall.muted,
                       ],
                     ],
                   ),

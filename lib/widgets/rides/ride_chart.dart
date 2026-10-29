@@ -11,7 +11,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// in the brand accent, heart rate in secondary ink (red means error here).
 ///
 /// [compact] is the summary card's strip pair; the full chart on Details adds
-/// cadence and (with virtual shifting) the gear as a step line, value ticks,
+/// cadence, (with virtual shifting) the gear as a step line and (with a
+/// course from the trainer app) the elevation profile, value ticks,
 /// the dashed average, the time axis and a scrub (hover, or press and drag)
 /// that reads out every series at a moment.
 class RideChartView extends StatefulWidget {
@@ -68,6 +69,11 @@ class _RideChartViewState extends State<RideChartView> {
       heart: l10n.sensorQuantityHeartRate,
       cadence: l10n.sensorQuantityCadence,
       gear: l10n.ridesGear,
+      elevation: l10n.ridesElevation,
+      ascent: switch (chart.ascentM) {
+        final a? => '↑ ${a.round()} m',
+        null => null,
+      },
       heartUnit: widget.compact && hrAvg > 0 ? 'Ø $hrAvg bpm' : 'bpm',
       pause: l10n.ridesPause,
       minutes: 'min',
@@ -120,6 +126,8 @@ class _RideChartViewState extends State<RideChartView> {
     final h = at(chart.heartRate);
     final c = at(chart.cadence);
     final gear = at(chart.gear);
+    final elevation = i < chart.elevation.length ? chart.elevation[i] : null;
+    final grade = i < chart.grade.length ? chart.grade[i] : null;
     final x = g.xAt(i);
     final bold = context.typography.xSmall.copyWith(
       fontWeight: FontWeight.w600,
@@ -173,6 +181,21 @@ class _RideChartViewState extends State<RideChartView> {
                     Text(' rpm', style: muted),
                   ],
                 ),
+              if (elevation != null && g.elevationTop != null)
+                Row(
+                  key: const ValueKey('ride-chart-tooltip-elevation'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    key(cs.mutedForeground),
+                    Text('${elevation.round()}', style: bold),
+                    Text(' m', style: muted),
+                    if (grade != null && !paused) ...[
+                      Text(' · ', style: muted),
+                      Text(grade.toStringAsFixed(1), style: bold),
+                      Text(' %', style: muted),
+                    ],
+                  ],
+                ),
               if (gear != null && !paused && g.gearTop != null)
                 Row(
                   key: const ValueKey('ride-chart-tooltip-gear'),
@@ -214,14 +237,16 @@ class _Labels {
     required this.heart,
     required this.cadence,
     required this.gear,
+    required this.elevation,
+    required this.ascent,
     required this.heartUnit,
     required this.pause,
     required this.minutes,
     required this.avg,
   });
 
-  final String power, heart, cadence, gear, heartUnit, pause, minutes;
-  final String? avg;
+  final String power, heart, cadence, gear, elevation, heartUnit, pause, minutes;
+  final String? avg, ascent;
 }
 
 /// Where everything goes, in logical px.
@@ -238,6 +263,10 @@ class _Geometry {
     required this.cadenceHeight,
     required this.gearTop,
     required this.gearHeight,
+    required this.elevationTop,
+    required this.elevationHeight,
+    required this.elevationMin,
+    required this.elevationMax,
     required this.plotBottom,
     required this.height,
     required this.powerMax,
@@ -256,6 +285,10 @@ class _Geometry {
   /// Cadence and gear: the full chart only.
   final double? cadenceTop, cadenceHeight, gearTop, gearHeight;
 
+  /// The elevation profile: the full chart only, with a course.
+  final double? elevationTop, elevationHeight;
+  final double elevationMin, elevationMax;
+
   /// Where the last strip ends.
   final double plotBottom;
   final double height;
@@ -268,18 +301,32 @@ class _Geometry {
 
   double xAtSeconds(int s, int step) => left + (count <= 1 ? 0 : (s / step) / (count - 1) * width).clamp(0, width);
 
-  static int countOf(RideChart chart) =>
-      [chart.power.length, chart.heartRate.length, chart.cadence.length, chart.gear.length].reduce(math.max);
+  static int countOf(RideChart chart) => [
+    chart.power.length,
+    chart.heartRate.length,
+    chart.cadence.length,
+    chart.gear.length,
+    chart.elevation.length,
+  ].reduce(math.max);
 
   /// Whether there is anything to draw: the compact strip pair shows power
   /// and heart rate only.
   static bool hasStrips(RideChart chart, {required bool compact}) =>
-      chart.hasPower || chart.hasHeartRate || (!compact && (chart.hasCadence || chart.hasGear));
+      chart.hasPower || chart.hasHeartRate || (!compact && (chart.hasCadence || chart.hasGear || chart.hasElevation));
 
   static _Geometry of(RideChart chart, {required double width, required bool compact, required TextStyle tick}) {
     final count = countOf(chart);
     final hasP = chart.hasPower, hasH = chart.hasHeartRate;
     final hasC = !compact && chart.hasCadence, hasG = !compact && chart.hasGear;
+    final hasE = !compact && chart.hasElevation;
+    // At least 20 m tall, so a flat course stays flat instead of every
+    // metre filling the strip; ticks on whole 10 m.
+    final alts = chart.elevation.whereType<double>();
+    final altLo = alts.isEmpty ? 0.0 : alts.reduce(math.min);
+    final altHi = alts.isEmpty ? 0.0 : alts.reduce(math.max);
+    final altPad = math.max(0.0, 20 - (altHi - altLo)) / 2;
+    final elevationMin = ((altLo - altPad) / 10).floor() * 10.0;
+    final elevationMax = math.max(elevationMin + 20, ((altHi + altPad) / 10).ceil() * 10.0);
     final peak = chart.power.whereType<int>().fold<int>(0, math.max);
     final powerMax = compact ? math.max(peak * 1.05, 100.0) : (math.max(peak, 100) / 100).ceil() * 100.0;
     final hrs = chart.heartRate.whereType<int>().where((v) => v > 0);
@@ -299,7 +346,7 @@ class _Geometry {
     final left = compact ? 0.0 : 30.0;
     final plotW = width - left - (compact ? 0 : 4);
     double y = compact ? labelH + 2 : labelH + 6;
-    double? pTop, pH, hTop, hH, cTop, cH, gTop, gH;
+    double? pTop, pH, hTop, hH, cTop, cH, gTop, gH, eTop, eH;
     if (hasP) {
       pTop = y;
       pH = compact ? 40 : 96;
@@ -326,6 +373,13 @@ class _Geometry {
       // Room under the lowest gear, so it never reads as the time axis.
       y += gH + 6;
     }
+    if (hasE) {
+      if (hasP || hasH || hasC || hasG) y += 14;
+      y += labelH;
+      eTop = y;
+      eH = 56;
+      y += eH;
+    }
     final plotBottom = y;
     double? axis;
     if (!compact) {
@@ -346,6 +400,10 @@ class _Geometry {
       cadenceHeight: cH,
       gearTop: gTop,
       gearHeight: gH,
+      elevationTop: eTop,
+      elevationHeight: eH,
+      elevationMin: elevationMin,
+      elevationMax: elevationMax,
       plotBottom: plotBottom,
       height: y,
       powerMax: powerMax,
@@ -397,7 +455,7 @@ class _RideChartPainter extends CustomPainter {
     final grid = Paint()
       ..color = style.grid
       ..strokeWidth = 1;
-    final top = g.powerTop ?? g.heartTop ?? g.cadenceTop ?? g.gearTop ?? 0;
+    final top = g.powerTop ?? g.heartTop ?? g.cadenceTop ?? g.gearTop ?? g.elevationTop ?? 0;
     final bottom = g.plotBottom;
 
     // Pauses: a hatched column across both strips.
@@ -509,6 +567,26 @@ class _RideChartPainter extends CustomPainter {
       _text(canvas, labels.gear, style.label, Offset(g.left, gTop - 8));
     }
 
+    if (g.elevationTop case final eTop?) {
+      final eH = g.elevationHeight!;
+      double y(num v) => _elevationY(v, eTop, eH);
+      for (final v in {g.elevationMin, g.elevationMax}) {
+        canvas.drawLine(Offset(g.left, y(v)), Offset(g.left + g.width, y(v)), grid);
+        _text(canvas, '${v.round()}', style.tick, Offset(g.left - 6, y(v) + 5), align: TextAlign.right);
+      }
+      _profile(canvas, chart.elevation, y, baseline: eTop + eH, color: style.muted);
+      _text(
+        canvas,
+        labels.elevation,
+        style.label,
+        Offset(g.left, eTop - 8),
+        tail: TextSpan(text: ' · m', style: style.unit),
+      );
+      if (labels.ascent case final ascent?) {
+        _text(canvas, ascent, style.tick, Offset(g.left + g.width, eTop - 8), align: TextAlign.right);
+      }
+    }
+
     if (g.axisY case final axis?) {
       canvas.drawLine(
         Offset(g.left, axis),
@@ -573,6 +651,10 @@ class _RideChartPainter extends CustomPainter {
         final gear = i < chart.gear.length ? chart.gear[i] : null;
         dot(gear?.toDouble(), (v) => _gearY(v, gTop, g.gearHeight!), style.accent);
       }
+      if (g.elevationTop case final eTop?) {
+        final e = i < chart.elevation.length ? chart.elevation[i] : null;
+        dot(e, (v) => _elevationY(v, eTop, g.elevationHeight!), style.muted);
+      }
     }
   }
 
@@ -581,6 +663,45 @@ class _RideChartPainter extends CustomPainter {
 
   double _gearY(num v, double top, double height) =>
       top + height - ((v - geometry.gearMin) / (geometry.gearMax - geometry.gearMin)).clamp(0, 1) * height;
+
+  double _elevationY(num v, double top, double height) =>
+      top +
+      height -
+      ((v - geometry.elevationMin) / (geometry.elevationMax - geometry.elevationMin)).clamp(0, 1) * height;
+
+  /// The elevation as a filled profile: unlike the other series it carries
+  /// on through a pause, where the rider stood still on the course.
+  void _profile(
+    Canvas canvas,
+    List<double?> values,
+    double Function(num) y, {
+    required double baseline,
+    required Color color,
+  }) {
+    final g = geometry;
+    final points = [
+      for (var i = 0; i < values.length; i++)
+        if (values[i] case final v?) Offset(g.xAt(i), y(v)),
+    ];
+    if (points.isEmpty) return;
+    final line = Path()..moveTo(points.first.dx, points.first.dy);
+    for (final p in points.skip(1)) {
+      line.lineTo(p.dx, p.dy);
+    }
+    final area = Path.from(line)
+      ..lineTo(points.last.dx, baseline)
+      ..lineTo(points.first.dx, baseline)
+      ..close();
+    canvas.drawPath(area, Paint()..color = color.withValues(alpha: 0.22));
+    canvas.drawPath(
+      line,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
 
   /// The gear as a step line: level while held, straight up or down at a
   /// shift, broken where there is no gear (a pause).

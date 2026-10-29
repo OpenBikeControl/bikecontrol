@@ -15,10 +15,24 @@ const _cycplusServiceUuid = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const _cycplusTxUuid = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 const _cycplusRxUuid = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-/// 8-byte CYCPLUS frame: byte 6 = shift-up state, byte 7 = shift-down state,
-/// 0x01 = pressed (idle observed as 0x03 in real captures).
-List<int> cycplusFrame({required bool upPressed, required bool downPressed}) =>
-    [0xfe, 0xef, 0xff, 0xee, 0x02, 0x06, upPressed ? 0x01 : 0x03, downPressed ? 0x01 : 0x03];
+/// 14-byte CYCPLUS frame: byte 6/7 = shift-up/shift-down state (0x01 pressed,
+/// 0x03 released), byte 8/9 = shift-up/shift-down event counter (bumped on
+/// every press and release), last byte = checksum.
+List<int> cycplusFrame({
+  required bool upPressed,
+  required bool downPressed,
+  required int upCounter,
+  required int downCounter,
+}) {
+  final frame = [
+    0xfe, 0xef, 0xff, 0xee, 0x02, 0x06, //
+    upPressed ? 0x01 : 0x03, downPressed ? 0x01 : 0x03,
+    upCounter & 0xff, downCounter & 0xff,
+    0x5e, 0x00, 0x01,
+  ];
+  final checksum = (frame.skip(4).fold<int>(0, (sum, b) => sum + b) - 3) & 0xff;
+  return [...frame, checksum];
+}
 
 final cycplusBc2Profile = EmulationProfile(
   name: 'Cycplus BC2',
@@ -34,18 +48,44 @@ final cycplusBc2Profile = EmulationProfile(
     ]);
     return peripheral;
   },
-  inputs: (session) => [
-    EmulatedButton(
-      'Shift up',
-      onDown: () => session.notify(_cycplusTxUuid, cycplusFrame(upPressed: true, downPressed: false)),
-      onUp: () => session.notify(_cycplusTxUuid, cycplusFrame(upPressed: false, downPressed: false)),
-    ),
-    EmulatedButton(
-      'Shift down',
-      onDown: () => session.notify(_cycplusTxUuid, cycplusFrame(upPressed: false, downPressed: true)),
-      onUp: () => session.notify(_cycplusTxUuid, cycplusFrame(upPressed: false, downPressed: false)),
-    ),
-  ],
+  inputs: (session) {
+    var upPressed = false;
+    var downPressed = false;
+    var upCounter = 0x97;
+    var downCounter = 0x56;
+    void send() => session.notify(
+      _cycplusTxUuid,
+      cycplusFrame(upPressed: upPressed, downPressed: downPressed, upCounter: upCounter, downCounter: downCounter),
+    );
+    return [
+      EmulatedButton(
+        'Shift up',
+        onDown: () {
+          upPressed = true;
+          upCounter++;
+          send();
+        },
+        onUp: () {
+          upPressed = false;
+          upCounter++;
+          send();
+        },
+      ),
+      EmulatedButton(
+        'Shift down',
+        onDown: () {
+          downPressed = true;
+          downCounter++;
+          send();
+        },
+        onUp: () {
+          downPressed = false;
+          downCounter++;
+          send();
+        },
+      ),
+    ];
+  },
 );
 
 // ThinkRider VS200 — fixed 5-byte patterns, self-releasing (device clicks).
@@ -104,17 +144,20 @@ final sramAxsProfile = EmulationProfile(
   },
   inputs: (session) => [
     EmulatedAction('Tap', run: () => session.notify(_sramTriggerUuid, const [SramAxsConstants.triggerEdge])),
-    EmulatedAction('Double tap', run: () {
-      session.notify(_sramTriggerUuid, const [SramAxsConstants.triggerEdge]);
-      // The delayed second edge is dropped by session.notify if the session
-      // was stopped in the meantime.
-      unawaited(
-        Future<void>.delayed(
-          const Duration(milliseconds: 100),
-          () => session.notify(_sramTriggerUuid, const [SramAxsConstants.triggerEdge]),
-        ),
-      );
-    }),
+    EmulatedAction(
+      'Double tap',
+      run: () {
+        session.notify(_sramTriggerUuid, const [SramAxsConstants.triggerEdge]);
+        // The delayed second edge is dropped by session.notify if the session
+        // was stopped in the meantime.
+        unawaited(
+          Future<void>.delayed(
+            const Duration(milliseconds: 100),
+            () => session.notify(_sramTriggerUuid, const [SramAxsConstants.triggerEdge]),
+          ),
+        );
+      },
+    ),
   ],
 );
 

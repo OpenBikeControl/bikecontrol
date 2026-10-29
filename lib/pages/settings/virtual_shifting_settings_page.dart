@@ -10,11 +10,13 @@ import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/pages/proxy_device_details/vs_calibration_page.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
 import 'package:bike_control/pages/proxy_device_details/shifting_config_picker.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/units.dart';
 import 'package:bike_control/widgets/drivetrain/drivetrain_controls.dart';
@@ -46,7 +48,7 @@ Future<void> openTrainerSelfTest(BuildContext context, ProxyDevice device) async
 /// the trainer's active shifting config.
 String virtualShiftingSummary(BuildContext context, FitnessBikeDefinition definition, ProxyDevice device) {
   final l10n = AppLocalizations.of(context);
-  final hasCustomRatios = core.shiftingConfigs.activeFor(device.trainerKey).gearRatios != null;
+  final hasCustomRatios = device.activeShiftingConfig.gearRatios != null;
   return [
     l10n.gearsCount(definition.gearRatios.value.length),
     definition.gradeSmoothingEnabled.value ? l10n.smoothingOn : l10n.smoothingOff,
@@ -77,8 +79,9 @@ String rideVirtualShiftingSummary(BuildContext context, FitnessBikeDefinition de
 /// Gears, so a change to the gear count, the front derailleur or a preset
 /// plays out in view; then the Gears group (ratio curve, presets, gear count,
 /// front derailleur, smoothing, cadence filter, and the per-gear steppers one
-/// screen deeper) and Physics. Everything applies to the trainer's active
-/// shifting config and to the live definition at once.
+/// screen deeper), Physics, and ERG (start power and −/+ step). Everything
+/// applies to the trainer's active shifting config and to the live definition
+/// at once.
 ///
 /// Last, "Check and calibrate": the resistance self-test and, right under it,
 /// the shifting calibrator, two rows that each open their own page. Both are
@@ -155,14 +158,24 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   }
 
   void _applyActiveConfigToDefinition() {
-    final cfg = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final cfg = widget.device.activeShiftingConfig;
     def.setMaxGear(cfg.maxGear);
     def.setBicycleWeightKg(cfg.bikeWeightKg);
     def.setRiderWeightKg(cfg.riderWeightKg);
     def.setGradeSmoothingEnabled(cfg.gradeSmoothing);
     def.setCadenceFilterEnabled(cfg.cadenceFilterEnabled);
     def.setDifficultyPct(cfg.difficultyPct);
-    def.setVirtualShiftingMode(cfg.mode);
+    def.setRealChainRatio(cfg.realChainRatio);
+    def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
+    // Like [ProxyDevice._seedFitnessBikeDefinition]: only a saved config is the
+    // rider's choice. Without one, the trainer stays on its capability default
+    // instead of the generic Target Power — opening this page must not change
+    // how the trainer shifts.
+    if (core.shiftingConfigs.storedActiveFor(widget.device.trainerKey) != null) {
+      def.setVirtualShiftingMode(cfg.mode);
+    } else {
+      def.useDefaultVirtualShiftingMode();
+    }
     // The front derailleur belongs to the config too: picking another config
     // brings its rings with it, and the drivetrain above draws them.
     def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
@@ -254,8 +267,15 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
               _drivetrain(context),
               const Gap(20),
               _gears(context),
+              // A smart bike has no chain.
+              if (!def.isSmartBike) ...[
+                const Gap(24),
+                _realChain(context),
+              ],
               const Gap(24),
               _physics(context),
+              const Gap(24),
+              _erg(context),
               if (!screenshotMode) ...[
                 const Gap(24),
                 _checkAndCalibrate(context),
@@ -407,7 +427,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
   /// it is on. Turning it on grows the drivetrain above a second ring.
   Widget _frontDerailleur(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final config = core.shiftingConfigs.activeFor(widget.device.trainerKey);
+    final config = widget.device.activeShiftingConfig;
     final enabled = config.frontShiftEnabled;
     final small = config.smallChainringTeeth;
     final large = config.largeChainringTeeth;
@@ -500,6 +520,63 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     );
   }
 
+  /// Where the rider's real chain sits at the trainer. The physics assume
+  /// 34/17; a rider who leaves the chain elsewhere (a 39 ring on a 14 Zwift
+  /// Cog) sets it here, and every virtual gear feels like its real one.
+  Widget _realChain(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final config = widget.device.activeShiftingConfig;
+    final chainring = config.realChainringTeeth;
+    final cog = config.realCogTeeth;
+    final ratio = NumberFormat('0.00', Localizations.localeOf(context).toString()).format(config.realChainRatio);
+
+    Future<void> set({int? chainring, int? cog}) async {
+      def.setRealChainRatio(config.copyWith(realChainringTeeth: chainring, realCogTeeth: cog).realChainRatio);
+      await _update((c) => c.copyWith(realChainringTeeth: chainring, realCogTeeth: cog));
+    }
+
+    Widget teeth(int value, {required int min, required int max, required ValueChanged<int> onChanged}) =>
+        StepperControl(
+          value: value.toDouble(),
+          step: 1.0,
+          min: min.toDouble(),
+          max: max.toDouble(),
+          format: (v) => v.toStringAsFixed(0),
+          onChanged: (v) => onChanged(v.toInt()),
+        );
+
+    return BkGroupedSection(
+      key: const ValueKey('vs-real-chain'),
+      header: l10n.vsGroupRealChain,
+      // Non-breaking: the ratio never wraps at the "=".
+      footer: l10n.realChainFooter('$chainring/$cog\u00A0=\u00A0$ratio'),
+      children: [
+        BkGroupedRow(
+          key: const ValueKey('vs-real-chainring'),
+          icon: LucideIcons.circleDot,
+          title: l10n.realChainringLabel,
+          trailing: teeth(
+            chainring,
+            min: ShiftingConfig.chainringTeethMin,
+            max: ShiftingConfig.chainringTeethMax,
+            onChanged: (next) => set(chainring: next),
+          ),
+        ),
+        BkGroupedRow(
+          key: const ValueKey('vs-real-cog'),
+          icon: LucideIcons.cog,
+          title: l10n.realCogLabel,
+          trailing: teeth(
+            cog,
+            min: ShiftingConfig.realCogTeethMin,
+            max: ShiftingConfig.realCogTeethMax,
+            onChanged: (next) => set(cog: next),
+          ),
+        ),
+      ],
+    );
+  }
+
   /// The resistance self-test, and the calibrator right under it: first "does
   /// the trainer obey?", then "does it feel right?". Each row opens its own
   /// page and says where things stand: the last test result, the difficulty.
@@ -529,6 +606,73 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
             subtitle: l10n.vsCalibrateRowSubtitle(pct),
             chevron: true,
             onPressed: _openCalibrator,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Where entering ERG starts, and how far one −/+ press moves the target.
+  /// Both go to the active config and to the live definition at once.
+  Widget _erg(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final config = widget.device.activeShiftingConfig;
+
+    String sourceLabel(ErgStartSource source) => switch (source) {
+      ErgStartSource.lastTarget => l10n.ergStartLastTarget,
+      ErgStartSource.currentPower => l10n.ergStartCurrentPower,
+    };
+    String stepLabel(int watts) => '$watts W';
+
+    return BkGroupedSection(
+      key: const ValueKey('vs-erg'),
+      header: l10n.vsGroupErg,
+      footer: l10n.ergSettingsFooter,
+      children: [
+        BkGroupedRow(
+          key: const ValueKey('vs-erg-start'),
+          icon: LucideIcons.play,
+          title: l10n.ergStartPowerLabel,
+          subtitle: l10n.ergStartPowerDesc,
+          trailing: Select<ErgStartSource>(
+            value: config.ergStartSource,
+            popup: SelectPopup(
+              items: SelectItemList(
+                children: [
+                  for (final source in ErgStartSource.values)
+                    SelectItemButton<ErgStartSource>(value: source, child: Text(sourceLabel(source))),
+                ],
+              ),
+            ).call,
+            itemBuilder: (context, source) => Text(sourceLabel(source)),
+            onChanged: (source) async {
+              if (source == null) return;
+              def.setErgPreferences(startSource: source);
+              await _update((c) => c.copyWith(ergStartSource: source));
+            },
+          ),
+        ),
+        BkGroupedRow(
+          key: const ValueKey('vs-erg-step'),
+          icon: LucideIcons.chevronsUpDown,
+          title: l10n.ergStepLabel,
+          subtitle: l10n.ergStepDesc,
+          trailing: Select<int>(
+            value: config.ergStepW,
+            popup: SelectPopup(
+              items: SelectItemList(
+                children: [
+                  for (final watts in ErgPowerStepping.stepChoicesW)
+                    SelectItemButton<int>(value: watts, child: Text(stepLabel(watts))),
+                ],
+              ),
+            ).call,
+            itemBuilder: (context, watts) => Text(stepLabel(watts)),
+            onChanged: (watts) async {
+              if (watts == null) return;
+              def.setErgPreferences(stepW: watts);
+              await _update((c) => c.copyWith(ergStepW: watts));
+            },
           ),
         ),
       ],

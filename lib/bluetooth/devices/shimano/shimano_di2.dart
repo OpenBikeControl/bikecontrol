@@ -280,17 +280,37 @@ class ShimanoDi2 extends BluetoothDevice {
     await _buttonSession?.close();
     _buttonSession = null;
     final counted = _CountingShimanoTransport(t);
-    final session = await ShimanoConfig.enterButtonMode(
-      counted,
-      onPaddle: onPaddle,
-      onUnknownFrame: onUnknownFrame,
-      onStepError: (step, e, st) => unawaited(recordError(e, st, context: 'ShimanoDi2: button mode step $step')),
-    );
+    // The paddle presses arrive on 2AF9, the same characteristic the RD
+    // answers the sequence on: no replies there means presses can't arrive
+    // either, although the RD already stopped shifting.
+    var replies = 0;
+    final replyCounter = t.notifications(ShimanoDi2Config.pceResponseChar).listen((_) => replies++);
+    final ShimanoButtonSession session;
+    try {
+      session = await ShimanoConfig.enterButtonMode(
+        counted,
+        onPaddle: onPaddle,
+        onUnknownFrame: onUnknownFrame,
+        onStepError: (step, e, st) {
+          actionStreamInternal.add(LogNotification('ShimanoDi2 button mode step $step failed: $e'));
+          unawaited(recordError(e, st, context: 'ShimanoDi2: button mode step $step'));
+        },
+      );
+    } finally {
+      await replyCounter.cancel();
+    }
     if (counted.answered == 0 && counted.failed > 0) {
       await session.close();
       throw TimeoutException('Di2 answered none of the ${counted.failed} button mode steps');
     }
+    actionStreamInternal.add(
+      LogNotification(
+        'ShimanoDi2 button mode active: ${counted.answered} steps answered, ${counted.failed} failed, '
+        '$replies replies on 2af9',
+      ),
+    );
     _buttonSession = session;
+    _logFramesAfterButtonMode(t);
     registerPaddleButtons();
   }
 
@@ -376,6 +396,8 @@ class ShimanoDi2 extends BluetoothDevice {
     await core.settings.setShimanoButtonMode(_serialKey, false);
     await _buttonSession?.close();
     _buttonSession = null;
+    await _frameLog?.cancel();
+    _frameLog = null;
     await disconnect();
     core.connection.signalChange(this);
   }
@@ -403,6 +425,24 @@ class ShimanoDi2 extends BluetoothDevice {
     unawaited(handleButtonsClicked(_pressed.toList()));
   }
 
+  StreamSubscription<Uint8List>? _frameLog;
+
+  /// Wired Di2 shifters may report presses in a shape the decoder doesn't
+  /// know, which it drops without a trace. Log the first raw frames on 2AF9
+  /// (each distinct frame once in a row) so a rider's log shows what arrives.
+  void _logFramesAfterButtonMode(ShimanoTransport t) {
+    unawaited(_frameLog?.cancel());
+    String? last;
+    var logged = 0;
+    _frameLog = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
+      final hex = frame.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      if (hex == last) return;
+      last = hex;
+      actionStreamInternal.add(LogNotification('ShimanoDi2 frame after button mode: $hex'));
+      if (++logged >= 50) unawaited(_frameLog?.cancel());
+    });
+  }
+
   String? _lastUnknownFrame;
 
   /// Button telemetry the decoder found no press in, e.g. a switch it doesn't
@@ -420,6 +460,8 @@ class ShimanoDi2 extends BluetoothDevice {
   Future<void> disconnect() async {
     await _buttonSession?.close();
     _buttonSession = null;
+    await _frameLog?.cancel();
+    _frameLog = null;
     _pressed.clear();
     await super.disconnect();
   }

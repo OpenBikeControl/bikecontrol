@@ -138,6 +138,13 @@ void main() {
       expect(restored.gearRatios, isNull);
     });
 
+    test('the real chain counts as set once it differs from 34/17, even at 2:1', () {
+      final config = ShiftingConfig.defaults(trainerKey: 'KICKR');
+      expect(config.hasRealChain, isFalse);
+      expect(config.copyWith(realChainringTeeth: 36, realCogTeeth: 18).hasRealChain, isTrue);
+      expect(config.copyWith(realChainringTeeth: 39, realCogTeeth: 14).hasRealChain, isTrue);
+    });
+
     test('copyWith overrides specific fields', () {
       final base = ShiftingConfig.defaults(trainerKey: 'KICKR');
       final renamed = base.copyWith(name: 'Race');

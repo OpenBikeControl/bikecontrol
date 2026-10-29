@@ -9,6 +9,7 @@ void main() {
     const named = [
       'Strappo',
       'Ride Cave',
+      'Velotoss',
       'MyWhoosh',
       'Rouvy',
       'Zwift',

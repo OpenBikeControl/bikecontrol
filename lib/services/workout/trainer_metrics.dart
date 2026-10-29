@@ -23,6 +23,10 @@ class TrainerMetrics {
   /// The virtual front chainring, counted as a shift when it flips.
   final ValueListenable<Object?>? frontRing;
 
+  /// The grade the trainer app has the trainer on, in %, or null when it
+  /// sends none (ERG). Null for sources BikeControl doesn't simulate for.
+  final double? Function()? gradePct;
+
   /// What the rider sees as the source (the trainer's or sensor's name).
   final String? sourceName;
 
@@ -34,6 +38,7 @@ class TrainerMetrics {
     this.isHeartRateFromHealth,
     this.gear,
     this.frontRing,
+    this.gradePct,
     this.sourceName,
   });
 
@@ -45,6 +50,7 @@ class TrainerMetrics {
     isHeartRateFromHealth: isHeartRateFromHealth,
     gear: gear,
     frontRing: frontRing,
+    gradePct: gradePct,
     sourceName: name,
   );
 
@@ -69,6 +75,8 @@ class TrainerMetrics {
         isHeartRateFromHealth: isHeartRateFromHealth,
         gear: definition.currentGear,
         frontRing: definition.frontRing,
+        // In ERG the last SIM grade lingers; the course is not being ridden.
+        gradePct: () => definition.trainerMode.value == TrainerMode.ergMode ? null : definition.simGrade.value / 100,
       );
     }
     if (definition is ProxyBikeDefinition) {

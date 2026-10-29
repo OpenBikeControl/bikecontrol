@@ -45,6 +45,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Rouvy
 - Strappo
 - Ride Cave
+- Velotoss
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps

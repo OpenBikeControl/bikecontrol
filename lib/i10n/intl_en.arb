@@ -565,6 +565,7 @@
   "noControllerUseCompanionMode": "No Controller? Use Companion Mode.",
   "noDevicesRegistered": "No devices registered",
   "noIgnoredDevices": "No ignored devices.",
+  "disconnectedForThisSession": "Disconnected for this session",
   "noTrainerSelected": "No Trainer selected",
   "notConnected": "Not connected",
   "notificationDescription": "This keeps the app alive in background and updates you when the connection to your devices changes.",
@@ -1162,7 +1163,7 @@
   "syncSettings": "Sync Settings",
   "syncStatus": "Sync Status",
   "synchronizeAcrossDevices": "Synchronize across devices",
-  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronize your app settings across all your devices. This includes your button mappings and preferences.",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "Synchronize your app settings across all your devices. This includes your button mappings, your shifting configs with their gear ratios, and your preferences.",
   "targetOtherDevice": "Other Device",
   "targetThisDevice": "This Device",
   "termsOfUse": "Terms of Use",
@@ -2182,6 +2183,7 @@
   "controlProtocolIgnored": "Your trainer is not acknowledging gear commands on the protocol you picked. BikeControl would normally switch, but your manual choice is kept.",
   "controlProtocolIgnoredNoFallback": "Your trainer is not acknowledging gear commands, and offers no other protocol to fall back to.",
   "controlProtocolUseAuto": "Switch to Auto",
+  "controlProtocolNativeShiftingAvailable": "This trainer supports BikeControl's native virtual shifting: it applies your gear itself. Set the protocol to Auto for the most realistic shifting.",
   "controlProtocolAuto": "Auto (recommended)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
@@ -2608,13 +2610,16 @@
       }
     }
   },
-  "syncDeviceSummary": "Version: {version} • Mappings: {count}",
+  "syncDeviceSummary": "Version: {version} • Mappings: {count} • Shifting configs: {shiftingCount}",
   "@syncDeviceSummary": {
     "placeholders": {
       "version": {
         "type": "String"
       },
       "count": {
+        "type": "String"
+      },
+      "shiftingCount": {
         "type": "String"
       }
     }
@@ -3279,6 +3284,7 @@
   "@ridesValueRange": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
   "ridesValueSaveFailed": "Couldn't save the value. Please try again.",
   "ridesGear": "Gear",
+  "ridesElevation": "Elevation",
   "ridesTimeInGear": "Time in gear",
   "ridesPowerZones": "Power zones",
   "ridesHeartRateZones": "Heart rate zones",
@@ -3347,5 +3353,21 @@
   "@chainHintVerySmallGear": {"placeholders": {"ratio": {"type": "String"}}},
   "ignoredDevicesNearby": "Found ignored devices nearby",
   "trainerActionGearUpErgUp": "Trainer: Gear Up / ERG up",
-  "trainerActionGearDownErgDown": "Trainer: Gear Down / ERG down"
+  "trainerActionGearDownErgDown": "Trainer: Gear Down / ERG down",
+  "vsGroupRealChain": "Chain on the trainer",
+  "realChainringLabel": "Chainring on the bike",
+  "realCogLabel": "Cog on the trainer",
+  "realChainFooter": "The gear your chain really sits in on the trainer: {chain}. BikeControl takes it into account, so every virtual gear feels like the real one. Leave the chain there and only shift virtually. Used by Track Resistance.",
+  "@realChainFooter": {"placeholders": {"chain": {"type": "String"}}},
+  "chainHintSetTitle": "Your chain isn't where you set it",
+  "chainHintSetBody": "Your chain on the trainer seems to be in a different gear (gear ratio about {measured}) than the one set under \"Chain on the trainer\" ({set}). Move it back, or change the setting.",
+  "@chainHintSetBody": {"placeholders": {"measured": {"type": "String"}, "set": {"type": "String"}}},
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "ERG start power",
+  "ergStartPowerDesc": "Where the target starts when you switch to ERG",
+  "ergStartLastTarget": "Last target",
+  "ergStartCurrentPower": "Current power",
+  "ergStepLabel": "ERG step",
+  "ergStepDesc": "Watts per − / + press",
+  "ergSettingsFooter": "If the chosen start power is not available, the other one is used, then 150 W."
 }

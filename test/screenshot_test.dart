@@ -824,10 +824,10 @@ Future<void> main() async {
   // "Connect directly over Network" connection method. Rendered standalone inside
   // a keyed RepaintBoundary so the golden captures ONLY the widget.
 
-  // The trainer-app picker with MyWhoosh selected. screenshotMode stays on (it
-  // suppresses the real BLE bootstrap) and TrainerAppSelect.showRealName forces
-  // the closed Select to show the real "MyWhoosh" name + logo instead of the
-  // generic "Trainer app" placeholder the marketing screenshots use.
+  // The trainer-app card with MyWhoosh selected. screenshotMode stays on (it
+  // suppresses the real BLE bootstrap) and TrainerAppCard.showRealName forces
+  // the card to show the real "MyWhoosh" name + logo instead of the generic
+  // "Trainer app" placeholder the marketing screenshots use.
   testGoldens('mywhoosh-trainer-select', (WidgetTester tester) async {
     core.settings.setTrainerApp(MyWhoosh());
     core.settings.setKeyMap(MyWhoosh());
@@ -841,7 +841,7 @@ Future<void> main() async {
             padding: const EdgeInsets.all(24),
             child: RepaintBoundary(
               key: k,
-              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+              child: TrainerAppCard(onUpdate: () {}, showRealName: true),
             ),
           ),
         ),
@@ -1139,7 +1139,7 @@ Future<void> main() async {
             padding: const EdgeInsets.all(24),
             child: RepaintBoundary(
               key: k,
-              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+              child: TrainerAppCard(onUpdate: () {}, showRealName: true),
             ),
           ),
         ),
@@ -1172,7 +1172,7 @@ Future<void> main() async {
             padding: const EdgeInsets.all(24),
             child: RepaintBoundary(
               key: k,
-              child: TrainerAppSelect(onUpdate: () {}, showRealName: true),
+              child: TrainerAppCard(onUpdate: () {}, showRealName: true),
             ),
           ),
         ),

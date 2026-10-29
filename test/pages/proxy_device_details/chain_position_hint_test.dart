@@ -95,18 +95,46 @@ Future<void> main() async {
     }
   }
 
-  Future<void> pumpCard(WidgetTester tester, FitnessBikeDefinition def) async {
+  Future<void> pumpCard(WidgetTester tester, FitnessBikeDefinition def, {bool chainSet = false}) async {
     await tester.pumpWidget(
       ShadcnApp(
         localizationsDelegates: const [AppLocalizations.delegate],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         home: Scaffold(
-          child: SizedBox(width: 380, child: ChainPositionHintCard(definition: def)),
+          child: SizedBox(width: 380, child: ChainPositionHintCard(definition: def, chainSet: chainSet)),
         ),
       ),
     );
     await tester.pump();
   }
+
+  // With the real chain set, the band is around that chain, and the hint says
+  // the chain is not where the rider set it rather than "middle gear".
+  testWidgets('with a real chain set, says the chain is off the set one', (tester) async {
+    final def = trainer().fitnessBike!;
+    def.setRealChainRatio(53 / 12);
+    await pumpCard(tester, def, chainSet: true);
+
+    ride(def, 2.0);
+    await tester.pump();
+    expect(find.text(l.chainHintSetTitle), findsOneWidget);
+    expect(find.text(l.chainHintSetBody('2.0', '4.4')), findsOneWidget);
+    expect(find.text(l.chainHintTitle), findsNothing);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  // 36/18 is 2:1 like the default 34/17, but the rider set it.
+  testWidgets('a real chain set to 2:1 still counts as set', (tester) async {
+    final def = trainer().fitnessBike!;
+    def.setRealChainRatio(36 / 18);
+    await pumpCard(tester, def, chainSet: true);
+
+    ride(def, 4.5);
+    await tester.pump();
+    expect(find.text(l.chainHintSetTitle), findsOneWidget);
+    expect(find.text(l.chainHintTitle), findsNothing);
+    await tester.pump(const Duration(seconds: 6));
+  });
 
   testWidgets('appears while the chain sits on a very big gear, and goes when it moves', (tester) async {
     final def = trainer().fitnessBike!;

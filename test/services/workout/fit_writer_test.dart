@@ -159,4 +159,68 @@ void main() {
       expect(FitFileReader.decode(b, summary: summary).samples.map((s) => s.gear), everyElement(isNull));
     });
   });
+
+  group('grade and altitude', () {
+    final start = DateTime.utc(2026, 10, 29, 9);
+    final samples = [
+      for (var i = 0; i <= 10; i++)
+        WorkoutSample(timestamp: start.add(Duration(seconds: i)), powerW: 250, speedKph: 36, gradePct: 10),
+    ];
+    final summary = WorkoutSummary.fromSamples(samples, startedAt: start, activeDuration: const Duration(seconds: 10));
+    final bytes = FitFileWriter.encode(samples: samples, summary: summary);
+    final records = FitFile.fromBytes(bytes).records
+        .where((r) => !r.isDefinition && r.message is RecordMessage)
+        .map((r) => r.message as RecordMessage)
+        .toList();
+
+    test('every record has the grade and the altitude climbed so far', () {
+      expect(records.first.grade, closeTo(10, 0.01));
+      expect(records.first.altitude, closeTo(0, 0.2));
+      expect(records.last.altitude, closeTo(9.95, 0.2));
+      expect(records.last.enhancedAltitude, closeTo(9.95, 0.2), reason: "FIT keeps altitude in 0.2 m steps");
+    });
+
+    test('the session has the total ascent', () {
+      final session = FitFile.fromBytes(
+        bytes,
+      ).records.map((r) => r.message).whereType<SessionMessage>().firstWhere((_) => true);
+      expect(session.totalAscent, 10);
+      expect(session.totalDescent, 0);
+    });
+
+    test('reads the grade back onto the samples', () {
+      final result = FitFileReader.decode(bytes, summary: summary);
+      expect(result.samples.first.gradePct, closeTo(10, 0.01));
+    });
+
+    test('a ride without grade writes no altitude', () {
+      final flat = [
+        for (var i = 0; i < 5; i++) WorkoutSample(timestamp: start.add(Duration(seconds: i)), speedKph: 30),
+      ];
+      final b = FitFileWriter.encode(
+        samples: flat,
+        summary: WorkoutSummary.fromSamples(flat, startedAt: start, activeDuration: const Duration(seconds: 5)),
+      );
+      final r = FitFile.fromBytes(b).records.map((r) => r.message).whereType<RecordMessage>().first;
+      expect(r.altitude, isNull);
+      expect(r.grade, isNull);
+    });
+  });
+
+  test('a course that ends far below its start still has altitudes FIT can hold', () {
+    // FIT altitude is unsigned with a 500 m offset: below -500 m it wraps.
+    final start = DateTime.utc(2026, 10, 29, 9);
+    final samples = [
+      for (var i = 0; i <= 150; i++)
+        WorkoutSample(timestamp: start.add(Duration(seconds: i)), speedKph: 36, gradePct: -50),
+    ];
+    final summary = WorkoutSummary.fromSamples(samples, startedAt: start, activeDuration: const Duration(seconds: 150));
+    final records = FitFile.fromBytes(FitFileWriter.encode(samples: samples, summary: summary)).records
+        .map((r) => r.message)
+        .whereType<RecordMessage>()
+        .toList();
+    expect(records.first.altitude, closeTo(670.8, 0.3), reason: 'the lowest point sits at 0 m');
+    expect(records.last.altitude, closeTo(0, 0.3));
+    expect(records.every((r) => r.altitude! >= 0 && r.altitude! < 1000), isTrue);
+  });
 }

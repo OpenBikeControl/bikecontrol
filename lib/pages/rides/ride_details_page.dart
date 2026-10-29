@@ -149,7 +149,11 @@ class _RideDetailsPageState extends State<RideDetailsPage> {
                 ),
                 RideStatGrid(summary: summary),
                 if (summary.chart case final chart?
-                    when chart.hasPower || chart.hasHeartRate || chart.hasCadence || chart.hasGear) ...[
+                    when chart.hasPower ||
+                        chart.hasHeartRate ||
+                        chart.hasCadence ||
+                        chart.hasGear ||
+                        chart.hasElevation) ...[
                   const Gap(24),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 6),

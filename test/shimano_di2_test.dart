@@ -139,6 +139,52 @@ Future<void> main() async {
 
       expect(instance.availableButtons.map((b) => b.name), containsAll(ShimanoDi2Buttons.paddles.map((b) => b.name)));
     });
+
+    // A rider's log must tell a 2AF9 subscription that never delivers (no
+    // presses although the Di2 stopped shifting) from presses lost later.
+    test('the log shows failed button mode steps and how many replies arrived', () async {
+      final instance = ShimanoDi2(BleDevice(name: 'RDR7150', deviceId: 'di2-diag'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(
+        _FakeShimanoTransport(fail: false, failSubscribe: true, replies: [Uint8List.fromList([0x25, 0x00])]),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+
+      expect(logs, contains(startsWith('ShimanoDi2 button mode step ')));
+      expect(logs.where((l) => l.contains('button mode step')), everyElement(contains('subscribe refused')));
+      expect(logs.firstWhere((l) => l.contains('button mode active')), matches(RegExp(r'^ShimanoDi2 button mode active: \d+ steps answered, [1-9]\d* failed, 1 replies on 2af9$')));
+    });
+
+    // Wired Di2 shifters may report presses in a shape the decoder doesn't
+    // know: the log shows every frame that arrives once button mode is on.
+    test('the log shows the frames the Di2 sends once button mode is active', () async {
+      final live = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR7150', deviceId: 'di2-frames'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, live: live));
+      live.add(Uint8List.fromList([0x33, 0x42, 0x01, 0x02]));
+      live.add(Uint8List.fromList([0x33, 0x42, 0x01, 0x02]));
+      live.add(Uint8List.fromList([0x25, 0x0c]));
+      for (var i = 0; i < 60; i++) {
+        live.add(Uint8List.fromList([0x40, i]));
+      }
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+      await live.close();
+
+      final frames = logs.where((l) => l.startsWith('ShimanoDi2 frame after button mode: ')).toList();
+      expect(frames.take(2), ['ShimanoDi2 frame after button mode: 33420102', 'ShimanoDi2 frame after button mode: 250c']);
+      expect(frames, hasLength(50));
+    });
   });
 
   group('Shimano Di2 bond on Windows', () {
@@ -405,8 +451,15 @@ class _RecordingShimanoTransport extends ShimanoBleTransport {
 }
 
 class _FakeShimanoTransport implements ShimanoTransport {
-  _FakeShimanoTransport({required this.fail});
+  _FakeShimanoTransport({required this.fail, this.failSubscribe = false, this.replies = const [], this.live});
   final bool fail;
+  final bool failSubscribe;
+
+  /// Frames the Di2 sends on 2AF9 at any time, pushed by the test.
+  final StreamController<Uint8List>? live;
+
+  /// Frames the Di2 sends on 2AF9 while the sequence runs.
+  final List<Uint8List> replies;
 
   Future<T> _answer<T>(T value) async {
     if (fail) throw TimeoutException('no answer');
@@ -414,7 +467,10 @@ class _FakeShimanoTransport implements ShimanoTransport {
   }
 
   @override
-  Future<void> subscribe(String characteristic) => _answer(null);
+  Future<void> subscribe(String characteristic) async {
+    if (failSubscribe) throw StateError('subscribe refused');
+    return _answer(null);
+  }
 
   @override
   Future<void> write(String characteristic, Uint8List data, {bool withoutResponse = false}) => _answer(null);
@@ -423,5 +479,8 @@ class _FakeShimanoTransport implements ShimanoTransport {
   Future<Uint8List> read(String characteristic) => _answer(Uint8List(0));
 
   @override
-  Stream<Uint8List> notifications(String characteristic) => const Stream.empty();
+  Stream<Uint8List> notifications(String characteristic) =>
+      characteristic.toLowerCase() != ShimanoDi2Config.pceResponseChar
+          ? const Stream.empty()
+          : live?.stream ?? Stream.fromIterable(replies);
 }

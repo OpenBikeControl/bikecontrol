@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/support_chat/widgets/support_composer.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -20,7 +23,8 @@ Future<void> main() async {
     String? pinnedContextLabel,
     StagedAttachment? initialAttachment,
     bool requireDescription = false,
-    Future<void> Function(String body, StagedAttachment? attachment)? onSend,
+    Future<void> Function(String body, List<StagedAttachment> attachments)? onSend,
+    Future<StagedAttachment?> Function()? readClipboardAttachment,
   }) {
     return ShadcnApp(
       localizationsDelegates: [
@@ -37,6 +41,7 @@ Future<void> main() async {
           pinnedContextLabel: pinnedContextLabel,
           initialAttachment: initialAttachment,
           requireDescription: requireDescription,
+          readClipboardAttachment: readClipboardAttachment,
         ),
       ),
     );
@@ -97,7 +102,10 @@ Future<void> main() async {
   testWidgets('the notice points at the info button with the icon itself, not a text glyph', (tester) async {
     await tester.pumpWidget(app(payload: 'App Version: 6.5.2'));
     await tester.pump();
-    expect(find.descendant(of: find.byKey(noScreenshotNotice), matching: find.byIcon(LucideIcons.info)), findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(noScreenshotNotice), matching: find.byIcon(LucideIcons.info)),
+      findsOneWidget,
+    );
     expect(find.textContaining('ⓘ', findRichText: true), findsNothing);
   });
 
@@ -189,7 +197,8 @@ Logs:
   });
 
   test('a JSON telemetry payload is summarised from its fields and free text', () {
-    const json = '{"app_version": "7.1.0", "app_platform": "android", "bluetooth_name": "KICKR CORE", '
+    const json =
+        '{"app_version": "7.1.0", "app_platform": "android", "bluetooth_name": "KICKR CORE", '
         '"freetext": "Connected Controllers: Zwift Ride\\nConnected Trainers: OpenBikeControl\\nLogs:\\na\\nb"}';
     final summary = SupportDiagnosticsSummary.parse(json);
     expect(summary.appVersion, '7.1.0');
@@ -200,7 +209,9 @@ Logs:
   });
 
   test('the summary is read from the diagnostics payload', () {
-    final summary = SupportDiagnosticsSummary.parse('App Version: 1.0\nPlatform: android 15\nConnected Controllers: \nConnected Trainers: -\nLogs:\na\nb\n\nWire trace:\nx');
+    final summary = SupportDiagnosticsSummary.parse(
+      'App Version: 1.0\nPlatform: android 15\nConnected Controllers: \nConnected Trainers: -\nLogs:\na\nb\n\nWire trace:\nx',
+    );
     expect(summary.appVersion, '1.0');
     expect(summary.platform, 'android 15');
     expect(summary.devices, isNull);
@@ -398,6 +409,117 @@ Logs:
       await tester.pump();
       expect(sendEnabled(tester), isTrue);
       expect(find.text(l10n.supportDescribeFirstMessageHint), findsNothing);
+    });
+  });
+
+  group('pasting', () {
+    // A real image: the staged chip renders a thumbnail of it.
+    final onePixelPng = base64Decode(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    );
+    StagedAttachment pastedImage() => StagedAttachment(
+      PlatformFile(name: 'pasted-image-1.png', size: onePixelPng.length, bytes: onePixelPng),
+    );
+
+    Future<void> pressPaste(WidgetTester tester) async {
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyV);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+      await tester.pump();
+      await tester.pump();
+    }
+
+    testWidgets('Cmd+V with an image on the clipboard stages it as the attachment', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        List<StagedAttachment>? sent;
+        await tester.pumpWidget(
+          app(
+            readClipboardAttachment: () async => pastedImage(),
+            onSend: (_, attachments) async => sent = attachments,
+          ),
+        );
+        await tester.tap(find.byType(TextArea));
+        await tester.pump();
+
+        await pressPaste(tester);
+
+        expect(find.text('pasted-image-1.png'), findsOneWidget);
+        await tester.tap(find.byIcon(LucideIcons.send));
+        await tester.pump();
+        expect(sent?.map((a) => a.name), ['pasted-image-1.png']);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('Cmd+V without an image pastes the clipboard text as before', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.getData') return {'text': 'copied words'};
+        if (call.method == 'Clipboard.hasStrings') return {'value': true};
+        return null;
+      });
+      try {
+        await tester.pumpWidget(app(readClipboardAttachment: () async => null));
+        await tester.tap(find.byType(TextArea));
+        await tester.pump();
+
+        await pressPaste(tester);
+
+        expect(find.text('copied words'), findsOneWidget);
+        expect(find.byIcon(LucideIcons.x), findsNothing, reason: 'nothing staged');
+      } finally {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null);
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('pasting next to a staged screenshot keeps both', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        List<StagedAttachment>? sent;
+        await tester.pumpWidget(
+          app(
+            initialAttachment: StagedAttachment(
+              PlatformFile(name: 'pinned.png', size: onePixelPng.length, bytes: onePixelPng),
+            ),
+            readClipboardAttachment: () async => pastedImage(),
+            onSend: (_, attachments) async => sent = attachments,
+          ),
+        );
+        await tester.tap(find.byType(TextArea));
+        await tester.pump();
+
+        await pressPaste(tester);
+
+        expect(find.text('pinned.png'), findsOneWidget);
+        expect(find.text('pasted-image-1.png'), findsOneWidget);
+        await tester.tap(find.byIcon(LucideIcons.send));
+        await tester.pump();
+        expect(sent?.map((a) => a.name), ['pinned.png', 'pasted-image-1.png']);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    });
+
+    testWidgets('Paste in the right-click menu stages an image too', (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      try {
+        await tester.pumpWidget(app(readClipboardAttachment: () async => pastedImage()));
+        await tester.tap(find.byType(TextArea));
+        await tester.pump();
+
+        tester.state<EditableTextState>(find.byType(EditableText)).showToolbar();
+        await tester.pumpAndSettle();
+        final l = ShadcnLocalizations.of(tester.element(find.byType(TextArea)));
+        await tester.tap(find.text(l.menuPaste));
+        await tester.pumpAndSettle();
+
+        expect(find.text('pasted-image-1.png'), findsOneWidget);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
   });
 }

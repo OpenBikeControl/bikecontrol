@@ -179,9 +179,11 @@ String describeProxyDevice(ProxyDevice device) {
     parts.add('difficulty=${def.difficultyPct.value}%');
     parts.add('ftms=${def.ftmsCapabilitySummary}');
     // Where the rider's real chain sits on the trainer (flywheel speed /
-    // cadence, approximate): the trackResistance physics assume ~2.0, so a
-    // "shifts barely felt" bundle with chainRatio=4.5 is a chain on 50/11.
+    // cadence, approximate) against the ratio the trackResistance physics use
+    // (2.0 unless the rider set their real chain), so a "shifts barely felt"
+    // bundle with chainRatio=4.5 setChain=2.00 is a chain on 50/11.
     if (def.estimatedChainRatio.value case final ratio?) parts.add('chainRatio=${ratio.toStringAsFixed(2)}');
+    if (!def.isSmartBike) parts.add('setChain=${def.realChainRatio.toStringAsFixed(2)}');
     // Live telemetry BikeControl is reading from the trainer: cad shows raw /
     // filtered rpm. The whole VS resistance calc is cadence-driven, so a "no
     // resistance" bundle with cad:0 (while pedalling) means we aren't getting
@@ -207,6 +209,13 @@ String describeProxyDevice(ProxyDevice device) {
     // switched to power — the line that explains vsMode=targetPower on a
     // bundle whose rider picked Track Resistance.
     if (def.trackResistanceRefused.value) parts.add('simGrade=refused→power');
+    // The trainer refused to start its FTMS session while the rider pedalled:
+    // every target is then acknowledged and none reaches the brake, which
+    // lastCtl=ok below cannot show.
+    if (def.ftmsStartSummary case final start?) parts.add('ftmsStart=$start');
+    // Whether the measured power follows the power targets; `no` is the
+    // trainer acknowledging targets it does not apply.
+    if (def.ergFollowSummary case final follow?) parts.add('ergFollow=$follow');
     final ctl = def.lastControlWrite;
     if (ctl != null) {
       final age = DateTime.now().difference(ctl.at).inSeconds;

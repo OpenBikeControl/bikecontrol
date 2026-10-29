@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'elevation_track.dart';
 import 'workout_recorder.dart' show WorkoutPause;
 import 'workout_sample.dart';
 
@@ -27,6 +28,16 @@ class RideChart {
   /// Seconds ridden in each gear.
   final Map<int, int> gearSeconds;
 
+  /// Altitude in metres at the end of each bucket, from 0 at the start
+  /// ([ElevationTrack]); empty without a course from the trainer app.
+  final List<double?> elevation;
+
+  /// Average grade in each bucket, in %.
+  final List<double?> grade;
+
+  /// Metres climbed; null without a course.
+  final double? ascentM;
+
   final Map<int, int>? _powerSeconds;
   final Map<int, int>? _heartRateSeconds;
 
@@ -38,6 +49,9 @@ class RideChart {
     this.cadence = const [],
     this.gear = const [],
     this.gearSeconds = const {},
+    this.elevation = const [],
+    this.grade = const [],
+    this.ascentM,
     Map<int, int>? powerSeconds,
     Map<int, int>? heartRateSeconds,
   }) : _powerSeconds = powerSeconds,
@@ -47,12 +61,14 @@ class RideChart {
   static const maxPoints = 360;
   static const minStepSeconds = 5;
 
-  int get totalSeconds => [power.length, heartRate.length, cadence.length, gear.length].reduce(math.max) * stepSeconds;
+  int get totalSeconds =>
+      [power.length, heartRate.length, cadence.length, gear.length, elevation.length].reduce(math.max) * stepSeconds;
 
   bool get hasPower => power.any((v) => v != null && v > 0);
   bool get hasHeartRate => heartRate.any((v) => v != null && v > 0);
   bool get hasCadence => cadence.any((v) => v != null && v > 0);
   bool get hasGear => gear.any((v) => v != null);
+  bool get hasElevation => elevation.any((v) => v != null);
 
   /// Seconds ridden per watt (a ride spans a few hundred distinct values).
   /// A chart saved without it falls back to its buckets.
@@ -84,12 +100,20 @@ class RideChart {
     final hSum = List<int>.filled(count, 0), hN = List<int>.filled(count, 0);
     final cSum = List<int>.filled(count, 0), cN = List<int>.filled(count, 0);
     final gears = List<Map<int, int>>.generate(count, (_) => {});
+    final altitudes = ElevationTrack.altitudes(samples);
+    final elevation = List<double?>.filled(count, null);
+    final gSum = List<double>.filled(count, 0), gN = List<int>.filled(count, 0);
     final gearSeconds = <int, int>{}, powerSeconds = <int, int>{}, heartRateSeconds = <int, int>{};
     void add(Map<int, int> m, int key) => m.update(key, (n) => n + 1, ifAbsent: () => 1);
-    for (final s in samples) {
+    for (final (n, s) in samples.indexed) {
       final at = s.timestamp.difference(startedAt).inSeconds;
       if (at < 0) continue;
       final i = math.min(count - 1, at ~/ step);
+      if (altitudes != null) elevation[i] = altitudes[n];
+      if (s.gradePct case final g?) {
+        gSum[i] += g;
+        gN[i]++;
+      }
       if (s.powerW case final p?) {
         pSum[i] += p;
         pN[i]++;
@@ -119,6 +143,7 @@ class RideChart {
       return best;
     }
 
+    double tenth(double v) => (v * 10).round() / 10;
     final anyCadence = cN.any((n) => n > 0);
     final anyGear = gearSeconds.isNotEmpty;
     return RideChart(
@@ -127,6 +152,11 @@ class RideChart {
       heartRate: [for (var i = 0; i < count; i++) hN[i] == 0 ? null : (hSum[i] / hN[i]).round()],
       cadence: anyCadence ? [for (var i = 0; i < count; i++) cN[i] == 0 ? null : (cSum[i] / cN[i]).round()] : const [],
       gear: anyGear ? [for (final held in gears) mostHeld(held)] : const [],
+      elevation: altitudes == null ? const [] : [for (final e in elevation) e == null ? null : tenth(e)],
+      grade: altitudes == null
+          ? const []
+          : [for (var i = 0; i < count; i++) gN[i] == 0 ? null : tenth(gSum[i] / gN[i])],
+      ascentM: altitudes == null ? null : tenth(ElevationTrack.climb(altitudes).ascent),
       pauses: [
         for (final p in pauses) (p.start.difference(startedAt).inSeconds, p.end.difference(startedAt).inSeconds),
       ],
@@ -148,6 +178,9 @@ class RideChart {
       if (cadence.isNotEmpty) 'cadence': cadence,
       if (gear.isNotEmpty) 'gear': gear,
       if (gearSeconds.isNotEmpty) 'gearSeconds': counts(gearSeconds),
+      if (elevation.isNotEmpty) 'elevation': elevation,
+      if (grade.isNotEmpty) 'grade': grade,
+      'ascent': ?ascentM,
       if (_powerSeconds case final p?) 'powerSeconds': counts(p),
       if (_heartRateSeconds case final h?) 'heartRateSeconds': counts(h),
     };
@@ -156,6 +189,7 @@ class RideChart {
   static RideChart? fromJson(Object? raw) {
     if (raw is! Map) return null;
     List<int?> ints(Object? v) => v is List ? [for (final x in v) (x as num?)?.toInt()] : const [];
+    List<double?> doubles(Object? v) => v is List ? [for (final x in v) (x as num?)?.toDouble()] : const [];
     Map<int, int>? counts(Object? v) => v is Map
         ? {
             for (final e in v.entries)
@@ -174,6 +208,9 @@ class RideChart {
             if (p is List && p.length == 2) ((p[0] as num).toInt(), (p[1] as num).toInt()),
       ],
       gearSeconds: counts(raw['gearSeconds']) ?? const {},
+      elevation: doubles(raw['elevation']),
+      grade: doubles(raw['grade']),
+      ascentM: (raw['ascent'] as num?)?.toDouble(),
       powerSeconds: counts(raw['powerSeconds']),
       heartRateSeconds: counts(raw['heartRateSeconds']),
     );

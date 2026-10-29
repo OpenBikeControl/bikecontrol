@@ -37,6 +37,7 @@ class FitFileReader {
             speedKph: speed == null ? null : speed * 3.6,
             heartRateBpm: message.heartRate,
             gear: gear,
+            gradePct: message.grade,
           ),
         );
       } else if (message is EventMessage && message.event == Event.rearGearChange) {

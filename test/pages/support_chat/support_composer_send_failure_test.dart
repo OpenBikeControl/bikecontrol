@@ -31,7 +31,7 @@ void main() {
   );
 
   Widget app({
-    required Future<void> Function(String, StagedAttachment?) onSend,
+    required Future<void> Function(String, List<StagedAttachment>) onSend,
     StagedAttachment? initialAttachment,
     String? initialText,
   }) {
@@ -61,7 +61,7 @@ void main() {
       app(
         initialText: 'please look at this',
         initialAttachment: screenshot(),
-        onSend: (body, attachment) async {
+        onSend: (body, attachments) async {
           sends++;
           // Mirrors the page-level handlers: report, toast, rethrow.
           throw Exception('Failed to send message');
@@ -86,13 +86,13 @@ void main() {
 
   testWidgets('an image-only message (empty body) can be sent', (tester) async {
     String? sentBody;
-    StagedAttachment? sentAttachment;
+    List<StagedAttachment>? sentAttachments;
     await tester.pumpWidget(
       app(
         initialAttachment: screenshot(),
-        onSend: (body, attachment) async {
+        onSend: (body, attachments) async {
           sentBody = body;
-          sentAttachment = attachment;
+          sentAttachments = attachments;
         },
       ),
     );
@@ -102,7 +102,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(sentBody, '');
-    expect(sentAttachment, isNotNull);
+    expect(sentAttachments, hasLength(1));
     expect(tester.takeException(), isNull);
     // Sent successfully: the chip is gone.
     expect(find.text('screenshot.png'), findsNothing);

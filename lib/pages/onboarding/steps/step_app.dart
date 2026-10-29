@@ -153,34 +153,59 @@ Widget _verifiedBadge(BuildContext context) => Container(
       ),
     );
 
+/// Every supported trainer app as a grid of tiles: the official integrations
+/// first, under their verified badge, then the others. Onboarding's app step
+/// shows it, and so does the trainer-app picker in Connection settings.
+class TrainerAppGrid extends StatelessWidget {
+  const TrainerAppGrid({super.key, required this.selected, required this.onSelect});
+
+  final SupportedApp? selected;
+  final ValueChanged<SupportedApp> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final official = SupportedApp.supportedApps.where((a) => a.officialIntegration).toList();
+    final other = SupportedApp.supportedApps.where((a) => !a.officialIntegration).toList();
+
+    Widget grid(List<SupportedApp> apps) => LayoutBuilder(builder: (context, constraints) {
+          final cols = constraints.maxWidth >= Breakpoints.onboardingAppGridWide ? 5 : 3;
+          return GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            // Fixed tile height: the content (padding, logo, gap, two caption
+            // lines) doesn't shrink with the column width, so an aspect ratio
+            // would let two-line captions spill out of narrow tiles.
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: cols,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              mainAxisExtent: _tileHeight,
+            ),
+            children: [
+              for (final app in apps)
+                OnboardingAppTile(app: app, selected: selected?.name == app.name, onTap: () => onSelect(app)),
+            ],
+          );
+        });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OnboardingGroupLabel(context.i18n.officiallySupported, trailing: _verifiedBadge(context)),
+        grid(official),
+        Gap(18),
+        OnboardingGroupLabel(context.i18n.otherTrainerApps),
+        grid(other),
+      ],
+    );
+  }
+}
+
 Widget onboardingAppBody(BuildContext context,
     {required SupportedApp? selected,
     required ValueChanged<SupportedApp> onSelect,
     bool showUpdateBanner = false}) {
-  final official = SupportedApp.supportedApps.where((a) => a.officialIntegration).toList();
-  final other = SupportedApp.supportedApps.where((a) => !a.officialIntegration).toList();
-
-  Widget grid(List<SupportedApp> apps) => LayoutBuilder(builder: (context, constraints) {
-        final cols = constraints.maxWidth >= Breakpoints.onboardingAppGridWide ? 5 : 3;
-        return GridView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          // Fixed tile height: the content (padding, logo, gap, two caption
-          // lines) doesn't shrink with the column width, so an aspect ratio
-          // would let two-line captions spill out of narrow tiles.
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: cols,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            mainAxisExtent: _tileHeight,
-          ),
-          children: [
-            for (final app in apps)
-              OnboardingAppTile(app: app, selected: selected?.name == app.name, onTap: () => onSelect(app)),
-          ],
-        );
-      });
-
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: onboardingReveal([
@@ -190,11 +215,7 @@ Widget onboardingAppBody(BuildContext context,
       Gap(6),
       Text(context.i18n.onboardingAppSubtitle).small.muted,
       Gap(18),
-      OnboardingGroupLabel(context.i18n.officiallySupported, trailing: _verifiedBadge(context)),
-      grid(official),
-      Gap(18),
-      OnboardingGroupLabel(context.i18n.otherTrainerApps),
-      grid(other),
+      TrainerAppGrid(selected: selected, onSelect: onSelect),
       Gap(14),
       OnboardingNote(context.i18n.onboardingAppNote),
     ]),

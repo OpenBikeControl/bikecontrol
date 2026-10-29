@@ -39,7 +39,6 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
-  FLUTTER_VERSION: 3.47.4
 
 jobs:
   guard:
@@ -83,8 +82,6 @@ jobs:
 
       - name: Set Up Flutter
         uses: ./.github/actions/setup-flutter
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Install certificates
         if: inputs.build_mac || inputs.build_ios
@@ -204,8 +201,6 @@ jobs:
 
       - name: Set Up Flutter
         uses: ./.github/actions/setup-flutter
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: 🚀 Shorebird Patch Windows
         uses: shorebirdtech/shorebird-patch@v1

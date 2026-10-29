@@ -1,7 +1,7 @@
 name: bike_control
 description: "BikeControl - Control your virtual riding"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 7.3.1+160
+version: 7.4.0+161
 
 environment:
   sdk: ^3.9.0
@@ -108,6 +108,7 @@ dependencies:
   video_player: ^2.14.1
   video_player_win: ^3.3.0
   swipeable_page_route: ^0.4.8
+  pasteboard: ^0.6.0
 
 dev_dependencies:
   flutter_test:
@@ -166,10 +167,10 @@ flutter:
     - assets/sounds/shift_down.wav
     - assets/sounds/shift_limit.wav
     - assets/mywhoosh.png
-    - assets/rouvy.png
     - assets/trainingpeaks.png
     - assets/strappo.png
     - assets/ridecave.png
+    - assets/velotoss.png
     - assets/biketerra.png
     - assets/contours/
     - assets/brand/

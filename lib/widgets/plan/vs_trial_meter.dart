@@ -23,7 +23,9 @@ bool vsTrialMeterShown() =>
     (!IAPManager.instance.isPurchased.value || core.connection.proxyDevices.any((d) => d.isConnected));
 
 /// [VsTrialMeter] behind a [gap], or nothing when [vsTrialMeterShown] says so.
-/// Rebuilds as trainers connect and disconnect.
+/// Rebuilds as trainers connect and disconnect, and as the Pro state changes:
+/// signing in to Pro (the device registering) hides it without waiting for a
+/// trainer to connect.
 class VsTrialMeterSlot extends StatelessWidget {
   const VsTrialMeterSlot({super.key, required this.gap, this.compact = false});
 
@@ -32,16 +34,23 @@ class VsTrialMeterSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<BaseDevice>(
-      stream: core.connection.connectionStream,
-      builder: (context, _) {
-        if (!vsTrialMeterShown()) return const SizedBox.shrink();
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [Gap(gap), VsTrialMeter(compact: compact)],
-        );
-      },
+    final iap = IAPManager.instance;
+    return ListenableBuilder(
+      // Everything [vsTrialMeterShown] reads from the purchase state: the
+      // account's entitlements (and registration flag), the purchase flag and
+      // the store-side Pro flag.
+      listenable: Listenable.merge([iap.entitlements, iap.isPurchased, iap.isLocalPro]),
+      builder: (context, _) => StreamBuilder<BaseDevice>(
+        stream: core.connection.connectionStream,
+        builder: (context, _) {
+          if (!vsTrialMeterShown()) return const SizedBox.shrink();
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [Gap(gap), VsTrialMeter(compact: compact)],
+          );
+        },
+      ),
     );
   }
 }

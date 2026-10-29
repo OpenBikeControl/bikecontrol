@@ -5,11 +5,13 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
-import 'package:bike_control/pages/configuration.dart';
+import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile, TrainerAppGrid;
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:bike_control/widgets/ui/sheet_pull_to_dismiss.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
@@ -67,7 +69,7 @@ Future<void> main() async {
     final card = find.byKey(const ValueKey('connection-trainer-app'));
     expect(find.descendant(of: card, matching: find.text(l.chainAppTitle)), findsOneWidget);
     expect(find.descendant(of: card, matching: find.text('MyWhoosh')), findsOneWidget);
-    expect(find.byType(TrainerAppSelect), findsNothing);
+    expect(find.byType(TrainerAppGrid), findsNothing);
     // The protocol note is a card in the page's card language, not a loose link.
     final note = find.byKey(const ValueKey('connection-obc-announcement'));
     expect(note, findsOneWidget);
@@ -75,9 +77,14 @@ Future<void> main() async {
     // The target question in plain words, naming the same app.
     expect(find.text(l.onboardingWhereTitle('MyWhoosh')), findsOneWidget);
 
+    // On a phone, Change opens the onboarding app grid as a bottom sheet.
     await tester.tap(find.descendant(of: card, matching: find.text(l.rideChange)));
-    await tester.pump();
-    expect(find.byType(TrainerAppSelect), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.byType(TrainerAppGrid), findsOneWidget);
+    expect(find.byType(SheetPullToDismiss), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrainerAppGrid), findsNothing);
 
     expect(find.text(l.recommendedConnectionMethods.toUpperCase()), findsWidgets);
     // Under that header a method doesn't repeat "Recommended" as a pill.
@@ -86,6 +93,39 @@ Future<void> main() async {
     if (!kIsWeb) {
       expect(find.byKey(const ValueKey('connection-network-troubleshooting')), findsOneWidget);
     }
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('in a wide window Change opens the app grid as a popover, and a tile picks the app', (tester) async {
+    screenshotMode = false;
+    addTearDown(() => screenshotMode = true);
+    addTearDown(() => core.settings.setTrainerApp(MyWhoosh()));
+    tester.view.physicalSize = const Size(1000, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_app(const TrainerConnectionSettingsPage()));
+    await tester.pump();
+
+    final card = find.byKey(const ValueKey('connection-trainer-app'));
+    await tester.tap(find.descendant(of: card, matching: find.text(l.rideChange)));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrainerAppGrid), findsOneWidget);
+    expect(find.byType(SheetPullToDismiss), findsNothing, reason: 'a popover, not a bottom sheet');
+    // Five columns: the popover is as wide as the onboarding grid's wide layout.
+    final tiles = find.byType(OnboardingAppTile);
+    final firstRowTops = tiles.evaluate().map((e) => tester.getTopLeft(find.byWidget(e.widget)).dy).toList();
+    expect(firstRowTops.where((y) => y == firstRowTops.first).length, greaterThanOrEqualTo(5));
+    // Selected app is marked.
+    expect(
+      tester.widget<OnboardingAppTile>(find.byWidgetPredicate((w) => w is OnboardingAppTile && w.app is MyWhoosh)).selected,
+      isTrue,
+    );
+
+    await tester.tap(find.byWidgetPredicate((w) => w is OnboardingAppTile && w.app is Zwift));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrainerAppGrid), findsNothing);
+    expect(core.settings.getTrainerApp(), isA<Zwift>());
+    expect(find.descendant(of: card, matching: find.text('Zwift')), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 

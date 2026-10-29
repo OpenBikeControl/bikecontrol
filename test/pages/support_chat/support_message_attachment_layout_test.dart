@@ -65,7 +65,12 @@ Future<void> main() async {
     addTearDown(tester.view.reset);
 
     final service = _FakeSupportChatService();
-    final userMessage = message('u1', SupportMessageSenderRole.user, 'Hallo Jonas,\nhier ein Screenshot.', withImage: true);
+    final userMessage = message(
+      'u1',
+      SupportMessageSenderRole.user,
+      'Hallo Jonas,\nhier ein Screenshot.',
+      withImage: true,
+    );
     final adminMessage = message('a1', SupportMessageSenderRole.admin, 'Hi Lukas,\ndanke dir!');
 
     await tester.pumpWidget(
@@ -114,7 +119,11 @@ Future<void> main() async {
     );
 
     expect(userGroupRect.bottom, greaterThanOrEqualTo(imageRect.bottom), reason: 'the bubble must contain its image');
-    expect(userGroupRect.bottom, greaterThanOrEqualTo(timestamp.bottom), reason: 'the bubble must contain its timestamp');
+    expect(
+      userGroupRect.bottom,
+      greaterThanOrEqualTo(timestamp.bottom),
+      reason: 'the bubble must contain its timestamp',
+    );
     expect(timestamp.top, greaterThanOrEqualTo(imageRect.bottom), reason: 'the timestamp sits below the image');
     expect(
       adminGroupRect.top,
