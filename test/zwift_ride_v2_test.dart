@@ -79,14 +79,6 @@ void main() {
     test('the pinned latest firmware stays 1.2.0', () {
       expect(_ride('1.3.0').latestFirmwareVersion, '1.2.0');
     });
-
-    test('the old firmware notice no longer fires for a Ride V2', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(_ride('1.3.0')), isFalse);
-    });
-
-    test('the old firmware notice stays as the fallback for a Ride past 1.2.0 that is not a V2', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(_ride('1.2.5')), isTrue);
-    });
   });
 
   group('requiresZwiftUnlock', () {

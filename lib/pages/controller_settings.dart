@@ -13,7 +13,6 @@ import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode, shownKeymapName;
 import 'package:bike_control/pages/customize.dart';
@@ -29,7 +28,6 @@ import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:bike_control/widgets/zwift_ride_firmware_notice.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -264,13 +262,6 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
     if (device is SteeringDevice) {
       return SteeringHeroCard(device: device, keymap: core.actionHandler.supportedApp?.keymap);
     }
-    final footer = ZwiftRide.hasUnsupportedFirmware(device)
-        ? Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: ZwiftRideFirmwareNotice(device: device as ZwiftRide),
-          )
-        : null;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -278,7 +269,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
         color: Theme.of(context).colorScheme.card,
         borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
       ),
-      child: device.showInformation(_sheetContext, showFull: true, footer: footer),
+      child: device.showInformation(_sheetContext, showFull: true),
     );
   }
 
