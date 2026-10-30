@@ -25,12 +25,17 @@ class AdvertisedService {
 
   final Map<String, Uint8List> txt;
 
+  /// The mDNS hostname label (without `.local`) to answer for, or null for the
+  /// advertiser's own.
+  final String? hostLabel;
+
   AdvertisedService({
     required this.name,
     required this.type,
     required this.port,
     required this.address,
     required this.txt,
+    this.hostLabel,
   });
 }
 
@@ -88,6 +93,9 @@ class ResponderServiceAdvertiser implements ServiceAdvertiser {
   /// The dedicated mDNS hostname label (without `.local`) all services share.
   /// Null while nothing is advertised.
   String? get hostLabel => null;
+
+  /// The label pinned by the most recent registration, if any.
+  String? get fixedHostLabel => null;
 
   /// Android only: whether the active responder socket holds the multicast
   /// lock. False when nothing is currently advertised.

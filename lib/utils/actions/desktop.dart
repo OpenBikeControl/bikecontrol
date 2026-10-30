@@ -111,7 +111,7 @@ class DesktopActions extends BaseActions {
           'Shortcut launched: ${keyPair.command}',
           button: keyPair.buttons.firstOrNull,
         );
-      } else if (defaultTargetPlatform == TargetPlatform.windows) {
+      } else if (defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux) {
         try {
           final process = await Process.start(commandPath, const [], runInShell: true);
           process.stderr.transform(const Utf8Decoder()).transform(const LineSplitter()).listen((line) {

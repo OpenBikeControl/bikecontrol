@@ -92,6 +92,7 @@ class DirconEmulator {
   Future<void> startServer({
     required RetrofitMode mode,
     Map<String, Uint8List> mdnsTxt = const {},
+    Map<String, Uint8List> Function()? mdnsTxtBuilder,
   }) async {
     isConnected.value = false;
     isStarted.value = true;
