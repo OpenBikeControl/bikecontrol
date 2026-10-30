@@ -87,7 +87,9 @@ abstract class BaseActions {
       // TODO support multiple screens
       final Size displaySize;
       final double devicePixelRatio;
-      if (Platform.isWindows) {
+      if (Platform.isWindows || Platform.isLinux) {
+        // Linux: the embedder reports no display size; screen_retriever gives the
+        // primary monitor in logical pixels, which is what the uinput pointer expects.
         // TODO remove once https://github.com/flutter/flutter/pull/164460 is available in stable
         final display = await screenRetriever.getPrimaryDisplay();
         displaySize = display.size;

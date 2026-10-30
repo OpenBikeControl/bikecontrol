@@ -1,0 +1,20 @@
+name: keypress_simulator_linux
+description: Linux implementation of the keypress_simulator plugin.
+version: 0.2.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  keypress_simulator_platform_interface:
+    path: ../keypress_simulator_platform_interface
+
+flutter:
+  plugin:
+    implements: keypress_simulator
+    platforms:
+      linux:
+        pluginClass: KeypressSimulatorLinuxPlugin

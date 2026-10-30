@@ -1078,6 +1078,13 @@ packages:
       relative: true
     source: path
     version: "0.2.0"
+  keypress_simulator_linux:
+    dependency: transitive
+    description:
+      path: "keypress_simulator/packages/keypress_simulator_linux"
+      relative: true
+    source: path
+    version: "0.2.0"
   keypress_simulator_macos:
     dependency: transitive
     description:

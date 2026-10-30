@@ -35,7 +35,8 @@ bool _supportsNetwork(SupportedApp app) => _supportsObpNetwork(app) || _supports
 bool _supportsBluetooth(SupportedApp app) =>
     app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.zwiftBle);
 
-bool get _localPlatform => HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isAndroid;
+bool get _localPlatform =>
+    HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isAndroid;
 
 /// Whether the trainer app runs on this device and can't reach a BikeControl
 /// bridge here (see [vsSameDeviceBlock]: MyWhoosh on Android, FulGaz, a

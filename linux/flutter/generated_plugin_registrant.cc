@@ -12,6 +12,7 @@
 #include <flutter_volume_controller/flutter_volume_controller_plugin.h>
 #include <gamepads_linux/gamepads_linux_plugin.h>
 #include <gtk/gtk_plugin.h>
+#include <keypress_simulator_linux/keypress_simulator_linux_plugin.h>
 #include <media_key_detector_linux/media_key_detector_plugin.h>
 #include <pasteboard/pasteboard_plugin.h>
 #include <screen_retriever_linux/screen_retriever_linux_plugin.h>
@@ -37,6 +38,9 @@ void fl_register_plugins(FlPluginRegistry* registry) {
   g_autoptr(FlPluginRegistrar) gtk_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "GtkPlugin");
   gtk_plugin_register_with_registrar(gtk_registrar);
+  g_autoptr(FlPluginRegistrar) keypress_simulator_linux_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "KeypressSimulatorLinuxPlugin");
+  keypress_simulator_linux_plugin_register_with_registrar(keypress_simulator_linux_registrar);
   g_autoptr(FlPluginRegistrar) media_key_detector_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "MediaKeyDetectorPlugin");
   media_key_detector_plugin_register_with_registrar(media_key_detector_linux_registrar);

@@ -11,23 +11,23 @@ class PropPrefs {
     _prefs = prefs;
   }
 
-  DateTime? getZwiftClickV2LastUnlock(String deviceId) {
-    final key = 'clickV2_$deviceId';
+  DateTime? getZwiftClickV2LastUnlock(String deviceId, {String keyPrefix = 'clickV2'}) {
+    final key = '${keyPrefix}_$deviceId';
     final timestamp = _prefs.getInt('${key}_unlock_date');
     if (timestamp == null) return null;
     return DateTime.fromMillisecondsSinceEpoch(timestamp);
   }
 
-  void setZwiftClickV2LastUnlock(String deviceId, DateTime dateTime) {
-    final key = 'clickV2_$deviceId';
+  void setZwiftClickV2LastUnlock(String deviceId, DateTime dateTime, {String keyPrefix = 'clickV2'}) {
+    final key = '${keyPrefix}_$deviceId';
     _prefs.setInt("${key}_unlock_date", dateTime.millisecondsSinceEpoch);
   }
 
-  bool notSureIfUnlocked(String deviceId) {
-    return _prefs.getBool('clickV2_${deviceId}_notSure') ?? false;
+  bool notSureIfUnlocked(String deviceId, {String keyPrefix = 'clickV2'}) {
+    return _prefs.getBool('${keyPrefix}_${deviceId}_notSure') ?? false;
   }
 
-  void setNotSureIfUnlocked(String deviceId, bool value) {
-    _prefs.setBool('clickV2_${deviceId}_notSure', value);
+  void setNotSureIfUnlocked(String deviceId, bool value, {String keyPrefix = 'clickV2'}) {
+    _prefs.setBool('${keyPrefix}_${deviceId}_notSure', value);
   }
 }
