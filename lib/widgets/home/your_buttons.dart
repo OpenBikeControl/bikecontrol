@@ -1,6 +1,7 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
+import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -132,13 +133,15 @@ Widget? controllerButtonsPicture({
 
   if (device is SteeringDevice) {
     final steering = device as SteeringDevice;
-    return decorated(SteeringGauge(
-      angle: steering.steeringAngle,
-      calibrated: steering.steeringCalibrated,
-      threshold: steering.steeringThreshold,
-      leftAction: steeringActionFor(keymap, steering.steerLeftButton),
-      rightAction: steeringActionFor(keymap, steering.steerRightButton),
-    ));
+    return decorated(
+      SteeringGauge(
+        angle: steering.steeringAngle,
+        calibrated: steering.steeringCalibrated,
+        threshold: steering.steeringThreshold,
+        leftAction: steeringActionFor(keymap, steering.steerLeftButton),
+        rightAction: steeringActionFor(keymap, steering.steerRightButton),
+      ),
+    );
   }
   final layout = device.controllerLayout;
   if (layout != null) {
@@ -213,8 +216,10 @@ class ControllerButtonsCard extends StatelessWidget {
   final VoidCallback? onSetup;
 
   /// Below this a list beside the picture would squeeze both; the list goes
-  /// under it instead.
-  static const double sideBySideMinWidth = 560;
+  /// under it instead. The list gets 4/9 of the row: at 780 that is ~340 px,
+  /// enough for an action like "Runterschalten" on one line — at the old 560
+  /// (a portrait tablet) it was ~240 and every action broke mid-word.
+  static const double sideBySideMinWidth = 780;
 
   @override
   Widget build(BuildContext context) {
@@ -639,16 +644,26 @@ class _ButtonList extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final buttons = device.availableButtons.distinctBy((b) => b.name).toList();
+    // Its first trigger that does something: the action at the row's end,
+    // the trigger under the name unless a single click.
+    final rows = [
+      for (final button in buttons) (button: button, trigger: mappingActiveTriggers(keymap, button).firstOrNull),
+    ];
+    KeyPair? pairOf(({ControllerButton button, ButtonTrigger? trigger}) row) =>
+        row.trigger == null ? null : keymap.getKeyPair(row.button, trigger: row.trigger!);
+    // An action no connection method that's on can carry: a dash on its row
+    // and one note above them all, not the same sentence on every row.
+    final anyWaits = rows.any((row) => pairOf(row)?.waitsForConnectionMethod ?? false);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final button in buttons)
+        if (anyWaits) _WaitsNote(onUpdate: onUpdate),
+        for (final row in rows)
           Builder(
             builder: (context) {
-              // Its first trigger that does something: the action at the
-              // row's end, the trigger under the name unless a single click.
-              final trigger = mappingActiveTriggers(keymap, button).firstOrNull;
-              final action = trigger == null ? null : keymap.getKeyPair(button, trigger: trigger)?.toString();
+              final (:button, :trigger) = row;
+              final pair = pairOf(row);
+              final action = pair == null || pair.waitsForConnectionMethod ? null : pair.actionLabel;
               final triggerName = trigger != null && trigger != ButtonTrigger.singleClick ? trigger.title : null;
               return BkTappable(
                 key: ValueKey('ride-button-row-${button.name}'),
@@ -723,6 +738,47 @@ class _ButtonList extends StatelessWidget {
             },
           ),
       ],
+    );
+  }
+}
+
+/// "Buttons marked – need a connection method · Open connection settings":
+/// said once above the list, for every row whose action waits for one.
+class _WaitsNote extends StatelessWidget {
+  const _WaitsNote({required this.onUpdate});
+
+  final VoidCallback onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      key: const ValueKey('ride-button-list-waits-note'),
+      padding: const EdgeInsets.fromLTRB(6, 0, 6, 4),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 4,
+        children: [
+          Text(
+            context.i18n.rideButtonsWaitForConnection,
+            style: context.typography.small.copyWith(color: cs.mutedForeground),
+          ),
+          BkTouchTarget(
+            child: Button.ghost(
+              key: const ValueKey('ride-button-list-open-connections'),
+              style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8)),
+              onPressed: () async {
+                await context.push(const TrainerConnectionSettingsPage());
+                onUpdate();
+              },
+              child: Text(
+                context.i18n.openConnectionSettings,
+                style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

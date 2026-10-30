@@ -523,6 +523,7 @@
   "noActionAssigned": "Aucune action assignée",
   "noActionAssignedShort": "(aucune)",
   "actionWaitsForConnectionMethod": "Ne marche pas encore : active une méthode de connexion",
+  "rideButtonsWaitForConnection": "Les boutons marqués – ont besoin d'une méthode de connexion.",
   "noActionAssignedForButton": "Impossible d'effectuer {button}: Aucune action assignée",
   "trainerAppNotConnectedForButton": "Impossible d'effectuer {button} : {app} n'est pas connecté",
   "trainerAppActionUnsupportedForButton": "Impossible d'effectuer {button} : {app} ne le prend pas en charge",

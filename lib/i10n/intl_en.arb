@@ -534,6 +534,7 @@
     "description": "Compact value for a button trigger with no action, shown at the end of a mapping row"
   },
   "actionWaitsForConnectionMethod": "Won't work yet: turn on a connection method",
+  "rideButtonsWaitForConnection": "Buttons marked – need a connection method.",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
   "trainerAppNotConnectedForButton": "Could not perform {button}: {app} is not connected",
   "@trainerAppNotConnectedForButton": {
