@@ -245,12 +245,15 @@ jobs:
           prerelease: true
           bodyFile: /tmp/release_body.md
           tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
 
   windows:
     if: inputs.build_windows
     name: Build & Release on Windows
     runs-on: windows-2025
+
+    permissions:
+      contents: write
 
     steps:
       #1 Checkout Repository
@@ -368,7 +371,7 @@ jobs:
           prerelease: true
           replacesArtifacts: false
           tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
 
   linux:
     if: inputs.build_linux
@@ -485,6 +488,8 @@ jobs:
     name: Publish Linux packages
     needs: linux
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -515,7 +520,7 @@ jobs:
           omitBodyDuringUpdate: true
           replacesArtifacts: false
           tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
 
       # Fixed file names under a fixed tag, so the download links on the
       # website and the app's update check never change.
@@ -537,4 +542,4 @@ jobs:
             The Local connection method needs write access to `/dev/uinput`. The `.deb` sets that up; with the AppImage, BikeControl shows the one-line udev rule to add.
           commit: ${{ github.sha }}
           tag: linux-latest
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
