@@ -229,14 +229,19 @@ Future<void> main() async {
     expect(onboardingConnectionCanFinish(hasNoConnectionMethod: true, networkBlocking: false), isFalse);
   });
   group('gate', () {
-    NetworkMethodTarget target(NetworkMethodKind kind, {bool started = true, bool connected = false}) =>
-        NetworkMethodTarget(
-          kind: kind,
-          serverLabel: kind.name,
-          preferredPort: 1,
-          isStarted: ValueNotifier(started),
-          isConnected: ValueNotifier(connected),
-        );
+    NetworkMethodTarget target(
+      NetworkMethodKind kind, {
+      bool started = true,
+      bool connected = false,
+      bool Function()? listening,
+    }) => NetworkMethodTarget(
+      kind: kind,
+      serverLabel: kind.name,
+      preferredPort: 1,
+      isStarted: ValueNotifier(started),
+      isConnected: ValueNotifier(connected),
+      isListening: listening ?? () => true,
+    );
 
     test('the trainer app connecting through the method lifts a failed check', () async {
       final gate = OnboardingNetworkPrecheckGate(
@@ -313,6 +318,66 @@ Future<void> main() async {
       await gate.pendingRun;
       expect(runs, 2);
       expect(gate.blocking, isTrue);
+      gate.dispose();
+    });
+
+    test('waits for the server to listen before checking', () async {
+      // Regression: isStarted turns true before the TCP server has bound, so
+      // a check run on that flip reported "Network method running" as failed.
+      var runs = 0;
+      var listening = false;
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (_) {
+          runs++;
+          return _precheck([_s(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+        },
+        listenPollInterval: const Duration(milliseconds: 5),
+      );
+      gate.sync(wanted: true, target: target(NetworkMethodKind.openBikeControl, listening: () => listening));
+      final run = gate.pendingRun;
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      expect(gate.precheck, isNull);
+      expect(runs, 0);
+
+      listening = true;
+      await run;
+      expect(runs, 1);
+      gate.dispose();
+    });
+
+    test('checks anyway once the server never comes up', () async {
+      var runs = 0;
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (_) {
+          runs++;
+          return _precheck([_s(NetworkCheckId.methodListening, NetworkVerdict.fail)]);
+        },
+        listenPollInterval: const Duration(milliseconds: 5),
+        listenTimeout: const Duration(milliseconds: 40),
+      );
+      gate.sync(wanted: true, target: target(NetworkMethodKind.openBikeControl, listening: () => false));
+      await gate.pendingRun;
+      expect(runs, 1);
+      expect(gate.blocking, isTrue);
+      gate.dispose();
+    });
+
+    test('a method switched off while waiting is never checked', () async {
+      var runs = 0;
+      final gate = OnboardingNetworkPrecheckGate(
+        createPrecheck: (_) {
+          runs++;
+          return _precheck([_s(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
+        },
+        listenPollInterval: const Duration(milliseconds: 5),
+        listenTimeout: const Duration(milliseconds: 40),
+      );
+      gate.sync(wanted: true, target: target(NetworkMethodKind.openBikeControl, listening: () => false));
+      final run = gate.pendingRun;
+      gate.sync(wanted: false, target: null);
+      await run;
+      expect(runs, 0);
+      expect(gate.precheck, isNull);
       gate.dispose();
     });
 
