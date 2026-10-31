@@ -14,6 +14,7 @@ import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
+import 'package:bike_control/utils/iap/linux_iap_service.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
 import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
@@ -40,6 +41,9 @@ enum PurchaseChannel {
   /// The Windows download from the website: Stripe, behind a sign-in.
   windowsDirect,
 
+  /// Linux: Base is free, Pro goes through Stripe behind a sign-in.
+  linuxDirect,
+
   /// No purchases here (the web, tests).
   none;
 
@@ -63,6 +67,7 @@ class IAPManager {
 
   RevenueCatService? _revenueCatService;
   WindowsIAPService? _windowsIapService;
+  LinuxIAPService? _linuxIapService;
   StreamSubscription<AuthState>? _authSubscription;
   bool _isInitialized = false;
 
@@ -199,6 +204,7 @@ class IAPManager {
       if (HostPlatform.isAndroid) return PurchaseChannel.playStore;
     }
     if (isWindows) return isOutsideStoreWindowsBuild ? PurchaseChannel.windowsDirect : PurchaseChannel.microsoftStore;
+    if (_linuxIapService != null) return PurchaseChannel.linuxDirect;
     return PurchaseChannel.none;
   }
 
@@ -246,6 +252,9 @@ class IAPManager {
           premiumProductKeyYearly: premiumYearlyProductKey,
         );
         await _revenueCatService!.initialize();
+      } else if (Platform.isLinux) {
+        _linuxIapService = LinuxIAPService();
+        await _linuxIapService!.initialize();
       } else {
         throw UnsupportedError('Unsupported platform for IAP: ${Platform.operatingSystem}');
       }
@@ -399,6 +408,11 @@ class IAPManager {
 
   /// Purchase the full version.
   Future<void> purchaseFullVersion(BuildContext context, {bool fromPaywall = false}) async {
+    // Base is free on Linux: there is nothing to buy, only Pro to show.
+    if (_linuxIapService != null) {
+      if (!fromPaywall) return _showPaywall(context, true);
+      return;
+    }
     if (isOutsideStoreWindowsBuild) {
       if (!fromPaywall) {
         return _showPaywall(context, false);
@@ -437,6 +451,11 @@ class IAPManager {
       );
     } else if (_windowsIapService != null) {
       return _windowsIapService!.purchaseSubscription(
+        context,
+        yearly: plan == SubscriptionPlan.yearly,
+      );
+    } else if (_linuxIapService != null) {
+      return _linuxIapService!.purchaseSubscription(
         context,
         yearly: plan == SubscriptionPlan.yearly,
       );
@@ -498,15 +517,18 @@ class IAPManager {
       return _revenueCatService!.openBillingPortal(context, managementUrl: storeManagementUrl);
     } else if (_windowsIapService != null) {
       return _windowsIapService!.openBillingPortal(context);
+    } else if (_linuxIapService != null) {
+      return _linuxIapService!.openBillingPortal(context);
     } else {
       return false;
     }
   }
 
-  /// Check if user has a Stripe customer record (Windows only)
+  /// Check if user has a Stripe customer record (Windows and Linux)
   Future<bool> hasStripeCustomer() async {
-    if (_windowsIapService == null) return false;
-    return _windowsIapService!.hasStripeCustomer();
+    if (_windowsIapService != null) return _windowsIapService!.hasStripeCustomer();
+    if (_linuxIapService != null) return _linuxIapService!.hasStripeCustomer();
+    return false;
   }
 
   /// Dispose the manager.
@@ -563,6 +585,7 @@ class IAPManager {
         // which are not a fresh login and would fire on every launch.
         if (event == AuthChangeEvent.signedIn && isLoggedIn) {
           await _windowsIapService?.resumePendingPurchaseAfterLogin(isAlreadyPro: isProEnabled);
+          await _linuxIapService?.resumePendingPurchaseAfterLogin(isAlreadyPro: isProEnabled);
         }
         return;
       case AuthChangeEvent.signedOut:
@@ -574,6 +597,8 @@ class IAPManager {
         // reset isPurchased value
         if (Platform.isWindows) {
           await _windowsIapService?.initialize();
+        } else if (Platform.isLinux) {
+          await _linuxIapService?.initialize();
         } else if (Platform.isIOS || Platform.isMacOS || Platform.isAndroid) {
           await _revenueCatService?.initialize();
         }

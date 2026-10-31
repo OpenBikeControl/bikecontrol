@@ -204,6 +204,7 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
 
   Future<void> _load({bool scrollToDevices = false}) async {
     if (_iap.purchaseChannel == PurchaseChannel.windowsDirect ||
+        _iap.purchaseChannel == PurchaseChannel.linuxDirect ||
         _iap.purchaseChannel == PurchaseChannel.microsoftStore) {
       unawaited(_loadBillingPortal());
     }
@@ -370,7 +371,7 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
   SubscriptionStore? get _manageTarget {
     if (!_iap.isProEnabled) return null;
     switch (_iap.purchaseChannel) {
-      case PurchaseChannel.windowsDirect || PurchaseChannel.microsoftStore:
+      case PurchaseChannel.windowsDirect || PurchaseChannel.linuxDirect || PurchaseChannel.microsoftStore:
         return _hasBillingPortal ? SubscriptionStore.billingPortal : null;
       case PurchaseChannel.appStore || PurchaseChannel.macAppStore || PurchaseChannel.playStore:
         final store = _iap.subscriptionTerm?.store;
@@ -388,8 +389,10 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
     final l10n = AppLocalizations.of(context);
     final channel = _iap.purchaseChannel;
     final manage = _manageTarget;
-    // On the Windows download Pro needs an account: Konto comes first.
-    final accountFirst = channel == PurchaseChannel.windowsDirect && !_signedIn;
+    // On the Windows download and on Linux Pro needs an account: Konto comes
+    // first.
+    final accountFirst =
+        (channel == PurchaseChannel.windowsDirect || channel == PurchaseChannel.linuxDirect) && !_signedIn;
 
     // Manage lives under Purchases; the plan card links to it only where
     // Purchases is out of sight (narrow), unless a billing issue needs it.
@@ -422,6 +425,8 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
         onSignedIn: () => setState(() {}),
         note: !_signedIn && channel == PurchaseChannel.windowsDirect
             ? l10n.windowsSubscriptionsRequireYouToBeLoggedIn
+            : !_signedIn && channel == PurchaseChannel.linuxDirect
+            ? l10n.linuxSubscriptionsRequireYouToBeLoggedIn
             : !_signedIn && _iap.isProEnabled
             ? l10n.signInToBringProToOtherDevices
             : l10n.signInToSyncYourSubscriptionAndManageDevices,

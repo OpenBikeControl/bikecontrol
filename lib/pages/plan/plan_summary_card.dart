@@ -164,7 +164,13 @@ class PlanSummaryCard extends StatelessWidget {
   List<Widget> _base(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return [
-      _header(context, name: planName(context, PlanTier.base), tag: l10n.planOneTimePurchase),
+      _header(
+        context,
+        name: planName(context, PlanTier.base),
+        tag: IAPManager.instance.purchaseChannel == PurchaseChannel.linuxDirect
+            ? l10n.planFreeOnLinux
+            : l10n.planOneTimePurchase,
+      ),
       const Gap(12),
       _Check(l10n.planBaseUnlimitedCommands),
       const Gap(6),
