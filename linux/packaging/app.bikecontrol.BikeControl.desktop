@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=BikeControl
+GenericName=Smart bike controller bridge
+Comment=Use your bike's controllers and smart trainer with any training app
+Exec=bikecontrol %u
+Icon=app.bikecontrol.BikeControl
+Terminal=false
+Categories=Utility;Sports;
+Keywords=Zwift;MyWhoosh;Rouvy;trainer;shifting;controller;
+StartupWMClass=app.bikecontrol.BikeControl
+MimeType=x-scheme-handler/bikecontrol;

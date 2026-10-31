@@ -1,0 +1,4 @@
+# BikeControl's Local connection method presses keys and clicks in the trainer
+# app through virtual input devices on /dev/uinput. Let the user at the seat
+# create them, as Steam does for Steam Input.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

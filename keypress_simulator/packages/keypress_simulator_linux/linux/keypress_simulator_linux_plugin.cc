@@ -244,7 +244,8 @@ static FlMethodResponse* simulate_mouse_click(FlKeypressSimulatorLinuxPlugin* se
 
   // x/y are relative to the primary monitor.
   auto scale = [](double value, int origin, int size) {
-    return std::clamp(static_cast<int>(std::lround((value - origin) * kAbsMax / size)), 0, kAbsMax);
+    // std::clamp is C++17; plugins build as C++14 (apply_standard_settings).
+    return std::max(0, std::min(static_cast<int>(std::lround((value - origin) * kAbsMax / size)), kAbsMax));
   };
   const int abs_x = scale(primary.x + x, bounds.x, bounds.width);
   const int abs_y = scale(primary.y + y, bounds.y, bounds.height);
