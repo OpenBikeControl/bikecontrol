@@ -51,6 +51,9 @@ class Logger {
   /// no-op outside debug builds.
   static void Function(String message)? onTrace;
 
+  /// High-level lines the app shows with its own log. Stubbed: never called.
+  static void Function(String message)? onEvent;
+
   /// Emit a verbose wire trace. [build] runs only when a sink is attached or
   /// the build is a debug build.
   static void trace(String Function() build, {bool record = true}) {

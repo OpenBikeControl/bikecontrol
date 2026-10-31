@@ -1,4 +1,5 @@
 export 'devices/click_logic.dart';
+export 'devices/shimano/shimano_config.dart';
 export 'devices/sram/sram_advertisement.dart';
 export 'devices/sram/sram_axs_bond.dart' show SramBondException;
 export 'devices/sram/sram_axs_constants.dart';

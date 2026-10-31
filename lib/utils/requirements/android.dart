@@ -232,6 +232,9 @@ class NotificationRequirement extends PlatformRequirement {
           appUserModelId: 'OpenBikeControl.BikeControl',
           guid: '00000012-0000-1000-8000-00805f9b34fb',
         ),
+        linux: LinuxInitializationSettings(
+          defaultActionName: 'Open BikeControl',
+        ),
       ),
       onDidReceiveBackgroundNotificationResponse: Platform.isMacOS ? null : notificationTapBackground,
       onDidReceiveNotificationResponse: (n) {
@@ -242,7 +245,10 @@ class NotificationRequirement extends PlatformRequirement {
     );
     // The app was started by tapping a ride's push: open it once the first
     // screen stands.
-    final launch = await core.flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+    // Not implemented on Linux, where a notification can't launch the app.
+    final launch = Platform.isLinux
+        ? null
+        : await core.flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
     final payload = launch?.didNotificationLaunchApp == true ? launch?.notificationResponse?.payload : null;
     if (payload != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(openRideFromNotification(payload)));

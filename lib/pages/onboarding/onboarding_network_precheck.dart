@@ -154,10 +154,23 @@ class OnboardingNetworkPrecheck extends ChangeNotifier {
 /// its place, and stops holding the step once the trainer app is connected
 /// through the method.
 class OnboardingNetworkPrecheckGate extends ChangeNotifier {
-  OnboardingNetworkPrecheckGate({OnboardingNetworkPrecheck Function(NetworkMethodKind kind)? createPrecheck})
-    : _createPrecheck = createPrecheck ?? ((_) => OnboardingNetworkPrecheck());
+  OnboardingNetworkPrecheckGate({
+    OnboardingNetworkPrecheck Function(NetworkMethodKind kind)? createPrecheck,
+    Duration listenPollInterval = const Duration(milliseconds: 100),
+    Duration listenTimeout = const Duration(seconds: 5),
+  }) : _createPrecheck = createPrecheck ?? ((_) => OnboardingNetworkPrecheck()),
+       _listenPollInterval = listenPollInterval,
+       _listenTimeout = listenTimeout;
 
   final OnboardingNetworkPrecheck Function(NetworkMethodKind kind) _createPrecheck;
+  final Duration _listenPollInterval;
+
+  /// How long to wait for the server to bind before checking anyway, so a
+  /// server that never comes up is still reported.
+  final Duration _listenTimeout;
+
+  /// The target a wait for [NetworkMethodTarget.isListening] is running for.
+  NetworkMethodTarget? _waitingFor;
 
   NetworkMethodTarget? _target;
   OnboardingNetworkPrecheck? _precheck;
@@ -213,12 +226,28 @@ class OnboardingNetworkPrecheckGate extends ChangeNotifier {
 
   void _evaluate() {
     final target = _target;
-    if (_disposed || target == null || _precheck != null) return;
+    if (_disposed || target == null || _precheck != null || identical(_waitingFor, target)) return;
     if (!target.isStarted.value || target.isConnected.value) return;
+    _waitingFor = target;
+    _pendingRun = _runOnceListening(target);
+  }
+
+  /// [NetworkMethodTarget.isStarted] turns true before the server has bound,
+  /// and a check run then reports the method as not running. Nothing announces
+  /// the bind, so it is polled for, up to [_listenTimeout].
+  Future<void> _runOnceListening(NetworkMethodTarget target) async {
+    final deadline = DateTime.now().add(_listenTimeout);
+    while (!target.isListening && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(_listenPollInterval);
+      if (!identical(_target, target)) return;
+    }
+    if (_disposed || !identical(_target, target)) return;
+    _waitingFor = null;
+    if (_precheck != null || !target.isStarted.value || target.isConnected.value) return;
     final precheck = _createPrecheck(target.kind)..addListener(notifyListeners);
     _precheck = precheck;
-    _pendingRun = precheck.run();
     notifyListeners();
+    await precheck.run();
   }
 
   void _onConnectedChanged() {
@@ -231,6 +260,7 @@ class OnboardingNetworkPrecheckGate extends ChangeNotifier {
     _target?.isStarted.removeListener(_evaluate);
     _target?.isConnected.removeListener(_onConnectedChanged);
     _target = null;
+    _waitingFor = null;
     final precheck = _precheck;
     _precheck = null;
     _pendingRun = null;

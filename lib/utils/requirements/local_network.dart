@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/services/local_network_access.dart';
 import 'package:bike_control/utils/demo_mode.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_network_permission/local_network_permission.dart';
@@ -54,6 +55,6 @@ class LocalNetworkRequirement extends PlatformRequirement {
 /// bridging methods back off mid-capture.
 List<PlatformRequirement> localNetworkRequirements() {
   if (screenshotMode || demoHidePermissions) return const [];
-  if (kIsWeb || !(Platform.isIOS || Platform.isMacOS)) return const [];
+  if (!(HostPlatform.isIOS || HostPlatform.isMacOS)) return const [];
   return [LocalNetworkRequirement()];
 }

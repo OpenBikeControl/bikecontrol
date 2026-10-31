@@ -366,6 +366,7 @@
   "enableBluetooth": "Activer le Bluetooth",
   "enableItInTheConnectionSettingsFirst": "Active-le d'abord dans les paramètres de connexion.",
   "enableKeyboardAccessMessage": "Active l'accès au clavier dans l'écran suivant pour BikeControl. Si tu ne vois pas BikeControl, ajoute-le manuellement.",
+  "enableKeyboardAccessLinuxMessage": "BikeControl simule les touches via /dev/uinput, mais n'a pas le droit d'y écrire. Accordez-le avec une règle udev, par ex. KERNEL==\"uinput\", TAG+=\"uaccess\" dans /etc/udev/rules.d/60-bikecontrol-uinput.rules, puis déconnectez-vous et reconnectez-vous.",
   "enableKeyboardMouseControl": "BikeControl envoie pour vous les appuis de votre contrôleur à {appName}, sans rien saisir.",
   "@enableKeyboardMouseControl": {
     "placeholders": {

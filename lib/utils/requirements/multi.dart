@@ -20,11 +20,16 @@ import 'package:url_launcher/url_launcher_string.dart';
 class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super(AppLocalizations.current.keyboardAccess, icon: LucideIcons.keyboard);
 
+  /// Linux has no settings screen to send the rider to: access to /dev/uinput
+  /// is granted outside the app, so the message says how.
+  @visibleForTesting
+  static String accessMessage() => HostPlatform.isLinux
+      ? AppLocalizations.current.enableKeyboardAccessLinuxMessage
+      : AppLocalizations.current.enableKeyboardAccessMessage;
+
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
-    buildToast(
-      title: AppLocalizations.current.enableKeyboardAccessMessage,
-    );
+    buildToast(title: accessMessage());
     await keyPressSimulator.requestAccess(onlyOpenPrefPane: Platform.isMacOS);
   }
 

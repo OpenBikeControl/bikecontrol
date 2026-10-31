@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_volume_controller
   gamepads_linux
   gtk
+  keypress_simulator_linux
   media_key_detector_linux
   pasteboard
   screen_retriever_linux
