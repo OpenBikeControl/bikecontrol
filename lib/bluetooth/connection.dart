@@ -1148,8 +1148,15 @@ class Connection {
           }
         });
       } else if (available == AvailabilityState.poweredOff) {
-        disconnectAll();
-        stop();
+        // Gamepads and Wi-Fi trainers don't need Bluetooth: keep looking for
+        // them if we were. In order, as disconnectAll cancels gamepad polling
+        // once its teardown finishes.
+        final wasDiscovering = _gamePadSearchTimer != null;
+        unawaited(() async {
+          await disconnectAll();
+          await stop();
+          if (wasDiscovering) startNonBluetoothDiscovery();
+        }());
       }
     };
     UniversalBle.onScanResult = (result) {
@@ -1288,6 +1295,7 @@ class Connection {
       // permission revoked in System Settings surfaces here rather than as a
       // silently dead connection.
       if (!core.logic.deferLaunchPermissions) {
+        startNonBluetoothDiscovery();
         core.permissions.getScanRequirements().then((perms) {
           if (Permissions.blockingScan(perms).isEmpty) {
             performScanning();
@@ -1331,16 +1339,36 @@ class Connection {
       });
     }
 
+    // Before the Bluetooth scan: a machine without a usable adapter makes it
+    // throw, and gamepads and Wi-Fi trainers don't need one.
+    startNonBluetoothDiscovery();
+
     await UniversalBle.startScan(
       // allow all to enable Wahoo Kickr Bike Shift detection
       //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
       platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
     );
 
-    if (!kIsWeb) {
-      _startWifiTrainerDiscovery();
-      _gamePadSearchTimer = Timer.periodic(Duration(seconds: 3), (_) {
-        Gamepads.list().then((list) {
+    if (kIsWeb) {
+      isScanning.value = false;
+    }
+  }
+
+  /// Start listing USB/Bluetooth gamepads and Wi-Fi trainers. Neither needs
+  /// Bluetooth, so this also runs when there is no adapter or it is off, and
+  /// a PC without one still finds them. Idempotent; [stop] ends it.
+  void startNonBluetoothDiscovery() {
+    if (kIsWeb || screenshotMode) return;
+    _startWifiTrainerDiscovery();
+    if (_gamePadSearchTimer == null) {
+      _gamePadSearchTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollGamepads());
+      _pollGamepads();
+    }
+  }
+
+  void _pollGamepads() {
+    Gamepads.list()
+        .then((list) {
           // Each listed controller subscribes to the event stream to track its
           // state. Only id and name are needed: dispose them, else every poll
           // leaves one more listener per pad running on every input event.
@@ -1359,15 +1387,14 @@ class Connection {
             _connectionSubscriptions.remove(device);
             signalChange(device);
           }
+        })
+        .catchError((Object e, StackTrace s) {
+          recordError(e, s, context: 'Listing gamepads');
         });
-      });
-    } else {
-      isScanning.value = false;
-    }
   }
 
-  /// Browse the LAN for DirCon trainers (always on while scanning; the
-  /// scanner excludes BikeControl's own advertisements). Failures — e.g. the
+  /// Browse the LAN for DirCon trainers (on with [startNonBluetoothDiscovery];
+  /// the scanner excludes BikeControl's own advertisements). Failures — e.g. the
   /// user denied the Local Network permission — are logged and never affect
   /// BLE scanning.
   void _startWifiTrainerDiscovery() {
@@ -2079,6 +2106,7 @@ class Connection {
     }
     await Future.wait(sensorSourceTeardowns);
     _gamePadSearchTimer?.cancel();
+    _gamePadSearchTimer = null;
     _lastScanResult.clear();
     // Everything is gone, so the battery-saver suppression is moot — a later
     // rediscovery should auto-connect normally again.

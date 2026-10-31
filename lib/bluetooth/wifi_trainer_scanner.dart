@@ -54,14 +54,30 @@ class WifiTrainerScanner {
       }
       return;
     }
+    return _starting ??= _open().whenComplete(() => _starting = null);
+  }
+
+  /// The [start] in progress, so overlapping calls open one browser.
+  Future<void>? _starting;
+
+  /// Bumped by [stop], so a start it overtook doesn't leave a browser running.
+  var _generation = 0;
+
+  Future<void> _open() async {
+    final generation = _generation;
     _localAddresses = await _listLocalAddresses();
     final browser = _createBrowser();
     await browser.start(serviceType, handleService);
+    if (generation != _generation) {
+      await browser.stop();
+      return;
+    }
     _browser = browser;
     OwnMdnsBrowsing.begin();
   }
 
   Future<void> stop() async {
+    _generation++;
     final browser = _browser;
     _browser = null;
     _known.clear();

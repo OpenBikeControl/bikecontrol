@@ -152,6 +152,23 @@ void main() {
       expect(browser.stopped, isTrue);
     });
 
+    // Launch starts discovery and then the Bluetooth scan, which starts it
+    // again before the first start has finished.
+    test('overlapping starts open one browser', () async {
+      var created = 0;
+      final scanner = WifiTrainerScanner(
+        onFound: (_) {},
+        onLost: (_) {},
+        createBrowser: () {
+          created++;
+          return _FakeBrowser();
+        },
+      );
+      await Future.wait([scanner.start(), scanner.start()]);
+      expect(created, 1);
+      await scanner.stop();
+    });
+
     test('a browser that fails to stop does not break teardown', () async {
       final scanner = WifiTrainerScanner(
         onFound: (_) {},

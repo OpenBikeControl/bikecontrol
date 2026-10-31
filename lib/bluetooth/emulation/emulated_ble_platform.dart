@@ -99,6 +99,9 @@ class FakeUniversalBlePlatform extends UniversalBlePlatform {
   bool scanning = false;
   AvailabilityState availability = AvailabilityState.poweredOn;
 
+  /// Thrown by [startScan] when set: a machine without a usable adapter.
+  Object? startScanError;
+
   /// Register a peripheral. When a scan is running it shows up immediately.
   void addPeripheral(FakePeripheral peripheral) {
     peripherals[peripheral.deviceId] = peripheral;
@@ -136,6 +139,7 @@ class FakeUniversalBlePlatform extends UniversalBlePlatform {
     peripherals.clear();
     scanning = false;
     availability = AvailabilityState.poweredOn;
+    startScanError = null;
   }
 
   FakePeripheral _require(String deviceId) {
@@ -157,6 +161,8 @@ class FakeUniversalBlePlatform extends UniversalBlePlatform {
 
   @override
   Future<void> startScan({ScanFilter? scanFilter, PlatformConfig? platformConfig}) async {
+    final error = startScanError;
+    if (error != null) throw error;
     scanning = true;
     for (final peripheral in peripherals.values) {
       updateScanResult(peripheral.scanResult);
