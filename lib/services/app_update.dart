@@ -18,7 +18,14 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 /// Where an available update comes from — each has its own way of being
 /// applied (see [applyAppUpdate]).
-enum UpdateType { playStore, shorebird, appStore, windowsStore }
+enum UpdateType { playStore, shorebird, appStore, windowsStore, linuxDownload }
+
+/// The Linux packages' version, published by CI next to the .deb and AppImage
+/// on the rolling `linux-latest` release.
+const linuxVersionUrl = 'https://github.com/OpenBikeControl/bikecontrol/releases/download/linux-latest/VERSION.txt';
+
+/// Where a Linux rider picks up the new .deb or AppImage.
+const linuxDownloadPage = 'https://github.com/OpenBikeControl/bikecontrol/releases/tag/linux-latest';
 
 /// An update the rider can install right now.
 class AppUpdate {
@@ -98,6 +105,10 @@ Future<AppUpdate?> checkForAppUpdate() async {
       );
       if (res.statusCode != 200) return null;
       return _storeUpdate(res.body.trim(), current);
+    } else if (Platform.isLinux) {
+      final res = await http.get(Uri.parse(linuxVersionUrl), headers: {'User-Agent': 'Mozilla/5.0'});
+      if (res.statusCode != 200) return null;
+      return _storeUpdate(res.body.trim(), current);
     }
   } on Exception catch (e, s) {
     if (Platform.isAndroid) isFromPlayStore = false;
@@ -107,12 +118,23 @@ Future<AppUpdate?> checkForAppUpdate() async {
 }
 
 AppUpdate? _storeUpdate(String versionString, Version current) {
+  if (kDebugMode) return null;
+  return storeUpdateFor(versionString, current, platform: defaultTargetPlatform);
+}
+
+/// The update [versionString] from [platform]'s store means for [current], or
+/// null when it is not newer.
+@visibleForTesting
+AppUpdate? storeUpdateFor(String versionString, Version current, {required TargetPlatform platform}) {
   final parsed = Version.parse(versionString);
-  if (parsed <= current || kDebugMode) return null;
-  if (Platform.isAndroid) return AppUpdate(type: UpdateType.playStore, version: parsed);
-  if (Platform.isIOS || Platform.isMacOS) return AppUpdate(type: UpdateType.appStore, version: parsed);
-  if (Platform.isWindows) return AppUpdate(type: UpdateType.windowsStore, version: parsed);
-  return null;
+  if (parsed <= current) return null;
+  return switch (platform) {
+    TargetPlatform.android => AppUpdate(type: UpdateType.playStore, version: parsed),
+    TargetPlatform.iOS || TargetPlatform.macOS => AppUpdate(type: UpdateType.appStore, version: parsed),
+    TargetPlatform.windows => AppUpdate(type: UpdateType.windowsStore, version: parsed),
+    TargetPlatform.linux => AppUpdate(type: UpdateType.linuxDownload, version: parsed),
+    TargetPlatform.fuchsia => null,
+  };
 }
 
 /// Installs [update]: a Shorebird patch is already downloaded, so the app just
@@ -141,6 +163,8 @@ Future<void> applyAppUpdate(AppUpdate update) async {
             : 'ms-windows-store://pdp/?productid=9NP42GS03Z26',
         mode: LaunchMode.externalApplication,
       );
+    case UpdateType.linuxDownload:
+      await launchUrlString(linuxDownloadPage, mode: LaunchMode.externalApplication);
   }
 }
 
