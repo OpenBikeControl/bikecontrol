@@ -25,6 +25,10 @@ class MdnsQueryLogEntry {
   /// How many times this exact query was seen in a row.
   int count;
 
+  /// Whether BikeControl itself was browsing when this query was seen, so it
+  /// may be our own.
+  final bool duringOwnBrowse;
+
   MdnsQueryLogEntry({
     required this.at,
     required this.source,
@@ -34,10 +38,25 @@ class MdnsQueryLogEntry {
     required this.answeredUnicast,
     required this.answeredMulticast,
     this.count = 1,
+    this.duringOwnBrowse = false,
   });
 
   String get reply => '';
 
   @override
   String toString() => '$source:$sourcePort';
+}
+
+/// Marks the stretches where BikeControl browses mDNS itself, so the query log
+/// can tell its own queries apart. Calls nest.
+class OwnMdnsBrowsing {
+  static int _depth = 0;
+
+  static bool get active => _depth > 0;
+
+  static void begin() => _depth++;
+
+  static void end() {
+    if (_depth > 0) _depth--;
+  }
 }

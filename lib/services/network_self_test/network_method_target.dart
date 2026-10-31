@@ -6,6 +6,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:prop/mdns/service_advertiser.dart';
+import 'package:prop/utils/resilient_tcp_server.dart';
 
 /// Which mDNS network method the self-test examines.
 enum NetworkMethodKind { openBikeControl, rouvyMdns, zwiftMdns }
@@ -36,13 +37,21 @@ class NetworkMethodTarget {
   final ValueListenable<bool> isStarted;
   final ValueListenable<bool> isConnected;
 
+  final bool Function()? _isListening;
+
   const NetworkMethodTarget({
     required this.kind,
     required this.serverLabel,
     required this.preferredPort,
     required this.isStarted,
     required this.isConnected,
-  });
+    bool Function()? isListening,
+  }) : _isListening = isListening;
+
+  /// Whether the server behind the method has bound its port. [isStarted]
+  /// turns true when a start begins, before the address pick and the bind.
+  bool get isListening =>
+      _isListening?.call() ?? ResilientTcpServer.activeServers.any((s) => s.label == serverLabel && s.isRunning);
 
   /// Which mDNS backend registers the method's advertisement. Only the
   /// OpenBikeControl advertisement can be handed to the OS responder (the

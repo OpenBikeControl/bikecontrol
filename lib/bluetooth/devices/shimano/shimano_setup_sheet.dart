@@ -482,6 +482,12 @@ class ShimanoPasskeyField extends StatelessWidget {
           keyboardType: TextInputType.number,
           maxLength: 6,
           placeholder: Text(ShimanoAuth.defaultPasskey),
+          // The iOS number pad has no return key: close it once the passkey is
+          // complete or on a tap elsewhere, else it covers Retry.
+          onChanged: (value) {
+            if (value.length == 6) FocusScope.of(context).unfocus();
+          },
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
         ),
         const Gap(6),
         Text(

@@ -16,6 +16,9 @@ class ZwiftClickDefinition extends ProxyBikeDefinition {
   final ValueNotifier<bool> waiting;
   final ValueNotifier<bool> isStarted;
 
+  /// Prefix of the prefs keys this controller's unlock state is stored under.
+  final String unlockKeyPrefix;
+
   ZwiftClickDefinition({
     required super.services,
     required this.isUnlocked,
@@ -26,6 +29,7 @@ class ZwiftClickDefinition extends ProxyBikeDefinition {
     required this.vendorMessage,
     required super.device,
     required super.data,
+    this.unlockKeyPrefix = 'clickV2',
   });
 
   @override

@@ -368,6 +368,7 @@
   "enableBluetooth": "Enable Bluetooth",
   "enableItInTheConnectionSettingsFirst": "Enable it in the connection settings first.",
   "enableKeyboardAccessMessage": "Enable keyboard access in the following screen for BikeControl. If you don't see BikeControl, please add it manually.",
+  "enableKeyboardAccessLinuxMessage": "BikeControl simulates keys through /dev/uinput, but has no write access to it. Grant it with a udev rule, e.g. KERNEL==\"uinput\", TAG+=\"uaccess\" in /etc/udev/rules.d/60-bikecontrol-uinput.rules, then log out and back in.",
   "enableKeyboardMouseControl": "BikeControl sends your controller's button presses to {appName} for you, no typing needed.",
   "@enableKeyboardMouseControl": {
     "placeholders": {
@@ -534,6 +535,7 @@
     "description": "Compact value for a button trigger with no action, shown at the end of a mapping row"
   },
   "actionWaitsForConnectionMethod": "Won't work yet: turn on a connection method",
+  "rideButtonsWaitForConnection": "Buttons marked – need a connection method.",
   "noActionAssignedForButton": "Could not perform {button}: No action assigned",
   "trainerAppNotConnectedForButton": "Could not perform {button}: {app} is not connected",
   "@trainerAppNotConnectedForButton": {
@@ -1029,7 +1031,7 @@
   "paywall_startAnyCommandShortcutWithAnyButton": "Start any command / shortcut with any button",
   "paywall_supportDevelopmentOfNewFeaturesDevicesAndMore": "Support development of new features / devices and more",
   "paywall_synchronizeAndBackup": "Synchronize and backup",
-  "paywall_useBikecontrolOnAllPlatforms": "BikeControl on iPhone & iPad, Android, Mac and Windows, with one account",
+  "paywall_useBikecontrolOnAllPlatforms": "BikeControl on iPhone & iPad, Android, Mac, Windows and Linux, with one account",
   "paywall_yearly": "Yearly",
   "permissionsRequired": "In order for BikeControl to search for nearby devices and update you when the connection changes, please enable the following permissions:",
   "proSubscriptionRequiredForAction": "Pro subscription required for this action",
@@ -1283,6 +1285,7 @@
   "whatsNew": "What's New",
   "whyPermissionNeeded": "Why is this permission needed?",
   "windowsSubscriptionsRequireYouToBeLoggedIn": "Windows subscriptions require you to be logged in",
+  "linuxSubscriptionsRequireYouToBeLoggedIn": "Linux subscriptions require you to be logged in",
   "yes": "Yes",
   "yourDevices": "Your Devices",
   "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "Your settings are automatically synced when you make changes. Tap on a device to apply its settings.",
@@ -2435,6 +2438,7 @@
   "paywall_shiftInYourApp": "Your buttons shift & steer in your trainer app, using the app's own virtual shifting",
   "paywall_bikeControlShifts": "BikeControl shifts your trainer itself — custom gears, front shifting, any trainer",
   "paywall_baseStoreNote": "One-time purchase for the {store} version. It doesn't transfer to other stores or platforms — Pro does.",
+  "paywall_baseFreeOnLinux": "Base is free on Linux — no purchase needed.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "direct download",
   "purchaseBaseDoneTitle": "You now have Base",
@@ -2574,6 +2578,7 @@
   "billingPortalErrorBody": "Failed to open the billing portal. Please try again.",
   "loginRequiredTitle": "Login required",
   "loginRequiredWindowsBody": "Pro on Windows needs you to be signed in. That's how your subscription follows you to your other devices, and how you manage it.",
+  "loginRequiredLinuxBody": "Pro on Linux needs you to be signed in. That's how your subscription follows you to your other devices, and how you manage it.",
   "loginRequiredCta": "Please log in or create an account to continue.",
   "goToLogin": "Go to login",
   "fullVersionOfferingUnavailable": "Base isn't available right now.",
@@ -3136,6 +3141,7 @@
   "paywall_clipLoadError": "Couldn't load the clip. Check your connection and try again.",
   "planAccountTitle": "Plan & account",
   "planOneTimePurchase": "One-time purchase",
+  "planFreeOnLinux": "Free on Linux",
   "planBaseUnlimitedCommands": "Unlimited button presses",
   "planBaseAppShifts": "Your buttons shift & steer in your trainer app, using the app's own virtual shifting",
   "planProAdds": "What Pro adds",

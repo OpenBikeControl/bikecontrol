@@ -47,6 +47,29 @@ void main() {
     });
   });
 
+  group('RevenueCatService.isPurchasedVersion (macOS version strings)', () {
+    test('old paid era (< 4.2.0) is purchased', () {
+      expect(RevenueCatService.isPurchasedVersion('1.0'), isTrue);
+      expect(RevenueCatService.isPurchasedVersion('4.1.9'), isTrue);
+    });
+
+    test('legacy free window (4.2.0..4.3.x) is not purchased', () {
+      expect(RevenueCatService.isPurchasedVersion('4.2.0'), isFalse);
+      expect(RevenueCatService.isPurchasedVersion('4.3.5'), isFalse);
+    });
+
+    test('paid era (4.4.0..6.0.x) is purchased', () {
+      expect(RevenueCatService.isPurchasedVersion('4.4.0'), isTrue);
+      expect(RevenueCatService.isPurchasedVersion('5.0.0'), isTrue);
+      expect(RevenueCatService.isPurchasedVersion('6.0.1'), isTrue);
+    });
+
+    test('first free version (6.1.0, build 138) and later are not purchased', () {
+      expect(RevenueCatService.isPurchasedVersion('6.1.0'), isFalse);
+      expect(RevenueCatService.isPurchasedVersion('7.4.0'), isFalse);
+    });
+  });
+
   group('RevenueCatService.needsSubscriptionSync', () {
     test('only when signed in, Pro in the store, and missing on the backend', () {
       expect(RevenueCatService.needsSubscriptionSync(signedIn: true, storePro: true, backendPro: false), isTrue);

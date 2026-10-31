@@ -1,4 +1,3 @@
-import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/firmware_support.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
@@ -85,12 +84,6 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
 
   @override
   String get unlockHelpUrl => zwiftRideV2HelpUrl;
-
-  /// True only for an actual Zwift Ride (not subclasses such as Click v2 or
-  /// Play fw2) whose firmware is past [latestFirmwareVersion] without being a
-  /// Zwift Ride V2 — which has its own unlock flow. The fallback notice.
-  static bool hasUnsupportedFirmware(BaseDevice device) =>
-      device.runtimeType == ZwiftRide && (device as ZwiftRide).hasFirmwareBeyondSupported && !device.isRideV2;
 
   @override
   String toString() => isRideV2 ? rideV2Label : super.toString();

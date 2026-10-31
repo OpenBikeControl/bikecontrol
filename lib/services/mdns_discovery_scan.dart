@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/services/mdns/mdns_service_browser.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart' as nsd;
@@ -54,6 +55,11 @@ class DiscoveredMdnsService {
 /// Includes our own advertisement (flagged [DiscoveredMdnsService.isSelf]) so
 /// the user can confirm the responder is reachable over the wire.
 class MdnsDiscoveryScan {
+  MdnsDiscoveryScan({MdnsServiceBrowser Function()? createBrowser})
+    : _createBrowser = createBrowser ?? MdnsServiceBrowser.forPlatform;
+
+  final MdnsServiceBrowser Function() _createBrowser;
+
   static const types = ['_openbikecontrol._tcp', '_wahoo-fitness-tnp._tcp'];
 
   Future<List<DiscoveredMdnsService>> run({
@@ -61,7 +67,6 @@ class MdnsDiscoveryScan {
   }) async {
     if (kIsWeb) return [];
     final localAddresses = await _listLocalAddresses();
-    nsd.disableServiceTypeValidation(true);
 
     final found = <String, DiscoveredMdnsService>{};
     void listener(nsd.Service service, nsd.ServiceStatus status) {
@@ -83,20 +88,19 @@ class MdnsDiscoveryScan {
       );
     }
 
-    final discoveries = <nsd.Discovery>[];
+    final browsers = <MdnsServiceBrowser>[];
     OwnMdnsBrowsing.begin();
     try {
       for (final type in types) {
-        final discovery = await nsd.startDiscovery(type, autoResolve: true);
-        discovery.addServiceListener(listener);
-        discoveries.add(discovery);
+        final browser = _createBrowser();
+        await browser.start(type, listener);
+        browsers.add(browser);
       }
       await Future<void>.delayed(timeout);
     } finally {
-      for (final discovery in discoveries) {
-        discovery.removeServiceListener(listener);
+      for (final browser in browsers) {
         try {
-          await nsd.stopDiscovery(discovery);
+          await browser.stop();
         } catch (e, s) {
           recordError(e, s, context: 'MdnsDiscoveryScan.stop');
         }

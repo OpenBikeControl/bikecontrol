@@ -510,6 +510,33 @@ Future<void> main() async {
       expect(inKey('plan-manage-subscription', find.text(l.manageInMacAppStore)), findsOneWidget);
     });
 
+    testWidgets('Linux: no restore, and Konto above Go Pro with the Linux note', (tester) async {
+      IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.linuxDirect;
+      await pumpPage(tester);
+
+      expect(find.byKey(const ValueKey('plan-restore-purchases')), findsNothing);
+      expect(inKey('plan-account', find.text(l.linuxSubscriptionsRequireYouToBeLoggedIn)), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('plan-account'))).dy,
+        lessThan(tester.getTopLeft(find.byKey(const ValueKey('plan-summary'))).dy),
+      );
+    });
+
+    testWidgets('Linux: Base is tagged free, not a one-time purchase', (tester) async {
+      IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.linuxDirect;
+      await pumpPage(tester);
+      expect(inKey('plan-summary', find.text(l.planFreeOnLinux)), findsOneWidget);
+      expect(inKey('plan-summary', find.text(l.planOneTimePurchase)), findsNothing);
+    });
+
+    testWidgets('Linux: Pro is managed in the Stripe billing portal', (tester) async {
+      IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.linuxDirect;
+      IAPManager.instance.setProForTesting(enabled: true);
+      await signIn('email');
+      await pumpPage(tester);
+      expect(find.byKey(const ValueKey('plan-manage-subscription')), findsOneWidget);
+    });
+
     testWidgets('the Windows download: no restore, and Konto above Go Pro', (tester) async {
       IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.windowsDirect;
       IAPManager.instance.isPurchased.value = false;

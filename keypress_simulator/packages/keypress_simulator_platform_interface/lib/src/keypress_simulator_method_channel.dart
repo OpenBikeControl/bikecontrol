@@ -13,7 +13,7 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
 
   @override
   Future<bool> isAccessAllowed() async {
-    if (UniPlatform.isMacOS) {
+    if (UniPlatform.isMacOS || UniPlatform.isLinux) {
       return await methodChannel.invokeMethod('isAccessAllowed');
     }
     return true;
@@ -47,6 +47,8 @@ class MethodChannelKeyPressSimulator extends KeyPressSimulatorPlatform {
     }
     final Map<Object?, Object?> arguments = {
       'keyCode': physicalKey?.keyCode,
+      // Linux maps the USB HID usage to an evdev key code itself.
+      'usbHidUsage': physicalKey?.usbHidUsage,
       'modifiers': modifiers.map((e) => e.name).toList(),
       'keyDown': keyDown,
       'targetAppName': targetApp,

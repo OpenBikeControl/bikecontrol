@@ -3,7 +3,6 @@
 // with third-party apps). The check must tolerate extra version components and
 // must NOT fire for ZwiftRide subclasses like the Click v2.
 import 'package:bike_control/bluetooth/devices/zwift/firmware_support.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -137,33 +136,6 @@ void main() {
       expect(_FakeZwiftDevice(firmware: '', latest: '1.2.0').hasNewerFirmwareVersion, isFalse);
       expect(_FakeZwiftDevice(firmware: 'unknown', latest: '1.2.0').hasNewerFirmwareVersion, isFalse);
       expect(_FakeZwiftDevice(firmware: '1.1.0', latest: null).hasNewerFirmwareVersion, isFalse);
-    });
-  });
-
-  group('ZwiftRide.hasUnsupportedFirmware', () {
-    ZwiftRide ride(String? fw) =>
-        ZwiftRide(BleDevice(deviceId: 'zr', name: 'Zwift Ride'))..firmwareVersion = fw;
-
-    test('a Ride on firmware past 1.2.0 that is not a Ride V2 is flagged', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(ride('1.2.5')), isTrue);
-    });
-
-    test('a Zwift Ride V2 (1.3 or newer) has its own unlock flow and is not flagged', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(ride('1.3.0')), isFalse);
-    });
-
-    test('a Ride on the last good 1.2.0 is not flagged', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(ride('1.2.0')), isFalse);
-    });
-
-    test('a Ride with unknown firmware is not flagged', () {
-      expect(ZwiftRide.hasUnsupportedFirmware(ride(null)), isFalse);
-    });
-
-    test('a Click v2 (ZwiftRide subclass) on 1.3.0 does NOT trigger the Ride prompt', () {
-      final clickV2 = ZwiftClickV2(BleDevice(deviceId: 'c2', name: 'Zwift Click'))
-        ..firmwareVersion = '1.3.0';
-      expect(ZwiftRide.hasUnsupportedFirmware(clickV2), isFalse);
     });
   });
 }

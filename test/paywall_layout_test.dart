@@ -213,6 +213,24 @@ Future<void> main() async {
     });
   });
 
+  // Base is free on Linux: the Base card is the rider's plan from the start,
+  // and the store note (a one-time purchase bound to a store) does not apply.
+  testWidgets('on Linux Base is the rider\'s free plan, without a store note', (tester) async {
+    IAPManager.instance.isPurchased.value = true;
+    IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.linuxDirect;
+    addTearDown(() => IAPManager.instance.purchaseChannelForTesting = null);
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    try {
+      await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
+      final l10n = AppLocalizations.current;
+      expect(find.text(l10n.paywall_baseFreeOnLinux), findsOneWidget);
+      expect(find.textContaining(l10n.paywall_baseStoreNote('').split(' ').first), findsNothing);
+      expect(find.text(l10n.paywall_buyBase), findsNothing);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
   // Restore asks the app store; the Windows download and the Microsoft Store
   // build have nothing for it to find, so the button would do nothing there.
   group('restore purchases on the paywall', () {

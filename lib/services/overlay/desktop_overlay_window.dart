@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/services/overlay/overlay_display_placement.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/widgets/overlay/overlay_app.dart';
 import 'package:bike_control/widgets/overlay/overlay_window_fit.dart';
@@ -114,6 +115,11 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
   if (initialPosition != null) {
     await wm.windowManager.setPosition(initialPosition);
   }
+  // The saved position may be on a display that has since been disconnected,
+  // and a display can also go away while the overlay is open.
+  final displayWatcher = OverlayDisplayWatcher();
+  await displayWatcher.ensureVisible();
+  displayWatcher.start();
   if (initialOpacity != null) {
     try {
       await wm.windowManager.setOpacity(_clampOpacity(initialOpacity));
@@ -142,7 +148,7 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
     }
   });
 
-  final overlayListener = _OverlayWindowListener(windowId, stateListenerId, opacityListenerId);
+  final overlayListener = _OverlayWindowListener(windowId, stateListenerId, opacityListenerId, displayWatcher);
   wm.windowManager.addListener(overlayListener);
 
   runApp(
@@ -197,10 +203,12 @@ class _OverlayWindowListener extends wm.WindowListener {
   final int _windowId;
   final String _stateListenerId;
   final String _opacityListenerId;
+  final OverlayDisplayWatcher _displayWatcher;
   _OverlayWindowListener(
     this._windowId,
     this._stateListenerId,
     this._opacityListenerId,
+    this._displayWatcher,
   );
 
   @override
@@ -246,6 +254,7 @@ class _OverlayWindowListener extends wm.WindowListener {
         recordError(e, s, context: 'overlay.window.close.unregisterListener');
       }
       try {
+        _displayWatcher.stop();
         wm.windowManager.removeListener(this);
       } catch (e, s) {
         recordError(e, s, context: 'overlay.window.close.removeListener');

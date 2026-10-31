@@ -1,10 +1,10 @@
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
-import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/stripe_checkout_flow.dart';
 import 'package:bike_control/utils/iap/windows_stripe_service.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -25,7 +25,13 @@ class WindowsIAPService {
 
   final FlutterSecureStorage _prefs;
   final EntitlementsService _entitlementsService;
-  final WindowsStripeService _stripeService;
+  late final StripeCheckoutFlow _checkout = StripeCheckoutFlow(
+    stripe: WindowsStripeService(core.supabase),
+    platform: 'windows',
+    returnUrls: StripeReturnUrls.appLink,
+    loginRequiredBody: (l10n) => l10n.loginRequiredWindowsBody,
+    storeId: _windowsIapPlugin.getStoreId,
+  );
 
   bool _isInitialized = false;
 
@@ -37,8 +43,7 @@ class WindowsIAPService {
   WindowsIAPService(
     this._prefs, {
     required EntitlementsService entitlementsService,
-  }) : _entitlementsService = entitlementsService,
-       _stripeService = WindowsStripeService(core.supabase);
+  }) : _entitlementsService = entitlementsService;
 
   /// Initialize the Windows IAP service
   Future<void> initialize() async {
@@ -189,191 +194,34 @@ class WindowsIAPService {
   }
 
   /// Check if user is logged in (required for Stripe on Windows)
-  bool get isLoggedIn => _stripeService.isLoggedIn;
-
-  /// The Stripe checkout the rider asked for before we sent them to log in via
-  /// the paywall's "Login Required" gate. Resumed by
-  /// [resumePendingPurchaseAfterLogin] once auth reports `signedIn` — that is the
-  /// one signal that fires for both the in-app email code and the external
-  /// browser OAuth redirect. In-memory only: a full app restart during the OAuth
-  /// round-trip drops it, which is acceptable (the rider just taps Buy again).
-  String? _pendingCheckoutPriceId;
+  bool get isLoggedIn => _checkout.isLoggedIn;
 
   /// Resume a checkout deferred by the login gate, now that login has finished.
-  /// [isAlreadyPro] short-circuits the rider who logs into an account that is
-  /// already entitled, so we never open a second checkout for them.
-  Future<void> resumePendingPurchaseAfterLogin({required bool isAlreadyPro}) async {
-    final priceId = checkoutToResume(
-      pending: _pendingCheckoutPriceId,
-      isLoggedIn: isLoggedIn,
-      isAlreadyPro: isAlreadyPro,
-    );
-    _pendingCheckoutPriceId = null;
-    if (priceId == null) return;
-    await _startCheckout(priceId);
-  }
+  Future<void> resumePendingPurchaseAfterLogin({required bool isAlreadyPro}) =>
+      _checkout.resumePendingPurchaseAfterLogin(isAlreadyPro: isAlreadyPro);
 
-  /// Pure decision behind [resumePendingPurchaseAfterLogin]: the Stripe price id
-  /// to check out after a login completes, or null to do nothing. Kept static so
-  /// it is unit-testable without the Supabase/plugin dependencies of the service.
+  /// See [StripeCheckoutFlow.checkoutToResume].
   static String? checkoutToResume({
     required String? pending,
     required bool isLoggedIn,
     required bool isAlreadyPro,
-  }) {
-    if (pending == null || !isLoggedIn || isAlreadyPro) return null;
-    return pending;
-  }
+  }) => StripeCheckoutFlow.checkoutToResume(pending: pending, isLoggedIn: isLoggedIn, isAlreadyPro: isAlreadyPro);
 
   /// Start Stripe Checkout to purchase a subscription
   /// Shows a dialog if user is not logged in
-  Future<void> purchaseSubscription(BuildContext context, {bool yearly = false}) async {
-    final priceId = yearly ? 'yearly' : 'monthly';
-    if (!isLoggedIn) {
-      await _gateBehindLogin(context, priceId);
-      return;
-    }
-    await _startCheckout(priceId);
-  }
+  Future<void> purchaseSubscription(BuildContext context, {bool yearly = false}) =>
+      _checkout.purchase(context, yearly ? 'yearly' : 'monthly');
 
   /// Start Stripe Checkout to purchase the full version (one-time payment)
   /// Shows a dialog if user is not logged in
-  Future<void> purchaseFullVersionViaStripe(BuildContext context) async {
-    if (!isLoggedIn) {
-      await _gateBehindLogin(context, 'full');
-      return;
-    }
-    await _startCheckout('full');
-  }
-
-  /// Stash [priceId] as the checkout to resume, then ask the rider to log in.
-  /// If they back out of the login dialog we drop the intent so a later,
-  /// unrelated sign-in never launches a checkout they abandoned.
-  Future<void> _gateBehindLogin(BuildContext context, String priceId) async {
-    _pendingCheckoutPriceId = priceId;
-    final proceeding = await _showLoginRequiredDialog(context);
-    if (!proceeding) {
-      _pendingCheckoutPriceId = null;
-    }
-  }
-
-  /// Launch Stripe Checkout for [priceId] ('monthly' | 'yearly' | 'full').
-  ///
-  /// Context-free on purpose: besides the direct purchase it also runs from the
-  /// post-login resume ([resumePendingPurchaseAfterLogin]), which fires from the
-  /// auth-state listener with no widget in scope. `buildToast` already routes
-  /// through the global navigator, so it needs no context here.
-  Future<void> _startCheckout(String priceId) async {
-    try {
-      final storeId = await _windowsIapPlugin.getStoreId();
-      await _stripeService.startCheckout(
-        priceId: priceId,
-        storeId: storeId,
-        successUrl: 'bikecontrol://stripe-success',
-        cancelUrl: 'bikecontrol://stripe-cancel',
-      );
-    } on StripeException catch (e, s) {
-      recordError(e, s, context: 'Starting Stripe checkout');
-      buildToast(
-        title: AppLocalizations.current.checkoutErrorTitle,
-        subtitle: e.message,
-      );
-    } catch (e, s) {
-      recordError(e, s, context: 'Starting Stripe checkout');
-      buildToast(
-        title: AppLocalizations.current.checkoutErrorTitle,
-        subtitle: AppLocalizations.current.checkoutErrorBody,
-      );
-    }
-  }
+  Future<void> purchaseFullVersionViaStripe(BuildContext context) => _checkout.purchase(context, 'full');
 
   /// Open Stripe Billing Portal to manage subscription
   /// Returns false if user has no Stripe customer (should hide button in this case)
-  Future<bool> openBillingPortal(BuildContext context) async {
-    if (!isLoggedIn) {
-      await _showLoginRequiredDialog(context);
-      return true; // Return true to keep the button visible (user might log in)
-    }
-
-    try {
-      await _stripeService.openPortal(returnUrl: 'bikecontrol://stripe-portal-return');
-      return true;
-    } on StripeException catch (e, s) {
-      if (e.statusCode == 404) {
-        // No Stripe customer found - should hide the portal button
-        return false;
-      }
-      recordError(e, s, context: 'Opening Stripe portal');
-      if (context.mounted) {
-        buildToast(
-          title: AppLocalizations.current.billingPortalErrorTitle,
-          subtitle: e.message,
-        );
-      }
-      return true;
-    } catch (e, s) {
-      recordError(e, s, context: 'Opening Stripe portal');
-      if (context.mounted) {
-        buildToast(
-          title: AppLocalizations.current.billingPortalErrorTitle,
-          subtitle: AppLocalizations.current.billingPortalErrorBody,
-        );
-      }
-      return true;
-    }
-  }
+  Future<bool> openBillingPortal(BuildContext context) => _checkout.openBillingPortal(context);
 
   /// Check if user has a Stripe customer record
-  Future<bool> hasStripeCustomer() async {
-    return _stripeService.hasStripeCustomer();
-  }
-
-  /// Show dialog informing user that login is required for Windows subscriptions.
-  /// Resolves to true when the rider chose "Go to Login", false if they backed
-  /// out (Cancel or dismiss) — the caller uses this to drop a deferred checkout.
-  Future<bool> _showLoginRequiredDialog(BuildContext context) async {
-    final proceeding = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(LucideIcons.lock, color: Colors.orange),
-            const SizedBox(width: 8),
-            Text(AppLocalizations.of(context).loginRequiredTitle),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(AppLocalizations.of(context).loginRequiredWindowsBody),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context).loginRequiredCta,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        actions: [
-          SecondaryButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppLocalizations.of(context).cancel),
-          ),
-          PrimaryButton(
-            onPressed: () async {
-              Navigator.pop(context, true);
-              Navigator.push(context, MaterialPageRoute(builder: (c) => const PlanAccountPage()));
-              // Login completing emits Supabase `signedIn`, which
-              // IAPManager resumes the deferred checkout from.
-            },
-            child: Text(AppLocalizations.of(context).goToLogin),
-          ),
-        ],
-      ),
-    );
-    // Barrier dismiss returns null — treat it as "did not proceed to login".
-    return proceeding ?? false;
-  }
+  Future<bool> hasStripeCustomer() => _checkout.hasStripeCustomer();
 
   Future<void> setBoughtBefore50() async {
     hasPurchasedBefore50 = true;

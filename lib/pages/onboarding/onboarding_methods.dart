@@ -35,7 +35,8 @@ bool _supportsNetwork(SupportedApp app) => _supportsObpNetwork(app) || _supports
 bool _supportsBluetooth(SupportedApp app) =>
     app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.zwiftBle);
 
-bool get _localPlatform => HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isAndroid;
+bool get _localPlatform =>
+    HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isAndroid;
 
 /// Whether the trainer app runs on this device and can't reach a BikeControl
 /// bridge here (see [vsSameDeviceBlock]: MyWhoosh on Android, FulGaz, a
@@ -136,11 +137,10 @@ Future<void> verifyEnabledNetworkMethod(
   if (!onboardingMethodVisible(OnboardingMethod.network, app)) return;
   if (!onboardingMethodEnabled(OnboardingMethod.network, app)) return;
   final requirements = localNetworkRequirements();
-  if (requirements.isEmpty) return;
-  if (await satisfyRequirements(context, requirements)) {
-    // Granted — actually bring the method up. The launch-time start was skipped
-    // while the wizard held the screen, so without this the method reads as
-    // enabled but advertises nothing.
+  // Granted, or nothing to grant on this platform — actually bring the method
+  // up. The launch-time start was skipped while the wizard held the screen, so
+  // without this the method reads as enabled but advertises nothing.
+  if (requirements.isEmpty || await satisfyRequirements(context, requirements)) {
     core.logic.startEnabledConnectionMethod(userInitiated: true);
     onUpdate();
     return;

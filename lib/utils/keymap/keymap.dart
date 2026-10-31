@@ -437,7 +437,14 @@ class KeyPair {
       !hasNoAction && toString() == AppLocalizations.current.actionWaitsForConnectionMethod;
 
   @override
-  String toString() {
+  String toString() => _label(coordinates: true);
+
+  /// [toString] without where Local taps on the screen ("X:80, Y:94
+  /// (Shift down)" reads "Shift down"): for a list of buttons, where the
+  /// rider wants to know what a press does, not where it lands.
+  String get actionLabel => _label(coordinates: false);
+
+  String _label({required bool coordinates}) {
     final text =
         (inGameAction != null &&
             (core.logic.emulatorEnabled || inGameAction!.isOutsideTrainerApp || runsInSelfHostedBikeControl))
@@ -468,7 +475,9 @@ class KeyPair {
         : (physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
         ? null
         : (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)
-        ? 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}${inGameAction != null ? ' (${inGameAction!.title})' : ''}'
+        ? (!coordinates && inGameAction != null)
+              ? inGameAction!.title
+              : 'X:${touchPosition.dx.toInt()}, Y:${touchPosition.dy.toInt()}${inGameAction != null ? ' (${inGameAction!.title})' : ''}'
         : '';
     if (text != null && text.isNotEmpty) {
       return text;

@@ -699,7 +699,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 if (!kIsWeb) ...[
                   SizedBox(height: 8),
                   ColoredTitle(text: context.i18n.otherActions),
-                  if (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isIOS) ...[
+                  if (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isIOS) ...[
                     SelectableCard(
                       isProOnly: true,
                       title: Text(HostPlatform.isMacOS || HostPlatform.isIOS ? 'Launch Shortcut' : 'Run Command'),
@@ -1206,7 +1206,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   Future<void> _showCommandDialog(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    if (Platform.isWindows) {
+    if (Platform.isWindows || Platform.isLinux) {
       final result = await FilePicker.platform.pickFiles(
         dialogTitle: 'Select command to run',
         type: FileType.any,

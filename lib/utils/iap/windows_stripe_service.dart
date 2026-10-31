@@ -37,6 +37,7 @@ class WindowsStripeService {
   Future<void> startCheckout({
     required String priceId,
     required String? storeId,
+    String? platform,
     String? successUrl,
     String? cancelUrl,
   }) async {
@@ -55,6 +56,9 @@ class WindowsStripeService {
 
       if (storeId != null) {
         body['store_id'] = storeId;
+      }
+      if (platform != null) {
+        body['platform'] = platform;
       }
       if (successUrl != null) {
         body['success_url'] = successUrl;

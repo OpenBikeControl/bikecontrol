@@ -51,6 +51,7 @@ class DeviceIdentityService {
       case TargetPlatform.windows:
         return 'windows';
       case TargetPlatform.linux:
+        return 'linux';
       case TargetPlatform.fuchsia:
         return null;
     }

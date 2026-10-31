@@ -255,6 +255,10 @@ class Permissions {
         BluetoothTurnedOn(),
         NotificationRequirement(),
       ];
+    } else if (Platform.isLinux) {
+      list = [
+        BluetoothTurnedOn(),
+      ];
     } else if (Platform.isAndroid) {
       final deviceInfoPlugin = DeviceInfoPlugin();
       final deviceInfo = await deviceInfoPlugin.androidInfo;
@@ -303,7 +307,7 @@ class CoreLogic {
   bool get showLocalControl {
     return core.settings.getLastTarget()?.connectionType == ConnectionType.local &&
         core.settings.getTrainerApp()?.acceptsSimulatedInput != false &&
-        (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isAndroid);
+        (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isAndroid);
   }
 
   bool get canRunAndroidService {

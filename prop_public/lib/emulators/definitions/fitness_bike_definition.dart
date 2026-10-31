@@ -267,6 +267,51 @@ class FitnessBikeDefinition extends BleDefinition {
 
   bool get supportsClimbRelay => false;
 
+  static const int minGear = 1;
+
+  /// Per-trainer scale on every gear's resistance, in percent.
+  static const int defaultDifficultyPct = 100;
+  static const int minDifficultyPct = 50;
+  static const int maxDifficultyPct = 200;
+
+  final ValueNotifier<int> _difficultyPctN = ValueNotifier<int>(defaultDifficultyPct);
+  ValueListenable<int> get difficultyPct => _difficultyPctN;
+  void setDifficultyPct(int pct) {
+    _difficultyPctN.value = pct.clamp(minDifficultyPct, maxDifficultyPct);
+  }
+
+  /// The rider's real chain on the trainer (chainring / cog).
+  double _realChainRatio = 2.0;
+  double get realChainRatio => _realChainRatio;
+  void setRealChainRatio(double ratio) {
+    _realChainRatio = ratio;
+  }
+
+  final ValueNotifier<ChainPositionHint> _chainPositionHintN = ValueNotifier(ChainPositionHint.none);
+  ValueListenable<ChainPositionHint> get chainPositionHint => _chainPositionHintN;
+
+  final ValueNotifier<double?> _estimatedChainRatioN = ValueNotifier<double?>(null);
+  ValueListenable<double?> get estimatedChainRatio => _estimatedChainRatioN;
+
+  bool get isSmartBike => false;
+
+  /// Whether the trainer's native shifting was switched off for this session.
+  bool get forcedOffNativeShifting => false;
+
+  /// Compact support-bundle lines; null when there is nothing to report.
+  String? get ftmsStartSummary => null;
+  String? get ergFollowSummary => null;
+
+  /// The last ERG target the rider rode, in watts.
+  int? get lastErgTarget => null;
+
+  /// Holds the trainer at [grade001Pct] (0.01 % units) for calibration.
+  void setCalibrationGrade(int grade001Pct) {}
+
+  TrainerControlSnapshot captureControlState() => const TrainerControlSnapshot();
+
+  void restoreControlState(TrainerControlSnapshot snapshot) {}
+
   bool toggleFrontChainring() {
     if (!_frontShiftEnabled) return false;
     _frontRingN.value = _frontRingN.value == FrontRing.small ? FrontRing.large : FrontRing.small;
@@ -296,6 +341,16 @@ enum ZwiftGearEchoVerdict {
 }
 
 enum FrontRing { small, large }
+
+/// Where the rider's real chain sits on the trainer, when it is far enough off
+/// the middle to hurt virtual shifting.
+enum ChainPositionHint { none, veryBigGear, verySmallGear }
+
+/// What the trainer was doing (ERG and its target, or a grade), to hand back
+/// after a calibration run.
+class TrainerControlSnapshot {
+  const TrainerControlSnapshot();
+}
 
 enum TrainerMode { ergMode, simMode, simModeVirtualShifting }
 

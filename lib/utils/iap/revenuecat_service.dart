@@ -45,6 +45,23 @@ class RevenueCatService {
   static bool isPurchasedBuild(int build, {required bool isMacOS}) =>
       build < (isMacOS ? 61 : 58) || (build >= 77 && build < freeAgainFromBuild);
 
+  /// Marketing version of [freeAgainFromBuild] (6.1.0+138).
+  static final Version freeAgainFromVersion = Version(6, 1, 0);
+
+  /// Whether an Apple `originalApplicationVersion` version string (macOS
+  /// receipts carry `CFBundleShortVersionString`) should be treated as having
+  /// purchased the full version. Same eras as [isPurchasedBuild]:
+  ///
+  /// - `< 4.2.0`: old paid era → purchased.
+  /// - `4.2.0..4.3.x`: legacy free + trial window → not purchased.
+  /// - `4.4.0..[freeAgainFromVersion]`: current paid era → purchased.
+  /// - `>= [freeAgainFromVersion]`: free + trial again → not purchased.
+  @visibleForTesting
+  static bool isPurchasedVersion(String version) {
+    final parsed = Version.parse(version);
+    return parsed < Version(4, 2, 0) || (parsed >= Version(4, 4, 0) && parsed < freeAgainFromVersion);
+  }
+
   static const String _trialStartDateKey = 'iap_trial_start_date';
   static const String _purchaseStatusKey = 'iap_purchase_status';
   static const String _dailyCommandCountKey = 'iap_daily_command_count';
@@ -249,7 +266,7 @@ class RevenueCatService {
         core.connection.signalNotification(LogNotification('Apple receipt validated for version: $purchasedVersion'));
         if (purchasedVersion != null && purchasedVersion.contains(".")) {
           final parsedVersion = Version.parse(purchasedVersion);
-          isPurchasedNotifier.value = parsedVersion < Version(4, 2, 0) || parsedVersion >= Version(4, 4, 0);
+          isPurchasedNotifier.value = isPurchasedVersion(purchasedVersion);
           hasPurchasedBefore50 = parsedVersion < Version(5, 0, 0);
         } else {
           final purchasedVersionAsInt = int.tryParse(purchasedVersion.toString()) ?? 1337;

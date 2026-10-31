@@ -1,6 +1,8 @@
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'dart:async';
+import 'dart:ffi' show Abi;
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
@@ -90,6 +92,7 @@ Future<String> debugText({bool includeDiscovery = true}) async {
 App Version: ${guard(() => '${packageInfoValue?.version}${shorebirdPatch?.number != null ? '+${shorebirdPatch!.number}' : ''}')}
 Update Track: ${guard(() => IAPManager.instance.isBetaTester ? 'beta' : 'stable')}
 Platform: ${Platform.operatingSystem} ${Platform.operatingSystemVersion}
+Renderer: ${guard(() => ui.ImageFilter.isShaderFilterSupported ? 'Impeller' : 'Skia')} (${Abi.current()})
 Target: ${guard(() => core.settings.getLastTarget()?.name ?? '-')}
 Trainer App: ${guard(() => core.settings.getTrainerApp()?.name ?? '-')}
 Connected Controllers: ${guard(() => describeControllers(core.connection.devices))}

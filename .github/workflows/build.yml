@@ -28,6 +28,11 @@ on:
         required: false
         default: true
         type: boolean
+      build_linux:
+        description: 'Build for Linux (.deb + AppImage)'
+        required: false
+        default: true
+        type: boolean
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
@@ -219,9 +224,11 @@ jobs:
           echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Zip Symbols
+        if: inputs.build_mac || inputs.build_android || inputs.build_ios
         run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
 
       - name: Upload Symbols
+        if: inputs.build_mac || inputs.build_android || inputs.build_ios
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
@@ -238,12 +245,15 @@ jobs:
           prerelease: true
           bodyFile: /tmp/release_body.md
           tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
 
   windows:
     if: inputs.build_windows
     name: Build & Release on Windows
     runs-on: windows-2025
+
+    permissions:
+      contents: write
 
     steps:
       #1 Checkout Repository
@@ -361,4 +371,175 @@ jobs:
           prerelease: true
           replacesArtifacts: false
           tag: v${{ env.VERSION }}
-          token: ${{ secrets.TOKEN }}
+          token: ${{ github.token }}
+
+  linux:
+    if: inputs.build_linux
+    name: Build on Linux (${{ matrix.arch }})
+    # 22.04 (glibc 2.35): what the bundle is built against is the oldest system
+    # it runs on — Ubuntu 22.04+, Debian 12+, Mint 21+ and current rolling
+    # distros. A 24.04 build needs glibc 2.38 and fails to start on Debian 12.
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-22.04
+            deb_arch: amd64
+            appimage_arch: x86_64
+            shorebird: true
+          # Plain Flutter build: no Shorebird patches on arm64.
+          - arch: arm64
+            runner: ubuntu-22.04-arm
+            deb_arch: arm64
+            appimage_arch: aarch64
+            shorebird: false
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+        uses: ./.github/actions/rename-pubspec-overrides
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          # The runner image ships libunwind-14-dev, which conflicts with the
+          # libunwind-dev that libgstreamer1.0-dev needs.
+          sudo apt-get remove -y libunwind-14-dev || true
+          sudo apt-get install -y --no-install-recommends clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev libasound2-dev libpulse-dev libsecret-1-dev \
+            libayatana-appindicator3-dev libnotify-dev libkeybinder-3.0-dev libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev libsqlite3-dev libudev-dev libevdev-dev
+
+      - name: Extract version from pubspec.yaml
+        run: |
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: 🐦 Setup Shorebird
+        if: matrix.shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Set Up Flutter
+        if: matrix.shorebird
+        uses: ./.github/actions/setup-flutter
+
+      # Flutter publishes no Linux arm64 SDK download, so the setup action
+      # can't install one there: use the stable branch from git.
+      - name: Set Up Flutter (arm64)
+        if: ${{ !matrix.shorebird }}
+        run: |
+          git clone --depth 1 --branch stable https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Generate translation files (arm64)
+        if: ${{ !matrix.shorebird }}
+        run: |
+          flutter config --no-analytics
+          flutter pub global activate intl_utils
+          flutter pub global run intl_utils:generate
+
+      - name: 🚀 Shorebird Release Linux
+        if: matrix.shorebird
+        uses: shorebirdtech/shorebird-release@v1
+        with:
+          flutter-version: latest
+          platform: linux
+          args: "--obfuscate --split-debug-info=symbols-linux -- --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
+
+      - name: Flutter build Linux
+        if: ${{ !matrix.shorebird }}
+        run: flutter build linux --release --obfuscate --split-debug-info=symbols-linux --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Package .deb and AppImage
+        run: |
+          bundle=build/linux/${{ matrix.arch }}/release/bundle
+          linux/packaging/build_deb.sh "$bundle" "$VERSION" ${{ matrix.deb_arch }} dist
+          linux/packaging/build_appimage.sh "$bundle" "$VERSION" ${{ matrix.appimage_arch }} dist
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Linux ${{ matrix.arch }}
+          path: dist/*
+
+      - name: Zip Linux Symbols
+        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols-linux-${{ matrix.arch }}.zip symbols-linux/
+
+      - name: Upload Linux Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: Linux Symbols ${{ matrix.arch }}
+          path: symbols-linux-${{ matrix.arch }}.zip
+
+  linux_publish:
+    if: inputs.build_linux && inputs.build_github
+    name: Publish Linux packages
+    needs: linux
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from pubspec.yaml
+        run: |
+          version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Download Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Linux *64
+          merge-multiple: true
+          path: dist
+
+      # What the app's update check compares against (without the build number:
+      # patches within a version come through Shorebird).
+      - name: Write VERSION.txt
+        run: echo "${VERSION%%+*}" > dist/VERSION.txt
+
+      - name: Add to the version's release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/*.deb,dist/*.AppImage"
+          allowUpdates: true
+          prerelease: true
+          omitBodyDuringUpdate: true
+          replacesArtifacts: false
+          tag: v${{ env.VERSION }}
+          token: ${{ github.token }}
+
+      # Fixed file names under a fixed tag, so the download links on the
+      # website and the app's update check never change.
+      - name: Update the rolling linux-latest release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "dist/*.deb,dist/*.AppImage,dist/VERSION.txt"
+          allowUpdates: true
+          replacesArtifacts: true
+          removeArtifacts: true
+          makeLatest: false
+          name: BikeControl for Linux
+          body: |
+            BikeControl ${{ env.VERSION }} for Linux.
+
+            - **Ubuntu, Debian, Mint, Pop!_OS:** the `.deb` (`amd64` for most PCs, `arm64` for ARM). Install with `sudo apt install ./BikeControl-linux-amd64.deb`.
+            - **Everything else:** the AppImage. Make it executable and run it.
+
+            The Local connection method needs write access to `/dev/uinput`. The `.deb` sets that up; with the AppImage, BikeControl shows the one-line udev rule to add.
+          commit: ${{ github.sha }}
+          tag: linux-latest
+          token: ${{ github.token }}

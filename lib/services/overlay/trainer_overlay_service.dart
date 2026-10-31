@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 
+import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/services/overlay/android_overlay_controller.dart';
 import 'package:bike_control/services/overlay/desktop_overlay_controller.dart';
@@ -62,6 +63,17 @@ bool trainerOverlayOffered(ProxyDevice device) {
   if (!TrainerOverlayService.isSupportedPlatform) return false;
   if (core.settings.getLastTarget() != Target.thisDevice) return false;
   return device.fitnessBike != null;
+}
+
+/// Whether the overlay, switched on in an earlier session, should open by
+/// itself for [device] now: whenever the switch is offered for it and the
+/// trainer is connected. Deliberately the same test as the switch, not the
+/// advert-based [ProxyDevice.isSmartTrainer] — a Van Rysel D100 is found by
+/// its name with no services in the advert, and its overlay never reopened on
+/// launch while the switch still read "on" (support fccde7cf).
+bool trainerOverlayAutoShowReady(BaseDevice device) {
+  if (device is! ProxyDevice || !device.isConnected) return false;
+  return trainerOverlayOffered(device);
 }
 
 /// Puts the gear overlay on screen for [device] and persists the choice.

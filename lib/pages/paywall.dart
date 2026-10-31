@@ -941,9 +941,12 @@ class _PaywallState extends State<Paywall> {
             ),
           // Base is a store receipt, not an account: riders who bought it on
           // one store and installed from another wrote in asking where their
-          // purchase went. Say so before they buy.
+          // purchase went. Say so before they buy. On Linux there is no
+          // receipt: Base is free.
           Text(
-            l10n.paywall_baseStoreNote(_storeName(context)),
+            _iapManager.purchaseChannel == PurchaseChannel.linuxDirect
+                ? l10n.paywall_baseFreeOnLinux
+                : l10n.paywall_baseStoreNote(_storeName(context)),
             style: context.typography.caption.copyWith(height: 1.3, color: cs.mutedForeground),
           ),
           if (!owned) ...[
