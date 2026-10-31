@@ -281,13 +281,13 @@ packages:
     source: hosted
     version: "0.0.3"
   dbus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dbus
-      sha256: "79e0c23480ff85dc68de79e2cd6334add97e48f7f4865d17686dd6ea81a47e8c"
+      sha256: a48d5da28e89bd02196e80d81ed8d7954923d00a0f4a68cc20b575038f023383
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.11"
+    version: "0.7.15"
   device_auto_rotate_checker:
     dependency: "direct main"
     description:

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/services/mdns/mdns_service_browser.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nsd/nsd.dart' as nsd;
@@ -27,14 +28,16 @@ class WifiTrainer {
 /// scanning: started from Connection.performScanning, stopped from
 /// Connection.stop. Deliberately core-free — callbacks are injected.
 class WifiTrainerScanner {
-  WifiTrainerScanner({required this.onFound, required this.onLost});
+  WifiTrainerScanner({required this.onFound, required this.onLost, MdnsServiceBrowser Function()? createBrowser})
+    : _createBrowser = createBrowser ?? MdnsServiceBrowser.forPlatform;
 
   static const serviceType = '_wahoo-fitness-tnp._tcp';
 
   final void Function(WifiTrainer trainer) onFound;
   final void Function(String deviceId) onLost;
 
-  nsd.Discovery? _discovery;
+  final MdnsServiceBrowser Function() _createBrowser;
+  MdnsServiceBrowser? _browser;
   final _known = <String, WifiTrainer>{};
 
   /// Local interface IPs, refreshed on [start] — used for self-exclusion.
@@ -45,29 +48,27 @@ class WifiTrainerScanner {
   /// reappear on the next scan pass.
   Future<void> start() async {
     if (kIsWeb) return;
-    if (_discovery != null) {
+    if (_browser != null) {
       for (final trainer in _known.values.toList()) {
         onFound(trainer);
       }
       return;
     }
     _localAddresses = await _listLocalAddresses();
-    nsd.disableServiceTypeValidation(true);
-    final discovery = await nsd.startDiscovery(serviceType, autoResolve: true);
-    discovery.addServiceListener(handleService);
-    _discovery = discovery;
+    final browser = _createBrowser();
+    await browser.start(serviceType, handleService);
+    _browser = browser;
     OwnMdnsBrowsing.begin();
   }
 
   Future<void> stop() async {
-    final discovery = _discovery;
-    _discovery = null;
+    final browser = _browser;
+    _browser = null;
     _known.clear();
-    if (discovery != null) {
+    if (browser != null) {
       OwnMdnsBrowsing.end();
-      discovery.removeServiceListener(handleService);
       try {
-        await nsd.stopDiscovery(discovery);
+        await browser.stop();
       } catch (e, s) {
         // iOS forgets the browser once the OS ends the search itself (app
         // suspended, radio/network change) and then rejects the stop with

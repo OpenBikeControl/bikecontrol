@@ -44,6 +44,7 @@ dependencies:
   sign_in_with_apple: ^7.0.1
 
   nsd: ^4.0.3
+  dbus: ^0.7.15
   ffi: ^2.1.0
   image_picker: ^1.1.2
   file_picker: ^10.3.10

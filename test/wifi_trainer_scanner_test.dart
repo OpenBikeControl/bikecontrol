@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
+import 'package:bike_control/services/mdns/mdns_service_browser.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsd/nsd.dart';
@@ -129,4 +130,56 @@ void main() {
       await expectLater(scanner.stop(), completes);
     });
   });
+
+  group('browser', () {
+    // Linux browses through Avahi instead of nsd; the scanner takes whatever
+    // browser it is given.
+    test('services from the injected browser reach onFound, and stop stops it', () async {
+      final found = <WifiTrainer>[];
+      final browser = _FakeBrowser();
+      final scanner = WifiTrainerScanner(onFound: found.add, onLost: (_) {}, createBrowser: () => browser);
+      await scanner.start();
+      expect(browser.type, WifiTrainerScanner.serviceType);
+
+      browser.listener!(
+        Service(name: 'KICKR CORE 1A2B', type: WifiTrainerScanner.serviceType, port: 36866,
+            addresses: [InternetAddress('192.168.1.50')]),
+        ServiceStatus.found,
+      );
+      expect(found.single.host, '192.168.1.50');
+
+      await scanner.stop();
+      expect(browser.stopped, isTrue);
+    });
+
+    test('a browser that fails to stop does not break teardown', () async {
+      final scanner = WifiTrainerScanner(
+        onFound: (_) {},
+        onLost: (_) {},
+        createBrowser: () => _FakeBrowser(stopError: StateError('gone')),
+      );
+      await scanner.start();
+      await expectLater(scanner.stop(), completes);
+    });
+  });
+}
+
+class _FakeBrowser implements MdnsServiceBrowser {
+  _FakeBrowser({this.stopError});
+  final Object? stopError;
+  String? type;
+  MdnsServiceListener? listener;
+  var stopped = false;
+
+  @override
+  Future<void> start(String type, MdnsServiceListener listener) async {
+    this.type = type;
+    this.listener = listener;
+  }
+
+  @override
+  Future<void> stop() async {
+    stopped = true;
+    if (stopError != null) throw stopError!;
+  }
 }
