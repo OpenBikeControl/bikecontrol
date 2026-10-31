@@ -1,4 +1,6 @@
+import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:dartx/dartx.dart';
@@ -180,6 +182,45 @@ class MyWhoosh extends SupportedApp {
                     inGameAction: InGameAction.steerRight,
                   ),
                 ),
+            // Menu navigation and camera: MyWhoosh accepts these over OBP (Up/Down,
+            // Select, Back, Menu, Camera View), so map the face buttons to them
+            // instead of leaving them unassigned.
+            KeyPair(
+              buttons: [ZwiftButtons.navigationUp],
+              physicalKey: PhysicalKeyboardKey.arrowUp,
+              logicalKey: LogicalKeyboardKey.arrowUp,
+              inGameAction: InGameAction.up,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.navigationDown],
+              physicalKey: PhysicalKeyboardKey.arrowDown,
+              logicalKey: LogicalKeyboardKey.arrowDown,
+              inGameAction: InGameAction.down,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.a, EliteSquareButtons.a],
+              physicalKey: PhysicalKeyboardKey.enter,
+              logicalKey: LogicalKeyboardKey.enter,
+              inGameAction: InGameAction.select,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.b, EliteSquareButtons.b],
+              physicalKey: PhysicalKeyboardKey.escape,
+              logicalKey: LogicalKeyboardKey.escape,
+              inGameAction: InGameAction.back,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.y, EliteSquareButtons.y],
+              physicalKey: null,
+              logicalKey: null,
+              inGameAction: InGameAction.menu,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.z, EliteSquareButtons.z],
+              physicalKey: null,
+              logicalKey: null,
+              inGameAction: InGameAction.cameraAngle,
+            ),
             ...ControllerButton.values
                 .filter((e) => e.action == InGameAction.toggleUi)
                 .map(
