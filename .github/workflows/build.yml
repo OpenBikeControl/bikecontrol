@@ -426,7 +426,24 @@ jobs:
           cache: true
 
       - name: Set Up Flutter
+        if: matrix.shorebird
         uses: ./.github/actions/setup-flutter
+
+      # Flutter publishes no Linux arm64 SDK download, so the setup action
+      # can't install one there: use the stable branch from git.
+      - name: Set Up Flutter (arm64)
+        if: ${{ !matrix.shorebird }}
+        run: |
+          git clone --depth 1 --branch stable https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Generate translation files (arm64)
+        if: ${{ !matrix.shorebird }}
+        run: |
+          flutter config --no-analytics
+          flutter pub global activate intl_utils
+          flutter pub global run intl_utils:generate
 
       - name: 🚀 Shorebird Release Linux
         if: matrix.shorebird
