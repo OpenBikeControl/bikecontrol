@@ -224,9 +224,11 @@ jobs:
           echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Zip Symbols
+        if: inputs.build_mac || inputs.build_android || inputs.build_ios
         run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
 
       - name: Upload Symbols
+        if: inputs.build_mac || inputs.build_android || inputs.build_ios
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
@@ -404,6 +406,9 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
+          # The runner image ships libunwind-14-dev, which conflicts with the
+          # libunwind-dev that libgstreamer1.0-dev needs.
+          sudo apt-get remove -y libunwind-14-dev || true
           sudo apt-get install -y --no-install-recommends clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libstdc++-12-dev libasound2-dev libpulse-dev libsecret-1-dev \
             libayatana-appindicator3-dev libnotify-dev libkeybinder-3.0-dev libgstreamer1.0-dev \
