@@ -10,6 +10,7 @@ void main() {
       'Strappo',
       'Ride Cave',
       'Velotoss',
+      'Grimpa',
       'MyWhoosh',
       'Rouvy',
       'Zwift',
