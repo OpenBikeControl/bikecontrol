@@ -375,8 +375,13 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
         return _hasBillingPortal ? SubscriptionStore.billingPortal : null;
       case PurchaseChannel.appStore || PurchaseChannel.macAppStore || PurchaseChannel.playStore:
         final store = _iap.subscriptionTerm?.store;
+        // A Stripe subscription bought on the computer is managed in its
+        // billing portal from here too.
         return switch (store) {
-          SubscriptionStore.appStore || SubscriptionStore.macAppStore || SubscriptionStore.playStore => store,
+          SubscriptionStore.appStore ||
+          SubscriptionStore.macAppStore ||
+          SubscriptionStore.playStore ||
+          SubscriptionStore.billingPortal => store,
           _ => null,
         };
       case PurchaseChannel.none:

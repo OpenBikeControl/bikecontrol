@@ -510,6 +510,28 @@ Future<void> main() async {
       expect(inKey('plan-manage-subscription', find.text(l.manageInMacAppStore)), findsOneWidget);
     });
 
+    testWidgets('a Stripe subscription bought on the computer is managed from the phone too', (tester) async {
+      var managed = 0;
+      IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.playStore;
+      IAPManager.instance.setProForTesting(enabled: true);
+      IAPManager.instance.setSubscriptionTermForTesting(
+        SubscriptionTerm(
+          renewal: SubscriptionRenewal.unknown,
+          until: DateTime(2026, 12, 1),
+          store: SubscriptionStore.billingPortal,
+        ),
+      );
+      await signIn('email');
+      await pumpPage(tester, manageSubscription: () async => managed++);
+
+      final row = find.byKey(const ValueKey('plan-manage-subscription'));
+      expect(inKey('plan-manage-subscription', find.text(l.manageInBillingPortal)), findsOneWidget);
+      await tester.ensureVisible(row);
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+      expect(managed, 1);
+    });
+
     testWidgets('Linux: no restore, and Konto above Go Pro with the Linux note', (tester) async {
       IAPManager.instance.purchaseChannelForTesting = PurchaseChannel.linuxDirect;
       await pumpPage(tester);
@@ -560,7 +582,11 @@ Future<void> main() async {
   testWidgets('desktop: a centred column, Konto and Purchases side by side', (tester) async {
     IAPManager.instance.setProForTesting(enabled: true);
     IAPManager.instance.setSubscriptionTermForTesting(
-      SubscriptionTerm(renewal: SubscriptionRenewal.renews, until: DateTime(2026, 11, 4), store: SubscriptionStore.appStore),
+      SubscriptionTerm(
+        renewal: SubscriptionRenewal.renews,
+        until: DateTime(2026, 11, 4),
+        store: SubscriptionStore.appStore,
+      ),
     );
     await signIn('apple');
     await pumpPage(tester, size: const Size(1280, 800));

@@ -15,7 +15,9 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/linux_iap_service.dart';
+import 'package:bike_control/utils/iap/stripe_checkout_flow.dart';
 import 'package:bike_control/utils/iap/windows_iap_service.dart';
+import 'package:bike_control/utils/iap/windows_stripe_service.dart';
 import 'package:bike_control/utils/plan_format.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
@@ -91,6 +93,19 @@ class IAPManager {
 
   /// The store's page for managing subscriptions, when it gave one.
   String? storeManagementUrl;
+
+  /// The Stripe billing portal on the store builds (iOS, Android, macOS), for
+  /// a subscription bought on the Windows download or on Linux.
+  late final StripeCheckoutFlow _storeBuildStripe = StripeCheckoutFlow(
+    stripe: WindowsStripeService(core.supabase),
+    platform: Platform.operatingSystem,
+    returnUrls: StripeReturnUrls.appLink,
+    loginRequiredBody: (l10n) => l10n.signInToSyncYourSubscriptionAndManageDevices,
+  );
+
+  /// Test-only: stands in for the Stripe billing portal on the store builds.
+  @visibleForTesting
+  Future<bool> Function(BuildContext context)? stripePortalForTesting;
 
   IAPManager._();
 
@@ -510,9 +525,17 @@ class IAPManager {
   bool get isWindowsLoggedIn => _windowsIapService?.isLoggedIn ?? false;
 
   /// Opens where the subscription is managed: the store's subscription
-  /// settings (iOS, Android, macOS) or the Stripe billing portal (Windows).
+  /// settings (iOS, Android, macOS) or the Stripe billing portal (Windows,
+  /// Linux, and a Stripe subscription used on a store build).
   /// Returns false if user has no Stripe customer (should hide button)
   Future<bool> openBillingPortal(BuildContext context) async {
+    if (_windowsIapService == null &&
+        _linuxIapService == null &&
+        subscriptionTerm?.store == SubscriptionStore.billingPortal) {
+      // Bought through Stripe on the computer: the store's subscription
+      // settings know nothing about it.
+      return (stripePortalForTesting ?? _storeBuildStripe.openBillingPortal)(context);
+    }
     if (_revenueCatService != null) {
       return _revenueCatService!.openBillingPortal(context, managementUrl: storeManagementUrl);
     } else if (_windowsIapService != null) {
