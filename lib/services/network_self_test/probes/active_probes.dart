@@ -80,7 +80,7 @@ Future<NetworkCheck> resolveOwnHostnameCheck(NetworkProbeContext ctx) async {
 /// Fields shared by every fail branch of [resolveOwnHostnameCheck]. Field-
 /// confirmed 2026-08-21: a faulty Bonjour install (service running, NSP
 /// present, resolution still broken) is a real cause, and a clean reinstall
-/// fixes it — hence [NetworkFixId.openBonjourDownload] on Windows even
+/// fixes it — hence [NetworkFixId.reinstallBonjour] on Windows even
 /// though the other Bonjour-specific checks (Task 7) look healthy.
 NetworkCheck _resolveFailure(NetworkProbeContext ctx, Object error) => NetworkCheck(
   id: NetworkCheckId.resolveOwnHostname,
@@ -88,7 +88,7 @@ NetworkCheck _resolveFailure(NetworkProbeContext ctx, Object error) => NetworkCh
   detail: {'error': error.toString()},
   fixes: [
     if (ctx.backend == ObpMdnsBackend.platformDefault) NetworkFixId.useOsResponderForObc,
-    if (ctx.platform == 'windows') NetworkFixId.openBonjourDownload,
+    if (ctx.platform == 'windows') NetworkFixId.reinstallBonjour,
     NetworkFixId.switchToLocal,
   ],
 );

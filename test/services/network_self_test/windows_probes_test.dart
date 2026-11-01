@@ -121,7 +121,7 @@ void main() {
       );
       expect(check.verdict, NetworkVerdict.fail);
       expect(check.detail['state'], 'missing');
-      expect(check.fixes, containsAll([NetworkFixId.openBonjourDownload, NetworkFixId.switchToLocal]));
+      expect(check.fixes, [NetworkFixId.reinstallBonjour, NetworkFixId.switchToLocal]);
     });
 
     test('fail(missing): non-zero exit without RUNNING', () async {
@@ -136,7 +136,7 @@ void main() {
       );
       expect(check.verdict, NetworkVerdict.fail);
       expect(check.detail['state'], 'stopped');
-      expect(check.fixes, [NetworkFixId.openBonjourDownload]);
+      expect(check.fixes, [NetworkFixId.reinstallBonjour]);
       expect(check.detail['note'], contains('restart the trainer app'));
     });
   });
@@ -156,7 +156,7 @@ void main() {
     test('fail: mdnsNSP is absent from the Winsock catalog', () async {
       final check = await bonjourNspCheck(ctx(runProcess: _stub('001  RSVP UDP Service Provider')));
       expect(check.verdict, NetworkVerdict.fail);
-      expect(check.fixes, containsAll([NetworkFixId.openBonjourDownload, NetworkFixId.switchToLocal]));
+      expect(check.fixes, [NetworkFixId.reinstallBonjour, NetworkFixId.switchToLocal]);
       expect(check.detail['note'], contains('MyWhoosh button'));
     });
 
