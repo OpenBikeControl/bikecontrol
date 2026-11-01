@@ -98,7 +98,14 @@ class ProxyDevice extends BluetoothDevice {
   /// the rider, and calling that "connected" is technically true and useless.
   /// Onboarding has always drawn the line here; this getter is that line, in
   /// one place, so onboarding and the home screen cannot drift apart.
-  bool get isBridged => _isStartedN.value || _isConnectedN.value;
+  ///
+  /// In the VS modes the mirrored emulator is the shared [ftmsEmulator], so
+  /// its state only speaks for this trainer while this trainer's definition is
+  /// attached to it. Otherwise an idle twin of the trainer being bridged (same
+  /// trainer, found over WiFi and Bluetooth, sharing its saved retrofit mode)
+  /// reads as bridged too.
+  bool get isBridged =>
+      (_isStartedN.value || _isConnectedN.value) && (_retrofitModeN.value == RetrofitMode.proxy || _fbd != null);
 
   /// A compact, plain-text readout of what the trainer is reporting right now
   /// — "250 W · 90 rpm · gear 12/24" — for places that want one line rather

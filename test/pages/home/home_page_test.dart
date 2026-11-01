@@ -667,6 +667,19 @@ void _selfHostedTrainerTests() {
     ProxyDevice runningTrainer({RetrofitMode mode = RetrofitMode.wifi}) {
       final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-self-hosted', name: 'KICKR CORE 1234'))
         ..setRetrofitMode(mode);
+      // A VS session runs on the shared emulator with this trainer's
+      // definition attached; without one, the shared emulator's state is
+      // another trainer's, not this one's.
+      if (mode != RetrofitMode.proxy) {
+        trainer.services = [BleService(FitnessBikeDefinition.FITNESS_MACHINE_SERVICE_UUID, [])];
+        trainer.debugAttachFitnessBike(
+          FitnessBikeDefinition(
+            connectedDevice: trainer.scanResult,
+            connectedDeviceServices: trainer.services!,
+            data: ValueNotifier(''),
+          ),
+        );
+      }
       trainer.emulator.isStarted.value = true;
       core.connection.devices.add(trainer);
       return trainer;

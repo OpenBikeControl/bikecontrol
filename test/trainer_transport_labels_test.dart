@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart' show ftmsEmulator;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
@@ -502,6 +503,28 @@ Future<void> main() async {
       core.connection.devices.addAll([idle, starting]);
 
       expect(chainProxy(), same(starting));
+    });
+
+    // Both twins share the trainer's saved retrofit mode, so the idle one binds
+    // to the same shared VS emulator the live one is bridging through, and
+    // used to read as bridged too — it won the tie by discovery order and
+    // hid the gears, the VS settings and the overlay.
+    test('in VS mode, the twin that is not on the shared emulator is not bridged', () {
+      addTearDown(() {
+        ftmsEmulator.isStarted.value = false;
+        ftmsEmulator.isConnected.value = false;
+      });
+      final idle = wifiTrainer()..setRetrofitMode(RetrofitMode.wifi);
+      final live = trainerWithFitnessBike()
+        ..isConnected = true
+        ..setRetrofitMode(RetrofitMode.wifi);
+      ftmsEmulator.isStarted.value = true;
+      ftmsEmulator.isConnected.value = true;
+      core.connection.devices.addAll([idle, live]);
+
+      expect(live.isBridged, isTrue);
+      expect(idle.isBridged, isFalse);
+      expect(chainProxy(), same(live));
     });
 
     test('rank order: bridged < connected < starting < idle', () {
