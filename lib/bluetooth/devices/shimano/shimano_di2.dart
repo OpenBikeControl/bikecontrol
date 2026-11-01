@@ -31,6 +31,13 @@ class ShimanoDi2 extends BluetoothDevice {
 
   bool get hasConfigService => _configTransport != null;
 
+  /// The wireless unit of a wired 11-speed Di2 (e.g. Ultegra 8000, Dura-Ace
+  /// 9150) has the config service too, but in button mode it relays no paddle
+  /// press while the derailleurs stop shifting. Its firmware is 4.7.x; the
+  /// 12-speed wireless RDs run 4.0.x / 4.1.x. Such a unit keeps the D-Fly
+  /// channels set in E-TUBE.
+  static bool isWiredSystemUnit(String? firmware) => firmware?.startsWith('4.7.') ?? false;
+
   @visibleForTesting
   void debugUseConfigTransport(ShimanoBleTransport transport) => _configTransport = transport;
 
@@ -51,9 +58,10 @@ class ShimanoDi2 extends BluetoothDevice {
     // mode: the paddles become BikeControl buttons without changing any Di2
     // setting. Its GATT dance runs through [ShimanoConfig] over this transport;
     // notifications are routed back from [processCharacteristic].
-    final hasConfig = services.any(
-      (e) => e.uuid.toLowerCase() == ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase(),
-    );
+    final hasConfig = !isWiredSystemUnit(firmwareVersion) &&
+        services.any(
+          (e) => e.uuid.toLowerCase() == ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase(),
+        );
     _configTransport = hasConfig ? ShimanoBleTransport(device.deviceId, services) : null;
 
     // Once the rider has opted in, re-enter button mode on every (re)connect.
