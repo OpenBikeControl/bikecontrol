@@ -504,11 +504,45 @@ Future<void> main() async {
       expect(chainProxy(), same(starting));
     });
 
-    test('rank order: bridged < connected < starting < idle', () {
-      expect(proxyChainRank(bleTrainer()..debugSetTrainerAppConnected(true)), 0);
-      expect(proxyChainRank(bleTrainer()..isConnected = true), 1);
-      expect(proxyChainRank(bleTrainer()..isStarting.value = true), 2);
-      expect(proxyChainRank(bleTrainer()), 3);
+    // In a virtual shifting mode both twins mirror the one shared emulator, so
+    // both read as bridged — but only one is actually linked to the trainer.
+    test('of two bridged twins, the one with its trainer link up wins whatever the order', () {
+      final idle = wifiTrainer()..debugSetTrainerAppConnected(true);
+      final live = bleTrainer()
+        ..debugSetTrainerAppConnected(true)
+        ..isConnected = true;
+
+      core.connection.devices.addAll([idle, live]);
+      expect(chainProxy(), same(live));
+
+      core.connection.devices
+        ..clear()
+        ..addAll([live, idle]);
+      expect(chainProxy(), same(live));
+    });
+
+    test('of two bridged twins, the one running virtual shifting wins', () {
+      final idle = wifiTrainer()..debugSetTrainerAppConnected(true);
+      final live = trainerWithFitnessBike(name: 'KICKR CORE 1EB7')..debugSetTrainerAppConnected(true);
+      core.connection.devices.addAll([idle, live]);
+
+      expect(chainProxy(), same(live));
+    });
+
+    test('rank order: live bridged < bridged < connected < starting < idle', () {
+      expect(
+        proxyChainRank(
+          bleTrainer()
+            ..debugSetTrainerAppConnected(true)
+            ..isConnected = true,
+        ),
+        0,
+      );
+      expect(proxyChainRank(trainerWithFitnessBike()..debugSetTrainerAppConnected(true)), 0);
+      expect(proxyChainRank(bleTrainer()..debugSetTrainerAppConnected(true)), 1);
+      expect(proxyChainRank(bleTrainer()..isConnected = true), 2);
+      expect(proxyChainRank(bleTrainer()..isStarting.value = true), 3);
+      expect(proxyChainRank(bleTrainer()), 4);
     });
   });
 }

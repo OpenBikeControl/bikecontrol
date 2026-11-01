@@ -90,12 +90,20 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// could pick the twin the rider isn't using. Falling back through "the BLE /
 /// DirCon link is up" and "we're connecting right now" keeps the live entry in
 /// front of its idle double.
+///
+/// `isBridged` alone can't break the tie in a virtual shifting mode either:
+/// there both twins mirror the one shared emulator, so the idle twin reads as
+/// bridged too and discovery order picked the winner — often the twin with no
+/// trainer link and no shifting definition, which hid the shifting UI. A
+/// bridged proxy that is also linked to its trainer, or is the one running
+/// virtual shifting ([ProxyDevice.fitnessBike]), ranks above one that is only
+/// bridged by proxy of the shared emulator.
 @visibleForTesting
 int proxyChainRank(ProxyDevice p) {
-  if (p.isBridged) return 0;
-  if (p.isConnected) return 1;
-  if (p.isStarting.value) return 2;
-  return 3;
+  if (p.isBridged) return (p.isConnected || p.fitnessBike != null) ? 0 : 1;
+  if (p.isConnected) return 2;
+  if (p.isStarting.value) return 3;
+  return 4;
 }
 
 /// The trainer the chain speaks for — on Ride, on Devices and in Settings:
