@@ -33,6 +33,12 @@ class Grimpa extends SupportedApp {
     0x01, // Shift Up
     0x02, // Shift Down
     0x03, // Gear Set
+    0x10, // Up
+    0x11, // Down
+    0x12, // Left
+    0x13, // Right
+    0x14, // Select
+    0x15, // Back
     0x30, // Increase Difficulty
     0x31, // Decrease Difficulty
     0x32, // Skip Interval
