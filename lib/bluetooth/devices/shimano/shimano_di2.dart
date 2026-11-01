@@ -396,8 +396,7 @@ class ShimanoDi2 extends BluetoothDevice {
     await core.settings.setShimanoButtonMode(_serialKey, false);
     await _buttonSession?.close();
     _buttonSession = null;
-    await _frameLog?.cancel();
-    _frameLog = null;
+    await _cancelFrameLogs();
     await disconnect();
     core.connection.signalChange(this);
   }
@@ -425,22 +424,38 @@ class ShimanoDi2 extends BluetoothDevice {
     unawaited(handleButtonsClicked(_pressed.toList()));
   }
 
-  StreamSubscription<Uint8List>? _frameLog;
+  final List<StreamSubscription<Uint8List>> _frameLogs = [];
 
   /// Wired Di2 shifters may report presses in a shape the decoder doesn't
-  /// know, which it drops without a trace. Log the first raw frames on 2AF9
-  /// (each distinct frame once in a row) so a rider's log shows what arrives.
+  /// know, which it drops without a trace, and wired 11-speed switches report
+  /// on 2AFD instead of 2AF9. Log the first raw frames on both (each distinct
+  /// frame once in a row) so a rider's log shows what arrives.
   void _logFramesAfterButtonMode(ShimanoTransport t) {
-    unawaited(_frameLog?.cancel());
+    unawaited(_cancelFrameLogs());
+    _logFrames(t, ShimanoDi2Config.pceResponseChar, 'ShimanoDi2 frame after button mode');
+    _logFrames(t, ShimanoDi2Config.pceAuxNotify2, 'ShimanoDi2 2afd frame after button mode');
+  }
+
+  void _logFrames(ShimanoTransport t, String characteristic, String label) {
     String? last;
     var logged = 0;
-    _frameLog = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
+    late final StreamSubscription<Uint8List> sub;
+    sub = t.notifications(characteristic).listen((frame) {
       final hex = frame.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
       if (hex == last) return;
       last = hex;
-      actionStreamInternal.add(LogNotification('ShimanoDi2 frame after button mode: $hex'));
-      if (++logged >= 50) unawaited(_frameLog?.cancel());
+      actionStreamInternal.add(LogNotification('$label: $hex'));
+      if (++logged >= 50) unawaited(sub.cancel());
     });
+    _frameLogs.add(sub);
+  }
+
+  Future<void> _cancelFrameLogs() async {
+    final subs = [..._frameLogs];
+    _frameLogs.clear();
+    for (final sub in subs) {
+      await sub.cancel();
+    }
   }
 
   String? _lastUnknownFrame;
@@ -460,8 +475,7 @@ class ShimanoDi2 extends BluetoothDevice {
   Future<void> disconnect() async {
     await _buttonSession?.close();
     _buttonSession = null;
-    await _frameLog?.cancel();
-    _frameLog = null;
+    await _cancelFrameLogs();
     _pressed.clear();
     await super.disconnect();
   }
