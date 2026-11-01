@@ -6,6 +6,8 @@
 /// Flutter widgets, and plugin APIs directly.
 library;
 
+import 'dart:io';
+
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
@@ -16,6 +18,7 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_network_permission/local_network_permission.dart';
 import 'package:prop/prop.dart' show LogLevel;
+import 'package:prop/utils/shared.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' show BuildContext;
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -78,10 +81,10 @@ Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix, {NetworkCheck
         context: 'runNetworkFix.openNetworkProfileSettings',
       );
 
-    case NetworkFixId.openBonjourDownload:
-      return _launch(
-        'https://octoclip.app/learn/how-to-install-bonjour-on-windows/',
-        context: 'runNetworkFix.openBonjourDownload',
+    case NetworkFixId.reinstallBonjour:
+      return reinstallBonjourWithWinget(
+        run: (executable, arguments) => Process.run(executable, arguments),
+        openGuide: (url) => _launch(url, context: 'runNetworkFix.reinstallBonjour'),
       );
 
     case NetworkFixId.openLocalNetworkSettings:
@@ -111,6 +114,70 @@ Future<bool> runNetworkFix(BuildContext context, NetworkFixId fix, {NetworkCheck
       assert(false, 'sendToSupport must be handled by the page, not runNetworkFix');
       return false;
   }
+}
+
+/// Manual Bonjour install guide, the fallback when winget cannot do it.
+const bonjourInstallGuideUrl = 'https://octoclip.app/learn/how-to-install-bonjour-on-windows/';
+
+bool _bonjourReinstallRunning = false;
+
+/// Reinstalls Apple Bonjour through winget. `--force` because a plain
+/// `winget install` reports "already installed" and leaves a broken install
+/// (service running, mdnsNSP missing) untouched — the case this is offered
+/// for. Field-confirmed 2026-11-01: a rider whose reinstall with Apple's
+/// download did not bring back the MyWhoosh button was fixed by
+/// `winget install --id=Apple.Bonjour -e`.
+///
+/// The Bonjour installer raises its own admin prompt. No winget (older
+/// Windows 10 without App Installer), a declined prompt or a failed install
+/// fall back to [bonjourInstallGuideUrl] and return false: nothing changed
+/// yet, so the page must not re-run. A second tap while one runs is ignored.
+@visibleForTesting
+Future<bool> reinstallBonjourWithWinget({
+  required Future<ProcessResult> Function(String executable, List<String> arguments) run,
+  required Future<bool> Function(String url) openGuide,
+}) async {
+  if (_bonjourReinstallRunning) return false;
+  _bonjourReinstallRunning = true;
+  try {
+    buildToast(
+      title: AppLocalizations.current.networkFixReinstallBonjourRunning,
+      duration: const Duration(seconds: 10),
+    );
+    final ProcessResult result;
+    try {
+      result = await run('winget', [
+        'install',
+        '--id=Apple.Bonjour',
+        '-e',
+        '--force',
+        '--accept-package-agreements',
+        '--accept-source-agreements',
+      ]);
+    } on ProcessException catch (e) {
+      // Expected on machines without winget — not an error worth reporting.
+      Logger.info('reinstallBonjour: winget not available: $e');
+      return await _openBonjourGuide(openGuide);
+    }
+    if (result.exitCode != 0) {
+      final out = '${result.stdout}'.trim();
+      Logger.warn(
+        'reinstallBonjour: winget exited ${result.exitCode}: '
+        '${out.length > 500 ? out.substring(out.length - 500) : out}',
+      );
+      return await _openBonjourGuide(openGuide);
+    }
+    buildToast(title: AppLocalizations.current.networkFixReinstallBonjourDone, duration: const Duration(seconds: 10));
+    return true;
+  } finally {
+    _bonjourReinstallRunning = false;
+  }
+}
+
+Future<bool> _openBonjourGuide(Future<bool> Function(String url) openGuide) async {
+  buildToast(level: LogLevel.LOGLEVEL_WARNING, title: AppLocalizations.current.networkFixReinstallBonjourFallback);
+  await openGuide(bonjourInstallGuideUrl);
+  return false;
 }
 
 /// The Windows settings page holding the Public/Private switch for the

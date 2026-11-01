@@ -25,7 +25,7 @@ enum NetworkFixId {
   switchToLocal,
   openFirewallSettings,
   openNetworkProfileSettings,
-  openBonjourDownload,
+  reinstallBonjour,
   openLocalNetworkSettings,
   openAppLocalNetworkSettings,
   sendToSupport,
