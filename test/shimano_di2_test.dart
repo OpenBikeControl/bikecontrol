@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/base_device.dart' show DeviceSetupNeed;
 import 'package:bike_control/bluetooth/devices/shimano/shimano_ble_transport.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart' show FakePeripheral, FakeUniversalBlePlatform;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -341,6 +342,52 @@ Future<void> main() async {
       final instance = ShimanoDi2(BleDevice(name: 'Di2', deviceId: 'di2-no-config'));
 
       expect(instance.buttonModeSetupDone, isNull);
+    });
+  });
+
+  group('Shimano Di2 wireless unit of a wired 11-speed system', () {
+    // Both a 12-speed RD and the wireless unit of a wired 11-speed Di2 expose
+    // the 18FF config service, but the 11-speed unit relays no paddle press
+    // in button mode while the derailleurs stop shifting.
+    final services = [
+      BleService(ShimanoDi2Constants.SERVICE_UUID, [
+        BleCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, [CharacteristicProperty.indicate], []),
+      ]),
+      BleService(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE, []),
+    ];
+
+    Future<ShimanoDi2> connect(String id, String firmware) async {
+      final ble = FakeUniversalBlePlatform()
+        ..addPeripheral(FakePeripheral(deviceId: id, name: 'Di2', services: services));
+      UniversalBle.setInstance(ble);
+      await ble.connect(id);
+      final instance = ShimanoDi2(BleDevice(name: 'Di2', deviceId: id))..firmwareVersion = firmware;
+      await instance.handleServices(services);
+      return instance;
+    }
+
+    test('a 12-speed RD offers button mode', () async {
+      final instance = await connect('di2-12s', '4.1.0.0');
+
+      expect(instance.hasConfigService, isTrue);
+      expect(instance.buttonModeSetupDone, isFalse);
+    });
+
+    test('the 11-speed wireless unit keeps the D-Fly channels and offers no button mode', () async {
+      final l = await AppLocalizations.load(const Locale('en'));
+      final instance = await connect('di2-11s', '4.7.1.0');
+
+      expect(instance.hasConfigService, isFalse);
+      expect(instance.buttonModeSetupDone, isNull);
+      expect(instance.buttonExplanation, l.shimanoDflyExplanation);
+    });
+
+    test('a rider who already turned button mode on gets the D-Fly channels back', () async {
+      await core.settings.setShimanoButtonMode('di2-11s-on', true);
+      final instance = await connect('di2-11s-on', '4.7.1.0');
+
+      expect(instance.hasConfigService, isFalse);
+      expect(instance.controllerLayout, isNull);
     });
   });
 
