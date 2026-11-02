@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
@@ -255,6 +256,22 @@ class NotificationRequirement extends PlatformRequirement {
     }
   }
 
+  /// Closes every connection, drops the keep-alive foreground service and its
+  /// notification, then leaves the app. Popping alone only finishes the
+  /// activity — the service would keep the process and notification alive.
+  static Future<void> closeAndQuit() async {
+    UniversalBle.onAvailabilityChange = null;
+    await core.connection.disconnectAll();
+    core.actionHandler.cleanup();
+    await core.connection.stop();
+    if (Platform.isAndroid) {
+      final android = AndroidFlutterLocalNotificationsPlugin();
+      await android.stopForegroundService();
+      await android.cancelAll();
+    }
+    await SystemNavigator.pop();
+  }
+
   static Future<void> addPersistentNotification() async {
     const String channelGroupId = 'BikeControl';
     // create the group first
@@ -313,16 +330,13 @@ class NotificationRequirement extends PlatformRequirement {
     final backgroundMessagePort = _receivePort!.asBroadcastStream();
     _sub = backgroundMessagePort.listen((message) {
       print('Background isolate received message: $message');
-      if (message == 'disconnect' || message == 'close') {
+      if (message == 'disconnect') {
         UniversalBle.onAvailabilityChange = null;
         core.connection.disconnectAll();
-      }
-      if (message == 'close') {
-        core.actionHandler.cleanup();
-        core.connection.stop();
-        SystemNavigator.pop();
-        AndroidFlutterLocalNotificationsPlugin().stopForegroundService();
-        AndroidFlutterLocalNotificationsPlugin().cancelAll();
+      } else if (message == 'close') {
+        unawaited(
+          closeAndQuit().catchError((Object e, StackTrace s) => recordError(e, s, context: 'notification close')),
+        );
       }
 
       //exit(0);

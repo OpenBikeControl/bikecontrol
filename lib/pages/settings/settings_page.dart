@@ -35,7 +35,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart' show connectionM
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' show MaterialPageRoute, showLicensePage;
-import 'package:flutter/services.dart' show SystemNavigator;
+import 'package:bike_control/utils/requirements/android.dart' show NotificationRequirement;
 import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/services/rides/ride_format.dart';
@@ -91,9 +91,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _quit() async {
-    await core.connection.disconnectAll();
-    await core.connection.stop();
-    await SystemNavigator.pop();
+    try {
+      await NotificationRequirement.closeAndQuit();
+    } catch (e, s) {
+      recordError(e, s, context: 'settings close and quit');
+    }
   }
 
   @override
