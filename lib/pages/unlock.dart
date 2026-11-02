@@ -29,6 +29,8 @@ class UnlockPage extends StatefulWidget {
 class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateMixin {
   late final bool _wasZwiftMdnsEmulatorActive;
   late final bool _wasObpMdnsEmulatorActive;
+  // Whether this page started the bridge, see [unlockBridgeStopsOnClose].
+  bool _bridgeStartedByPage = false;
   // A Ride V2 whose Zwift service is hidden cannot be unlocked through the
   // bridge — nothing here can reach it — so it starts on the manual steps.
   late bool _showManualSteps = widget.device.unlockServiceHidden;
@@ -104,6 +106,7 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
         widget.device.alreadyUnlocked.addListener(_isConnectedUpdate);
 
         if (!ftmsEmulator.isStarted.value) {
+          _bridgeStartedByPage = true;
           ftmsEmulator
               .startServer(
                 mode: RetrofitMode.proxy,
@@ -132,6 +135,16 @@ class _UnlockPageState extends State<UnlockPage> with SingleTickerProviderStateM
 
       // Back to the name and serial the selected trainer app paired.
       unawaited(setZwiftUnlockInProgress(false));
+      // Before OpenBikeControl comes back: for TPV both advertise
+      // `_wahoo-fitness-tnp._tcp "BikeControl"`, and a bridge left running
+      // shadows the controller endpoint.
+      if (unlockBridgeStopsOnClose(startedByPage: _bridgeStartedByPage)) {
+        unawaited(
+          ftmsEmulator.stop().catchError((Object e, StackTrace s) {
+            recordError(e, s, context: 'Unlock bridge stop');
+          }),
+        );
+      }
       if (_wasZwiftMdnsEmulatorActive) {
         core.zwiftMdnsEmulator.startServer();
         core.settings.setZwiftMdnsEmulatorEnabled(true);

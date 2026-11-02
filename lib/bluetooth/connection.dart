@@ -704,6 +704,14 @@ class Connection {
     await _unregisterSource(source, forget: forget, context: 'Connection.disconnectHealthKit');
   }
 
+  /// Name of the standalone sensor advertisement: BikeControl, never the
+  /// trainer-app name. Not plain "BikeControl" while the selected app takes
+  /// the controller over DirCon: that endpoint already advertises the same
+  /// type under that name, and the app would resolve only one of the two
+  /// (see [trainerAppTakesControllerOverObcDirCon]).
+  String standaloneSensorAdvertisementName() =>
+      trainerAppTakesControllerOverObcDirCon() ? 'BikeControl Sensors' : 'BikeControl';
+
   /// TXT record for the standalone sensor advertisement — the same identity
   /// keys the bridge's `_wahoo-fitness-tnp._tcp` record carries for the
   /// selected app (`mac-address`, `serial-number`, plus the app's own; see
@@ -1135,7 +1143,7 @@ class Connection {
       // standalone peripheral is BikeControl itself — a rider pairing a
       // heart rate/cadence/power source in Zwift's own pairing screen should
       // see it identified as what it is.
-      standaloneSensorEmulator.advertisementNameOverride = () => 'BikeControl';
+      standaloneSensorEmulator.advertisementNameOverride = standaloneSensorAdvertisementName;
       _standaloneClientConnected = standaloneSensorEmulator.isConnected;
       // Attach-before-start / stop-before-detach: DirconEmulator.startServer
       // advertises whatever is already on its composite, so calling it
