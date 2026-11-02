@@ -15,6 +15,7 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:flutter/foundation.dart' show Uint8List, ValueNotifier;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
@@ -241,6 +242,26 @@ void main() {
   // needs) — MyWhoosh throws on a missing `serial-number`, Tacx bails on a
   // scan result without `mac-address`. The standalone record must carry the
   // same identity keys the bridge does for the same app.
+  // TrainingPeaks Virtual takes the controller from OpenBikeControl's DirCon
+  // endpoint, `_wahoo-fitness-tnp._tcp "BikeControl"`. The standalone sensor
+  // record is on the same type, so under the same name the two collide and
+  // TPV resolves only one of them.
+  group('standaloneSensorAdvertisementName', () {
+    test('differs from the controller endpoint when TPV is selected', () {
+      core.settings.setTrainerApp(TrainingPeaks());
+
+      expect(core.connection.standaloneSensorAdvertisementName(), 'BikeControl Sensors');
+    });
+
+    test('stays BikeControl for every other app', () {
+      for (final app in [MyWhoosh(), Tacx(), Rouvy()]) {
+        core.settings.setTrainerApp(app);
+
+        expect(core.connection.standaloneSensorAdvertisementName(), 'BikeControl', reason: '${app.runtimeType}');
+      }
+    });
+  });
+
   group('standaloneMdnsTxt', () {
     String txt(Map<String, Uint8List> map, String key) => String.fromCharCodes(map[key]!);
 
