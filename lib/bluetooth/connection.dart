@@ -31,6 +31,7 @@ import 'package:bike_control/services/sensors/sensor_sink_sync.dart';
 import 'package:bike_control/services/sensors/sensor_source.dart';
 import 'package:bike_control/services/sensors/standalone_sensor_lifecycle.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/requirements/android.dart';
@@ -258,6 +259,107 @@ class Connection {
 
   Timer? _gamePadSearchTimer;
   WifiTrainerScanner? _wifiTrainerScanner;
+
+  // ── BLE scan restarts (Android) ───────────────────────────────────────
+  //
+  // Android downgrades an unfiltered scan that has been running for more than
+  // 30 minutes to opportunistic — it stays "running" but delivers nothing —
+  // and pauses it while the screen is off. The scan is started once, so a
+  // controller that dropped after that was never seen again until an app
+  // restart. Restarting it (on a drop, and before the 30 minutes are up) gets
+  // a fresh, full-power scan. universal_ble defers starts that would trip
+  // Android's 5-starts-per-30-s limit, so a restart can't be throttled away.
+
+  /// How often a running BLE scan is restarted on Android; must stay below
+  /// Android's 30-minute unfiltered-scan limit. Mutable as a test seam.
+  Duration bleScanRestartInterval = const Duration(minutes: 25);
+
+  /// Requests within this window share one restart: a drop arrives as two
+  /// disconnect events, and several controllers can drop at once. Mutable as
+  /// a test seam.
+  Duration bleScanRestartDebounce = const Duration(seconds: 1);
+
+  Timer? _bleScanPeriodicRestartTimer;
+  Timer? _bleScanRestartDebounceTimer;
+  bool _bleScanRestartInFlight = false;
+
+  /// When the current BLE scan (re)started, and how often it was restarted
+  /// since [performScanning] — for the support bundle.
+  DateTime? _bleScanStartedAt;
+  int _bleScanRestartCount = 0;
+
+  bool get _restartsBleScan => !kIsWeb && !screenshotMode && HostPlatform.isAndroid;
+
+  /// Restarts the running BLE scan (Android only) so a dropped controller's
+  /// adverts are seen again. Only the BLE scan restarts — not [stop]: the
+  /// scan results, Wi-Fi and gamepad discovery all stay. No-op when nothing
+  /// is scanning; a burst of requests is debounced into one restart.
+  void restartBleScan({required String reason}) {
+    if (!_restartsBleScan || !isScanning.value) return;
+    if (_bleScanRestartDebounceTimer != null) return;
+    _bleScanRestartDebounceTimer = Timer(bleScanRestartDebounce, () {
+      _bleScanRestartDebounceTimer = null;
+      unawaited(_restartBleScanNow(reason));
+    });
+  }
+
+  Future<void> _restartBleScanNow(String reason) async {
+    _bleScanRestartDebounceTimer?.cancel();
+    _bleScanRestartDebounceTimer = null;
+    if (!_restartsBleScan || !isScanning.value || _bleScanRestartInFlight) return;
+    _bleScanRestartInFlight = true;
+    try {
+      if (await UniversalBle.getBluetoothAvailabilityState() != AvailabilityState.poweredOn) return;
+      await UniversalBle.stopScan();
+      // stop() may have ended scanning while stopScan was in flight.
+      if (!isScanning.value) return;
+      await _startBleScan();
+      _bleScanStartedAt = DateTime.now();
+      _bleScanRestartCount++;
+      _actionStreams.add(LogNotification('BLE scan restarted ($reason)'));
+    } catch (e, s) {
+      recordError(e, s, context: 'Connection.restartBleScan');
+    } finally {
+      _bleScanRestartInFlight = false;
+      // A restart, successful or not, starts the next interval.
+      if (isScanning.value) _armBleScanPeriodicRestart();
+    }
+  }
+
+  void _armBleScanPeriodicRestart() {
+    _bleScanPeriodicRestartTimer?.cancel();
+    _bleScanPeriodicRestartTimer = null;
+    if (!_restartsBleScan) return;
+    _bleScanPeriodicRestartTimer = Timer(bleScanRestartInterval, () {
+      _bleScanPeriodicRestartTimer = null;
+      unawaited(_restartBleScanNow('periodic'));
+    });
+  }
+
+  void _cancelBleScanRestarts() {
+    _bleScanPeriodicRestartTimer?.cancel();
+    _bleScanPeriodicRestartTimer = null;
+    _bleScanRestartDebounceTimer?.cancel();
+    _bleScanRestartDebounceTimer = null;
+    _bleScanStartedAt = null;
+    _bleScanRestartCount = 0;
+  }
+
+  /// One line for the support bundle: since when the current BLE scan runs.
+  String describeBleScan() {
+    final since = _bleScanStartedAt;
+    if (!isScanning.value || since == null) return 'not running';
+    String two(int v) => v.toString().padLeft(2, '0');
+    final minutes = DateTime.now().difference(since).inMinutes;
+    return 'running since ${two(since.hour)}:${two(since.minute)}:${two(since.second)} '
+        '($minutes min, restarts: $_bleScanRestartCount)';
+  }
+
+  Future<void> _startBleScan() => UniversalBle.startScan(
+    // allow all to enable Wahoo Kickr Bike Shift detection
+    //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
+    platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
+  );
 
   /// Auto-disconnects idle BLE controllers to save battery (issue #329).
   /// Created in [initialize] once `core` is ready.
@@ -1343,14 +1445,14 @@ class Connection {
     // throw, and gamepads and Wi-Fi trainers don't need one.
     startNonBluetoothDiscovery();
 
-    await UniversalBle.startScan(
-      // allow all to enable Wahoo Kickr Bike Shift detection
-      //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
-      platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
-    );
+    await _startBleScan();
 
     if (kIsWeb) {
       isScanning.value = false;
+    } else {
+      _bleScanStartedAt = DateTime.now();
+      _bleScanRestartCount = 0;
+      _armBleScanPeriodicRestart();
     }
   }
 
@@ -1938,8 +2040,13 @@ class Connection {
         }
         if (!device.isConnected && !_inPlaceDisconnects.contains(device)) {
           disconnect(device, forget: false, persistForget: false, dropped: wasConnected);
-          // try reconnect
-          performScanning();
+          // try reconnect: a scan that is already running is restarted
+          // (Android may have stopped delivering its results long ago)
+          if (isScanning.value) {
+            restartBleScan(reason: 'device dropped: $device');
+          } else {
+            performScanning();
+          }
         }
       });
       _connectionSubscriptions[device] = connectionStateSubscription;
@@ -2142,6 +2249,9 @@ class Connection {
     // stop/rescan cycle (unlock-mode switches do exactly that).
     _gamePadSearchTimer?.cancel();
     _gamePadSearchTimer = null;
+    // Same pitfall for the periodic BLE scan restart, which performScanning
+    // re-arms.
+    _cancelBleScanRestarts();
     isScanning.value = false;
     _lastScanResult.clear();
     _androidNotificationsSetup = false;

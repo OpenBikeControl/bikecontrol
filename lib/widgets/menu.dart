@@ -96,6 +96,7 @@ Renderer: ${guard(() => ui.ImageFilter.isShaderFilterSupported ? 'Impeller' : 'S
 Target: ${guard(() => core.settings.getLastTarget()?.name ?? '-')}
 Trainer App: ${guard(() => core.settings.getTrainerApp()?.name ?? '-')}
 Connected Controllers: ${guard(() => describeControllers(core.connection.devices))}
+BLE scan: ${guard(() => core.connection.describeBleScan())}
 Connected Trainers: ${guard(() => core.logic.connectedTrainerConnections.map((e) => e.title).join(', '))}
 Smart Trainers:
   $proxyBlock
