@@ -46,6 +46,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Strappo
 - Ride Cave
 - Velotoss
+- Grimpa
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps
