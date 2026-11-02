@@ -58,8 +58,7 @@ class Connection {
   /// signal the signals grid reads — there is deliberately no second flag.
   HealthKitSensorSource? healthKitSource;
 
-  bool get isHealthKitConnected =>
-      core.sensors.sources.any((s) => s.id == HealthKitSensorSource.sourceId);
+  bool get isHealthKitConnected => core.sensors.sources.any((s) => s.id == HealthKitSensorSource.sourceId);
 
   /// The Broadcast switch for the no-trainer path. Constructed in
   /// [initialize] (this file cannot be built in a unit test — see
@@ -114,7 +113,9 @@ class Connection {
   /// two paths fight over resistance. Null when the trainer is listed once.
   ProxyDevice? twinOf(ProxyDevice device) => proxyDevices.firstOrNullWhere(
     (other) =>
-        !identical(other, device) && other.trainerKey == device.trainerKey && other.isWifiUpstream != device.isWifiUpstream,
+        !identical(other, device) &&
+        other.trainerKey == device.trainerKey &&
+        other.isWifiUpstream != device.isWifiUpstream,
   );
 
   var _androidNotificationsSetup = false;
@@ -279,9 +280,29 @@ class Connection {
   /// a test seam.
   Duration bleScanRestartDebounce = const Duration(seconds: 1);
 
+  /// After a restart that failed to start the scan again, how long until the
+  /// next attempt — the native scan is stopped by then, so waiting a whole
+  /// [bleScanRestartInterval] would leave discovery dead. Mutable as a test
+  /// seam.
+  Duration bleScanRestartRetryDelay = const Duration(seconds: 30);
+
+  /// Quick retries after failed restarts before falling back to
+  /// [bleScanRestartInterval].
+  static const _maxBleScanRestartRetries = 3;
+
   Timer? _bleScanPeriodicRestartTimer;
   Timer? _bleScanRestartDebounceTimer;
   bool _bleScanRestartInFlight = false;
+
+  /// Bumped by [stop]: a restart still awaiting the platform when it started
+  /// belongs to a scan that has since been stopped.
+  int _bleScanGeneration = 0;
+
+  /// Failed restarts in a row; drives the quick retry and the bundle line.
+  int _bleScanRestartFailures = 0;
+
+  /// The [_bleScanGeneration] [performScanning] last started a scan in.
+  int? _bleScanStartedInGeneration;
 
   /// When the current BLE scan (re)started, and how often it was restarted
   /// since [performScanning] — for the support bundle.
@@ -308,31 +329,52 @@ class Connection {
     _bleScanRestartDebounceTimer = null;
     if (!_restartsBleScan || !isScanning.value || _bleScanRestartInFlight) return;
     _bleScanRestartInFlight = true;
+    final generation = _bleScanGeneration;
+    bool stillCurrent() => generation == _bleScanGeneration && isScanning.value;
+    var failed = false;
     try {
       if (await UniversalBle.getBluetoothAvailabilityState() != AvailabilityState.poweredOn) return;
       await UniversalBle.stopScan();
       // stop() may have ended scanning while stopScan was in flight.
-      if (!isScanning.value) return;
+      if (!stillCurrent()) return;
+      // The native scan is off until the start below succeeds.
+      _bleScanStartedAt = null;
       await _startBleScan();
+      if (!stillCurrent()) {
+        // stop() ran while the start was pending (Android's rate limiter
+        // defers it): don't leave a scan running that nothing tracks. A scan
+        // performScanning started since then owns the scanner — leave it.
+        if (_bleScanStartedInGeneration != _bleScanGeneration) await UniversalBle.stopScan();
+        return;
+      }
       _bleScanStartedAt = DateTime.now();
       _bleScanRestartCount++;
+      _bleScanRestartFailures = 0;
       _actionStreams.add(LogNotification('BLE scan restarted ($reason)'));
     } catch (e, s) {
+      failed = true;
       recordError(e, s, context: 'Connection.restartBleScan');
     } finally {
       _bleScanRestartInFlight = false;
-      // A restart, successful or not, starts the next interval.
-      if (isScanning.value) _armBleScanPeriodicRestart();
+      // A restart, successful or not, starts the next interval — a failed one
+      // retries sooner, a bounded number of times.
+      if (stillCurrent()) {
+        if (failed && _bleScanRestartFailures++ < _maxBleScanRestartRetries) {
+          _armBleScanPeriodicRestart(after: bleScanRestartRetryDelay, reason: 'retry after failed restart');
+        } else {
+          _armBleScanPeriodicRestart();
+        }
+      }
     }
   }
 
-  void _armBleScanPeriodicRestart() {
+  void _armBleScanPeriodicRestart({Duration? after, String reason = 'periodic'}) {
     _bleScanPeriodicRestartTimer?.cancel();
     _bleScanPeriodicRestartTimer = null;
     if (!_restartsBleScan) return;
-    _bleScanPeriodicRestartTimer = Timer(bleScanRestartInterval, () {
+    _bleScanPeriodicRestartTimer = Timer(after ?? bleScanRestartInterval, () {
       _bleScanPeriodicRestartTimer = null;
-      unawaited(_restartBleScanNow('periodic'));
+      unawaited(_restartBleScanNow(reason));
     });
   }
 
@@ -343,12 +385,19 @@ class Connection {
     _bleScanRestartDebounceTimer = null;
     _bleScanStartedAt = null;
     _bleScanRestartCount = 0;
+    _bleScanRestartFailures = 0;
+    _bleScanGeneration++;
   }
 
   /// One line for the support bundle: since when the current BLE scan runs.
   String describeBleScan() {
     final since = _bleScanStartedAt;
-    if (!isScanning.value || since == null) return 'not running';
+    if (!isScanning.value) return 'not running';
+    if (since == null) {
+      return _bleScanRestartFailures > 0
+          ? 'not running (restart failed $_bleScanRestartFailures×, retrying)'
+          : 'not running';
+    }
     String two(int v) => v.toString().padLeft(2, '0');
     final minutes = DateTime.now().difference(since).inMinutes;
     return 'running since ${two(since.hour)}:${two(since.minute)}:${two(since.second)} '
@@ -1451,7 +1500,9 @@ class Connection {
       isScanning.value = false;
     } else {
       _bleScanStartedAt = DateTime.now();
+      _bleScanStartedInGeneration = _bleScanGeneration;
       _bleScanRestartCount = 0;
+      _bleScanRestartFailures = 0;
       _armBleScanPeriodicRestart();
     }
   }
@@ -2237,6 +2288,10 @@ class Connection {
   }
 
   Future<void> stop() async {
+    // First, before any await: a restart whose start is still pending must
+    // see this scan as stopped when that start lands. Also keeps the periodic
+    // restart, which performScanning re-arms, from stacking (see below).
+    _cancelBleScanRestarts();
     final isBtEnabled = (await UniversalBle.getBluetoothAvailabilityState()) == AvailabilityState.poweredOn;
     if (isBtEnabled) {
       UniversalBle.stopScan();
@@ -2249,9 +2304,6 @@ class Connection {
     // stop/rescan cycle (unlock-mode switches do exactly that).
     _gamePadSearchTimer?.cancel();
     _gamePadSearchTimer = null;
-    // Same pitfall for the periodic BLE scan restart, which performScanning
-    // re-arms.
-    _cancelBleScanRestarts();
     isScanning.value = false;
     _lastScanResult.clear();
     _androidNotificationsSetup = false;

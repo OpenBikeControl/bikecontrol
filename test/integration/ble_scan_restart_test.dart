@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -181,6 +183,83 @@ Future<void> main() async {
         expect(env.ble.startScanCalls, startsBefore + 1);
         expect(env.ble.stopScanCalls, stopsBefore + 1);
         expect(restartLogs, hasLength(1));
+
+        core.connection.stop();
+        async.flushMicrotasks();
+      });
+    });
+  });
+
+  group('restart edge cases', () {
+    test('stop() while a restart is still starting the scan leaves it stopped', () {
+      fakeAsync((async) {
+        core.connection.performScanning();
+        async.flushMicrotasks();
+
+        // The restart's start is deferred (Android's scan rate limiter).
+        final gate = Completer<void>();
+        env.ble.startScanGate = gate;
+        async.elapse(const Duration(minutes: 25));
+        expect(env.ble.startScanCalls, 2);
+
+        core.connection.stop();
+        async.flushMicrotasks();
+        gate.complete();
+        async.flushMicrotasks();
+
+        expect(env.ble.scanning, isFalse);
+        expect(core.connection.describeBleScan(), 'not running');
+        expect(restartLogs, isEmpty);
+
+        // Nothing re-arms behind stop()'s back.
+        final starts = env.ble.startScanCalls;
+        async.elapse(const Duration(hours: 1));
+        expect(env.ble.startScanCalls, starts);
+      });
+    });
+
+    test('a failed restart is retried soon, not after a whole interval', () {
+      fakeAsync((async) {
+        core.connection.performScanning();
+        async.flushMicrotasks();
+
+        env.ble.startScanError = StateError('scan throttled');
+        async.elapse(const Duration(minutes: 25));
+        expect(env.ble.startScanCalls, 2);
+        // The native scan is stopped now — the bundle must not claim otherwise.
+        expect(core.connection.describeBleScan(), startsWith('not running (restart failed'));
+
+        env.ble.startScanError = null;
+        async.elapse(const Duration(seconds: 29));
+        expect(env.ble.startScanCalls, 2);
+        async.elapse(const Duration(seconds: 1));
+        expect(env.ble.startScanCalls, 3);
+        expect(restartLogs, ['BLE scan restarted (retry after failed restart)']);
+        expect(core.connection.describeBleScan(), startsWith('running since'));
+
+        // Back on the regular interval afterwards.
+        async.elapse(const Duration(minutes: 25));
+        expect(env.ble.startScanCalls, 4);
+
+        core.connection.stop();
+        async.flushMicrotasks();
+      });
+    });
+
+    test('quick retries are bounded, then the regular interval takes over', () {
+      fakeAsync((async) {
+        core.connection.performScanning();
+        async.flushMicrotasks();
+
+        env.ble.startScanError = StateError('scan throttled');
+        async.elapse(const Duration(minutes: 25));
+        expect(env.ble.startScanCalls, 2);
+        async.elapse(const Duration(seconds: 90));
+        expect(env.ble.startScanCalls, 5);
+        async.elapse(const Duration(minutes: 24));
+        expect(env.ble.startScanCalls, 5);
+        async.elapse(const Duration(minutes: 1, seconds: 30));
+        expect(env.ble.startScanCalls, 6);
 
         core.connection.stop();
         async.flushMicrotasks();
