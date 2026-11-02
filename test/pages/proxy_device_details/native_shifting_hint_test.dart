@@ -134,7 +134,7 @@ Future<void> main() async {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('forcing the Zwift protocol shows no native-shifting hint', (tester) async {
+  testWidgets('forcing the native protocol shows no native-shifting hint', (tester) async {
     final device = trainer();
     device.fitnessBike!.setControlProtocolOverride(TrainerControlProtocol.zwiftHub);
     await pumpSection(tester, device);

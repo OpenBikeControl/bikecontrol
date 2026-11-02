@@ -1903,7 +1903,7 @@
   "controlProtocolAuto": "Automatisch (empfohlen)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
-  "controlProtocolZwift": "Zwift-Protokoll",
+  "controlProtocolNative": "Nativ",
   "feedbackPromptTitle": "Wie läuft BikeControl für dich?",
   "feedbackPromptNotNow": "Nicht jetzt",
   "feedbackPositiveTitle": "Schön zu hören!",

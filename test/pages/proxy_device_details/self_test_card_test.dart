@@ -371,11 +371,11 @@ Future<void> main() async {
 
     expect(find.text("Power targets work, shifting doesn't"), findsOneWidget);
     expect(find.text('Switch mode & run again'), findsOneWidget);
-    expect(find.text('Try via Zwift protocol & run again'), findsOneWidget);
+    expect(find.text('Try Native & run again'), findsOneWidget);
 
     // The mode switch leads; the protocol CTA is the secondary offer below it.
     final switchModeTop = tester.getTopLeft(find.text('Switch mode & run again')).dy;
-    final protocolTop = tester.getTopLeft(find.text('Try via Zwift protocol & run again')).dy;
+    final protocolTop = tester.getTopLeft(find.text('Try Native & run again')).dy;
     expect(switchModeTop, lessThan(protocolTop));
   });
 
@@ -405,11 +405,11 @@ Future<void> main() async {
     await tester.pumpAndSettle();
 
     expect(find.text("Trainer isn't responding to BikeControl"), findsOneWidget);
-    expect(find.text('Try via Zwift protocol & run again'), findsOneWidget);
+    expect(find.text('Try Native & run again'), findsOneWidget);
     // Support is still offered, but below the protocol CTA.
     expect(find.text('Send result to support'), findsOneWidget);
 
-    await tester.tap(find.text('Try via Zwift protocol & run again'));
+    await tester.tap(find.text('Try Native & run again'));
     await tester.pump();
 
     // The tap flips the fake's recorded protocol and cycles the trainer

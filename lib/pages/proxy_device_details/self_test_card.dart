@@ -499,7 +499,7 @@ class _SelfTestCardState extends State<SelfTestCard> {
     return switch (name) {
       'ftms' => l10n.controlProtocolFtms,
       'fec' => l10n.controlProtocolFec,
-      'zwiftHub' => l10n.controlProtocolZwift,
+      'zwiftHub' => l10n.controlProtocolNative,
       _ => name,
     };
   }

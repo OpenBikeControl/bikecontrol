@@ -178,7 +178,7 @@ Future<void> main() async {
     await tester.pumpAndSettle();
     // The closed select shows the Auto placeholder, so the popup entries are
     // the *later* matches.
-    await tester.tap(find.text(AppLocalizations.current.controlProtocolZwift).last);
+    await tester.tap(find.text(AppLocalizations.current.controlProtocolNative).last);
     await tester.pumpAndSettle();
 
     expect(def.controlProtocolOverride, TrainerControlProtocol.zwiftHub);
@@ -209,9 +209,9 @@ Future<void> main() async {
 
     await tester.tap(find.byType(Select<TrainerControlProtocol?>));
     await tester.pumpAndSettle();
-    // Explicitly picking "Zwift protocol" on an auto-zwiftHub trainer is the
+    // Explicitly picking "Native" on an auto-zwiftHub trainer is the
     // documented inert choice — no delivery change, so no reconnect.
-    await tester.tap(find.text(AppLocalizations.current.controlProtocolZwift).last);
+    await tester.tap(find.text(AppLocalizations.current.controlProtocolNative).last);
     await tester.pumpAndSettle();
 
     expect(device.fitnessBike!.controlProtocol, TrainerControlProtocol.zwiftHub);
