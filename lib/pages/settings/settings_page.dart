@@ -20,9 +20,9 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/rate_app.dart';
 import 'package:bike_control/widgets/app_version_line.dart';
 import 'package:bike_control/widgets/logviewer.dart';
-import 'package:bike_control/widgets/menu.dart';
 import 'package:bike_control/widgets/plan/vs_trial_meter.dart';
 import 'package:bike_control/widgets/rides/ride_zone_settings.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
@@ -84,7 +84,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _review() async {
     try {
-      await openStoreReview();
+      await requestAppRating();
     } catch (e, s) {
       recordError(e, s, context: 'settings leave a review');
     }
