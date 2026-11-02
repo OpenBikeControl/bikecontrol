@@ -1224,6 +1224,7 @@
   "onboardingUpdatePatchBody": "Bereits heruntergeladen — starte neu, um die Einrichtung mit der neuesten Version abzuschließen.",
   "onboardingUpdateStoreBody": "Aktualisiere zuerst, damit deine Einrichtung auf der neuesten Version läuft.",
   "onboardingUpdateRestart": "Neu starten",
+  "appUpdatePatchReady": "Update heruntergeladen — starte neu, um es zu installieren.",
   "onboardingUpdateOpenStore": "Aktualisieren",
   "onboardingWelcomeTitle": "Los geht's mit der Einrichtung",
   "onboardingWelcomeSubtitle": "Ein paar Minuten jetzt — und dein Controller schaltet ab sofort bei jeder Fahrt die Gänge in deiner Trainer-App.",

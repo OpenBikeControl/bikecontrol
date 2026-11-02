@@ -1212,6 +1212,7 @@
   "onboardingUpdatePatchBody": "Ya descargado: reinicia para terminar la configuración con la última versión.",
   "onboardingUpdateStoreBody": "Actualiza primero para que tu configuración use la última versión.",
   "onboardingUpdateRestart": "Reiniciar",
+  "appUpdatePatchReady": "Actualización descargada: reinicia para instalarla.",
   "onboardingUpdateOpenStore": "Actualizar",
   "onboardingWelcomeTitle": "Vamos a configurarlo",
   "onboardingWelcomeSubtitle": "Un par de minutos ahora y tu mando cambiará de marchas en tu app de entrenamiento en cada salida.",

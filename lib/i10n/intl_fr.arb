@@ -1212,6 +1212,7 @@
   "onboardingUpdatePatchBody": "Déjà téléchargé — redémarre pour terminer la configuration avec la dernière version.",
   "onboardingUpdateStoreBody": "Mets à jour d'abord, pour que ta configuration tourne sur la dernière version.",
   "onboardingUpdateRestart": "Redémarrer",
+  "appUpdatePatchReady": "Mise à jour téléchargée — redémarre pour l'installer.",
   "onboardingUpdateOpenStore": "Mettre à jour",
   "onboardingWelcomeTitle": "On installe tout ça",
   "onboardingWelcomeSubtitle": "Quelques minutes maintenant, et ta commande changera les vitesses dans ton app d'entraînement à chaque sortie.",

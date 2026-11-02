@@ -22,23 +22,23 @@ final ValueNotifier<Patch?> shorebirdPatchListenable = ValueNotifier(null);
 Patch? get shorebirdPatch => shorebirdPatchListenable.value;
 set shorebirdPatch(Patch? value) => shorebirdPatchListenable.value = value;
 
-/// The shell's "New version available" action. Draws nothing until an update
-/// is found.
+/// The shell's "New version available" action: a button in the wide top bar,
+/// a strip under the phone's. Draws nothing until an update is found.
 ///
 /// Always mounted in the top bar, so it is also what reads the app version
 /// and the Shorebird patch into [packageInfoValue] and [shorebirdPatch] for
 /// the support bundle and the version line (Settings, Help Center).
 class AppUpdateButton extends StatefulWidget {
-  /// The phone's top bar: a short filled button naming the step ("Restart"
-  /// for a downloaded patch, "Update" for the store); the version is then the
-  /// spoken label.
-  final bool compact;
+  /// The phone: a full-width strip under the top bar saying what is waiting
+  /// and naming the step ("Restart" for a downloaded patch, "Update" for the
+  /// store) — a labelled button does not fit beside the title.
+  final bool banner;
 
   /// Skips the check and shows this update — for tests.
   @visibleForTesting
   final AppUpdate? initialUpdate;
 
-  const AppUpdateButton({super.key, this.compact = false, this.initialUpdate});
+  const AppUpdateButton({super.key, this.banner = false, this.initialUpdate});
 
   @override
   State<AppUpdateButton> createState() => _AppUpdateButtonState();
@@ -103,30 +103,45 @@ class _AppUpdateButtonState extends State<AppUpdateButton> with WidgetsBindingOb
     return LoadingWidget(
       futureCallback: () => applyAppUpdate(update),
       renderChild: (isLoading, tap) {
-        if (!widget.compact) {
+        if (!widget.banner) {
           return Button.outline(
             onPressed: tap,
             leading: isLoading ? const SmallProgressIndicator() : const Icon(LucideIcons.refreshCw),
             child: Text(label).xSmall,
           );
         }
-        // A bare icon reads as "refresh", not as "an update is waiting":
-        // name the step the rider has to take.
-        return Semantics(
-          button: true,
-          label: label,
-          excludeSemantics: true,
-          child: PrimaryButton(
-            size: ButtonSize.small,
-            onPressed: tap,
-            leading: isLoading
-                ? const SmallProgressIndicator()
-                : Icon(update.isPatch ? LucideIcons.rotateCcw : LucideIcons.circleArrowUp, size: 16),
-            child: Text(update.isPatch ? context.i18n.onboardingUpdateRestart : context.i18n.onboardingUpdateOpenStore),
+        final accent = Theme.of(context).colorScheme.primary;
+        return Container(
+          key: const ValueKey('app-update-banner'),
+          margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: accent.withValues(alpha: 0.09),
+            border: Border.all(color: accent.withValues(alpha: 0.45)),
+          ),
+          child: Row(
+            children: [
+              Icon(LucideIcons.circleArrowUp, size: 18, color: accent),
+              const Gap(10),
+              Expanded(
+                child: Text(update.isPatch ? context.i18n.appUpdatePatchReady : label).small.semiBold,
+              ),
+              const Gap(10),
+              PrimaryButton(
+                size: ButtonSize.small,
+                onPressed: tap,
+                leading: isLoading
+                    ? const SmallProgressIndicator()
+                    : Icon(update.isPatch ? LucideIcons.rotateCcw : LucideIcons.externalLink, size: 16),
+                child: Text(
+                  update.isPatch ? context.i18n.onboardingUpdateRestart : context.i18n.onboardingUpdateOpenStore,
+                ),
+              ),
+            ],
           ),
         );
       },
     );
   }
-
 }

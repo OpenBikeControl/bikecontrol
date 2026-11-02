@@ -601,6 +601,7 @@
   "onboardingUpdatePatchBody": "Already downloaded — restart to finish setup on the latest version.",
   "onboardingUpdateStoreBody": "Update first so your setup runs on the latest version.",
   "onboardingUpdateRestart": "Restart",
+  "appUpdatePatchReady": "Update downloaded — restart to install it.",
   "onboardingUpdateOpenStore": "Update",
   "onboardingWelcomeTitle": "Let's get you set up",
   "onboardingWelcomeSubtitle": "A couple of minutes now, and your controller shifts gears in your trainer app for every ride after this.",

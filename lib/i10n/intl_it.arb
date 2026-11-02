@@ -1212,6 +1212,7 @@
   "onboardingUpdatePatchBody": "Già scaricato: riavvia per completare la configurazione con l'ultima versione.",
   "onboardingUpdateStoreBody": "Aggiorna prima, così la configurazione parte dall'ultima versione.",
   "onboardingUpdateRestart": "Riavvia",
+  "appUpdatePatchReady": "Aggiornamento scaricato: riavvia per installarlo.",
   "onboardingUpdateOpenStore": "Aggiorna",
   "onboardingWelcomeTitle": "Configuriamo tutto insieme",
   "onboardingWelcomeSubtitle": "Un paio di minuti adesso e il tuo controller cambierà le marce nella tua app di allenamento a ogni uscita.",

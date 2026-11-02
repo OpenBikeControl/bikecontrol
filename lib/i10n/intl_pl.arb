@@ -1212,6 +1212,7 @@
   "onboardingUpdatePatchBody": "Już pobrane — uruchom ponownie, aby dokończyć konfigurację na najnowszej wersji.",
   "onboardingUpdateStoreBody": "Najpierw zaktualizuj, aby konfiguracja działała na najnowszej wersji.",
   "onboardingUpdateRestart": "Uruchom ponownie",
+  "appUpdatePatchReady": "Aktualizacja gotowa do instalacji.",
   "onboardingUpdateOpenStore": "Aktualizuj",
   "onboardingWelcomeTitle": "Skonfigurujmy wszystko",
   "onboardingWelcomeSubtitle": "Kilka minut teraz i Twój kontroler będzie zmieniał biegi w aplikacji treningowej podczas każdej jazdy.",
