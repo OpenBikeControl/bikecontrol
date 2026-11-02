@@ -510,6 +510,14 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
           core.connection.signalNotification(
             AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
           );
+          // A DirCon app can wait for a first notification before it shows the
+          // controller as connected (TrainingPeaks Virtual keeps its spinner
+          // going), and a controller is silent until a button is pressed. A
+          // button state naming no buttons changes nothing in the app.
+          _dirCon?.sendCharacteristicNotification(
+            OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+            OpenBikeProtocolParser.encodeButtonState(const []),
+          );
         } catch (e) {
           core.connection.signalNotification(LogNotification('Failed to parse app info: $e'));
         }
