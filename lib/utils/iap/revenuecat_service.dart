@@ -429,6 +429,7 @@ class RevenueCatService {
     // account, leaving the backend without Pro. When RevenueCat says Pro,
     // ask the backend to wait for it, and heal if it still came back empty.
     await _handleCustomerInfoUpdate(result.customerInfo);
+    await _syncStoreToAccountIfEmpty(supabaseUserId, result.customerInfo);
     if (performSync) {
       await _syncSubscriptions(expectActive: isProNotifier.value);
     }
@@ -436,6 +437,45 @@ class RevenueCatService {
       await refreshEntitlementsWithRetry();
     }
   }
+
+  /// The account RevenueCat's store receipts were last re-posted for in this
+  /// launch, see [needsStoreSyncAfterLogin].
+  String? _storeSyncedUserId;
+
+  /// A purchase made (or restored) while signed out can stay on an anonymous
+  /// RevenueCat id: logging in then shows the account without it and the app
+  /// falls back to the trial. Re-posting the store's receipts moves the
+  /// purchase onto the account.
+  Future<void> _syncStoreToAccountIfEmpty(String userId, CustomerInfo customerInfo) async {
+    final active = customerInfo.entitlements.active;
+    if (!needsStoreSyncAfterLogin(
+      userId: userId,
+      hasFullVersion: active[fullVersionEntitlement] != null,
+      hasPro: active[proVersionEntitlement] != null,
+      syncedUserId: _storeSyncedUserId,
+    )) {
+      return;
+    }
+    _storeSyncedUserId = userId;
+    try {
+      await Purchases.syncPurchases();
+      Purchases.invalidateCustomerInfoCache();
+      await _handleCustomerInfoUpdate(await Purchases.getCustomerInfo());
+    } catch (e, s) {
+      recordError(e, s, context: 'Syncing store purchases to the account after login');
+    }
+  }
+
+  /// Whether to re-post the store receipts after logging RevenueCat in as
+  /// [userId]: the account shows neither Base nor Pro, and this launch hasn't
+  /// done it for that account yet.
+  @visibleForTesting
+  static bool needsStoreSyncAfterLogin({
+    required String userId,
+    required bool hasFullVersion,
+    required bool hasPro,
+    required String? syncedUserId,
+  }) => !hasFullVersion && !hasPro && userId != syncedUserId;
 
   Future<void> _syncSubscriptions({required bool expectActive}) =>
       core.supabase.functions.invoke('sync-subscriptions', body: syncSubscriptionsBody(expectActive: expectActive));

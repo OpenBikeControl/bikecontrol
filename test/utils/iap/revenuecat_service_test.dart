@@ -79,6 +79,65 @@ void main() {
     });
   });
 
+  group('RevenueCatService.needsStoreSyncAfterLogin', () {
+    test('account without Base or Pro re-posts the store receipts once', () {
+      expect(
+        RevenueCatService.needsStoreSyncAfterLogin(
+          userId: 'u1',
+          hasFullVersion: false,
+          hasPro: false,
+          syncedUserId: null,
+        ),
+        isTrue,
+      );
+    });
+
+    test('not again for the same account in this launch', () {
+      expect(
+        RevenueCatService.needsStoreSyncAfterLogin(
+          userId: 'u1',
+          hasFullVersion: false,
+          hasPro: false,
+          syncedUserId: 'u1',
+        ),
+        isFalse,
+      );
+    });
+
+    test('again after switching to another account', () {
+      expect(
+        RevenueCatService.needsStoreSyncAfterLogin(
+          userId: 'u2',
+          hasFullVersion: false,
+          hasPro: false,
+          syncedUserId: 'u1',
+        ),
+        isTrue,
+      );
+    });
+
+    test('not when the account already has Base or Pro', () {
+      expect(
+        RevenueCatService.needsStoreSyncAfterLogin(
+          userId: 'u1',
+          hasFullVersion: true,
+          hasPro: false,
+          syncedUserId: null,
+        ),
+        isFalse,
+      );
+      expect(
+        RevenueCatService.needsStoreSyncAfterLogin(
+          userId: 'u1',
+          hasFullVersion: false,
+          hasPro: true,
+          syncedUserId: null,
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('RevenueCatService.syncSubscriptionsBody', () {
     test('asks the backend to wait for the subscription only when the store says Pro', () {
       expect(RevenueCatService.syncSubscriptionsBody(expectActive: true), {'expectActive': true});
