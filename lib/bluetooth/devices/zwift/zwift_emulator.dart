@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/peripheral_advertising_recovery.dart';
@@ -54,6 +55,13 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
           InGameAction.select,
           InGameAction.back,
           InGameAction.rideOnBomb,
+          InGameAction.leftDropButton,
+          InGameAction.rightDropButton,
+          InGameAction.leftShiftButton2,
+          InGameAction.rightShiftButton2,
+          InGameAction.leftPaddle,
+          InGameAction.rightPaddle,
+          InGameAction.brake,
           InGameAction.frontShift,
         ],
       );
@@ -331,37 +339,19 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
       return _sendFrontShift(keyPair);
     }
 
-    final button = switch (action) {
-      InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
-      InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
-      InGameAction.uturn => RideButtonMask.DOWN_BTN,
-      InGameAction.steerLeft => RideButtonMask.LEFT_BTN,
-      InGameAction.steerRight => RideButtonMask.RIGHT_BTN,
-      InGameAction.openActionBar => RideButtonMask.UP_BTN,
-      InGameAction.usePowerUp => RideButtonMask.Y_BTN,
-      InGameAction.select => RideButtonMask.A_BTN,
-      InGameAction.back => RideButtonMask.B_BTN,
-      InGameAction.rideOnBomb => RideButtonMask.Z_BTN,
-      _ => null,
-    };
+    final press = RideControllerPress.of(action);
 
-    if (button == null) {
+    if (press == null) {
       return NotHandled(
         'Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator',
         button: keyPair.buttons.firstOrNull,
       );
     }
 
-    final status = RideKeyPadStatus()
-      ..buttonMap = (~button.mask) & 0xFFFFFFFF
-      ..analogPaddles.clear();
-
-    final bytes = status.writeToBuffer();
-
     if (isKeyDown) {
       final commandProto = Uint8List.fromList([
         Opcode.CONTROLLER_NOTIFICATION.value,
-        ...bytes,
+        ...press.pressed,
       ]);
       await _server.notify(
         characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
@@ -371,10 +361,10 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
     }
 
     if (isKeyUp) {
-      final zero = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0x0F]);
+      final released = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, ...press.released]);
       await _server.notify(
         characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
-        value: zero,
+        value: released,
         deviceId: _currentDeviceId,
       );
     }

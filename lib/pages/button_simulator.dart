@@ -10,6 +10,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -105,11 +106,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     // If no saved hotkeys, initialize with defaults
     if (savedHotkeys.isEmpty) {
       final connectedTrainers = core.logic.enabledTrainerConnections;
-      final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
       final allActions = <InGameAction>[];
 
       for (final connection in connectedTrainers) {
-        allActions.addAll(connection.supportedActions.map((a) => mapping[a] ?? a));
+        allActions.addAll(appControllerActions(connection.supportedActions));
       }
 
       // Assign default hotkeys to actions
@@ -207,9 +207,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
     // Find the connection that supports this action (check both original and mapped actions)
     final connectedTrainers = core.logic.connectedNonLocalTrainerConnections;
-    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
     final connection = connectedTrainers.firstOrNullWhere(
-      (c) => c.supportedActions.map((a) => mapping[a] ?? a).contains(action),
+      (c) => appControllerActions(c.supportedActions).contains(action),
     );
 
     if (connection != null) {
@@ -237,13 +236,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   /// The actions [connection] can send, under the trainer app's own names.
   List<InGameAction> _actionsOf(TrainerConnection connection) {
-    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
-    return (connection.supportedActions == InGameAction.values
-            ? core.settings.getTrainerApp()!.keymap.keyPairs.mapNotNull((k) => k.inGameAction).distinct().toList()
-            : connection.supportedActions)
-        .map((a) => mapping[a] ?? a)
-        .distinct()
-        .toList();
+    return appControllerActions(
+      connection.supportedActions == InGameAction.values
+          ? core.settings.getTrainerApp()!.keymap.keyPairs.mapNotNull((k) => k.inGameAction).distinct().toList()
+          : connection.supportedActions,
+    ).distinct().toList();
   }
 
   @override

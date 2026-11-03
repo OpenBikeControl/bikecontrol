@@ -123,6 +123,9 @@ abstract class SupportedApp {
   /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {};
 
+  /// Zwift Ride controls this app has nothing for, so they are not offered.
+  Set<InGameAction> get unsupportedControllerActions => rideOnlyActions;
+
   /// Which Bridge transports this app can pick our trainer up on. Both by
   /// default; narrow it on apps that only look for trainers one way, so the
   /// picker stops offering a transport they will never find us on (see
@@ -219,6 +222,27 @@ abstract class SupportedApp {
   String toString() {
     return runtimeType.toString();
   }
+}
+
+/// Ride controls only Zwift itself reacts to.
+const rideOnlyActions = {
+  InGameAction.leftDropButton,
+  InGameAction.rightDropButton,
+  InGameAction.leftShiftButton2,
+  InGameAction.rightShiftButton2,
+  InGameAction.leftPaddle,
+  InGameAction.rightPaddle,
+  InGameAction.brake,
+};
+
+/// The Zwift controller [actions] offered for the selected app, under its own
+/// names: [SupportedApp.unsupportedControllerActions] dropped, then
+/// [SupportedApp.inGameActionsMapping] applied.
+List<InGameAction> appControllerActions(List<InGameAction> actions) {
+  final app = core.settings.getTrainerApp();
+  final mapping = app?.inGameActionsMapping ?? const {};
+  final unsupported = app?.unsupportedControllerActions ?? const {};
+  return actions.where((a) => !unsupported.contains(a)).map((a) => mapping[a] ?? a).toList();
 }
 
 /// Reverse of [SupportedApp.inGameActionsMapping]: resolves an app-specific

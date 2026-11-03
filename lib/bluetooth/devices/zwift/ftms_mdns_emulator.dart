@@ -1,7 +1,7 @@
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/devices/zwift/controller_keep_alive.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
@@ -48,6 +48,13 @@ class FtmsMdnsEmulator extends TrainerConnection {
           InGameAction.select,
           InGameAction.back,
           InGameAction.rideOnBomb,
+          InGameAction.leftDropButton,
+          InGameAction.rightDropButton,
+          InGameAction.leftShiftButton2,
+          InGameAction.rightShiftButton2,
+          InGameAction.leftPaddle,
+          InGameAction.rightPaddle,
+          InGameAction.brake,
         ],
       ) {
     ftmsEmulator.isStarted.addListener(() {
@@ -126,21 +133,9 @@ class FtmsMdnsEmulator extends TrainerConnection {
     // Resolve mapped app-specific actions (e.g. Rouvy's kudos) back to Zwift Click V2 actions
     final action = resolveControllerAction(keyPair.inGameAction);
 
-    final button = switch (action) {
-      InGameAction.shiftUp => RideButtonMask.SHFT_UP_R_BTN,
-      InGameAction.shiftDown => RideButtonMask.SHFT_UP_L_BTN,
-      InGameAction.uturn => RideButtonMask.DOWN_BTN,
-      InGameAction.steerLeft => RideButtonMask.LEFT_BTN,
-      InGameAction.steerRight => RideButtonMask.RIGHT_BTN,
-      InGameAction.openActionBar => RideButtonMask.UP_BTN,
-      InGameAction.usePowerUp => RideButtonMask.Y_BTN,
-      InGameAction.select => RideButtonMask.A_BTN,
-      InGameAction.back => RideButtonMask.B_BTN,
-      InGameAction.rideOnBomb => RideButtonMask.Z_BTN,
-      _ => null,
-    };
+    final press = RideControllerPress.of(action);
 
-    if (button == null) {
+    if (press == null) {
       return NotHandled(
         'Action ${keyPair.inGameAction!.name} not supported by Zwift Emulator',
         button: keyPair.buttons.firstOrNull,
@@ -148,22 +143,16 @@ class FtmsMdnsEmulator extends TrainerConnection {
     }
 
     if (isKeyDown) {
-      final status = RideKeyPadStatus()
-        ..buttonMap = (~button.mask) & 0xFFFFFFFF
-        ..analogPaddles.clear();
-
-      final bytes = status.writeToBuffer();
-
       ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
         Opcode.CONTROLLER_NOTIFICATION.value,
-        ...bytes,
+        ...press.pressed,
       ]);
     }
 
     if (isKeyUp) {
       ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
         Opcode.CONTROLLER_NOTIFICATION.value,
-        ...kZwiftControllerReleasedState,
+        ...press.released,
       ]);
     }
     if (kDebugMode) {
