@@ -21,6 +21,7 @@ import 'package:yet_another_json_isolate/yet_another_json_isolate.dart';
 class _FakeIssuesHttp extends http.BaseClient {
   final List<http.Request> issuesRequests = [];
   final List<http.Request> deleteRequests = [];
+  final List<http.Request> sendRequests = [];
   int deleteStatus = 200;
   Map<String, dynamic> deleteBody = const {'ok': true};
 
@@ -34,6 +35,19 @@ class _FakeIssuesHttp extends http.BaseClient {
     if (request.url.path.endsWith('/functions/v1/delete-support-data')) {
       deleteRequests.add(req);
       return _json(request, deleteBody, status: deleteStatus);
+    }
+    if (request.url.path.endsWith('/functions/v1/send-support-message')) {
+      sendRequests.add(req);
+      return _json(request, {
+        'message': {
+          'id': 'message-id',
+          'chat_id': 'chat-id',
+          'sender_id': 'user-id',
+          'sender_role': 'user',
+          'body': 'echo',
+          'created_at': '2026-11-04T10:42:02Z',
+        },
+      });
     }
     return _json(request, <String, dynamic>{}, status: 404);
   }
@@ -174,6 +188,43 @@ void main() {
         throwsA(isA<SupportChatException>()),
       );
       expect(fakeHttp.deleteRequests, isEmpty);
+    });
+  });
+
+  group('sendMessage', () {
+    setUp(() async {
+      await client.auth.recoverSession(jsonEncode(_sessionJson()));
+    });
+
+    // Postgres rejects U+0000 in text columns (22P05), so one NUL anywhere in
+    // the attached diagnostics failed every send from that device.
+    test('strips NUL characters from the body and every telemetry string', () async {
+      await service.sendMessage(
+        chatId: 'chat-id',
+        body: 'brake lights\u0000 stay on',
+        telemetry: {
+          'firmware_version': '1.2.0\u0000',
+          'freetext': 'Logs:\n10:42 - Found new device: HRM\u0000\u0000',
+          'trainer_ftms_machine_features': ['cadence\u0000'],
+          'self_test_result': {
+            'stepLog': ['step\u0000 1'],
+          },
+          'grade_smoothing': true,
+        },
+      );
+
+      expect(fakeHttp.sendRequests, hasLength(1));
+      final rawBody = fakeHttp.sendRequests.single.body;
+      expect(rawBody, isNot(contains(r'\u0000')));
+      final payload = jsonDecode(rawBody) as Map<String, dynamic>;
+      expect(payload['body'], 'brake lights stay on');
+      expect(payload['firmware_version'], '1.2.0');
+      expect(payload['freetext'], 'Logs:\n10:42 - Found new device: HRM');
+      expect(payload['trainer_ftms_machine_features'], ['cadence']);
+      expect(payload['self_test_result'], {
+        'stepLog': ['step 1'],
+      });
+      expect(payload['grade_smoothing'], isTrue);
     });
   });
 }
