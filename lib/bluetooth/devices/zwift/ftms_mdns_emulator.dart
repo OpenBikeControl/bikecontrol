@@ -54,8 +54,6 @@ class FtmsMdnsEmulator extends TrainerConnection {
           InGameAction.leftShiftButton2,
           InGameAction.rightShiftButton2,
           InGameAction.brake,
-          InGameAction.navigateLeft,
-          InGameAction.navigateRight,
         ],
       ) {
     ftmsEmulator.isStarted.addListener(() {

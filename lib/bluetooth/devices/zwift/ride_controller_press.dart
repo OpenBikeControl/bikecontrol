@@ -18,18 +18,13 @@ class RideControllerPress {
   /// Whether the emulators present themselves as a Zwift Ride to the selected app.
   static bool get emulatesRide => core.settings.getTrainerApp()?.emulatesZwiftRide ?? false;
 
-  static RideControllerPress? of(InGameAction? action, {bool? ride}) {
-    final asRide = ride ?? emulatesRide;
+  static RideControllerPress? of(InGameAction? action) {
     return switch (action) {
       InGameAction.shiftUp => RideControllerPress.button(RideButtonMask.SHFT_UP_R_BTN),
       InGameAction.shiftDown => RideControllerPress.button(RideButtonMask.SHFT_UP_L_BTN),
       InGameAction.uturn => RideControllerPress.button(RideButtonMask.DOWN_BTN),
-      InGameAction.steerLeft when asRide => const RideControllerPress(paddles: [RideAnalogLocation.LEFT]),
-      InGameAction.steerRight when asRide => const RideControllerPress(paddles: [RideAnalogLocation.RIGHT]),
       InGameAction.steerLeft => RideControllerPress.button(RideButtonMask.LEFT_BTN),
       InGameAction.steerRight => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
-      InGameAction.navigateLeft when asRide => RideControllerPress.button(RideButtonMask.LEFT_BTN),
-      InGameAction.navigateRight when asRide => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
       InGameAction.openActionBar => RideControllerPress.button(RideButtonMask.UP_BTN),
       InGameAction.usePowerUp => RideControllerPress.button(RideButtonMask.Y_BTN),
       InGameAction.select => RideControllerPress.button(RideButtonMask.A_BTN),

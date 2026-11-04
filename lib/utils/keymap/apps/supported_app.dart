@@ -234,8 +234,6 @@ const rideOnlyActions = {
   InGameAction.leftShiftButton2,
   InGameAction.rightShiftButton2,
   InGameAction.brake,
-  InGameAction.navigateLeft,
-  InGameAction.navigateRight,
 };
 
 /// The Zwift controller [actions] offered for the selected app, under its own

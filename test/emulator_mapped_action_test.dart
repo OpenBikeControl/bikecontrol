@@ -309,26 +309,15 @@ void main() {
       for (final p in RideKeyPadStatus.fromBuffer(frame.sublist(1)).analogPaddles) p.location: p.analogValue,
     };
 
-    test('steering pulls a paddle while held and lets go on release', () async {
+    test('steering presses the D-pad, which also moves through menus', () async {
       final channel = _RecordingPeripheralChannel()..install();
       addTearDown(channel.remove);
 
-      final result = await ZwiftEmulator().sendAction(_pair(InGameAction.steerLeft), isKeyDown: true, isKeyUp: true);
+      await ZwiftEmulator().sendAction(_pair(InGameAction.steerLeft), isKeyDown: true, isKeyUp: false);
 
-      expect(result, isA<Success>());
-      final [down, up] = channel.notifications;
-      expect(_buttonMapOf(down, hasOpcode: true), 0xFFFFFFFF);
-      expect(paddlesOf(down), {RideAnalogLocation.LEFT: -100});
-      expect(paddlesOf(up), {RideAnalogLocation.LEFT: 0});
-    });
-
-    test('steering right pulls the right paddle over the network', () async {
-      final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
-      addTearDown(transporter.dispose);
-
-      await FtmsMdnsEmulator().sendAction(_pair(InGameAction.steerRight), isKeyDown: true, isKeyUp: false);
-
-      expect(paddlesOf(transporter.notifications.single), {RideAnalogLocation.RIGHT: 100});
+      final frame = channel.notifications.single;
+      expect(_buttonMapOf(frame, hasOpcode: true), _released(RideButtonMask.LEFT_BTN));
+      expect(paddlesOf(frame), isEmpty);
     });
 
     test('brake pulls both paddles over the network', () async {
@@ -342,25 +331,8 @@ void main() {
       expect(paddlesOf(up), {RideAnalogLocation.LEFT: 0, RideAnalogLocation.RIGHT: 0});
     });
 
-    test('navigating presses the D-pad', () async {
-      final channel = _RecordingPeripheralChannel()..install();
-      addTearDown(channel.remove);
-
-      await ZwiftEmulator().sendAction(_pair(InGameAction.navigateLeft), isKeyDown: true, isKeyUp: false);
-
-      expect(_buttonMapOf(channel.notifications.single, hasOpcode: true), _released(RideButtonMask.LEFT_BTN));
-    });
-
-    test('other apps keep steering on the D-pad', () async {
-      core.settings.setTrainerApp(Biketerra());
-      final channel = _RecordingPeripheralChannel()..install();
-      addTearDown(channel.remove);
-
-      await ZwiftEmulator().sendAction(_pair(InGameAction.steerLeft), isKeyDown: true, isKeyUp: false);
-
-      final frame = channel.notifications.single;
-      expect(_buttonMapOf(frame, hasOpcode: true), _released(RideButtonMask.LEFT_BTN));
-      expect(paddlesOf(frame), isEmpty);
+    test('Navigate is not a Zwift action', () {
+      expect(appControllerActions(core.zwiftEmulator.supportedActions), isNot(contains(InGameAction.navigateLeft)));
     });
   });
 
