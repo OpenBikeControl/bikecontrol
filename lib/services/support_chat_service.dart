@@ -169,6 +169,16 @@ class SupportChatService {
     }
   }
 
+  /// Postgres rejects U+0000 in text (22P05), so a single NUL anywhere in the
+  /// attached diagnostics (e.g. a device string decoded from raw bytes) made
+  /// every message from that device fail. Strip it from every string.
+  static Object? _withoutNul(Object? value) {
+    if (value is String) return value.replaceAll('\u0000', '');
+    if (value is Map) return value.map((k, v) => MapEntry(k, _withoutNul(v)));
+    if (value is List) return value.map(_withoutNul).toList(growable: false);
+    return value;
+  }
+
   Future<SupportMessage> sendMessage({
     required String chatId,
     required String body,
@@ -199,7 +209,7 @@ class SupportChatService {
       final response = await _supabase.functions.invoke(
         _sendMessageFunction,
         method: HttpMethod.post,
-        body: payload,
+        body: _withoutNul(payload),
       );
       final data = _asMap(response.data);
       final messageJson = _asMap(data['message']);
