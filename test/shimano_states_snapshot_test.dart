@@ -47,7 +47,7 @@ Future<void> main() async {
         ),
       );
 
-  Widget channelsBody(BuildContext c, ShimanoSetupStage stage, {Set<ShimanoShifter>? seen, int runningStep = 0}) =>
+  Widget channelsBody(BuildContext c, ShimanoSetupStage stage, {ShimanoShifterAsk? ask, int runningStep = 0}) =>
       sheet(shimanoGuidedBody(
         c,
         stage: stage,
@@ -65,13 +65,13 @@ Future<void> main() async {
         passkeyField: const SizedBox(),
         onClose: () {},
         onProceed: () {},
-        shiftersSeen: seen,
+        shifterAsk: ask,
         afterChooser: true,
         runningStep: runningStep,
         checklistAutoAdvance: false,
       ));
 
-  Widget restoreBody(BuildContext c, ShimanoSetupStage stage, {Set<ShimanoShifter>? seen}) => sheet(shimanoGuidedBody(
+  Widget restoreBody(BuildContext c, ShimanoSetupStage stage, {ShimanoShifterAsk? ask}) => sheet(shimanoGuidedBody(
         c,
         stage: stage,
         confirmIcon: LucideIcons.rotateCcw,
@@ -84,7 +84,7 @@ Future<void> main() async {
         passkeyField: const SizedBox(),
         onClose: () {},
         onProceed: () {},
-        shiftersSeen: seen,
+        shifterAsk: ask,
         checklistAutoAdvance: false,
       ));
 
@@ -116,17 +116,22 @@ Future<void> main() async {
         ))),
     'di2_03_channels_confirm': (440, true, (c) => channelsBody(c, ShimanoSetupStage.confirm)),
     'di2_04_channels_authenticating': (440, false, (c) => channelsBody(c, ShimanoSetupStage.running)),
-    'di2_05_channels_press_shifters': (440, true, (c) => channelsBody(c, ShimanoSetupStage.running, seen: {})),
+    'di2_05_channels_press_shifters': (440, true, (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({}))),
     'di2_06_channels_press_right': (
       440,
       true,
-      (c) => channelsBody(c, ShimanoSetupStage.running, seen: {ShimanoShifter.left}),
+      (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({ShimanoShifter.left})),
+    ),
+    'di2_06b_channels_save': (
+      440,
+      true,
+      (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({ShimanoShifter.left}, saving: true)),
     ),
     'di2_07_channels_writing': (440, false, (c) => channelsBody(c, ShimanoSetupStage.running, runningStep: 2)),
     'di2_08_channels_success': (440, true, (c) => channelsBody(c, ShimanoSetupStage.success)),
     'di2_09_panel_channels_active': (380, true, (c) => panel(c, channels: true, canRestore: true)),
     'di2_10_restore_confirm': (440, true, (c) => restoreBody(c, ShimanoSetupStage.confirm)),
-    'di2_11_restore_press_shifters': (440, true, (c) => restoreBody(c, ShimanoSetupStage.running, seen: {})),
+    'di2_11_restore_press_shifters': (440, true, (c) => restoreBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({}))),
     'di2_12_restore_success': (440, true, (c) => restoreBody(c, ShimanoSetupStage.success)),
     'di2_13_buttons_confirm': (440, true, (c) => buttonsBody(c, ShimanoSetupStage.confirm)),
     'di2_14_panel_button_mode_warning': (380, true, (c) => panel(c, buttonMode: true, warning: true)),

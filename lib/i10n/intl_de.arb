@@ -1233,6 +1233,8 @@
   "shimanoChecklistAssigning": "Hebel auf D-Fly-Kanäle legen",
   "shimanoPressShiftersTitle": "Drück an jedem Schalthebel eine Taste",
   "shimanoPressShiftersBody": "Drück einmal eine beliebige Taste am linken und am rechten Schalthebel. Das weckt sie auf, damit BikeControl ihre Einstellungen ändern kann. Deine Di2 schaltet dabei nicht.",
+  "shimanoSaveShiftersTitle": "Drück jeden Schalthebel noch einmal",
+  "shimanoSaveShiftersBody": "Deine Di2 speichert die neue Einstellung beim nächsten Druck auf den Schalthebel. Drück eine Taste am linken, dann am rechten Schalthebel, bis beide abgehakt sind. Deine Di2 schaltet dabei nicht.",
   "shimanoShifterLeft": "Linker Schalthebel",
   "shimanoShifterRight": "Rechter Schalthebel",
   "shimanoChannelsSuccess": "Deine Hebel sind jetzt D-Fly-Kanäle und steuern BikeControl. Bevor du draußen fährst, tippe auf der Di2-Karte auf „Schaltung wiederherstellen“.",

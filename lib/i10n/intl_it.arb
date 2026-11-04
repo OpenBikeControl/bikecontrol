@@ -1221,6 +1221,8 @@
   "shimanoChecklistAssigning": "Assegnazione delle leve ai canali D-Fly",
   "shimanoPressShiftersTitle": "Premi un pulsante su ogni comando",
   "shimanoPressShiftersBody": "Premi una volta un pulsante qualsiasi sul comando sinistro e su quello destro. Così si attivano e BikeControl può modificarne le impostazioni. La tua Di2 non cambierà.",
+  "shimanoSaveShiftersTitle": "Premi di nuovo ogni comando",
+  "shimanoSaveShiftersBody": "La tua Di2 salva la nuova impostazione alla prossima pressione su un comando. Premi un pulsante sul comando sinistro, poi su quello destro, finché entrambi sono spuntati. La tua Di2 non cambierà.",
   "shimanoShifterLeft": "Comando sinistro",
   "shimanoShifterRight": "Comando destro",
   "shimanoChannelsSuccess": "Le tue leve ora sono canali D-Fly e controllano BikeControl. Prima di uscire in strada, tocca «Ripristina il cambio» nella scheda della Di2.",

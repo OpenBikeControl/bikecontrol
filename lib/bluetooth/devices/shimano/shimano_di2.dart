@@ -422,8 +422,9 @@ class ShimanoDi2 extends BluetoothDevice {
   List<ShimanoShifterSwitches> get switchBackup => core.settings.getShimanoSwitchBackup(_serialKey);
 
   /// While channel setup or restore waits for the rider to press a button on
-  /// each shifter: the shifters seen so far. Null otherwise.
-  final shiftersSeen = ValueNotifier<Set<ShimanoShifter>?>(null);
+  /// each shifter: which press it waits for, and the shifters done so far.
+  /// Null otherwise.
+  final shifterAsk = ValueNotifier<ShimanoShifterAsk?>(null);
 
   /// Set while a channel setup or restore reads the shifters: their presses
   /// carry the switch setting and must not trigger actions.
@@ -477,24 +478,25 @@ class ShimanoDi2 extends BluetoothDevice {
   }
 
   /// Run [body] on the connected instance for this Di2 (see [_liveInstance]),
-  /// mirroring its [shiftersSeen] here, where the setup sheet listens.
+  /// mirroring its [shifterAsk] here, where the setup sheet listens.
   Future<void> _onLiveInstance(Future<void> Function(ShimanoDi2 target) body) async {
     final target = await _liveInstance();
     if (identical(target, this)) return body(this);
-    void mirror() => shiftersSeen.value = target.shiftersSeen.value;
-    target.shiftersSeen.addListener(mirror);
+    void mirror() => shifterAsk.value = target.shifterAsk.value;
+    target.shifterAsk.addListener(mirror);
     try {
       await body(target);
     } finally {
-      target.shiftersSeen.removeListener(mirror);
-      shiftersSeen.value = null;
+      target.shifterAsk.removeListener(mirror);
+      shifterAsk.value = null;
     }
   }
 
   /// Authenticate, enter the RD's PC-connect mode (the only mode in which it
   /// relays to the shifters), wait for a press on each shifter in [slots] —
   /// the press both wakes it and reports its current switch setting — and
-  /// write what [plan] returns. Disconnects afterwards, which is what returns
+  /// write what [plan] returns, left shifter first: each write is saved on
+  /// that shifter's next press. Disconnects afterwards, which is what returns
   /// the Di2 to normal operation.
   Future<void> _writeShifters(
     String passkey,
@@ -508,9 +510,10 @@ class ShimanoDi2 extends BluetoothDevice {
     Timer? oneShifterGrace;
     final sub = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
       final switches = ShimanoShifterSwitches.fromTelemetry(frame);
-      if (switches == null || !slots.contains(switches.slot) || shiftersSeen.value == null) return;
+      if (switches == null || !slots.contains(switches.slot)) return;
+      if (shifterAsk.value == null || shifterAsk.value!.saving) return;
       seen[switches.slot] = switches;
-      shiftersSeen.value = {for (final slot in seen.keys) slot == 0 ? ShimanoShifter.left : ShimanoShifter.right};
+      shifterAsk.value = ShimanoShifterAsk({for (final slot in seen.keys) _shifterIn(slot)});
       if (seen.length == slots.length) {
         if (!allSeen.isCompleted) allSeen.complete();
       } else {
@@ -525,16 +528,23 @@ class ShimanoDi2 extends BluetoothDevice {
     _readingSwitches = true;
     try {
       await (debugEnterButtonMode?.call(this, passkey) ?? enterButtonMode(passkey: passkey));
-      shiftersSeen.value = {};
+      shifterAsk.value = const ShimanoShifterAsk({});
       await allSeen.future.timeout(const Duration(minutes: 2));
-      final writes = await plan(seen.values.toList());
-      for (final switches in writes) {
-        await ShimanoConfig.writeSwitches(t, switches);
-        actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
+      final writes = [...await plan(seen.values.toList())]..sort((a, b) => a.slot.compareTo(b.slot));
+      if (writes.isNotEmpty) {
+        final saved = {for (final slot in {...slots, ...seen.keys}) _shifterIn(slot)}
+          ..removeAll(writes.map((w) => _shifterIn(w.slot)));
+        shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
+        for (final switches in writes) {
+          await ShimanoConfig.writeSwitches(t, switches, quiet: debugSwitchWriteQuiet ?? const Duration(seconds: 1));
+          actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
+          saved.add(_shifterIn(switches.slot));
+          shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
+        }
       }
     } finally {
       oneShifterGrace?.cancel();
-      shiftersSeen.value = null;
+      shifterAsk.value = null;
       _readingSwitches = false;
       await sub.cancel();
       await _buttonSession?.close();
@@ -543,6 +553,12 @@ class ShimanoDi2 extends BluetoothDevice {
       await disconnect();
     }
   }
+
+  static ShimanoShifter _shifterIn(int slot) => slot == 0 ? ShimanoShifter.left : ShimanoShifter.right;
+
+  /// Shortens the pause [ShimanoConfig.writeSwitches] waits for in tests.
+  @visibleForTesting
+  static Duration? debugSwitchWriteQuiet;
 
   /// Replaces the authenticated [enterButtonMode] in channel setup tests.
   @visibleForTesting
@@ -723,7 +739,7 @@ class ShimanoDi2 extends BluetoothDevice {
       isUnresponsive: _isUnresponsive,
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
-      shifters: shiftersSeen,
+      shifters: shifterAsk,
       afterChooser: afterChooser,
     );
   }
@@ -744,7 +760,7 @@ class ShimanoDi2 extends BluetoothDevice {
       isUnresponsive: _isUnresponsive,
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
-      shifters: shiftersSeen,
+      shifters: shifterAsk,
     );
   }
 

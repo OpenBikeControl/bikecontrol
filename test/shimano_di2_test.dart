@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/base_device.dart' show DeviceSetupNeed;
 import 'package:bike_control/bluetooth/devices/shimano/shimano_ble_transport.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/devices/shimano/shimano_setup_sheet.dart' show ShimanoShifterAsk;
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart' show FakePeripheral, FakeUniversalBlePlatform;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -253,7 +254,11 @@ Future<void> main() async {
     final rightOnDfly = _hex('33411801f6f7e0e001ff');
     final leftOnDfly = _hex('33411800f4f5e0e001ff');
 
-    tearDown(() => ShimanoDi2.debugEnterButtonMode = null);
+    setUp(() => ShimanoDi2.debugSwitchWriteQuiet = Duration.zero);
+    tearDown(() {
+      ShimanoDi2.debugEnterButtonMode = null;
+      ShimanoDi2.debugSwitchWriteQuiet = null;
+    });
 
     ({ShimanoDi2 di2, _SwitchingShimanoTransport t}) connected(String id) {
       final t = _SwitchingShimanoTransport();
@@ -265,15 +270,15 @@ Future<void> main() async {
     }
 
     Future<void> untilWaitingForShifters(ShimanoDi2 di2) async {
-      while (di2.shiftersSeen.value == null) {
+      while (di2.shifterAsk.value == null) {
         await Future<void>.delayed(Duration.zero);
       }
     }
 
     test('setup saves what the paddles did and puts them on D-Fly channels', () async {
       final (:di2, :t) = connected('di2-channels');
-      final seen = <Set<ShimanoShifter>?>[];
-      di2.shiftersSeen.addListener(() => seen.add(di2.shiftersSeen.value));
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
 
       final setup = di2.setupChannels(passkey: '000000');
       await untilWaitingForShifters(di2);
@@ -288,11 +293,43 @@ Future<void> main() async {
       ]);
       expect(di2.isDflyChosen, isTrue);
       expect(di2.isButtonModeEnabled, isFalse);
-      expect(seen, [
-        <ShimanoShifter>{},
-        {ShimanoShifter.left},
-        {ShimanoShifter.left, ShimanoShifter.right},
+      expect(asks, [
+        const ShimanoShifterAsk({}),
+        const ShimanoShifterAsk({ShimanoShifter.left}),
+        const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}),
+        const ShimanoShifterAsk({}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
         null,
+      ]);
+    });
+
+    test('the left shifter is written first, whichever was pressed first', () async {
+      final (:di2, :t) = connected('di2-channels-order');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(rightFactory);
+      t.press(leftFactory);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000', '00134120010111cdff0000']);
+    });
+
+    test('a shifter that needs no change counts as saved', () async {
+      final (:di2, :t) = connected('di2-channels-one');
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      t.press(rightFactory);
+      await setup;
+
+      expect(asks.where((a) => a?.saving ?? false), [
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
       ]);
     });
 

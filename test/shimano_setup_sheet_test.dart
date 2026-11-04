@@ -238,8 +238,8 @@ void main() {
     });
   });
 
-  testWidgets('while the shifters are read, the sheet asks for a press on each', (tester) async {
-    final shifters = ValueNotifier<Set<ShimanoShifter>?>(null);
+  testWidgets('while the shifters are read and saved, the sheet asks for a press on each', (tester) async {
+    final shifters = ValueNotifier<ShimanoShifterAsk?>(null);
     final operation = Completer<void>();
     await tester.pumpWidget(
       app(
@@ -276,14 +276,19 @@ void main() {
     await tester.pump();
 
     expect(find.text(AppLocalizations.current.shimanoPressShiftersTitle), findsNothing);
-    shifters.value = {};
+    shifters.value = const ShimanoShifterAsk({});
     await tester.pump();
     expect(find.text(AppLocalizations.current.shimanoPressShiftersTitle), findsOneWidget);
     expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
 
-    shifters.value = {ShimanoShifter.left};
+    shifters.value = const ShimanoShifterAsk({ShimanoShifter.left});
     await tester.pump();
     expect(find.byIcon(LucideIcons.circleCheck), findsOneWidget);
+
+    shifters.value = const ShimanoShifterAsk({}, saving: true);
+    await tester.pump();
+    expect(find.text(AppLocalizations.current.shimanoSaveShiftersTitle), findsOneWidget);
+    expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
 
     shifters.value = null;
     operation.complete();

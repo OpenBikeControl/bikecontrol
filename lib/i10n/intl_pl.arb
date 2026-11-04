@@ -1221,6 +1221,8 @@
   "shimanoChecklistAssigning": "Przypisywanie dźwigni do kanałów D-Fly",
   "shimanoPressShiftersTitle": "Naciśnij przycisk na każdej manetce",
   "shimanoPressShiftersBody": "Naciśnij raz dowolny przycisk na lewej i prawej manetce. To je wybudza, aby BikeControl mógł zmienić ich ustawienia. Twoja Di2 nie zmieni biegu.",
+  "shimanoSaveShiftersTitle": "Naciśnij ponownie każdą manetkę",
+  "shimanoSaveShiftersBody": "Twoja Di2 zapisuje nowe ustawienie przy następnym naciśnięciu manetki. Naciśnij przycisk na lewej, a potem na prawej manetce, aż obie zostaną zaznaczone. Twoja Di2 nie zmieni biegu.",
   "shimanoShifterLeft": "Lewa manetka",
   "shimanoShifterRight": "Prawa manetka",
   "shimanoChannelsSuccess": "Twoje dźwignie są teraz kanałami D-Fly i sterują BikeControl. Przed jazdą na zewnątrz dotknij „Przywróć zmianę biegów” na karcie Di2.",

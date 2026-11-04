@@ -1,7 +1,7 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/foundation.dart' show ValueListenable, setEquals;
 import 'package:prop/prop.dart' show ShimanoAuth, ShimanoShifter;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -270,7 +270,7 @@ Future<void> showShimanoSetup(
   required bool Function(Object error) isUnresponsive,
   required bool Function(Object error) isPasskeyRejected,
   required bool Function(Object error) isPairingRequired,
-  ValueListenable<Set<ShimanoShifter>?>? shifters,
+  ValueListenable<ShimanoShifterAsk?>? shifters,
   bool afterChooser = false,
   VoidCallback? onUseDfly,
 }) async {
@@ -443,6 +443,25 @@ Widget shimanoSetupPanel(
   );
 }
 
+/// What channel setup or restore waits for: a press on each shifter so
+/// BikeControl reads its setting, then, while [saving], another press on each
+/// so the Di2 saves the new one. [done] are the shifters already through.
+class ShimanoShifterAsk {
+  final Set<ShimanoShifter> done;
+  final bool saving;
+  const ShimanoShifterAsk(this.done, {this.saving = false});
+
+  @override
+  bool operator ==(Object other) =>
+      other is ShimanoShifterAsk && other.saving == saving && setEquals(other.done, done);
+
+  @override
+  int get hashCode => Object.hash(saving, Object.hashAllUnordered(done));
+
+  @override
+  String toString() => 'ShimanoShifterAsk(${done.map((s) => s.name).join(', ')}${saving ? ', saving' : ''})';
+}
+
 /// The two shifters the running stage asks the rider to press, ticked off as
 /// their presses arrive.
 class ShimanoShifterPrompt extends StatelessWidget {
@@ -551,9 +570,8 @@ class ShimanoGuidedSheet extends StatefulWidget {
   /// the sheet closes afterwards. Null hides the option.
   final VoidCallback? onUseDfly;
 
-  /// The shifters pressed so far while [operation] waits for a press on each,
-  /// null while it doesn't.
-  final ValueListenable<Set<ShimanoShifter>?>? shifters;
+  /// What [operation] waits for the rider to press, null while it doesn't.
+  final ValueListenable<ShimanoShifterAsk?>? shifters;
 
   /// Opened after the mode choice: the step rail counts that step too.
   final bool afterChooser;
@@ -613,7 +631,7 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
     }
   }
 
-  Widget _body(BuildContext context, Set<ShimanoShifter>? shiftersSeen) => shimanoGuidedBody(
+  Widget _body(BuildContext context, ShimanoShifterAsk? shifterAsk) => shimanoGuidedBody(
         context,
         stage: _stage,
         confirmIcon: widget.confirmIcon,
@@ -626,7 +644,7 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
         passkeyField: ShimanoPasskeyField(controller: _passkey),
         onClose: () => closeSheet(context),
         onProceed: _attempt,
-        shiftersSeen: shiftersSeen,
+        shifterAsk: shifterAsk,
         afterChooser: widget.afterChooser,
         onUseDfly: widget.onUseDfly == null
             ? null
@@ -664,7 +682,7 @@ Widget shimanoGuidedBody(
   required VoidCallback onClose,
   required VoidCallback onProceed,
   VoidCallback? onUseDfly,
-  Set<ShimanoShifter>? shiftersSeen,
+  ShimanoShifterAsk? shifterAsk,
   bool afterChooser = false,
   int runningStep = 0,
   bool checklistAutoAdvance = true,
@@ -702,14 +720,14 @@ Widget shimanoGuidedBody(
           child: Text(l.continueAction),
         ),
       ];
-    case ShimanoSetupStage.running when shiftersSeen != null:
+    case ShimanoSetupStage.running when shifterAsk != null:
       icon = LucideIcons.hand;
       tone = _shimanoBlue;
       wash = dark ? const Color(0x1A2563EB) : _shimanoBlueWash;
-      heading = l.shimanoPressShiftersTitle;
-      body = l.shimanoPressShiftersBody;
+      heading = shifterAsk.saving ? l.shimanoSaveShiftersTitle : l.shimanoPressShiftersTitle;
+      body = shifterAsk.saving ? l.shimanoSaveShiftersBody : l.shimanoPressShiftersBody;
       stepIndex = 2;
-      extra = ShimanoShifterPrompt(seen: shiftersSeen);
+      extra = ShimanoShifterPrompt(seen: shifterAsk.done);
       actions = const [];
     case ShimanoSetupStage.running:
       icon = LucideIcons.radio;

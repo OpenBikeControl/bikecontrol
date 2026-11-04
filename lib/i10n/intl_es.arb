@@ -1221,6 +1221,8 @@
   "shimanoChecklistAssigning": "Poniendo tus palancas en canales D-Fly",
   "shimanoPressShiftersTitle": "Pulsa un botón en cada mando",
   "shimanoPressShiftersBody": "Pulsa una vez cualquier botón del mando izquierdo y del derecho. Así se despiertan y BikeControl puede cambiar sus ajustes. Tu Di2 no cambiará.",
+  "shimanoSaveShiftersTitle": "Vuelve a pulsar cada mando",
+  "shimanoSaveShiftersBody": "Tu Di2 guarda el nuevo ajuste la próxima vez que pulsas un mando. Pulsa un botón del mando izquierdo y luego del derecho hasta que ambos estén marcados. Tu Di2 no cambiará.",
   "shimanoShifterLeft": "Mando izquierdo",
   "shimanoShifterRight": "Mando derecho",
   "shimanoChannelsSuccess": "Tus palancas ahora son canales D-Fly y controlan BikeControl. Antes de salir a rodar fuera, toca «Restaurar mis cambios» en la tarjeta de la Di2.",

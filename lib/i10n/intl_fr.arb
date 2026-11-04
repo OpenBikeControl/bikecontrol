@@ -1221,6 +1221,8 @@
   "shimanoChecklistAssigning": "Placement de vos leviers sur les canaux D-Fly",
   "shimanoPressShiftersTitle": "Appuyez sur un bouton de chaque manette",
   "shimanoPressShiftersBody": "Appuyez une fois sur n'importe quel bouton de la manette gauche et de la droite. Cela les réveille pour que BikeControl puisse modifier leurs réglages. Votre Di2 ne changera pas de vitesse.",
+  "shimanoSaveShiftersTitle": "Appuyez à nouveau sur chaque manette",
+  "shimanoSaveShiftersBody": "Votre Di2 enregistre le nouveau réglage au prochain appui sur une manette. Appuyez sur un bouton de la manette gauche, puis de la droite, jusqu'à ce que les deux soient cochées. Votre Di2 ne changera pas de vitesse.",
   "shimanoShifterLeft": "Manette gauche",
   "shimanoShifterRight": "Manette droite",
   "shimanoChannelsSuccess": "Vos leviers sont maintenant des canaux D-Fly et contrôlent BikeControl. Avant de rouler dehors, touchez « Restaurer mes vitesses » sur la carte Di2.",

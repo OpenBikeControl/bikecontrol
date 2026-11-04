@@ -1844,6 +1844,8 @@
   "shimanoChecklistAssigning": "Setting your paddles to D-Fly channels",
   "shimanoPressShiftersTitle": "Press a button on each shifter",
   "shimanoPressShiftersBody": "Press any button once on the left and on the right shifter. That wakes them up so BikeControl can change their settings. Your Di2 won't shift.",
+  "shimanoSaveShiftersTitle": "Press each shifter again",
+  "shimanoSaveShiftersBody": "Your Di2 saves the new setting when you next press a shifter. Press a button on the left shifter, then on the right one, until both are ticked. Your Di2 won't shift.",
   "shimanoShifterLeft": "Left shifter",
   "shimanoShifterRight": "Right shifter",
   "shimanoChannelsSuccess": "Your paddles are now D-Fly channels and control BikeControl. Before you ride outside, tap “Restore my shifting” on the Di2 card.",
