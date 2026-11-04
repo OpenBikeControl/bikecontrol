@@ -118,4 +118,18 @@ void main() {
     // An un-persisted serial still degrades to the legacy label.
     expect(d.logicalButtonName(600, 1), 'SRAM Shifter A – Paddle');
   });
+
+  test('the press side wins over a stored side for a stale serial', () async {
+    SharedPreferences.setMockInitialValues({});
+    core.settings.prefs = await SharedPreferences.getInstance();
+    // The serial on a press is the last one seen, not necessarily the pressing
+    // shifter's: a right-lever press can arrive with the left lever's serial.
+    core.settings.setSramShifter('dev1', 500, 0, 1007);
+
+    final d = _device();
+    expect(d.logicalButtonName(500, 1, deviceType: 1), 'SRAM Right Shifter');
+    expect(d.logicalButtonName(500, 2, deviceType: 1), 'SRAM Right – Aux Top');
+    // A matching side keeps resolving from the stored info.
+    expect(d.logicalButtonName(500, 1, deviceType: 0), 'SRAM Left Shifter');
+  });
 }
