@@ -43,8 +43,17 @@ class ShimanoDi2 extends BluetoothDevice {
   @visibleForTesting
   void debugUseConfigTransport(ShimanoBleTransport transport) => _configTransport = transport;
 
+  /// Set while the link is dropped on purpose after channel setup or restore:
+  /// the entry stays listed and reconnects without connection toasts.
+  bool _linkResetting = false;
+  Timer? _linkResetTimeout;
+
+  @override
+  bool get isResetting => _linkResetting;
+
   @override
   Future<void> handleServices(List<BleService> services) async {
+    _endLinkReset();
     final service = services.firstWhere(
       (e) => e.uuid.toLowerCase() == ShimanoDi2Constants.SERVICE_UUID.toLowerCase(),
       orElse: () => throw Exception('Service not found: ${ShimanoDi2Constants.SERVICE_UUID}'),
@@ -54,7 +63,25 @@ class ShimanoDi2 extends BluetoothDevice {
       orElse: () => throw Exception('Characteristic not found: ${ShimanoDi2Constants.D_FLY_CHANNEL_UUID}'),
     );
 
+    // A fresh link reports its channels from scratch (see [processCharacteristic]).
+    _isInitialized = false;
+    _lastButtons.clear();
     await UniversalBle.subscribeIndications(device.deviceId, service.uuid, characteristic.uuid);
+
+    // The Di2 reports its D-Fly channels only once one is pressed. With E-TUBE
+    // channels chosen they are BikeControl's buttons: list them right away,
+    // and where the state can be read, start from it so the first press counts.
+    if (isDflyChosen) {
+      _addChannelButtons(_dflyChannelCount);
+      if (characteristic.properties.contains(CharacteristicProperty.read)) {
+        try {
+          final state = await UniversalBle.read(device.deviceId, service.uuid, characteristic.uuid);
+          if (state.length > 1) _initChannels(state.sublist(1));
+        } catch (e) {
+          actionStreamInternal.add(LogNotification('ShimanoDi2 D-Fly state not readable: $e'));
+        }
+      }
+    }
 
     // The 18FF E-TUBE config service (SERVICE_UUID_ALTERNATIVE) unlocks button
     // mode: the paddles become BikeControl buttons without changing any Di2
@@ -76,6 +103,30 @@ class ShimanoDi2 extends BluetoothDevice {
 
   final _lastButtons = <int, ({int value, _Di2State type})>{};
   bool _isInitialized = false;
+
+  /// D-Fly Ch1–Ch4.
+  static const _dflyChannelCount = 4;
+  static const _dflyFirstReport = 0x20;
+  static const _dflyUnpressed = 0xf0;
+
+  void _addChannelButtons(int count) {
+    for (var readableIndex = 1; readableIndex <= count; readableIndex++) {
+      getOrAddButton(
+        'D-Fly Channel $readableIndex',
+        () => ControllerButton(
+          'D-Fly Channel $readableIndex',
+          sourceDeviceId: device.deviceId,
+          action: isDflyChosen ? ShimanoDi2Buttons.channelActions[readableIndex] : null,
+        ),
+      );
+    }
+  }
+
+  void _initChannels(List<int> channels) {
+    channels.forEachIndexed((int value, int index) => _lastButtons[index] = (value: value, type: _Di2State.released));
+    _addChannelButtons(channels.length);
+    _isInitialized = true;
+  }
 
   @override
   // Shown while no button is known yet. A Di2 with the config service sends
@@ -104,23 +155,13 @@ class ShimanoDi2 extends BluetoothDevice {
     if (characteristic.toLowerCase() == ShimanoDi2Constants.D_FLY_CHANNEL_UUID) {
       final channels = bytes.sublist(1);
 
-      // On first data reception, just initialize the state without triggering buttons
+      // A link numbers its reports from 0x20 and starts every channel at
+      // [_dflyUnpressed]: its first report already carries a press. A first
+      // report from later on only says where the channels are.
       if (!_isInitialized) {
-        channels.forEachIndexed((int value, int index) {
-          final readableIndex = index + 1;
-          _lastButtons[index] = (value: value, type: _Di2State.released);
-
-          getOrAddButton(
-            'D-Fly Channel $readableIndex',
-            () => ControllerButton(
-              'D-Fly Channel $readableIndex',
-              sourceDeviceId: device.deviceId,
-              action: isDflyChosen ? ShimanoDi2Buttons.channelActions[readableIndex] : null,
-            ),
-          );
-        });
-        _isInitialized = true;
-        return Future.value();
+        final firstOfLink = bytes[0] == _dflyFirstReport;
+        _initChannels(firstOfLink ? List.filled(channels.length, _dflyUnpressed) : channels);
+        if (!firstOfLink) return Future.value();
       }
 
       var actualChange = false;
@@ -130,7 +171,12 @@ class ShimanoDi2 extends BluetoothDevice {
         final readableIndex = index + 1;
 
         if (didChange) {
-          if ((value & 0x10) != 0) {
+          if (value >> 4 == _dflyUnpressed >> 4) {
+            // Not pressed (a fresh link, or the RD entering its configuration
+            // mode): although it has the 0x10 bit set, no press.
+            _lastButtons[index] = (value: value, type: _Di2State.released);
+            Logger.info('Button $readableIndex not pressed');
+          } else if ((value & 0x10) != 0) {
             if (_lastButtons[index]?.type == _Di2State.longPress || _lastButtons[index]?.type == _Di2State.keep) {
               // short press is triggered after long press, until it's released later on
               _lastButtons[index] = (value: value, type: _Di2State.keep);
@@ -156,7 +202,9 @@ class ShimanoDi2 extends BluetoothDevice {
         }
       });
 
-      if (actualChange) {
+      // While channel setup or restore reads the shifters, presses only wake
+      // them and must not trigger actions.
+      if (actualChange && !_readingSwitches) {
         final Map<_Di2State, List<ControllerButton>> mapped = _lastButtons.entries.groupBy((e) => e.value.type).map((
           key,
           value,
@@ -518,8 +566,9 @@ class ShimanoDi2 extends BluetoothDevice {
   /// relays to the shifters), wait for a press on each shifter in [slots] —
   /// the press both wakes it and reports its current switch setting — and
   /// write what [plan] returns, left shifter first: each write is saved on
-  /// that shifter's next press. Disconnects afterwards, which is what returns
-  /// the Di2 to normal operation.
+  /// that shifter's next press. Once the passkey was accepted it disconnects
+  /// afterwards, which is what returns the Di2 to normal operation; it keeps
+  /// that passkey even if the rest fails.
   Future<void> _writeShifters(
     String passkey,
     Future<List<ShimanoShifterSwitches>> Function(List<ShimanoShifterSwitches> seen) plan, {
@@ -548,8 +597,22 @@ class ShimanoDi2 extends BluetoothDevice {
       }
     });
     _readingSwitches = true;
+    // Until the passkey is accepted the Di2 is still in normal operation:
+    // nothing to end by dropping the link, and a retry can use it.
+    var configMode = false;
     try {
-      await (debugEnterButtonMode?.call(this, passkey) ?? enterButtonMode(passkey: passkey));
+      try {
+        await (debugEnterButtonMode?.call(this, passkey) ?? enterButtonMode(passkey: passkey));
+      } on ShimanoAuthException {
+        rethrow;
+      } on ShimanoDi2PairingRequiredException {
+        rethrow;
+      } catch (_) {
+        configMode = true;
+        rethrow;
+      }
+      configMode = true;
+      await core.settings.setShimanoPasskey(_serialKey, passkey);
       final cancel = _shifterWaitCancel = Completer<void>();
       shifterAsk.value = const ShimanoShifterAsk({});
       await Future.any([allSeen.future.timeout(const Duration(minutes: 2)), cancel.future]);
@@ -584,8 +647,22 @@ class ShimanoDi2 extends BluetoothDevice {
       await _buttonSession?.close();
       _buttonSession = null;
       await _cancelFrameLogs();
-      await disconnect();
+      if (configMode) {
+        _linkResetting = true;
+        // A Di2 that doesn't come back is shown as gone again after a while.
+        _linkResetTimeout = Timer(const Duration(seconds: 30), () {
+          _endLinkReset();
+          core.connection.signalChange(this);
+        });
+        await disconnect();
+      }
     }
+  }
+
+  void _endLinkReset() {
+    _linkResetTimeout?.cancel();
+    _linkResetTimeout = null;
+    _linkResetting = false;
   }
 
   static ShimanoShifter _shifterIn(int slot) => slot == 0 ? ShimanoShifter.left : ShimanoShifter.right;
