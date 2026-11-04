@@ -297,8 +297,8 @@ Future<void> main() async {
         const ShimanoShifterAsk({}),
         const ShimanoShifterAsk({ShimanoShifter.left}),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}),
-        const ShimanoShifterAsk({}, saving: true),
-        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
+        const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, next: ShimanoShifter.right),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
         null,
       ]);
@@ -328,7 +328,7 @@ Future<void> main() async {
       await setup;
 
       expect(asks.where((a) => a?.saving ?? false), [
-        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, next: ShimanoShifter.right),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
       ]);
     });

@@ -557,8 +557,8 @@ class ShimanoDi2 extends BluetoothDevice {
       if (writes.isNotEmpty) {
         final saved = {for (final slot in {...slots, ...seen.keys}) _shifterIn(slot)}
           ..removeAll(writes.map((w) => _shifterIn(w.slot)));
-        shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
         for (final switches in writes) {
+          shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, next: _shifterIn(switches.slot));
           await Future.any([
             ShimanoConfig.writeSwitches(
               t,
@@ -572,8 +572,8 @@ class ShimanoDi2 extends BluetoothDevice {
           ]);
           actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
           saved.add(_shifterIn(switches.slot));
-          shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
         }
+        shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
       }
     } finally {
       oneShifterGrace?.cancel();

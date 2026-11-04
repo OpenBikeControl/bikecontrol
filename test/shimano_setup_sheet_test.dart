@@ -287,10 +287,12 @@ void main() {
     await tester.pump();
     expect(find.byIcon(LucideIcons.circleCheck), findsOneWidget);
 
-    shifters.value = const ShimanoShifterAsk({}, saving: true);
+    shifters.value = const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left);
     await tester.pump();
     expect(find.text(AppLocalizations.current.shimanoSaveShiftersTitle), findsOneWidget);
     expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
+    // The right shifter waits until the left one is saved.
+    expect(find.byIcon(LucideIcons.hourglass), findsOneWidget);
 
     shifters.value = null;
     operation.complete();

@@ -455,28 +455,36 @@ class ShimanoSetupCancelled implements Exception {
 
 /// What channel setup or restore waits for: a press on each shifter so
 /// BikeControl reads its setting, then, while [saving], another press on each
-/// so the Di2 saves the new one. [done] are the shifters already through.
+/// so the Di2 saves the new one. [done] are the shifters already through,
+/// [next] the one whose press saves its setting now (the Di2 saves one
+/// shifter at a time).
 class ShimanoShifterAsk {
   final Set<ShimanoShifter> done;
   final bool saving;
-  const ShimanoShifterAsk(this.done, {this.saving = false});
+  final ShimanoShifter? next;
+  const ShimanoShifterAsk(this.done, {this.saving = false, this.next});
 
   @override
   bool operator ==(Object other) =>
-      other is ShimanoShifterAsk && other.saving == saving && setEquals(other.done, done);
+      other is ShimanoShifterAsk && other.saving == saving && other.next == next && setEquals(other.done, done);
 
   @override
-  int get hashCode => Object.hash(saving, Object.hashAllUnordered(done));
+  int get hashCode => Object.hash(saving, next, Object.hashAllUnordered(done));
 
   @override
-  String toString() => 'ShimanoShifterAsk(${done.map((s) => s.name).join(', ')}${saving ? ', saving' : ''})';
+  String toString() =>
+      'ShimanoShifterAsk(${done.map((s) => s.name).join(', ')}${saving ? ', saving' : ''}'
+      '${next != null ? ', next ${next!.name}' : ''})';
 }
 
 /// The two shifters the running stage asks the rider to press, ticked off as
 /// their presses arrive.
 class ShimanoShifterPrompt extends StatelessWidget {
   final Set<ShimanoShifter> seen;
-  const ShimanoShifterPrompt({super.key, required this.seen});
+
+  /// The one shifter to press now; the others wait their turn.
+  final ShimanoShifter? next;
+  const ShimanoShifterPrompt({super.key, required this.seen, this.next});
 
   @override
   Widget build(BuildContext context) {
@@ -488,7 +496,13 @@ class ShimanoShifterPrompt extends StatelessWidget {
           (ShimanoShifter.right, l.shimanoShifterRight),
         ].indexed) ...[
           if (i > 0) const Gap(10),
-          Expanded(child: _ShifterPill(label: label, done: seen.contains(shifter))),
+          Expanded(
+            child: _ShifterPill(
+              label: label,
+              done: seen.contains(shifter),
+              waiting: next != null && next != shifter && !seen.contains(shifter),
+            ),
+          ),
         ],
       ],
     );
@@ -498,33 +512,57 @@ class ShimanoShifterPrompt extends StatelessWidget {
 class _ShifterPill extends StatelessWidget {
   final String label;
   final bool done;
-  const _ShifterPill({required this.label, required this.done});
+  final bool waiting;
+  const _ShifterPill({required this.label, required this.done, this.waiting = false});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final tone = done ? shimanoSuccess : _shimanoBlue;
+    final Color background;
+    final Color border;
+    final Color iconColor;
+    final Color labelColor;
+    if (done) {
+      background = dark ? const Color(0x1A22C55E) : shimanoSuccessWash;
+      border = tone.withValues(alpha: 0.35);
+      iconColor = tone;
+      labelColor = scheme.foreground;
+    } else if (waiting) {
+      background = scheme.muted.withValues(alpha: 0.5);
+      border = scheme.border;
+      iconColor = scheme.mutedForeground;
+      labelColor = scheme.mutedForeground;
+    } else {
+      background = dark ? const Color(0x1A2563EB) : _shimanoBlueWash;
+      border = tone.withValues(alpha: 0.35);
+      iconColor = tone;
+      labelColor = _shimanoBlue;
+    }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: done
-            ? (dark ? const Color(0x1A22C55E) : shimanoSuccessWash)
-            : (dark ? const Color(0x1A2563EB) : _shimanoBlueWash),
+        color: background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: tone.withValues(alpha: 0.35)),
+        border: Border.all(color: border),
       ),
       child: Row(
         children: [
-          Icon(done ? LucideIcons.circleCheck : LucideIcons.hand, size: 18, color: tone),
+          Icon(
+            done
+                ? LucideIcons.circleCheck
+                : waiting
+                ? LucideIcons.hourglass
+                : LucideIcons.hand,
+            size: 18,
+            color: iconColor,
+          ),
           const Gap(8),
           Expanded(
             child: Text(
               label,
-              style: context.typography.small.copyWith(
-                fontWeight: FontWeight.w600,
-                color: done ? scheme.foreground : _shimanoBlue,
-              ),
+              style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: labelColor),
             ),
           ),
         ],
@@ -748,7 +786,7 @@ Widget shimanoGuidedBody(
       heading = shifterAsk.saving ? l.shimanoSaveShiftersTitle : l.shimanoPressShiftersTitle;
       body = shifterAsk.saving ? l.shimanoSaveShiftersBody : l.shimanoPressShiftersBody;
       stepIndex = 2;
-      extra = ShimanoShifterPrompt(seen: shifterAsk.done);
+      extra = ShimanoShifterPrompt(seen: shifterAsk.done, next: shifterAsk.next);
       actions = [if (onCancelShifters != null) GhostButton(onPressed: onCancelShifters, child: Text(l.cancel))];
     case ShimanoSetupStage.running:
       icon = LucideIcons.radio;

@@ -122,10 +122,15 @@ Future<void> main() async {
       true,
       (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({ShimanoShifter.left})),
     ),
+    'di2_06a_channels_save_left': (
+      440,
+      true,
+      (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left)),
+    ),
     'di2_06b_channels_save': (
       440,
       true,
-      (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({ShimanoShifter.left}, saving: true)),
+      (c) => channelsBody(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, next: ShimanoShifter.right)),
     ),
     'di2_07_channels_writing': (440, false, (c) => channelsBody(c, ShimanoSetupStage.running, runningStep: 2)),
     'di2_08_channels_success': (440, true, (c) => channelsBody(c, ShimanoSetupStage.success)),
