@@ -241,6 +241,7 @@ void main() {
   testWidgets('while the shifters are read and saved, the sheet asks for a press on each', (tester) async {
     final shifters = ValueNotifier<ShimanoShifterAsk?>(null);
     final operation = Completer<void>();
+    var cancelled = false;
     await tester.pumpWidget(
       app(
         Builder(
@@ -262,6 +263,7 @@ void main() {
                 isPasskeyRejected: (e) => false,
                 isPairingRequired: (e) => false,
                 shifters: shifters,
+                onCancelShifters: () => cancelled = true,
               ),
             ),
             child: const Text('open'),
@@ -295,5 +297,57 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('done'), findsOneWidget);
+    expect(cancelled, isFalse);
+  });
+
+  testWidgets('while the sheet waits for the shifters, cancel stops and closes it', (tester) async {
+    final shifters = ValueNotifier<ShimanoShifterAsk?>(null);
+    final operation = Completer<void>();
+    var cancelled = false;
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => PrimaryButton(
+            onPressed: () => openSheet<void>(
+              context: context,
+              position: OverlayPosition.bottom,
+              builder: (_) => ShimanoGuidedSheet(
+                title: 'Set up',
+                intro: 'intro',
+                successMessage: 'ok',
+                confirmIcon: LucideIcons.radio,
+                runningTitle: 'running',
+                successTitle: 'done',
+                checklistItems: const ['a', 'b'],
+                initialPasskey: '000000',
+                operation: (_) => operation.future,
+                isUnresponsive: (e) => false,
+                isPasskeyRejected: (e) => false,
+                isPairingRequired: (e) => false,
+                shifters: shifters,
+                onCancelShifters: () {
+                  cancelled = true;
+                  operation.completeError(const ShimanoSetupCancelled());
+                },
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text(AppLocalizations.current.continueAction));
+    await tester.pump();
+    shifters.value = const ShimanoShifterAsk({}, saving: true);
+    await tester.pump();
+
+    await tester.tap(find.text(AppLocalizations.current.cancel));
+    await tester.pumpAndSettle();
+
+    expect(cancelled, isTrue);
+    expect(find.text(AppLocalizations.current.shimanoSaveShiftersTitle), findsNothing);
   });
 }

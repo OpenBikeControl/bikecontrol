@@ -271,6 +271,7 @@ Future<void> showShimanoSetup(
   required bool Function(Object error) isPasskeyRejected,
   required bool Function(Object error) isPairingRequired,
   ValueListenable<ShimanoShifterAsk?>? shifters,
+  VoidCallback? onCancelShifters,
   bool afterChooser = false,
   VoidCallback? onUseDfly,
 }) async {
@@ -292,6 +293,7 @@ Future<void> showShimanoSetup(
       isPasskeyRejected: isPasskeyRejected,
       isPairingRequired: isPairingRequired,
       shifters: shifters,
+      onCancelShifters: onCancelShifters,
       afterChooser: afterChooser,
       onUseDfly: onUseDfly,
     ),
@@ -443,6 +445,14 @@ Widget shimanoSetupPanel(
   );
 }
 
+/// The rider cancelled channel setup or restore while it waited for a press.
+class ShimanoSetupCancelled implements Exception {
+  const ShimanoSetupCancelled();
+
+  @override
+  String toString() => 'ShimanoSetupCancelled';
+}
+
 /// What channel setup or restore waits for: a press on each shifter so
 /// BikeControl reads its setting, then, while [saving], another press on each
 /// so the Di2 saves the new one. [done] are the shifters already through.
@@ -573,6 +583,9 @@ class ShimanoGuidedSheet extends StatefulWidget {
   /// What [operation] waits for the rider to press, null while it doesn't.
   final ValueListenable<ShimanoShifterAsk?>? shifters;
 
+  /// Stops [operation] while it waits for a press; the sheet closes.
+  final VoidCallback? onCancelShifters;
+
   /// Opened after the mode choice: the step rail counts that step too.
   final bool afterChooser;
 
@@ -592,6 +605,7 @@ class ShimanoGuidedSheet extends StatefulWidget {
     required this.isPairingRequired,
     this.onUseDfly,
     this.shifters,
+    this.onCancelShifters,
     this.afterChooser = false,
   });
 
@@ -645,6 +659,12 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
         onClose: () => closeSheet(context),
         onProceed: _attempt,
         shifterAsk: shifterAsk,
+        onCancelShifters: widget.onCancelShifters == null
+            ? null
+            : () {
+                widget.onCancelShifters!();
+                closeSheet(context);
+              },
         afterChooser: widget.afterChooser,
         onUseDfly: widget.onUseDfly == null
             ? null
@@ -683,6 +703,7 @@ Widget shimanoGuidedBody(
   required VoidCallback onProceed,
   VoidCallback? onUseDfly,
   ShimanoShifterAsk? shifterAsk,
+  VoidCallback? onCancelShifters,
   bool afterChooser = false,
   int runningStep = 0,
   bool checklistAutoAdvance = true,
@@ -728,7 +749,7 @@ Widget shimanoGuidedBody(
       body = shifterAsk.saving ? l.shimanoSaveShiftersBody : l.shimanoPressShiftersBody;
       stepIndex = 2;
       extra = ShimanoShifterPrompt(seen: shifterAsk.done);
-      actions = const [];
+      actions = [if (onCancelShifters != null) GhostButton(onPressed: onCancelShifters, child: Text(l.cancel))];
     case ShimanoSetupStage.running:
       icon = LucideIcons.radio;
       tone = scheme.primary;

@@ -426,6 +426,22 @@ class ShimanoDi2 extends BluetoothDevice {
   /// Null otherwise.
   final shifterAsk = ValueNotifier<ShimanoShifterAsk?>(null);
 
+  /// Completes with [ShimanoSetupCancelled] when the rider cancels while
+  /// [_writeShifters] waits for a press.
+  Completer<void>? _shifterWaitCancel;
+
+  /// The instance [_onLiveInstance] runs on, which [cancelShifterWait] stops.
+  ShimanoDi2? _liveTarget;
+
+  /// Stop a channel setup or restore that waits for a press on a shifter. It
+  /// then fails with [ShimanoSetupCancelled] and disconnects, which returns
+  /// the Di2 to normal operation.
+  void cancelShifterWait() {
+    final target = _liveTarget ?? this;
+    final cancel = target._shifterWaitCancel;
+    if (cancel != null && !cancel.isCompleted) cancel.completeError(const ShimanoSetupCancelled());
+  }
+
   /// Set while a channel setup or restore reads the shifters: their presses
   /// carry the switch setting and must not trigger actions.
   bool _readingSwitches = false;
@@ -448,6 +464,8 @@ class ShimanoDi2 extends BluetoothDevice {
       await core.settings.setShimanoButtonMode(_serialKey, false);
       await core.settings.setShimanoDfly(_serialKey, true);
       core.connection.signalChange(this);
+    } on ShimanoSetupCancelled {
+      rethrow;
     } catch (e, st) {
       actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup failed: $e'));
       await recordError(e, st, context: 'ShimanoDi2: channel setup');
@@ -470,6 +488,8 @@ class ShimanoDi2 extends BluetoothDevice {
       await core.settings.clearShimanoSwitchBackup(_serialKey);
       await core.settings.setShimanoDfly(_serialKey, false);
       core.connection.signalChange(this);
+    } on ShimanoSetupCancelled {
+      rethrow;
     } catch (e, st) {
       actionStreamInternal.add(LogNotification('ShimanoDi2 restore failed: $e'));
       await recordError(e, st, context: 'ShimanoDi2: restore switches');
@@ -484,9 +504,11 @@ class ShimanoDi2 extends BluetoothDevice {
     if (identical(target, this)) return body(this);
     void mirror() => shifterAsk.value = target.shifterAsk.value;
     target.shifterAsk.addListener(mirror);
+    _liveTarget = target;
     try {
       await body(target);
     } finally {
+      _liveTarget = null;
       target.shifterAsk.removeListener(mirror);
       shifterAsk.value = null;
     }
@@ -528,15 +550,19 @@ class ShimanoDi2 extends BluetoothDevice {
     _readingSwitches = true;
     try {
       await (debugEnterButtonMode?.call(this, passkey) ?? enterButtonMode(passkey: passkey));
+      final cancel = _shifterWaitCancel = Completer<void>();
       shifterAsk.value = const ShimanoShifterAsk({});
-      await allSeen.future.timeout(const Duration(minutes: 2));
+      await Future.any([allSeen.future.timeout(const Duration(minutes: 2)), cancel.future]);
       final writes = [...await plan(seen.values.toList())]..sort((a, b) => a.slot.compareTo(b.slot));
       if (writes.isNotEmpty) {
         final saved = {for (final slot in {...slots, ...seen.keys}) _shifterIn(slot)}
           ..removeAll(writes.map((w) => _shifterIn(w.slot)));
         shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
         for (final switches in writes) {
-          await ShimanoConfig.writeSwitches(t, switches, quiet: debugSwitchWriteQuiet ?? const Duration(seconds: 1));
+          await Future.any([
+            ShimanoConfig.writeSwitches(t, switches, quiet: debugSwitchWriteQuiet ?? const Duration(seconds: 1)),
+            cancel.future,
+          ]);
           actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
           saved.add(_shifterIn(switches.slot));
           shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
@@ -544,6 +570,7 @@ class ShimanoDi2 extends BluetoothDevice {
       }
     } finally {
       oneShifterGrace?.cancel();
+      _shifterWaitCancel = null;
       shifterAsk.value = null;
       _readingSwitches = false;
       await sub.cancel();
@@ -740,6 +767,7 @@ class ShimanoDi2 extends BluetoothDevice {
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
       shifters: shifterAsk,
+      onCancelShifters: cancelShifterWait,
       afterChooser: afterChooser,
     );
   }
@@ -761,6 +789,7 @@ class ShimanoDi2 extends BluetoothDevice {
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
       shifters: shifterAsk,
+      onCancelShifters: cancelShifterWait,
     );
   }
 

@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/base_device.dart' show DeviceSetupNeed;
 import 'package:bike_control/bluetooth/devices/shimano/shimano_ble_transport.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
-import 'package:bike_control/bluetooth/devices/shimano/shimano_setup_sheet.dart' show ShimanoShifterAsk;
+import 'package:bike_control/bluetooth/devices/shimano/shimano_setup_sheet.dart' show ShimanoSetupCancelled, ShimanoShifterAsk;
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart' show FakePeripheral, FakeUniversalBlePlatform;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -331,6 +331,20 @@ Future<void> main() async {
         const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
       ]);
+    });
+
+    test('a setup cancelled while it waits for the shifters writes nothing', () async {
+      final (:di2, :t) = connected('di2-channels-cancel');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      di2.cancelShifterWait();
+
+      await expectLater(setup, throwsA(isA<ShimanoSetupCancelled>()));
+      expect(t.switchWrites, isEmpty);
+      expect(di2.isDflyChosen, isFalse);
+      expect(di2.shifterAsk.value, isNull);
     });
 
     test('paddles already on their D-Fly channels are left alone', () async {
