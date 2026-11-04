@@ -123,8 +123,11 @@ abstract class SupportedApp {
   /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {};
 
+  /// Whether the Zwift controller emulators present themselves as a Zwift Ride.
+  bool get emulatesZwiftRide => false;
+
   /// Zwift Ride controls this app has nothing for, so they are not offered.
-  Set<InGameAction> get unsupportedControllerActions => rideOnlyActions;
+  Set<InGameAction> get unsupportedControllerActions => emulatesZwiftRide ? const {} : rideOnlyActions;
 
   /// Which Bridge transports this app can pick our trainer up on. Both by
   /// default; narrow it on apps that only look for trainers one way, so the
@@ -230,9 +233,9 @@ const rideOnlyActions = {
   InGameAction.rightDropButton,
   InGameAction.leftShiftButton2,
   InGameAction.rightShiftButton2,
-  InGameAction.leftPaddle,
-  InGameAction.rightPaddle,
   InGameAction.brake,
+  InGameAction.navigateLeft,
+  InGameAction.navigateRight,
 };
 
 /// The Zwift controller [actions] offered for the selected app, under its own

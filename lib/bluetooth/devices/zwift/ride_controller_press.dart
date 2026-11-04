@@ -1,8 +1,9 @@
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart' show RideButtonMask;
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
 
-/// What an action presses on the emulated Zwift Ride: buttons and/or paddles.
+/// What an action presses on the emulated Zwift controller: buttons and/or paddles.
 class RideControllerPress {
   /// Analog value of a fully pulled paddle.
   static const int fullPaddle = 100;
@@ -14,26 +15,34 @@ class RideControllerPress {
 
   RideControllerPress.button(RideButtonMask button) : this(buttonMask: button.mask);
 
-  static RideControllerPress? of(InGameAction? action) => switch (action) {
-    InGameAction.shiftUp => RideControllerPress.button(RideButtonMask.SHFT_UP_R_BTN),
-    InGameAction.shiftDown => RideControllerPress.button(RideButtonMask.SHFT_UP_L_BTN),
-    InGameAction.uturn => RideControllerPress.button(RideButtonMask.DOWN_BTN),
-    InGameAction.steerLeft => RideControllerPress.button(RideButtonMask.LEFT_BTN),
-    InGameAction.steerRight => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
-    InGameAction.openActionBar => RideControllerPress.button(RideButtonMask.UP_BTN),
-    InGameAction.usePowerUp => RideControllerPress.button(RideButtonMask.Y_BTN),
-    InGameAction.select => RideControllerPress.button(RideButtonMask.A_BTN),
-    InGameAction.back => RideControllerPress.button(RideButtonMask.B_BTN),
-    InGameAction.rideOnBomb => RideControllerPress.button(RideButtonMask.Z_BTN),
-    InGameAction.leftDropButton => RideControllerPress.button(RideButtonMask.POWERUP_L_BTN),
-    InGameAction.rightDropButton => RideControllerPress.button(RideButtonMask.POWERUP_R_BTN),
-    InGameAction.leftShiftButton2 => RideControllerPress.button(RideButtonMask.SHFT_DN_L_BTN),
-    InGameAction.rightShiftButton2 => RideControllerPress.button(RideButtonMask.SHFT_DN_R_BTN),
-    InGameAction.leftPaddle => const RideControllerPress(paddles: [RideAnalogLocation.LEFT]),
-    InGameAction.rightPaddle => const RideControllerPress(paddles: [RideAnalogLocation.RIGHT]),
-    InGameAction.brake => const RideControllerPress(paddles: [RideAnalogLocation.LEFT, RideAnalogLocation.RIGHT]),
-    _ => null,
-  };
+  /// Whether the emulators present themselves as a Zwift Ride to the selected app.
+  static bool get emulatesRide => core.settings.getTrainerApp()?.emulatesZwiftRide ?? false;
+
+  static RideControllerPress? of(InGameAction? action, {bool? ride}) {
+    final asRide = ride ?? emulatesRide;
+    return switch (action) {
+      InGameAction.shiftUp => RideControllerPress.button(RideButtonMask.SHFT_UP_R_BTN),
+      InGameAction.shiftDown => RideControllerPress.button(RideButtonMask.SHFT_UP_L_BTN),
+      InGameAction.uturn => RideControllerPress.button(RideButtonMask.DOWN_BTN),
+      InGameAction.steerLeft when asRide => const RideControllerPress(paddles: [RideAnalogLocation.LEFT]),
+      InGameAction.steerRight when asRide => const RideControllerPress(paddles: [RideAnalogLocation.RIGHT]),
+      InGameAction.steerLeft => RideControllerPress.button(RideButtonMask.LEFT_BTN),
+      InGameAction.steerRight => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
+      InGameAction.navigateLeft when asRide => RideControllerPress.button(RideButtonMask.LEFT_BTN),
+      InGameAction.navigateRight when asRide => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
+      InGameAction.openActionBar => RideControllerPress.button(RideButtonMask.UP_BTN),
+      InGameAction.usePowerUp => RideControllerPress.button(RideButtonMask.Y_BTN),
+      InGameAction.select => RideControllerPress.button(RideButtonMask.A_BTN),
+      InGameAction.back => RideControllerPress.button(RideButtonMask.B_BTN),
+      InGameAction.rideOnBomb => RideControllerPress.button(RideButtonMask.Z_BTN),
+      InGameAction.leftDropButton => RideControllerPress.button(RideButtonMask.POWERUP_L_BTN),
+      InGameAction.rightDropButton => RideControllerPress.button(RideButtonMask.POWERUP_R_BTN),
+      InGameAction.leftShiftButton2 => RideControllerPress.button(RideButtonMask.SHFT_DN_L_BTN),
+      InGameAction.rightShiftButton2 => RideControllerPress.button(RideButtonMask.SHFT_DN_R_BTN),
+      InGameAction.brake => const RideControllerPress(paddles: [RideAnalogLocation.LEFT, RideAnalogLocation.RIGHT]),
+      _ => null,
+    };
+  }
 
   /// Keypad status while held.
   List<int> get pressed => _status(buttonMask, fullPaddle);
@@ -45,7 +54,9 @@ class RideControllerPress {
   List<int> _status(int mask, int paddleValue) {
     final status = RideKeyPadStatus()..buttonMap = (~mask) & 0xFFFFFFFF;
     for (final paddle in paddles) {
-      status.analogPaddles.add(RideAnalogKeyPress(location: paddle, analogValue: paddleValue));
+      // The left paddle pulls negative.
+      final value = paddle == RideAnalogLocation.LEFT ? -paddleValue : paddleValue;
+      status.analogPaddles.add(RideAnalogKeyPress(location: paddle, analogValue: value));
     }
     return status.writeToBuffer();
   }

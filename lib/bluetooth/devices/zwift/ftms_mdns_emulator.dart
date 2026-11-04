@@ -25,6 +25,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
   late final ZwiftEmulatorDefinition def = ZwiftEmulatorDefinition(
     device: BleDevice(deviceId: 'deviceId', name: 'name'),
+    asRide: () => RideControllerPress.emulatesRide,
   );
 
   /// Keeps the LAN connection alive while a client is connected by re-emitting
@@ -52,9 +53,9 @@ class FtmsMdnsEmulator extends TrainerConnection {
           InGameAction.rightDropButton,
           InGameAction.leftShiftButton2,
           InGameAction.rightShiftButton2,
-          InGameAction.leftPaddle,
-          InGameAction.rightPaddle,
           InGameAction.brake,
+          InGameAction.navigateLeft,
+          InGameAction.navigateRight,
         ],
       ) {
     ftmsEmulator.isStarted.addListener(() {

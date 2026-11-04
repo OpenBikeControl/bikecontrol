@@ -7,7 +7,7 @@ import '../keymap.dart';
 
 class Zwift extends SupportedApp {
   @override
-  Set<InGameAction> get unsupportedControllerActions => const {};
+  bool get emulatesZwiftRide => true;
 
   @override
   bool get showsOwnGear => true;

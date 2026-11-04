@@ -7,9 +7,6 @@ import '../buttons.dart';
 import '../keymap.dart';
 
 class CustomApp extends SupportedApp {
-  @override
-  Set<InGameAction> get unsupportedControllerActions => const {};
-
   final String profileName;
 
   @override

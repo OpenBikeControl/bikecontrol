@@ -52,8 +52,6 @@ enum InGameAction {
   rightDropButton('Right Drop Button', icon: LucideIcons.circleArrowRight),
   leftShiftButton2('Left Shift Button 2', icon: LucideIcons.chevronsDown),
   rightShiftButton2('Right Shift Button 2', icon: LucideIcons.chevronsUp),
-  leftPaddle('Left Paddle', icon: LucideIcons.panelLeft, isLongPress: true, requiresHold: true),
-  rightPaddle('Right Paddle', icon: LucideIcons.panelRight, isLongPress: true, requiresHold: true),
   brake('Brake', icon: LucideIcons.octagonPause, isLongPress: true, requiresHold: true),
 
   // rouvy
@@ -159,8 +157,6 @@ enum InGameAction {
       InGameAction.rightDropButton => l.actionRightDropButton,
       InGameAction.leftShiftButton2 => l.actionLeftShiftButton2,
       InGameAction.rightShiftButton2 => l.actionRightShiftButton2,
-      InGameAction.leftPaddle => l.actionLeftPaddle,
-      InGameAction.rightPaddle => l.actionRightPaddle,
       InGameAction.brake => l.actionBrake,
       InGameAction.kudos => l.actionKudos,
       InGameAction.pause => l.actionPause,

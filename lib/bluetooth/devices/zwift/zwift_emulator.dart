@@ -59,9 +59,9 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
           InGameAction.rightDropButton,
           InGameAction.leftShiftButton2,
           InGameAction.rightShiftButton2,
-          InGameAction.leftPaddle,
-          InGameAction.rightPaddle,
           InGameAction.brake,
+          InGameAction.navigateLeft,
+          InGameAction.navigateRight,
           InGameAction.frontShift,
         ],
       );
@@ -179,7 +179,11 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
           );
 
           if (value == null) return PeripheralWriteRequestResult();
-          final response = SharedLogic.handleWriteRequest(characteristicId, value);
+          final response = SharedLogic.handleWriteRequest(
+            characteristicId,
+            value,
+            asRide: RideControllerPress.emulatesRide,
+          );
           if (response != null) {
             unawaited(
               _server.notify(

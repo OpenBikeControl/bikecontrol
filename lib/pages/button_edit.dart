@@ -1030,7 +1030,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       InGameAction.leftDropButton || InGameAction.rightDropButton => l.zwiftDropButtonHint,
       InGameAction.leftShiftButton2 => l.zwiftLeftShiftButton2Hint,
       InGameAction.rightShiftButton2 => l.zwiftRightShiftButton2Hint,
-      InGameAction.leftPaddle || InGameAction.rightPaddle => l.zwiftPaddleHint,
       _ => null,
     };
   }

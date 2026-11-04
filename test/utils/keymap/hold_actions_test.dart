@@ -15,7 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// single or double click sends the press and its release back to back, so
 /// on a click they do next to nothing.
 void main() {
-  test('exactly the steering, paddle and push-to-talk actions require a hold', () {
+  test('exactly the steering, brake and push-to-talk actions require a hold', () {
     final requiringHold = InGameAction.values.where((a) => a.requiresHold).toSet();
     expect(requiringHold, {
       // MyWhoosh Link sends "Steering -1/1" on the press and "0" on the
@@ -26,8 +26,6 @@ void main() {
       // OpenBikeControl's push-to-talk talks while its button reads pressed.
       InGameAction.pushToTalk,
       // The Ride paddles stay pulled until the release.
-      InGameAction.leftPaddle,
-      InGameAction.rightPaddle,
       InGameAction.brake,
     });
   });
