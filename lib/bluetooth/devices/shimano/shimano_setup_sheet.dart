@@ -482,9 +482,11 @@ class ShimanoShifterAsk {
 class ShimanoShifterPrompt extends StatelessWidget {
   final Set<ShimanoShifter> seen;
 
-  /// The one shifter to press now; the others wait their turn.
+  /// While [saving], the one shifter to press now (none while its setting is
+  /// still on the way); the others wait their turn.
+  final bool saving;
   final ShimanoShifter? next;
-  const ShimanoShifterPrompt({super.key, required this.seen, this.next});
+  const ShimanoShifterPrompt({super.key, required this.seen, this.saving = false, this.next});
 
   @override
   Widget build(BuildContext context) {
@@ -500,7 +502,7 @@ class ShimanoShifterPrompt extends StatelessWidget {
             child: _ShifterPill(
               label: label,
               done: seen.contains(shifter),
-              waiting: next != null && next != shifter && !seen.contains(shifter),
+              waiting: saving && next != shifter && !seen.contains(shifter),
             ),
           ),
         ],
@@ -786,7 +788,7 @@ Widget shimanoGuidedBody(
       heading = shifterAsk.saving ? l.shimanoSaveShiftersTitle : l.shimanoPressShiftersTitle;
       body = shifterAsk.saving ? l.shimanoSaveShiftersBody : l.shimanoPressShiftersBody;
       stepIndex = 2;
-      extra = ShimanoShifterPrompt(seen: shifterAsk.done, next: shifterAsk.next);
+      extra = ShimanoShifterPrompt(seen: shifterAsk.done, saving: shifterAsk.saving, next: shifterAsk.next);
       actions = [if (onCancelShifters != null) GhostButton(onPressed: onCancelShifters, child: Text(l.cancel))];
     case ShimanoSetupStage.running:
       icon = LucideIcons.radio;

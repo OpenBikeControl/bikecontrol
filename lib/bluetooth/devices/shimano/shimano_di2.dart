@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/device_setup_prompt.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
@@ -43,13 +44,14 @@ class ShimanoDi2 extends BluetoothDevice {
   @visibleForTesting
   void debugUseConfigTransport(ShimanoBleTransport transport) => _configTransport = transport;
 
-  /// Set while the link is dropped on purpose after channel setup or restore:
-  /// the entry stays listed and reconnects without connection toasts.
+  /// Set while the link drops as expected: on purpose after channel setup or
+  /// restore, or by the Di2 itself after a wrong passkey in the setup sheet.
+  /// The entry stays listed and reconnects without connection toasts.
   bool _linkResetting = false;
   Timer? _linkResetTimeout;
 
   @override
-  bool get isResetting => _linkResetting;
+  bool get isResetting => _linkResetting && !isConnected;
 
   @override
   Future<void> handleServices(List<BleService> services) async {
@@ -397,6 +399,8 @@ class ShimanoDi2 extends BluetoothDevice {
       await core.settings.setShimanoDfly(_serialKey, false);
       core.connection.signalChange(target);
     } catch (e, st) {
+      // The Di2 drops the link after a wrong passkey: reconnect quietly.
+      if (e is ShimanoPasskeyRejectedException) _expectLinkDrop();
       actionStreamInternal.add(LogNotification('ShimanoDi2 button mode setup failed: $e'));
       await recordError(e, st, context: 'ShimanoDi2: button mode setup');
       rethrow;
@@ -603,7 +607,8 @@ class ShimanoDi2 extends BluetoothDevice {
     try {
       try {
         await (debugEnterButtonMode?.call(this, passkey) ?? enterButtonMode(passkey: passkey));
-      } on ShimanoAuthException {
+      } on ShimanoAuthException catch (e) {
+        if (e is ShimanoPasskeyRejectedException) _expectLinkDrop();
         rethrow;
       } on ShimanoDi2PairingRequiredException {
         rethrow;
@@ -621,20 +626,34 @@ class ShimanoDi2 extends BluetoothDevice {
         final saved = {for (final slot in {...slots, ...seen.keys}) _shifterIn(slot)}
           ..removeAll(writes.map((w) => _shifterIn(w.slot)));
         for (final switches in writes) {
-          shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, next: _shifterIn(switches.slot));
-          await Future.any([
-            ShimanoConfig.writeSwitches(
-              t,
-              switches,
-              quiet: debugSwitchWriteQuiet ?? const Duration(seconds: 1),
-              onWrite: (command) => actionStreamInternal.add(
-                LogNotification('ShimanoDi2 writing $switches: ${command.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}'),
+          final shifter = _shifterIn(switches.slot);
+          void ask({ShimanoShifter? next}) => shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, next: next);
+          Timer? ready;
+          ask();
+          try {
+            await Future.any([
+              ShimanoConfig.writeSwitches(
+                t,
+                switches,
+                quiet: debugSwitchWriteQuiet ?? ShimanoConfig.switchWriteQuiet,
+                onWrite: (command) {
+                  final hex = command.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+                  Logger.info('ShimanoDi2 writing $switches: $hex');
+                  actionStreamInternal.add(LogNotification('ShimanoDi2 writing $switches: $hex'));
+                  // A press within half a second of the write doesn't save it:
+                  // ask for it once the write has had time to reach the Di2.
+                  ask();
+                  ready?.cancel();
+                  ready = Timer(debugSwitchReadyDelay ?? const Duration(seconds: 1), () => ask(next: shifter));
+                },
               ),
-            ),
-            cancel.future,
-          ]);
+              cancel.future,
+            ]);
+          } finally {
+            ready?.cancel();
+          }
           actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
-          saved.add(_shifterIn(switches.slot));
+          saved.add(shifter);
         }
         shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
       }
@@ -648,15 +667,20 @@ class ShimanoDi2 extends BluetoothDevice {
       _buttonSession = null;
       await _cancelFrameLogs();
       if (configMode) {
-        _linkResetting = true;
-        // A Di2 that doesn't come back is shown as gone again after a while.
-        _linkResetTimeout = Timer(const Duration(seconds: 30), () {
-          _endLinkReset();
-          core.connection.signalChange(this);
-        });
+        _expectLinkDrop();
         await disconnect();
       }
     }
+  }
+
+  void _expectLinkDrop() {
+    _linkResetTimeout?.cancel();
+    _linkResetting = true;
+    // A Di2 that doesn't come back is shown as gone again after a while.
+    _linkResetTimeout = Timer(const Duration(seconds: 30), () {
+      _endLinkReset();
+      core.connection.signalChange(this);
+    });
   }
 
   void _endLinkReset() {
@@ -666,6 +690,10 @@ class ShimanoDi2 extends BluetoothDevice {
   }
 
   static ShimanoShifter _shifterIn(int slot) => slot == 0 ? ShimanoShifter.left : ShimanoShifter.right;
+
+  /// Shortens the time the save step waits before it asks for the press.
+  @visibleForTesting
+  static Duration? debugSwitchReadyDelay;
 
   /// Shortens the pause [ShimanoConfig.writeSwitches] waits for in tests.
   @visibleForTesting
@@ -798,7 +826,12 @@ class ShimanoDi2 extends BluetoothDevice {
   }
 
   /// The setup starts with the choice between E-TUBE channels and button mode.
-  Future<void> _showSetup(BuildContext context) => showShimanoModeChooser(
+  /// However it was opened (Di2 card, checklist, or by itself), it counts as
+  /// offered: the Di2 drops the link after a wrong passkey, and its reconnect
+  /// must not open a second setup on top.
+  Future<void> _showSetup(BuildContext context) {
+    DeviceSetupPrompt.markOffered(this);
+    return showShimanoModeChooser(
         context,
         onChoose: (mode) {
           if (!context.mounted) return;
@@ -808,6 +841,7 @@ class ShimanoDi2 extends BluetoothDevice {
           });
         },
       );
+  }
 
   Future<void> _showButtonModeSetup(BuildContext context, {bool afterChooser = false}) {
     final l = context.i18n;

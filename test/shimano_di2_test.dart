@@ -258,6 +258,7 @@ Future<void> main() async {
     tearDown(() {
       ShimanoDi2.debugEnterButtonMode = null;
       ShimanoDi2.debugSwitchWriteQuiet = null;
+      ShimanoDi2.debugSwitchReadyDelay = null;
     });
 
     ({ShimanoDi2 di2, _SwitchingShimanoTransport t}) connected(String id) {
@@ -297,11 +298,37 @@ Future<void> main() async {
         const ShimanoShifterAsk({}),
         const ShimanoShifterAsk({ShimanoShifter.left}),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}),
-        const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left),
-        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, next: ShimanoShifter.right),
+        const ShimanoShifterAsk({}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
         null,
       ]);
+    });
+
+    // Hardware: a press within half a second of the write didn't save it, one
+    // a second and more later did.
+    test('the shifter to press is shown only once its write had time to reach the Di2', () async {
+      final t = _SwitchingShimanoTransport(confirms: false);
+      final di2 = ShimanoDi2(BleDevice(name: 'RDR7150', deviceId: 'di2-channels-ready'))
+        ..debugUseConfigTransport(t)
+        ..isConnected = true;
+      ShimanoDi2.debugEnterButtonMode = (d, passkey) async {};
+      ShimanoDi2.debugSwitchReadyDelay = const Duration(milliseconds: 20);
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      t.press(rightFactory);
+      while (t.switchWrites.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(di2.shifterAsk.value, const ShimanoShifterAsk({}, saving: true));
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(di2.shifterAsk.value, const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left));
+
+      di2.cancelShifterWait();
+      await expectLater(setup, throwsA(isA<ShimanoSetupCancelled>()));
     });
 
     test('the left shifter is written first, whichever was pressed first', () async {
@@ -328,7 +355,7 @@ Future<void> main() async {
       await setup;
 
       expect(asks.where((a) => a?.saving ?? false), [
-        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, next: ShimanoShifter.right),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
         const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
       ]);
     });
@@ -347,7 +374,7 @@ Future<void> main() async {
       expect(di2.shifterAsk.value, isNull);
     });
 
-    test('a rejected passkey keeps the link: the Di2 never left normal operation', () async {
+    test('a rejected passkey: BikeControl keeps the link, the Di2 drops it, reconnecting quietly', () async {
       final (:di2, :t) = connected('di2-channels-wrong-passkey');
       ShimanoDi2.debugEnterButtonMode = (d, passkey) async => throw ShimanoPasskeyRejectedException(0x02);
 
@@ -356,6 +383,11 @@ Future<void> main() async {
       expect(di2.isConnected, isTrue);
       expect(di2.isResetting, isFalse);
       expect(t.switchWrites, isEmpty);
+
+      // The Di2 then drops the link itself: BikeControl expects it and
+      // reconnects without connection toasts.
+      di2.isConnected = false;
+      expect(di2.isResetting, isTrue);
     });
 
     test('a finished setup drops the link, which ends the configuration mode', () async {
@@ -892,7 +924,10 @@ class _PressRecordingDi2 extends ShimanoDi2 {
 }
 
 class _SwitchingShimanoTransport extends ShimanoBleTransport {
-  _SwitchingShimanoTransport() : super('di2', const []);
+  _SwitchingShimanoTransport({this.confirms = true}) : super('di2', const []);
+
+  /// Whether the shifter confirms each write right away.
+  final bool confirms;
   final _frames = StreamController<Uint8List>.broadcast(sync: true);
   final switchWrites = <String>[];
 
@@ -906,6 +941,7 @@ class _SwitchingShimanoTransport extends ShimanoBleTransport {
     final hex = data.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     if (!hex.startsWith('00134120')) return;
     switchWrites.add(hex);
+    if (!confirms) return;
     scheduleMicrotask(() => _frames.add(Uint8List.fromList([0x33, 0x41, 0x22, data[4], 0x03, 0x11, ...data.sublist(7, 10), 0xff])));
   }
 
