@@ -982,6 +982,36 @@ class Settings {
 
   Future<void> setShimanoDfly(String serial, bool chosen) async => prefs.setBool('shimano_dfly_$serial', chosen);
 
+  // What the Di2 shifters' switches did before BikeControl put their paddles
+  // on D-Fly channels, so they can be put back. Never overwritten while set.
+
+  List<ShimanoShifterSwitches> getShimanoSwitchBackup(String serial) {
+    final raw = prefs.getString('shimano_switch_backup_$serial');
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final entry in jsonDecode(raw) as List)
+          if (ShimanoShifterSwitches.fromJson(entry as Map<String, dynamic>) case final switches?) switches,
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> setShimanoSwitchBackup(String serial, List<ShimanoShifterSwitches> backup) async =>
+      prefs.setString('shimano_switch_backup_$serial', jsonEncode([for (final s in backup) s.toJson()]));
+
+  Future<void> clearShimanoSwitchBackup(String serial) async => prefs.remove('shimano_switch_backup_$serial');
+
+  // The rider saw (and dismissed) the warning that button mode shifts for real
+  // when BikeControl disconnects.
+
+  bool getShimanoButtonModeWarningSeen(String serial) =>
+      prefs.getBool('shimano_button_mode_warning_seen_$serial') ?? false;
+
+  Future<void> setShimanoButtonModeWarningSeen(String serial) async =>
+      prefs.setBool('shimano_button_mode_warning_seen_$serial', true);
+
   String getShimanoPasskey(String serial) =>
       prefs.getString('shimano_passkey_$serial') ?? ShimanoAuth.defaultPasskey;
 

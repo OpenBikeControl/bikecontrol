@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -13,6 +14,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:prop/prop.dart' hide Set;
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 import 'package:universal_ble/universal_ble.dart';
 
 import '../base_device.dart' show DeviceSetupNeed;
@@ -110,7 +112,11 @@ class ShimanoDi2 extends BluetoothDevice {
 
           getOrAddButton(
             'D-Fly Channel $readableIndex',
-            () => ControllerButton('D-Fly Channel $readableIndex', sourceDeviceId: device.deviceId),
+            () => ControllerButton(
+              'D-Fly Channel $readableIndex',
+              sourceDeviceId: device.deviceId,
+              action: isDflyChosen ? ShimanoDi2Buttons.channelActions[readableIndex] : null,
+            ),
           );
         });
         _isInitialized = true;
@@ -319,7 +325,7 @@ class ShimanoDi2 extends BluetoothDevice {
     );
     _buttonSession = session;
     _logFramesAfterButtonMode(t);
-    registerPaddleButtons();
+    if (!_readingSwitches) registerPaddleButtons();
   }
 
   @visibleForTesting
@@ -409,8 +415,152 @@ class ShimanoDi2 extends BluetoothDevice {
     core.connection.signalChange(this);
   }
 
+  // ── E-TUBE channels (D-Fly) ───────────────────────────────────────────────
+
+  /// What the shifters did before BikeControl put their paddles on D-Fly
+  /// channels; empty when BikeControl changed nothing.
+  List<ShimanoShifterSwitches> get switchBackup => core.settings.getShimanoSwitchBackup(_serialKey);
+
+  /// While channel setup or restore waits for the rider to press a button on
+  /// each shifter: the shifters seen so far. Null otherwise.
+  final shiftersSeen = ValueNotifier<Set<ShimanoShifter>?>(null);
+
+  /// Set while a channel setup or restore reads the shifters: their presses
+  /// carry the switch setting and must not trigger actions.
+  bool _readingSwitches = false;
+
+  /// One-time setup of the E-TUBE channel mode: put both shifters' paddles on
+  /// D-Fly channels (left Ch1/Ch2, right Ch3/Ch4), after saving what they did
+  /// before. The Di2 then never shifts with the paddles, whether BikeControl
+  /// is connected or not, until [restoreSwitches].
+  Future<void> setupChannels({required String passkey}) async {
+    try {
+      await _onLiveInstance((target) => target._writeShifters(passkey, (seen) async {
+        final changed = [for (final s in seen) if (!s.paddlesOnDfly) s];
+        if (changed.isEmpty) return const [];
+        // Keep the first backup: a second setup would otherwise save the D-Fly
+        // channels as the "original" setting.
+        if (switchBackup.isEmpty) await core.settings.setShimanoSwitchBackup(_serialKey, changed);
+        return [for (final s in changed) s.withDflyPaddles()];
+      }));
+      await core.settings.setShimanoPasskey(_serialKey, passkey);
+      await core.settings.setShimanoButtonMode(_serialKey, false);
+      await core.settings.setShimanoDfly(_serialKey, true);
+      core.connection.signalChange(this);
+    } catch (e, st) {
+      actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup failed: $e'));
+      await recordError(e, st, context: 'ShimanoDi2: channel setup');
+      rethrow;
+    }
+  }
+
+  /// Put back what the shifters did before [setupChannels], so the Di2 shifts
+  /// with its paddles again.
+  Future<void> restoreSwitches({required String passkey}) async {
+    final backup = switchBackup;
+    try {
+      await _onLiveInstance(
+        (target) => target._writeShifters(
+          passkey,
+          (seen) async => [for (final s in backup) if (seen.any((e) => e.slot == s.slot)) s],
+          slots: {for (final s in backup) s.slot},
+        ),
+      );
+      await core.settings.clearShimanoSwitchBackup(_serialKey);
+      await core.settings.setShimanoDfly(_serialKey, false);
+      core.connection.signalChange(this);
+    } catch (e, st) {
+      actionStreamInternal.add(LogNotification('ShimanoDi2 restore failed: $e'));
+      await recordError(e, st, context: 'ShimanoDi2: restore switches');
+      rethrow;
+    }
+  }
+
+  /// Run [body] on the connected instance for this Di2 (see [_liveInstance]),
+  /// mirroring its [shiftersSeen] here, where the setup sheet listens.
+  Future<void> _onLiveInstance(Future<void> Function(ShimanoDi2 target) body) async {
+    final target = await _liveInstance();
+    if (identical(target, this)) return body(this);
+    void mirror() => shiftersSeen.value = target.shiftersSeen.value;
+    target.shiftersSeen.addListener(mirror);
+    try {
+      await body(target);
+    } finally {
+      target.shiftersSeen.removeListener(mirror);
+      shiftersSeen.value = null;
+    }
+  }
+
+  /// Authenticate, enter the RD's PC-connect mode (the only mode in which it
+  /// relays to the shifters), wait for a press on each shifter in [slots] —
+  /// the press both wakes it and reports its current switch setting — and
+  /// write what [plan] returns. Disconnects afterwards, which is what returns
+  /// the Di2 to normal operation.
+  Future<void> _writeShifters(
+    String passkey,
+    Future<List<ShimanoShifterSwitches>> Function(List<ShimanoShifterSwitches> seen) plan, {
+    Set<int> slots = const {0, 1},
+  }) async {
+    final t = _configTransport;
+    if (t == null) throw StateError('Di2 has no config service');
+    final seen = <int, ShimanoShifterSwitches>{};
+    final allSeen = Completer<void>();
+    Timer? oneShifterGrace;
+    final sub = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
+      final switches = ShimanoShifterSwitches.fromTelemetry(frame);
+      if (switches == null || !slots.contains(switches.slot) || shiftersSeen.value == null) return;
+      seen[switches.slot] = switches;
+      shiftersSeen.value = {for (final slot in seen.keys) slot == 0 ? ShimanoShifter.left : ShimanoShifter.right};
+      if (seen.length == slots.length) {
+        if (!allSeen.isCompleted) allSeen.complete();
+      } else {
+        // A Di2 with a single shifter (e.g. a TT setup) never reports the
+        // other: go on with the one seen once the rider stopped pressing.
+        oneShifterGrace?.cancel();
+        oneShifterGrace = Timer(const Duration(seconds: 15), () {
+          if (!allSeen.isCompleted) allSeen.complete();
+        });
+      }
+    });
+    _readingSwitches = true;
+    try {
+      await (debugEnterButtonMode?.call(this, passkey) ?? enterButtonMode(passkey: passkey));
+      shiftersSeen.value = {};
+      await allSeen.future.timeout(const Duration(minutes: 2));
+      final writes = await plan(seen.values.toList());
+      for (final switches in writes) {
+        await ShimanoConfig.writeSwitches(t, switches);
+        actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
+      }
+    } finally {
+      oneShifterGrace?.cancel();
+      shiftersSeen.value = null;
+      _readingSwitches = false;
+      await sub.cancel();
+      await _buttonSession?.close();
+      _buttonSession = null;
+      await _cancelFrameLogs();
+      await disconnect();
+    }
+  }
+
+  /// Replaces the authenticated [enterButtonMode] in channel setup tests.
+  @visibleForTesting
+  static Future<void> Function(ShimanoDi2 di2, String passkey)? debugEnterButtonMode;
+
+  /// Button mode shifts for real once BikeControl disconnects: the device
+  /// panel says so once.
+  bool get showButtonModeWarning =>
+      isButtonModeEnabled && !core.settings.getShimanoButtonModeWarningSeen(_serialKey);
+
+  Future<void> dismissButtonModeWarning() async {
+    await core.settings.setShimanoButtonModeWarningSeen(_serialKey);
+    core.connection.signalChange(this);
+  }
+
   @visibleForTesting
   void onPaddle(ShimanoPaddleEvent event) {
+    if (_readingSwitches) return;
     final template = ShimanoDi2Buttons.of(event);
     var button = availableButtons.firstOrNullWhere((b) => b.name == template.name);
     // Hood and satellite buttons only exist on some shifters: show them once
@@ -520,15 +670,83 @@ class ShimanoDi2 extends BluetoothDevice {
     if (setupNeed == DeviceSetupNeed.setup) await _showSetup(context);
   }
 
-  Future<void> _showSetup(BuildContext context) => showShimanoSetup(
+  /// The setup starts with the choice between E-TUBE channels and button mode.
+  Future<void> _showSetup(BuildContext context) => showShimanoModeChooser(
         context,
-        initialPasskey: core.settings.getShimanoPasskey(_serialKey),
-        operation: (passkey) => setupButtonMode(passkey: passkey),
-        isUnresponsive: _isUnresponsive,
-        isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
-        isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
-        onUseDfly: () => unawaited(useDflyChannels()),
+        onChoose: (mode) {
+          if (!context.mounted) return;
+          unawaited(switch (mode) {
+            ShimanoSetupMode.channels => _showChannelSetup(context, afterChooser: true),
+            ShimanoSetupMode.buttons => _showButtonModeSetup(context, afterChooser: true),
+          });
+        },
       );
+
+  Future<void> _showButtonModeSetup(BuildContext context, {bool afterChooser = false}) {
+    final l = context.i18n;
+    return showShimanoSetup(
+      context,
+      title: l.shimanoSetup,
+      intro: l.shimanoSetupIntro,
+      successMessage: l.shimanoSetupSuccess,
+      confirmIcon: LucideIcons.gamepad2,
+      runningTitle: l.shimanoSettingUp,
+      successTitle: l.shimanoAllSet,
+      checklistItems: [l.shimanoChecklistAuthenticating, l.shimanoChecklistActivating],
+      initialPasskey: core.settings.getShimanoPasskey(_serialKey),
+      operation: (passkey) => setupButtonMode(passkey: passkey),
+      isUnresponsive: _isUnresponsive,
+      isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
+      isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
+      afterChooser: afterChooser,
+      onUseDfly: () => unawaited(useDflyChannels()),
+    );
+  }
+
+  Future<void> _showChannelSetup(BuildContext context, {bool afterChooser = false}) {
+    final l = context.i18n;
+    return showShimanoSetup(
+      context,
+      title: l.shimanoChannelsTitle,
+      intro: l.shimanoChannelsIntro,
+      successMessage: l.shimanoChannelsSuccess,
+      confirmIcon: LucideIcons.radio,
+      runningTitle: l.shimanoSettingUp,
+      successTitle: l.shimanoAllSet,
+      checklistItems: [
+        l.shimanoChecklistAuthenticating,
+        l.shimanoChecklistReadingButtons,
+        l.shimanoChecklistAssigning,
+      ],
+      initialPasskey: core.settings.getShimanoPasskey(_serialKey),
+      operation: (passkey) => setupChannels(passkey: passkey),
+      isUnresponsive: _isUnresponsive,
+      isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
+      isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
+      shifters: shiftersSeen,
+      afterChooser: afterChooser,
+    );
+  }
+
+  Future<void> _showRestore(BuildContext context) {
+    final l = context.i18n;
+    return showShimanoSetup(
+      context,
+      title: l.shimanoRestore,
+      intro: l.shimanoRestoreIntro,
+      successMessage: l.shimanoRestoreSuccess,
+      confirmIcon: LucideIcons.rotateCcw,
+      runningTitle: l.shimanoRestoring,
+      successTitle: l.shimanoRestoredTitle,
+      checklistItems: [l.shimanoChecklistAuthenticating, l.shimanoChecklistRestoring],
+      initialPasskey: core.settings.getShimanoPasskey(_serialKey),
+      operation: (passkey) => restoreSwitches(passkey: passkey),
+      isUnresponsive: _isUnresponsive,
+      isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
+      isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
+      shifters: shiftersSeen,
+    );
+  }
 
   @override
   ControllerLayout? get controllerLayout =>
@@ -540,11 +758,15 @@ class ShimanoDi2 extends BluetoothDevice {
       return [
         shimanoSetupPanel(
           context,
-          active: isButtonModeEnabled,
-          dfly: isDflyChosen,
+          buttonMode: isButtonModeEnabled,
+          channels: isDflyChosen,
+          canRestore: switchBackup.isNotEmpty,
+          showButtonModeWarning: showButtonModeWarning,
           onSetup: () => unawaited(_showSetup(context)),
+          onRestore: () => unawaited(_showRestore(context)),
           onTurnOff: () => unawaited(turnOffButtonMode()),
-          onUseDfly: () => unawaited(useDflyChannels()),
+          onSwitchToChannels: () => unawaited(_showChannelSetup(context)),
+          onDismissWarning: () => unawaited(dismissButtonModeWarning()),
         ),
       ];
     }
@@ -577,6 +799,16 @@ class ShimanoDi2Buttons {
   static const rightSatellite = ControllerButton('Di2 R4 (Satellite)', label: 'R4');
 
   static const paddles = [leftLever, leftButton, rightLever, rightButton];
+
+  /// The actions of the D-Fly channels BikeControl puts on the paddles, the
+  /// same as those paddles have in button mode: Ch1/Ch2 = left button/lever,
+  /// Ch3/Ch4 = right button/lever.
+  static final channelActions = {
+    1: leftButton.action,
+    2: leftLever.action,
+    3: rightButton.action,
+    4: rightLever.action,
+  };
   static const extras = [leftHood, leftSatellite, rightHood, rightSatellite];
   static const values = [...paddles, ...extras];
 

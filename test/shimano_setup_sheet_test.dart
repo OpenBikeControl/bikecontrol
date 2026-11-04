@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_setup_sheet.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/prop.dart' show ShimanoShifter;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Which stage the Di2 guided sheet lands on for each way setup can fail, and
@@ -134,39 +135,160 @@ void main() {
   });
 
   group('device panel', () {
-    Future<void> pumpPanel(WidgetTester tester, {required bool dfly, VoidCallback? onUseDfly}) async {
+    Future<List<String>> pumpPanel(
+      WidgetTester tester, {
+      bool buttonMode = false,
+      bool channels = false,
+      bool canRestore = false,
+      bool showButtonModeWarning = false,
+    }) async {
+      final taps = <String>[];
       await tester.pumpWidget(
         app(
           Builder(
             builder: (context) => shimanoSetupPanel(
               context,
-              active: false,
-              dfly: dfly,
-              onSetup: () {},
-              onTurnOff: () {},
-              onUseDfly: onUseDfly ?? () {},
+              buttonMode: buttonMode,
+              channels: channels,
+              canRestore: canRestore,
+              showButtonModeWarning: showButtonModeWarning,
+              onSetup: () => taps.add('setup'),
+              onRestore: () => taps.add('restore'),
+              onTurnOff: () => taps.add('turnOff'),
+              onSwitchToChannels: () => taps.add('channels'),
+              onDismissWarning: () => taps.add('dismiss'),
             ),
           ),
         ),
       );
       await tester.pump();
+      return taps;
     }
 
-    testWidgets('before deciding, offers button mode and the D-Fly fallback', (tester) async {
-      var usedDfly = false;
-      await pumpPanel(tester, dfly: false, onUseDfly: () => usedDfly = true);
+    testWidgets('before setup, offers the setup', (tester) async {
+      final taps = await pumpPanel(tester);
 
-      expect(find.text(AppLocalizations.current.shimanoSetup), findsOneWidget);
-      await tester.tap(find.text(AppLocalizations.current.shimanoUseDfly));
-      expect(usedDfly, isTrue);
+      await tester.tap(find.text(AppLocalizations.current.shimanoSetup));
+      expect(taps, ['setup']);
+      expect(find.text(AppLocalizations.current.shimanoRestore), findsNothing);
     });
 
-    testWidgets('with D-Fly chosen, explains D-Fly and still offers button mode', (tester) async {
-      await pumpPanel(tester, dfly: true);
+    testWidgets('with E-TUBE channels set by BikeControl, offers to restore the shifting', (tester) async {
+      final taps = await pumpPanel(tester, channels: true, canRestore: true);
+
+      expect(find.text(AppLocalizations.current.shimanoChannelsActive), findsOneWidget);
+      await tester.tap(find.text(AppLocalizations.current.shimanoRestore));
+      await tester.tap(find.text(AppLocalizations.current.shimanoChangeSetup));
+      expect(taps, ['restore', 'setup']);
+    });
+
+    testWidgets('with D-Fly channels set in E-TUBE, there is nothing to restore', (tester) async {
+      await pumpPanel(tester, channels: true);
 
       expect(find.text(AppLocalizations.current.shimanoDflyActive), findsOneWidget);
-      expect(find.text(AppLocalizations.current.shimanoSetup), findsOneWidget);
-      expect(find.text(AppLocalizations.current.shimanoUseDfly), findsNothing);
+      expect(find.text(AppLocalizations.current.shimanoRestore), findsNothing);
     });
+
+    testWidgets('button mode warns that a disconnect shifts for real, until dismissed', (tester) async {
+      final taps = await pumpPanel(tester, buttonMode: true, showButtonModeWarning: true);
+
+      expect(find.text(AppLocalizations.current.shimanoButtonModeWarning), findsOneWidget);
+      await tester.tap(find.text(AppLocalizations.current.shimanoSwitchToChannels));
+      await tester.tap(find.text(AppLocalizations.current.gotIt));
+      expect(taps, ['channels', 'dismiss']);
+
+      await pumpPanel(tester, buttonMode: true);
+      expect(find.text(AppLocalizations.current.shimanoButtonModeWarning), findsNothing);
+    });
+  });
+
+  group('mode choice', () {
+    testWidgets('recommends E-TUBE channels and hands over the choice', (tester) async {
+      tester.view.physicalSize = const Size(390, 844) * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      ShimanoSetupMode? chosen;
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) => PrimaryButton(
+              onPressed: () => showShimanoModeChooser(context, onChoose: (mode) => chosen = mode),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text(AppLocalizations.current.recommended), findsOneWidget);
+      expect(find.text(AppLocalizations.current.shimanoModeButtonsWarning), findsOneWidget);
+
+      await tester.ensureVisible(find.text(AppLocalizations.current.shimanoModeButtonsTitle));
+      await tester.pump();
+      await tester.tap(find.text(AppLocalizations.current.shimanoModeButtonsTitle));
+      await tester.pump();
+      await tester.ensureVisible(find.text(AppLocalizations.current.continueAction));
+      await tester.pump();
+      await tester.tap(find.text(AppLocalizations.current.continueAction));
+      await tester.pumpAndSettle();
+
+      expect(chosen, ShimanoSetupMode.buttons);
+    });
+  });
+
+  testWidgets('while the shifters are read, the sheet asks for a press on each', (tester) async {
+    final shifters = ValueNotifier<Set<ShimanoShifter>?>(null);
+    final operation = Completer<void>();
+    await tester.pumpWidget(
+      app(
+        Builder(
+          builder: (context) => PrimaryButton(
+            onPressed: () => openSheet<void>(
+              context: context,
+              position: OverlayPosition.bottom,
+              builder: (_) => ShimanoGuidedSheet(
+                title: 'Set up',
+                intro: 'intro',
+                successMessage: 'ok',
+                confirmIcon: LucideIcons.radio,
+                runningTitle: 'running',
+                successTitle: 'done',
+                checklistItems: const ['a', 'b'],
+                initialPasskey: '000000',
+                operation: (_) => operation.future,
+                isUnresponsive: (e) => false,
+                isPasskeyRejected: (e) => false,
+                isPairingRequired: (e) => false,
+                shifters: shifters,
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text(AppLocalizations.current.continueAction));
+    await tester.pump();
+
+    expect(find.text(AppLocalizations.current.shimanoPressShiftersTitle), findsNothing);
+    shifters.value = {};
+    await tester.pump();
+    expect(find.text(AppLocalizations.current.shimanoPressShiftersTitle), findsOneWidget);
+    expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
+
+    shifters.value = {ShimanoShifter.left};
+    await tester.pump();
+    expect(find.byIcon(LucideIcons.circleCheck), findsOneWidget);
+
+    shifters.value = null;
+    operation.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('done'), findsOneWidget);
   });
 }
