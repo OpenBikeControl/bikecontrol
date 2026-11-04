@@ -214,6 +214,35 @@ Future<void> main() async {
       ]);
       expect(frames, hasLength(50));
     });
+
+    // The hood and satellite byte positions are not confirmed on hardware yet:
+    // every hood or satellite press is logged raw, even after the general frame
+    // log has stopped.
+    test('the log shows the raw frame of every hood or satellite press', () async {
+      final live = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR9250', deviceId: 'di2-hood-frames'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, live: live));
+      for (var i = 0; i < 60; i++) {
+        live.add(Uint8List.fromList([0x40, i]));
+      }
+      live.add(_hex('33411801e5e4e00001ff')); // right hood down
+      live.add(_hex('33411801e5e4e00001ff'));
+      live.add(_hex('33411801e5e4e02001ff')); // right hood released
+      live.add(_hex('33411801e5e4e0e001ff')); // no hood or satellite press
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+      await live.close();
+
+      expect(logs.where((l) => l.startsWith('ShimanoDi2 hood/satellite frame: ')), [
+        'ShimanoDi2 hood/satellite frame: 33411801e5e4e00001ff',
+        'ShimanoDi2 hood/satellite frame: 33411801e5e4e02001ff',
+      ]);
+    });
   });
 
   group('Shimano Di2 bond on Windows', () {
@@ -563,3 +592,6 @@ class _FakeShimanoTransport implements ShimanoTransport {
         _ => const Stream.empty(),
       };
 }
+
+Uint8List _hex(String hex) =>
+    Uint8List.fromList([for (var i = 0; i < hex.length; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)]);

@@ -442,6 +442,25 @@ class ShimanoDi2 extends BluetoothDevice {
     unawaited(_cancelFrameLogs());
     _logFrames(t, ShimanoDi2Config.pceResponseChar, 'ShimanoDi2 frame after button mode');
     _logFrames(t, ShimanoDi2Config.pceAuxNotify2, 'ShimanoDi2 2afd frame after button mode');
+    _logHoodAndSatelliteFrames(t);
+  }
+
+  /// Which bytes carry the hood button and the satellite switch is not
+  /// confirmed on hardware yet: log the raw frame of every such press.
+  void _logHoodAndSatelliteFrames(ShimanoTransport t) {
+    String? last;
+    var logged = 0;
+    late final StreamSubscription<Uint8List> sub;
+    sub = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
+      final events = ShimanoButtons.decode(frame);
+      if (!events.any((e) => e.paddle == ShimanoPaddle.hood || e.paddle == ShimanoPaddle.satellite)) return;
+      final hex = frame.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      if (hex == last) return;
+      last = hex;
+      actionStreamInternal.add(LogNotification('ShimanoDi2 hood/satellite frame: $hex'));
+      if (++logged >= 50) unawaited(sub.cancel());
+    });
+    _frameLogs.add(sub);
   }
 
   void _logFrames(ShimanoTransport t, String characteristic, String label) {
