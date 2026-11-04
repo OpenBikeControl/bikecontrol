@@ -560,7 +560,14 @@ class ShimanoDi2 extends BluetoothDevice {
         shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
         for (final switches in writes) {
           await Future.any([
-            ShimanoConfig.writeSwitches(t, switches, quiet: debugSwitchWriteQuiet ?? const Duration(seconds: 1)),
+            ShimanoConfig.writeSwitches(
+              t,
+              switches,
+              quiet: debugSwitchWriteQuiet ?? const Duration(seconds: 1),
+              onWrite: (command) => actionStreamInternal.add(
+                LogNotification('ShimanoDi2 writing $switches: ${command.map((b) => b.toRadixString(16).padLeft(2, '0')).join()}'),
+              ),
+            ),
             cancel.future,
           ]);
           actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
