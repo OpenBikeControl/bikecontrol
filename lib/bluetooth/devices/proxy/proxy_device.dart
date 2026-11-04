@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
@@ -459,7 +460,7 @@ class ProxyDevice extends BluetoothDevice {
       transport: transport,
     );
 
-    _zwiftControllerEmulator = ZwiftEmulatorDefinition(device: device);
+    _zwiftControllerEmulator = ZwiftEmulatorDefinition(device: device, asRide: () => RideControllerPress.emulatesRide);
 
     final fbd = FitnessBikeDefinition(
       connectedDevice: scanResult,
