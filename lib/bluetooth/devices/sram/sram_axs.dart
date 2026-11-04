@@ -138,16 +138,23 @@ class SramAxs extends BluetoothDevice {
   String logicalButtonName(int? serial, int? mask, {int? deviceType}) =>
       buttonNameFor(_infoFor(serial, deviceType), serial, mask);
 
-  /// Advert/persisted info for [serial], augmented with a decoded press
-  /// [deviceType] when the advert supplied none (or there's no serial at all).
-  /// The button event's device_type is authoritative for the pressing side, so
-  /// it fills in the side even before any advert/serial has been observed.
+  /// Advert/persisted info for [serial], with a decoded press [deviceType]
+  /// taking precedence. The button event's device_type is authoritative for the
+  /// pressing side, while the press serial is only the last one seen in a sparse
+  /// d9050003 event — a right-lever press can carry the left lever's serial. So
+  /// the stored info is used as-is only when it agrees with the press side; its
+  /// model belongs to the other shifter otherwise and is dropped.
   SramDeviceInfo? _infoFor(int? serial, int? deviceType) {
     final info = _shifterInfo(serial);
-    if (deviceType == null || (info != null && info.deviceType != null)) return info;
+    if (deviceType == null || info?.deviceType == deviceType) return info;
+    final sameShifter = info?.deviceType == null;
     // buttonNameFor only reads deviceType/model, never serial — a placeholder
     // serial here is harmless and keeps SramDeviceInfo's required field happy.
-    return SramDeviceInfo(serial: serial ?? info?.serial ?? 0, deviceType: deviceType, model: info?.model);
+    return SramDeviceInfo(
+      serial: serial ?? info?.serial ?? 0,
+      deviceType: deviceType,
+      model: sameShifter ? info?.model : null,
+    );
   }
 
   /// Default in-game action for a freshly discovered button. So the two shifters
@@ -314,7 +321,8 @@ class SramAxs extends BluetoothDevice {
       }
       // If this press revealed a shifter's side, remember it against its serial
       // (preserving any known model) so the shifter's other buttons — and future
-      // sessions — resolve the same §6.4 name.
+      // sessions — resolve the same §6.4 name. The serial may be stale (see
+      // _infoFor), which is why a press's own side always wins when naming.
       if (serial != null && deviceType != null) {
         final known = core.settings.getSramShifter(_serialKey, serial);
         if (known?.deviceType == null) core.settings.setSramShifter(_serialKey, serial, deviceType, known?.model);
