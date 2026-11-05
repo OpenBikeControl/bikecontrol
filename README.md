@@ -69,6 +69,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Stages SB20 Smart Bike (beta)
 - CYCPLUS BC2 Virtual Shifter
 - Thinkrider VS200 Virtual Shifter (beta)
+- Magene Onelap Key (five-button controller, beta; [connection and protocol](INSTRUCTIONS_ONELAP_KEY.md))
 - Elite Sterzo Smart (for steering support)
 - Elite Square Smart Frame (beta)
 - Your Phone!
