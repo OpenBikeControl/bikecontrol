@@ -1888,8 +1888,8 @@
   "shimanoTurnOff": "停止使用 Di2 按键",
   "shimanoPasskeyLabel": "E-TUBE 配对码",
   "shimanoPasskeyHint": "除非你在 E-TUBE 应用中设置了自己的配对码，否则保持 000000。",
-  "shimanoPasskeyWrongTitle": "通行密钥错误",
-  "shimanoPasskeyWrongBody": "你的 Di2 拒绝了通行密钥。请输入你在 E-TUBE 应用中设置的通行密钥。",
+  "shimanoPasskeyWrongTitle": "配对码错误",
+  "shimanoPasskeyWrongBody": "你的 Di2 拒绝了配对码。请输入你在 E-TUBE 应用中设置的配对码。",
   "shimanoPairTitle": "将你的 Di2 与 Windows 配对",
   "@shimanoPairTitle": {
     "description": "Di2 button-mode setup sheet, Windows only: the Di2's settings service needs a Bluetooth pairing that Windows could not set up on its own."
@@ -3643,7 +3643,7 @@
       }
     }
   },
-  "a11yChangeChainring": "更换牙盘",
+  "a11yChangeChainring": "切换大小盘",
   "rideVsSettingsLink": "挡位设置",
   "rideVsTrainerNotConnected": "{trainer} 未连接—在它恢复之前，你感觉不到换挡。",
   "@rideVsTrainerNotConnected": {
