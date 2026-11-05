@@ -147,6 +147,7 @@ class _LanguageSelectState extends State<LanguageSelect> {
     'it': 'Italiano',
     'fr': 'Français',
     'pl': 'Polski',
+    'zh': '简体中文',
   };
 
   String _label(String code) =>

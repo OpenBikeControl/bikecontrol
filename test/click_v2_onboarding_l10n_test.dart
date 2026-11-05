@@ -9,7 +9,7 @@ void main() {
 
   test('click-v2 onboarding strings have complete translations in all languages',
       () {
-    // Read all six arb files and parse as JSON
+    // Read every shipped arb file and parse as JSON
     final arbFiles = {
       'en': File('lib/i10n/intl_en.arb'),
       'de': File('lib/i10n/intl_de.arb'),
@@ -17,6 +17,7 @@ void main() {
       'fr': File('lib/i10n/intl_fr.arb'),
       'it': File('lib/i10n/intl_it.arb'),
       'pl': File('lib/i10n/intl_pl.arb'),
+      'zh': File('lib/i10n/intl_zh.arb'),
     };
 
     final arbMaps = <String, Map<String, dynamic>>{};
@@ -38,7 +39,7 @@ void main() {
     );
 
     // Verify all other locales have the same key set
-    for (final locale in ['de', 'es', 'fr', 'it', 'pl']) {
+    for (final locale in ['de', 'es', 'fr', 'it', 'pl', 'zh']) {
       final localeKeys = arbMaps[locale]!
           .keys
           .where((k) => k.startsWith('clickV2Onboarding_'))
@@ -73,7 +74,7 @@ void main() {
   // the key-set and value verification test above.
   test('onboarding strings resolve at runtime in every shipped language',
       () async {
-    for (final code in ['en', 'de', 'es', 'fr', 'it', 'pl']) {
+    for (final code in ['en', 'de', 'es', 'fr', 'it', 'pl', 'zh']) {
       final l10n = await AppLocalizations.load(Locale(code));
       final strings = [
         l10n.clickV2Onboarding_cardTitle,

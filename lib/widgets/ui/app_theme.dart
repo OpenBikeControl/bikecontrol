@@ -142,8 +142,24 @@ abstract final class BkTheme {
 
   static ThemeData build(Brightness brightness) => ThemeData(
     colorScheme: brightness == Brightness.dark ? darkColorScheme : lightColorScheme,
-    typography: const Typography.geist(),
+    // Geist covers Latin only. Missing glyphs (Chinese, and any other script
+    // the OS can draw) fall through to the platform face.
+    typography: Typography.geist(sans: _sansWithFallback),
     radius: radius,
+  );
+
+  static const TextStyle _sansWithFallback = TextStyle(
+    fontFamily: 'GeistSans',
+    package: 'shadcn_flutter',
+    fontFamilyFallback: [
+      'PingFang SC',
+      'Hiragino Sans GB',
+      'Noto Sans SC',
+      'Noto Sans CJK SC',
+      'Source Han Sans SC',
+      'Microsoft YaHei',
+      'sans-serif',
+    ],
   );
 }
 
