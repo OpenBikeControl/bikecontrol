@@ -149,8 +149,7 @@ abstract final class BkTheme {
   );
 
   static const TextStyle _sansWithFallback = TextStyle(
-    fontFamily: 'GeistSans',
-    package: 'shadcn_flutter',
+    fontFamily: 'packages/shadcn_flutter/GeistSans',
     fontFamilyFallback: [
       'PingFang SC',
       'Hiragino Sans GB',
