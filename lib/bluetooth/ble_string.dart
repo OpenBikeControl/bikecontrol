@@ -24,7 +24,8 @@ final _unprintable = RegExp(r'[\u0000-\u001F\u007F-\u009F\uE000-\uF8FF\uFFFD-\uF
 String _decode(List<int> bytes) {
   try {
     return utf8.decode(bytes);
-  } catch (_) {
-    return String.fromCharCodes(bytes.where((byte) => byte >= 0x20 && byte < 0x7F));
+  } on FormatException catch (error) {
+    // 错误位置之前可能有未完成的多字节字符，替代字符由后续清理统一移除。
+    return utf8.decode(bytes.sublist(0, error.offset ?? 0), allowMalformed: true);
   }
 }
