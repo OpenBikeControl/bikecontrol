@@ -46,6 +46,7 @@ import 'elite/elite_rizer.dart';
 import 'elite/elite_square.dart';
 import 'elite/elite_sterzo.dart';
 import 'ltwoo/ltwoo_erx.dart';
+import 'magene/onelap_key.dart';
 import 'sensors/ble_cadence_device.dart';
 import 'sensors/ble_heart_rate_device.dart';
 import 'sensors/ble_power_device.dart';
@@ -103,6 +104,7 @@ abstract class BluetoothDevice extends BaseDevice {
     ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE,
     OpenBikeControlConstants.SERVICE_UUID,
     ThinkRiderVs200Constants.SERVICE_UUID,
+    OnelapKeyConstants.serviceUuid,
     // Nordic UART Service — needed so L-TWOO derailleurs show up in filtered
     // scans; device matching itself stays name-gated (NUS is far too generic).
     LtwooErxConstants.SERVICE_UUID,
@@ -280,6 +282,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('THINK VS') => ThinkRiderVs200(scanResult),
+        _ when OnelapKeyConstants.matchesName(scanResult.name) => OnelapKey(scanResult),
         _ when LtwooErxConstants.matchesName(scanResult.name) => LtwooErx(scanResult),
         // Windows' universal_ble surfaces the Tacx Neo with an empty
         // advertisement (no services/serviceData), so match on name alone.
@@ -368,6 +371,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('THINK VS') => ThinkRiderVs200(scanResult),
+        _ when OnelapKeyConstants.matchesName(scanResult.name) => OnelapKey(scanResult),
         _ when LtwooErxConstants.matchesName(scanResult.name) => LtwooErx(scanResult),
         // Windows' universal_ble surfaces the Tacx Neo with an empty
         // advertisement (no services/serviceData) — only the name is usable, so

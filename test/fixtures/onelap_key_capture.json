@@ -1,0 +1,80 @@
+{
+  "description": "Real Onelap Key_12224 single-click and long-press capture from the macOS diagnostic run on 2026-11-05.",
+  "cases": [
+    {
+      "button": "onelapCenter",
+      "trigger": "singleClick",
+      "packets": [
+        "8bf510e503000001010000"
+      ]
+    },
+    {
+      "button": "onelapLeft",
+      "trigger": "singleClick",
+      "packets": [
+        "8bf510e503000002020000"
+      ]
+    },
+    {
+      "button": "onelapUp",
+      "trigger": "singleClick",
+      "packets": [
+        "8bf510e503000004040000"
+      ]
+    },
+    {
+      "button": "onelapRight",
+      "trigger": "singleClick",
+      "packets": [
+        "8bf510e503000008080000"
+      ]
+    },
+    {
+      "button": "onelapDown",
+      "trigger": "singleClick",
+      "packets": [
+        "8bf510e503000010100000"
+      ]
+    },
+    {
+      "button": "onelapCenter",
+      "trigger": "longPress",
+      "packets": [
+        "8bf510e503000000000001",
+        "8bf510e503000001000000"
+      ]
+    },
+    {
+      "button": "onelapLeft",
+      "trigger": "longPress",
+      "packets": [
+        "8bf510e503000000000002",
+        "8bf510e503000002000000"
+      ]
+    },
+    {
+      "button": "onelapUp",
+      "trigger": "longPress",
+      "packets": [
+        "8bf510e503000000000004",
+        "8bf510e503000004000000"
+      ]
+    },
+    {
+      "button": "onelapRight",
+      "trigger": "longPress",
+      "packets": [
+        "8bf510e503000000000008",
+        "8bf510e503000008000000"
+      ]
+    },
+    {
+      "button": "onelapDown",
+      "trigger": "longPress",
+      "packets": [
+        "8bf510e503000000000010",
+        "8bf510e503000010000000"
+      ]
+    }
+  ]
+}
