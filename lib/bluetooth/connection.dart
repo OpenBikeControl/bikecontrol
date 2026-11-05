@@ -1352,13 +1352,10 @@ class Connection {
       //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
       platformConfig: PlatformConfig(
         web: WebOptions(optionalServices: BluetoothDevice.servicesToScan),
-        // universal_ble treats a null legacy flag as BLE 5 extended
-        // advertisements only. The Onelap Key is a BLE 4.x remote and does
-        // not appear in that scan. Low latency keeps a short advertising
-        // interval from being batched away.
         android: AndroidOptions(
           scanMode: AndroidScanMode.lowLatency,
-          legacy: true,
+          // false 同时接收旧式与扩展广播，避免限制其他设备的发现。
+          legacy: false,
         ),
       ),
     );
