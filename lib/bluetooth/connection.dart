@@ -16,6 +16,7 @@ import 'package:bike_control/bluetooth/inactivity_disconnector.dart';
 import 'package:bike_control/bluetooth/incline/incline_controller.dart';
 import 'package:bike_control/bluetooth/incline/incline_sink.dart';
 import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
+import 'package:bike_control/bluetooth/scan_identity.dart';
 import 'package:bike_control/bluetooth/support_log_buffer.dart';
 import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -72,19 +73,23 @@ class Connection {
   /// up). Mirrors the standalone emulator's own `isConnected` — assigned in
   /// [initialize], so the field itself is stable and can be listened to
   /// before then; the placeholder it starts as simply never flips.
-  ValueListenable<bool> get standaloneClientConnected => _standaloneClientConnected;
+  ValueListenable<bool> get standaloneClientConnected =>
+      _standaloneClientConnected;
   ValueListenable<bool> _standaloneClientConnected = ValueNotifier(false);
 
   /// Tests stand in for the emulator here; production only ever assigns it
   /// once, in [initialize].
   @visibleForTesting
-  set standaloneClientConnected(ValueListenable<bool> value) => _standaloneClientConnected = value;
+  set standaloneClientConnected(ValueListenable<bool> value) =>
+      _standaloneClientConnected = value;
 
   /// The connected app's name for the Sensors card ("MyWhoosh connected"),
   /// or null while nothing is subscribed. The standalone peripheral does not
   /// learn who paired it, so the rider's chosen trainer app stands in — the
   /// one app they told BikeControl they would be riding in.
-  String? get standaloneClientName => _standaloneClientConnected.value ? core.settings.getTrainerApp()?.name : null;
+  String? get standaloneClientName => _standaloneClientConnected.value
+      ? core.settings.getTrainerApp()?.name
+      : null;
 
   /// Whether the shared trainer bridge (the FTMS composite) is currently
   /// advertising. `SensorSinkSync` reads the listenable form
@@ -92,13 +97,20 @@ class Connection {
   /// that just need the current value (Task 5's Broadcast UI gating).
   bool get isBridgeRunning => ftmsEmulator.isStarted.value;
 
-  List<BluetoothDevice> get bluetoothDevices => devices.whereType<BluetoothDevice>().toList();
-  List<ProxyDevice> get proxyDevices => devices.whereType<ProxyDevice>().toList();
-  List<GamepadDevice> get gamepadDevices => devices.whereType<GamepadDevice>().toList();
-  List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
-  List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
-  List<WahooKickrClimb> get climbAccessories => devices.whereType<WahooKickrClimb>().toList();
-  List<ManualInclineDevice> get inclineDevices => devices.whereType<ManualInclineDevice>().toList();
+  List<BluetoothDevice> get bluetoothDevices =>
+      devices.whereType<BluetoothDevice>().toList();
+  List<ProxyDevice> get proxyDevices =>
+      devices.whereType<ProxyDevice>().toList();
+  List<GamepadDevice> get gamepadDevices =>
+      devices.whereType<GamepadDevice>().toList();
+  List<GyroscopeSteering> get gyroscopeDevices =>
+      devices.whereType<GyroscopeSteering>().toList();
+  List<WahooKickrHeadwind> get accessories =>
+      devices.whereType<WahooKickrHeadwind>().toList();
+  List<WahooKickrClimb> get climbAccessories =>
+      devices.whereType<WahooKickrClimb>().toList();
+  List<ManualInclineDevice> get inclineDevices =>
+      devices.whereType<ManualInclineDevice>().toList();
   List<BaseDevice> get controllerDevices => [
     ...bluetoothDevices.where((d) => d is! Accessory && d is! ProxyDevice),
     ...gamepadDevices,
@@ -113,7 +125,9 @@ class Connection {
   /// two paths fight over resistance. Null when the trainer is listed once.
   ProxyDevice? twinOf(ProxyDevice device) => proxyDevices.firstOrNullWhere(
     (other) =>
-        !identical(other, device) && other.trainerKey == device.trainerKey && other.isWifiUpstream != device.isWifiUpstream,
+        !identical(other, device) &&
+        other.trainerKey == device.trainerKey &&
+        other.isWifiUpstream != device.isWifiUpstream,
   );
 
   var _androidNotificationsSetup = false;
@@ -121,8 +135,10 @@ class Connection {
   final _connectionQueue = <BaseDevice>[];
   var _handlingConnectionQueue = false;
 
-  final Map<BaseDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
-  final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
+  final Map<BaseDevice, StreamSubscription<BaseNotification>>
+  _streamSubscriptions = {};
+  final StreamController<BaseNotification> _actionStreams =
+      StreamController<BaseNotification>.broadcast();
   Stream<BaseNotification> get actionStream => _actionStreams.stream;
 
   /// High-level app events (shifts, ERG targets, mode changes, handled errors)
@@ -141,7 +157,8 @@ class Connection {
   /// on a cold start — and silently dropped exactly the
   /// connect/handshake/first-ride window a support bundle exists to show.
   final SupportLogBuffer _traceLog = SupportLogBuffer(2000);
-  List<({DateTime date, String entry})> get lastTraceEntries => _traceLog.entries;
+  List<({DateTime date, String entry})> get lastTraceEntries =>
+      _traceLog.entries;
 
   void _appendLogEntry(String entry) => _appLog.add(entry);
 
@@ -174,10 +191,13 @@ class Connection {
   }
 
   final Map<BaseDevice, StreamSubscription<bool>> _connectionSubscriptions = {};
-  final StreamController<BaseDevice> _connectionStreams = StreamController<BaseDevice>.broadcast();
+  final StreamController<BaseDevice> _connectionStreams =
+      StreamController<BaseDevice>.broadcast();
   Stream<BaseDevice> get connectionStream => _connectionStreams.stream;
-  final StreamController<BluetoothDevice> _rssiConnectionStreams = StreamController<BluetoothDevice>.broadcast();
-  Stream<BluetoothDevice> get rssiConnectionStream => _rssiConnectionStreams.stream;
+  final StreamController<BluetoothDevice> _rssiConnectionStreams =
+      StreamController<BluetoothDevice>.broadcast();
+  Stream<BluetoothDevice> get rssiConnectionStream =>
+      _rssiConnectionStreams.stream;
 
   final _lastScanResult = <BleDevice>[];
   final ValueNotifier<bool> hasDevices = ValueNotifier(false);
@@ -188,7 +208,9 @@ class Connection {
   /// this only lets the screens tell a rider whose controller "won't show up"
   /// that it is in fact ignored. Cleared when a scan starts; ids leave it when
   /// they are un-ignored or reconnected.
-  final ValueNotifier<Set<String>> ignoredDevicesNearby = ValueNotifier(const {});
+  final ValueNotifier<Set<String>> ignoredDevicesNearby = ValueNotifier(
+    const {},
+  );
 
   /// Drops ids from [ignoredDevicesNearby] that are no longer on the ignore
   /// list. Called whenever the ignore list shrinks.
@@ -217,7 +239,8 @@ class Connection {
       // Only controllers that have buttons: drop/Reverb/Blipbox shifters (0..4) and blips/pods (96..125).
       // `effectiveType` falls back through the model→type map, so a shifter model
       // resolves to type 0 and a front derailleur (128) / dropper post (132) is excluded.
-      final hasButtons = t != null && ((t >= 0 && t <= 4) || (t >= 96 && t <= 125));
+      final hasButtons =
+          t != null && ((t >= 0 && t <= 4) || (t >= 96 && t <= 125));
       if (!hasButtons) continue;
       byserial[info.serial] = info;
     }
@@ -243,10 +266,13 @@ class Connection {
   @visibleForTesting
   static bool isClickV2LeftSideAdvert(BleDevice adv) {
     final payload = adv.manufacturerDataList
-        .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
+        .firstOrNullWhere(
+          (e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID,
+        )
         ?.payload;
     if (payload == null || payload.isEmpty) return false;
-    return ZwiftDeviceType.fromManufacturerData(payload.first) == ZwiftDeviceType.clickV2Left;
+    return ZwiftDeviceType.fromManufacturerData(payload.first) ==
+        ZwiftDeviceType.clickV2Left;
   }
 
   static Uint8List? _sramServiceDataRecord(Map<String, Uint8List> serviceData) {
@@ -294,7 +320,8 @@ class Connection {
   // which shadows dart:core's here. The literal infers the right type.
   final _connectedThisSession = <String>{};
 
-  bool wasConnectedThisSession(String uniqueId) => _connectedThisSession.contains(uniqueId);
+  bool wasConnectedThisSession(String uniqueId) =>
+      _connectedThisSession.contains(uniqueId);
 
   /// Test seam for the set above. The production path runs through a live BLE
   /// connection-state stream, which no widget test can drive — and the whole
@@ -316,13 +343,16 @@ class Connection {
   /// out of this list so the rider never sees the same controller twice.
   List<BaseDevice> get offlineControllers {
     final liveIds = devices.map((d) => d.uniqueId).toSet();
-    return _offlineControllers.values.where((d) => !liveIds.contains(d.uniqueId)).toList();
+    return _offlineControllers.values
+        .where((d) => !liveIds.contains(d.uniqueId))
+        .toList();
   }
 
   /// Remembers [device] as an offline controller, as [loadRememberedDevices]
   /// does from storage. Tests only.
   @visibleForTesting
-  void debugRememberController(BaseDevice device) => _offlineControllers[device.uniqueId] = device;
+  void debugRememberController(BaseDevice device) =>
+      _offlineControllers[device.uniqueId] = device;
 
   /// Clears what [debugRememberController] added. Tests only.
   @visibleForTesting
@@ -331,7 +361,10 @@ class Connection {
   /// Rebuilds the remembered controllers and restores the remembered trainer.
   /// Safe to call more than once — entries already present are left alone.
   void loadRememberedDevices() {
-    final ignoredIds = core.settings.getIgnoredDevices().map((d) => d.id).toSet();
+    final ignoredIds = core.settings
+        .getIgnoredDevices()
+        .map((d) => d.id)
+        .toSet();
     for (final remembered in core.rememberedDevices.load()) {
       if (ignoredIds.contains(remembered.deviceId)) continue;
 
@@ -344,10 +377,16 @@ class Connection {
       try {
         // The stored advert is exactly what the factory reads, so this yields a
         // real device of the right subclass — correct buttons, correct contour.
-        final device = BluetoothDevice.fromScanResult(remembered.toScanResult());
+        final device = BluetoothDevice.fromScanResult(
+          remembered.toScanResult(),
+        );
         if (device != null) _offlineControllers[remembered.deviceId] = device;
       } catch (e, s) {
-        recordError(e, s, context: 'Connection.loadRememberedDevices ${remembered.deviceId}');
+        recordError(
+          e,
+          s,
+          context: 'Connection.loadRememberedDevices ${remembered.deviceId}',
+        );
       }
     }
   }
@@ -365,7 +404,9 @@ class Connection {
   /// is away. A device leaves the set the moment it connects; the set empties
   /// when [startupReconnectWindow] runs out.
   // A list, not a Set: `prop` exports its own `Set`, which shadows dart:core's.
-  final ValueNotifier<List<String>> startupReconnecting = ValueNotifier(const []);
+  final ValueNotifier<List<String>> startupReconnecting = ValueNotifier(
+    const [],
+  );
   Timer? _startupReconnectTimer;
 
   /// Opens the window for every remembered controller, and the remembered
@@ -373,10 +414,18 @@ class Connection {
   /// window.
   void beginStartupReconnect({Duration window = startupReconnectWindow}) {
     final trainer = rememberedTrainer;
-    final ids = [
-      ..._offlineControllers.keys,
-      if (trainer != null && core.settings.getAutoConnect(trainer.name ?? trainer.deviceId)) trainer.deviceId,
-    ].where((id) => !_connectedThisSession.contains(id)).toSet().toList(growable: false);
+    final ids =
+        [
+              ..._offlineControllers.keys,
+              if (trainer != null &&
+                  core.settings.getAutoConnect(
+                    trainer.name ?? trainer.deviceId,
+                  ))
+                trainer.deviceId,
+            ]
+            .where((id) => !_connectedThisSession.contains(id))
+            .toSet()
+            .toList(growable: false);
     _startupReconnectTimer?.cancel();
     if (ids.isEmpty) {
       startupReconnecting.value = const [];
@@ -402,7 +451,8 @@ class Connection {
   void endStartupReconnect() {
     _startupReconnectTimer?.cancel();
     _startupReconnectTimer = null;
-    if (startupReconnecting.value.isNotEmpty) startupReconnecting.value = const [];
+    if (startupReconnecting.value.isNotEmpty)
+      startupReconnecting.value = const [];
   }
 
   /// Drops a remembered device and returns the index it sat at, so an Undo can
@@ -417,7 +467,10 @@ class Connection {
     return index;
   }
 
-  Future<void> restoreRemembered(RememberedDevice device, {int? atIndex}) async {
+  Future<void> restoreRemembered(
+    RememberedDevice device, {
+    int? atIndex,
+  }) async {
     await core.rememberedDevices.restore(device, atIndex: atIndex);
     loadRememberedDevices();
     hasDevices.value = devices.isNotEmpty || _offlineControllers.isNotEmpty;
@@ -455,7 +508,11 @@ class Connection {
       core.sensors.register(device.source);
       unawaited(device.source.start());
     } catch (e, s) {
-      recordError(e, s, context: 'Connection._registerSensorSource ${device.source.id}');
+      recordError(
+        e,
+        s,
+        context: 'Connection._registerSensorSource ${device.source.id}',
+      );
     }
   }
 
@@ -469,9 +526,16 @@ class Connection {
   /// Gated on [BleSensorDevice] for the same reason as
   /// [_registerSensorSource] — see its doc comment. Delegates the actual
   /// teardown to [_unregisterSource], shared with [disconnectHealthKit].
-  Future<void> _unregisterSensorSource(BaseDevice device, {required bool forget}) async {
+  Future<void> _unregisterSensorSource(
+    BaseDevice device, {
+    required bool forget,
+  }) async {
     if (device is! BleSensorDevice) return;
-    await _unregisterSource(device.source, forget: forget, context: 'Connection._unregisterSensorSource');
+    await _unregisterSource(
+      device.source,
+      forget: forget,
+      context: 'Connection._unregisterSensorSource',
+    );
   }
 
   /// Shared by the BLE path above and [disconnectHealthKit]: drop the hub
@@ -489,7 +553,11 @@ class Connection {
   /// is done here, explicitly, and only then — a transient drop must leave it
   /// alone so `register`'s rebind loop still matches when the source
   /// reappears.
-  Future<void> _unregisterSource(SensorSource source, {required bool forget, required String context}) async {
+  Future<void> _unregisterSource(
+    SensorSource source, {
+    required bool forget,
+    required String context,
+  }) async {
     try {
       core.sensors.unregister(source.id);
       if (forget) {
@@ -523,7 +591,8 @@ class Connection {
     final source = healthKitSource;
     if (source == null) return;
     final verdict = await source.authorize();
-    if (verdict == HealthKitAuthorization.denied) throw HealthKitDeniedException();
+    if (verdict == HealthKitAuthorization.denied)
+      throw HealthKitDeniedException();
   }
 
   /// The HealthKit analogue of a strap connect: register so `SensorHub`
@@ -550,7 +619,11 @@ class Connection {
   Future<void> disconnectHealthKit({required bool forget}) async {
     final source = healthKitSource;
     if (source == null || !isHealthKitConnected) return;
-    await _unregisterSource(source, forget: forget, context: 'Connection.disconnectHealthKit');
+    await _unregisterSource(
+      source,
+      forget: forget,
+      context: 'Connection.disconnectHealthKit',
+    );
   }
 
   /// TXT record for the standalone sensor advertisement — the same identity
@@ -584,7 +657,9 @@ class Connection {
   /// Any OTHER exception still propagates to `_probeHealthKit`'s own catch.
   Future<void> restoreHealthKitSelection() async {
     if (healthKitSource == null) return;
-    if (core.sensors.selectionFor(SensorQuantity.heartRate) != HealthKitSensorSource.sourceId) return;
+    if (core.sensors.selectionFor(SensorQuantity.heartRate) !=
+        HealthKitSensorSource.sourceId)
+      return;
     // Sensors-only mode has no bridge to restore for — in that mode Apple
     // Health only ever connects via the Broadcast switch (`turnOn` →
     // `connectSourceById`), so a launch-time restore here would connect a
@@ -592,17 +667,23 @@ class Connection {
     // nothing"). Trainer mode is unaffected: the bridge genuinely relies on
     // this restore running at launch.
     if (core.settings.getSensorsOnlyMode()) {
-      _appendLogEntry('HealthKit: sensors-only mode — Apple Health connects when Broadcast is switched on');
+      _appendLogEntry(
+        'HealthKit: sensors-only mode — Apple Health connects when Broadcast is switched on',
+      );
       return;
     }
     try {
       await authorizeHealthKit();
       await connectHealthKit();
     } on HealthKitDeniedException {
-      _appendLogEntry('HealthKit: persisted Apple Health selection not restored — permission denied');
+      _appendLogEntry(
+        'HealthKit: persisted Apple Health selection not restored — permission denied',
+      );
     } on PlatformException catch (e) {
       if (e.code != 'authorize') rethrow;
-      _appendLogEntry('HealthKit: authorization at launch failed — ${e.message}');
+      _appendLogEntry(
+        'HealthKit: authorization at launch failed — ${e.message}',
+      );
     }
   }
 
@@ -647,15 +728,23 @@ class Connection {
         await authorizeHealthKit();
         await connectHealthKit();
       } catch (e, s) {
-        await recordError(e, s, context: 'Connection.connectSourceById healthkit');
+        await recordError(
+          e,
+          s,
+          context: 'Connection.connectSourceById healthkit',
+        );
         rethrow;
       }
       return;
     }
     await core.settings.setSensorAutoConnect(id, true);
-    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere(
+      (d) => d.source.id == id,
+    );
     if (device == null) {
-      _appendLogEntry('Broadcast: source "$id" not yet discovered — will auto-connect once found');
+      _appendLogEntry(
+        'Broadcast: source "$id" not yet discovered — will auto-connect once found',
+      );
       return;
     }
     try {
@@ -691,19 +780,32 @@ class Connection {
       try {
         await disconnectHealthKit(forget: false);
       } catch (e, s) {
-        await recordError(e, s, context: 'Connection.disconnectSourceById healthkit');
+        await recordError(
+          e,
+          s,
+          context: 'Connection.disconnectSourceById healthkit',
+        );
         rethrow;
       }
       return;
     }
     await core.settings.setSensorAutoConnect(id, false);
-    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere((d) => d.source.id == id);
+    final device = devices.whereType<BleSensorDevice>().firstOrNullWhere(
+      (d) => d.source.id == id,
+    );
     if (device == null) {
-      _appendLogEntry('Broadcast: source "$id" already disconnected — consent cleared');
+      _appendLogEntry(
+        'Broadcast: source "$id" already disconnected — consent cleared',
+      );
       return;
     }
     try {
-      await disconnect(device, forget: false, persistForget: false, keepInList: true);
+      await disconnect(
+        device,
+        forget: false,
+        persistForget: false,
+        keepInList: true,
+      );
     } catch (e, s) {
       await recordError(e, s, context: 'Connection.disconnectSourceById $id');
       rethrow;
@@ -716,7 +818,9 @@ class Connection {
     if (device is! BluetoothDevice) return;
     if (device is Accessory) return;
 
-    final kind = device is ProxyDevice ? RememberedDeviceKind.trainer : RememberedDeviceKind.controller;
+    final kind = device is ProxyDevice
+        ? RememberedDeviceKind.trainer
+        : RememberedDeviceKind.controller;
     final remembered = RememberedDevice.fromScanResult(
       device.device,
       kind: kind,
@@ -768,7 +872,8 @@ class Connection {
   /// enumerate devices themselves and must not force-reconnect one the
   /// battery saver deliberately put to sleep.
   bool isAutoReconnectSuppressed(BaseDevice device) =>
-      device is BluetoothDevice && _suppressedAutoReconnect.contains(device.device.deviceId);
+      device is BluetoothDevice &&
+      _suppressedAutoReconnect.contains(device.device.deviceId);
 
   /// BLE ids the rider disconnected with "Disconnect and forget for this
   /// session". Unlike the ignore list this is not persisted, but it holds for
@@ -781,28 +886,37 @@ class Connection {
   /// Each held id maps to the name the rider knew the controller by: listed
   /// under Ignored devices with Reconnect ([reconnectForSession]), so changing
   /// one's mind needs no app restart.
-  final ValueNotifier<Map<String, String>> disconnectedForSession = ValueNotifier(const {});
+  final ValueNotifier<Map<String, String>> disconnectedForSession =
+      ValueNotifier(const {});
 
-  bool _isDisconnectedForSession(String id) => disconnectedForSession.value.containsKey(id);
+  bool _isDisconnectedForSession(String id) =>
+      disconnectedForSession.value.containsKey(id);
 
   void _setDisconnectedForSession(String id, String? name) {
     if (name == null) {
       if (!_isDisconnectedForSession(id)) return;
-      disconnectedForSession.value = Map.unmodifiable({...disconnectedForSession.value}..remove(id));
+      disconnectedForSession.value = Map.unmodifiable(
+        {...disconnectedForSession.value}..remove(id),
+      );
     } else {
-      disconnectedForSession.value = Map.unmodifiable({...disconnectedForSession.value, id: name});
+      disconnectedForSession.value = Map.unmodifiable({
+        ...disconnectedForSession.value,
+        id: name,
+      });
     }
   }
 
   /// Clears what [disconnectForSession] held back, as an app restart does.
   /// Tests only.
   @visibleForTesting
-  void debugClearDisconnectedForSession() => disconnectedForSession.value = const {};
+  void debugClearDisconnectedForSession() =>
+      disconnectedForSession.value = const {};
 
   /// Disconnects [device] and keeps it from auto-connecting again until the
   /// app restarts or the rider connects it explicitly.
   Future<void> disconnectForSession(BaseDevice device) async {
-    if (device is BluetoothDevice) _setDisconnectedForSession(device.device.deviceId, device.toString());
+    if (device is BluetoothDevice)
+      _setDisconnectedForSession(device.device.deviceId, device.toString());
     await disconnect(device, forget: true, persistForget: false);
   }
 
@@ -811,7 +925,9 @@ class Connection {
   Future<void> reconnectForSession(String id) async {
     _setDisconnectedForSession(id, null);
     if (ignoredDevicesNearby.value.contains(id)) {
-      ignoredDevicesNearby.value = Set.unmodifiable({...ignoredDevicesNearby.value}..remove(id));
+      ignoredDevicesNearby.value = Set.unmodifiable(
+        {...ignoredDevicesNearby.value}..remove(id),
+      );
     }
     final seen = _lastScanResult.lastOrNullWhere((d) => d.deviceId == id);
     final device = seen == null ? null : BluetoothDevice.fromScanResult(seen);
@@ -889,9 +1005,11 @@ class Connection {
   /// connects or quick drops) — backoff rounds stay quiet: no
   /// connecting/disconnected toasts, no OS notification.
   bool _isInBackoff(BaseDevice device) {
-    if (device is! BluetoothDevice || device.maxAutoConnectAttempts <= 0) return false;
+    if (device is! BluetoothDevice || device.maxAutoConnectAttempts <= 0)
+      return false;
     final id = device.device.deviceId;
-    return (_consecutiveConnectFailures[id] ?? 0) >= device.maxAutoConnectAttempts ||
+    return (_consecutiveConnectFailures[id] ?? 0) >=
+            device.maxAutoConnectAttempts ||
         (_quickDropCounts[id] ?? 0) >= device.maxAutoConnectAttempts;
   }
 
@@ -905,10 +1023,14 @@ class Connection {
     startLogCapture();
 
     _inactivityDisconnector = InactivityDisconnector(
-      isTrainerAppConnected: () => core.logic.connectedNonLocalTrainerConnections.isNotEmpty,
-      isOnlyLocalActive: () => core.logic.enabledNonLocalTrainerConnections.isEmpty && core.settings.getLocalEnabled(),
-      hasEligibleControllers: () =>
-          controllerDevices.whereType<BluetoothDevice>().any((d) => d.isConnected && !d.exemptFromBatterySaver),
+      isTrainerAppConnected: () =>
+          core.logic.connectedNonLocalTrainerConnections.isNotEmpty,
+      isOnlyLocalActive: () =>
+          core.logic.enabledNonLocalTrainerConnections.isEmpty &&
+          core.settings.getLocalEnabled(),
+      hasEligibleControllers: () => controllerDevices
+          .whereType<BluetoothDevice>()
+          .any((d) => d.isConnected && !d.exemptFromBatterySaver),
       onTimeout: _onInactivityTimeout,
     );
 
@@ -947,7 +1069,9 @@ class Connection {
       core.remoteKeyboardPairing,
     ];
     for (final connection in appConnections) {
-      connection.isConnected.addListener(() => _inactivityDisconnector?.onTrainerConnectionChanged());
+      connection.isConnected.addListener(
+        () => _inactivityDisconnector?.onTrainerConnectionChanged(),
+      );
     }
     // Steering devices' calibrated angle rides to OpenBikeControl apps as 0x1B.
     core.obcSteeringAngle
@@ -963,7 +1087,8 @@ class Connection {
     if (!kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isIOS)) {
       core.mediaKeyHandler.initialize();
       // Load saved media key detection state
-      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings.getMediaKeyDetectionEnabled();
+      core.mediaKeyHandler.isMediaKeyDetectionEnabled.value = core.settings
+          .getMediaKeyDetectionEnabled();
     }
 
     // Rider metrics BikeControl itself sourced (currently just heart rate) are
@@ -978,7 +1103,8 @@ class Connection {
       // keeps advertising forever; the bridge path already refuses to
       // advertise once the trial's spent (`shouldAdvertise`), so the
       // standalone path must too.
-      standaloneSensorEmulator.shouldAdvertise = () => IAPManager.instance.isProEnabledForCurrentDevice;
+      standaloneSensorEmulator.shouldAdvertise = () =>
+          IAPManager.instance.isProEnabledForCurrentDevice;
       // Never the trainer-app name (e.g. "Zwift Hub"): unlike ftmsEmulator,
       // which impersonates whatever trainer app the rider picked, this
       // standalone peripheral is BikeControl itself — a rider pairing a
@@ -998,10 +1124,14 @@ class Connection {
       // the IPv4-only listener follow the app the same way.
       standaloneSensorEmulator.bareShortServiceUuids = () =>
           ProxyDevice.bareShortServiceUuidsFor(core.settings.getTrainerApp());
-      standaloneSensorEmulator.forceIPv4 = () => ProxyDevice.needsIPv4For(core.settings.getTrainerApp());
+      standaloneSensorEmulator.forceIPv4 = () =>
+          ProxyDevice.needsIPv4For(core.settings.getTrainerApp());
       final standaloneSensorLifecycle = StandaloneSensorLifecycle(
         attachDefinition: standaloneSensorEmulator.attachDefinition,
-        startServer: (mode) => standaloneSensorEmulator.startServer(mode: mode, mdnsTxt: standaloneMdnsTxt()),
+        startServer: (mode) => standaloneSensorEmulator.startServer(
+          mode: mode,
+          mdnsTxt: standaloneMdnsTxt(),
+        ),
         stopServer: standaloneSensorEmulator.stop,
         detachDefinition: standaloneSensorEmulator.detachDefinition,
       );
@@ -1013,7 +1143,8 @@ class Connection {
         // updates the composite's bookkeeping.
         attach: ftmsEmulator.attachDefinition,
         detach: ftmsEmulator.detachDefinition,
-        startStandalone: (def, transport) => standaloneSensorLifecycle.start(def, transport),
+        startStandalone: (def, transport) =>
+            standaloneSensorLifecycle.start(def, transport),
         stopStandalone: () => standaloneSensorLifecycle.stop(sensorDefinition),
       );
 
@@ -1024,7 +1155,8 @@ class Connection {
       // SensorHub.isProEnabled's doc comment), so a subscription lapsing
       // mid-ride stops resolving on the next tick without the rider ever
       // reselecting anything.
-      core.sensors.isProEnabled = () => IAPManager.instance.isProEnabledForCurrentDevice;
+      core.sensors.isProEnabled = () =>
+          IAPManager.instance.isProEnabledForCurrentDevice;
       core.sensors.loadSelections(core.settings);
       if (!kIsWeb && Platform.isIOS) {
         unawaited(_probeHealthKit());
@@ -1127,10 +1259,15 @@ class Connection {
     // Inform the user when ClickLogic restarts a device on purpose — its
     // entry greys out for a few seconds, so explain why.
     ClickLogic.onResetSent = (deviceId) {
-      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      final device = bluetoothDevices.firstOrNullWhere(
+        (e) => e.device.deviceId == deviceId,
+      );
       if (device != null) {
         _actionStreams.add(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.deviceIsRestarting(device.toString())),
+          AlertNotification(
+            LogLevel.LOGLEVEL_INFO,
+            AppLocalizations.current.deviceIsRestarting(device.toString()),
+          ),
         );
       }
     };
@@ -1140,8 +1277,14 @@ class Connection {
     ClickLogic.isLeftSideNearby = () => hasNearbyClickV2LeftSide;
 
     UniversalBle.onAvailabilityChange = (available) {
-      _actionStreams.add(BluetoothAvailabilityNotification(available == AvailabilityState.poweredOn));
-      if (available == AvailabilityState.poweredOn && !kIsWeb && !core.logic.deferLaunchPermissions) {
+      _actionStreams.add(
+        BluetoothAvailabilityNotification(
+          available == AvailabilityState.poweredOn,
+        ),
+      );
+      if (available == AvailabilityState.poweredOn &&
+          !kIsWeb &&
+          !core.logic.deferLaunchPermissions) {
         core.permissions.getScanRequirements().then((perms) {
           if (Permissions.blockingScan(perms).isEmpty) {
             performScanning();
@@ -1169,7 +1312,12 @@ class Connection {
         _rssiConnectionStreams.add(existingDevice); // Notify UI of update
       }
 
-      if (_lastScanResult.none((e) => e.deviceId == result.deviceId && e.services.contentEquals(result.services))) {
+      if (scanResultAddsIdentity(_lastScanResult, result)) {
+        _lastScanResult.removeWhere(
+          (device) =>
+              device.deviceId == result.deviceId &&
+              device.services.contentEquals(result.services),
+        );
         _lastScanResult.add(result);
 
         // A left puck coming into range is what brings the right one's LEDs
@@ -1183,7 +1331,9 @@ class Connection {
         }
 
         if (kDebugMode) {
-          debugPrint('Scan result: ${result.name} - ${result.deviceId} - Services: ${result.services}');
+          debugPrint(
+            'Scan result: ${result.name} - ${result.deviceId} - Services: ${result.services}',
+          );
         }
 
         try {
@@ -1197,17 +1347,23 @@ class Connection {
           } else {
             final manufacturerData = result.manufacturerDataList;
             final data = manufacturerData
-                .firstOrNullWhere((e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID)
+                .firstOrNullWhere(
+                  (e) => e.companyId == ZwiftConstants.ZWIFT_MANUFACTURER_ID,
+                )
                 ?.payload;
             if (data != null && kDebugMode) {
               _actionStreams.add(
-                LogNotification('Found unknown device ${result.name} with identifier: ${data.firstOrNull}'),
+                LogNotification(
+                  'Found unknown device ${result.name} with identifier: ${data.firstOrNull}',
+                ),
               );
             }
           }
         } catch (e, backtrace) {
           _actionStreams.add(
-            LogNotification("Error processing scan result for device ${result.deviceId}: $e\n$backtrace"),
+            LogNotification(
+              "Error processing scan result for device ${result.deviceId}: $e\n$backtrace",
+            ),
           );
           if (kDebugMode) {
             print(e);
@@ -1221,7 +1377,9 @@ class Connection {
       final deviceId = change.deviceId;
       final characteristicUuid = change.characteristicId;
       final value = change.value;
-      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      final device = bluetoothDevices.firstOrNullWhere(
+        (e) => e.device.deviceId == deviceId,
+      );
       if (device == null) {
         _actionStreams.add(LogNotification('Device not found: $deviceId'));
         UniversalBle.disconnect(deviceId);
@@ -1281,7 +1439,9 @@ class Connection {
     UniversalBle.onConnectionChange = (BleConnectionChange change) {
       final deviceId = change.deviceId;
       final isConnected = change.isConnected;
-      final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
+      final device = bluetoothDevices.firstOrNullWhere(
+        (e) => e.device.deviceId == deviceId,
+      );
       if (device != null && !isConnected) {
         // allow reconnection
         _lastScanResult.removeWhere((d) => d.deviceId == deviceId);
@@ -1314,7 +1474,9 @@ class Connection {
     }
     isScanning.value = true;
     ignoredDevicesNearby.value = const {};
-    _actionStreams.add(LogNotification(AppLocalizations.current.scanningForDevicesShort));
+    _actionStreams.add(
+      LogNotification(AppLocalizations.current.scanningForDevicesShort),
+    );
 
     if (screenshotMode) {
       return;
@@ -1346,7 +1508,17 @@ class Connection {
     await UniversalBle.startScan(
       // allow all to enable Wahoo Kickr Bike Shift detection
       //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
-      platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
+      platformConfig: PlatformConfig(
+        web: WebOptions(optionalServices: BluetoothDevice.servicesToScan),
+        // universal_ble treats a null legacy flag as "BLE 5 extended
+        // advertisements only". The Onelap Key is a BLE 4.x remote and does
+        // not appear in that scan. Low latency keeps a short advertising
+        // interval from being batched away.
+        android: AndroidOptions(
+          scanMode: AndroidScanMode.lowLatency,
+          legacy: true,
+        ),
+      ),
     );
 
     if (kIsWeb) {
@@ -1361,7 +1533,10 @@ class Connection {
     if (kIsWeb || screenshotMode) return;
     _startWifiTrainerDiscovery();
     if (_gamePadSearchTimer == null) {
-      _gamePadSearchTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollGamepads());
+      _gamePadSearchTimer = Timer.periodic(
+        const Duration(seconds: 3),
+        (_) => _pollGamepads(),
+      );
       _pollGamepads();
     }
   }
@@ -1375,10 +1550,19 @@ class Connection {
           for (final pad in list) {
             unawaited(pad.dispose());
           }
-          final pads = list.map((pad) => GamepadDevice(pad.name.isEmpty ? 'Gamepad' : pad.name, id: pad.id)).toList();
+          final pads = list
+              .map(
+                (pad) => GamepadDevice(
+                  pad.name.isEmpty ? 'Gamepad' : pad.name,
+                  id: pad.id,
+                ),
+              )
+              .toList();
           addDevices(pads);
 
-          final removedDevices = gamepadDevices.where((device) => list.none((pad) => pad.id == device.id)).toList();
+          final removedDevices = gamepadDevices
+              .where((device) => list.none((pad) => pad.id == device.id))
+              .toList();
           for (var device in removedDevices) {
             devices.remove(device);
             _streamSubscriptions[device]?.cancel();
@@ -1400,11 +1584,23 @@ class Connection {
   void _startWifiTrainerDiscovery() {
     _wifiTrainerScanner ??= WifiTrainerScanner(
       onFound: (trainer) {
-        _actionStreams.add(LogNotification('Found WiFi trainer: ${trainer.syntheticDevice.name}'));
-        addDevices([ProxyDevice.wifi(trainer.syntheticDevice, host: trainer.host, port: trainer.port)]);
+        _actionStreams.add(
+          LogNotification(
+            'Found WiFi trainer: ${trainer.syntheticDevice.name}',
+          ),
+        );
+        addDevices([
+          ProxyDevice.wifi(
+            trainer.syntheticDevice,
+            host: trainer.host,
+            port: trainer.port,
+          ),
+        ]);
       },
       onLost: (deviceId) {
-        final device = proxyDevices.firstOrNullWhere((d) => d.scanResult.deviceId == deviceId);
+        final device = proxyDevices.firstOrNullWhere(
+          (d) => d.scanResult.deviceId == deviceId,
+        );
         // A connected device stays — the live TCP connection is the source
         // of truth; mDNS visibility can flap.
         if (device != null && !device.isConnected && !device.isStarting.value) {
@@ -1419,7 +1615,9 @@ class Connection {
       },
     );
     _wifiTrainerScanner!.start().catchError((Object e, s) {
-      _actionStreams.add(LogNotification('WiFi trainer discovery unavailable: $e'));
+      _actionStreams.add(
+        LogNotification('WiFi trainer discovery unavailable: $e'),
+      );
       recordError(e, s, context: 'Wifi Trainer Discovery');
     });
   }
@@ -1429,7 +1627,8 @@ class Connection {
     required String characteristicUuid,
     required Uint8List value,
   }) async {
-    if (!IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription) {
+    if (!IAPManager.instance.isPurchased.value &&
+        !IAPManager.instance.hasActiveSubscription) {
       return;
     }
 
@@ -1443,7 +1642,9 @@ class Connection {
       return;
     }
 
-    final serviceUuid = device.serviceUuidForCharacteristic(scriptOutput.characteristicUuid);
+    final serviceUuid = device.serviceUuidForCharacteristic(
+      scriptOutput.characteristicUuid,
+    );
     if (serviceUuid == null) {
       _actionStreams.add(
         LogNotification(
@@ -1482,14 +1683,20 @@ class Connection {
       serviceUuid,
       scriptOutput.characteristicUuid,
       scriptOutput.data,
-      withoutResponse: characteristic.properties.contains(CharacteristicProperty.writeWithoutResponse) == true,
+      withoutResponse:
+          characteristic.properties.contains(
+            CharacteristicProperty.writeWithoutResponse,
+          ) ==
+          true,
     );
   }
 
   Future<void> startMyWhooshServer() {
     return core.whooshLink.startServer().catchError((e) {
       core.settings.setMyWhooshLinkEnabled(false);
-      _actionStreams.add(LogNotification('Error starting MyWhoosh "Link" server: $e'));
+      _actionStreams.add(
+        LogNotification('Error starting MyWhoosh "Link" server: $e'),
+      );
       _actionStreams.add(
         AlertNotification(
           LogLevel.LOGLEVEL_ERROR,
@@ -1527,8 +1734,12 @@ class Connection {
 
       return true;
     }).toList();
-    if (seenIgnored.isNotEmpty && !ignoredDevicesNearby.value.containsAll(seenIgnored)) {
-      ignoredDevicesNearby.value = Set.unmodifiable({...ignoredDevicesNearby.value, ...seenIgnored});
+    if (seenIgnored.isNotEmpty &&
+        !ignoredDevicesNearby.value.containsAll(seenIgnored)) {
+      ignoredDevicesNearby.value = Set.unmodifiable({
+        ...ignoredDevicesNearby.value,
+        ...seenIgnored,
+      });
     }
     devices.addAll(newDevices);
     _connectionQueue.addAll(newDevices);
@@ -1536,7 +1747,8 @@ class Connection {
     // unlock-mode choice) never connects, so no connect event would ever tell
     // the screens it is here — and they are where that setup is offered.
     for (final device in newDevices) {
-      if (!device.shouldAutoConnect && device.setupNeed != null) _connectionStreams.add(device);
+      if (!device.shouldAutoConnect && device.setupNeed != null)
+        _connectionStreams.add(device);
     }
 
     // A device kept in the list during an automatic reset cycle reappeared in
@@ -1544,7 +1756,10 @@ class Connection {
     // the existing instance for reconnection instead.
     final resetDevices = dev
         .mapNotNull((d) => devices.firstOrNullWhere((e) => e == d))
-        .where((e) => e.isResetting && !e.isConnected && !_connectionQueue.contains(e))
+        .where(
+          (e) =>
+              e.isResetting && !e.isConnected && !_connectionQueue.contains(e),
+        )
         .toList();
     _connectionQueue.addAll(resetDevices);
 
@@ -1567,10 +1782,13 @@ class Connection {
 
   void _handleConnectionQueue() {
     // windows apparently has issues when connecting to multiple devices at once, so don't
-    if (_connectionQueue.isNotEmpty && !_handlingConnectionQueue && !screenshotMode) {
+    if (_connectionQueue.isNotEmpty &&
+        !_handlingConnectionQueue &&
+        !screenshotMode) {
       _handlingConnectionQueue = true;
       final device = _connectionQueue.removeAt(0);
-      if (device is BluetoothDevice) _disconnectedDuringConnect.remove(device.device.deviceId);
+      if (device is BluetoothDevice)
+        _disconnectedDuringConnect.remove(device.device.deviceId);
 
       final willConnect = device.shouldAutoConnect;
       // Reconnections after an automatic reset happen every minute — keep
@@ -1579,11 +1797,20 @@ class Connection {
       // rounds from here on — the guidance alert already said its piece.
       // Automatic retries after a failed connect stay quiet too — the first
       // failure already told the rider; the card shows the state.
-      final isRetry = device is BluetoothDevice && _connectRetryCounts.containsKey(device.device.deviceId);
-      final notify = willConnect && !device.isResetting && !_isInBackoff(device) && !isRetry;
+      final isRetry =
+          device is BluetoothDevice &&
+          _connectRetryCounts.containsKey(device.device.deviceId);
+      final notify =
+          willConnect &&
+          !device.isResetting &&
+          !_isInBackoff(device) &&
+          !isRetry;
       if (notify) {
         _actionStreams.add(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connectingToDevice(device.toString())),
+          AlertNotification(
+            LogLevel.LOGLEVEL_INFO,
+            AppLocalizations.current.connectingToDevice(device.toString()),
+          ),
         );
       }
       _connect(device)
@@ -1594,7 +1821,9 @@ class Connection {
               _actionStreams.add(
                 AlertNotification(
                   LogLevel.LOGLEVEL_INFO,
-                  AppLocalizations.current.connectionSucceeded(device.toString()),
+                  AppLocalizations.current.connectionSucceeded(
+                    device.toString(),
+                  ),
                 ),
               );
             }
@@ -1606,28 +1835,42 @@ class Connection {
             device.isConnected = false;
             _handlingConnectionQueue = false;
             _scheduleConnectRetry(device);
-            if (device is BluetoothDevice && device.keepsReconnectingWhileDropping) {
+            if (device is BluetoothDevice &&
+                device.keepsReconnectingWhileDropping) {
               // Keepalive probe: the reconnect churn is expected and is NOT
               // rear-derailleur contention, so the "claimed by the derailleur"
               // give-up guidance must not fire. Keep it to a quiet log.
-              _actionStreams.add(LogNotification('${device.toString()}: connect attempt failed during probe ($e)'));
+              _actionStreams.add(
+                LogNotification(
+                  '${device.toString()}: connect attempt failed during probe ($e)',
+                ),
+              );
             } else if (_recordConnectFailure(device)) {
               // Backoff engaged — _recordConnectFailure emitted the guidance alert
               // (or the silent per-round log) in place of the generic toast.
             } else if (isRetry) {
-              _actionStreams.add(LogNotification('${device.toString()}: connect attempt failed ($e)'));
+              _actionStreams.add(
+                LogNotification(
+                  '${device.toString()}: connect attempt failed ($e)',
+                ),
+              );
             } else if (e is TimeoutException) {
               _actionStreams.add(
                 AlertNotification(
                   LogLevel.LOGLEVEL_WARNING,
-                  AppLocalizations.current.unableToConnectToDeviceTimeout(device.toString()),
+                  AppLocalizations.current.unableToConnectToDeviceTimeout(
+                    device.toString(),
+                  ),
                 ),
               );
             } else {
               _actionStreams.add(
                 AlertNotification(
                   LogLevel.LOGLEVEL_ERROR,
-                  AppLocalizations.current.connectionFailed(device.toString(), e.toString()),
+                  AppLocalizations.current.connectionFailed(
+                    device.toString(),
+                    e.toString(),
+                  ),
                 ),
               );
             }
@@ -1653,30 +1896,40 @@ class Connection {
   /// rider's choice and coordinated with a twin entry, so an unprompted retry
   /// could start a second upstream next to the twin's.
   void _scheduleConnectRetry(BaseDevice device) {
-    if (device is! BluetoothDevice || device is ProxyDevice || !device.shouldAutoConnect) return;
+    if (device is! BluetoothDevice ||
+        device is ProxyDevice ||
+        !device.shouldAutoConnect)
+      return;
     final id = device.device.deviceId;
     if (_disconnectedDuringConnect.contains(id)) return;
     final attempt = (_connectRetryCounts[id] ?? 0) + 1;
     _connectRetryCounts[id] = attempt;
     final delay = connectRetryBaseDelay * (1 << (attempt - 1).clamp(0, 10));
     _connectRetryTimers.remove(id)?.cancel();
-    _connectRetryTimers[id] = Timer(delay > connectRetryMaxDelay ? connectRetryMaxDelay : delay, () {
-      _connectRetryTimers.remove(id);
-      // Only this exact instance, still listed and idle: a removed/forgotten
-      // device is gone from [devices]; a rediscovered fresh instance (equal
-      // by id, not identical) is already handled by its own queue entry.
-      final stillWanted =
-          devices.any((d) => identical(d, device)) &&
-          !device.isConnected &&
-          !_connectionQueue.contains(device) &&
-          !_suppressedAutoReconnect.contains(id) &&
-          !_isDisconnectedForSession(id) &&
-          !core.settings.getIgnoredDevices().any((d) => d.id == id);
-      if (!stillWanted) return;
-      _actionStreams.add(LogNotification('${device.toString()}: retrying connect (attempt ${attempt + 1})'));
-      _connectionQueue.add(device);
-      _handleConnectionQueue();
-    });
+    _connectRetryTimers[id] = Timer(
+      delay > connectRetryMaxDelay ? connectRetryMaxDelay : delay,
+      () {
+        _connectRetryTimers.remove(id);
+        // Only this exact instance, still listed and idle: a removed/forgotten
+        // device is gone from [devices]; a rediscovered fresh instance (equal
+        // by id, not identical) is already handled by its own queue entry.
+        final stillWanted =
+            devices.any((d) => identical(d, device)) &&
+            !device.isConnected &&
+            !_connectionQueue.contains(device) &&
+            !_suppressedAutoReconnect.contains(id) &&
+            !_isDisconnectedForSession(id) &&
+            !core.settings.getIgnoredDevices().any((d) => d.id == id);
+        if (!stillWanted) return;
+        _actionStreams.add(
+          LogNotification(
+            '${device.toString()}: retrying connect (attempt ${attempt + 1})',
+          ),
+        );
+        _connectionQueue.add(device);
+        _handleConnectionQueue();
+      },
+    );
   }
 
   /// Drops [device]'s pending retry and its failure streak.
@@ -1830,7 +2083,13 @@ class Connection {
     );
     // dropped: a sibling still mid-connect has no link to report yet, but its
     // teardown must run anyway or the in-flight connect lands next to ours.
-    await disconnect(twin, forget: false, persistForget: false, keepInList: true, dropped: !twin.isConnected);
+    await disconnect(
+      twin,
+      forget: false,
+      persistForget: false,
+      keepInList: true,
+      dropped: !twin.isConnected,
+    );
     // The sibling reports idle a moment after its teardown, not during it:
     // BaseDevice.disconnect() clears `isConnected` a microtask after
     // BluetoothDevice.disconnect() returns, and a connect still in flight only
@@ -1878,7 +2137,9 @@ class Connection {
     _streamSubscriptions[device] = actionSubscription;
 
     if (device is BluetoothDevice) {
-      final connectionStateSubscription = device.device.connectionStream.listen((state) {
+      final connectionStateSubscription = device.device.connectionStream.listen((
+        state,
+      ) {
         // A disconnected event for a device that is still marked connected is
         // a genuine drop; one arriving after a deliberate disconnect (which
         // already cleared the flag) is the platform's late echo of it.
@@ -1898,7 +2159,8 @@ class Connection {
           } else {
             final connectedAt = _connectedAt.remove(id);
             if (connectedAt != null) {
-              if (DateTime.now().difference(connectedAt) >= quickDropThreshold) {
+              if (DateTime.now().difference(connectedAt) >=
+                  quickDropThreshold) {
                 // Survived long enough — a healthy connection clears the streak.
                 _quickDropCounts.remove(id);
               } else {
@@ -1931,13 +2193,24 @@ class Connection {
                 '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
             body: !state ? AppLocalizations.current.tryingToConnectAgain : null,
             notificationDetails: NotificationDetails(
-              android: AndroidNotificationDetails('Connection', 'Connection Status'),
-              iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+              android: AndroidNotificationDetails(
+                'Connection',
+                'Connection Status',
+              ),
+              iOS: DarwinNotificationDetails(
+                presentAlert: true,
+                presentSound: false,
+              ),
             ),
           );
         }
         if (!device.isConnected && !_inPlaceDisconnects.contains(device)) {
-          disconnect(device, forget: false, persistForget: false, dropped: wasConnected);
+          disconnect(
+            device,
+            forget: false,
+            persistForget: false,
+            dropped: wasConnected,
+          );
           // try reconnect
           performScanning();
         }
@@ -1961,12 +2234,17 @@ class Connection {
 
       IAPManager.instance.setAttributes();
 
-      core.actionHandler.supportedApp?.keymap.addNewButtons(device.availableButtons);
+      core.actionHandler.supportedApp?.keymap.addNewButtons(
+        device.availableButtons,
+      );
 
       // Let the battery saver re-evaluate now that a device connected.
       _inactivityDisconnector?.onDeviceConnectionChanged();
 
-      if (devices.isNotEmpty && !_androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
+      if (devices.isNotEmpty &&
+          !_androidNotificationsSetup &&
+          !kIsWeb &&
+          Platform.isAndroid) {
         _androidNotificationsSetup = true;
         // start foreground service only when app is in foreground
         NotificationRequirement.addPersistentNotification().catchError((e) {
@@ -2031,8 +2309,13 @@ class Connection {
 
       if (persistForget) {
         // Add device to ignored list when forgetting
-        await core.settings.addIgnoredDevice(device.device.deviceId, device.toString());
-        _actionStreams.add(LogNotification('Device ignored: ${device.toString()}'));
+        await core.settings.addIgnoredDevice(
+          device.device.deviceId,
+          device.toString(),
+        );
+        _actionStreams.add(
+          LogNotification('Device ignored: ${device.toString()}'),
+        );
       }
       // For an in-place disconnect (the "No connection" picker entry) keep the
       // scan result so the scanner doesn't churn a fresh duplicate while the
@@ -2040,7 +2323,9 @@ class Connection {
       // reconnectable.
       if (!forget && !keepInList) {
         // allow reconnection
-        _lastScanResult.removeWhere((d) => d.deviceId == device.device.deviceId);
+        _lastScanResult.removeWhere(
+          (d) => d.deviceId == device.device.deviceId,
+        );
       }
 
       // Clean up subscriptions and scan results for reconnection
@@ -2053,7 +2338,9 @@ class Connection {
       // the scan-result dedupe cache so the same profile can be re-added later.
       if (forget && core.emulation.isEmulated(device.device.deviceId)) {
         core.emulation.stop(device.device.deviceId);
-        _lastScanResult.removeWhere((d) => d.deviceId == device.device.deviceId);
+        _lastScanResult.removeWhere(
+          (d) => d.deviceId == device.device.deviceId,
+        );
       }
 
       // Remove device from the list — unless it is rebooting due to an
@@ -2083,7 +2370,9 @@ class Connection {
   }
 
   Future<void> disconnectAll() async {
-    _actionStreams.add(LogNotification(AppLocalizations.current.disconnectingAllDevices));
+    _actionStreams.add(
+      LogNotification(AppLocalizations.current.disconnectingAllDevices),
+    );
     // Collected rather than awaited inline: this loop is otherwise fully
     // synchronous, and awaiting per-device here would open a re-entrancy
     // window between devices during a global teardown for no benefit —
@@ -2130,7 +2419,9 @@ class Connection {
   }
 
   Future<void> stop() async {
-    final isBtEnabled = (await UniversalBle.getBluetoothAvailabilityState()) == AvailabilityState.poweredOn;
+    final isBtEnabled =
+        (await UniversalBle.getBluetoothAvailabilityState()) ==
+        AvailabilityState.poweredOn;
     if (isBtEnabled) {
       UniversalBle.stopScan();
     }
@@ -2152,7 +2443,9 @@ class Connection {
   /// Test seam: run the inactivity battery-saver disconnect directly instead of
   /// waiting out the real idle timer.
   @visibleForTesting
-  void debugTriggerInactivityTimeout([Duration timeout = const Duration(minutes: 60)]) => _onInactivityTimeout(timeout);
+  void debugTriggerInactivityTimeout([
+    Duration timeout = const Duration(minutes: 60),
+  ]) => _onInactivityTimeout(timeout);
 
   /// Called by [_inactivityDisconnector] when the idle timeout elapses.
   /// Disconnects every connected BLE controller (battery-powered; ProxyDevice
@@ -2173,9 +2466,14 @@ class Connection {
       // cooldown timer once the controller had time to fall asleep.
       _suppressedAutoReconnect.add(device.device.deviceId);
       unawaited(
-        disconnect(device, forget: true, persistForget: false).catchError((Object error, StackTrace stackTrace) {
+        disconnect(device, forget: true, persistForget: false).catchError((
+          Object error,
+          StackTrace stackTrace,
+        ) {
           _actionStreams.add(
-            LogNotification('Failed to disconnect ${device.toString()} after inactivity timeout: $error\n$stackTrace'),
+            LogNotification(
+              'Failed to disconnect ${device.toString()} after inactivity timeout: $error\n$stackTrace',
+            ),
           );
         }),
       );
@@ -2197,7 +2495,9 @@ class Connection {
     _actionStreams.add(
       AlertNotification(
         LogLevel.LOGLEVEL_WARNING,
-        AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
+        AppLocalizations.current.controllersDisconnectedInactivity(
+          timeout.inMinutes,
+        ),
         buttonTitle: AppLocalizations.current.reconnect,
         // Route reconnection through the connection queue so BLE connects are
         // serialized (Windows fails on parallel connects) and ignored-device
@@ -2216,10 +2516,15 @@ class Connection {
       core.flutterLocalNotificationsPlugin.show(
         id: 1339,
         title: AppLocalizations.current.batterySaverTitle,
-        body: AppLocalizations.current.controllersDisconnectedInactivity(timeout.inMinutes),
+        body: AppLocalizations.current.controllersDisconnectedInactivity(
+          timeout.inMinutes,
+        ),
         notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails('BatterySaver', 'Battery Saver'),
-          iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: false,
+          ),
         ),
       );
     }
