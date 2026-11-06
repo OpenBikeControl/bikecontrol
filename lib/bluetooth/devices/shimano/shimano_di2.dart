@@ -748,12 +748,13 @@ class ShimanoDi2 extends BluetoothDevice {
 
   /// Wired Di2 shifters may report presses in a shape the decoder doesn't
   /// know, which it drops without a trace, and wired 11-speed switches report
-  /// on 2AFD instead of 2AF9. Log the first raw frames on both (each distinct
-  /// frame once in a row) so a rider's log shows what arrives.
+  /// on 2AFD instead of 2AF9. Log the first raw frames on those and on 2AFB
+  /// (each distinct frame once in a row) so a rider's log shows what arrives.
   void _logFramesAfterButtonMode(ShimanoTransport t) {
     unawaited(_cancelFrameLogs());
     _logFrames(t, ShimanoDi2Config.pceResponseChar, 'ShimanoDi2 frame after button mode');
     _logFrames(t, ShimanoDi2Config.pceAuxNotify2, 'ShimanoDi2 2afd frame after button mode');
+    _logFrames(t, ShimanoDi2Config.pceAuxNotify1, 'ShimanoDi2 2afb frame after button mode');
     _logHoodAndSatelliteFrames(t);
   }
 
