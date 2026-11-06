@@ -27,6 +27,16 @@ object ShiftHapticsChannel {
                     vibrate(context.applicationContext, call.arguments as? String ?: "up")
                     result.success(null)
                 }
+                "waveform" -> {
+                    val timings = (call.argument<List<Number>>("timings") ?: emptyList()).map { it.toLong() }
+                    val amplitudes = (call.argument<List<Number>>("amplitudes") ?: emptyList()).map { it.toInt() }
+                    waveform(context.applicationContext, timings, amplitudes)
+                    result.success(null)
+                }
+                "cancel" -> {
+                    vibrator(context.applicationContext)?.cancel()
+                    result.success(null)
+                }
                 else -> result.notImplemented()
             }
         }
@@ -39,6 +49,23 @@ object ShiftHapticsChannel {
             @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
+
+    /** OpenBikeControl haptic commands: alternating off/on [timings] in ms. */
+    private fun waveform(context: Context, timings: List<Long>, amplitudes: List<Int>) {
+        val vibrator = vibrator(context) ?: return
+        if (!vibrator.hasVibrator() || timings.isEmpty()) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val effect = if (vibrator.hasAmplitudeControl() && amplitudes.size == timings.size) {
+                VibrationEffect.createWaveform(timings.toLongArray(), amplitudes.toIntArray(), -1)
+            } else {
+                VibrationEffect.createWaveform(timings.toLongArray(), -1)
+            }
+            vibrator.vibrate(effect)
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(timings.toLongArray(), -1)
+        }
+    }
 
     private fun vibrate(context: Context, cue: String) {
         val vibrator = vibrator(context) ?: return

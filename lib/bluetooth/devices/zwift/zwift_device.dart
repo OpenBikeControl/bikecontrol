@@ -6,6 +6,8 @@ import 'package:bike_control/bluetooth/devices/zwift/firmware_support.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/services/obc_haptics/obc_haptic_pattern.dart';
+import 'package:bike_control/services/obc_haptics/obc_haptics_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -17,7 +19,7 @@ import 'package:prop/prop.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-abstract class ZwiftDevice extends BluetoothDevice {
+abstract class ZwiftDevice extends BluetoothDevice implements HapticTarget {
   ZwiftDevice(super.scanResult, {required super.availableButtons, super.isBeta});
 
   BleCharacteristic? syncRxCharacteristic;
@@ -237,6 +239,20 @@ abstract class ZwiftDevice extends BluetoothDevice {
     }
     return super.performClick(buttonsClicked, trigger: trigger);
   }
+
+  /// Haptics an OpenBikeControl app asked for. The controller's buzz has a
+  /// fixed length and strength, so each pulse is one buzz.
+  @override
+  Future<void> playPulses(List<HapticPulse> pulses) async {
+    if (!canVibrate || customService == null || syncRxCharacteristic == null) return;
+    for (final pulse in pulses) {
+      await _vibrate();
+      await Future<void>.delayed(pulse.on + pulse.off);
+    }
+  }
+
+  @override
+  Future<void> stopHaptics() async {}
 
   Future<void> _vibrate() async {
     final vibrateCommand = Uint8List.fromList([...ZwiftConstants.VIBRATE_PATTERN, 0x20]);

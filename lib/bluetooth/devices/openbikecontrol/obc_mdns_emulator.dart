@@ -448,7 +448,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
     if (isKeyDown && isKeyUp) {
       final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue))).toList(),
+        mappedButtons
+            .map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue)))
+            .toList(),
       );
       _write(_server!.client!, responseDataDown);
       final responseDataUp = OpenBikeProtocolParser.encodeButtonState(
@@ -457,7 +459,11 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       _write(_server!.client!, responseDataUp);
     } else {
       final responseData = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0)).toList(),
+        mappedButtons
+            .map(
+              (b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0),
+            )
+            .toList(),
       );
       _write(_server!.client!, responseData);
     }
@@ -523,7 +529,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         }
         break;
       case OpenBikeProtocolParser.MSG_TYPE_HAPTIC_FEEDBACK:
-        // noop
+        unawaited(core.obcHaptics.handle(Uint8List.fromList(message)));
         break;
       default:
         print('Unknown message type: $messageType');

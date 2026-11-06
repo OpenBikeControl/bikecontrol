@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/services/obc_haptics/obc_haptic_pattern.dart';
+import 'package:bike_control/services/obc_haptics/obc_haptics_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
@@ -16,7 +18,7 @@ import 'package:gamepads_platform_interface/gamepads_platform_interface.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-class GamepadDevice extends BaseDevice {
+class GamepadDevice extends BaseDevice implements HapticTarget {
   final String id;
 
   GamepadDevice(super.name, {required this.id}) : super(availableButtons: [], uniqueId: id, icon: LucideIcons.gamepad2);
@@ -71,6 +73,22 @@ class GamepadDevice extends BaseDevice {
         await Future<void>.delayed(pulse + const Duration(milliseconds: 80));
         await platform.rumble(id, lowFrequency: 0.7, highFrequency: 0.7, duration: pulse);
     }
+  }
+
+  /// Haptics an OpenBikeControl app asked for.
+  @override
+  Future<void> playPulses(List<HapticPulse> pulses) async {
+    if (!_canRumble) return;
+    final platform = GamepadsPlatformInterface.instance;
+    for (final pulse in pulses) {
+      await platform.rumble(id, lowFrequency: pulse.intensity, highFrequency: pulse.intensity, duration: pulse.on);
+      await Future<void>.delayed(pulse.on + pulse.off);
+    }
+  }
+
+  @override
+  Future<void> stopHaptics() async {
+    if (_canRumble) await GamepadsPlatformInterface.instance.stopRumble(id);
   }
 
   /// Android key names of the gamepad buttons, by normalized button name.
