@@ -12,8 +12,11 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// the entry point is an icon or a toggle: "Pro Feature" alone tells them the
 /// price of something they never found out the name of.
 ///
+/// [message] replaces the generic "only with Pro" body, for when there is
+/// more to say than that (e.g. today's virtual shifting trial is used up).
+///
 /// Returns true if the user initiated a purchase, false otherwise.
-Future<bool> showGoProDialog(BuildContext context, {String? featureName}) async {
+Future<bool> showGoProDialog(BuildContext context, {String? featureName, String? message}) async {
   final iapManager = IAPManager.instance;
 
   final result = await showDialog<bool>(
@@ -28,7 +31,7 @@ Future<bool> showGoProDialog(BuildContext context, {String? featureName}) async 
             Expanded(child: Text(featureName ?? AppLocalizations.of(c).proFeature)),
           ],
         ),
-        content: Text(AppLocalizations.of(c).thisFeatureIsOnlyAvailableWithPro),
+        content: Text(message ?? AppLocalizations.of(c).thisFeatureIsOnlyAvailableWithPro),
         actions: [
           Button.secondary(
             onPressed: () => Navigator.of(c).pop(false),

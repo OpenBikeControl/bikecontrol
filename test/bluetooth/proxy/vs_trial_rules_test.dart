@@ -42,4 +42,58 @@ void main() {
       expect(vsTrialEndingSoon(remaining: Duration.zero, alreadyWarned: false), isFalse);
     });
   });
+
+  group('trainerConnectGate', () {
+    TrainerConnectGate gate({
+      RetrofitMode mode = RetrofitMode.wifi,
+      bool isPro = false,
+      bool trialExpired = false,
+      bool vsBudgetExhausted = false,
+    }) => trainerConnectGate(
+      mode: mode,
+      isPro: isPro,
+      trialExpired: trialExpired,
+      vsBudgetExhausted: vsBudgetExhausted,
+    );
+
+    test('virtual shifting runs on the daily trial once the trial period is over', () {
+      // Website build without Base, or a store build past its trial period.
+      expect(gate(mode: RetrofitMode.wifi, trialExpired: true), TrainerConnectGate.allow);
+      expect(gate(mode: RetrofitMode.bluetooth, trialExpired: true), TrainerConnectGate.allow);
+    });
+
+    test('virtual shifting within the trial period', () {
+      expect(gate(mode: RetrofitMode.wifi), TrainerConnectGate.allow);
+    });
+
+    test('virtual shifting with Base bought but no Pro', () {
+      // Base ends the trial period without being Pro: same daily trial.
+      expect(gate(mode: RetrofitMode.wifi, trialExpired: false), TrainerConnectGate.allow);
+      expect(gate(mode: RetrofitMode.wifi, vsBudgetExhausted: true), TrainerConnectGate.vsTrialOverToday);
+    });
+
+    test('virtual shifting once today\'s budget is used up', () {
+      expect(gate(mode: RetrofitMode.wifi, vsBudgetExhausted: true), TrainerConnectGate.vsTrialOverToday);
+      expect(
+        gate(mode: RetrofitMode.bluetooth, trialExpired: true, vsBudgetExhausted: true),
+        TrainerConnectGate.vsTrialOverToday,
+      );
+    });
+
+    test('Pro connects in any mode', () {
+      for (final mode in RetrofitMode.values) {
+        expect(gate(mode: mode, isPro: true, trialExpired: true, vsBudgetExhausted: true), TrainerConnectGate.allow);
+      }
+    });
+
+    test('proxy mode needs Pro once the trial period is over', () {
+      expect(gate(mode: RetrofitMode.proxy, trialExpired: true), TrainerConnectGate.goPro);
+      expect(gate(mode: RetrofitMode.proxy, trialExpired: true, vsBudgetExhausted: true), TrainerConnectGate.goPro);
+    });
+
+    test('proxy mode within the trial period ignores the virtual shifting budget', () {
+      expect(gate(mode: RetrofitMode.proxy), TrainerConnectGate.allow);
+      expect(gate(mode: RetrofitMode.proxy, vsBudgetExhausted: true), TrainerConnectGate.allow);
+    });
+  });
 }
