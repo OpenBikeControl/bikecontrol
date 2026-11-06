@@ -35,15 +35,36 @@ class GamepadDevice extends BaseDevice implements HapticTarget {
     isConnected = true;
     unawaited(_detectRumble());
 
-    Gamepads.normalizedEvents.where((pad) => pad.gamepadId == id).listen((event) {
+    await _cancelEventSubscriptions();
+    _normalizedSubscription = Gamepads.normalizedEvents.where((pad) => pad.gamepadId == id).listen((event) {
       _handleEvent(event.button?.name ?? event.axis!.name, isAxis: event.axis != null, value: event.value);
     });
 
     // Generic controllers (no gamepad mapping, e.g. DirectInput pads on Windows) send raw keys like
     // "button-3" or "axis-1" that normalization drops.
-    Gamepads.events
+    _rawSubscription = Gamepads.events
         .where((event) => event.gamepadId == id && _rawKeyPattern.hasMatch(event.key))
         .listen((event) => _handleEvent(event.key, isAxis: event.type == KeyType.analog, value: event.value));
+  }
+
+  StreamSubscription<NormalizedGamepadEvent>? _normalizedSubscription;
+  StreamSubscription<GamepadEvent>? _rawSubscription;
+
+  /// Stops this pad's input: a disconnected or forgotten pad must not keep
+  /// firing actions.
+  @override
+  Future<void> disconnect() async {
+    await _cancelEventSubscriptions();
+    await super.disconnect();
+  }
+
+  Future<void> _cancelEventSubscriptions() async {
+    final normalized = _normalizedSubscription;
+    final raw = _rawSubscription;
+    _normalizedSubscription = null;
+    _rawSubscription = null;
+    await normalized?.cancel();
+    await raw?.cancel();
   }
 
   static final _rawKeyPattern = RegExp(r'^(button-|axis-|switch\d+-)');

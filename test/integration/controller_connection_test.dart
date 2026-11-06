@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_peripherals.dart';
@@ -121,7 +122,11 @@ Future<void> main() async {
 
     test('unknown devices and ignored names are not added', () async {
       env.ble.addPeripheral(
-        FakePeripheral(deviceId: 'random', name: 'Random Gadget', advertisedServices: ['0000feed-0000-1000-8000-00805f9b34fb']),
+        FakePeripheral(
+          deviceId: 'random',
+          name: 'Random Gadget',
+          advertisedServices: ['0000feed-0000-1000-8000-00805f9b34fb'],
+        ),
       );
       // Power meters with ignored name prefixes are skipped even with a
       // Zwift-style service in the advertisement.
@@ -178,6 +183,54 @@ Future<void> main() async {
       await core.settings.removeIgnoredDevice('a');
 
       expect(core.connection.ignoredDevicesNearby.value, {'b'});
+    });
+  });
+
+  group('gamepads', () {
+    // A USB/GameInput pad is re-listed by the gamepad poll every few seconds
+    // and on every app start, under the same id.
+    GamepadDevice pad() => GamepadDevice('MOZA Windows Driver', id: 'pad-moza');
+
+    test('Disconnect & Forget keeps a gamepad away after a restart', () async {
+      final device = pad();
+      core.connection.addDevices([device]);
+      expect(core.connection.devices, contains(device));
+
+      await core.connection.disconnect(device, persistForget: true, forget: true);
+      expect(core.connection.devices, isEmpty);
+      expect(core.settings.getIgnoredDevices().map((d) => d.id), contains('pad-moza'));
+
+      // The next poll (or the next app start) lists the same pad again.
+      core.connection.addDevices([pad()]);
+      expect(core.connection.devices, isEmpty);
+      expect(core.connection.ignoredDevicesNearby.value, contains('pad-moza'));
+    });
+
+    test('an un-ignored gamepad comes back on the next poll', () async {
+      await core.settings.addIgnoredDevice('pad-moza', 'MOZA Windows Driver');
+      core.connection.addDevices([pad()]);
+      expect(core.connection.devices, isEmpty);
+
+      await core.settings.removeIgnoredDevice('pad-moza');
+      core.connection.addDevices([pad()]);
+      expect(core.connection.devices.whereType<GamepadDevice>().map((d) => d.id), ['pad-moza']);
+    });
+
+    test('a gamepad disconnected for this session stays away until reconnected', () async {
+      final device = pad();
+      core.connection.addDevices([device]);
+
+      await core.connection.disconnectForSession(device);
+      expect(core.connection.devices, isEmpty);
+      expect(core.connection.disconnectedForSession.value.keys, ['pad-moza']);
+      expect(core.settings.getIgnoredDevices(), isEmpty);
+
+      core.connection.addDevices([pad()]);
+      expect(core.connection.devices, isEmpty);
+
+      await core.connection.reconnectForSession('pad-moza');
+      core.connection.addDevices([pad()]);
+      expect(core.connection.devices.whereType<GamepadDevice>().map((d) => d.id), ['pad-moza']);
     });
   });
 
