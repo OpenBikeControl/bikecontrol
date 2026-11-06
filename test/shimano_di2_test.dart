@@ -216,6 +216,35 @@ Future<void> main() async {
       expect(frames, hasLength(50));
     });
 
+    // Some Di2 RDs relay nothing on 2AF9 or 2AFD in button mode; 2AFB is the
+    // last characteristic the sequence subscribes to.
+    test('the log shows the 2AFB frames the Di2 sends once button mode is active', () async {
+      final aux1 = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR9250', deviceId: 'di2-aux1-frames'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, aux1: aux1));
+      aux1.add(Uint8List.fromList([0x33, 0x41, 0x18, 0x00]));
+      aux1.add(Uint8List.fromList([0x33, 0x41, 0x18, 0x00]));
+      aux1.add(Uint8List.fromList([0x33, 0x41, 0x18, 0x01]));
+      for (var i = 0; i < 60; i++) {
+        aux1.add(Uint8List.fromList([0x40, i]));
+      }
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+      await aux1.close();
+
+      final frames = logs.where((l) => l.startsWith('ShimanoDi2 2afb frame after button mode: ')).toList();
+      expect(frames.take(2), [
+        'ShimanoDi2 2afb frame after button mode: 33411800',
+        'ShimanoDi2 2afb frame after button mode: 33411801',
+      ]);
+      expect(frames, hasLength(50));
+    });
+
     // The hood and satellite byte positions are not confirmed on hardware yet:
     // every hood or satellite press is logged raw, even after the general frame
     // log has stopped.
@@ -1019,7 +1048,7 @@ class _RecordingShimanoTransport extends ShimanoBleTransport {
 }
 
 class _FakeShimanoTransport implements ShimanoTransport {
-  _FakeShimanoTransport({required this.fail, this.failSubscribe = false, this.replies = const [], this.live, this.aux});
+  _FakeShimanoTransport({required this.fail, this.failSubscribe = false, this.replies = const [], this.live, this.aux, this.aux1});
   final bool fail;
   final bool failSubscribe;
 
@@ -1028,6 +1057,9 @@ class _FakeShimanoTransport implements ShimanoTransport {
 
   /// Frames the Di2 sends on 2AFD, pushed by the test.
   final StreamController<Uint8List>? aux;
+
+  /// Frames the Di2 sends on 2AFB, pushed by the test.
+  final StreamController<Uint8List>? aux1;
 
   /// Frames the Di2 sends on 2AF9 while the sequence runs.
   final List<Uint8List> replies;
@@ -1053,6 +1085,7 @@ class _FakeShimanoTransport implements ShimanoTransport {
   Stream<Uint8List> notifications(String characteristic) => switch (characteristic.toLowerCase()) {
         ShimanoDi2Config.pceResponseChar => live?.stream ?? Stream.fromIterable(replies),
         ShimanoDi2Config.pceAuxNotify2 => aux?.stream ?? const Stream.empty(),
+        ShimanoDi2Config.pceAuxNotify1 => aux1?.stream ?? const Stream.empty(),
         _ => const Stream.empty(),
       };
 }
