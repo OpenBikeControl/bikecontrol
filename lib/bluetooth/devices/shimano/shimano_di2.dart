@@ -354,6 +354,7 @@ class ShimanoDi2 extends BluetoothDevice {
       session = await ShimanoConfig.enterButtonMode(
         counted,
         onPaddle: onPaddle,
+        onWiredSwitch: onWiredSwitch,
         onUnknownFrame: onUnknownFrame,
         onStepError: (step, e, st) {
           actionStreamInternal.add(LogNotification('ShimanoDi2 button mode step $step failed: $e'));
@@ -378,8 +379,11 @@ class ShimanoDi2 extends BluetoothDevice {
     if (!_readingSwitches) registerPaddleButtons();
   }
 
+  /// The paddles of wireless shifters. Not for wired levers, whose switches
+  /// are added as they're pressed (see [onWiredSwitch]).
   @visibleForTesting
   void registerPaddleButtons() {
+    if (_hasWiredSwitches) return;
     for (final button in ShimanoDi2Buttons.paddles) {
       getOrAddButton(button.name, () => button.copyWith(sourceDeviceId: device.deviceId));
     }
@@ -518,6 +522,9 @@ class ShimanoDi2 extends BluetoothDevice {
       core.connection.signalChange(this);
     } on ShimanoSetupCancelled {
       rethrow;
+    } on ShimanoWiredShiftersException {
+      actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup stopped: wired shifters'));
+      rethrow;
     } catch (e, st) {
       actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup failed: $e'));
       await recordError(e, st, context: 'ShimanoDi2: channel setup');
@@ -600,6 +607,14 @@ class ShimanoDi2 extends BluetoothDevice {
         });
       }
     });
+    // Wired levers report their presses on 2AFD and never send the press the
+    // switches are read from: waiting for it would only time out.
+    final wired = Completer<void>();
+    final wiredSub = t.notifications(ShimanoDi2Config.pceAuxNotify2).listen((frame) {
+      if (ShimanoWiredSwitchEvent.decode(frame) == null) return;
+      if (shifterAsk.value == null || shifterAsk.value!.saving) return;
+      if (!wired.isCompleted) wired.completeError(const ShimanoWiredShiftersException());
+    });
     _readingSwitches = true;
     // Until the passkey is accepted the Di2 is still in normal operation:
     // nothing to end by dropping the link, and a retry can use it.
@@ -620,7 +635,7 @@ class ShimanoDi2 extends BluetoothDevice {
       await core.settings.setShimanoPasskey(_serialKey, passkey);
       final cancel = _shifterWaitCancel = Completer<void>();
       shifterAsk.value = ShimanoShifterAsk(const {}, single: slots.length == 1);
-      await Future.any([allSeen.future.timeout(const Duration(minutes: 2)), cancel.future]);
+      await Future.any([allSeen.future.timeout(const Duration(minutes: 2)), cancel.future, wired.future]);
       final writes = [...await plan(seen.values.toList())]..sort((a, b) => a.slot.compareTo(b.slot));
       if (writes.isNotEmpty) {
         // Only shifters that answered: a Di2 with one shifter never reports
@@ -666,6 +681,9 @@ class ShimanoDi2 extends BluetoothDevice {
       shifterAsk.value = null;
       _readingSwitches = false;
       await sub.cancel();
+      await wiredSub.cancel();
+      // Nobody awaits it once the wait is over.
+      if (!wired.isCompleted) wired.complete();
       await _buttonSession?.close();
       _buttonSession = null;
       await _cancelFrameLogs();
@@ -732,7 +750,29 @@ class ShimanoDi2 extends BluetoothDevice {
       core.connection.signalChange(this);
     }
     if (button == null) return;
-    switch (event.state) {
+    _press(button, event.state);
+  }
+
+  bool get _hasWiredSwitches => availableButtons.any(ShimanoDi2Buttons.isWired);
+
+  /// A switch of a wired lever. Which lever and paddle it is isn't known, so
+  /// each input and switch number is its own button, added on its first
+  /// press. Such a Di2 never sends wireless paddle presses: their buttons go.
+  @visibleForTesting
+  void onWiredSwitch(ShimanoWiredSwitchEvent event) {
+    if (_readingSwitches) return;
+    final template = ShimanoDi2Buttons.wired(event.input, event.switchNo);
+    var button = availableButtons.firstOrNullWhere((b) => b.name == template.name);
+    if (button == null) {
+      availableButtons.removeWhere((b) => ShimanoDi2Buttons.paddles.any((p) => p.name == b.name));
+      button = getOrAddButton(template.name, () => template.copyWith(sourceDeviceId: device.deviceId));
+      core.connection.signalChange(this);
+    }
+    _press(button, event.state);
+  }
+
+  void _press(ControllerButton button, ShimanoPaddleState state) {
+    switch (state) {
       case ShimanoPaddleState.down:
         if (!_pressed.add(button)) return;
       case ShimanoPaddleState.released:
@@ -892,6 +932,10 @@ class ShimanoDi2 extends BluetoothDevice {
       isUnresponsive: _isUnresponsive,
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
+      isWiredShifters: (e) => e is ShimanoWiredShiftersException,
+      onUseButtonMode: () {
+        if (context.mounted) unawaited(_showButtonModeSetup(context, afterChooser: afterChooser));
+      },
       shifters: shifterAsk,
       onCancelShifters: cancelShifterWait,
       afterChooser: afterChooser,
@@ -921,7 +965,7 @@ class ShimanoDi2 extends BluetoothDevice {
 
   @override
   ControllerLayout? get controllerLayout =>
-      hasConfigService && isButtonModeEnabled ? ShimanoDi2Buttons.layout : null;
+      hasConfigService && isButtonModeEnabled && !_hasWiredSwitches ? ShimanoDi2Buttons.layout : null;
 
   @override
   List<Widget> showAdditionalInformation(BuildContext context) {
@@ -981,6 +1025,15 @@ class ShimanoDi2Buttons {
     4: rightLever.action,
   };
   static const extras = [leftHood, leftSatellite, rightHood, rightSatellite];
+
+  static const _wiredPrefix = 'Di2 Switch ';
+
+  /// A switch of a wired lever, by switch input and switch number. No default
+  /// action: which lever and paddle it is isn't known.
+  static ControllerButton wired(int input, int switchNo) =>
+      ControllerButton('$_wiredPrefix$input.$switchNo', label: '$input.$switchNo');
+
+  static bool isWired(ControllerButton button) => button.name.startsWith(_wiredPrefix);
   static const values = [...paddles, ...extras];
 
   static ControllerButton of(ShimanoPaddleEvent e) => switch ((e.shifter, e.paddle)) {
@@ -1056,6 +1109,15 @@ class ShimanoDi2PairingRequiredException implements Exception {
 
   @override
   String toString() => 'ShimanoDi2PairingRequiredException: ${cause ?? 'Di2 is not paired with Windows'}';
+}
+
+/// The shifters are wired: they report presses, but not the switch setting
+/// E-TUBE channel setup reads and writes. Button mode works with them.
+class ShimanoWiredShiftersException implements Exception {
+  const ShimanoWiredShiftersException();
+
+  @override
+  String toString() => 'ShimanoWiredShiftersException: wired shifters';
 }
 
 class ShimanoDi2Constants {

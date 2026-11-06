@@ -270,6 +270,8 @@ Future<void> showShimanoSetup(
   required bool Function(Object error) isUnresponsive,
   required bool Function(Object error) isPasskeyRejected,
   required bool Function(Object error) isPairingRequired,
+  bool Function(Object error)? isWiredShifters,
+  VoidCallback? onUseButtonMode,
   ValueListenable<ShimanoShifterAsk?>? shifters,
   VoidCallback? onCancelShifters,
   bool afterChooser = false,
@@ -292,6 +294,8 @@ Future<void> showShimanoSetup(
       isUnresponsive: isUnresponsive,
       isPasskeyRejected: isPasskeyRejected,
       isPairingRequired: isPairingRequired,
+      isWiredShifters: isWiredShifters,
+      onUseButtonMode: onUseButtonMode,
       shifters: shifters,
       onCancelShifters: onCancelShifters,
       afterChooser: afterChooser,
@@ -593,7 +597,7 @@ class _ShifterPill extends StatelessWidget {
 /// the "wake the Di2 / press a shifter button" prompt shown on failure, and
 /// [passkey] asks again after the Di2 rejected the passkey. [pair] (Windows)
 /// asks the rider to pair the Di2 in Windows Settings.
-enum ShimanoSetupStage { confirm, running, authorize, passkey, pair, success, error }
+enum ShimanoSetupStage { confirm, running, authorize, passkey, pair, wired, success, error }
 
 // ── Di2 setup/restore palette ───────────────────────────────────────────────
 const Color shimanoSuccess = Color(0xFF22C55E);
@@ -631,6 +635,14 @@ class ShimanoGuidedSheet extends StatefulWidget {
   /// (→ pair it in Windows Settings, then retry).
   final bool Function(Object error) isPairingRequired;
 
+  /// Whether a thrown error means the shifters are wired, which the
+  /// operation can't handle (→ offer [onUseButtonMode]).
+  final bool Function(Object error)? isWiredShifters;
+
+  /// Set up button mode instead (offered for wired shifters); the sheet
+  /// closes first.
+  final VoidCallback? onUseButtonMode;
+
   /// Keep the D-Fly channel buttons instead (offered where pairing failed);
   /// the sheet closes afterwards. Null hides the option.
   final VoidCallback? onUseDfly;
@@ -658,6 +670,8 @@ class ShimanoGuidedSheet extends StatefulWidget {
     required this.isUnresponsive,
     required this.isPasskeyRejected,
     required this.isPairingRequired,
+    this.isWiredShifters,
+    this.onUseButtonMode,
     this.onUseDfly,
     this.shifters,
     this.onCancelShifters,
@@ -693,6 +707,8 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
             ? ShimanoSetupStage.passkey
             : widget.isPairingRequired(e)
             ? ShimanoSetupStage.pair
+            : widget.isWiredShifters?.call(e) ?? false
+            ? ShimanoSetupStage.wired
             : widget.isUnresponsive(e)
                 ? ShimanoSetupStage.authorize
                 : ShimanoSetupStage.error;
@@ -721,6 +737,12 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
                 closeSheet(context);
               },
         afterChooser: widget.afterChooser,
+        onUseButtonMode: widget.onUseButtonMode == null
+            ? null
+            : () {
+                closeSheet(context);
+                widget.onUseButtonMode!();
+              },
         onUseDfly: widget.onUseDfly == null
             ? null
             : () {
@@ -757,6 +779,7 @@ Widget shimanoGuidedBody(
   required VoidCallback onClose,
   required VoidCallback onProceed,
   VoidCallback? onUseDfly,
+  VoidCallback? onUseButtonMode,
   ShimanoShifterAsk? shifterAsk,
   VoidCallback? onCancelShifters,
   bool afterChooser = false,
@@ -908,6 +931,24 @@ Widget shimanoGuidedBody(
           onPressed: onProceed,
           child: Text(l.retry),
         ),
+      ];
+    case ShimanoSetupStage.wired:
+      icon = LucideIcons.cable;
+      tone = _shimanoWarning;
+      wash = dark ? const Color(0x1AF59E0B) : _shimanoWarningWash;
+      heading = l.shimanoWiredTitle;
+      body = l.shimanoWiredBody;
+      stepIndex = null;
+      extra = null;
+      // Trying again can't work: the way on is button mode.
+      actions = [
+        GhostButton(onPressed: onClose, child: Text(l.cancel)),
+        if (onUseButtonMode != null)
+          PrimaryButton(
+            leading: const Icon(LucideIcons.gamepad2, size: 16),
+            onPressed: onUseButtonMode,
+            child: Text(l.shimanoUseButtonMode),
+          ),
       ];
     case ShimanoSetupStage.success:
       icon = LucideIcons.circleCheck;
