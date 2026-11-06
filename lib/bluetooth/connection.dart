@@ -16,6 +16,7 @@ import 'package:bike_control/bluetooth/inactivity_disconnector.dart';
 import 'package:bike_control/bluetooth/incline/incline_controller.dart';
 import 'package:bike_control/bluetooth/incline/incline_sink.dart';
 import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
+import 'package:bike_control/bluetooth/scan_identity.dart';
 import 'package:bike_control/bluetooth/support_log_buffer.dart';
 import 'package:bike_control/bluetooth/wifi_trainer_scanner.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -1169,7 +1170,10 @@ class Connection {
         _rssiConnectionStreams.add(existingDevice); // Notify UI of update
       }
 
-      if (_lastScanResult.none((e) => e.deviceId == result.deviceId && e.services.contentEquals(result.services))) {
+      if (scanResultAddsIdentity(_lastScanResult, result)) {
+        _lastScanResult.removeWhere(
+          (device) => device.deviceId == result.deviceId && device.services.contentEquals(result.services),
+        );
         _lastScanResult.add(result);
 
         // A left puck coming into range is what brings the right one's LEDs
@@ -1346,7 +1350,15 @@ class Connection {
     await UniversalBle.startScan(
       // allow all to enable Wahoo Kickr Bike Shift detection
       //scanFilter: kIsWeb ? ScanFilter(withServices: BluetoothDevice.servicesToScan) : null,
-      platformConfig: PlatformConfig(web: WebOptions(optionalServices: BluetoothDevice.servicesToScan)),
+      platformConfig: PlatformConfig(
+        web: WebOptions(optionalServices: BluetoothDevice.servicesToScan),
+        android: AndroidOptions(
+          scanMode: AndroidScanMode.lowLatency,
+          // false accepts both legacy and extended advertisements,
+          // keeping other devices discoverable.
+          legacy: false,
+        ),
+      ),
     );
 
     if (kIsWeb) {

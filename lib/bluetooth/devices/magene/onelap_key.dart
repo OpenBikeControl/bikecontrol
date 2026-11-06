@@ -113,41 +113,44 @@ class OnelapKeyConstants {
   }
 }
 
+/// Faces match the molded cross, not the default actions. Up is a circle,
+/// left a triangle, right a square, down a dot pad, and the hub reads ONELAP.
+/// The action badge still shows the mapping.
 class OnelapKeyButtons {
   static const center = ControllerButton(
     'onelapCenter',
     identifier: 1,
     action: InGameAction.select,
     color: Colors.black,
-    icon: LucideIcons.circle,
+    label: 'ONELAP',
   );
   static const left = ControllerButton(
     'onelapLeft',
     identifier: 2,
     action: InGameAction.navigateLeft,
     color: Colors.black,
-    icon: LucideIcons.chevronLeft,
+    icon: LucideIcons.triangle,
   );
   static const up = ControllerButton(
     'onelapUp',
     identifier: 3,
     action: InGameAction.shiftUp,
     color: Colors.black,
-    icon: LucideIcons.plus,
+    icon: LucideIcons.circle,
   );
   static const right = ControllerButton(
     'onelapRight',
     identifier: 4,
     action: InGameAction.navigateRight,
     color: Colors.black,
-    icon: LucideIcons.chevronRight,
+    icon: LucideIcons.square,
   );
   static const down = ControllerButton(
     'onelapDown',
     identifier: 5,
     action: InGameAction.shiftDown,
     color: Colors.black,
-    icon: LucideIcons.minus,
+    icon: LucideIcons.grip,
   );
 
   static const values = [center, left, up, right, down];
