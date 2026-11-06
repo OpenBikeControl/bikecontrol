@@ -403,6 +403,15 @@ class ProxyDevice extends BluetoothDevice {
     exhausted: core.bridgeUsageTracker.isExhausted,
   );
 
+  /// [trainerConnectGate] for connecting this trainer in [mode], with the
+  /// live entitlement and today's virtual shifting budget.
+  static TrainerConnectGate trainerConnectGateFor(RetrofitMode mode) => trainerConnectGate(
+    mode: mode,
+    isPro: IAPManager.instance.isProEnabledForCurrentDevice,
+    trialExpired: IAPManager.instance.isTrialExpired,
+    vsBudgetExhausted: core.bridgeUsageTracker.isExhausted,
+  );
+
   /// A couple of minutes before the daily budget runs out, while it is
   /// counting down: say so once, so the end is not a surprise mid-ride.
   void _checkTrialHeadsUp() {
@@ -1382,11 +1391,14 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   Future<void> startProxy() async {
-    if (IAPManager.instance.isTrialExpired) {
-      // 5-day trial over, user hasn't purchased — silently refuse the connect.
-      // The UI Connect buttons surface a Go Pro dialog before ever reaching
-      // here; this branch exists as a defensive funnel for the auto-connect
-      // path. Clear auto-connect so the scanner doesn't keep re-firing.
+    if (trainerConnectGateFor(_retrofitModeN.value) == TrainerConnectGate.goPro) {
+      // Proxy mode after the trial period without Pro — silently refuse the
+      // connect. The UI Connect buttons surface a Go Pro dialog before ever
+      // reaching here; this branch exists as a defensive funnel for the
+      // auto-connect path. Clear auto-connect so the scanner doesn't keep
+      // re-firing. Virtual shifting passes: it runs on the daily trial, and
+      // an already used-up budget is handled once connected
+      // ([_syncBridgeTracking]).
       await core.settings.setAutoConnect(trainerKey, false);
       return;
     }

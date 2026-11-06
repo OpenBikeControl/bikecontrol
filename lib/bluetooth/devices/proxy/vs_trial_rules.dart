@@ -29,3 +29,34 @@ bool vsTrialEndingSoon({required Duration remaining, required bool alreadyWarned
   if (alreadyWarned) return false;
   return remaining > Duration.zero && remaining <= vsTrialHeadsUp;
 }
+
+/// What happens when a rider connects a trainer in a given mode.
+enum TrainerConnectGate {
+  /// Go ahead and connect.
+  allow,
+
+  /// Locked: offer Pro.
+  goPro,
+
+  /// Today's virtual shifting trial is used up: say so, and offer Pro.
+  vsTrialOverToday,
+}
+
+/// Whether a rider may connect a trainer in [mode].
+///
+/// Virtual shifting ([RetrofitMode.wifi] / [RetrofitMode.bluetooth]) runs on
+/// the daily trial for everyone without Pro — within the trial period, after
+/// it, and with Base — until [vsBudgetExhausted]. Proxy mode needs Pro once
+/// the trial period is over ([trialExpired]).
+TrainerConnectGate trainerConnectGate({
+  required RetrofitMode mode,
+  required bool isPro,
+  required bool trialExpired,
+  required bool vsBudgetExhausted,
+}) {
+  if (isPro) return TrainerConnectGate.allow;
+  if (mode == RetrofitMode.proxy) {
+    return trialExpired ? TrainerConnectGate.goPro : TrainerConnectGate.allow;
+  }
+  return vsBudgetExhausted ? TrainerConnectGate.vsTrialOverToday : TrainerConnectGate.allow;
+}

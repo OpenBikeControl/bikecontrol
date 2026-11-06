@@ -328,12 +328,19 @@ class IAPManager {
     return 0;
   }
 
+  bool? _trialExpiredForTesting;
+
+  /// Test-only: force [isTrialExpired] (null restores the real one).
+  @visibleForTesting
+  set trialExpiredForTesting(bool? expired) => _trialExpiredForTesting = expired;
+
   /// Check if the trial has expired.
   bool get isTrialExpired {
     // Before IAP is initialized there is no trial to have expired yet, and the
     // pro/subscription checks below reach into Supabase which isn't wired up
     // until startup completes. Mirror isProEnabledForCurrentDevice's guard.
     if (!_isInitialized) return false;
+    if (_trialExpiredForTesting case final expired?) return expired;
     if (isProEnabled) {
       return false;
     }

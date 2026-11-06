@@ -5,14 +5,12 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart'
     show SupportedApp, TrainerConnectionType, VsSameDeviceBlock, vsSameDeviceBlock;
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
-import 'package:bike_control/utils/trainer_connect.dart' show trainerConnectErrorMessage;
-import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/utils/trainer_connect.dart' show passTrainerConnectGate, trainerConnectErrorMessage;
 import 'package:bike_control/widgets/status_icon.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/widgets/ui/connection_method.dart' show openPermissionSheet;
@@ -169,12 +167,10 @@ class _ConnectionCardState extends State<ConnectionCard> {
       return;
     }
 
-    if (IAPManager.instance.isTrialExpired) {
-      await showGoProDialog(context);
-      return;
-    }
-
     final RetrofitMode next = selection == _ConnectSelection.proxy ? RetrofitMode.proxy : _initialVsTransport;
+    // Virtual shifting runs on the daily trial without Pro; proxy mode needs
+    // Pro once the trial period is over.
+    if (!await passTrainerConnectGate(context, next)) return;
     if (next == RetrofitMode.bluetooth) {
       final ok = await _ensureBluetoothAdvertisePermissions();
       if (!ok) return;
