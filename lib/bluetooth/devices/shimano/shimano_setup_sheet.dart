@@ -457,28 +457,35 @@ class ShimanoSetupCancelled implements Exception {
 /// BikeControl reads its setting, then, while [saving], another press on each
 /// so the Di2 saves the new one. [done] are the shifters already through,
 /// [next] the one whose press saves its setting now (the Di2 saves one
-/// shifter at a time).
+/// shifter at a time). [single]: only one shifter takes part (a Di2 with one
+/// shifter, or one restored alone); its side is not reliable then, as a lone
+/// right shifter can report as the left one.
 class ShimanoShifterAsk {
   final Set<ShimanoShifter> done;
   final bool saving;
   final ShimanoShifter? next;
-  const ShimanoShifterAsk(this.done, {this.saving = false, this.next});
+  final bool single;
+  const ShimanoShifterAsk(this.done, {this.saving = false, this.next, this.single = false});
 
   @override
   bool operator ==(Object other) =>
-      other is ShimanoShifterAsk && other.saving == saving && other.next == next && setEquals(other.done, done);
+      other is ShimanoShifterAsk &&
+      other.saving == saving &&
+      other.next == next &&
+      other.single == single &&
+      setEquals(other.done, done);
 
   @override
-  int get hashCode => Object.hash(saving, next, Object.hashAllUnordered(done));
+  int get hashCode => Object.hash(saving, next, single, Object.hashAllUnordered(done));
 
   @override
   String toString() =>
       'ShimanoShifterAsk(${done.map((s) => s.name).join(', ')}${saving ? ', saving' : ''}'
-      '${next != null ? ', next ${next!.name}' : ''})';
+      '${next != null ? ', next ${next!.name}' : ''}${single ? ', single' : ''})';
 }
 
 /// The two shifters the running stage asks the rider to press, ticked off as
-/// their presses arrive.
+/// their presses arrive; one, with no side named, when [single].
 class ShimanoShifterPrompt extends StatelessWidget {
   final Set<ShimanoShifter> seen;
 
@@ -486,11 +493,19 @@ class ShimanoShifterPrompt extends StatelessWidget {
   /// still on the way); the others wait their turn.
   final bool saving;
   final ShimanoShifter? next;
-  const ShimanoShifterPrompt({super.key, required this.seen, this.saving = false, this.next});
+  final bool single;
+  const ShimanoShifterPrompt({super.key, required this.seen, this.saving = false, this.next, this.single = false});
 
   @override
   Widget build(BuildContext context) {
     final l = context.i18n;
+    if (single) {
+      return _ShifterPill(
+        label: l.shimanoShifterSingle,
+        done: seen.isNotEmpty,
+        waiting: saving && next == null && seen.isEmpty,
+      );
+    }
     return Row(
       children: [
         for (final (i, (shifter, label)) in [
@@ -785,10 +800,41 @@ Widget shimanoGuidedBody(
       icon = LucideIcons.hand;
       tone = _shimanoBlue;
       wash = dark ? const Color(0x1A2563EB) : _shimanoBlueWash;
-      heading = shifterAsk.saving ? l.shimanoSaveShiftersTitle : l.shimanoPressShiftersTitle;
-      body = shifterAsk.saving ? l.shimanoSaveShiftersBody : l.shimanoPressShiftersBody;
+      final single = shifterAsk.single;
+      heading = switch ((shifterAsk.saving, single)) {
+        (true, true) => l.shimanoSaveShifterTitle,
+        (true, false) => l.shimanoSaveShiftersTitle,
+        (false, true) => l.shimanoPressShifterTitle,
+        (false, false) => l.shimanoPressShiftersTitle,
+      };
+      body = switch ((shifterAsk.saving, single)) {
+        (true, true) => l.shimanoSaveShifterBody,
+        (true, false) => l.shimanoSaveShiftersBody,
+        (false, true) => l.shimanoPressShifterBody,
+        (false, false) => l.shimanoPressShiftersBody,
+      };
       stepIndex = 2;
-      extra = ShimanoShifterPrompt(seen: shifterAsk.done, saving: shifterAsk.saving, next: shifterAsk.next);
+      final prompt = ShimanoShifterPrompt(
+        seen: shifterAsk.done,
+        saving: shifterAsk.saving,
+        next: shifterAsk.next,
+        single: single,
+      );
+      // With one shifter in, the setup still waits for the other: a Di2 with
+      // only that one goes on after a pause the rider should know about.
+      extra = !shifterAsk.saving && !single && shifterAsk.done.length == 1
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                prompt,
+                const Gap(10),
+                Text(
+                  l.shimanoOneShifterHint,
+                  style: context.typography.small.copyWith(color: scheme.mutedForeground),
+                ),
+              ],
+            )
+          : prompt;
       actions = [if (onCancelShifters != null) GhostButton(onPressed: onCancelShifters, child: Text(l.cancel))];
     case ShimanoSetupStage.running:
       icon = LucideIcons.radio;

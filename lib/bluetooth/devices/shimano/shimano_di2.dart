@@ -588,14 +588,14 @@ class ShimanoDi2 extends BluetoothDevice {
       if (switches == null || !slots.contains(switches.slot)) return;
       if (shifterAsk.value == null || shifterAsk.value!.saving) return;
       seen[switches.slot] = switches;
-      shifterAsk.value = ShimanoShifterAsk({for (final slot in seen.keys) _shifterIn(slot)});
+      shifterAsk.value = ShimanoShifterAsk({for (final slot in seen.keys) _shifterIn(slot)}, single: slots.length == 1);
       if (seen.length == slots.length) {
         if (!allSeen.isCompleted) allSeen.complete();
       } else {
         // A Di2 with a single shifter (e.g. a TT setup) never reports the
         // other: go on with the one seen once the rider stopped pressing.
         oneShifterGrace?.cancel();
-        oneShifterGrace = Timer(const Duration(seconds: 15), () {
+        oneShifterGrace = Timer(debugOneShifterGrace ?? const Duration(seconds: 15), () {
           if (!allSeen.isCompleted) allSeen.complete();
         });
       }
@@ -619,15 +619,18 @@ class ShimanoDi2 extends BluetoothDevice {
       configMode = true;
       await core.settings.setShimanoPasskey(_serialKey, passkey);
       final cancel = _shifterWaitCancel = Completer<void>();
-      shifterAsk.value = const ShimanoShifterAsk({});
+      shifterAsk.value = ShimanoShifterAsk(const {}, single: slots.length == 1);
       await Future.any([allSeen.future.timeout(const Duration(minutes: 2)), cancel.future]);
       final writes = [...await plan(seen.values.toList())]..sort((a, b) => a.slot.compareTo(b.slot));
       if (writes.isNotEmpty) {
-        final saved = {for (final slot in {...slots, ...seen.keys}) _shifterIn(slot)}
-          ..removeAll(writes.map((w) => _shifterIn(w.slot)));
+        // Only shifters that answered: a Di2 with one shifter never reports
+        // the other, which must not show as saved.
+        final saved = {for (final slot in seen.keys) _shifterIn(slot)}..removeAll(writes.map((w) => _shifterIn(w.slot)));
+        final single = seen.length == 1;
         for (final switches in writes) {
           final shifter = _shifterIn(switches.slot);
-          void ask({ShimanoShifter? next}) => shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, next: next);
+          void ask({ShimanoShifter? next}) =>
+              shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, next: next, single: single);
           Timer? ready;
           ask();
           try {
@@ -655,7 +658,7 @@ class ShimanoDi2 extends BluetoothDevice {
           actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
           saved.add(shifter);
         }
-        shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true);
+        shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, single: single);
       }
     } finally {
       oneShifterGrace?.cancel();
@@ -690,6 +693,10 @@ class ShimanoDi2 extends BluetoothDevice {
   }
 
   static ShimanoShifter _shifterIn(int slot) => slot == 0 ? ShimanoShifter.left : ShimanoShifter.right;
+
+  /// Shortens how long the setup waits for a second shifter in tests.
+  @visibleForTesting
+  static Duration? debugOneShifterGrace;
 
   /// Shortens the time the save step waits before it asks for the press.
   @visibleForTesting
