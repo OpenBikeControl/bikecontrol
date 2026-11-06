@@ -17,7 +17,7 @@ void main() {
 
   /// Opens the guided sheet the way the app does (as a bottom sheet), runs it
   /// into [error] and leaves it on the resulting stage.
-  Future<void> runWith(WidgetTester tester, Object error, {VoidCallback? onUseDfly}) async {
+  Future<void> runWith(WidgetTester tester, Object error, {VoidCallback? onUseDfly, VoidCallback? onUseButtonMode}) async {
     await tester.pumpWidget(
       app(
         Builder(
@@ -38,7 +38,9 @@ void main() {
                 isUnresponsive: (e) => e is TimeoutException,
                 isPasskeyRejected: (e) => e is ArgumentError,
                 isPairingRequired: (e) => e is UnsupportedError,
+                isWiredShifters: (e) => e is FormatException,
                 onUseDfly: onUseDfly,
+                onUseButtonMode: onUseButtonMode,
               ),
             ),
             child: const Text('open'),
@@ -84,6 +86,21 @@ void main() {
     await runWith(tester, TimeoutException('asleep'));
     expect(find.text(AppLocalizations.current.shimanoAuthorizeTitle), findsOneWidget);
     expect(find.text(AppLocalizations.current.shimanoPairTitle), findsNothing);
+  });
+
+  testWidgets('wired shifters → E-TUBE channels do not work with them, button mode does', (tester) async {
+    var usedButtonMode = false;
+    await runWith(tester, const FormatException('wired'), onUseButtonMode: () => usedButtonMode = true);
+    expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoWiredBody), findsOneWidget);
+    expect(find.text(AppLocalizations.current.retry), findsNothing, reason: 'trying again cannot work');
+
+    await tester.tap(find.text(AppLocalizations.current.shimanoUseButtonMode));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(usedButtonMode, isTrue);
+    expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsNothing, reason: 'the sheet closes');
   });
 
   testWidgets('any other failure → generic error', (tester) async {

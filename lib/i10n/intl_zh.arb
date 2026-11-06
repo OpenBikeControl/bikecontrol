@@ -1897,6 +1897,9 @@
   "shimanoPairBody": "Di2 按键需要你的 Di2 已与 Windows 配对，但 Windows 未能配对它。打开 Windows 设置 → 蓝牙和设备 → 添加设备 → 蓝牙，然后选择你的 Di2（按下手变按键以唤醒它）。如果已经列出，请移除后重新添加。然后点按重试。",
   "shimanoUseDfly": "改用 D-Fly 通道",
   "@shimanoUseDfly": {
+  "shimanoWiredTitle": "你的变速手柄是有线的",
+  "shimanoWiredBody": "目前还无法为有线变速手柄设置 E-TUBE 通道。按键模式可以使用：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
+  "shimanoUseButtonMode": "改用按键模式",
     "description": "Di2 setup sheet and device panel: skip button mode and keep using the buttons the rider set to D-Fly channels in E-TUBE, which work without pairing."
   },
   "shimanoDflyActive": "你的 Di2 正常换挡。你在 E-TUBE 应用中设为 D-Fly 通道的按键，按下后会显示在这里。",

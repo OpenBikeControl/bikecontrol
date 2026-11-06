@@ -61,6 +61,45 @@ Future<void> main() async {
       ]);
     });
 
+    // Wired levers (e.g. ST-R8150) report on 2AFD by switch input and number;
+    // which lever and paddle that is isn't known, so each gets its own button.
+    test('a wired switch press is a click of its own button, which shows up once pressed', () async {
+      stubActions.cleanup();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR8150', deviceId: 'di2-wired'))..registerPaddleButtons();
+
+      instance.onWiredSwitch(const ShimanoWiredSwitchEvent(2, 5, ShimanoPaddleState.down));
+      instance.onWiredSwitch(const ShimanoWiredSwitchEvent(2, 5, ShimanoPaddleState.held));
+      instance.onWiredSwitch(const ShimanoWiredSwitchEvent(2, 5, ShimanoPaddleState.released));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(instance.availableButtons.map((b) => b.name), ['Di2 Switch 2.5']);
+      expect(stubActions.performedActions, [
+        PerformedAction(ShimanoDi2Buttons.wired(2, 5), isDown: true, isUp: true),
+      ]);
+      expect(instance.controllerLayout, isNull, reason: 'wired buttons have no spot on the wireless contour');
+    });
+
+    test('wired switches on another input or number are other buttons', () {
+      expect(ShimanoDi2Buttons.wired(2, 5).name, isNot(ShimanoDi2Buttons.wired(1, 5).name));
+      expect(ShimanoDi2Buttons.wired(2, 5).name, isNot(ShimanoDi2Buttons.wired(2, 4).name));
+    });
+
+    test('in button mode a wired lever press on 2AFD reaches its button', () async {
+      stubActions.cleanup();
+      final aux = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR8150', deviceId: 'di2-wired-session'));
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, aux: aux));
+      aux.add(_hex('0d04380400ffffffffff'));
+      aux.add(_hex('0d04381400ffffffffff'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await aux.close();
+
+      expect(stubActions.performedActions, [
+        PerformedAction(ShimanoDi2Buttons.wired(2, 4), isDown: true, isUp: true),
+      ]);
+    });
+
     test('button telemetry it cannot decode is logged with its raw bytes, repeats only once', () async {
       final instance = ShimanoDi2(BleDevice(name: 'RDR9250', deviceId: 'di2-unknown'));
       final logs = <String>[];
@@ -438,6 +477,21 @@ Future<void> main() async {
       di2.cancelShifterWait();
 
       await expectLater(setup, throwsA(isA<ShimanoSetupCancelled>()));
+      expect(t.switchWrites, isEmpty);
+      expect(di2.isDflyChosen, isFalse);
+      expect(di2.shifterAsk.value, isNull);
+    });
+
+    // Wired levers never send the press the setup reads the switches from:
+    // stop at their first press instead of waiting two minutes.
+    test('a press on a wired lever ends the setup as wired shifters, writing nothing', () async {
+      final (:di2, :t) = connected('di2-channels-wired');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.pressWired(_hex('0d04380500ffffffffff'));
+
+      await expectLater(setup, throwsA(isA<ShimanoWiredShiftersException>()));
       expect(t.switchWrites, isEmpty);
       expect(di2.isDflyChosen, isFalse);
       expect(di2.shifterAsk.value, isNull);
@@ -1002,6 +1056,11 @@ class _SwitchingShimanoTransport extends ShimanoBleTransport {
 
   void press(Uint8List frame) => _frames.add(frame);
 
+  final _wired = StreamController<Uint8List>.broadcast(sync: true);
+
+  /// A wired lever's switch frame on 2AFD.
+  void pressWired(Uint8List frame) => _wired.add(frame);
+
   @override
   Future<void> subscribe(String characteristic) async {}
 
@@ -1018,8 +1077,11 @@ class _SwitchingShimanoTransport extends ShimanoBleTransport {
   Future<Uint8List> read(String characteristic) async => Uint8List(0);
 
   @override
-  Stream<Uint8List> notifications(String characteristic) =>
-      characteristic == ShimanoDi2Config.pceResponseChar ? _frames.stream : const Stream.empty();
+  Stream<Uint8List> notifications(String characteristic) => switch (characteristic) {
+        ShimanoDi2Config.pceResponseChar => _frames.stream,
+        ShimanoDi2Config.pceAuxNotify2 => _wired.stream,
+        _ => const Stream.empty(),
+      };
 }
 
 class _RecordingShimanoTransport extends ShimanoBleTransport {
