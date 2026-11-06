@@ -25,7 +25,8 @@ String _decode(List<int> bytes) {
   try {
     return utf8.decode(bytes);
   } on FormatException catch (error) {
-    // 错误位置之前可能有未完成的多字节字符，替代字符由后续清理统一移除。
+    // An incomplete multibyte character may precede the error offset.
+    // The caller removes any resulting replacement characters during cleanup.
     return utf8.decode(bytes.sublist(0, error.offset ?? 0), allowMalformed: true);
   }
 }

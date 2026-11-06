@@ -30,11 +30,11 @@ void main() {
     expect(decodeBleDeviceInfoString([...name, 0, 0xFF]), '迈金');
   });
 
-  test('非法 UTF-8 尾部保留合法中文前缀', () {
+  test('malformed UTF-8 tails preserve the valid Chinese prefix', () {
     expect(decodeBleDeviceInfoString([...utf8.encode('迈金'), 0x80, 0xFF]), '迈金');
   });
 
-  test('首个非法序列之后的 ASCII 不会并入固件版本', () {
+  test('ASCII after the first malformed sequence is not appended to the firmware version', () {
     for (final tail in [
       [0x80, 0x41],
       [0xE2, 0x41],
@@ -48,7 +48,7 @@ void main() {
     }
   });
 
-  test('未完成的多字节尾部保留合法 Unicode 前缀', () {
+  test('incomplete multibyte tails preserve the valid Unicode prefix', () {
     for (final tail in [
       [0xC2],
       [0xE2, 0x82],
@@ -58,13 +58,13 @@ void main() {
     }
   });
 
-  test('合法替代字符不会截断后续设备信息', () {
+  test('valid replacement characters do not truncate subsequent device information', () {
     final name = utf8.encode('迈\uFFFD金');
     expect(decodeBleDeviceInfoString(name), '迈金');
     expect(decodeBleDeviceInfoString([...name, 0x80]), '迈金');
   });
 
-  test('开头非法时不会把后续 ASCII 当作设备信息', () {
+  test('malformed leading bytes do not expose subsequent ASCII as device information', () {
     expect(decodeBleDeviceInfoString([0x80, ...'0.105'.codeUnits]), isNull);
   });
 

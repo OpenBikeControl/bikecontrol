@@ -1354,7 +1354,8 @@ class Connection {
         web: WebOptions(optionalServices: BluetoothDevice.servicesToScan),
         android: AndroidOptions(
           scanMode: AndroidScanMode.lowLatency,
-          // false 同时接收旧式与扩展广播，避免限制其他设备的发现。
+          // false accepts both legacy and extended advertisements,
+          // keeping other devices discoverable.
           legacy: false,
         ),
       ),

@@ -30,7 +30,7 @@ void main() async {
     UniversalBle.setInstance(env.ble);
   });
 
-  test('Android 低延迟扫描同时接收旧式与扩展广播', () async {
+  test('Android low-latency scanning accepts both legacy and extended advertisements', () async {
     await core.connection.performScanning();
 
     expect(ble.scanConfig?.android?.legacy, isFalse);
