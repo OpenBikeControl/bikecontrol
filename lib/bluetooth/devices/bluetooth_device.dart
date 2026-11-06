@@ -184,6 +184,11 @@ abstract class BluetoothDevice extends BaseDevice {
   /// prefix so other Van Rysel products (straps, power meters) are untouched.
   static bool _isVanRyselTrainerName(String name) => name.toUpperCase().startsWith('VANRYSEL-HT');
 
+  /// The 11-speed Di2 wireless unit (EW-WU111) advertises as `EWWU111`. It is
+  /// claimed by its E-TUBE service elsewhere, but Windows has never surfaced it
+  /// that way in the field, so match it by name too, like the Tacx Neo.
+  static bool _isDi2WirelessUnitName(String name) => name.toUpperCase().startsWith('EWWU');
+
   /// Test seam: overrides the effective [kIsWeb] check so `fromScanResult`'s
   /// web-specific classification branch can be exercised from a normal
   /// (Dart VM) test run, where the real compile-time [kIsWeb] is always
@@ -302,6 +307,7 @@ abstract class BluetoothDevice extends BaseDevice {
           scanResult,
         ),
         _ when scanResult.name!.toUpperCase().startsWith('RDR') => ShimanoDi2(scanResult),
+        _ when _isDi2WirelessUnitName(scanResult.name!) => ShimanoDi2(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('SRAM') && _sramIsConnectable(scanResult) => SramAxs(
           scanResult,
         ),
@@ -402,6 +408,8 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase()) => ShimanoDi2(
           scanResult,
         ),
+        // See [_isDi2WirelessUnitName].
+        _ when _isDi2WirelessUnitName(scanResult.name!) => ShimanoDi2(scanResult),
         // Before the ProxyDevice branch below, which claims Cycling Power
         // (0x1818) unconditionally via containsAny — including for a
         // legitimately-named power meter, which is wrong. This rule is
