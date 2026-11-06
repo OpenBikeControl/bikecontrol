@@ -25,6 +25,8 @@ import 'package:bike_control/services/rides/ride_preferences.dart';
 import 'package:bike_control/services/rides/ride_service.dart';
 import 'package:bike_control/services/rides/ride_sources.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
+import 'package:bike_control/services/obc_haptics/obc_haptics_service.dart';
+import 'package:bike_control/services/obc_haptics/phone_haptic_target.dart';
 import 'package:bike_control/services/shift_feedback/gamepad_shift_haptics.dart';
 import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
@@ -122,6 +124,15 @@ class Core {
     haptics: const PlatformShiftHaptics(),
     controllerHaptics: const GamepadShiftHaptics(),
     createSoundPlayer: createShiftSoundPlayer,
+    onError: (context, e, s) => recordError(e, s, context: context),
+  );
+
+  /// Haptic feedback commands from OpenBikeControl apps, played on this phone
+  /// and on connected controllers that can vibrate.
+  late ObcHapticsService obcHaptics = ObcHapticsService(
+    phone: () => PhoneHapticTarget.forPlatform,
+    controllers: () => connection.controllerDevices.whereType<HapticTarget>(),
+    controllerVibrationEnabled: () => settings.isInitialized && settings.getVibrationEnabled(),
     onError: (context, e, s) => recordError(e, s, context: context),
   );
 

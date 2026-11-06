@@ -120,13 +120,14 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
           return onAppInfoWrite(deviceId, value);
         });
 
-        // No haptic hardware: accept haptic writes and ignore them.
+        // Played on this phone and on controllers that can vibrate.
         _server.setWriteHandler(OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID, (
           deviceId,
           characteristicId,
           offset,
           value,
         ) {
+          if (value != null) unawaited(core.obcHaptics.handle(value));
           return PeripheralWriteRequestResult();
         });
       }
@@ -292,7 +293,9 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
 
     if (isKeyDown && isKeyUp) {
       final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue))).toList(),
+        mappedButtons
+            .map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue)))
+            .toList(),
       );
       await _server.notify(
         characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
@@ -309,7 +312,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
       );
     } else {
       final responseData = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0)).toList(),
+        mappedButtons
+            .map(
+              (b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0),
+            )
+            .toList(),
       );
       await _server.notify(
         characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,

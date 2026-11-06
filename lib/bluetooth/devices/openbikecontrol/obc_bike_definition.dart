@@ -16,14 +16,12 @@ class ObcBikeDefinition extends BleDefinition {
   List<BleCharacteristic> getCharacteristics(String serviceUUID) {
     if (serviceUUID.toLowerCase() == OpenBikeControlConstants.SERVICE_UUID) {
       return [
-        BleCharacteristic(
-          OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
-          [CharacteristicProperty.notify],
-         []),
-        BleCharacteristic(
-          OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
-          [CharacteristicProperty.writeWithoutResponse],
-         []),
+        BleCharacteristic(OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID, [
+          CharacteristicProperty.notify,
+        ], []),
+        BleCharacteristic(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, [
+          CharacteristicProperty.writeWithoutResponse,
+        ], []),
       ];
     }
     return [];
