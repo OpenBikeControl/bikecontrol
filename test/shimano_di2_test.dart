@@ -360,6 +360,46 @@ Future<void> main() async {
       ]);
     });
 
+    // Rider log (XT Di2, right shifter only): the one shifter reports slot 0.
+    // The save step asked for it and ticked a right shifter never seen.
+    test('a Di2 with one shifter is saved with that one, nothing else ticked', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
+      final (:di2, :t) = connected('di2-channels-single');
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000']);
+      expect(di2.isDflyChosen, isTrue);
+      expect(asks.where((a) => a?.saving ?? false), [
+        const ShimanoShifterAsk({}, saving: true, single: true),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, single: true),
+      ]);
+    });
+
+    test('restoring a single shifter asks for that one only', () async {
+      final (:di2, :t) = connected('di2-channels-restore-single');
+      await core.settings.setShimanoDfly('di2-channels-restore-single', true);
+      await core.settings.setShimanoSwitchBackup('di2-channels-restore-single', [
+        ShimanoShifterSwitches.fromTelemetry(leftFactory)!,
+      ]);
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final restore = di2.restoreSwitches(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      await restore;
+
+      expect(t.switchWrites, ['0013412000011101ff0000']);
+      expect(asks.whereType<ShimanoShifterAsk>().every((a) => a.single), isTrue);
+    });
+
     test('a setup cancelled while it waits for the shifters writes nothing', () async {
       final (:di2, :t) = connected('di2-channels-cancel');
 

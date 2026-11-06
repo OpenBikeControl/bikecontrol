@@ -283,9 +283,13 @@ void main() {
     expect(find.text(AppLocalizations.current.shimanoPressShiftersTitle), findsOneWidget);
     expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
 
+    expect(find.text(AppLocalizations.current.shimanoOneShifterHint), findsNothing);
+
     shifters.value = const ShimanoShifterAsk({ShimanoShifter.left});
     await tester.pump();
     expect(find.byIcon(LucideIcons.circleCheck), findsOneWidget);
+    // Once one shifter is in, a rider with only that one learns to wait.
+    expect(find.text(AppLocalizations.current.shimanoOneShifterHint), findsOneWidget);
 
     shifters.value = const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left);
     await tester.pump();
@@ -293,6 +297,15 @@ void main() {
     expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
     // The right shifter waits until the left one is saved.
     expect(find.byIcon(LucideIcons.hourglass), findsOneWidget);
+
+    // A Di2 with one shifter: one prompt, no side named.
+    shifters.value = const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left, single: true);
+    await tester.pump();
+    expect(find.text(AppLocalizations.current.shimanoSaveShifterTitle), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoShifterSingle), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoShifterLeft), findsNothing);
+    expect(find.text(AppLocalizations.current.shimanoShifterRight), findsNothing);
+    expect(find.byIcon(LucideIcons.hourglass), findsNothing);
 
     shifters.value = null;
     operation.complete();
