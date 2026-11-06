@@ -953,6 +953,16 @@ class Connection {
 
   bool _isDisconnectedForSession(String id) => disconnectedForSession.value.containsKey(id);
 
+  /// The id [device] is ignored or held back for the session under: a
+  /// Bluetooth device's id, or a gamepad's (stable across app starts, so the
+  /// poll that re-lists it every few seconds can filter it). Null for inputs
+  /// that are never listed on their own.
+  static String? _holdId(BaseDevice device) => switch (device) {
+    BluetoothDevice() => device.device.deviceId,
+    GamepadDevice() => device.id,
+    _ => null,
+  };
+
   void _setDisconnectedForSession(String id, String? name) {
     if (name == null) {
       if (!_isDisconnectedForSession(id)) return;
@@ -970,7 +980,8 @@ class Connection {
   /// Disconnects [device] and keeps it from auto-connecting again until the
   /// app restarts or the rider connects it explicitly.
   Future<void> disconnectForSession(BaseDevice device) async {
-    if (device is BluetoothDevice) _setDisconnectedForSession(device.device.deviceId, device.toString());
+    final id = _holdId(device);
+    if (id != null) _setDisconnectedForSession(id, device.toString());
     await disconnect(device, forget: true, persistForget: false);
   }
 
@@ -1680,6 +1691,13 @@ class Connection {
       if (devices.contains(device)) return false;
 
       // Check if device is in the ignored list
+      if (device is GamepadDevice) {
+        // Re-listed by the gamepad poll every few seconds and on every start.
+        if (ignoredDeviceIds.contains(device.id) || _isDisconnectedForSession(device.id)) {
+          seenIgnored.add(device.id);
+          return false;
+        }
+      }
       if (device is BluetoothDevice) {
         if (ignoredDeviceIds.contains(device.device.deviceId)) {
           seenIgnored.add(device.device.deviceId);
@@ -1955,6 +1973,7 @@ class Connection {
     // It is also a fresh decision by the rider, so any auto-connect backoff
     // streak starts over: the device gets its full attempt budget again
     // instead of re-suppressing after one more failure.
+    if (device is GamepadDevice) _setDisconnectedForSession(device.id, null);
     if (device is BluetoothDevice) {
       final id = device.device.deviceId;
       _suppressedAutoReconnect.remove(id);
@@ -2244,7 +2263,11 @@ class Connection {
         devices.remove(device);
         hasDevices.value = devices.isNotEmpty;
       }
-    } else if (device is GyroscopeSteering || device is HidDevice) {
+    } else if (device is GyroscopeSteering || device is HidDevice || device is GamepadDevice) {
+      if (persistForget && device is GamepadDevice) {
+        await core.settings.addIgnoredDevice(device.id, device.toString());
+        _actionStreams.add(LogNotification('Device ignored: ${device.toString()}'));
+      }
       // Clean up subscriptions
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
