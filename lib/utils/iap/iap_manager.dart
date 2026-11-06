@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/entitlement.dart';
 import 'package:bike_control/models/subscription_term.dart';
@@ -13,6 +14,7 @@ import 'package:bike_control/services/device_management_service.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
+import 'package:bike_control/utils/iap/entitlement_purchase_sync.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart';
 import 'package:bike_control/utils/iap/linux_iap_service.dart';
 import 'package:bike_control/utils/iap/stripe_checkout_flow.dart';
@@ -84,6 +86,18 @@ class IAPManager {
   );
 
   ValueNotifier<bool> isPurchased = ValueNotifier<bool>(false);
+  late final EntitlementPurchaseSync _entitlementPurchase = EntitlementPurchaseSync(
+    isPurchased: isPurchased,
+    recheckOtherSources: () async {
+      try {
+        await _revenueCatService?.recheckPurchase();
+        await _windowsIapService?.recheckPurchase();
+        await _linuxIapService?.initialize();
+      } catch (e, s) {
+        recordError(e, s, context: 'Rechecking purchase after entitlements expired');
+      }
+    },
+  );
   ValueNotifier<bool> isLocalPro = ValueNotifier<bool>(false);
 
   /// The store's own record of the Pro subscription on this device (iOS,
@@ -275,7 +289,7 @@ class IAPManager {
       }
 
       await entitlements.refresh();
-      _syncPurchaseFlagFromEntitlements();
+      await _syncPurchaseFlagFromEntitlements();
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing IAP manager: $e');
@@ -286,13 +300,13 @@ class IAPManager {
   /// Called on app start when a session may already exist.
   Future<void> refreshEntitlementsOnAppStart() async {
     await entitlements.refresh(force: true);
-    _syncPurchaseFlagFromEntitlements();
+    await _syncPurchaseFlagFromEntitlements();
   }
 
   /// Called on app resume to refresh stale entitlement cache.
   Future<void> refreshEntitlementsOnResume() async {
     await entitlements.refresh();
-    _syncPurchaseFlagFromEntitlements();
+    await _syncPurchaseFlagFromEntitlements();
   }
 
   /// Check if the trial period has started.
@@ -508,7 +522,7 @@ class IAPManager {
     if (_revenueCatService != null) {
       restored = await _revenueCatService!.restorePurchases();
     }
-    _syncPurchaseFlagFromEntitlements();
+    await _syncPurchaseFlagFromEntitlements();
     return restored;
   }
 
@@ -573,7 +587,7 @@ class IAPManager {
     if (_revenueCatService != null) {
       await _revenueCatService!.redeem(purchaseId);
       await entitlements.refresh(force: true);
-      _syncPurchaseFlagFromEntitlements();
+      await _syncPurchaseFlagFromEntitlements();
     }
   }
 
@@ -601,7 +615,7 @@ class IAPManager {
         }
         await _revenueCatService?.setAttributes();
         await entitlements.refresh(force: true);
-        _syncPurchaseFlagFromEntitlements();
+        await _syncPurchaseFlagFromEntitlements();
         // A rider who tapped Buy on the Windows Stripe build while logged out was
         // sent to the login gate; a genuine `signedIn` is our cue to finish the
         // checkout they started. Skip token refreshes / the initial session,
@@ -632,16 +646,12 @@ class IAPManager {
   }
 
   void _onEntitlementsChanged() {
-    _syncPurchaseFlagFromEntitlements();
+    unawaited(_syncPurchaseFlagFromEntitlements());
   }
 
-  void _syncPurchaseFlagFromEntitlements() {
-    if (isProEnabled) {
-      isPurchased.value = true;
-    } else if (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)) {
-      isPurchased.value = true;
-    }
-  }
+  Future<void> _syncPurchaseFlagFromEntitlements() => _entitlementPurchase.sync(
+    entitled: isProEnabled || (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)),
+  );
 
   /// Registers this device for the account's Pro subscription and refreshes
   /// the entitlements, so [isProEnabledForCurrentDevice] reflects the result.
