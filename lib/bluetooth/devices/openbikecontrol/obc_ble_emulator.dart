@@ -119,6 +119,16 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
           if (value == null) return PeripheralWriteRequestResult();
           return onAppInfoWrite(deviceId, value);
         });
+
+        // No haptic hardware: accept haptic writes and ignore them.
+        _server.setWriteHandler(OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID, (
+          deviceId,
+          characteristicId,
+          offset,
+          value,
+        ) {
+          return PeripheralWriteRequestResult();
+        });
       }
 
       if (!Platform.isWindows) {
@@ -158,6 +168,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
               uuid: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
               properties: [CharacteristicProperty.notify],
               permissions: [],
+            ),
+            BlePeripheralCharacteristic(
+              uuid: OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID,
+              properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+              permissions: [PeripheralAttributePermission.writeable],
             ),
             BlePeripheralCharacteristic(
               uuid: OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
