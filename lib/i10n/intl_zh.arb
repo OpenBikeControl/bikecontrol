@@ -1,0 +1,4185 @@
+{
+  "@@locale": "zh",
+  "actionShiftUp": "升挡",
+  "actionShiftDown": "降挡",
+  "actionFrontShift": "前拨（牙盘）",
+  "actionUturn": "掉头",
+  "actionTuck": "趴车",
+  "actionSteerLeft": "左转",
+  "actionSteerRight": "右转",
+  "actionCameraAngle": "切换视角",
+  "actionEmote": "表情",
+  "actionToggleUi": "显示/隐藏界面",
+  "actionNavigateLeft": "向左导航",
+  "actionNavigateRight": "向右导航",
+  "actionIncreaseResistance": "增加阻力",
+  "actionDecreaseResistance": "减小阻力",
+  "actionOpenActionBar": "打开动作栏",
+  "actionUsePowerUp": "使用道具",
+  "actionSelect": "选择",
+  "actionBack": "返回",
+  "actionRideOnBomb": "Ride On 炸弹",
+  "actionKudos": "点赞",
+  "actionPause": "暂停/继续",
+  "actionHeadwindSpeed": "HEADWIND 风速",
+  "actionHeadwindSpeedInc": "HEADWIND 风速增加",
+  "actionHeadwindSpeedDec": "HEADWIND 风速减小",
+  "actionHeadwindSpeedCyclicInc": "HEADWIND 风速循环增加",
+  "actionHeadwindSpeedCyclicDec": "HEADWIND 风速循环减小",
+  "actionHeadwindHeartRateMode": "HEADWIND 心率模式",
+  "actionInclineIncrease": "增大坡度",
+  "actionInclineDecrease": "减小坡度",
+  "actionInclineZero": "坡度拉平（0%）",
+  "actionInclineAutoMode": "坡度自动（跟随路线坡度）",
+  "inclineActions": "坡度",
+  "kickrClimb": "KICKR Climb",
+  "actionUp": "上",
+  "actionDown": "下",
+  "actionHome": "主页",
+  "actionMenu": "菜单",
+  "actionGearSet": "设置挡位",
+  "actionPushToTalk": "按住说话",
+  "actionSkipInterval": "跳过间歇",
+  "actionPreviousInterval": "上一间歇",
+  "actionLap": "计圈",
+  "actionResume": "继续",
+  "actionChangeMode": "切换模式",
+  "actionTakeBreak": "休息一下",
+  "actionJoinRider": "加入骑手",
+  "actionChangeRoute": "更换路线",
+  "actionMapToggle": "切换地图",
+  "actionSpectateRider": "观看骑手",
+  "actionTrainerSwitchMode": "骑行台：切换 ERG/SIM",
+  "actionTrainerIntensityUp": "骑行台：提高强度",
+  "actionTrainerIntensityDown": "骑行台：降低强度",
+  "actionWorkoutPauseResume": "记录：暂停/继续",
+  "actionScreenRecording": "录制屏幕",
+  "actionCalibratePhoneSteering": "校准转向",
+  "steeringRecalibrating": "正在重新校准转向…",
+  "phoneSteeringNotEnabled": "手机转向未开启",
+  "phoneSteeringName": "手机转向",
+  "steeringCalibrating": "正在校准…",
+  "steeringRideHint": "转动你的车把即可转向。",
+  "@steeringRideHint": {
+    "description": "Ride tab: line above the live steering gauge of a steering input (phone steering, Elite Sterzo/Rizer), in place of the tap-a-button hint."
+  },
+  "steeringAdjust": "调整",
+  "@steeringAdjust": {
+    "description": "Ride tab: link next to 'Your buttons' when the only controller is a steering input; opens its steering page."
+  },
+  "steeringRecalibrate": "重新校准",
+  "steeringPageTitle": "转向",
+  "steeringDescription": "转动你的车把，你的骑手就会在骑行软件中转向。在死区内你会保持直行。",
+  "steeringReady": "就绪",
+  "steeringHoldStill": "将车把摆正，并静止片刻。",
+  "steeringInTrainerApp": "在骑行软件中",
+  "steeringTurnLeft": "车把向左",
+  "steeringTurnRight": "车把向右",
+  "steeringExactAngle": "精确角度",
+  "steeringExactAngleBody": "{app} 会跟随车把的精确角度，而不只是左右。",
+  "@steeringExactAngleBody": {
+    "description": "Steering page: the trainer app receives the proportional OpenBikeControl steering angle.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "steeringExactAngleActive": "已启用",
+  "steeringDeadZone": "死区",
+  "steeringDeadZoneBody": "转过多远才开始转向",
+  "steeringTurnOff": "关闭手机转向",
+  "openFolder": "打开文件夹",
+  "openGallery": "打开相册",
+  "screenRecordingStarted": "屏幕录制已开始",
+  "screenRecordingStopped": "屏幕录制已保存",
+  "screenRecordingFailed": "无法开始屏幕录制",
+  "screenRecordingNotSupported": "此设备不支持屏幕录制",
+  "triggerSingleClick": "单击",
+  "triggerDoubleClick": "双击",
+  "triggerLongPress": "长按",
+  "actionCategoryShifting": "换挡",
+  "actionCategorySteering": "转向",
+  "actionCategoryOther": "其他",
+  "trialDaysAvailable": "{days} 天试用期可用",
+  "@trialDaysAvailable": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "accessibilityDescription": "BikeControl 需要辅助功能权限才能控制你的骑行软件。",
+  "accessibilityDisclaimer": "BikeControl 只会访问你的屏幕，以执行你配置的手势。不会访问其他辅助功能或个人信息。",
+  "accessibilityReasonControl": "• 让你用 Zwift 设备控制 MyWhoosh、TrainingPeaks 等应用",
+  "accessibilityReasonTouch": "• 在屏幕上模拟触控手势，以控制骑行软件",
+  "accessibilityReasonWindow": "• 检测当前哪个骑行软件窗口处于活动状态",
+  "accessibilityServiceExplanation": "BikeControl 需要使用安卓的 AccessibilityService API 才能正常工作。",
+  "accessibilityServiceNotRunning": "辅助功能服务未运行。\n请按以下地址查看说明",
+  "accessibilityServicePermissionRequired": "需要辅助功能服务权限",
+  "accessibilityUsageGestures": "• 当你按下 Zwift Click、Zwift Ride 或 Zwift Play 设备上的按键时，BikeControl 会在屏幕的指定位置模拟触控手势",
+  "accessibilityUsageMonitor": "• 应用会监测哪个骑行软件窗口处于活动状态，以确保手势发送到正确的应用",
+  "accessibilityUsageNoData": "• 此服务不会访问或收集任何个人数据",
+  "accessories": "配件",
+  "account": "账户",
+  "actAsBluetoothKeyboard": "充当蓝牙键盘",
+  "action": "动作",
+  "activity": "活动",
+  "additionalTriggerAssignment": "此按键已有功能",
+  "adjustControllerButtons": "调整控制器按键",
+  "afterDate": "{date} 之后",
+  "allow": "允许",
+  "allowAccessibilityService": "允许辅助功能服务",
+  "allowBluetoothConnections": "允许蓝牙连接",
+  "allowBluetoothScan": "允许蓝牙扫描",
+  "allowLocationForBluetooth": "允许位置信息，以便蓝牙扫描可用",
+  "allowPersistentNotification": "允许通知",
+  "allowsRunningInBackground": "允许 BikeControl 在后台持续运行",
+  "alreadyBoughtTheApp": "已经买过这款应用？你不需要再为 BikeControl 付费。由于技术原因，应用无法判断是否已经购买。\n\n输入你的 Play Store 购买 ID（例如 GPA.3356-1337-1338-1339）以解锁基础版。如果找不到，请直接联系我。",
+  "alreadyBoughtTheAppPreviously": "之前已经买过这款应用？",
+  "androidAccessibilityHint": "为了让它正常工作，即使 BikeControl 在后台也一样，请为 BikeControl 开启「辅助功能权限」。你可以通过启用本机连接方式来完成。",
+  "androidSystemAction": "安卓系统动作",
+  "anotherTriggerIsAlreadyAssignedForThisButton": "没有 Pro 时，每个按键只能做一件事。开通 Pro，即可在此按键上同时使用 {triggerTitle}，或替换它现在的功能。",
+  "triggerConflictRemoves": "{trigger}：{action} 将被移除",
+  "@triggerConflictRemoves": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "appIdActions": "{appId} 动作",
+  "@appIdActions": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
+  "applyNow": "立即应用",
+  "asAFinalStepYoullChooseHowToConnectTo": "最后一步，你将选择如何连接到 {trainerApp}。",
+  "battery": "电池",
+  "beforeDate": "{date} 之前",
+  "bluetoothAdvertiseAccess": "蓝牙广播访问",
+  "bridgeMinutesRemainingToday": "今天还剩 {minutes} 分钟试用",
+  "@bridgeMinutesRemainingToday": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "bridgeTrialTimeOverTitle": "今天的虚拟换挡试用已结束",
+  "bridgeTrialTimeOverBody": "你的骑行暂时会继续——骑行软件断开之前不会有任何变化。之后，BikeControl 的骑行台今天不会再出现在该应用中：在应用中直接配对骑行台，BikeControl 会继续发送你的换挡按键。Pro 可解除每日限制。",
+  "bridgeTrialAlreadyOverBody": "到明天之前，BikeControl 的骑行台不会再出现在你的骑行软件中。在此之前，请在应用中直接配对骑行台，BikeControl 会继续发送你的换挡按键。Pro 可解除每日限制。",
+  "bridgeTrialEndingSoonTitle": "今天的虚拟换挡试用还剩 {minutes, plural, =1{1 分钟} other{{minutes} 分钟}}",
+  "@bridgeTrialEndingSoonTitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "bridgeTrialEndingSoonBody": "用完之后，本次骑行会继续，直到你的骑行软件断开。Pro 可解除每日限制。",
+  "bluetoothKeyboardExplanation": "这样你就可以把手机当作蓝牙键盘来控制兼容的应用。配对后，你可以用自行车控制器上的按键向应用发送键盘输入。",
+  "bluetoothTurnedOn": "蓝牙已开启",
+  "bluetoothPermissionRequired": "允许 BikeControl 使用蓝牙",
+  "browserNotSupported": "此浏览器不支持 Web Bluetooth，且平台不受支持 :(",
+  "button": "按键。",
+  "buttonMapping": "按键映射",
+  "mappingForApp": "用于 {app}",
+  "mappingEditMakesCopy": "{app} 自带的映射是内置的。编辑它会生成你自己的副本。",
+  "buyFullVersion": "购买基础版",
+  "bySigningInYouAgreeToOur": "登录即表示你同意我们的 {privacyPolicy}。",
+  "@bySigningInYouAgreeToOur": {
+    "placeholders": {
+      "privacyPolicy": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "取消",
+  "changelog": "更新日志",
+  "checkMyWhooshConnectionScreen": "在 MyWhoosh 的连接界面查看「Link」是否已连接。",
+  "checkPurchasingOptions": "查看购买选项",
+  "chooseAnotherScreenshot": "选择另一张截图",
+  "chooseBikeControlInConnectionScreen": "在连接界面中选择 BikeControl。",
+  "clear": "清除",
+  "clickAButtonOnYourController": "单击控制器上的按键以编辑其动作，或点按编辑图标。",
+  "clickV2EventInfo": "你的 Click V2 可能不再发送按键事件。请点按几个按键，看看它们是否在 BikeControl 中显示。",
+  "clickV2Instructions": "为了让 Zwift Click V2 达到最佳效果，你应在每次训练前在 Zwift 应用中连接它。\n如果不这样做，Click V2 会在一分钟后停止工作。\n\n1. 打开 Zwift 应用（不是 Companion！）\n2. 登录（无需订阅）并打开设备连接界面\n3. 连接你的骑行台，然后连接 Zwift Click V2\n4. 再次关闭 Zwift 应用，然后在 BikeControl 中重新连接",
+  "clickV2Onboarding_cardTitle": "来设置你的 Zwift Click V2",
+  "clickV2Onboarding_cardSubtitle": "在附近发现 · 需要设置",
+  "clickV2Onboarding_title": "Zwift Click V2 设置",
+  "clickV2Onboarding_intro": "Zwift 把 Click V2 锁定在自家应用中。BikeControl 有两种应对方式——选一个适合你的。",
+  "clickV2Onboarding_whyLink": "为什么需要这样做？",
+  "clickV2Onboarding_rightOnlyTitle": "仅使用右侧",
+  "clickV2Onboarding_rightOnlyPro1": "无需 Zwift 解锁——永远",
+  "clickV2Onboarding_rightOnlyPro2": "无需重启，骑行中途不会掉线",
+  "clickV2Onboarding_rightOnlyCon1": "只有右侧控制器会发送按键",
+  "clickV2Onboarding_rightOnlyCta": "使用右侧",
+  "clickV2Onboarding_zwiftTitle": "用 Zwift 解锁",
+  "clickV2Onboarding_zwiftPro1": "两侧控制器都能用",
+  "clickV2Onboarding_zwiftPro2": "骑行中无需重启",
+  "clickV2Onboarding_zwiftCon1": "每 24 小时需要用 Zwift 应用解锁一次",
+  "clickV2Onboarding_zwiftCon2": "解锁可能不稳定",
+  "clickV2Onboarding_zwiftCta": "用 Zwift 解锁",
+  "clickV2Onboarding_alternativesLink": "对此不满也正常？看看那些开箱即用的控制器",
+  "clickV2Onboarding_setUpAgain": "重新设置",
+  "clickV2Onboarding_swipeHint": "滑动查看另一个选项",
+  "clickV2Onboarding_decisionTitle": "你想选哪个？",
+  "clickV2Onboarding_decisionSubtitle": "两种都可以。选一个你更能接受的取舍——之后可以在控制器的设置中更改。",
+  "clickV2Onboarding_rightOnlyRecap": "不需要 Zwift · 仅右侧控制器",
+  "clickV2Onboarding_zwiftRecap": "两侧控制器 · 每 24 小时解锁一次",
+  "clickV2Onboarding_connectFailed": "无法连接你的 Zwift Click V2。点按它再试一次。",
+  "close": "关闭",
+  "commandsRemainingToday": "今天还剩 {commandsRemainingToday}/{dailyCommandLimit} 次按键",
+  "configuration": "配置",
+  "connect": "连接",
+  "connectControllerToPreview": "连接一个控制器设备，以预览并自定义按键映射。",
+  "connectControllers": "连接控制器",
+  "connectDirectlyOverNetwork": "通过网络直接连接",
+  "connectToTrainerApp": "连接到骑行软件",
+  "connectUsingBluetooth": "使用蓝牙连接",
+  "connectUsingMyWhooshLink": "使用 MyWhoosh「Link」连接",
+  "connected": "已连接",
+  "connectedControllers": "已连接的控制器",
+  "connectedTo": "已连接到 {appId}",
+  "@connectedTo": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
+  "connection": "连接",
+  "connectionWifi": "Wi-Fi",
+  "connectionBluetooth": "蓝牙",
+  "reconnect": "重新连接",
+  "batterySaverTitle": "省电",
+  "controllersDisconnectedInactivity": "控制器因闲置 {minutes} 分钟已断开，以节省电量。重新打开控制器即可重新连接。",
+  "@controllersDisconnectedInactivity": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "continueAction": "继续",
+  "controlAppUsingModes": "在此设备上控制 {appName}",
+  "@controlAppUsingModes": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "controllerConnectedClickButton": "太好了！你的控制器已连接。单击控制器上的按键以继续。",
+  "controllerSettings": "控制器设置",
+  "controllers": "控制器",
+  "couldNotPerformButtonnamesplitbyuppercaseNoKeymapSet": "无法执行 {button}：未设置按键映射",
+  "create": "创建",
+  "createNewKeymap": "创建新映射",
+  "createNewProfileByDuplicating": "通过复制「{profileName}」创建新映射",
+  "@createNewProfileByDuplicating": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "createdNewCustomProfile": "已创建你自己的映射：{profileName}",
+  "@createdNewCustomProfile": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchTitle": "保留你自己的按键？",
+  "keymapSwitchBody": "你正在使用自己的按键映射「{profile}」。{app} 可能需要不同的按键。",
+  "@keymapSwitchBody": {
+    "placeholders": {
+      "profile": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchUseAppButtons": "使用 {app} 的按键",
+  "@keymapSwitchUseAppButtons": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "keymapSwitchKeepCustom": "保留我的按键",
+  "currentDeviceIsNotRegistered": "当前设备未注册",
+  "currentPlan": "当前方案",
+  "customizeControllerButtons": "为 {appName} 自定义控制器按键",
+  "@customizeControllerButtons": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "customizeKeymapHint": "如果遇到问题（例如键盘输出错误，或触控位置对不齐），请自定义按键映射",
+  "dailyCommandLimitReachedNotification": "你已用完今天的按键次数。基础版或 Pro 可使其不受限制。",
+  "dailyLimitReached": "已达每日限制（已用 {dailyCommandCount}/{dailyCommandLimit}）",
+  "delete": "删除",
+  "deleteProfile": "删除映射",
+  "deleteProfileConfirmation": "确定要删除「{profileName}」吗？此操作无法撤销。",
+  "@deleteProfileConfirmation": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "deny": "拒绝",
+  "deviceButton": "{deviceName} 按键",
+  "@deviceButton": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceIsRestarting": "{device} 正在重启，几秒后会重新连接",
+  "@deviceIsRestarting": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceLimitReached": "{platform} 的设备数量已达上限。请撤销其他设备以注册新设备。",
+  "devicesActive": "{active} 个使用中",
+  "disconnectAndForget": "断开并忘记",
+  "disconnectAndForgetForThisSession": "断开",
+  "disconnectDevices": "断开设备",
+  "disconnected": "已断开",
+  "disconnectedFrom": "已与 {appId} 断开",
+  "@disconnectedFrom": {
+    "placeholders": {
+      "appId": {
+        "type": "String"
+      }
+    }
+  },
+  "donateByBuyingFromPlayStore": "通过在 Play Store 购买应用",
+  "donateViaCreditCard": "通过信用卡、Google Pay、Apple Pay 等",
+  "donateViaPaypal": "通过 PayPal",
+  "download": "下载",
+  "downloadLatestSettings": "下载最新设置",
+  "dragToReposition": "拖动以调整位置",
+  "duplicate": "复制",
+  "enableAutoRotation": "请在设备上开启自动旋转，以确保应用正常工作。",
+  "enableBluetooth": "开启蓝牙",
+  "enableItInTheConnectionSettingsFirst": "请先在连接设置中开启它。",
+  "enableKeyboardAccessMessage": "在接下来的界面中为 BikeControl 开启键盘访问。如果看不到 BikeControl，请手动添加。",
+  "enableKeyboardAccessLinuxMessage": "BikeControl 通过 /dev/uinput 模拟按键，但没有写入权限。请用 udev 规则授予权限，例如在 /etc/udev/rules.d/60-bikecontrol-uinput.rules 中加入 KERNEL==\"uinput\", TAG+=\"uaccess\"，然后注销并重新登录。",
+  "enableKeyboardMouseControl": "BikeControl 会替你把控制器的按键发送给 {appName}，无需打字。",
+  "@enableKeyboardMouseControl": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "enable": "开启",
+  "enableLocalConnectionMethodDescription": "此动作使用本机连接方式，但尚未开启。开启后即可使用此动作。",
+  "enableLocalConnectionMethodTitle": "开启本机连接方式？",
+  "enableLocalConnectionMethodFirst": "请先开启本机连接方式。",
+  "enableMediaKeyDetection": "开启蓝牙媒体遥控器",
+  "enableMywhooshLinkInTheConnectionSettingsFirst": "请先在连接设置中开启 MyWhoosh Link。",
+  "enablePairingProcess": "充当蓝牙鼠标",
+  "enablePermissions": "开启权限",
+  "enableSteeringWithPhone": "使用手机传感器开启转向",
+  "enableVibrationFeedback": "换挡时开启振动反馈",
+  "enableZwiftControllerBluetooth": "开启 Zwift 控制器（蓝牙）",
+  "enableZwiftControllerNetwork": "开启 Zwift 控制器（网络）",
+  "errorStartingMyWhooshLink": "启动 MyWhoosh Link 服务器时出错。请确保「MyWhoosh Link」应用未在此设备上运行。",
+  "errorStartingOpenBikeControlBluetoothServer": "启动 OpenBikeControl 蓝牙服务器时出错。",
+  "errorStartingOpenBikeControlServer": "启动 OpenBikeControl 服务器时出错。",
+  "exportAction": "导出",
+  "failedToImportProfile": "无法导入映射。格式无效。",
+  "failedToUpdate": "更新失败：{error}",
+  "@failedToUpdate": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "firmware": "固件",
+  "forceCloseToUpdate": "强制关闭应用以使用新版本",
+  "full": "基础版",
+  "fullVersion": "基础版",
+  "fullVersionDescription": "基础版包括：\n- 每天指令次数不限\n- 可获得今后的所有更新\n- 无需订阅！只需一次性付费 :)",
+  "getSupport": "获取支持",
+  "goPro": "开通 Pro",
+  "gotIt": "知道了！",
+  "grant": "授予",
+  "granted": "已授予",
+  "helpRequested": "已请求 BikeControl v{version} 的帮助",
+  "@helpRequested": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "howBikeControlUsesPermission": "BikeControl 如何使用此权限？",
+  "ignoredDevices": "已忽略的设备",
+  "importAction": "导入",
+  "importProfile": "导入映射",
+  "instructionVideo": "说明视频",
+  "instructions": "说明",
+  "jsonData": "JSON 数据",
+  "justNow": "刚刚",
+  "keyboardAccess": "键盘访问",
+  "lastSeen": "上次出现：",
+  "lastSynced": "上次同步：",
+  "latestVersion": "最新：{version}",
+  "@latestVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveAReview": "留下评价",
+  "letsAppConnectOverBluetooth": "让 {appName} 通过蓝牙连接到 BikeControl。",
+  "@letsAppConnectOverBluetooth": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "letsAppConnectOverNetwork": "让 {appName} 通过网络直接连接。在连接界面中选择 BikeControl。",
+  "@letsAppConnectOverNetwork": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "letsGetYouSetUp": "来完成设置吧！",
+  "license": "许可证",
+  "licenseStatus": "许可证状态",
+  "loadScreenshotForPlacement": "加载游戏内截图用于放置",
+  "localNetworkAccess": "本地网络访问",
+  "localNetworkAccessDeniedIos": "没有本地网络访问权限，BikeControl 无法连接到你的骑行软件。请在设置 → BikeControl → 本地网络中开启。",
+  "localNetworkAccessDeniedMacos": "没有本地网络访问权限，BikeControl 无法连接到你的骑行软件。请在系统设置 → 隐私与安全性 → 本地网络中开启。",
+  "logViewer": "日志查看器",
+  "loggedInAsMail": "已登录为 {email}",
+  "logout": "退出登录",
+  "logs": "日志",
+  "logsAreAlsoAt": "日志也位于",
+  "logsHaveBeenCopiedToClipboard": "日志已复制到剪贴板",
+  "longPress": "长\n按",
+  "longPressMode": "长按模式（而非重复）",
+  "longTapExplanation": "点按 1：键按下\n点按 2：键松开",
+  "mailSupportExplanation": "通过邮件提供一对一支持对我来说工作量很大。\n\n请考虑在 Reddit、Facebook 或 GitHub 上提问和反馈问题，这样整个社区都能受益。",
+  "main": "主要",
+  "manageIgnoredDevices": "管理已忽略的设备",
+  "manageProfile": "管理映射",
+  "keymapSyncLabel": "在你的设备之间同步按键映射",
+  "keymapManageLabel": "重命名、复制、导入、导出或删除按键映射",
+  "manageSubscription": "管理订阅",
+  "manageYourDevices": "管理你的设备",
+  "manualyControllingButton": "手动控制 {trainerApp}！",
+  "mediaKeyDetectionTooltip": "开启此选项后，BikeControl 可以检测蓝牙遥控器。\n为此，BikeControl 需要充当媒体播放器。",
+  "miniWorkoutStart": "开始记录",
+  "miniWorkoutStop": "停止",
+  "miniWorkoutRecording": "记录中",
+  "miniWorkoutPaused": "已暂停",
+  "miniWorkoutNoTrainerConnected": "连接智能骑行台以记录活动。",
+  "miniWorkoutSummaryDuration": "时长",
+  "miniWorkoutSummaryAvgPower": "平均功率",
+  "miniWorkoutSummaryMaxPower": "最大功率",
+  "miniWorkoutSummaryAvgCadence": "平均踏频",
+  "miniWorkoutSummaryDistance": "距离",
+  "miniWorkoutSummaryAvgHeartRate": "平均心率",
+  "miniWorkoutSummaryMaxHeartRate": "最大心率",
+  "miniWorkoutShareFit": "分享到 Strava、佳明等",
+  "miniWorkoutOpenFolder": "打开活动文件夹",
+  "miuiDeviceDetected": "检测到 MIUI 设备",
+  "miuiDisableBatteryOptimization": "• 为 BikeControl 关闭电池优化",
+  "miuiEnableAutostart": "• 为 BikeControl 开启自启动",
+  "miuiEnsureProperWorking": "为确保 BikeControl 正常工作：",
+  "miuiLockInRecentApps": "• 在最近任务中锁定应用",
+  "miuiWarningDescription": "你的设备正在运行 MIUI，已知它会大幅终止后台服务和辅助功能服务。",
+  "moreInformation": "更多信息",
+  "mustChooseAllowOrDeny": "你必须选择允许或拒绝此权限才能继续。",
+  "myWhooshDirectConnectAction": "MyWhoosh「Link」动作",
+  "myWhooshGearHintTitle": "BikeControl 负责你的挡位",
+  "myWhooshGearHintBody": "这适用于 BikeControl 自己的虚拟换挡在控制你的骑行台时：请在 MyWhoosh 的设置中关闭虚拟换挡，或在 MyWhoosh 中隐藏挡位界面。否则两个应用可能会同时控制阻力，换挡手感会不一致。",
+  "myWhooshLinkConnected": "MyWhoosh「Link」已连接",
+  "myWhooshLinkDescriptionLocal": "通过「Link」方式直接连接到 MyWhoosh。请查看说明以确保可以连接。「MyWhoosh Link」应用不能同时处于运行状态。",
+  "myWhooshLinkInfo": "如果遇到任何问题，请查看故障排除部分。更可靠的连接方式即将推出！",
+  "needHelpClickHelp": "需要帮助？请单击",
+  "needHelpDontHesitate": "顶部的按键，并随时联系我们。",
+  "never": "从不",
+  "newConnectionMethodAnnouncement": "{trainerApp} 即将支持好得多、更可靠的连接方式 - 请关注更新！",
+  "newCustomProfile": "新映射",
+  "newProfileName": "新映射名称",
+  "newVersionAvailable": "有新版本可用",
+  "newVersionAvailableWithVersion": "有新版本可用：{version}",
+  "@newVersionAvailableWithVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "newer": "较新",
+  "newerSettingsAvailable": "有较新的设置可用",
+  "next": "下一步",
+  "no": "否",
+  "noActionAssigned": "未指定动作",
+  "noActionAssignedShort": "（无）",
+  "@noActionAssignedShort": {
+    "description": "Compact value for a button trigger with no action, shown at the end of a mapping row"
+  },
+  "actionWaitsForConnectionMethod": "暂时无法使用：请开启一种连接方式",
+  "rideButtonsWaitForConnection": "标有 – 的按键需要连接方式。",
+  "noActionAssignedForButton": "无法执行 {button}：未指定动作",
+  "trainerAppNotConnectedForButton": "无法执行 {button}：{app} 未连接",
+  "@trainerAppNotConnectedForButton": {
+    "placeholders": {
+      "button": {
+        "type": "Object"
+      },
+      "app": {
+        "type": "Object"
+      }
+    }
+  },
+  "trainerAppActionUnsupportedForButton": "无法执行 {button}：{app} 不支持此操作",
+  "@trainerAppActionUnsupportedForButton": {
+    "placeholders": {
+      "button": {
+        "type": "Object"
+      },
+      "app": {
+        "type": "Object"
+      }
+    }
+  },
+  "noActiveWorkout": "没有正在进行的记录",
+  "noProxyTrainerConnected": "未连接智能骑行台",
+  "noConnectionMethodIsConnectedOrActive": "没有已连接或处于活动状态的连接方式。",
+  "noConnectionMethodSelected": "未选择连接方式",
+  "noControllerConnected": "没有已连接",
+  "noControllerUseCompanionMode": "没有控制器？使用 Companion 模式。",
+  "noDevicesRegistered": "没有已注册的设备",
+  "noIgnoredDevices": "没有已忽略的设备。",
+  "disconnectedForThisSession": "本次会话已断开",
+  "noTrainerSelected": "未选择骑行台",
+  "notConnected": "未连接",
+  "notificationDescription": "这可使应用在后台保持运行，并在设备连接变化时通知你。",
+  "officiallySupported": "官方支持",
+  "overlayDisabledIos": "骑行中，骑行台悬浮窗会浮在骑行软件上方——在支持的 iPhone 上则为灵动岛——以及锁定屏幕。",
+  "overlayUsePip": "浮动窗口（画中画）",
+  "overlayUsePipSubtitle": "除锁定屏幕（以及可用时的灵动岛）外，还在骑行软件上方的浮动窗口中显示你的挡位。",
+  "overlayEnabled": "骑行时显示悬浮窗",
+  "overlayFieldCadence": "踏频",
+  "overlayFieldControls": "换挡 / 功率按键",
+  "overlayFieldErgTarget": "ERG 目标",
+  "overlayFieldGearRatio": "齿比",
+  "overlayFieldPower": "功率",
+  "overlayFieldsLabel": "要显示的字段",
+  "overlayGrantAndroidPermission": "授予悬浮窗权限",
+  "overlayHide": "隐藏悬浮窗",
+  "overlayNotificationTitle": "挡位悬浮窗已开启",
+  "overlayNotificationText": "点按以打开 BikeControl",
+  "overlayNotificationChannel": "挡位悬浮窗",
+  "overlayLowPowerMode": "实时活动已关闭（低电量模式或系统设置）。",
+  "overlayOpacity": "悬浮窗不透明度",
+  "overlayOpacitySubtitle": "淡化浮动悬浮窗，使其融入骑行软件。",
+  "overlayPermissionExplain": "安卓需要权限才能在骑行软件上绘制悬浮窗。",
+  "overlaySection": "悬浮窗",
+  "overlaySectionSubtitle": "骑行时实时显示挡位。",
+  "overlaySettings": "悬浮窗设置",
+  "overlayWindowsTip": "请以无边框窗口模式运行骑行软件，以便悬浮窗保持可见。",
+  "ok": "确定",
+  "only": "仅",
+  "onboardingMenuEntry": "设置指南",
+  "onboardingUpdatePatchBody": "已经下载——重新启动即可在最新版本上完成设置。",
+  "onboardingUpdateStoreBody": "请先更新，以便设置在最新版本上运行。",
+  "onboardingUpdateRestart": "重新启动",
+  "onboardingUpdateOpenStore": "更新",
+  "onboardingWelcomeTitle": "来完成设置",
+  "onboardingWelcomeSubtitle": "现在花几分钟，之后每次骑行，你的控制器都能在骑行软件中换挡。",
+  "onboardingWelcomePointController": "配对控制器，看按键亮起",
+  "onboardingWelcomePointTrainer": "可选：让智能骑行台通过 BikeControl 进行虚拟换挡",
+  "onboardingWelcomePointApp": "逐步连接到你的骑行软件",
+  "onboardingWelcomeStart": "开始吧",
+  "onboardingWelcomeLater": "我稍后再设置",
+  "onboardingWelcomeFootnote": "你可以随时通过菜单 → 设置指南重新打开。",
+  "onboardingStepOf": "第 {current} 步，共 {total} 步",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingStepApp": "骑行软件",
+  "onboardingStepAppSub": "你和谁一起骑",
+  "onboardingStepWhere": "在哪里运行",
+  "onboardingStepWhereSub": "此设备或其他设备",
+  "onboardingStepController": "控制器",
+  "onboardingStepControllerSub": "查找并连接",
+  "onboardingStepVs": "虚拟换挡",
+  "onboardingStepVsSub": "可选",
+  "onboardingStepConnection": "连接",
+  "onboardingStepConnectionSub": "连接应用",
+  "onboardingStepDone": "就绪",
+  "onboardingStepDoneSub": "测试并骑行",
+  "onboardingVerified": "已验证",
+  "onboardingAppTitle": "你用哪个应用骑行？",
+  "onboardingAppSubtitle": "我们会为它预选正确的连接方式和按键映射。",
+  "onboardingAppNote": "官方应用已经过 BikeControl 测试，并有已验证的按键映射。其他应用通过通用连接方式工作。",
+  "onboardingAppPickToContinue": "选择一个应用以继续",
+  "onboardingAppContinueWith": "继续使用 {app}",
+  "@onboardingAppContinueWith": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWhereTitle": "{app} 在哪里运行？",
+  "@onboardingWhereTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWhereSubtitle": "这决定 BikeControl 如何与它通信。",
+  "onboardingWhereEnablesLocal": "BikeControl 会替你按下 {app} 中的按键——不需要其他设备。",
+  "@onboardingWhereEnablesLocal": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWhereEnablesBluetooth": "{app} 通过蓝牙找到 BikeControl。",
+  "@onboardingWhereEnablesBluetooth": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWhereEnablesNetwork": "{app} 通过你的 Wi-Fi 找到 BikeControl。",
+  "@onboardingWhereEnablesNetwork": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingWhereChangeLater": "你可以稍后在连接设置中更改。",
+  "onboardingHelp": "帮助",
+  "onboardingHelpAndSupport": "帮助与支持",
+  "onboardingBack": "返回",
+  "onboardingContinue": "继续",
+  "onboardingHelpSheetTitle": "需要帮忙吗？",
+  "onboardingHelpSheetIntro": "设置大约需要几分钟。如果卡住了，从这里开始。",
+  "onboardingHelpAppTitle": "我该选哪个应用？",
+  "onboardingHelpAppBody": "选择你实际骑行时使用的应用。官方集成已经过 BikeControl 测试；其他应用通过通用方式连接。",
+  "onboardingHelpWhereTitle": "同一台设备还是另一台？",
+  "onboardingHelpWhereBody": "如果骑行软件在 Apple TV、PC 或平板上，而 BikeControl 在其他地方，请选择「其他设备」。",
+  "onboardingHelpControllerTitle": "我的控制器没有出现",
+  "onboardingHelpControllerBody": "按一下按键唤醒它，关闭任何已占用它的应用（尤其是 Zwift），并保持在几米以内。",
+  "onboardingHelpVsTitle": "我需要智能骑行台吗？",
+  "onboardingHelpVsBody": "不需要——这一步是可选的。只有当你想让 BikeControl 计算挡位和阻力时才连接。这就是 BikeControl 的虚拟换挡，属于 Pro。没有 Pro 时，由你的骑行软件处理虚拟换挡。",
+  "onboardingHelpConnectionTitle": "无法连接",
+  "onboardingHelpConnectionBody": "若使用网络，请确认两台设备在同一 Wi-Fi 下；或在 macOS、Windows 和安卓上启用本机作为备用。",
+  "onboardingHelpDoneTitle": "试用有哪些限制？",
+  "onboardingHelpDoneBody": "每天有指令额度，外加 BikeControl 虚拟换挡的每日试用（Pro 功能）。足够用来确认你的设置是否有效。",
+  "onboardingHelpDoneProTitle": "之后在哪里更改？",
+  "onboardingHelpDoneProBody": "这次设置的所有内容都在常规应用里：控制器和按键映射在主屏幕，连接方式在骑行台连接中，智能骑行台在其设备卡片上。",
+  "onboardingHelpGuides": "设置指南",
+  "onboardingHelpTroubleshooting": "故障排除",
+  "onboardingHelpSupport": "联系支持",
+  "onboardingHelpBackToSetup": "返回设置",
+  "onboardingPermissionDeniedTitle": "BikeControl 找不到设备",
+  "onboardingPermissionDeniedBody": "没有蓝牙权限就无法连接到你的控制器。你仍可以完成设置，稍后在设置中授予权限。",
+  "onboardingContinueAnyway": "仍然继续",
+  "onboardingAllowBluetooth": "允许蓝牙",
+  "onboardingBluetoothTitle": "允许 BikeControl 使用蓝牙",
+  "onboardingBluetoothSubtitle": "BikeControl 需要搜索附近的设备，并在连接变化时通知你。",
+  "onboardingBluetoothFindTitle": "查找附近的控制器",
+  "onboardingBluetoothFindSub": "扫描你的手变或 Click 设备。",
+  "onboardingBluetoothNotifyTitle": "及时通知你",
+  "onboardingBluetoothNotifySub": "在设备连接或掉线时通知你。",
+  "onboardingBluetoothPrivacy": "BikeControl 绝不会将此用于定位或追踪。",
+  "onboardingBluetoothLocationNote": "安卓需要位置信息权限才能查找蓝牙设备。BikeControl 不会追踪你的位置。",
+  "onboardingNotNow": "暂不",
+  "onboardingScanTitle": "正在查找你的控制器",
+  "onboardingScanSubtitle": "请确保它已开机、在范围内，且未连接到其他应用。",
+  "onboardingScanEmptyTitle": "未找到控制器",
+  "onboardingScanEmptySubtitle": "没有设备响应扫描。通常下面几件事可以解决：",
+  "onboardingScanEmptyWakeTitle": "唤醒设备",
+  "onboardingScanEmptyWakeSub": "按下按键或拨片来唤醒它。",
+  "onboardingScanEmptyDisconnectTitle": "在其他地方断开它",
+  "onboardingScanEmptyDisconnectSub": "关闭 Zwift 或任何已占用该连接的应用。",
+  "onboardingScanEmptyCloserTitle": "靠近一些",
+  "onboardingScanEmptyCloserSub": "配对时保持在几米范围内。",
+  "onboardingScanEmptyFirmwareTitle": "更新固件",
+  "onboardingScanEmptyFirmwareSub": "过旧的控制器会保持不可见。请在 Zwift Companion 应用中更新。",
+  "zwiftCompanionApp": "Zwift Companion",
+  "firmwareUpdateRequired": "你可能需要在 Zwift Companion 应用中更新 {device} 的固件。",
+  "@firmwareUpdateRequired": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "firmwareUpdateAvailable": "{device} 有新固件版本可用：{latest}（当前：{current}）。请在 Zwift Companion 应用中更新。",
+  "@firmwareUpdateAvailable": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "latest": {
+        "type": "String"
+      },
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "zwiftRideFirmwareNoticeTitle": "此 Zwift Ride 可能无法正常工作",
+  "zwiftRideFirmwareNoticeBody": "你的 Zwift Ride 正在运行固件 {version}，这可能导致它无法与本应用这类第三方应用一起工作。请联系我们，我们会帮你解决。",
+  "@zwiftRideFirmwareNoticeBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "zwiftRideFirmwareLater": "稍后",
+  "zwiftRideFirmwareSupportPrefill": "你好！我的 Zwift Ride 固件是 {version}，我觉得它已经无法和其他应用一起工作了。能帮忙吗？",
+  "@zwiftRideFirmwareSupportPrefill": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingScanAgain": "重新扫描",
+  "onboardingSetUpLater": "不连接控制器并继续",
+  "onboardingCantFindController": "找不到你的控制器？",
+  "onboardingControllerListTitle": "控制器",
+  "onboardingControllerListSubtitle": "找到设备后会自动连接。",
+  "onboardingControllerReadyTitle": "你的控制器已就绪",
+  "onboardingControllerReadySubtitle": "试一下——按一个按键，看看 BikeControl 的反应。",
+  "onboardingStillScanning": "仍在扫描…",
+  "onboardingDeviceConnected": "已连接",
+  "onboardingDeviceConnecting": "正在连接…",
+  "onboardingSetupNeeded": "需要设置",
+  "onboardingControllerMapped": "你的按键已经为 {app} 映射好了。之后可以逐个微调。",
+  "@onboardingControllerMapped": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsBlockedTitle": "可选：连接你的智能骑行台",
+  "onboardingVsBlockedSubtitle": "BikeControl 可以为任何应用计算你的挡位——当 {app} 在此设备上时，只是需要另一种安排。",
+  "@onboardingVsBlockedSubtitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsBlockedExplainer": "虚拟换挡可以与 {app} 配合——只是不能两款应用都在这一台设备上：这里的 {app} 只能通过蓝牙配对骑行台，而 BikeControl 无法向同一台设备上的应用广播蓝牙。",
+  "@onboardingVsBlockedExplainer": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsBlockedExplainerStoreApp": "虚拟换挡可以与 {app} 配合——只是不能两款应用都在这一台 PC 上：{app} 来自 Microsoft Store，而 Windows 不允许商店应用连接到同一台 PC 上的 BikeControl。蓝牙也无法连接到同一台设备上的应用。",
+  "@onboardingVsBlockedExplainerStoreApp": {
+    "description": "Why virtual shifting needs a second device when a Microsoft Store trainer app runs on the same Windows PC as BikeControl.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsBlockedAlternatives": "两种可行的方案",
+  "onboardingVsBlockedAltAppTitle": "在另一台设备上运行 {app}",
+  "@onboardingVsBlockedAltAppTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsBlockedAltAppBody": "把 BikeControl 留在这里，在另一台 PC、Apple TV、平板或手机上用 {app} 骑行——它会通过 BikeControl 找到你的骑行台。返回上一步，并选择「其他设备」。",
+  "@onboardingVsBlockedAltAppBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsBlockedAltBtTitle": "在另一台设备上运行 BikeControl",
+  "@onboardingVsBlockedAltBtTitle": {},
+  "onboardingVsBlockedAltBtBody": "在自行车旁的第二台手机或平板上安装 BikeControl，让它从那里把骑行台传给 {app}。",
+  "@onboardingVsBlockedAltBtBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingTrainerTitle": "可选：让 BikeControl 负责虚拟换挡",
+  "onboardingTrainerSubtitle": "连接你的智能骑行台，BikeControl 会为你计算每一个挡位——在你骑行的任何应用中。",
+  "onboardingNearbyTrainers": "附近的智能骑行台",
+  "onboardingTrainerMeta": "支持虚拟换挡",
+  "onboardingTrainerHowItWorks": "用 BikeControl 和不用时的虚拟换挡——有什么区别？",
+  "onboardingTrainerConnectedTitle": "骑行台已连接",
+  "onboardingTrainerConnectedSubtitle": "BikeControl 现在可以计算你的挡位并设置阻力。",
+  "onboardingTrainerNextStepNote": "下一步你会把 {app} 指向 BikeControl 的虚拟骑行台，这样你的挡位就能传过去。",
+  "@onboardingTrainerNextStepNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingLetAppHandleVs": "让 {app} 负责虚拟换挡",
+  "@onboardingLetAppHandleVs": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingConnectionMethods": "连接方式",
+  "onboardingMethodNetwork": "网络",
+  "onboardingMethodNetworkDesc": "{app} 通过你的 Wi-Fi 发现 BikeControl——若在两台设备上，请让它们处于同一网络。",
+  "@onboardingMethodNetworkDesc": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingMethodBluetooth": "蓝牙",
+  "onboardingMethodBluetoothBadge": "最适合 iOS",
+  "onboardingMethodBluetoothDesc": "{app} 也接受通过蓝牙连接的 BikeControl——BikeControl 在后台时仍可继续工作。",
+  "@onboardingMethodBluetoothDesc": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingMethodLocal": "本机",
+  "onboardingMethodLocalBadge": "macOS · Windows · 安卓",
+  "onboardingMethodLocalDesc": "在此设备上发送键盘、触控和媒体操作。其他方式连不上时，这是不错的后备方案。",
+  "onboardingMethodLocalFeature1": "音乐和媒体控制",
+  "onboardingMethodLocalFeature2": "额外的骑行台动作",
+  "onboardingMethodLocalFeature3": "完整的按键自定义",
+  "onboardingMethodLocalIosNote": "在 iOS 上不可用——请使用「网络」。",
+  "onboardingSelectItFor": "将其选为",
+  "onboardingSlotPower": "功率源",
+  "onboardingSlotControllable": "可控 / 阻力",
+  "onboardingSlotCadence": "踏频",
+  "onboardingLive": "在线",
+  "onboardingConnectionTitle": "连接到 {app}",
+  "@onboardingConnectionTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingConnectionSubtitleLocal": "{app} 在此设备上运行，因此 BikeControl 可以直接控制它。",
+  "@onboardingConnectionSubtitleLocal": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingConnectionSubtitleNetwork": "BikeControl 会在你的网络上广播自己，以便 {app} 能发现它。",
+  "@onboardingConnectionSubtitleNetwork": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingConnectionSubtitleBluetooth": "BikeControl 会显示为蓝牙骑行台，以便 {app} 能连接到它。",
+  "@onboardingConnectionSubtitleBluetooth": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingThenInApp": "然后在 {app} 中",
+  "@onboardingThenInApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingFullSetupGuide": "完整的 {app} 设置指南",
+  "@onboardingFullSetupGuide": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGuideMyWhoosh1": "在 MyWhoosh 中打开连接界面",
+  "onboardingGuideMyWhoosh2": "点按右上角的 OpenBikeControl 图标",
+  "onboardingGuideMyWhoosh3": "在弹窗中点按「是」，让 BikeControl 连接",
+  "onboardingGuideRouvy1": "打开 Rouvy 并进入连接界面",
+  "onboardingGuideRouvy2": "BikeControl 会显示为可用的控制器——连接并开始骑行",
+  "onboardingGuideTp1": "在 TrainingPeaks Virtual 中打开连接界面",
+  "onboardingGuideTp2": "与 BikeControl 配对",
+  "onboardingGuideTp3": "把你想要的动作映射到按键",
+  "onboardingGuideStrappo1": "打开 Strappo 的连接界面",
+  "onboardingGuideStrappo2": "通过 OpenBikeControl 协议与 BikeControl 配对",
+  "onboardingGuideGeneric1": "打开 {app} 的连接界面",
+  "@onboardingGuideGeneric1": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingGuideGeneric2": "与 BikeControl 配对",
+  "onboardingPairAsTrainer": "将 BikeControl 配对为你的骑行台",
+  "onboardingPairAsTrainerBody": "在 {app} 的配对界面上，不要直接选择你的骑行台——请选择 BikeControl 这一项。挡位就是靠它传过去的。",
+  "@onboardingPairAsTrainerBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVirtualTrainerGears": "虚拟骑行台 · {gears} 个挡位",
+  "@onboardingVirtualTrainerGears": {
+    "placeholders": {
+      "gears": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingPairAsTrainerWarning": "如果直接配对 {trainer}，{app} 会使用原始功率，BikeControl 的挡位将不会生效。",
+  "@onboardingPairAsTrainerWarning": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingFinishSetup": "完成设置",
+  "onboardingConnectionTurnOnMethod": "请开启一种连接方式以继续。",
+  "onboardingDoneTitle": "你可以开始骑行了",
+  "onboardingYourController": "你的控制器",
+  "onboardingDoneSubtitle": "{controller} 已连接到 {app}。",
+  "@onboardingDoneSubtitle": {
+    "placeholders": {
+      "controller": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingDoneSubtitleBridged": "{controller} 已连接到 {app}，并且 {app} 通过 BikeControl 获取你的骑行台。",
+  "@onboardingDoneSubtitleBridged": {
+    "placeholders": {
+      "controller": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSummaryReady": "就绪",
+  "onboardingAlmostThereTitle": "快完成了",
+  "onboardingAlmostThereSubtitle": "BikeControl 这边已经设置好了——正在等待 {app} 连接。请在 {app} 中完成以下步骤：",
+  "@onboardingAlmostThereSubtitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSummaryWaitingFor": "正在等待 {app}…",
+  "@onboardingSummaryWaitingFor": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingTestModeTitle": "你正在试用",
+  "onboardingTestModeBody": "现在就开始骑行，检查是否一切正常。试用每天允许 {commands} 条指令——足够验证连接，但不够完成整次骑行。",
+  "onboardingTestModeBodyVs": "现在就开始骑行，检查是否一切正常。试用每天允许 {commands} 条指令，而 BikeControl 的虚拟换挡——一项 Pro 功能——每天可运行 {minutes} 分钟。",
+  "onboardingSeeProOptions": "查看 Pro 和基础版选项",
+  "onboardingDoneFinishLater": "完成——我稍后再连接",
+  "onboardingDoneStartRiding": "完成——开始骑行",
+  "openBikeControlActions": "OpenBikeControl 动作",
+  "openBikeControlAnnouncement": "好消息——{trainerApp} 支持 OpenBikeControl 协议，你会获得最好的体验！",
+  "otherConnectionMethods": "其他连接方式",
+  "otherTrainerApps": "其他骑行软件",
+  "pairingDescription": "这样你就可以把手机当作蓝牙鼠标来控制应用。配对后，你可以用自行车控制器上的按键向应用发送鼠标输入。",
+  "pairingInstructions": "在你的 {targetName} 上进入蓝牙设置，查找 BikeControl 或你的设备名称。如果要使用遥控功能，需要配对。",
+  "@pairingInstructions": {
+    "placeholders": {
+      "targetName": {
+        "type": "String"
+      }
+    }
+  },
+  "pairingInstructionsIOS": "在 iPad 上前往「设置」>「辅助功能」>「触控」>「辅助触控」>「指针设备」>「设备」，然后配对你的设备。请确保已启用辅助触控。",
+  "pasteExportedJsonData": "将导出的 JSON 数据粘贴到下方：",
+  "pathCopiedToClipboard": "路径已复制到剪贴板",
+  "paywall_amountOfActions": "每天按键次数",
+  "paywall_billedAtPricemo": "按 {price}/月计费。",
+  "paywall_billedAtYearly": "按 {cost}/年计费。",
+  "paywall_configure3ActionsPerButton": "每个按键最多 3 个动作：单击、双击、长按",
+  "paywall_controlYourDeviceMusic": "控制你的设备 / 音乐",
+  "paywall_createScreenshots": "创建截图",
+  "paywall_monthly": "月付",
+  "paywall_startAnyCommandShortcutWithAnyButton": "用任意按键启动任意指令 / 快捷键",
+  "paywall_supportDevelopmentOfNewFeaturesDevicesAndMore": "支持新功能 / 设备等的开发",
+  "paywall_synchronizeAndBackup": "同步和备份",
+  "paywall_useBikecontrolOnAllPlatforms": "一个账户即可在 iPhone 和 iPad、安卓、Mac、Windows 和 Linux 上使用 BikeControl",
+  "paywall_yearly": "年付",
+  "permissionsRequired": "为了让 BikeControl 搜索附近设备，并在连接变化时通知你，请开启以下权限：",
+  "proSubscriptionRequiredForAction": "此动作需要 Pro 订阅",
+  "proSubscriptionRequiredForAdditionalTriggers": "其他触发类型需要 Pro 订阅",
+  "platformNotSupported": "不支持此 {platform} :(",
+  "@platformNotSupported": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "platformRestrictionNotSupported": "由于平台限制，不支持此场景。",
+  "platformRestrictionOtherDevicesOnly": "由于平台限制，仅支持在其他设备上控制 {appName}。",
+  "@platformRestrictionOtherDevicesOnly": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "playPause": "播放/暂停",
+  "pleaseSelectAConnectionMethodFirst": "请先在连接设置中开启一种连接方式。",
+  "predefinedAction": "预定义的 {appName} 动作",
+  "@predefinedAction": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "preferences": "偏好设置",
+  "pressButtonOnClickDevice": "在你的 Click 设备上按一个按键",
+  "pressKeyToAssign": "在键盘上按一个键，以分配给 {buttonName}",
+  "@pressKeyToAssign": {
+    "placeholders": {
+      "buttonName": {
+        "type": "String"
+      }
+    }
+  },
+  "previous": "上一个",
+  "privacyPolicy": "隐私政策",
+  "profileExportedToClipboard": "映射「{profileName}」已复制到剪贴板",
+  "@profileExportedToClipboard": {
+    "placeholders": {
+      "profileName": {
+        "type": "String"
+      }
+    }
+  },
+  "profileImportedSuccessfully": "映射已导入",
+  "profileName": "映射名称",
+  "purchase": "购买",
+  "recommendedConnectionMethods": "推荐的连接方式",
+  "registerCurrentDevice": "注册当前设备",
+  "registeredDevices": "已注册设备",
+  "removeFromIgnoredList": "从忽略列表中移除",
+  "removeOnePressAction": "{device} 原生不支持长按。要使用此类型，需要移除长按动作。",
+  "rename": "重命名",
+  "renameProfile": "重命名映射",
+  "replaceExisting": "替换现有",
+  "requirement": "要求",
+  "reset": "重置",
+  "resetToDefaults": "恢复默认",
+  "restart": "重启",
+  "restorePurchaseInfo": "点击上方按钮，然后点按「恢复购买」。如有任何问题，请直接联系我。",
+  "restorePurchases": "恢复购买",
+  "runAppOnThisDevice": "在此设备上运行 {appName}。",
+  "@runAppOnThisDevice": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "runScript": "运行脚本",
+  "save": "保存",
+  "scan": "扫描",
+  "scanningForDevices": "正在扫描设备...请确保它们已开机、在范围内，且未连接到其他设备。",
+  "lookingForSmartTrainers": "正在查找智能骑行台…",
+  "selectADeviceToSyncFrom": "选择要从中同步的设备",
+  "selectKeymap": "选择映射",
+  "warningInstallOnTargetDevice": "BikeControl 也可在 iOS、安卓、Windows 和 macOS 上使用。为了妥善支持 {appName}，请在该设备上下载 BikeControl。",
+  "@warningInstallOnTargetDevice": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningAppLocalControlOnly": "{appName} 不接受外部控制器，因此按键只能通过本机方式送达——这需要 BikeControl 与 {appName} 在同一设备上运行。",
+  "@warningAppLocalControlOnly": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "warningAppLocalControlIosNote": "本机方式仅适用于 macOS、Windows 和安卓。在 iPhone 或 iPad 上，按键完全无法送达 {appName}——BikeControl 仍可以把你的骑行台桥接给它，因此虚拟换挡可以继续工作。",
+  "@warningAppLocalControlIosNote": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTrainerApp": "选择骑行软件",
+  "selectTrainerAppAndTarget": "选择骑行软件和目标设备",
+  "selectTrainerAppPlaceholder": "选择骑行软件",
+  "setting": "设置",
+  "settingsAppliedFromId": "已应用来自 {deviceId} 的设置...",
+  "settingsDownloadedFromServer": "已从服务器下载设置",
+  "settingsSyncedSuccessfully": "设置同步成功",
+  "settingsSynchronization": "设置同步",
+  "setupComplete": "设置完成！",
+  "setupTrainer": "设置骑行台",
+  "share": "分享",
+  "showDonation": "通过捐赠表达你的感谢",
+  "showSupportedControllers": "显示支持的控制器",
+  "signInToSyncYourSubscriptionAndManageDevices": "登录以同步订阅并管理设备",
+  "signal": "信号",
+  "simulateButtons": "骑行台控制",
+  "simulateKeyboardShortcut": "按一个键盘键",
+  "simulateMediaKey": "控制音乐播放",
+  "simulateTouch": "点击屏幕上的任意按钮",
+  "skip": "跳过",
+  "smartTrainerAndAccessories": "智能骑行台和配件",
+  "stop": "停止",
+  "supportedActions": "支持的动作",
+  "syncSettings": "同步设置",
+  "syncStatus": "同步状态",
+  "synchronizeAcrossDevices": "在设备间同步",
+  "synchronizeYourAppSettingsAcrossAllYourDevicesThisIncludes": "在你的所有设备间同步应用设置。这包括按键映射、带齿比的换挡配置，以及你的偏好设置。",
+  "targetOtherDevice": "其他设备",
+  "targetThisDevice": "此设备",
+  "termsOfUse": "使用条款",
+  "theFollowingPermissionsRequired": "需要以下权限：",
+  "thisFeatureIsOnlyAvailableWithPro": "此功能仅在 Pro 中可用。升级到 Pro 以解锁全部功能。",
+  "trainerAppDoesNotSupportConnectionYet": "{trainerApp} 暂时还不支持此项",
+  "@trainerAppDoesNotSupportConnectionYet": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
+  "touchAreaInstructions": "1. 以横屏方向为你的应用创建一张游戏内截图（例如在 MyWhoosh 中）\n2. 用下方按钮加载截图\n3. 应用会自动设为横屏方向，以便准确映射\n4. 在你的 Click 设备上按一个按键以创建触控区域\n5. 将触控区域拖到截图上的目标位置\n6. 保存并关闭此界面",
+  "touchSimulationForegroundMessage": "要模拟触控，应用需要保持在前台。",
+  "trainer": "骑行台",
+  "trainerConnection": "骑行台连接",
+  "trainerMissingFtmsWarning": "{trainerName} 未广播 FTMS 服务，因此虚拟换挡可能无法工作。请使用下方的「需要帮助？」来报告此骑行台。",
+  "@trainerMissingFtmsWarning": {
+    "placeholders": {
+      "trainerName": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerConnectTimeout": "无法连接到 {trainer}。请确保它已唤醒、在附近，且未连接到其他应用，然后重试。",
+  "@trainerConnectTimeout": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerConnectFailed": "无法连接到 {trainer}。请稍后再试。",
+  "@trainerConnectFailed": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      }
+    }
+  },
+  "trialDaysRemaining": "试用期：还剩 {trialDaysRemaining} 天",
+  "trialExpired": "试用期已结束。按键次数限制为每天 {dailyCommandLimit} 次。",
+  "trialPeriodActive": "试用期：还剩 {trialDaysRemaining} 天",
+  "trialPeriodDescription": "试用期内，你每天有 {dailyCommandLimit} 次按键。结束后每日上限会降低——基础版或 Pro 可使其不受限制。",
+  "troubleshootingGuide": "帮助与支持",
+  "tryingToConnectAgain": "正在重新连接...",
+  "unassignAction": "取消分配动作",
+  "unlimited": "无限制",
+  "unlockAllFeaturesWithPro": "使用 Pro 解锁全部功能",
+  "unlockFullVersion": "解锁基础版",
+  "unlockTheFullVersionOrGoPro": "解锁基础版 - 或升级到 Pro",
+  "unlock_bikecontrolAndZwiftNetwork": "BikeControl 和 Zwift 需要在同一网络或同一设备上。可能需要几秒钟才会出现。",
+  "unlock_confirmByPressingAButtonOnYourDevice": "按一下设备上的按键进行确认。",
+  "unlock_connectToBikecontrol": "连接到「{name}」，例如作为功率源",
+  "@unlock_connectToBikecontrol": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unlock_deviceIsCurrentlyLocked": "设备当前已锁定",
+  "unlock_isnowunlocked": "{device} 现已解锁",
+  "unlock_markAsUnlocked": "标记为已解锁",
+  "unlock_mode": "解锁模式",
+  "unlock_modeRestart": "每分钟重启设备",
+  "unlock_modeRestartDescription": "左侧控制器会每 60 秒自动重新连接，因此会有短暂中断。",
+  "unlock_modeZwift": "使用 Zwift 解锁",
+  "unlock_modeZwiftDescription": "每 24 小时需要使用 Zwift 解锁设备。",
+  "unlock_notWorking": "不起作用？",
+  "unlock_openZwift": "在此设备或其他设备上打开 Zwift（不是 Companion）",
+  "deviceSettings": "设备设置",
+  "deviceSideLeft": "{device}（左）",
+  "deviceSideRight": "{device}（右）",
+  "unlock_newMethod": "使用新的解锁方式",
+  "unlock_newMethodDescription": "将左右两侧作为独立控制器连接。右侧无需解锁。关闭后则使用单个合并的控制器。",
+  "unlock_newMethodReconnecting": "正在应用…正在重新连接你的 Zwift Click。",
+  "clickV2_keepAwakeNeedsLeftSide": "此控制器本身会保持开启，但没有左侧时指示灯会熄灭。打开左侧以保持灯亮——它只需在附近，BikeControl 不必连接到它。",
+  "unlock_useRightSideOnly": "仅使用右侧",
+  "unlock_useRightSideOnlyDescription": "右侧无需解锁。放下左侧，让右侧负责换挡—— + 升挡，B 降挡。",
+  "unlock_rightSideOnlyConfigured": "完成——仅使用右侧。可随时在「已忽略的设备」中重新启用左侧。",
+  "unlock_unlockManually": "手动解锁",
+  "unlock_zwiftNeedsLeftSide": "解锁在左侧控制器上进行——打开它，以便用 Zwift 解锁。",
+  "unlock_unlockNow": "立即解锁",
+  "unlock_unlockedUntilAroundDate": "已解锁，大约至 {date}",
+  "unlock_waitingForZwift": "正在等待 Zwift 解锁你的设备...",
+  "unlock_youCanNowCloseZwift": "你现在可以关闭 Zwift 并返回 BikeControl。",
+  "unlock_yourTrialPhaseHasExpired": "你的试用期已结束。获取基础版或 Pro，即可解锁更省事的解锁功能 :)",
+  "unlock_yourZwiftClickMightBeUnlockedAlready": "你的 Zwift Click 可能已经解锁。",
+  "unlockingNotPossible": "目前还无法解锁，所以暂时可以无限使用！",
+  "update": "更新",
+  "uploadSettings": "上传设置",
+  "useCustomKeymapForButton": "使用你自己的映射来支持",
+  "version": "版本 {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "versionPatch": "补丁 {number}",
+  "@versionPatch": {
+    "description": "The Shorebird code-push patch the app runs, after the version (e.g. 'Version 7.1.0 · Patch 4').",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "versionBetaTrack": "测试版",
+  "@versionBetaTrack": {
+    "description": "After the version: the app gets its updates from the beta lane."
+  },
+  "versionCopied": "版本已复制到剪贴板",
+  "viewDetailedInstructions": "查看详细说明",
+  "volumeDown": "降低音量",
+  "volumeUp": "提高音量",
+  "waiting": "等待中...",
+  "waitingForConnectionKickrBike": "正在等待连接。请在 {appName} 的控制器配对菜单中选择 KICKR BIKE PRO。",
+  "@waitingForConnectionKickrBike": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNew": "新功能",
+  "whyPermissionNeeded": "为什么需要此权限？",
+  "windowsSubscriptionsRequireYouToBeLoggedIn": "Windows 订阅需要你登录",
+  "linuxSubscriptionsRequireYouToBeLoggedIn": "Linux 订阅需要你登录",
+  "yes": "是",
+  "yourDevices": "你的设备",
+  "yourSettingsAreAutomaticallySyncedWhenYouMakeChangesTap": "你做出更改时，设置会自动同步。点按一台设备即可应用它的设置。",
+  "zwiftControllerAction": "Zwift 控制器动作",
+  "zwiftControllerDescription": "让 BikeControl 充当兼容 Zwift 的控制器。",
+  "smartTrainer": "智能骑行台",
+  "needHelpTitle": "需要帮助？",
+  "needHelpBody": "有什么不符合预期？帮助中心有针对你的设置的分步指南，也可以直接联系支持。",
+  "needHelpOpen": "打开帮助中心",
+  "virtualShiftingSettings": "虚拟换挡设置",
+  "yourTrainerApp": "你的骑行软件",
+  "proxyMode": "代理",
+  "virtualShifting": "虚拟换挡",
+  "proxyModeHint": "通过 Wi-Fi 镜像你的骑行台，不改动挡位逻辑。",
+  "virtualShiftingBluetoothHint": "添加或调整虚拟换挡，并创建一个通过蓝牙广播的骑行台。",
+  "virtualShiftingWifiHint": "添加或调整虚拟换挡，并创建一个通过 Wi-Fi 广播的骑行台。",
+  "virtualShiftingTransportNeededHint": "请启用蓝牙或 Wi-Fi 骑行台连接，才能使用虚拟换挡。",
+  "virtualShiftingHint": "添加或调整虚拟换挡，并将 BikeControl 广播为骑行台。",
+  "noConnection": "无连接",
+  "noConnectionHint": "如果支持，让 {trainerApp} 负责虚拟换挡",
+  "@noConnectionHint": {
+    "placeholders": {
+      "trainerApp": {
+        "type": "String"
+      }
+    }
+  },
+  "connectModeLabel": "连接模式",
+  "helpMeDecide": "帮我决定",
+  "connectingInMode": "正在以 {mode} 模式连接…",
+  "@connectingInMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "connectModeActive": "连接模式：{mode}",
+  "@connectModeActive": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "bikeWeight": "自行车重量",
+  "riderWeight": "骑手体重",
+  "virtualShiftingPhysicsDesc": "用于虚拟换挡的物理计算",
+  "gearSettings": "挡位设置",
+  "gearsCount": "{count} 个挡位",
+  "@gearsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "smoothingOn": "平滑开",
+  "smoothingOff": "平滑关",
+  "customRatios": "自定义齿比",
+  "trainerControl": "阻力模式：SIM 或 ERG",
+  "fixedTargetPowerMode": "固定目标功率模式",
+  "virtualGearShifting": "虚拟换挡",
+  "ergMode": "ERG",
+  "simMode": "SIM",
+  "powerLabel": "功率",
+  "heartLabel": "心率",
+  "cadenceLabel": "踏频",
+  "speedLabel": "速度",
+  "unlockAfterMinuteCheck": "过一分钟后，按一个按键再确认一次",
+  "unlockConfirmByButton": "按一个按键确认解锁",
+  "tuneGearsIntro": "调节每个虚拟挡位，以匹配你的骑行脚感。更改会立即生效。",
+  "vsResetTitle": "重置你的挡位？",
+  "vsResetBody": "挡位数量会恢复为你的骑行软件中的数量，坡度平滑会打开，换挡难度会回到 100%，逐挡齿比会被标准齿比替换。你自己的齿比无法恢复。",
+  "virtualShiftingMode": "虚拟换挡模式",
+  "virtualShiftingModeDesc": "每个挡位如何计算阻力",
+  "targetPowerMode": "目标功率",
+  "trackResistanceMode": "路线阻力",
+  "basicMode": "基础",
+  "gearCount": "挡位数量",
+  "gearCountDesc": "虚拟手变的挡位数",
+  "gradeSmoothing": "坡度平滑",
+  "gradeSmoothingDesc": "对突然的坡度变化取平均",
+  "cadenceFilter": "踏频过滤",
+  "cadenceFilterDesc": "抑制会导致阻力脉冲的传感器尖峰",
+  "presetDefault": "默认",
+  "presetCompact": "紧凑",
+  "presetWide": "宽",
+  "preset1x": "1×",
+  "presetsLabel": "预设",
+  "perGearLabel": "逐挡",
+  "gearNumber": "第 {gear} 挡",
+  "@gearNumber": {
+    "placeholders": {
+      "gear": {
+        "type": "int"
+      }
+    }
+  },
+  "currentBadge": "当前",
+  "neutralBadge": "中性",
+  "referenceBaseRatio": "参考——基准齿比",
+  "closeToNeutral": "接近中性",
+  "harderThanNeutral": "+{magnitude} 比中性更难",
+  "@harderThanNeutral": {
+    "placeholders": {
+      "magnitude": {
+        "type": "String"
+      }
+    }
+  },
+  "easierThanNeutral": "−{magnitude} 比中性更容易",
+  "@easierThanNeutral": {
+    "placeholders": {
+      "magnitude": {
+        "type": "String"
+      }
+    }
+  },
+  "nameHint": "名称",
+  "newShiftingConfig": "新建换挡配置",
+  "manageShiftingConfigs": "管理换挡配置",
+  "active": "使用中",
+  "configCopySuffix": "{name} 副本",
+  "@configCopySuffix": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "newAction": "新建",
+  "manageAction": "管理",
+  "defaultName": "默认",
+  "trainerFeedbackTitle": "发送骑行台反馈",
+  "signInToSendFeedback": "登录以发送反馈",
+  "feedbackAccountTied": "反馈会关联到你的 BikeControl 账户，以便我们跟进特定骑行台的问题。",
+  "signIn": "登录",
+  "yourRating": "你的评分",
+  "requiredField": "必填",
+  "ratingWorks": "正常",
+  "ratingNeedsAdjustment": "需要调整",
+  "ratingDoesntWork": "无法使用",
+  "yourFeedback": "你的反馈",
+  "feedbackPlaceholder": "描述你的骑行台与 BikeControl 的配合情况…",
+  "diagnosticDataTitle": "将发送的诊断数据",
+  "diagnosticDataSubtitle": "只读——自动收集",
+  "sendFeedback": "发送反馈",
+  "feedbackSubmitFailed": "提交反馈失败",
+  "diagBluetoothName": "蓝牙名称",
+  "diagManufacturer": "制造商",
+  "diagFirmware": "固件",
+  "diagSupportsVirtualShifting": "支持虚拟换挡",
+  "diagControlMode": "控制模式",
+  "diagVirtualShiftingMode": "虚拟换挡模式",
+  "diagGradeSmoothing": "坡度平滑",
+  "diagGearRatios": "齿比",
+  "diagTrainerApp": "骑行软件",
+  "diagFtmsMachineFeatures": "FTMS 设备特性",
+  "diagFtmsTargetSettings": "FTMS 目标设置",
+  "diagAppVersion": "应用版本",
+  "diagAppPlatform": "应用平台",
+  "enabledLabel": "已启用",
+  "disabledLabel": "已禁用",
+  "notAvailable": "不可用",
+  "editingTrigger": "正在编辑 {trigger}",
+  "@editingTrigger": {
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      }
+    }
+  },
+  "longPressFallbackHint": "此设备使用长按切换模式：第一次点击发送按键按下，第二次点击发送按键抬起。",
+  "trainerDirectControl": "骑行台直接控制",
+  "repeatSingleClick": "重复单击动作",
+  "localRemoteSetting": "本机 / 远程设置",
+  "broadcastIntent": "广播自定义 Intent",
+  "broadcastIntentDesc": "适用于 MacroDroid 或 Tasker 等自动化应用",
+  "otherActions": "其他动作",
+  "takeScreenshot": "截图",
+  "accessoryNoControllerYet": "连接一个控制器，以便将这些动作分配到它的按键。",
+  "accessorySetUpOnController": "在 {device} 上设置",
+  "accessoryActions": "配件动作",
+  "kickrHeadwind": "KICKR Headwind",
+  "setHeadwindSpeedTo": "将风速设为 {value}%",
+  "@setHeadwindSpeedTo": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "setSpeed": "设置风速",
+  "increaseSpeed": "提高风速",
+  "decreaseSpeed": "降低风速",
+  "increaseSpeedCyclic": "循环提高风速",
+  "decreaseSpeedCyclic": "循环降低风速",
+  "setHeartRateMode": "设为心率模式",
+  "noExecutableSelected": "未选择可执行文件",
+  "launchShortcut": "启动快捷指令",
+  "shortcutNameHint": "快捷指令名称",
+  "launchShortcutDesc": "按下此按键时，会按其确切名称运行一条 macOS 快捷指令。",
+  "noPathSelected": "未选择路径",
+  "cannotWriteFolder": "无法写入此文件夹。请授予写入权限后重试。",
+  "intentSuffixHint": "one",
+  "broadcastIntentExplanation": "按下按键时，会发送一条动作名为「{prefix}<你的后缀>」的安卓广播。MacroDroid 或 Tasker 等应用可以监听该 Intent 并运行你的自动化。",
+  "@broadcastIntentExplanation": {
+    "placeholders": {
+      "prefix": {
+        "type": "String"
+      }
+    }
+  },
+  "customModeAction": "自定义 {mode} 动作",
+  "@customModeAction": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "customLabel": "自定义",
+  "blogTab": "博客",
+  "activityTabNews": "新闻",
+  "newsEmpty": "暂无新闻。",
+  "newsLoadFailed": "无法加载新闻。请检查网络连接后重试。",
+  "newsNewBadge": "新",
+  "openConnectionSettings": "打开连接设置",
+  "noTargetSelected": "未选择目标",
+  "stay": "留下",
+  "leave": "离开",
+  "showExperimental": "显示实验性功能",
+  "language": "语言",
+  "languageSystemDefault": "跟随系统",
+  "notSupportedOnWeb": "不支持 Web :)",
+  "recommended": "推荐",
+  "workoutPaused": "记录已暂停",
+  "workoutResumed": "记录已恢复",
+  "connectionSettings": "连接设置",
+  "needsTargetLeavePrompt": "{appName} 连接前需要一个目标。不选就离开？",
+  "@needsTargetLeavePrompt": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "feedbackQuestion": "能用吗？",
+  "supportChat": "支持聊天",
+  "supportDiagnosticsNotice": "为帮助修复你的问题，此聊天会附上 BikeControl 的截图和诊断信息。发送前你可以查看或移除它们。",
+  "supportRetentionNotice": "对话会在最后一条消息后 30 天自动删除。匿名的骑行台数据（型号、固件、测试结果）会保留，用于改进兼容性。",
+  "supportDeleteConversation": "删除对话",
+  "supportDeleteAccount": "删除账户和全部数据",
+  "supportDeleteConversationTitle": "删除对话？",
+  "supportDeleteConversationBody": "这将永久删除你的支持对话，包括你发送的每条消息、截图和诊断报告。此操作无法撤销。",
+  "supportDeleteAccountTitle": "删除账户和全部数据？",
+  "supportDeleteAccountBody": "这将永久删除你的支持对话和 BikeControl 账户，包括你的电子邮箱。一次性购买会保留在你购买它的商店中，Pro 订阅也会在那里继续有效，但这台设备会退出登录。此操作无法撤销。",
+  "supportDeleteSuccess": "你的数据已删除。",
+  "supportDeleteFailed": "无法删除你的数据。请重试。",
+  "supportAccountStatusAnonymous": "匿名 · 未登录",
+  "supportAccountStatusSignedIn": "已登录",
+  "supportAccountLinkTitle": "获取回复",
+  "supportAccountLinkBody": "你的消息已经发给支持人员。添加邮箱后，回复会出现在任意设备的此聊天中——并且你会收到通知。",
+  "supportAccountLinkAddButton": "添加",
+  "supportAccountLinkedNote": "已登录——此聊天现在会跟随你的账户。",
+  "supportAccountLinkFailed": "出了点问题。请重试。",
+  "supportAccountAlreadyLinked": "此账户已属于另一个 BikeControl 账户。请先退出登录，再用它登录。",
+  "supportAccountLinkEmailTaken": "{email} 已有 BikeControl 账户，因此无法添加到此聊天。要使用该账户，请在「设置」→「方案与账户」中登录。此对话不会转移过去，请从那里重新发送你的消息。或者输入另一个邮箱。",
+  "@supportAccountLinkEmailTaken": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "重试",
+  "supportChatEmpty": "发送一条消息以开始对话。",
+  "supportChatIntro": "你将与 BikeControl 的 Jonas 对话",
+  "supportChatIntroFatherNote": "我很快就要当爸爸了，所以可能要过几个小时才能回复 :-)",
+  "supportIntakeTitle": "告诉我们问题所在",
+  "supportIntakeSubtitle": "几个下拉菜单能帮我们更快回复——也可能直接出现能当场解决的教程。",
+  "supportIntakeCategoryLabel": "怎么了？",
+  "supportIntakeCategoryPlaceholder": "选择一个类别",
+  "supportIntakeCategoryTrainerApp": "与骑行软件的连接",
+  "supportIntakeCategoryController": "与控制器的连接",
+  "supportIntakeCategorySmartTrainer": "与智能骑行台的连接",
+  "supportIntakeCategoryAccount": "账户 / 购买",
+  "supportIntakeCategorySomethingElse": "其他",
+  "supportIntakeWhichApp": "哪个骑行软件？",
+  "supportIntakeWhichAppPlaceholder": "选择应用",
+  "supportIntakeWhichController": "哪个控制器？",
+  "supportIntakeWhichControllerPlaceholder": "选择控制器",
+  "supportIntakeWhatHappens": "发生了什么？",
+  "supportIntakeWhatHappensPlaceholder": "选择最接近的一项",
+  "supportIntakeAccountQuestion": "是什么问题？",
+  "supportIntakeContinue": "继续",
+  "supportIntakeEdit": "编辑",
+  "supportIntakeRecommendedHelp": "推荐的帮助",
+  "supportIntakeReadTutorial": "阅读教程",
+  "supportIntakeWatchVideo": "观看视频",
+  "messageComposerPlaceholder": "输入消息…",
+  "attachImage": "选择图片",
+  "attachDocument": "选择文件",
+  "attachmentOnlyMessageBody": "（截图）",
+  "attachmentTooLarge": "附件超过 10 MB",
+  "attachmentMimeUnsupported": "不支持的文件类型",
+  "failedToSendMessage": "发送消息失败",
+  "failedToOpenChat": "打开支持聊天失败",
+  "senderYou": "你",
+  "senderAdmin": "支持",
+  "viewThread": "回复",
+  "threadTitle": "讨论串",
+  "replyCount": "回复（{count}）",
+  "@replyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dontWantToSignInWriteAMail": "不想登录？改为写邮件",
+  "proxyConnectFor": "连接你的 {name}，用于：",
+  "@proxyConnectFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "proxyFeatureAddVirtualShifting": "添加虚拟换挡能力",
+  "proxyFeatureAdjustGears": "调整虚拟换挡的挡位",
+  "proxyFeatureDirectControl": "通过 {controller} 直接更改挡位 / 强度 / 模式",
+  "@proxyFeatureDirectControl": {
+    "placeholders": {
+      "controller": {
+        "type": "String"
+      }
+    }
+  },
+  "proxyFeatureMiniWorkout": "将你的骑行记录为一项活动",
+  "proxyFeatureWifiProxy": "代理到 Wi-Fi",
+  "trainerErgTarget": "ERG 目标：{watts} W",
+  "@trainerErgTarget": {
+    "placeholders": {
+      "watts": {
+        "type": "int"
+      }
+    }
+  },
+  "trainerErgTargetGameControlled": "ERG 目标由应用控制",
+  "trainerShiftedUp": "已升挡至第 {gear} 挡",
+  "@trainerShiftedUp": {
+    "placeholders": {
+      "gear": {
+        "type": "int"
+      }
+    }
+  },
+  "trainerShiftedDown": "已降挡至第 {gear} 挡",
+  "@trainerShiftedDown": {
+    "placeholders": {
+      "gear": {
+        "type": "int"
+      }
+    }
+  },
+  "trainerAlreadyHighestGear": "已在最高挡位",
+  "trainerAlreadyLowestGear": "已在最低挡位",
+  "trainerSwitchedToSim": "已切换到 SIM 模式",
+  "trainerSwitchedToErg": "已切换到 ERG 模式 @ {watts} W",
+  "@trainerSwitchedToErg": {
+    "placeholders": {
+      "watts": {
+        "type": "int"
+      }
+    }
+  },
+  "trainerIntensityIncreased": "强度 +5%",
+  "trainerIntensityDecreased": "强度 -5%",
+  "trainerFrontShiftedLarge": "前拨：大牙盘",
+  "trainerFrontShiftedSmall": "前拨：小牙盘",
+  "trainerFrontShiftNotEnabled": "请在挡位设置中启用前拨",
+  "trainerFrontShiftUnavailable": "前拨不可用",
+  "successRatingMessage": "感谢你使用 BikeControl！请考虑在 {store} 中为 BikeControl 评分——这很有帮助！",
+  "@successRatingMessage": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "rateBikeControl": "为 BikeControl 评分",
+  "smartTrainerConsentTitle": "正在连接到 {trainerName}",
+  "@smartTrainerConsentTitle": {
+    "placeholders": {
+      "trainerName": {
+        "type": "String"
+      }
+    }
+  },
+  "smartTrainerConsentMessage": "BikeControl 现在会连接到你的智能骑行台，并接管虚拟换挡的控制。所有换挡都将直接在 BikeControl 中进行，不再通过你的 {appName}。然后在 {appName} 中，你将连接到 BikeControl 的虚拟骑行台，而不是直接连接到 {trainerName}。\n\n要恢复默认行为，请点击「{disconnectLabel}」按钮，并再次让 {appName} 直接连接到你的 {trainerName}。",
+  "@smartTrainerConsentMessage": {
+    "placeholders": {
+      "trainerName": {
+        "type": "String"
+      },
+      "appName": {
+        "type": "String"
+      },
+      "disconnectLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "connectingToDevice": "正在连接到：{device}",
+  "@connectingToDevice": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionSucceeded": "连接成功：{device}",
+  "@connectionSucceeded": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionFailed": "连接失败：{device} - {error}",
+  "@connectionFailed": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "connectionGaveUpAfterAttempts": "多次尝试后仍无法连接到 {device}。",
+  "@connectionGaveUpAfterAttempts": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "wheeltopClaimedByDerailleurHint": "手变很可能已被其后拨占用。请关闭后拨电源或让它休眠，然后在扫描时按一个手变按键。",
+  "bleSensorConnectGuidance": "传感器可能正被其他应用或设备使用。请改为在骑行软件中直接配对，或点按「重新连接」再试。",
+  "unableToConnectToDeviceTimeout": "无法连接到 {device}：超时",
+  "@unableToConnectToDeviceTimeout": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "scanningForDevicesShort": "正在扫描设备...",
+  "disconnectingAllDevices": "正在断开所有设备",
+  "configureButtonMapping": "配置按键映射",
+  "notWellSupportedByMyWhoosh": "注意：MyWhoosh 暂时还不能很好地支持此动作",
+  "vsIntroTitle": "虚拟换挡",
+  "vsIntroSubtitle": "在任意智能骑行台上换挡，就在 BikeControl 中完成。",
+  "vsIntroSupportedTitle": "适用于数十款骑行台",
+  "vsIntroSupportedBody": "许多智能骑行台已经可以很好地工作——不过有些可能还不够完美，而且支持列表还在不断增加。",
+  "vsIntroBetaTitle": "仍在测试阶段",
+  "vsIntroBetaBody": "BikeControl 中的虚拟换挡自定义是一项新功能，所以你偶尔可能会遇到一些小问题。",
+  "vsIntroFeedbackTitle": "我们会帮你",
+  "vsIntroFeedbackBody": "我们很欢迎你的反馈，也一直乐意帮忙把你的设置调校到位。",
+  "vsIntroSupportedTrainersCta": "查看支持的骑行台",
+  "vsIntroGotIt": "知道了",
+  "useControllerWithApp": "将 {controller} 与 {app} 一起使用",
+  "@useControllerWithApp": {
+    "placeholders": {
+      "controller": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "frontShiftEnableLabel": "虚拟前拨",
+  "frontShiftEnableDesc": "增加第二个牙盘（2× 传动系统）。同时按下两个手变以切换牙盘，就像 SRAM AXS 一样。",
+  "frontShiftSmallRingLabel": "小牙盘（齿数）",
+  "frontShiftLargeRingLabel": "大牙盘（齿数）",
+  "done": "完成",
+  "sramSetup": "设置 SRAM 控制",
+  "sramRestore": "恢复原始换挡",
+  "sramPanelIntro": "让 BikeControl 控制你的换挡：它会备份你当前的手变配置，然后禁用变速器自身的换挡，使其只发送按键按下。你可以随时恢复。",
+  "sramSetupIntro": "BikeControl 会备份你当前的手变配置，并禁用变速器自身的换挡，这样拨片会改为发送按键按下。你可以随时恢复。",
+  "sramSetupSuccess": "BikeControl 现在控制你的挡位。每个手变按键都是一个控制器输入，你可以在应用中映射它们。",
+  "sramRestoreIntro": "如果想回到户外骑行，用这个重置 SRAM 配置，以重新启用换挡",
+  "sramRestoreSuccess": "你原来的手变配置已恢复。",
+  "sramDialogRunning": "正在与你的变速器通信——请让它保持靠近并处于唤醒状态。",
+  "sramAuthorizeTitle": "授权 BikeControl",
+  "sramAuthorizeBody": "按住变速器上的 AXS 按键，直到指示灯闪烁，然后点按「重试」。",
+  "sramErrorTitle": "没有成功",
+  "sramGenericError": "出了点问题。请重试。",
+  "sramLinkResetError": "变速器停止响应，因此 BikeControl 正在重新连接它。请等到它再次显示为已连接，然后重试。",
+  "sramShiftingOff": "设备端换挡已关闭——BikeControl 控制你的挡位。",
+  "sramSettingUp": "正在设置",
+  "sramRestoringShifting": "正在恢复换挡",
+  "sramAllSet": "一切就绪",
+  "sramRestoredTitle": "已恢复原有换挡",
+  "sramChecklistPairing": "正在与变速器配对",
+  "sramChecklistBackingUp": "正在备份你的配置",
+  "sramChecklistDisabling": "正在关闭设备端换挡",
+  "sramChecklistRestoring": "正在恢复原有换挡",
+  "sramPressHold": "在变速器上按住",
+  "shimanoSetup": "使用 Di2 按键",
+  "shimanoDflyExplanation": "按下某个 D-Fly 按键来配置它。",
+  "@shimanoDflyExplanation": {
+    "description": "Di2 controller settings, before any button is known: a Di2 without the E-TUBE config service sends its D-Fly buttons, so the rider presses one to add it."
+  },
+  "shimanoPanelIntro": "把你的 Di2 手变当作 BikeControl 按键使用。你的 Di2 不会被改动：BikeControl 连接期间，拨片发送的是按键操作，而不是换挡。",
+  "shimanoSetupIntro": "BikeControl 连接期间，你的 Di2 不会换挡。它的拨片会变成 BikeControl 按键。断开后就会恢复正常换挡。不会改动任何 Di2 设置。",
+  "shimanoSetupSuccess": "你的 Di2 拨片现在是 BikeControl 按键。断开 BikeControl 即可恢复正常换挡。",
+  "shimanoDialogRunning": "正在与你的 Di2 通信 — 让它靠近并保持唤醒。",
+  "shimanoAuthorizeTitle": "唤醒你的 Di2",
+  "shimanoAuthorizeBody": "你的 Di2 没有响应。按下任意手变按键唤醒它，让它靠近，然后点按重试。",
+  "shimanoErrorTitle": "没有成功",
+  "shimanoGenericError": "出了点问题。请重试。",
+  "shimanoShiftingOff": "Di2 按键已启用。BikeControl 连接期间，你的 Di2 不会换挡。",
+  "shimanoSettingUp": "正在设置",
+  "shimanoAllSet": "一切就绪",
+  "shimanoChecklistAuthenticating": "正在与 Di2 进行身份验证",
+  "shimanoWakeUp": "按下手变按键以唤醒它",
+  "shimanoChecklistActivating": "正在把你的 Di2 切换到按键模式",
+  "shimanoTurnOff": "停止使用 Di2 按键",
+  "shimanoPasskeyLabel": "E-TUBE 配对码",
+  "shimanoPasskeyHint": "除非你在 E-TUBE 应用中设置了自己的配对码，否则保持 000000。",
+  "shimanoPasskeyWrongTitle": "配对码错误",
+  "shimanoPasskeyWrongBody": "你的 Di2 拒绝了配对码。请输入你在 E-TUBE 应用中设置的配对码。",
+  "shimanoPairTitle": "将你的 Di2 与 Windows 配对",
+  "@shimanoPairTitle": {
+    "description": "Di2 button-mode setup sheet, Windows only: the Di2's settings service needs a Bluetooth pairing that Windows could not set up on its own."
+  },
+  "shimanoPairBody": "Di2 按键需要你的 Di2 已与 Windows 配对，但 Windows 未能配对它。打开 Windows 设置 → 蓝牙和设备 → 添加设备 → 蓝牙，然后选择你的 Di2（按下手变按键以唤醒它）。如果已经列出，请移除后重新添加。然后点按重试。",
+  "shimanoUseDfly": "改用 D-Fly 通道",
+  "@shimanoUseDfly": {
+    "description": "Di2 setup sheet and device panel: skip button mode and keep using the buttons the rider set to D-Fly channels in E-TUBE, which work without pairing."
+  },
+  "shimanoDflyActive": "你的 Di2 正常换挡。你在 E-TUBE 应用中设为 D-Fly 通道的按键，按下后会显示在这里。",
+  "chainReadyTitle": "准备骑行",
+  "chainReadySubtitle": "你的按键已送达 {app}。",
+  "@chainReadySubtitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainReadySubtitleNoApp": "BikeControl 所需的一切都已设置好。",
+  "chainStepsLeftTitle": "{count, plural, =1{还剩 1 步} other{还剩 {count} 步}}",
+  "@chainStepsLeftTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainBrokenTitle": "{name} 失去了连接",
+  "@chainBrokenTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chainBrokenSubtitle": "在它重新连接之前，你的按键不会有任何作用。",
+  "chainPendingSubtitleSingle": "完成 {name} 的设置就可以了。",
+  "@chainPendingSubtitleSingle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chainPendingSubtitleMultiple": "{names} 仍需设置。",
+  "@chainPendingSubtitleMultiple": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "chainBannerFix": "修复",
+  "chainBannerShow": "显示",
+  "readyBannerSettlingSubtitle": "正在查找你的设备和应用",
+  "readyBannerMoreSteps": "+{count} 项",
+  "@readyBannerMoreSteps": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainOptional": "可选",
+  "chainEdit": "编辑",
+  "chainSetUp": "设置",
+  "chainShowMeHow": "教我怎么做",
+  "chainSomethingNotWorking": "有什么不好用？",
+  "chainStatusOutOfRange": "超出范围",
+  "chainStatusAsleep": "休眠 – 按下按键以唤醒",
+  "chainStatusLostConnection": "连接已断开",
+  "chainStatusConnecting": "正在连接…",
+  "chainStatusNotSetUp": "未设置",
+  "chainStatusReceivingCommands": "正在接收指令",
+  "chainStatusWaitingForApp": "正在等待 {app}",
+  "@chainStatusWaitingForApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStatusHandledByApp": "{app} 负责换挡",
+  "@chainStatusHandledByApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainControllerTitle": "控制器",
+  "chainTrainerTitle": "智能骑行台",
+  "sensorsChainEyebrow": "传感器",
+  "sensorsNoSensorsYet": "还没有传感器",
+  "sensorsWith": "与 {names}",
+  "@sensorsWith": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsStatusOff": "关闭",
+  "sensorsStatusOffSetup": "关闭 — 点按以设置",
+  "sensorsStatusBroadcasting": "正在以「BikeControl」广播",
+  "sensorsClientConnected": "{client} 已连接",
+  "@sensorsClientConnected": {
+    "placeholders": {
+      "client": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestionApp": "骑行台已在 {app} 中直接配对？",
+  "@sensorsUseSensorsOnlyQuestionApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "sensorsUseSensorsOnlyQuestion": "骑行台不经过 BikeControl？",
+  "sensorsUseSensorsOnly": "改为共享传感器",
+  "sensorsConnectTrainerQuestion": "让 BikeControl 控制你的骑行台？",
+  "sensorsConnectTrainer": "连接骑行台",
+  "sensorsPageTitle": "传感器",
+  "sensorsBroadcastEyebrow": "广播",
+  "sensorsBroadcastTitle": "共享传感器",
+  "sensorsBroadcastLive": "正以「BikeControl」广播",
+  "sensorsBroadcastPickSource": "请先在下方选择来源",
+  "sensorsTransportBluetooth": "蓝牙",
+  "sensorsTransportNetwork": "网络",
+  "sensorsTransportBluetoothHint": "在附近的手机、平板或 Apple TV 的任意应用中，像心率带一样配对「BikeControl」。",
+  "sensorsTransportNetworkHint": "此 Wi-Fi 上的应用会自行发现「BikeControl」— PC 或 Apple TV 上的 Zwift、MyWhoosh 或 Rouvy。",
+  "sensorsEmptyTitle": "正在查找传感器…",
+  "sensorsEmptyBody": "唤醒附近的心率带、踏频传感器或功率计 — 它会自行出现在这里。",
+  "sensorsOffHint": "打开广播后，来源才会连接 — 在此之前什么都不会运行。",
+  "sensorsSignalsHeader": "信号",
+  "sensorsOpen": "打开",
+  "chainAppTitle": "骑行软件",
+  "chainStepBluetoothReady": "蓝牙已开启",
+  "chainStepBluetoothReadyPending": "打开蓝牙",
+  "chainStepBluetoothReadyHint": "BikeControl 需要蓝牙才能找到你的控制器并持续连接它。",
+  "chainStepControllerPaired": "已通过蓝牙配对",
+  "chainStepControllerPairedPending": "查找你的控制器",
+  "chainStepControllerPairedHint": "先按一下按键唤醒它。",
+  "chainStepButtonsMapped": "按键已映射",
+  "chainStepButtonsMappedPending": "映射你的按键",
+  "chainStepButtonsMappedHint": "至少为一个按键指定一个动作。",
+  "chainStepInRange": "在范围内",
+  "chainStepInRangePending": "把它移回范围内",
+  "chainStepInRangeHint": "按下任意按键唤醒它，并关闭可能正占用它的其他应用。",
+  "chainStepWakePending": "唤醒它",
+  "chainStepUnlocked": "已解锁",
+  "chainStepUnlockedPending": "用 Zwift 解锁",
+  "chainStepUnlockedHint": "Zwift 把 Click V2 锁定在自己的应用上 — 打开一次 Zwift，之后 24 小时内都能用。",
+  "chainStepUnlockedUntil": "已解锁至 {date}",
+  "chainStepUnlockedLikelyUntil": "可能已解锁至 {date}",
+  "chainStepSramSetup": "控制已设置",
+  "chainStepSramSetupHint": "它自己的换挡仍在控制挡位 — 把挡位交给 BikeControl，拨片就会发送按键操作。",
+  "chainStepShimanoSetup": "Di2 按键已启用",
+  "chainStepShimanoSetupHint": "你的 Di2 仍在自行换挡 — 切换到按键模式，拨片就会发送按键操作。Di2 上的任何内容都不会被改动。",
+  "chainStepClickV2Setup": "选择解锁方式",
+  "chainStepClickV2SetupHint": "Zwift 把 Click V2 锁定在自己的应用上。选择 BikeControl 如何绕过它，它就会立即连接。",
+  "chainStepClickV2KeepAwake": "打开左侧以保持灯亮",
+  "chainStepClickV2KeepAwakeHint": "BikeControl 已经阻止右侧自行关机。不过它的灯仍会自己熄灭 — 在附近打开左侧就能让灯保持亮着。只需在范围内，不必配对。",
+  "chainStepTrainerPaired": "骑行台已连接",
+  "chainStepTrainerPairedPending": "连接你的骑行台",
+  "chainStepOverlayDone": "挡位悬浮窗已开启",
+  "chainStepOverlayHint": "{appName} 无法显示 BikeControl 的虚拟挡位。启用挡位悬浮窗，即可在骑行中看到当前挡位。",
+  "@chainStepOverlayHint": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayAction": "启用悬浮窗",
+  "chainStepLocalControl": "添加键盘和鼠标动作",
+  "chainStepLocalControlDone": "键盘和鼠标动作已开启",
+  "chainStepLocalControlHint": "本机控制可以让一个按键在此设备的 {appName} 里按下键盘键或点击 — 截图、ERG 控制，以及该软件有快捷键的任何功能。",
+  "@chainStepLocalControlHint": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepLocalControlAction": "启用本机控制",
+  "chainStepAppSelected": "已选择骑行软件",
+  "chainStepAppSelectedPending": "选择你的骑行软件",
+  "chainStepAppSelectedHint": "选择你用来骑行的软件。",
+  "chainStepAppConnectionMethod": "连接方式已启用",
+  "chainStepAppConnectionMethodPending": "启用一种连接方式",
+  "chainStepAppConnectionMethodHint": "选择 BikeControl 如何连接到你的软件。",
+  "chainStepAppLocalNetwork": "已允许本地网络",
+  "chainStepAppLocalNetworkPending": "允许本地网络访问",
+  "chainStepAppLocalNetworkHint": "没有它，BikeControl 就无法在你的网络上被看到，它发送的内容也无法离开此设备。",
+  "chainStepAppConnected": "已连接到 {app}",
+  "@chainStepAppConnected": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepAppConnectedPending": "正在等待 {app} 连接",
+  "@chainStepAppConnectedPending": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepAppConnectedHint": "打开该软件，并在其配对界面中选择 BikeControl。",
+  "chainTrialTitle": "试用",
+  "chainTrialExpiredTitle": "试用已到期",
+  "chainTrialDaysMeter": "试用天数",
+  "chainTrialDaysLeft": "{count, plural, =0{今天到期} =1{还剩 1 天} other{还剩 {count} 天}}",
+  "@chainTrialDaysLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chainTrialCommandsMeter": "今日指令",
+  "chainTrialCommandsLimited": "指令限制为每天 {limit} 次",
+  "@chainTrialCommandsLimited": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "chainTrialBridgeMeter": "今日虚拟换挡",
+  "chainTrialBridgeMeterSuffix": "分钟",
+  "chainTrialRestoreRow": "已经买过了？恢复购买",
+  "chainOfflineEditNotice": "未连接 — 你仍可以更改它的按键功能。",
+  "chainForgotten": "已忘记 {name}",
+  "@chainForgotten": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chainUndo": "撤销",
+  "chainUpgrade": "升级",
+  "chainMoreOptions": "更多选项",
+  "chainStepTrainerBridged": "{app} 已接上",
+  "@chainStepTrainerBridged": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepTrainerBridgedPending": "正在等待 {app} 连接到「{bridge}」",
+  "@chainStepTrainerBridgedPending": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepTrainerBridgedHint": "在 {app} 中选择「{bridge}」作为骑行台。",
+  "@chainStepTrainerBridgedHint": {
+    "placeholders": {
+      "bridge": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStatusBridged": "通过 BikeControl 连接",
+  "chainCloseAndQuit": "关闭连接并退出应用",
+  "ratioCurveLabel": "齿比曲线",
+  "easier": "更轻松",
+  "harder": "更费力",
+  "frontShiftRangeLabel": "范围",
+  "frontShiftFactorLabel": "牙盘",
+  "frontShiftRingActive": "{teeth}T 牙盘使用中",
+  "@frontShiftRingActive": {
+    "placeholders": {
+      "teeth": {
+        "type": "int"
+      }
+    }
+  },
+  "frontShiftChainringCount": "2 个牙盘",
+  "vsStageAppsLabel": "适用于每个软件",
+  "vsStageAppsHint": "几乎适用于任何智能骑行台",
+  "vsStageRatiosLabel": "你的齿比，按你的方式",
+  "vsStageRatiosHint": "预设，或逐挡调整",
+  "vsStageFrontHint": "添加第二个牙盘",
+  "vsStageTrainersHeading": "智能骑行台",
+  "vsStageAppsHeading": "骑行软件",
+  "onboardingTrainersFound": "{count, plural, =1{找到 1 台骑行台} other{找到 {count} 台骑行台}}",
+  "@onboardingTrainersFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "forget": "忘记",
+  "vsStageMoreLabel": "还有更多",
+  "vsStageMoreHint": "为每次骑行微调",
+  "vsStageMoreInstantTitle": "直接换挡",
+  "vsStageMoreInstantSub": "无需经软件往返",
+  "vsStageMoreWifiTitle": "蓝牙 → Wi-Fi",
+  "vsStageMoreWifiSub": "也能连到 Apple TV",
+  "vsStageMoreControllersTitle": "完整的控制器支持",
+  "vsStageMoreControllersSub": "每个已配对的手变都能换挡",
+  "vsStageMoreGearCountTitle": "调整挡位数量",
+  "vsStageMoreGearCountSub": "从 1 到 30 均可",
+  "vsStageMoreModesTitle": "完整支持 SIM 与 ERG",
+  "vsStageMoreModesSub": "训练和自由骑行都适用",
+  "vsStageMoreProfilesTitle": "切换设置配置",
+  "vsStageMoreProfilesSub": "比赛模式、爬坡模式、你自己的",
+  "signInWithEmail": "使用邮箱登录",
+  "emailAddress": "邮箱地址",
+  "sendMeACode": "给我发送验证码",
+  "checkYourInbox": "查看收件箱",
+  "weSentACodeTo": "我们已向 {email} 发送了 6 位验证码",
+  "@weSentACodeTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "sendANewCode": "发送新验证码",
+  "sendANewCodeIn": "{seconds} 秒后发送新验证码",
+  "@sendANewCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "useADifferentEmailAddress": "使用其他地址",
+  "pleaseEnterAValidEmailAddress": "请输入有效的邮箱地址",
+  "theCodeIsIncorrectOrExpired": "验证码不正确或已过期。请重新获取。",
+  "password": "密码",
+  "thatPasswordIsIncorrect": "密码不正确。",
+  "tooManyCodeRequestsPleaseWait": "请求过于频繁。请等待一分钟后再试。",
+  "couldNotSendTheCodePleaseTryAgain": "我们无法发送验证码。请重试。",
+  "orSeparator": "或",
+  "selfTestTitle": "阻力自检",
+  "selfTestIntro": "大约一分钟内检查你的骑行台是否执行 BikeControl 发出的阻力指令。",
+  "selfTestStart": "测试阻力控制",
+  "selfTestPrecheckDisconnected": "请先连接骑行台，再运行测试。",
+  "selfTestPrecheckTrainerApp": "请先关闭或断开骑行软件 — 测试需要独占骑行台。",
+  "selfTestPedalPrompt": "以稳定、舒适的节奏踩踏。",
+  "selfTestPhaseBaseline": "正在测量基线",
+  "selfTestPhaseErg": "正在测试功率目标",
+  "selfTestPhaseShift": "正在测试换挡",
+  "selfTestKeepPedaling": "继续踩踏才能继续测试",
+  "selfTestNoCadence": "你的骑行台不报告踏频，因此本次测试只根据功率评分。",
+  "selfTestCancel": "停止测试",
+  "selfTestRerun": "再次运行",
+  "selfTestLastResult": "上次测试：{result}",
+  "@selfTestLastResult": {
+    "placeholders": {
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "selfTestVerdictPassTitle": "你的骑行台响应正常",
+  "selfTestVerdictPassBody": "BikeControl 可以控制这台骑行台。如果骑行时换挡没有反应，说明骑行软件没有经由 BikeControl 进行骑行 — 或者你只是看不到挡位。挡位悬浮窗能解决看不到挡位的问题。",
+  "selfTestVerdictErgOkTitle": "功率目标有效，换挡无效",
+  "selfTestVerdictErgOkBody": "骑行台会执行直接功率目标，但忽略了虚拟换挡模式。切换换挡模式通常可以解决。",
+  "selfTestVerdictVsOkErgFailTitle": "换挡有效，功率目标无效",
+  "selfTestVerdictVsOkErgFailBody": "你的虚拟换挡正常 — 骑行台跟随了每一次换挡。它忽略了直接功率目标，因此 ERG 训练需要另一种控制协议。",
+  "selfTestVerdictNoControlTitle": "骑行台没有响应 BikeControl",
+  "selfTestVerdictNoControlBody": "骑行台忽略了所有指令。请在厂商应用中检查固件更新，然后把结果发给我们 — 它能定位问题。",
+  "selfTestVerdictNoDataTitle": "骑行台没有数据",
+  "selfTestVerdictNoDataHeldBody": "没有收到功率读数。可能有其他应用或设备占用了骑行台。关闭其他使用骑行台的应用；如果骑行台在 {app} 中是直接配对的，请从配对中移除 — 改为配对「{bridge}」。然后重新连接骑行台。",
+  "@selfTestVerdictNoDataHeldBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
+  "selfTestVerdictNoDataHeldBodyNoApp": "没有收到功率读数。可能有其他应用或设备占用了骑行台。关闭其他使用骑行台的应用；如果骑行软件是直接配对骑行台的，请在那里移除 — 改为配对「{bridge}」。然后重新连接骑行台。",
+  "@selfTestVerdictNoDataHeldBodyNoApp": {
+    "placeholders": {
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
+  "selfTestVerdictAbortedTitle": "测试已停止",
+  "selfTestVerdictAbortedBody": "测试没有完成。它需要从头到尾稳定踩踏 — 请全程保持踩踏并重试。",
+  "selfTestCtaOverlay": "显示挡位悬浮窗设置",
+  "selfTestCtaSwitchMode": "切换模式并再次运行",
+  "selfTestCtaReport": "把结果发送给支持",
+  "selfTestCtaTryProtocol": "通过 {protocol} 再试并再次运行",
+  "@selfTestCtaTryProtocol": {
+    "placeholders": {
+      "protocol": {
+        "type": "String"
+      }
+    }
+  },
+  "controlProtocolLabel": "控制协议",
+  "controlProtocolHint": "BikeControl 如何与这台骑行台通信。除非测试另有说明，否则自动就是对的。",
+  "controlProtocolIgnored": "你的骑行台没有在你所选的协议上确认挡位指令。BikeControl 通常会切换，但会保留你的手动选择。",
+  "controlProtocolIgnoredNoFallback": "你的骑行台没有确认挡位指令，也没有其他协议可以回退。",
+  "controlProtocolUseAuto": "切换到自动",
+  "controlProtocolNativeShiftingAvailable": "这台骑行台支持 BikeControl 的原生虚拟换挡：它会自行应用你的挡位。将协议设为自动，换挡最接近真实。",
+  "controlProtocolAuto": "自动（推荐）",
+  "controlProtocolFtms": "FTMS",
+  "controlProtocolFec": "FE-C",
+  "controlProtocolZwift": "Zwift 协议",
+  "networkSummaryMethodListening": "网络连接方式已开启并正在提供服务",
+  "networkSummaryAdvertisedAddress": "BikeControl 让你的软件去连接的地址",
+  "networkSummaryVpn": "是否有隧道在拦截本地流量",
+  "networkSummaryAdvertisementVisible": "BikeControl 的通告是否到达网络",
+  "networkSummaryLocalNetworkPermission": "与你网络上的设备通信的权限",
+  "networkSummaryBackend": "哪个服务在发布 BikeControl 的名称",
+  "networkSummaryResolveOwnHostname": "此设备能否解析它自己通告的名称",
+  "networkSummaryTcpSelfConnect": "端口能接受连接，因此没有东西在拦截它",
+  "networkSummaryGuidedWatch": "来自你的骑行软件的一次真实连接尝试",
+  "networkSummaryBonjourService": "Apple 的 Bonjour 服务，Windows 做这件事需要它",
+  "networkSummaryBonjourNsp": "Bonjour 安装的 Windows 名称查询插件",
+  "networkSummaryWindowsMdnsResolver": "Windows 自己对 .local 地址的名称查询",
+  "networkSummaryNetworkProfile": "Windows 是否将此网络视为专用，发现功能需要如此",
+  "networkSummaryNetworkProfilePublic": "Windows 将此网络视为公用，这会阻止发现 — 请将其设为专用",
+  "networkSummaryFirewallRule": "有一条防火墙规则允许 BikeControl 通过",
+  "networkSummaryMulticastLock": "安卓让 Wi-Fi 无线电持续监听通告",
+  "networkGroupThisDevice": "此设备",
+  "networkGroupOnTheNetwork": "在网络上",
+  "networkGroupReaching": "到达 BikeControl",
+  "networkGroupLiveTest": "实时测试",
+  "networkChecksPassedOf": "共 {total}",
+  "@networkChecksPassedOf": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "networkOverallPassBody": "这里没有东西在阻碍 BikeControl。如果你的软件仍找不到它，下面的实时测试才能最终确定。",
+  "networkNextStepControllerTile": "网络没有问题 — 在 {app} 中，点按控制器下方的 BikeControl 磁贴。",
+  "@networkNextStepControllerTile": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkNextStepPairingScreen": "网络没有问题 — 打开 {app} 的配对界面并选择 BikeControl。",
+  "@networkNextStepPairingScreen": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkOverallWarnBody": "BikeControl 可以连通，但此网络上有东西可能干扰。如果连接中断，值得看一下。",
+  "networkOverallFailBody": "这里有东西阻止你的骑行软件到达 BikeControl。请修复标出的检查，然后再次运行。",
+  "networkOverallUnknownBody": "此系统上有些检查无法读取。下面的实时测试会告诉你真正重要的事：你的软件能否连通。",
+  "networkWatchTitle": "正在等待你的骑行软件",
+  "networkWatchEndsItself": "一旦你的软件连接，测试就会自行结束。",
+  "networkFooterTitle": "还是连不上？",
+  "networkFooterBody": "请先尝试上面的修复。如果仍然失败，告诉我们你在骑行软件中看到的情况 — 完整报告会自动附上。",
+  "networkTroubleshootingTitle": "网络排查",
+  "networkTroubleshootRun": "运行检查",
+  "networkTroubleshootRunAgain": "再次运行",
+  "networkTroubleshootCancel": "取消",
+  "networkTroubleshootConnectedRefusal": "已连接到 {app} — 一切正常。仍要运行检查吗？",
+  "@networkTroubleshootConnectedRefusal": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkTroubleshootRecommendedFix": "推荐的修复",
+  "networkTroubleshootCopyResults": "复制结果",
+  "networkTroubleshootResultsCopied": "结果已复制到剪贴板",
+  "networkTroubleshootSendToSupport": "发送给支持",
+  "networkTroubleshootTroubleshoot": "排查",
+  "networkAnalyze": "分析网络",
+  "networkCheckMethodListening": "网络方式正在运行",
+  "networkCheckAdvertisedAddress": "通告地址",
+  "networkCheckVpn": "VPN",
+  "networkCheckAdvertisementVisible": "通告在网络上可见",
+  "networkCheckLocalNetworkPermission": "本地网络权限",
+  "networkCheckBackend": "mDNS 响应器",
+  "networkCheckResolveOwnHostname": "此电脑能解析 BikeControl 的地址",
+  "networkCheckTcpSelfConnect": "到 BikeControl 端口的连接",
+  "networkCheckGuidedWatch": "实时连接尝试",
+  "networkCheckBonjourService": "Apple Bonjour 服务",
+  "networkCheckBonjourNsp": "Bonjour 解析器挂钩（mdnsNSP）",
+  "networkCheckWindowsMdnsResolver": "Windows mDNS 名称解析",
+  "networkCheckNetworkProfile": "网络配置文件",
+  "networkCheckFirewallRule": "BikeControl 的防火墙规则",
+  "networkCheckMulticastLock": "多播锁",
+  "networkVerdictPass": "OK",
+  "networkVerdictWarn": "请检查此项",
+  "networkVerdictFail": "发现问题",
+  "networkVerdictUnknown": "无法检查",
+  "networkVerdictSkipped": "已跳过",
+  "networkFixRestartMethod": "重启网络方式",
+  "networkFixUseOsResponder": "使用系统 mDNS 服务",
+  "networkFixRegisterBonjour": "通过 Bonjour 注册",
+  "networkFixUseResponder": "改回 BikeControl 的响应器",
+  "networkFixSwitchToLocal": "改用本机方式",
+  "networkFixOpenFirewallSettings": "打开防火墙设置",
+  "networkFixOpenNetworkProfileSettings": "打开网络设置",
+  "networkFixOpenBonjourDownload": "获取 Apple Bonjour",
+  "networkFixOpenLocalNetworkSettings": "打开设置",
+  "networkFixOpenAppLocalNetworkSettings": "打开本地网络设置",
+  "networkFixFailed": "没有成功。请重试，或联系支持：帮助中心 → 告诉我们哪里不对。",
+  "networkFixRefusedConnected": "{app} 已连接时不行。",
+  "@networkFixRefusedConnected": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkFixRefusedConnectedNoApp": "骑行软件已连接时不行。",
+  "networkFixBonjourMissing": "尚未安装 Apple Bonjour — 请先安装。",
+  "networkWatchPrompt": "现在打开 {app} 中的配对界面，并点按 BikeControl 按钮。",
+  "@networkWatchPrompt": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkWatchFoundUs": "{app} 已找到 BikeControl",
+  "@networkWatchFoundUs": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkWatchResolved": "已查询连接详情",
+  "networkWatchAddressAsks": "询问了我们的地址 ×{count}",
+  "@networkWatchAddressAsks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "networkWatchConnected": "已连接",
+  "networkWatchSkip": "跳过",
+  "networkWatchRemaining": "还剩 {seconds} 秒",
+  "@networkWatchRemaining": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "networkOverallPass": "一切看起来正常",
+  "networkOverallWarn": "能用，但有警告",
+  "networkOverallFail": "已找到阻碍连接的原因",
+  "networkOverallUnknown": "有些检查无法运行",
+  "networkHintBonjourService": "MyWhoosh 需要 Apple 的 Bonjour 服务。请启动它，然后重启 MyWhoosh。",
+  "networkHintBonjourStartedAfterApp": "Bonjour 是在 MyWhoosh 之后启动的，而 MyWhoosh 只在启动时检查它。请重启 MyWhoosh。",
+  "networkHintBonjourNsp": "缺少 Bonjour 的解析器挂钩。请重新安装 Bonjour — 没有它，MyWhoosh 中的 BikeControl 按钮无法工作。",
+  "networkHintResolveFail": "此电脑无法解析 BikeControl 的地址 — 这正是骑行软件失败的那一步。在 Windows 上，即使 Bonjour 服务正在运行，损坏的安装也会导致这个问题；干净地重新安装即可修复。",
+  "networkHintVpn": "VPN 已开启，它可能阻止 {app} 到达 BikeControl。请关闭 VPN，或在 VPN 应用中允许本地网络访问。",
+  "@networkHintVpn": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkHintNoWifi": "此设备未连接 Wi-Fi，因此 {app} 无法通过移动数据到达 BikeControl。请加入与 {app} 相同的 Wi-Fi。",
+  "@networkHintNoWifi": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "networkHintNoQuery": "{app} 从未搜索过 BikeControl。请确认 {app} 与此设备在同一个 Wi-Fi 上，并被允许使用本地网络 — 在 Mac 上：系统设置 › 隐私与安全性 › 本地网络，打开 {app}；在 iPhone 或 iPad 上：设置 › {app} › 本地网络。",
+  "@networkHintNoQuery": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "feedbackPromptTitle": "BikeControl 用起来怎么样？",
+  "feedbackPromptNotNow": "暂不",
+  "feedbackPositiveTitle": "太好了！",
+  "feedbackRateButton": "给 BikeControl 评分",
+  "feedbackSuggestButton": "发送建议",
+  "feedbackComposerSuggestionHint": "怎样能让 BikeControl 更适合你？",
+  "feedbackComposerComplaintHint": "哪里出了问题？细节越多越好。",
+  "feedbackComposerSend": "发送",
+  "feedbackComposerAnonymousNote": "匿名发送 — 无需账户。",
+  "feedbackThanksTitle": "谢谢！",
+  "feedbackThanksBody": "你的反馈会直接发给开发者。",
+  "feedbackEmailLinkPrompt": "想了解你的反馈后续如何处理？添加你的邮箱。",
+  "feedbackEmailLinkButton": "添加邮箱",
+  "feedbackEmailCodeHint": "输入邮件中的 6 位验证码",
+  "feedbackEmailVerifyButton": "验证",
+  "feedbackEmailLinked": "已添加邮箱 — 你会收到关于此事的回复。",
+  "feedbackSkipButton": "跳过",
+  "feedbackAlsoRateLink": "喜欢这个应用吗？你也可以给它评分",
+  "feedbackNegativeTitle": "很抱歉听到这个 — 我们来解决。",
+  "feedbackNegativeBody": "大多数问题都有快速的解决办法 — 针对你具体配置的指南、已知问题和支持都在同一个地方。",
+  "feedbackGetHelpButton": "获取帮助",
+  "feedbackSendFailed": "无法发送。你的文字已保留 — 请重试。",
+  "feedbackRetryButton": "重试",
+  "helpCenterTitle": "帮助中心",
+  "helpCenterYourSetup": "你的配置",
+  "helpCenterYourSetupMicroLabel": "个性化",
+  "helpCenterKnownIssues": "已知问题",
+  "helpCenterPricingFaq": "价格与账户",
+  "helpCenterPricingFaqSubtitle": "基础版、Pro、试用、恢复购买",
+  "helpCenterGuides": "教程与视频",
+  "helpCenterContact": "联系与社区",
+  "helpCenterChatLanguageHint": "你可以用自己的语言给支持写信。",
+  "helpCenterReportTitle": "告诉我们哪里不对",
+  "helpCenterReportSubtitle": "与支持聊天 · 无需账户",
+  "helpCenterNetworkEntry": "测试你的网络连接",
+  "helpCenterClickV2Entry": "Zwift Click V2 设置选项",
+  "helpCenterNoSetup": "还没有设置控制器 — 设置向导是最好的起点。",
+  "helpCenterGearOverlayEntry": "换挡有效，但挡位没有变化",
+  "helpAnswerGearBody": "BikeControl 无法让你的骑行软件显示它自己的虚拟挡位 — 当 BikeControl 在控制骑行台时，改由悬浮窗显示挡位。打开设置 → 骑行中 → 悬浮窗（BikeControl 连接到你的骑行台时，这一行才会出现）→「骑行时显示悬浮窗」：在 iOS 上是实时活动或灵动岛（画中画可选），在 Windows 和安卓上是浮动窗口。\n\n如果换挡完全没有生效，请检查另一条连接：BikeControl 与骑行台的连接，和它与控制器的连接是分开的。即使没有骑行软件作为控制器连接到 BikeControl，骑行台的数据仍可能在传输，反过来也一样 — 所以「骑行台能用，但我无法换挡」通常意味着你的骑行软件还没有作为控制器连接到 BikeControl。\n\n还是不行？有些骑行软件可以自己换挡，而不通过 BikeControl — 在继续排查之前，值得对比一下。",
+  "helpAnswerGearOverlayAction": "打开悬浮窗设置",
+  "helpAnswerGearFallbackAction": "对比使用和不使用 BikeControl 的虚拟换挡",
+  "helpCenterControllerDisconnectingEntry": "我的控制器反复断开",
+  "helpAnswerControllerDisconnectingBody": "有几种不同的原因会导致这种情况 — 看看哪一种符合：\n\n过一会儿才断开，而不是马上断开：这是 BikeControl 自己的省电功能。骑行软件保持连接时完全没有计时 — 它绝不会在你使用时把控制器断开。一旦骑行软件断开，你的控制器大约还有 5 分钟，然后 BikeControl 才会断开它以节省电量；如果完全没有任何骑行软件连接，这个时间会延长到大约 60 分钟。按下任意按键都会重置倒计时。实际上，控制器在骑行中途断开几乎总是意味着 BikeControl 不再能看到你的骑行软件 — 请先修复那条连接。\n\n设为「用 Zwift 解锁」的 Zwift Click V2：它按设计大约每分钟重启一次。每分钟一次短暂闪烁并重新连接是正常的，不是故障。\n\nZwift Click V1（单圆盘型号）每隔几秒就断开：几乎总是纽扣电池接触不良。取出 CR2032，重新装好，并轻轻把接触弹片向上弯。它的电量百分比只是粗略的电压估计，所以读数高也不能排除这个问题。",
+  "helpAnswerControllerDisconnectingAction": "为什么它每分钟都会重启？",
+  "helpCenterControllerNotFoundEntry": "找不到我的控制器",
+  "helpCenterButtonsStoppedEntry": "我的按键不工作了",
+  "faqOneTimeQ": "我一次性买过这个应用 — 那包含什么？",
+  "faqOneTimeA": "一次性购买解锁基础版：连接你的控制器、基础按键映射（每个按键一个动作），以及在骑行软件中每天不限次数的按键操作。它从来不是订阅，也不会过期。",
+  "faqProQ": "为什么现在有 Pro 订阅？",
+  "faqProA": "Pro 涵盖虚拟换挡、高级按键映射（每个按键 3 个动作）、跨平台使用，以及其他高级功能 — 这些会带来持续的工作和服务器成本，因为骑行软件的协议和集成在不断变化，需要持续更新。仅靠一次性价格无法维持这些。",
+  "faqStillTrialQ": "我付过钱了，但应用仍显示试用或基础版",
+  "faqStillTrialA": "Pro 需要两件事：使用你订阅时的同一个 BikeControl 账户登录，并且此设备已注册 Pro — 如果没有，设置 → 方案与账户会显示「注册此设备」（每个平台有自己的设备数量限制）。一次性购买的基础版只需要你购买时的同一个商店账户 — 在设置 → 方案与账户中使用恢复购买。在 Microsoft Store 之外的 Windows 上购买的？那里没有商店可以恢复，请改用你付款时的同一个 BikeControl 账户登录。",
+  "faqTrialQ": "为什么虚拟换挡限制为 20 分钟？",
+  "faqTrialA": "BikeControl 自己的虚拟换挡是 Pro 功能。没有 Pro 时，你每天可以试用 20 分钟 — 试用按天重置，不是按每次骑行。没有 Pro 时，也可以改由骑行软件来做虚拟换挡。有了 Pro，BikeControl 的虚拟换挡没有限制。",
+  "faqGrandfatherQ": "我在订阅出现之前买了这个应用。我能保留什么？",
+  "faqGrandfatherA": "一次性购买包含的一切，你可以永久保留 — 不限次数的按键操作、基础按键映射、连接你的控制器。虚拟换挡（把智能骑行台连接到 BikeControl）一直属于 Pro，即使是早期购买也不例外，因此不会自动包含。",
+  "faqRefundQ": "可以退款吗？",
+  "faqRefundA": "退款由你购买的商店（App Store、Google Play、Microsoft Store）按其政策处理。如果有功能不好用，请先联系支持 — 大多数问题都可以解决，我更希望修好你的问题，而不是失去你。",
+  "faqCrossStoreQ": "我在一个商店买了 — 可以在另一个商店使用 BikeControl 吗？",
+  "faqCrossStoreA": "一次性购买属于你购买它的那个商店（App Store、Google Play、Mac App Store、Microsoft Store），不能转移到另一个商店 — 要解锁另一个商店的版本，只能再次购买。Pro 不同：它属于你的 BikeControl 账户，而不是某个商店，因此登录该账户，Pro 也能在其他平台解锁。为此，购买 Pro 时请处于登录状态 — 或者之后在你购买它的设备上登录。",
+  "faqRestoreQ": "恢复购买没有找回我的购买",
+  "faqRestoreA": "恢复购买只会检查此设备当前登录的商店账户 — 必须是完成购买的那个账户（Apple ID、Google 账号、Microsoft 账号），而且一次性购买只会在购买它的那个商店上恢复，绝不会在另一个商店上恢复。在 Microsoft Store 之外的 Windows 上，购买不经过商店，因此恢复购买找不到任何记录 — 请在那里改用你的 BikeControl 账户登录。还是不行？从此页面联系支持，并提供你的购买邮箱。",
+  "ltwooHintCloseApp": "骑行时请关闭 LTWOO 应用 — 变速器一次只接受一个蓝牙连接。",
+  "ltwooHintCassetteEnds": "在飞轮两端换挡不会发送信号 — 变速器无法再移动。",
+  "ltwooWrongPinAlert": "L-TWOO 变速器拒绝了 PIN。请在此控制器的偏好设置中检查设备 PIN。",
+  "ltwooPinLabel": "设备 PIN",
+  "sensorSourceListHeader": "来源",
+  "sensorSourceTrainer": "骑行台",
+  "sensorSourceTrainerSubtitle": "骑行台自带的读数。",
+  "sensorSourceNotConnectedSubtitle": "外部传感器。",
+  "sensorSourceConnectedSubtitle": "正在传输它自己的读数。",
+  "sensorSourceConnectedElsewhereSubtitle": "已连接 — 这里也能用。",
+  "sensorSourceConnectingGhostSubtitle": "正在等待回到范围内。",
+  "sensorQuantityHeartRate": "心率",
+  "sensorQuantityCadence": "踏频",
+  "sensorQuantityPower": "功率",
+  "sensorQuantitySpeed": "速度",
+  "sensorConnecting": "正在连接…",
+  "sensorAwaitingFirstReading": "正在等待首次读数…",
+  "sensorDroppedOut": "信号丢失 — 改用骑行台。",
+  "sensorConnectFailed": "无法连接",
+  "sensorDisconnectFailed": "无法断开",
+  "sensorSourceHealthKitSubtitle": "AirPods Pro 3 或 Apple Watch。",
+  "sensorSourceHealthKitPassiveSubtitle": "需要在此 iPhone 的「健身」中正在进行训练。",
+  "sensorHealthKitDenied": "在设置 › 健康 › 数据访问中允许心率。",
+  "sensorKindHeartRateMonitor": "心率监测器",
+  "sensorKindCadenceSensor": "踏频传感器",
+  "sensorKindPowerMeter": "功率计",
+  "sensorValueHeartRate": "{value} bpm",
+  "@sensorValueHeartRate": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "sensorValueCadence": "{value} rpm",
+  "@sensorValueCadence": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "sensorValuePower": "{value} 瓦",
+  "@sensorValuePower": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "ltwooAnchorGearTitle": "保持变速器原位",
+  "ltwooAnchorGearDescription": "每次换挡后，BikeControl 会把变速器拨回去，使链条留在同一片齿上。每次按下时，变速器都会短暂移动。",
+  "shiftFeedbackSound": "换挡时播放声音",
+  "shiftFeedbackSoundSubtitle": "升挡、降挡和到达最后一挡时各有不同提示",
+  "shiftFeedbackHaptics": "换挡时让此设备振动",
+  "shiftFeedbackHapticsSubtitle": "在此手机或平板上短振一下，没有下一挡时振两次。控制器振动按每个控制器单独设置。",
+  "supportPinnedContextChip": "已附加：{label}",
+  "@supportPinnedContextChip": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "supportPinnedNetworkTest": "网络检查结果",
+  "supportPinnedResistanceTest": "阻力测试结果",
+  "supportDescribeProblemPlaceholder": "你想做什么，实际发生了什么？",
+  "supportDescribeProblemHint": "只有测试结果还看不出哪里出了问题 — 一句话就够了。",
+  "networkFooterPassTitle": "此设备上的检查都通过了",
+  "networkFooterPassBody": "如果骑行软件仍无法连接，问题在它那一侧，或在你们之间的网络上。请准确告诉我们你看到的情况，我们会查看。",
+  "networkFooterGetHelp": "获取帮助",
+  "chainStepOverlayPending": "{appName} 会继续显示它自己的挡位",
+  "@chainStepOverlayPending": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepOverlayPendingNoApp": "你的骑行软件会继续显示它自己的挡位",
+  "chainStepOverlayDecline": "暂不",
+  "chainStepAppControllerPending": "{app} 尚未连接到你的按键",
+  "@chainStepAppControllerPending": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepAppControllerHint": "{app} 已经通过 BikeControl 读取你的骑行台。你的按键需要第二条连接：在 {app} 的配对界面中，点按控制器下方的 BikeControl 磁贴 — 它和骑行台是分开的磁贴。",
+  "@chainStepAppControllerHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepTrainerBridgedHint2": "在 {app} 的配对界面中选择「{bridge}」作为骑行台 — 不要选择以其自身名称显示的「{trainer}」，那会绕过 BikeControl。",
+  "@chainStepTrainerBridgedHint2": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      },
+      "trainer": {
+        "type": "String"
+      }
+    }
+  },
+  "chainPendingSubtitleController": "{app} 已通过 BikeControl 连接你的骑行台，但只有在其配对界面中也连接 BikeControl 控制器，你的按键才会到达 {app}。",
+  "@chainPendingSubtitleController": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStatusWaitingForPickup": "正在等待 {app} 连接到「{bridge}」",
+  "@chainStatusWaitingForPickup": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
+  "vsTransportSameDeviceNote": "蓝牙无法连接到同一台设备上的应用 — 改用 Wi-Fi。",
+  "vsSameDeviceBlockedFix": "可行的做法：在车旁的手机或平板上使用 BikeControl，或在另一台设备上使用 {app}。",
+  "@vsSameDeviceBlockedFix": {
+    "description": "Trainer page: the setups that work when the trainer app on this device can't reach BikeControl's bridge.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerTwinSubtitle": "同一台骑行台，经由 {transport} — 连接后会切换到此路径",
+  "@trainerTwinSubtitle": {
+    "placeholders": {
+      "transport": {
+        "type": "String"
+      }
+    }
+  },
+  "trainerTwinStillConnecting": "{trainer} 仍在通过 {transport} 连接。请稍等片刻，然后重试。",
+  "@trainerTwinStillConnecting": {
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "transport": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_shiftInYourApp": "你的按键在骑行软件中换挡和转向，使用该软件自己的虚拟换挡",
+  "paywall_bikeControlShifts": "BikeControl 自己为你的骑行台换挡 — 自定义挡位、前拨、任意骑行台",
+  "paywall_baseStoreNote": "{store} 版本的一次性购买。它不会转移到其他商店或平台 — Pro 可以。",
+  "@paywall_baseStoreNote": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_baseFreeOnLinux": "基础版在 Linux 上免费 — 无需购买。",
+  "paywall_storeDirectDownload": "直接下载",
+  "purchaseBaseDoneTitle": "你现在拥有基础版",
+  "purchaseBaseDoneBody": "在骑行软件中不限次数的按键操作。BikeControl 自己的虚拟换挡属于 Pro — 你每天仍可以试用 20 分钟。",
+  "purchaseProDoneTitle": "Pro 已在你的账户上生效",
+  "purchaseProSignInTitle": "Pro 已在此设备上生效",
+  "purchaseProSignInBody": "请登录，这样 Pro 也能在你的其他设备上使用。你也可以稍后在设置 → 方案与账户中登录。",
+  "purchaseProUnregisteredBody": "此设备尚未注册，因此 Pro 功能在这里保持关闭。",
+  "registerThisDevice": "注册此设备",
+  "proUnregisteredTitle": "Pro 在你的账户上，不在此设备上",
+  "proUnregisteredBody": "在你注册此设备之前，这里的虚拟换挡仍然受限。",
+  "vsModeTrackResistanceDesc": "按挡位模拟道路坡度 — 阻力跟随你的速度，并在你换挡的瞬间变化，像真车一样。最适合自由骑行和比赛。",
+  "vsModeTargetPowerDesc": "每个挡位保持一个目标功率，类似 ERG。你的踏频会抵消一部分变化，因此换挡感觉更柔和，爬坡会把功率拉高。适用于无法模拟坡度的骑行台。",
+  "vsModeBasicDesc": "类似目标功率，但每个挡位是固定步进，没有地形感。给忽略其他模式的骑行台的最后办法。",
+  "vsModeRecommended": "推荐",
+  "vsModeUnsupported": "此骑行台不支持。 ",
+  "chainStepNetworkAddressPending": "你的网络看起来不寻常",
+  "chainStepNetworkAddressHint": "BikeControl 正在通告 {address}，这看起来像 VPN 或热点地址。{app} 可能无法到达它。请关闭 VPN，或在此设备上使用本机方式。",
+  "@chainStepNetworkAddressHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressNoWifiHint": "此设备未连接 Wi-Fi，{app} 无法通过移动数据到达 BikeControl。请加入与 {app} 相同的 Wi-Fi。",
+  "@chainStepNetworkAddressNoWifiHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressTwoNetworksHint": "此设备连接了不止一个网络，BikeControl 正在通告 {address}。如果 {app} 在另一个网络上，就找不到 BikeControl — 请把两者放到同一个 Wi-Fi。",
+  "@chainStepNetworkAddressTwoNetworksHint": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainStepNetworkAddressAction": "运行网络检查",
+  "chainStatusAppDisconnected": "{app} 已断开",
+  "@chainStatusAppDisconnected": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainPendingSubtitleAppDropped": "{app} 已断开。再次骑行时，从其配对界面重新连接。",
+  "@chainPendingSubtitleAppDropped": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainPendingSubtitleOpenApp": "其他都已设置好 — 只需打开 {app}。",
+  "@chainPendingSubtitleOpenApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "chainPendingSubtitleAsleep": "你的控制器在休眠。按下它的任意按键，它就会自行重新连接。",
+  "healthRideDiscard": "丢弃",
+  "healthRideDiscardConfirmTitle": "丢弃这次骑行？",
+  "healthRideDiscardConfirmAction": "丢弃骑行",
+  "perGearCount": "{count, plural, =1{1 个挡位} other{{count} 个挡位}}",
+  "@perGearCount": {
+    "description": "How many gears the per-gear list in the gear editor shows.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yBack": "返回",
+  "@a11yBack": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yMoreOptions": "更多选项",
+  "@a11yMoreOptions": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11ySendMessage": "发送消息",
+  "@a11ySendMessage": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yAttachFile": "附加文件",
+  "@a11yAttachFile": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yRemoveAttachment": "移除附件",
+  "@a11yRemoveAttachment": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yDismiss": "关闭",
+  "@a11yDismiss": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yDecrease": "减少",
+  "@a11yDecrease": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yIncrease": "增加",
+  "@a11yIncrease": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yRefresh": "刷新",
+  "@a11yRefresh": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yOpenWebsite": "打开网站",
+  "@a11yOpenWebsite": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yHelp": "帮助",
+  "@a11yHelp": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yEditButtonMapping": "更改 {button} 的功能",
+  "@a11yEditButtonMapping": {
+    "description": "Screen-reader label for a tap area that remaps a controller button.",
+    "placeholders": {
+      "button": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yShowDetails": "显示详情",
+  "@a11yShowDetails": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "a11yDragOverlay": "移动悬浮窗",
+  "@a11yDragOverlay": {
+    "description": "Screen-reader label (and desktop tooltip) for an icon-only button."
+  },
+  "gearOfMax": "共 {max}",
+  "@gearOfMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "gearOfMaxWithRatio": "共 {max} · 齿比 {ratio}",
+  "@gearOfMaxWithRatio": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "restoringPurchases": "正在恢复购买…",
+  "purchaseErrorTitle": "购买出错",
+  "purchaseErrorBody": "开始购买时出了点问题。请重试。",
+  "paywall_perMonth": "{price}/月",
+  "@paywall_perMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_aboutPerMonth": "约 {price}/月",
+  "@paywall_aboutPerMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_billedYearly": "按年计费",
+  "paywall_aboutOneTime": "约 {price} — 一次性",
+  "@paywall_aboutOneTime": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_discountOff": "{percent}% 优惠",
+  "@paywall_discountOff": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "waitingForConnection": "正在等待连接…",
+  "unlockAgain": "再次解锁",
+  "unlock_clickUnlocked": "Zwift Click 已解锁！现在可以关闭此页面。",
+  "purchaseSuccessfulTitle": "购买成功",
+  "purchaseSuccessfulBody": "购买已完成。同步可能需要一点时间。",
+  "checkoutErrorTitle": "结账出错",
+  "checkoutErrorBody": "无法开始结账。请重试。",
+  "billingPortalErrorTitle": "账单门户出错",
+  "billingPortalErrorBody": "无法打开账单门户。请重试。",
+  "loginRequiredTitle": "需要登录",
+  "loginRequiredWindowsBody": "Windows 上的 Pro 需要你登录。这样订阅才能跟随你到其他设备，你也才能管理它。",
+  "loginRequiredLinuxBody": "Linux 上的 Pro 需要你登录。这样订阅才能跟随你到其他设备，你也才能管理它。",
+  "loginRequiredCta": "请登录或创建账户以继续。",
+  "goToLogin": "前往登录",
+  "fullVersionOfferingUnavailable": "基础版暂时不可用。",
+  "subscriptionOfferingUnavailable": "订阅方案暂时不可用。",
+  "enableNotificationsAndroid": "在安卓设置中为 BikeControl 开启通知",
+  "enableNotificationsApple": "在系统设置 → 通知 → BikeControl 中为 BikeControl 开启通知",
+  "keyboardShortcuts": "键盘快捷键",
+  "keyboardShortcutsSimulatorHint": "为模拟器按键分配键盘快捷键",
+  "trainerControlsNoConnection": "开启与骑行软件的连接，才能从这里发送按键。",
+  "@trainerControlsNoConnection": {
+    "description": "Trainer Controls page: shown when no connection to a trainer app is turned on, so the on-screen buttons have nowhere to send."
+  },
+  "pressAKey": "按下一个键…",
+  "setShortcut": "设定",
+  "ignore": "忽略",
+  "subscription": "订阅",
+  "tutorials": "教程",
+  "wheeltopShifterBattery": "手变电量：{volts} V",
+  "@wheeltopShifterBattery": {
+    "placeholders": {
+      "volts": {
+        "type": "String"
+      }
+    }
+  },
+  "wheeltopSlideSwitchHint": "拨动开关在 R：上下按键用于换挡。拨动开关在 T：这两个按键变成两个额外可分配的按键。",
+  "wheeltopKeepaliveTitle": "保活实验（测试版）",
+  "wheeltopKeepaliveBody": "TX 手变会在连接后几秒断开，因为应用还不知道如何回应它们的状态帧。此实验（默认开启）会在每次重连时自动尝试一种候选应答，并把结果记入日志—把该日志分享给客服，有助于找到能让手变保持连接的应答。关闭它则会改为停止重连尝试。",
+  "noNewerSettingsOnServer": "服务器上没有更新的设置",
+  "noNewerSettingsAvailable": "没有可用的更新设置",
+  "syncSettingsVersion": "版本：{version}",
+  "@syncSettingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "syncDeviceSummary": "版本：{version} • 映射：{count} • 换挡配置：{shiftingCount}",
+  "@syncDeviceSummary": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      },
+      "shiftingCount": {
+        "type": "String"
+      }
+    }
+  },
+  "unknown": "未知",
+  "diagnosticsTitle": "诊断",
+  "diagnosticsScanning": "正在扫描…",
+  "noDiagnosticsYet": "还没有诊断信息",
+  "logsFile": "日志文件：",
+  "useMagnetometerMode": "使用磁力计模式",
+  "useMagnetometerModeBody": "让指南针消除陀螺仪的缓慢漂移。",
+  "steeringCompassLearningHint": "把车把向左和向右各转到头一次，让指南针学习你的安装方式。",
+  "steeringCompassReady": "指南针正在修正漂移。",
+  "steeringAngle": "转向角度",
+  "calibratingSensorsHint": "正在校准传感器。把手机或平板装到车把上，并保持静止一秒钟。",
+  "scriptSavedFor": "已为 {device} 保存脚本。",
+  "@scriptSavedFor": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptDeletedFor": "已删除 {device} 的脚本。",
+  "@scriptDeletedFor": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteScriptTitle": "删除脚本？",
+  "deleteScriptBody": "这将移除为 {device} 保存的脚本。",
+  "@deleteScriptBody": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "characteristicUuidRequired": "必须填写特征 UUID。",
+  "runScriptTitle": "运行脚本",
+  "scriptDeviceType": "设备类型：{device}",
+  "@scriptDeviceType": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptRunsOnValue": "每当通过蓝牙收到一个值时，此脚本就会运行。\n所需签名：{signature}",
+  "@scriptRunsOnValue": {
+    "placeholders": {
+      "signature": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptPlaceholder": "在这里编写脚本…",
+  "tryScriptTitle": "试运行脚本",
+  "characteristicUuid": "特征 UUID",
+  "hexInputHint": "十六进制输入（例如 {example}）",
+  "@hexInputHint": {
+    "placeholders": {
+      "example": {
+        "type": "String"
+      }
+    }
+  },
+  "tryingEllipsis": "正在尝试…",
+  "tryAction": "尝试",
+  "deletingEllipsis": "正在删除…",
+  "savingEllipsis": "正在保存…",
+  "scriptOutputCharacteristic": "输出特征：{value}",
+  "@scriptOutputCharacteristic": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "scriptOutputHex": "输出数据（十六进制）：{value}",
+  "@scriptOutputHex": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "overlayCouldNotStart": "无法显示悬浮窗。请重试。",
+  "secondsAgo": "{seconds} 秒前",
+  "@secondsAgo": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "minutesAgo": "{minutes} 分钟前",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "scanning": "正在扫描",
+  "a11yTabHasErrors": "{tab}，有错误",
+  "@a11yTabHasErrors": {
+    "placeholders": {
+      "tab": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yTabHasNewPosts": "{tab}，有新内容",
+  "@a11yTabHasNewPosts": {
+    "placeholders": {
+      "tab": {
+        "type": "String"
+      }
+    }
+  },
+  "statusConnected": "已连接",
+  "statusConnecting": "正在连接",
+  "statusOff": "关闭",
+  "unlock_importantSetupInfo": "重要设置信息",
+  "instructionsQa": "问答",
+  "remoteControl": "远程控制",
+  "proFeature": "Pro 功能",
+  "trainerAppAction": "{app} 动作",
+  "@trainerAppAction": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "open": "打开",
+  "couldNotLaunchAssistant": "无法启动助手",
+  "supportChatOpenFailed": "无法打开客服聊天",
+  "supportChatLoadFailed": "无法加载客服聊天",
+  "supportChatSendFailed": "无法发送消息",
+  "supportChatUnsupportedFile": "不支持的文件类型",
+  "supportChatUploadFailed": "无法上传附件",
+  "supportChatDeleteFailed": "无法删除你的数据",
+  "youtubeVideo": "YouTube 视频",
+  "supportChatIssuesFailed": "无法加载问题",
+  "onboardingDoneNoControllerTitle": "就快好了：配对一个控制器",
+  "onboardingDoneNoControllerSubtitle": "{app} 已连接，但没有控制器时 BikeControl 无法换挡。现在就配对一个，或稍后从主屏幕配对。",
+  "onboardingSummaryNotPaired": "未配对",
+  "onboardingPairControllerAction": "配对",
+  "onboardingRunTrainerCheck": "运行骑行台检查",
+  "onboardingTrialKeepVs": "要保留虚拟换挡：Pro",
+  "onboardingTrialUnlimited": "要获得无限指令：基础版或 Pro",
+  "onboardingSkipControllerNote": "没有控制器时 BikeControl 无法换挡。你可以稍后从主屏幕配对一个。",
+  "onboardingZwiftNoteZwift": "Zwift 会原生读取你的 {device}—用它骑行不需要 BikeControl。如果你想重新映射按键、添加 Zwift 未分配的动作、腾出一个蓝牙槽位，或直接控制虚拟换挡，BikeControl 仍然可以帮忙。",
+  "@onboardingZwiftNoteZwift": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteOfficial": "{device} 是为 Zwift 设计的，所以在那里效果最好。BikeControl 官方支持 {app}：换挡和主要控制可用，但有几个按键在 {app} 中没有对应功能。BikeControl 会映射 {app} 支持的全部内容。",
+  "@onboardingZwiftNoteOfficial": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteActions": "{device} 是为 Zwift 设计的，所以在那里效果最好。{app} 只提供少数 BikeControl 可以触发的控制：{actions}。其他按键在 {app} 中无事可做—但 {app} 拥有的每一项控制都能从 {device} 操作。",
+  "@onboardingZwiftNoteActions": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      },
+      "actions": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteAppDefined": "{device} 是为 Zwift 设计的，所以在那里效果最好。每个 {app} 应用自行决定接受哪些控制，因此有些按键在那里可能无事可做。BikeControl 会映射该应用提供的全部内容。",
+  "@onboardingZwiftNoteAppDefined": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteCustom": "{device} 是为 Zwift 设计的，所以在那里效果最好。BikeControl 没有适用于你的骑行软件的预设，所以由你选择每个按键的作用—例如键盘快捷键或屏幕点按。",
+  "@onboardingZwiftNoteCustom": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingZwiftNoteNoInput": "{device} 是为 Zwift 设计的，所以在那里效果最好。{app} 不接收按键输入，所以这些按键在那里没有可控制的内容。BikeControl 仍可以把它们用于自己的虚拟换挡。",
+  "@onboardingZwiftNoteNoInput": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingVsProNote": "BikeControl 的虚拟换挡属于 Pro。没有 Pro 时，你每天有 {minutes} 分钟试用；基础版不包含它。",
+  "onboardingStillNotConnected": "仍未连接？测试你的网络",
+  "paywall_vsByBikeControl": "由 BikeControl 提供的虚拟换挡（任意骑行台，自定义挡位）",
+  "paywall_shareSensors": "与骑行软件共享心率和传感器",
+  "vsWithoutProNote": "没有 Pro 时，由 {app} 处理虚拟换挡，你会失去 BikeControl Pro 的这些优势：干脆的换挡、直接控制、虚拟前拨和完全自定义。",
+  "@vsWithoutProNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsWithoutProNoteYourApp": "没有 Pro 时，由你的骑行软件处理虚拟换挡，你会失去 BikeControl Pro 的这些优势：干脆的换挡、直接控制、虚拟前拨和完全自定义。",
+  "vsWithoutProLearnMore": "了解更多 ›",
+  "paywall_startProYearly": "开通 Pro 年付",
+  "paywall_startProMonthly": "开通 Pro 月付",
+  "paywall_buyBase": "购买基础版",
+  "paywall_planQuestions": "对方案有疑问？",
+  "paywall_oneTimePurchase": "一次性购买",
+  "vsBudgetProRemovesLimit": "Pro 解除此限制",
+  "supportDescribeFirstMessageHint": "告诉我们你想做什么，以及实际发生了什么。单靠截图说不清哪里出了问题—一句话就够了。",
+  "supportIntakeTryThisFirst": "先试试这个",
+  "supportIntakeDidThisSolveIt": "这样解决了吗？",
+  "supportIntakeSolvedYes": "是的，没问题了",
+  "supportIntakeSolvedNo": "没有，联系客服",
+  "intakeSelfHelpNetworkBody": "网络测试会逐步检查你的骑行软件能否在此网络上找到 BikeControl，如果找不到，会告诉你该改什么。",
+  "intakeSelfHelpNetworkAction": "运行网络测试",
+  "intakeSelfHelpSelfTestTitle": "运行阻力自检",
+  "intakeSelfHelpSelfTestBody": "它会检查 BikeControl 能否改变你的骑行台阻力，如果不能，会说明该修什么。",
+  "intakeSelfHelpSelfTestAction": "运行自检",
+  "intakeSelfHelpOpenPlanAccount": "打开方案与账户",
+  "intakeSelfHelpPlanBody": "基础版是一次性购买，可让按键次数不受限制—虚拟换挡由你的骑行软件完成。BikeControl 自己的虚拟换挡属于 Pro：没有 Pro 时，每天 20 分钟是每日试用，购买基础版后仍然如此。",
+  "intakeSelfHelpPlanSignInTitle": "Pro：用购买时的账户登录",
+  "intakeSelfHelpPlanSignInBody": "Pro 属于你的 BikeControl 账户，不属于商店。在方案与账户中，确认你登录用的是购买 Pro 时的邮箱。",
+  "intakeSelfHelpPlanRegisterTitle": "Pro：注册此设备",
+  "intakeSelfHelpPlanRegisterBody": "如果方案与账户显示「注册此设备」，点按它。每个平台有自己的设备数量上限—如果已满，请移除一台你不再使用的设备。",
+  "intakeSelfHelpPlanRestoreTitle": "基础版：恢复它",
+  "intakeSelfHelpPlanRestoreBody": "一次性购买的基础版可通过方案与账户中的恢复购买找回，前提是此设备使用的是你购买时的同一商店账户。",
+  "intakeSelfHelpRestoreBody": "恢复购买只能找到当前在此设备上登录的商店账户已经购买的内容。",
+  "intakeSelfHelpRestoreStoreAccountTitle": "使用购买时的商店账户",
+  "intakeSelfHelpRestoreStoreAccountBody": "iPhone、iPad 和 Mac：你付款所用的 Apple ID。安卓：Play Store 购买时使用的 Google 账号—如果不是同一个，请在 Play Store 中切换账户（点按你的头像），然后再次点按恢复购买。Windows：Microsoft Store 中的 Microsoft 账号。",
+  "intakeSelfHelpRestoreProTitle": "Pro：改为登录",
+  "intakeSelfHelpRestoreProBody": "Pro 不通过商店恢复：它会跟随你的 BikeControl 账户出现在每个平台。请在方案与账户中，用购买 Pro 时的账户登录。",
+  "intakeSelfHelpRestoreOtherStoreTitle": "在其他商店购买了基础版？",
+  "intakeSelfHelpRestoreOtherStoreBody": "一次性购买的基础版留在你购买时的商店（App Store、Google Play、Microsoft Store），无法在另一个商店恢复。2025 年在 Google Play 购买过 BikeControl，当时它是付费下载？在聊天里告诉我，我会发给你一个码，让你再次解锁。",
+  "intakeSelfHelpRefundTitle": "退款取决于你在哪里购买",
+  "intakeSelfHelpRefundBody": "在 Google Play 购买，或是从网站下载的 Windows 版本？在聊天里写给我，我会处理退款。App Store 或 Microsoft Store 中的购买由商店自己退款—请到这里申请：",
+  "intakeSelfHelpRefundAppleTitle": "App Store（iPhone、iPad、Mac）",
+  "intakeSelfHelpRefundAppleBody": "在 reportaproblem.apple.com 上，使用你的 Apple ID 登录，选择「申请退款」，然后选择 BikeControl。",
+  "intakeSelfHelpRefundMicrosoftTitle": "Microsoft Store",
+  "intakeSelfHelpRefundMicrosoftBody": "在你的 Microsoft 账号的订单历史中找到 BikeControl，然后选择「申请退款」。",
+  "intakeSelfHelpRefundLink": "打开退款页面",
+  "intakeSelfHelpRefundNote": "购买还有其他问题？在聊天里写给我。",
+  "helpCenterRunSetupGuide": "运行设置指南",
+  "onboardingDonePickTrainerTitle": "还有一步：选择你的骑行台",
+  "onboardingDonePickTrainerSubtitle": "{app} 已连接，但还没有检测到你的骑行台。请在 {app} 中这样选择：",
+  "@onboardingDonePickTrainerSubtitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingDonePairLater": "完成—我稍后再配对",
+  "intakeControllerPlayLeft": "Zwift Play（左）",
+  "intakeControllerPlayRight": "Zwift Play（右）",
+  "intakeControllerGamepad": "游戏手柄",
+  "intakeControllerHidKeyboard": "键盘 / 媒体遥控器（HID）",
+  "intakeControllerGyroscope": "手机转向（陀螺仪）",
+  "intakeControllerOther": "其他 / 未列出",
+  "intakeSomethingElse": "其他",
+  "intakeControllerNoPairing": "无法配对",
+  "intakeControllerNoResponse": "能配对，但按键没有反应",
+  "intakeControllerButtonsPartial": "只有部分按键有效",
+  "intakeControllerDropouts": "骑行中断开",
+  "intakeAppShiftsNotRecognized": "BikeControl 在换挡，应用没有反应",
+  "intakeAppNetworkBridgeFails": "网络连接一直停在「等待」",
+  "intakeAppNoPairing": "无法从应用中配对",
+  "intakeAppGearIndicator": "屏幕上的挡位数字卡住了",
+  "intakeTrainerNoResistanceChange": "换挡时阻力没有变化",
+  "intakeTrainerWrongResistance": "阻力感觉不对 / 随机",
+  "intakeTrainerGearShiftNotWorking": "换挡不起作用",
+  "intakeTrainerNoPairing": "骑行台无法配对",
+  "intakeTrainerDropouts": "骑行中掉线",
+  "intakeTrainerNoData": "没有功率 / 踏频 / 心率",
+  "intakeTrainerNotSupported": "未检测到骑行台 / 缺少 FTMS",
+  "intakeAccountPurchaseNotRestored": "无法恢复购买",
+  "intakeAccountTrialExpiredAfterPurchase": "我已付款，试用却已过期",
+  "intakeAccountWrongPlan": "应用显示的方案不对",
+  "intakeAccountRefund": "退款申请",
+  "helpAnswerChecksIntro": "按顺序做几项快速检查：",
+  "helpCheckDisconnectSub": "同一时间只能有一个应用占用控制器。关闭其他已连接它的应用，或在占用它的设备上关闭蓝牙。",
+  "helpCheckFirmwareDi2Sub": "固件过旧会让它无法被发现。请用 Shimano 的 E-TUBE PROJECT 应用更新。",
+  "helpCheckFirmwareSramSub": "固件过旧会让它无法被发现。请在 SRAM AXS 应用中更新。",
+  "helpCheckFirmwareMakerSub": "固件过旧会让控制器无法被发现。请到其制造商的应用中查看更新。",
+  "helpAnswerAppNotReactingTitle": "先检查连接",
+  "helpCheckAppConnectedTitle": "你的骑行软件已连接了吗？",
+  "helpCheckAppConnectedSub": "骑行软件与骑行台是分别连接到 BikeControl 的。主屏幕会显示它是否已连接；如果没有，请运行网络测试。",
+  "helpCheckGearOverlayTitle": "换挡生效了，但挡位数字没有变化？",
+  "helpCheckGearOverlaySub": "当 BikeControl 控制你的骑行台时，骑行软件仍会显示它自己的挡位。悬浮窗显示的则是 BikeControl 的挡位。悬浮窗出现在运行 BikeControl 的设备上，而不是电视或 Apple TV 上。如果骑行软件在那边运行，请让 BikeControl 的屏幕保持在视野内，以便看到你的挡位。",
+  "helpCheckDailyLimitTitle": "今天的按键次数用完了？",
+  "helpCheckDailyLimitSub": "没有基础版或 Pro 时，BikeControl 每天执行 {limit} 次按键，试用期间也一样。用完之后，直到明天按键都不会有反应，BikeControl 会告诉你已达到每日上限。基础版或 Pro 可解除此限制。",
+  "@helpCheckDailyLimitSub": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "helpCheckControllerAwakeTitle": "你的控制器是否已唤醒并连接？",
+  "helpCheckControllerAwakeSub": "控制器不用时会休眠。按一个按键唤醒它，然后查看「设备」：如果那里没有连接，请重新连接。",
+  "helpCheckConnectionMethodTitle": "与骑行软件的连接是否已开启？",
+  "helpCheckConnectionMethodSub": "打开设置 → 骑行软件与连接，确认你使用的连接方式（蓝牙、网络或本机）已开启，并且骑行软件已连接。",
+  "helpSelfTestNeedsTrainer": "请先在 BikeControl 中连接你的骑行台。自检需要实时连接。之后你可以在该骑行台的虚拟换挡设置中找到它。",
+  "onboardingDoneOverlayNote": "{app} 仍会显示它自己的挡位数字。BikeControl 的挡位显示在悬浮窗中。",
+  "@onboardingDoneOverlayNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingDoneShowOverlay": "显示挡位悬浮窗",
+  "onboardingNetworkChecking": "正在检查你的网络…",
+  "onboardingNetworkCheckPassed": "网络检查已通过",
+  "onboardingNetworkCheckFailedTitle": "网络检查发现了问题",
+  "onboardingNetworkCheckFailedBody": "在修复之前，{app} 很可能无法在此网络上找到 BikeControl。",
+  "@onboardingNetworkCheckFailedBody": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingNetworkRecheck": "再次检查",
+  "onboardingNetworkContinueAnyway": "仍然继续",
+  "onboardingNetworkContinuedNote": "网络检查发现了问题。如果 {app} 没有连接，请在这里再次检查。",
+  "@onboardingNetworkContinuedNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSummaryTrainerInApp": "在 {app} 中通过 BikeControl",
+  "@onboardingSummaryTrainerInApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "supportDiagSummaryTitle": "随消息发送的内容",
+  "supportDiagAppVersion": "应用版本",
+  "supportDiagPlatform": "系统",
+  "supportDiagDevices": "已连接的设备",
+  "supportDiagConnections": "连接方式",
+  "supportDiagLogLines": "日志行",
+  "supportDiagScreenshot": "截图",
+  "supportDiagScreenshotAttached": "已附加",
+  "supportDiagScreenshotNone": "未附加",
+  "supportDiagNone": "无",
+  "supportDiagShowTechnical": "显示技术详情",
+  "supportDiagHideTechnical": "隐藏技术详情",
+  "purchaseProDeviceLimitBody": "此设备还不能激活：你的账户已有最多 {max} 台设备在 {platform} 上。移除一台不再使用的设备后，此设备会立即激活。",
+  "@purchaseProDeviceLimitBody": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "purchaseManageDevices": "管理设备",
+  "purchaseProActiveOnDevice": "Pro 现已在此设备上生效",
+  "supportPinnedDeviceLimit": "设备上限详情",
+  "onboardingNetworkResolvedByConnection": "{app} 已通过网络连接，因此网络是通的。",
+  "@onboardingNetworkResolvedByConnection": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "targetOtherDeviceDescription": "在另一台设备上运行 {appName}，并从此设备远程控制它。",
+  "@targetOtherDeviceDescription": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "targetOtherDeviceDescriptionObc": "在另一台设备上运行 {appName}，并从此设备远程控制它，例如通过 OpenBikeControl 连接。",
+  "@targetOtherDeviceDescriptionObc": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "targetOtherDeviceDescriptionMyWhoosh": "在另一台设备上运行 {appName}，并从此设备远程控制它，例如使用 MyWhoosh Link。",
+  "@targetOtherDeviceDescriptionMyWhoosh": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "targetOtherDeviceDescriptionNoApp": "在另一台设备上运行你的骑行软件，并从此设备远程控制它。",
+  "targetThisDeviceDescriptionNoApp": "在此设备上运行你的骑行软件。",
+  "purchaseProDeviceLimitTitle": "Pro 已在你的账户上，但尚未在此设备上",
+  "helpAnswerStillStuckContactSupport": "还是解决不了？联系客服",
+  "paywallYourPlan": "你的方案",
+  "supportDiagnosticsNoticeNoScreenshot": "为帮助修复你的问题，此聊天会附上诊断信息。发送前你可以用 {infoIcon} 查看。",
+  "@supportDiagnosticsNoticeNoScreenshot": {
+    "placeholders": {
+      "infoIcon": {
+        "type": "String"
+      }
+    }
+  },
+  "rideV2SupportLine": "不想每天解锁？联系客服。",
+  "rideV2Explainer_title": "Zwift Ride V2 设置",
+  "rideV2Explainer_heading": "用 Zwift 解锁",
+  "rideV2Explainer_intro": "Zwift 会把 Zwift Ride V2 锁定在自己的应用里。在 Zwift 应用中解锁后，它可与 BikeControl 配合使用约 24 小时。",
+  "rideV2Explainer_row2": "在 Zwift 应用中解锁—BikeControl 会告诉你怎么做",
+  "rideV2Explainer_row3": "一次解锁大约持续 24 小时，之后需要再次解锁",
+  "rideV2Explainer_gotIt": "知道了",
+  "rideV2LockedToast": "你的 Zwift Ride V2 已锁定。请先在 Zwift 应用中解锁。",
+  "chainStepUnlockedHintRideV2": "Zwift 会把 Zwift Ride V2 锁定在自己的应用里—在 Zwift 中解锁后，它会继续工作约 24 小时。",
+  "unlock_rideV2Unlocked": "Zwift Ride V2 已解锁！现在可以关闭此页面。",
+  "unlock_rideV2MightBeUnlockedAlready": "你的 Zwift Ride V2 可能已经解锁。",
+  "rideV2Instructions": "Zwift 会把 Zwift Ride V2 锁定在自己的应用里。在那里解锁后，它可与 BikeControl 配合使用约 24 小时。\n\n1. 打开 Zwift 应用（不是 Companion！）\n2. 登录（不需要订阅）并打开设备连接界面\n3. 连接你的骑行台，然后连接 Zwift Ride V2\n4. 再次关闭 Zwift 应用，并在 BikeControl 中重新连接",
+  "rideV2SupportPrefill": "你好！我的 Zwift Ride V2 固件是 {version}，我不想每天在 Zwift 里解锁。能帮忙吗？",
+  "@rideV2SupportPrefill": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "intakeControllerRideV2Lock": "Zwift Ride V2 锁定",
+  "navRide": "骑行",
+  "@navRide": {
+    "description": "Main navigation section: the ride screen (shifting, buttons)."
+  },
+  "navDevices": "设备",
+  "@navDevices": {
+    "description": "Main navigation section: controllers, trainer, sensors."
+  },
+  "navSettings": "设置",
+  "@navSettings": {
+    "description": "Main navigation section: app settings."
+  },
+  "settingsSectionRidingWith": "骑行搭配",
+  "@settingsSectionRidingWith": {
+    "description": "Settings group header: trainer app and connection settings."
+  },
+  "settingsTrainerAppConnection": "骑行软件与连接",
+  "settingsSectionApp": "应用",
+  "@settingsSectionApp": {
+    "description": "Settings group header: language, changelog, license."
+  },
+  "rideVirtualShifting": "虚拟换挡",
+  "@rideVirtualShifting": {
+    "description": "Ride tab: title of the card with the live gear, drivetrain and shift buttons."
+  },
+  "rideVsInviteBody": "连接你的智能骑行台，BikeControl 会为它换挡。",
+  "@rideVsInviteBody": {
+    "description": "Ride tab: shown instead of the virtual shifting card while no smart trainer is connected."
+  },
+  "rideRatio": "齿比",
+  "@rideRatio": {
+    "description": "Ride tab: label under the current gear ratio (e.g. ×2.4)."
+  },
+  "rideYourButtons": "你的按键",
+  "@rideYourButtons": {
+    "description": "Ride tab: section header above the controller picture with its button actions."
+  },
+  "rideControllerLocked": "已锁定",
+  "rideEditButtons": "编辑按键",
+  "@rideEditButtons": {
+    "description": "Ride tab: link next to 'Your buttons' that opens the controller's button mapping."
+  },
+  "rideTapButtonHint": "点按一个按键以更改它的作用。",
+  "@rideTapButtonHint": {
+    "description": "Ride tab: hint above the controller picture on touch devices."
+  },
+  "rideClickButtonHint": "单击一个按键以更改它的作用。",
+  "@rideClickButtonHint": {
+    "description": "Ride tab: hint above the controller picture on desktop."
+  },
+  "rideJustPressed": "刚刚按下 {button}",
+  "@rideJustPressed": {
+    "description": "Ride tab: strip under the controller picture naming the last button pressed; the action it sent follows after an arrow.",
+    "placeholders": {
+      "button": {
+        "type": "String"
+      }
+    }
+  },
+  "rideChange": "更改",
+  "@rideChange": {
+    "description": "Ride tab: action on the last-press strip that opens the pressed button's assignment."
+  },
+  "rideNoControllerTitle": "未连接控制器",
+  "@rideNoControllerTitle": {
+    "description": "Ride tab: title of the card shown under 'Your buttons' while no controller is connected."
+  },
+  "rideNoControllerBody": "唤醒你的控制器，或配对一个新的—它的按键会显示在这里。",
+  "@rideNoControllerBody": {
+    "description": "Ride tab: body of the card shown while no controller is connected."
+  },
+  "rideControllerAsleepTitle": "你的控制器在休眠",
+  "@rideControllerAsleepTitle": {
+    "description": "Ride tab: title of the card under 'Your buttons' while a remembered controller has not reconnected yet."
+  },
+  "rideControllerAsleepBody": "按它上面的任意按键以唤醒—它会自行重连，按键会显示在这里。",
+  "@rideControllerAsleepBody": {
+    "description": "Ride tab: body of the card while a remembered controller has not reconnected yet."
+  },
+  "rideControllerPairNew": "配对一个新的",
+  "@rideControllerPairNew": {
+    "description": "Ride tab: secondary button on the controller card that opens pairing for a new controller."
+  },
+  "rideSeeAll": "查看全部",
+  "@rideSeeAll": {
+    "description": "Ride tab: link from the recent activity preview to the Activity section."
+  },
+  "statusOn": "开启",
+  "@statusOn": {
+    "description": "Value of a setting that is switched on (e.g. Overlay: On)."
+  },
+  "devicesOtherInputs": "其他输入",
+  "@devicesOtherInputs": {
+    "description": "Devices tab: group header for phone steering, media remotes and ignored devices."
+  },
+  "devicesPhoneSteering": "手机转向",
+  "@devicesPhoneSteering": {
+    "description": "Devices tab: toggle that steers with the phone's motion sensors."
+  },
+  "devicesMediaRemotes": "蓝牙媒体遥控器",
+  "@devicesMediaRemotes": {
+    "description": "Devices tab: toggle that listens to Bluetooth media remotes."
+  },
+  "devicesShareSensorsSubtitle": "心率、功率和踏频",
+  "@devicesShareSensorsSubtitle": {
+    "description": "Devices tab: subtitle of the Share sensors row."
+  },
+  "devicesSignalGood": "信号良好",
+  "@devicesSignalGood": {
+    "description": "Devices tab: a controller's Bluetooth signal is fine."
+  },
+  "devicesSignalWeak": "信号弱",
+  "@devicesSignalWeak": {
+    "description": "Devices tab: a controller's Bluetooth signal is weak."
+  },
+  "devicesBridgedTo": "到 {app}",
+  "@devicesBridgedTo": {
+    "description": "Devices tab: under \"Bridged\", which trainer app holds the trainer.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "activityLastMinute": "最近一分钟",
+  "@activityLastMinute": {
+    "description": "Activity: group header for events from the last minute."
+  },
+  "activityEarlier": "更早",
+  "@activityEarlier": {
+    "description": "Activity: group header for older events."
+  },
+  "activityFooter": "显示自 BikeControl 启动以来最近的 {count} 条事件。",
+  "@activityFooter": {
+    "description": "Activity: note under the list.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activityEmptyTitle": "还没有活动",
+  "@activityEmptyTitle": {
+    "description": "Activity: title shown while nothing has happened yet."
+  },
+  "activityEmptyBody": "在控制器上按一个按键，它就会显示在这里。",
+  "@activityEmptyBody": {
+    "description": "Activity: body shown while nothing has happened yet."
+  },
+  "settingsSectionDuringRide": "骑行中",
+  "@settingsSectionDuringRide": {
+    "description": "Settings group header: overlay, shift feedback, saving rides."
+  },
+  "rideGear": "挡位",
+  "@rideGear": {
+    "description": "Label under the current gear number (e.g. 12 / 24)."
+  },
+  "shellTrainerChipLabel": "{trainer}，正在发送到 {app}",
+  "@shellTrainerChipLabel": {
+    "description": "Spoken label of the desktop header chip showing the bridged trainer and the trainer app it sends to",
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "vsGroupGears": "挡位",
+  "vsGroupPhysics": "物理",
+  "perGearRatiosTitle": "各挡位齿比",
+  "perGearRatiosSubtitle": "单独微调每个挡位",
+  "rideOverlayOff": "挡位悬浮窗已关闭",
+  "rideOverlayOfferNote": "{app} 显示它自己的挡位",
+  "@rideOverlayOfferNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "rideOverlayOfferShow": "显示悬浮窗",
+  "rideOverlayOtherScreen": "另一块屏幕上的 {app} 仍会显示它自己的挡位。你的挡位是这里显示的这个，所以请让这块屏幕保持在视野内。",
+  "@rideOverlayOtherScreen": {
+    "description": "Ride tab: note on the virtual shifting card when the trainer app runs on another device (e.g. Apple TV), where the gear overlay cannot appear.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yChangeChainring": "切换大小盘",
+  "rideVsSettingsLink": "挡位设置",
+  "rideVsTrainerNotConnected": "{trainer} 未连接—在它恢复之前，你感觉不到换挡。",
+  "@rideVsTrainerNotConnected": {
+    "description": "Ride tab: line on the dimmed virtual shifting card while the smart trainer is not connected to BikeControl.",
+    "placeholders": {
+      "trainer": {
+        "type": "String"
+      }
+    }
+  },
+  "rideVsTrialOver": "今天的虚拟换挡试用已结束。这次骑行会持续到你的骑行软件断开为止。",
+  "@rideVsTrialOver": {
+    "description": "Ride tab: line on the virtual shifting card once today's virtual shifting trial has run out."
+  },
+  "changelogKindAdded": "新增",
+  "changelogKindImproved": "改进",
+  "changelogKindFixed": "修复",
+  "changelogKindOther": "变更",
+  "changelogYourVersion": "你的版本",
+  "changelogEarlierVersions": "更早的版本",
+  "changelogAllVersions": "全部版本",
+  "changelogLoadFailed": "无法加载更新日志。",
+  "changelogWhatsNewSince": "自你上次更新以来的变化。",
+  "holdWarningSteering": "转向只在按住按键时有效。请改为分配到长按。",
+  "holdWarningAction": "{action} 只在按住按键时有效。请改为分配到长按。",
+  "holdAssignToLongPress": "分配到长按",
+  "holdReplaceLongPress": "长按已经会执行 {current}。要替换为 {action} 吗？",
+  "holdMovedToLongPress": "{action} 现在会在长按时执行。",
+  "holdOnlyWhileHeld": "仅在按住时有效",
+  "paywall_shiftInNamedApp": "在 {app} 中换挡和转向—由 {app} 计算挡位",
+  "@paywall_shiftInNamedApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_shiftInYourAppShort": "在你的骑行软件中换挡和转向",
+  "paywall_shiftInNamedAppShort": "在 {app} 中换挡和转向",
+  "@paywall_shiftInNamedAppShort": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_watchClip": "观看：{feature}",
+  "@paywall_watchClip": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "paywall_playClip": "播放片段",
+  "paywall_pauseClip": "暂停片段",
+  "paywall_openClipInBrowser": "在浏览器中打开",
+  "paywall_clipLoadError": "无法加载片段。请检查连接并重试。",
+  "planAccountTitle": "方案与账户",
+  "planOneTimePurchase": "一次性购买",
+  "planFreeOnLinux": "Linux 上免费",
+  "planBaseUnlimitedCommands": "按键次数不限",
+  "planBaseAppShifts": "你的按键在骑行软件中换挡和转向，使用该应用自己的虚拟换挡",
+  "planProAdds": "Pro 额外包含",
+  "planBaseIncludes": "基础版包含",
+  "planBoughtBefore": "2025 年已经购买过 BikeControl，但恢复购买不起作用？",
+  "planBoughtBeforeAction": "在应用里给我发消息",
+  "supportPrefillBoughtBefore": "我 2025 年在 Google Play 购买了 BikeControl，但恢复购买不起作用。我的 Google Play 订单号（GPA.…）： ",
+  "planQuestions": "对方案有疑问？",
+  "proActiveOnThisDevice": "已在此设备上生效",
+  "proNotOnThisDevice": "未在此设备上生效",
+  "subscriptionRenewsOn": "将于 {date} 续订",
+  "@subscriptionRenewsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionActiveUntil": "有效期至 {date}",
+  "@subscriptionActiveUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionTrialUntil": "Pro 试用至 {date}",
+  "@subscriptionTrialUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionBillingIssue": "付款问题",
+  "subscriptionBillingIssueBody": "你的上一笔付款未成功。请更新付款方式以保留 Pro。",
+  "signInWithApple": "通过 Apple 登录",
+  "signInWithGoogle": "使用 Google 账号登录",
+  "signInWithGithub": "使用 GitHub 登录",
+  "signInWithFacebook": "使用 Facebook 登录",
+  "moreSignInOptions": "更多选项",
+  "signedInWith": "已通过 {provider} 登录",
+  "@signedInWith": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "signInMethodEmailCode": "邮箱验证码",
+  "signInFailed": "登录未成功。请重试。",
+  "signInToBringProToOtherDevices": "登录即可把 Pro 带到你的其他设备。",
+  "thisDevice": "此设备",
+  "deviceNotRegistered": "未注册",
+  "removeDevice": "移除",
+  "deviceRemoved": "已移除",
+  "removeDeviceTitle": "移除 {device}？",
+  "@removeDeviceTitle": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "removeDeviceBody": "在再次注册之前，Pro 会在该设备上停止工作。它的名额会空出来。",
+  "removeDeviceFailed": "无法移除该设备。请重试。",
+  "registerDeviceFailedRetry": "无法注册此设备。请重试。",
+  "devicesLoadFailed": "无法加载你的设备。",
+  "deviceLimitRemoveOne": "已达到 {platform} 的设备上限。请移除下面一台设备，以注册此设备。",
+  "@deviceLimitRemoveOne": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "devicesRegisteredCount": "{count, plural, =1{已注册 1 台设备} other{已注册 {count} 台设备}}",
+  "@devicesRegisteredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncTitle": "同步",
+  "syncSettingsRow": "同步设置",
+  "syncRowSubtitle": "所有设备上的设置",
+  "syncAndDevices": "同步和设备",
+  "lastSyncedAt": "上次同步：{time}",
+  "@lastSyncedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "relativeMinutesAgo": "{count} 分钟前",
+  "@relativeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeHoursAgo": "{count} 小时前",
+  "@relativeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeDaysAgo": "{count, plural, =1{1 天前} other{{count} 天前}}",
+  "@relativeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "purchasesHeader": "购买",
+  "manageInAppStore": "在 App Store 中",
+  "manageInMacAppStore": "在 Mac App Store 中",
+  "manageInGooglePlay": "在 Google Play 中",
+  "manageInBillingPortal": "在账单门户中",
+  "restorePurchasesDone": "购买已恢复。",
+  "restorePurchasesNone": "未找到此商店账户的购买记录。",
+  "restorePurchasesFailed": "无法恢复购买。请重试。",
+  "helpHeader": "帮助",
+  "syncFailed": "同步未成功。请重试。",
+  "ridesGearChangeCount": "{count, plural, =1{1 次换挡} other{{count} 次换挡}}",
+  "@ridesGearChangeCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ridesHealthDenied": "{store} 访问权限已关闭",
+  "@ridesHealthDenied": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesHealthOpenSettings": "打开权限",
+  "ridesTooShort": "未保存：这次骑行短于 2 分钟。",
+  "ridesHealthSaved": "骑行已保存到 {store}",
+  "@ridesHealthSaved": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesHealthFailed": "无法将骑行保存到 {store}",
+  "@ridesHealthFailed": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesTab": "骑行",
+  "ridesAppleHealth": "Apple 健康",
+  "ridesAutoRecordTitle": "自动记录骑行",
+  "ridesAutoRecordSubtitle": "功率或踏频一传入，就从第一次踩踏开始记录。10 秒后暂停。",
+  "ridesAutoRecordOffFooter": "关闭：请在「骑行」中自行开始记录。",
+  "ridesHealthToggle": "将骑行保存到 {store}",
+  "@ridesHealthToggle": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesHealthOnlyRecorded": "仅已记录的骑行。",
+  "ridesHealthDuplicateHint": "{app} 可能已经把这次骑行保存到 {store}，因此它可能会出现两次。",
+  "@ridesHealthDuplicateHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesHealthConnectNotInstalled": "尚未安装 Health Connect。点按以安装。",
+  "ridesAutoStarted": "已自动开始",
+  "ridesResumesOnPedal": "踩踏后继续",
+  "ridesAutoOff": "自动记录已关闭",
+  "ridesDiscardBody": "这段记录会被删除，且不会保存到任何地方。",
+  "ridesRideTitle": "骑行",
+  "ridesToday": "今天",
+  "ridesYesterday": "昨天",
+  "ridesMoving": "移动中",
+  "ridesTotal": "总计",
+  "ridesWork": "做功",
+  "ridesMaxCadence": "最大踏频",
+  "ridesGearChangesLabel": "换挡次数",
+  "ridesValues": "数值",
+  "ridesTimeline": "随时间",
+  "ridesChartLegend": "虚线：平均功率。斜纹：暂停。",
+  "ridesChartA11y": "骑行过程中的功率、心率、踏频和挡位",
+  "ridesPause": "暂停",
+  "ridesExport": "导出",
+  "ridesDetails": "详情",
+  "ridesInHealth": "在 {store} 中",
+  "@ridesInHealth": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesHealthKeptNote": "已经保存。在 BikeControl 中删除不会把它从那里移除。",
+  "ridesSaveToHealth": "保存到 {store}",
+  "@ridesSaveToHealth": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesHealthFields": "功率、心率、卡路里、距离",
+  "ridesSaveFit": "保存 .fit 文件",
+  "ridesSaveFitIos": "保存在「文件」App 中",
+  "ridesSaveFitAndroid": "保存在「下载」中",
+  "ridesShareFitSub": "把 .fit 文件发送到 Strava、Garmin Connect、TrainingPeaks 或其他应用",
+  "ridesFitSaved": ".fit 文件已保存",
+  "ridesExportFailed": "无法导出这次骑行。请重试。",
+  "ridesDeleteTitle": "删除骑行？",
+  "ridesDeleteBody": "这次骑行及其 .fit 文件将从此设备移除。已在 {store} 中的内容会保留。",
+  "@ridesDeleteBody": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesDeleteBodyNoHealth": "这次骑行及其 .fit 文件将从此设备移除。",
+  "ridesAskHealth": "将骑行保存到 {store}？",
+  "@ridesAskHealth": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesAskHealthBody": "从现在起适用于每次骑行。你可以在设置 → 骑行中更改。",
+  "ridesGearChangesNoun": "{count, plural, =1{次换挡} other{次换挡}}",
+  "@ridesGearChangesNoun": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ridesThisWeek": "本周",
+  "ridesLastWeek": "上周",
+  "ridesCount": "{count, plural, =1{1 次骑行} other{{count} 次骑行}}",
+  "@ridesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ridesBadgeHealth": "健康",
+  "ridesEmptyTitle": "还没有骑行",
+  "ridesEmptyBody": "当骑行台（或功率或踏频传感器）在 BikeControl 中连接时，会记录骑行。只要开始踩踏：功率或踏频一传入，记录就会开始。",
+  "ridesEmptyBodyManual": "自动记录已关闭。请自行开始一次骑行，或在设置中开启。",
+  "ridesDeleteAll": "全部删除",
+  "ridesDeleteAllTitle": "删除全部骑行？",
+  "ridesDeleteAllBodyNoHealth": "{count, plural, =1{1 次骑行及其 .fit 文件将从此设备移除。} other{{count} 次骑行及其 .fit 文件将从此设备移除。}}",
+  "@ridesDeleteAllBodyNoHealth": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activityClearLog": "清除日志",
+  "ridesHealthStaysNote": "已在 {store} 中的内容会保留。",
+  "@ridesHealthStaysNote": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "ridesFtpTitle": "FTP",
+  "ridesMaxHeartRateTitle": "最大心率",
+  "ridesFtpBody": "FTP（功能性阈值功率）是你大约能维持一小时的最高功率。功率区间以此为基础。不知道自己的数值？请使用骑行软件个人资料中的 FTP。",
+  "ridesMaxHeartRateBody": "你在全力骑行中达到的最高心率。心率区间以此为基础。",
+  "ridesValueRange": "请输入 {min} 到 {max} 之间的数值。",
+  "@ridesValueRange": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "ridesValueSaveFailed": "无法保存该数值。请重试。",
+  "ridesGear": "挡位",
+  "ridesElevation": "海拔",
+  "ridesTimeInGear": "各挡位时间",
+  "ridesPowerZones": "功率区间",
+  "ridesHeartRateZones": "心率区间",
+  "ridesSetFtpForZones": "设置 FTP 以查看功率区间",
+  "ridesSetMaxHeartRateForZones": "设置最大心率以查看心率区间",
+  "ridesFtpValue": "FTP {watts} W",
+  "@ridesFtpValue": {
+    "placeholders": {
+      "watts": {
+        "type": "int"
+      }
+    }
+  },
+  "ridesMaxHeartRateValue": "最大 {bpm} bpm",
+  "@ridesMaxHeartRateValue": {
+    "placeholders": {
+      "bpm": {
+        "type": "int"
+      }
+    }
+  },
+  "ridesPowerZoneActiveRecovery": "主动恢复",
+  "ridesPowerZoneEndurance": "耐力",
+  "ridesPowerZoneTempo": "节奏",
+  "ridesPowerZoneThreshold": "阈值",
+  "ridesPowerZoneVo2max": "VO2max",
+  "ridesPowerZoneAnaerobic": "无氧",
+  "ridesPowerZoneNeuromuscular": "神经肌肉",
+  "ridesHeartRateZoneVeryLight": "很轻松",
+  "ridesHeartRateZoneLight": "轻松",
+  "ridesHeartRateZoneModerate": "中等",
+  "ridesHeartRateZoneHard": "高强度",
+  "ridesHeartRateZoneMaximum": "最大",
+  "vsCalibrateTitle": "校准换挡感觉",
+  "vsCalibrateRowSubtitle": "难度 {pct}%",
+  "@vsCalibrateRowSubtitle": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "vsCalibrateIntro": "如果在这台骑行台上挡位感觉太重或太轻，请骑三段短坡，并说明每一段的感觉。BikeControl 随后会为这台骑行台调整每个虚拟挡位。",
+  "vsCalibrateStepCloseApp": "关闭你的骑行软件。骑行台保持与 BikeControl 连接。",
+  "vsCalibrateStepPedal": "全程以你平时的踏频踩踏。",
+  "vsCalibrateStepRate": "在每一段坡度上，换到你会在那里骑的挡位，然后评价感觉。",
+  "vsCalibrateStart": "开始校准",
+  "vsCalibrateManual": "手动设置难度",
+  "vsCalibrateFirmware": "这台骑行台在自己的固件中计算挡位，因此无法在 BikeControl 中校准其感觉。",
+  "vsCalibratePrecheckDisconnected": "请先连接你的骑行台。",
+  "vsCalibratePrecheckTrainerApp": "请先关闭或断开你的骑行软件。校准需要独占这台骑行台。",
+  "vsCalibrateStepOf": "第 {current} 段坡度，共 {total} 段",
+  "@vsCalibrateStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vsCalibrateGradeFlat": "平路",
+  "vsCalibrateGradeGentle": "缓坡",
+  "vsCalibrateGradeSteady": "持续爬坡",
+  "vsCalibrateGear": "第 {gear} 挡，共 {max} 挡",
+  "@vsCalibrateGear": {
+    "placeholders": {
+      "gear": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "vsCalibrateAsk": "这个挡位在这段坡度上感觉如何？",
+  "vsCalibrateTooHeavy": "太重",
+  "vsCalibrateAboutRight": "正合适",
+  "vsCalibrateTooLight": "太轻",
+  "vsCalibrateAdjusted": "难度现为 {pct}%。先骑一会儿，然后再评价一次。",
+  "@vsCalibrateAdjusted": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "vsCalibrateKeepPedaling": "继续踩踏，以便感受这个挡位。",
+  "vsCalibrateStop": "停止校准",
+  "vsCalibrateResultTitle": "换挡难度",
+  "vsCalibrateResultBody": "调低会让每个挡位更轻，调高会让每个挡位更重。100% 是默认值。",
+  "vsCalibrateDifficulty": "难度",
+  "vsCalibratePct": "{pct}%",
+  "@vsCalibratePct": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "vsCalibrateReset": "重置为 100%",
+  "vsCalibrateAgain": "再次校准",
+  "vsGroupCheck": "检查并校准",
+  "vsCalibrateControllerAnswered": "{answer}，来自你的控制器",
+  "@vsCalibrateControllerAnswered": {
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "vsCalibrateHintTooHeavy": "按住降挡",
+  "vsCalibrateHintAboutRight": "按下两个手变",
+  "vsCalibrateHintTooLight": "按住升挡",
+  "chainHintTitle": "把链条移到中间挡位",
+  "chainHintVeryBigGear": "骑行台上的链条处于非常大的挡位（齿比约为 {ratio}）。链条在中间挡位时，虚拟挡位的感觉更真实，例如 34/17 或 50/25。把它留在那里，只进行虚拟换挡。",
+  "@chainHintVeryBigGear": {
+    "placeholders": {
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "chainHintVerySmallGear": "骑行台上的链条处于非常小的挡位（齿比约为 {ratio}）。链条在中间挡位时，虚拟挡位的感觉更真实，例如 34/17 或 50/25。把它留在那里，只进行虚拟换挡。",
+  "@chainHintVerySmallGear": {
+    "placeholders": {
+      "ratio": {
+        "type": "String"
+      }
+    }
+  },
+  "ignoredDevicesNearby": "在附近发现了已忽略的设备",
+  "trainerActionGearUpErgUp": "骑行台：升挡 / ERG 升高",
+  "trainerActionGearDownErgDown": "骑行台：降挡 / ERG 降低",
+  "vsGroupRealChain": "骑行台上的链条",
+  "realChainringLabel": "车上的牙盘",
+  "realCogLabel": "骑行台上的飞轮齿",
+  "realChainFooter": "链条在骑行台上实际所在的挡位：{chain}。BikeControl 会把它考虑在内，因此每个虚拟挡位的感觉都像真实的一样。把链条留在那里，只进行虚拟换挡。用于路线阻力。",
+  "@realChainFooter": {
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "chainHintSetTitle": "链条不在你设置的位置",
+  "chainHintSetBody": "骑行台上的链条似乎处在另一个挡位（齿比约为 {measured}），与「骑行台上的链条」中设置的（{set}）不同。请把它移回去，或更改设置。",
+  "@chainHintSetBody": {
+    "placeholders": {
+      "measured": {
+        "type": "String"
+      },
+      "set": {
+        "type": "String"
+      }
+    }
+  },
+  "vsGroupErg": "ERG",
+  "ergStartPowerLabel": "ERG 起始功率",
+  "ergStartPowerDesc": "切换到 ERG 时目标的起点",
+  "ergStartLastTarget": "上次目标",
+  "ergStartCurrentPower": "当前功率",
+  "ergStepLabel": "ERG 步进",
+  "ergStepDesc": "每次点按 − / + 的瓦数",
+  "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。"
+}

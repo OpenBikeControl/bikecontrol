@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/ble.dart';
+import 'package:bike_control/bluetooth/ble_string.dart';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
@@ -585,8 +586,7 @@ abstract class BluetoothDevice extends BaseDevice {
       if (characteristic == null) return null;
       try {
         final data = await readUpstream(service!.uuid, characteristic.uuid);
-        final decoded = String.fromCharCodes(data).trim();
-        return decoded.isEmpty ? null : decoded;
+        return decodeBleDeviceInfoString(data);
       } catch (_) {
         return null;
       }

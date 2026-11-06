@@ -15,6 +15,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -238,6 +239,20 @@ Future<void> main() async {
         );
       });
     }
+
+    test('diagram faces match the molded cross', () {
+      expect(OnelapKeyButtons.up.icon, LucideIcons.circle);
+      expect(OnelapKeyButtons.left.icon, LucideIcons.triangle);
+      expect(OnelapKeyButtons.right.icon, LucideIcons.square);
+      expect(OnelapKeyButtons.down.icon, LucideIcons.grip);
+      expect(OnelapKeyButtons.center.icon, isNull);
+      expect(OnelapKeyButtons.center.label, 'ONELAP');
+      expect(device.controllerLayout.positions[OnelapKeyButtons.up], const Offset(0.5, 0.2));
+      expect(device.controllerLayout.positions[OnelapKeyButtons.left], const Offset(0.2, 0.5));
+      expect(device.controllerLayout.positions[OnelapKeyButtons.right], const Offset(0.8, 0.5));
+      expect(device.controllerLayout.positions[OnelapKeyButtons.down], const Offset(0.5, 0.8));
+      expect(device.controllerLayout.positions[OnelapKeyButtons.center], const Offset(0.5, 0.5));
+    });
 
     test('Web exposes CC01 and registers all five buttons', () {
       expect(

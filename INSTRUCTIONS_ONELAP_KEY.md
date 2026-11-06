@@ -6,7 +6,7 @@ This beta driver supports the legacy `Onelap Key` five-button BLE controller. Ph
 
 Wake the controller, stop other applications from holding its BLE connection, and let BikeControl scan. The controller may advertise only the Battery Service, so the driver uses the device name for discovery. After connecting, it finds service `8ce5cc01-0a4d-11e9-ab14-d663bd873d93` and subscribes to characteristic `8ce5cc02-0a4d-11e9-ab14-d663bd873d93`. The driver does not send an initialization command.
 
-The default single-click mapping is: Up = Shift Up, Down = Shift Down, Left/Right = menu navigation, Center = Select. All five buttons are registered through the existing keymap system, so BikeControl's custom mappings and output transports remain available. Hardware-reported long presses use the shared long-press dispatch path; the driver releases them when a follow-up valid frame or a disconnect arrives. It does not replace the hardware gesture with a software timer.
+The default single-click mapping is: Up = Shift Up, Down = Shift Down, Left/Right = menu navigation, Center = Select. The diagram uses the molded faces, not those actions: circle on Up, triangle on Left, square on Right, a dot pad on Down, and ONELAP on the center hub. All five buttons are registered through the existing keymap system, so BikeControl's custom mappings and output transports remain available. Hardware-reported long presses use the shared long-press dispatch path; the driver releases them when a follow-up valid frame or a disconnect arrives. It does not replace the hardware gesture with a software timer.
 
 ## Notification layout
 

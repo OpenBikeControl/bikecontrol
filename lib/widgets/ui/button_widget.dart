@@ -73,7 +73,7 @@ class ButtonWidget extends StatelessWidget {
           ),
           if (button.icon != null)
             Icon(button.icon, size: size * 0.42, color: onBg)
-          else
+          else if (button.shortLabel.length <= 2)
             Text(
               button.shortLabel,
               style: TextStyle(
@@ -81,6 +81,25 @@ class ButtonWidget extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
                 color: onBg,
+              ),
+            )
+          else
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.all(size * 0.14),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    button.shortLabel,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: size * 0.26,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                      color: onBg,
+                    ),
+                  ),
+                ),
               ),
             ),
           Positioned(
