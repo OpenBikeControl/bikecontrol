@@ -450,6 +450,23 @@ Future<void> main() async {
       ]);
     });
 
+    // Rider log (XT Di2): the hood button already was on D-Fly Ch1; the write
+    // that also put Ch1 on a paddle was never confirmed.
+    test('a button already on a paddle channel is cleared, its setting kept in the backup', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
+      final (:di2, :t) = connected('di2-channels-hood-dfly');
+      final hoodOnCh1 = _hex('33411800e504e0f40142');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(hoodOnCh1);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000']);
+      expect(di2.switchBackup, [ShimanoShifterSwitches.fromTelemetry(hoodOnCh1)]);
+    });
+
     test('restoring a single shifter asks for that one only', () async {
       final (:di2, :t) = connected('di2-channels-restore-single');
       await core.settings.setShimanoDfly('di2-channels-restore-single', true);
