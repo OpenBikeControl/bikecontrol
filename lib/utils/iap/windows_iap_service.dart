@@ -62,6 +62,9 @@ class WindowsIAPService {
     }
   }
 
+  /// Re-reads the purchase state (entitlements, stored status, Store licence).
+  Future<void> recheckPurchase() => _checkExistingPurchase();
+
   /// Check if the user has already purchased the app
   Future<void> _checkExistingPurchase() async {
     if (_entitlementsService.hasActive(IAPManager.fullVersionProductKey) &&

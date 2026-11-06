@@ -222,6 +222,11 @@ class RevenueCatService {
   }
 
   /// Check if the user has an active entitlement
+  /// Re-reads the store's purchase state into [isPurchasedNotifier].
+  Future<void> recheckPurchase() async {
+    if (_isConfigured) await _checkExistingPurchase();
+  }
+
   Future<void> _checkExistingPurchase() async {
     try {
       final storedStatus = await _prefs.read(key: _syncedPurchasesKey);
