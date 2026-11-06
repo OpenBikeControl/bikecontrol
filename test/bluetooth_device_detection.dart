@@ -127,6 +127,16 @@ void main() {
       final device = _createBleDevice(name: 'RDR 1337', services: [ShimanoDi2Constants.SERVICE_UUID.toLowerCase()]);
       expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ShimanoDi2>());
     });
+    test('EW-WU111 wireless unit with an empty advertisement still detected by name', () {
+      final device = _createBleDevice(name: 'EWWU111');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ShimanoDi2>());
+    });
+    test('EW-WU111 wireless unit on web, matched by name', () {
+      BluetoothDevice.debugIsWeb = () => true;
+      addTearDown(() => BluetoothDevice.debugIsWeb = null);
+      final device = _createBleDevice(name: 'EWWU111');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<ShimanoDi2>());
+    });
   });
 
   // sensor-sources-phase2: `fromScanResult` used to hide ANY scan result
