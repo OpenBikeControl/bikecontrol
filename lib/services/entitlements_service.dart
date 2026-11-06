@@ -19,6 +19,7 @@ class EntitlementsService extends ChangeNotifier {
 
   final SupabaseClient _supabase;
   final DeviceIdentityService _deviceIdentityService;
+  final DateTime Function() _now;
 
   SharedPreferences? _prefs;
   bool _isInitialized = false;
@@ -32,7 +33,9 @@ class EntitlementsService extends ChangeNotifier {
   EntitlementsService(
     this._supabase, {
     required DeviceIdentityService deviceIdentityService,
-  }) : _deviceIdentityService = deviceIdentityService;
+    DateTime Function() now = DateTime.now,
+  }) : _deviceIdentityService = deviceIdentityService,
+       _now = now;
 
   List<Entitlement> get current => List.unmodifiable(_entitlements);
 
@@ -80,8 +83,9 @@ class EntitlementsService extends ChangeNotifier {
   }
 
   bool hasActive(String productKey) {
+    final now = _now();
     return _entitlements.any((entitlement) {
-      return entitlement.productKey == productKey && entitlement.isActive;
+      return entitlement.productKey == productKey && entitlement.isActiveAt(now);
     });
   }
 
