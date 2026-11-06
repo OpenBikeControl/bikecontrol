@@ -2320,6 +2320,7 @@
   "controlProtocolAuto": "自动（推荐）",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
+  "controlProtocolWahoo": "Wahoo",
   "controlProtocolZwift": "Zwift 协议",
   "networkSummaryMethodListening": "网络连接方式已开启并正在提供服务",
   "networkSummaryAdvertisedAddress": "BikeControl 让你的软件去连接的地址",

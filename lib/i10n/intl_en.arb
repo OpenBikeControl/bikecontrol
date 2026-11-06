@@ -2239,6 +2239,7 @@
   "controlProtocolAuto": "Auto (recommended)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
+  "controlProtocolWahoo": "Wahoo",
   "controlProtocolNative": "Native",
   "networkSummaryMethodListening": "The network connection method is switched on and serving",
   "networkSummaryAdvertisedAddress": "The address BikeControl tells your app to connect to",

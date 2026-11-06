@@ -1938,6 +1938,7 @@
   "controlProtocolAuto": "Auto (recommandé)",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
+  "controlProtocolWahoo": "Wahoo",
   "controlProtocolNative": "Natif",
   "feedbackPromptTitle": "Comment se passe BikeControl pour toi ?",
   "feedbackPromptNotNow": "Pas maintenant",
