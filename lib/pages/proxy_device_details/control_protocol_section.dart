@@ -217,6 +217,7 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
     TrainerControlProtocol.ftms => context.i18n.controlProtocolFtms,
     TrainerControlProtocol.fec => context.i18n.controlProtocolFec,
     TrainerControlProtocol.zwiftHub => context.i18n.controlProtocolNative,
+    TrainerControlProtocol.wahooCps => context.i18n.controlProtocolWahoo,
   };
 
 }
