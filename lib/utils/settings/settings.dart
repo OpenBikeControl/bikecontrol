@@ -1012,14 +1012,31 @@ class Settings {
   Future<void> setShimanoButtonModeWarningSeen(String serial) async =>
       prefs.setBool('shimano_button_mode_warning_seen_$serial', true);
 
-  String getShimanoPasskey(String serial) =>
-      prefs.getString('shimano_passkey_$serial') ?? ShimanoAuth.defaultPasskey;
+  String getShimanoPasskey(String serial) => prefs.getString('shimano_passkey_$serial') ?? ShimanoAuth.defaultPasskey;
 
   Future<void> setShimanoPasskey(String serial, String passkey) async =>
       prefs.setString('shimano_passkey_$serial', passkey);
 
+  /// A stored button record "serial:mask[:deviceType]" with an empty or
+  /// missing device_type — the "side unknown" form.
+  static bool _isSidelessSramRecord(String e) {
+    final parts = e.split(':');
+    return parts.length < 3 || parts[2].isEmpty;
+  }
+
+  static String _sramRecordMask(String e) => e.split(':')[1];
+
+  /// Drops side-less records whose mask already has a record with a known
+  /// side. Once a shifter reports its side, the side-less form of that button
+  /// is a stale duplicate (it named "Shifter A – Paddle" next to the real
+  /// Left/Right Shifter) and would otherwise be re-registered on every connect.
+  static List<String> _withoutStaleSidelessSram(List<String> records) {
+    final sidedMasks = records.where((e) => !_isSidelessSramRecord(e)).map(_sramRecordMask).toSet();
+    return records.where((e) => !_isSidelessSramRecord(e) || !sidedMasks.contains(_sramRecordMask(e))).toList();
+  }
+
   List<({int serial, int mask, int? deviceType})> getSramButtons(String serial) {
-    final raw = prefs.getStringList('sram_buttons_$serial') ?? const [];
+    final raw = _withoutStaleSidelessSram(prefs.getStringList('sram_buttons_$serial') ?? const []);
     return raw.map((e) {
       final parts = e.split(':');
       // Records are "serial:mask" (legacy) or "serial:mask:deviceType". The
@@ -1057,7 +1074,16 @@ class Settings {
         list[idx] = entry;
       }
     }
-    await prefs.setStringList('sram_buttons_$serial', list);
+    await prefs.setStringList('sram_buttons_$serial', _withoutStaleSidelessSram(list));
+  }
+
+  /// Forgets everything learned about [serial]'s buttons and shifters (on
+  /// "Disconnect & forget"), so a re-added device starts with a clean button
+  /// list. The bond key and shifting backup are kept: re-adding the device
+  /// must not force a new SRAM setup.
+  Future<void> clearSramDevice(String serial) async {
+    await prefs.remove('sram_buttons_$serial');
+    await prefs.remove('sram_shifters_$serial');
   }
 
   /// Persisted shifter adverts (serial → "deviceType:model") for stable button

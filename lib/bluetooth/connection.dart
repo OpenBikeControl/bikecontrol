@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/hid/hid_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart' show SramAxs;
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_climb.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
@@ -43,7 +44,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gamepads/gamepads.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/sensor_definition.dart';
-import 'package:prop/prop.dart' hide Set;
+import 'package:prop/prop.dart' hide Set, SramAxs;
 import 'package:universal_ble/universal_ble.dart';
 
 import 'devices/base_device.dart';
@@ -2230,6 +2231,9 @@ class Connection {
         // Add device to ignored list when forgetting
         await core.settings.addIgnoredDevice(device.device.deviceId, device.toString());
         _actionStreams.add(LogNotification('Device ignored: ${device.toString()}'));
+        // Forget the buttons learned from presses too; they'd otherwise be
+        // re-registered as soon as the derailleur is added again.
+        if (device is SramAxs) await core.settings.clearSramDevice(device.device.deviceId);
       }
       // For an in-place disconnect (the "No connection" picker entry) keep the
       // scan result so the scanner doesn't churn a fresh duplicate while the
