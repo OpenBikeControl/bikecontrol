@@ -95,6 +95,100 @@ void main() {
       scanner.handleService(service, ServiceStatus.lost);
       expect(lost.single, 'dircon://KICKR CORE 1A2B');
     });
+
+    // Windows' nsd reports a resolved service with its hostname only, and the
+    // OS resolver can't look up names with spaces ("ELITE-JUSTO 2-01090-W").
+    test('a service without addresses connects to the address its hostname resolves to', () async {
+      final found = <WifiTrainer>[];
+      final asked = <String>[];
+      final scanner = WifiTrainerScanner(
+        onFound: found.add,
+        onLost: (_) {},
+        resolveHost: (host) async {
+          asked.add(host);
+          return '192.168.129.58';
+        },
+      );
+
+      scanner.handleService(
+        Service(name: 'ELITE JUSTO 2 01090 W', type: '_wahoo-fitness-tnp._tcp', port: 36866,
+            host: 'ELITE-JUSTO 2-01090-W.local'),
+        ServiceStatus.found,
+      );
+      await pumpEventQueue();
+
+      expect(asked, ['ELITE-JUSTO 2-01090-W.local']);
+      expect(found.single.host, '192.168.129.58');
+      expect(found.single.port, 36866);
+    });
+
+    test('falls back to the hostname when nothing answers the lookup', () async {
+      final found = <WifiTrainer>[];
+      final scanner = WifiTrainerScanner(onFound: found.add, onLost: (_) {}, resolveHost: (_) async => null);
+
+      scanner.handleService(
+        Service(name: 'KICKR CORE 1A2B', type: '_wahoo-fitness-tnp._tcp', port: 36866, host: 'KICKR-CORE-1A2B.local'),
+        ServiceStatus.found,
+      );
+      await pumpEventQueue();
+
+      expect(found.single.host, 'KICKR-CORE-1A2B.local');
+    });
+
+    test('a host that is already an IP is used without a lookup', () async {
+      final found = <WifiTrainer>[];
+      final scanner = WifiTrainerScanner(
+        onFound: found.add,
+        onLost: (_) {},
+        resolveHost: (_) => fail('no lookup expected'),
+      );
+
+      scanner.handleService(
+        Service(name: 'KICKR CORE 1A2B', type: '_wahoo-fitness-tnp._tcp', port: 36866, host: '192.168.1.50'),
+        ServiceStatus.found,
+      );
+
+      expect(found.single.host, '192.168.1.50');
+    });
+
+    test('a trainer lost while its hostname resolves is not reported', () async {
+      final found = <WifiTrainer>[];
+      final lookup = Completer<String?>();
+      final scanner = WifiTrainerScanner(onFound: found.add, onLost: (_) {}, resolveHost: (_) => lookup.future);
+      final service = Service(name: 'KICKR CORE 1A2B', type: '_wahoo-fitness-tnp._tcp', port: 36866,
+          host: 'KICKR-CORE-1A2B.local');
+
+      scanner.handleService(service, ServiceStatus.found);
+      scanner.handleService(service, ServiceStatus.lost);
+      lookup.complete('192.168.1.50');
+      await pumpEventQueue();
+
+      expect(found, isEmpty);
+    });
+
+    test('a hostname resolving to our own address on a registered port is excluded', () async {
+      SelfAdvertisementRegistry.instance.add(name: 'Old Name', port: 36868);
+      final interfaces = await NetworkInterface.list(includeLinkLocal: true, type: InternetAddressType.IPv4);
+      final ownAddress = interfaces.expand((i) => i.addresses).firstOrNull?.address;
+      if (ownAddress == null) return markTestSkipped('no local IPv4 address');
+      final found = <WifiTrainer>[];
+      final scanner = WifiTrainerScanner(
+        onFound: found.add,
+        onLost: (_) {},
+        createBrowser: _FakeBrowser.new,
+        resolveHost: (_) async => ownAddress,
+      );
+      await scanner.start();
+
+      scanner.handleService(
+        Service(name: 'Renamed', type: '_wahoo-fitness-tnp._tcp', port: 36868, host: 'BikeControl.local'),
+        ServiceStatus.found,
+      );
+      await pumpEventQueue();
+
+      expect(found, isEmpty);
+      await scanner.stop();
+    });
   });
 
   group('stop', () {
