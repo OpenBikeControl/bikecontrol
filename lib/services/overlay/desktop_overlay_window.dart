@@ -88,30 +88,10 @@ Future<void> _runOverlay(int windowId, List<String> args) async {
     }
   });
 
-  // Restore the persisted position if main sent one. The plugin's positional
-  // ordering of Dart entrypoint args differs between macOS (routeName, theme,
-  // argsJson) and Windows (map-iteration order), so locate the JSON payload
-  // by content rather than by index.
-  Offset? initialPosition;
-  double? initialOpacity;
-  for (var i = 1; i < args.length; i++) {
-    final raw = args[i];
-    if (!raw.startsWith('{')) continue;
-    try {
-      final m = jsonDecode(raw) as Map<String, dynamic>;
-      final x = (m['x'] as num?)?.toDouble();
-      final y = (m['y'] as num?)?.toDouble();
-      if (x != null && y != null) {
-        initialPosition = Offset(x, y);
-      }
-      initialOpacity = (m['opacity'] as num?)?.toDouble();
-      // The args blob is a single JSON object carrying both position and
-      // opacity, so stop once we've decoded it.
-      break;
-    } catch (e, s) {
-      recordError(e, s, context: 'overlay.position.decode');
-    }
-  }
+  // Restore the persisted position and opacity if main sent them.
+  final launch = decodeOverlayLaunchArgs(args);
+  final initialPosition = launch.position;
+  final initialOpacity = launch.opacity;
   if (initialPosition != null) {
     await wm.windowManager.setPosition(initialPosition);
   }
@@ -296,6 +276,32 @@ Future<void> _fitWindow(Size content) async {
   final size = Size(content.width + frame.width, content.height + frame.height);
   await wm.windowManager.setMinimumSize(size);
   await wm.windowManager.setSize(size);
+}
+
+/// Finds the JSON payload main passed to the overlay sub-window and decodes
+/// the persisted position and opacity from it.
+///
+/// Where the payload sits in [args] depends on the platform: macOS passes
+/// (routeName, theme, argsJson), while the Windows runner builds the list by
+/// walking the createWindow argument map, which is sorted by key, so argsJson
+/// comes first. Every argument is scanned and the payload found by content.
+@visibleForTesting
+({Offset? position, double? opacity}) decodeOverlayLaunchArgs(List<String> args) {
+  for (final raw in args) {
+    if (!raw.startsWith('{')) continue;
+    try {
+      final m = jsonDecode(raw) as Map<String, dynamic>;
+      final x = (m['x'] as num?)?.toDouble();
+      final y = (m['y'] as num?)?.toDouble();
+      return (
+        position: x != null && y != null ? Offset(x, y) : null,
+        opacity: (m['opacity'] as num?)?.toDouble(),
+      );
+    } catch (e, s) {
+      recordError(e, s, context: 'overlay.launchArgs.decode');
+    }
+  }
+  return (position: null, opacity: null);
 }
 
 /// Guards the native `setOpacity` call against an out-of-range value arriving
