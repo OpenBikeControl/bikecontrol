@@ -207,10 +207,12 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       // derived from it is the same on every install too: with BikeControl on
       // a phone and a PC, both answer for `BikeControl.local`, and MyWhoosh's
       // address lookup returns whichever spoke last — often the other device.
-      // The OBC path never matches the hostname against the name, so it gets
-      // this install's own label. The DirCon variant keeps the derived one:
-      // DirCon clients do match them.
-      final hostLabel = _useDirCon ? null : MdnsHostLabel.storedRandom();
+      // Neither client of this entry matches the hostname against the name
+      // (the byte-exact match is MyWhoosh's trainer lookup, which only the
+      // bridge serves; TrainingPeaks Virtual connects either way), so both
+      // variants get this install's own label. On iOS the DirCon variant used
+      // to keep the derived one, and two phones both claimed BikeControl.local.
+      final hostLabel = MdnsHostLabel.storedRandom();
       _mdnsRegistration = await selection.advertiser.register(
         AdvertisedService(
           name: 'BikeControl',
@@ -239,7 +241,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       );
       _activeBackend = selection.resolved;
       _activeAdvertiser = selection.advertiser;
-      _pinnedHostLabel = hostLabel ?? MdnsHostLabel.derivedFrom('BikeControl');
+      _pinnedHostLabel = hostLabel;
       _watchAdvertisedAddress(selection.advertiser);
       _registeredEntry = (name: 'BikeControl', port: boundPort);
       SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: boundPort);
