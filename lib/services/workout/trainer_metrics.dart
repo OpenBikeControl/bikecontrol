@@ -27,6 +27,10 @@ class TrainerMetrics {
   /// sends none (ERG). Null for sources BikeControl doesn't simulate for.
   final double? Function()? gradePct;
 
+  /// Rider plus bike, in kg, when known. Speed is then worked out from
+  /// power, grade and this weight instead of taken from the source.
+  final double Function()? massKg;
+
   /// What the rider sees as the source (the trainer's or sensor's name).
   final String? sourceName;
 
@@ -39,6 +43,7 @@ class TrainerMetrics {
     this.gear,
     this.frontRing,
     this.gradePct,
+    this.massKg,
     this.sourceName,
   });
 
@@ -51,6 +56,7 @@ class TrainerMetrics {
     gear: gear,
     frontRing: frontRing,
     gradePct: gradePct,
+    massKg: massKg,
     sourceName: name,
   );
 
@@ -77,6 +83,7 @@ class TrainerMetrics {
         frontRing: definition.frontRing,
         // In ERG the last SIM grade lingers; the course is not being ridden.
         gradePct: () => definition.trainerMode.value == TrainerMode.ergMode ? null : definition.simGrade.value / 100,
+        massKg: () => definition.riderWeightKg.value + definition.bicycleWeightKg.value,
       );
     }
     if (definition is ProxyBikeDefinition) {
