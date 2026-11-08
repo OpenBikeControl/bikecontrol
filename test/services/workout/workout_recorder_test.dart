@@ -1,3 +1,4 @@
+import 'package:bike_control/services/workout/power_speed_model.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
 import 'package:bike_control/services/workout/workout_recorder.dart';
 import 'package:fake_async/fake_async.dart';
@@ -10,6 +11,7 @@ class _Fake {
   final speed = ValueNotifier<double?>(null);
   final hr = ValueNotifier<int?>(null);
   double? grade;
+  double? mass;
 
   TrainerMetrics get metrics => TrainerMetrics(
     powerW: power,
@@ -17,6 +19,7 @@ class _Fake {
     speedKph: speed,
     heartRateBpm: hr,
     gradePct: () => grade,
+    massKg: mass == null ? null : () => mass!,
   );
 }
 
@@ -269,6 +272,84 @@ void main() {
       final result = rec.stop();
       expect(result.samples[0].gradePct, 4.5);
       expect(result.samples[1].gradePct, isNull);
+    });
+  });
+
+  group('speed', () {
+    WorkoutRecorder recorder(FakeAsync async) => WorkoutRecorder(
+      nowProvider: () => DateTime.utc(2026, 11, 8, 9).add(Duration(milliseconds: async.elapsed.inMilliseconds)),
+    );
+
+    test('comes from power, weight and grade when the weight is known, not from the trainer', () {
+      fakeAsync((async) {
+        final fake = _Fake()..mass = 85;
+        final rec = recorder(async);
+        rec.start(fake.metrics);
+        fake.power.value = 200;
+        fake.speed.value = 18; // what cadence x gear made of it
+        fake.grade = 0;
+        async.elapse(const Duration(minutes: 5));
+        final last = rec.stop().samples.last;
+        final model = PowerSpeedModel();
+        for (var i = 0; i < 300; i++) {
+          model.step(powerW: 200, gradePct: 0, massKg: 85, seconds: 1);
+        }
+        expect(last.speedKph, closeTo(model.speedKph, 0.1));
+        expect(last.speedKph, isNot(closeTo(18, 1)));
+      });
+    });
+
+    test('a climb at the same power is slower', () {
+      fakeAsync((async) {
+        final flat = _Fake()..mass = 85;
+        final climb = _Fake()..mass = 85;
+        final a = recorder(async)..start(flat.metrics);
+        final b = recorder(async)..start(climb.metrics);
+        flat.power.value = climb.power.value = 250;
+        flat.grade = 0;
+        climb.grade = 6;
+        async.elapse(const Duration(minutes: 3));
+        expect(b.stop().samples.last.speedKph!, lessThan(a.stop().samples.last.speedKph!));
+      });
+    });
+
+    test("is the trainer's own without a known weight", () {
+      fakeAsync((async) {
+        final fake = _Fake();
+        final rec = recorder(async);
+        rec.start(fake.metrics);
+        fake.power.value = 200;
+        fake.speed.value = 27.5;
+        async.elapse(const Duration(seconds: 3));
+        expect(rec.stop().samples.last.speedKph, 27.5);
+      });
+    });
+
+    test("is the trainer's own while no power comes in", () {
+      fakeAsync((async) {
+        final fake = _Fake()..mass = 85;
+        final rec = recorder(async);
+        rec.start(fake.metrics);
+        fake.speed.value = 22;
+        async.elapse(const Duration(seconds: 3));
+        expect(rec.stop().samples.last.speedKph, 22);
+      });
+    });
+
+    test('starts from standstill again after a pause', () {
+      fakeAsync((async) {
+        final fake = _Fake()..mass = 85;
+        final rec = recorder(async);
+        rec.start(fake.metrics);
+        fake.power.value = 250;
+        fake.grade = 0;
+        async.elapse(const Duration(minutes: 2));
+        rec.pause();
+        async.elapse(const Duration(minutes: 1));
+        rec.resume();
+        async.elapse(const Duration(seconds: 1));
+        expect(rec.stop().samples.last.speedKph!, lessThan(15));
+      });
     });
   });
 }
