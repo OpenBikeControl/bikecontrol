@@ -78,7 +78,7 @@ void main() {
     expect(sends, 1);
     // Composer restored: the text is back and the attachment chip is still there.
     expect(find.text('screenshot.png'), findsOneWidget);
-    final field = tester.widget<TextArea>(find.byType(TextArea));
+    final field = tester.widget<TextField>(find.byKey(supportComposerFieldKey));
     expect(field.controller!.text, 'please look at this');
     // And nothing leaked out as an unhandled error.
     expect(tester.takeException(), isNull);
