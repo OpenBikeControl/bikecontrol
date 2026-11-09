@@ -6,11 +6,14 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodType;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/mdns/mdns_socket.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/prop.dart' show LogLevel;
+import 'package:prop/utils/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../integration/harness/test_env.dart';
@@ -72,6 +75,23 @@ Future<void> main() async {
     core.obpMdnsEmulator.debugBonjourFactory = null;
     core.obpMdnsEmulator.debugIsWindows = null;
   });
+
+  // Every install names the controller entry "BikeControl". A host label
+  // derived from that is BikeControl.local on every phone, so with two phones
+  // on one LAN TrainingPeaks Virtual resolves one rider's entry to the other's
+  // address. Both variants must carry this install's own label.
+  for (final (label, app) in [('TrainingPeaks Virtual (DirCon)', TrainingPeaks()), ('MyWhoosh (OBC)', MyWhoosh())]) {
+    test('$label: the controller entry carries this install\'s own host label', () async {
+      propPrefs.initialize(core.settings.prefs);
+      core.settings.setTrainerApp(app);
+      await core.obpMdnsEmulator.startServer();
+
+      final hostLabel = instanceAdvertiser.services.single.hostLabel;
+      expect(hostLabel, isNotNull);
+      expect(hostLabel, isNot('BikeControl'));
+      expect(hostLabel, MdnsHostLabel.storedRandom(), reason: 'stable across restarts');
+    });
+  }
 
   test('platformDefault registers through ServiceAdvertiser.instance', () async {
     await core.obpMdnsEmulator.startServer();
