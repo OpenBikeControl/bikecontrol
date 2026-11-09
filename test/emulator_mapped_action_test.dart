@@ -309,7 +309,32 @@ void main() {
       for (final p in RideKeyPadStatus.fromBuffer(frame.sublist(1)).analogPaddles) p.location: p.analogValue,
     };
 
-    test('steering presses the D-pad, which also moves through menus', () async {
+    test('steering pulls a paddle while held and lets go on release', () async {
+      final channel = _RecordingPeripheralChannel()..install();
+      addTearDown(channel.remove);
+
+      final result = await ZwiftEmulator().sendAction(_pair(InGameAction.steerLeft), isKeyDown: true, isKeyUp: true);
+
+      expect(result, isA<Success>());
+      final [down, up] = channel.notifications;
+      expect(_buttonMapOf(down, hasOpcode: true), 0xFFFFFFFF);
+      expect(paddlesOf(down), {RideAnalogLocation.LEFT: -100});
+      expect(paddlesOf(up), {RideAnalogLocation.LEFT: 0});
+    });
+
+    test('steering right pulls the right paddle over the network', () async {
+      final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+      addTearDown(transporter.dispose);
+
+      await FtmsMdnsEmulator().sendAction(_pair(InGameAction.steerRight), isKeyDown: true, isKeyUp: false);
+
+      final frame = transporter.notifications.single;
+      expect(_buttonMapOf(frame, hasOpcode: true), 0xFFFFFFFF);
+      expect(paddlesOf(frame), {RideAnalogLocation.RIGHT: 100});
+    });
+
+    test('apps without a Ride keep steering on the D-pad', () async {
+      core.settings.setTrainerApp(Biketerra());
       final channel = _RecordingPeripheralChannel()..install();
       addTearDown(channel.remove);
 
