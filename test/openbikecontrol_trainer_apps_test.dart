@@ -15,6 +15,7 @@ void main() {
     'REZVIVO',
     'OpenRadlr',
     'zwoTrainer',
+    'Incyclist',
   ];
 
   SupportedApp byName(String name) => SupportedApp.supportedApps.singleWhere((app) => app.name == name);
@@ -25,22 +26,22 @@ void main() {
     }
   });
 
-  test('they connect via OpenBikeControl over Bluetooth, VoxVelo and Vieta also over the network', () {
+  test('they connect via OpenBikeControl over Bluetooth, VoxVelo, Vieta and Incyclist also over the network', () {
     for (final name in names) {
       final app = byName(name);
       expect(app.supportLevel(AppConnectionMethod.obpBle), ConnectionSupport.supported, reason: name);
-      final mdns = name == 'VoxVelo' || name == 'Vieta';
+      final mdns = name == 'VoxVelo' || name == 'Vieta' || name == 'Incyclist';
       expect(app.supportLevel(AppConnectionMethod.obpMdns), mdns ? ConnectionSupport.supported : isNull, reason: name);
       // OBC delivers button events over the protocol, so there is no keyboard map.
       expect(app.keymap.keyPairs, isEmpty, reason: name);
     }
   });
 
-  test('only Vieta finds trainers over Wi-Fi as well', () {
+  test('only Vieta and Incyclist find trainers over Wi-Fi as well', () {
     for (final name in names) {
       expect(
         byName(name).virtualShiftingTransports,
-        name == 'Vieta'
+        name == 'Vieta' || name == 'Incyclist'
             ? {TrainerConnectionType.bluetooth, TrainerConnectionType.wifi}
             : {TrainerConnectionType.bluetooth},
         reason: name,

@@ -80,5 +80,12 @@ class OpenBikeControlTrainerApp extends SupportedApp {
       logo: 'zwotrainer.png',
       officialUrl: 'https://steffenr.github.io/zwo-trainer/',
     ),
+    OpenBikeControlTrainerApp(
+      name: 'Incyclist',
+      logo: 'incyclist.png',
+      officialUrl: 'https://incyclist.com',
+      mdns: true,
+      wifiTrainers: true,
+    ),
   ];
 }
