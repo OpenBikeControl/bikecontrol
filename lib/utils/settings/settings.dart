@@ -327,6 +327,17 @@ class Settings {
 
   Future<void> setSensorsOnlyMode(bool value) => prefs.setBool(_sensorsOnlyModeKey, value);
 
+  static const _bluetoothBridgePairedKey = 'windows_bt_bridge_paired';
+
+  /// Whether a trainer app has ever picked up this PC's Bluetooth bridge. One
+  /// flag for the PC, not per trainer: on Windows every trainer is bridged
+  /// through the same GATT server, and the trainer app pairs the PC. Lets
+  /// [StaleBluetoothLinkWatch] tell a stale connection from a rider who simply
+  /// hasn't paired yet.
+  bool getBluetoothBridgePairedBefore() => prefs.getBool(_bluetoothBridgePairedKey) ?? false;
+
+  Future<void> setBluetoothBridgePairedBefore() => prefs.setBool(_bluetoothBridgePairedKey, true);
+
   static String _selfTestKey(String trainerKey) => 'self_test_$trainerKey';
 
   String? getSelfTestResultJson(String trainerKey) {

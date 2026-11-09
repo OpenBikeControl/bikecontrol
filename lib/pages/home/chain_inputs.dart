@@ -161,6 +161,7 @@ class TrainerInput {
     this.overlayAnswered = false,
     this.overlayDeclined = false,
     this.rawTrainerName,
+    this.staleBluetoothLink = false,
   });
 
   final String deviceId;
@@ -178,6 +179,13 @@ class TrainerInput {
   /// `ProxyDevice.isConnectedListenable`, the same flag onboarding's summary
   /// uses to decide between "Bridged" and "Waiting for {app}…".
   final bool appHoldsBridge;
+
+  /// Whether the trainer app probably still holds a Bluetooth connection from
+  /// before BikeControl restarted, which no longer carries any data (Windows,
+  /// GH #451). Mirrors `ProxyDevice.staleBluetoothLinkSuspected`. The pick-up
+  /// step then says to remove the entry in the app and pair it again: while the
+  /// app shows it as connected there is nothing for the rider to pick.
+  final bool staleBluetoothLink;
 
   /// What the bridge advertises itself as, e.g. "KICKR CORE - BikeControl" —
   /// the entry a rider has to pick in their trainer app, and the one they most

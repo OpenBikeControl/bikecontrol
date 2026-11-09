@@ -2163,6 +2163,17 @@
       }
     }
   },
+  "chainStepTrainerBridgedStaleLinkHint": "{app} 显示「{bridge}」已连接但没有数据？它仍在使用 BikeControl 重启前的连接。请在 {app} 中移除「{bridge}」，然后重新配对。",
+  "@chainStepTrainerBridgedStaleLinkHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
   "chainStepTrainerBridgedHint": "在 {app} 中选择「{bridge}」作为骑行台。",
   "@chainStepTrainerBridgedHint": {
     "placeholders": {

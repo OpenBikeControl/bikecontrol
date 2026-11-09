@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/stale_bluetooth_link_watch.dart';
 import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -242,7 +243,43 @@ class ProxyDevice extends BluetoothDevice {
     _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
     _proxyEmulator.deviceName = () => scanResult.name;
     _rebindEmulatorState();
+    // The wrappers outlive emulator swaps and reconnects, so these listeners
+    // are added once, for the device's lifetime.
+    _isStartedN.addListener(_syncStaleLinkWatch);
+    _isConnectedN.addListener(_syncStaleLinkWatch);
+    _retrofitModeN.addListener(_syncStaleLinkWatch);
   }
+
+  late final StaleBluetoothLinkWatch _staleLinkWatch = StaleBluetoothLinkWatch(
+    pairedBefore: core.settings.getBluetoothBridgePairedBefore,
+    onPaired: () => unawaited(
+      core.settings.setBluetoothBridgePairedBefore().catchError(
+        (Object e, StackTrace s) => recordError(e, s, context: 'ProxyDevice.staleLinkWatch'),
+      ),
+    ),
+  )..suspected.addListener(_logStaleLink);
+
+  /// Into the support bundle: a rider reporting "no data after a restart"
+  /// should show that the re-pair hint was up.
+  void _logStaleLink() {
+    if (_staleLinkWatch.suspected.value) {
+      Logger.event(
+        'Bluetooth bridge: no trainer app picked it up within '
+        '${_staleLinkWatch.grace.inSeconds} s of starting, though one has before; '
+        'showing the re-pair hint (likely a stale connection, GH #451)',
+      );
+    }
+  }
+
+  /// Whether the trainer app is probably holding a Bluetooth connection from
+  /// before BikeControl restarted, and needs the PC removed and paired again —
+  /// Windows only, see [StaleBluetoothLinkWatch].
+  ValueListenable<bool> get staleBluetoothLinkSuspected => _staleLinkWatch.suspected;
+
+  void _syncStaleLinkWatch() => _staleLinkWatch.update(
+    bridgeUp: HostPlatform.isWindows && _retrofitModeN.value == RetrofitMode.bluetooth && isBridged,
+    appHolds: _isConnectedN.value,
+  );
 
   /// Test-only: drive the device-level "trainer app connected" wrapper
   /// directly, without running the active emulator's connect machinery (whose

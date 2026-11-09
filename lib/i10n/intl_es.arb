@@ -1799,6 +1799,17 @@
   },
   "chainStepTrainerBridgedPending": "Esperando a que {app} se conecte a «{bridge}»",
   "@chainStepTrainerBridgedPending": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
+  "chainStepTrainerBridgedStaleLinkHint": "¿{app} muestra «{bridge}» como conectado pero no recibe datos? Sigue usando la conexión de antes de que BikeControl se reiniciara. Elimina «{bridge}» en {app} y vuelve a emparejarlo.",
+  "@chainStepTrainerBridgedStaleLinkHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
   "chainStepTrainerBridgedHint": "Elige «{bridge}» como rodillo en {app}.",
   "@chainStepTrainerBridgedHint": {
     "placeholders": {

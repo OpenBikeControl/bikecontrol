@@ -466,6 +466,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       proxy.isStarting.addListener(_onProxyChanged);
       proxy.isStartedListenable.addListener(_onProxyChanged);
       proxy.isConnectedListenable.addListener(_onProxyChanged);
+      proxy.staleBluetoothLinkSuspected.addListener(_onProxyChanged);
     }
   }
 
@@ -503,6 +504,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       proxy.isStarting.removeListener(_onProxyChanged);
       proxy.isStartedListenable.removeListener(_onProxyChanged);
       proxy.isConnectedListenable.removeListener(_onProxyChanged);
+      proxy.staleBluetoothLinkSuspected.removeListener(_onProxyChanged);
     }
     widget.reveal?.removeListener(_onRevealRequested);
     core.connection.startupReconnecting.removeListener(_onStartupReconnectChanged);
@@ -656,6 +658,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // isConnectedListenable mirrors emulator.isConnected — the trainer app
         // actually holds the virtual trainer, not just "the bridge is running".
         appHoldsBridge: proxy.isConnectedListenable.value,
+        staleBluetoothLink: proxy.staleBluetoothLinkSuspected.value,
         // The exact entry to look for in the trainer app's device list.
         bridgeName: proxy.advertisementName,
         // And the one beside it not to pick: the trainer under its own name.

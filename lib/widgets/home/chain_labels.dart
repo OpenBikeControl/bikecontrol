@@ -91,7 +91,9 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
         ? ChainStepText(l.chainStepTrainerBridged(app))
         : ChainStepText(
             l.chainStepTrainerBridgedPending(app, step.hintArg ?? 'BikeControl'),
-            step.secondaryHintArg != null
+            step.variant == SetupStepVariant.bridgeStaleLink
+                ? l.chainStepTrainerBridgedStaleLinkHint(app, step.hintArg ?? 'BikeControl')
+                : step.secondaryHintArg != null
                 ? l.chainStepTrainerBridgedHint2(app, step.hintArg ?? 'BikeControl', step.secondaryHintArg!)
                 : l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app),
           ),

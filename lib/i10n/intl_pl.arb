@@ -1799,6 +1799,17 @@
   },
   "chainStepTrainerBridgedPending": "Czekam, aż {app} połączy się z „{bridge}”",
   "@chainStepTrainerBridgedPending": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
+  "chainStepTrainerBridgedStaleLinkHint": "{app} pokazuje „{bridge}” jako połączone, ale nie dostaje danych? Nadal trzyma połączenie sprzed ponownego uruchomienia BikeControl. Usuń „{bridge}” w {app} i sparuj je ponownie.",
+  "@chainStepTrainerBridgedStaleLinkHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
   "chainStepTrainerBridgedHint": "Wybierz „{bridge}” jako trenażer w {app}.",
   "@chainStepTrainerBridgedHint": {
     "placeholders": {

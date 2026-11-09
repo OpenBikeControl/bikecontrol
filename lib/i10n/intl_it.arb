@@ -1799,6 +1799,17 @@
   },
   "chainStepTrainerBridgedPending": "In attesa che {app} si colleghi a «{bridge}»",
   "@chainStepTrainerBridgedPending": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
+  "chainStepTrainerBridgedStaleLinkHint": "{app} mostra «{bridge}» come connesso ma non riceve dati? Sta ancora usando la connessione di prima del riavvio di BikeControl. Rimuovi «{bridge}» in {app} e associalo di nuovo.",
+  "@chainStepTrainerBridgedStaleLinkHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
   "chainStepTrainerBridgedHint": "Scegli «{bridge}» come rullo in {app}.",
   "@chainStepTrainerBridgedHint": {
     "placeholders": {
