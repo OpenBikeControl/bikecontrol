@@ -59,6 +59,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - REZVIVO
 - OpenRadlr
 - zwoTrainer
+- Incyclist
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps
