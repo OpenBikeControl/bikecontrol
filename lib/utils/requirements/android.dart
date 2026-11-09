@@ -261,16 +261,28 @@ class NotificationRequirement extends PlatformRequirement {
   /// activity — the service would keep the process and notification alive.
   static Future<void> closeAndQuit() async {
     UniversalBle.onAvailabilityChange = null;
-    await core.connection.disconnectAll();
-    core.actionHandler.cleanup();
-    await core.connection.stop();
+    // A disconnect that hangs or throws must not keep the app and its
+    // notification alive: each step gets a deadline, and quitting goes on.
+    await _quitStep('disconnect all', core.connection.disconnectAll);
+    await _quitStep('action cleanup', () async => core.actionHandler.cleanup());
+    await _quitStep('stop connection', core.connection.stop);
     if (Platform.isAndroid) {
       final android = AndroidFlutterLocalNotificationsPlugin();
-      await android.stopForegroundService();
-      await android.cancelAll();
+      await _quitStep('stop foreground service', android.stopForegroundService);
+      await _quitStep('cancel notifications', android.cancelAll);
     }
     await SystemNavigator.pop();
   }
+
+  static Future<void> _quitStep(String name, Future<void> Function() step) async {
+    try {
+      await step().timeout(_quitStepTimeout);
+    } catch (e, s) {
+      unawaited(recordError(e, s, context: 'close and quit: $name'));
+    }
+  }
+
+  static const _quitStepTimeout = Duration(seconds: 3);
 
   static Future<void> addPersistentNotification() async {
     const String channelGroupId = 'BikeControl';
