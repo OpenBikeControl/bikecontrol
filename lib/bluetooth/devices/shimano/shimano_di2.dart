@@ -217,12 +217,13 @@ class ShimanoDi2 extends BluetoothDevice {
           return MapEntry(key, buttons);
         });
 
+        // A quick follow-up press reports 0x4N instead of 0x1N; it is one press.
         final shortPress = [...?mapped[_Di2State.shortPress], ...?mapped[_Di2State.doublePress]];
         if (shortPress.isNotEmpty) {
           Logger.debug('Short Press Buttons to trigger: ${shortPress.map((b) => b.name).join(', ')}');
           handleButtonsClicked(shortPress);
           handleButtonsClicked([]);
-          _resetButtonsForState([_Di2State.shortPress]);
+          _resetButtonsForState([_Di2State.shortPress, _Di2State.doublePress]);
         }
 
         final longPress = mapped[_Di2State.longPress] ?? [];
@@ -237,14 +238,6 @@ class ShimanoDi2 extends BluetoothDevice {
         if (released.isNotEmpty && keepPress.isEmpty) {
           Logger.debug('Releasing all Buttons');
           handleButtonsClicked([]);
-        }
-
-        final doublePress = mapped[_Di2State.doublePress] ?? [];
-        if (doublePress.isNotEmpty) {
-          Logger.debug('Buttons to still trigger: ${doublePress.map((b) => b.name).join(', ')}');
-          handleButtonsClicked(doublePress);
-          handleButtonsClicked([]);
-          _resetButtonsForState([_Di2State.doublePress]);
         }
       }
     }
