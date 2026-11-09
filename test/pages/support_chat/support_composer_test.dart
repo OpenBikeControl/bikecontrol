@@ -237,14 +237,14 @@ Logs:
       expect(sendEnabled(tester), isFalse);
       // The pinned line is context for support, not something to edit: it
       // must not be prefilled into the input.
-      expect(tester.widget<TextArea>(find.byType(TextArea)).controller!.text, isEmpty);
+      expect(tester.widget<TextField>(find.byKey(supportComposerFieldKey)).controller!.text, isEmpty);
     });
 
     testWidgets('a two-character description is not enough and shows the hint', (tester) async {
       await tester.pumpWidget(app(pinnedContext: pinned, pinnedContextLabel: label));
       await tester.pump();
 
-      await tester.enterText(find.byType(TextArea), 'hi');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'hi');
       await tester.pump();
 
       expect(sendEnabled(tester), isFalse);
@@ -255,7 +255,7 @@ Logs:
       await tester.pumpWidget(app(pinnedContext: pinned, pinnedContextLabel: label));
       await tester.pump();
 
-      await tester.enterText(find.byType(TextArea), '              \n   ');
+      await tester.enterText(find.byKey(supportComposerFieldKey), '              \n   ');
       await tester.pump();
 
       expect(sendEnabled(tester), isFalse);
@@ -272,7 +272,7 @@ Logs:
       );
       await tester.pump();
 
-      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not find BikeControl');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'MyWhoosh does not find BikeControl');
       await tester.pump();
 
       expect(sendEnabled(tester), isTrue);
@@ -318,14 +318,14 @@ Logs:
       );
       await tester.pump();
 
-      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not find BikeControl');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'MyWhoosh does not find BikeControl');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
 
       expect(find.textContaining(label), findsNothing, reason: 'chip is gone once the result has been sent');
 
-      await tester.enterText(find.byType(TextArea), 'yes');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'yes');
       await tester.pump();
       expect(sendEnabled(tester), isTrue);
       await tester.tap(find.byIcon(LucideIcons.send));
@@ -348,13 +348,13 @@ Logs:
       );
       await tester.pump();
 
-      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not find BikeControl');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'MyWhoosh does not find BikeControl');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
 
       expect(attempts, 1);
-      final field = tester.widget<TextArea>(find.byType(TextArea));
+      final field = tester.widget<TextField>(find.byKey(supportComposerFieldKey));
       expect(field.controller!.text, 'MyWhoosh does not find BikeControl', reason: 'only the typed text comes back');
       expect(find.textContaining(label), findsOneWidget, reason: 'the result is still attached for the retry');
     });
@@ -368,7 +368,7 @@ Logs:
       expect(find.text(l10n.messageComposerPlaceholder), findsOneWidget);
       expect(sendEnabled(tester), isFalse);
 
-      await tester.enterText(find.byType(TextArea), 'hi');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'hi');
       await tester.pump();
       expect(sendEnabled(tester), isTrue, reason: 'no 12-character gate without a pinned result');
 
@@ -394,11 +394,11 @@ Logs:
       expect(find.text(l10n.supportDescribeProblemPlaceholder), findsOneWidget);
       expect(find.text(l10n.supportDescribeFirstMessageHint), findsOneWidget);
 
-      await tester.enterText(find.byType(TextArea), 'help');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'help');
       await tester.pump();
       expect(sendEnabled(tester), isFalse, reason: 'too short to say what is wrong');
 
-      await tester.enterText(find.byType(TextArea), 'MyWhoosh does not react to shifts');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'MyWhoosh does not react to shifts');
       await tester.pump();
       expect(sendEnabled(tester), isTrue);
       expect(find.text(l10n.supportDescribeFirstMessageHint), findsNothing);
@@ -439,7 +439,7 @@ Logs:
             onSend: (_, attachments) async => sent = attachments,
           ),
         );
-        await tester.tap(find.byType(TextArea));
+        await tester.tap(find.byKey(supportComposerFieldKey));
         await tester.pump();
 
         await pressPaste(tester);
@@ -462,7 +462,7 @@ Logs:
       });
       try {
         await tester.pumpWidget(app(readClipboardAttachment: () async => null));
-        await tester.tap(find.byType(TextArea));
+        await tester.tap(find.byKey(supportComposerFieldKey));
         await tester.pump();
 
         await pressPaste(tester);
@@ -488,7 +488,7 @@ Logs:
             onSend: (_, attachments) async => sent = attachments,
           ),
         );
-        await tester.tap(find.byType(TextArea));
+        await tester.tap(find.byKey(supportComposerFieldKey));
         await tester.pump();
 
         await pressPaste(tester);
@@ -507,12 +507,12 @@ Logs:
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
       try {
         await tester.pumpWidget(app(readClipboardAttachment: () async => pastedImage()));
-        await tester.tap(find.byType(TextArea));
+        await tester.tap(find.byKey(supportComposerFieldKey));
         await tester.pump();
 
         tester.state<EditableTextState>(find.byType(EditableText)).showToolbar();
         await tester.pumpAndSettle();
-        final l = ShadcnLocalizations.of(tester.element(find.byType(TextArea)));
+        final l = ShadcnLocalizations.of(tester.element(find.byKey(supportComposerFieldKey)));
         await tester.tap(find.text(l.menuPaste));
         await tester.pumpAndSettle();
 
@@ -520,6 +520,41 @@ Logs:
       } finally {
         debugDefaultTargetPlatformOverride = null;
       }
+    });
+  });
+
+  group('message field height', () {
+    /// Visible lines of the composer's text field: its rendered height over
+    /// one line of text.
+    double visibleLines(WidgetTester tester) {
+      final editable = tester
+          .state<EditableTextState>(
+            find.descendant(of: find.byKey(supportComposerFieldKey), matching: find.byType(EditableText)),
+          )
+          .renderEditable;
+      return editable.size.height / editable.preferredLineHeight;
+    }
+
+    testWidgets('grows with a long message so the rider can read what they typed', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+      final emptyLines = visibleLines(tester);
+
+      await tester.enterText(find.byKey(supportComposerFieldKey), List.filled(12, 'a line of the message').join('\n'));
+      await tester.pumpAndSettle();
+
+      expect(emptyLines, lessThanOrEqualTo(2.5), reason: 'an empty composer stays compact');
+      expect(visibleLines(tester), greaterThanOrEqualTo(5.5), reason: 'a long message shows several lines');
+    });
+
+    testWidgets('stops growing at six lines and scrolls instead', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+
+      await tester.enterText(find.byKey(supportComposerFieldKey), List.filled(40, 'a line of the message').join('\n'));
+      await tester.pumpAndSettle();
+
+      expect(visibleLines(tester), lessThanOrEqualTo(6.5));
     });
   });
 }
