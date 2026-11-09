@@ -23,6 +23,11 @@ on:
         required: false
         default: true
         type: boolean
+      build_linux:
+        description: 'Patch for Linux (x64; arm64 is not a Shorebird release)'
+        required: false
+        default: true
+        type: boolean
       release_version:
         description: 'Release version to patch'
         required: false
@@ -157,15 +162,16 @@ jobs:
       # of them produces a symbols/ dir to zip.
       - name: Zip Symbols
         if: inputs.build_mac || inputs.build_android || inputs.build_ios
-        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
+        run: zip -r symbols.zip symbols/
 
+      # Named after the patch/v<version>/<run number> tag the `tag` job pushes.
       - name: Upload Symbols
         if: inputs.build_mac || inputs.build_android || inputs.build_ios
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-symbols
         with:
-          overwrite: true
-          name: Symbols
-          path: symbols.zip
+          file: symbols.zip
+          name: patch-${{ github.run_number }}-apple-android.zip
+          token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
 
   windows:
     name: Patch Windows
@@ -220,18 +226,79 @@ jobs:
       - name: Zip Windows Symbols
         shell: pwsh
         run: |
-          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
+          7z a symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload Windows Symbols
+        uses: ./.github/actions/upload-symbols
         with:
-          overwrite: true
-          name: Windows Symbols
-          path: symbols-win.zip
+          file: symbols-win.zip
+          name: patch-${{ github.run_number }}-windows.zip
+          token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
+
+  linux:
+    name: Patch Linux
+    needs: guard
+    if: inputs.build_linux
+    # Same runner as the build.yml release: patches must use the same toolchain.
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Rename pubspec_overrides_ci.yaml to pubspec_overrides.yaml
+        uses: ./.github/actions/rename-pubspec-overrides
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          # The runner image ships libunwind-14-dev, which conflicts with the
+          # libunwind-dev that libgstreamer1.0-dev needs.
+          sudo apt-get remove -y libunwind-14-dev || true
+          sudo apt-get install -y --no-install-recommends clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev libasound2-dev libpulse-dev libsecret-1-dev \
+            libayatana-appindicator3-dev libnotify-dev libkeybinder-3.0-dev libgstreamer1.0-dev \
+            libgstreamer-plugins-base1.0-dev libsqlite3-dev libudev-dev libevdev-dev
+
+      - name: 🐦 Setup Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Set Up Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: 🚀 Shorebird Patch Linux
+        uses: shorebirdtech/shorebird-patch@v1
+        with:
+          platform: linux
+          release-version: ${{ inputs.release_version }}
+          args: '--track ${{ inputs.track }} --allow-asset-diffs --allow-native-diffs --obfuscate --split-debug-info=symbols-linux -- --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+
+      - name: 🚀 Shorebird Patch Linux (beta track)
+        if: inputs.track == 'stable'
+        uses: shorebirdtech/shorebird-patch@v1
+        with:
+          platform: linux
+          release-version: ${{ inputs.release_version }}
+          args: '--track beta --allow-asset-diffs --allow-native-diffs --obfuscate --split-debug-info=symbols-linux -- --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}'
+
+      - name: Zip Linux Symbols
+        run: zip -r symbols-linux.zip symbols-linux/
+
+      - name: Upload Linux Symbols
+        uses: ./.github/actions/upload-symbols
+        with:
+          file: symbols-linux.zip
+          name: patch-${{ github.run_number }}-linux.zip
+          token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
 
   tag:
     name: Tag source commit
-    needs: [build, windows]
+    needs: [build, windows, linux]
     # Tag the commit this patch was built from, so every OTA patch is traceable
     # to its source. Runs only when a patch actually succeeded: at least one
     # platform job succeeded and neither failed. always() lets it evaluate even
@@ -241,9 +308,10 @@ jobs:
     # skipped too — no tag off main. !cancelled() avoids tagging a cancelled run.
     if: >-
       always() && !cancelled() &&
-      (needs.build.result == 'success' || needs.windows.result == 'success') &&
+      (needs.build.result == 'success' || needs.windows.result == 'success' || needs.linux.result == 'success') &&
       needs.build.result != 'failure' &&
-      needs.windows.result != 'failure'
+      needs.windows.result != 'failure' &&
+      needs.linux.result != 'failure'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -268,6 +336,7 @@ jobs:
           BUILD_ANDROID: ${{ inputs.build_android }}
           BUILD_MAC: ${{ inputs.build_mac }}
           BUILD_WINDOWS: ${{ inputs.build_windows }}
+          BUILD_LINUX: ${{ inputs.build_linux }}
         run: |
           set -euo pipefail
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
@@ -279,6 +348,7 @@ jobs:
           if [ "$BUILD_ANDROID" = "true" ]; then platforms="$platforms android"; fi
           if [ "$BUILD_MAC" = "true" ]; then platforms="$platforms macos"; fi
           if [ "$BUILD_WINDOWS" = "true" ]; then platforms="$platforms windows"; fi
+          if [ "$BUILD_LINUX" = "true" ]; then platforms="$platforms linux"; fi
           platforms="${platforms# }"
 
           # Idempotent: a re-run reuses the run number, so don't fail if it exists.

@@ -55,9 +55,8 @@ Future<void> main() async {
     core.rouvyMdnsEmulator.isConnected.value = false;
     await core.rouvyMdnsEmulator.clickEmulator.stop();
     // Anything the emulators lost track of must not bleed into the next test.
-    for (final leaked in ResilientTcpServer.activeServers
-        .where((s) => s.label == 'OpenBikeControl' || s.label == 'Click')
-        .toList()) {
+    for (final leaked
+        in ResilientTcpServer.activeServers.where((s) => s.label == 'OpenBikeControl' || s.label == 'Click').toList()) {
       await leaked.stop();
     }
     ServiceAdvertiser.instance = NsdServiceAdvertiser();
@@ -104,12 +103,17 @@ Future<void> main() async {
     test('a degraded switch (Windows without Bonjour) is a failed switch: pref restored, returns false', () async {
       await core.obpMdnsEmulator.startServer(); // running on platformDefault
       core.obpMdnsEmulator.debugIsWindows = () => true;
-      core.obpMdnsEmulator.debugBonjourFactory = () => BonjourServiceAdvertiser(api: FakeBonjourApi(isAvailable: false));
+      core.obpMdnsEmulator.debugBonjourFactory = () =>
+          BonjourServiceAdvertiser(api: FakeBonjourApi(isAvailable: false));
 
       final ok = await switchObpBackend(ObpMdnsBackend.osResponder);
 
       expect(ok, isFalse);
-      expect(core.settings.getObpMdnsBackend(), ObpMdnsBackend.platformDefault, reason: 'the previous pref is restored');
+      expect(
+        core.settings.getObpMdnsBackend(),
+        ObpMdnsBackend.platformDefault,
+        reason: 'the previous pref is restored',
+      );
       expect(core.obpMdnsEmulator.isStarted.value, isTrue, reason: 'restarted on the restored pref');
       expect(core.obpMdnsEmulator.activeBackend, ObpMdnsBackend.platformDefault);
       expect(env.mdns.registrations, isEmpty, reason: 'nsd is never the Windows OS backend');
@@ -295,6 +299,81 @@ Future<void> main() async {
       for (final alias in [null, 'Wi-Fi', 'Ethernet', 'Other']) {
         expect(networkProfileSettingsUri(alias), isNot(contains('windowsdefender')));
       }
+    });
+  });
+
+  group('reinstallBonjourWithWinget', () {
+    late List<List<String>> calls;
+    late List<String> opened;
+
+    Future<bool> openGuide(String url) async {
+      opened.add(url);
+      return true;
+    }
+
+    setUp(() {
+      calls = [];
+      opened = [];
+    });
+
+    test('runs a forced winget reinstall of Apple.Bonjour and reports success', () async {
+      final ok = await reinstallBonjourWithWinget(
+        run: (executable, arguments) async {
+          calls.add([executable, ...arguments]);
+          return ProcessResult(0, 0, 'Successfully installed', '');
+        },
+        openGuide: openGuide,
+      );
+
+      expect(ok, isTrue);
+      expect(calls, hasLength(1));
+      expect(calls.single.first, 'winget');
+      expect(calls.single, containsAll(['install', '--id=Apple.Bonjour', '-e', '--force']));
+      expect(calls.single, containsAll(['--accept-package-agreements', '--accept-source-agreements']));
+      expect(opened, isEmpty, reason: 'no fallback when winget succeeded');
+    });
+
+    test('winget missing (ProcessException) falls back to the install guide', () async {
+      final ok = await reinstallBonjourWithWinget(
+        run: (executable, arguments) async => throw ProcessException(executable, arguments, 'not found', 2),
+        openGuide: openGuide,
+      );
+
+      expect(ok, isFalse, reason: 'nothing was installed yet, so the page must not re-run');
+      expect(opened, [bonjourInstallGuideUrl]);
+    });
+
+    test('a non-zero winget exit (declined admin prompt, failed install) falls back to the guide', () async {
+      final ok = await reinstallBonjourWithWinget(
+        run: (executable, arguments) async => ProcessResult(0, 0x8A150011, 'Installer failed', ''),
+        openGuide: openGuide,
+      );
+
+      expect(ok, isFalse);
+      expect(opened, [bonjourInstallGuideUrl]);
+    });
+
+    test('a second tap while an install runs does not start another winget', () async {
+      final gate = Completer<ProcessResult>();
+      final first = reinstallBonjourWithWinget(
+        run: (executable, arguments) {
+          calls.add([executable, ...arguments]);
+          return gate.future;
+        },
+        openGuide: openGuide,
+      );
+      final second = await reinstallBonjourWithWinget(
+        run: (executable, arguments) async {
+          calls.add([executable, ...arguments]);
+          return ProcessResult(0, 0, '', '');
+        },
+        openGuide: openGuide,
+      );
+      gate.complete(ProcessResult(0, 0, '', ''));
+
+      expect(second, isFalse);
+      expect(await first, isTrue);
+      expect(calls, hasLength(1));
     });
   });
 }

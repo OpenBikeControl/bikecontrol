@@ -49,6 +49,11 @@ enum InGameAction {
   select('Select', icon: LucideIcons.mousePointerClick),
   back('Back', icon: LucideIcons.arrowLeft),
   rideOnBomb('Ride On Bomb', icon: LucideIcons.bomb, isLongPress: true),
+  leftDropButton('Left Drop Button', icon: LucideIcons.circleArrowLeft),
+  rightDropButton('Right Drop Button', icon: LucideIcons.circleArrowRight),
+  leftShiftButton2('Left Shift Button 2', icon: LucideIcons.chevronsDown),
+  rightShiftButton2('Right Shift Button 2', icon: LucideIcons.chevronsUp),
+  brake('Brake', icon: LucideIcons.octagonPause, isLongPress: true, requiresHold: true),
 
   // rouvy
   kudos('Kudos', icon: LucideIcons.thumbsUp),
@@ -92,7 +97,12 @@ enum InGameAction {
   spectateRider('Spectate Rider', icon: LucideIcons.eye),
 
   // trainer control
-  trainerSwitchMode('Trainer: Switch ERG/SIM', icon: LucideIcons.repeat, isOutsideTrainerApp: true),
+  trainerSwitchMode(
+    'Trainer: Switch ERG/SIM',
+    alternativeTitle: 'Power Lock',
+    icon: LucideIcons.repeat,
+    isOutsideTrainerApp: true,
+  ),
   trainerIntensityUp('Trainer: Intensity Up', icon: LucideIcons.trendingUp, isOutsideTrainerApp: true),
   trainerIntensityDown('Trainer: Intensity Down', icon: LucideIcons.trendingDown, isOutsideTrainerApp: true),
   workoutPauseResume('Workout: Pause/Resume', icon: LucideIcons.pause, isOutsideTrainerApp: true),
@@ -149,6 +159,11 @@ enum InGameAction {
       InGameAction.select => l.actionSelect,
       InGameAction.back => l.actionBack,
       InGameAction.rideOnBomb => l.actionRideOnBomb,
+      InGameAction.leftDropButton => l.actionLeftDropButton,
+      InGameAction.rightDropButton => l.actionRightDropButton,
+      InGameAction.leftShiftButton2 => l.actionLeftShiftButton2,
+      InGameAction.rightShiftButton2 => l.actionRightShiftButton2,
+      InGameAction.brake => l.actionBrake,
       InGameAction.kudos => l.actionKudos,
       InGameAction.pause => l.actionPause,
       InGameAction.headwindSpeed => l.actionHeadwindSpeed,

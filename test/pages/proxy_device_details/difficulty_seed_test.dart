@@ -109,9 +109,10 @@ Future<void> main() async {
     expect(def.ergStartSource, ErgStartSource.currentPower);
   });
 
-  test('a trainer without ERG settings starts at the last target and steps 5 W', () {
+  test('a trainer without ERG settings starts at the current power and steps 5 W', () {
     final def = connect(trainer('KICKR CORE 6'));
     expect(def.ergStepW, ErgPowerStepping.defaultStepW);
-    expect(def.ergStartSource, ErgStartSource.lastTarget);
+    expect(def.ergStartSource, ErgStartSource.currentPower);
+    expect(def.powerLockAutoRelease, isTrue);
   });
 }

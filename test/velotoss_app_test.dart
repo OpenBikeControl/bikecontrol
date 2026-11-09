@@ -12,11 +12,12 @@ void main() {
     expect(matches.first.officialIntegration, isTrue);
   });
 
-  test('Velotoss connects via the OpenBikeControl protocol over the network', () {
+  test('Velotoss connects via the OpenBikeControl protocol over network and Bluetooth', () {
     final app = velotoss();
     expect(app.supportLevel(AppConnectionMethod.obpMdns),
         ConnectionSupport.supported);
-    expect(app.supportLevel(AppConnectionMethod.obpBle), isNull);
+    expect(app.supportLevel(AppConnectionMethod.obpBle),
+        ConnectionSupport.supported);
     // OBC delivers button events over the protocol, so there is no keyboard map.
     expect(app.keymap.keyPairs, isEmpty);
   });

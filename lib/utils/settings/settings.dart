@@ -327,6 +327,17 @@ class Settings {
 
   Future<void> setSensorsOnlyMode(bool value) => prefs.setBool(_sensorsOnlyModeKey, value);
 
+  static const _bluetoothBridgePairedKey = 'windows_bt_bridge_paired';
+
+  /// Whether a trainer app has ever picked up this PC's Bluetooth bridge. One
+  /// flag for the PC, not per trainer: on Windows every trainer is bridged
+  /// through the same GATT server, and the trainer app pairs the PC. Lets
+  /// [StaleBluetoothLinkWatch] tell a stale connection from a rider who simply
+  /// hasn't paired yet.
+  bool getBluetoothBridgePairedBefore() => prefs.getBool(_bluetoothBridgePairedKey) ?? false;
+
+  Future<void> setBluetoothBridgePairedBefore() => prefs.setBool(_bluetoothBridgePairedKey, true);
+
   static String _selfTestKey(String trainerKey) => 'self_test_$trainerKey';
 
   String? getSelfTestResultJson(String trainerKey) {
@@ -982,14 +993,61 @@ class Settings {
 
   Future<void> setShimanoDfly(String serial, bool chosen) async => prefs.setBool('shimano_dfly_$serial', chosen);
 
-  String getShimanoPasskey(String serial) =>
-      prefs.getString('shimano_passkey_$serial') ?? ShimanoAuth.defaultPasskey;
+  // What the Di2 shifters' switches did before BikeControl put their paddles
+  // on D-Fly channels, so they can be put back. Never overwritten while set.
+
+  List<ShimanoShifterSwitches> getShimanoSwitchBackup(String serial) {
+    final raw = prefs.getString('shimano_switch_backup_$serial');
+    if (raw == null) return const [];
+    try {
+      return [
+        for (final entry in jsonDecode(raw) as List)
+          if (ShimanoShifterSwitches.fromJson(entry as Map<String, dynamic>) case final switches?) switches,
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> setShimanoSwitchBackup(String serial, List<ShimanoShifterSwitches> backup) async =>
+      prefs.setString('shimano_switch_backup_$serial', jsonEncode([for (final s in backup) s.toJson()]));
+
+  Future<void> clearShimanoSwitchBackup(String serial) async => prefs.remove('shimano_switch_backup_$serial');
+
+  // The rider saw (and dismissed) the warning that button mode shifts for real
+  // when BikeControl disconnects.
+
+  bool getShimanoButtonModeWarningSeen(String serial) =>
+      prefs.getBool('shimano_button_mode_warning_seen_$serial') ?? false;
+
+  Future<void> setShimanoButtonModeWarningSeen(String serial) async =>
+      prefs.setBool('shimano_button_mode_warning_seen_$serial', true);
+
+  String getShimanoPasskey(String serial) => prefs.getString('shimano_passkey_$serial') ?? ShimanoAuth.defaultPasskey;
 
   Future<void> setShimanoPasskey(String serial, String passkey) async =>
       prefs.setString('shimano_passkey_$serial', passkey);
 
+  /// A stored button record "serial:mask[:deviceType]" with an empty or
+  /// missing device_type — the "side unknown" form.
+  static bool _isSidelessSramRecord(String e) {
+    final parts = e.split(':');
+    return parts.length < 3 || parts[2].isEmpty;
+  }
+
+  static String _sramRecordMask(String e) => e.split(':')[1];
+
+  /// Drops side-less records whose mask already has a record with a known
+  /// side. Once a shifter reports its side, the side-less form of that button
+  /// is a stale duplicate (it named "Shifter A – Paddle" next to the real
+  /// Left/Right Shifter) and would otherwise be re-registered on every connect.
+  static List<String> _withoutStaleSidelessSram(List<String> records) {
+    final sidedMasks = records.where((e) => !_isSidelessSramRecord(e)).map(_sramRecordMask).toSet();
+    return records.where((e) => !_isSidelessSramRecord(e) || !sidedMasks.contains(_sramRecordMask(e))).toList();
+  }
+
   List<({int serial, int mask, int? deviceType})> getSramButtons(String serial) {
-    final raw = prefs.getStringList('sram_buttons_$serial') ?? const [];
+    final raw = _withoutStaleSidelessSram(prefs.getStringList('sram_buttons_$serial') ?? const []);
     return raw.map((e) {
       final parts = e.split(':');
       // Records are "serial:mask" (legacy) or "serial:mask:deviceType". The
@@ -1027,7 +1085,16 @@ class Settings {
         list[idx] = entry;
       }
     }
-    await prefs.setStringList('sram_buttons_$serial', list);
+    await prefs.setStringList('sram_buttons_$serial', _withoutStaleSidelessSram(list));
+  }
+
+  /// Forgets everything learned about [serial]'s buttons and shifters (on
+  /// "Disconnect & forget"), so a re-added device starts with a clean button
+  /// list. The bond key and shifting backup are kept: re-adding the device
+  /// must not force a new SRAM setup.
+  Future<void> clearSramDevice(String serial) async {
+    await prefs.remove('sram_buttons_$serial');
+    await prefs.remove('sram_shifters_$serial');
   }
 
   /// Persisted shifter adverts (serial → "deviceType:model") for stable button

@@ -16,14 +16,15 @@ class ObcBikeDefinition extends BleDefinition {
   List<BleCharacteristic> getCharacteristics(String serviceUUID) {
     if (serviceUUID.toLowerCase() == OpenBikeControlConstants.SERVICE_UUID) {
       return [
-        BleCharacteristic(
-          OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
-          [CharacteristicProperty.notify],
-         []),
-        BleCharacteristic(
-          OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
-          [CharacteristicProperty.writeWithoutResponse],
-         []),
+        BleCharacteristic(OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID, [
+          CharacteristicProperty.notify,
+        ], []),
+        BleCharacteristic(OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID, [
+          CharacteristicProperty.writeWithoutResponse,
+        ], []),
+        BleCharacteristic(OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID, [
+          CharacteristicProperty.writeWithoutResponse,
+        ], []),
       ];
     }
     return [];
@@ -31,7 +32,9 @@ class ObcBikeDefinition extends BleDefinition {
 
   @override
   void onWriteRequest(String characteristicUUID, List<int> characteristicData) {
-    if (characteristicUUID.toLowerCase() == OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID) {
+    final uuid = characteristicUUID.toLowerCase();
+    if (uuid == OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID ||
+        uuid == OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID) {
       onMessageCallback.onMessage(characteristicData);
     }
   }

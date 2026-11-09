@@ -204,6 +204,26 @@ abstract class BaseActions {
     return bridgeCountingDown || !appHoldsBridge;
   }
 
+  /// Whether a press still goes through once the daily command limit is used
+  /// up: a trainer action (a gear change, …) while the virtual-shifting budget
+  /// is counting down. Those run on the 20-minute budget instead — see
+  /// [isExemptInternalTrainerAction] — so the command limit must not cut the
+  /// trial short. Pure for testability.
+  @visibleForTesting
+  static bool passesCommandLimit({required InGameAction? action, required bool bridgeCountingDown}) {
+    if (!bridgeCountingDown) return false;
+    return action != InGameAction.workoutPauseResume && trainerActions.contains(action);
+  }
+
+  /// [passesCommandLimit] for [button] pressed with [trigger], from the live
+  /// keymap and virtual-shifting budget.
+  bool passesCommandLimitFor(ControllerButton button, {required ButtonTrigger trigger}) {
+    return passesCommandLimit(
+      action: supportedApp?.keymap.getKeyPair(button, trigger: trigger)?.inGameAction,
+      bridgeCountingDown: core.bridgeUsageTracker.isCountingDown,
+    );
+  }
+
   /// Reads the live entitlement / bridge state and decides whether the daily
   /// command count should be skipped for a trainer action whose [result] came
   /// back from [ProxyDevice.handleTrainerAction].

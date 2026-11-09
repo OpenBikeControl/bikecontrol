@@ -487,7 +487,8 @@ class ShellTopBar extends StatelessWidget {
   /// The session's log, for Activity's Clear.
   final ActivityLogController? activity;
 
-  /// The phone's large title and icon-only update action — below 840.
+  /// The phone's large title, with the update strip under the bar instead of
+  /// a button in it — below 840.
   final bool compact;
 
   /// The plan badge and the (?) Help icon — below 840, where there is no
@@ -535,7 +536,7 @@ class ShellTopBar extends StatelessWidget {
             builder: (context, tab, _) =>
                 tab == ActivityTab.log ? ActivityClearButton(controller: activity!) : const SizedBox.shrink(),
           ),
-        AppUpdateButton(compact: compact),
+        if (!compact) const AppUpdateButton(),
         if (showPlanAndHelp) const PlanBadge(),
         if (showPlanAndHelp) const HelpButton(),
         // The bar's one ⋮: the section's own entries (Rides: "Alle löschen")
@@ -550,24 +551,28 @@ class ShellTopBar extends StatelessWidget {
       ],
     );
     final scrolled = this.scrolled;
-    if (scrolled == null) return bar;
+    if (scrolled == null && !compact) return bar;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         bar,
-        ValueListenableBuilder<bool>(
-          valueListenable: scrolled,
-          builder: (context, isScrolled, _) => AnimatedOpacity(
-            opacity: isScrolled ? 1 : 0,
-            duration: const Duration(milliseconds: 150),
-            child: Container(
-              key: const ValueKey('shell-top-bar-separator'),
-              height: 1,
-              color: Theme.of(context).colorScheme.border,
+        // A waiting update on the phone: a strip under the bar, which has no
+        // room for a labelled button beside the title.
+        if (compact) const AppUpdateButton(banner: true),
+        if (scrolled != null)
+          ValueListenableBuilder<bool>(
+            valueListenable: scrolled,
+            builder: (context, isScrolled, _) => AnimatedOpacity(
+              opacity: isScrolled ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: Container(
+                key: const ValueKey('shell-top-bar-separator'),
+                height: 1,
+                color: Theme.of(context).colorScheme.border,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

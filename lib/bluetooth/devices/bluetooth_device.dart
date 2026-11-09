@@ -147,6 +147,14 @@ abstract class BluetoothDevice extends BaseDevice {
   static bool _isKnownPowerMeterName(String name) =>
       _powerMeterNames.any((knownName) => name.toUpperCase().startsWith(knownName));
 
+  /// Whether [name] is a Shimano crank power meter (`FCR8100P173` for an
+  /// FC-R8100-P, `FCR9200P…` for Dura-Ace). These advertise the E-TUBE config
+  /// service 18FF like every E-TUBE device, but not the D-FLY service 18EF, so
+  /// the services-based [ShimanoDi2] rule must not claim them — and their
+  /// advert does not always carry Cycling Power, so this name alone decides.
+  static bool _isShimanoPowerMeterName(String name) =>
+      RegExp(r'^FC-?[A-Z]\d{4}-?P', caseSensitive: false).hasMatch(name);
+
   /// Whether [scanResult] advertises a trainer service — FTMS or
   /// FE-C-over-BLE — the same two services [ProxyDevice.isSmartTrainer]
   /// checks to decide a device is a smart trainer. Deliberately reuses those
@@ -176,6 +184,11 @@ abstract class BluetoothDevice extends BaseDevice {
   /// services (FE-C or FTMS) are discovered on connect. Kept to the `-HT`
   /// prefix so other Van Rysel products (straps, power meters) are untouched.
   static bool _isVanRyselTrainerName(String name) => name.toUpperCase().startsWith('VANRYSEL-HT');
+
+  /// The 11-speed Di2 wireless unit (EW-WU111) advertises as `EWWU111`. It is
+  /// claimed by its E-TUBE service elsewhere, but Windows has never surfaced it
+  /// that way in the field, so match it by name too, like the Tacx Neo.
+  static bool _isDi2WirelessUnitName(String name) => name.toUpperCase().startsWith('EWWU');
 
   /// Test seam: overrides the effective [kIsWeb] check so `fromScanResult`'s
   /// web-specific classification branch can be exercised from a normal
@@ -290,7 +303,12 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('TACX NEO') => ProxyDevice(scanResult),
         // Same for Decathlon Van Rysel HT trainers — see [_isVanRyselTrainerName].
         _ when _isVanRyselTrainerName(scanResult.name!) => ProxyDevice(scanResult),
+        // Before the Di2 rule — see [_isShimanoPowerMeterName].
+        _ when _isShimanoPowerMeterName(scanResult.name!) && !_advertisesTrainerService(scanResult) => BlePowerDevice(
+          scanResult,
+        ),
         _ when scanResult.name!.toUpperCase().startsWith('RDR') => ShimanoDi2(scanResult),
+        _ when _isDi2WirelessUnitName(scanResult.name!) => ShimanoDi2(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('SRAM') && _sramIsConnectable(scanResult) => SramAxs(
           scanResult,
         ),
@@ -382,10 +400,17 @@ abstract class BluetoothDevice extends BaseDevice {
         // Same for Decathlon Van Rysel HT trainers — see [_isVanRyselTrainerName].
         _ when _isVanRyselTrainerName(scanResult.name!) => ProxyDevice(scanResult),
         //_ when scanResult.services.contains(CycplusBc2Constants.SERVICE_UUID.toLowerCase()) => CycplusBc2(scanResult),
+        // Before the Di2 rules, which would claim it by its E-TUBE service —
+        // see [_isShimanoPowerMeterName].
+        _ when _isShimanoPowerMeterName(scanResult.name!) && !_advertisesTrainerService(scanResult) => BlePowerDevice(
+          scanResult,
+        ),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID.toLowerCase()) => ShimanoDi2(scanResult),
         _ when scanResult.services.contains(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE.toLowerCase()) => ShimanoDi2(
           scanResult,
         ),
+        // See [_isDi2WirelessUnitName].
+        _ when _isDi2WirelessUnitName(scanResult.name!) => ShimanoDi2(scanResult),
         // Before the ProxyDevice branch below, which claims Cycling Power
         // (0x1818) unconditionally via containsAny — including for a
         // legitimately-named power meter, which is wrong. This rule is

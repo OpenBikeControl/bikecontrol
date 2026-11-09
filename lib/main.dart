@@ -38,6 +38,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'pages/navigation.dart';
 import 'utils/actions/base_actions.dart';
 import 'utils/core.dart';
+import 'bluetooth/native_ble_log.dart';
 import 'utils/host_platform.dart';
 import 'utils/network_server_teardown.dart';
 import 'utils/window_size.dart';
@@ -213,6 +214,7 @@ Future<void> main(List<String> args) async {
       // otherwise it's only wired in Connection.initialize(), which never runs
       // on the startup-recovery path, and the support mail ships empty logs.
       core.connection.startLogCapture();
+      NativeBleLog.install();
 
       // Mount the app shell immediately and let it bootstrap itself. Blocking
       // on core.settings.init() (notifications, window_manager, Supabase, IAP,

@@ -160,7 +160,7 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
   /// actually carry — with a single option there is nothing to choose, and
   /// offering the others would hand the rider a path where every write dies.
   ///
-  /// On a Zwift-Sync trainer, explicitly picking "Zwift protocol" resolves to
+  /// On a Zwift-Sync trainer, explicitly picking "Native" resolves to
   /// the same delivery as Auto. That inert choice is deliberate: the list is
   /// the supported set, unfiltered, so the rider can always see and re-pick
   /// what they are on.
@@ -216,7 +216,8 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
   String _protocolLabel(TrainerControlProtocol protocol) => switch (protocol) {
     TrainerControlProtocol.ftms => context.i18n.controlProtocolFtms,
     TrainerControlProtocol.fec => context.i18n.controlProtocolFec,
-    TrainerControlProtocol.zwiftHub => context.i18n.controlProtocolZwift,
+    TrainerControlProtocol.zwiftHub => context.i18n.controlProtocolNative,
+    TrainerControlProtocol.wahooCps => context.i18n.controlProtocolWahoo,
   };
 
 }

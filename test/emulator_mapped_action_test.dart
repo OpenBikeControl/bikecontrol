@@ -1,4 +1,6 @@
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'package:bike_control/bluetooth/devices/zwift/rouvy_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/bluetooth/devices/zwift/zwift_emulator.dart';
@@ -6,7 +8,10 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart' show RideB
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/biketerra.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -15,6 +20,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/transporter/transporter.dart';
 import 'package:prop/prop.dart' hide RideButtonMask;
+import 'package:prop/protocol/zp_support.dart' show ZpPacket;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Captures the raw controller frames the Rouvy emulator writes.
@@ -41,8 +47,7 @@ class _RecordingTransporter extends Transporter {
 /// Stands in for the platform side of universal_ble's peripheral channel, so
 /// [ZwiftEmulator]'s notify path can be exercised off-device.
 class _RecordingPeripheralChannel {
-  static const _channel =
-      'dev.flutter.pigeon.universal_ble.UniversalBlePeripheralChannel.updateCharacteristic';
+  static const _channel = 'dev.flutter.pigeon.universal_ble.UniversalBlePeripheralChannel.updateCharacteristic';
   static const _codec = StandardMessageCodec();
 
   final List<List<int>> notifications = [];
@@ -265,6 +270,133 @@ void main() {
         _buttonMapOf(channel.notifications.first, hasOpcode: true),
         (~(RideButtonMask.SHFT_UP_R_BTN.mask | RideButtonMask.SHFT_UP_L_BTN.mask)) & 0xFFFFFFFF,
       );
+    });
+  });
+
+  group('Ride controls', () {
+    const buttons = {
+      InGameAction.leftDropButton: RideButtonMask.POWERUP_L_BTN,
+      InGameAction.rightDropButton: RideButtonMask.POWERUP_R_BTN,
+      InGameAction.leftShiftButton2: RideButtonMask.SHFT_DN_L_BTN,
+      InGameAction.rightShiftButton2: RideButtonMask.SHFT_DN_R_BTN,
+    };
+
+    setUp(() => core.settings.setTrainerApp(Zwift()));
+
+    for (final MapEntry(key: action, value: button) in buttons.entries) {
+      test('${action.name} presses ${button.name} over Bluetooth', () async {
+        final channel = _RecordingPeripheralChannel()..install();
+        addTearDown(channel.remove);
+
+        final result = await ZwiftEmulator().sendAction(_pair(action), isKeyDown: true, isKeyUp: false);
+
+        expect(result, isA<Success>());
+        expect(_buttonMapOf(channel.notifications.single, hasOpcode: true), _released(button));
+      });
+
+      test('${action.name} presses ${button.name} over the network', () async {
+        final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+        addTearDown(transporter.dispose);
+
+        final result = await FtmsMdnsEmulator().sendAction(_pair(action), isKeyDown: true, isKeyUp: false);
+
+        expect(result, isA<Success>());
+        expect(_buttonMapOf(transporter.notifications.single, hasOpcode: true), _released(button));
+      });
+    }
+
+    Map<RideAnalogLocation, int> paddlesOf(List<int> frame) => {
+      for (final p in RideKeyPadStatus.fromBuffer(frame.sublist(1)).analogPaddles) p.location: p.analogValue,
+    };
+
+    test('steering presses the D-pad, which also moves through menus', () async {
+      final channel = _RecordingPeripheralChannel()..install();
+      addTearDown(channel.remove);
+
+      await ZwiftEmulator().sendAction(_pair(InGameAction.steerLeft), isKeyDown: true, isKeyUp: false);
+
+      final frame = channel.notifications.single;
+      expect(_buttonMapOf(frame, hasOpcode: true), _released(RideButtonMask.LEFT_BTN));
+      expect(paddlesOf(frame), isEmpty);
+    });
+
+    test('brake pulls both paddles over the network', () async {
+      final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+      addTearDown(transporter.dispose);
+
+      await FtmsMdnsEmulator().sendAction(_pair(InGameAction.brake), isKeyDown: true, isKeyUp: true);
+
+      final [down, up] = transporter.notifications;
+      expect(paddlesOf(down), {RideAnalogLocation.LEFT: -100, RideAnalogLocation.RIGHT: 100});
+      expect(paddlesOf(up), {RideAnalogLocation.LEFT: 0, RideAnalogLocation.RIGHT: 0});
+    });
+
+    test('Navigate is not a Zwift action', () {
+      expect(appControllerActions(core.zwiftEmulator.supportedActions), isNot(contains(InGameAction.navigateLeft)));
+    });
+  });
+
+  group('device info', () {
+    DevInfoPage devInfo({required bool asRide}) {
+      final request = Uint8List.fromList([
+        Opcode.GET.value,
+        ...Get(dataObjectId: DO.PAGE_DEV_INFO.value).writeToBuffer(),
+      ]);
+      final response = SharedLogic.handleWriteRequest(
+        ZwiftConstants.ZWIFT_SYNC_RX_CHARACTERISTIC_UUID,
+        request,
+        asRide: asRide,
+      )!;
+      return DevInfoPage.fromBuffer(
+        ZpPacket.unwrapObjectData(GetResponse.fromBuffer(response.sublist(1)).dataObjectData),
+      );
+    }
+
+    test('answers as a Ride for Zwift and as a Click otherwise', () {
+      expect(devInfo(asRide: true).productId, 8);
+      expect(devInfo(asRide: false).productId, 11);
+    });
+
+    test('only Zwift gets the Ride', () {
+      core.settings.setTrainerApp(Zwift());
+      expect(RideControllerPress.emulatesRide, isTrue);
+      core.settings.setTrainerApp(CustomApp());
+      expect(RideControllerPress.emulatesRide, isFalse);
+    });
+  });
+
+  group('Ride controls are only offered for Zwift', () {
+    setUp(() async {
+      await core.settings.setZwiftMdnsEmulatorEnabled(true);
+      await core.settings.setZwiftBleEmulatorEnabled(true);
+    });
+
+    test('Zwift offers them', () {
+      core.settings.setTrainerApp(Zwift());
+
+      expect(appControllerActions(core.zwiftEmulator.supportedActions), containsAll(rideOnlyActions));
+      expect(_pair(InGameAction.brake).hasActiveAction, isTrue);
+    });
+
+    test('a custom app does not', () {
+      core.settings.setTrainerApp(CustomApp());
+
+      expect(appControllerActions(core.zwiftEmulator.supportedActions).toSet().intersection(rideOnlyActions), isEmpty);
+    });
+
+    test('Rouvy does not', () {
+      core.settings.setTrainerApp(Rouvy());
+
+      final actions = appControllerActions(core.zwiftEmulator.supportedActions);
+      expect(actions.toSet().intersection(rideOnlyActions), isEmpty);
+      expect(actions, containsAll([InGameAction.kudos, InGameAction.pause]));
+      expect(_pair(InGameAction.rightDropButton).hasActiveAction, isFalse);
+    });
+
+    test('Biketerra does not', () {
+      core.settings.setTrainerApp(Biketerra());
+
+      expect(appControllerActions(core.zwiftEmulator.supportedActions).toSet().intersection(rideOnlyActions), isEmpty);
     });
   });
 

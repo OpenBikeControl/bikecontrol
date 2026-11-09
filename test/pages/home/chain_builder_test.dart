@@ -58,6 +58,7 @@ TrainerInput trainer({
   bool overlayAnswered = false,
   bool overlayDeclined = false,
   String? rawTrainerName,
+  bool staleBluetoothLink = false,
 }) {
   return TrainerInput(
     deviceId: 'trainer-1',
@@ -66,6 +67,7 @@ TrainerInput trainer({
     appHoldsBridge: appHoldsBridge,
     bridgeName: 'KICKR CORE - BikeControl',
     rawTrainerName: rawTrainerName,
+    staleBluetoothLink: staleBluetoothLink,
     metrics: metrics,
     overlayOffered: overlayOffered,
     overlayEnabled: overlayEnabled,
@@ -914,6 +916,34 @@ void main() {
       final chain = buildChain(ChainInputs(trainer: trainer(), app: _readyApp));
       final step = chain.byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
       expect(step.secondaryHintArg, isNull);
+    });
+
+    // GH #451: after BikeControl restarts on Windows, the trainer app keeps a
+    // Bluetooth connection that no longer carries data and still shows the
+    // bridge as connected. "Pick the bridge" can't help; re-pairing does.
+    test('a trainer app stuck on a stale Bluetooth link is told to re-pair', () {
+      final chain = buildChain(
+        ChainInputs(
+          trainer: trainer(appHoldsBridge: false, staleBluetoothLink: true),
+          app: _readyApp,
+        ),
+      );
+      final link = chain.byKey(ChainLinkKey.trainer);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+      expect(step.variant, SetupStepVariant.bridgeStaleLink);
+      expect(step.hintArg, 'KICKR CORE - BikeControl');
+      expect(link.status, LinkStatus.attention);
+    });
+
+    test('the ordinary pick-up hint holds without a stale link, or once the app holds the bridge', () {
+      for (final input in [
+        trainer(appHoldsBridge: false),
+        trainer(appHoldsBridge: true, staleBluetoothLink: true),
+      ]) {
+        final chain = buildChain(ChainInputs(trainer: input, app: _readyApp));
+        final step = chain.byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+        expect(step.variant, SetupStepVariant.standard);
+      }
     });
 
     test('gear ratios are a preference, never a setup step', () {

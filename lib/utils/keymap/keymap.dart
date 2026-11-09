@@ -405,11 +405,13 @@ class KeyPair {
       (inGameAction != null &&
           core.logic.showZwiftBleEmulator &&
           core.settings.getZwiftBleEmulatorEnabled() &&
-          core.zwiftEmulator.supportedActions.contains(resolveControllerAction(inGameAction))) ||
+          core.zwiftEmulator.supportedActions.contains(resolveControllerAction(inGameAction)) &&
+          _appHasControllerAction(inGameAction)) ||
       (inGameAction != null &&
           core.logic.showZwiftMsdnEmulator &&
           core.settings.getZwiftMdnsEmulatorEnabled() &&
-          core.zwiftMdnsEmulator.supportedActions.contains(resolveControllerAction(inGameAction))) ||
+          core.zwiftMdnsEmulator.supportedActions.contains(resolveControllerAction(inGameAction)) &&
+          _appHasControllerAction(inGameAction)) ||
       (inGameAction != null &&
           [InGameAction.headwindHeartRateMode, InGameAction.headwindSpeed].contains(inGameAction) &&
           (core.connection.accessories.isNotEmpty || kDebugMode)) ||
@@ -423,6 +425,9 @@ class KeyPair {
           (core.connection.inclineDevices.isNotEmpty || kDebugMode)) ||
       (screenshotPath != null && screenshotPath!.trim().isNotEmpty) ||
       (command != null && command!.trim().isNotEmpty);
+
+  static bool _appHasControllerAction(InGameAction? action) =>
+      !(core.settings.getTrainerApp()?.unsupportedControllerActions.contains(resolveControllerAction(action)) ?? false);
 
   /// True when BikeControl itself is the trainer app ("self-hosted") and this
   /// keypair's action is a trainer action BikeControl runs on the connected

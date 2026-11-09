@@ -1,4 +1,5 @@
 import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -10,14 +11,13 @@ void main() {
       bool hasFullVersion = false,
       bool bridgeCountingDown = true,
       bool appHoldsBridge = true,
-    }) =>
-        BaseActions.isExemptInternalTrainerAction(
-          handledInternally: handledInternally,
-          isProForDevice: isProForDevice,
-          hasFullVersion: hasFullVersion,
-          bridgeCountingDown: bridgeCountingDown,
-          appHoldsBridge: appHoldsBridge,
-        );
+    }) => BaseActions.isExemptInternalTrainerAction(
+      handledInternally: handledInternally,
+      isProForDevice: isProForDevice,
+      hasFullVersion: hasFullVersion,
+      bridgeCountingDown: bridgeCountingDown,
+      appHoldsBridge: appHoldsBridge,
+    );
 
     test('exempt when a free tester changes gears internally on a live bridge', () {
       expect(exempt(), isTrue);
@@ -56,6 +56,29 @@ void main() {
 
     test('an undelivered action the trainer did not handle is still counted', () {
       expect(exempt(handledInternally: false, appHoldsBridge: false), isFalse);
+    });
+  });
+
+  group('BaseActions.passesCommandLimit', () {
+    // The daily command limit is used up; does the press still go through?
+    bool passes({InGameAction? action = InGameAction.shiftUp, bool bridgeCountingDown = true}) =>
+        BaseActions.passesCommandLimit(action: action, bridgeCountingDown: bridgeCountingDown);
+
+    test('gear changes run on the virtual shifting trial while it is counting down', () {
+      expect(passes(action: InGameAction.shiftUp), isTrue);
+      expect(passes(action: InGameAction.shiftDown), isTrue);
+      expect(passes(action: InGameAction.frontShift), isTrue);
+    });
+
+    test('not once the virtual shifting trial is not counting down', () {
+      expect(passes(bridgeCountingDown: false), isFalse);
+    });
+
+    test('other actions stay limited', () {
+      expect(passes(action: InGameAction.navigateLeft), isFalse);
+      // Handled by the local workout recorder, not the trainer.
+      expect(passes(action: InGameAction.workoutPauseResume), isFalse);
+      expect(passes(action: null), isFalse);
     });
   });
 }

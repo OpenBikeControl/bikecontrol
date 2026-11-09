@@ -103,6 +103,9 @@ class SupportDiagnosticsSummary {
   }
 }
 
+/// The composer's message field, for tests.
+const supportComposerFieldKey = ValueKey('support-composer-field');
+
 class SupportComposer extends StatefulWidget {
   final bool sending;
 
@@ -424,7 +427,11 @@ class _SupportComposerState extends State<SupportComposer> {
                     ): () =>
                         unawaited(_paste()),
                   },
-                  child: TextArea(
+                  // Grows with the message (2 → 6 lines), then scrolls. A
+                  // fixed-height TextArea showed only ~2 lines, so riders
+                  // could not read back a longer message while typing it.
+                  child: TextField(
+                    key: supportComposerFieldKey,
                     controller: _controller,
                     focusNode: _focusNode,
                     placeholder: Text(
@@ -432,8 +439,9 @@ class _SupportComposerState extends State<SupportComposer> {
                           ? context.i18n.supportDescribeProblemPlaceholder
                           : context.i18n.messageComposerPlaceholder,
                     ),
-                    expandableHeight: true,
-                    initialHeight: 56,
+                    minLines: 2,
+                    maxLines: 6,
+                    keyboardType: TextInputType.multiline,
                     contextMenuBuilder: _contextMenu,
                   ),
                 ),

@@ -15,6 +15,8 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
@@ -360,7 +362,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ],
                     )
                   else
-                    ..._buildTrainerConnectionActions(_mapActions(core.zwiftEmulator.supportedActions)),
+                    ..._buildTrainerConnectionActions(appControllerActions(core.zwiftEmulator.supportedActions)),
                 ],
 
                 if (core.logic.showLocalRemoteOptions) ...[
@@ -1010,11 +1012,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     );
   }
 
-  List<InGameAction> _mapActions(List<InGameAction> actions) {
-    final mapping = core.settings.getTrainerApp()?.inGameActionsMapping ?? const {};
-    return actions.map((a) => mapping[a] ?? a).toList();
-  }
-
   List<Widget> _buildTrainerConnectionActions(List<InGameAction> supportedActions) {
     return supportedActions.expand((action) {
       final isActive = _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction);
@@ -1023,6 +1020,18 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ..._holdWarningAfter(action, isActive: isActive),
       ];
     }).toList();
+  }
+
+  /// What Zwift does with a Ride control BikeControl only names by its place.
+  String? _zwiftHint(InGameAction action) {
+    if (core.settings.getTrainerApp() is! Zwift) return null;
+    final l = context.i18n;
+    return switch (action) {
+      InGameAction.leftDropButton || InGameAction.rightDropButton => l.zwiftDropButtonHint,
+      InGameAction.leftShiftButton2 => l.zwiftLeftShiftButton2Hint,
+      InGameAction.rightShiftButton2 => l.zwiftRightShiftButton2Hint,
+      _ => null,
+    };
   }
 
   Widget _trainerConnectionAction(InGameAction action, List<InGameAction> supportedActions) {
@@ -1037,6 +1046,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
           }),
           subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
               ? Text(_keyPair.inGameActionValue!.toString())
+              : _zwiftHint(action) != null
+              ? Text(_zwiftHint(action)!)
               : action.alternativeTitle != null
               ? Text(action.alternativeTitle!)
               : null,

@@ -60,14 +60,14 @@ Future<NetworkCheck> bonjourServiceCheck(NetworkProbeContext ctx) async {
       id: NetworkCheckId.bonjourService,
       verdict: NetworkVerdict.fail,
       detail: {'state': 'missing'},
-      fixes: [NetworkFixId.openBonjourDownload, NetworkFixId.switchToLocal],
+      fixes: [NetworkFixId.reinstallBonjour, NetworkFixId.switchToLocal],
     );
   }
   return const NetworkCheck(
     id: NetworkCheckId.bonjourService,
     verdict: NetworkVerdict.fail,
     detail: {'state': 'stopped', 'note': 'start it, then restart the trainer app — MyWhoosh checks once at startup'},
-    fixes: [NetworkFixId.openBonjourDownload],
+    fixes: [NetworkFixId.reinstallBonjour],
   );
 }
 
@@ -151,7 +151,7 @@ Future<NetworkCheck> bonjourNspCheck(NetworkProbeContext ctx) async {
     id: NetworkCheckId.bonjourNsp,
     verdict: NetworkVerdict.fail,
     detail: {'note': 'Bonjour resolver hook missing — the MyWhoosh button cannot work without it'},
-    fixes: [NetworkFixId.openBonjourDownload, NetworkFixId.switchToLocal],
+    fixes: [NetworkFixId.reinstallBonjour, NetworkFixId.switchToLocal],
   );
 }
 

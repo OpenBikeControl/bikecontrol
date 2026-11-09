@@ -9,6 +9,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/interpreter.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -56,6 +57,28 @@ Future<void> setZwiftUnlockInProgress(bool value, {DirconEmulator? emulator}) as
   } catch (e, s) {
     recordError(e, s, context: 'Unlock bridge re-advertise');
   }
+}
+
+/// Whether the selected trainer app takes controller input from
+/// OpenBikeControl's DirCon endpoint, which advertises
+/// `_wahoo-fitness-tnp._tcp "BikeControl"`. Another BikeControl record of
+/// that type under the same name collides with it: the app resolves only one
+/// of the two and never lists the controller.
+bool trainerAppTakesControllerOverObcDirCon() =>
+    core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpDirCon) ?? false;
+
+/// Whether a closing unlock page stops the bridge [emulator] (default:
+/// [ftmsEmulator]). Only one the page started itself, that serves nothing but
+/// the controller being unlocked, and only while the selected app takes the
+/// controller over DirCon: such a bridge advertises as "BikeControl" too
+/// (see [trainerAppTakesControllerOverObcDirCon]). A bridge serving a trainer
+/// keeps its own name and keeps running.
+bool unlockBridgeStopsOnClose({required bool startedByPage, DirconEmulator? emulator}) {
+  final bridge = emulator ?? ftmsEmulator;
+  return startedByPage &&
+      trainerAppTakesControllerOverObcDirCon() &&
+      bridge.composite.children.isNotEmpty &&
+      bridge.composite.children.every((c) => c is ZwiftClickDefinition);
 }
 
 /// The blog post that explains why these controllers need unlocking.

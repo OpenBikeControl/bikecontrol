@@ -3,12 +3,14 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import '../keymap.dart';
 
 /// Velotoss (https://velotoss.de) — officially supported via the open
-/// OpenBikeControl protocol over the network (mDNS). Button events are
-/// delivered over the protocol, so Velotoss needs no keyboard keymap.
+/// OpenBikeControl protocol over the network (mDNS, the iPhone and iPad app) and
+/// Bluetooth (Web Bluetooth, the browser version). Button events are delivered
+/// over the protocol, so Velotoss needs no keyboard keymap.
 class Velotoss extends SupportedApp {
   @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.obpMdns, ConnectionSupport.supported),
+    (AppConnectionMethod.obpBle, ConnectionSupport.supported),
   ];
 
   @override

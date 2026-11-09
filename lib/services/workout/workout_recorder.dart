@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'power_speed_model.dart';
 import 'trainer_metrics.dart';
 import 'workout_sample.dart';
 import 'workout_summary.dart';
@@ -60,6 +61,8 @@ class WorkoutRecorder {
   Duration _accumulatedActive = Duration.zero;
   Timer? _timer;
   TrainerMetrics? _metrics;
+  final PowerSpeedModel _speedModel = PowerSpeedModel();
+  DateTime? _lastSampleAt;
 
   WorkoutRecorder({DateTime Function()? nowProvider, this.tick = const Duration(seconds: 1)})
     : nowProvider = nowProvider ?? DateTime.now;
@@ -77,6 +80,8 @@ class WorkoutRecorder {
     gearChanges.value = 0;
     _hasGearSource = false;
     _bindGears(metrics);
+    _speedModel.reset();
+    _lastSampleAt = null;
     state.value = WorkoutState.recording;
     _timer = Timer.periodic(tick, (_) => _onTick());
   }
@@ -130,6 +135,8 @@ class WorkoutRecorder {
     _pauses.add(WorkoutPause(start: _pausedAt!, end: now));
     _pausedAt = null;
     _lastResumedAt = now;
+    _speedModel.reset();
+    _lastSampleAt = null;
     state.value = WorkoutState.recording;
   }
 
@@ -191,19 +198,32 @@ class WorkoutRecorder {
     final m = _metrics;
     if (m == null) return;
     final now = nowProvider();
+    final grade = m.gradePct?.call();
     samples.add(
       WorkoutSample(
         timestamp: now,
         powerW: m.powerW.value,
         cadenceRpm: m.cadenceRpm.value,
-        speedKph: m.speedKph.value,
+        speedKph: _speedAt(now, m, grade),
         heartRateBpm: m.heartRateBpm.value,
         heartRateFromHealth: m.isHeartRateFromHealth?.call() ?? false,
         gear: m.gear?.value,
-        gradePct: m.gradePct?.call(),
+        gradePct: grade,
       ),
     );
     elapsed.value = _accumulatedActive + now.difference(_lastResumedAt!);
+  }
+
+  /// The ride's speed from power when the weight is known (flat without a
+  /// grade, as in ERG); otherwise the source's own speed.
+  double? _speedAt(DateTime now, TrainerMetrics m, double? gradePct) {
+    final last = _lastSampleAt;
+    _lastSampleAt = now;
+    final power = m.powerW.value;
+    final mass = m.massKg?.call();
+    if (power == null || mass == null) return m.speedKph.value;
+    final seconds = last == null ? tick.inMilliseconds / 1000 : now.difference(last).inMilliseconds / 1000;
+    return _speedModel.step(powerW: power.toDouble(), gradePct: gradePct ?? 0, massKg: mass, seconds: seconds);
   }
 
   void dispose() {

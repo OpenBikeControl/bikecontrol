@@ -22,6 +22,12 @@ import '../utils/keymap/keymap.dart';
 
 final touchAreaSize = 42.0;
 
+/// Custom keymap names are user input, so characters like `/` must not end up as path separators.
+File touchAreaScreenshotFile(Directory tempDir, String? appName) {
+  final safeName = (appName ?? 'temp').replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+  return File('${tempDir.path}/${safeName}_screenshot.png');
+}
+
 class TouchAreaSetupPage extends StatefulWidget {
   final KeyPair keyPair;
   const TouchAreaSetupPage({super.key, required this.keyPair});
@@ -43,10 +49,15 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
     final result = await picker.pickImage(source: ImageSource.gallery);
     if (result != null) {
       final image = File(result.path);
-      final Directory tempDir = await getTemporaryDirectory();
-      final tempImage = File('${tempDir.path}/${core.actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
-      await image.copy(tempImage.path);
-      _backgroundImage = tempImage.readAsBytesSync();
+      try {
+        final Directory tempDir = await getTemporaryDirectory();
+        final tempImage = touchAreaScreenshotFile(tempDir, core.actionHandler.supportedApp?.name);
+        await image.copy(tempImage.path);
+      } catch (e, s) {
+        // caching only restores the screenshot next time, still show the picked one now
+        recordError(e, s, context: 'touch_area_screenshot');
+      }
+      _backgroundImage = await image.readAsBytes();
       await _calculateBounds();
     }
   }
@@ -114,7 +125,7 @@ class _TouchAreaSetupPageState extends State<TouchAreaSetupPage> {
       windowManager.setFullScreen(true);
     }
     getTemporaryDirectory().then((tempDir) async {
-      final tempImage = File('${tempDir.path}/${core.actionHandler.supportedApp?.name ?? 'temp'}_screenshot.png');
+      final tempImage = touchAreaScreenshotFile(tempDir, core.actionHandler.supportedApp?.name);
       if (tempImage.existsSync()) {
         _backgroundImage = tempImage.readAsBytesSync();
         setState(() {});

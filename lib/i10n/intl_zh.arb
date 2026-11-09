@@ -1897,6 +1897,9 @@
   "shimanoPairBody": "Di2 按键需要你的 Di2 已与 Windows 配对，但 Windows 未能配对它。打开 Windows 设置 → 蓝牙和设备 → 添加设备 → 蓝牙，然后选择你的 Di2（按下手变按键以唤醒它）。如果已经列出，请移除后重新添加。然后点按重试。",
   "shimanoUseDfly": "改用 D-Fly 通道",
   "@shimanoUseDfly": {
+  "shimanoWiredTitle": "你的变速手柄是有线的",
+  "shimanoWiredBody": "BikeControl 目前还无法为有线变速手柄设置 E-TUBE 通道。如果你已在 E-TUBE PROJECT 应用中把手柄按键设为 D-Fly 通道，BikeControl 可以直接使用它们。按键模式也可以：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
+  "shimanoUseButtonMode": "改用按键模式",
     "description": "Di2 setup sheet and device panel: skip button mode and keep using the buttons the rider set to D-Fly channels in E-TUBE, which work without pairing."
   },
   "shimanoDflyActive": "你的 Di2 正常换挡。你在 E-TUBE 应用中设为 D-Fly 通道的按键，按下后会显示在这里。",
@@ -2160,6 +2163,17 @@
       }
     }
   },
+  "chainStepTrainerBridgedStaleLinkHint": "{app} 显示「{bridge}」已连接但没有数据？它仍在使用 BikeControl 重启前的连接。请在 {app} 中移除「{bridge}」，然后重新配对。",
+  "@chainStepTrainerBridgedStaleLinkHint": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "bridge": {
+        "type": "String"
+      }
+    }
+  },
   "chainStepTrainerBridgedHint": "在 {app} 中选择「{bridge}」作为骑行台。",
   "@chainStepTrainerBridgedHint": {
     "placeholders": {
@@ -2317,6 +2331,7 @@
   "controlProtocolAuto": "自动（推荐）",
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
+  "controlProtocolWahoo": "Wahoo",
   "controlProtocolZwift": "Zwift 协议",
   "networkSummaryMethodListening": "网络连接方式已开启并正在提供服务",
   "networkSummaryAdvertisedAddress": "BikeControl 让你的软件去连接的地址",
@@ -4181,5 +4196,8 @@
   "ergStartCurrentPower": "当前功率",
   "ergStepLabel": "ERG 步进",
   "ergStepDesc": "每次点按 − / + 的瓦数",
-  "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。"
+  "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。",
+  "powerLockAutoReleaseLabel": "停止踩踏时释放",
+  "powerLockAutoReleaseDesc": "低于 {rpm} rpm 持续 {seconds} 秒后返回 SIM",
+  "powerLockReleased": "Power Lock 已释放，返回 SIM"
 }

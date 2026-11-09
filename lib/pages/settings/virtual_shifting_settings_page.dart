@@ -167,6 +167,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     def.setDifficultyPct(cfg.difficultyPct);
     def.setRealChainRatio(cfg.realChainRatio);
     def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
+    def.setPowerLockAutoRelease(cfg.powerLockAutoRelease);
     // Like [ProxyDevice._seedFitnessBikeDefinition]: only a saved config is the
     // rider's choice. Without one, the trainer stays on its capability default
     // instead of the generic Target Power — opening this page must not change
@@ -672,6 +673,22 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
               if (watts == null) return;
               def.setErgPreferences(stepW: watts);
               await _update((c) => c.copyWith(ergStepW: watts));
+            },
+          ),
+        ),
+        KeyedSubtree(
+          key: const ValueKey('vs-erg-auto-release'),
+          child: _switchRow(
+            icon: LucideIcons.lockOpen,
+            title: l10n.powerLockAutoReleaseLabel,
+            subtitle: l10n.powerLockAutoReleaseDesc(
+              FitnessBikeDefinition.powerLockReleaseAfter.inSeconds,
+              FitnessBikeDefinition.powerLockReleaseCadenceRpm,
+            ),
+            value: config.powerLockAutoRelease,
+            onChanged: (enabled) async {
+              def.setPowerLockAutoRelease(enabled);
+              await _update((c) => c.copyWith(powerLockAutoRelease: enabled));
             },
           ),
         ),

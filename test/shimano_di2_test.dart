@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/base_device.dart' show DeviceSetupNeed;
 import 'package:bike_control/bluetooth/devices/shimano/shimano_ble_transport.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/devices/shimano/shimano_setup_sheet.dart' show ShimanoSetupCancelled, ShimanoShifterAsk;
+import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart' show FakePeripheral, FakeUniversalBlePlatform;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -56,6 +58,45 @@ Future<void> main() async {
       expect(instance.availableButtons.map((b) => b.name), contains(ShimanoDi2Buttons.rightHood.name));
       expect(stubActions.performedActions, [
         PerformedAction(ShimanoDi2Buttons.rightHood, isDown: true, isUp: true),
+      ]);
+    });
+
+    // Wired levers (e.g. ST-R8150) report on 2AFD by switch input and number;
+    // which lever and paddle that is isn't known, so each gets its own button.
+    test('a wired switch press is a click of its own button, which shows up once pressed', () async {
+      stubActions.cleanup();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR8150', deviceId: 'di2-wired'))..registerPaddleButtons();
+
+      instance.onWiredSwitch(const ShimanoWiredSwitchEvent(2, 5, ShimanoPaddleState.down));
+      instance.onWiredSwitch(const ShimanoWiredSwitchEvent(2, 5, ShimanoPaddleState.held));
+      instance.onWiredSwitch(const ShimanoWiredSwitchEvent(2, 5, ShimanoPaddleState.released));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(instance.availableButtons.map((b) => b.name), ['Di2 Switch 2.5']);
+      expect(stubActions.performedActions, [
+        PerformedAction(ShimanoDi2Buttons.wired(2, 5), isDown: true, isUp: true),
+      ]);
+      expect(instance.controllerLayout, isNull, reason: 'wired buttons have no spot on the wireless contour');
+    });
+
+    test('wired switches on another input or number are other buttons', () {
+      expect(ShimanoDi2Buttons.wired(2, 5).name, isNot(ShimanoDi2Buttons.wired(1, 5).name));
+      expect(ShimanoDi2Buttons.wired(2, 5).name, isNot(ShimanoDi2Buttons.wired(2, 4).name));
+    });
+
+    test('in button mode a wired lever press on 2AFD reaches its button', () async {
+      stubActions.cleanup();
+      final aux = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR8150', deviceId: 'di2-wired-session'));
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, aux: aux));
+      aux.add(_hex('0d04380400ffffffffff'));
+      aux.add(_hex('0d04381400ffffffffff'));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await aux.close();
+
+      expect(stubActions.performedActions, [
+        PerformedAction(ShimanoDi2Buttons.wired(2, 4), isDown: true, isUp: true),
       ]);
     });
 
@@ -185,6 +226,570 @@ Future<void> main() async {
       expect(frames.take(2), ['ShimanoDi2 frame after button mode: 33420102', 'ShimanoDi2 frame after button mode: 250c']);
       expect(frames, hasLength(50));
     });
+
+    // Wired 11-speed shifters report their switches on 2AFD instead of 2AF9.
+    test('the log shows the 2AFD frames the Di2 sends once button mode is active', () async {
+      final aux = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR8050', deviceId: 'di2-aux-frames'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, aux: aux));
+      aux.add(Uint8List.fromList([0x03, 0x04, 0x00, 0x02]));
+      aux.add(Uint8List.fromList([0x03, 0x04, 0x00, 0x02]));
+      aux.add(Uint8List.fromList([0x03, 0x04, 0x00, 0x12]));
+      for (var i = 0; i < 60; i++) {
+        aux.add(Uint8List.fromList([0x40, i]));
+      }
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+      await aux.close();
+
+      final frames = logs.where((l) => l.startsWith('ShimanoDi2 2afd frame after button mode: ')).toList();
+      expect(frames.take(2), [
+        'ShimanoDi2 2afd frame after button mode: 03040002',
+        'ShimanoDi2 2afd frame after button mode: 03040012',
+      ]);
+      expect(frames, hasLength(50));
+    });
+
+    // Some Di2 RDs relay nothing on 2AF9 or 2AFD in button mode; 2AFB is the
+    // last characteristic the sequence subscribes to.
+    test('the log shows the 2AFB frames the Di2 sends once button mode is active', () async {
+      final aux1 = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR9250', deviceId: 'di2-aux1-frames'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, aux1: aux1));
+      aux1.add(Uint8List.fromList([0x33, 0x41, 0x18, 0x00]));
+      aux1.add(Uint8List.fromList([0x33, 0x41, 0x18, 0x00]));
+      aux1.add(Uint8List.fromList([0x33, 0x41, 0x18, 0x01]));
+      for (var i = 0; i < 60; i++) {
+        aux1.add(Uint8List.fromList([0x40, i]));
+      }
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+      await aux1.close();
+
+      final frames = logs.where((l) => l.startsWith('ShimanoDi2 2afb frame after button mode: ')).toList();
+      expect(frames.take(2), [
+        'ShimanoDi2 2afb frame after button mode: 33411800',
+        'ShimanoDi2 2afb frame after button mode: 33411801',
+      ]);
+      expect(frames, hasLength(50));
+    });
+
+    // The hood and satellite byte positions are not confirmed on hardware yet:
+    // every hood or satellite press is logged raw, even after the general frame
+    // log has stopped.
+    test('the log shows the raw frame of every hood or satellite press', () async {
+      final live = StreamController<Uint8List>.broadcast();
+      final instance = ShimanoDi2(BleDevice(name: 'RDR9250', deviceId: 'di2-hood-frames'));
+      final logs = <String>[];
+      final sub = instance.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+
+      await instance.startButtonSession(_FakeShimanoTransport(fail: false, live: live));
+      for (var i = 0; i < 60; i++) {
+        live.add(Uint8List.fromList([0x40, i]));
+      }
+      live.add(_hex('33411801e5e4e00001ff')); // right hood down
+      live.add(_hex('33411801e5e4e00001ff'));
+      live.add(_hex('33411801e5e4e02001ff')); // right hood released
+      live.add(_hex('33411801e5e4e0e001ff')); // no hood or satellite press
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+      await live.close();
+
+      expect(logs.where((l) => l.startsWith('ShimanoDi2 hood/satellite frame: ')), [
+        'ShimanoDi2 hood/satellite frame: 33411801e5e4e00001ff',
+        'ShimanoDi2 hood/satellite frame: 33411801e5e4e02001ff',
+      ]);
+    });
+  });
+
+  group('Shimano Di2 E-TUBE channels', () {
+    // Button frames as a 105 Di2 sends them: the right shifter on its factory
+    // setting, the left one with Front Up / Front Down.
+    final rightFactory = _hex('33411801e5e4e0e001ff');
+    final leftFactory = _hex('33411800e2e3e0e001ff');
+    final rightOnDfly = _hex('33411801f6f7e0e001ff');
+    final leftOnDfly = _hex('33411800f4f5e0e001ff');
+
+    setUp(() => ShimanoDi2.debugSwitchWriteQuiet = Duration.zero);
+    tearDown(() {
+      ShimanoDi2.debugEnterButtonMode = null;
+      ShimanoDi2.debugSwitchWriteQuiet = null;
+      ShimanoDi2.debugSwitchReadyDelay = null;
+    });
+
+    ({ShimanoDi2 di2, _SwitchingShimanoTransport t}) connected(String id) {
+      final t = _SwitchingShimanoTransport();
+      final di2 = ShimanoDi2(BleDevice(name: 'RDR7150', deviceId: id))
+        ..debugUseConfigTransport(t)
+        ..isConnected = true;
+      ShimanoDi2.debugEnterButtonMode = (d, passkey) async {};
+      return (di2: di2, t: t);
+    }
+
+    Future<void> untilWaitingForShifters(ShimanoDi2 di2) async {
+      while (di2.shifterAsk.value == null) {
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+
+    test('setup saves what the paddles did and puts them on D-Fly channels', () async {
+      final (:di2, :t) = connected('di2-channels');
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      t.press(rightFactory);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000', '00134120010111cdff0000']);
+      expect(di2.switchBackup, [
+        ShimanoShifterSwitches.fromTelemetry(leftFactory),
+        ShimanoShifterSwitches.fromTelemetry(rightFactory),
+      ]);
+      expect(di2.isDflyChosen, isTrue);
+      expect(di2.isButtonModeEnabled, isFalse);
+      expect(asks, [
+        const ShimanoShifterAsk({}),
+        const ShimanoShifterAsk({ShimanoShifter.left}),
+        const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}),
+        const ShimanoShifterAsk({}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
+        null,
+      ]);
+    });
+
+    // Hardware: a press within half a second of the write didn't save it, one
+    // a second and more later did.
+    test('the shifter to press is shown only once its write had time to reach the Di2', () async {
+      final t = _SwitchingShimanoTransport(confirms: false);
+      final di2 = ShimanoDi2(BleDevice(name: 'RDR7150', deviceId: 'di2-channels-ready'))
+        ..debugUseConfigTransport(t)
+        ..isConnected = true;
+      ShimanoDi2.debugEnterButtonMode = (d, passkey) async {};
+      ShimanoDi2.debugSwitchReadyDelay = const Duration(milliseconds: 20);
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      t.press(rightFactory);
+      while (t.switchWrites.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(di2.shifterAsk.value, const ShimanoShifterAsk({}, saving: true));
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(di2.shifterAsk.value, const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.left));
+
+      di2.cancelShifterWait();
+      await expectLater(setup, throwsA(isA<ShimanoSetupCancelled>()));
+    });
+
+    test('the left shifter is written first, whichever was pressed first', () async {
+      final (:di2, :t) = connected('di2-channels-order');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(rightFactory);
+      t.press(leftFactory);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000', '00134120010111cdff0000']);
+    });
+
+    test('a shifter that needs no change counts as saved', () async {
+      final (:di2, :t) = connected('di2-channels-one');
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      t.press(rightFactory);
+      await setup;
+
+      expect(asks.where((a) => a?.saving ?? false), [
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true),
+        const ShimanoShifterAsk({ShimanoShifter.left, ShimanoShifter.right}, saving: true),
+      ]);
+    });
+
+    // Rider log (XT Di2, right shifter only): the one shifter reports slot 0.
+    // The save step asked for it and ticked a right shifter never seen.
+    test('a Di2 with one shifter is saved with that one, nothing else ticked', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
+      final (:di2, :t) = connected('di2-channels-single');
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000']);
+      expect(di2.isDflyChosen, isTrue);
+      expect(asks.where((a) => a?.saving ?? false), [
+        const ShimanoShifterAsk({}, saving: true, single: true),
+        const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, single: true),
+      ]);
+    });
+
+    // Rider log (XT Di2): the hood button already was on D-Fly Ch1; the write
+    // that also put Ch1 on a paddle was never confirmed.
+    test('a button already on a paddle channel is cleared, its setting kept in the backup', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
+      final (:di2, :t) = connected('di2-channels-hood-dfly');
+      final hoodOnCh1 = _hex('33411800e504e0f40142');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(hoodOnCh1);
+      await setup;
+
+      expect(t.switchWrites, ['00134120000111abff0000']);
+      expect(di2.switchBackup, [ShimanoShifterSwitches.fromTelemetry(hoodOnCh1)]);
+    });
+
+    test('restoring a single shifter asks for that one only', () async {
+      final (:di2, :t) = connected('di2-channels-restore-single');
+      await core.settings.setShimanoDfly('di2-channels-restore-single', true);
+      await core.settings.setShimanoSwitchBackup('di2-channels-restore-single', [
+        ShimanoShifterSwitches.fromTelemetry(leftFactory)!,
+      ]);
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final restore = di2.restoreSwitches(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      await restore;
+
+      expect(t.switchWrites, ['0013412000011101ff0000']);
+      expect(asks.whereType<ShimanoShifterAsk>().every((a) => a.single), isTrue);
+    });
+
+    test('a setup cancelled while it waits for the shifters writes nothing', () async {
+      final (:di2, :t) = connected('di2-channels-cancel');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      di2.cancelShifterWait();
+
+      await expectLater(setup, throwsA(isA<ShimanoSetupCancelled>()));
+      expect(t.switchWrites, isEmpty);
+      expect(di2.isDflyChosen, isFalse);
+      expect(di2.shifterAsk.value, isNull);
+    });
+
+    // Wired levers never send the press the setup reads the switches from:
+    // stop at their first press instead of waiting two minutes.
+    test('a press on a wired lever ends the setup as wired shifters, writing nothing', () async {
+      final (:di2, :t) = connected('di2-channels-wired');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.pressWired(_hex('0d04380500ffffffffff'));
+
+      await expectLater(setup, throwsA(isA<ShimanoWiredShiftersException>()));
+      expect(t.switchWrites, isEmpty);
+      expect(di2.isDflyChosen, isFalse);
+      expect(di2.shifterAsk.value, isNull);
+    });
+
+    test('a rejected passkey: BikeControl keeps the link, the Di2 drops it, reconnecting quietly', () async {
+      final (:di2, :t) = connected('di2-channels-wrong-passkey');
+      ShimanoDi2.debugEnterButtonMode = (d, passkey) async => throw ShimanoPasskeyRejectedException(0x02);
+
+      await expectLater(di2.setupChannels(passkey: '000000'), throwsA(isA<ShimanoPasskeyRejectedException>()));
+
+      expect(di2.isConnected, isTrue);
+      expect(di2.isResetting, isFalse);
+      expect(t.switchWrites, isEmpty);
+
+      // The Di2 then drops the link itself: BikeControl expects it and
+      // reconnects without connection toasts.
+      di2.isConnected = false;
+      expect(di2.isResetting, isTrue);
+    });
+
+    test('a finished setup drops the link, which ends the configuration mode', () async {
+      final (:di2, :t) = connected('di2-channels-drop');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      t.press(rightOnDfly);
+      await setup;
+
+      expect(di2.isConnected, isFalse);
+      // A planned drop: reconnect quietly, without connection toasts.
+      expect(di2.isResetting, isTrue);
+    });
+
+    test('the passkey is kept once the Di2 accepted it, even if the setup stops there', () async {
+      final (:di2, t: _) = connected('di2-channels-passkey');
+
+      final setup = di2.setupChannels(passkey: '123456');
+      await untilWaitingForShifters(di2);
+      di2.cancelShifterWait();
+      await expectLater(setup, throwsA(isA<ShimanoSetupCancelled>()));
+
+      expect(core.settings.getShimanoPasskey('di2-channels-passkey'), '123456');
+    });
+
+    test('paddles already on their D-Fly channels are left alone', () async {
+      final (:di2, :t) = connected('di2-channels-already');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      t.press(rightOnDfly);
+      await setup;
+
+      expect(t.switchWrites, isEmpty);
+      expect(di2.switchBackup, isEmpty);
+      expect(di2.isDflyChosen, isTrue);
+    });
+
+    test('a second setup keeps a shifter\'s first backup and adds the shifter it had not seen', () async {
+      final (:di2, :t) = connected('di2-channels-twice');
+      await core.settings.setShimanoSwitchBackup('di2-channels-twice', [
+        ShimanoShifterSwitches.fromTelemetry(rightFactory)!,
+      ]);
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftFactory);
+      t.press(_hex('33411801f6e4e0e001ff')); // right half on D-Fly
+      await setup;
+
+      expect(di2.switchBackup, [
+        ShimanoShifterSwitches.fromTelemetry(rightFactory),
+        ShimanoShifterSwitches.fromTelemetry(leftFactory),
+      ]);
+    });
+
+    test('a restore where one shifter does not answer keeps that shifter\'s backup', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
+      final (:di2, :t) = connected('di2-channels-restore-partial');
+      await core.settings.setShimanoDfly('di2-channels-restore-partial', true);
+      await core.settings.setShimanoSwitchBackup('di2-channels-restore-partial', [
+        ShimanoShifterSwitches.fromTelemetry(leftFactory)!,
+        ShimanoShifterSwitches.fromTelemetry(rightFactory)!,
+      ]);
+
+      final restore = di2.restoreSwitches(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      await restore;
+
+      expect(t.switchWrites, ['0013412000011101ff0000']);
+      expect(di2.switchBackup, [ShimanoShifterSwitches.fromTelemetry(rightFactory)]);
+      // The right shifter is still on D-Fly: the restore stays on offer.
+      expect(di2.isDflyChosen, isTrue);
+    });
+
+    test('presses while the shifters are read trigger no action', () async {
+      stubActions.cleanup();
+      final (:di2, :t) = connected('di2-channels-quiet');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      di2.onPaddle(const ShimanoPaddleEvent(ShimanoShifter.right, ShimanoPaddle.big, ShimanoPaddleState.down));
+      t.press(leftFactory);
+      t.press(rightFactory);
+      await setup;
+
+      expect(stubActions.performedActions, isEmpty);
+    });
+
+    test('restore writes the saved setting back and forgets it', () async {
+      final (:di2, :t) = connected('di2-channels-restore');
+      await core.settings.setShimanoDfly('di2-channels-restore', true);
+      await core.settings.setShimanoSwitchBackup('di2-channels-restore', [
+        ShimanoShifterSwitches.fromTelemetry(leftFactory)!,
+        ShimanoShifterSwitches.fromTelemetry(rightFactory)!,
+      ]);
+
+      final restore = di2.restoreSwitches(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(rightOnDfly);
+      t.press(leftOnDfly);
+      await restore;
+
+      expect(t.switchWrites, ['0013412000011101ff0000', '0013412001011132ff0000']);
+      expect(di2.switchBackup, isEmpty);
+      expect(di2.isDflyChosen, isFalse);
+    });
+
+    test('channel buttons BikeControl assigned get the actions of their paddles', () async {
+      final (:di2, t: _) = connected('di2-channels-actions');
+      await core.settings.setShimanoDfly('di2-channels-actions', true);
+      // Without a keymap the buttons stay on the device instead of being
+      // registered in the shared one the other tests read.
+      final app = core.actionHandler.supportedApp;
+      core.actionHandler.supportedApp = null;
+      addTearDown(() => core.actionHandler.supportedApp = app);
+
+      await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, Uint8List.fromList([0, 0, 0, 0, 0]));
+
+      expect(
+        [for (var ch = 1; ch <= 4; ch++) di2.availableButtons.firstWhere((b) => b.name == 'D-Fly Channel $ch').action],
+        [
+          ShimanoDi2Buttons.leftButton.action,
+          ShimanoDi2Buttons.leftLever.action,
+          ShimanoDi2Buttons.rightButton.action,
+          ShimanoDi2Buttons.rightLever.action,
+        ],
+      );
+    });
+
+    test('with E-TUBE channels chosen the channel buttons are there before the first press', () async {
+      const id = 'di2-channels-listed';
+      await core.settings.setShimanoDfly(id, true);
+      final services = [
+        BleService(ShimanoDi2Constants.SERVICE_UUID, [
+          BleCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, [CharacteristicProperty.indicate], []),
+        ]),
+      ];
+      final ble = FakeUniversalBlePlatform()..addPeripheral(FakePeripheral(deviceId: id, name: 'Di2', services: services));
+      UniversalBle.setInstance(ble);
+      await ble.connect(id);
+      final app = core.actionHandler.supportedApp;
+      core.actionHandler.supportedApp = null;
+      addTearDown(() => core.actionHandler.supportedApp = app);
+      final di2 = ShimanoDi2(BleDevice(name: 'Di2', deviceId: id))..firmwareVersion = '4.1.0.0';
+
+      await di2.handleServices(services);
+
+      expect([for (final b in di2.availableButtons) b.name], [
+        'D-Fly Channel 1',
+        'D-Fly Channel 2',
+        'D-Fly Channel 3',
+        'D-Fly Channel 4',
+      ]);
+    });
+
+    group('D-Fly reports', () {
+      // Captured on an RD-R7150: a fresh link numbers its reports from 0x20
+      // and starts every channel at f0; each press counts the channel up
+      // (11, 12, …).
+      Uint8List report(String hex) => _hex(hex);
+
+      Future<_PressRecordingDi2> fresh(String id) async {
+        final services = [
+          BleService(ShimanoDi2Constants.SERVICE_UUID, [
+            BleCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, [CharacteristicProperty.indicate], []),
+          ]),
+        ];
+        final ble = FakeUniversalBlePlatform()
+          ..addPeripheral(FakePeripheral(deviceId: id, name: 'Di2', services: services));
+        UniversalBle.setInstance(ble);
+        await ble.connect(id);
+        final di2 = _PressRecordingDi2(BleDevice(name: 'Di2', deviceId: id))..firmwareVersion = '4.1.0.0';
+        await di2.handleServices(services);
+        return di2;
+      }
+
+      setUp(() {
+        final app = core.actionHandler.supportedApp;
+        core.actionHandler.supportedApp = null;
+        addTearDown(() => core.actionHandler.supportedApp = app);
+      });
+
+      test('the first report of a link already carries a press', () async {
+        final di2 = await fresh('di2-dfly-first');
+
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('20f011f0f0'));
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('21f011f011'));
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('22f011f012'));
+
+        expect(di2.pressed, ['D-Fly Channel 2', 'D-Fly Channel 4', 'D-Fly Channel 4']);
+      });
+
+      test('a report from the middle of a link only sets where the channels are', () async {
+        final di2 = await fresh('di2-dfly-midway');
+
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('2511121112'));
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('2611121113'));
+
+        expect(di2.pressed, ['D-Fly Channel 4']);
+      });
+
+      // Captured when the restore put the RD into its configuration mode.
+      test('channels reset to f0 are no press', () async {
+        final di2 = await fresh('di2-dfly-reset');
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('20f011f0f0'));
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('21f011f011'));
+
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('22f0f0f0f0'));
+
+        expect(di2.pressed, ['D-Fly Channel 2', 'D-Fly Channel 4']);
+      });
+
+      test('reports while a setup reads the shifters are no press', () async {
+        final t = _SwitchingShimanoTransport();
+        final di2 = _PressRecordingDi2(BleDevice(name: 'RDR7150', deviceId: 'di2-dfly-reading'))
+          ..debugUseConfigTransport(t)
+          ..isConnected = true;
+        ShimanoDi2.debugEnterButtonMode = (d, passkey) async {};
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('2511121112'));
+
+        final setup = di2.setupChannels(passkey: '000000');
+        while (di2.shifterAsk.value == null) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('2611121113'));
+        t.press(rightFactory);
+        t.press(leftFactory);
+        await setup;
+
+        expect(di2.pressed, isEmpty);
+      });
+
+      test('after a reconnect the channels start over', () async {
+        final di2 = await fresh('di2-dfly-reconnect');
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('20f011f0f0'));
+
+        await di2.handleServices([
+          BleService(ShimanoDi2Constants.SERVICE_UUID, [
+            BleCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, [CharacteristicProperty.indicate], []),
+          ]),
+        ]);
+        await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, report('20f011f0f0'));
+
+        expect(di2.pressed, ['D-Fly Channel 2', 'D-Fly Channel 2']);
+      });
+    });
+
+    test('button mode warns once that a disconnect shifts for real', () async {
+      final (:di2, t: _) = connected('di2-warning');
+      await core.settings.setShimanoButtonMode('di2-warning', true);
+      expect(di2.showButtonModeWarning, isTrue);
+
+      await di2.dismissButtonModeWarning();
+
+      expect(di2.showButtonModeWarning, isFalse);
+    });
   });
 
   group('Shimano Di2 bond on Windows', () {
@@ -300,6 +905,20 @@ Future<void> main() async {
       expect(instance.isButtonModeEnabled, isFalse);
     });
 
+    // Wired levers (ST-R8150 on an RD-R8150): in button mode the RD relays
+    // only one lever, while the D-Fly channels set in E-TUBE carry both.
+    // PC-connect mode silences those channels, so choosing them must end it.
+    test('choosing D-Fly channels while button mode is on turns button mode off', () async {
+      final instance = connectedDi2('di2-dfly-from-buttons');
+      await core.settings.setShimanoButtonMode('di2-dfly-from-buttons', true);
+
+      await instance.useDflyChannels();
+
+      expect(instance.isDflyChosen, isTrue);
+      expect(instance.isButtonModeEnabled, isFalse, reason: 'a reconnect must not re-enter PC-connect mode');
+      expect(instance.setupNeed, isNull);
+    });
+
     test('the home chain lists the button mode step until the rider decides, and drops it for D-Fly', () async {
       final instance = connectedDi2('di2-chain');
       expect(instance.buttonModeSetupDone, isFalse);
@@ -313,6 +932,52 @@ Future<void> main() async {
       final instance = ShimanoDi2(BleDevice(name: 'Di2', deviceId: 'di2-no-config'));
 
       expect(instance.buttonModeSetupDone, isNull);
+    });
+  });
+
+  group('Shimano Di2 wireless unit of a wired 11-speed system', () {
+    // Both a 12-speed RD and the wireless unit of a wired 11-speed Di2 expose
+    // the 18FF config service, but the 11-speed unit relays no paddle press
+    // in button mode while the derailleurs stop shifting.
+    final services = [
+      BleService(ShimanoDi2Constants.SERVICE_UUID, [
+        BleCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, [CharacteristicProperty.indicate], []),
+      ]),
+      BleService(ShimanoDi2Constants.SERVICE_UUID_ALTERNATIVE, []),
+    ];
+
+    Future<ShimanoDi2> connect(String id, String firmware) async {
+      final ble = FakeUniversalBlePlatform()
+        ..addPeripheral(FakePeripheral(deviceId: id, name: 'Di2', services: services));
+      UniversalBle.setInstance(ble);
+      await ble.connect(id);
+      final instance = ShimanoDi2(BleDevice(name: 'Di2', deviceId: id))..firmwareVersion = firmware;
+      await instance.handleServices(services);
+      return instance;
+    }
+
+    test('a 12-speed RD offers button mode', () async {
+      final instance = await connect('di2-12s', '4.1.0.0');
+
+      expect(instance.hasConfigService, isTrue);
+      expect(instance.buttonModeSetupDone, isFalse);
+    });
+
+    test('the 11-speed wireless unit keeps the D-Fly channels and offers no button mode', () async {
+      final l = await AppLocalizations.load(const Locale('en'));
+      final instance = await connect('di2-11s', '4.7.1.0');
+
+      expect(instance.hasConfigService, isFalse);
+      expect(instance.buttonModeSetupDone, isNull);
+      expect(instance.buttonExplanation, l.shimanoDflyExplanation);
+    });
+
+    test('a rider who already turned button mode on gets the D-Fly channels back', () async {
+      await core.settings.setShimanoButtonMode('di2-11s-on', true);
+      final instance = await connect('di2-11s-on', '4.7.1.0');
+
+      expect(instance.hasConfigService, isFalse);
+      expect(instance.controllerLayout, isNull);
     });
   });
 
@@ -425,6 +1090,55 @@ class _FakeBond implements ShimanoDi2Bond {
 
 /// Records every GATT step into the shared [calls] log; the first subscribe
 /// throws [subscribeError] when set.
+/// Answers every switch write with the shifter's confirm, as a Di2 does.
+class _PressRecordingDi2 extends ShimanoDi2 {
+  _PressRecordingDi2(super.scanResult);
+  final pressed = <String>[];
+
+  @override
+  Future<void> handleButtonsClicked(List<ControllerButton>? buttonsClicked, {bool longPress = false}) async {
+    pressed.addAll([...?buttonsClicked?.map((b) => b.name)]);
+  }
+}
+
+class _SwitchingShimanoTransport extends ShimanoBleTransport {
+  _SwitchingShimanoTransport({this.confirms = true}) : super('di2', const []);
+
+  /// Whether the shifter confirms each write right away.
+  final bool confirms;
+  final _frames = StreamController<Uint8List>.broadcast(sync: true);
+  final switchWrites = <String>[];
+
+  void press(Uint8List frame) => _frames.add(frame);
+
+  final _wired = StreamController<Uint8List>.broadcast(sync: true);
+
+  /// A wired lever's switch frame on 2AFD.
+  void pressWired(Uint8List frame) => _wired.add(frame);
+
+  @override
+  Future<void> subscribe(String characteristic) async {}
+
+  @override
+  Future<void> write(String characteristic, Uint8List data, {bool withoutResponse = false}) async {
+    final hex = data.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    if (!hex.startsWith('00134120')) return;
+    switchWrites.add(hex);
+    if (!confirms) return;
+    scheduleMicrotask(() => _frames.add(Uint8List.fromList([0x33, 0x41, 0x22, data[4], 0x03, 0x11, ...data.sublist(7, 10), 0xff])));
+  }
+
+  @override
+  Future<Uint8List> read(String characteristic) async => Uint8List(0);
+
+  @override
+  Stream<Uint8List> notifications(String characteristic) => switch (characteristic) {
+        ShimanoDi2Config.pceResponseChar => _frames.stream,
+        ShimanoDi2Config.pceAuxNotify2 => _wired.stream,
+        _ => const Stream.empty(),
+      };
+}
+
 class _RecordingShimanoTransport extends ShimanoBleTransport {
   _RecordingShimanoTransport(this.calls, {this.subscribeError}) : super('di2', const []);
   final List<String> calls;
@@ -451,12 +1165,18 @@ class _RecordingShimanoTransport extends ShimanoBleTransport {
 }
 
 class _FakeShimanoTransport implements ShimanoTransport {
-  _FakeShimanoTransport({required this.fail, this.failSubscribe = false, this.replies = const [], this.live});
+  _FakeShimanoTransport({required this.fail, this.failSubscribe = false, this.replies = const [], this.live, this.aux, this.aux1});
   final bool fail;
   final bool failSubscribe;
 
   /// Frames the Di2 sends on 2AF9 at any time, pushed by the test.
   final StreamController<Uint8List>? live;
+
+  /// Frames the Di2 sends on 2AFD, pushed by the test.
+  final StreamController<Uint8List>? aux;
+
+  /// Frames the Di2 sends on 2AFB, pushed by the test.
+  final StreamController<Uint8List>? aux1;
 
   /// Frames the Di2 sends on 2AF9 while the sequence runs.
   final List<Uint8List> replies;
@@ -479,8 +1199,13 @@ class _FakeShimanoTransport implements ShimanoTransport {
   Future<Uint8List> read(String characteristic) => _answer(Uint8List(0));
 
   @override
-  Stream<Uint8List> notifications(String characteristic) =>
-      characteristic.toLowerCase() != ShimanoDi2Config.pceResponseChar
-          ? const Stream.empty()
-          : live?.stream ?? Stream.fromIterable(replies);
+  Stream<Uint8List> notifications(String characteristic) => switch (characteristic.toLowerCase()) {
+        ShimanoDi2Config.pceResponseChar => live?.stream ?? Stream.fromIterable(replies),
+        ShimanoDi2Config.pceAuxNotify2 => aux?.stream ?? const Stream.empty(),
+        ShimanoDi2Config.pceAuxNotify1 => aux1?.stream ?? const Stream.empty(),
+        _ => const Stream.empty(),
+      };
 }
+
+Uint8List _hex(String hex) =>
+    Uint8List.fromList([for (var i = 0; i < hex.length; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)]);

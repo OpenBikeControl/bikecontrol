@@ -48,7 +48,7 @@ String networkFixLabel(BuildContext context, NetworkFixId fix) {
     NetworkFixId.switchToLocal => l10n.networkFixSwitchToLocal,
     NetworkFixId.openFirewallSettings => l10n.networkFixOpenFirewallSettings,
     NetworkFixId.openNetworkProfileSettings => l10n.networkFixOpenNetworkProfileSettings,
-    NetworkFixId.openBonjourDownload => l10n.networkFixOpenBonjourDownload,
+    NetworkFixId.reinstallBonjour => l10n.networkFixReinstallBonjour,
     NetworkFixId.openLocalNetworkSettings => l10n.networkFixOpenLocalNetworkSettings,
     NetworkFixId.openAppLocalNetworkSettings => l10n.networkFixOpenAppLocalNetworkSettings,
     // Never actually shown as a per-row fix button — checks never carry this

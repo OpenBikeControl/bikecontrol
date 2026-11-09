@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel, RetrofitMode;
@@ -28,10 +28,7 @@ Future<bool> connectTrainerFromPicker(BuildContext context, ProxyDevice device) 
     if (device.isStartedListenable.value || device.isStarting.value || device.isConnectedListenable.value) {
       return false;
     }
-    if (IAPManager.instance.isTrialExpired) {
-      await showGoProDialog(context);
-      return false;
-    }
+    if (!await passTrainerConnectGate(context, RetrofitMode.wifi)) return false;
     // WiFi transport: the trainer app finds "<trainer> - BikeControl" over the
     // network, and no BLE-advertise permission prompt interrupts the flow.
     device.setRetrofitMode(RetrofitMode.wifi);
@@ -50,6 +47,28 @@ Future<bool> connectTrainerFromPicker(BuildContext context, ProxyDevice device) 
       title: trainerConnectErrorMessage(l10n, e, context.mounted ? device.displayName(context) : device.toString()),
     );
     return false;
+  }
+}
+
+/// Runs [ProxyDevice.trainerConnectGateFor] for connecting a trainer in
+/// [mode]. When the connect may not go ahead, tells the rider why — the Pro
+/// offer, or that today's virtual shifting trial is used up (which offers Pro
+/// too) — and returns false.
+Future<bool> passTrainerConnectGate(BuildContext context, RetrofitMode mode) async {
+  switch (ProxyDevice.trainerConnectGateFor(mode)) {
+    case TrainerConnectGate.allow:
+      return true;
+    case TrainerConnectGate.goPro:
+      await showGoProDialog(context);
+      return false;
+    case TrainerConnectGate.vsTrialOverToday:
+      final l10n = AppLocalizations.of(context);
+      await showGoProDialog(
+        context,
+        featureName: l10n.bridgeTrialTimeOverTitle,
+        message: l10n.bridgeTrialAlreadyOverBody,
+      );
+      return false;
   }
 }
 

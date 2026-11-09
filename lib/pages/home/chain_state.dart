@@ -107,6 +107,11 @@ enum SetupStepVariant {
   /// [SetupStepId.appNetworkAddress] when the address itself is fine but a
   /// second real network could be the one the trainer app is on.
   networkTwoNetworks,
+
+  /// [SetupStepId.trainerAppBridged] when the trainer app probably still holds
+  /// a Bluetooth connection from before BikeControl restarted (Windows): the
+  /// hint says to remove the entry in the app and pair it again.
+  bridgeStaleLink,
 }
 
 /// One line of a card's checklist.

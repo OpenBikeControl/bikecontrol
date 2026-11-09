@@ -1,0 +1,38 @@
+name: "Upload symbols"
+description: "Uploads a symbols zip to the private bikecontrol.app symbols store, keyed by the pubspec version. Symbols never go to Actions artifacts: this repo is public."
+
+inputs:
+  file:
+    description: "Path to the zip to upload"
+    required: true
+  name:
+    description: "File name to store it under, e.g. release-windows.zip (must end in .zip)"
+    required: true
+  token:
+    description: "SYMBOLS_UPLOAD_TOKEN secret"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Upload ${{ inputs.name }}
+      shell: bash
+      env:
+        FILE: ${{ inputs.file }}
+        NAME: ${{ inputs.name }}
+        TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+        if [ -z "$TOKEN" ]; then
+          echo "::error::SYMBOLS_UPLOAD_TOKEN is not set"
+          exit 1
+        fi
+        version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+        # `+` in the build number must be escaped or it decodes to a space.
+        curl --fail-with-body --silent --show-error --retry 3 --retry-all-errors \
+          -X PUT \
+          -H "Authorization: Bearer ${TOKEN}" \
+          -H "Content-Type: application/zip" \
+          --data-binary "@${FILE}" \
+          "https://pikrcyynovdvogrldfnw.supabase.co/functions/v1/upload-symbols?version=${version//+/%2B}&name=${NAME}"
+        echo

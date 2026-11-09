@@ -569,6 +569,7 @@ Future<void> main() async {
     final section = find.byKey(const ValueKey('vs-erg'));
     final start = find.byKey(const ValueKey('vs-erg-start'));
     final step = find.byKey(const ValueKey('vs-erg-step'));
+    final release = find.byKey(const ValueKey('vs-erg-auto-release'));
 
     Future<void> pick(WidgetTester tester, Finder row, String option) async {
       await tester.ensureVisible(row);
@@ -587,9 +588,27 @@ Future<void> main() async {
 
       expect(section, findsOneWidget);
       expect(_top(tester, section), greaterThan(_top(tester, find.byKey(const ValueKey('vs-physics')))));
-      expect(find.descendant(of: start, matching: find.text(l.ergStartLastTarget)), findsOneWidget);
+      expect(find.descendant(of: start, matching: find.text(l.ergStartCurrentPower)), findsOneWidget);
       expect(find.descendant(of: step, matching: find.text('5 W')), findsOneWidget);
+      expect(tester.widget<Switch>(find.descendant(of: release, matching: find.byType(Switch))).value, isTrue);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('turning Power Lock auto-release off goes to the config and the trainer', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      addTearDown(
+        () => core.shiftingConfigs.upsert(
+          core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(powerLockAutoRelease: true),
+        ),
+      );
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+
+      await tester.ensureVisible(release);
+      await tester.tap(find.descendant(of: release, matching: find.byType(Switch)));
+      await tester.pump();
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).powerLockAutoRelease, isFalse);
+      expect(definition.powerLockAutoRelease, isFalse);
     });
 
     testWidgets('picking a step and a start source goes to the config and the trainer', (tester) async {
@@ -598,7 +617,7 @@ Future<void> main() async {
         () => core.shiftingConfigs.upsert(
           core.shiftingConfigs
               .activeFor(proxy.trainerKey)
-              .copyWith(ergStepW: ErgPowerStepping.defaultStepW, ergStartSource: ErgStartSource.lastTarget),
+              .copyWith(ergStepW: ErgPowerStepping.defaultStepW, ergStartSource: ErgPowerStepping.defaultStartSource),
         ),
       );
       await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
@@ -608,10 +627,10 @@ Future<void> main() async {
       expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStepW, 25);
       expect(definition.ergStepW, 25);
 
-      await pick(tester, start, l.ergStartCurrentPower);
-      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStartSource, ErgStartSource.currentPower);
-      expect(definition.ergStartSource, ErgStartSource.currentPower);
-      expect(find.descendant(of: start, matching: find.text(l.ergStartCurrentPower)), findsOneWidget);
+      await pick(tester, start, l.ergStartLastTarget);
+      expect(core.shiftingConfigs.activeFor(proxy.trainerKey).ergStartSource, ErgStartSource.lastTarget);
+      expect(definition.ergStartSource, ErgStartSource.lastTarget);
+      expect(find.descendant(of: start, matching: find.text(l.ergStartLastTarget)), findsOneWidget);
     });
   });
 

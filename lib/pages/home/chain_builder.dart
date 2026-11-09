@@ -236,6 +236,12 @@ ChainLink _trainerLink(ChainInputs inputs) {
               // The entry NOT to pick, when known: the trainer under its own
               // name sits right beside the bridge in the app's list.
               secondaryHintArg: trainer.rawTrainerName,
+              // A trainer app stuck on a connection from before BikeControl
+              // restarted can't be fixed by picking the entry: it already
+              // shows it as connected. The hint says to re-pair instead.
+              variant: trainer.staleBluetoothLink && !trainer.appHoldsBridge
+                  ? SetupStepVariant.bridgeStaleLink
+                  : SetupStepVariant.standard,
             ),
           // Last, and required until answered once: the trainer app shows its
           // own gear, not the one BikeControl computes, so a bridged rider who

@@ -5,6 +5,7 @@ import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
 import 'package:bike_control/utils/keymap/apps/grimpa.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
+import 'package:bike_control/utils/keymap/apps/openbikecontrol_trainer_apps.dart';
 import 'package:bike_control/utils/keymap/apps/ride_cave.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/strappo.dart';
@@ -123,6 +124,12 @@ abstract class SupportedApp {
   /// E.g. for Rouvy: {InGameAction.usePowerUp: InGameAction.pause, InGameAction.select: InGameAction.kudos}
   Map<InGameAction, InGameAction> get inGameActionsMapping => const {};
 
+  /// Whether the Zwift controller emulators present themselves as a Zwift Ride.
+  bool get emulatesZwiftRide => false;
+
+  /// Zwift Ride controls this app has nothing for, so they are not offered.
+  Set<InGameAction> get unsupportedControllerActions => emulatesZwiftRide ? const {} : rideOnlyActions;
+
   /// Which Bridge transports this app can pick our trainer up on. Both by
   /// default; narrow it on apps that only look for trainers one way, so the
   /// picker stops offering a transport they will never find us on (see
@@ -208,6 +215,7 @@ abstract class SupportedApp {
     RideCave(),
     Velotoss(),
     Grimpa(),
+    ...OpenBikeControlTrainerApp.all,
     Tacx(),
     FulGaz(),
     BikeControl(),
@@ -219,6 +227,25 @@ abstract class SupportedApp {
   String toString() {
     return runtimeType.toString();
   }
+}
+
+/// Ride controls only Zwift itself reacts to.
+const rideOnlyActions = {
+  InGameAction.leftDropButton,
+  InGameAction.rightDropButton,
+  InGameAction.leftShiftButton2,
+  InGameAction.rightShiftButton2,
+  InGameAction.brake,
+};
+
+/// The Zwift controller [actions] offered for the selected app, under its own
+/// names: [SupportedApp.unsupportedControllerActions] dropped, then
+/// [SupportedApp.inGameActionsMapping] applied.
+List<InGameAction> appControllerActions(List<InGameAction> actions) {
+  final app = core.settings.getTrainerApp();
+  final mapping = app?.inGameActionsMapping ?? const {};
+  final unsupported = app?.unsupportedControllerActions ?? const {};
+  return actions.where((a) => !unsupported.contains(a)).map((a) => mapping[a] ?? a).toList();
 }
 
 /// Reverse of [SupportedApp.inGameActionsMapping]: resolves an app-specific

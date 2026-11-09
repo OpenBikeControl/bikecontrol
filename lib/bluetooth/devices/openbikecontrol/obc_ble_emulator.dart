@@ -119,6 +119,17 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
           if (value == null) return PeripheralWriteRequestResult();
           return onAppInfoWrite(deviceId, value);
         });
+
+        // Played on this phone and on controllers that can vibrate.
+        _server.setWriteHandler(OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID, (
+          deviceId,
+          characteristicId,
+          offset,
+          value,
+        ) {
+          if (value != null) unawaited(core.obcHaptics.handle(value));
+          return PeripheralWriteRequestResult();
+        });
       }
 
       if (!Platform.isWindows) {
@@ -158,6 +169,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
               uuid: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
               properties: [CharacteristicProperty.notify],
               permissions: [],
+            ),
+            BlePeripheralCharacteristic(
+              uuid: OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID,
+              properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+              permissions: [PeripheralAttributePermission.writeable],
             ),
             BlePeripheralCharacteristic(
               uuid: OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
@@ -277,7 +293,9 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
 
     if (isKeyDown && isKeyUp) {
       final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue))).toList(),
+        mappedButtons
+            .map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue)))
+            .toList(),
       );
       await _server.notify(
         characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
@@ -294,7 +312,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
       );
     } else {
       final responseData = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0)).toList(),
+        mappedButtons
+            .map(
+              (b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0),
+            )
+            .toList(),
       );
       await _server.notify(
         characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,

@@ -113,6 +113,24 @@ Future<void> main() async {
     expect(action.trigger, ButtonTrigger.singleClick);
   });
 
+  test('Disconnect & forget drops learned buttons, so stale entries do not come back', () async {
+    final (derailleur, device) = await connectSram();
+    await device.setupControl();
+    derailleur.pressPaddle(0x12345678);
+    await IntegrationEnv.waitFor(
+      () => core.settings.getSramButtons(derailleur.deviceId).isNotEmpty,
+      description: 'the press to be learned',
+    );
+    final key = core.settings.getSramKey(derailleur.deviceId);
+    expect(key, isNotNull);
+
+    await core.connection.disconnect(device, persistForget: true, forget: true);
+
+    expect(core.settings.getSramButtons(derailleur.deviceId), isEmpty);
+    // The bond survives: re-adding the derailleur must not force a new setup.
+    expect(core.settings.getSramKey(derailleur.deviceId), key);
+  });
+
   test('re-running setup does not wipe the saved backup', () async {
     final (derailleur, device) = await connectSram();
 

@@ -1,6 +1,9 @@
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/stale_bluetooth_link_watch.dart';
 import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -16,6 +19,7 @@ import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show SupportedApp, TrainerConnectionType;
@@ -98,7 +102,14 @@ class ProxyDevice extends BluetoothDevice {
   /// the rider, and calling that "connected" is technically true and useless.
   /// Onboarding has always drawn the line here; this getter is that line, in
   /// one place, so onboarding and the home screen cannot drift apart.
-  bool get isBridged => _isStartedN.value || _isConnectedN.value;
+  ///
+  /// In the VS modes the mirrored emulator is the shared [ftmsEmulator], so
+  /// its state only speaks for this trainer while this trainer's definition is
+  /// attached to it. Otherwise an idle twin of the trainer being bridged (same
+  /// trainer, found over WiFi and Bluetooth, sharing its saved retrofit mode)
+  /// reads as bridged too.
+  bool get isBridged =>
+      (_isStartedN.value || _isConnectedN.value) && (_retrofitModeN.value == RetrofitMode.proxy || _fbd != null);
 
   /// A compact, plain-text readout of what the trainer is reporting right now
   /// — "250 W · 90 rpm · gear 12/24" — for places that want one line rather
@@ -232,7 +243,43 @@ class ProxyDevice extends BluetoothDevice {
     _proxyEmulator.shouldAdvertise = () => !_isBridgeTrialOver;
     _proxyEmulator.deviceName = () => scanResult.name;
     _rebindEmulatorState();
+    // The wrappers outlive emulator swaps and reconnects, so these listeners
+    // are added once, for the device's lifetime.
+    _isStartedN.addListener(_syncStaleLinkWatch);
+    _isConnectedN.addListener(_syncStaleLinkWatch);
+    _retrofitModeN.addListener(_syncStaleLinkWatch);
   }
+
+  late final StaleBluetoothLinkWatch _staleLinkWatch = StaleBluetoothLinkWatch(
+    pairedBefore: core.settings.getBluetoothBridgePairedBefore,
+    onPaired: () => unawaited(
+      core.settings.setBluetoothBridgePairedBefore().catchError(
+        (Object e, StackTrace s) => recordError(e, s, context: 'ProxyDevice.staleLinkWatch'),
+      ),
+    ),
+  )..suspected.addListener(_logStaleLink);
+
+  /// Into the support bundle: a rider reporting "no data after a restart"
+  /// should show that the re-pair hint was up.
+  void _logStaleLink() {
+    if (_staleLinkWatch.suspected.value) {
+      Logger.event(
+        'Bluetooth bridge: no trainer app picked it up within '
+        '${_staleLinkWatch.grace.inSeconds} s of starting, though one has before; '
+        'showing the re-pair hint (likely a stale connection, GH #451)',
+      );
+    }
+  }
+
+  /// Whether the trainer app is probably holding a Bluetooth connection from
+  /// before BikeControl restarted, and needs the PC removed and paired again —
+  /// Windows only, see [StaleBluetoothLinkWatch].
+  ValueListenable<bool> get staleBluetoothLinkSuspected => _staleLinkWatch.suspected;
+
+  void _syncStaleLinkWatch() => _staleLinkWatch.update(
+    bridgeUp: HostPlatform.isWindows && _retrofitModeN.value == RetrofitMode.bluetooth && isBridged,
+    appHolds: _isConnectedN.value,
+  );
 
   /// Test-only: drive the device-level "trainer app connected" wrapper
   /// directly, without running the active emulator's connect machinery (whose
@@ -395,6 +442,15 @@ class ProxyDevice extends BluetoothDevice {
     exhausted: core.bridgeUsageTracker.isExhausted,
   );
 
+  /// [trainerConnectGate] for connecting this trainer in [mode], with the
+  /// live entitlement and today's virtual shifting budget.
+  static TrainerConnectGate trainerConnectGateFor(RetrofitMode mode) => trainerConnectGate(
+    mode: mode,
+    isPro: IAPManager.instance.isProEnabledForCurrentDevice,
+    trialExpired: IAPManager.instance.isTrialExpired,
+    vsBudgetExhausted: core.bridgeUsageTracker.isExhausted,
+  );
+
   /// A couple of minutes before the daily budget runs out, while it is
   /// counting down: say so once, so the end is not a surprise mid-ride.
   void _checkTrialHeadsUp() {
@@ -452,7 +508,7 @@ class ProxyDevice extends BluetoothDevice {
       transport: transport,
     );
 
-    _zwiftControllerEmulator = ZwiftEmulatorDefinition(device: device);
+    _zwiftControllerEmulator = ZwiftEmulatorDefinition(device: device, asRide: () => RideControllerPress.emulatesRide);
 
     final fbd = FitnessBikeDefinition(
       connectedDevice: scanResult,
@@ -542,10 +598,31 @@ class ProxyDevice extends BluetoothDevice {
   /// bind the same way for the same app.
   static bool needsIPv4For(SupportedApp? app) => app is Rouvy;
 
-  /// Mirrors `emulator.advertisementName`. Exposed on ProxyDevice for the UI
-  /// so it doesn't have to dereference through the contextual `emulator`
-  /// getter.
-  String get advertisementName => emulator.advertisementName;
+  /// The entry a rider picks in their trainer app — what the UI tells them to
+  /// look for. Usually `emulator.advertisementName`; exposed on ProxyDevice so
+  /// the UI doesn't dereference through the contextual `emulator` getter.
+  String get advertisementName => listedNameFor(
+    advertised: emulator.advertisementName,
+    mode: _retrofitModeN.value,
+    isWindows: HostPlatform.isWindows,
+    computerName: HostPlatform.isWindows ? Platform.localHostname : null,
+  );
+
+  /// What the trainer app lists the bridge as. Windows can't put a name in a
+  /// Bluetooth advertisement, so over Bluetooth a phone lists the PC under its
+  /// own name — the computer name unless the rider renamed it — never
+  /// `<trainer> - BikeControl` (GH #451). Over WiFi the advertised name holds.
+  @visibleForTesting
+  static String listedNameFor({
+    required String advertised,
+    required RetrofitMode mode,
+    required bool isWindows,
+    required String? computerName,
+  }) {
+    if (!isWindows || mode != RetrofitMode.bluetooth) return advertised;
+    if (computerName == null || computerName.trim().isEmpty) return advertised;
+    return computerName.trim();
+  }
 
   /// The bridge's TXT record for the selected trainer app. Passed to the
   /// emulator as a builder, so a re-advertise after an app change picks up
@@ -621,6 +698,10 @@ class ProxyDevice extends BluetoothDevice {
     def.setDifficultyPct(cfg.difficultyPct);
     def.setRealChainRatio(cfg.realChainRatio);
     def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
+    def.setPowerLockAutoRelease(cfg.powerLockAutoRelease);
+    def.onPowerLockReleased = () => core.connection.signalNotification(
+      AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.powerLockReleased),
+    );
     // A rider who saved a config chose their mode; honour it. With no saved
     // config, let the definition manage the capability-based default (Track
     // Resistance on a grade-capable trainer) rather than the generic Target
@@ -1374,11 +1455,14 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   Future<void> startProxy() async {
-    if (IAPManager.instance.isTrialExpired) {
-      // 5-day trial over, user hasn't purchased — silently refuse the connect.
-      // The UI Connect buttons surface a Go Pro dialog before ever reaching
-      // here; this branch exists as a defensive funnel for the auto-connect
-      // path. Clear auto-connect so the scanner doesn't keep re-firing.
+    if (trainerConnectGateFor(_retrofitModeN.value) == TrainerConnectGate.goPro) {
+      // Proxy mode after the trial period without Pro — silently refuse the
+      // connect. The UI Connect buttons surface a Go Pro dialog before ever
+      // reaching here; this branch exists as a defensive funnel for the
+      // auto-connect path. Clear auto-connect so the scanner doesn't keep
+      // re-firing. Virtual shifting passes: it runs on the daily trial, and
+      // an already used-up budget is handled once connected
+      // ([_syncBridgeTracking]).
       await core.settings.setAutoConnect(trainerKey, false);
       return;
     }

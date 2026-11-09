@@ -225,15 +225,15 @@ jobs:
 
       - name: Zip Symbols
         if: inputs.build_mac || inputs.build_android || inputs.build_ios
-        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols.zip symbols/
+        run: zip -r symbols.zip symbols/
 
       - name: Upload Symbols
         if: inputs.build_mac || inputs.build_android || inputs.build_ios
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-symbols
         with:
-          overwrite: true
-          name: Symbols
-          path: symbols.zip
+          file: symbols.zip
+          name: release-apple-android.zip
+          token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
 
         #13 Create Release
       - name: Create Release
@@ -353,14 +353,14 @@ jobs:
       - name: Zip Windows Symbols
         shell: pwsh
         run: |
-          7z a -p"${{ secrets.ZIP_PASSWORD }}" symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
+          7z a symbols-win.zip symbols-win/ build/windows/x64/runner/Release/*.pdb
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload Windows Symbols
+        uses: ./.github/actions/upload-symbols
         with:
-          overwrite: true
-          name: Windows Symbols
-          path: symbols-win.zip
+          file: symbols-win.zip
+          name: release-windows.zip
+          token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
 
       - name: Create Release (Windows zip)
         if: inputs.build_github
@@ -474,14 +474,14 @@ jobs:
           path: dist/*
 
       - name: Zip Linux Symbols
-        run: zip -P "${{ secrets.ZIP_PASSWORD }}" -r symbols-linux-${{ matrix.arch }}.zip symbols-linux/
+        run: zip -r symbols-linux-${{ matrix.arch }}.zip symbols-linux/
 
       - name: Upload Linux Symbols
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/upload-symbols
         with:
-          overwrite: true
-          name: Linux Symbols ${{ matrix.arch }}
-          path: symbols-linux-${{ matrix.arch }}.zip
+          file: symbols-linux-${{ matrix.arch }}.zip
+          name: release-linux-${{ matrix.arch }}.zip
+          token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
 
   linux_publish:
     if: inputs.build_linux && inputs.build_github

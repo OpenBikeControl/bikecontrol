@@ -417,12 +417,17 @@ abstract class BaseDevice {
         );
   }
 
-  bool _canExecuteCommand() {
+  bool _canExecuteCommand(ControllerButton button, ButtonTrigger trigger) {
+    final bool withinLimit;
     try {
-      return IAPManager.instance.canExecuteCommand;
+      withinLimit = IAPManager.instance.canExecuteCommand;
     } catch (_) {
       return true;
     }
+    if (withinLimit) return true;
+    // Gear changes during the daily virtual shifting trial run on its budget,
+    // not the command limit.
+    return core.actionHandler.passesCommandLimitFor(button, trigger: trigger);
   }
 
   Future<void> performDown(
@@ -433,7 +438,7 @@ abstract class BaseDevice {
       actionStreamInternal.add(GestureNotification(device: this, button: action, trigger: trigger));
       if (_intercept(action, trigger, isKeyDown: true) != null) continue;
       // Check IAP status before executing command
-      if (!_canExecuteCommand()) {
+      if (!_canExecuteCommand(action, trigger)) {
         //actionStreamInternal.add(AlertNotification(LogLevel.LOGLEVEL_ERROR, _getCommandLimitMessage()));
         continue;
       }
@@ -469,7 +474,7 @@ abstract class BaseDevice {
   }
 
   Future<void> _fireRepeatClick(ControllerButton button) async {
-    if (!_canExecuteCommand()) {
+    if (!_canExecuteCommand(button, ButtonTrigger.singleClick)) {
       _stopRepeatingSingleClick();
       _showCommandLimitAlert();
       return;
@@ -496,7 +501,7 @@ abstract class BaseDevice {
       actionStreamInternal.add(GestureNotification(device: this, button: action, trigger: trigger));
       if (_intercept(action, trigger, isKeyDown: true) != null) continue;
       // Check IAP status before executing command
-      if (!_canExecuteCommand()) {
+      if (!_canExecuteCommand(action, trigger)) {
         _showCommandLimitAlert();
         continue;
       }
@@ -525,7 +530,7 @@ abstract class BaseDevice {
       }
 
       // Check IAP status before executing command
-      if (!_canExecuteCommand()) {
+      if (!_canExecuteCommand(action, trigger)) {
         _showCommandLimitAlert();
         continue;
       }

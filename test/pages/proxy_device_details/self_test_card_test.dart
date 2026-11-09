@@ -3,6 +3,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show installLoggerErrorListener;
 import 'package:bike_control/pages/proxy_device_details/self_test_card.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_composer.dart' show supportComposerFieldKey;
 import 'package:bike_control/services/trainer_self_test/self_test_engine.dart';
 import 'package:bike_control/services/trainer_self_test/self_test_result.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
@@ -371,11 +372,11 @@ Future<void> main() async {
 
     expect(find.text("Power targets work, shifting doesn't"), findsOneWidget);
     expect(find.text('Switch mode & run again'), findsOneWidget);
-    expect(find.text('Try via Zwift protocol & run again'), findsOneWidget);
+    expect(find.text('Try Native & run again'), findsOneWidget);
 
     // The mode switch leads; the protocol CTA is the secondary offer below it.
     final switchModeTop = tester.getTopLeft(find.text('Switch mode & run again')).dy;
-    final protocolTop = tester.getTopLeft(find.text('Try via Zwift protocol & run again')).dy;
+    final protocolTop = tester.getTopLeft(find.text('Try Native & run again')).dy;
     expect(switchModeTop, lessThan(protocolTop));
   });
 
@@ -405,11 +406,11 @@ Future<void> main() async {
     await tester.pumpAndSettle();
 
     expect(find.text("Trainer isn't responding to BikeControl"), findsOneWidget);
-    expect(find.text('Try via Zwift protocol & run again'), findsOneWidget);
+    expect(find.text('Try Native & run again'), findsOneWidget);
     // Support is still offered, but below the protocol CTA.
     expect(find.text('Send result to support'), findsOneWidget);
 
-    await tester.tap(find.text('Try via Zwift protocol & run again'));
+    await tester.tap(find.text('Try Native & run again'));
     await tester.pump();
 
     // The tap flips the fake's recorded protocol and cycles the trainer
@@ -581,7 +582,7 @@ Future<void> main() async {
       // The intake is pre-answered, so the composer is right there: chip on,
       // input empty, send off until the rider says what they see.
       expect(find.text(l10n.supportPinnedContextChip(l10n.supportPinnedResistanceTest)), findsOneWidget);
-      expect(tester.widget<TextArea>(find.byType(TextArea)).controller!.text, isEmpty);
+      expect(tester.widget<TextField>(find.byKey(supportComposerFieldKey)).controller!.text, isEmpty);
       final send = find.ancestor(of: find.byIcon(LucideIcons.send), matching: find.byType(IconButton));
       expect(tester.widget<IconButton>(send).onPressed, isNull);
 

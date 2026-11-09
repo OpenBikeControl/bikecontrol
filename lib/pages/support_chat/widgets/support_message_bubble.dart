@@ -8,7 +8,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
-import 'package:in_app_review/in_app_review.dart';
+import 'package:bike_control/utils/rate_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -85,7 +85,7 @@ class SupportMessageBubble extends StatelessWidget {
             if (isRatingPrompt) ...[
               const SizedBox(height: 8),
               PrimaryButton(
-                onPressed: _openRating,
+                onPressed: requestAppRating,
                 leading: const Icon(LucideIcons.star, size: 14),
                 child: Text(context.i18n.rateBikeControl),
               ),
@@ -143,20 +143,6 @@ class SupportMessageBubble extends StatelessWidget {
     if (Platform.isAndroid) return 'Play Store';
     if (Platform.isWindows) return 'Microsoft Store';
     return 'App Store';
-  }
-
-  /// Triggers the platform's in-app review sheet, falling back to the store
-  /// listing when the in-app sheet isn't available (e.g. simulator, browser).
-  Future<void> _openRating() async {
-    final review = InAppReview.instance;
-    if (await review.isAvailable()) {
-      await review.requestReview();
-    } else {
-      await review.openStoreListing(
-        appStoreId: 'id6753721284',
-        microsoftStoreId: '9NP42GS03Z26',
-      );
-    }
   }
 
   String _formatTimestamp(DateTime utc) {

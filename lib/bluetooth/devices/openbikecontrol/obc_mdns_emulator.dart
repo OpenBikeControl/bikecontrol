@@ -207,10 +207,12 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       // derived from it is the same on every install too: with BikeControl on
       // a phone and a PC, both answer for `BikeControl.local`, and MyWhoosh's
       // address lookup returns whichever spoke last — often the other device.
-      // The OBC path never matches the hostname against the name, so it gets
-      // this install's own label. The DirCon variant keeps the derived one:
-      // DirCon clients do match them.
-      final hostLabel = _useDirCon ? null : MdnsHostLabel.storedRandom();
+      // Neither client of this entry matches the hostname against the name
+      // (the byte-exact match is MyWhoosh's trainer lookup, which only the
+      // bridge serves; TrainingPeaks Virtual connects either way), so both
+      // variants get this install's own label. On iOS the DirCon variant used
+      // to keep the derived one, and two phones both claimed BikeControl.local.
+      final hostLabel = MdnsHostLabel.storedRandom();
       _mdnsRegistration = await selection.advertiser.register(
         AdvertisedService(
           name: 'BikeControl',
@@ -239,7 +241,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       );
       _activeBackend = selection.resolved;
       _activeAdvertiser = selection.advertiser;
-      _pinnedHostLabel = hostLabel ?? MdnsHostLabel.derivedFrom('BikeControl');
+      _pinnedHostLabel = hostLabel;
       _watchAdvertisedAddress(selection.advertiser);
       _registeredEntry = (name: 'BikeControl', port: boundPort);
       SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: boundPort);
@@ -448,7 +450,9 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
     if (isKeyDown && isKeyUp) {
       final responseDataDown = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue))).toList(),
+        mappedButtons
+            .map((b) => ButtonState(b, OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue)))
+            .toList(),
       );
       _write(_server!.client!, responseDataDown);
       final responseDataUp = OpenBikeProtocolParser.encodeButtonState(
@@ -457,7 +461,11 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       _write(_server!.client!, responseDataUp);
     } else {
       final responseData = OpenBikeProtocolParser.encodeButtonState(
-        mappedButtons.map((b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0)).toList(),
+        mappedButtons
+            .map(
+              (b) => ButtonState(b, isKeyDown ? OpenBikeProtocolParser.pressedState(b, keyPair.inGameActionValue) : 0),
+            )
+            .toList(),
       );
       _write(_server!.client!, responseData);
     }
@@ -510,12 +518,20 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
           core.connection.signalNotification(
             AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${appInfo.appId}'),
           );
+          // A DirCon app can wait for a first notification before it shows the
+          // controller as connected (TrainingPeaks Virtual keeps its spinner
+          // going), and a controller is silent until a button is pressed. A
+          // button state naming no buttons changes nothing in the app.
+          _dirCon?.sendCharacteristicNotification(
+            OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+            OpenBikeProtocolParser.encodeButtonState(const []),
+          );
         } catch (e) {
           core.connection.signalNotification(LogNotification('Failed to parse app info: $e'));
         }
         break;
       case OpenBikeProtocolParser.MSG_TYPE_HAPTIC_FEEDBACK:
-        // noop
+        unawaited(core.obcHaptics.handle(Uint8List.fromList(message)));
         break;
       default:
         print('Unknown message type: $messageType');

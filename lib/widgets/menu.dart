@@ -20,7 +20,6 @@ import 'package:bike_control/widgets/title.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:in_app_review/in_app_review.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:purchases_flutter/purchases_flutter.dart' show Purchases;
@@ -29,17 +28,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../utils/iap/iap_manager.dart';
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/main.dart' show recordError;
-
-/// Asks for a store review in-app where the platform offers it, else opens
-/// the store listing.
-Future<void> openStoreReview() async {
-  final inAppReview = InAppReview.instance;
-  if (await inAppReview.isAvailable()) {
-    await inAppReview.requestReview();
-  } else {
-    await inAppReview.openStoreListing(appStoreId: 'id6753721284', microsoftStoreId: '9NP42GS03Z26');
-  }
-}
 
 /// Test seam: stands in for [DebugDiagnostics.gather] inside [debugText], so a
 /// test can model a gather that hangs. Null outside tests.
@@ -96,6 +84,7 @@ Renderer: ${guard(() => ui.ImageFilter.isShaderFilterSupported ? 'Impeller' : 'S
 Target: ${guard(() => core.settings.getLastTarget()?.name ?? '-')}
 Trainer App: ${guard(() => core.settings.getTrainerApp()?.name ?? '-')}
 Connected Controllers: ${guard(() => describeControllers(core.connection.devices))}
+BLE scan: ${guard(() => core.connection.describeBleScan())}
 Connected Trainers: ${guard(() => core.logic.connectedTrainerConnections.map((e) => e.title).join(', '))}
 Smart Trainers:
   $proxyBlock

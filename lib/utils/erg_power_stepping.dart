@@ -34,7 +34,8 @@ extension ErgPowerStepping on FitnessBikeDefinition {
   /// The steps a rider can pick.
   static const List<int> stepChoicesW = [1, 5, 10, 25];
 
-  static const ErgStartSource defaultStartSource = ErgStartSource.lastTarget;
+  /// Like Zwift's Watt Lock: ERG locks the power the rider is riding.
+  static const ErgStartSource defaultStartSource = ErgStartSource.currentPower;
 
   /// Where ERG starts when neither the last target nor the current power is
   /// known.
