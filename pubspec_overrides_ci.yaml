@@ -8,7 +8,7 @@ dependency_overrides:
   universal_ble:
     git:
       url: https://github.com/jonasbark/universal_ble.git
-      ref: 31bdd4a9d85986e3f6795b74f65d744de0aa4979
+      ref: f0fcdd3bce85723868c0cc064cd427af50906de9
   path_provider_foundation: ">=2.3.0 <2.6.0"
   gamepads_windows:
     path: packages/gamepads_windows
