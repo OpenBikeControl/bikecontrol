@@ -47,6 +47,18 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Ride Cave
 - Velotoss
 - Grimpa
+- icTrainer
+- Auuki
+- VoxVelo
+- VeloWorkout
+- Pedalparty
+- VeloPopuli
+- Vieta
+- DirtWatts
+- WattLog.pro
+- REZVIVO
+- OpenRadlr
+- zwoTrainer
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps

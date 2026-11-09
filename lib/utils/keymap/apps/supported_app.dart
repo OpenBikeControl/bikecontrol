@@ -5,6 +5,7 @@ import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
 import 'package:bike_control/utils/keymap/apps/grimpa.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
+import 'package:bike_control/utils/keymap/apps/openbikecontrol_trainer_apps.dart';
 import 'package:bike_control/utils/keymap/apps/ride_cave.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/strappo.dart';
@@ -214,6 +215,7 @@ abstract class SupportedApp {
     RideCave(),
     Velotoss(),
     Grimpa(),
+    ...OpenBikeControlTrainerApp.all,
     Tacx(),
     FulGaz(),
     BikeControl(),
