@@ -3428,5 +3428,14 @@
   "ergStartCurrentPower": "Current power",
   "ergStepLabel": "ERG step",
   "ergStepDesc": "Watts per − / + press",
-  "ergSettingsFooter": "If the chosen start power is not available, the other one is used, then 150 W."
+  "ergSettingsFooter": "If the chosen start power is not available, the other one is used, then 150 W.",
+  "powerLockAutoReleaseLabel": "Release when you stop pedalling",
+  "powerLockAutoReleaseDesc": "Back to SIM after {seconds} s below {rpm} rpm",
+  "powerLockReleased": "Power Lock released — back to SIM",
+  "@powerLockAutoReleaseDesc": {
+    "placeholders": {
+      "seconds": {"type": "int"},
+      "rpm": {"type": "int"}
+    }
+  }
 }

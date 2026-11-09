@@ -4185,5 +4185,8 @@
   "ergStartCurrentPower": "当前功率",
   "ergStepLabel": "ERG 步进",
   "ergStepDesc": "每次点按 − / + 的瓦数",
-  "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。"
+  "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。",
+  "powerLockAutoReleaseLabel": "停止踩踏时释放",
+  "powerLockAutoReleaseDesc": "低于 {rpm} rpm 持续 {seconds} 秒后返回 SIM",
+  "powerLockReleased": "Power Lock 已释放，返回 SIM"
 }

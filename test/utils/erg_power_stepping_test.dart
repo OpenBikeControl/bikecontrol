@@ -56,7 +56,9 @@ void main() {
     });
 
     test('Last target resumes the last target after leaving ERG', () {
-      final def = _def()..setManualErgPower(215);
+      final def = _def()
+        ..setErgPreferences(startSource: ErgStartSource.lastTarget)
+        ..setManualErgPower(215);
       def.exitErgMode();
       def.setExternalPower(180);
       expect(def.ergStartPower(), 215);

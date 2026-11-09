@@ -265,9 +265,10 @@ Future<void> main() async {
       expect(definition.ergTargetPower.value, 200);
     });
 
-    testWidgets('ERG on the card starts at the last target', (tester) async {
+    testWidgets('ERG on the card starts at the last target when set to', (tester) async {
       final (:proxy, :definition) = liveTrainer();
       definition
+        ..setErgPreferences(startSource: ErgStartSource.lastTarget)
         ..setManualErgPower(235)
         ..exitErgMode();
       await pumpRide(tester);

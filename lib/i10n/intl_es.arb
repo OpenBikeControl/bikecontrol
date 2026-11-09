@@ -3001,5 +3001,8 @@
   "ergStartCurrentPower": "Potencia actual",
   "ergStepLabel": "Paso ERG",
   "ergStepDesc": "Vatios por pulsación de − / +",
-  "ergSettingsFooter": "Si la potencia inicial elegida no está disponible, se usa la otra y, si no, 150 W."
+  "ergSettingsFooter": "Si la potencia inicial elegida no está disponible, se usa la otra y, si no, 150 W.",
+  "powerLockAutoReleaseLabel": "Soltar al dejar de pedalear",
+  "powerLockAutoReleaseDesc": "Vuelve a SIM tras {seconds} s por debajo de {rpm} rpm",
+  "powerLockReleased": "Power Lock desactivado: vuelta a SIM"
 }

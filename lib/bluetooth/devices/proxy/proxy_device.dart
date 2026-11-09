@@ -638,6 +638,10 @@ class ProxyDevice extends BluetoothDevice {
     def.setDifficultyPct(cfg.difficultyPct);
     def.setRealChainRatio(cfg.realChainRatio);
     def.setErgPreferences(stepW: cfg.ergStepW, startSource: cfg.ergStartSource);
+    def.setPowerLockAutoRelease(cfg.powerLockAutoRelease);
+    def.onPowerLockReleased = () => core.connection.signalNotification(
+      AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.powerLockReleased),
+    );
     // A rider who saved a config chose their mode; honour it. With no saved
     // config, let the definition manage the capability-based default (Track
     // Resistance on a grade-capable trainer) rather than the generic Target
