@@ -519,9 +519,12 @@ class ShimanoDi2 extends BluetoothDevice {
       await _onLiveInstance((target) => target._writeShifters(passkey, (seen) async {
         final changed = [for (final s in seen) if (!s.paddlesOnDfly) s];
         if (changed.isEmpty) return const [];
-        // Keep the first backup: a second setup would otherwise save the D-Fly
-        // channels as the "original" setting.
-        if (switchBackup.isEmpty) await core.settings.setShimanoSwitchBackup(_serialKey, changed);
+        // Keep a shifter's first backup: a second setup would otherwise save
+        // its D-Fly channels as the "original" setting. A shifter the earlier
+        // setup never saw (it answered alone) gets its original added now.
+        final backup = switchBackup;
+        final added = [for (final s in changed) if (backup.none((b) => b.slot == s.slot)) s];
+        if (added.isNotEmpty) await core.settings.setShimanoSwitchBackup(_serialKey, [...backup, ...added]);
         return [for (final s in changed) s.withDflyPaddles()];
       }));
       await core.settings.setShimanoPasskey(_serialKey, passkey);
@@ -544,16 +547,28 @@ class ShimanoDi2 extends BluetoothDevice {
   /// with its paddles again.
   Future<void> restoreSwitches({required String passkey}) async {
     final backup = switchBackup;
+    final restored = <int>{};
     try {
       await _onLiveInstance(
         (target) => target._writeShifters(
           passkey,
-          (seen) async => [for (final s in backup) if (seen.any((e) => e.slot == s.slot)) s],
+          (seen) async {
+            final writes = [for (final s in backup) if (seen.any((e) => e.slot == s.slot)) s];
+            restored.addAll(writes.map((s) => s.slot));
+            return writes;
+          },
           slots: {for (final s in backup) s.slot},
         ),
       );
-      await core.settings.clearShimanoSwitchBackup(_serialKey);
-      await core.settings.setShimanoDfly(_serialKey, false);
+      // Only the shifters that answered were written back: keep the others'
+      // setting, so a later restore can still put it back.
+      final remaining = [for (final s in backup) if (!restored.contains(s.slot)) s];
+      if (remaining.isEmpty) {
+        await core.settings.clearShimanoSwitchBackup(_serialKey);
+        await core.settings.setShimanoDfly(_serialKey, false);
+      } else {
+        await core.settings.setShimanoSwitchBackup(_serialKey, remaining);
+      }
       core.connection.signalChange(this);
     } on ShimanoSetupCancelled {
       rethrow;

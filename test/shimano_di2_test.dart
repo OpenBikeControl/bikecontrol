@@ -569,7 +569,7 @@ Future<void> main() async {
       expect(di2.isDflyChosen, isTrue);
     });
 
-    test('a second setup keeps the first backup', () async {
+    test('a second setup keeps a shifter\'s first backup and adds the shifter it had not seen', () async {
       final (:di2, :t) = connected('di2-channels-twice');
       await core.settings.setShimanoSwitchBackup('di2-channels-twice', [
         ShimanoShifterSwitches.fromTelemetry(rightFactory)!,
@@ -581,7 +581,31 @@ Future<void> main() async {
       t.press(_hex('33411801f6e4e0e001ff')); // right half on D-Fly
       await setup;
 
+      expect(di2.switchBackup, [
+        ShimanoShifterSwitches.fromTelemetry(rightFactory),
+        ShimanoShifterSwitches.fromTelemetry(leftFactory),
+      ]);
+    });
+
+    test('a restore where one shifter does not answer keeps that shifter\'s backup', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
+      final (:di2, :t) = connected('di2-channels-restore-partial');
+      await core.settings.setShimanoDfly('di2-channels-restore-partial', true);
+      await core.settings.setShimanoSwitchBackup('di2-channels-restore-partial', [
+        ShimanoShifterSwitches.fromTelemetry(leftFactory)!,
+        ShimanoShifterSwitches.fromTelemetry(rightFactory)!,
+      ]);
+
+      final restore = di2.restoreSwitches(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(leftOnDfly);
+      await restore;
+
+      expect(t.switchWrites, ['0013412000011101ff0000']);
       expect(di2.switchBackup, [ShimanoShifterSwitches.fromTelemetry(rightFactory)]);
+      // The right shifter is still on D-Fly: the restore stays on offer.
+      expect(di2.isDflyChosen, isTrue);
     });
 
     test('presses while the shifters are read trigger no action', () async {
