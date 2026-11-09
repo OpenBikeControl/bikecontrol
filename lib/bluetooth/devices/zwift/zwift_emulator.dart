@@ -60,6 +60,8 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
           InGameAction.leftShiftButton2,
           InGameAction.rightShiftButton2,
           InGameAction.brake,
+          InGameAction.navigateLeft,
+          InGameAction.navigateRight,
           InGameAction.frontShift,
         ],
       );

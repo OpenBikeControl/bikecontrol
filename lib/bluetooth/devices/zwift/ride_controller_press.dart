@@ -11,7 +11,10 @@ class RideControllerPress {
   final int buttonMask;
   final List<RideAnalogLocation> paddles;
 
-  const RideControllerPress({this.buttonMask = 0, this.paddles = const []});
+  /// Paddles tilt outward (steering) unless [inward] (braking).
+  final bool inward;
+
+  const RideControllerPress({this.buttonMask = 0, this.paddles = const [], this.inward = false});
 
   RideControllerPress.button(RideButtonMask button) : this(buttonMask: button.mask);
 
@@ -28,6 +31,8 @@ class RideControllerPress {
       InGameAction.steerRight when emulatesRide => const RideControllerPress(paddles: [RideAnalogLocation.RIGHT]),
       InGameAction.steerLeft => RideControllerPress.button(RideButtonMask.LEFT_BTN),
       InGameAction.steerRight => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
+      InGameAction.navigateLeft when emulatesRide => RideControllerPress.button(RideButtonMask.LEFT_BTN),
+      InGameAction.navigateRight when emulatesRide => RideControllerPress.button(RideButtonMask.RIGHT_BTN),
       InGameAction.openActionBar => RideControllerPress.button(RideButtonMask.UP_BTN),
       InGameAction.usePowerUp => RideControllerPress.button(RideButtonMask.Y_BTN),
       InGameAction.select => RideControllerPress.button(RideButtonMask.A_BTN),
@@ -37,7 +42,10 @@ class RideControllerPress {
       InGameAction.rightDropButton => RideControllerPress.button(RideButtonMask.POWERUP_R_BTN),
       InGameAction.leftShiftButton2 => RideControllerPress.button(RideButtonMask.SHFT_DN_L_BTN),
       InGameAction.rightShiftButton2 => RideControllerPress.button(RideButtonMask.SHFT_DN_R_BTN),
-      InGameAction.brake => const RideControllerPress(paddles: [RideAnalogLocation.LEFT, RideAnalogLocation.RIGHT]),
+      InGameAction.brake => const RideControllerPress(
+        paddles: [RideAnalogLocation.LEFT, RideAnalogLocation.RIGHT],
+        inward: true,
+      ),
       _ => null,
     };
   }
@@ -52,8 +60,9 @@ class RideControllerPress {
   List<int> _status(int mask, int paddleValue) {
     final status = RideKeyPadStatus()..buttonMap = (~mask) & 0xFFFFFFFF;
     for (final paddle in paddles) {
-      // The left paddle pulls negative.
-      final value = paddle == RideAnalogLocation.LEFT ? -paddleValue : paddleValue;
+      // Outward: the left paddle goes negative, the right positive. Inward is the opposite.
+      final outward = paddle == RideAnalogLocation.LEFT ? -paddleValue : paddleValue;
+      final value = inward ? -outward : outward;
       status.analogPaddles.add(RideAnalogKeyPress(location: paddle, analogValue: value));
     }
     return status.writeToBuffer();
