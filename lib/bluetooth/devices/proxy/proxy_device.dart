@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
@@ -17,6 +18,7 @@ import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show SupportedApp, TrainerConnectionType;
@@ -559,10 +561,31 @@ class ProxyDevice extends BluetoothDevice {
   /// bind the same way for the same app.
   static bool needsIPv4For(SupportedApp? app) => app is Rouvy;
 
-  /// Mirrors `emulator.advertisementName`. Exposed on ProxyDevice for the UI
-  /// so it doesn't have to dereference through the contextual `emulator`
-  /// getter.
-  String get advertisementName => emulator.advertisementName;
+  /// The entry a rider picks in their trainer app — what the UI tells them to
+  /// look for. Usually `emulator.advertisementName`; exposed on ProxyDevice so
+  /// the UI doesn't dereference through the contextual `emulator` getter.
+  String get advertisementName => listedNameFor(
+    advertised: emulator.advertisementName,
+    mode: _retrofitModeN.value,
+    isWindows: HostPlatform.isWindows,
+    computerName: HostPlatform.isWindows ? Platform.localHostname : null,
+  );
+
+  /// What the trainer app lists the bridge as. Windows can't put a name in a
+  /// Bluetooth advertisement, so over Bluetooth a phone lists the PC under its
+  /// own name — the computer name unless the rider renamed it — never
+  /// `<trainer> - BikeControl` (GH #451). Over WiFi the advertised name holds.
+  @visibleForTesting
+  static String listedNameFor({
+    required String advertised,
+    required RetrofitMode mode,
+    required bool isWindows,
+    required String? computerName,
+  }) {
+    if (!isWindows || mode != RetrofitMode.bluetooth) return advertised;
+    if (computerName == null || computerName.trim().isEmpty) return advertised;
+    return computerName.trim();
+  }
 
   /// The bridge's TXT record for the selected trainer app. Passed to the
   /// emulator as a builder, so a re-advertise after an app change picks up

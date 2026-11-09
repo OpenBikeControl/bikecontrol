@@ -138,11 +138,14 @@ dependency_overrides:
   # off the UI thread (GattDeviceService::Close hang in Store crash reports).
   # + Apple: queues notifications CoreBluetooth refuses (transmit queue full) and
   # resends them when it is ready, so a release sent right after its press is not
-  # lost (#417). Drop once a release contains all of them.
+  # lost (#417).
+  # + Windows: peripheral subscription and read-request callbacks no longer end the
+  # app when a client's link drops mid-callback (#451).
+  # Drop once a release contains all of them.
   universal_ble:
     git:
       url: https://github.com/jonasbark/universal_ble.git
-      ref: 04f3030d06fefed68ad72f2441c3587d59f736a0
+      ref: 31bdd4a9d85986e3f6795b74f65d744de0aa4979
   path_provider_foundation: ">=2.3.0 <2.6.0"
   # Vendored: GameInput v2 with background input, so gamepads keep working
   # while the trainer app has focus. Keep in sync with pubspec_overrides*.yaml, which

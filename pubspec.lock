@@ -1986,8 +1986,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "04f3030d06fefed68ad72f2441c3587d59f736a0"
-      resolved-ref: "04f3030d06fefed68ad72f2441c3587d59f736a0"
+      ref: "31bdd4a9d85986e3f6795b74f65d744de0aa4979"
+      resolved-ref: "31bdd4a9d85986e3f6795b74f65d744de0aa4979"
       url: "https://github.com/jonasbark/universal_ble.git"
     source: git
     version: "3.1.0"
