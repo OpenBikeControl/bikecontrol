@@ -1207,7 +1207,7 @@
   "shimanoPairBody": "I pulsanti Di2 richiedono che il tuo Di2 sia associato a Windows, e Windows non è riuscito ad associarlo. Apri Impostazioni di Windows → Bluetooth e dispositivi → Aggiungi dispositivo → Bluetooth e scegli il tuo Di2 (premi un pulsante del comando per risvegliarlo). Se è già nell'elenco, rimuovilo e aggiungilo di nuovo. Poi tocca Riprova.",
   "shimanoUseDfly": "Usa invece i canali D-Fly",
   "shimanoWiredTitle": "I tuoi comandi sono cablati",
-  "shimanoWiredBody": "I canali E-TUBE non si possono ancora configurare sui comandi cablati. La modalità pulsanti funziona con loro: finché BikeControl è connesso, i pulsanti dei comandi diventano pulsanti di BikeControl.",
+  "shimanoWiredBody": "BikeControl non può ancora configurare i canali E-TUBE sui comandi cablati. Se hai assegnato i pulsanti dei comandi ai canali D-Fly nell'app E-TUBE PROJECT, BikeControl può usarli. Funziona anche la modalità pulsanti: finché BikeControl è connesso, i pulsanti dei comandi diventano pulsanti di BikeControl.",
   "shimanoUseButtonMode": "Usa la modalità pulsanti",
   "shimanoDflyActive": "Il tuo Di2 cambia normalmente. I pulsanti assegnati ai canali D-Fly nell'app E-TUBE compaiono qui quando li premi.",
   "shimanoChooseTitle": "Come deve usare BikeControl la tua Di2?",

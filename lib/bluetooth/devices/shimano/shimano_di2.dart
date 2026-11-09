@@ -269,8 +269,23 @@ class ShimanoDi2 extends BluetoothDevice {
   /// Keep the D-Fly channel buttons: the Di2 keeps shifting by itself and
   /// button mode's setup is no longer requested. "Use Di2 buttons" stays
   /// available on the device panel.
+  ///
+  /// Also the way on for wired levers, whose D-Fly channels set in E-TUBE
+  /// carry both levers while button mode may relay only one. PC-connect mode
+  /// silences those channels, so button mode ends here, and a running
+  /// session drops the link.
   Future<void> useDflyChannels() async {
     await core.settings.setShimanoDfly(_serialKey, true);
+    if (isButtonModeEnabled) {
+      await core.settings.setShimanoButtonMode(_serialKey, false);
+      final session = _buttonSession;
+      _buttonSession = null;
+      if (session != null) {
+        await session.close();
+        await _cancelFrameLogs();
+        await disconnect();
+      }
+    }
     core.connection.signalChange(this);
   }
 
@@ -926,6 +941,7 @@ class ShimanoDi2 extends BluetoothDevice {
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
       isWiredShifters: (e) => e is ShimanoWiredShiftersException,
+      onUseDfly: () => unawaited(useDflyChannels()),
       onUseButtonMode: () {
         if (context.mounted) unawaited(_showButtonModeSetup(context, afterChooser: afterChooser));
       },
