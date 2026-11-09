@@ -1219,7 +1219,7 @@
   "shimanoPairBody": "Für Di2-Tasten muss deine Di2 mit Windows gekoppelt sein, und Windows konnte sie nicht koppeln. Öffne die Windows-Einstellungen → Bluetooth und Geräte → Gerät hinzufügen → Bluetooth und wähle deine Di2 (drücke eine Schalttaste, um sie zu wecken). Ist sie dort schon aufgeführt, entferne sie und füge sie neu hinzu. Tippe dann auf Erneut versuchen.",
   "shimanoUseDfly": "Stattdessen D-Fly-Kanäle nutzen",
   "shimanoWiredTitle": "Deine Schalthebel sind verkabelt",
-  "shimanoWiredBody": "E-TUBE-Kanäle lassen sich bei verkabelten Schalthebeln noch nicht einrichten. Der Tastenmodus funktioniert mit ihnen: Solange BikeControl verbunden ist, werden deine Schalttasten zu BikeControl-Tasten.",
+  "shimanoWiredBody": "Bei verkabelten Schalthebeln kann BikeControl die E-TUBE-Kanäle noch nicht einrichten. Hast du deine Schalttasten in der E-TUBE-PROJECT-App auf D-Fly-Kanäle gelegt, kann BikeControl diese nutzen. Auch der Tastenmodus funktioniert: Solange BikeControl verbunden ist, werden deine Schalttasten zu BikeControl-Tasten.",
   "shimanoUseButtonMode": "Stattdessen Tastenmodus nutzen",
   "shimanoDflyActive": "Deine Di2 schaltet normal. Tasten, die du in der E-TUBE-App auf D-Fly-Kanäle gelegt hast, erscheinen hier, sobald du sie drückst.",
   "shimanoChooseTitle": "Wie soll BikeControl deine Di2 nutzen?",

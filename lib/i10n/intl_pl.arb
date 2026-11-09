@@ -1207,7 +1207,7 @@
   "shimanoPairBody": "Przyciski Di2 wymagają sparowania Di2 z Windows, a Windows nie zdołał go sparować. Otwórz Ustawienia Windows → Bluetooth i urządzenia → Dodaj urządzenie → Bluetooth i wybierz swoje Di2 (naciśnij przycisk manetki, aby je wybudzić). Jeśli jest już na liście, usuń je i dodaj ponownie. Następnie dotknij Spróbuj ponownie.",
   "shimanoUseDfly": "Użyj zamiast tego kanałów D-Fly",
   "shimanoWiredTitle": "Twoje manetki są przewodowe",
-  "shimanoWiredBody": "Kanałów E-TUBE nie da się jeszcze ustawić na manetkach przewodowych. Tryb przycisków z nimi działa: dopóki BikeControl jest połączony, przyciski manetek stają się przyciskami BikeControl.",
+  "shimanoWiredBody": "BikeControl nie potrafi jeszcze ustawić kanałów E-TUBE na manetkach przewodowych. Jeśli przypisałeś przyciski manetek do kanałów D-Fly w aplikacji E-TUBE PROJECT, BikeControl może z nich korzystać. Działa też tryb przycisków: dopóki BikeControl jest połączony, przyciski manetek stają się przyciskami BikeControl.",
   "shimanoUseButtonMode": "Użyj trybu przycisków",
   "shimanoDflyActive": "Twoje Di2 zmienia biegi normalnie. Przyciski przypisane do kanałów D-Fly w aplikacji E-TUBE pojawią się tutaj po naciśnięciu.",
   "shimanoChooseTitle": "Jak BikeControl ma używać Twojej Di2?",

@@ -103,6 +103,20 @@ void main() {
     expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsNothing, reason: 'the sheet closes');
   });
 
+  testWidgets('wired shifters → the D-Fly channels set in E-TUBE can be used instead', (tester) async {
+    var usedDfly = false;
+    await runWith(tester, const FormatException('wired'), onUseDfly: () => usedDfly = true, onUseButtonMode: () {});
+    expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoUseButtonMode), findsOneWidget);
+
+    await tester.tap(find.text(AppLocalizations.current.shimanoUseDfly));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(usedDfly, isTrue);
+    expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsNothing, reason: 'the sheet closes');
+  });
+
   testWidgets('any other failure → generic error', (tester) async {
     await runWith(tester, StateError('boom'));
     expect(find.text(AppLocalizations.current.shimanoGenericError), findsOneWidget);

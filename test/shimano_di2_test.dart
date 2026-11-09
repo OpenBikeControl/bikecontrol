@@ -881,6 +881,20 @@ Future<void> main() async {
       expect(instance.isButtonModeEnabled, isFalse);
     });
 
+    // Wired levers (ST-R8150 on an RD-R8150): in button mode the RD relays
+    // only one lever, while the D-Fly channels set in E-TUBE carry both.
+    // PC-connect mode silences those channels, so choosing them must end it.
+    test('choosing D-Fly channels while button mode is on turns button mode off', () async {
+      final instance = connectedDi2('di2-dfly-from-buttons');
+      await core.settings.setShimanoButtonMode('di2-dfly-from-buttons', true);
+
+      await instance.useDflyChannels();
+
+      expect(instance.isDflyChosen, isTrue);
+      expect(instance.isButtonModeEnabled, isFalse, reason: 'a reconnect must not re-enter PC-connect mode');
+      expect(instance.setupNeed, isNull);
+    });
+
     test('the home chain lists the button mode step until the rider decides, and drops it for D-Fly', () async {
       final instance = connectedDi2('di2-chain');
       expect(instance.buttonModeSetupDone, isFalse);

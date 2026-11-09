@@ -1831,7 +1831,7 @@
   "@shimanoUseDfly": {"description": "Di2 setup sheet and device panel: skip button mode and keep using the buttons the rider set to D-Fly channels in E-TUBE, which work without pairing."},
   "shimanoWiredTitle": "Your shifters are wired",
   "@shimanoWiredTitle": {"description": "Di2 E-TUBE channel setup sheet: the setup stopped because the rider's shifters are wired (e.g. rim-brake ST-R8150), which this setup does not support yet."},
-  "shimanoWiredBody": "E-TUBE channels can't be set up on wired shifters yet. Button mode works with them: while BikeControl is connected, your shifter buttons become BikeControl buttons.",
+  "shimanoWiredBody": "BikeControl can't set up E-TUBE channels on wired shifters yet. If you assigned your shifter buttons to D-Fly channels in the E-TUBE PROJECT app, BikeControl can use those. Button mode works too: while BikeControl is connected, your shifter buttons become BikeControl buttons.",
   "shimanoUseButtonMode": "Use button mode instead",
   "@shimanoUseButtonMode": {"description": "Di2 setup sheet, wired shifters: button that closes the E-TUBE channel setup and opens the button mode setup."},
   "shimanoDflyActive": "Your Di2 shifts normally. Buttons you set to D-Fly channels in the E-TUBE app show up here when you press them.",

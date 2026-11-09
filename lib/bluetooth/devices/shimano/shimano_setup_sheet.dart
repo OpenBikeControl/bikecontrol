@@ -939,8 +939,18 @@ Widget shimanoGuidedBody(
       heading = l.shimanoWiredTitle;
       body = l.shimanoWiredBody;
       stepIndex = null;
-      extra = null;
-      // Trying again can't work: the way on is button mode.
+      // Trying again can't work: the way on is the D-Fly channels set in
+      // E-TUBE (both levers) or button mode.
+      extra = onUseDfly == null
+          ? null
+          : SizedBox(
+              width: double.infinity,
+              child: SecondaryButton(
+                leading: const Icon(LucideIcons.radio, size: 16),
+                onPressed: onUseDfly,
+                child: Text(l.shimanoUseDfly),
+              ),
+            );
       actions = [
         GhostButton(onPressed: onClose, child: Text(l.cancel)),
         if (onUseButtonMode != null)
