@@ -345,19 +345,28 @@ void main() {
       expect(paddlesOf(frame), isEmpty);
     });
 
-    test('brake pulls both paddles over the network', () async {
+    test('brake tilts both paddles inward over the network', () async {
       final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
       addTearDown(transporter.dispose);
 
       await FtmsMdnsEmulator().sendAction(_pair(InGameAction.brake), isKeyDown: true, isKeyUp: true);
 
       final [down, up] = transporter.notifications;
-      expect(paddlesOf(down), {RideAnalogLocation.LEFT: -100, RideAnalogLocation.RIGHT: 100});
+      expect(paddlesOf(down), {RideAnalogLocation.LEFT: 100, RideAnalogLocation.RIGHT: -100});
       expect(paddlesOf(up), {RideAnalogLocation.LEFT: 0, RideAnalogLocation.RIGHT: 0});
     });
 
-    test('Navigate is not a Zwift action', () {
-      expect(appControllerActions(core.zwiftEmulator.supportedActions), isNot(contains(InGameAction.navigateLeft)));
+    test('navigating presses the D-pad', () async {
+      final channel = _RecordingPeripheralChannel()..install();
+      addTearDown(channel.remove);
+
+      await ZwiftEmulator().sendAction(_pair(InGameAction.navigateLeft), isKeyDown: true, isKeyUp: false);
+
+      expect(_buttonMapOf(channel.notifications.single, hasOpcode: true), _released(RideButtonMask.LEFT_BTN));
+    });
+
+    test('Navigate is a Zwift action', () {
+      expect(appControllerActions(core.zwiftEmulator.supportedActions), contains(InGameAction.navigateLeft));
     });
   });
 
