@@ -191,21 +191,26 @@ class Keymap {
     // default added as a click — an action the app may not have — nor a
     // second copy of the mapped one.
     final newButtons = availableButtons.filter((button) => getKeyPairs(button).isEmpty).toList();
+    if (newButtons.isEmpty) return;
+    final offered = core.settings.getTrainerApp()?.offeredInGameActions;
     for (final button in newButtons) {
       final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
         button,
         trigger: ButtonTrigger.singleClick,
       );
+      // The button's built-in default only if the app can perform it — left
+      // unassigned otherwise, rather than bound to an action that goes nowhere.
+      final action = offered == null || offered.contains(button.action) ? button.action : null;
       addKeyPair(
         KeyPair(
           touchPosition: buttonFromBase?.touchPosition ?? Offset.zero,
           buttons: [button],
-          inGameAction: button.action,
+          inGameAction: action,
           physicalKey: buttonFromBase?.physicalKey,
           logicalKey: buttonFromBase?.logicalKey,
           trigger:
               buttonFromBase?.trigger ??
-              (button.action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
+              (action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
           inGameActionValue: buttonFromBase?.inGameActionValue,
           androidAction: buttonFromBase?.androidAction,
           androidIntentAction: buttonFromBase?.androidIntentAction,
