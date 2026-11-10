@@ -450,9 +450,9 @@ Future<void> main() async {
       ]);
     });
 
-    // Rider log (XT Di2): the hood button already was on D-Fly Ch1; the write
-    // that also put Ch1 on a paddle was never confirmed.
-    test('a button already on a paddle channel is cleared, its setting kept in the backup', () async {
+    // Rider logs (XT Di2): the hood button already was on D-Fly Ch1; neither
+    // Ch1 on a paddle as well nor the hood button on none was confirmed.
+    test('a button on a paddle channel takes over that paddle\'s function, its setting kept in the backup', () async {
       ShimanoDi2.debugOneShifterGrace = Duration.zero;
       addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
       final (:di2, :t) = connected('di2-channels-hood-dfly');
@@ -463,8 +463,42 @@ Future<void> main() async {
       t.press(hoodOnCh1);
       await setup;
 
-      expect(t.switchWrites, ['00134120000111abff0000']);
+      expect(t.switchWrites, ['00134120000111abf30000']);
       expect(di2.switchBackup, [ShimanoShifterSwitches.fromTelemetry(hoodOnCh1)]);
+    });
+
+    // Rider log (XT Di2, SW-M8250): pressed again and again after the write,
+    // the shifter kept its old setting and never confirmed.
+    test('a shifter that turns the setting down ends the setup, keeping no backup', () async {
+      ShimanoDi2.debugOneShifterGrace = Duration.zero;
+      ShimanoDi2.debugSwitchRejectGrace = Duration.zero;
+      addTearDown(() {
+        ShimanoDi2.debugOneShifterGrace = null;
+        ShimanoDi2.debugSwitchRejectGrace = null;
+      });
+      final t = _SwitchingShimanoTransport(confirms: false);
+      final di2 = ShimanoDi2(BleDevice(name: 'RDM8250', deviceId: 'di2-channels-rejected'))
+        ..debugUseConfigTransport(t)
+        ..isConnected = true;
+      ShimanoDi2.debugEnterButtonMode = (d, passkey) async {};
+      final mtb = _hex('33411800e504e0f40142');
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(mtb);
+      while (t.switchWrites.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      for (var i = 0; i < 3; i++) {
+        t.press(mtb);
+      }
+
+      await expectLater(setup, throwsA(isA<ShimanoSwitchWriteRejectedException>()));
+      expect(t.switchWrites, hasLength(1));
+      expect(di2.isDflyChosen, isFalse);
+      expect(di2.switchBackup, isEmpty, reason: 'the shifter still does what it did');
+      expect(di2.shifterAsk.value, isNull);
     });
 
     test('restoring a single shifter asks for that one only', () async {

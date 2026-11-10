@@ -1220,6 +1220,8 @@
   "shimanoUseDfly": "Stattdessen D-Fly-Kanäle nutzen",
   "shimanoWiredTitle": "Deine Schalthebel sind verkabelt",
   "shimanoWiredBody": "Bei verkabelten Schalthebeln kann BikeControl die E-TUBE-Kanäle noch nicht einrichten. Hast du deine Schalttasten in der E-TUBE-PROJECT-App auf D-Fly-Kanäle gelegt, kann BikeControl diese nutzen. Auch der Tastenmodus funktioniert: Solange BikeControl verbunden ist, werden deine Schalttasten zu BikeControl-Tasten.",
+  "shimanoRejectedTitle": "Dein Schalthebel hat die Einstellung nicht übernommen",
+  "shimanoRejectedBody": "Dein Schalthebel hat die neue Tastenbelegung abgelehnt und funktioniert weiter wie vorher. Bei diesem Schalthebel kann BikeControl die E-TUBE-Kanäle noch nicht einrichten. Lege seine Tasten stattdessen in der E-TUBE-PROJECT-App auf D-Fly-Kanäle, dann kann BikeControl sie nutzen. Auch der Tastenmodus funktioniert: Solange BikeControl verbunden ist, werden deine Schalttasten zu BikeControl-Tasten.",
   "shimanoUseButtonMode": "Stattdessen Tastenmodus nutzen",
   "shimanoDflyActive": "Deine Di2 schaltet normal. Tasten, die du in der E-TUBE-App auf D-Fly-Kanäle gelegt hast, erscheinen hier, sobald du sie drückst.",
   "shimanoChooseTitle": "Wie soll BikeControl deine Di2 nutzen?",

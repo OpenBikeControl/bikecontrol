@@ -515,6 +515,8 @@ class ShimanoDi2 extends BluetoothDevice {
   /// before. The Di2 then never shifts with the paddles, whether BikeControl
   /// is connected or not, until [restoreSwitches].
   Future<void> setupChannels({required String passkey}) async {
+    final before = switchBackup;
+    final written = <int>{};
     try {
       await _onLiveInstance((target) => target._writeShifters(passkey, (seen) async {
         final changed = [for (final s in seen) if (!s.paddlesOnDfly) s];
@@ -522,11 +524,10 @@ class ShimanoDi2 extends BluetoothDevice {
         // Keep a shifter's first backup: a second setup would otherwise save
         // its D-Fly channels as the "original" setting. A shifter the earlier
         // setup never saw (it answered alone) gets its original added now.
-        final backup = switchBackup;
-        final added = [for (final s in changed) if (backup.none((b) => b.slot == s.slot)) s];
-        if (added.isNotEmpty) await core.settings.setShimanoSwitchBackup(_serialKey, [...backup, ...added]);
+        final added = [for (final s in changed) if (before.none((b) => b.slot == s.slot)) s];
+        if (added.isNotEmpty) await core.settings.setShimanoSwitchBackup(_serialKey, [...before, ...added]);
         return [for (final s in changed) s.withDflyPaddles()];
-      }));
+      }, onWritten: written.add));
       await core.settings.setShimanoPasskey(_serialKey, passkey);
       await core.settings.setShimanoButtonMode(_serialKey, false);
       await core.settings.setShimanoDfly(_serialKey, true);
@@ -535,6 +536,19 @@ class ShimanoDi2 extends BluetoothDevice {
       rethrow;
     } on ShimanoWiredShiftersException {
       actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup stopped: wired shifters'));
+      rethrow;
+    } on ShimanoSwitchWriteRejectedException catch (e) {
+      // That shifter kept its setting: keep no backup of it to restore.
+      final added = [
+        for (final s in switchBackup)
+          if (written.contains(s.slot) && before.none((b) => b.slot == s.slot)) s,
+      ];
+      if (before.isEmpty && added.isEmpty) {
+        await core.settings.clearShimanoSwitchBackup(_serialKey);
+      } else {
+        await core.settings.setShimanoSwitchBackup(_serialKey, [...before, ...added]);
+      }
+      actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup stopped: $e'));
       rethrow;
     } catch (e, st) {
       actionStreamInternal.add(LogNotification('ShimanoDi2 channel setup failed: $e'));
@@ -607,6 +621,7 @@ class ShimanoDi2 extends BluetoothDevice {
     String passkey,
     Future<List<ShimanoShifterSwitches>> Function(List<ShimanoShifterSwitches> seen) plan, {
     Set<int> slots = const {0, 1},
+    void Function(int slot)? onWritten,
   }) async {
     final t = _configTransport;
     if (t == null) throw StateError('Di2 has no config service');
@@ -677,6 +692,7 @@ class ShimanoDi2 extends BluetoothDevice {
                 t,
                 switches,
                 quiet: debugSwitchWriteQuiet ?? ShimanoConfig.switchWriteQuiet,
+                rejectGrace: debugSwitchRejectGrace ?? const Duration(seconds: 3),
                 onWrite: (command) {
                   final hex = command.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
                   Logger.info('ShimanoDi2 writing $switches: $hex');
@@ -694,6 +710,7 @@ class ShimanoDi2 extends BluetoothDevice {
             ready?.cancel();
           }
           actionStreamInternal.add(LogNotification('ShimanoDi2 wrote $switches'));
+          onWritten?.call(switches.slot);
           saved.add(shifter);
         }
         shifterAsk.value = ShimanoShifterAsk({...saved}, saving: true, single: single);
@@ -746,6 +763,11 @@ class ShimanoDi2 extends BluetoothDevice {
   /// Shortens the pause [ShimanoConfig.writeSwitches] waits for in tests.
   @visibleForTesting
   static Duration? debugSwitchWriteQuiet;
+
+  /// Shortens how long [ShimanoConfig.writeSwitches] waits for a late confirm
+  /// before it takes the setting as turned down, in tests.
+  @visibleForTesting
+  static Duration? debugSwitchRejectGrace;
 
   /// Replaces the authenticated [enterButtonMode] in channel setup tests.
   @visibleForTesting
@@ -956,6 +978,7 @@ class ShimanoDi2 extends BluetoothDevice {
       isPasskeyRejected: (e) => e is ShimanoPasskeyRejectedException,
       isPairingRequired: (e) => e is ShimanoDi2PairingRequiredException,
       isWiredShifters: (e) => e is ShimanoWiredShiftersException,
+      isRejected: (e) => e is ShimanoSwitchWriteRejectedException,
       onUseDfly: () => unawaited(useDflyChannels()),
       onUseButtonMode: () {
         if (context.mounted) unawaited(_showButtonModeSetup(context, afterChooser: afterChooser));

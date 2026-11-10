@@ -271,6 +271,7 @@ Future<void> showShimanoSetup(
   required bool Function(Object error) isPasskeyRejected,
   required bool Function(Object error) isPairingRequired,
   bool Function(Object error)? isWiredShifters,
+  bool Function(Object error)? isRejected,
   VoidCallback? onUseButtonMode,
   ValueListenable<ShimanoShifterAsk?>? shifters,
   VoidCallback? onCancelShifters,
@@ -295,6 +296,7 @@ Future<void> showShimanoSetup(
       isPasskeyRejected: isPasskeyRejected,
       isPairingRequired: isPairingRequired,
       isWiredShifters: isWiredShifters,
+      isRejected: isRejected,
       onUseButtonMode: onUseButtonMode,
       shifters: shifters,
       onCancelShifters: onCancelShifters,
@@ -597,7 +599,7 @@ class _ShifterPill extends StatelessWidget {
 /// the "wake the Di2 / press a shifter button" prompt shown on failure, and
 /// [passkey] asks again after the Di2 rejected the passkey. [pair] (Windows)
 /// asks the rider to pair the Di2 in Windows Settings.
-enum ShimanoSetupStage { confirm, running, authorize, passkey, pair, wired, success, error }
+enum ShimanoSetupStage { confirm, running, authorize, passkey, pair, wired, rejected, success, error }
 
 // ── Di2 setup/restore palette ───────────────────────────────────────────────
 const Color shimanoSuccess = Color(0xFF22C55E);
@@ -639,6 +641,11 @@ class ShimanoGuidedSheet extends StatefulWidget {
   /// operation can't handle (→ offer [onUseButtonMode]).
   final bool Function(Object error)? isWiredShifters;
 
+  /// Whether a thrown error means a shifter turned the new setting down, which
+  /// trying again won't change (→ set the channels in E-TUBE, or
+  /// [onUseButtonMode]).
+  final bool Function(Object error)? isRejected;
+
   /// Set up button mode instead (offered for wired shifters); the sheet
   /// closes first.
   final VoidCallback? onUseButtonMode;
@@ -671,6 +678,7 @@ class ShimanoGuidedSheet extends StatefulWidget {
     required this.isPasskeyRejected,
     required this.isPairingRequired,
     this.isWiredShifters,
+    this.isRejected,
     this.onUseButtonMode,
     this.onUseDfly,
     this.shifters,
@@ -709,6 +717,8 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
             ? ShimanoSetupStage.pair
             : widget.isWiredShifters?.call(e) ?? false
             ? ShimanoSetupStage.wired
+            : widget.isRejected?.call(e) ?? false
+            ? ShimanoSetupStage.rejected
             : widget.isUnresponsive(e)
                 ? ShimanoSetupStage.authorize
                 : ShimanoSetupStage.error;
@@ -932,12 +942,13 @@ Widget shimanoGuidedBody(
           child: Text(l.retry),
         ),
       ];
-    case ShimanoSetupStage.wired:
-      icon = LucideIcons.cable;
+    case ShimanoSetupStage.wired || ShimanoSetupStage.rejected:
+      final wired = stage == ShimanoSetupStage.wired;
+      icon = wired ? LucideIcons.cable : LucideIcons.circleSlash;
       tone = _shimanoWarning;
       wash = dark ? const Color(0x1AF59E0B) : _shimanoWarningWash;
-      heading = l.shimanoWiredTitle;
-      body = l.shimanoWiredBody;
+      heading = wired ? l.shimanoWiredTitle : l.shimanoRejectedTitle;
+      body = wired ? l.shimanoWiredBody : l.shimanoRejectedBody;
       stepIndex = null;
       // Trying again can't work: the way on is the D-Fly channels set in
       // E-TUBE (both levers) or button mode.

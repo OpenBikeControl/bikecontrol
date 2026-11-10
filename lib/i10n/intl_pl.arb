@@ -1208,6 +1208,8 @@
   "shimanoUseDfly": "Użyj zamiast tego kanałów D-Fly",
   "shimanoWiredTitle": "Twoje manetki są przewodowe",
   "shimanoWiredBody": "BikeControl nie potrafi jeszcze ustawić kanałów E-TUBE na manetkach przewodowych. Jeśli przypisałeś przyciski manetek do kanałów D-Fly w aplikacji E-TUBE PROJECT, BikeControl może z nich korzystać. Działa też tryb przycisków: dopóki BikeControl jest połączony, przyciski manetek stają się przyciskami BikeControl.",
+  "shimanoRejectedTitle": "Manetka nie przyjęła ustawienia",
+  "shimanoRejectedBody": "Manetka odrzuciła nowe przypisanie przycisków i działa tak jak wcześniej. BikeControl nie potrafi jeszcze ustawić kanałów E-TUBE na tej manetce. Przypisz jej przyciski do kanałów D-Fly w aplikacji E-TUBE PROJECT, wtedy BikeControl może z nich korzystać. Działa też tryb przycisków: dopóki BikeControl jest połączony, przyciski manetek stają się przyciskami BikeControl.",
   "shimanoUseButtonMode": "Użyj trybu przycisków",
   "shimanoDflyActive": "Twoje Di2 zmienia biegi normalnie. Przyciski przypisane do kanałów D-Fly w aplikacji E-TUBE pojawią się tutaj po naciśnięciu.",
   "shimanoChooseTitle": "Jak BikeControl ma używać Twojej Di2?",

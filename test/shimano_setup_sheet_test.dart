@@ -39,6 +39,7 @@ void main() {
                 isPasskeyRejected: (e) => e is ArgumentError,
                 isPairingRequired: (e) => e is UnsupportedError,
                 isWiredShifters: (e) => e is FormatException,
+                isRejected: (e) => e is ConcurrentModificationError,
                 onUseDfly: onUseDfly,
                 onUseButtonMode: onUseButtonMode,
               ),
@@ -115,6 +116,25 @@ void main() {
 
     expect(usedDfly, isTrue);
     expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsNothing, reason: 'the sheet closes');
+  });
+
+  testWidgets('a shifter that turned the setting down → set the channels in E-TUBE, or button mode', (tester) async {
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var usedButtonMode = false;
+    await runWith(tester, ConcurrentModificationError(), onUseDfly: () {}, onUseButtonMode: () => usedButtonMode = true);
+    expect(find.text(AppLocalizations.current.shimanoRejectedTitle), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoRejectedBody), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoUseDfly), findsOneWidget);
+    expect(find.text(AppLocalizations.current.retry), findsNothing, reason: 'trying again cannot work');
+
+    await tester.tap(find.text(AppLocalizations.current.shimanoUseButtonMode));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(usedButtonMode, isTrue);
+    expect(find.text(AppLocalizations.current.shimanoRejectedTitle), findsNothing, reason: 'the sheet closes');
   });
 
   testWidgets('any other failure → generic error', (tester) async {

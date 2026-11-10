@@ -1208,6 +1208,8 @@
   "shimanoUseDfly": "Usa invece i canali D-Fly",
   "shimanoWiredTitle": "I tuoi comandi sono cablati",
   "shimanoWiredBody": "BikeControl non può ancora configurare i canali E-TUBE sui comandi cablati. Se hai assegnato i pulsanti dei comandi ai canali D-Fly nell'app E-TUBE PROJECT, BikeControl può usarli. Funziona anche la modalità pulsanti: finché BikeControl è connesso, i pulsanti dei comandi diventano pulsanti di BikeControl.",
+  "shimanoRejectedTitle": "Il tuo comando non ha accettato l'impostazione",
+  "shimanoRejectedBody": "Il tuo comando ha rifiutato la nuova assegnazione dei pulsanti e funziona come prima. BikeControl non può ancora configurare i canali E-TUBE su questo comando. Assegna invece i suoi pulsanti ai canali D-Fly nell'app E-TUBE PROJECT, così BikeControl potrà usarli. Funziona anche la modalità pulsanti: finché BikeControl è connesso, i pulsanti dei comandi diventano pulsanti di BikeControl.",
   "shimanoUseButtonMode": "Usa la modalità pulsanti",
   "shimanoDflyActive": "Il tuo Di2 cambia normalmente. I pulsanti assegnati ai canali D-Fly nell'app E-TUBE compaiono qui quando li premi.",
   "shimanoChooseTitle": "Come deve usare BikeControl la tua Di2?",

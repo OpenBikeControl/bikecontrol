@@ -1208,6 +1208,8 @@
   "shimanoUseDfly": "Usar canales D-Fly en su lugar",
   "shimanoWiredTitle": "Tus mandos son con cable",
   "shimanoWiredBody": "BikeControl aún no puede configurar los canales E-TUBE en mandos con cable. Si asignaste los botones de tus mandos a canales D-Fly en la app E-TUBE PROJECT, BikeControl puede usarlos. El modo botones también funciona: mientras BikeControl esté conectado, los botones de tus mandos se convierten en botones de BikeControl.",
+  "shimanoRejectedTitle": "Tu mando no aceptó el ajuste",
+  "shimanoRejectedBody": "Tu mando rechazó la nueva asignación de botones y sigue funcionando como antes. BikeControl aún no puede configurar los canales E-TUBE en este mando. Asigna sus botones a canales D-Fly en la app E-TUBE PROJECT y BikeControl podrá usarlos. El modo botones también funciona: mientras BikeControl esté conectado, los botones de tus mandos se convierten en botones de BikeControl.",
   "shimanoUseButtonMode": "Usar el modo botones",
   "shimanoDflyActive": "Tu Di2 cambia con normalidad. Los botones que asignaste a canales D-Fly en la app E-TUBE aparecen aquí al pulsarlos.",
   "shimanoChooseTitle": "¿Cómo debe usar BikeControl tu Di2?",
