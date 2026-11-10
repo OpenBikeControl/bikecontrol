@@ -22,6 +22,11 @@ class Biketerra extends SupportedApp {
     (AppConnectionMethod.zwiftBle, ConnectionSupport.beta),
   ];
 
+  /// Biketerra pairs trainers over Bluetooth only — it has no WiFi (DirCon)
+  /// trainer connection, so the WiFi bridge is never offered.
+  @override
+  Set<TrainerConnectionType> get virtualShiftingTransports => const {TrainerConnectionType.bluetooth};
+
   @override
   String? get logoAsset => 'assets/biketerra.png';
 
