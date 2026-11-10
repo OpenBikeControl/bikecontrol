@@ -55,7 +55,7 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   @override
   bool get shouldAutoConnect =>
       !ClickV2Onboarding.isPending &&
-      (core.settings.getClickV2RightSideOnly() || core.settings.getUnlockWithZwift());
+      (core.settings.getClickV2RightSideOnly() || ClickV2Onboarding.unlocksWithZwift);
 
   /// The same single unlock-mode choice as the left puck — see
   /// [ZwiftClickV2.setupNeed]. This puck is never locked itself.

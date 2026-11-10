@@ -7,6 +7,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -94,6 +95,29 @@ void main() {
     test('still pending for riders on the default restart mode', () async {
       await core.settings.setUnlockWithZwift(false);
       expect(ClickV2Onboarding.isPending, isTrue);
+    });
+
+    test('not pending when Zwift or Rouvy unlocks the controller', () {
+      for (final app in [Zwift(), Rouvy()]) {
+        core.settings.setTrainerApp(app);
+        expect(ClickV2Onboarding.isPending, isFalse, reason: app.name);
+        expect(ClickV2Onboarding.unlocksWithZwift, isTrue, reason: app.name);
+        expect(_leftSide().requiresZwiftUnlock, isTrue, reason: app.name);
+        expect(_rightSide().shouldAutoConnect, isTrue, reason: app.name);
+      }
+    });
+
+    test('still pending with an app that does not unlock it', () {
+      core.settings.setTrainerApp(CustomApp());
+      expect(ClickV2Onboarding.isPending, isTrue);
+      expect(ClickV2Onboarding.unlocksWithZwift, isFalse);
+    });
+
+    test('a right-side-only choice survives Zwift', () async {
+      await core.settings.setClickV2OnboardingDone(true);
+      await core.settings.setClickV2RightSideOnly(true);
+      core.settings.setTrainerApp(Zwift());
+      expect(ClickV2Onboarding.unlocksWithZwift, isFalse);
     });
 
     test('never pending in screenshot mode', () {

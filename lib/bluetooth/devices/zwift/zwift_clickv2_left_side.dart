@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/utils/core.dart';
@@ -37,7 +38,7 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
   /// Only the unlock-with-Zwift mode asks the rider to unlock this puck; the
   /// restart workaround reboots it instead.
   @override
-  bool get requiresZwiftUnlock => core.settings.getUnlockWithZwift();
+  bool get requiresZwiftUnlock => ClickV2Onboarding.unlocksWithZwift;
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
@@ -78,14 +79,14 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
     // over — un-mute its entry and notifications again.
     ClickLogic.clearResetting(device.deviceId);
     await sendCommandBuffer(Uint8List.fromList(startCommand));
-    if (!core.settings.getUnlockWithZwift()) {
+    if (!ClickV2Onboarding.unlocksWithZwift) {
       await ClickLogic.setupHandshake(services!, device.deviceId, isRight: false);
     }
   }
 
   @override
   Future<void> processData(Uint8List bytes) async {
-    if (!core.settings.getUnlockWithZwift()) {
+    if (!ClickV2Onboarding.unlocksWithZwift) {
       ClickLogic.processData(bytes, services: services!, deviceId: device.deviceId);
     }
     super.processData(bytes);

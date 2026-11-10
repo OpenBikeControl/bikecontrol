@@ -59,6 +59,10 @@ Future<void> setZwiftUnlockInProgress(bool value, {DirconEmulator? emulator}) as
   }
 }
 
+/// Whether the selected trainer app unlocks a Zwift Click V2 or Ride V2
+/// itself once BikeControl is connected to it (Zwift, Rouvy).
+bool trainerAppUnlocksZwiftControllers() => core.settings.getTrainerApp()?.unlocksZwiftControllers ?? false;
+
 /// Whether the selected trainer app takes controller input from
 /// OpenBikeControl's DirCon endpoint, which advertises
 /// `_wahoo-fitness-tnp._tcp "BikeControl"`. Another BikeControl record of

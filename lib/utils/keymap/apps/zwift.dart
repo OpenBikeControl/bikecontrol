@@ -10,6 +10,9 @@ class Zwift extends SupportedApp {
   bool get emulatesZwiftRide => true;
 
   @override
+  bool get unlocksZwiftControllers => true;
+
+  @override
   bool get showsOwnGear => true;
 
   @override

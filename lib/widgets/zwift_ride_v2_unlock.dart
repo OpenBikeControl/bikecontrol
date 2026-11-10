@@ -135,6 +135,8 @@ class ZwiftRideV2LockedToastContent extends StatelessWidget {
 /// connected. Returns whether it opened it.
 Future<bool> maybeShowZwiftRideV2Explainer(BuildContext context, Iterable<BaseDevice> controllers) async {
   if (screenshotMode || core.settings.getRideV2ExplainerShown()) return false;
+  // Zwift and Rouvy unlock it themselves; "shown" stays unset for a later app switch.
+  if (trainerAppUnlocksZwiftControllers()) return false;
   final rideV2 = controllers.firstOrNullWhere((d) => d.isConnected && d is ZwiftUnlock && d.isRideV2);
   if (rideV2 == null) return false;
   unawaited(core.settings.setRideV2ExplainerShown(true));

@@ -9,6 +9,8 @@ import 'package:bike_control/pages/unlock.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/unlock_toggle.dart';
 import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -232,5 +234,27 @@ void main() {
       expect(shown, isFalse);
       expect(core.settings.getRideV2ExplainerShown(), isFalse);
     });
+
+    for (final app in [Zwift(), Rouvy()]) {
+      testWidgets('does not show when ${app.name} unlocks it', (tester) async {
+        core.settings.setTrainerApp(app);
+        bool? shown;
+        final ride = _rideV2();
+        await tester.pumpWidget(
+          _host(
+            (context) => Button.primary(
+              onPressed: () async => shown = await maybeShowZwiftRideV2Explainer(context, [ride]),
+              child: const Text('go'),
+            ),
+          ),
+        );
+        await tester.tap(find.text('go'));
+        await tester.pumpAndSettle();
+        expect(shown, isFalse);
+        expect(find.byType(ZwiftRideV2ExplainerPage), findsNothing);
+        // Kept for a later switch to an app that does not unlock it.
+        expect(core.settings.getRideV2ExplainerShown(), isFalse);
+      });
+    }
   });
 }

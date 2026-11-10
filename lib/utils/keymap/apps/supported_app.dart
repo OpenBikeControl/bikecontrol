@@ -127,6 +127,11 @@ abstract class SupportedApp {
   /// Whether the Zwift controller emulators present themselves as a Zwift Ride.
   bool get emulatesZwiftRide => false;
 
+  /// Whether this app unlocks a Zwift Click V2 or Ride V2 by itself once
+  /// BikeControl is connected to it, so the rider has no unlock mode to pick
+  /// and nothing to be told about unlocking.
+  bool get unlocksZwiftControllers => false;
+
   /// Zwift Ride controls this app has nothing for, so they are not offered.
   Set<InGameAction> get unsupportedControllerActions => emulatesZwiftRide ? const {} : rideOnlyActions;
 

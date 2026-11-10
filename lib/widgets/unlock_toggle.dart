@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
@@ -29,8 +30,8 @@ class _UnlockToggleState extends State<UnlockToggle> {
   late _UnlockMode _mode = _readMode();
 
   _UnlockMode _readMode() {
-    if (core.settings.getUnlockWithZwift()) return _UnlockMode.zwift;
     if (core.settings.getClickV2RightSideOnly()) return _UnlockMode.rightSideOnly;
+    if (ClickV2Onboarding.unlocksWithZwift) return _UnlockMode.zwift;
     return _UnlockMode.restart;
   }
 
