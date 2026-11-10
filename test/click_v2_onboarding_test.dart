@@ -102,7 +102,9 @@ void main() {
         core.settings.setTrainerApp(app);
         expect(ClickV2Onboarding.isPending, isFalse, reason: app.name);
         expect(ClickV2Onboarding.unlocksWithZwift, isTrue, reason: app.name);
-        expect(_leftSide().requiresZwiftUnlock, isTrue, reason: app.name);
+        // The app unlocks it: no "locked / unlock now" for the rider.
+        expect(_leftSide().requiresZwiftUnlock, isFalse, reason: app.name);
+        expect(_leftSide().setupNeed, isNull, reason: app.name);
         expect(_rightSide().shouldAutoConnect, isTrue, reason: app.name);
       }
     });

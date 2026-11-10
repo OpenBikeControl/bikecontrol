@@ -105,8 +105,10 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// Whether the rider has to unlock this controller with Zwift — the
   /// capability the UI keys on (home chain step, status lines, unlock page).
   /// Usually the same as [usesZwiftUnlock]; the Click V2 left puck narrows it
-  /// to the unlock-with-Zwift mode.
-  bool get requiresZwiftUnlock => usesZwiftUnlock;
+  /// to the unlock-with-Zwift mode. Never while Zwift or Rouvy is selected:
+  /// they unlock it themselves once BikeControl is connected to them, so there
+  /// is nothing for the rider to do.
+  bool get requiresZwiftUnlock => usesZwiftUnlock && !trainerAppUnlocksZwiftControllers();
 
   /// Whether this controller offers the Click V2 unlock modes (right side
   /// only, restart every minute). Only the Click V2 does; a Zwift Ride V2
@@ -413,7 +415,7 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// pills. It sits inside the controller card, so it adds no box of its own.
   List<Widget> unlockWarnings(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId, keyPrefix: unlockKeyPrefix);
-    if (!isConnected || screenshotMode) return [];
+    if (!isConnected || screenshotMode || trainerAppUnlocksZwiftControllers()) return [];
     if (isPersistedUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
         UnlockStatusPanel(

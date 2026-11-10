@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart' show trainerAppUnlocksZwiftControllers;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -38,7 +39,7 @@ class ZwiftClickV2LeftSide extends ZwiftClickV2 {
   /// Only the unlock-with-Zwift mode asks the rider to unlock this puck; the
   /// restart workaround reboots it instead.
   @override
-  bool get requiresZwiftUnlock => ClickV2Onboarding.unlocksWithZwift;
+  bool get requiresZwiftUnlock => ClickV2Onboarding.unlocksWithZwift && !trainerAppUnlocksZwiftControllers();
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
