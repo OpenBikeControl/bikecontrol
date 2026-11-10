@@ -178,8 +178,10 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// while it still needs unlocking: while it is there, it answers the
   /// trainer app as itself (a Click V2 is a "Zwift Click"), standing in for
   /// BikeControl's own Zwift Ride — whose paddles and D-pad are what the
-  /// mapped actions are sent as. Once unlocked it comes off again.
-  bool get _clickDefBelongsOnBridge => attachesClickDefToBridge && !isUnlocked.value && !isPersistedUnlocked;
+  /// mapped actions are sent as. Once this session has seen it unlocked it
+  /// comes off again — not on the stored unlock time alone, which outlives a
+  /// controller that was switched off and is locked again.
+  bool get _clickDefBelongsOnBridge => attachesClickDefToBridge && !isUnlocked.value;
 
   bool _listensForUnlock = false;
 
