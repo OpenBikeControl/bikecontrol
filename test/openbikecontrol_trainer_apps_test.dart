@@ -16,6 +16,7 @@ void main() {
     'OpenRadlr',
     'zwoTrainer',
     'Incyclist',
+    'Tour du Pain',
   ];
 
   SupportedApp byName(String name) => SupportedApp.supportedApps.singleWhere((app) => app.name == name);

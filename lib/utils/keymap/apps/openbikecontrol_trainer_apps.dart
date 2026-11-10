@@ -87,5 +87,10 @@ class OpenBikeControlTrainerApp extends SupportedApp {
       mdns: true,
       wifiTrainers: true,
     ),
+    OpenBikeControlTrainerApp(
+      name: 'Tour du Pain',
+      logo: 'tour-du-pain.png',
+      officialUrl: 'https://tourdupain.app',
+    ),
   ];
 }

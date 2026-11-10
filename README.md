@@ -60,6 +60,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - OpenRadlr
 - zwoTrainer
 - Incyclist
+- Tour du Pain
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps
