@@ -9,7 +9,7 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.d
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/main.dart' show recordError, screenshotMode;
 import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -161,11 +161,34 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       );
 
   /// Instance name of the DirCon controller entry (TrainingPeaks Virtual):
-  /// "BikeControl" plus four hex digits of this install's id, e.g.
-  /// "BikeControl 7519". With two phones on one LAN a shared "BikeControl"
-  /// made mDNS rename one of them to "BikeControl (2)", and TPV's controller
-  /// link landed on the other rider's phone.
-  static String get dirconInstanceName => 'BikeControl ${BikeControlMdnsMarkers.installId.substring(0, 4)}';
+  /// "BikeControl", the platform and four hex digits of this install's id,
+  /// e.g. "BikeControl iOS 7519". With two phones on one LAN a shared
+  /// "BikeControl" made mDNS rename one of them to "BikeControl (2)", and
+  /// TPV's controller link landed on the other rider's phone. The platform
+  /// alone would not do: two iPhones are the case that broke.
+  static String get dirconInstanceName => [
+    'BikeControl',
+    ?_platformLabel,
+    BikeControlMdnsMarkers.installId.substring(0, 4),
+  ].join(' ');
+
+  static String? get _platformLabel {
+    if (kIsWeb) return null;
+    if (Platform.isIOS) return 'iOS';
+    if (Platform.isAndroid) return 'Android';
+    if (Platform.isMacOS) return 'macOS';
+    if (Platform.isWindows) return 'Windows';
+    if (Platform.isLinux) return 'Linux';
+    return null;
+  }
+
+  /// The controller tile [app] lists for this install — what the in-app
+  /// hints tell the rider to tap. Screenshots get a fixed name: the install
+  /// id is random per run.
+  static String controllerTileNameFor(SupportedApp? app) {
+    if (!(app?.supports(AppConnectionMethod.obpDirCon) ?? false)) return 'BikeControl';
+    return screenshotMode ? 'BikeControl iOS 7519' : dirconInstanceName;
+  }
 
   /// `serial-number` of the DirCon controller entry, per install for the same
   /// reason as [dirconInstanceName]: DirCon clients recognise a paired device

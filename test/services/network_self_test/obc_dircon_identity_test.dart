@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
@@ -67,6 +68,20 @@ Future<void> main() async {
       expect(txt(first, 'serial-number'), isNot(txt(second, 'serial-number')));
     });
 
+    test('the name says which platform it runs on, plus four hex digits', () async {
+      core.settings.setTrainerApp(TrainingPeaks());
+      final service = await advertise();
+
+      expect(service.name, matches(RegExp(r'^BikeControl (iOS|Android|macOS|Windows|Linux) [0-9A-F]{4}$')));
+    });
+
+    test('the in-app hint names the tile TPv shows', () async {
+      core.settings.setTrainerApp(TrainingPeaks());
+      final service = await advertise();
+
+      expect(OpenBikeControlMdnsEmulator.controllerTileNameFor(TrainingPeaks()), service.name);
+    });
+
     test('name and serial stay the same across restarts of one install', () async {
       core.settings.setTrainerApp(TrainingPeaks());
       final first = await advertise();
@@ -102,5 +117,6 @@ Future<void> main() async {
     final service = await advertise();
 
     expect(service.name, 'BikeControl');
+    expect(OpenBikeControlMdnsEmulator.controllerTileNameFor(MyWhoosh()), 'BikeControl');
   });
 }
