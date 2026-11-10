@@ -1,30 +1,18 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:prop/emulators/transporter/shared_peripheral.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 /// Thin wrapper around [UniversalBlePeripheral]'s static API that lets
-/// several PeripheralServer instances coexist without clobbering each
-/// other's read/write handlers — universal_ble exposes a single global
-/// read handler and write handler, so we install one router per process
-/// and dispatch by characteristic UUID.
+/// several PeripheralServer instances — and the trainer bridge — coexist
+/// without clobbering each other's read/write handlers: universal_ble exposes
+/// a single global read handler and write handler, so every role registers
+/// with [SharedPeripheral]'s one router, which dispatches by characteristic
+/// UUID.
 class PeripheralServer {
-  static bool _routerInstalled = false;
-  static final Map<String, OnPeripheralReadRequest> _readHandlers = {};
-  static final Map<String, OnPeripheralWriteRequest> _writeHandlers = {};
-
-  static void _installRouter() {
-    if (_routerInstalled) return;
-    _routerInstalled = true;
-    UniversalBlePeripheral.setReadRequestHandlers((deviceId, charId, offset, value) {
-      return _readHandlers[charId.toLowerCase()]?.call(deviceId, charId, offset, value);
-    });
-    UniversalBlePeripheral.setWriteRequestHandlers((deviceId, charId, offset, value) {
-      return _writeHandlers[charId.toLowerCase()]?.call(deviceId, charId, offset, value);
-    });
-  }
-
-  final List<String> _ownedCharacteristics = [];
+  final Map<String, OnPeripheralReadRequest> _readHandlers = {};
+  final Map<String, OnPeripheralWriteRequest> _writeHandlers = {};
   StreamSubscription<BlePeripheralConnectionStateChanged>? _connectionSub;
   StreamSubscription<BlePeripheralCharacteristicSubscriptionChanged>? _subscriptionSub;
   StreamSubscription<BlePeripheralAdvertisingStateChanged>? _advertisingSub;
@@ -51,20 +39,18 @@ class PeripheralServer {
   }
 
   void setReadHandler(String characteristicId, OnPeripheralReadRequest handler) {
-    _installRouter();
-    final key = characteristicId.toLowerCase();
-    _readHandlers[key] = handler;
-    _ownedCharacteristics.add(key);
+    _readHandlers[characteristicId.toLowerCase()] = handler;
+    SharedPeripheral.setReadHandler(characteristicId, handler);
   }
 
   void setWriteHandler(String characteristicId, OnPeripheralWriteRequest handler) {
-    _installRouter();
-    final key = characteristicId.toLowerCase();
-    _writeHandlers[key] = handler;
-    _ownedCharacteristics.add(key);
+    _writeHandlers[characteristicId.toLowerCase()] = handler;
+    SharedPeripheral.setWriteHandler(characteristicId, handler);
   }
 
   Future<void> addService(BlePeripheralService service) => UniversalBlePeripheral.addService(service);
+
+  Future<void> removeService(String serviceId) => UniversalBlePeripheral.removeService(serviceId);
 
   Future<void> clearServices() => UniversalBlePeripheral.clearServices();
 
@@ -106,10 +92,9 @@ class PeripheralServer {
     await _connectionSub?.cancel();
     await _subscriptionSub?.cancel();
     await _advertisingSub?.cancel();
-    for (final key in _ownedCharacteristics) {
-      _readHandlers.remove(key);
-      _writeHandlers.remove(key);
-    }
-    _ownedCharacteristics.clear();
+    _readHandlers.forEach(SharedPeripheral.removeReadHandler);
+    _writeHandlers.forEach(SharedPeripheral.removeWriteHandler);
+    _readHandlers.clear();
+    _writeHandlers.clear();
   }
 }

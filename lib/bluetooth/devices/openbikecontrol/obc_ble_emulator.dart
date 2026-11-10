@@ -160,7 +160,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
         ),
       );
 
-      // OpenBikeControl Service
+      // OpenBikeControl Service. Protected: the Bluetooth trainer bridge
+      // shares this peripheral and would otherwise wipe it when it starts or
+      // stops, leaving the trainer app with no button characteristic.
+      SharedPeripheral.protectServices([OpenBikeControlConstants.SERVICE_UUID]);
       await _server.addService(
         BlePeripheralService(
           uuid: OpenBikeControlConstants.SERVICE_UUID,
@@ -235,13 +238,24 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
     if (kDebugMode) {
       print('Stopping OpenBikeControl BLE server...');
     }
-    await _server.clearServices();
+    // Only our own services: the trainer bridge may be serving from the same
+    // peripheral.
+    SharedPeripheral.unprotectServices([OpenBikeControlConstants.SERVICE_UUID]);
+    for (final service in _ownServiceUuids) {
+      await _server.removeService(service);
+    }
     _isServiceAdded = false;
     await _server.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
     connectedApp.value = null;
   }
+
+  List<String> get _ownServiceUuids => [
+    if (!Platform.isWindows) '180A',
+    '180F',
+    OpenBikeControlConstants.SERVICE_UUID,
+  ];
 
   BlePeripheralCharacteristic _immutableChar(String uuid, String value) => BlePeripheralCharacteristic(
     uuid: uuid,
