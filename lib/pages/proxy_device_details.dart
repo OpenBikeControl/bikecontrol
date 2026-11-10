@@ -13,7 +13,6 @@ import 'package:bike_control/pages/proxy_device_details/connection_card.dart';
 import 'package:bike_control/pages/proxy_device_details/control_protocol_section.dart';
 import 'package:bike_control/pages/proxy_device_details/need_help_card.dart';
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart';
-import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -186,7 +185,7 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   /// section — the gear overlay, controller-disconnect and network-test
   /// explainers these riders usually need — instead of straight into a
   /// support chat. The same rich diagnostic payload the chat used to get up
-  /// front (a screenshot, trainer-specific telemetry) still rides along via
+  /// front (trainer-specific telemetry) still rides along via
   /// [HelpCenterSupportContext], so it isn't lost if the rider continues
   /// from there into "Tell us what's wrong". The composer is deliberately
   /// left empty — no prefilled label — a fixed origin marker still reaches
@@ -194,10 +193,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   /// started from this card is recognisable as such.
   Future<void> _routeToHelpCenter() async {
     final device = widget.device;
-    // Cheap, local (RepaintBoundary → PNG) — unlike debugText() below, worth
-    // paying up front rather than deferring.
-    final screenshot = await captureCurrentScreenScreenshot(context);
-    if (!mounted) return;
     // Lazy + memoized: the Help Center is now an intermediate stop the rider
     // can bounce off without ever opening the chat, so debugText() (a real
     // mDNS discovery scan) must not run just because this button was tapped
@@ -218,7 +213,6 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
           focus: HelpCenterFocus.yourSetup,
           launchContext: HelpCenterSupportContext(
             telemetryBuilder: buildSnapshot,
-            initialAttachment: screenshot,
           ),
         ),
       ),

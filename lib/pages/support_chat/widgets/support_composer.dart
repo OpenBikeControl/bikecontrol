@@ -122,9 +122,8 @@ class SupportComposer extends StatefulWidget {
   /// typing immediately.
   final String? initialText;
 
-  /// Optional attachment to pre-stage on first build (e.g. an
-  /// OverviewPage screenshot captured before navigating to the chat).
-  /// The user can still remove it via the chip's X button before sending.
+  /// Optional attachment to pre-stage on first build. The user can still
+  /// remove it via the chip's X button before sending.
   final StagedAttachment? initialAttachment;
 
   /// A diagnostic line (e.g. `Network self-test: …`) that rides along with
@@ -396,11 +395,7 @@ class _SupportComposerState extends State<SupportComposer> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // GDPR transparency: telemetry is attached to every support message
-          // and a screenshot is pre-staged on the first one. Say so here rather
-          // than sending it silently — the ⓘ button and the attachment chip
-          // both let the user inspect/remove before sending.
-          if (hasDiagnostic) _diagnosticsNotice(cs) else _retentionOnlyNotice(cs),
+          if (!hasDiagnostic) _retentionOnlyNotice(cs),
           if (_pinnedContext != null) _pinnedContextChip(cs),
           for (final attachment in _attachments) _stagedAttachmentChip(attachment),
           Row(
@@ -434,8 +429,10 @@ class _SupportComposerState extends State<SupportComposer> {
                     key: supportComposerFieldKey,
                     controller: _controller,
                     focusNode: _focusNode,
+                    // The first message's question is asked by the chat page
+                    // (Jonas' bubble), so only a pinned result needs it here.
                     placeholder: Text(
-                      _describing
+                      _pinnedContext != null
                           ? context.i18n.supportDescribeProblemPlaceholder
                           : context.i18n.messageComposerPlaceholder,
                     ),
@@ -447,10 +444,6 @@ class _SupportComposerState extends State<SupportComposer> {
                 ),
               ),
               const SizedBox(width: 8),
-              if (hasDiagnostic) ...[
-                _diagnosticPreview(cs),
-                const SizedBox(width: 8),
-              ],
               BkIconButton.primary(
                 icon: widget.sending ? const SmallProgressIndicator() : const Icon(LucideIcons.send, size: 18),
                 label: context.i18n.a11ySendMessage,
@@ -458,9 +451,14 @@ class _SupportComposerState extends State<SupportComposer> {
               ),
             ],
           ),
+          // GDPR transparency: telemetry is attached to every support message.
+          // One line says so; "View" opens what goes out, retention included.
+          if (hasDiagnostic) _diagnosticsLine(cs),
           // Only while the description is what's holding the send back: once
-          // it is long enough the hint would just be nagging.
-          if (!widget.sending && _needsDescription)
+          // it is long enough the hint would just be nagging. For a first
+          // message it waits until the rider starts typing — the question
+          // above already asks for it.
+          if (!widget.sending && _needsDescription && (_pinnedContext != null || _controller.text.trim().isNotEmpty))
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
@@ -505,38 +503,6 @@ class _SupportComposerState extends State<SupportComposer> {
     );
   }
 
-  Widget _diagnosticsNotice(ColorScheme cs) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(LucideIcons.shieldCheck, size: 13, color: cs.mutedForeground),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Names what actually goes out: the screenshot only while one
-                // is staged.
-                if (_attachments.any((a) => a.isImage))
-                  Text(
-                    context.i18n.supportDiagnosticsNotice,
-                    style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
-                  )
-                else
-                  _noticeWithInfoIcon(cs),
-                const SizedBox(height: 4),
-                _retentionText(cs),
-                _privacyPolicyLink(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Without diagnostics there is nothing else to disclose, but how long the
   /// conversation is kept still applies, so it gets the same compact row.
   Widget _retentionOnlyNotice(ColorScheme cs) {
@@ -575,55 +541,57 @@ class _SupportComposerState extends State<SupportComposer> {
     );
   }
 
-  /// The no-screenshot notice, with the info button's icon drawn inline where
-  /// the message names it.
-  Widget _noticeWithInfoIcon(ColorScheme cs) {
-    const marker = '\uFFFC';
-    final style = context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3);
-    final parts = context.i18n.supportDiagnosticsNoticeNoScreenshot(marker).split(marker);
-    return Text.rich(
-      key: const ValueKey('support-diagnostics-notice-no-screenshot'),
-      TextSpan(
+  /// The one-line diagnostics notice under the input: what goes out and a
+  /// way to look at it (the sheet carries retention and the privacy policy).
+  Widget _diagnosticsLine(ColorScheme cs) {
+    final style = context.typography.caption.copyWith(color: cs.mutedForeground);
+    final dot = Text('·', style: style);
+    Widget link(String text, VoidCallback onPressed, {Key? key}) => Button.text(
+      key: key,
+      style: const ButtonStyle.text(density: ButtonDensity.compact),
+      onPressed: onPressed,
+      child: Text(text, style: style.copyWith(decoration: TextDecoration.underline)),
+    );
+    return Padding(
+      key: const ValueKey('support-diagnostics-line'),
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
         children: [
-          for (var i = 0; i < parts.length; i++) ...[
-            if (i > 0)
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Icon(LucideIcons.info, size: (style.fontSize ?? 11) + 2, color: cs.mutedForeground),
-              ),
-            TextSpan(text: parts[i]),
-          ],
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(LucideIcons.shieldCheck, size: 12, color: cs.mutedForeground),
+              const SizedBox(width: 5),
+              Text(context.i18n.supportDiagnosticsAttached, style: style),
+            ],
+          ),
+          dot,
+          link(
+            context.i18n.supportDiagnosticsView,
+            _openDiagnosticsSheet,
+            key: const ValueKey('support-diagnostics-view'),
+          ),
         ],
       ),
-      style: style,
     );
   }
 
-  Widget _diagnosticPreview(ColorScheme cs) {
-    return Container(
-      decoration: BoxDecoration(
-        color: cs.muted.withAlpha(40),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cs.border),
+  void _openDiagnosticsSheet() {
+    // The payload includes the full log buffer, so it can be far taller than
+    // the screen: cap the sheet height (keeps the dismiss barrier reachable)
+    // and scroll the payload instead of overflowing.
+    openBottomSheet(
+      context: context,
+      constraints: BoxConstraints(
+        maxWidth: 360,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.6,
       ),
-      child: Button.outline(
-        style: ButtonStyle.outlineIcon(),
-        child: Icon(LucideIcons.info),
-        // The payload includes the full log buffer, so it can be far taller
-        // than the screen: cap the sheet height (keeps the dismiss barrier
-        // reachable) and scroll the payload instead of overflowing.
-        onPressed: () => openBottomSheet(
-          context: context,
-          constraints: BoxConstraints(
-            maxWidth: 360,
-            maxHeight: MediaQuery.sizeOf(context).height * 0.6,
-          ),
-          builder: (c) => _DiagnosticsSheet(
-            payload: widget.diagnosticPreview!,
-            screenshotAttached: _attachments.any((a) => a.isImage),
-            onClose: () => closeSheet(c),
-          ),
-        ),
+      builder: (c) => _DiagnosticsSheet(
+        payload: widget.diagnosticPreview!,
+        screenshotAttached: _attachments.any((a) => a.isImage),
+        onClose: () => closeSheet(c),
       ),
     );
   }
@@ -760,6 +728,21 @@ class _DiagnosticsSheetState extends State<_DiagnosticsSheet> {
                       widget.payload,
                       style: context.typography.caption.copyWith(color: cs.mutedForeground, fontFamily: 'monospace'),
                     ),
+                  const SizedBox(height: 12),
+                  // GDPR storage limitation, out of the composer's way but
+                  // right where the rider looks at what is sent.
+                  Text(
+                    l.supportRetentionNotice,
+                    key: const ValueKey('support-retention-notice'),
+                    style: context.typography.caption.copyWith(color: cs.mutedForeground, height: 1.3),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Button.text(
+                      onPressed: () => launchUrlString('https://bikecontrol.app/privacy-policy'),
+                      child: Text(l.privacyPolicy).xSmall.muted.underline,
+                    ),
+                  ),
                 ],
               ),
             ),

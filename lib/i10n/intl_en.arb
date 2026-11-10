@@ -1548,7 +1548,6 @@
   },
   "feedbackQuestion": "Does it work?",
   "supportChat": "Support Chat",
-  "supportDiagnosticsNotice": "To help fix your issue, this chat attaches a screenshot of BikeControl and diagnostic info. You can review or remove them before sending.",
   "supportRetentionNotice": "Conversations are deleted automatically 30 days after the last message. Anonymised trainer data (model, firmware, test results) is kept to improve compatibility.",
   "supportDeleteConversation": "Delete conversation",
   "supportDeleteAccount": "Delete account & all data",
@@ -1569,7 +1568,6 @@
   "supportAccountLinkEmailTaken": "{email} already has a BikeControl account, so it can't be added to this chat. To use that account, sign in under Settings → Plan & account. This conversation won't move over, so send your message again from there. Or enter a different email.",
   "@supportAccountLinkEmailTaken": {"placeholders": {"email": {"type": "String"}}},
   "retry": "Retry",
-  "supportChatEmpty": "Send a message to start the conversation.",
   "supportChatIntro": "You'll be talking to Jonas from BikeControl",
   "supportChatIntroFatherNote": "I'll be a father, soon, so it might take a few hours for me to respond :-)",
   "supportIntakeTitle": "Tell us about the problem",
@@ -2936,7 +2934,7 @@
   "paywall_planQuestions": "Questions about plans?",
   "paywall_oneTimePurchase": "One-time purchase",
   "vsBudgetProRemovesLimit": "Pro removes the limit",
-  "supportDescribeFirstMessageHint": "Tell us what you're trying to do and what happens instead. A screenshot alone doesn't say what went wrong — one sentence is enough.",
+  "supportDescribeFirstMessageHint": "Describe in one sentence what you're trying to do and what happens instead.",
   "supportIntakeTryThisFirst": "Try this first",
   "supportIntakeDidThisSolveIt": "Did this solve it?",
   "supportIntakeSolvedYes": "Yes, all good",
@@ -3068,8 +3066,6 @@
   "purchaseProDeviceLimitTitle": "Pro is on your account, but not on this device yet",
   "helpAnswerStillStuckContactSupport": "Still stuck? Contact support",
   "paywallYourPlan": "Your plan",
-  "supportDiagnosticsNoticeNoScreenshot": "To help fix your issue, this chat attaches diagnostic info. You can review it with {infoIcon} before sending.",
-  "@supportDiagnosticsNoticeNoScreenshot": {"placeholders": {"infoIcon": {"type": "String"}}},
   "rideV2SupportLine": "Don't want to unlock every day? Contact support.",
   "rideV2Explainer_title": "Zwift Ride V2 setup",
   "rideV2Explainer_heading": "Unlock it with Zwift",
@@ -3456,5 +3452,9 @@
       "seconds": {"type": "int"},
       "rpm": {"type": "int"}
     }
-  }
+  },
+  "supportDiagnosticsAttached": "Diagnostic info attached",
+  "supportDiagnosticsView": "View",
+  "supportChatGreeting": "Hi, I'm Jonas from BikeControl!",
+  "supportChatAskWhatHappens": "What exactly are you trying to do, and what happens instead? One sentence is enough."
 }
