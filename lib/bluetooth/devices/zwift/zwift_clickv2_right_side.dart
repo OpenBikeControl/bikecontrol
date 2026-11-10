@@ -43,19 +43,15 @@ class ZwiftClickV2RightSide extends ZwiftRide {
   /// first would hand them a controller that half-works for reasons they have
   /// not been told about yet.
   ///
-  /// After the choice, this side connects in both of the modes the explainer
-  /// offers — right-side-only and unlock-with-Zwift. The one mode it stays out
-  /// of is the legacy left-side restart loop: `ClickLogic` drives that from a
-  /// single shared timer which this side's handshake cancels
-  /// (`ClickLogic.setupHandshake(isRight: true)`), so connecting here would
-  /// stop the left puck restarting and strand it locked.
+  /// After the choice, this side connects in every mode: Zwift never locked
+  /// it. That includes the left-puck restart mode — this side's handshake no
+  /// longer touches the left puck's reset timer, so both can run together.
   ///
-  /// This also keeps ClickV2Onboarding's _connectPending from picking it up:
-  /// connectDevice still runs, but [connect] below is a no-op while false.
+  /// This also keeps ClickV2Onboarding's _connectPending from picking it up
+  /// before the choice: connectDevice still runs, but [connect] below is a
+  /// no-op while false.
   @override
-  bool get shouldAutoConnect =>
-      !ClickV2Onboarding.isPending &&
-      (core.settings.getClickV2RightSideOnly() || ClickV2Onboarding.unlocksWithZwift);
+  bool get shouldAutoConnect => !ClickV2Onboarding.isPending;
 
   /// The same single unlock-mode choice as the left puck — see
   /// [ZwiftClickV2.setupNeed]. This puck is never locked itself.

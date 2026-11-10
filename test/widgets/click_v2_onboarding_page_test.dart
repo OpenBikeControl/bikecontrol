@@ -50,104 +50,116 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> swipeNext(WidgetTester tester) async {
-    await tester.drag(find.byType(PageView), const Offset(-500, 0));
+  Finder cta() => find.byKey(const ValueKey('click-onboarding-cta'));
+  Finder leftSwitch() => find.descendant(
+    of: find.byKey(const ValueKey('click-onboarding-left-toggle')),
+    matching: find.byType(Switch),
+  );
+
+  Future<void> tapKey(WidgetTester tester, String key) async {
+    await tester.ensureVisible(find.byKey(ValueKey(key)));
+    await tester.tap(find.byKey(ValueKey(key)));
     await tester.pumpAndSettle();
   }
 
-  // The two decision-page CTAs, checked as an actual tappable Button rather
-  // than a blanket "no Button" assertion — the header close icon and the
-  // "why is this needed?" / alternatives links are Buttons too, and would
-  // make a type-only assertion vacuous.
-  Finder decisionButton(String text) => find.widgetWithText(Button, text);
-
-  testWidgets('page 0 shows the right-side option and the swipe hint, with no applying button', (tester) async {
-    await pumpPage(tester);
-
-    expect(find.text('Use the right side only'), findsOneWidget);
-    expect(find.text('No restarts, no drop-outs mid-ride'), findsOneWidget);
-    expect(find.text('Swipe to see the other option'), findsWidgets);
-    // The hero now lives inside the pager's own scrollable page content
-    // (moved off the fixed chrome above it) rather than as a shared sibling
-    // above the PageView -- so it turns up as a descendant of the PageView
-    // itself on every page, this one included.
-    expect(find.descendant(of: find.byType(PageView), matching: find.byType(ClickContours)), findsWidgets);
-
-    expect(decisionButton('Use the right side'), findsNothing);
-    expect(decisionButton('Unlock with Zwift'), findsNothing);
-  });
-
-  testWidgets('swiping once reveals the unlock-with-Zwift option, still with no applying button', (tester) async {
-    await pumpPage(tester);
-    await swipeNext(tester);
-
-    expect(find.text('Unlock with Zwift'), findsWidgets);
-    expect(find.text('Needs unlocking with the Zwift app every 24 hours'), findsOneWidget);
-    expect(find.text('Swipe to see the other option'), findsWidgets);
-    expect(find.descendant(of: find.byType(PageView), matching: find.byType(ClickContours)), findsWidgets);
-
-    expect(decisionButton('Use the right side'), findsNothing);
-    expect(decisionButton('Unlock with Zwift'), findsNothing);
-  });
-
-  testWidgets('swiping twice shows the decision page with both option buttons', (tester) async {
-    await pumpPage(tester);
-    await swipeNext(tester);
-    await swipeNext(tester);
-
-    expect(find.text('Which one do you want?'), findsOneWidget);
-    expect(decisionButton('Use the right side'), findsOneWidget);
-    expect(decisionButton('Unlock with Zwift'), findsOneWidget);
-    expect(find.text('No Zwift needed · right controller only'), findsOneWidget);
-    expect(find.text('Both controllers · unlock every 24 hours'), findsOneWidget);
-    // The decision page's own hero (both pucks live) is the third page to
-    // carry one inside the pager.
-    expect(find.descendant(of: find.byType(PageView), matching: find.byType(ClickContours)), findsWidgets);
-  });
-
-  testWidgets('the decision page renders no lock badge, unlike page 1', (tester) async {
-    await pumpPage(tester);
-    await swipeNext(tester);
-
-    // Page 1 illustrates the Zwift trade-off with the animated padlock.
-    expect(find.byKey(const ValueKey('click-contour-lock-badge')), findsOneWidget);
-
-    await swipeNext(tester);
-
-    // The decision page is about choosing, not explaining -- the badge (and
-    // its loop) that sells page 1's trade-off would just be noise here.
-    expect(find.byKey(const ValueKey('click-contour-lock-badge')), findsNothing);
-  });
-
-  testWidgets('tapping the right-side button on the decision page applies that mode', (tester) async {
-    await pumpPage(tester);
-    await swipeNext(tester);
-    await swipeNext(tester);
-
-    await tester.tap(decisionButton('Use the right side'));
+  Future<void> tapCta(WidgetTester tester) async {
+    await tester.tap(cta());
     await tester.pumpAndSettle();
+  }
+
+  bool ctaEnabled(WidgetTester tester) => tester.widget<Button>(cta()).onPressed != null;
+
+  testWidgets('both paths are on one screen, nothing pre-selected and the CTA disabled', (tester) async {
+    await pumpPage(tester);
+
+    expect(find.text('Skip the Zwift unlock'), findsOneWidget);
+    expect(find.text('Unlock with Zwift'), findsOneWidget);
+    expect(find.text('Needs unlocking with the Zwift app every 24 hours'), findsOneWidget);
+    expect(find.byType(PageView), findsNothing);
+    expect(find.byType(ClickContours), findsOneWidget);
+    expect(find.text('Pick an option'), findsOneWidget);
+    expect(ctaEnabled(tester), isFalse);
+    // The left-puck opt-in belongs to the no-unlock path, so it waits for it.
+    expect(leftSwitch(), findsNothing);
+  });
+
+  testWidgets('picking no-unlock reveals the left-side opt-in and names the right-side CTA', (tester) async {
+    await pumpPage(tester);
+    await tapKey(tester, 'click-onboarding-option-no-unlock');
+
+    expect(leftSwitch(), findsOneWidget);
+    expect(find.text('Use the right side'), findsOneWidget);
+    expect(find.text('No restarts, no drop-outs mid-ride'), findsOneWidget);
+    expect(ctaEnabled(tester), isTrue);
+  });
+
+  testWidgets('switching the left side on says plainly that it drops out', (tester) async {
+    await pumpPage(tester);
+    await tapKey(tester, 'click-onboarding-option-no-unlock');
+    await tester.tap(leftSwitch());
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('drops out for 1–2 seconds'), findsOneWidget);
+    // "No drop-outs" would now be false, so it must be gone.
+    expect(find.text('No restarts, no drop-outs mid-ride'), findsNothing);
+    expect(find.text('Use both controllers'), findsOneWidget);
+    expect(find.byKey(const ValueKey('click-contour-restart-badge')), findsOneWidget);
+  });
+
+  testWidgets('selecting an option alone applies nothing', (tester) async {
+    await pumpPage(tester);
+    await tapKey(tester, 'click-onboarding-option-no-unlock');
+    await tapKey(tester, 'click-onboarding-option-zwift');
+
+    expect(core.settings.getClickV2OnboardingDone(), isFalse);
+  });
+
+  testWidgets('right side only applies that mode', (tester) async {
+    await pumpPage(tester);
+    await tapKey(tester, 'click-onboarding-option-no-unlock');
+    await tapCta(tester);
 
     expect(core.settings.getUnlockWithZwift(), isFalse);
     expect(core.settings.getClickV2RightSideOnly(), isTrue);
     expect(core.settings.getClickV2OnboardingDone(), isTrue);
   });
 
-  testWidgets('tapping the Zwift button on the decision page applies that mode', (tester) async {
+  testWidgets('right side plus left side applies the restart mode', (tester) async {
     await pumpPage(tester);
-    await swipeNext(tester);
-    await swipeNext(tester);
-
-    await tester.tap(decisionButton('Unlock with Zwift'));
+    await tapKey(tester, 'click-onboarding-option-no-unlock');
+    await tester.tap(leftSwitch());
     await tester.pumpAndSettle();
+    await tapCta(tester);
+
+    expect(core.settings.getUnlockWithZwift(), isFalse);
+    expect(core.settings.getClickV2RightSideOnly(), isFalse);
+    expect(core.settings.getUseNewUnlockMethod(), isTrue);
+    expect(core.settings.getClickV2OnboardingDone(), isTrue);
+    await core.connection.stop();
+  });
+
+  testWidgets('unlock with Zwift applies that mode', (tester) async {
+    await pumpPage(tester);
+    await tapKey(tester, 'click-onboarding-option-zwift');
+    await tapCta(tester);
 
     expect(core.settings.getUnlockWithZwift(), isTrue);
     expect(core.settings.getClickV2RightSideOnly(), isFalse);
     expect(core.settings.getClickV2OnboardingDone(), isTrue);
     // This mode also folds the split representation back into the unified
-    // controller, which restarts the scan — so the app is genuinely still
-    // scanning when the assertions above pass. Wind it down, or the periodic
-    // scan timer outlives the widget tree and trips the pending-timer check.
+    // controller, which restarts the scan. Wind it down, or the periodic scan
+    // timer outlives the widget tree and trips the pending-timer check.
     await core.connection.stop();
+  });
+
+  testWidgets('reopening starts on the mode that is set', (tester) async {
+    await core.settings.setClickV2OnboardingDone(true);
+    await core.settings.setClickV2RightSideOnly(false);
+    await pumpPage(tester);
+
+    // Done, not right-only, not Zwift: the restart mode.
+    expect(tester.widget<Switch>(leftSwitch()).value, isTrue);
+    expect(find.text('Use both controllers'), findsOneWidget);
   });
 
   testWidgets('closing without choosing writes nothing', (tester) async {
@@ -157,73 +169,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(core.settings.getClickV2OnboardingDone(), isFalse);
-  });
-
-  testWidgets('tapping the swipe hint on page 0 advances to page 1', (tester) async {
-    await pumpPage(tester);
-
-    await tester.tap(find.byKey(const ValueKey('click-onboarding-swipe-hint-0')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Unlock with Zwift'), findsWidgets);
-    expect(find.text('Needs unlocking with the Zwift app every 24 hours'), findsOneWidget);
-  });
-
-  testWidgets('tapping the swipe hint on page 1 advances to the decision page', (tester) async {
-    await pumpPage(tester);
-    await swipeNext(tester);
-
-    await tester.tap(find.byKey(const ValueKey('click-onboarding-swipe-hint-1')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Which one do you want?'), findsOneWidget);
-    expect(decisionButton('Use the right side'), findsOneWidget);
-    expect(decisionButton('Unlock with Zwift'), findsOneWidget);
-  });
-
-  // The swipe hint is a "next" affordance, not a choice -- it must never
-  // apply either unlock mode itself.
-  testWidgets('tapping the swipe hint never applies a choice', (tester) async {
-    await pumpPage(tester);
-
-    await tester.tap(find.byKey(const ValueKey('click-onboarding-swipe-hint-0')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('click-onboarding-swipe-hint-1')));
-    await tester.pumpAndSettle();
-
-    expect(core.settings.getClickV2OnboardingDone(), isFalse);
-  });
-
-  testWidgets('the dot indicator renders three dots', (tester) async {
-    await pumpPage(tester);
-
-    // Scoped to the dot row itself — shadcn's own widgets use AnimatedContainer
-    // internally too, so a blanket byType(AnimatedContainer) would overcount.
-    expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('click-onboarding-dots')),
-        matching: find.byType(AnimatedContainer),
-      ),
-      findsNWidgets(3),
-    );
-  });
-
-  testWidgets('advantage and disadvantage rows settle into place', (tester) async {
-    await pumpPage(tester);
-
-    // The stagger is a one-shot entrance; once settled every row is opaque and
-    // at its resting offset, so the page is never left half-faded.
-    // Every row on page 0: two pros and its one con.
-    for (final text in [
-      'No Zwift unlock — ever',
-      'No restarts, no drop-outs mid-ride',
-      'Only the right controller sends button presses',
-    ]) {
-      final opacity = tester.widget<FadeTransition>(
-        find.ancestor(of: find.text(text), matching: find.byType(FadeTransition)).first,
-      );
-      expect(opacity.opacity.value, closeTo(1.0, 0.001), reason: 'row not fully faded in: $text');
-    }
   });
 
   testWidgets('caps content width and centres it on a wide desktop window, like every pushed page', (
