@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -643,8 +645,13 @@ class ShimanoGuidedSheet extends StatefulWidget {
 
   /// Whether a thrown error means a shifter turned the new setting down, which
   /// trying again won't change (→ set the channels in E-TUBE, or
-  /// [onUseButtonMode]).
+  /// [onUseButtonMode]). Set, the step that saves the setting on the shifters
+  /// also offers the E-TUBE app once it takes [etubeOfferDelay], and any
+  /// failure there ends on it too.
   final bool Function(Object error)? isRejected;
+
+  /// How long the saving step runs before it offers the E-TUBE app.
+  final Duration etubeOfferDelay;
 
   /// Set up button mode instead (offered for wired shifters); the sheet
   /// closes first.
@@ -684,6 +691,7 @@ class ShimanoGuidedSheet extends StatefulWidget {
     this.shifters,
     this.onCancelShifters,
     this.afterChooser = false,
+    this.etubeOfferDelay = const Duration(seconds: 10),
   });
 
   @override
@@ -694,13 +702,46 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
   var _stage = ShimanoSetupStage.confirm;
   late final _passkey = TextEditingController(text: widget.initialPasskey);
 
+  /// This attempt reached the step that saves the setting on the shifters.
+  bool _saving = false;
+
+  /// That step took long enough to offer the E-TUBE app instead.
+  bool _offerEtube = false;
+  Timer? _etubeTimer;
+
+  bool get _etubeFallback => widget.isRejected != null && widget.onCancelShifters != null;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.shifters?.addListener(_onShifters);
+  }
+
   @override
   void dispose() {
+    widget.shifters?.removeListener(_onShifters);
+    _etubeTimer?.cancel();
     _passkey.dispose();
     super.dispose();
   }
 
+  void _onShifters() {
+    if (_saving || !(widget.shifters?.value?.saving ?? false)) return;
+    _saving = true;
+    if (!_etubeFallback) return;
+    _etubeTimer = Timer(widget.etubeOfferDelay, () {
+      if (mounted && _stage == ShimanoSetupStage.running) setState(() => _offerEtube = true);
+    });
+  }
+
+  /// Give up on the saving step: the setup stops, the failure that follows
+  /// ends on the E-TUBE app.
+  void _useEtube() => widget.onCancelShifters!();
+
   Future<void> _attempt() async {
+    _etubeTimer?.cancel();
+    _saving = false;
+    _offerEtube = false;
     setState(() => _stage = ShimanoSetupStage.running);
     try {
       await widget.operation(_passkey.text.trim());
@@ -709,9 +750,15 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
     } catch (e) {
       // The operation already logged the failure; here we only pick what to
       // tell the rider.
+      _etubeTimer?.cancel();
       if (!mounted) return;
       setState(() {
-        _stage = widget.isPasskeyRejected(e)
+        _offerEtube = false;
+        // Past the passkey and the reading of the shifters, whatever stops the
+        // saving step won't go better on a retry.
+        _stage = _saving && _etubeFallback
+            ? ShimanoSetupStage.rejected
+            : widget.isPasskeyRejected(e)
             ? ShimanoSetupStage.passkey
             : widget.isPairingRequired(e)
             ? ShimanoSetupStage.pair
@@ -747,6 +794,7 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
                 closeSheet(context);
               },
         afterChooser: widget.afterChooser,
+        onUseEtube: _offerEtube ? _useEtube : null,
         onUseButtonMode: widget.onUseButtonMode == null
             ? null
             : () {
@@ -792,6 +840,7 @@ Widget shimanoGuidedBody(
   VoidCallback? onUseButtonMode,
   ShimanoShifterAsk? shifterAsk,
   VoidCallback? onCancelShifters,
+  VoidCallback? onUseEtube,
   bool afterChooser = false,
   int runningStep = 0,
   bool checklistAutoAdvance = true,
@@ -864,6 +913,19 @@ Widget shimanoGuidedBody(
                 Text(
                   l.shimanoOneShifterHint,
                   style: context.typography.small.copyWith(color: scheme.mutedForeground),
+                ),
+              ],
+            )
+          : shifterAsk.saving && onUseEtube != null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                prompt,
+                const Gap(10),
+                SecondaryButton(
+                  leading: const Icon(LucideIcons.externalLink, size: 16),
+                  onPressed: onUseEtube,
+                  child: Text(l.shimanoUseEtubeInstead),
                 ),
               ],
             )

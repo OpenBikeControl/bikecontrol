@@ -1899,8 +1899,9 @@
   "@shimanoUseDfly": {
   "shimanoWiredTitle": "你的变速手柄是有线的",
   "shimanoWiredBody": "BikeControl 目前还无法为有线变速手柄设置 E-TUBE 通道。如果你已在 E-TUBE PROJECT 应用中把手柄按键设为 D-Fly 通道，BikeControl 可以直接使用它们。按键模式也可以：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
-  "shimanoRejectedTitle": "变速手柄未接受该设置",
-  "shimanoRejectedBody": "你的变速手柄拒绝了新的按键设置，仍按原来的方式工作。BikeControl 目前还无法为这款手柄设置 E-TUBE 通道。请改为在 E-TUBE PROJECT 应用中把它的按键设为 D-Fly 通道，BikeControl 即可使用它们。按键模式也可以：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
+  "shimanoRejectedTitle": "改为在 E-TUBE 应用中设置",
+  "shimanoRejectedBody": "你的变速手柄没有保存新的按键设置，仍按原来的方式工作。请改为在 E-TUBE PROJECT 应用中把它的按键设为 D-Fly 通道，BikeControl 即可使用它们。按键模式也可以：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
+  "shimanoUseEtubeInstead": "改为在 E-TUBE 应用中设置",
   "shimanoUseButtonMode": "改用按键模式",
     "description": "Di2 setup sheet and device panel: skip button mode and keep using the buttons the rider set to D-Fly channels in E-TUBE, which work without pairing."
   },
