@@ -46,6 +46,14 @@ class Zwift extends SupportedApp {
               logicalKey: LogicalKeyboardKey.arrowDown,
               inGameAction: InGameAction.uturn,
             ),
+            // As on a Zwift Ride: a press moves through the menus, holding
+            // steers (sent as the paddles).
+            KeyPair(
+              buttons: [ZwiftButtons.navigationLeft],
+              physicalKey: PhysicalKeyboardKey.arrowLeft,
+              logicalKey: LogicalKeyboardKey.arrowLeft,
+              inGameAction: InGameAction.navigateLeft,
+            ),
             KeyPair(
               buttons: [ZwiftButtons.navigationLeft],
               physicalKey: PhysicalKeyboardKey.arrowLeft,
@@ -53,6 +61,12 @@ class Zwift extends SupportedApp {
               inGameAction: InGameAction.steerLeft,
               // Steering only works while held.
               isLongPress: true,
+            ),
+            KeyPair(
+              buttons: [ZwiftButtons.navigationRight],
+              physicalKey: PhysicalKeyboardKey.arrowRight,
+              logicalKey: LogicalKeyboardKey.arrowRight,
+              inGameAction: InGameAction.navigateRight,
             ),
             KeyPair(
               buttons: [ZwiftButtons.navigationRight],
@@ -98,6 +112,10 @@ class Zwift extends SupportedApp {
               logicalKey: null,
               inGameAction: InGameAction.shiftUp,
             ),
+            // Zwift has nothing for the power buttons; without these they'd
+            // fall back to the button's own default, which Zwift can't do.
+            KeyPair(buttons: [ZwiftButtons.onOffLeft], physicalKey: null, logicalKey: null),
+            KeyPair(buttons: [ZwiftButtons.onOffRight], physicalKey: null, logicalKey: null),
             KeyPair(
               buttons: [ZwiftButtons.y],
               physicalKey: PhysicalKeyboardKey.space,

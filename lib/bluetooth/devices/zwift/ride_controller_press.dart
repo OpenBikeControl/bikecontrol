@@ -50,6 +50,19 @@ class RideControllerPress {
     };
   }
 
+  /// The controller button an action is pressed as, shown under its name
+  /// ([InGameAction.alternativeTitle]). As a Ride, steering is the paddles
+  /// and the D-pad's left and right navigate instead.
+  static String? caption(InGameAction action) {
+    if (!emulatesRide) return action.alternativeTitle;
+    return switch (action) {
+      InGameAction.steerLeft || InGameAction.steerRight => null,
+      InGameAction.navigateLeft => InGameAction.steerLeft.alternativeTitle,
+      InGameAction.navigateRight => InGameAction.steerRight.alternativeTitle,
+      _ => action.alternativeTitle,
+    };
+  }
+
   /// Keypad status while held.
   List<int> get pressed => _status(buttonMask, fullPaddle);
 

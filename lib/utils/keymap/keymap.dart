@@ -186,12 +186,11 @@ class Keymap {
   }
 
   void addNewButtons(List<ControllerButton> availableButtons) {
-    final newButtons = availableButtons.filter(
-      (button) {
-        final existing = getKeyPair(button, trigger: ButtonTrigger.singleClick);
-        return existing == null;
-      },
-    ).toList();
+    // Only buttons the mapping knows nothing about. A button it maps on
+    // another trigger alone (the Y on a long press) must not get its own
+    // default added as a click — an action the app may not have — nor a
+    // second copy of the mapped one.
+    final newButtons = availableButtons.filter((button) => getKeyPairs(button).isEmpty).toList();
     for (final button in newButtons) {
       final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
         button,

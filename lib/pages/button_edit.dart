@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_input_dialog.dart';
 import 'dart:async';
@@ -1048,8 +1049,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
               ? Text(_keyPair.inGameActionValue!.toString())
               : _zwiftHint(action) != null
               ? Text(_zwiftHint(action)!)
-              : action.alternativeTitle != null
-              ? Text(action.alternativeTitle!)
+              : RideControllerPress.caption(action) != null
+              ? Text(RideControllerPress.caption(action)!)
               : null,
           isActive: _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction),
           onPressed: () {
