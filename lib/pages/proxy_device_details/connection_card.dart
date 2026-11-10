@@ -47,6 +47,17 @@ class _ConnectionCardState extends State<ConnectionCard> {
     _ConnectSelection.none,
   ];
 
+  /// [_selections] minus Proxy when the trainer app can't find a trainer over
+  /// WiFi (Proxy mirrors it over WiFi only) — unless Proxy is what is running
+  /// right now, so the card never hides the active mode.
+  List<_ConnectSelection> _offeredSelections(_ConnectSelection active) {
+    if (ProxyDevice.appTakesTrainerOverWifi(core.settings.getTrainerApp())) return _selections;
+    return [
+      for (final s in _selections)
+        if (s != _ConnectSelection.proxy || active == _ConnectSelection.proxy) s,
+    ];
+  }
+
   /// Resolves which concrete Virtual Shifting [RetrofitMode] a fresh connect
   /// should start in: the last saved VS transport if there is one (already
   /// folded into WiFi on a same-device setup, see
@@ -370,7 +381,7 @@ class _ConnectionCardState extends State<ConnectionCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 8,
             children: [
-              for (final s in _selections) _radioCard(s, selection, mode, cs),
+              for (final s in _offeredSelections(selection)) _radioCard(s, selection, mode, cs),
             ],
           ),
         ),

@@ -1025,9 +1025,28 @@ class ProxyDevice extends BluetoothDevice {
     };
   }
 
+  /// Whether [app] can find a trainer over WiFi at all — the Virtual Shifting
+  /// WiFi bridge or WiFi Proxy. False for apps that pair trainers over
+  /// Bluetooth only (e.g. Biketerra); true when no app is picked yet.
+  static bool appTakesTrainerOverWifi(SupportedApp? app) {
+    final transports = app?.virtualShiftingTransports;
+    return transports == null || transports.isEmpty || transports.contains(TrainerConnectionType.wifi);
+  }
+
   /// The rider's saved mode for this trainer, else [defaultRetrofitMode] —
-  /// as stored, before the same-device rule below.
-  RetrofitMode get _storedRetrofitMode => core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+  /// before the same-device rule below. A WiFi mode the selected trainer app
+  /// can't find (WiFi bridge or Proxy for a Bluetooth-only app) starts as
+  /// Virtual Shifting over Bluetooth instead; a non-trainer keeps Proxy, as
+  /// it has nothing else to offer.
+  RetrofitMode get _storedRetrofitMode {
+    final stored = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+    if (appTakesTrainerOverWifi(core.settings.getTrainerApp())) return stored;
+    return switch (stored) {
+      RetrofitMode.wifi => RetrofitMode.bluetooth,
+      RetrofitMode.proxy when isSmartTrainer => RetrofitMode.bluetooth,
+      _ => stored,
+    };
+  }
 
   /// Whether [savedRetrofitMode] is folding a Bluetooth resolution into WiFi
   /// because the trainer app runs on this same device ([Target.thisDevice]).

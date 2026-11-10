@@ -21,9 +21,9 @@ Future<void> main() async {
 
   /// Seeds the prefs the card reads: the trainer app, where it runs, and the
   /// transport the rider last picked for this trainer (`retrofit_mode_<key>`).
-  Future<void> seed({required String target, String? savedMode}) async {
+  Future<void> seed({required String target, String? savedMode, String trainerApp = 'MyWhoosh'}) async {
     SharedPreferences.setMockInitialValues({
-      'trainer_app': 'MyWhoosh',
+      'trainer_app': trainerApp,
       'last_target': target,
       if (savedMode != null) 'retrofit_mode_KICKR CORE': savedMode,
     });
@@ -50,7 +50,9 @@ Future<void> main() async {
       ShadcnApp(
         localizationsDelegates: const [AppLocalizations.delegate],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
-        home: Scaffold(child: SizedBox(width: 400, child: ConnectionCard(device: device))),
+        home: Scaffold(
+          child: SizedBox(width: 400, child: ConnectionCard(device: device)),
+        ),
       ),
     );
     await tester.pump();
@@ -132,6 +134,37 @@ Future<void> main() async {
       expect(wifiButton, findsOneWidget);
       expect(bluetoothButton, findsOneWidget);
       expect(sameDeviceNote, findsNothing);
+    });
+  });
+
+  // Biketerra takes its trainer over Bluetooth only. Neither the WiFi bridge
+  // nor WiFi Proxy can ever be found by it, so neither is offered.
+  group('Bluetooth-only trainer app', () {
+    final proxyOption = find.text('Proxy');
+
+    testWidgets('the picker offers no Proxy', (tester) async {
+      await seed(target: 'otherDevice', trainerApp: 'Biketerra');
+
+      await pumpCard(tester, smartTrainer());
+
+      expect(proxyOption, findsNothing);
+    });
+
+    testWidgets('the toggle offers Bluetooth only', (tester) async {
+      await seed(target: 'otherDevice', savedMode: 'bluetooth', trainerApp: 'Biketerra');
+
+      await pumpCard(tester, bridgedTrainer(RetrofitMode.bluetooth));
+
+      expect(bluetoothButton, findsOneWidget);
+      expect(wifiButton, findsNothing);
+    });
+
+    testWidgets('a WiFi-capable app still offers Proxy', (tester) async {
+      await seed(target: 'otherDevice');
+
+      await pumpCard(tester, smartTrainer());
+
+      expect(proxyOption, findsOneWidget);
     });
   });
 }
