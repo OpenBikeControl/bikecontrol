@@ -31,6 +31,7 @@ import 'package:bike_control/services/shift_feedback/gamepad_shift_haptics.dart'
 import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
 import 'package:bike_control/services/shift_feedback/sound_players/shift_sound_player_factory.dart';
+import 'package:bike_control/services/sensors/pedalling_simulation.dart';
 import 'package:bike_control/services/sensors/sensor_hub.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
@@ -114,6 +115,9 @@ class Core {
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
   late final emulation = EmulationManager();
   late final sensors = SensorHub();
+
+  /// Debug-only fake power/cadence/heart rate, started from the debug menu.
+  late final pedallingSimulation = PedallingSimulation(sensors);
 
   late final mediaKeyHandler = MediaKeyHandler();
 
