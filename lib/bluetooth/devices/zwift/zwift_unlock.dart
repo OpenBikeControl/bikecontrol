@@ -152,7 +152,16 @@ mixin ZwiftUnlock on ZwiftDevice {
 
   /// Test seam — [_clickDef] is normally built during the BLE connect flow.
   @visibleForTesting
-  void debugSetClickDef(ZwiftClickDefinition def) => _clickDef = def;
+  void debugSetClickDef(ZwiftClickDefinition def) {
+    _clickDef = def;
+    _listenForUnlock();
+  }
+
+  void _listenForUnlock() {
+    if (_listensForUnlock) return;
+    _listensForUnlock = true;
+    isUnlocked.addListener(_leaveBridgeOnceUnlocked);
+  }
 
   /// Whether this controller's definition rides on the shared bridge composite.
   ///
@@ -163,6 +172,25 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// controller endpoint, where this controller is served anyway.
   bool get attachesClickDefToBridge => core.settings.getTrainerApp() is! Rouvy;
 
+  /// Whether the controller itself should be on the bridge right now. Only
+  /// while it still needs unlocking: while it is there, it answers the
+  /// trainer app as itself (a Click V2 is a "Zwift Click"), standing in for
+  /// BikeControl's own Zwift Ride — whose paddles and D-pad are what the
+  /// mapped actions are sent as. Once unlocked it comes off again.
+  bool get _clickDefBelongsOnBridge => attachesClickDefToBridge && !isUnlocked.value && !isPersistedUnlocked;
+
+  bool _listensForUnlock = false;
+
+  /// Takes the controller off the bridge the moment it is unlocked, which
+  /// brings BikeControl's own controller back (see [_clickDefBelongsOnBridge]).
+  void _leaveBridgeOnceUnlocked() {
+    final def = _clickDef;
+    if (def == null || !isUnlocked.value || !ftmsEmulator.composite.children.contains(def)) return;
+    ftmsEmulator.detachDefinition(def).catchError((Object e, StackTrace s) {
+      recordError(e, s, context: '$runtimeType.leaveBridgeOnceUnlocked');
+    });
+  }
+
   /// React to a trainer-app change while this controller is connected: put its
   /// definition on or take it off the shared composite to match
   /// [attachesClickDefToBridge]. Composite-only, like
@@ -172,9 +200,9 @@ mixin ZwiftUnlock on ZwiftDevice {
     final def = _clickDef;
     if (def == null) return;
     final attached = ftmsEmulator.composite.children.contains(def);
-    if (attachesClickDefToBridge && !attached) {
+    if (_clickDefBelongsOnBridge && !attached) {
       ftmsEmulator.composite.attach(def);
-    } else if (!attachesClickDefToBridge && attached) {
+    } else if (!_clickDefBelongsOnBridge && attached) {
       ftmsEmulator.composite.detach(def);
     }
   }
@@ -270,11 +298,12 @@ mixin ZwiftUnlock on ZwiftDevice {
     // controller service alongside the trainer — the pairing dialog spins
     // forever — and it takes its controller input from the standalone
     // controller endpoint instead, where this controller is already served.
-    if (attachesClickDefToBridge) {
+    if (_clickDefBelongsOnBridge) {
       await ftmsEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
         recordError(e, s, context: '$runtimeType.attachClickDef');
       });
     }
+    _listenForUnlock();
 
     await super.handleServices(services);
   }
@@ -294,7 +323,13 @@ mixin ZwiftUnlock on ZwiftDevice {
       _vendorMessage = Uint8List.fromList(bytes);
     }
 
-    if (opCode == Opcode.CONTROLLER_NOTIFICATION) {
+    final def = _clickDef;
+    if (def == null || !ftmsEmulator.composite.children.contains(def)) {
+      // Off the bridge (unlocked, or not attached for this app): nothing on it
+      // speaks for the controller, and every other definition there would
+      // forward the raw frame to the trainer app on top of the mapped action.
+      await super.processCharacteristic(characteristic, bytes);
+    } else if (opCode == Opcode.CONTROLLER_NOTIFICATION) {
       ftmsEmulator.processCharacteristic(characteristic, bytes);
       super.processCharacteristic(characteristic, bytes);
     } else {
