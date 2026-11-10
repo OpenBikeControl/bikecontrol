@@ -1,5 +1,7 @@
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -140,7 +142,7 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.appConnected => step.done
         ? ChainStepText(l.chainStepAppConnected(app))
         : step.variant == SetupStepVariant.controllerLinkMissing
-        ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app))
+        ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app, OpenBikeControlMdnsEmulator.controllerTileNameFor(core.settings.getTrainerApp())))
         : ChainStepText(l.chainStepAppConnectedPending(app), l.chainStepAppConnectedHint),
     // Like the overlay step, the hint is the offer: "Local control" means
     // nothing on its own, and what it buys — keyboard and mouse actions on a

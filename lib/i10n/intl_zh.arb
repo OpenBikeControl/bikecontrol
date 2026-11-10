@@ -2368,10 +2368,13 @@
     }
   },
   "networkOverallPassBody": "这里没有东西在阻碍 BikeControl。如果你的软件仍找不到它，下面的实时测试才能最终确定。",
-  "networkNextStepControllerTile": "网络没有问题 — 在 {app} 中，点按控制器下方的 BikeControl 磁贴。",
+  "networkNextStepControllerTile": "网络没有问题 — 在 {app} 中，点按控制器下方的「{tile}」磁贴。",
   "@networkNextStepControllerTile": {
     "placeholders": {
       "app": {
+        "type": "String"
+      },
+      "tile": {
         "type": "String"
       }
     }
@@ -2668,10 +2671,13 @@
       }
     }
   },
-  "chainStepAppControllerHint": "{app} 已经通过 BikeControl 读取你的骑行台。你的按键需要第二条连接：在 {app} 的配对界面中，点按控制器下方的 BikeControl 磁贴 — 它和骑行台是分开的磁贴。",
+  "chainStepAppControllerHint": "{app} 已经通过 BikeControl 读取你的骑行台。你的按键需要第二条连接：在 {app} 的配对界面中，点按控制器下方的「{tile}」磁贴 — 它和骑行台是分开的磁贴。",
   "@chainStepAppControllerHint": {
     "placeholders": {
       "app": {
+        "type": "String"
+      },
+      "tile": {
         "type": "String"
       }
     }

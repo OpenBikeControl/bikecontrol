@@ -9,7 +9,7 @@ import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.d
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/main.dart' show recordError, screenshotMode;
 import 'package:bike_control/services/bonjour/bonjour_service_advertiser.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
@@ -160,6 +160,41 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
         supportedActions: InGameAction.values,
       );
 
+  /// Instance name of the DirCon controller entry (TrainingPeaks Virtual):
+  /// "BikeControl", the platform and four hex digits of this install's id,
+  /// e.g. "BikeControl iOS 7519". With two phones on one LAN a shared
+  /// "BikeControl" made mDNS rename one of them to "BikeControl (2)", and
+  /// TPV's controller link landed on the other rider's phone. The platform
+  /// alone would not do: two iPhones are the case that broke.
+  static String get dirconInstanceName => [
+    'BikeControl',
+    ?_platformLabel,
+    BikeControlMdnsMarkers.installId.substring(0, 4),
+  ].join(' ');
+
+  static String? get _platformLabel {
+    if (kIsWeb) return null;
+    if (Platform.isIOS) return 'iOS';
+    if (Platform.isAndroid) return 'Android';
+    if (Platform.isMacOS) return 'macOS';
+    if (Platform.isWindows) return 'Windows';
+    if (Platform.isLinux) return 'Linux';
+    return null;
+  }
+
+  /// The controller tile [app] lists for this install — what the in-app
+  /// hints tell the rider to tap. Screenshots get a fixed name: the install
+  /// id is random per run.
+  static String controllerTileNameFor(SupportedApp? app) {
+    if (!(app?.supports(AppConnectionMethod.obpDirCon) ?? false)) return 'BikeControl';
+    return screenshotMode ? 'BikeControl iOS 7519' : dirconInstanceName;
+  }
+
+  /// `serial-number` of the DirCon controller entry, per install for the same
+  /// reason as [dirconInstanceName]: DirCon clients recognise a paired device
+  /// by its serial, and every install used to send 1234567890.
+  static String get dirconSerialNumber => mdnsSerialNumber('obc:${BikeControlMdnsMarkers.installId}');
+
   bool get _useDirCon => core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpDirCon) ?? false;
 
   /// [startServer] and [stopServer] each span several awaits (address pick,
@@ -203,7 +238,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
           ? core.settings.getObpMdnsBackend()
           : ObpMdnsBackend.platformDefault;
       final selection = resolveAdvertiser(requestedBackend);
-      // Every install advertises the instance "BikeControl", so a hostname
+      // Every install advertises the OBC instance "BikeControl" (the DirCon
+      // one is per install, see [dirconInstanceName]), so a hostname
       // derived from it is the same on every install too: with BikeControl on
       // a phone and a PC, both answer for `BikeControl.local`, and MyWhoosh's
       // address lookup returns whichever spoke last — often the other device.
@@ -213,9 +249,10 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       // variants get this install's own label. On iOS the DirCon variant used
       // to keep the derived one, and two phones both claimed BikeControl.local.
       final hostLabel = MdnsHostLabel.storedRandom();
+      final instanceName = _useDirCon ? dirconInstanceName : 'BikeControl';
       _mdnsRegistration = await selection.advertiser.register(
         AdvertisedService(
-          name: 'BikeControl',
+          name: instanceName,
           type: _useDirCon ? '_wahoo-fitness-tnp._tcp' : '_openbikecontrol._tcp',
           port: boundPort,
           address: localIP,
@@ -224,7 +261,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
               ? {
                   'ble-service-uuids': Uint8List.fromList(OpenBikeControlConstants.SERVICE_UUID.codeUnits),
                   'mac-address': Uint8List.fromList(BikeControlMdnsMarkers.obcMacAddress.codeUnits),
-                  'serial-number': Uint8List.fromList('1234567890'.codeUnits),
+                  'serial-number': Uint8List.fromList(dirconSerialNumber.codeUnits),
                   // The mac-address is per-install now, so this constant is
                   // what marks the advertisement as ours to the WiFi scanner.
                   'manufacturer-data': Uint8List.fromList(BikeControlMdnsMarkers.manufacturerData.codeUnits),
@@ -243,8 +280,8 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       _activeAdvertiser = selection.advertiser;
       _pinnedHostLabel = hostLabel;
       _watchAdvertisedAddress(selection.advertiser);
-      _registeredEntry = (name: 'BikeControl', port: boundPort);
-      SelfAdvertisementRegistry.instance.add(name: 'BikeControl', port: boundPort);
+      _registeredEntry = (name: instanceName, port: boundPort);
+      SelfAdvertisementRegistry.instance.add(name: instanceName, port: boundPort);
       print('Server started - advertising service at ${localIP.address}:$boundPort!');
     } catch (e) {
       // Keep the flag honest so the UI doesn't show a phantom-running server

@@ -565,7 +565,7 @@ Future<void> main() async {
     testWidgets('an OpenBikeControl app: tap the BikeControl tile under Controllers', (tester) async {
       final l10n = await l10nOnly(tester);
       final body = networkPassBody(l10n, app: 'MyWhoosh', kind: NetworkMethodKind.openBikeControl, connected: false);
-      expect(body, l10n.networkNextStepControllerTile('MyWhoosh'));
+      expect(body, l10n.networkNextStepControllerTile('MyWhoosh', 'BikeControl'));
     });
 
     testWidgets('another network method: pick BikeControl in the pairing screen', (tester) async {
@@ -600,7 +600,7 @@ Future<void> main() async {
 
       await _pumpFinished(tester, [_probe(NetworkCheckId.methodListening, NetworkVerdict.pass)]);
 
-      expect(find.text(_l10n(tester).networkNextStepControllerTile('MyWhoosh')), findsOneWidget);
+      expect(find.text(_l10n(tester).networkNextStepControllerTile('MyWhoosh', 'BikeControl')), findsOneWidget);
     });
   });
 }

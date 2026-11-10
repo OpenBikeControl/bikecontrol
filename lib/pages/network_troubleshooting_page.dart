@@ -3,6 +3,7 @@ import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 import 'dart:io' show Platform, Process;
 
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
@@ -96,7 +97,10 @@ String networkPassBody(
 }) {
   if (connected || app == null) return l10n.networkOverallPassBody;
   return switch (kind) {
-    NetworkMethodKind.openBikeControl => l10n.networkNextStepControllerTile(app),
+    NetworkMethodKind.openBikeControl => l10n.networkNextStepControllerTile(
+      app,
+      OpenBikeControlMdnsEmulator.controllerTileNameFor(core.settings.getTrainerApp()),
+    ),
     NetworkMethodKind.rouvyMdns || NetworkMethodKind.zwiftMdns => l10n.networkNextStepPairingScreen(app),
   };
 }
