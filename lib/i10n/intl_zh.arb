@@ -1606,7 +1606,6 @@
   },
   "feedbackQuestion": "能用吗？",
   "supportChat": "支持聊天",
-  "supportDiagnosticsNotice": "为帮助修复你的问题，此聊天会附上 BikeControl 的截图和诊断信息。发送前你可以查看或移除它们。",
   "supportRetentionNotice": "对话会在最后一条消息后 30 天自动删除。匿名的骑行台数据（型号、固件、测试结果）会保留，用于改进兼容性。",
   "supportDeleteConversation": "删除对话",
   "supportDeleteAccount": "删除账户和全部数据",
@@ -1633,7 +1632,6 @@
     }
   },
   "retry": "重试",
-  "supportChatEmpty": "发送一条消息以开始对话。",
   "supportChatIntro": "你将与 BikeControl 的 Jonas 对话",
   "supportChatIntroFatherNote": "我很快就要当爸爸了，所以可能要过几个小时才能回复 :-)",
   "supportIntakeTitle": "告诉我们问题所在",
@@ -3254,7 +3252,7 @@
   "paywall_planQuestions": "对方案有疑问？",
   "paywall_oneTimePurchase": "一次性购买",
   "vsBudgetProRemovesLimit": "Pro 解除此限制",
-  "supportDescribeFirstMessageHint": "告诉我们你想做什么，以及实际发生了什么。单靠截图说不清哪里出了问题—一句话就够了。",
+  "supportDescribeFirstMessageHint": "用一句话描述你想做什么，以及实际发生了什么。",
   "supportIntakeTryThisFirst": "先试试这个",
   "supportIntakeDidThisSolveIt": "这样解决了吗？",
   "supportIntakeSolvedYes": "是的，没问题了",
@@ -3449,14 +3447,6 @@
   "purchaseProDeviceLimitTitle": "Pro 已在你的账户上，但尚未在此设备上",
   "helpAnswerStillStuckContactSupport": "还是解决不了？联系客服",
   "paywallYourPlan": "你的方案",
-  "supportDiagnosticsNoticeNoScreenshot": "为帮助修复你的问题，此聊天会附上诊断信息。发送前你可以用 {infoIcon} 查看。",
-  "@supportDiagnosticsNoticeNoScreenshot": {
-    "placeholders": {
-      "infoIcon": {
-        "type": "String"
-      }
-    }
-  },
   "rideV2SupportLine": "不想每天解锁？联系客服。",
   "rideV2Explainer_title": "Zwift Ride V2 设置",
   "rideV2Explainer_heading": "用 Zwift 解锁",
@@ -4211,5 +4201,9 @@
   "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。",
   "powerLockAutoReleaseLabel": "停止踩踏时释放",
   "powerLockAutoReleaseDesc": "低于 {rpm} rpm 持续 {seconds} 秒后返回 SIM",
-  "powerLockReleased": "Power Lock 已释放，返回 SIM"
+  "powerLockReleased": "Power Lock 已释放，返回 SIM",
+  "supportDiagnosticsAttached": "已附上诊断信息",
+  "supportDiagnosticsView": "查看",
+  "supportChatGreeting": "你好，我是 BikeControl 的 Jonas！",
+  "supportChatAskWhatHappens": "你具体想做什么？实际发生了什么？一句话就够了。"
 }

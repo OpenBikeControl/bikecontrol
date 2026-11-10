@@ -95,13 +95,7 @@ Future<void> main() async {
     await tester.tap(finder);
   }
 
-  // The CTA's first step is captureOverviewScreenshot(): its
-  // RenderRepaintBoundary.toImage() only completes on the real event loop
-  // (matchesGoldenFile wraps its own capture in runAsync for the same
-  // reason), and the stitched capture awaits `endOfFrame` once per viewport
-  // of page — frames the test binding only produces when pumped. So: real
-  // time, plus a short pump loop to feed it frames; the push then follows
-  // on the same continuation chain.
+  // Real time plus a short pump loop to feed frames until the push lands.
   Future<void> tapOpenHelp(WidgetTester tester) async {
     await tester.runAsync(() async {
       await tapKey(tester, 'need-help-open');
@@ -125,10 +119,7 @@ Future<void> main() async {
           AppLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
-        // In the app this boundary wraps the Navigation scaffold; mounting it
-        // here is what lets captureOverviewScreenshot() return a real
-        // attachment instead of null (its "no boundary" early-out), so the
-        // payload assertions below exercise the actual capture.
+        // In the app this boundary wraps the Navigation scaffold.
         home: RepaintBoundary(
           key: overviewScreenshotKey,
           child: ProxyDeviceDetailsPage(device: device),
@@ -175,12 +166,11 @@ Future<void> main() async {
     expect(page.focus, HelpCenterFocus.yourSetup);
     final launchContext = page.launchContext;
     expect(launchContext, isNotNull, reason: 'the trainer-specific payload must ride along');
-    expect(launchContext!.initialAttachment, isNotNull, reason: 'the page screenshot is captured up front');
     // memoizeAsync: calling the builder twice must return the exact same
     // in-flight Future rather than starting a second (slow, mDNS-scanning)
     // gather, so the composer's diagnostic preview and the telemetry that
     // rides along with the first send agree.
-    expect(identical(launchContext.telemetryBuilder(), launchContext.telemetryBuilder()), isTrue);
+    expect(identical(launchContext!.telemetryBuilder(), launchContext.telemetryBuilder()), isTrue);
     // Opening the Help Center is not a dismissal: the rider may bounce off it
     // without finding what they need, and should still have the card to come
     // back to.
@@ -211,7 +201,6 @@ Future<void> main() async {
       // _routeToHelpCenter gathered, rather than rebuilding a fresh generic
       // payload the way it does when launchContext is absent.
       expect(identical(chatPage.telemetryBuilder, launchContext.telemetryBuilder), isTrue);
-      expect(identical(chatPage.initialAttachment, launchContext.initialAttachment), isTrue);
       expect(chatPage.diagnosticPreviewFuture, isNotNull);
       await drainDebugTextTimer(tester);
     },

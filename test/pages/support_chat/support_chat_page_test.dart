@@ -16,6 +16,7 @@ import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/pages/support_chat/widgets/support_intake_form.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -251,6 +252,35 @@ Future<void> main() async {
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
       expect(fakeHttp.sendMessageRequests, isEmpty, reason: '"hi" says nothing about what is wrong');
+    });
+  });
+
+  group('after the intake', () {
+    testWidgets('Jonas asks the follow-up question, carrying the intake summary', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+
+      final question = find.byKey(const ValueKey('support-intake-question'));
+      expect(question, findsOneWidget);
+      expect(find.descendant(of: question, matching: find.text(l10n.supportChatAskWhatHappens)), findsOneWidget);
+      expect(
+        find.descendant(of: question, matching: find.byType(SupportIntakeSummaryChip)),
+        findsOneWidget,
+        reason: 'the summary lives in the question, not as a card above the composer',
+      );
+      expect(find.byType(SupportIntakeSummaryChip), findsOneWidget);
+    });
+
+    testWidgets('editing from the question reopens the intake form', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pump();
+      await selectSomethingElseAndContinue(tester);
+
+      await tester.tap(find.text(l10n.supportIntakeEdit));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.supportIntakeTitle), findsOneWidget);
+      expect(find.byKey(const ValueKey('support-intake-question')), findsNothing);
     });
   });
 

@@ -759,8 +759,9 @@ class _RecommendedHelp extends StatelessWidget {
   }
 }
 
-/// Compact summary chip rendered above the composer once the form has been
-/// submitted but the first message hasn't been sent yet.
+/// Compact summary of the intake answers, shown inside Jonas' follow-up
+/// question once the form has been submitted but the first message hasn't
+/// been sent yet.
 class SupportIntakeSummaryChip extends StatelessWidget {
   final IntakeAnswers answers;
   final VoidCallback? onEdit;
@@ -776,12 +777,10 @@ class SupportIntakeSummaryChip extends StatelessWidget {
       if (answers.symptom case final symptom?) symptomLabel(context.i18n, answers.category, symptom),
     ];
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(10, 4, 4, 4),
       decoration: BoxDecoration(
-        color: cs.card,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: cs.border),
+        color: cs.background,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
@@ -789,8 +788,8 @@ class SupportIntakeSummaryChip extends StatelessWidget {
           const Gap(8),
           Expanded(
             child: Text(
-              parts.join('  ·  '),
-              style: context.typography.small.copyWith(fontWeight: FontWeight.w500),
+              parts.join(' · '),
+              style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
             ),
           ),
           if (onEdit != null)

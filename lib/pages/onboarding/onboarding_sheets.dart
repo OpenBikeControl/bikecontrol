@@ -7,7 +7,6 @@ import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
-import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
@@ -160,13 +159,12 @@ Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep st
 }
 
 /// Opens the in-app support chat exactly as `HelpButton` does
-/// (lib/widgets/ui/help_button.dart) — screenshot + diagnostics are gathered
+/// (lib/widgets/ui/help_button.dart) — diagnostics are gathered
 /// before the sheet is dismissed and the full-screen chat page is pushed.
 /// `SupportChatPage` itself handles the case where there's no authenticated
 /// session, so no extra guard is needed here.
 Future<void> _openSupportChat(BuildContext context, VoidCallback onClose) async {
   try {
-    final screenshot = await captureCurrentScreenScreenshot(context);
     // Gather diagnostics in the background so the chat opens immediately; the
     // page awaits this future lazily for the preview and at send time (it
     // resolves once and is reused).
@@ -177,7 +175,6 @@ Future<void> _openSupportChat(BuildContext context, VoidCallback onClose) async 
       MaterialPageRoute(
         builder: (_) => SupportChatPage(
           diagnosticPreviewFuture: debugFuture,
-          initialAttachment: screenshot,
           telemetryBuilder: () async => TelemetrySnapshot.general(freetext: await debugText()),
         ),
       ),
