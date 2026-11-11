@@ -580,6 +580,17 @@
       }
     }
   },
+  "connectionMethodNotActiveForButton": "无法执行 {button}：“{method}”未启用",
+  "@connectionMethodNotActiveForButton": {
+    "placeholders": {
+      "button": {
+        "type": "Object"
+      },
+      "method": {
+        "type": "Object"
+      }
+    }
+  },
   "noActiveWorkout": "没有正在进行的记录",
   "noProxyTrainerConnected": "未连接智能骑行台",
   "noConnectionMethodIsConnectedOrActive": "没有已连接或处于活动状态的连接方式。",

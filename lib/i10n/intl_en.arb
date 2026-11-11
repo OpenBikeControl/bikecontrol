@@ -570,6 +570,17 @@
       }
     }
   },
+  "connectionMethodNotActiveForButton": "Could not perform {button}: \"{method}\" is not active",
+  "@connectionMethodNotActiveForButton": {
+    "placeholders": {
+      "button": {
+        "type": "Object"
+      },
+      "method": {
+        "type": "Object"
+      }
+    }
+  },
   "noActiveWorkout": "No recording running",
   "noProxyTrainerConnected": "No smart trainer connected",
   "noConnectionMethodIsConnectedOrActive": "No connection method is connected or active.",
