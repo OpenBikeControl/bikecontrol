@@ -138,12 +138,20 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     // The trainer app pairs BikeControl twice, as a trainer and as a
     // controller. With the trainer already picked up, the pending copy names
     // the second tile rather than saying "connect the app" about an app that
-    // is, in the rider's eyes, already connected.
+    // is, in the rider's eyes, already connected. Where every install
+    // advertises its own controller tile, the pending hint names this one:
+    // with two phones on one network, "pick BikeControl" leaves the rider
+    // guessing which of two lookalike tiles is theirs.
     SetupStepId.appConnected => step.done
         ? ChainStepText(l.chainStepAppConnected(app))
         : step.variant == SetupStepVariant.controllerLinkMissing
-        ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app, OpenBikeControlMdnsEmulator.controllerTileNameFor(core.settings.getTrainerApp())))
-        : ChainStepText(l.chainStepAppConnectedPending(app), l.chainStepAppConnectedHint),
+        ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app, _controllerTile()))
+        : ChainStepText(
+            l.chainStepAppConnectedPending(app),
+            _controllerTile() == 'BikeControl'
+                ? l.chainStepAppConnectedHint
+                : l.chainStepAppConnectedTileHint(app, _controllerTile()),
+          ),
     // Like the overlay step, the hint is the offer: "Local control" means
     // nothing on its own, and what it buys — keyboard and mouse actions on a
     // button — is the only reason to read the line at all.
@@ -152,6 +160,11 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
         : ChainStepText(l.chainStepLocalControl, l.chainStepLocalControlHint(app)),
   };
 }
+
+/// The controller tile this install shows up as in the selected trainer app.
+String _controllerTile() => OpenBikeControlMdnsEmulator.controllerTileNameFor(
+  core.settings.isInitialized ? core.settings.getTrainerApp() : null,
+);
 
 /// The name the banner uses for a link when it has to talk about it in a
 /// sentence — "Controller and Trainer app still need setting up".

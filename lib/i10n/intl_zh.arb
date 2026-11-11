@@ -2680,6 +2680,8 @@
       }
     }
   },
+  "chainStepAppConnectedTileHint": "打开 {app} 的配对界面，点按控制器下方的「{tile}」磁贴 — 那就是这台设备。",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "在 {app} 的配对界面中选择「{bridge}」作为骑行台 — 不要选择以其自身名称显示的「{trainer}」，那会绕过 BikeControl。",
   "@chainStepTrainerBridgedHint2": {
     "placeholders": {

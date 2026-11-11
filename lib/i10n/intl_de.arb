@@ -2284,6 +2284,8 @@
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
   "chainStepAppControllerHint": "{app} liest deinen Trainer bereits über BikeControl. Deine Tasten brauchen eine zweite Verbindung: Tippe im Kopplungsbildschirm von {app} unter „Controller“ auf die Kachel „{tile}“ — das ist eine eigene Kachel, getrennt vom Trainer.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
+  "chainStepAppConnectedTileHint": "Öffne den Kopplungsbildschirm von {app} und tippe unter „Controller“ auf die Kachel „{tile}“ — das ist dieses Gerät.",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "Wähle im Kopplungsbildschirm von {app} „{bridge}“ als Trainer — nicht „{trainer}“ unter seinem eigenen Namen, das umgeht BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} hat deinen Trainer über BikeControl, aber deine Tasten erreichen {app} erst, wenn du im Kopplungsbildschirm auch den BikeControl-Controller verbindest.",

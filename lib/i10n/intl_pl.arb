@@ -2282,6 +2282,8 @@
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
   "chainStepAppControllerHint": "{app} odczytuje już Twój trenażer przez BikeControl. Twoje przyciski potrzebują drugiego połączenia: na ekranie parowania w {app} dotknij kafelka „{tile}” w sekcji „Kontrolery” — to osobny kafelek, inny niż trenażer.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
+  "chainStepAppConnectedTileHint": "Otwórz ekran parowania w {app} i dotknij kafelka „{tile}” w sekcji „Kontrolery” — to jest to urządzenie.",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "Na ekranie parowania w {app} wybierz „{bridge}” jako trenażer — nie „{trainer}” pod jego własną nazwą, bo to omija BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} ma Twój trenażer przez BikeControl, ale Twoje przyciski nie dotrą do {app}, dopóki nie połączysz też kontrolera BikeControl na jego ekranie parowania.",
