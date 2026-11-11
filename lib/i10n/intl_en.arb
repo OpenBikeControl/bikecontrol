@@ -3470,6 +3470,8 @@
   "supportDiagnosticsView": "View",
   "supportChatGreeting": "Hi, I'm Jonas from BikeControl!",
   "supportChatAskWhatHappens": "What exactly are you trying to do, and what happens instead? One sentence is enough.",
+  "runCommand": "Run Command",
+  "markedActionsNotWellSupportedByMyWhoosh": "Marked actions aren't well supported by MyWhoosh yet",
   "actionGroupGears": "Gears",
   "actionGroupTrainer": "Trainer",
   "actionGroupWorkout": "Workout",

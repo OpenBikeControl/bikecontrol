@@ -37,7 +37,6 @@ import 'package:dartx/dartx.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedHeader;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -338,7 +337,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.logic.showLocalRemoteOptions) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.localRemoteSetting),
+                  ColoredTitle(text: context.i18n.localRemoteSetting, icon: LucideIcons.monitorSmartphone),
 
                   if (core.logic.showLocalKeyboardCard)
                     Builder(
@@ -358,7 +357,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       },
                     ),
                   if (core.logic.showLocalTouchCard)
-                    Builder(
+                    _WideTile(child: Builder(
                       builder: (context) {
                         return SelectableCard(
                           title: Text(context.i18n.simulateTouch),
@@ -380,10 +379,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           },
                         );
                       },
-                    ),
+                    )),
 
                   if (core.actionHandler.supportedModes.contains(SupportedMode.media))
-                    Builder(
+                    _WideTile(child: Builder(
                       builder: (context) => SelectableCard(
                         icon: LucideIcons.music,
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
@@ -566,7 +565,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                           );
                         },
                       ),
-                    ),
+                    )),
                   if (core.logic.showLocalControl && core.actionHandler is AndroidActions)
                     Builder(
                       builder: (context) => SelectableCard(
@@ -654,7 +653,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       },
                     ),
                   ),
-                  Builder(
+                  _WideTile(
+                    child: Builder(
                     builder: (context) => SelectableCard(
                       icon: LucideIcons.cast,
                       isProOnly: true,
@@ -666,16 +666,16 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         await _showCustomIntentDialog(context);
                       },
                     ),
-                  ),
+                  )),
                 ],
 
                 if (!kIsWeb) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.otherActions),
+                  ColoredTitle(text: context.i18n.otherActions, icon: LucideIcons.ellipsis),
                   if (HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isIOS) ...[
                     SelectableCard(
                       isProOnly: true,
-                      title: Text(HostPlatform.isMacOS || HostPlatform.isIOS ? 'Launch Shortcut' : 'Run Command'),
+                      title: Text(HostPlatform.isMacOS || HostPlatform.isIOS ? context.i18n.launchShortcut : context.i18n.runCommand),
                       icon: HostPlatform.isMacOS || HostPlatform.isIOS ? LucideIcons.rocket : LucideIcons.terminal,
                       isActive: _keyPair.command?.trim().isNotEmpty == true,
                       value: _keyPair.command,
@@ -739,7 +739,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.connection.accessories.isNotEmpty) ...[
                   SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.accessoryActions),
+                  ColoredTitle(text: context.i18n.accessoryActions, icon: LucideIcons.wind),
                   Builder(
                     builder: (context) => SelectableCard(
                       icon: LucideIcons.wind,
@@ -855,7 +855,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
                 if (core.connection.inclineDevices.isNotEmpty) ...[
                   SizedBox(height: 8),
-                  if (core.connection.accessories.isEmpty) ColoredTitle(text: context.i18n.accessoryActions),
+                  if (core.connection.accessories.isEmpty) ColoredTitle(text: context.i18n.accessoryActions, icon: LucideIcons.wind),
                   Builder(
                     builder: (context) => SelectableCard(
                       icon: LucideIcons.mountain,
@@ -973,7 +973,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
       width: asSheet ? double.infinity : (size.width - 48).clamp(280.0, 440.0),
       height: asSheet ? size.height * 0.85 : null,
       child: Padding(
-        padding: EdgeInsets.only(right: asSheet ? 0 : 12),
+        padding: asSheet ? const EdgeInsets.symmetric(horizontal: 16) : const EdgeInsets.only(right: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
@@ -985,7 +985,11 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 controller: _scrollController,
                 child: SingleChildScrollView(
                   controller: _scrollController,
-                  padding: const EdgeInsets.only(top: 8, right: 14),
+                  padding: EdgeInsets.only(
+                    top: 8,
+                    right: asSheet ? 0 : 14,
+                    bottom: asSheet ? 16 + MediaQuery.paddingOf(context).bottom : 0,
+                  ),
                   child: _EmbeddedPicker(children: body),
                 ),
               ),
@@ -1009,7 +1013,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   List<Widget> _buildConnectionHints() {
     return [
       if (_myWhooshLinkListed && !core.settings.getMyWhooshLinkEnabled()) ...[
-        ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
+        ColoredTitle(text: context.i18n.myWhooshDirectConnectAction, icon: LucideIcons.plug),
         Warning(
           important: false,
           children: [
@@ -1019,7 +1023,10 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         ),
       ],
       if (_zwiftEmulatorListed && !_zwiftEmulatorEnabled) ...[
-        ColoredTitle(text: context.i18n.trainerAppAction(core.settings.getTrainerApp()?.name ?? 'Zwift')),
+        ColoredTitle(
+          text: context.i18n.trainerAppAction(core.settings.getTrainerApp()?.name ?? 'Zwift'),
+          icon: LucideIcons.plug,
+        ),
         Warning(
           important: false,
           children: [
@@ -1050,16 +1057,16 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
         : const <ControllerButton>[];
     final isMyWhooshTrainer = core.settings.getTrainerApp() is MyWhoosh;
 
+    // The cards that got a "not well supported by MyWhoosh" mark.
+    final marked = <InGameAction>{};
     Widget card(InGameAction action) {
       for (final source in [trainerDirect, whoosh, zwift]) {
         if (source.contains(action)) return _trainerConnectionAction(action, source);
       }
       final button = obpButtons.firstWhere((b) => b.action == action);
-      return _obpControllerButtonAction(
-        button,
-        action,
-        isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action),
-      );
+      final poorlySupported = isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action);
+      if (poorlySupported) marked.add(action);
+      return _obpControllerButtonAction(button, action, poorlySupported);
     }
 
     final groups = groupActions([
@@ -1075,8 +1082,22 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
           card(action),
           ..._holdWarningAfter(action, isActive: _keyPair.inGameAction == action),
         ],
+        if (actions.any(marked.contains)) _myWhooshPoorSupportNote(),
       ],
     ];
+  }
+
+  /// Once under a group: the cards marked with a warning sign are ones
+  /// MyWhoosh doesn't handle well yet.
+  Widget _myWhooshPoorSupportNote() {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      spacing: 6,
+      children: [
+        Icon(LucideIcons.triangleAlert, size: 12, color: cs.mutedForeground),
+        Expanded(child: Text(context.i18n.markedActionsNotWellSupportedByMyWhoosh).xSmall.muted),
+      ],
+    );
   }
 
   /// What Zwift does with a Ride control BikeControl only names by its place.
@@ -1209,29 +1230,21 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
             }
           },
         );
-        if (!showMyWhooshWarning) {
-          return card;
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 4,
+        if (!showMyWhooshWarning) return card;
+        // In the corner, not as a trailing widget: half a row has no width
+        // to spare for the name.
+        return Stack(
           children: [
             card,
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 4,
-                children: [
-                  Icon(
-                    LucideIcons.triangleAlert,
-                    size: 12,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  Expanded(
-                    child: Text(context.i18n.notWellSupportedByMyWhoosh).xSmall.muted,
-                  ),
-                ],
+            PositionedDirectional(
+              top: 8,
+              end: 8,
+              child: IgnorePointer(
+                child: Icon(
+                  LucideIcons.triangleAlert,
+                  size: 12,
+                  color: Theme.of(context).colorScheme.mutedForeground,
+                ),
               ),
             ),
           ],
@@ -1692,6 +1705,17 @@ Future<void> openActionPicker({required BuildContext context, required WidgetBui
   );
 }
 
+/// A card too wide for half a row (it carries a trailing button): it takes the
+/// full width in the picker's grid.
+class _WideTile extends StatelessWidget {
+  const _WideTile({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => child;
+}
+
 class _EmbeddedPicker extends StatelessWidget {
   const _EmbeddedPicker({required this.children});
 
@@ -1729,9 +1753,11 @@ class _EmbeddedPicker extends StatelessWidget {
           if (child is SizedBox && child.child == null) continue;
           out.add(
             switch (child) {
-              ColoredTitle(:final text) => Padding(
+              // One head style for the whole picker: the intent groups' icon
+              // chip, in a neutral hue for the sections that aren't a group.
+              ColoredTitle(:final text, :final icon) => Padding(
                 padding: const EdgeInsets.only(top: 14, bottom: 2),
-                child: BkGroupedHeader(text),
+                child: PickerSectionTitle(text: text, icon: icon ?? LucideIcons.layoutGrid),
               ),
               ActionGroupTitle() => Padding(
                 padding: const EdgeInsets.only(top: 14, bottom: 2),

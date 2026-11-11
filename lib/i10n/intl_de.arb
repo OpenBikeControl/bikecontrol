@@ -3025,6 +3025,8 @@
   "supportDiagnosticsView": "Ansehen",
   "supportChatGreeting": "Hi, ich bin Jonas von BikeControl!",
   "supportChatAskWhatHappens": "Was genau versuchst du, und was passiert stattdessen? Ein Satz reicht.",
+  "runCommand": "Befehl ausführen",
+  "markedActionsNotWellSupportedByMyWhoosh": "Markierte Aktionen werden von MyWhoosh noch nicht gut unterstützt",
   "actionGroupGears": "Gänge",
   "actionGroupTrainer": "Trainer",
   "actionGroupWorkout": "Training",

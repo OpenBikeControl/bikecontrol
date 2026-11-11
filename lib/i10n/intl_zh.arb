@@ -4219,6 +4219,8 @@
   "supportDiagnosticsView": "查看",
   "supportChatGreeting": "你好，我是 BikeControl 的 Jonas！",
   "supportChatAskWhatHappens": "你具体想做什么？实际发生了什么？一句话就够了。",
+  "runCommand": "运行命令",
+  "markedActionsNotWellSupportedByMyWhoosh": "标记的操作目前在 MyWhoosh 中支持不佳",
   "actionGroupGears": "档位",
   "actionGroupTrainer": "骑行台",
   "actionGroupWorkout": "训练",

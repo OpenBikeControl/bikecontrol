@@ -46,8 +46,21 @@ class ActionGroupTitle extends StatelessWidget {
   }
 
   @override
+  Widget build(BuildContext context) =>
+      PickerSectionTitle(text: nameOf(context, group), icon: iconOf(group), hue: hueOf(group));
+}
+
+/// A section head in the action picker: an icon chip tinted in [hue] and the
+/// section's name.
+class PickerSectionTitle extends StatelessWidget {
+  const PickerSectionTitle({super.key, required this.text, required this.icon, this.hue = const Color(0xFF94A3B8)});
+
+  final String text;
+  final IconData icon;
+  final Color hue;
+
+  @override
   Widget build(BuildContext context) {
-    final hue = hueOf(group);
     return Semantics(
       header: true,
       child: Row(
@@ -60,9 +73,9 @@ class ActionGroupTitle extends StatelessWidget {
               color: hue.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(7),
             ),
-            child: Icon(iconOf(group), size: 14, color: hue),
+            child: Icon(icon, size: 14, color: hue),
           ),
-          Text(nameOf(context, group)).small.semiBold,
+          Text(text).small.semiBold,
         ],
       ),
     );

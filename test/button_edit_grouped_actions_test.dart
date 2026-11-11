@@ -7,6 +7,7 @@ import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/action_groups.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -106,5 +107,19 @@ void main() {
       ),
     );
     expect(find.textContaining('Now: '), findsOneWidget);
+  });
+
+  testWidgets('MyWhoosh\'s weak actions are marked, with one note per group, not one per card', (tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    await core.settings.setObpBleEnabled(true);
+    core.actionHandler.init(MyWhoosh());
+    await pumpEditor(tester);
+    final notes = find.text(AppLocalizations.current.markedActionsNotWellSupportedByMyWhoosh);
+    expect(notes, findsWidgets);
+    expect(
+      notes.evaluate().length,
+      lessThanOrEqualTo(tester.widgetList(find.byType(ActionGroupTitle)).length),
+    );
+    expect(find.text(AppLocalizations.current.notWellSupportedByMyWhoosh), findsNothing);
   });
 }
