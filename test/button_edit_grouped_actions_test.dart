@@ -122,4 +122,25 @@ void main() {
     );
     expect(find.text(AppLocalizations.current.notWellSupportedByMyWhoosh), findsNothing);
   });
+
+  testWidgets('a one-line card is as tall as a two-line one', (tester) async {
+    await pumpEditor(tester, size: const Size(390, 3000));
+    final line = tester.getSize(find.text(InGameAction.lap.title)).height;
+    // The title area of a card whose name fits one line still takes two.
+    final titleArea = find.ancestor(of: find.text(InGameAction.lap.title), matching: find.byType(Stack)).first;
+    expect(tester.getSize(titleArea).height, 2 * line);
+  });
+
+  testWidgets('no section mixes half- and full-width cards', (tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    await core.settings.setObpBleEnabled(true);
+    core.actionHandler.init(MyWhoosh());
+    await pumpEditor(tester, size: const Size(390, 3000));
+    final sections = find.descendant(of: find.byType(ButtonEditPage), matching: find.byType(Wrap));
+    expect(sections, findsWidgets);
+    for (final wrap in tester.widgetList<Wrap>(sections)) {
+      final widths = wrap.children.whereType<SizedBox>().map((b) => b.width).toSet();
+      expect(widths, hasLength(1), reason: 'cards of one section: $widths');
+    }
+  });
 }

@@ -215,7 +215,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     final children = <Widget>[
                 // The drawer's own head; embedded, the pane around it names
                 // the button and trigger.
-                if (!widget.embedded) SizedBox(height: 16),
+                // A sheet's drag handle already spaces the head from the top.
+                if (!widget.embedded) SizedBox(height: useActionPickerSheet(context) ? 0 : 16),
                 if (!widget.embedded) Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1705,8 +1706,8 @@ Future<void> openActionPicker({required BuildContext context, required WidgetBui
   );
 }
 
-/// A card too wide for half a row (it carries a trailing button): it takes the
-/// full width in the picker's grid.
+/// A card too wide for half a row (it carries a trailing button or a long
+/// subtitle): it and the other cards of its section take the full width.
 class _WideTile extends StatelessWidget {
   const _WideTile({required this.child});
 
@@ -1721,7 +1722,7 @@ class _EmbeddedPicker extends StatelessWidget {
 
   final List<Widget> children;
 
-  static bool _isTile(Widget w) => w is SelectableCard || w is Builder;
+  static bool _isTile(Widget w) => w is SelectableCard || w is Builder || w is _WideTile;
 
   @override
   Widget build(BuildContext context) {
@@ -1734,11 +1735,16 @@ class _EmbeddedPicker extends StatelessWidget {
         var run = <Widget>[];
         void flush() {
           if (run.isEmpty) return;
+          // A section is either a grid or a list: when one of its cards needs
+          // the full width, all of them get it, so none sits half-width alone.
+          final asList = run.any((tile) => tile is _WideTile);
           out.add(
             Wrap(
               spacing: gap,
               runSpacing: gap,
-              children: [for (final tile in run) SizedBox(width: tileWidth, child: tile)],
+              children: [
+                for (final tile in run) SizedBox(width: asList ? constraints.maxWidth : tileWidth, child: tile),
+              ],
             ),
           );
           run = [];
@@ -1769,10 +1775,26 @@ class _EmbeddedPicker extends StatelessWidget {
           );
         }
         flush();
-        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 8, children: out);
+        return SelectableCardMinLines(
+          lines: 2,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, spacing: 8, children: out),
+        );
       },
     );
   }
+}
+
+/// Makes every [SelectableCard] below at least [lines] lines of title tall.
+class SelectableCardMinLines extends InheritedWidget {
+  const SelectableCardMinLines({super.key, required this.lines, required super.child});
+
+  final int lines;
+
+  static int? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<SelectableCardMinLines>()?.lines;
+
+  @override
+  bool updateShouldNotify(SelectableCardMinLines oldWidget) => oldWidget.lines != lines;
 }
 
 class SelectableCard extends StatelessWidget {
@@ -1798,6 +1820,22 @@ class SelectableCard extends StatelessWidget {
     this.isProOnly = false,
     this.alignment = Alignment.topLeft,
   });
+
+  /// In the action picker ([SelectableCardMinLines]) a card without a
+  /// subtitle is as tall as that many lines of its title, so a grid row of
+  /// one- and two-line names lines up. An invisible blank text of that many
+  /// lines, in the title's own style, sets the height.
+  static Widget _withMinLines(BuildContext context, Widget title, {required bool hasSubtitle}) {
+    final lines = SelectableCardMinLines.of(context);
+    if (lines == null || lines < 2 || hasSubtitle) return title;
+    return Stack(
+      alignment: AlignmentDirectional.centerStart,
+      children: [
+        ExcludeSemantics(child: Opacity(opacity: 0, child: Text('\n' * (lines - 1)))),
+        title,
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1844,6 +1882,9 @@ class SelectableCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: Basic(
+              // Half a row in the picker's grid: a tighter icon gap leaves the
+              // name room for its longest word.
+              contentSpacing: SelectableCardMinLines.of(context) != null ? 10 : null,
               leadingAlignment: Alignment.centerLeft,
               leading: icon != null
                   ? Padding(
@@ -1854,7 +1895,7 @@ class SelectableCard extends StatelessWidget {
                       ),
                     )
                   : null,
-              title: title,
+              title: _withMinLines(context, title, hasSubtitle: (value != null && isActive) || subtitle != null),
               subtitle: value != null && isActive ? Text(value!) : subtitle,
               trailing: trailing,
             ),
