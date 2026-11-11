@@ -539,6 +539,7 @@
   "noActionAssignedForButton": "Impossible d'effectuer {button}: Aucune action assignée",
   "trainerAppNotConnectedForButton": "Impossible d'effectuer {button} : {app} n'est pas connecté",
   "trainerAppActionUnsupportedForButton": "Impossible d'effectuer {button} : {app} ne le prend pas en charge",
+  "connectionMethodNotActiveForButton": "Impossible d'effectuer {button} : « {method} » n'est pas actif",
   "noActiveWorkout": "Aucun enregistrement en cours",
   "noProxyTrainerConnected": "Aucun home trainer connecté",
   "noConnectionMethodIsConnectedOrActive": "Aucune méthode de connexion n'est établie ou active.",

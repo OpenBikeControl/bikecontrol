@@ -539,6 +539,7 @@
   "noActionAssignedForButton": "Non è stato possibile eseguire{button} : Nessuna azione assegnata",
   "trainerAppNotConnectedForButton": "Non è stato possibile eseguire {button}: {app} non è connesso",
   "trainerAppActionUnsupportedForButton": "Non è stato possibile eseguire {button}: {app} non lo supporta",
+  "connectionMethodNotActiveForButton": "Non è stato possibile eseguire {button}: «{method}» non è attivo",
   "noActiveWorkout": "Nessuna registrazione in corso",
   "noProxyTrainerConnected": "Nessuno smart trainer connesso",
   "noConnectionMethodIsConnectedOrActive": "Nessun metodo di connessione è connesso o attivo.",
