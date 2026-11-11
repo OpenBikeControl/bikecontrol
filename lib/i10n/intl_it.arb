@@ -2282,6 +2282,8 @@
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
   "chainStepAppControllerHint": "{app} legge già il tuo rullo tramite BikeControl. I tuoi pulsanti hanno bisogno di un secondo collegamento: nella schermata di associazione di {app}, tocca il riquadro «{tile}» sotto «Controller» — è un riquadro separato da quello del rullo.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
+  "chainStepAppConnectedTileHint": "Apri la schermata di associazione di {app} e tocca il riquadro «{tile}» sotto «Controller»: è questo dispositivo.",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "Nella schermata di associazione di {app} scegli «{bridge}» come rullo — non «{trainer}» con il suo nome, così BikeControl viene saltato.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} ha il tuo rullo tramite BikeControl, ma i tuoi pulsanti non raggiungeranno {app} finché non colleghi anche il controller BikeControl nella sua schermata di associazione.",

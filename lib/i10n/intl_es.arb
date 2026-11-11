@@ -2282,6 +2282,8 @@
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
   "chainStepAppControllerHint": "{app} ya lee tu rodillo a través de BikeControl. Tus botones necesitan un segundo enlace: en la pantalla de emparejamiento de {app}, toca la ficha «{tile}» en «Controladores» — es una ficha distinta de la del rodillo.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
+  "chainStepAppConnectedTileHint": "Abre la pantalla de emparejamiento de {app} y toca la ficha «{tile}» en «Controladores»: es este dispositivo.",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "En la pantalla de emparejamiento de {app}, elige «{bridge}» como rodillo — no «{trainer}» con su propio nombre, eso deja a BikeControl fuera.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} ya tiene tu rodillo a través de BikeControl, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",

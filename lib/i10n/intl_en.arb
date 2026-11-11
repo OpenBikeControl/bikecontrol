@@ -2492,6 +2492,8 @@
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
   "chainStepAppControllerHint": "{app} is already reading your trainer through BikeControl. Your buttons need a second link: in {app}'s pairing screen, tap the “{tile}” tile under Controllers — it's a separate tile from the trainer.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
+  "chainStepAppConnectedTileHint": "Open {app}'s pairing screen and tap the “{tile}” tile under Controllers — that's this device.",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "In {app}'s pairing screen choose “{bridge}” as the trainer — not “{trainer}” under its own name, that bypasses BikeControl.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} has your trainer through BikeControl, but your buttons won't reach {app} until you also connect the BikeControl controller in its pairing screen.",
