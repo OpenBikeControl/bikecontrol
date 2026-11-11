@@ -211,7 +211,9 @@ Future<void> main() async {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: BkTheme.build(Brightness.light),
-        home: SingleChildScrollView(child: Paywall(debugClipPoster: (_) => _PendingImage())),
+        home: SingleChildScrollView(
+          child: Paywall(debugClipPoster: (_) => _PendingImage(), debugNativeTrainer: () => null),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -244,28 +246,24 @@ Future<void> main() async {
       expect(paywallShiftAppName(MyWhoosh()), isNull);
     });
 
-    testWidgets('uses the selected trainer app on both cards', (tester) async {
+    testWidgets('Base names the selected trainer app as the one that shifts', (tester) async {
       useTrainerApp(MyWhoosh());
       final l = await pump(tester);
-      // Pro: BikeControl can do the gears, so the line doesn't say the app
-      // computes them. Base: the app does, and says so.
-      expect(inCard(proCard, l.paywall_shiftInNamedAppShort('MyWhoosh')), findsOneWidget);
-      expect(inCard(baseCard, l.paywall_shiftInNamedApp('MyWhoosh')), findsOneWidget);
-      expect(inCard(proCard, l.paywall_shiftInNamedApp('MyWhoosh')), findsNothing);
-      expect(find.text(l.paywall_shiftInYourApp), findsNothing);
+      expect(inCard(baseCard, l.paywallBaseTitleNamed('MyWhoosh')), findsOneWidget);
+      expect(inCard(baseCard, l.paywallBaseShiftNamed('MyWhoosh')), findsOneWidget);
+      expect(find.text(l.paywallBaseShift), findsNothing);
     });
 
     testWidgets('falls back to the generic wording with no app selected', (tester) async {
       useTrainerApp(null);
       final l = await pump(tester);
-      expect(inCard(proCard, l.paywall_shiftInYourAppShort), findsOneWidget);
-      expect(inCard(baseCard, l.paywall_shiftInYourApp), findsOneWidget);
+      expect(inCard(baseCard, l.paywallBaseShift), findsOneWidget);
     });
 
     testWidgets('stays generic in store-screenshot mode', (tester) async {
       useTrainerApp(MyWhoosh(), screenshots: true);
       final l = await pump(tester);
-      expect(inCard(proCard, l.paywall_shiftInYourAppShort), findsOneWidget);
+      expect(inCard(baseCard, l.paywallBaseShift), findsOneWidget);
       expect(find.textContaining('MyWhoosh'), findsNothing);
     });
   });
@@ -282,17 +280,12 @@ Future<void> main() async {
       );
     });
 
-    testWidgets('lines with a clip show a labelled ▶ on the Pro card only', (tester) async {
+    testWidgets('moments with a clip show a labelled ▶ on the Pro card only', (tester) async {
       useTrainerApp(null);
       final l = await pump(tester);
       final withClip = {
-        l.paywall_vsByBikeControl: PaywallFeatureClip.smartTrainerVirtualShifting,
-        l.paywall_shiftInYourAppShort: PaywallFeatureClip.virtualGearShifting,
-        l.paywall_configure3ActionsPerButton: PaywallFeatureClip.buttonGestures,
-        l.paywall_shareSensors: PaywallFeatureClip.heartRate,
-        l.paywall_startAnyCommandShortcutWithAnyButton: PaywallFeatureClip.launchCommand,
-        l.paywall_controlYourDeviceMusic: PaywallFeatureClip.music,
-        l.paywall_createScreenshots: PaywallFeatureClip.screenshots,
+        l.paywallFeelShiftTitle: PaywallFeatureClip.smartTrainerVirtualShifting,
+        l.paywallFeelBarsTitle: PaywallFeatureClip.buttonGestures,
       };
       final handle = tester.ensureSemantics();
       for (final MapEntry(key: label, value: clip) in withClip.entries) {
@@ -304,8 +297,8 @@ Future<void> main() async {
         final play = tester.getRect(button);
         expect(play.center.dy, inInclusiveRange(row.top - 16, row.bottom + 16), reason: label);
       }
-      // Seven clips, none on the lines without one, none on the Base card.
-      expect(find.descendant(of: proCard, matching: find.byType(PaywallClipButton)), findsNWidgets(7));
+      // Two clips, none on the moments without one, none on the Base card.
+      expect(find.descendant(of: proCard, matching: find.byType(PaywallClipButton)), findsNWidgets(2));
       expect(find.descendant(of: baseCard, matching: find.byType(PaywallClipButton)), findsNothing);
       expect(
         targetsBelowAndroidMinimum(tester, [
@@ -327,7 +320,7 @@ Future<void> main() async {
       final sheet = find.byType(PaywallFeatureClipView);
       expect(sheet, findsOneWidget);
       expect(tester.widget<PaywallFeatureClipView>(sheet).clip, PaywallFeatureClip.buttonGestures);
-      expect(find.descendant(of: sheet, matching: find.text(l.paywall_configure3ActionsPerButton)), findsOneWidget);
+      expect(find.descendant(of: sheet, matching: find.text(l.paywallFeelBarsTitle)), findsOneWidget);
       expect(video.created, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
       expect(launcher.launched, isEmpty, reason: 'the clip plays in the app');
     });
@@ -362,7 +355,7 @@ Future<void> main() async {
     testWidgets('hovering a clip line plays a muted looping preview after a short delay', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
       await tester.pump(const Duration(milliseconds: 250));
       expect(preview, findsNothing, reason: 'hover intent: nothing before the delay');
       expect(video.created, isEmpty);
@@ -386,7 +379,7 @@ Future<void> main() async {
       final card = tester.getRect(preview);
       final window = Offset.zero & tester.view.physicalSize / tester.view.devicePixelRatio;
       expect(window.contains(card.topLeft) && window.contains(card.bottomRight), isTrue, reason: '$card in $window');
-      final row = tester.getRect(inCard(proCard, l.paywall_configure3ActionsPerButton));
+      final row = tester.getRect(inCard(proCard, l.paywallFeelBarsTitle));
       expect(card.top, lessThan(row.bottom));
       expect(card.bottom, greaterThan(row.top));
       // Beside the line's ▶, not over the feature text: in a wide card the
@@ -400,7 +393,7 @@ Future<void> main() async {
     testWidgets('a quick pass over a line loads nothing', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_shareSensors)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelShiftTitle)));
       await tester.pump(const Duration(milliseconds: 150));
       await gesture.moveTo(Offset.zero);
       await tester.pump(const Duration(seconds: 1));
@@ -412,21 +405,21 @@ Future<void> main() async {
     testWidgets('moving between lines keeps one preview and releases the last one', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_shareSensors)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelShiftTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       expect(video.live, [video.first]);
 
       // Sweeping across lines on the way starts nothing.
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_startAnyCommandShortcutWithAnyButton)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelDrivetrainTitle)));
       await tester.pump(const Duration(milliseconds: 100));
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_controlYourDeviceMusic)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       expect(preview, findsOneWidget);
       expect(video.created, [
-        'https://bikecontrol.app/videos/features/heartRate.mp4',
-        'https://bikecontrol.app/videos/features/music.mp4',
+        'https://bikecontrol.app/videos/features/smartTrainerVirtualShifting.mp4',
+        'https://bikecontrol.app/videos/features/buttonGestures.mp4',
       ]);
       expect(video.disposed, [video.first]);
       expect(video.live, [video.first + 1]);
@@ -436,7 +429,7 @@ Future<void> main() async {
     testWidgets('the preview stays while the pointer moves onto it and goes once it leaves', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       await gesture.moveTo(tester.getCenter(preview));
@@ -478,7 +471,7 @@ Future<void> main() async {
       addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       expect(preview, findsOneWidget);
@@ -492,7 +485,7 @@ Future<void> main() async {
       video.mode = _ClipLoad.fails;
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      final line = tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton));
+      final line = tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle));
       for (var i = 0; i < 2; i++) {
         await gesture.moveTo(line);
         await tester.pump(const Duration(milliseconds: 400));
@@ -512,9 +505,10 @@ Future<void> main() async {
     }, variant: desktop);
 
     testWidgets('a line near the bottom of the window keeps its preview inside it', (tester) async {
-      const window = Size(1280, 460);
+      // Short enough that the page scrolls the clip line to the bottom edge.
+      const window = Size(1280, 300);
       final l = await pumpDesktop(tester, size: window);
-      final line = inCard(proCard, l.paywall_createScreenshots);
+      final line = inCard(proCard, l.paywallFeelBarsTitle);
       // Scroll the line to the bottom edge of the window.
       unawaited(Scrollable.ensureVisible(tester.element(line), alignment: 1.0));
       await tester.pump();
@@ -536,7 +530,7 @@ Future<void> main() async {
     testWidgets('touch platforms show no preview', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywall_configure3ActionsPerButton)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
       await tester.pump(const Duration(seconds: 1));
       await settle(tester);
       expect(preview, findsNothing);

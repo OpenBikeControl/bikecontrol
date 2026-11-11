@@ -6,13 +6,19 @@
 //   a footnote under both plans says the trainer app shifts without Pro;
 // - each purchase button says which plan it buys.
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
+import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/plan/vs_without_pro_note.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'widget_snapshot.dart';
@@ -23,6 +29,7 @@ Future<void> main() async {
   Future<AppLocalizations> pump(
     WidgetTester tester, {
     bool purchased = false,
+    String? nativeTrainer,
     void Function(String plan)? onPurchase,
   }) async {
     tester.view.physicalSize = const Size(390, 1800) * 3.0;
@@ -41,7 +48,9 @@ Future<void> main() async {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: BkTheme.build(Brightness.light),
-        home: SingleChildScrollView(child: Paywall(debugOnPurchase: onPurchase)),
+        home: SingleChildScrollView(
+          child: Paywall(debugOnPurchase: onPurchase, debugNativeTrainer: () => nativeTrainer),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -62,34 +71,79 @@ Future<void> main() async {
     expect(inCard(baseCard, l.paywall_oneTimePurchase), findsOneWidget);
   });
 
-  testWidgets('unlimited commands opens the Pro card, then virtual shifting; Base does not list it; the trial is a footnote', (tester) async {
+  /// Selects [app] as the trainer app, with real app names (the snapshot
+  /// harness keeps them generic, as for store screenshots).
+  void useApp(SupportedApp? app) {
+    final was = screenshotMode;
+    screenshotMode = false;
+    if (app != null) core.settings.setTrainerApp(app);
+    addTearDown(() {
+      screenshotMode = was;
+      core.settings.prefs.remove('trainer_app');
+    });
+  }
+
+  testWidgets('Base is one line: unlimited presses, and the trainer app does the shifting', (tester) async {
+    useApp(MyWhoosh());
     final l = await pump(tester);
+    expect(inCard(baseCard, l.paywallBaseTitleNamed('MyWhoosh')), findsOneWidget);
+    expect(inCard(baseCard, l.paywallBaseShiftNamed('MyWhoosh')), findsOneWidget);
+    // No separate footnote under both cards any more: Base says it itself.
+    expect(find.byType(VsWithoutProNote), findsNothing);
+  });
 
-    // Unlimited commands (no demo clip) opens the list, so the clip rows
-    // run together below it; virtual shifting follows straight after.
-    final vs = tester.getRect(inCard(proCard, l.paywall_vsByBikeControl));
-    final commands = tester.getRect(inCard(proCard, l.paywall_amountOfActions));
-    final shift = tester.getRect(inCard(proCard, l.paywall_shiftInYourAppShort));
-    expect(commands.top, lessThan(vs.top), reason: 'unlimited commands is the first line');
-    expect(vs.top, lessThan(shift.top), reason: 'virtual shifting comes right after it');
-    expect(inCard(baseCard, l.paywall_vsByBikeControl), findsNothing, reason: 'Base does not include virtual shifting');
+  testWidgets('without a trainer app, Base says "your trainer app"', (tester) async {
+    useApp(null);
+    final l = await pump(tester);
+    expect(inCard(baseCard, l.paywallBaseTitle), findsOneWidget);
+    expect(inCard(baseCard, l.paywallBaseShift), findsOneWidget);
+  });
 
-    // Unlimited button commands and shifting in the trainer app are in both.
-    for (final card in [proCard, baseCard]) {
-      expect(inCard(card, l.paywall_amountOfActions), findsOneWidget);
-      expect(inCard(card, l.unlimited), findsOneWidget);
+  group('native and instant, only where it is true', () {
+    testWidgets('a trainer that shifts natively, with an app that does not: native and instant', (tester) async {
+      useApp(MyWhoosh());
+      final l = await pump(tester, nativeTrainer: 'Zwift Hub One');
+      expect(inCard(proCard, l.paywallFeelShiftNative('Zwift Hub One')), findsOneWidget);
+      expect(inCard(proCard, l.paywallFeelShift), findsNothing);
+    });
+
+    // Zwift and Rouvy shift a Zwift Ready trainer natively themselves: there
+    // BikeControl's shifting is neither faster nor more native, and Base's
+    // line doesn't say the app might feel less snappy.
+    for (final (name, app) in [('Zwift', Zwift()), ('Rouvy', Rouvy())]) {
+      testWidgets('$name on a trainer that shifts natively: no native, instant or snappy claim', (tester) async {
+        useApp(app);
+        final l = await pump(tester, nativeTrainer: 'Zwift Hub One');
+        expect(inCard(proCard, l.paywallFeelShift), findsOneWidget);
+        expect(inCard(proCard, l.paywallFeelShiftNative('Zwift Hub One')), findsNothing);
+        expect(inCard(baseCard, l.paywallBaseShiftNamedNative(name)), findsOneWidget);
+        expect(inCard(baseCard, l.paywallBaseShiftNamed(name)), findsNothing);
+      });
     }
-    // Pro drops "the app does the shifting": with Pro, BikeControl can.
-    expect(inCard(proCard, l.paywall_shiftInYourAppShort), findsOneWidget);
-    expect(inCard(baseCard, l.paywall_shiftInYourApp), findsOneWidget);
 
-    // Under both plans: without Pro the trainer app does the shifting, and
-    // what Pro adds, with the post comparing the two.
-    final footnote = find.byType(VsWithoutProNote);
-    expect(footnote, findsOneWidget);
-    expect(find.descendant(of: footnote, matching: find.text(l.vsWithoutProNoteYourApp)), findsOneWidget);
-    expect(find.descendant(of: footnote, matching: find.text(l.vsWithoutProLearnMore)), findsOneWidget);
-    expect(tester.getRect(footnote).top, greaterThan(tester.getRect(baseCard).bottom), reason: 'under both plans');
+    testWidgets('a trainer that does not shift natively: no native or instant claim', (tester) async {
+      useApp(MyWhoosh());
+      final l = await pump(tester);
+      expect(inCard(proCard, l.paywallFeelShift), findsOneWidget);
+      expect(find.textContaining('Native'), findsNothing);
+    });
+
+    test('native means commanded over the Zwift interface, with no gear commands ignored', () {
+      expect(paywallShiftsNatively(TrainerControlProtocol.zwiftHub, null), isTrue);
+      expect(paywallShiftsNatively(TrainerControlProtocol.zwiftHub, ZwiftGearEchoVerdict.fellBackToFtms), isTrue);
+      expect(paywallShiftsNatively(TrainerControlProtocol.ftms, null), isFalse);
+      expect(paywallShiftsNatively(TrainerControlProtocol.fec, null), isFalse);
+      expect(paywallShiftsNatively(TrainerControlProtocol.zwiftHub, ZwiftGearEchoVerdict.riderOverrideKept), isFalse);
+      expect(paywallShiftsNatively(TrainerControlProtocol.zwiftHub, ZwiftGearEchoVerdict.noFtmsToFallBackTo), isFalse);
+    });
+
+    test('Zwift and Rouvy are the apps that shift natively themselves', () {
+      final SupportedApp? none = null;
+      expect(paywallAppShiftsNatively(Zwift()), isTrue);
+      expect(paywallAppShiftsNatively(Rouvy()), isTrue);
+      expect(paywallAppShiftsNatively(MyWhoosh()), isFalse);
+      expect(paywallAppShiftsNatively(none), isFalse);
+    });
   });
 
   testWidgets('the Pro card is titled PRO once, without a PRO badge beside it', (tester) async {
@@ -98,10 +152,8 @@ Future<void> main() async {
     expect(find.descendant(of: proCard, matching: find.byType(ProBadge)), findsNothing);
   });
 
-  testWidgets('sensors are a Pro line; "support development" is not a feature', (tester) async {
+  testWidgets('"support development" is not a feature', (tester) async {
     final l = await pump(tester);
-    expect(inCard(proCard, l.paywall_shareSensors), findsOneWidget);
-    expect(inCard(baseCard, l.paywall_shareSensors), findsNothing);
     expect(find.text(l.paywall_supportDevelopmentOfNewFeaturesDevicesAndMore), findsNothing);
   });
 

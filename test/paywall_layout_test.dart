@@ -46,45 +46,47 @@ Future<void> main() async {
     expect(tester.takeException(), isNull);
   });
 
-  // Support-UX: riders bought Base expecting BikeControl-driven virtual
-  // shifting — the old table's "Connect to your trainer ✓" for Base read as
-  // exactly that, and later a "20 min/day" Base cell drew a Pro trial as if
-  // Base had some of it. BikeControl's virtual shifting now leads the table
-  // (Pro only; the trial is a footnote — see paywall_plan_chooser_test.dart),
-  // then what Base covers: the app shifts, BikeControl presses the buttons.
-  testWidgets('the Pro card spells out what Pro adds: unlimited commands, then virtual shifting', (tester) async {
+  // The Pro card says what riding with Pro feels like, in four moments, led
+  // by the shifting; Base is one line, and never claims BikeControl's
+  // virtual shifting (riders bought Base expecting it).
+  testWidgets('the Pro card leads with shifting, then drivetrain, bars and devices; Base has one line', (tester) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
-    await pumpInScrollView(tester, const Paywall(defaultToFullVersion: false));
+    await pumpInScrollView(tester, Paywall(debugNativeTrainer: () => null));
     expect(tester.takeException(), isNull);
 
     final l10n = AppLocalizations.current;
-    final labelsInOrder = [
-      l10n.paywall_amountOfActions,
-      l10n.paywall_vsByBikeControl,
-      l10n.paywall_shiftInYourAppShort,
-      l10n.paywall_configure3ActionsPerButton,
-      l10n.paywall_useBikecontrolOnAllPlatforms,
+    final titlesInOrder = [
+      l10n.paywallFeelShiftTitle,
+      l10n.paywallFeelDrivetrainTitle,
+      l10n.paywallFeelBarsTitle,
+      l10n.paywallFeelDevicesTitle,
     ];
     final proCard = find.byKey(const ValueKey('paywall-pro-card'));
+    final baseCard = find.byKey(const ValueKey('paywall-base-card'));
     Finder inPro(String label) => find.descendant(of: proCard, matching: find.text(label));
-    for (final label in labelsInOrder) {
-      expect(inPro(label), findsOneWidget, reason: 'line "$label" missing');
+    expect(inPro(l10n.paywallProTagline.toUpperCase()), findsOneWidget);
+    for (final title in titlesInOrder) {
+      expect(inPro(title), findsOneWidget, reason: 'moment "$title" missing');
     }
-    final tops = [for (final label in labelsInOrder) tester.getTopLeft(inPro(label)).dy];
+    final tops = [for (final title in titlesInOrder) tester.getTopLeft(inPro(title)).dy];
     for (var i = 1; i < tops.length; i++) {
       expect(
         tops[i],
         greaterThan(tops[i - 1]),
-        reason: '"${labelsInOrder[i]}" must sit below "${labelsInOrder[i - 1]}"',
+        reason: '"${titlesInOrder[i]}" must sit below "${titlesInOrder[i - 1]}"',
       );
     }
 
-    // The replaced rows are gone for good, not merely reordered.
-    expect(find.text('Connect to your trainer'), findsNothing);
-    expect(find.text('Add virtual shifting capability'), findsNothing);
-    expect(find.text('Amount of actions'), findsNothing);
-    expect(find.text(l10n.paywall_bikeControlShifts), findsNothing);
+    // Base: one line, and the trainer app does the shifting.
+    expect(find.descendant(of: baseCard, matching: find.text(l10n.paywallBaseShift)), findsOneWidget);
+    for (final title in titlesInOrder) {
+      expect(find.descendant(of: baseCard, matching: find.text(title)), findsNothing);
+    }
+
+    // The old feature list is gone.
+    expect(find.text(l10n.paywall_vsByBikeControl), findsNothing);
+    expect(find.text(l10n.paywall_amountOfActions), findsNothing);
   });
 
   // Cross-store restores: Base is bound to the storefront it was bought on.
