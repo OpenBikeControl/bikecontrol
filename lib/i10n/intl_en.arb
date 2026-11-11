@@ -3469,5 +3469,15 @@
   "supportDiagnosticsAttached": "Diagnostic info attached",
   "supportDiagnosticsView": "View",
   "supportChatGreeting": "Hi, I'm Jonas from BikeControl!",
-  "supportChatAskWhatHappens": "What exactly are you trying to do, and what happens instead? One sentence is enough."
+  "supportChatAskWhatHappens": "What exactly are you trying to do, and what happens instead? One sentence is enough.",
+  "actionGroupGears": "Gears",
+  "actionGroupTrainer": "Trainer",
+  "actionGroupWorkout": "Workout",
+  "actionGroupRide": "Riding",
+  "actionGroupNavigate": "Navigate",
+  "actionGroupView": "View",
+  "actionGroupController": "Controller buttons",
+  "actionGroupSystem": "System",
+  "currentActionNow": "Now: {action}",
+  "@currentActionNow": {"placeholders": {"action": {"type": "String"}}}
 }

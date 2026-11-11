@@ -18,10 +18,12 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:bike_control/utils/keymap/action_groups.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/custom_keymap_selector.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
+import 'package:bike_control/widgets/keymap/action_group_title.dart';
 import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
 import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/button_widget.dart';
@@ -208,6 +210,9 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
   @override
   Widget build(BuildContext context) {
     _holdWarningPlaced = false;
+    final showsCurrent = !widget.embedded && !_keyPair.hasNoAction && _keyPair.actionLabel.trim().isNotEmpty;
+    // The drawer's fixed head: spacer, button row, trigger line, current line.
+    final headLength = widget.embedded ? 0 : 2 + (widget.steeringInput == null ? 1 : 0) + (showsCurrent ? 1 : 0);
     final children = <Widget>[
                 // The drawer's own head; embedded, the pane around it names
                 // the button and trigger.
@@ -258,6 +263,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                 ),
                 if (!widget.embedded && widget.steeringInput == null)
                   Text(context.i18n.editingTrigger(widget.trigger.title)).xSmall.muted,
+                if (showsCurrent)
+                  Text(context.i18n.currentActionNow(_keyPair.actionLabel)).small.semiBold,
                 if (_usesFallbackLongPressMode)
                   Warning(
                     important: false,
@@ -267,13 +274,6 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       ).small,
                     ],
                   ),
-
-                if (core.connection.proxyDevices.any((e) => e.isConnected) ||
-                    core.settings.getTrainerApp() is BikeControl) ...[
-                  ColoredTitle(text: context.i18n.trainerDirectControl),
-                  ..._buildTrainerConnectionActions(trainerActions),
-                  SizedBox(height: 8),
-                ],
 
                 // Self-hosted trainer actions run in BikeControl itself, so no
                 // connection method is needed for them.
@@ -333,38 +333,8 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                       );
                     },
                   ),
-                if (core.logic.showObpActions) ...[
-                  ColoredTitle(text: context.i18n.openBikeControlActions),
-                  ..._buildObpControllerButtonActions(core.logic.obpSupportedButtons),
-                ],
-
-                if (core.logic.showMyWhooshLink && (HostPlatform.isIOS || core.settings.getMyWhooshLinkEnabled())) ...[
-                  SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
-                  if (!core.settings.getMyWhooshLinkEnabled())
-                    Warning(
-                      important: false,
-                      children: [
-                        Text(AppLocalizations.of(context).enableMywhooshLinkInTheConnectionSettingsFirst),
-                        _openConnectionSettingsButton(),
-                      ],
-                    )
-                  else
-                    ..._buildTrainerConnectionActions(core.whooshLink.supportedActions),
-                ],
-                if (core.logic.showZwiftBleEmulator || core.logic.showZwiftMsdnEmulator) ...[
-                  SizedBox(height: 8),
-                  ColoredTitle(text: context.i18n.trainerAppAction(core.settings.getTrainerApp()?.name ?? 'Zwift')),
-                  if (!core.settings.getZwiftBleEmulatorEnabled() && !core.settings.getZwiftMdnsEmulatorEnabled())
-                    Warning(
-                      important: false,
-                      children: [
-                        Text(AppLocalizations.of(context).enableItInTheConnectionSettingsFirst),
-                      ],
-                    )
-                  else
-                    ..._buildTrainerConnectionActions(appControllerActions(core.zwiftEmulator.supportedActions)),
-                ],
+                ..._buildConnectionHints(),
+                ..._buildGroupedInGameActions(),
 
                 if (core.logic.showLocalRemoteOptions) ...[
                   SizedBox(height: 8),
@@ -989,38 +959,124 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     // The picked action's card isn't listed (its connection is off): say it
     // under the head instead.
     if (!_holdWarningPlaced && _keyPair.holdActionOnClick) {
-      children.insert(widget.embedded ? 0 : 3, _holdWarning());
+      children.insert(headLength, _holdWarning());
     }
     if (widget.embedded) {
       return _EmbeddedPicker(children: children);
     }
-    return IntrinsicWidth(
-      child: Scrollbar(
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: Container(
-            constraints: BoxConstraints(maxWidth: 300),
-            padding: const EdgeInsets.only(right: 26.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 8,
-              children: children,
+    // The head stays put; the grouped actions scroll under it.
+    final head = children.take(headLength).toList();
+    final body = children.skip(headLength).toList();
+    final size = MediaQuery.sizeOf(context);
+    final asSheet = useActionPickerSheet(context);
+    return SizedBox(
+      width: asSheet ? double.infinity : (size.width - 48).clamp(280.0, 440.0),
+      height: asSheet ? size.height * 0.85 : null,
+      child: Padding(
+        padding: EdgeInsets.only(right: asSheet ? 0 : 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 4,
+          children: [
+            ...head,
+            Flexible(
+              child: Scrollbar(
+                controller: _scrollController,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.only(top: 8, right: 14),
+                  child: _EmbeddedPicker(children: body),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  List<Widget> _buildTrainerConnectionActions(List<InGameAction> supportedActions) {
-    return supportedActions.expand((action) {
-      final isActive = _keyPair.inGameAction == action && supportedActions.contains(_keyPair.inGameAction);
-      return [
-        _trainerConnectionAction(action, supportedActions),
-        ..._holdWarningAfter(action, isActive: isActive),
-      ];
-    }).toList();
+  bool get _myWhooshLinkListed =>
+      core.logic.showMyWhooshLink && (HostPlatform.isIOS || core.settings.getMyWhooshLinkEnabled());
+
+  bool get _zwiftEmulatorListed => core.logic.showZwiftBleEmulator || core.logic.showZwiftMsdnEmulator;
+
+  bool get _zwiftEmulatorEnabled =>
+      core.settings.getZwiftBleEmulatorEnabled() || core.settings.getZwiftMdnsEmulatorEnabled();
+
+  /// A connection whose actions would be listed if it were on: say how to turn
+  /// it on, under its name, instead of its actions.
+  List<Widget> _buildConnectionHints() {
+    return [
+      if (_myWhooshLinkListed && !core.settings.getMyWhooshLinkEnabled()) ...[
+        ColoredTitle(text: context.i18n.myWhooshDirectConnectAction),
+        Warning(
+          important: false,
+          children: [
+            Text(AppLocalizations.of(context).enableMywhooshLinkInTheConnectionSettingsFirst),
+            _openConnectionSettingsButton(),
+          ],
+        ),
+      ],
+      if (_zwiftEmulatorListed && !_zwiftEmulatorEnabled) ...[
+        ColoredTitle(text: context.i18n.trainerAppAction(core.settings.getTrainerApp()?.name ?? 'Zwift')),
+        Warning(
+          important: false,
+          children: [
+            Text(AppLocalizations.of(context).enableItInTheConnectionSettingsFirst),
+          ],
+        ),
+      ],
+    ];
+  }
+
+  /// Every in-game action the current connections offer, sorted by what it is
+  /// for ([ActionGroup]) rather than by the connection that carries it. An
+  /// action two connections offer (shifting via the trainer and via the app)
+  /// is one card: both store the same [InGameAction].
+  List<Widget> _buildGroupedInGameActions() {
+    final trainerDirect =
+        core.connection.proxyDevices.any((e) => e.isConnected) || core.settings.getTrainerApp() is BikeControl
+        ? trainerActions
+        : const <InGameAction>[];
+    final whoosh = _myWhooshLinkListed && core.settings.getMyWhooshLinkEnabled()
+        ? core.whooshLink.supportedActions
+        : const <InGameAction>[];
+    final zwift = _zwiftEmulatorListed && _zwiftEmulatorEnabled
+        ? appControllerActions(core.zwiftEmulator.supportedActions)
+        : const <InGameAction>[];
+    final obpButtons = core.logic.showObpActions
+        ? core.logic.obpSupportedButtons.where((b) => b.action != null).toList()
+        : const <ControllerButton>[];
+    final isMyWhooshTrainer = core.settings.getTrainerApp() is MyWhoosh;
+
+    Widget card(InGameAction action) {
+      for (final source in [trainerDirect, whoosh, zwift]) {
+        if (source.contains(action)) return _trainerConnectionAction(action, source);
+      }
+      final button = obpButtons.firstWhere((b) => b.action == action);
+      return _obpControllerButtonAction(
+        button,
+        action,
+        isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action),
+      );
+    }
+
+    final groups = groupActions([
+      ...trainerDirect,
+      ...whoosh,
+      ...zwift,
+      ...obpButtons.map((b) => b.action!),
+    ]);
+    return [
+      for (final (:group, :actions) in groups) ...[
+        ActionGroupTitle(group: group),
+        for (final action in actions) ...[
+          card(action),
+          ..._holdWarningAfter(action, isActive: _keyPair.inGameAction == action),
+        ],
+      ],
+    ];
   }
 
   /// What Zwift does with a Ride control BikeControl only names by its place.
@@ -1099,31 +1155,12 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
     );
   }
 
-  List<Widget> _buildObpControllerButtonActions(List<ControllerButton> buttons) {
-    final isMyWhooshTrainer = core.settings.getTrainerApp() is MyWhoosh;
-    final actionable = buttons.where((b) => b.action != null);
-    final Iterable<ControllerButton> ordered = isMyWhooshTrainer
-        ? [
-            ...actionable.where((b) => !_myWhooshPoorlySupportedObpActions.contains(b.action)),
-            ...actionable.where((b) => _myWhooshPoorlySupportedObpActions.contains(b.action)),
-          ]
-        : actionable;
-    return ordered.expand((button) {
-      final action = button.action!;
-      final showMyWhooshWarning = isMyWhooshTrainer && _myWhooshPoorlySupportedObpActions.contains(action);
-      return [
-        _obpControllerButtonAction(button, action, showMyWhooshWarning),
-        ..._holdWarningAfter(action, isActive: _keyPair.inGameAction == action),
-      ];
-    }).toList();
-  }
-
   Widget _obpControllerButtonAction(ControllerButton button, InGameAction action, bool showMyWhooshWarning) {
     return Builder(
       builder: (context) {
         final card = SelectableCard(
           icon: button.icon ?? action.icon,
-          title: Text(button.name),
+          title: Text(action.title),
           subtitle: (action.possibleValues != null && action == _keyPair.inGameAction)
               ? Text(_keyPair.inGameActionValue!.toString())
               : action.alternativeTitle != null
@@ -1639,6 +1676,22 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 /// The action picker laid out in place: each group's header in the grouped
 /// style, its actions as tiles in a grid (three across when there is room,
 /// two otherwise), anything else (notes, warnings, Unassign) full width.
+/// Below this width the action picker opens as a bottom sheet, not a side
+/// drawer: a phone has no room beside the page for a second column.
+const double actionPickerSheetBreakpoint = 600;
+
+bool useActionPickerSheet(BuildContext context) => MediaQuery.sizeOf(context).width < actionPickerSheetBreakpoint;
+
+/// Opens [ButtonEditPage] (from [builder]) the way the screen suits: a bottom
+/// sheet on phones, a drawer at the end on wider screens.
+Future<void> openActionPicker({required BuildContext context, required WidgetBuilder builder}) {
+  return openDrawer(
+    context: context,
+    builder: builder,
+    position: useActionPickerSheet(context) ? OverlayPosition.bottom : OverlayPosition.end,
+  );
+}
+
 class _EmbeddedPicker extends StatelessWidget {
   const _EmbeddedPicker({required this.children});
 
@@ -1679,6 +1732,10 @@ class _EmbeddedPicker extends StatelessWidget {
               ColoredTitle(:final text) => Padding(
                 padding: const EdgeInsets.only(top: 14, bottom: 2),
                 child: BkGroupedHeader(text),
+              ),
+              ActionGroupTitle() => Padding(
+                padding: const EdgeInsets.only(top: 14, bottom: 2),
+                child: child,
               ),
               DestructiveButton() => Align(alignment: AlignmentDirectional.centerStart, child: child),
               _ => child,

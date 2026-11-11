@@ -3024,5 +3024,14 @@
   "supportDiagnosticsAttached": "Se adjunta información de diagnóstico",
   "supportDiagnosticsView": "Ver",
   "supportChatGreeting": "Hola, soy Jonas de BikeControl!",
-  "supportChatAskWhatHappens": "¿Qué intentas hacer exactamente y qué pasa en su lugar? Con una frase basta."
+  "supportChatAskWhatHappens": "¿Qué intentas hacer exactamente y qué pasa en su lugar? Con una frase basta.",
+  "actionGroupGears": "Marchas",
+  "actionGroupTrainer": "Rodillo",
+  "actionGroupWorkout": "Entrenamiento",
+  "actionGroupRide": "Rodar",
+  "actionGroupNavigate": "Navegar",
+  "actionGroupView": "Vista",
+  "actionGroupController": "Botones del mando",
+  "actionGroupSystem": "Sistema",
+  "currentActionNow": "Ahora: {action}"
 }

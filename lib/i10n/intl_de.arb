@@ -3024,5 +3024,14 @@
   "supportDiagnosticsAttached": "Diagnosedaten werden mitgesendet",
   "supportDiagnosticsView": "Ansehen",
   "supportChatGreeting": "Hi, ich bin Jonas von BikeControl!",
-  "supportChatAskWhatHappens": "Was genau versuchst du, und was passiert stattdessen? Ein Satz reicht."
+  "supportChatAskWhatHappens": "Was genau versuchst du, und was passiert stattdessen? Ein Satz reicht.",
+  "actionGroupGears": "Gänge",
+  "actionGroupTrainer": "Trainer",
+  "actionGroupWorkout": "Training",
+  "actionGroupRide": "Fahren",
+  "actionGroupNavigate": "Navigieren",
+  "actionGroupView": "Ansicht",
+  "actionGroupController": "Controller-Tasten",
+  "actionGroupSystem": "System",
+  "currentActionNow": "Aktuell: {action}"
 }

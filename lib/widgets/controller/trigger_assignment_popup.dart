@@ -164,7 +164,7 @@ Future<void> _openEditorForTrigger({
   }
 
   final keyPair = selectedKeymap.getOrCreateKeyPair(button, trigger: trigger);
-  await openDrawer(
+  await openActionPicker(
     context: context,
     builder: (c) => ButtonEditPage(
       device: device,
@@ -179,7 +179,6 @@ Future<void> _openEditorForTrigger({
         onUpdate();
       },
     ),
-    position: OverlayPosition.end,
   );
   if (core.actionHandler.supportedApp is CustomApp) {
     core.settings.setKeyMap(core.actionHandler.supportedApp!);

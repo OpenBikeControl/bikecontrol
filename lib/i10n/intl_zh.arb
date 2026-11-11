@@ -4218,5 +4218,14 @@
   "supportDiagnosticsAttached": "已附上诊断信息",
   "supportDiagnosticsView": "查看",
   "supportChatGreeting": "你好，我是 BikeControl 的 Jonas！",
-  "supportChatAskWhatHappens": "你具体想做什么？实际发生了什么？一句话就够了。"
+  "supportChatAskWhatHappens": "你具体想做什么？实际发生了什么？一句话就够了。",
+  "actionGroupGears": "档位",
+  "actionGroupTrainer": "骑行台",
+  "actionGroupWorkout": "训练",
+  "actionGroupRide": "骑行",
+  "actionGroupNavigate": "导航",
+  "actionGroupView": "视图",
+  "actionGroupController": "控制器按键",
+  "actionGroupSystem": "系统",
+  "currentActionNow": "当前：{action}"
 }

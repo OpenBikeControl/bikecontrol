@@ -76,9 +76,8 @@ Future<void> openSteeringActionEditor(
     askFirst: false,
   );
   if (!context.mounted || selected == null) return;
-  await openDrawer(
+  await openActionPicker(
     context: context,
-    position: OverlayPosition.end,
     builder: (c) => ButtonEditPage(
       device: device,
       keyPair: selected.getOrCreateKeyPair(button, trigger: trigger),

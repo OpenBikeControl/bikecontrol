@@ -3024,5 +3024,14 @@
   "supportDiagnosticsAttached": "Infos de diagnostic jointes",
   "supportDiagnosticsView": "Voir",
   "supportChatGreeting": "Salut, je suis Jonas de BikeControl !",
-  "supportChatAskWhatHappens": "Qu'est-ce que tu essaies de faire exactement, et que se passe-t-il à la place ? Une phrase suffit."
+  "supportChatAskWhatHappens": "Qu'est-ce que tu essaies de faire exactement, et que se passe-t-il à la place ? Une phrase suffit.",
+  "actionGroupGears": "Vitesses",
+  "actionGroupTrainer": "Home trainer",
+  "actionGroupWorkout": "Séance",
+  "actionGroupRide": "Rouler",
+  "actionGroupNavigate": "Naviguer",
+  "actionGroupView": "Affichage",
+  "actionGroupController": "Boutons de la manette",
+  "actionGroupSystem": "Système",
+  "currentActionNow": "Actuel : {action}"
 }
