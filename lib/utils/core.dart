@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/app_connection_latch.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_gear.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -110,6 +111,15 @@ class Core {
   late ObcSteeringAngleBroadcaster obcSteeringAngle = ObcSteeringAngleBroadcaster(
     sinks: () => logic.connectedTrainerConnections.whereType<SteeringAngleSink>(),
     isAllowed: obcSteeringAngleAllowed,
+  );
+
+  /// The bridged trainer's virtual gear, as connected OpenBikeControl apps get it.
+  late final obcBridgeGear = BridgeGearPosition(proxies: () => connection.proxyDevices);
+
+  /// Reports [obcBridgeGear] to connected OpenBikeControl apps as `0x03` Gear Set.
+  late final obcGear = ObcGearBroadcaster(
+    sinks: () => logic.connectedTrainerConnections.whereType<GearStateSink>(),
+    position: obcBridgeGear,
   );
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();

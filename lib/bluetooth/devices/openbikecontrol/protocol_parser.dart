@@ -10,6 +10,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart' show immutable;
 import 'package:prop/prop.dart';
 
 class ProtocolParseException implements Exception {
@@ -110,6 +111,40 @@ class OpenBikeProtocolParser {
   /// A button-state message carrying only the `0x1B` [value].
   static Uint8List encodeSteeringAngleState(int value) =>
       Uint8List.fromList([MSG_TYPE_BUTTON_STATE, STEERING_ANGLE_BUTTON_ID, value & 0xFF]);
+
+  /// Analog `0x03` Gear Set: a flat, 1-based gear position.
+  static const int GEAR_SET_BUTTON_ID = 0x03;
+
+  /// Analog `0x04` Chainring Set: the front ring, 1-based.
+  static const int CHAINRING_SET_BUTTON_ID = 0x04;
+
+  /// Analog `0x05` Cassette Set: the rear sprocket, 1-based.
+  static const int CASSETTE_SET_BUTTON_ID = 0x05;
+
+  /// A gear position as a gear-selection value: position + 1, so it can't
+  /// collide with released (`0x00`) / pressed (`0x01`), capped at `0xFF`.
+  static int encodeGearPosition(int position) => (position + 1).clamp(0x02, 0xFF);
+
+  /// A button-state message reporting [position] to [app]: each of Gear Set,
+  /// Chainring Set and Cassette Set only if [app] listed that id in its App
+  /// Information (an app that predates them may reject unknown ids, and one
+  /// that sent an empty list gets none). Null when [app] wants none of them.
+  static Uint8List? encodeGearState(ObcGearPosition position, AppInfo app) {
+    final ids = app.supportedButtonIds;
+    final pairs = <int>[
+      if (ids.contains(GEAR_SET_BUTTON_ID)) ...[GEAR_SET_BUTTON_ID, encodeGearPosition(position.flat)],
+      if (position.chainring != null && ids.contains(CHAINRING_SET_BUTTON_ID)) ...[
+        CHAINRING_SET_BUTTON_ID,
+        encodeGearPosition(position.chainring!),
+      ],
+      if (position.cassette != null && ids.contains(CASSETTE_SET_BUTTON_ID)) ...[
+        CASSETTE_SET_BUTTON_ID,
+        encodeGearPosition(position.cassette!),
+      ],
+    ];
+    if (pairs.isEmpty) return null;
+    return Uint8List.fromList([MSG_TYPE_BUTTON_STATE, ...pairs]);
+  }
 
   /// Parse button state data from binary format.
   /// Data format: [Message_Type, Button_ID_1, State_1, Button_ID_2, State_2, ...]
@@ -305,6 +340,31 @@ class AppInfo {
   @override
   String toString() =>
       'AppInfo(appId: $appId, appVersion: $appVersion, supportedButtons: $supportedButtons, supportedActions: $supportedActions)';
+}
+
+/// The virtual gear BikeControl is in, as OpenBikeControl reports it.
+@immutable
+class ObcGearPosition {
+  const ObcGearPosition({required this.flat, this.chainring, this.cassette});
+
+  /// 1-based gear across the whole drivetrain (`0x03`).
+  final int flat;
+
+  /// 1-based front ring (`0x04`); null without front shifting.
+  final int? chainring;
+
+  /// 1-based rear sprocket (`0x05`); null without front shifting.
+  final int? cassette;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ObcGearPosition && other.flat == flat && other.chainring == chainring && other.cassette == cassette;
+
+  @override
+  int get hashCode => Object.hash(flat, chainring, cassette);
+
+  @override
+  String toString() => 'ObcGearPosition(flat: $flat, chainring: $chainring, cassette: $cassette)';
 }
 
 /// DeviceStatus message representation

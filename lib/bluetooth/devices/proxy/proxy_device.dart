@@ -160,8 +160,14 @@ class ProxyDevice extends BluetoothDevice {
 
   /// The [FitnessBikeDefinition] for this trainer while in VS mode. Attached
   /// to [ftmsEmulator]'s composite while VS is active; null in proxy mode.
-  FitnessBikeDefinition? _fbd;
+  final ValueNotifier<FitnessBikeDefinition?> _fbdN = ValueNotifier(null);
+  FitnessBikeDefinition? get _fbd => _fbdN.value;
+  set _fbd(FitnessBikeDefinition? fbd) => _fbdN.value = fbd;
   FitnessBikeDefinition? get fitnessBike => _fbd;
+
+  /// [fitnessBike], for listeners that follow it across VS ↔ proxy switches
+  /// and reconnects.
+  ValueListenable<FitnessBikeDefinition?> get fitnessBikeListenable => _fbdN;
 
   /// The rider's active shifting config for this trainer. Without a saved one
   /// it carries the mode the definition runs ([_seedFitnessBikeDefinition]
