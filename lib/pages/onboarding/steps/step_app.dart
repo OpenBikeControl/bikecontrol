@@ -14,9 +14,11 @@ import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/openbikecontrol_trainer_apps.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 
@@ -205,9 +207,11 @@ Widget _verifiedBadge(BuildContext context) => Container(
       ),
     );
 
-/// The big platforms, in the order the "Big platforms" group shows them.
+/// The big platforms shown in the "Big platforms" group.
 bool _isBigPlatform(SupportedApp a) =>
-    a is MyWhoosh || a is TrainingPeaks || a is Biketerra || a is Rouvy || a is Tacx || a is FulGaz;
+    a is MyWhoosh ||
+    a is Zwift ||
+    (a is OpenBikeControlTrainerApp && a.name == 'icTrainer') || a is TrainingPeaks || a is Biketerra || a is Rouvy || a is Tacx || a is FulGaz;
 
 /// Every supported trainer app as a grid of tiles: the big platforms first
 /// (official ones marked with the OpenBikeControl badge), then the other
@@ -221,7 +225,9 @@ class TrainerAppGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final big = SupportedApp.supportedApps.where(_isBigPlatform).toList();
+    // Official integrations first, so the seals line up on the first row.
+    final bigApps = SupportedApp.supportedApps.where(_isBigPlatform);
+    final big = [...bigApps.where((a) => a.officialIntegration), ...bigApps.where((a) => !a.officialIntegration)];
     final rest = SupportedApp.supportedApps.where((a) => !_isBigPlatform(a));
     final official = rest.where((a) => a.officialIntegration).toList();
     final other = rest.where((a) => !a.officialIntegration).toList();

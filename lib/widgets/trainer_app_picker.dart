@@ -20,9 +20,14 @@ Future<SupportedApp?> openTrainerAppPicker(BuildContext context) {
   if (isCompactWindow(context)) {
     return openBottomSheet<SupportedApp>(
       context: context,
-      builder: (sheetContext) => _TrainerAppPickerBody(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-        onSelect: (app) => closeDrawer(sheetContext, app),
+      // Capped below full height: it leaves a strip of the page above the
+      // sheet to tap it closed, and the grid scrolls inside.
+      builder: (sheetContext) => ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.85),
+        child: _TrainerAppPickerBody(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+          onSelect: (app) => closeDrawer(sheetContext, app),
+        ),
       ),
     );
   }
