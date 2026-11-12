@@ -40,7 +40,12 @@ int? debugVirtualShiftingStageOpeningScene;
 /// Holds still under reduced motion and in [screenshotMode], where it shows
 /// the first scene only.
 class VirtualShiftingStage extends StatefulWidget {
-  const VirtualShiftingStage({super.key, this.initialScene = 0});
+  const VirtualShiftingStage({super.key, this.initialScene = 0, this.zwiftReadyNearby = false});
+
+  /// A trainer the scan found advertises the Zwift service: BikeControl will
+  /// shift it natively, so the first scene shows the trainer applying the
+  /// gear right away.
+  final bool zwiftReadyNearby;
 
   /// Which scene to open on — and, where motion is off, the only one shown.
   /// Snapshot tests set it to capture each scene; the wizard leaves it at 0.
@@ -194,7 +199,7 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
                             child: switch (i) {
                               0 when compare => VsShiftCompare(
                                 app: paywallShiftAppName(selected),
-                                native: _nativeTrainer(),
+                                native: widget.zwiftReadyNearby || _nativeTrainer(),
                                 active: i == scene && !still,
                               ),
                               0 => _SceneApps(active: i == scene && !still),

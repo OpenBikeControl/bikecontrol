@@ -1,5 +1,6 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/pages/onboarding/steps/step_trainer.dart' show onboardingAdvertisesZwiftService;
 import 'package:bike_control/pages/onboarding/widgets/vs_shift_compare.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
 import 'package:bike_control/utils/core.dart';
@@ -77,6 +78,21 @@ void main() {
       expect(find.text(l.vsStageLaneSooner), findsNothing);
     });
   }
+
+  testWidgets('a found trainer with the Zwift service: the trainer applies the gear right away', (tester) async {
+    core.settings.setTrainerApp(MyWhoosh());
+    await pump(tester, const VirtualShiftingStage(zwiftReadyNearby: true));
+    expect(find.text(l.vsStageLaneRightAway), findsOneWidget);
+    expect(find.text(l.vsStageStepTrainerGear), findsOneWidget);
+    expect(find.text(l.vsStageLaneSooner), findsNothing);
+  });
+
+  test('the Zwift service is spotted in the scan, in either spelling', () {
+    expect(onboardingAdvertisesZwiftService(['0000FC82-0000-1000-8000-00805F9B34FB']), isTrue);
+    expect(onboardingAdvertisesZwiftService(['fc82']), isTrue);
+    expect(onboardingAdvertisesZwiftService(['00000001-19CA-4651-86E5-FA29DCDD09D1']), isTrue);
+    expect(onboardingAdvertisesZwiftService(['00001826-0000-1000-8000-00805f9b34fb']), isFalse);
+  });
 
   testWidgets('a trainer shifting natively: the trainer applies the gear right away', (tester) async {
     await pump(tester, const VsShiftCompare(app: 'MyWhoosh', native: true, active: false));

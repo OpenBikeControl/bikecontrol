@@ -1,3 +1,4 @@
+import 'package:prop/prop.dart' show FtmsMdnsConstants;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile, BkGroupedHeader;
@@ -16,6 +17,15 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 bool onboardingTrainerBridged(List<ProxyDevice> trainers) => trainers.any((t) => t.isBridged);
+
+/// A trainer advertising these [services] has the Zwift service (Zwift Hub,
+/// Zwift Ready firmware), which BikeControl shifts natively.
+bool onboardingAdvertisesZwiftService(List<String> services) => services.any((uuid) {
+  final u = uuid.toLowerCase();
+  return u == FtmsMdnsConstants.ZWIFT_PLAY_SERVICE_UUID_LC ||
+      u == FtmsMdnsConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID ||
+      u == FtmsMdnsConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT;
+});
 
 /// The icon that says how BikeControl talks to this trainer. The same physical
 /// trainer is regularly discovered twice — once over BLE, once over mDNS/DirCon
@@ -186,11 +196,11 @@ Widget onboardingTrainerBody(BuildContext context,
         action: const VsWithoutProLearnMore(alignStart: true),
       ),
       Gap(14),
-      const VirtualShiftingStage(),
+      VirtualShiftingStage(zwiftReadyNearby: trainers.any((t) => onboardingAdvertisesZwiftService(t.scanResult.services))),
     ] else ...[
       // What Virtual Shifting does, animated in the widgets it actually does
       // it with, instead of three lines of copy claiming the same thing.
-      const VirtualShiftingStage(),
+      VirtualShiftingStage(zwiftReadyNearby: trainers.any((t) => onboardingAdvertisesZwiftService(t.scanResult.services))),
       Gap(14),
       OnboardingNote(
         vsWithoutProText(context, app),
