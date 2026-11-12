@@ -53,4 +53,13 @@ void main() {
     await select('Rouvy');
     expect(Rouvy().offeredInGameActions, contains(InGameAction.rideOnBomb));
   });
+
+  test('Rouvy: the Ride D-pad up/down keep their defaults', () async {
+    await select('Rouvy');
+    final keymap = Rouvy().keymap;
+    keymap.addNewButtons([ZwiftButtons.navigationUp, ZwiftButtons.navigationDown]);
+
+    expect(keymap.getKeyPair(ZwiftButtons.navigationUp)?.inGameAction, InGameAction.up);
+    expect(keymap.getKeyPair(ZwiftButtons.navigationDown)?.inGameAction, InGameAction.down);
+  });
 }
