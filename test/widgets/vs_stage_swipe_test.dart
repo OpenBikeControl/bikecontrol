@@ -1,7 +1,9 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// The preview carousel is driven three ways — it advances itself, the dots
 /// jump to a scene, and it can be swiped. The swipe is the one with no visible
@@ -10,6 +12,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    core.settings.prefs = await SharedPreferences.getInstance();
     await AppLocalizations.load(const Locale('en'));
   });
 
@@ -18,14 +22,15 @@ void main() {
   /// moving by itself — swiping and the dots keep working, which is exactly
   /// what these tests exercise.
   Future<void> pumpStage(WidgetTester tester) async {
-    tester.platformDispatcher.accessibilityFeaturesTestValue =
-        const FakeAccessibilityFeatures(disableAnimations: true);
+    tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     await tester.pumpWidget(
       ShadcnApp(
         localizationsDelegates: const [AppLocalizations.delegate],
         supportedLocales: const [Locale('en')],
-        home: const Scaffold(child: Padding(padding: EdgeInsets.all(16), child: VirtualShiftingStage())),
+        home: const Scaffold(
+          child: Padding(padding: EdgeInsets.all(16), child: VirtualShiftingStage()),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -42,7 +47,7 @@ void main() {
 
   testWidgets('swiping left walks forward through the scenes', (tester) async {
     await pumpStage(tester);
-    expect(caption('Works in every app'), findsOneWidget);
+    expect(caption('Shifting without the detour'), findsOneWidget);
 
     await swipe(tester, -120);
     expect(caption('Your gearing, your way'), findsOneWidget);
@@ -67,6 +72,6 @@ void main() {
     await pumpStage(tester);
 
     await swipe(tester, -20);
-    expect(caption('Works in every app'), findsOneWidget);
+    expect(caption('Shifting without the detour'), findsOneWidget);
   });
 }

@@ -1,10 +1,14 @@
 import 'dart:async';
 
-import 'package:bike_control/main.dart' show screenshotMode, screenshotMotionPinned;
+import 'package:bike_control/main.dart' show recordError, screenshotMode, screenshotMotionPinned;
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
+import 'package:bike_control/pages/onboarding/widgets/vs_shift_compare.dart';
+import 'package:bike_control/pages/paywall.dart'
+    show paywallAppShiftsNatively, paywallNativeTrainerName, paywallShiftAppName;
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_curve.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratio_presets.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
@@ -22,9 +26,13 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 @visibleForTesting
 int? debugVirtualShiftingStageOpeningScene;
 
-/// What Virtual Shifting buys a rider, shown rather than listed: it works
-/// everywhere, the gearing is yours, there's a front derailleur in it too —
-/// and a last scene for the features that don't need a picture.
+/// What Virtual Shifting buys a rider, shown rather than listed: it shifts
+/// at the trainer instead of through the app, the gearing is yours, there's a
+/// front derailleur in it too — and a last scene for the features that don't
+/// need a picture.
+///
+/// Where the trainer app shifts a trainer natively itself (Zwift, Rouvy)
+/// BikeControl isn't faster, so the first scene shows where it works instead.
 ///
 /// Each scene animates the widget the rider will actually meet later — the
 /// real ratio curve from the gear editor, the real chainring picture from the
@@ -126,9 +134,13 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
     final still = screenshotMotionPinned || reduceMotion;
     _sync(still);
     final scene = screenshotMotionPinned ? widget.initialScene : _scene;
+    final selected = core.settings.getTrainerApp();
+    final compare = !paywallAppShiftsNatively(selected);
 
     final captions = <({String label, String hint})>[
-      (label: context.i18n.vsStageAppsLabel, hint: context.i18n.vsStageAppsHint),
+      compare
+          ? (label: context.i18n.vsStageShiftLabel, hint: context.i18n.vsStageShiftHint)
+          : (label: context.i18n.vsStageAppsLabel, hint: context.i18n.vsStageAppsHint),
       (label: context.i18n.vsStageRatiosLabel, hint: context.i18n.vsStageRatiosHint),
       (label: context.i18n.frontShiftEnableLabel, hint: context.i18n.vsStageFrontHint),
       (label: context.i18n.vsStageMoreLabel, hint: context.i18n.vsStageMoreHint),
@@ -180,6 +192,11 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
                             child: switch (i) {
+                              0 when compare => VsShiftCompare(
+                                app: paywallShiftAppName(selected),
+                                native: _nativeTrainer(),
+                                active: i == scene && !still,
+                              ),
                               0 => _SceneApps(active: i == scene && !still),
                               1 => _SceneRatios(active: i == scene && !still),
                               2 => _SceneFront(active: i == scene && !still),
@@ -215,6 +232,16 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
         ),
       ],
     );
+  }
+}
+
+/// A connected trainer takes BikeControl's gears natively.
+bool _nativeTrainer() {
+  try {
+    return paywallNativeTrainerName(core.connection.proxyDevices) != null;
+  } catch (e, s) {
+    recordError(e, s, context: 'VS stage: native trainer');
+    return false;
   }
 }
 
