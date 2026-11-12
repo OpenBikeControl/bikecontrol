@@ -642,7 +642,12 @@ class _PaywallState extends State<Paywall> {
         instant ? l10n.paywallFeelShiftNative(native) : l10n.paywallFeelShift,
         clip: PaywallFeatureClip.smartTrainerVirtualShifting,
       ),
-      _Moment(LucideIcons.slidersHorizontal, l10n.paywallFeelDrivetrainTitle, l10n.paywallFeelDrivetrain),
+      _Moment(
+        LucideIcons.slidersHorizontal,
+        l10n.paywallFeelDrivetrainTitle,
+        l10n.paywallFeelDrivetrain,
+        clip: PaywallFeatureClip.drivetrain,
+      ),
       _Moment(
         LucideIcons.hand,
         l10n.paywallFeelBarsTitle,
@@ -789,11 +794,8 @@ class _PaywallState extends State<Paywall> {
     style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
   );
 
-  /// The feature list with checks: accent on Pro, quiet on Base. With
-  /// [clips], a line whose feature has a demo clip ends in a ▶ that opens it
-  /// (48 dp on phones, which sets that line's height).
   /// The moments on a card: an icon tile, a title and a line, and a ▶ where
-  /// the website has a clip of it. Accent on Pro, quiet on Base.
+  /// there is a clip of it (48 dp on phones). Accent on Pro, quiet on Base.
   Widget _momentList(BuildContext context, List<_Moment> moments, {required bool accent}) {
     final cs = Theme.of(context).colorScheme;
     final tint = accent ? bkAccentText(context) : cs.mutedForeground;

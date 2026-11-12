@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:bike_control/widgets/ui/bk_bottom_sheet.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
@@ -18,8 +20,13 @@ import 'package:video_player/video_player.dart';
 
 /// The short feature demo loops the website plays on its feature cards and
 /// pricing rows, served from bikecontrol.app. Each value is named after the
-/// website's clip id, so the URL is derived from it.
+/// website's clip id, so the URL is derived from it — except the [isLive]
+/// ones, which the app draws itself.
 enum PaywallFeatureClip {
+  /// The drivetrain shifting through the cassette and across both chainrings,
+  /// drawn live by [DrivetrainView] rather than streamed.
+  drivetrain,
+
   /// BikeControl shifting the trainer itself.
   smartTrainerVirtualShifting,
 
@@ -48,6 +55,111 @@ enum PaywallFeatureClip {
 
   /// The still shown before the clip plays.
   String get posterUrl => '$_base/$name.jpg';
+
+  /// Drawn in the app: nothing to load, nothing that can fail to load.
+  bool get isLive => this == drivetrain;
+}
+
+/// [PaywallFeatureClip.drivetrain]: the drivetrain from the gear view on a
+/// loop, shifting up the cassette, over to the big ring, back down and over
+/// to the small ring again. With [play] off, or under reduced motion, it
+/// holds one frame on the big ring, with both rings drawn.
+class PaywallDrivetrainDemo extends StatefulWidget {
+  const PaywallDrivetrainDemo({super.key, this.play = true});
+
+  final bool play;
+
+  /// The loop: each step is a gear, the ring it's on and how long it holds.
+  /// A front shift holds longer, so the chain is seen crossing over.
+  static const steps = <({int gear, bool large, Duration hold})>[
+    (gear: 3, large: false, hold: _step),
+    (gear: 4, large: false, hold: _step),
+    (gear: 5, large: false, hold: _step),
+    (gear: 6, large: false, hold: _step),
+    (gear: 7, large: false, hold: _front),
+    (gear: 7, large: true, hold: _front),
+    (gear: 8, large: true, hold: _step),
+    (gear: 9, large: true, hold: _step),
+    (gear: 10, large: true, hold: _front),
+    (gear: 9, large: true, hold: _step),
+    (gear: 8, large: true, hold: _step),
+    (gear: 7, large: true, hold: _step),
+    (gear: 6, large: true, hold: _step),
+    (gear: 5, large: true, hold: _front),
+    (gear: 5, large: false, hold: _front),
+    (gear: 4, large: false, hold: _step),
+  ];
+  static const _step = Duration(milliseconds: 550);
+  static const _front = Duration(milliseconds: 1000);
+
+  /// The frame held when the loop doesn't play.
+  static const still = 6;
+
+  static const gearCount = 12;
+
+  @override
+  State<PaywallDrivetrainDemo> createState() => _PaywallDrivetrainDemoState();
+}
+
+class _PaywallDrivetrainDemoState extends State<PaywallDrivetrainDemo> {
+  int _step = 0;
+  Timer? _timer;
+  bool _playing = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(PaywallDrivetrainDemo oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _sync() {
+    final play = widget.play && !prefersReducedMotion(context);
+    if (play == _playing) return;
+    _playing = play;
+    _timer?.cancel();
+    _timer = null;
+    if (play) {
+      _schedule();
+    } else {
+      _step = PaywallDrivetrainDemo.still;
+    }
+  }
+
+  void _schedule() {
+    _timer = Timer(PaywallDrivetrainDemo.steps[_step].hold, () {
+      if (!mounted) return;
+      setState(() => _step = (_step + 1) % PaywallDrivetrainDemo.steps.length);
+      _schedule();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final step = PaywallDrivetrainDemo.steps[_playing ? _step : PaywallDrivetrainDemo.still];
+    return DrivetrainView(
+      key: const ValueKey('paywall-drivetrain-demo'),
+      gear: step.gear,
+      gearCount: PaywallDrivetrainDemo.gearCount,
+      frontShift: true,
+      largeRingActive: step.large,
+      smallChainringTeeth: ShiftingConfig.smallChainringDefault,
+      largeChainringTeeth: ShiftingConfig.largeChainringDefault,
+      moving: _playing,
+      cadence: 85,
+    );
+  }
 }
 
 /// The ▶ at the end of a paywall feature line: opens [clip] in a sheet.
@@ -93,13 +205,19 @@ Future<void> showPaywallFeatureClip(
       constraints: BoxConstraints(maxWidth: sheet ? 440 : 520, maxHeight: MediaQuery.sizeOf(c).height * 0.9),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: PaywallFeatureClipView(
-          title: title,
-          clip: clip,
-          poster: poster,
-          maxMediaHeightFraction: sheet ? 0.6 : 0.7,
-          onClose: () => sheet ? closeSheet(c) : Navigator.of(c).pop(),
-        ),
+        child: clip.isLive
+            ? PaywallLiveClipView(
+                title: title,
+                clip: clip,
+                onClose: () => sheet ? closeSheet(c) : Navigator.of(c).pop(),
+              )
+            : PaywallFeatureClipView(
+                title: title,
+                clip: clip,
+                poster: poster,
+                maxMediaHeightFraction: sheet ? 0.6 : 0.7,
+                onClose: () => sheet ? closeSheet(c) : Navigator.of(c).pop(),
+              ),
       ),
     ),
   );
@@ -336,28 +454,7 @@ class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          spacing: 8,
-          children: [
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(
-                  widget.title,
-                  style: context.typography.large.copyWith(fontWeight: FontWeight.w600, height: 1.3),
-                ),
-              ),
-            ),
-            if (widget.onClose != null)
-              BkTouchTarget(
-                child: BkIconButton.secondary(
-                  icon: const Icon(LucideIcons.x, size: 20),
-                  label: l10n.close,
-                  onPressed: widget.onClose,
-                ),
-              ),
-          ],
-        ),
+        _ClipHeader(title: widget.title, onClose: widget.onClose),
         const SizedBox(height: 12),
         ValueListenableBuilder<VideoPlayerValue>(
           valueListenable: _video,
@@ -374,6 +471,65 @@ class _PaywallFeatureClipViewState extends State<PaywallFeatureClipView> {
             child: Text(l10n.paywall_openClipInBrowser),
           ),
         ],
+      ],
+    );
+  }
+}
+
+/// A clip sheet's title, with a close button when [onClose] is set.
+class _ClipHeader extends StatelessWidget {
+  const _ClipHeader({required this.title, this.onClose});
+
+  final String title;
+  final VoidCallback? onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      spacing: 8,
+      children: [
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: context.typography.large.copyWith(fontWeight: FontWeight.w600, height: 1.3),
+            ),
+          ),
+        ),
+        if (onClose != null)
+          BkTouchTarget(
+            child: BkIconButton.secondary(
+              icon: const Icon(LucideIcons.x, size: 20),
+              label: AppLocalizations.of(context).close,
+              onPressed: onClose,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// The sheet of a clip the app draws itself ([PaywallFeatureClip.isLive]).
+class PaywallLiveClipView extends StatelessWidget {
+  const PaywallLiveClipView({super.key, required this.title, required this.clip, this.onClose});
+
+  final String title;
+  final PaywallFeatureClip clip;
+  final VoidCallback? onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ClipHeader(title: title, onClose: onClose),
+        const SizedBox(height: 12),
+        switch (clip) {
+          PaywallFeatureClip.drivetrain => const PaywallDrivetrainDemo(),
+          _ => throw ArgumentError.value(clip, 'clip', 'not drawn in the app'),
+        },
       ],
     );
   }
@@ -579,7 +735,7 @@ class _PaywallClipPreviewCardState extends State<_PaywallClipPreviewCard> {
   @override
   void initState() {
     super.initState();
-    if (!widget.play) return;
+    if (!widget.play || widget.clip.isLive) return;
     final video = _video = VideoPlayerController.networkUrl(
       Uri.parse(widget.clip.videoUrl),
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
@@ -680,7 +836,9 @@ class _PaywallClipPreviewCardState extends State<_PaywallClipPreviewCard> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(9),
-          child: video == null
+          child: widget.clip.isLive
+              ? PaywallDrivetrainDemo(play: widget.play)
+              : video == null
               ? _media(context, null)
               : ValueListenableBuilder<VideoPlayerValue>(
                   valueListenable: video,

@@ -13,6 +13,7 @@ import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
+import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
@@ -285,6 +286,7 @@ Future<void> main() async {
       final l = await pump(tester);
       final withClip = {
         l.paywallFeelShiftTitle: PaywallFeatureClip.smartTrainerVirtualShifting,
+        l.paywallFeelDrivetrainTitle: PaywallFeatureClip.drivetrain,
         l.paywallFeelBarsTitle: PaywallFeatureClip.buttonGestures,
       };
       final handle = tester.ensureSemantics();
@@ -297,8 +299,8 @@ Future<void> main() async {
         final play = tester.getRect(button);
         expect(play.center.dy, inInclusiveRange(row.top - 16, row.bottom + 16), reason: label);
       }
-      // Two clips, none on the moments without one, none on the Base card.
-      expect(find.descendant(of: proCard, matching: find.byType(PaywallClipButton)), findsNWidgets(2));
+      // Three clips, none on the moment without one, none on the Base card.
+      expect(find.descendant(of: proCard, matching: find.byType(PaywallClipButton)), findsNWidgets(3));
       expect(find.descendant(of: baseCard, matching: find.byType(PaywallClipButton)), findsNothing);
       expect(
         targetsBelowAndroidMinimum(tester, [
@@ -323,6 +325,62 @@ Future<void> main() async {
       expect(find.descendant(of: sheet, matching: find.text(l.paywallFeelBarsTitle)), findsOneWidget);
       expect(video.created, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
       expect(launcher.launched, isEmpty, reason: 'the clip plays in the app');
+    });
+  });
+
+  group('drivetrain clip (drawn in the app)', () {
+    final demo = find.byKey(const ValueKey('paywall-drivetrain-demo'));
+
+    Future<AppLocalizations> openDrivetrain(WidgetTester tester) async {
+      useTrainerApp(null);
+      final l = await pump(tester);
+      final play = find.byKey(const ValueKey('paywall-clip-drivetrain'));
+      await tester.ensureVisible(play);
+      await tester.tap(play);
+      await tester.pump(const Duration(milliseconds: 600));
+      return l;
+    }
+
+    testWidgets('▶ opens the drivetrain on both chainrings; nothing is streamed', (tester) async {
+      final l = await openDrivetrain(tester);
+      final sheet = find.byType(PaywallLiveClipView);
+      expect(sheet, findsOneWidget);
+      expect(find.descendant(of: sheet, matching: find.text(l.paywallFeelDrivetrainTitle)), findsOneWidget);
+      expect(find.descendant(of: sheet, matching: demo), findsOneWidget);
+      expect(tester.widget<DrivetrainView>(demo).frontShift, isTrue, reason: 'the second chainring is drawn');
+      expect(video.created, isEmpty);
+      expect(launcher.launched, isEmpty);
+    });
+
+    testWidgets('the loop shifts the cassette and crosses to the other ring and back', (tester) async {
+      await openDrivetrain(tester);
+      final gears = <int>{};
+      final rings = <bool>{};
+      final total = PaywallDrivetrainDemo.steps.fold(Duration.zero, (sum, s) => sum + s.hold);
+      for (var t = Duration.zero; t < total; t += const Duration(milliseconds: 250)) {
+        final view = tester.widget<DrivetrainView>(demo);
+        gears.add(view.gear);
+        rings.add(view.largeRingActive);
+        expect(view.moving, isTrue);
+        await tester.pump(const Duration(milliseconds: 250));
+      }
+      expect(gears.length, greaterThan(4));
+      expect(rings, {true, false});
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('under reduced motion it holds one frame on the big ring', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+        disableAnimations: true,
+        reduceMotion: true,
+      );
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      await openDrivetrain(tester);
+      final first = tester.widget<DrivetrainView>(demo);
+      expect(first.moving, isFalse);
+      expect(first.largeRingActive, isTrue);
+      await tester.pump(const Duration(seconds: 5));
+      expect(tester.widget<DrivetrainView>(demo).gear, first.gear);
     });
   });
 
@@ -388,6 +446,26 @@ Future<void> main() async {
       expect(card.right <= play.left || card.left >= play.right, isTrue, reason: '$card vs ▶ $play');
       expect((card.center.dx - play.center.dx).abs(), lessThan(PaywallClipPreviews.width), reason: 'next to the ▶');
       expect(launcher.launched, isEmpty);
+    }, variant: desktop);
+
+    testWidgets('hovering the drivetrain line previews the drawn drivetrain, nothing streamed', (tester) async {
+      final l = await pumpDesktop(tester);
+      final gesture = await mouse(tester);
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelDrivetrainTitle)));
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(preview, findsOneWidget);
+      expect(find.descendant(of: preview, matching: find.byType(DrivetrainView)), findsOneWidget);
+      expect(
+        find.descendant(of: preview, matching: find.byType(Image)),
+        findsNothing,
+        reason: 'no poster',
+      );
+      expect(video.created, isEmpty);
+      await gesture.moveTo(Offset.zero);
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      expect(preview, findsNothing);
     }, variant: desktop);
 
     testWidgets('a quick pass over a line loads nothing', (tester) async {
