@@ -287,7 +287,8 @@ Future<void> main() async {
       final withClip = {
         l.paywallFeelShiftTitle: PaywallFeatureClip.smartTrainerVirtualShifting,
         l.paywallFeelDrivetrainTitle: PaywallFeatureClip.drivetrain,
-        l.paywallFeelBarsTitle: PaywallFeatureClip.buttonGestures,
+        l.paywallFeelGesturesTitle: PaywallFeatureClip.buttonGestures,
+        l.paywallFeelScreenTitle: PaywallFeatureClip.music,
       };
       final handle = tester.ensureSemantics();
       for (final MapEntry(key: label, value: clip) in withClip.entries) {
@@ -299,8 +300,8 @@ Future<void> main() async {
         final play = tester.getRect(button);
         expect(play.center.dy, inInclusiveRange(row.top - 16, row.bottom + 16), reason: label);
       }
-      // Three clips, none on the moment without one, none on the Base card.
-      expect(find.descendant(of: proCard, matching: find.byType(PaywallClipButton)), findsNWidgets(3));
+      // Four clips, none on the moment without one, none on the Base card.
+      expect(find.descendant(of: proCard, matching: find.byType(PaywallClipButton)), findsNWidgets(4));
       expect(find.descendant(of: baseCard, matching: find.byType(PaywallClipButton)), findsNothing);
       expect(
         targetsBelowAndroidMinimum(tester, [
@@ -322,7 +323,7 @@ Future<void> main() async {
       final sheet = find.byType(PaywallFeatureClipView);
       expect(sheet, findsOneWidget);
       expect(tester.widget<PaywallFeatureClipView>(sheet).clip, PaywallFeatureClip.buttonGestures);
-      expect(find.descendant(of: sheet, matching: find.text(l.paywallFeelBarsTitle)), findsOneWidget);
+      expect(find.descendant(of: sheet, matching: find.text(l.paywallFeelGesturesTitle)), findsOneWidget);
       expect(video.created, ['https://bikecontrol.app/videos/features/buttonGestures.mp4']);
       expect(launcher.launched, isEmpty, reason: 'the clip plays in the app');
     });
@@ -413,7 +414,7 @@ Future<void> main() async {
     testWidgets('hovering a clip line plays a muted looping preview after a short delay', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelGesturesTitle)));
       await tester.pump(const Duration(milliseconds: 250));
       expect(preview, findsNothing, reason: 'hover intent: nothing before the delay');
       expect(video.created, isEmpty);
@@ -437,7 +438,7 @@ Future<void> main() async {
       final card = tester.getRect(preview);
       final window = Offset.zero & tester.view.physicalSize / tester.view.devicePixelRatio;
       expect(window.contains(card.topLeft) && window.contains(card.bottomRight), isTrue, reason: '$card in $window');
-      final row = tester.getRect(inCard(proCard, l.paywallFeelBarsTitle));
+      final row = tester.getRect(inCard(proCard, l.paywallFeelGesturesTitle));
       expect(card.top, lessThan(row.bottom));
       expect(card.bottom, greaterThan(row.top));
       // Beside the line's ▶, not over the feature text: in a wide card the
@@ -491,7 +492,7 @@ Future<void> main() async {
       // Sweeping across lines on the way starts nothing.
       await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelDrivetrainTitle)));
       await tester.pump(const Duration(milliseconds: 100));
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelGesturesTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       expect(preview, findsOneWidget);
@@ -507,7 +508,7 @@ Future<void> main() async {
     testWidgets('the preview stays while the pointer moves onto it and goes once it leaves', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelGesturesTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       await gesture.moveTo(tester.getCenter(preview));
@@ -549,7 +550,7 @@ Future<void> main() async {
       addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelGesturesTitle)));
       await tester.pump(const Duration(milliseconds: 400));
       await settle(tester);
       expect(preview, findsOneWidget);
@@ -563,7 +564,7 @@ Future<void> main() async {
       video.mode = _ClipLoad.fails;
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      final line = tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle));
+      final line = tester.getCenter(inCard(proCard, l.paywallFeelGesturesTitle));
       for (var i = 0; i < 2; i++) {
         await gesture.moveTo(line);
         await tester.pump(const Duration(milliseconds: 400));
@@ -586,7 +587,7 @@ Future<void> main() async {
       // Short enough that the page scrolls the clip line to the bottom edge.
       const window = Size(1280, 300);
       final l = await pumpDesktop(tester, size: window);
-      final line = inCard(proCard, l.paywallFeelBarsTitle);
+      final line = inCard(proCard, l.paywallFeelGesturesTitle);
       // Scroll the line to the bottom edge of the window.
       unawaited(Scrollable.ensureVisible(tester.element(line), alignment: 1.0));
       await tester.pump();
@@ -608,7 +609,7 @@ Future<void> main() async {
     testWidgets('touch platforms show no preview', (tester) async {
       final l = await pumpDesktop(tester);
       final gesture = await mouse(tester);
-      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelBarsTitle)));
+      await gesture.moveTo(tester.getCenter(inCard(proCard, l.paywallFeelGesturesTitle)));
       await tester.pump(const Duration(seconds: 1));
       await settle(tester);
       expect(preview, findsNothing);

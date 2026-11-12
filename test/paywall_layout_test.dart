@@ -46,10 +46,12 @@ Future<void> main() async {
     expect(tester.takeException(), isNull);
   });
 
-  // The Pro card says what riding with Pro feels like, in four moments, led
+  // The Pro card says what riding with Pro feels like, in five moments, led
   // by the shifting; Base is one line, and never claims BikeControl's
   // virtual shifting (riders bought Base expecting it).
-  testWidgets('the Pro card leads with shifting, then drivetrain, bars and devices; Base has one line', (tester) async {
+  testWidgets('the Pro card leads with shifting, then drivetrain, buttons, screen and devices; Base has one line', (
+    tester,
+  ) async {
     IAPManager.instance.isPurchased.value = false;
     addTearDown(() => IAPManager.instance.isPurchased.value = true);
     await pumpInScrollView(tester, Paywall(debugNativeTrainer: () => null));
@@ -59,7 +61,8 @@ Future<void> main() async {
     final titlesInOrder = [
       l10n.paywallFeelShiftTitle,
       l10n.paywallFeelDrivetrainTitle,
-      l10n.paywallFeelBarsTitle,
+      l10n.paywallFeelGesturesTitle,
+      l10n.paywallFeelScreenTitle,
       l10n.paywallFeelDevicesTitle,
     ];
     final proCard = find.byKey(const ValueKey('paywall-pro-card'));

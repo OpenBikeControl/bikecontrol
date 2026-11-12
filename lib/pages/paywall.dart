@@ -649,11 +649,12 @@ class _PaywallState extends State<Paywall> {
         clip: PaywallFeatureClip.drivetrain,
       ),
       _Moment(
-        LucideIcons.hand,
-        l10n.paywallFeelBarsTitle,
-        l10n.paywallFeelBars,
+        LucideIcons.pointer,
+        l10n.paywallFeelGesturesTitle,
+        l10n.paywallFeelGestures,
         clip: PaywallFeatureClip.buttonGestures,
       ),
+      _Moment(LucideIcons.music, l10n.paywallFeelScreenTitle, l10n.paywallFeelScreen, clip: PaywallFeatureClip.music),
       _Moment(LucideIcons.monitorSmartphone, l10n.paywallFeelDevicesTitle, l10n.paywallFeelDevices),
     ];
   }
