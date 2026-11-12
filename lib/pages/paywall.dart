@@ -6,26 +6,28 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/help_center/widgets/pricing_faq_section.dart';
 import 'package:bike_control/pages/paywall_feature_clip.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
-import 'package:bike_control/utils/window_size.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
-import 'package:bike_control/widgets/plan/vs_without_pro_note.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kDebugMode;
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/prop.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -105,6 +107,39 @@ String? paywallShiftAppName(SupportedApp? app) {
   if (app == null || app is CustomApp || app is OpenBikeControl || app is BikeControl) return null;
   final shown = shownTrainerAppName(app.name);
   return shown == app.name ? shown : null;
+}
+
+/// Whether a trainer on [protocol], with the gear watchdog's [verdict], takes
+/// BikeControl's gears natively: commanded over the Zwift interface, where it
+/// applies the gear itself. A trainer that ignored the gear commands has been
+/// moved to FTMS already, or (with nothing to fall back to) is left out here.
+bool paywallShiftsNatively(TrainerControlProtocol protocol, ZwiftGearEchoVerdict? verdict) =>
+    protocol == TrainerControlProtocol.zwiftHub && (verdict == null || verdict == ZwiftGearEchoVerdict.fellBackToFtms);
+
+/// The bridged trainer BikeControl shifts natively right now, by name.
+String? paywallNativeTrainerName(Iterable<ProxyDevice> devices) {
+  for (final device in devices) {
+    final bike = device.fitnessBike;
+    if (bike != null && paywallShiftsNatively(bike.controlProtocol, bike.gearEchoVerdict.value)) {
+      return device.toString();
+    }
+  }
+  return null;
+}
+
+/// Zwift and Rouvy shift a Zwift Ready trainer natively themselves: against
+/// them BikeControl's shifting is neither faster nor more native.
+bool paywallAppShiftsNatively(SupportedApp? app) => app is Zwift || app is Rouvy;
+
+/// One moment of riding on a plan card: an icon, a short title, one line,
+/// and the website clip that shows it, if there is one.
+class _Moment {
+  const _Moment(this.icon, this.title, this.body, {this.clip});
+
+  final IconData icon;
+  final String title;
+  final String body;
+  final PaywallFeatureClip? clip;
 }
 
 /// One line of a plan card's feature list.
@@ -216,12 +251,23 @@ class Paywall extends StatefulWidget {
   @visibleForTesting
   final ImageProvider Function(PaywallFeatureClip clip)? debugClipPoster;
 
+  /// Test seam: the trainer that shifts natively, instead of looking at the
+  /// connected trainers. Returns null for none.
+  @visibleForTesting
+  final String? Function()? debugNativeTrainer;
+
+  /// Debug menu: shows both plans as a rider without a purchase sees them,
+  /// whatever this device owns. Ignored outside debug builds.
+  final bool debugShowAllPlans;
+
   const Paywall({
     super.key,
     this.defaultToFullVersion = false,
     this.debugYearlyStorePrice,
     this.debugOnPurchase,
     this.debugClipPoster,
+    this.debugNativeTrainer,
+    this.debugShowAllPlans = false,
   });
 
   @override
@@ -229,21 +275,11 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
+  /// What this device owns, as the paywall shows it.
+  bool get _purchased => _iapManager.isPurchased.value && !(kDebugMode && widget.debugShowAllPlans);
+
   // Hovering a clip line on desktop previews its clip beside it.
   late final _clipPreviews = PaywallClipPreviews(poster: widget.debugClipPoster);
-
-  // Unlimited button commands opens the list (it has no demo clip, so the
-  // clip rows run together below it). Next, the line riders bought the wrong
-  // plan over: BikeControl shifting the trainer itself is Pro. Base covers
-  // pressing the buttons in a trainer app that shifts by itself (lines one
-  // and three; on the Base card, its first two);
-  // that line names the rider's app so it's clear which app does the gears.
-  // Sensor sharing is gated on Pro (SensorHub.isProEnabled and the standalone
-  // sensor emulator's shouldAdvertise).
-  // A line whose feature has a website demo clip offers it (Pro card only).
-  // On the Pro card the shift line stops at "in {app}": with Pro, BikeControl
-  // can do the gears, so "the app computes them" only holds for Base.
-  List<_FeatureLine> _features(AppLocalizations l10n, {required bool pro}) => _paywallFeatures(l10n, pro: pro);
 
   final IAPManager _iapManager = IAPManager.instance;
 
@@ -494,7 +530,7 @@ class _PaywallState extends State<Paywall> {
 
   _PaywallPricing? _buildPricingFromOfferings(Offerings offerings) {
     final allOfferings = offerings.all.values.toList();
-    final proOffering = offerings.all[_iapManager.isPurchased.value ? 'proonly-freemonth' : 'pro'];
+    final proOffering = offerings.all[_purchased ? 'proonly-freemonth' : 'pro'];
     final defaultOffering = offerings.all['default'];
 
     final monthlyPackage =
@@ -588,10 +624,71 @@ class _PaywallState extends State<Paywall> {
   String _formatCurrency(double value, String currencyCode, {String? sampleFormattedPrice}) =>
       paywallFormatPrice(value, currencyCode, sampleFormattedPrice: sampleFormattedPrice);
 
+  /// The trainer BikeControl shifts natively right now, if any.
+  late final String? _nativeTrainer = () {
+    final seam = widget.debugNativeTrainer;
+    if (seam != null) return seam();
+    try {
+      return paywallNativeTrainerName(core.connection.proxyDevices);
+    } catch (e, s) {
+      recordError(e, s, context: 'Paywall native trainer');
+      return null;
+    }
+  }();
+
+  /// What Pro feels like, four moments. "Native and instant" only where it is
+  /// true against the rider's app: a trainer that takes BikeControl's gears
+  /// natively, and an app (not Zwift or Rouvy) that doesn't shift it natively
+  /// itself.
+  List<_Moment> _proMoments(AppLocalizations l10n) {
+    final native = _nativeTrainer;
+    final instant = native != null && !paywallAppShiftsNatively(core.settings.getTrainerApp());
+    return [
+      _Moment(
+        instant ? LucideIcons.zap : LucideIcons.gauge,
+        l10n.paywallFeelShiftTitle,
+        instant ? l10n.paywallFeelShiftNative(native) : l10n.paywallFeelShift,
+        clip: PaywallFeatureClip.smartTrainerVirtualShifting,
+      ),
+      _Moment(
+        LucideIcons.slidersHorizontal,
+        l10n.paywallFeelDrivetrainTitle,
+        l10n.paywallFeelDrivetrain,
+        clip: PaywallFeatureClip.drivetrain,
+      ),
+      _Moment(
+        LucideIcons.pointer,
+        l10n.paywallFeelGesturesTitle,
+        l10n.paywallFeelGestures,
+        clip: PaywallFeatureClip.buttonGestures,
+      ),
+      _Moment(LucideIcons.music, l10n.paywallFeelScreenTitle, l10n.paywallFeelScreen, clip: PaywallFeatureClip.music),
+      _Moment(LucideIcons.monitorSmartphone, l10n.paywallFeelDevicesTitle, l10n.paywallFeelDevices),
+    ];
+  }
+
+  /// Base, in one line: unlimited presses, and the trainer app does the
+  /// shifting. Zwift and Rouvy shift natively themselves, so for them it
+  /// doesn't say it might feel less snappy.
+  _Moment _baseMoment(AppLocalizations l10n) {
+    final selected = core.settings.getTrainerApp();
+    final app = paywallShiftAppName(selected);
+    return _Moment(
+      LucideIcons.check,
+      app == null ? l10n.paywallBaseTitle : l10n.paywallBaseTitleNamed(app),
+      switch (app) {
+        null => l10n.paywallBaseShift,
+        final app when paywallAppShiftsNatively(selected) => l10n.paywallBaseShiftNamedNative(app),
+        final app => l10n.paywallBaseShiftNamed(app),
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final ownsBase = _iapManager.isPurchased.value && !_iapManager.isProEnabled;
+    final purchased = _purchased;
+    final ownsBase = purchased && !_iapManager.isProEnabled;
     return Container(
       constraints: const BoxConstraints(maxWidth: 500),
       child: SafeArea(
@@ -624,13 +721,7 @@ class _PaywallState extends State<Paywall> {
               ),
               _buildProCard(context),
               // A Base owner still sees what Base covers, marked as theirs.
-              if (!_iapManager.isPurchased.value || ownsBase) _buildBaseCard(context, owned: ownsBase),
-              // Without Pro the trainer app does the shifting; what Pro adds
-              // on top concerns both plans, so it sits under both.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                child: VsWithoutProNote(app: core.settings.getTrainerApp()),
-              ),
+              if (!purchased || ownsBase) _buildBaseCard(context, owned: ownsBase),
               Column(
                 children: [
                   BkTouchTarget(
@@ -713,55 +804,63 @@ class _PaywallState extends State<Paywall> {
     style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
   );
 
-  /// The feature list with checks: accent on Pro, quiet on Base. With
-  /// [clips], a line whose feature has a demo clip ends in a ▶ that opens it
-  /// (48 dp on phones, which sets that line's height).
-  Widget _featureList(BuildContext context, List<_FeatureLine> lines, {required bool accent, bool clips = false}) {
+  /// The moments on a card: an icon tile, a title and a line, and a ▶ where
+  /// there is a clip of it (48 dp on phones). Accent on Pro, quiet on Base.
+  Widget _momentList(BuildContext context, List<_Moment> moments, {required bool accent}) {
     final cs = Theme.of(context).colorScheme;
-    final style = context.typography.small.copyWith(color: cs.foreground, height: 1.3);
+    final tint = accent ? bkAccentText(context) : cs.mutedForeground;
     return Column(
-      // A ▶ already makes its line a touch target tall; a smaller gap keeps
-      // the list from spreading out.
-      spacing: clips ? 4 : 6,
+      spacing: 10,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final line in lines)
+        for (final m in moments)
           _clipLine(
-            clips ? line.clip : null,
-            ConstrainedBox(
-              constraints: BoxConstraints(minHeight: clips && isCompactWindow(context) ? 28 : 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 8,
-                children: [
-                  Icon(
-                    LucideIcons.check,
-                    size: 16,
-                    color: accent ? bkAccentText(context) : cs.mutedForeground,
+            m.clip,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 10,
+              children: [
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: accent ? cs.primary.withValues(alpha: 0.10) : cs.muted,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  Expanded(child: Text(line.label, style: style)),
-                  if (line.unlimited)
-                    Text(
-                      AppLocalizations.of(context).unlimited,
-                      style: style.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  if (clips && line.clip != null)
-                    PaywallClipButton(
-                      clip: line.clip!,
-                      feature: line.label,
-                      tooltip: !PaywallClipPreviews.enabled,
-                      onPressed: () {
-                        _clipPreviews.hide();
-                        showPaywallFeatureClip(
-                          context,
-                          title: line.label,
-                          clip: line.clip!,
-                          poster: widget.debugClipPoster?.call(line.clip!),
-                        );
-                      },
-                    ),
-                ],
-              ),
+                  child: Icon(m.icon, size: 15, color: tint),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 2,
+                    children: [
+                      Text(
+                        m.title,
+                        style: context.typography.small.copyWith(fontWeight: FontWeight.w600, height: 1.25),
+                      ),
+                      Text(
+                        m.body,
+                        style: context.typography.xSmall.copyWith(color: cs.mutedForeground, height: 1.35),
+                      ),
+                    ],
+                  ),
+                ),
+                if (m.clip != null)
+                  PaywallClipButton(
+                    clip: m.clip!,
+                    feature: m.title,
+                    tooltip: !PaywallClipPreviews.enabled,
+                    onPressed: () {
+                      _clipPreviews.hide();
+                      showPaywallFeatureClip(
+                        context,
+                        title: m.title,
+                        clip: m.clip!,
+                        poster: widget.debugClipPoster?.call(m.clip!),
+                      );
+                    },
+                  ),
+              ],
             ),
           ),
       ],
@@ -794,6 +893,11 @@ class _PaywallState extends State<Paywall> {
             context,
             name: 'Pro',
             kind: _kind(context, l10n.subscription),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.paywallProTagline.toUpperCase(),
+            style: BkNumerals.display(17, color: bkAccentText(context), fontWeight: FontWeight.w800, height: 1.05),
           ),
           const SizedBox(height: 12),
           Row(
@@ -850,7 +954,7 @@ class _PaywallState extends State<Paywall> {
             ),
           ],
           const SizedBox(height: 14),
-          _featureList(context, _features(l10n, pro: true), accent: true, clips: true),
+          _momentList(context, _proMoments(l10n), accent: true),
           const SizedBox(height: 16),
           _purchaseButton(context, plan: plan, label: _purchaseLabel(l10n, plan), primary: true),
         ],
@@ -927,10 +1031,7 @@ class _PaywallState extends State<Paywall> {
                 : _kind(context, l10n.paywall_oneTimePurchase),
           ),
           const SizedBox(height: 12),
-          _featureList(context, [
-            for (final f in _features(l10n, pro: false))
-              if (f.inBase) f,
-          ], accent: false),
+          _momentList(context, [_baseMoment(l10n)], accent: false),
           const SizedBox(height: 12),
           if (!owned)
             Text(
