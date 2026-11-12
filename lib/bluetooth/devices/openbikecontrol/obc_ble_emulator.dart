@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/app_info_reassembler.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_gear.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -27,7 +28,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 class OpenBikeControlBluetoothEmulator extends TrainerConnection
     with PeripheralAdvertisingRecovery
-    implements SteeringAngleSink {
+    implements SteeringAngleSink, GearStateSink {
   final PeripheralServer _server;
   @override
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
@@ -352,6 +353,16 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
   Future<void> sendSteeringAngle(int value) => _server.notify(
     characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
     value: OpenBikeProtocolParser.encodeSteeringAngleState(value),
+    deviceId: _currentDeviceId,
+  );
+
+  @override
+  bool get canSendGearState => canSendSteeringAngle;
+
+  @override
+  Future<void> sendGearState(Uint8List message) => _server.notify(
+    characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+    value: message,
     deviceId: _currentDeviceId,
   );
 

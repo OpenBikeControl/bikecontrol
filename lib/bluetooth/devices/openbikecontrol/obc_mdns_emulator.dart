@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_bike_definition.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_gear.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
@@ -29,7 +30,7 @@ import 'package:prop/utils/network_address.dart';
 import 'package:prop/utils/resilient_tcp_server.dart';
 import 'package:prop/utils/serialized_lifecycle.dart';
 
-class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage, SteeringAngleSink {
+class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage, SteeringAngleSink, GearStateSink {
   ResilientTcpServer? _server;
   ServiceAdvertisement? _mdnsRegistration;
   ({String name, int port})? _registeredEntry;
@@ -521,6 +522,16 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
     final client = _server?.client;
     if (client == null) return;
     _write(client, OpenBikeProtocolParser.encodeSteeringAngleState(value));
+  }
+
+  @override
+  bool get canSendGearState => canSendSteeringAngle;
+
+  @override
+  Future<void> sendGearState(Uint8List message) async {
+    final client = _server?.client;
+    if (client == null) return;
+    _write(client, message);
   }
 
   void _write(Socket socket, List<int> responseData) {
