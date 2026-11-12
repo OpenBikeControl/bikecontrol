@@ -24,7 +24,7 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/purchase_done_dialogs.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kDebugMode;
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -256,6 +256,10 @@ class Paywall extends StatefulWidget {
   @visibleForTesting
   final String? Function()? debugNativeTrainer;
 
+  /// Debug menu: shows both plans as a rider without a purchase sees them,
+  /// whatever this device owns. Ignored outside debug builds.
+  final bool debugShowAllPlans;
+
   const Paywall({
     super.key,
     this.defaultToFullVersion = false,
@@ -263,6 +267,7 @@ class Paywall extends StatefulWidget {
     this.debugOnPurchase,
     this.debugClipPoster,
     this.debugNativeTrainer,
+    this.debugShowAllPlans = false,
   });
 
   @override
@@ -270,6 +275,9 @@ class Paywall extends StatefulWidget {
 }
 
 class _PaywallState extends State<Paywall> {
+  /// What this device owns, as the paywall shows it.
+  bool get _purchased => _iapManager.isPurchased.value && !(kDebugMode && widget.debugShowAllPlans);
+
   // Hovering a clip line on desktop previews its clip beside it.
   late final _clipPreviews = PaywallClipPreviews(poster: widget.debugClipPoster);
 
@@ -522,7 +530,7 @@ class _PaywallState extends State<Paywall> {
 
   _PaywallPricing? _buildPricingFromOfferings(Offerings offerings) {
     final allOfferings = offerings.all.values.toList();
-    final proOffering = offerings.all[_iapManager.isPurchased.value ? 'proonly-freemonth' : 'pro'];
+    final proOffering = offerings.all[_purchased ? 'proonly-freemonth' : 'pro'];
     final defaultOffering = offerings.all['default'];
 
     final monthlyPackage =
@@ -679,7 +687,8 @@ class _PaywallState extends State<Paywall> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final ownsBase = _iapManager.isPurchased.value && !_iapManager.isProEnabled;
+    final purchased = _purchased;
+    final ownsBase = purchased && !_iapManager.isProEnabled;
     return Container(
       constraints: const BoxConstraints(maxWidth: 500),
       child: SafeArea(
@@ -712,7 +721,7 @@ class _PaywallState extends State<Paywall> {
               ),
               _buildProCard(context),
               // A Base owner still sees what Base covers, marked as theirs.
-              if (!_iapManager.isPurchased.value || ownsBase) _buildBaseCard(context, owned: ownsBase),
+              if (!purchased || ownsBase) _buildBaseCard(context, owned: ownsBase),
               Column(
                 children: [
                   BkTouchTarget(

@@ -29,6 +29,7 @@ Future<void> main() async {
   Future<AppLocalizations> pump(
     WidgetTester tester, {
     bool purchased = false,
+    bool showAllPlans = false,
     String? nativeTrainer,
     void Function(String plan)? onPurchase,
   }) async {
@@ -49,7 +50,11 @@ Future<void> main() async {
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         theme: BkTheme.build(Brightness.light),
         home: SingleChildScrollView(
-          child: Paywall(debugOnPurchase: onPurchase, debugNativeTrainer: () => nativeTrainer),
+          child: Paywall(
+            debugOnPurchase: onPurchase,
+            debugNativeTrainer: () => nativeTrainer,
+            debugShowAllPlans: showAllPlans,
+          ),
         ),
       ),
     );
@@ -199,6 +204,12 @@ Future<void> main() async {
     expect(IAPManager.instance.isProEnabled, isFalse);
     expect(inCard(baseCard, l.paywallYourPlan), findsOneWidget);
     expect(find.text(l.paywall_buyBase), findsNothing);
+  });
+
+  testWidgets('the debug menu\'s paywall shows Base for sale even to a Base owner', (tester) async {
+    final l = await pump(tester, purchased: true, showAllPlans: true);
+    expect(inCard(baseCard, l.paywallYourPlan), findsNothing);
+    expect(find.text(l.paywall_buyBase), findsOneWidget);
   });
 
   testWidgets('without a purchase the Base card is not marked "Your plan"', (tester) async {
