@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/utils/window_size.dart';
@@ -61,8 +63,10 @@ class OnboardingAppTile extends StatelessWidget {
             color: scheme.card,
           ),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SizedBox(
+            Container(
               height: 40,
+              // Wide logos (icTrainer) stay clear of the corner seal.
+              padding: EdgeInsets.symmetric(horizontal: showOfficialBadge ? 20 : 0),
               child: Center(
                 child: app.logoAsset != null
                     ? TrainerAppLogo(asset: app.logoAsset!, url: app.logoUrl, height: 36, fit: BoxFit.contain)
@@ -83,11 +87,13 @@ class OnboardingAppTile extends StatelessWidget {
           ]),
         ),
         if (showOfficialBadge)
-          Positioned(top: 7, left: 7, child: const _OfficialBadge()),
+          Positioned(top: 5, right: 5, child: const _OfficialBadge()),
         if (selected)
           Positioned(
+            // The seal holds the top-right corner; the check takes the other.
             top: 7,
-            right: 7,
+            left: showOfficialBadge ? 7 : null,
+            right: showOfficialBadge ? null : 7,
             child: Container(
               width: 18,
               height: 18,
@@ -104,7 +110,7 @@ class OnboardingAppTile extends StatelessWidget {
 /// The OpenBikeControl mark in an accent-washed circle: "this app is an
 /// official BikeControl integration".
 class _OfficialBadge extends StatelessWidget {
-  const _OfficialBadge({this.size = 22});
+  const _OfficialBadge({this.size = 28});
   final double size;
 
   @override
@@ -114,16 +120,53 @@ class _OfficialBadge extends StatelessWidget {
       tooltip: (context) => TooltipContainer(child: Text(context.i18n.onboardingOfficialBadge)),
       child: Semantics(
         label: context.i18n.onboardingOfficialBadge,
-        child: Container(
-          width: size,
-          height: size,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
-          child: OpenBikeControlLogo(size: size * 0.6, color: onboardingOnAccent(context)),
+        child: CustomPaint(
+          size: Size.square(size),
+          painter: _SealPainter(accent),
+          child: SizedBox.square(
+            dimension: size,
+            child: Center(child: OpenBikeControlLogo(size: size * 0.48, color: onboardingOnAccent(context))),
+          ),
         ),
       ),
     );
   }
+}
+
+/// A zig-zag edged seal, like a "certified" rosette: [_points] teeth around a
+/// circle, with a thin inner ring.
+class _SealPainter extends CustomPainter {
+  const _SealPainter(this.color);
+
+  final Color color;
+  static const _points = 14;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final outer = size.shortestSide / 2;
+    final inner = outer * 0.84;
+    final path = Path();
+    for (var i = 0; i < _points * 2; i++) {
+      final r = i.isEven ? outer : inner;
+      final a = -math.pi / 2 + i * math.pi / _points;
+      final p = c + Offset(math.cos(a) * r, math.sin(a) * r);
+      i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawCircle(
+      c,
+      outer * 0.66,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.55),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_SealPainter old) => old.color != color;
 }
 
 /// A tile's app name: up to two lines, broken only between words. A single
@@ -189,7 +232,7 @@ class _RenderAtLeastWidestWord extends RenderProxyBox {
 /// Explains the tile badge next to the "Big platforms" label.
 Widget _officialLegend(BuildContext context) => ExcludeSemantics(
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const _OfficialBadge(size: 16),
+        const _OfficialBadge(size: 18),
         Gap(5),
         Text(context.i18n.officiallySupported).xSmall.muted,
       ]),
