@@ -3,8 +3,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// Uppercase, letter-spaced section label with a hairline rule filling the
 /// rest of the row — the design's GroupLabel.
 class OnboardingGroupLabel extends StatelessWidget {
-  const OnboardingGroupLabel(this.text, {super.key, this.trailing});
+  const OnboardingGroupLabel(this.text, {super.key, this.leading, this.trailing});
   final String text;
+  final Widget? leading;
   final Widget? trailing;
 
   @override
@@ -13,6 +14,7 @@ class OnboardingGroupLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(children: [
+        if (leading != null) ...[leading!, Gap(6)],
         DefaultTextStyle.merge(
           style: TextStyle(letterSpacing: 0.8, color: scheme.mutedForeground),
           child: Text(text.toUpperCase()).xSmall.semiBold,

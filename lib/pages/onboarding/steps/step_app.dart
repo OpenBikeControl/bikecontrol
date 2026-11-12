@@ -308,7 +308,7 @@ class TrainerAppGrid extends StatelessWidget {
         OnboardingGroupLabel(context.i18n.onboardingBigPlatforms, trailing: _officialLegend(context)),
         grid(big, badgeOfficial: true),
         Gap(18),
-        OnboardingGroupLabel(context.i18n.officiallySupported, trailing: _verifiedBadge(context)),
+        OnboardingGroupLabel(context.i18n.officiallySupported, leading: const _OfficialBadge(size: 18), trailing: _verifiedBadge(context)),
         grid(official),
         Gap(18),
         OnboardingGroupLabel(context.i18n.otherTrainerApps),
