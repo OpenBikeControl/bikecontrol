@@ -155,13 +155,17 @@ abstract class SupportedApp {
       final buttons = stored != null && stored.isNotEmpty ? stored : defaultObpSupportedButtons;
       actions.addAll(buttons.mapNotNull((b) => b.action));
     }
-    if (supports(AppConnectionMethod.zwiftBle) ||
-        supports(AppConnectionMethod.zwiftMdns) ||
-        supports(AppConnectionMethod.rouvyMdns)) {
+    // Raw controller actions: the emulators speak those, and an app's renamed
+    // ones (Rouvy's Pause on Z) resolve back to them. Each emulator counts with
+    // its own set — only Rouvy's network one delivers raw D-pad up/down.
+    final emulators = [
+      if (supports(AppConnectionMethod.zwiftBle)) core.zwiftEmulator,
+      if (supports(AppConnectionMethod.zwiftMdns)) core.zwiftMdnsEmulator,
+      if (supports(AppConnectionMethod.rouvyMdns)) core.rouvyMdnsEmulator,
+    ];
+    for (final emulator in emulators) {
       known = true;
-      // Raw controller actions: the emulators speak those, and an app's
-      // renamed ones (Rouvy's Pause on Z) resolve back to them.
-      actions.addAll(core.zwiftEmulator.supportedActions.where((a) => !unsupportedControllerActions.contains(a)));
+      actions.addAll(emulator.supportedActions.where((a) => !unsupportedControllerActions.contains(a)));
     }
     return known ? actions : null;
   }
