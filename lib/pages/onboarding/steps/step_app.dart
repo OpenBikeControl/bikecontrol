@@ -10,6 +10,13 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:bike_control/widgets/ui/trainer_app_logo.dart';
+import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
+import 'package:bike_control/utils/keymap/apps/biketerra.dart';
+import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/tacx.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 
@@ -19,12 +26,21 @@ const _tileHeight = 108.0;
 
 /// One app tile per the design: white card, logo (or monogram), dark caption,
 /// blue 1.5px border + top-right blue check dot when selected. Public so the
-/// grid-uniformity test can measure the rendered tiles.
+/// grid-uniformity test can measure the rendered tiles. [showOfficialBadge]
+/// puts the OpenBikeControl mark in the top-left corner, for official apps
+/// shown outside the "Officially supported" group.
 class OnboardingAppTile extends StatelessWidget {
-  const OnboardingAppTile({super.key, required this.app, required this.selected, required this.onTap});
+  const OnboardingAppTile({
+    super.key,
+    required this.app,
+    required this.selected,
+    required this.onTap,
+    this.showOfficialBadge = false,
+  });
   final SupportedApp app;
   final bool selected;
   final VoidCallback onTap;
+  final bool showOfficialBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +80,8 @@ class OnboardingAppTile extends StatelessWidget {
             _TileCaption(app.name),
           ]),
         ),
+        if (showOfficialBadge)
+          Positioned(top: 7, left: 7, child: const _OfficialBadge()),
         if (selected)
           Positioned(
             top: 7,
@@ -77,6 +95,31 @@ class OnboardingAppTile extends StatelessWidget {
             ),
           ),
       ]),
+    );
+  }
+}
+
+/// The OpenBikeControl mark in an accent-washed circle: "this app is an
+/// official BikeControl integration".
+class _OfficialBadge extends StatelessWidget {
+  const _OfficialBadge({this.size = 22});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = onboardingAccent(context);
+    return Tooltip(
+      tooltip: (context) => TooltipContainer(child: Text(context.i18n.onboardingOfficialBadge)),
+      child: Semantics(
+        label: context.i18n.onboardingOfficialBadge,
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
+          child: OpenBikeControlLogo(size: size * 0.6, color: onboardingOnAccent(context)),
+        ),
+      ),
     );
   }
 }
@@ -141,6 +184,15 @@ class _RenderAtLeastWidestWord extends RenderProxyBox {
   }
 }
 
+/// Explains the tile badge next to the "Big platforms" label.
+Widget _officialLegend(BuildContext context) => ExcludeSemantics(
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        const _OfficialBadge(size: 16),
+        Gap(5),
+        Text(context.i18n.officiallySupported).xSmall.muted,
+      ]),
+    );
+
 Widget _verifiedBadge(BuildContext context) => Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -153,8 +205,13 @@ Widget _verifiedBadge(BuildContext context) => Container(
       ),
     );
 
-/// Every supported trainer app as a grid of tiles: the official integrations
-/// first, under their verified badge, then the others. Onboarding's app step
+/// The big platforms, in the order the "Big platforms" group shows them.
+bool _isBigPlatform(SupportedApp a) =>
+    a is MyWhoosh || a is TrainingPeaks || a is Biketerra || a is Rouvy || a is Tacx || a is FulGaz;
+
+/// Every supported trainer app as a grid of tiles: the big platforms first
+/// (official ones marked with the OpenBikeControl badge), then the other
+/// official integrations under their verified badge, then the rest. Onboarding's app step
 /// shows it, and so does the trainer-app picker in Connection settings.
 class TrainerAppGrid extends StatelessWidget {
   const TrainerAppGrid({super.key, required this.selected, required this.onSelect});
@@ -164,10 +221,12 @@ class TrainerAppGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final official = SupportedApp.supportedApps.where((a) => a.officialIntegration).toList();
-    final other = SupportedApp.supportedApps.where((a) => !a.officialIntegration).toList();
+    final big = SupportedApp.supportedApps.where(_isBigPlatform).toList();
+    final rest = SupportedApp.supportedApps.where((a) => !_isBigPlatform(a));
+    final official = rest.where((a) => a.officialIntegration).toList();
+    final other = rest.where((a) => !a.officialIntegration).toList();
 
-    Widget grid(List<SupportedApp> apps) => LayoutBuilder(builder: (context, constraints) {
+    Widget grid(List<SupportedApp> apps, {bool badgeOfficial = false}) => LayoutBuilder(builder: (context, constraints) {
           final cols = constraints.maxWidth >= Breakpoints.onboardingAppGridWide ? 5 : 3;
           return GridView(
             shrinkWrap: true,
@@ -183,7 +242,12 @@ class TrainerAppGrid extends StatelessWidget {
             ),
             children: [
               for (final app in apps)
-                OnboardingAppTile(app: app, selected: selected?.name == app.name, onTap: () => onSelect(app)),
+                OnboardingAppTile(
+                  app: app,
+                  selected: selected?.name == app.name,
+                  onTap: () => onSelect(app),
+                  showOfficialBadge: badgeOfficial && app.officialIntegration,
+                ),
             ],
           );
         });
@@ -192,6 +256,9 @@ class TrainerAppGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        OnboardingGroupLabel(context.i18n.onboardingBigPlatforms, trailing: _officialLegend(context)),
+        grid(big, badgeOfficial: true),
+        Gap(18),
         OnboardingGroupLabel(context.i18n.officiallySupported, trailing: _verifiedBadge(context)),
         grid(official),
         Gap(18),

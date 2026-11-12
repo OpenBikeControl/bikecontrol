@@ -665,6 +665,8 @@
   "onboardingStepConnectionSub": "连接应用",
   "onboardingStepDone": "就绪",
   "onboardingStepDoneSub": "测试并骑行",
+  "onboardingBigPlatforms": "主流平台",
+  "onboardingOfficialBadge": "BikeControl 官方集成",
   "onboardingVerified": "已验证",
   "onboardingAppTitle": "你用哪个应用骑行？",
   "onboardingAppSubtitle": "我们会为它预选正确的连接方式和按键映射。",

@@ -656,6 +656,8 @@
   "onboardingStepConnectionSub": "Link the app",
   "onboardingStepDone": "Ready",
   "onboardingStepDoneSub": "Test and ride",
+  "onboardingBigPlatforms": "Big platforms",
+  "onboardingOfficialBadge": "Official BikeControl integration",
   "onboardingVerified": "Verified",
   "onboardingAppTitle": "Which app do you ride with?",
   "onboardingAppSubtitle": "We'll pre-select the right connection method and button mapping for it.",

@@ -1297,6 +1297,8 @@
   "onboardingStepConnectionSub": "Połącz aplikację",
   "onboardingStepDone": "Gotowe",
   "onboardingStepDoneSub": "Przetestuj i jedź",
+  "onboardingBigPlatforms": "Duże platformy",
+  "onboardingOfficialBadge": "Oficjalna integracja BikeControl",
   "onboardingVerified": "Zweryfikowane",
   "onboardingAppTitle": "W jakiej aplikacji jeździsz?",
   "onboardingAppSubtitle": "Wybierzemy dla niej odpowiednią metodę połączenia i mapowanie przycisków.",

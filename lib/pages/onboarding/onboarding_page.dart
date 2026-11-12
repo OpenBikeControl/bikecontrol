@@ -123,7 +123,7 @@ Widget onboardingShell(
         // Keyed per step: the next step starts at the top, not wherever the
         // last one was scrolled to.
         key: ValueKey('onboarding-scroll-$step'),
-        padding: EdgeInsets.fromLTRB(desktop ? 24 : 16, 8, desktop ? 24 : 16, 16),
+        padding: EdgeInsets.fromLTRB(desktop ? 24 : 16, 8, desktop ? 24 : 16, desktop ? 16 : 32),
         child: desktop
             ? Center(
                 child: ConstrainedBox(
@@ -182,7 +182,20 @@ Widget onboardingShell(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
               child: _progressBar(context, step, onSelectStep),
             ),
-            Expanded(child: scrolledBody),
+            // The body fades out above the footer instead of being cut off
+            // at a hard edge.
+            Expanded(
+              child: ShaderMask(
+                blendMode: BlendMode.dstIn,
+                shaderCallback: (rect) => const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+                  stops: [0.0, 1.0],
+                ).createShader(Rect.fromLTRB(0, rect.height - 32, rect.width, rect.height)),
+                child: scrolledBody,
+              ),
+            ),
             if (footerActions.isNotEmpty || onBack != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
