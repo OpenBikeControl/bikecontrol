@@ -918,7 +918,8 @@ class ShimanoDi2 extends BluetoothDevice {
     if (setupNeed == DeviceSetupNeed.setup) await _showSetup(context);
   }
 
-  /// The setup starts with the choice between E-TUBE channels and button mode.
+  /// The setup starts with the choice between E-TUBE channels, button mode and
+  /// the rider's own E-TUBE channels.
   /// However it was opened (Di2 card, checklist, or by itself), it counts as
   /// offered: the Di2 drops the link after a wrong passkey, and its reconnect
   /// must not open a second setup on top.
@@ -931,6 +932,7 @@ class ShimanoDi2 extends BluetoothDevice {
           unawaited(switch (mode) {
             ShimanoSetupMode.channels => _showChannelSetup(context, afterChooser: true),
             ShimanoSetupMode.buttons => _showButtonModeSetup(context, afterChooser: true),
+            ShimanoSetupMode.etube => _showEtubeGuide(context, afterChooser: true),
           });
         },
       );
@@ -989,6 +991,14 @@ class ShimanoDi2 extends BluetoothDevice {
     );
   }
 
+  /// The rider sets the D-Fly channels in the E-TUBE app; finished, BikeControl
+  /// uses them like after [useDflyChannels].
+  Future<void> _showEtubeGuide(BuildContext context, {bool afterChooser = false}) => showShimanoEtubeGuide(
+        context,
+        afterChooser: afterChooser,
+        onDone: () => unawaited(useDflyChannels()),
+      );
+
   Future<void> _showRestore(BuildContext context) {
     final l = context.i18n;
     return showShimanoSetup(
@@ -1029,6 +1039,7 @@ class ShimanoDi2 extends BluetoothDevice {
           onTurnOff: () => unawaited(turnOffButtonMode()),
           onSwitchToChannels: () => unawaited(_showChannelSetup(context)),
           onDismissWarning: () => unawaited(dismissButtonModeWarning()),
+          onShowEtubeGuide: () => unawaited(_showEtubeGuide(context)),
         ),
       ];
     }
