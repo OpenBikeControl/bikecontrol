@@ -86,10 +86,6 @@ Future<void> main() async {
     for (final title in titlesInOrder) {
       expect(find.descendant(of: baseCard, matching: find.text(title)), findsNothing);
     }
-
-    // The old feature list is gone.
-    expect(find.text(l10n.paywall_vsByBikeControl), findsNothing);
-    expect(find.text(l10n.paywall_amountOfActions), findsNothing);
   });
 
   // Cross-store restores: Base is bound to the storefront it was bought on.

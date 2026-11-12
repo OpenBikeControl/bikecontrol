@@ -131,6 +131,22 @@ String? paywallNativeTrainerName(Iterable<ProxyDevice> devices) {
 /// them BikeControl's shifting is neither faster nor more native.
 bool paywallAppShiftsNatively(SupportedApp? app) => app is Zwift || app is Rouvy;
 
+/// What Base covers, in one line: unlimited presses, and the trainer app
+/// [selected] doing the shifting with its own gears. Names the app where
+/// [paywallShiftAppName] does; says it may feel less snappy except for the
+/// apps that shift natively themselves.
+({String title, String body}) paywallBaseLine(AppLocalizations l10n, SupportedApp? selected) {
+  final app = paywallShiftAppName(selected);
+  return (
+    title: app == null ? l10n.paywallBaseTitle : l10n.paywallBaseTitleNamed(app),
+    body: switch (app) {
+      null => l10n.paywallBaseShift,
+      final app when paywallAppShiftsNatively(selected) => l10n.paywallBaseShiftNamedNative(app),
+      final app => l10n.paywallBaseShiftNamed(app),
+    },
+  );
+}
+
 /// One moment of riding on a plan card: an icon, a short title, one line,
 /// and the website clip that shows it, if there is one.
 class _Moment {
@@ -140,51 +156,6 @@ class _Moment {
   final String title;
   final String body;
   final PaywallFeatureClip? clip;
-}
-
-/// One line of a plan card's feature list.
-List<_FeatureLine> _paywallFeatures(AppLocalizations l10n, {required bool pro}) {
-  final app = paywallShiftAppName(core.settings.getTrainerApp());
-  return [
-    _FeatureLine(l10n.paywall_amountOfActions, unlimited: true, inBase: true),
-    _FeatureLine(l10n.paywall_vsByBikeControl, clip: PaywallFeatureClip.smartTrainerVirtualShifting),
-    _FeatureLine(
-      switch ((app, pro)) {
-        (null, true) => l10n.paywall_shiftInYourAppShort,
-        (null, false) => l10n.paywall_shiftInYourApp,
-        (final String app, true) => l10n.paywall_shiftInNamedAppShort(app),
-        (final String app, false) => l10n.paywall_shiftInNamedApp(app),
-      },
-      inBase: true,
-      clip: PaywallFeatureClip.virtualGearShifting,
-    ),
-    _FeatureLine(l10n.paywall_configure3ActionsPerButton, clip: PaywallFeatureClip.buttonGestures),
-    _FeatureLine(l10n.paywall_useBikecontrolOnAllPlatforms),
-    _FeatureLine(l10n.paywall_shareSensors, clip: PaywallFeatureClip.heartRate),
-    _FeatureLine(l10n.paywall_startAnyCommandShortcutWithAnyButton, clip: PaywallFeatureClip.launchCommand),
-    _FeatureLine(l10n.paywall_controlYourDeviceMusic, clip: PaywallFeatureClip.music),
-    _FeatureLine(l10n.paywall_createScreenshots, clip: PaywallFeatureClip.screenshots),
-  ];
-}
-
-/// What Pro adds on top of Base, in the paywall's words and order — so the
-/// Base plan card can say why Go Pro without a second list to keep in step.
-List<String> paywallProOnlyFeatures(AppLocalizations l10n) =>
-    _paywallFeatures(l10n, pro: true).where((f) => !f.inBase).map((f) => f.label).toList();
-
-class _FeatureLine {
-  final String label;
-
-  /// The website demo clip that shows this feature, if there is one.
-  final PaywallFeatureClip? clip;
-
-  /// Drawn with "Unlimited" at its end (button commands per day).
-  final bool unlimited;
-
-  /// Base has it too. Every line is Pro.
-  final bool inBase;
-
-  const _FeatureLine(this.label, {this.unlimited = false, this.inBase = false, this.clip});
 }
 
 class _PaywallPricing {
@@ -671,17 +642,8 @@ class _PaywallState extends State<Paywall> {
   /// shifting. Zwift and Rouvy shift natively themselves, so for them it
   /// doesn't say it might feel less snappy.
   _Moment _baseMoment(AppLocalizations l10n) {
-    final selected = core.settings.getTrainerApp();
-    final app = paywallShiftAppName(selected);
-    return _Moment(
-      LucideIcons.check,
-      app == null ? l10n.paywallBaseTitle : l10n.paywallBaseTitleNamed(app),
-      switch (app) {
-        null => l10n.paywallBaseShift,
-        final app when paywallAppShiftsNatively(selected) => l10n.paywallBaseShiftNamedNative(app),
-        final app => l10n.paywallBaseShiftNamed(app),
-      },
-    );
+    final line = paywallBaseLine(l10n, core.settings.getTrainerApp());
+    return _Moment(LucideIcons.check, line.title, line.body);
   }
 
   @override

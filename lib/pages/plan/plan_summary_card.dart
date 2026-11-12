@@ -2,7 +2,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
-import 'package:bike_control/pages/paywall.dart' show paywallProOnlyFeatures, paywallShiftAppName;
+import 'package:bike_control/pages/paywall.dart' show paywallBaseLine;
 import 'package:bike_control/pages/shell/app_shell.dart' show PlanTier, currentPlanTier, planName;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
@@ -20,9 +20,10 @@ import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The top of Plan & account: the plan, what it covers here, and the one
-/// next step — Go Pro, manage the subscription, or (Pro on the account but
-/// not on this device) register this device.
+/// The top of Plan & account: the plan, where it stands, and the one next
+/// step — the plans, Go Pro, manage the subscription, or (Pro on the account
+/// but not on this device) register this device. What each plan includes is
+/// the paywall's to say; this card doesn't repeat it.
 class PlanSummaryCard extends StatelessWidget {
   const PlanSummaryCard({
     super.key,
@@ -172,43 +173,12 @@ class PlanSummaryCard extends StatelessWidget {
             : l10n.planOneTimePurchase,
       ),
       const Gap(12),
-      _Check(l10n.planBaseUnlimitedCommands),
-      const Gap(6),
-      _Check(_shiftLine(l10n)),
+      const _BaseLine(),
       const VsTrialMeterSlot(gap: 14),
-      const Gap(16),
-      _proAdds(context),
       const Gap(16),
       _goPro(context),
       _questions(context),
     ];
-  }
-
-  /// Why Go Pro: what Pro adds on top of Base, in the paywall's words. The
-  /// trial card lists Base's lines above it, so both buttons have a reason.
-  Widget _proAdds(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      key: const ValueKey('plan-pro-adds'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 6,
-      children: [
-        Row(
-          spacing: 8,
-          children: [
-            Text(l10n.planProAdds, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
-            const ProBadge(),
-          ],
-        ),
-        for (final line in paywallProOnlyFeatures(l10n)) _Check(line, icon: LucideIcons.plus),
-      ],
-    );
-  }
-
-  /// The paywall's line: names the picked trainer app where it shifts.
-  static String _shiftLine(AppLocalizations l10n) {
-    final app = paywallShiftAppName(core.settings.getTrainerApp());
-    return app == null ? l10n.paywall_shiftInYourApp : l10n.paywall_shiftInNamedApp(app);
   }
 
   List<Widget> _trial(BuildContext context) {
@@ -224,27 +194,12 @@ class PlanSummaryCard extends StatelessWidget {
       ],
       const VsTrialMeterSlot(gap: 14),
       const Gap(16),
-      Column(
-        key: const ValueKey('plan-base-includes'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
-        children: [
-          Text(l10n.planBaseIncludes, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
-          _Check(l10n.planBaseUnlimitedCommands),
-          _Check(_shiftLine(l10n)),
-        ],
+      // The paywall, with Pro and Base side by side.
+      BkPillButton(
+        key: const ValueKey('plan-see-plans'),
+        onPressed: () => _run(context, 'Plan: see plans', () => iap.purchaseSubscription(context)),
+        child: Text(l10n.planSeePlans),
       ),
-      const Gap(16),
-      _proAdds(context),
-      const Gap(16),
-      _goPro(context),
-      if (!iap.isOutsideStoreWindowsBuild) ...[
-        const Gap(8),
-        BkPillButton.secondary(
-          onPressed: () => _run(context, 'Plan: buy full version', () => iap.purchaseFullVersion(context)),
-          child: Text(l10n.buyFullVersion),
-        ),
-      ],
       if (onBoughtBefore != null && HostPlatform.isAndroid) ...[const Gap(14), _boughtBefore(context)],
       _questions(context),
     ];
@@ -419,23 +374,35 @@ class _Tag extends StatelessWidget {
   }
 }
 
-class _Check extends StatelessWidget {
-  const _Check(this.text, {this.icon = LucideIcons.check});
-
-  final String text;
-  final IconData icon;
+/// What Base covers, in the paywall's own line.
+class _BaseLine extends StatelessWidget {
+  const _BaseLine();
 
   @override
   Widget build(BuildContext context) {
+    final line = paywallBaseLine(AppLocalizations.of(context), core.settings.getTrainerApp());
     return Row(
+      key: const ValueKey('plan-base-line'),
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Icon(icon, size: 16, color: bkAccentText(context)),
+          child: Icon(LucideIcons.check, size: 16, color: bkAccentText(context)),
         ),
-        Expanded(child: Text(text, style: context.typography.small)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 2,
+            children: [
+              Text(line.title, style: context.typography.small.copyWith(fontWeight: FontWeight.w600)),
+              Text(
+                line.body,
+                style: context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

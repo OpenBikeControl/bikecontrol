@@ -193,7 +193,6 @@
   "buttonMapping": "按键映射",
   "mappingForApp": "用于 {app}",
   "mappingEditMakesCopy": "{app} 自带的映射是内置的。编辑它会生成你自己的副本。",
-  "buyFullVersion": "购买基础版",
   "bySigningInYouAgreeToOur": "登录即表示你同意我们的 {privacyPolicy}。",
   "@bySigningInYouAgreeToOur": {
     "placeholders": {
@@ -1092,17 +1091,11 @@
   "pairingInstructionsIOS": "在 iPad 上前往「设置」>「辅助功能」>「触控」>「辅助触控」>「指针设备」>「设备」，然后配对你的设备。请确保已启用辅助触控。",
   "pasteExportedJsonData": "将导出的 JSON 数据粘贴到下方：",
   "pathCopiedToClipboard": "路径已复制到剪贴板",
-  "paywall_amountOfActions": "每天按键次数",
   "paywall_billedAtPricemo": "按 {price}/月计费。",
   "paywall_billedAtYearly": "按 {cost}/年计费。",
-  "paywall_configure3ActionsPerButton": "每个按键最多 3 个动作：单击、双击、长按",
-  "paywall_controlYourDeviceMusic": "控制你的设备 / 音乐",
-  "paywall_createScreenshots": "创建截图",
   "paywall_monthly": "月付",
-  "paywall_startAnyCommandShortcutWithAnyButton": "用任意按键启动任意指令 / 快捷键",
   "paywall_supportDevelopmentOfNewFeaturesDevicesAndMore": "支持新功能 / 设备等的开发",
   "paywall_synchronizeAndBackup": "同步和备份",
-  "paywall_useBikecontrolOnAllPlatforms": "一个账户即可在 iPhone 和 iPad、安卓、Mac、Windows 和 Linux 上使用 BikeControl",
   "paywall_yearly": "年付",
   "permissionsRequired": "为了让 BikeControl 搜索附近设备，并在连接变化时通知你，请开启以下权限：",
   "proSubscriptionRequiredForAction": "此动作需要 Pro 订阅",
@@ -2757,7 +2750,6 @@
       }
     }
   },
-  "paywall_shiftInYourApp": "你的按键在骑行软件中换挡和转向，使用该软件自己的虚拟换挡",
   "paywall_bikeControlShifts": "BikeControl 自己为你的骑行台换挡 — 自定义挡位、前拨、任意骑行台",
   "paywall_baseStoreNote": "{store} 版本的一次性购买。它不会转移到其他商店或平台 — Pro 可以。",
   "@paywall_baseStoreNote": {
@@ -3249,8 +3241,6 @@
   },
   "onboardingVsProNote": "BikeControl 的虚拟换挡属于 Pro。没有 Pro 时，你每天有 {minutes} 分钟试用；基础版不包含它。",
   "onboardingStillNotConnected": "仍未连接？测试你的网络",
-  "paywall_vsByBikeControl": "由 BikeControl 提供的虚拟换挡（任意骑行台，自定义挡位）",
-  "paywall_shareSensors": "与骑行软件共享心率和传感器",
   "vsWithoutProNote": "没有 Pro 时，由 {app} 处理虚拟换挡，你会失去 BikeControl Pro 的这些优势：干脆的换挡、直接控制、虚拟前拨和完全自定义。",
   "@vsWithoutProNote": {
     "placeholders": {
@@ -3705,23 +3695,6 @@
   "holdReplaceLongPress": "长按已经会执行 {current}。要替换为 {action} 吗？",
   "holdMovedToLongPress": "{action} 现在会在长按时执行。",
   "holdOnlyWhileHeld": "仅在按住时有效",
-  "paywall_shiftInNamedApp": "在 {app} 中换挡和转向—由 {app} 计算挡位",
-  "@paywall_shiftInNamedApp": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
-  "paywall_shiftInYourAppShort": "在你的骑行软件中换挡和转向",
-  "paywall_shiftInNamedAppShort": "在 {app} 中换挡和转向",
-  "@paywall_shiftInNamedAppShort": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
   "paywall_watchClip": "观看：{feature}",
   "@paywall_watchClip": {
     "placeholders": {
@@ -3737,13 +3710,10 @@
   "planAccountTitle": "方案与账户",
   "planOneTimePurchase": "一次性购买",
   "planFreeOnLinux": "Linux 上免费",
-  "planBaseUnlimitedCommands": "按键次数不限",
-  "planBaseAppShifts": "你的按键在骑行软件中换挡和转向，使用该应用自己的虚拟换挡",
-  "planProAdds": "Pro 额外包含",
-  "planBaseIncludes": "基础版包含",
   "planBoughtBefore": "2025 年已经购买过 BikeControl，但恢复购买不起作用？",
   "planBoughtBeforeAction": "在应用里给我发消息",
   "supportPrefillBoughtBefore": "我 2025 年在 Google Play 购买了 BikeControl，但恢复购买不起作用。我的 Google Play 订单号（GPA.…）： ",
+  "planSeePlans": "查看方案",
   "planQuestions": "对方案有疑问？",
   "proActiveOnThisDevice": "已在此设备上生效",
   "proNotOnThisDevice": "未在此设备上生效",
