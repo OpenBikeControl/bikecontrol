@@ -492,8 +492,7 @@ class RevenueCatService {
   static Map<String, dynamic>? syncSubscriptionsBody({required bool expectActive}) =>
       expectActive ? const {'expectActive': true} : null;
 
-  bool get _backendPro =>
-      entitlementsService.hasActive(premiumProductKeyMonthly) || entitlementsService.hasActive(premiumProductKeyYearly);
+  bool get _backendPro => entitlementsService.hasActivePro;
 
   /// Whether the backend must be told to re-read the store: signed into an
   /// account, RevenueCat says Pro, but the account's entitlements don't.

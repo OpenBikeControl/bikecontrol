@@ -157,9 +157,7 @@ class IAPManager {
   bool get isBetaTester => (isLoggedIn && entitlements.hasActive(betaAccessProductKey) || kDebugMode);
 
   bool get hasActiveSubscription =>
-      (isLoggedIn && (entitlements.hasActive(premiumMonthlyProductKey)) ||
-          entitlements.hasActive(premiumYearlyProductKey)) ||
-      (!isLoggedIn && isLocalPro.value);
+      (isLoggedIn && entitlements.hasActivePro) || (!isLoggedIn && isLocalPro.value);
 
   bool get isProEnabled => hasActiveSubscription && (isLoggedIn || (!isLoggedIn && isLocalPro.value));
 
@@ -211,7 +209,7 @@ class IAPManager {
     if (fromStore != null) return fromStore;
     Entitlement? latest;
     for (final e in entitlements.current) {
-      if (!e.isActive || (e.productKey != premiumMonthlyProductKey && e.productKey != premiumYearlyProductKey)) {
+      if (!e.isActive || !e.isPro) {
         continue;
       }
       if (latest == null || (e.activeUntil?.isAfter(latest.activeUntil ?? DateTime(0)) ?? false)) latest = e;
@@ -243,8 +241,7 @@ class IAPManager {
   @visibleForTesting
   set purchaseChannelForTesting(PurchaseChannel? channel) => _purchaseChannelForTesting = channel;
 
-  DateTime? get premiumActiveUntil =>
-      entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
+  DateTime? get premiumActiveUntil => entitlements.proActiveUntil;
 
   /// Initialize the IAP manager.
   Future<void> initialize() async {
