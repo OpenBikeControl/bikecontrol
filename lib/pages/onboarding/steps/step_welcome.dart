@@ -53,74 +53,83 @@ class OnboardingWelcome extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Spacer(flex: 2),
-                const OnboardingUpdateBanner(),
-                OnboardingReveal(
-                  delay: Duration.zero,
-                  child: Image.asset('icon.png', width: 64, height: 64),
-                ),
-                Gap(22),
-                // Word-by-word reveal — the headline writes itself in.
-                Wrap(
-                  spacing: 9,
-                  runSpacing: 2,
-                  children: [
-                    for (var i = 0; i < words.length; i++)
-                      OnboardingReveal(
-                        delay: Duration(milliseconds: 180 + i * 90),
-                        child: Text(words[i]).x3Large.semiBold,
-                      ),
-                  ],
-                ),
-                Gap(12),
-                OnboardingReveal(
-                  delay: Duration(milliseconds: 180 + words.length * 90),
-                  child: Text(context.i18n.onboardingWelcomeSubtitle).small.muted,
-                ),
-                Gap(26),
-                point(LucideIcons.gamepad2, context.i18n.onboardingWelcomePointController, 0),
-                point(LucideIcons.bike, context.i18n.onboardingWelcomePointTrainer, 1),
-                point(LucideIcons.wifi, context.i18n.onboardingWelcomePointApp, 2),
-                const Spacer(flex: 3),
-                OnboardingReveal(
-                  delay: const Duration(milliseconds: 1300),
+          // Scrolls when the content is taller than the screen (large system
+          // text sizes); otherwise fills it so the spacers still centre it.
+          child: CustomScrollView(
+            slivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      BkTouchTarget(
-                        child: PrimaryButton(
-                          alignment: Alignment.center,
-                          onPressed: onStart,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(context.i18n.onboardingWelcomeStart),
-                              Gap(8),
-                              Icon(LucideIcons.arrowRight, size: 16),
-                            ],
-                          ),
+                      const Spacer(flex: 2),
+                      const OnboardingUpdateBanner(),
+                      OnboardingReveal(
+                        delay: Duration.zero,
+                        child: Image.asset('icon.png', width: 64, height: 64),
+                      ),
+                      Gap(22),
+                      // Word-by-word reveal — the headline writes itself in.
+                      Wrap(
+                        spacing: 9,
+                        runSpacing: 2,
+                        children: [
+                          for (var i = 0; i < words.length; i++)
+                            OnboardingReveal(
+                              delay: Duration(milliseconds: 180 + i * 90),
+                              child: Text(words[i]).x3Large.semiBold,
+                            ),
+                        ],
+                      ),
+                      Gap(12),
+                      OnboardingReveal(
+                        delay: Duration(milliseconds: 180 + words.length * 90),
+                        child: Text(context.i18n.onboardingWelcomeSubtitle).small.muted,
+                      ),
+                      Gap(26),
+                      point(LucideIcons.gamepad2, context.i18n.onboardingWelcomePointController, 0),
+                      point(LucideIcons.bike, context.i18n.onboardingWelcomePointTrainer, 1),
+                      point(LucideIcons.wifi, context.i18n.onboardingWelcomePointApp, 2),
+                      const Spacer(flex: 3),
+                      OnboardingReveal(
+                        delay: const Duration(milliseconds: 1300),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            BkTouchTarget(
+                              child: PrimaryButton(
+                                alignment: Alignment.center,
+                                onPressed: onStart,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(context.i18n.onboardingWelcomeStart),
+                                    Gap(8),
+                                    Icon(LucideIcons.arrowRight, size: 16),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Gap(8),
+                            BkTouchTarget(
+                              child: GhostButton(
+                                alignment: Alignment.center,
+                                onPressed: onLater,
+                                child: Center(child: Text(context.i18n.onboardingWelcomeLater)),
+                              ),
+                            ),
+                            Gap(6),
+                            Center(child: Text(context.i18n.onboardingWelcomeFootnote).xSmall.muted),
+                          ],
                         ),
                       ),
-                      Gap(8),
-                      BkTouchTarget(
-                        child: GhostButton(
-                          alignment: Alignment.center,
-                          onPressed: onLater,
-                          child: Center(child: Text(context.i18n.onboardingWelcomeLater)),
-                        ),
-                      ),
-                      Gap(6),
-                      Center(child: Text(context.i18n.onboardingWelcomeFootnote).xSmall.muted),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
