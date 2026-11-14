@@ -110,13 +110,14 @@ class Connection {
 
   /// The same physical trainer listed a second time over the other transport
   /// — the WiFi (DirCon) entry of a Bluetooth-discovered trainer, or vice
-  /// versa. Twins share one [ProxyDevice.trainerKey], so one tap's consent and
-  /// settings cover both; what must never be shared is a live upstream, or the
-  /// two paths fight over resistance. Null when the trainer is listed once.
+  /// versa. Twins are matched on [ProxyDevice.twinKey], since some brands name
+  /// the two entries differently; what must never be shared is a live
+  /// upstream, or the two paths fight over resistance. Null when the trainer
+  /// is listed once.
   ProxyDevice? twinOf(ProxyDevice device) => proxyDevices.firstOrNullWhere(
     (other) =>
         !identical(other, device) &&
-        other.trainerKey == device.trainerKey &&
+        other.twinKey == device.twinKey &&
         other.isWifiUpstream != device.isWifiUpstream,
   );
 
