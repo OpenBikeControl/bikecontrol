@@ -165,6 +165,35 @@ void main() {
       core.connection.devices.add(secondBle);
       expect(core.connection.twinOf(ble), isNull);
     });
+
+    // Elite trainers advertise the bare model over Bluetooth but brand,
+    // model, serial and a trailing "W" over DirCon — the names seen in the
+    // field. Matched on the raw name, the twin went unnoticed and both paths
+    // came up at once.
+    for (final (bleName, wifiName) in const [
+      ('RIVO', 'ELITE RIVO 00016 W'),
+      ('AVANTI', 'ELITE AVANTI 14193 W'),
+      ('JUSTO 2', 'ELITE JUSTO 2 01090 W'),
+      ('JUSTO 2', 'ELITE-JUSTO 2-01090-W'),
+    ]) {
+      test('Elite "$bleName" over Bluetooth is the twin of "$wifiName" over WiFi', () {
+        final ble = bleTrainer(name: bleName);
+        final wifi = wifiTrainer(name: wifiName);
+        core.connection.devices.addAll([ble, wifi]);
+
+        expect(core.connection.twinOf(ble), same(wifi));
+        expect(core.connection.twinOf(wifi), same(ble));
+      });
+    }
+
+    test('a different Elite model is not the twin', () {
+      final ble = bleTrainer(name: 'AVANTI');
+      final wifi = wifiTrainer(name: 'ELITE RIVO 00016 W');
+      core.connection.devices.addAll([ble, wifi]);
+
+      expect(core.connection.twinOf(ble), isNull);
+      expect(core.connection.twinOf(wifi), isNull);
+    });
   });
 
   group('auto-connect', () {
@@ -180,6 +209,23 @@ void main() {
 
       expect(wifi.startCalls, 0);
       expect(wifi.isConnected, isFalse);
+      expect(ble.isConnected, isTrue);
+    });
+
+    test('an Elite trainer held over Bluetooth keeps its WiFi entry from auto-connecting', () async {
+      // Each name carries its own consent — the rider tapped both entries at
+      // some point — so only the twin rule stands between them.
+      await core.settings.setAutoConnect('RIVO', true);
+      await core.settings.setAutoConnect('ELITE RIVO 00016 W', true);
+      final ble = bleTrainer(name: 'RIVO')..isConnected = true;
+      final wifi = wifiTrainer(name: 'ELITE RIVO 00016 W');
+      core.connection.devices.add(ble);
+
+      expect(wifi.shouldAutoConnect, isFalse, reason: 'the Bluetooth entry holds the trainer');
+      core.connection.addDevices([wifi]);
+      await drainQueue();
+
+      expect(wifi.startCalls, 0);
       expect(ble.isConnected, isTrue);
     });
 

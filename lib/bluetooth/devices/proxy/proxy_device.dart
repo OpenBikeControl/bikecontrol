@@ -1006,6 +1006,20 @@ class ProxyDevice extends BluetoothDevice {
   /// created lazily per TCP client — the details page rehydrates on mount.
   String get trainerKey => scanResult.name ?? scanResult.deviceId;
 
+  /// What [Connection.twinOf] compares: the physical trainer behind this
+  /// entry, whichever transport found it. Usually the [trainerKey] itself;
+  /// Elite advertises only the model over Bluetooth ("RIVO") but brand,
+  /// model, serial and a trailing W over DirCon ("ELITE RIVO 00016 W"), so
+  /// that form is cut back to the model.
+  String get twinKey {
+    final name = scanResult.name;
+    if (name == null) return scanResult.deviceId;
+    final normalized = name.toUpperCase().replaceAll(RegExp(r'[-_\s]+'), ' ').trim();
+    return _eliteDirconName.firstMatch(normalized)?.group(1) ?? normalized;
+  }
+
+  static final _eliteDirconName = RegExp(r'^ELITE (.+) \d+ W$');
+
   /// Whether the underlying device looks like a smart trainer (FTMS-capable
   /// or FE-C-over-BLE). Power-meter-only or HR-only devices have no trainer
   /// commands to drive, so Virtual Shifting is meaningless for them — they
