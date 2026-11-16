@@ -61,6 +61,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - zwoTrainer
 - Incyclist
 - Tour du Pain
+- Rampida
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps
