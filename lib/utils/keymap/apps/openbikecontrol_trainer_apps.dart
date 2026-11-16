@@ -92,5 +92,6 @@ class OpenBikeControlTrainerApp extends SupportedApp {
       logo: 'tour-du-pain.png',
       officialUrl: 'https://tourdupain.app',
     ),
+    OpenBikeControlTrainerApp(name: 'Rampida', logo: 'rampida.png', officialUrl: 'https://rampida.com'),
   ];
 }

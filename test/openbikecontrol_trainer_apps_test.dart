@@ -17,6 +17,7 @@ void main() {
     'zwoTrainer',
     'Incyclist',
     'Tour du Pain',
+    'Rampida',
   ];
 
   SupportedApp byName(String name) => SupportedApp.supportedApps.singleWhere((app) => app.name == name);
