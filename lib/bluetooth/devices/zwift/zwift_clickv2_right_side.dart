@@ -135,7 +135,8 @@ class ZwiftClickV2RightSide extends ZwiftRide {
       // right side shouldn't have to find the left one to change it.
       const UnlockToggle(children: []),
       if (isConnected && !screenshotMode) const ClickV2KeepAwakeWarning(),
-      if (hasLiveLeftSide) ...[
+      // Not with Zwift or Rouvy: they unlock the left side, so both work.
+      if (hasLiveLeftSide && !ClickV2Onboarding.trainerAppUnlocks) ...[
         Text(context.i18n.unlock_useRightSideOnlyDescription).xSmall.normal,
         SizedBox(
           width: double.infinity,

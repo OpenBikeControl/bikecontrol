@@ -44,6 +44,11 @@ class _UnlockToggleState extends State<UnlockToggle> {
 
   @override
   Widget build(BuildContext context) {
+    // Zwift and Rouvy unlock the controller themselves: there is no mode to
+    // pick or name. A rider who chose right-side-only keeps the way back.
+    if (ClickV2Onboarding.trainerAppUnlocks && _readMode() != _UnlockMode.rightSideOnly) {
+      return const SizedBox.shrink();
+    }
     final showsUnlockAction = _mode == _UnlockMode.zwift && _hasConnectedLeftSide;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

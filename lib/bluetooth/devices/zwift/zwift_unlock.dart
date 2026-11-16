@@ -325,6 +325,9 @@ mixin ZwiftUnlock on ZwiftDevice {
         opCode == Opcode.VENDOR_MESSAGE &&
         bytes[1] == 0x03) {
       _vendorMessage = Uint8List.fromList(bytes);
+      // The challenge comes a few seconds into the connection, after the
+      // definition was built; Zwift connects later still and needs it replayed.
+      _clickDef?.vendorMessage = _vendorMessage;
     }
 
     final def = _clickDef;
