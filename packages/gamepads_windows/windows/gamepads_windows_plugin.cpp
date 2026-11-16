@@ -117,7 +117,12 @@ GamepadsWindowsPlugin::GamepadsWindowsPlugin(
 GamepadsWindowsPlugin::~GamepadsWindowsPlugin() {
   // Joins every GameInput callback and reader thread: nothing posts after it.
   gamepads_.stop();
-  channel_->SetMethodCallHandler(nullptr);
+  // Don't unregister the method call handler here. Plugins are destroyed from
+  // ~FlutterWindowsEngine, after it has already cleared the messenger's
+  // engine, so SetMethodCallHandler(nullptr) dereferences a null engine
+  // (FlutterDesktopMessengerSetCallback) and every app close crashed. The
+  // dispatcher goes away with the engine, and nothing dispatches during
+  // teardown.
   if (message_window_ != nullptr) {
     SetWindowLongPtr(message_window_, GWLP_USERDATA, 0);
     MSG message;
