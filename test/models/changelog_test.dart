@@ -123,4 +123,33 @@ void main() {
     expect(real.every((r) => r.sections.isNotEmpty || r.notes.isNotEmpty), isTrue);
     expect(real.expand((r) => r.sections).expand((s) => s.entries).any((e) => e.text.contains('**')), isFalse);
   });
+
+  test('a translation replaces its releases by version; the rest stays English', () {
+    final english = parseChangelog('### 2.0.0\n**Features**:\n- New thing\n\n### 1.0.0\n**Fixes**:\n- Old fix\n');
+    final german = parseChangelog('### 2.0.0\n**Features**:\n- Neues Ding\n');
+    final merged = localizeReleases(english, german);
+    expect(merged.map((r) => r.version), ['2.0.0', '1.0.0']);
+    expect(merged.first.sections.single.kind, ChangeKind.added);
+    expect(merged.first.sections.single.entries.single.text, 'Neues Ding');
+    expect(merged.last.sections.single.entries.single.text, 'Old fix');
+  });
+
+  test('every translated changelog matches CHANGELOG.md: same versions, same dates, kinds still recognised', () {
+    final english = {for (final r in parseChangelog(File('CHANGELOG.md').readAsStringSync())) r.version: r};
+    for (final file in Directory(
+      'changelog',
+    ).listSync().whereType<File>().where((f) => !f.path.endsWith('README.md'))) {
+      final translated = parseChangelog(file.readAsStringSync());
+      expect(translated, isNotEmpty, reason: file.path);
+      for (final r in translated) {
+        expect(english[r.version], isNotNull, reason: '${file.path}: ${r.version} is not in CHANGELOG.md');
+        expect(r.date, english[r.version]!.date, reason: '${file.path}: ${r.version}');
+        expect(
+          r.sections.map((s) => s.kind).toList(),
+          english[r.version]!.sections.map((s) => s.kind).toList(),
+          reason: '${file.path}: ${r.version} sections',
+        );
+      }
+    }
+  });
 }

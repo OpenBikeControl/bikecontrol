@@ -194,6 +194,14 @@ List<ChangelogRelease> releasesSince(List<ChangelogRelease> releases, String las
   ];
 }
 
+/// [english] with each release replaced by its translation from
+/// [translated], matched by version. A release that has not been translated
+/// stays English, so the list never loses an entry.
+List<ChangelogRelease> localizeReleases(List<ChangelogRelease> english, List<ChangelogRelease> translated) {
+  final byVersion = {for (final r in translated) r.version: r};
+  return [for (final r in english) byVersion[r.version] ?? r];
+}
+
 final _versionLike = RegExp(r'^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]*)?$');
 
 /// Null for text that isn't a version — the callers have an answer for that

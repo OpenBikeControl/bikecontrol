@@ -65,4 +65,22 @@ Future<void> main() async {
       }
     }
   }
+
+  testWidgets('whats-new-page-de', (tester) async {
+    final de = localizeReleases(
+      releases,
+      parseChangelog(File('changelog/de.md').readAsStringSync()),
+    );
+    await captureWidget(
+      tester,
+      name: 'whats-new-page-de',
+      locales: const ['de'],
+      width: 390,
+      height: 844,
+      padding: EdgeInsets.zero,
+      pixelRatio: 2,
+      brightness: Brightness.light,
+      builder: (context) => WhatsNewPage(currentVersion: version, sinceVersion: '7.4.0', releases: de),
+    );
+  });
 }

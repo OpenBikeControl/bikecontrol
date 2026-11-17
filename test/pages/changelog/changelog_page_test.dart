@@ -3,6 +3,7 @@
 // update, only what changed since the version last seen.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
+import 'package:bike_control/models/changelog.dart';
 import 'package:bike_control/pages/changelog_page.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/changelog/whats_new.dart';
@@ -43,6 +44,7 @@ Future<void> main() async {
 
   tearDown(() {
     ChangelogSource.debugBundled = null;
+    ChangelogSource.debugTranslated = null;
     ChangelogSource.debugCurrentVersion = null;
   });
 
@@ -112,6 +114,22 @@ Future<void> main() async {
     await tester.pumpAndSettle();
     expect(find.textContaining('overlay on macOS', findRichText: true), findsOneWidget);
     expect(find.textContaining('Remote pairing', findRichText: true), findsNothing);
+  });
+
+  testWidgets('in the rider\'s language where translated, English where not', (tester) async {
+    ChangelogSource.debugTranslated = (language) async =>
+        language == 'de' ? '### 7.0.0 (18-09-2026)\n**Features**:\n- Sensoren: koppel einen Brustgurt.\n' : null;
+    final releases = await ChangelogSource.bundled(language: 'de');
+    tester.view.physicalSize = const Size(390, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      app(WhatsNewPage(currentVersion: '7.0.0', sinceVersion: '4.7.0', releases: releasesSince(releases, '4.7.0'))),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('koppel einen Brustgurt', findRichText: true), findsOneWidget);
+    expect(find.textContaining('heart-rate strap', findRichText: true), findsNothing);
+    expect(find.textContaining('overlay on macOS', findRichText: true), findsOneWidget);
   });
 
   group('What\'s new after an update', () {

@@ -169,6 +169,12 @@ flutter:
   uses-material-design: true
   assets:
     - CHANGELOG.md
+    - changelog/de.md
+    - changelog/es.md
+    - changelog/fr.md
+    - changelog/it.md
+    - changelog/pl.md
+    - changelog/zh.md
     - TROUBLESHOOTING.md
     - INSTRUCTIONS_MYWHOOSH_LINK.md
     - INSTRUCTIONS_REMOTE_CONTROL.md
