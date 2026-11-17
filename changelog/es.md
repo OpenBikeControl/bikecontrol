@@ -13,6 +13,7 @@
 - Windows: BikeControl ya no se cierra inesperadamente al salir ni por errores de red, notificaciones o Bluetooth.
 - Android: ya no se cierra cuando Android reinicia el servicio en segundo plano, y «Cerrar y salir» siempre sale.
 - Shimano Di2: la configuración de canales se detiene limpiamente cuando una maneta no acepta el ajuste.
+- Windows y macOS: «Hacer captura de pantalla» ahora te deja elegir la carpeta (empezando en Imágenes) en lugar de guardar junto a la app, y avisa cuando una captura no se puede guardar.
 
 ### 7.5.0 (09-11-2026)
 **Features**:

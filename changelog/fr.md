@@ -13,6 +13,7 @@
 - Windows : BikeControl ne plante plus à la fermeture, ni sur des erreurs réseau, de notification ou Bluetooth.
 - Android : plus de plantage quand Android redémarre le service en arrière-plan, et « Fermer et quitter » quitte toujours.
 - Shimano Di2 : la configuration des canaux s'arrête proprement quand une manette n'accepte pas le réglage.
+- Windows et macOS : « Faire une capture d'écran » te laisse maintenant choisir le dossier (en partant d'Images) au lieu d'enregistrer à côté de l'app, et signale quand une capture ne peut pas être enregistrée.
 
 ### 7.5.0 (09-11-2026)
 **Features**:

@@ -13,6 +13,7 @@
 - Windows: BikeControl stürzt nicht mehr beim Schließen ab, und auch nicht bei Netzwerk-, Benachrichtigungs- oder Bluetooth-Fehlern.
 - Android: kein Absturz mehr, wenn Android den Hintergrunddienst neu startet, und „Schließen & beenden“ beendet die App immer.
 - Shimano Di2: Die Kanaleinrichtung bricht sauber ab, wenn ein Schalthebel die Einstellung nicht übernimmt.
+- Windows & macOS: Bei „Screenshot aufnehmen“ wählst du jetzt selbst den Ordner (Start in „Bilder“), statt dass neben der App gespeichert wird, und es wird gemeldet, wenn ein Screenshot nicht gespeichert werden kann.
 
 ### 7.5.0 (09-11-2026)
 **Features**:

@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/actions/screenshot_folder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -69,19 +71,18 @@ class DesktopActions extends BaseActions {
           );
         }
 
-        final directory = Directory(screenshotDirectory);
-
-        final timestamp = DateTime.now().toIso8601String().split('.').first.replaceAll(':', '-');
-        final fileName = 'BikeControl $timestamp.jpg';
-        final separator = directory.path.endsWith(Platform.pathSeparator) ? '' : Platform.pathSeparator;
-        final screenshotFile = File('${directory.path}$separator$fileName');
-        screenshotFile.writeAsBytes(image_lib.encodeJpg(capturedArea.toImage()), flush: true);
+        final screenshotFile = await saveScreenshotFile(
+          screenshotDirectory,
+          image_lib.encodeJpg(capturedArea.toImage()),
+          DateTime.now(),
+        );
         await IAPManager.instance.incrementCommandCount();
         return Success(
           'Screenshot saved: ${screenshotFile.path}',
           button: keyPair.buttons.firstOrNull,
         );
-      } catch (e) {
+      } catch (e, s) {
+        await recordError(e, s, context: 'DesktopActions.screenshot');
         return Error(
           'Failed to save screenshot: $e',
           button: keyPair.buttons.firstOrNull,

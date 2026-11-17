@@ -9,6 +9,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/touch_area.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:bike_control/utils/actions/screenshot_folder.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -1362,11 +1363,19 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
 
   Future<void> _showScreenshotDialog() async {
     final l10n = AppLocalizations.of(context);
-    final selectedPath = Directory.current.path;
-
-    final path = selectedPath.trim();
-    if (path.isEmpty) {
-      buildToast(title: l10n.noPathSelected);
+    final path = await chooseScreenshotDirectory(
+      current: _keyPair.screenshotPath,
+      fallback: defaultScreenshotDirectory(
+        environment: Platform.environment,
+        isWindows: Platform.isWindows,
+      ),
+      dialogTitle: l10n.takeScreenshot,
+      pick: ({String? initialDirectory, String? dialogTitle}) => FilePicker.platform.getDirectoryPath(
+        initialDirectory: initialDirectory,
+        dialogTitle: dialogTitle,
+      ),
+    );
+    if (path == null) {
       return;
     }
 
