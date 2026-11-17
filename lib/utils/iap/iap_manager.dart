@@ -212,6 +212,8 @@ class IAPManager {
       if (!e.isActive || !e.isPro) {
         continue;
       }
+      // Bought once outranks any subscription still running beside it.
+      if (SubscriptionTerm.isLifetimeProduct(e.productKey)) return SubscriptionTerm.fromEntitlement(e);
       if (latest == null || (e.activeUntil?.isAfter(latest.activeUntil ?? DateTime(0)) ?? false)) latest = e;
     }
     return latest == null ? null : SubscriptionTerm.fromEntitlement(latest);
@@ -494,6 +496,17 @@ class IAPManager {
       );
     }
   }
+
+  /// Buy Pro once instead of subscribing. Paywall-only: the store sheet on
+  /// iOS, Android and macOS, Stripe Checkout on Windows and Linux.
+  Future<void> purchaseProLifetime(BuildContext context) async {
+    if (_revenueCatService != null) return _revenueCatService!.purchaseProLifetime();
+    if (_windowsIapService != null) return _windowsIapService!.purchaseProLifetime(context);
+    if (_linuxIapService != null) return _linuxIapService!.purchaseProLifetime(context);
+  }
+
+  /// Pro bought once: nothing renews and nothing is managed.
+  bool get isProLifetime => subscriptionTerm?.isLifetime ?? false;
 
   Future<void> _showPaywall(BuildContext context, bool subscription) async {
     // openDrawer needs a DrawerOverlay ancestor (Scaffold creates one) and does

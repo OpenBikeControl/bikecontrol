@@ -9,6 +9,7 @@ import 'package:bike_control/pages/paywall_feature_clip.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/revenuecat_service.dart' show RevenueCatService;
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
@@ -36,6 +37,9 @@ enum _PaywallPlan {
   yearly,
   monthly,
   fullVersion,
+
+  /// Pro, bought once: the "Pro forever" link under the Pro card.
+  lifetime,
 }
 
 /// The storefront the one-time Base purchase is bound to, for the note under
@@ -227,6 +231,11 @@ class Paywall extends StatefulWidget {
   @visibleForTesting
   final String? Function()? debugNativeTrainer;
 
+  /// Test seam: the store-formatted one-time Pro price (e.g. "49,99 €"),
+  /// instead of loading offerings. Shows the "Pro forever" link.
+  @visibleForTesting
+  final String? debugLifetimePrice;
+
   /// Debug menu: shows both plans as a rider without a purchase sees them,
   /// whatever this device owns. Ignored outside debug builds.
   final bool debugShowAllPlans;
@@ -238,6 +247,7 @@ class Paywall extends StatefulWidget {
     this.debugOnPurchase,
     this.debugClipPoster,
     this.debugNativeTrainer,
+    this.debugLifetimePrice,
     this.debugShowAllPlans = false,
   });
 
@@ -277,6 +287,24 @@ class _PaywallState extends State<Paywall> {
       fullVersionSubtitle: fallback.fullVersionSubtitle,
       discountBadge: fallback.discountBadge,
     );
+  }
+
+  /// The one-time Pro price from the store's `pro_lifetime` package. Null
+  /// while no offering carries it, which hides the "Pro forever" link.
+  String? _storeLifetimePrice;
+
+  /// Stripe has no offerings to read: its one-time price is fixed.
+  static const _stripeLifetimePrice = '49,99 €';
+
+  String? get _lifetimePrice {
+    if (widget.debugLifetimePrice case final price?) return price;
+    if (_iapManager.isUsingRevenueCat) return _storeLifetimePrice;
+    return switch (_iapManager.purchaseChannel) {
+      PurchaseChannel.windowsDirect ||
+      PurchaseChannel.microsoftStore ||
+      PurchaseChannel.linuxDirect => _stripeLifetimePrice,
+      _ => null,
+    };
   }
 
   bool _isPurchasing = false;
@@ -402,6 +430,7 @@ class _PaywallState extends State<Paywall> {
       _PaywallPlan.yearly => 'yearly',
       _PaywallPlan.monthly => 'monthly',
       _PaywallPlan.fullVersion => 'base',
+      _PaywallPlan.lifetime => 'lifetime',
     });
 
     try {
@@ -425,6 +454,9 @@ class _PaywallState extends State<Paywall> {
             context,
             fromPaywall: true,
           );
+          break;
+        case _PaywallPlan.lifetime:
+          await _iapManager.purchaseProLifetime(context);
           break;
       }
       // Normally already done from the listener; covers a store that answers
@@ -489,9 +521,11 @@ class _PaywallState extends State<Paywall> {
     try {
       final offerings = await Purchases.getOfferings();
       final pricing = _buildPricingFromOfferings(offerings);
-      if (pricing != null && mounted) {
+      final lifetimePrice = RevenueCatService.proLifetimePackage(offerings)?.storeProduct.priceString;
+      if ((pricing != null || lifetimePrice != null) && mounted) {
         setState(() {
-          _storePricing = pricing;
+          _storePricing = pricing ?? _storePricing;
+          _storeLifetimePrice = lifetimePrice;
         });
       }
     } catch (e, s) {
@@ -919,7 +953,54 @@ class _PaywallState extends State<Paywall> {
           _momentList(context, _proMoments(l10n), accent: true),
           const SizedBox(height: 16),
           _purchaseButton(context, plan: plan, label: _purchaseLabel(l10n, plan), primary: true),
+          // Not offered to riders who already have Pro.
+          if (_lifetimePrice case final lifetimePrice? when !_iapManager.isProEnabled) ...[
+            const SizedBox(height: 4),
+            _lifetimeLink(context, lifetimePrice),
+          ],
         ],
+      ),
+    );
+  }
+
+  /// "Don't like subscriptions? Get Pro forever – 49,99 €": a quiet link
+  /// under the Pro button that buys Pro once.
+  Widget _lifetimeLink(BuildContext context, String price) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final busy = _isPurchasing && _purchasingPlan == _PaywallPlan.lifetime;
+    final action = l10n.paywallProForeverAction(price);
+    return BkTouchTarget(
+      child: Semantics(
+        container: true,
+        button: true,
+        enabled: !_isPurchasing,
+        label: '${l10n.paywallNoSubscriptionQuestion} $action',
+        excludeSemantics: true,
+        child: Button.ghost(
+          key: const ValueKey('paywall-pro-lifetime'),
+          alignment: Alignment.center,
+          onPressed: _isPurchasing ? null : () => _onPurchasePressed(_PaywallPlan.lifetime),
+          child: busy
+              ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(size: 16))
+              : Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        // Question, then the action on its own line, so neither breaks mid-phrase.
+                        text: '${l10n.paywallNoSubscriptionQuestion}\n',
+                        style: TextStyle(color: cs.mutedForeground),
+                      ),
+                      TextSpan(
+                        text: action,
+                        style: TextStyle(color: bkAccentText(context), fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                  style: context.typography.small,
+                ),
+        ),
       ),
     );
   }
@@ -1030,6 +1111,7 @@ class _PaywallState extends State<Paywall> {
     _PaywallPlan.yearly => l10n.paywall_startProYearly,
     _PaywallPlan.monthly => l10n.paywall_startProMonthly,
     _PaywallPlan.fullVersion => l10n.paywall_buyBase,
+    _PaywallPlan.lifetime => l10n.paywallProForeverAction(_lifetimePrice ?? ''),
   };
 
   /// A full-width pill: primary for Pro, a neutral fill for Base. Disabled

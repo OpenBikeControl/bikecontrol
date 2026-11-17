@@ -103,7 +103,11 @@ class PlanSummaryCard extends StatelessWidget {
     final billingIssue = term?.renewal == SubscriptionRenewal.billingIssue;
     final line = term == null || billingIssue ? null : subscriptionTermLine(l10n, term);
     return [
-      _header(context, name: 'Pro', tag: periodLabel(l10n, term?.period)),
+      _header(
+        context,
+        name: 'Pro',
+        tag: term?.isLifetime == true ? l10n.planProForever : periodLabel(l10n, term?.period),
+      ),
       const Gap(8),
       Wrap(
         spacing: 12,

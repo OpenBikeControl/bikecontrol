@@ -3073,5 +3073,9 @@
   "shimanoEtubeCheckTitle": "Appuie sur un bouton pour vérifier",
   "shimanoEtubeCheckBody": "Appuie sur un bouton que tu as mis sur un canal D-Fly. Il apparaît sur la carte Di2, prêt pour une action.",
   "shimanoEtubeCheckHint": "Rien n'apparaît ? Vérifie que tu as enregistré le réglage dans E-TUBE et ferme l'app E-TUBE pour que BikeControl puisse se connecter à ton Di2.",
-  "shimanoEtubeShowSteps": "Voir les étapes E-TUBE"
+  "shimanoEtubeShowSteps": "Voir les étapes E-TUBE",
+  "paywallNoSubscriptionQuestion": "Pas fan des abonnements ?",
+  "paywallProForeverAction": "Pro pour toujours – {price}",
+  "planProForever": "Pour toujours",
+  "planProForeverLine": "Achat unique – sans abonnement"
 }

@@ -121,7 +121,7 @@ class StripeCheckoutFlow {
     return pending;
   }
 
-  /// Check out [priceId] ('monthly' | 'yearly' | 'full'), asking the rider to
+  /// Check out [priceId] ('monthly' | 'yearly' | 'full' | 'pro_lifetime'), asking the rider to
   /// log in first when they are not.
   Future<void> purchase(BuildContext context, String priceId) async {
     if (!isLoggedIn) {

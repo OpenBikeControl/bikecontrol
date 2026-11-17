@@ -103,4 +103,29 @@ void main() {
       expect(term.period, SubscriptionPeriod.monthly);
     });
   });
+
+  group('Pro bought once', () {
+    test('from the store: no expiration on pro_lifetime is lifetime, on any store id form', () {
+      for (final id in ['pro_lifetime', 'pro_lifetime:pro-lifetime']) {
+        final term = SubscriptionTerm.fromRevenueCat(
+          _info(productIdentifier: id, expirationDate: null, willRenew: false),
+        );
+        expect(term.renewal, SubscriptionRenewal.lifetime, reason: id);
+        expect(term.isLifetime, isTrue);
+        expect(term.period, isNull);
+      }
+    });
+
+    test('a subscription without a date is not mistaken for lifetime', () {
+      final term = SubscriptionTerm.fromRevenueCat(_info(expirationDate: null));
+      expect(term.renewal, SubscriptionRenewal.unknown);
+    });
+
+    test('from the account: the pro_lifetime row is lifetime', () {
+      final term = SubscriptionTerm.fromEntitlement(
+        Entitlement(productKey: 'pro_lifetime', status: 'active', activeUntil: null, source: 'stripe'),
+      );
+      expect(term.renewal, SubscriptionRenewal.lifetime);
+    });
+  });
 }

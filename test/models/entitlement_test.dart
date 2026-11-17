@@ -75,6 +75,12 @@ void main() {
       }
     });
 
+    test('Pro bought once is Pro and never runs out', () {
+      expect(row('pro_lifetime').isPro, isTrue);
+      expect(row('pro_lifetime').isActiveAt(_now), isTrue);
+      expect(row('pro_lifetime', status: 'expired').isActiveAt(_now), isFalse, reason: 'refunded');
+    });
+
     test('Base, beta and promotional Base grants are not Pro', () {
       for (final key in ['full_version', 'full_access_unlock', 'beta_access', 'rc_promo_Full Version_lifetime']) {
         expect(row(key).isPro, isFalse, reason: key);

@@ -16,6 +16,9 @@ enum SubscriptionRenewal {
   /// A store trial, running until [SubscriptionTerm.until].
   trial,
 
+  /// Bought once: Pro never ends, and there is nothing to renew or manage.
+  lifetime,
+
   /// The source does not say (the account's server entitlements carry only a
   /// date). Shown like [ends]: "active until".
   unknown,
@@ -40,7 +43,9 @@ class SubscriptionTerm {
   /// macOS), which knows whether the subscription renews.
   factory SubscriptionTerm.fromRevenueCat(EntitlementInfo info) {
     final until = DateTime.tryParse(info.expirationDate ?? '');
-    final renewal = info.billingIssueDetectedAt != null
+    final renewal = until == null && isLifetimeProduct(info.productIdentifier)
+        ? SubscriptionRenewal.lifetime
+        : info.billingIssueDetectedAt != null
         ? SubscriptionRenewal.billingIssue
         : until == null
         ? SubscriptionRenewal.unknown
@@ -66,12 +71,18 @@ class SubscriptionTerm {
   /// (not whether the subscription renews), so this never claims a renewal.
   factory SubscriptionTerm.fromEntitlement(Entitlement entitlement) {
     return SubscriptionTerm(
-      renewal: SubscriptionRenewal.unknown,
+      renewal: isLifetimeProduct(entitlement.productKey) ? SubscriptionRenewal.lifetime : SubscriptionRenewal.unknown,
       until: entitlement.activeUntil,
       period: _periodOf(entitlement.productKey),
       store: entitlement.source == 'stripe' ? SubscriptionStore.billingPortal : SubscriptionStore.other,
     );
   }
+
+  /// The one-time Pro purchase. Play reports a one-time product as
+  /// `<productId>` and some stores append a purchase option, so match the id.
+  static bool isLifetimeProduct(String product) => product.split(':').first == Entitlement.proLifetimeProductKey;
+
+  bool get isLifetime => renewal == SubscriptionRenewal.lifetime;
 
   static SubscriptionPeriod? _periodOf(String product) {
     final id = product.toLowerCase();

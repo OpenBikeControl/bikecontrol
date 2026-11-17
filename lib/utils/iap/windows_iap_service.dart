@@ -215,6 +215,9 @@ class WindowsIAPService {
   Future<void> purchaseSubscription(BuildContext context, {bool yearly = false}) =>
       _checkout.purchase(context, yearly ? 'yearly' : 'monthly');
 
+  /// Start Stripe Checkout to buy Pro once (one-time payment).
+  Future<void> purchaseProLifetime(BuildContext context) => _checkout.purchase(context, 'pro_lifetime');
+
   /// Start Stripe Checkout to purchase the full version (one-time payment)
   /// Shows a dialog if user is not logged in
   Future<void> purchaseFullVersionViaStripe(BuildContext context) => _checkout.purchase(context, 'full');

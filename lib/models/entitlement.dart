@@ -16,12 +16,16 @@ class Entitlement {
   /// RevenueCat stores a promotional grant under `rc_promo_<entitlement>_<duration>`.
   static const String _promoPrefix = 'rc_promo_';
 
+  /// The one-time Pro purchase, same id on every store and Stripe.
+  static const String proLifetimeProductKey = 'pro_lifetime';
+
   /// Whether a row with [productKey] unlocks Pro: a monthly or yearly
-  /// subscription, or a promotional Pro grant from RevenueCat
-  /// (`rc_promo_pro_weekly`, `rc_promo_pro_lifetime`, ...).
+  /// subscription, the one-time [proLifetimeProductKey], or a promotional Pro
+  /// grant from RevenueCat (`rc_promo_pro_weekly`, `rc_promo_pro_lifetime`, ...).
   static bool isProProductKey(String productKey) =>
       productKey == 'premium_monthly' ||
       productKey == 'premium_yearly' ||
+      productKey == proLifetimeProductKey ||
       productKey.startsWith('${_promoPrefix}pro_');
 
   bool get isPro => isProProductKey(productKey);

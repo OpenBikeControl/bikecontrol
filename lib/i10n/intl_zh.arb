@@ -4255,5 +4255,9 @@
   "shimanoEtubeCheckTitle": "按一个按键检查",
   "shimanoEtubeCheckBody": "按一个你设为 D-Fly 通道的按键。它会出现在 Di2 卡片上，可分配动作。",
   "shimanoEtubeCheckHint": "没有出现？请确认已在 E-TUBE 中保存设置，并关闭 E-TUBE 应用，以便 BikeControl 连接你的 Di2。",
-  "shimanoEtubeShowSteps": "查看 E-TUBE 步骤"
+  "shimanoEtubeShowSteps": "查看 E-TUBE 步骤",
+  "paywallNoSubscriptionQuestion": "不喜欢订阅？",
+  "paywallProForeverAction": "永久 Pro – {price}",
+  "planProForever": "永久",
+  "planProForeverLine": "一次购买，无需订阅"
 }
