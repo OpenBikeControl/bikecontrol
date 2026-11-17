@@ -6,6 +6,7 @@
 - Ein übersichtlicherer Tasten-Editor: Aktionen sind danach gruppiert, was sie tun (Gänge, Trainer, Workout, Fahren, …), und auf dem Handy öffnet er sich als Bottom Sheet.
 - Shimano Di2: eine dritte Einrichtungsoption – stell die D-Fly-Kanäle selbst in E-TUBE ein, mit einer Schritt-für-Schritt-Anleitung.
 - Zwift Click V2: Du kannst den rechten Controller optional ohne Entsperren nutzen.
+- Mehr Raum zum Ausprobieren: 120 Tastendrücke am Tag in der Testphase (vorher 80), danach 40 am Tag (vorher 15), und ohne Pro 30 Minuten am Tag virtuelles Schalten von BikeControl (vorher 20).
 
 **Fixes**:
 - Elite-Trainer tauchen nicht mehr doppelt auf (WLAN und Bluetooth).

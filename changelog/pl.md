@@ -6,6 +6,7 @@
 - Czytelniejszy edytor przycisków: akcje są pogrupowane według tego, co robią (Biegi, Trenażer, Trening, Jazda, …), a na telefonie otwiera się jako panel od dołu.
 - Shimano Di2: trzecia opcja konfiguracji – ustaw kanały D-Fly samodzielnie w E-TUBE, z instrukcją krok po kroku.
 - Zwift Click V2: opcjonalnie możesz używać prawego kontrolera bez odblokowywania.
+- Więcej czasu na test: 120 naciśnięć dziennie w okresie próbnym (wcześniej 80), potem 40 dziennie (wcześniej 15), a bez Pro 30 minut dziennie wirtualnej zmiany biegów BikeControl (wcześniej 20).
 
 **Fixes**:
 - Trenażery Elite nie pojawiają się już podwójnie (WiFi i Bluetooth).

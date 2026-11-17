@@ -2,12 +2,11 @@
 Nowości:
 • Incyclist, Tour du Pain i Rampida przez OpenBikeControl
 • Manetki CYCPLUS T7 działają jako kontrolery
-• Aplikacje OpenBikeControl widzą twój wirtualny bieg na żywo
 • Czytelniejszy edytor przycisków, pogrupowany według akcji
 • Di2: ustaw kanały D-Fly w E-TUBE, z instrukcją
 • Zwift Click V2: prawy kontroler bez odblokowywania
+• Więcej testu: 120 naciśnięć/dzień w próbie, potem 40, 30 min wirtualnych biegów
 
 Poprawki:
 • Bez awarii, gdy Android restartuje usługę w tle
 • „Zamknij i wyjdź” zawsze zamyka
-• Trenażery Elite nie pojawiają się już podwójnie

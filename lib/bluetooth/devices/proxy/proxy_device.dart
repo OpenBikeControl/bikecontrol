@@ -437,7 +437,7 @@ class ProxyDevice extends BluetoothDevice {
   }
 
   /// True when the current retrofit mode needs a Bridge transport (wifi /
-  /// bluetooth) but the non-Pro user has already burned today's 20-minute
+  /// bluetooth) but the non-Pro user has already burned today's
   /// budget. Proxy mode is unaffected.
   bool get _isBridgeTrialOver => isBridgeTrialOver;
 

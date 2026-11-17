@@ -67,7 +67,18 @@ class IAPManager {
   static const String premiumYearlyProductKey = 'premium_yearly';
   static const String fullVersionProductKey = 'full_version';
   static const String betaAccessProductKey = 'beta_access';
-  static int dailyCommandLimit = 15;
+  /// Button presses a day during the trial period.
+  static const int trialDailyCommandLimit = 120;
+
+  /// Button presses a day once the trial period is over, without Base or Pro.
+  static const int freeDailyCommandLimit = 40;
+
+  /// How long BikeControl's own virtual shifting (Pro) runs a day without Pro.
+  static const Duration vsDailyTrialLimit = Duration(minutes: 30);
+
+  /// Today's button-press limit: [trialDailyCommandLimit] while the trial
+  /// runs, [freeDailyCommandLimit] after it.
+  static int dailyCommandLimit = freeDailyCommandLimit;
 
   RevenueCatService? _revenueCatService;
   WindowsIAPService? _windowsIapService;
