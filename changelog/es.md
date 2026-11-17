@@ -1,6 +1,6 @@
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain y Rampida tienen ahora soporte oficial a través de OpenBikeControl.
+- Rampida tiene ahora soporte oficial a través de OpenBikeControl.
 - Las manetas CYCPLUS T7 funcionan como mandos: los ocho botones, con la dirección en las flechas traseras por defecto.
 - Las apps de OpenBikeControl ven ahora tu marcha virtual en directo.
 - Un editor de botones más claro: las acciones se agrupan según lo que hacen (Marchas, Rodillo, Entrenamiento, Rodar, …), y en el móvil se abre como hoja inferior.

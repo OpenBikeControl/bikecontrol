@@ -1,6 +1,6 @@
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist、Tour du Pain 和 Rampida 现已通过 OpenBikeControl 获得官方支持。
+- Rampida 现已通过 OpenBikeControl 获得官方支持。
 - CYCPLUS T7 变速拨杆可作为控制器使用：全部八个按键，默认用后方箭头键转向。
 - OpenBikeControl 应用现在可以实时看到你的虚拟挡位。
 - 更清晰的按键编辑器：操作按用途分组（挡位、骑行台、训练、骑行……），在手机上以底部面板打开。
