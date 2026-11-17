@@ -13,6 +13,7 @@
 - Windows: BikeControl nie zawiesza się już przy zamykaniu ani przy błędach sieci, powiadomień czy Bluetooth.
 - Android: koniec z awarią, gdy Android restartuje usługę w tle, a „Zamknij i wyjdź” zawsze zamyka aplikację.
 - Shimano Di2: konfiguracja kanałów kończy się czysto, gdy manetka nie przyjmie ustawienia.
+- Windows i macOS: „Zrób zrzut ekranu” pozwala teraz wybrać folder (zaczynając od Obrazów) zamiast zapisywać obok aplikacji, i informuje, gdy zrzutu nie da się zapisać.
 
 ### 7.5.0 (09-11-2026)
 **Features**:

@@ -13,6 +13,7 @@
 - Windows: BikeControl no longer crashes when it closes, or on network, notification and Bluetooth errors.
 - Android: no more crash when Android restarts the background service, and Close & quit always quits.
 - Shimano Di2: the channel setup stops cleanly when a shifter doesn't take the setting.
+- Windows & macOS: Take screenshot now lets you choose the folder (starting in Pictures) instead of saving next to the app, and reports when a screenshot can't be saved.
 
 ### 7.5.0 (09-11-2026)
 **Features**:
