@@ -152,4 +152,14 @@ void main() {
       }
     }
   });
+
+  test('Apple builds leave out entries about other platforms, and a group left empty', () {
+    final releases = parseChangelog(
+      '### 2.0.0\n**Features**:\n- Now on Linux.\n- Power Lock.\n\n'
+      '**Fixes**:\n- Windows: no crash.\n- Android: no crash either.\n',
+    );
+    final apple = withoutOtherPlatforms(releases);
+    expect(apple.single.sections.single.entries.single.text, 'Power Lock.');
+    expect(releases.single.sections, hasLength(2), reason: 'the input is untouched');
+  });
 }

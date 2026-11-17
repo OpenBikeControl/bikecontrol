@@ -7,6 +7,7 @@ import 'package:bike_control/widgets/changelog/changelog_view.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart' as intl;
 import 'package:http/http.dart' as http;
@@ -40,7 +41,19 @@ abstract final class ChangelogSource {
   /// The app's current language ("de" for de_DE).
   static String currentLanguage() => intl.Intl.getCurrentLocale().split(RegExp('[_-]')).first.toLowerCase();
 
-  static Future<List<ChangelogRelease>> bundled({String? language}) async {
+  /// Apple builds leave out entries about other platforms (Apple rejects
+  /// them). Overridable in tests.
+  @visibleForTesting
+  static bool Function() debugIsApple = () =>
+      defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS;
+
+  static List<ChangelogRelease> _forPlatform(List<ChangelogRelease> releases) =>
+      debugIsApple() ? withoutOtherPlatforms(releases) : releases;
+
+  static Future<List<ChangelogRelease>> bundled({String? language}) async =>
+      _forPlatform(await _bundled(language: language));
+
+  static Future<List<ChangelogRelease>> _bundled({String? language}) async {
     final english = parseChangelog(await (debugBundled?.call() ?? rootBundle.loadString(asset)));
     final lang = language ?? currentLanguage();
     if (!translatedLanguages.contains(lang)) return english;
@@ -58,6 +71,11 @@ abstract final class ChangelogSource {
   /// Null when there is no online copy to be had (offline, tests, store
   /// renders).
   static Future<List<ChangelogRelease>?> online({String? language}) async {
+    final releases = await _online(language: language);
+    return releases == null ? null : _forPlatform(releases);
+  }
+
+  static Future<List<ChangelogRelease>?> _online({String? language}) async {
     if (debugBundled != null || screenshotMode) return null;
     try {
       final response = await http.get(Uri.parse(onlineUrl));

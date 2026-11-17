@@ -202,6 +202,25 @@ List<ChangelogRelease> localizeReleases(List<ChangelogRelease> english, List<Cha
   return [for (final r in english) byVersion[r.version] ?? r];
 }
 
+final _otherThanApple = RegExp(r'\b(windows|android|linux|google play)\b', caseSensitive: false);
+
+/// [releases] without the entries that name Windows, Android, Linux or
+/// Google Play — for the Apple builds, where Apple rejects mentions of other
+/// platforms. A group left empty goes too. Same rule as the App Store notes
+/// (scripts/get_latest_changelog.sh --apple).
+List<ChangelogRelease> withoutOtherPlatforms(List<ChangelogRelease> releases) {
+  return [
+    for (final r in releases)
+      ChangelogRelease(version: r.version, date: r.date)
+        ..notes.addAll(r.notes.where((n) => !_otherThanApple.hasMatch(n)))
+        ..sections.addAll([
+          for (final s in r.sections)
+            if (s.entries.where((e) => !_otherThanApple.hasMatch(e.text)).toList() case final kept when kept.isNotEmpty)
+              ChangelogSection(kind: s.kind, title: s.title)..entries.addAll(kept),
+        ]),
+  ];
+}
+
 final _versionLike = RegExp(r'^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]*)?$');
 
 /// Null for text that isn't a version — the callers have an answer for that

@@ -1,6 +1,10 @@
 #!/bin/bash
 # Prints the newest changelog entry as plain store "What's New" text.
-# Usage: ./scripts/get_latest_changelog.sh [language]
+# Usage: ./scripts/get_latest_changelog.sh [language] [--apple]
+#
+# --apple: for the App Store, which rejects notes that mention other platforms.
+# Entries naming Windows, Android, Linux or Google Play are left out (and a
+# heading whose entries are all gone with them).
 #
 # With a language (de, es, fr, it, pl, ...), the entry comes from
 # changelog/<language>.md, with its "Features:"/"Fixes:" headings translated.
@@ -15,10 +19,21 @@ if [ ! -f "$PROJECT_ROOT/CHANGELOG.md" ]; then
     exit 1
 fi
 
-exec python3 - "$PROJECT_ROOT" "${1:-en}" <<'PY'
+LANG_ARG=en
+APPLE=0
+for arg in "$@"; do
+    case "$arg" in
+        --apple) APPLE=1 ;;
+        *) LANG_ARG="$arg" ;;
+    esac
+done
+
+exec python3 - "$PROJECT_ROOT" "$LANG_ARG" "$APPLE" <<'PY'
 import os, re, sys
 
 root, lang = sys.argv[1], sys.argv[2].split("-")[0].split("_")[0].lower()
+apple = sys.argv[3] == "1"
+OTHER_PLATFORMS = re.compile(r"\b(windows|android|linux|google play)\b", re.IGNORECASE)
 
 HEADINGS = {
     "de": {"features": "Neu", "improvements": "Verbessert", "fixes": "Behoben"},
@@ -54,6 +69,31 @@ if lang != "en":
     else:
         print(f"warning: no {lang} translation of {en_version} in changelog/{lang}.md, using English",
               file=sys.stderr)
+
+def drop_other_platforms(lines):
+    """Leave out list entries (with their run-on lines) that name another
+    platform, then headings left without entries."""
+    kept, skipping = [], False
+    for line in lines:
+        if line.startswith("- "):
+            skipping = bool(OTHER_PLATFORMS.search(line))
+        elif not line.strip() or line.startswith("**") or line.rstrip().endswith(":"):
+            skipping = False
+        if skipping:
+            continue
+        kept.append(line)
+    result = []
+    for i, line in enumerate(kept):
+        is_heading = line.startswith("**") or (line.rstrip().endswith(":") and not line.startswith("- "))
+        if is_heading:
+            nxt = next((l for l in kept[i + 1:] if l.strip()), "")
+            if not nxt.startswith("- "):
+                continue
+        result.append(line)
+    return result
+
+if apple:
+    body = drop_other_platforms(body)
 
 out = []
 for line in body:

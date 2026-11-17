@@ -1,3 +1,18 @@
+### 7.6.0 (17-11-2026)
+**Features**:
+- Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.
+- I comandi CYCPLUS T7 funzionano come controller: tutti e otto i pulsanti, con lo sterzo sulle frecce posteriori di default.
+- Le app OpenBikeControl ora vedono il tuo rapporto virtuale in tempo reale.
+- Un editor dei pulsanti più chiaro: le azioni sono raggruppate in base a ciò che fanno (Rapporti, Rullo, Allenamento, Pedalata, …), e sul telefono si apre come pannello dal basso.
+- Shimano Di2: una terza opzione di configurazione – imposta tu i canali D-Fly in E-TUBE, con una guida passo passo.
+- Zwift Click V2: puoi usare, se vuoi, il controller destro senza sbloccarlo.
+
+**Fixes**:
+- I rulli Elite non compaiono più due volte (WiFi e Bluetooth).
+- Windows: BikeControl non va più in crash alla chiusura né per errori di rete, notifiche o Bluetooth.
+- Android: nessun crash quando Android riavvia il servizio in background, e «Chiudi ed esci» esce sempre.
+- Shimano Di2: la configurazione dei canali si interrompe correttamente quando un comando non accetta l'impostazione.
+
 ### 7.5.0 (09-11-2026)
 **Features**:
 - BikeControl è ora disponibile su Linux (.deb e AppImage).

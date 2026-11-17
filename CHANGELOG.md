@@ -1,3 +1,18 @@
+### 7.6.0 (17-11-2026)
+**Features**:
+- Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.
+- CYCPLUS T7 shifters work as controllers: all eight buttons, steering on the rear arrows by default.
+- OpenBikeControl apps now see your virtual gear, live.
+- A clearer button editor: actions are grouped by what they do (Gears, Trainer, Workout, Riding, …), and on phones it opens as a bottom sheet.
+- Shimano Di2: a third setup option – set the D-Fly channels yourself in E-TUBE, with a step-by-step guide.
+- Zwift Click V2: you can optionally use the right controller without unlocking it.
+
+**Fixes**:
+- Elite trainers no longer show up twice (WiFi and Bluetooth).
+- Windows: BikeControl no longer crashes when it closes, or on network, notification and Bluetooth errors.
+- Android: no more crash when Android restarts the background service, and Close & quit always quits.
+- Shimano Di2: the channel setup stops cleanly when a shifter doesn't take the setting.
+
 ### 7.5.0 (09-11-2026)
 **Features**:
 - BikeControl is now available on Linux (.deb and AppImage).

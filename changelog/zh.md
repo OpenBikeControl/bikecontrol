@@ -1,3 +1,18 @@
+### 7.6.0 (17-11-2026)
+**Features**:
+- Incyclist、Tour du Pain 和 Rampida 现已通过 OpenBikeControl 获得官方支持。
+- CYCPLUS T7 变速拨杆可作为控制器使用：全部八个按键，默认用后方箭头键转向。
+- OpenBikeControl 应用现在可以实时看到你的虚拟挡位。
+- 更清晰的按键编辑器：操作按用途分组（挡位、骑行台、训练、骑行……），在手机上以底部面板打开。
+- Shimano Di2：第三种设置方式——按照分步指南，自己在 E-TUBE 中设置 D-Fly 通道。
+- Zwift Click V2：你可以选择不解锁就使用右侧控制器。
+
+**Fixes**:
+- Elite 骑行台不再重复显示（WiFi 和蓝牙）。
+- Windows：BikeControl 关闭时不再崩溃，也不会因网络、通知或蓝牙错误而崩溃。
+- Android：Android 重启后台服务时不再崩溃，“关闭并退出”总能退出应用。
+- Shimano Di2：当拨杆不接受设置时，通道设置会正常结束。
+
 ### 7.5.0 (09-11-2026)
 **Features**:
 - BikeControl 现已支持 Linux（.deb 和 AppImage）。

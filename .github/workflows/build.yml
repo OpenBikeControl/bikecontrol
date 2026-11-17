@@ -142,7 +142,8 @@ jobs:
           # doesn't pick them up.
           mkdir -p store_notes/app_store
           for lang in en de fr es it pl; do
-            ./scripts/get_latest_changelog.sh "$lang" | ./scripts/truncate_release_notes.sh 4000 > "store_notes/app_store/$lang.txt"
+            # --apple: Apple rejects notes that mention other platforms.
+            ./scripts/get_latest_changelog.sh "$lang" --apple | ./scripts/truncate_release_notes.sh 4000 > "store_notes/app_store/$lang.txt"
           done
           # Marketing version (without the +build) for the App Store release-notes push.
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
