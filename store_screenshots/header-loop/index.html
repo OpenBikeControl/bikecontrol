@@ -15,9 +15,16 @@
     <script src="assets/js/drivetrain.js"></script>
     <style>
       /* App Store product page header loop. The brand band of the app
-         (lib/widgets/ui/bk_brand_band.dart), the still's layout
-         (store_screenshots/scripts/graphics.mjs) and Apple's header art safe
-         area: x 1097–2743, y 493–1154. */
+         (lib/widgets/ui/bk_brand_band.dart) laid out for the iPhone crop of
+         the header, measured on a live product page (iOS, 440 pt wide):
+           - visible:      x 647–3193, full height (≈5.78 px per pt)
+           - status bar:   y 0–305; Dynamic Island x 1554–2284, y 64–277
+           - back button:  x 749–1026, y 395–667
+           - mute / share: x 2464–3089, y 395–667
+         Copy and card sit below the floating buttons (y ≥ 750). The black
+         pill at the top lines up with the Dynamic Island and opens on every
+         shift like a Live Activity; on iPad the crop drops it. Its compact
+         content stays outside x 1521–2319, the island on a 402 pt iPhone. */
       @font-face {
         font-family: "Barlow Condensed";
         src: url("assets/fonts/BarlowCondensed-ExtraBold.ttf");
@@ -33,6 +40,7 @@
         --lifted: #4da9e8;
         --on-lifted: #04121c;
         --success: #22c55e;
+        --island: #000;
       }
       * {
         margin: 0;
@@ -75,31 +83,127 @@
         width: 2200px;
         height: 1610px;
       }
+
+      /* ---- Dynamic Island ---------------------------------------------- */
+      #island {
+        position: absolute;
+        left: 1400px;
+        top: 46px;
+        width: 1040px;
+        height: 270px;
+        border-radius: 135px;
+        background: var(--island);
+        overflow: hidden;
+        font-family: Inter, sans-serif;
+        color: #fff;
+      }
+      #isl-badge {
+        position: absolute;
+        left: 28px;
+        top: 95px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(120deg, var(--band-start), var(--band-end));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #isl-badge svg {
+        width: 48px;
+        height: 48px;
+      }
+      #isl-gear {
+        position: absolute;
+        right: 36px;
+        top: 92px;
+        width: 120px;
+        text-align: right;
+        font-family: "Barlow Condensed", sans-serif;
+        font-weight: 800;
+        font-size: 92px;
+        line-height: 1;
+        font-feature-settings: "tnum";
+        color: var(--lifted);
+      }
+      #isl-row {
+        position: absolute;
+        left: 0;
+        top: 290px;
+        width: 1040px;
+        height: 170px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 38px;
+        opacity: 0;
+      }
+      #isl-dir {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--lifted);
+      }
+      #isl-dir svg {
+        position: absolute;
+        left: 30px;
+        top: 30px;
+        width: 60px;
+        height: 60px;
+      }
+      #isl-big {
+        display: flex;
+        align-items: baseline;
+        gap: 26px;
+      }
+      #isl-num {
+        font-family: "Barlow Condensed", sans-serif;
+        font-weight: 800;
+        font-size: 200px;
+        line-height: 0.85;
+        font-feature-settings: "tnum";
+      }
+      #isl-of {
+        font-size: 52px;
+        font-weight: 600;
+        color: var(--secondary-ink);
+      }
+
+      /* ---- Copy ---------------------------------------------------------- */
       #headline-box {
         position: absolute;
-        left: 1097px;
-        top: 493px;
-        width: 760px;
-        height: 661px;
+        left: 790px;
+        top: 750px;
+        width: 980px;
+        height: 640px;
         display: flex;
         align-items: center;
       }
       #headline {
         font-family: "Barlow Condensed", sans-serif;
         font-weight: 800;
-        font-size: 112px;
-        line-height: 0.96;
+        font-size: 160px;
+        line-height: 0.95;
         text-transform: uppercase;
         color: #fff;
         white-space: pre-line;
         text-wrap: balance;
       }
-      #card {
+
+      /* ---- Drivetrain card (authored at 816×386, shown at 1.45×) --------- */
+      #card-host {
         position: absolute;
-        left: 1927px;
-        top: 630px;
+        left: 1880px;
+        top: 782px;
         width: 816px;
         height: 386px;
+        transform: scale(1.45);
+        transform-origin: 0 0;
+      }
+      #card {
+        position: absolute;
+        inset: 0;
         border-radius: 28px;
         background: var(--card);
         box-shadow: 0 34px 86px rgba(4, 18, 28, 0.45);
@@ -113,7 +217,7 @@
         display: flex;
         align-items: center;
         gap: 9px;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -136,17 +240,17 @@
       #gear-col {
         position: absolute;
         right: 22px;
-        top: 70px;
+        top: 50px;
         width: 150px;
-        height: 290px;
+        height: 314px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
       }
       .shift-btn {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -159,8 +263,8 @@
         background: var(--lifted);
       }
       .shift-btn svg {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
       }
       #gear-readout {
         text-align: center;
@@ -168,13 +272,13 @@
       #gear-number {
         font-family: "Barlow Condensed", sans-serif;
         font-weight: 800;
-        font-size: 104px;
+        font-size: 108px;
         line-height: 0.9;
         font-feature-settings: "tnum";
       }
       #gear-of {
         margin-top: 6px;
-        font-size: 17px;
+        font-size: 18px;
         color: var(--secondary-ink);
       }
     </style>
@@ -185,24 +289,43 @@
       <svg id="contours-a" class="contours" viewBox="0 0 300 220" data-layout-ignore></svg>
       <svg id="contours-b" class="contours" viewBox="0 0 300 220" data-layout-ignore></svg>
 
+      <div id="island" data-layout-ignore>
+        <div id="isl-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 5.5v7M8.5 9h7M8.5 17.5h7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
+        </div>
+        <div id="isl-gear">12</div>
+        <div id="isl-row">
+          <div id="isl-dir">
+            <svg id="isl-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#04121c" stroke-width="2.6" stroke-linecap="round" /></svg>
+            <svg id="isl-minus" viewBox="0 0 24 24" style="opacity: 0"><path d="M5 12h14" stroke="#04121c" stroke-width="2.6" stroke-linecap="round" /></svg>
+          </div>
+          <div id="isl-big">
+            <span id="isl-num">13</span>
+            <span id="isl-of" data-var-text="ofMax">of 24</span>
+          </div>
+        </div>
+      </div>
+
       <div id="headline-box">
         <p id="headline" data-var-text="headline">Virtual shifting for any smart trainer.
 Shift from your handlebars.</p>
       </div>
 
-      <div id="card">
-        <div id="card-label" data-layout-ignore><i></i><span id="card-trainer" data-var-text="trainer">Smart Trainer</span></div>
-        <svg id="dt" data-layout-allow-overflow data-layout-ignore></svg>
-        <div id="gear-col">
-          <div id="btn-down" class="shift-btn">
-            <svg viewBox="0 0 24 24"><path d="M5 12h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round" /></svg>
-          </div>
-          <div id="gear-readout">
-            <div id="gear-number">12</div>
-            <div id="gear-of" data-var-text="ofMax" data-layout-ignore>of 24</div>
-          </div>
-          <div id="btn-up" class="shift-btn">
-            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#04121c" stroke-width="2.4" stroke-linecap="round" /></svg>
+      <div id="card-host" data-layout-allow-overflow>
+        <div id="card">
+          <div id="card-label" data-layout-ignore><i></i><span id="card-trainer" data-var-text="trainer">Smart Trainer</span></div>
+          <svg id="dt" data-layout-allow-overflow data-layout-ignore></svg>
+          <div id="gear-col">
+            <div id="btn-down" class="shift-btn">
+              <svg viewBox="0 0 24 24"><path d="M5 12h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round" /></svg>
+            </div>
+            <div id="gear-readout">
+              <div id="gear-number">12</div>
+              <div id="gear-of" data-var-text="ofMax" data-layout-ignore>of 24</div>
+            </div>
+            <div id="btn-up" class="shift-btn">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#04121c" stroke-width="2.4" stroke-linecap="round" /></svg>
+            </div>
           </div>
         </div>
       </div>
@@ -216,14 +339,21 @@ Shift from your handlebars.</p>
         // Copy from the render's variables (one row per store language).
         const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
         if (vars.headline) document.getElementById("headline").textContent = vars.headline;
-        if (vars.ofMax) document.getElementById("gear-of").textContent = vars.ofMax;
+        if (vars.ofMax) {
+          document.getElementById("gear-of").textContent = vars.ofMax;
+          document.getElementById("isl-of").textContent = vars.ofMax;
+        }
         if (vars.trainer) document.getElementById("card-trainer").textContent = vars.trainer;
 
-        // Longer languages shrink the headline until it fits four lines.
+        // The headline takes the largest size that fits its box in every language.
+        const box = document.getElementById("headline-box");
         const headline = document.getElementById("headline");
-        let size = 112;
-        while (headline.getBoundingClientRect().height > size * 0.96 * 4 + 2 && size > 60) {
-          size *= 0.97;
+        const maxH = box.clientHeight;
+        const maxW = box.clientWidth;
+        let size = 176;
+        headline.style.fontSize = size + "px";
+        while ((headline.getBoundingClientRect().height > maxH || headline.scrollWidth > maxW) && size > 70) {
+          size *= 0.98;
           headline.style.fontSize = size + "px";
         }
 
@@ -270,13 +400,29 @@ Shift from your handlebars.</p>
 
         const tl = gsap.timeline({ paused: true });
         const number = document.getElementById("gear-number");
-        // The readout is a function of timeline time, so any seek shows the right gear.
+        const islGear = document.getElementById("isl-gear");
+        const islNum = document.getElementById("isl-num");
+        const islPlus = document.getElementById("isl-plus");
+        const islMinus = document.getElementById("isl-minus");
+        // Readouts are a function of timeline time, so any seek shows the right gear.
         const paint = () => {
           dt.render();
           const t = tl.time();
           let gear = 12;
-          for (const sh of shifts) if (t >= sh.at) gear = sh.to;
+          let up = true;
+          let prev = 12;
+          for (const sh of shifts) {
+            if (t >= sh.at - 0.2) {
+              up = sh.to > prev;
+              islNum.textContent = String(sh.to);
+            }
+            if (t >= sh.at) gear = sh.to;
+            prev = sh.to;
+          }
           number.textContent = String(gear);
+          islGear.textContent = String(gear);
+          islPlus.style.opacity = up ? 1 : 0;
+          islMinus.style.opacity = up ? 0 : 1;
         };
 
         // Pedalling at a steady cadence. 2832.7 px of chain over the loop turns
@@ -298,6 +444,16 @@ Shift from your handlebars.</p>
           },
         }, 0);
 
+        // The island grows down from the hardware island and back (width stays,
+        // so the leading badge and trailing gear never leave the status bar gap).
+        const island = document.getElementById("island");
+        const isl = { h: 270, r: 135 };
+        const paintIsland = () => {
+          island.style.height = isl.h.toFixed(1) + "px";
+          island.style.borderRadius = isl.r.toFixed(1) + "px";
+        };
+        paintIsland();
+
         let from = 12;
         for (const sh of shifts) {
           const press = sh.at - 0.16;
@@ -307,8 +463,17 @@ Shift from your handlebars.</p>
           // The chain moves to the next cog, then the cog ripples where it lands.
           tl.fromTo(s, { rRear: G.rearRadius(from, 24) }, { rRear: G.rearRadius(sh.to, 24), duration: 0.42, ease: "power3.out", immediateRender: false, onUpdate: paint }, sh.at);
           tl.fromTo(s, { pulse: 0 }, { pulse: 1, duration: 0.5, ease: "none", immediateRender: false, onUpdate: paint }, sh.at + 0.18);
-          // The readout steps with the shift.
-          tl.fromTo(number, { y: sh.to > from ? 14 : -14, opacity: 0.35 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, sh.at);
+          // The readouts step with the shift.
+          const dy = sh.to > from ? 14 : -14;
+          tl.fromTo(number, { y: dy, opacity: 0.35 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, sh.at);
+
+          // Island: open, show "+ 13 of 24", close.
+          tl.fromTo(isl, { h: 270, r: 135 }, { h: 490, r: 160, duration: 0.5, ease: "back.out(1.5)", immediateRender: false, onUpdate: paintIsland }, sh.at - 0.2);
+          tl.fromTo("#isl-row", { opacity: 0, y: -24, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.32, ease: "power3.out", immediateRender: false }, sh.at - 0.02);
+          tl.fromTo("#isl-gear", { opacity: 1 }, { opacity: 0, duration: 0.15, ease: "none", immediateRender: false }, sh.at - 0.2);
+          tl.fromTo("#isl-row", { opacity: 1, y: 0, scale: 1 }, { opacity: 0, y: -16, scale: 0.96, duration: 0.18, ease: "power2.in", immediateRender: false }, sh.at + 0.86);
+          tl.fromTo(isl, { h: 490, r: 160 }, { h: 270, r: 135, duration: 0.4, ease: "power3.inOut", immediateRender: false, onUpdate: paintIsland }, sh.at + 0.92);
+          tl.fromTo("#isl-gear", { opacity: 0, y: dy }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out", immediateRender: false }, sh.at + 1.2);
           from = sh.to;
         }
 
