@@ -8,7 +8,7 @@ for (const locale of locales) {
   const variables = { headline: COPY.header[locale], ofMax: GEAR_OF_24[locale], trainer: "Smart Trainer" };
   execFileSync(
     "npx",
-    ["hyperframes", "render", "--fps", "30", "--quality", "delivery", "--strict-variables", "--variables", JSON.stringify(variables), "-o", `renders/${locale}.mp4`],
+    ["--yes", "hyperframes@0.8.188", "render", "--fps", "30", "--quality", "delivery", "--strict-variables", "--variables", JSON.stringify(variables), "-o", `renders/${locale}.mp4`],
     { cwd: import.meta.dirname, stdio: "inherit" },
   );
 }
