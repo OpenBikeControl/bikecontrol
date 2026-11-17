@@ -3077,5 +3077,11 @@
   "paywallNoSubscriptionQuestion": "Keine Lust auf Abos?",
   "paywallProForeverAction": "Pro für immer – {price}",
   "planProForever": "Für immer",
-  "planProForeverLine": "Einmal gekauft – kein Abo"
+  "planProForeverLine": "Einmal gekauft – kein Abo",
+  "whatsNewBannerTitle": "BikeControl {version} ist da",
+  "whatsNewBannerBody": "Sieh dir an, was neu ist",
+  "whatsNewBlogLink": "Mehr im BikeControl-Blog",
+  "whatsNewHelpTitle": "BikeControl braucht deine Hilfe",
+  "whatsNewHelpBody": "BikeControl wird von einer einzigen Person entwickelt, nicht von einer großen Firma. Eine kurze Bewertung im Store hilft anderen, die App zu finden, und hält sie am Leben.",
+  "whatsNewRateAction": "BikeControl bewerten"
 }

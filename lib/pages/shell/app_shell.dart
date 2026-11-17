@@ -27,6 +27,7 @@ import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable, defaultTargetPlatform;
+import 'package:bike_control/widgets/changelog/whats_new.dart';
 import 'package:bike_control/pages/activity/rides_view.dart' show RidesMenuButton;
 import 'package:flutter/rendering.dart'
     show
@@ -551,7 +552,6 @@ class ShellTopBar extends StatelessWidget {
       ],
     );
     final scrolled = this.scrolled;
-    if (scrolled == null && !compact) return bar;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -560,6 +560,8 @@ class ShellTopBar extends StatelessWidget {
         // A waiting update on the phone: a strip under the bar, which has no
         // room for a labelled button beside the title.
         if (compact) const AppUpdateButton(banner: true),
+        // An update's notes, unread: until opened or dismissed.
+        WhatsNewBanner(horizontalMargin: phone ? 16 : 24),
         if (scrolled != null)
           ValueListenableBuilder<bool>(
             valueListenable: scrolled,

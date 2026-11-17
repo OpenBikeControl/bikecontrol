@@ -13,4 +13,4 @@ if [ ! -f "$CHANGELOG_FILE" ]; then
 fi
 
 # Extract the first changelog entry (between first ### and second ###)
-awk '/^### / {if (count++) exit} count' "$CHANGELOG_FILE" | tail -n +2 | sed 's/^- /• /'
+awk '/^### / {if (count++) exit} count' "$CHANGELOG_FILE" | tail -n +2 | sed -e 's/^- /• /' -e 's/\*\*//g'

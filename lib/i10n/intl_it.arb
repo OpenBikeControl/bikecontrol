@@ -3077,5 +3077,11 @@
   "paywallNoSubscriptionQuestion": "Non ti piacciono gli abbonamenti?",
   "paywallProForeverAction": "Pro per sempre – {price}",
   "planProForever": "Per sempre",
-  "planProForeverLine": "Acquisto unico – nessun abbonamento"
+  "planProForeverLine": "Acquisto unico – nessun abbonamento",
+  "whatsNewBannerTitle": "È arrivato BikeControl {version}",
+  "whatsNewBannerBody": "Scopri le novità",
+  "whatsNewBlogLink": "Altro sul blog di BikeControl",
+  "whatsNewHelpTitle": "BikeControl ha bisogno del tuo aiuto",
+  "whatsNewHelpBody": "BikeControl è sviluppato da una sola persona, non da una grande azienda. Una breve valutazione nello store aiuta altri ciclisti a trovarlo e lo mantiene vivo.",
+  "whatsNewRateAction": "Valuta BikeControl"
 }

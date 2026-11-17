@@ -3523,5 +3523,18 @@
   "paywallNoSubscriptionQuestion": "Don't like subscriptions?",
   "paywallProForeverAction": "Get Pro forever – {price}",
   "planProForever": "Forever",
-  "planProForeverLine": "Bought once – no subscription"
+  "planProForeverLine": "Bought once – no subscription",
+  "whatsNewBannerTitle": "BikeControl {version} is here",
+  "@whatsNewBannerTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNewBannerBody": "See what's new",
+  "whatsNewBlogLink": "More on the BikeControl blog",
+  "whatsNewHelpTitle": "BikeControl needs your help",
+  "whatsNewHelpBody": "BikeControl is made by one person, not a big company. A short rating in the store helps other riders find it and keeps it going.",
+  "whatsNewRateAction": "Rate BikeControl"
 }

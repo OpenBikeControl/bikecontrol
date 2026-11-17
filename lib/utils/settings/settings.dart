@@ -550,6 +550,24 @@ class Settings {
     await prefs.setString('last_seen_version', version);
   }
 
+  /// The update whose "What's new" banner is still up: the version updated
+  /// to and the one updated from. Null once the rider opened or dismissed it.
+  (String version, String since)? getWhatsNewPending() {
+    final version = prefs.getString('whats_new_version');
+    final since = prefs.getString('whats_new_since');
+    return version == null || since == null ? null : (version, since);
+  }
+
+  Future<void> setWhatsNewPending((String version, String since)? pending) async {
+    if (pending == null) {
+      await prefs.remove('whats_new_version');
+      await prefs.remove('whats_new_since');
+    } else {
+      await prefs.setString('whats_new_version', pending.$1);
+      await prefs.setString('whats_new_since', pending.$2);
+    }
+  }
+
   bool getVibrationEnabled() {
     return prefs.getBool('vibration_enabled') ?? true;
   }

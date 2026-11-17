@@ -4259,5 +4259,11 @@
   "paywallNoSubscriptionQuestion": "不喜欢订阅？",
   "paywallProForeverAction": "永久 Pro – {price}",
   "planProForever": "永久",
-  "planProForeverLine": "一次购买，无需订阅"
+  "planProForeverLine": "一次购买，无需订阅",
+  "whatsNewBannerTitle": "BikeControl {version} 来了",
+  "whatsNewBannerBody": "看看有什么新内容",
+  "whatsNewBlogLink": "在 BikeControl 博客了解更多",
+  "whatsNewHelpTitle": "BikeControl 需要你的帮助",
+  "whatsNewHelpBody": "BikeControl 由一个人开发，而不是一家大公司。在应用商店留下简短评分，能帮助其他骑手找到它，也让它持续发展。",
+  "whatsNewRateAction": "为 BikeControl 评分"
 }
