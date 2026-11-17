@@ -3,6 +3,7 @@ import 'elite_profiles.dart';
 import 'misc_profiles.dart';
 import 'muov_profiles.dart';
 import 'stages_profiles.dart';
+import 'tacx_profiles.dart';
 import 'wahoo_profiles.dart';
 import 'zwift_profiles.dart';
 
@@ -20,6 +21,7 @@ List<EmulationProfile> get allEmulationProfiles => [
       wahooKickrBikeShiftProfile,
       wahooKickrBikeProfile,
       stagesSmartBikeProfile,
+      tacxNeoBikeProfile,
       muovBikeProfile,
       cycplusBc2Profile,
       thinkRiderVs200Profile,
