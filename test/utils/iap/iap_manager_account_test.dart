@@ -75,6 +75,28 @@ Future<void> main() async {
     });
   });
 
+  group('signed-in account with a promotional Pro grant', () {
+    test('has Pro (rc_promo_pro_weekly counts like a subscription)', () async {
+      SharedPreferences.setMockInitialValues({
+        'entitlements_cache_items': jsonEncode([
+          {
+            'product_key': 'rc_promo_pro_weekly',
+            'status': 'active',
+            'active_until': DateTime.now().add(const Duration(days: 4)).toUtc().toIso8601String(),
+            'source': 'revenuecat',
+          },
+        ]),
+      });
+      await iap.entitlements.initialize();
+      await auth.recoverSession(jsonEncode(_sessionJson(anonymous: false, email: 'rider@example.com')));
+
+      expect(iap.isLoggedIn, isTrue);
+      expect(iap.hasActiveSubscription, isTrue);
+      expect(iap.isProEnabled, isTrue);
+      expect(iap.premiumActiveUntil, isNotNull);
+    });
+  });
+
   group('revenueCatLogin', () {
     test('never logs RevenueCat in as an anonymous user', () {
       for (final event in AuthChangeEvent.values) {

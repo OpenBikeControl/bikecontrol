@@ -8,11 +8,18 @@ dependency_overrides:
   universal_ble:
     git:
       url: https://github.com/jonasbark/universal_ble.git
-      ref: f0fcdd3bce85723868c0cc064cd427af50906de9
+      ref: 14a8c73f88f50cb4196e5e55e682aa76b718b694
   path_provider_foundation: ">=2.3.0 <2.6.0"
   gamepads_windows:
     path: packages/gamepads_windows
   gamepads_darwin:
     path: packages/gamepads_darwin
+  # Vendored: DNS callbacks are handled on the platform thread and never throw
+  # (a stopped discovery crashed in its browse callback in Store crash reports).
+  nsd_windows:
+    path: packages/nsd_windows
+  # Vendored: native errors from the toast API no longer end the app.
+  flutter_local_notifications_windows:
+    path: packages/flutter_local_notifications_windows
   prop:
     path: prop

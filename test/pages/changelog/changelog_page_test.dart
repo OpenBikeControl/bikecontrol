@@ -3,8 +3,10 @@
 // update, only what changed since the version last seen.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
+import 'package:bike_control/models/changelog.dart';
 import 'package:bike_control/pages/changelog_page.dart';
-import 'package:bike_control/widgets/changelog_dialog.dart';
+import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/changelog/whats_new.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -42,6 +44,7 @@ Future<void> main() async {
 
   tearDown(() {
     ChangelogSource.debugBundled = null;
+    ChangelogSource.debugTranslated = null;
     ChangelogSource.debugCurrentVersion = null;
   });
 
@@ -113,56 +116,115 @@ Future<void> main() async {
     expect(find.textContaining('Remote pairing', findRichText: true), findsNothing);
   });
 
-  testWidgets('after an update, only the releases since the last one seen, and Got it closes', (tester) async {
-    screenshotMode = false;
-    addTearDown(() => screenshotMode = true);
-    tester.view.physicalSize = const Size(390, 844);
+  testWidgets('in the rider\'s language where translated, English where not', (tester) async {
+    ChangelogSource.debugTranslated = (language) async =>
+        language == 'de' ? '### 7.0.0 (18-09-2026)\n**Features**:\n- Sensoren: koppel einen Brustgurt.\n' : null;
+    final releases = await ChangelogSource.bundled(language: 'de');
+    tester.view.physicalSize = const Size(390, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      app(
-        Builder(
-          builder: (context) => Scaffold(
-            child: Button.primary(
-              onPressed: () => ChangelogDialog.showIfNeeded(context, '7.0.0', '4.7.0'),
-              child: const Text('open'),
+      app(WhatsNewPage(currentVersion: '7.0.0', sinceVersion: '4.7.0', releases: releasesSince(releases, '4.7.0'))),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('koppel einen Brustgurt', findRichText: true), findsOneWidget);
+    expect(find.textContaining('heart-rate strap', findRichText: true), findsNothing);
+    expect(find.textContaining('overlay on macOS', findRichText: true), findsOneWidget);
+  });
+
+  group('What\'s new after an update', () {
+    setUp(() async {
+      screenshotMode = false;
+      WhatsNew.pending.value = null;
+      await core.settings.setWhatsNewPending(null);
+    });
+    tearDown(() {
+      screenshotMode = true;
+      WhatsNew.pending.value = null;
+      WhatsNewPage.canRate = () => true;
+    });
+
+    Future<void> pumpBanner(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        app(
+          const Scaffold(
+            child: Column(
+              children: [
+                WhatsNewBanner(),
+                Expanded(child: SizedBox()),
+              ],
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
+      );
+      await tester.pump();
+    }
 
-    expect(find.text(l.whatsNew), findsOneWidget);
-    expect(find.byKey(const ValueKey('whats-new-7.0.0')), findsOneWidget);
-    expect(find.byKey(const ValueKey('whats-new-5.5.0')), findsOneWidget);
-    expect(find.byKey(const ValueKey('whats-new-4.7.0')), findsNothing);
+    testWidgets('a banner, not a dialog; it opens the releases since the last one seen full screen', (tester) async {
+      WhatsNewPage.canRate = () => true;
+      await WhatsNew.checkAtLaunch('7.0.0', '4.7.0');
+      await pumpBanner(tester);
 
-    // shadcn's dialog route has a transparent barrier: without a backdrop and
-    // an outline the card sat flat on the page it covers.
-    expect(find.descendant(of: find.byType(ChangelogDialog), matching: find.byType(ModalBackdrop)), findsOneWidget);
-    final card = tester.widget<Container>(
-      find.descendant(of: find.byType(ChangelogDialog), matching: find.byKey(const ValueKey('whats-new-card'))),
-    );
-    final decoration = card.decoration! as BoxDecoration;
-    expect(decoration.border, isNotNull);
-    expect(decoration.boxShadow, isNotEmpty);
+      expect(find.byType(WhatsNewPage), findsNothing);
+      expect(find.text(l.whatsNewBannerTitle('7.0.0')), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('whats-new-close')));
-    await tester.pumpAndSettle();
-    expect(find.text(l.whatsNew), findsNothing);
-  });
+      await tester.tap(find.byKey(const ValueKey('whats-new-banner-open')));
+      await tester.pumpAndSettle();
 
-  testWidgets('nothing after a fresh install or without a change since', (tester) async {
-    screenshotMode = false;
-    addTearDown(() => screenshotMode = true);
-    late BuildContext ctx;
-    await tester.pumpWidget(app(Builder(builder: (c) => const SizedBox())));
-    ctx = tester.element(find.byType(SizedBox).first);
-    await ChangelogDialog.showIfNeeded(ctx, '7.0.0', null);
-    await ChangelogDialog.showIfNeeded(ctx, '7.0.0', '7.0.0');
-    await tester.pumpAndSettle();
-    expect(find.text(l.whatsNew), findsNothing);
+      expect(find.byType(WhatsNewPage), findsOneWidget);
+      expect(find.byKey(const ValueKey('whats-new-7.0.0')), findsOneWidget);
+      expect(find.byKey(const ValueKey('whats-new-5.5.0')), findsOneWidget);
+      expect(find.byKey(const ValueKey('whats-new-4.7.0')), findsNothing);
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('whats-new-rate')), 200);
+      expect(find.byKey(const ValueKey('whats-new-blog')), findsOneWidget);
+      expect(find.text(l.whatsNewHelpTitle), findsOneWidget);
+
+      // Opened is seen: the banner is gone, also after a restart.
+      expect(WhatsNew.pending.value, isNull);
+      expect(core.settings.getWhatsNewPending(), isNull);
+    });
+
+    testWidgets('it stays across launches until dismissed', (tester) async {
+      await WhatsNew.checkAtLaunch('7.0.0', '5.5.0');
+      WhatsNew.pending.value = null; // a restart
+      await WhatsNew.checkAtLaunch('7.0.0', '7.0.0');
+      await pumpBanner(tester);
+      expect(find.byKey(const ValueKey('whats-new-banner')), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('whats-new-banner-dismiss')));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('whats-new-banner')), findsNothing);
+      await WhatsNew.checkAtLaunch('7.0.0', '7.0.0');
+      expect(WhatsNew.pending.value, isNull);
+    });
+
+    testWidgets('two updates unread: the page still starts at the first one missed', (tester) async {
+      await WhatsNew.checkAtLaunch('5.5.0', '4.7.0');
+      await WhatsNew.checkAtLaunch('7.0.0', '5.5.0');
+      expect(WhatsNew.pending.value, ('7.0.0', '4.7.0'));
+    });
+
+    testWidgets('nothing after a fresh install, without a change since, or in store renders', (tester) async {
+      await WhatsNew.checkAtLaunch('7.0.0', null);
+      await WhatsNew.checkAtLaunch('7.0.0', '7.0.0');
+      expect(WhatsNew.pending.value, isNull);
+      screenshotMode = true;
+      await WhatsNew.checkAtLaunch('7.0.0', '4.7.0');
+      expect(WhatsNew.pending.value, isNull);
+    });
+
+    testWidgets('no rating plea where there is no store', (tester) async {
+      WhatsNewPage.canRate = () => false;
+      tester.view.physicalSize = const Size(390, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(app(const WhatsNewPage(currentVersion: '7.0.0', sinceVersion: '5.5.0')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('whats-new-blog')), findsOneWidget);
+      expect(find.byKey(const ValueKey('whats-new-help')), findsNothing);
+    });
   });
 }

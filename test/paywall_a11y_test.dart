@@ -17,7 +17,8 @@ Future<void> main() async {
   await ensureSnapshotHarness();
 
   Future<ThemeData> pump(WidgetTester tester, Brightness brightness) async {
-    tester.view.physicalSize = const Size(390, 1400) * 3.0;
+    // Tall enough that the whole paywall is on screen in the test font.
+    tester.view.physicalSize = const Size(390, 2400) * 3.0;
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);

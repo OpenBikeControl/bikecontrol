@@ -432,7 +432,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
     final selectedKeyPair = keymap.getOrCreateKeyPair(button, trigger: trigger);
     _isDrawerOpen = true;
     _openEntry = (button: button.name, trigger: trigger);
-    await openDrawer(
+    await openActionPicker(
       context: context,
       builder: (c) {
         _drawerContext = c;
@@ -448,7 +448,6 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
           },
         );
       },
-      position: OverlayPosition.end,
     );
     persistMappingEdit();
     widget.onUpdate();

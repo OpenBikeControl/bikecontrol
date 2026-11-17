@@ -301,6 +301,12 @@ class SectionMenuButton extends StatelessWidget {
       child: const Text('Emulate device'),
     ),
     MenuButton(
+      child: Text(
+        core.pedallingSimulation.isRunning.value ? 'Stop pedalling simulation' : 'Start pedalling simulation',
+      ),
+      onPressed: (c) => core.pedallingSimulation.toggle(),
+    ),
+    MenuButton(
       child: Text(context.i18n.reset),
       onPressed: (c) async {
         await core.settings.reset();
@@ -341,7 +347,7 @@ class SectionMenuButton extends StatelessWidget {
       onPressed: (c) async {
         openDrawer(
           context: context,
-          builder: (c) => Paywall(),
+          builder: (c) => const Paywall(debugShowAllPlans: true),
           position: OverlayPosition.bottom,
         );
       },

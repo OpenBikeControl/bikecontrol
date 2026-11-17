@@ -33,8 +33,6 @@ import 'dart:convert';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/pages/help_center/help_center_support_context.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
-import 'package:bike_control/pages/support_chat/widgets/support_composer.dart' show StagedAttachment;
-import 'package:bike_control/services/overview_screenshot.dart';
 import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
@@ -95,7 +93,6 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
   Future<void> _openChat(BuildContext context) async {
     final launchContext = widget.launchContext;
     final Future<String>? diagnosticPreviewFuture;
-    final StagedAttachment? initialAttachment;
     final TelemetryBuilder telemetryBuilder;
     if (launchContext != null) {
       // A caller upstream (currently only the trainer-feedback buttons)
@@ -108,23 +105,18 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
       // same in-flight/completed snapshot instead of re-gathering.
       telemetryBuilder = launchContext.telemetryBuilder;
       diagnosticPreviewFuture = telemetryBuilder().then((s) => JsonEncoder.withIndent('  ').convert(s.toJson()));
-      initialAttachment = launchContext.initialAttachment;
     } else {
-      final screenshot = await captureOverviewScreenshot(context: context);
-      if (!context.mounted) return;
       // Gather diagnostics in the background so the chat opens immediately; the
       // page awaits this future lazily for the preview. Send-time telemetry is
       // re-gathered fresh (see telemetryBuilder) so a later message reflects
       // the current state, not the compose-time snapshot.
       diagnosticPreviewFuture = debugText();
-      initialAttachment = screenshot;
       telemetryBuilder = () async => TelemetrySnapshot.general(freetext: await debugText());
     }
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SupportChatPage(
           diagnosticPreviewFuture: diagnosticPreviewFuture,
-          initialAttachment: initialAttachment,
           telemetryBuilder: telemetryBuilder,
         ),
       ),

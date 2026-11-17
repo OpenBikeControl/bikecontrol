@@ -2,7 +2,7 @@
 // details page ("No difference"/"Not working") used to open a support chat
 // directly, prefilled with the tapped label — see proxy_device_details.dart.
 // They now route through HelpCenterPage's "Your setup" section instead, but
-// the rich diagnostic payload the chat used to get (a screenshot, a
+// the rich diagnostic payload the chat used to get (a
 // trainer-specific TelemetrySnapshot builder) must still reach
 // SupportChatPage if the rider continues from there into "Tell us what's
 // wrong" — ContactCommunitySection uses this value object for that handoff
@@ -16,7 +16,6 @@
 // call be the one and only trigger for the (slow, mDNS-scanning) gather —
 // see [telemetryBuilder]'s own doc and `memoizeAsync`.
 import 'package:bike_control/pages/support_chat/support_chat_page.dart' show TelemetryBuilder;
-import 'package:bike_control/pages/support_chat/widgets/support_composer.dart' show StagedAttachment;
 
 /// Bundles the trainer-specific support payload a Help Center entry point
 /// (currently only the trainer-feedback buttons) gathered before pushing
@@ -33,12 +32,5 @@ class HelpCenterSupportContext {
   /// snapshot.
   final TelemetryBuilder telemetryBuilder;
 
-  /// Screenshot captured before the Help Center was pushed, pre-staged in
-  /// the composer.
-  final StagedAttachment? initialAttachment;
-
-  const HelpCenterSupportContext({
-    required this.telemetryBuilder,
-    this.initialAttachment,
-  });
+  const HelpCenterSupportContext({required this.telemetryBuilder});
 }

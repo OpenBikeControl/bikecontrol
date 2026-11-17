@@ -39,6 +39,7 @@ void main() {
                 isPasskeyRejected: (e) => e is ArgumentError,
                 isPairingRequired: (e) => e is UnsupportedError,
                 isWiredShifters: (e) => e is FormatException,
+                isRejected: (e) => e is ConcurrentModificationError,
                 onUseDfly: onUseDfly,
                 onUseButtonMode: onUseButtonMode,
               ),
@@ -115,6 +116,25 @@ void main() {
 
     expect(usedDfly, isTrue);
     expect(find.text(AppLocalizations.current.shimanoWiredTitle), findsNothing, reason: 'the sheet closes');
+  });
+
+  testWidgets('a shifter that turned the setting down → set the channels in E-TUBE, or button mode', (tester) async {
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var usedButtonMode = false;
+    await runWith(tester, ConcurrentModificationError(), onUseDfly: () {}, onUseButtonMode: () => usedButtonMode = true);
+    expect(find.text(AppLocalizations.current.shimanoRejectedTitle), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoRejectedBody), findsOneWidget);
+    expect(find.text(AppLocalizations.current.shimanoUseDfly), findsOneWidget);
+    expect(find.text(AppLocalizations.current.retry), findsNothing, reason: 'trying again cannot work');
+
+    await tester.tap(find.text(AppLocalizations.current.shimanoUseButtonMode));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(usedButtonMode, isTrue);
+    expect(find.text(AppLocalizations.current.shimanoRejectedTitle), findsNothing, reason: 'the sheet closes');
   });
 
   testWidgets('any other failure → generic error', (tester) async {
@@ -395,5 +415,89 @@ void main() {
 
     expect(cancelled, isTrue);
     expect(find.text(AppLocalizations.current.shimanoSaveShiftersTitle), findsNothing);
+  });
+
+  group('a save step that does not finish', () {
+    late ValueNotifier<ShimanoShifterAsk?> shifters;
+    late Completer<void> operation;
+    late bool cancelled;
+
+    Future<void> openSaving(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      shifters = ValueNotifier<ShimanoShifterAsk?>(null);
+      operation = Completer<void>();
+      cancelled = false;
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) => PrimaryButton(
+              onPressed: () => openSheet<void>(
+                context: context,
+                position: OverlayPosition.bottom,
+                builder: (_) => ShimanoGuidedSheet(
+                  title: 'Set up',
+                  intro: 'intro',
+                  successMessage: 'ok',
+                  confirmIcon: LucideIcons.radio,
+                  runningTitle: 'running',
+                  successTitle: 'done',
+                  checklistItems: const ['a', 'b'],
+                  initialPasskey: '000000',
+                  operation: (_) => operation.future,
+                  isUnresponsive: (e) => e is TimeoutException,
+                  isPasskeyRejected: (e) => false,
+                  isPairingRequired: (e) => false,
+                  isRejected: (e) => false,
+                  onUseDfly: () {},
+                  onUseButtonMode: () {},
+                  shifters: shifters,
+                  onCancelShifters: () {
+                    cancelled = true;
+                    operation.completeError(const ShimanoSetupCancelled());
+                  },
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.text(AppLocalizations.current.continueAction));
+      await tester.pump();
+      shifters.value = const ShimanoShifterAsk({}, saving: true, next: ShimanoShifter.right, single: true);
+      await tester.pump();
+    }
+
+    testWidgets('after a while it offers the E-TUBE app, which stops the setup and shows how', (tester) async {
+      await openSaving(tester);
+      expect(find.text(AppLocalizations.current.shimanoUseEtubeInstead), findsNothing);
+
+      await tester.pump(const Duration(seconds: 10));
+      expect(find.text(AppLocalizations.current.shimanoUseEtubeInstead), findsOneWidget);
+
+      await tester.tap(find.text(AppLocalizations.current.shimanoUseEtubeInstead));
+      shifters.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(cancelled, isTrue);
+      expect(find.text(AppLocalizations.current.shimanoRejectedTitle), findsOneWidget);
+      expect(find.text(AppLocalizations.current.shimanoUseButtonMode), findsOneWidget);
+    });
+
+    testWidgets('a failure there ends on the E-TUBE app, not on waking the Di2', (tester) async {
+      await openSaving(tester);
+      operation.completeError(TimeoutException('no confirm'));
+      shifters.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.text(AppLocalizations.current.shimanoRejectedTitle), findsOneWidget);
+    });
   });
 }

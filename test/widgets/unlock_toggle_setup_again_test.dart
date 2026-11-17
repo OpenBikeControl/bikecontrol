@@ -2,6 +2,8 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/widgets/unlock_toggle.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -113,5 +115,39 @@ void main() {
 
     expect(find.text(AppLocalizations.current.unlock_zwiftNeedsLeftSide), findsOneWidget);
     expect(find.text('unlock action'), findsNothing);
+  });
+
+  // Zwift and Rouvy unlock the controller themselves, so there is no mode to
+  // show or pick — only a rider who chose right-side-only keeps the way back.
+  group('with a trainer app that unlocks the controller itself', () {
+    Future<void> pump(WidgetTester tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+        disableAnimations: true,
+      );
+      await tester.pumpWidget(
+        ShadcnApp(
+          localizationsDelegates: const [AppLocalizations.delegate],
+          supportedLocales: const [Locale('en')],
+          home: Scaffold(child: const UnlockToggle(children: [])),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    for (final app in [Zwift(), Rouvy()]) {
+      testWidgets('${app.name}: shows no unlock mode', (tester) async {
+        core.settings.setTrainerApp(app);
+        await pump(tester);
+        expect(find.text(AppLocalizations.current.unlock_mode), findsNothing);
+        expect(find.text('Set up again'), findsNothing);
+      });
+    }
+
+    testWidgets('keeps the way back from right-side-only', (tester) async {
+      core.settings.setTrainerApp(Zwift());
+      await core.settings.setClickV2RightSideOnly(true);
+      await pump(tester);
+      expect(find.text('Set up again'), findsOneWidget);
+    });
   });
 }

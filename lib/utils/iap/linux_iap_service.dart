@@ -36,6 +36,9 @@ class LinuxIAPService {
   Future<void> purchaseSubscription(BuildContext context, {bool yearly = false}) =>
       _checkout.purchase(context, yearly ? 'yearly' : 'monthly');
 
+  /// Start Stripe Checkout to buy Pro once (one-time payment).
+  Future<void> purchaseProLifetime(BuildContext context) => _checkout.purchase(context, 'pro_lifetime');
+
   Future<bool> openBillingPortal(BuildContext context) => _checkout.openBillingPortal(context);
 
   Future<bool> hasStripeCustomer() => _checkout.hasStripeCustomer();

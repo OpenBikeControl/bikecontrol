@@ -154,22 +154,23 @@ def sync_screenshots(platform, root)
 end
 
 # Push the per-version "What's New" (release notes) to every App Store listing
-# locale (see listing_locales), using the same text for all of them. The release pipeline (build.yml)
-# ships the English changelog everywhere — localizing the release notes per
-# language is a deliberate non-goal for now, but leaving them unset means the
-# store keeps showing the previous version's note, so we overwrite them all.
+# locale (see listing_locales), each in its own language.
 #
-# Reads the note text from RELEASE_NOTES_PATH (default: the ≤4000-char
-# store_notes/app_store_release_notes.txt the build workflow generates from
-# CHANGELOG.md — not the 500-char Play whatsnew file) and the marketing version from
-# APP_STORE_VERSION. `platform` is deliver's platform string: "ios" (default) or
-# "osx" — the iOS and Mac App Store keep separate version records under the same
-# app, so each needs its own push.
+# Reads RELEASE_NOTES_DIR/<language>.txt (the build workflow writes them from
+# CHANGELOG.md and changelog/<language>.md, already cut to the 4000-char
+# limit): de-DE reads de.txt, es-MX reads es.txt, and a locale without a file
+# gets en.txt — the store would otherwise keep the previous version's note.
+# The marketing version comes from APP_STORE_VERSION. `platform` is deliver's
+# platform string: "ios" (default) or "osx" — the iOS and Mac App Store keep
+# separate version records under the same app, so each needs its own push.
 def push_release_notes(platform)
-  notes_path = ENV["RELEASE_NOTES_PATH"] || File.join(ROOT, "store_notes/app_store_release_notes.txt")
-  UI.user_error!("release notes file not found: #{notes_path}") unless File.exist?(notes_path)
-  notes = File.read(notes_path).strip
-  UI.user_error!("release notes file is empty: #{notes_path}") if notes.empty?
+  notes_dir = ENV["RELEASE_NOTES_DIR"] || File.join(ROOT, "store_notes/app_store")
+  read_notes = lambda do |lang|
+    path = File.join(notes_dir, "#{lang}.txt")
+    File.exist?(path) ? File.read(path).strip : ""
+  end
+  fallback = read_notes.call("en")
+  UI.user_error!("English release notes missing or empty: #{notes_dir}/en.txt") if fallback.empty?
   version = ENV["APP_STORE_VERSION"].to_s.strip
   UI.user_error!("APP_STORE_VERSION is not set") if version.empty?
 
@@ -177,6 +178,8 @@ def push_release_notes(platform)
     # deliver only updates the fields it finds files for, so a metadata tree with
     # just release_notes.txt per locale touches the "What's New" and nothing else.
     listing_locales.each do |locale|
+      notes = read_notes.call(locale.split("-").first.downcase)
+      notes = fallback if notes.empty?
       dir = File.join(tmp, locale)
       FileUtils.mkdir_p(dir)
       File.write(File.join(dir, "release_notes.txt"), notes)
@@ -264,13 +267,13 @@ platform :ios do
     end
   end
 
-  desc "Push the latest release notes to the iOS App Store version (English in "\
-       "every locale — see push_release_notes / build.yml)"
+  desc "Push the latest release notes to the iOS App Store version (each locale "\
+       "in its language — see push_release_notes / build.yml)"
   lane :upload_release_notes do
     push_release_notes("ios")
   end
 
-  desc "Push the latest release notes to the Mac App Store version (English in every locale)"
+  desc "Push the latest release notes to the Mac App Store version (each locale in its language)"
   lane :upload_release_notes_macos do
     push_release_notes("osx")
   end

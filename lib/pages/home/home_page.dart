@@ -415,6 +415,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _maybeShowRideV2Explainer() {
     if (!_isRide) return;
     if (screenshotMode || _rideV2ExplainerPending || core.settings.getRideV2ExplainerShown()) return;
+    if (trainerAppUnlocksZwiftControllers()) return;
     final hasRideV2 = core.connection.controllerDevices.any((d) => d.isConnected && d is ZwiftUnlock && d.isRideV2);
     if (!hasRideV2) return;
     _rideV2ExplainerPending = true;

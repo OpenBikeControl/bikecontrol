@@ -310,7 +310,11 @@ class NotificationRequirement extends PlatformRequirement {
       title: channelGroupId,
       body: AppLocalizations.current.allowsRunningInBackground,
       foregroundServiceTypes: {AndroidServiceForegroundType.foregroundServiceTypeConnectedDevice},
-      startType: AndroidServiceStartType.startRedeliverIntent,
+      // Not sticky: when Android kills the process, a redelivered intent restarts
+      // the service in the background, where startForeground is refused
+      // (ForegroundServiceStartNotAllowedException) and the app crashes. A restarted
+      // service has no engine or BLE connections anyway.
+      startType: AndroidServiceStartType.startNotSticky,
       notificationDetails: AndroidNotificationDetails(
         channelGroupId,
         'Keep Alive',

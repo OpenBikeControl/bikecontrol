@@ -193,7 +193,6 @@
   "buttonMapping": "按键映射",
   "mappingForApp": "用于 {app}",
   "mappingEditMakesCopy": "{app} 自带的映射是内置的。编辑它会生成你自己的副本。",
-  "buyFullVersion": "购买基础版",
   "bySigningInYouAgreeToOur": "登录即表示你同意我们的 {privacyPolicy}。",
   "@bySigningInYouAgreeToOur": {
     "placeholders": {
@@ -218,7 +217,6 @@
   "clickV2Onboarding_intro": "Zwift 把 Click V2 锁定在自家应用中。BikeControl 有两种应对方式——选一个适合你的。",
   "clickV2Onboarding_whyLink": "为什么需要这样做？",
   "clickV2Onboarding_rightOnlyTitle": "仅使用右侧",
-  "clickV2Onboarding_rightOnlyPro1": "无需 Zwift 解锁——永远",
   "clickV2Onboarding_rightOnlyPro2": "无需重启，骑行中途不会掉线",
   "clickV2Onboarding_rightOnlyCon1": "只有右侧控制器会发送按键",
   "clickV2Onboarding_rightOnlyCta": "使用右侧",
@@ -230,12 +228,16 @@
   "clickV2Onboarding_zwiftCta": "用 Zwift 解锁",
   "clickV2Onboarding_alternativesLink": "对此不满也正常？看看那些开箱即用的控制器",
   "clickV2Onboarding_setUpAgain": "重新设置",
-  "clickV2Onboarding_swipeHint": "滑动查看另一个选项",
-  "clickV2Onboarding_decisionTitle": "你想选哪个？",
-  "clickV2Onboarding_decisionSubtitle": "两种都可以。选一个你更能接受的取舍——之后可以在控制器的设置中更改。",
   "clickV2Onboarding_rightOnlyRecap": "不需要 Zwift · 仅右侧控制器",
-  "clickV2Onboarding_zwiftRecap": "两侧控制器 · 每 24 小时解锁一次",
   "clickV2Onboarding_connectFailed": "无法连接你的 Zwift Click V2。点按它再试一次。",
+  "clickV2Onboarding_noUnlockTitle": "跳过 Zwift 解锁",
+  "clickV2Onboarding_noUnlockSummary": "右侧控制器可立即使用——Zwift 从未锁定它。",
+  "clickV2Onboarding_zwiftSummary": "两个控制器，通过 Zwift 应用解锁。",
+  "clickV2Onboarding_leftToggleTitle": "同时使用左侧控制器",
+  "clickV2Onboarding_leftToggleSubtitle": "增加方向键。左侧控制器将大约每分钟重启一次。",
+  "clickV2Onboarding_leftRestartCon": "大约每分钟一次，左侧控制器会断开 1–2 秒，此时的按键不会生效。",
+  "clickV2Onboarding_bothCta": "使用两个控制器",
+  "clickV2Onboarding_pickFirst": "请选择一个选项",
   "close": "关闭",
   "commandsRemainingToday": "今天还剩 {commandsRemainingToday}/{dailyCommandLimit} 次按键",
   "configuration": "配置",
@@ -577,6 +579,17 @@
       }
     }
   },
+  "connectionMethodNotActiveForButton": "无法执行 {button}：“{method}”未启用",
+  "@connectionMethodNotActiveForButton": {
+    "placeholders": {
+      "button": {
+        "type": "Object"
+      },
+      "method": {
+        "type": "Object"
+      }
+    }
+  },
   "noActiveWorkout": "没有正在进行的记录",
   "noProxyTrainerConnected": "未连接智能骑行台",
   "noConnectionMethodIsConnectedOrActive": "没有已连接或处于活动状态的连接方式。",
@@ -651,6 +664,8 @@
   "onboardingStepConnectionSub": "连接应用",
   "onboardingStepDone": "就绪",
   "onboardingStepDoneSub": "测试并骑行",
+  "onboardingBigPlatforms": "主流平台",
+  "onboardingOfficialBadge": "BikeControl 官方集成",
   "onboardingVerified": "已验证",
   "onboardingAppTitle": "你用哪个应用骑行？",
   "onboardingAppSubtitle": "我们会为它预选正确的连接方式和按键映射。",
@@ -1076,17 +1091,11 @@
   "pairingInstructionsIOS": "在 iPad 上前往「设置」>「辅助功能」>「触控」>「辅助触控」>「指针设备」>「设备」，然后配对你的设备。请确保已启用辅助触控。",
   "pasteExportedJsonData": "将导出的 JSON 数据粘贴到下方：",
   "pathCopiedToClipboard": "路径已复制到剪贴板",
-  "paywall_amountOfActions": "每天按键次数",
   "paywall_billedAtPricemo": "按 {price}/月计费。",
   "paywall_billedAtYearly": "按 {cost}/年计费。",
-  "paywall_configure3ActionsPerButton": "每个按键最多 3 个动作：单击、双击、长按",
-  "paywall_controlYourDeviceMusic": "控制你的设备 / 音乐",
-  "paywall_createScreenshots": "创建截图",
   "paywall_monthly": "月付",
-  "paywall_startAnyCommandShortcutWithAnyButton": "用任意按键启动任意指令 / 快捷键",
   "paywall_supportDevelopmentOfNewFeaturesDevicesAndMore": "支持新功能 / 设备等的开发",
   "paywall_synchronizeAndBackup": "同步和备份",
-  "paywall_useBikecontrolOnAllPlatforms": "一个账户即可在 iPhone 和 iPad、安卓、Mac、Windows 和 Linux 上使用 BikeControl",
   "paywall_yearly": "年付",
   "permissionsRequired": "为了让 BikeControl 搜索附近设备，并在连接变化时通知你，请开启以下权限：",
   "proSubscriptionRequiredForAction": "此动作需要 Pro 订阅",
@@ -1603,7 +1612,6 @@
   },
   "feedbackQuestion": "能用吗？",
   "supportChat": "支持聊天",
-  "supportDiagnosticsNotice": "为帮助修复你的问题，此聊天会附上 BikeControl 的截图和诊断信息。发送前你可以查看或移除它们。",
   "supportRetentionNotice": "对话会在最后一条消息后 30 天自动删除。匿名的骑行台数据（型号、固件、测试结果）会保留，用于改进兼容性。",
   "supportDeleteConversation": "删除对话",
   "supportDeleteAccount": "删除账户和全部数据",
@@ -1630,7 +1638,6 @@
     }
   },
   "retry": "重试",
-  "supportChatEmpty": "发送一条消息以开始对话。",
   "supportChatIntro": "你将与 BikeControl 的 Jonas 对话",
   "supportChatIntroFatherNote": "我很快就要当爸爸了，所以可能要过几个小时才能回复 :-)",
   "supportIntakeTitle": "告诉我们问题所在",
@@ -1899,6 +1906,9 @@
   "@shimanoUseDfly": {
   "shimanoWiredTitle": "你的变速手柄是有线的",
   "shimanoWiredBody": "BikeControl 目前还无法为有线变速手柄设置 E-TUBE 通道。如果你已在 E-TUBE PROJECT 应用中把手柄按键设为 D-Fly 通道，BikeControl 可以直接使用它们。按键模式也可以：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
+  "shimanoRejectedTitle": "改为在 E-TUBE 应用中设置",
+  "shimanoRejectedBody": "你的变速手柄没有保存新的按键设置，仍按原来的方式工作。请改为在 E-TUBE PROJECT 应用中把它的按键设为 D-Fly 通道，BikeControl 即可使用它们。按键模式也可以：BikeControl 连接期间，手柄按键会成为 BikeControl 按键。",
+  "shimanoUseEtubeInstead": "改为在 E-TUBE 应用中设置",
   "shimanoUseButtonMode": "改用按键模式",
     "description": "Di2 setup sheet and device panel: skip button mode and keep using the buttons the rider set to D-Fly channels in E-TUBE, which work without pairing."
   },
@@ -2201,6 +2211,21 @@
     }
   },
   "frontShiftChainringCount": "2 个牙盘",
+  "vsStageShiftLabel": "换挡不绕路",
+  "vsStageShiftHint": "BikeControl 直接在骑行台上换挡",
+  "vsStageLaneApp": "在 {app} 中",
+  "@vsStageLaneApp": {"placeholders": {"app": {"type": "String"}}},
+  "vsStageLaneAppGeneric": "在骑行软件中",
+  "vsStageLaneBikeControl": "使用 BikeControl",
+  "vsStageLaneLater": "稍后",
+  "vsStageLaneSooner": "更早",
+  "vsStageLaneRightAway": "立即",
+  "vsStageStepButton": "按键",
+  "vsStageStepAppSlope": "软件设定坡度",
+  "vsStageStepBikeControlSlope": "BikeControl 设定坡度",
+  "vsStageStepTrainer": "骑行台",
+  "vsStageStepTrainerGear": "骑行台执行挡位",
+  "vsStageShiftIllustration": "一次换挡的示意图。软件的延迟因软件和骑行台而异。",
   "vsStageAppsLabel": "适用于每个软件",
   "vsStageAppsHint": "几乎适用于任何智能骑行台",
   "vsStageRatiosLabel": "你的齿比，按你的方式",
@@ -2362,10 +2387,13 @@
     }
   },
   "networkOverallPassBody": "这里没有东西在阻碍 BikeControl。如果你的软件仍找不到它，下面的实时测试才能最终确定。",
-  "networkNextStepControllerTile": "网络没有问题 — 在 {app} 中，点按控制器下方的 BikeControl 磁贴。",
+  "networkNextStepControllerTile": "网络没有问题 — 在 {app} 中，点按控制器下方的「{tile}」磁贴。",
   "@networkNextStepControllerTile": {
     "placeholders": {
       "app": {
+        "type": "String"
+      },
+      "tile": {
         "type": "String"
       }
     }
@@ -2662,14 +2690,19 @@
       }
     }
   },
-  "chainStepAppControllerHint": "{app} 已经通过 BikeControl 读取你的骑行台。你的按键需要第二条连接：在 {app} 的配对界面中，点按控制器下方的 BikeControl 磁贴 — 它和骑行台是分开的磁贴。",
+  "chainStepAppControllerHint": "{app} 已经通过 BikeControl 读取你的骑行台。你的按键需要第二条连接：在 {app} 的配对界面中，点按控制器下方的「{tile}」磁贴 — 它和骑行台是分开的磁贴。",
   "@chainStepAppControllerHint": {
     "placeholders": {
       "app": {
         "type": "String"
+      },
+      "tile": {
+        "type": "String"
       }
     }
   },
+  "chainStepAppConnectedTileHint": "打开 {app} 的配对界面，点按控制器下方的「{tile}」磁贴 — 那就是这台设备。",
+  "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
   "chainStepTrainerBridgedHint2": "在 {app} 的配对界面中选择「{bridge}」作为骑行台 — 不要选择以其自身名称显示的「{trainer}」，那会绕过 BikeControl。",
   "@chainStepTrainerBridgedHint2": {
     "placeholders": {
@@ -2732,7 +2765,6 @@
       }
     }
   },
-  "paywall_shiftInYourApp": "你的按键在骑行软件中换挡和转向，使用该软件自己的虚拟换挡",
   "paywall_bikeControlShifts": "BikeControl 自己为你的骑行台换挡 — 自定义挡位、前拨、任意骑行台",
   "paywall_baseStoreNote": "{store} 版本的一次性购买。它不会转移到其他商店或平台 — Pro 可以。",
   "@paywall_baseStoreNote": {
@@ -3224,8 +3256,6 @@
   },
   "onboardingVsProNote": "BikeControl 的虚拟换挡属于 Pro。没有 Pro 时，你每天有 {minutes} 分钟试用；基础版不包含它。",
   "onboardingStillNotConnected": "仍未连接？测试你的网络",
-  "paywall_vsByBikeControl": "由 BikeControl 提供的虚拟换挡（任意骑行台，自定义挡位）",
-  "paywall_shareSensors": "与骑行软件共享心率和传感器",
   "vsWithoutProNote": "没有 Pro 时，由 {app} 处理虚拟换挡，你会失去 BikeControl Pro 的这些优势：干脆的换挡、直接控制、虚拟前拨和完全自定义。",
   "@vsWithoutProNote": {
     "placeholders": {
@@ -3242,7 +3272,7 @@
   "paywall_planQuestions": "对方案有疑问？",
   "paywall_oneTimePurchase": "一次性购买",
   "vsBudgetProRemovesLimit": "Pro 解除此限制",
-  "supportDescribeFirstMessageHint": "告诉我们你想做什么，以及实际发生了什么。单靠截图说不清哪里出了问题—一句话就够了。",
+  "supportDescribeFirstMessageHint": "用一句话描述你想做什么，以及实际发生了什么。",
   "supportIntakeTryThisFirst": "先试试这个",
   "supportIntakeDidThisSolveIt": "这样解决了吗？",
   "supportIntakeSolvedYes": "是的，没问题了",
@@ -3437,14 +3467,6 @@
   "purchaseProDeviceLimitTitle": "Pro 已在你的账户上，但尚未在此设备上",
   "helpAnswerStillStuckContactSupport": "还是解决不了？联系客服",
   "paywallYourPlan": "你的方案",
-  "supportDiagnosticsNoticeNoScreenshot": "为帮助修复你的问题，此聊天会附上诊断信息。发送前你可以用 {infoIcon} 查看。",
-  "@supportDiagnosticsNoticeNoScreenshot": {
-    "placeholders": {
-      "infoIcon": {
-        "type": "String"
-      }
-    }
-  },
   "rideV2SupportLine": "不想每天解锁？联系客服。",
   "rideV2Explainer_title": "Zwift Ride V2 设置",
   "rideV2Explainer_heading": "用 Zwift 解锁",
@@ -3688,23 +3710,6 @@
   "holdReplaceLongPress": "长按已经会执行 {current}。要替换为 {action} 吗？",
   "holdMovedToLongPress": "{action} 现在会在长按时执行。",
   "holdOnlyWhileHeld": "仅在按住时有效",
-  "paywall_shiftInNamedApp": "在 {app} 中换挡和转向—由 {app} 计算挡位",
-  "@paywall_shiftInNamedApp": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
-  "paywall_shiftInYourAppShort": "在你的骑行软件中换挡和转向",
-  "paywall_shiftInNamedAppShort": "在 {app} 中换挡和转向",
-  "@paywall_shiftInNamedAppShort": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
   "paywall_watchClip": "观看：{feature}",
   "@paywall_watchClip": {
     "placeholders": {
@@ -3720,13 +3725,10 @@
   "planAccountTitle": "方案与账户",
   "planOneTimePurchase": "一次性购买",
   "planFreeOnLinux": "Linux 上免费",
-  "planBaseUnlimitedCommands": "按键次数不限",
-  "planBaseAppShifts": "你的按键在骑行软件中换挡和转向，使用该应用自己的虚拟换挡",
-  "planProAdds": "Pro 额外包含",
-  "planBaseIncludes": "基础版包含",
   "planBoughtBefore": "2025 年已经购买过 BikeControl，但恢复购买不起作用？",
   "planBoughtBeforeAction": "在应用里给我发消息",
   "supportPrefillBoughtBefore": "我 2025 年在 Google Play 购买了 BikeControl，但恢复购买不起作用。我的 Google Play 订单号（GPA.…）： ",
+  "planSeePlans": "查看方案",
   "planQuestions": "对方案有疑问？",
   "proActiveOnThisDevice": "已在此设备上生效",
   "proNotOnThisDevice": "未在此设备上生效",
@@ -4199,5 +4201,76 @@
   "ergSettingsFooter": "如果所选起始功率不可用，则使用另一个，然后是 150 W。",
   "powerLockAutoReleaseLabel": "停止踩踏时释放",
   "powerLockAutoReleaseDesc": "低于 {rpm} rpm 持续 {seconds} 秒后返回 SIM",
-  "powerLockReleased": "Power Lock 已释放，返回 SIM"
+  "powerLockReleased": "Power Lock 已释放，返回 SIM",
+  "supportDiagnosticsAttached": "已附上诊断信息",
+  "supportDiagnosticsView": "查看",
+  "supportChatGreeting": "你好，我是 BikeControl 的 Jonas！",
+  "supportChatAskWhatHappens": "你具体想做什么？实际发生了什么？一句话就够了。",
+  "runCommand": "运行命令",
+  "markedActionsNotWellSupportedByMyWhoosh": "标记的操作目前在 MyWhoosh 中支持不佳",
+  "actionGroupGears": "档位",
+  "actionGroupTrainer": "骑行台",
+  "actionGroupWorkout": "训练",
+  "actionGroupRide": "骑行",
+  "actionGroupNavigate": "导航",
+  "actionGroupView": "视图",
+  "actionGroupController": "控制器按键",
+  "actionGroupSystem": "系统",
+  "currentActionNow": "当前：{action}",
+  "paywallProTagline": "像骑真车一样骑行",
+  "paywallFeelShiftTitle": "能感受到的换挡",
+  "paywallFeelShiftNative": "在你的 {trainer} 上原生、即时。",
+  "@paywallFeelShiftNative": {"placeholders": {"trainer": {"type": "String"}}},
+  "paywallFeelShift": "BikeControl 为你的骑行台换挡，在每个软件中都一样。",
+  "paywallFeelDrivetrainTitle": "你的传动，随你设置",
+  "paywallFeelDrivetrain": "前牙盘、1 到 30 个挡位、任意齿比。Power Lock 稳住你的功率。",
+  "paywallFeelGesturesTitle": "每个按键三个动作",
+  "paywallFeelGestures": "单击、双击、长按：每个按键都能做三件事。",
+  "paywallFeelScreenTitle": "不用再伸手碰屏幕",
+  "paywallFeelScreen": "音乐、快捷方式和截图，都在车把上完成。",
+  "paywallFeelDevicesTitle": "一套设置，所有设备",
+  "paywallFeelDevices": "iPhone、iPad、Android、Mac、Windows、Linux。",
+  "paywallBaseTitleNamed": "在 {app} 中无限按键",
+  "@paywallBaseTitleNamed": {"placeholders": {"app": {"type": "String"}}},
+  "paywallBaseTitle": "无限按键",
+  "paywallBaseShiftNamed": "{app} 用它自己的挡位换挡，可能不那么灵敏。",
+  "@paywallBaseShiftNamed": {"placeholders": {"app": {"type": "String"}}},
+  "paywallBaseShiftNamedNative": "{app} 用它自己的挡位换挡。",
+  "@paywallBaseShiftNamedNative": {"placeholders": {"app": {"type": "String"}}},
+  "paywallBaseShift": "骑行软件用它自己的挡位换挡，可能不那么灵敏。",
+  "shimanoModeEtubeTitle": "我自己在 E-TUBE 中设置",
+  "shimanoModeEtubeBody": "BikeControl 不会更改你的 Di2。你按步骤在 Shimano 的 E-TUBE PROJECT 应用中把按键设为 D-Fly 通道，BikeControl 即可使用它们。",
+  "shimanoModeEtubeNote": "使用手柄顶部按键，你的拨杆仍可正常换挡。",
+  "shimanoEtubeGuideTitle": "在 E-TUBE 中设置 D-Fly 通道",
+  "shimanoEtubeGuideIntro": "在手机上的 Shimano E-TUBE PROJECT Cyclist 应用中设置一次即可。设为 D-Fly 通道的按键会成为 BikeControl 按键。",
+  "shimanoEtubeStepConnect": "打开 E-TUBE PROJECT Cyclist 并连接你的自行车。如果找不到 Di2，请暂时关闭 BikeControl。",
+  "shimanoEtubeStepCustomize": "点击“自定义”，然后进入开关功能设置。",
+  "shimanoEtubeStepAssign": "把你想用的每个按键设为一个 D-FLY 通道。使用以下通道，BikeControl 的默认动作与你的换挡方式一致：",
+  "shimanoEtubeStepSave": "在 E-TUBE 中保存设置，然后回到 BikeControl。",
+  "shimanoEtubeShiftButton": "换挡按键",
+  "shimanoEtubeShiftLever": "换挡拨杆",
+  "shimanoEtubeHoodTip": "提示：把通道设在手柄顶部按键上，你的拨杆仍可为 Di2 换挡。",
+  "shimanoEtubeOutdoorWarning": "设为 D-Fly 通道的拨杆不会为 Di2 换挡，户外也一样。户外骑行前请在 E-TUBE 中改回。",
+  "shimanoEtubeDoneInApp": "已在 E-TUBE 中完成",
+  "shimanoEtubeCheckTitle": "按一个按键检查",
+  "shimanoEtubeCheckBody": "按一个你设为 D-Fly 通道的按键。它会出现在 Di2 卡片上，可分配动作。",
+  "shimanoEtubeCheckHint": "没有出现？请确认已在 E-TUBE 中保存设置，并关闭 E-TUBE 应用，以便 BikeControl 连接你的 Di2。",
+  "shimanoEtubeShowSteps": "查看 E-TUBE 步骤",
+  "paywallNoSubscriptionQuestion": "不喜欢订阅？",
+  "paywallProForeverAction": "永久 Pro – {price}",
+  "planProForever": "永久",
+  "planProForeverLine": "一次购买，无需订阅",
+  "whatsNewBannerTitle": "BikeControl {version} 来了",
+  "whatsNewBannerBody": "看看有什么新内容",
+  "whatsNewBlogLink": "在 BikeControl 博客了解更多",
+  "whatsNewHelpTitle": "BikeControl 需要你的帮助",
+  "whatsNewHelpBody": "BikeControl 由一个人开发，而不是一家大公司。在应用商店留下简短评分，能帮助其他骑手找到它，也让它持续发展。",
+  "whatsNewRateAction": "为 BikeControl 评分",
+  "vsBaseMinutesLeftToday": "今天还剩 {minutes} 分钟",
+  "vsBaseEndingSoonTitle": "今天 BikeControl 虚拟变速还剩 {minutes} 分钟",
+  "vsBaseEndingSoonBody": "使用 Base，你的按键始终不限次数。分钟用完后，本次骑行会继续，直到训练应用断开连接。",
+  "vsBaseOverTitle": "今天的 BikeControl 虚拟变速已用完",
+  "vsBaseOverBody": "本次骑行会继续，直到训练应用断开连接；使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
+  "vsBaseAlreadyOverBody": "使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
+  "vsBaseGuideAction": "教我怎么做"
 }

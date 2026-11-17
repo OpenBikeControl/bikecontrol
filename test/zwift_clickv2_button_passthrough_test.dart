@@ -2,6 +2,8 @@ import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -10,6 +12,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/ble_definition.dart';
 import 'package:prop/emulators/definitions/zwift_click_definition.dart';
+import 'package:prop/emulators/definitions/zwift_emulator_definition.dart';
 import 'package:prop/emulators/transporter/transporter.dart';
 import 'package:prop/prop.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -95,5 +98,29 @@ void main() {
       expect(recording.sent.single.uuid, _controllerCharacteristicUuid);
       expect(recording.sent.single.data.first, Opcode.CONTROLLER_NOTIFICATION.value);
     });
+  });
+
+  test('once off the bridge, a press is not relayed by what is left on it', () async {
+    SharedPreferences.setMockInitialValues({});
+    core.settings.prefs = await SharedPreferences.getInstance();
+    propPrefs.initialize(core.settings.prefs);
+    core.actionHandler = StubActions();
+    // BikeControl's own controller, back on the bridge after the unlock.
+    final ours = ZwiftEmulatorDefinition(device: BleDevice(deviceId: 'controller', name: 'BikeControl'));
+    ftmsEmulator.debugSetActiveDefinition(ours);
+    final recording = _RecordingTransporter(ftmsEmulator.composite);
+    addTearDown(() {
+      ftmsEmulator.composite.detach(ours);
+      ftmsEmulator.composite.transporter = null;
+    });
+    final click = ZwiftClickV2(BleDevice(deviceId: 'click-v2', name: 'Zwift Click'));
+    click.debugSetClickDef(_clickDefinition()); // not attached
+
+    await click.processCharacteristic(
+      _controllerCharacteristicUuid,
+      Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, 0x08, 0xFF, 0xFF, 0xFE, 0xFF, 0x0F]),
+    );
+
+    expect(recording.sent, isEmpty);
   });
 }

@@ -35,11 +35,6 @@ class SupportChatPage extends StatefulWidget {
   final Future<String>? diagnosticPreviewFuture;
   final String? initialText;
 
-  /// Optional attachment to pre-stage in the composer on first build
-  /// (e.g. an OverviewPage screenshot captured by the caller before
-  /// pushing this page). The user can still remove it before sending.
-  final StagedAttachment? initialAttachment;
-
   /// Pre-fills the intake summary (skipping the form) for callers that already
   /// know the answer — e.g. the self-test card's verdict CTAs, which map
   /// directly onto a smart-trainer intake branch.
@@ -68,7 +63,6 @@ class SupportChatPage extends StatefulWidget {
     required this.telemetryBuilder,
     this.diagnosticPreviewFuture,
     this.initialText,
-    this.initialAttachment,
     this.initialIntake,
     this.pinnedContext,
     this.pinnedContextLabel,
@@ -548,18 +542,12 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
                 ),
               ),
             ),
-          if (showComposer && !_intakeSent && _intakeAnswers != null && !_editingIntake)
-            SupportIntakeSummaryChip(
-              answers: _intakeAnswers!,
-              onEdit: () => setState(() => _editingIntake = true),
-            ),
           if (showComposer)
             SupportComposer(
               sending: _sending,
               onSend: _send,
               diagnosticPreview: _diagnosticPreview,
               initialText: widget.initialText,
-              initialAttachment: widget.initialAttachment,
               pinnedContext: widget.pinnedContext,
               pinnedContextLabel: widget.pinnedContextLabel,
               // The first message of a conversation must say what is wrong;
@@ -583,8 +571,22 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     }
 
     if (rootMessages.isEmpty && _pendingMessages.isEmpty) {
-      final cs = Theme.of(context).colorScheme;
       final showForm = _intakeAnswers == null || _editingIntake;
+      if (!showForm) {
+        // The intake is answered: Jonas asks the follow-up himself, carrying
+        // the summary, instead of an empty-state line, a summary card and a
+        // composer hint all saying "write something". Anchored at the bottom
+        // like a real conversation.
+        return RefreshIndicator(
+          onRefresh: _refresh,
+          child: ListView(
+            reverse: true,
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            children: [_intakeQuestion()],
+          ),
+        );
+      }
+      final cs = Theme.of(context).colorScheme;
       return RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
@@ -593,17 +595,7 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: cs.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Avatar(
-                    initials: 'JB',
-                    size: 52,
-                    provider: AssetImage('jonas.jpg'),
-                  ),
-                ),
+                _jonasAvatar(52),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -631,27 +623,18 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
               ],
             ),
             const SizedBox(height: 16),
-            if (showForm)
-              SupportIntakeForm(
-                service: _service,
-                initial: _intakeAnswers,
-                // "Did this solve it?" → Yes: nothing left to ask support.
-                onSolved: () => Navigator.of(context).maybePop(),
-                onContinue: (answers) {
-                  setState(() {
-                    _intakeAnswers = answers;
-                    _editingIntake = false;
-                  });
-                },
-              )
-            else
-              Center(
-                child: Text(
-                  context.i18n.supportChatEmpty,
-                  style: TextStyle(color: cs.mutedForeground),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+            SupportIntakeForm(
+              service: _service,
+              initial: _intakeAnswers,
+              // "Did this solve it?" → Yes: nothing left to ask support.
+              onSolved: () => Navigator.of(context).maybePop(),
+              onContinue: (answers) {
+                setState(() {
+                  _intakeAnswers = answers;
+                  _editingIntake = false;
+                });
+              },
+            ),
           ],
         ),
       );
@@ -681,6 +664,70 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
           for (final group in groups.reversed) SupportMessageGroup(messages: group, service: _service, meta: meta),
         ],
       ),
+    );
+  }
+
+  Widget _jonasAvatar(double size) {
+    return Container(
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, shape: BoxShape.circle),
+      child: Avatar(initials: 'JB', size: size, provider: const AssetImage('jonas.jpg')),
+    );
+  }
+
+  /// Jonas' greeting plus the follow-up question, with the intake summary
+  /// (and its edit button) inside the question bubble.
+  Widget _intakeQuestion() {
+    final cs = Theme.of(context).colorScheme;
+    Widget bubble(Widget child) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.secondary,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(14),
+          topRight: Radius.circular(14),
+          bottomRight: Radius.circular(14),
+          bottomLeft: Radius.circular(4),
+        ),
+      ),
+      child: DefaultTextStyle.merge(
+        style: context.typography.small.copyWith(color: cs.foreground),
+        child: child,
+      ),
+    );
+    return Row(
+      key: const ValueKey('support-intake-question'),
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _jonasAvatar(32),
+        const Gap(8),
+        Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                bubble(Text('${context.i18n.supportChatGreeting} ${context.i18n.supportChatIntroFatherNote}')),
+                const Gap(6),
+                bubble(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(context.i18n.supportChatAskWhatHappens),
+                      const Gap(8),
+                      SupportIntakeSummaryChip(
+                        answers: _intakeAnswers!,
+                        onEdit: () => setState(() => _editingIntake = true),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

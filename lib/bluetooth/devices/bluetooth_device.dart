@@ -43,6 +43,7 @@ import 'package:universal_ble/universal_ble.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import 'cycplus/cycplus_bc2.dart';
+import 'cycplus/cycplus_t7h.dart';
 import 'elite/elite_rizer.dart';
 import 'elite/elite_square.dart';
 import 'elite/elite_sterzo.dart';
@@ -295,6 +296,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when MuovBikeConstants.matchesName(scanResult.name!) => MuovBike(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
+        _ when CycplusT7h.matchesName(scanResult.name) => CycplusT7h(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('THINK VS') => ThinkRiderVs200(scanResult),
         _ when OnelapKeyConstants.matchesName(scanResult.name) => OnelapKey(scanResult),
         _ when LtwooErxConstants.matchesName(scanResult.name) => LtwooErx(scanResult),
@@ -389,6 +391,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when MuovBikeConstants.matchesName(scanResult.name!) => MuovBike(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('CYCPLUS') && scanResult.name!.toUpperCase().contains('BC2') =>
           CycplusBc2(scanResult),
+        _ when CycplusT7h.matchesName(scanResult.name) => CycplusT7h(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('THINK VS') => ThinkRiderVs200(scanResult),
         _ when OnelapKeyConstants.matchesName(scanResult.name) => OnelapKey(scanResult),
         _ when LtwooErxConstants.matchesName(scanResult.name) => LtwooErx(scanResult),

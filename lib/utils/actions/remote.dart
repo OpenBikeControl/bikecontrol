@@ -95,6 +95,16 @@ class RemoteActions extends BaseActions {
         'Not connected to a ${core.settings.getLastTarget()?.name ?? 'remote'} device',
         button: keyPair.buttons.firstOrNull,
       );
+    } else if (keyPair.physicalKey != null || keyPair.touchPosition != Offset.zero) {
+      // A trainer app can be connected (e.g. over OpenBikeControl) — only the
+      // method this keyboard key / touch needs is off, so name that one.
+      final method = keyPair.physicalKey != null
+          ? AppLocalizations.current.actAsBluetoothKeyboard
+          : AppLocalizations.current.enablePairingProcess;
+      return NotHandled(
+        AppLocalizations.current.connectionMethodNotActiveForButton(button.name.splitByUpperCase(), method),
+        button: keyPair.buttons.firstOrNull,
+      );
     } else {
       return NotHandled('No connection method active', button: keyPair.buttons.firstOrNull);
     }

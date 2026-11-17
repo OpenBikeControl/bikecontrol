@@ -17,6 +17,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/ble_device_ids.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/vs_trial_copy.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/host_platform.dart';
@@ -160,8 +161,14 @@ class ProxyDevice extends BluetoothDevice {
 
   /// The [FitnessBikeDefinition] for this trainer while in VS mode. Attached
   /// to [ftmsEmulator]'s composite while VS is active; null in proxy mode.
-  FitnessBikeDefinition? _fbd;
+  final ValueNotifier<FitnessBikeDefinition?> _fbdN = ValueNotifier(null);
+  FitnessBikeDefinition? get _fbd => _fbdN.value;
+  set _fbd(FitnessBikeDefinition? fbd) => _fbdN.value = fbd;
   FitnessBikeDefinition? get fitnessBike => _fbd;
+
+  /// [fitnessBike], for listeners that follow it across VS ↔ proxy switches
+  /// and reconnects.
+  ValueListenable<FitnessBikeDefinition?> get fitnessBikeListenable => _fbdN;
 
   /// The rider's active shifting config for this trainer. Without a saved one
   /// it carries the mode the definition runs ([_seedFitnessBikeDefinition]
@@ -463,8 +470,9 @@ class ProxyDevice extends BluetoothDevice {
     _trialHeadsUpDay = today;
     // Rounded up: with 1:30 left, "2 minutes" is the honest reading.
     final minutes = (remaining.inSeconds / 60).ceil();
-    final title = AppLocalizations.current.bridgeTrialEndingSoonTitle(minutes);
-    final body = AppLocalizations.current.bridgeTrialEndingSoonBody;
+    final copy = VsTrialCopy.current(AppLocalizations.current);
+    final title = copy.endingSoonTitle(minutes);
+    final body = copy.endingSoonBody;
     core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_INFO, '$title — $body'));
     _showTrialNotification(id: 1341, title: title, body: body);
   }
@@ -473,10 +481,9 @@ class ProxyDevice extends BluetoothDevice {
   /// keeps its connection, so the ride goes on. Otherwise the trainer just
   /// connected with the budget already gone, and the app won't find it.
   void _announceBridgeTrialOver({required bool midRide}) {
-    final title = AppLocalizations.current.bridgeTrialTimeOverTitle;
-    final body = midRide
-        ? AppLocalizations.current.bridgeTrialTimeOverBody
-        : AppLocalizations.current.bridgeTrialAlreadyOverBody;
+    final copy = VsTrialCopy.current(AppLocalizations.current);
+    final title = copy.overTitle;
+    final body = midRide ? copy.overMidRideBody : copy.alreadyOverBody;
     core.connection.signalNotification(
       AlertNotification(LogLevel.LOGLEVEL_WARNING, '$title — $body'),
     );
@@ -1000,6 +1007,20 @@ class ProxyDevice extends BluetoothDevice {
   /// created lazily per TCP client — the details page rehydrates on mount.
   String get trainerKey => scanResult.name ?? scanResult.deviceId;
 
+  /// What [Connection.twinOf] compares: the physical trainer behind this
+  /// entry, whichever transport found it. Usually the [trainerKey] itself;
+  /// Elite advertises only the model over Bluetooth ("RIVO") but brand,
+  /// model, serial and a trailing W over DirCon ("ELITE RIVO 00016 W"), so
+  /// that form is cut back to the model.
+  String get twinKey {
+    final name = scanResult.name;
+    if (name == null) return scanResult.deviceId;
+    final normalized = name.toUpperCase().replaceAll(RegExp(r'[-_\s]+'), ' ').trim();
+    return _eliteDirconName.firstMatch(normalized)?.group(1) ?? normalized;
+  }
+
+  static final _eliteDirconName = RegExp(r'^ELITE (.+) \d+ W$');
+
   /// Whether the underlying device looks like a smart trainer (FTMS-capable
   /// or FE-C-over-BLE). Power-meter-only or HR-only devices have no trainer
   /// commands to drive, so Virtual Shifting is meaningless for them — they
@@ -1025,9 +1046,28 @@ class ProxyDevice extends BluetoothDevice {
     };
   }
 
+  /// Whether [app] can find a trainer over WiFi at all — the Virtual Shifting
+  /// WiFi bridge or WiFi Proxy. False for apps that pair trainers over
+  /// Bluetooth only (e.g. Biketerra); true when no app is picked yet.
+  static bool appTakesTrainerOverWifi(SupportedApp? app) {
+    final transports = app?.virtualShiftingTransports;
+    return transports == null || transports.isEmpty || transports.contains(TrainerConnectionType.wifi);
+  }
+
   /// The rider's saved mode for this trainer, else [defaultRetrofitMode] —
-  /// as stored, before the same-device rule below.
-  RetrofitMode get _storedRetrofitMode => core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+  /// before the same-device rule below. A WiFi mode the selected trainer app
+  /// can't find (WiFi bridge or Proxy for a Bluetooth-only app) starts as
+  /// Virtual Shifting over Bluetooth instead; a non-trainer keeps Proxy, as
+  /// it has nothing else to offer.
+  RetrofitMode get _storedRetrofitMode {
+    final stored = core.settings.getRetrofitMode(trainerKey, fallback: defaultRetrofitMode);
+    if (appTakesTrainerOverWifi(core.settings.getTrainerApp())) return stored;
+    return switch (stored) {
+      RetrofitMode.wifi => RetrofitMode.bluetooth,
+      RetrofitMode.proxy when isSmartTrainer => RetrofitMode.bluetooth,
+      _ => stored,
+    };
+  }
 
   /// Whether [savedRetrofitMode] is folding a Bluetooth resolution into WiFi
   /// because the trainer app runs on this same device ([Target.thisDevice]).

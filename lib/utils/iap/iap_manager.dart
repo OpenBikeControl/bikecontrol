@@ -157,9 +157,7 @@ class IAPManager {
   bool get isBetaTester => (isLoggedIn && entitlements.hasActive(betaAccessProductKey) || kDebugMode);
 
   bool get hasActiveSubscription =>
-      (isLoggedIn && (entitlements.hasActive(premiumMonthlyProductKey)) ||
-          entitlements.hasActive(premiumYearlyProductKey)) ||
-      (!isLoggedIn && isLocalPro.value);
+      (isLoggedIn && entitlements.hasActivePro) || (!isLoggedIn && isLocalPro.value);
 
   bool get isProEnabled => hasActiveSubscription && (isLoggedIn || (!isLoggedIn && isLocalPro.value));
 
@@ -211,9 +209,11 @@ class IAPManager {
     if (fromStore != null) return fromStore;
     Entitlement? latest;
     for (final e in entitlements.current) {
-      if (!e.isActive || (e.productKey != premiumMonthlyProductKey && e.productKey != premiumYearlyProductKey)) {
+      if (!e.isActive || !e.isPro) {
         continue;
       }
+      // Bought once outranks any subscription still running beside it.
+      if (SubscriptionTerm.isLifetimeProduct(e.productKey)) return SubscriptionTerm.fromEntitlement(e);
       if (latest == null || (e.activeUntil?.isAfter(latest.activeUntil ?? DateTime(0)) ?? false)) latest = e;
     }
     return latest == null ? null : SubscriptionTerm.fromEntitlement(latest);
@@ -243,8 +243,7 @@ class IAPManager {
   @visibleForTesting
   set purchaseChannelForTesting(PurchaseChannel? channel) => _purchaseChannelForTesting = channel;
 
-  DateTime? get premiumActiveUntil =>
-      entitlements.activeUntil(premiumMonthlyProductKey) ?? entitlements.activeUntil(premiumYearlyProductKey);
+  DateTime? get premiumActiveUntil => entitlements.proActiveUntil;
 
   /// Initialize the IAP manager.
   Future<void> initialize() async {
@@ -497,6 +496,17 @@ class IAPManager {
       );
     }
   }
+
+  /// Buy Pro once instead of subscribing. Paywall-only: the store sheet on
+  /// iOS, Android and macOS, Stripe Checkout on Windows and Linux.
+  Future<void> purchaseProLifetime(BuildContext context) async {
+    if (_revenueCatService != null) return _revenueCatService!.purchaseProLifetime();
+    if (_windowsIapService != null) return _windowsIapService!.purchaseProLifetime(context);
+    if (_linuxIapService != null) return _linuxIapService!.purchaseProLifetime(context);
+  }
+
+  /// Pro bought once: nothing renews and nothing is managed.
+  bool get isProLifetime => subscriptionTerm?.isLifetime ?? false;
 
   Future<void> _showPaywall(BuildContext context, bool subscription) async {
     // openDrawer needs a DrawerOverlay ancestor (Scaffold creates one) and does

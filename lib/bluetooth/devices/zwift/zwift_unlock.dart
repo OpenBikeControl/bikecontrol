@@ -59,6 +59,10 @@ Future<void> setZwiftUnlockInProgress(bool value, {DirconEmulator? emulator}) as
   }
 }
 
+/// Whether the selected trainer app unlocks a Zwift Click V2 or Ride V2
+/// itself once BikeControl is connected to it (Zwift, Rouvy).
+bool trainerAppUnlocksZwiftControllers() => core.settings.getTrainerApp()?.unlocksZwiftControllers ?? false;
+
 /// Whether the selected trainer app takes controller input from
 /// OpenBikeControl's DirCon endpoint, which advertises
 /// `_wahoo-fitness-tnp._tcp "BikeControl"`. Another BikeControl record of
@@ -101,8 +105,10 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// Whether the rider has to unlock this controller with Zwift — the
   /// capability the UI keys on (home chain step, status lines, unlock page).
   /// Usually the same as [usesZwiftUnlock]; the Click V2 left puck narrows it
-  /// to the unlock-with-Zwift mode.
-  bool get requiresZwiftUnlock => usesZwiftUnlock;
+  /// to the unlock-with-Zwift mode. Never while Zwift or Rouvy is selected:
+  /// they unlock it themselves once BikeControl is connected to them, so there
+  /// is nothing for the rider to do.
+  bool get requiresZwiftUnlock => usesZwiftUnlock && !trainerAppUnlocksZwiftControllers();
 
   /// Whether this controller offers the Click V2 unlock modes (right side
   /// only, restart every minute). Only the Click V2 does; a Zwift Ride V2
@@ -148,7 +154,16 @@ mixin ZwiftUnlock on ZwiftDevice {
 
   /// Test seam — [_clickDef] is normally built during the BLE connect flow.
   @visibleForTesting
-  void debugSetClickDef(ZwiftClickDefinition def) => _clickDef = def;
+  void debugSetClickDef(ZwiftClickDefinition def) {
+    _clickDef = def;
+    _listenForUnlock();
+  }
+
+  void _listenForUnlock() {
+    if (_listensForUnlock) return;
+    _listensForUnlock = true;
+    isUnlocked.addListener(_leaveBridgeOnceUnlocked);
+  }
 
   /// Whether this controller's definition rides on the shared bridge composite.
   ///
@@ -159,6 +174,27 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// controller endpoint, where this controller is served anyway.
   bool get attachesClickDefToBridge => core.settings.getTrainerApp() is! Rouvy;
 
+  /// Whether the controller itself should be on the bridge right now. Only
+  /// while it still needs unlocking: while it is there, it answers the
+  /// trainer app as itself (a Click V2 is a "Zwift Click"), standing in for
+  /// BikeControl's own Zwift Ride — whose paddles and D-pad are what the
+  /// mapped actions are sent as. Once this session has seen it unlocked it
+  /// comes off again — not on the stored unlock time alone, which outlives a
+  /// controller that was switched off and is locked again.
+  bool get _clickDefBelongsOnBridge => attachesClickDefToBridge && !isUnlocked.value;
+
+  bool _listensForUnlock = false;
+
+  /// Takes the controller off the bridge the moment it is unlocked, which
+  /// brings BikeControl's own controller back (see [_clickDefBelongsOnBridge]).
+  void _leaveBridgeOnceUnlocked() {
+    final def = _clickDef;
+    if (def == null || !isUnlocked.value || !ftmsEmulator.composite.children.contains(def)) return;
+    ftmsEmulator.detachDefinition(def).catchError((Object e, StackTrace s) {
+      recordError(e, s, context: '$runtimeType.leaveBridgeOnceUnlocked');
+    });
+  }
+
   /// React to a trainer-app change while this controller is connected: put its
   /// definition on or take it off the shared composite to match
   /// [attachesClickDefToBridge]. Composite-only, like
@@ -168,9 +204,9 @@ mixin ZwiftUnlock on ZwiftDevice {
     final def = _clickDef;
     if (def == null) return;
     final attached = ftmsEmulator.composite.children.contains(def);
-    if (attachesClickDefToBridge && !attached) {
+    if (_clickDefBelongsOnBridge && !attached) {
       ftmsEmulator.composite.attach(def);
-    } else if (!attachesClickDefToBridge && attached) {
+    } else if (!_clickDefBelongsOnBridge && attached) {
       ftmsEmulator.composite.detach(def);
     }
   }
@@ -266,11 +302,12 @@ mixin ZwiftUnlock on ZwiftDevice {
     // controller service alongside the trainer — the pairing dialog spins
     // forever — and it takes its controller input from the standalone
     // controller endpoint instead, where this controller is already served.
-    if (attachesClickDefToBridge) {
+    if (_clickDefBelongsOnBridge) {
       await ftmsEmulator.attachDefinition(_clickDef!).catchError((Object e, StackTrace s) {
         recordError(e, s, context: '$runtimeType.attachClickDef');
       });
     }
+    _listenForUnlock();
 
     await super.handleServices(services);
   }
@@ -288,9 +325,18 @@ mixin ZwiftUnlock on ZwiftDevice {
         opCode == Opcode.VENDOR_MESSAGE &&
         bytes[1] == 0x03) {
       _vendorMessage = Uint8List.fromList(bytes);
+      // The challenge comes a few seconds into the connection, after the
+      // definition was built; Zwift connects later still and needs it replayed.
+      _clickDef?.vendorMessage = _vendorMessage;
     }
 
-    if (opCode == Opcode.CONTROLLER_NOTIFICATION) {
+    final def = _clickDef;
+    if (def == null || !ftmsEmulator.composite.children.contains(def)) {
+      // Off the bridge (unlocked, or not attached for this app): nothing on it
+      // speaks for the controller, and every other definition there would
+      // forward the raw frame to the trainer app on top of the mapped action.
+      await super.processCharacteristic(characteristic, bytes);
+    } else if (opCode == Opcode.CONTROLLER_NOTIFICATION) {
       ftmsEmulator.processCharacteristic(characteristic, bytes);
       super.processCharacteristic(characteristic, bytes);
     } else {
@@ -374,7 +420,7 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// pills. It sits inside the controller card, so it adds no box of its own.
   List<Widget> unlockWarnings(BuildContext context) {
     final lastUnlockDate = propPrefs.getZwiftClickV2LastUnlock(scanResult.deviceId, keyPrefix: unlockKeyPrefix);
-    if (!isConnected || screenshotMode) return [];
+    if (!isConnected || screenshotMode || trainerAppUnlocksZwiftControllers()) return [];
     if (isPersistedUnlocked && lastUnlockDate != null && isLikelyUnlocked) {
       return [
         UnlockStatusPanel(

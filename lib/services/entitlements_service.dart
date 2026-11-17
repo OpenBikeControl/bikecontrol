@@ -89,6 +89,24 @@ class EntitlementsService extends ChangeNotifier {
     });
   }
 
+  /// Any active Pro entitlement, see [Entitlement.isPro].
+  bool get hasActivePro {
+    final now = _now();
+    return _entitlements.any((entitlement) => entitlement.isPro && entitlement.isActiveAt(now));
+  }
+
+  /// The latest end date among the active Pro entitlements.
+  DateTime? get proActiveUntil {
+    final now = _now();
+    DateTime? latest;
+    for (final entitlement in _entitlements) {
+      if (!entitlement.isPro || !entitlement.isActiveAt(now)) continue;
+      final value = entitlement.activeUntil;
+      if (value != null && (latest == null || value.isAfter(latest))) latest = value;
+    }
+    return latest;
+  }
+
   DateTime? activeUntil(String productKey) {
     DateTime? latest;
     for (final entitlement in _entitlements) {

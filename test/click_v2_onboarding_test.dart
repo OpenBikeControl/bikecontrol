@@ -7,6 +7,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -96,6 +97,31 @@ void main() {
       expect(ClickV2Onboarding.isPending, isTrue);
     });
 
+    test('not pending when Zwift or Rouvy unlocks the controller', () {
+      for (final app in [Zwift(), Rouvy()]) {
+        core.settings.setTrainerApp(app);
+        expect(ClickV2Onboarding.isPending, isFalse, reason: app.name);
+        expect(ClickV2Onboarding.unlocksWithZwift, isTrue, reason: app.name);
+        // The app unlocks it: no "locked / unlock now" for the rider.
+        expect(_leftSide().requiresZwiftUnlock, isFalse, reason: app.name);
+        expect(_leftSide().setupNeed, isNull, reason: app.name);
+        expect(_rightSide().shouldAutoConnect, isTrue, reason: app.name);
+      }
+    });
+
+    test('still pending with an app that does not unlock it', () {
+      core.settings.setTrainerApp(CustomApp());
+      expect(ClickV2Onboarding.isPending, isTrue);
+      expect(ClickV2Onboarding.unlocksWithZwift, isFalse);
+    });
+
+    test('a right-side-only choice survives Zwift', () async {
+      await core.settings.setClickV2OnboardingDone(true);
+      await core.settings.setClickV2RightSideOnly(true);
+      core.settings.setTrainerApp(Zwift());
+      expect(ClickV2Onboarding.unlocksWithZwift, isFalse);
+    });
+
     test('never pending in screenshot mode', () {
       screenshotMode = true;
       expect(ClickV2Onboarding.isPending, isFalse);
@@ -162,8 +188,7 @@ void main() {
   });
 
   // The right side's gate is what the mode setting actually drives: it must
-  // stay out of the legacy left-side restart mode, because ClickLogic runs that
-  // loop off a single shared timer which this side's handshake cancels. Which
+  // connect in the left-side restart mode too. Which
   // pucks are *present* in right-side-only mode is a separate mechanism — the
   // ignored list — covered in the gate integration test.
   group('connect gates per unlock mode', () {
@@ -201,11 +226,13 @@ void main() {
       expect(_leftSide().shouldAutoConnect, isTrue);
     });
 
-    test('legacy left-side restart mode: left connects, right is held back', () async {
+    // The right handshake no longer cancels the left puck's reset timer, so
+    // both pucks run together in this mode.
+    test('left-side restart mode: both sides connect', () async {
       await core.settings.setClickV2RightSideOnly(false);
       await core.settings.setUnlockWithZwift(false);
 
-      expect(_rightSide().shouldAutoConnect, isFalse);
+      expect(_rightSide().shouldAutoConnect, isTrue);
       expect(_leftSide().shouldAutoConnect, isTrue);
     });
 

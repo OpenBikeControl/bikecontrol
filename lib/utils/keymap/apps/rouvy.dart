@@ -11,6 +11,9 @@ class Rouvy extends SupportedApp {
   bool get showsOwnGear => true;
 
   @override
+  bool get unlocksZwiftControllers => true;
+
+  @override
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.rouvyMdns, ConnectionSupport.supported),
     (AppConnectionMethod.zwiftBle, ConnectionSupport.supported),

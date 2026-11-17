@@ -99,6 +99,10 @@ Future<void> main() async {
 
       final plan = find.byKey(const ValueKey('settings-plan'));
       expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsOneWidget);
+      // They bought Base: minutes left, never "trial".
+      final minutes = core.bridgeUsageTracker.remainingToday.inMinutes;
+      expect(find.descendant(of: plan, matching: find.text(l.vsBaseMinutesLeftToday(minutes))), findsOneWidget);
+      expect(find.descendant(of: plan, matching: find.text(l.bridgeMinutesRemainingToday(minutes))), findsNothing);
 
       trainer.isConnected = false;
       core.connection.signalChange(trainer);

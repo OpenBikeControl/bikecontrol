@@ -1,3 +1,4 @@
+import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodWithoutSwitch;
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
@@ -640,10 +641,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       style: labelStyle,
       maxLines: 2,
     );
-    final caption = action.alternativeTitle == null
+    final captionText = RideControllerPress.caption(action);
+    final caption = captionText == null
         ? null
         : Text(
-            action.alternativeTitle!.toUpperCase(),
+            captionText.toUpperCase(),
             style: typography.caption.copyWith(color: subInk, fontWeight: FontWeight.w600, letterSpacing: 0.6),
           );
 

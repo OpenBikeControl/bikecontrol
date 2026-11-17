@@ -16,6 +16,7 @@ library;
 
 import '../../bluetooth/devices/base_device.dart';
 import '../../bluetooth/devices/cycplus/cycplus_bc2.dart';
+import '../../bluetooth/devices/cycplus/cycplus_t7h.dart';
 import '../../bluetooth/devices/elite/elite_square.dart';
 import '../../bluetooth/devices/elite/elite_sterzo.dart';
 import '../../bluetooth/devices/gamepad/gamepad_device.dart';
@@ -205,7 +206,7 @@ String? controllerOptionIdFor(BaseDevice device) {
   if (device is ShimanoDi2) return 'shimano_di2';
   if (device is SramAxs) return 'sram_axs';
   if (device is WahooKickrBikeShift) return 'wahoo';
-  if (device is CycplusBc2) return 'cycplus';
+  if (device is CycplusBc2 || device is CycplusT7h) return 'cycplus';
   if (device is EliteSquare || device is EliteSterzo) return 'elite';
   if (device is ThinkRiderVs200) return 'thinkrider';
   if (device is StagesSmartBike) return 'stages';

@@ -15,9 +15,16 @@
     <script src="assets/js/drivetrain.js"></script>
     <style>
       /* App Store product page header loop. The brand band of the app
-         (lib/widgets/ui/bk_brand_band.dart), the still's layout
-         (store_screenshots/scripts/graphics.mjs) and Apple's header art safe
-         area: x 1097–2743, y 493–1154. */
+         (lib/widgets/ui/bk_brand_band.dart) laid out for the iPhone crop of
+         the header, measured on a live product page (iOS, 440 pt wide):
+           - visible:      x 647–3193, full height (≈5.78 px per pt)
+           - status bar:   y 0–305; Dynamic Island x 1554–2284, y 64–277
+           - back button:  x 749–1026, y 395–667
+           - mute / share: x 2464–3089, y 395–667
+         Copy and card sit below the floating buttons, ~44 pt in from each
+         side (x 900–2941). The black pill at the top wraps the Dynamic
+         Island like a compact Live Activity: the ± badge left, the gear
+         right, both outside x 1521–2319 (the island on a 402 pt iPhone). */
       @font-face {
         font-family: "Barlow Condensed";
         src: url("assets/fonts/BarlowCondensed-ExtraBold.ttf");
@@ -33,6 +40,7 @@
         --lifted: #4da9e8;
         --on-lifted: #04121c;
         --success: #22c55e;
+        --island: #000;
       }
       * {
         margin: 0;
@@ -75,31 +83,96 @@
         width: 2200px;
         height: 1610px;
       }
+
+      /* Rolling digits: the outgoing gear leaves, the new one arrives. */
+      .roll {
+        position: relative;
+        overflow: hidden;
+      }
+      .roll span {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        font-family: "Barlow Condensed", sans-serif;
+        font-weight: 800;
+        font-feature-settings: "tnum";
+      }
+
+      /* ---- Dynamic Island (compact Live Activity) ------------------------ */
+      #island {
+        position: absolute;
+        left: 1400px;
+        top: 46px;
+        width: 1040px;
+        height: 270px;
+        border-radius: 135px;
+        background: var(--island);
+      }
+      #isl-badge {
+        position: absolute;
+        left: 28px;
+        top: 95px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(120deg, var(--band-start), var(--band-end));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #isl-badge svg {
+        width: 48px;
+        height: 48px;
+      }
+      #isl-gear {
+        position: absolute;
+        right: 36px;
+        top: 85px;
+        width: 120px;
+        height: 100px;
+      }
+      #isl-gear span {
+        text-align: right;
+        font-size: 92px;
+        line-height: 100px;
+        color: var(--lifted);
+      }
+
+      /* ---- Copy ---------------------------------------------------------- */
       #headline-box {
         position: absolute;
-        left: 1097px;
-        top: 493px;
-        width: 760px;
-        height: 661px;
+        left: 900px;
+        top: 770px;
+        width: 880px;
+        height: 600px;
         display: flex;
         align-items: center;
       }
       #headline {
         font-family: "Barlow Condensed", sans-serif;
         font-weight: 800;
-        font-size: 112px;
-        line-height: 0.96;
+        font-size: 160px;
+        line-height: 0.95;
         text-transform: uppercase;
         color: #fff;
         white-space: pre-line;
         text-wrap: balance;
       }
-      #card {
+
+      /* ---- Drivetrain card (authored at 816×386, shown at 1.3×) ---------- */
+      #card-host {
         position: absolute;
-        left: 1927px;
-        top: 630px;
+        left: 1880px;
+        top: 819px;
         width: 816px;
         height: 386px;
+        transform: scale(1.3);
+        transform-origin: 0 0;
+      }
+      #card {
+        position: absolute;
+        inset: 0;
         border-radius: 28px;
         background: var(--card);
         box-shadow: 0 34px 86px rgba(4, 18, 28, 0.45);
@@ -113,7 +186,7 @@
         display: flex;
         align-items: center;
         gap: 9px;
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 600;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -136,17 +209,17 @@
       #gear-col {
         position: absolute;
         right: 22px;
-        top: 70px;
+        top: 50px;
         width: 150px;
-        height: 290px;
+        height: 314px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: space-between;
       }
       .shift-btn {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -159,22 +232,24 @@
         background: var(--lifted);
       }
       .shift-btn svg {
-        width: 26px;
-        height: 26px;
+        width: 28px;
+        height: 28px;
       }
       #gear-readout {
         text-align: center;
       }
       #gear-number {
-        font-family: "Barlow Condensed", sans-serif;
-        font-weight: 800;
-        font-size: 104px;
-        line-height: 0.9;
-        font-feature-settings: "tnum";
+        width: 150px;
+        height: 100px;
+      }
+      #gear-number span {
+        text-align: center;
+        font-size: 108px;
+        line-height: 100px;
       }
       #gear-of {
-        margin-top: 6px;
-        font-size: 17px;
+        margin-top: 4px;
+        font-size: 18px;
         color: var(--secondary-ink);
       }
     </style>
@@ -185,24 +260,33 @@
       <svg id="contours-a" class="contours" viewBox="0 0 300 220" data-layout-ignore></svg>
       <svg id="contours-b" class="contours" viewBox="0 0 300 220" data-layout-ignore></svg>
 
+      <div id="island" data-layout-ignore>
+        <div id="isl-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 5.5v7M8.5 9h7M8.5 17.5h7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none" /></svg>
+        </div>
+        <div id="isl-gear" class="roll"><span>12</span><span>12</span></div>
+      </div>
+
       <div id="headline-box">
         <p id="headline" data-var-text="headline">Virtual shifting for any smart trainer.
 Shift from your handlebars.</p>
       </div>
 
-      <div id="card">
-        <div id="card-label" data-layout-ignore><i></i><span id="card-trainer" data-var-text="trainer">Smart Trainer</span></div>
-        <svg id="dt" data-layout-allow-overflow data-layout-ignore></svg>
-        <div id="gear-col">
-          <div id="btn-down" class="shift-btn">
-            <svg viewBox="0 0 24 24"><path d="M5 12h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round" /></svg>
-          </div>
-          <div id="gear-readout">
-            <div id="gear-number">12</div>
-            <div id="gear-of" data-var-text="ofMax" data-layout-ignore>of 24</div>
-          </div>
-          <div id="btn-up" class="shift-btn">
-            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#04121c" stroke-width="2.4" stroke-linecap="round" /></svg>
+      <div id="card-host" data-layout-allow-overflow>
+        <div id="card">
+          <div id="card-label" data-layout-ignore><i></i><span id="card-trainer" data-var-text="trainer">Smart Trainer</span></div>
+          <svg id="dt" data-layout-allow-overflow data-layout-ignore></svg>
+          <div id="gear-col">
+            <div id="btn-down" class="shift-btn">
+              <svg viewBox="0 0 24 24"><path d="M5 12h14" stroke="#fff" stroke-width="2.2" stroke-linecap="round" /></svg>
+            </div>
+            <div id="gear-readout">
+              <div id="gear-number" class="roll"><span>12</span><span>12</span></div>
+              <div id="gear-of" data-var-text="ofMax" data-layout-ignore>of 24</div>
+            </div>
+            <div id="btn-up" class="shift-btn">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#04121c" stroke-width="2.4" stroke-linecap="round" /></svg>
+            </div>
           </div>
         </div>
       </div>
@@ -219,11 +303,15 @@ Shift from your handlebars.</p>
         if (vars.ofMax) document.getElementById("gear-of").textContent = vars.ofMax;
         if (vars.trainer) document.getElementById("card-trainer").textContent = vars.trainer;
 
-        // Longer languages shrink the headline until it fits four lines.
+        // The headline takes the largest size that fits its box in every language.
+        const box = document.getElementById("headline-box");
         const headline = document.getElementById("headline");
-        let size = 112;
-        while (headline.getBoundingClientRect().height > size * 0.96 * 4 + 2 && size > 60) {
-          size *= 0.97;
+        const maxH = box.clientHeight;
+        const maxW = box.clientWidth;
+        let size = 176;
+        headline.style.fontSize = size + "px";
+        while ((headline.getBoundingClientRect().height > maxH || headline.scrollWidth > maxW) && size > 70) {
+          size *= 0.98;
           headline.style.fontSize = size + "px";
         }
 
@@ -268,15 +356,47 @@ Shift from your handlebars.</p>
           { at: 7.6, to: 12, btn: "#btn-down" },
         ];
 
+        // Readouts are pure functions of timeline time, so any seek (and the
+        // loop seam) shows the right digits in the right place.
+        const ROLL = 0.42;
+        const rollEase = gsap.parseEase("power3.inOut");
+        const rollers = ["isl-gear", "gear-number"].map((id) => {
+          const el = document.getElementById(id);
+          return { out: el.children[0], in: el.children[1], h: el.clientHeight };
+        });
+        const badge = document.getElementById("isl-badge");
+
         const tl = gsap.timeline({ paused: true });
-        const number = document.getElementById("gear-number");
-        // The readout is a function of timeline time, so any seek shows the right gear.
         const paint = () => {
           dt.render();
           const t = tl.time();
-          let gear = 12;
-          for (const sh of shifts) if (t >= sh.at) gear = sh.to;
-          number.textContent = String(gear);
+          let from = 12;
+          let to = 12;
+          let since = Infinity;
+          let prev = 12;
+          for (const sh of shifts) {
+            if (t >= sh.at) {
+              from = prev;
+              to = sh.to;
+              since = t - sh.at;
+            }
+            prev = sh.to;
+          }
+          const p = Math.min(1, since / ROLL);
+          const e = rollEase(p);
+          const dir = to > from ? 1 : to < from ? -1 : 0;
+          for (const r of rollers) {
+            r.out.textContent = String(from);
+            r.in.textContent = String(to);
+            // Up: digits roll upward (the new gear comes from below); down: the reverse.
+            r.out.style.transform = "translateY(" + (-dir * r.h * e).toFixed(2) + "px)";
+            r.out.style.opacity = dir === 0 ? 0 : (1 - e).toFixed(3);
+            r.in.style.transform = "translateY(" + (dir * r.h * (1 - e)).toFixed(2) + "px)";
+            r.in.style.opacity = dir === 0 ? 1 : e.toFixed(3);
+          }
+          // The badge answers each press with a short pulse.
+          const k = since < 0.4 ? Math.sin((since / 0.4) * Math.PI) : 0;
+          badge.style.transform = "scale(" + (1 + 0.14 * k).toFixed(4) + ")";
         };
 
         // Pedalling at a steady cadence. 2832.7 px of chain over the loop turns
@@ -307,11 +427,10 @@ Shift from your handlebars.</p>
           // The chain moves to the next cog, then the cog ripples where it lands.
           tl.fromTo(s, { rRear: G.rearRadius(from, 24) }, { rRear: G.rearRadius(sh.to, 24), duration: 0.42, ease: "power3.out", immediateRender: false, onUpdate: paint }, sh.at);
           tl.fromTo(s, { pulse: 0 }, { pulse: 1, duration: 0.5, ease: "none", immediateRender: false, onUpdate: paint }, sh.at + 0.18);
-          // The readout steps with the shift.
-          tl.fromTo(number, { y: sh.to > from ? 14 : -14, opacity: 0.35 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, sh.at);
           from = sh.to;
         }
 
+        paint();
         window.__timelines["main"] = tl;
       })();
     </script>

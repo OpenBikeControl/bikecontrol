@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/sensor_definition.dart';
 import 'package:prop/emulators/definitions/zwift_click_definition.dart';
+import 'package:prop/prop.dart' show propPrefs;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -35,6 +36,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     core.settings.prefs = await SharedPreferences.getInstance();
+    propPrefs.initialize(core.settings.prefs);
     core.actionHandler = StubActions();
   });
 
@@ -98,5 +100,20 @@ void main() {
 
     expect(ftmsEmulator.isStarted.value, isFalse);
     expect(ftmsEmulator.composite.children, isNot(contains(clickDef)));
+  });
+
+  test('once unlocked, the Click leaves the bridge so Zwift sees our Ride again', () async {
+    core.settings.setTrainerApp(Zwift());
+    final click = ZwiftClickV2(BleDevice(deviceId: 'click-v2', name: 'Zwift Click'));
+    final def = _clickDefinition();
+    click.debugSetClickDef(def);
+    await ftmsEmulator.attachDefinition(def);
+    addTearDown(() => ftmsEmulator.composite.detach(def));
+    expect(ftmsEmulator.composite.children, contains(def));
+
+    click.isUnlocked.value = true;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(ftmsEmulator.composite.children, isNot(contains(def)));
   });
 }

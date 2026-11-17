@@ -22,7 +22,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
-import 'package:bike_control/widgets/changelog_dialog.dart';
+import 'package:bike_control/widgets/changelog/whats_new.dart';
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -300,10 +300,7 @@ Future<void> main() async {
         name: 'of2-whats-new-390x844-$b',
         size: phone,
         brightness: brightness,
-        build: (context) => ColoredBox(
-          color: Theme.of(context).colorScheme.background,
-          child: ChangelogDialog(releases: releases, currentVersion: '7.0.0'),
-        ),
+        build: (_) => WhatsNewPage(currentVersion: '7.0.0', sinceVersion: '6.5.0', releases: releases),
       );
     });
 
@@ -376,10 +373,7 @@ Future<void> main() async {
       name: 'of2-whats-new-1280x800-dark',
       size: desktop,
       brightness: Brightness.dark,
-      build: (context) => ColoredBox(
-        color: Theme.of(context).colorScheme.background,
-        child: ChangelogDialog(releases: releases, currentVersion: '7.0.0'),
-      ),
+      build: (_) => WhatsNewPage(currentVersion: '7.0.0', sinceVersion: '6.5.0', releases: releases),
     );
   });
 }

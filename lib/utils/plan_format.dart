@@ -20,6 +20,7 @@ String formatRelativeTime(AppLocalizations l10n, DateTime time, {DateTime? now})
 /// problem. Null when there is no date to state.
 String? subscriptionTermLine(AppLocalizations l10n, SubscriptionTerm term) {
   if (term.renewal == SubscriptionRenewal.billingIssue) return l10n.subscriptionBillingIssue;
+  if (term.isLifetime) return l10n.planProForeverLine;
   final until = term.until;
   if (until == null) return null;
   final date = formatPlanDate(until);

@@ -82,6 +82,28 @@ Future<void> main() async {
     expect(column, lessThanOrEqualTo(kOnboardingBodyMaxWidth));
   });
 
+  testWidgets('with a very large system text size the start button can still be reached', (tester) async {
+    // iOS accessibility text sizes blow the welcome copy up far past the
+    // screen height; the page must scroll instead of pushing the buttons off
+    // screen, or the rider is stuck on the welcome screen.
+    tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await core.settings.setOnboardingState(Settings.onboardingStatePending);
+    await pumpWizard(tester, const Size(375, 812));
+
+    expect(tester.takeException(), isNull, reason: 'the welcome page must not overflow');
+    final start = find.byType(PrimaryButton).last;
+    await tester.ensureVisible(start);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.getRect(start).bottom, lessThanOrEqualTo(812));
+
+    await tester.tap(start);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(OnboardingWelcome), findsNothing);
+    expect(find.byType(OnboardingAppTile), findsWidgets);
+  });
+
   testWidgets('"set up later" records completion so the wizard stops nagging', (tester) async {
     await core.settings.setOnboardingState(Settings.onboardingStatePending);
     await pumpWizard(tester, const Size(390, 800));

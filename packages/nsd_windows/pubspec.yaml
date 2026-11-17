@@ -1,0 +1,29 @@
+name: nsd_windows
+description: Flutter network service discovery plugin (Windows submodule - will be installed with the parent plugin).
+version: 3.0.1
+publish_to: none
+
+# Vendored from pub.dev nsd_windows 3.0.1. BikeControl changes:
+# - DNS browse/resolve/register callbacks run on threadpool threads. They now
+#   only copy their result and post it to a message window, so the context maps
+#   and the method channel are only touched on the platform thread.
+# - Lookups use find(): a browse that calls back after stopDiscovery crashed in
+#   discoveryContextMap.at() (std::out_of_range, Store crash reports 7.5.0).
+# - Stopped discoveries keep their context alive, nothing throws out of a DNS
+#   callback, and malformed names/null strings are ignored instead of crashing.
+repository: https://github.com/sebastianhaberey/nsd/tree/main/nsd_windows
+issue_tracker: https://github.com/sebastianhaberey/nsd/issues
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      windows:
+        pluginClass: NsdWindowsPluginCApi

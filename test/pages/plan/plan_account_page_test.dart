@@ -8,6 +8,7 @@ import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screens
 import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/models/subscription_term.dart';
 import 'package:bike_control/models/user_device.dart';
+import 'package:bike_control/pages/paywall.dart' show Paywall;
 import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/pages/subscriptions/email_login_form.dart';
 import 'package:bike_control/services/email_otp_auth_service.dart';
@@ -191,7 +192,7 @@ Future<void> main() async {
 
       expect(inKey('plan-summary', find.text(l.currentPlan)), findsOneWidget);
       expect(inKey('plan-summary', find.text(l.planOneTimePurchase)), findsOneWidget);
-      expect(inKey('plan-summary', find.text(l.planBaseUnlimitedCommands)), findsOneWidget);
+      expect(inKey('plan-summary', find.byKey(const ValueKey('plan-base-line'))), findsOneWidget);
       expect(inKey('plan-summary', find.text(l.goPro)), findsOneWidget);
       expect(inKey('plan-account', find.text(l.signInWithApple)), findsOneWidget);
       expect(inKey('plan-account', find.text(l.signInWithGoogle)), findsOneWidget);
@@ -235,35 +236,36 @@ Future<void> main() async {
       }
     });
 
-    testWidgets('Go Pro says why: what Pro adds on top of Base, above the button', (tester) async {
+    testWidgets('Base: the paywall\'s Base line, then Go Pro; what Pro adds is the paywall\'s to say', (tester) async {
       await pumpPage(tester);
 
-      final adds = find.byKey(const ValueKey('plan-pro-adds'));
-      expect(inKey('plan-summary', adds), findsOneWidget);
-      // BikeControl's own virtual shifting, the line Base buyers miss most.
-      expect(find.descendant(of: adds, matching: find.text(l.paywall_vsByBikeControl)), findsOneWidget);
-      expect(find.descendant(of: adds, matching: find.text(l.paywall_configure3ActionsPerButton)), findsOneWidget);
-      // Nothing Base already has.
-      expect(find.descendant(of: adds, matching: find.text(l.planBaseUnlimitedCommands)), findsNothing);
+      final line = inKey('plan-summary', find.byKey(const ValueKey('plan-base-line')));
+      expect(line, findsOneWidget);
       expect(
-        tester.getTopLeft(adds).dy,
+        tester.getTopLeft(line).dy,
         lessThan(tester.getTopLeft(inKey('plan-summary', find.text(l.goPro))).dy),
       );
+      // No second list of Pro features beside the paywall's.
+      expect(inKey('plan-summary', find.text(l.paywallFeelShiftTitle)), findsNothing);
+      expect(inKey('plan-summary', find.text(l.paywallFeelGesturesTitle)), findsNothing);
+      expect(find.byKey(const ValueKey('plan-see-plans')), findsNothing);
     });
 
-    testWidgets('on the trial: what Base includes and what Pro adds, above both buttons', (tester) async {
+    testWidgets('on the trial: one way to the plans, no lists; it opens the paywall', (tester) async {
       IAPManager.instance.isPurchased.value = false;
       await pumpPage(tester);
 
-      final base = find.byKey(const ValueKey('plan-base-includes'));
-      final adds = find.byKey(const ValueKey('plan-pro-adds'));
-      expect(inKey('plan-summary', base), findsOneWidget);
-      expect(find.descendant(of: base, matching: find.text(l.planBaseUnlimitedCommands)), findsOneWidget);
-      expect(inKey('plan-summary', adds), findsOneWidget);
-      expect(find.descendant(of: adds, matching: find.text(l.paywall_vsByBikeControl)), findsOneWidget);
-      final goPro = tester.getTopLeft(inKey('plan-summary', find.text(l.goPro))).dy;
-      expect(tester.getTopLeft(base).dy, lessThan(tester.getTopLeft(adds).dy));
-      expect(tester.getTopLeft(adds).dy, lessThan(goPro));
+      final seePlans = inKey('plan-summary', find.byKey(const ValueKey('plan-see-plans')));
+      expect(seePlans, findsOneWidget);
+      expect(find.descendant(of: seePlans, matching: find.text(l.planSeePlans)), findsOneWidget);
+      expect(inKey('plan-summary', find.text(l.goPro)), findsNothing);
+      expect(inKey('plan-summary', find.byKey(const ValueKey('plan-base-line'))), findsNothing);
+
+      await tester.ensureVisible(seePlans);
+      await tester.tap(seePlans);
+      await tester.pumpAndSettle();
+      expect(find.byType(Paywall), findsOneWidget);
+      expect(find.byKey(const ValueKey('paywall-base-card')), findsOneWidget);
     });
 
     testWidgets('names the picked trainer app on the shifting line, like the paywall', (tester) async {
@@ -275,8 +277,8 @@ Future<void> main() async {
       screenshotMode = false;
       core.settings.setTrainerApp(MyWhoosh());
       await pumpPage(tester);
-      expect(inKey('plan-summary', find.text(l.paywall_shiftInNamedApp('MyWhoosh'))), findsOneWidget);
-      expect(inKey('plan-summary', find.text(l.planBaseAppShifts)), findsNothing);
+      expect(inKey('plan-summary', find.text(l.paywallBaseTitleNamed('MyWhoosh'))), findsOneWidget);
+      expect(inKey('plan-summary', find.text(l.paywallBaseShiftNamed('MyWhoosh'))), findsOneWidget);
     });
 
     testWidgets('GitHub and Facebook wait behind "More options"', (tester) async {
@@ -367,7 +369,11 @@ Future<void> main() async {
     testWidgets('phone: a compact Manage link in the plan card, the full row under Purchases', (tester) async {
       var managed = 0;
       IAPManager.instance.setSubscriptionTermForTesting(
-        SubscriptionTerm(renewal: SubscriptionRenewal.renews, until: DateTime(2026, 11, 4), store: SubscriptionStore.appStore),
+        SubscriptionTerm(
+          renewal: SubscriptionRenewal.renews,
+          until: DateTime(2026, 11, 4),
+          store: SubscriptionStore.appStore,
+        ),
       );
       await signIn('apple');
       await pumpPage(tester, manageSubscription: () async => managed++);
@@ -472,8 +478,7 @@ Future<void> main() async {
       await pumpPage(
         tester,
         loadDevices: () async => [_device('ios_old', 'ios', name: 'iPhone 12')],
-        registerDevice: () async =>
-            throw const DeviceLimitReachedError(platform: 'ios', maxDevices: 1, devices: []),
+        registerDevice: () async => throw const DeviceLimitReachedError(platform: 'ios', maxDevices: 1, devices: []),
       );
 
       await tester.tap(find.byKey(const ValueKey('plan-register-device')));

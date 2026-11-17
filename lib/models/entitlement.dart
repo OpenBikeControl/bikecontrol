@@ -13,13 +13,32 @@ class Entitlement {
 
   bool get isActive => isActiveAt(DateTime.now());
 
+  /// RevenueCat stores a promotional grant under `rc_promo_<entitlement>_<duration>`.
+  static const String _promoPrefix = 'rc_promo_';
+
+  /// The one-time Pro purchase, same id on every store and Stripe.
+  static const String proLifetimeProductKey = 'pro_lifetime';
+
+  /// Whether a row with [productKey] unlocks Pro: a monthly or yearly
+  /// subscription, the one-time [proLifetimeProductKey], or a promotional Pro
+  /// grant from RevenueCat (`rc_promo_pro_weekly`, `rc_promo_pro_lifetime`, ...).
+  static bool isProProductKey(String productKey) =>
+      productKey == 'premium_monthly' ||
+      productKey == 'premium_yearly' ||
+      productKey == proLifetimeProductKey ||
+      productKey.startsWith('${_promoPrefix}pro_');
+
+  bool get isPro => isProProductKey(productKey);
+
   /// Store and Stripe rows are kept current by webhooks, and their
   /// `activeUntil` can lag a renewal, so only their status counts. Nothing
-  /// flips a manual grant's status, so it ends at its `activeUntil`.
+  /// flips a manual grant's status, so it ends at its `activeUntil`; a
+  /// promotional grant never renews, so it ends there too.
   bool isActiveAt(DateTime now) {
     if (status != 'active') return false; // || status == 'grace';
     final until = activeUntil;
-    if (source == 'manual' && until != null && !until.isAfter(now)) return false;
+    final endsAtActiveUntil = source == 'manual' || productKey.startsWith(_promoPrefix);
+    if (endsAtActiveUntil && until != null && !until.isAfter(now)) return false;
     return true;
   }
 

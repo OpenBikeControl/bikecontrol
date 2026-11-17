@@ -19,7 +19,7 @@ import 'widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  const locales = ['en'];
+  const locales = ['en', 'de'];
 
   Widget sheet(Widget body) => Card(
         child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16), child: body),
@@ -31,6 +31,7 @@ Future<void> main() async {
     bool channels = false,
     bool canRestore = false,
     bool warning = false,
+    bool etubeGuide = false,
   }) =>
       Card(
         child: shimanoSetupPanel(
@@ -44,6 +45,7 @@ Future<void> main() async {
           onTurnOff: () {},
           onSwitchToChannels: () {},
           onDismissWarning: () {},
+          onShowEtubeGuide: etubeGuide ? () {} : null,
         ),
       );
 
@@ -142,6 +144,30 @@ Future<void> main() async {
     'di2_14_panel_button_mode_warning': (380, true, (c) => panel(c, buttonMode: true, warning: true)),
     'di2_15_panel_button_mode': (380, true, (c) => panel(c, buttonMode: true)),
     'di2_16_panel_dfly_from_etube': (380, true, (c) => panel(c, channels: true)),
+    'di2_18_choose_mode_etube': (440, true, (c) => sheet(shimanoModeChoiceBody(
+          c,
+          selected: ShimanoSetupMode.etube,
+          onSelect: (_) {},
+          onClose: () {},
+          onContinue: () {},
+        ))),
+    'di2_19_etube_guide_steps': (440, true, (c) => sheet(shimanoEtubeGuideBody(
+          c,
+          stage: ShimanoEtubeGuideStage.steps,
+          afterChooser: true,
+          onClose: () {},
+          onNext: () {},
+          onDone: () {},
+        ))),
+    'di2_20_etube_guide_check': (440, true, (c) => sheet(shimanoEtubeGuideBody(
+          c,
+          stage: ShimanoEtubeGuideStage.check,
+          afterChooser: true,
+          onClose: () {},
+          onNext: () {},
+          onDone: () {},
+        ))),
+    'di2_21_panel_dfly_from_etube_guide': (380, true, (c) => panel(c, channels: true, etubeGuide: true)),
     'di2_17_wake_your_di2': (440, false, (c) => channelsBody(c, ShimanoSetupStage.authorize)),
   };
 

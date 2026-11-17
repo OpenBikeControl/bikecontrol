@@ -370,6 +370,8 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
   /// Where the subscription can be managed from here, if anywhere.
   SubscriptionStore? get _manageTarget {
     if (!_iap.isProEnabled) return null;
+    // Bought once: there is no subscription to manage.
+    if (_iap.isProLifetime) return null;
     switch (_iap.purchaseChannel) {
       case PurchaseChannel.windowsDirect || PurchaseChannel.linuxDirect || PurchaseChannel.microsoftStore:
         return _hasBillingPortal ? SubscriptionStore.billingPortal : null;

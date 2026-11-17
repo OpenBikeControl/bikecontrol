@@ -376,6 +376,38 @@ class RevenueCatService {
     }
   }
 
+  /// The one-time Pro package (`pro_lifetime`) in any offering, or null
+  /// while no offering carries it. The paywall shows the "Pro forever" link
+  /// only once it does, so adding the package in RevenueCat switches it on.
+  static Package? proLifetimePackage(Offerings offerings) {
+    for (final offering in [offerings.all['pro'], offerings.all['proonly'], ...offerings.all.values]) {
+      for (final package in offering?.availablePackages ?? const <Package>[]) {
+        if (SubscriptionTerm.isLifetimeProduct(package.storeProduct.identifier)) return package;
+      }
+    }
+    return null;
+  }
+
+  /// Buy Pro once (`pro_lifetime`), straight from the store sheet.
+  Future<void> purchaseProLifetime() async {
+    final package = proLifetimePackage(await Purchases.getOfferings());
+    if (package == null) {
+      buildToast(title: AppLocalizations.current.subscriptionOfferingUnavailable);
+      return;
+    }
+    try {
+      final result = await Purchases.purchase(PurchaseParams.package(package));
+      core.connection.signalNotification(LogNotification('Purchase result: $result'));
+      await refreshEntitlementsWithRetry();
+    } on PlatformException catch (e, s) {
+      // A rider dismissing the store sheet is expected — never log or toast it.
+      if (PurchasesErrorHelper.getErrorCode(e) != PurchasesErrorCode.purchaseCancelledError) {
+        recordError(e, s, context: 'Purchasing Pro lifetime');
+        buildToast(title: e.message);
+      }
+    }
+  }
+
   /// Purchase the subscription (use paywall instead)
   Future<void> purchaseSubscription(
     BuildContext context, {
@@ -492,8 +524,7 @@ class RevenueCatService {
   static Map<String, dynamic>? syncSubscriptionsBody({required bool expectActive}) =>
       expectActive ? const {'expectActive': true} : null;
 
-  bool get _backendPro =>
-      entitlementsService.hasActive(premiumProductKeyMonthly) || entitlementsService.hasActive(premiumProductKeyYearly);
+  bool get _backendPro => entitlementsService.hasActivePro;
 
   /// Whether the backend must be told to re-read the store: signed into an
   /// account, RevenueCat says Pro, but the account's entitlements don't.

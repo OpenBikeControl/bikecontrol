@@ -1,3 +1,5 @@
+import 'dart:convert' show utf8;
+
 import 'package:bike_control/main.dart' show recordError, screenshotMode;
 import 'package:bike_control/models/changelog.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -5,35 +7,86 @@ import 'package:bike_control/widgets/changelog/changelog_view.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:intl/intl.dart' as intl;
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// Where the changelog comes from: the bundled CHANGELOG.md, and — so a rider
-/// on an older build still reads what the next one brings — the copy on the
-/// main branch, when it can be fetched.
+/// Where the changelog comes from: the bundled CHANGELOG.md, translated
+/// release by release from `changelog/<language>.md` where a translation exists,
+/// and — so a rider on an older build still reads what the next one brings —
+/// the copies on the main branch, when they can be fetched.
 abstract final class ChangelogSource {
   static const String asset = 'CHANGELOG.md';
   static const String onlineUrl =
       'https://raw.githubusercontent.com/OpenBikeControl/bikecontrol/refs/heads/main/CHANGELOG.md';
 
+  /// The languages with a translated changelog (`changelog/<language>.md`).
+  static const Set<String> translatedLanguages = {'de', 'es', 'fr', 'it', 'pl', 'zh'};
+
+  static String translatedAsset(String language) => 'changelog/$language.md';
+  static String translatedOnlineUrl(String language) =>
+      'https://raw.githubusercontent.com/OpenBikeControl/bikecontrol/refs/heads/main/changelog/$language.md';
+
   /// Stands in for the bundled file (and turns the online copy off) in tests.
   @visibleForTesting
   static Future<String> Function()? debugBundled;
 
-  static Future<List<ChangelogRelease>> bundled() async =>
-      parseChangelog(await (debugBundled?.call() ?? rootBundle.loadString(asset)));
+  /// Stands in for a bundled translation in tests; null means none.
+  @visibleForTesting
+  static Future<String?> Function(String language)? debugTranslated;
+
+  /// The app's current language ("de" for de_DE).
+  static String currentLanguage() => intl.Intl.getCurrentLocale().split(RegExp('[_-]')).first.toLowerCase();
+
+  /// Apple builds leave out entries about other platforms (Apple rejects
+  /// them). Overridable in tests.
+  @visibleForTesting
+  static bool Function() debugIsApple = () =>
+      defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS;
+
+  static List<ChangelogRelease> _forPlatform(List<ChangelogRelease> releases) =>
+      debugIsApple() ? withoutOtherPlatforms(releases) : releases;
+
+  static Future<List<ChangelogRelease>> bundled({String? language}) async =>
+      _forPlatform(await _bundled(language: language));
+
+  static Future<List<ChangelogRelease>> _bundled({String? language}) async {
+    final english = parseChangelog(await (debugBundled?.call() ?? rootBundle.loadString(asset)));
+    final lang = language ?? currentLanguage();
+    if (!translatedLanguages.contains(lang)) return english;
+    try {
+      final text = debugBundled != null
+          ? await debugTranslated?.call(lang)
+          : await rootBundle.loadString(translatedAsset(lang));
+      return text == null ? english : localizeReleases(english, parseChangelog(text));
+    } catch (e, s) {
+      recordError(e, s, context: 'Changelog.bundled($lang)');
+      return english;
+    }
+  }
 
   /// Null when there is no online copy to be had (offline, tests, store
   /// renders).
-  static Future<List<ChangelogRelease>?> online() async {
+  static Future<List<ChangelogRelease>?> online({String? language}) async {
+    final releases = await _online(language: language);
+    return releases == null ? null : _forPlatform(releases);
+  }
+
+  static Future<List<ChangelogRelease>?> _online({String? language}) async {
     if (debugBundled != null || screenshotMode) return null;
     try {
       final response = await http.get(Uri.parse(onlineUrl));
       if (response.statusCode != 200) return null;
-      final releases = parseChangelog(response.body);
-      return releases.isEmpty ? null : releases;
+      final releases = parseChangelog(utf8.decode(response.bodyBytes));
+      if (releases.isEmpty) return null;
+      final lang = language ?? currentLanguage();
+      if (!translatedLanguages.contains(lang)) return releases;
+      final translated = await http.get(Uri.parse(translatedOnlineUrl(lang)));
+      if (translated.statusCode != 200) return releases;
+      return localizeReleases(releases, parseChangelog(utf8.decode(translated.bodyBytes)));
     } catch (e, s) {
       recordError(e, s, context: 'Changelog.online');
       return null;

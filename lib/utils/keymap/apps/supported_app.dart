@@ -127,6 +127,49 @@ abstract class SupportedApp {
   /// Whether the Zwift controller emulators present themselves as a Zwift Ride.
   bool get emulatesZwiftRide => false;
 
+  /// Whether this app unlocks a Zwift Click V2 or Ride V2 by itself once
+  /// BikeControl is connected to it, so the rider has no unlock mode to pick
+  /// and nothing to be told about unlocking.
+  bool get unlocksZwiftControllers => false;
+
+  /// Every in-game action this app can perform through the connection methods
+  /// it offers, whether or not the rider has switched them on yet. Null when
+  /// the app offers no in-game transport at all, so there is nothing to judge
+  /// a default by.
+  ///
+  /// Gates the hard-coded defaults [Keymap.addNewButtons] hands to buttons the
+  /// app's keymap doesn't cover: a Click V2's Z defaults to Zwift's Ride On
+  /// bomb, which MyWhoosh has no equivalent for.
+  Set<InGameAction>? get offeredInGameActions {
+    final actions = <InGameAction>{};
+    var known = false;
+    if (supports(AppConnectionMethod.myWhooshLink)) {
+      known = true;
+      actions.addAll(core.whooshLink.supportedActions);
+    }
+    if (supports(AppConnectionMethod.obpBle) ||
+        supports(AppConnectionMethod.obpMdns) ||
+        supports(AppConnectionMethod.obpDirCon)) {
+      known = true;
+      final stored = core.settings.getObpSupportedButtons(name);
+      final buttons = stored != null && stored.isNotEmpty ? stored : defaultObpSupportedButtons;
+      actions.addAll(buttons.mapNotNull((b) => b.action));
+    }
+    // Raw controller actions: the emulators speak those, and an app's renamed
+    // ones (Rouvy's Pause on Z) resolve back to them. Each emulator counts with
+    // its own set — only Rouvy's network one delivers raw D-pad up/down.
+    final emulators = [
+      if (supports(AppConnectionMethod.zwiftBle)) core.zwiftEmulator,
+      if (supports(AppConnectionMethod.zwiftMdns)) core.zwiftMdnsEmulator,
+      if (supports(AppConnectionMethod.rouvyMdns)) core.rouvyMdnsEmulator,
+    ];
+    for (final emulator in emulators) {
+      known = true;
+      actions.addAll(emulator.supportedActions.where((a) => !unsupportedControllerActions.contains(a)));
+    }
+    return known ? actions : null;
+  }
+
   /// Zwift Ride controls this app has nothing for, so they are not offered.
   Set<InGameAction> get unsupportedControllerActions => emulatesZwiftRide ? const {} : rideOnlyActions;
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -20,6 +22,10 @@ enum ShimanoSetupMode {
   /// Nothing is changed: while BikeControl is connected the Di2 doesn't shift
   /// and every press arrives as a button. A dropped link shifts for real.
   buttons,
+
+  /// The rider assigns D-Fly channels in the E-TUBE app themselves, guided by
+  /// [showShimanoEtubeGuide]; BikeControl writes nothing to the Di2.
+  etube,
 }
 
 /// Asks how BikeControl should use the Di2 ([ShimanoSetupMode]) and hands the
@@ -108,6 +114,17 @@ Widget shimanoModeChoiceBody(
         noteIcon: LucideIcons.triangleAlert,
         noteColor: _shimanoWarning,
         onTap: () => onSelect(ShimanoSetupMode.buttons),
+      ),
+      const Gap(12),
+      _ShimanoModeOption(
+        selected: selected == ShimanoSetupMode.etube,
+        icon: LucideIcons.smartphone,
+        title: l.shimanoModeEtubeTitle,
+        body: l.shimanoModeEtubeBody,
+        note: l.shimanoModeEtubeNote,
+        noteIcon: LucideIcons.info,
+        noteColor: scheme.mutedForeground,
+        onTap: () => onSelect(ShimanoSetupMode.etube),
       ),
       const Gap(24),
       Row(
@@ -250,6 +267,257 @@ Widget _sheetFrame(BuildContext context, Widget body) => SafeArea(
       ),
     );
 
+/// The two pages of the E-TUBE guide: the steps in the app, then the check
+/// that a press arrives.
+enum ShimanoEtubeGuideStage { steps, check }
+
+/// Walks the rider through assigning D-Fly channels in the E-TUBE app
+/// themselves. BikeControl writes nothing; [onDone] runs once the rider
+/// finished, after the sheet has closed. [afterChooser] numbers the steps
+/// after the mode choice.
+Future<void> showShimanoEtubeGuide(
+  BuildContext context, {
+  required VoidCallback onDone,
+  bool afterChooser = false,
+}) async {
+  var done = false;
+  await openSheet<void>(
+    context: context,
+    position: OverlayPosition.bottom,
+    barrierDismissible: false,
+    builder: (sheetContext) => _ShimanoEtubeGuide(afterChooser: afterChooser, onDone: () => done = true),
+  );
+  if (done) onDone();
+}
+
+class _ShimanoEtubeGuide extends StatefulWidget {
+  final bool afterChooser;
+  final VoidCallback onDone;
+  const _ShimanoEtubeGuide({required this.afterChooser, required this.onDone});
+
+  @override
+  State<_ShimanoEtubeGuide> createState() => _ShimanoEtubeGuideState();
+}
+
+class _ShimanoEtubeGuideState extends State<_ShimanoEtubeGuide> {
+  var _stage = ShimanoEtubeGuideStage.steps;
+
+  @override
+  Widget build(BuildContext context) => _sheetFrame(
+        context,
+        shimanoEtubeGuideBody(
+          context,
+          stage: _stage,
+          afterChooser: widget.afterChooser,
+          onClose: () => closeSheet(context),
+          onNext: () => setState(() => _stage = ShimanoEtubeGuideStage.check),
+          onDone: () {
+            widget.onDone();
+            closeSheet(context);
+          },
+        ),
+      );
+}
+
+/// The E-TUBE guide's content. Shared by the live sheet and the snapshot
+/// harness so what tests capture is exactly what ships.
+Widget shimanoEtubeGuideBody(
+  BuildContext context, {
+  required ShimanoEtubeGuideStage stage,
+  required VoidCallback onClose,
+  required VoidCallback onNext,
+  required VoidCallback onDone,
+  bool afterChooser = false,
+}) {
+  final scheme = Theme.of(context).colorScheme;
+  final l = context.i18n;
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  final reduceMotion = MediaQuery.of(context).disableAnimations;
+  final steps = stage == ShimanoEtubeGuideStage.steps;
+  final step = steps ? 1 : 2;
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Gap(18),
+      afterChooser ? StepRail(step: step + 1, count: 3) : StepRail(step: step),
+      const Gap(18),
+      StageBadge(
+        icon: steps ? LucideIcons.smartphone : LucideIcons.hand,
+        tone: steps ? scheme.primary : _shimanoBlue,
+        wash: steps ? scheme.primary.withValues(alpha: 0.1) : (dark ? const Color(0x1A2563EB) : _shimanoBlueWash),
+        reduceMotion: reduceMotion,
+      ),
+      const Gap(16),
+      Text(
+        steps ? l.shimanoEtubeGuideTitle : l.shimanoEtubeCheckTitle,
+        style: context.typography.xLarge.copyWith(fontWeight: FontWeight.w700),
+      ),
+      const Gap(8),
+      Text(
+        steps ? l.shimanoEtubeGuideIntro : l.shimanoEtubeCheckBody,
+        style: context.typography.small.copyWith(height: 1.5, color: scheme.mutedForeground),
+      ),
+      const Gap(20),
+      if (steps) ...[
+        _EtubeStep(number: 1, text: l.shimanoEtubeStepConnect),
+        const Gap(12),
+        _EtubeStep(number: 2, text: l.shimanoEtubeStepCustomize),
+        const Gap(12),
+        _EtubeStep(number: 3, text: l.shimanoEtubeStepAssign, child: const _EtubeChannelMap()),
+        const Gap(12),
+        _EtubeStep(number: 4, text: l.shimanoEtubeStepSave),
+        const Gap(16),
+        _EtubeNote(icon: LucideIcons.lightbulb, color: scheme.mutedForeground, text: l.shimanoEtubeHoodTip),
+        const Gap(8),
+        _EtubeNote(icon: LucideIcons.triangleAlert, color: _shimanoWarning, text: l.shimanoEtubeOutdoorWarning),
+      ] else
+        _EtubeNote(icon: LucideIcons.info, color: scheme.mutedForeground, text: l.shimanoEtubeCheckHint),
+      const Gap(24),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          GhostButton(onPressed: onClose, child: Text(l.cancel)),
+          const Gap(8),
+          if (steps)
+            PrimaryButton(
+              trailing: const Icon(LucideIcons.arrowRight, size: 16),
+              onPressed: onNext,
+              child: Text(l.shimanoEtubeDoneInApp),
+            )
+          else
+            PrimaryButton(onPressed: onDone, child: Text(l.done)),
+        ],
+      ),
+    ],
+  );
+}
+
+class _EtubeStep extends StatelessWidget {
+  final int number;
+  final String text;
+  final Widget? child;
+  const _EtubeStep({required this.number, required this.text, this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: scheme.primary.withValues(alpha: 0.12), shape: BoxShape.circle),
+          child: Text(
+            '$number',
+            style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w700, color: scheme.primary),
+          ),
+        ),
+        const Gap(12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Text(text, style: context.typography.small.copyWith(height: 1.45)),
+              ),
+              if (child != null) ...[const Gap(10), child!],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Which paddle gets which channel: the mapping BikeControl's default actions
+/// expect ([ShimanoDi2Buttons.channelActions]).
+class _EtubeChannelMap extends StatelessWidget {
+  const _EtubeChannelMap();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final l = context.i18n;
+    Widget side(String title, List<(String, String)> rows) => Expanded(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            decoration: BoxDecoration(
+              color: scheme.muted.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: scheme.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: context.typography.xSmall.copyWith(fontWeight: FontWeight.w700, color: scheme.mutedForeground),
+                ),
+                const Gap(6),
+                for (final (paddle, channel) in rows)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(paddle, style: context.typography.xSmall.copyWith(height: 1.3))),
+                        const Gap(6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: ShapeDecoration(color: _shimanoChipDark, shape: const StadiumBorder()),
+                          child: Text(
+                            channel,
+                            style: context.typography.xSmall.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: _shimanoWhite,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        side(l.shimanoShifterLeft, [(l.shimanoEtubeShiftButton, 'Ch1'), (l.shimanoEtubeShiftLever, 'Ch2')]),
+        const Gap(10),
+        side(l.shimanoShifterRight, [(l.shimanoEtubeShiftButton, 'Ch3'), (l.shimanoEtubeShiftLever, 'Ch4')]),
+      ],
+    );
+  }
+}
+
+class _EtubeNote extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String text;
+  const _EtubeNote({required this.icon, required this.color, required this.text});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(padding: const EdgeInsets.only(top: 2), child: Icon(icon, size: 14, color: color)),
+          const Gap(6),
+          Expanded(
+            child: Text(
+              text,
+              style: context.typography.xSmall.copyWith(height: 1.4, fontWeight: FontWeight.w600, color: color),
+            ),
+          ),
+        ],
+      );
+}
+
 /// Opens the staged setup sheet (authenticate → [operation]). [operation]
 /// runs with [initialPasskey] first and asks for the rider's own passkey only
 /// after the Di2 rejected it; the device supplies the error classifiers.
@@ -271,6 +539,7 @@ Future<void> showShimanoSetup(
   required bool Function(Object error) isPasskeyRejected,
   required bool Function(Object error) isPairingRequired,
   bool Function(Object error)? isWiredShifters,
+  bool Function(Object error)? isRejected,
   VoidCallback? onUseButtonMode,
   ValueListenable<ShimanoShifterAsk?>? shifters,
   VoidCallback? onCancelShifters,
@@ -295,6 +564,7 @@ Future<void> showShimanoSetup(
       isPasskeyRejected: isPasskeyRejected,
       isPairingRequired: isPairingRequired,
       isWiredShifters: isWiredShifters,
+      isRejected: isRejected,
       onUseButtonMode: onUseButtonMode,
       shifters: shifters,
       onCancelShifters: onCancelShifters,
@@ -310,7 +580,8 @@ Future<void> showShimanoSetup(
 ///
 /// - nothing set up: what this is + "Use Di2 buttons" (opens the mode choice)
 /// - E-TUBE channels: active status + restore (when BikeControl changed the
-///   switches) + change setup
+///   switches) or the E-TUBE steps again (when the rider set them) + change
+///   setup
 /// - button mode: active status + a one-time warning that a dropped link
 ///   shifts for real + turn off
 Widget shimanoSetupPanel(
@@ -324,6 +595,7 @@ Widget shimanoSetupPanel(
   required VoidCallback onTurnOff,
   required VoidCallback onSwitchToChannels,
   required VoidCallback onDismissWarning,
+  VoidCallback? onShowEtubeGuide,
 }) {
   final scheme = Theme.of(context).colorScheme;
   final l = context.i18n;
@@ -421,6 +693,16 @@ Widget shimanoSetupPanel(
           Text(l.shimanoDflyActive, style: context.typography.small.copyWith(height: 1.4, color: scheme.mutedForeground)),
         const Gap(12),
         if (canRestore) ...[restore, const Gap(8)],
+        if (!canRestore && onShowEtubeGuide != null) ...[
+          wide(
+            SecondaryButton(
+              leading: const Icon(LucideIcons.smartphone, size: 16),
+              onPressed: onShowEtubeGuide,
+              child: Text(l.shimanoEtubeShowSteps),
+            ),
+          ),
+          const Gap(8),
+        ],
         wide(
           SecondaryButton(
             leading: const Icon(LucideIcons.slidersHorizontal, size: 16),
@@ -597,7 +879,7 @@ class _ShifterPill extends StatelessWidget {
 /// the "wake the Di2 / press a shifter button" prompt shown on failure, and
 /// [passkey] asks again after the Di2 rejected the passkey. [pair] (Windows)
 /// asks the rider to pair the Di2 in Windows Settings.
-enum ShimanoSetupStage { confirm, running, authorize, passkey, pair, wired, success, error }
+enum ShimanoSetupStage { confirm, running, authorize, passkey, pair, wired, rejected, success, error }
 
 // ── Di2 setup/restore palette ───────────────────────────────────────────────
 const Color shimanoSuccess = Color(0xFF22C55E);
@@ -639,6 +921,16 @@ class ShimanoGuidedSheet extends StatefulWidget {
   /// operation can't handle (→ offer [onUseButtonMode]).
   final bool Function(Object error)? isWiredShifters;
 
+  /// Whether a thrown error means a shifter turned the new setting down, which
+  /// trying again won't change (→ set the channels in E-TUBE, or
+  /// [onUseButtonMode]). Set, the step that saves the setting on the shifters
+  /// also offers the E-TUBE app once it takes [etubeOfferDelay], and any
+  /// failure there ends on it too.
+  final bool Function(Object error)? isRejected;
+
+  /// How long the saving step runs before it offers the E-TUBE app.
+  final Duration etubeOfferDelay;
+
   /// Set up button mode instead (offered for wired shifters); the sheet
   /// closes first.
   final VoidCallback? onUseButtonMode;
@@ -671,11 +963,13 @@ class ShimanoGuidedSheet extends StatefulWidget {
     required this.isPasskeyRejected,
     required this.isPairingRequired,
     this.isWiredShifters,
+    this.isRejected,
     this.onUseButtonMode,
     this.onUseDfly,
     this.shifters,
     this.onCancelShifters,
     this.afterChooser = false,
+    this.etubeOfferDelay = const Duration(seconds: 10),
   });
 
   @override
@@ -686,13 +980,46 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
   var _stage = ShimanoSetupStage.confirm;
   late final _passkey = TextEditingController(text: widget.initialPasskey);
 
+  /// This attempt reached the step that saves the setting on the shifters.
+  bool _saving = false;
+
+  /// That step took long enough to offer the E-TUBE app instead.
+  bool _offerEtube = false;
+  Timer? _etubeTimer;
+
+  bool get _etubeFallback => widget.isRejected != null && widget.onCancelShifters != null;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.shifters?.addListener(_onShifters);
+  }
+
   @override
   void dispose() {
+    widget.shifters?.removeListener(_onShifters);
+    _etubeTimer?.cancel();
     _passkey.dispose();
     super.dispose();
   }
 
+  void _onShifters() {
+    if (_saving || !(widget.shifters?.value?.saving ?? false)) return;
+    _saving = true;
+    if (!_etubeFallback) return;
+    _etubeTimer = Timer(widget.etubeOfferDelay, () {
+      if (mounted && _stage == ShimanoSetupStage.running) setState(() => _offerEtube = true);
+    });
+  }
+
+  /// Give up on the saving step: the setup stops, the failure that follows
+  /// ends on the E-TUBE app.
+  void _useEtube() => widget.onCancelShifters!();
+
   Future<void> _attempt() async {
+    _etubeTimer?.cancel();
+    _saving = false;
+    _offerEtube = false;
     setState(() => _stage = ShimanoSetupStage.running);
     try {
       await widget.operation(_passkey.text.trim());
@@ -701,14 +1028,22 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
     } catch (e) {
       // The operation already logged the failure; here we only pick what to
       // tell the rider.
+      _etubeTimer?.cancel();
       if (!mounted) return;
       setState(() {
-        _stage = widget.isPasskeyRejected(e)
+        _offerEtube = false;
+        // Past the passkey and the reading of the shifters, whatever stops the
+        // saving step won't go better on a retry.
+        _stage = _saving && _etubeFallback
+            ? ShimanoSetupStage.rejected
+            : widget.isPasskeyRejected(e)
             ? ShimanoSetupStage.passkey
             : widget.isPairingRequired(e)
             ? ShimanoSetupStage.pair
             : widget.isWiredShifters?.call(e) ?? false
             ? ShimanoSetupStage.wired
+            : widget.isRejected?.call(e) ?? false
+            ? ShimanoSetupStage.rejected
             : widget.isUnresponsive(e)
                 ? ShimanoSetupStage.authorize
                 : ShimanoSetupStage.error;
@@ -737,6 +1072,7 @@ class _ShimanoGuidedSheetState extends State<ShimanoGuidedSheet> {
                 closeSheet(context);
               },
         afterChooser: widget.afterChooser,
+        onUseEtube: _offerEtube ? _useEtube : null,
         onUseButtonMode: widget.onUseButtonMode == null
             ? null
             : () {
@@ -782,6 +1118,7 @@ Widget shimanoGuidedBody(
   VoidCallback? onUseButtonMode,
   ShimanoShifterAsk? shifterAsk,
   VoidCallback? onCancelShifters,
+  VoidCallback? onUseEtube,
   bool afterChooser = false,
   int runningStep = 0,
   bool checklistAutoAdvance = true,
@@ -854,6 +1191,19 @@ Widget shimanoGuidedBody(
                 Text(
                   l.shimanoOneShifterHint,
                   style: context.typography.small.copyWith(color: scheme.mutedForeground),
+                ),
+              ],
+            )
+          : shifterAsk.saving && onUseEtube != null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                prompt,
+                const Gap(10),
+                SecondaryButton(
+                  leading: const Icon(LucideIcons.externalLink, size: 16),
+                  onPressed: onUseEtube,
+                  child: Text(l.shimanoUseEtubeInstead),
                 ),
               ],
             )
@@ -932,12 +1282,13 @@ Widget shimanoGuidedBody(
           child: Text(l.retry),
         ),
       ];
-    case ShimanoSetupStage.wired:
-      icon = LucideIcons.cable;
+    case ShimanoSetupStage.wired || ShimanoSetupStage.rejected:
+      final wired = stage == ShimanoSetupStage.wired;
+      icon = wired ? LucideIcons.cable : LucideIcons.circleSlash;
       tone = _shimanoWarning;
       wash = dark ? const Color(0x1AF59E0B) : _shimanoWarningWash;
-      heading = l.shimanoWiredTitle;
-      body = l.shimanoWiredBody;
+      heading = wired ? l.shimanoWiredTitle : l.shimanoRejectedTitle;
+      body = wired ? l.shimanoWiredBody : l.shimanoRejectedBody;
       stepIndex = null;
       // Trying again can't work: the way on is the D-Fly channels set in
       // E-TUBE (both levers) or button mode.

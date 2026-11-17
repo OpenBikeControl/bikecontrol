@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart' show trainerAppUnlocksZwiftControllers;
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
@@ -8,6 +9,18 @@ import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:prop/devices/click_logic.dart';
 import 'package:prop/prop.dart' show LogLevel;
+
+/// The three ways a Click V2 can be set up.
+enum ClickV2UnlockChoice {
+  /// The right puck alone. Nothing to unlock, nothing restarts.
+  rightSideOnly,
+
+  /// Both pucks without Zwift; the left one restarts about once a minute.
+  bothWithLeftRestarts,
+
+  /// Both pucks, unlocked through the Zwift app every 24 hours.
+  unlockWithZwift,
+}
 
 /// Policy for the one-time Zwift Click V2 unlock-mode onboarding.
 ///
@@ -37,8 +50,20 @@ abstract final class ClickV2Onboarding {
     // deliberate past choice. Those riders are already settled — don't
     // re-onboard them.
     if (core.settings.getUnlockWithZwift()) return false;
+    // Zwift and Rouvy unlock the controller themselves: there is no choice to make.
+    if (trainerAppUnlocks) return false;
     return true;
   }
+
+  /// Whether the selected trainer app unlocks the Click V2 itself once
+  /// BikeControl is connected to it (Zwift, Rouvy).
+  static bool get trainerAppUnlocks => trainerAppUnlocksZwiftControllers();
+
+  /// Whether the Click V2 is unlocked by Zwift rather than restarted: chosen
+  /// by the rider, or implied by a trainer app that unlocks it itself. A rider
+  /// who picked right-side-only keeps that; the left side is ignored there.
+  static bool get unlocksWithZwift =>
+      core.settings.getUnlockWithZwift() || (trainerAppUnlocks && !core.settings.getClickV2RightSideOnly());
 
   /// Every discovered Click V2 side that is currently disconnected — both
   /// split sides and the legacy unified representation.
@@ -237,6 +262,48 @@ abstract final class ClickV2Onboarding {
       return;
     }
     await _connectPending();
+  }
+
+  /// Both pucks without Zwift: the right one as in [chooseRightSideOnly], plus
+  /// the left one kept usable by restarting it about once a minute (ClickLogic
+  /// sends it a RESET before Zwift's lock kicks in). Each restart takes the
+  /// left puck offline for a second or two, and presses on it in that window
+  /// are lost — the explainer says so before the rider picks this.
+  ///
+  /// Needs the split representation: only [ZwiftClickV2LeftSide] runs the
+  /// restart loop; the legacy unified controller does not.
+  static Future<void> chooseBothWithLeftRestarts() async {
+    await core.settings.setUnlockWithZwift(false);
+    await core.settings.setClickV2RightSideOnly(false);
+    // A fresh start for the restart loop: whatever was armed belongs to the
+    // previous mode. The left puck re-arms it on its next handshake.
+    ClickLogic.resetTimer();
+    final wasSplit = core.settings.getUseNewUnlockMethod();
+    if (!wasSplit) await core.settings.setUseNewUnlockMethod(true);
+    await _complete();
+    // Right-side-only may have put the left puck on the ignored list.
+    await restoreLeftSides();
+    if (!wasSplit) {
+      // Same rebuild as in [chooseRightSideOnly]: the unified controller has
+      // to be dropped so the scan rebuilds it as split left/right instances.
+      for (final device in pendingDevices) {
+        await core.connection.disconnect(device, forget: false, persistForget: false);
+      }
+      await core.connection.stop();
+      await core.connection.performScanning();
+      return;
+    }
+    await _connectPending();
+  }
+
+  /// Which of the three modes is set, or null while the rider has not chosen
+  /// yet. Lets the explainer reopen on the current choice.
+  static ClickV2UnlockChoice? get currentChoice {
+    if (!core.settings.isInitialized) return null;
+    if (core.settings.getUnlockWithZwift()) return ClickV2UnlockChoice.unlockWithZwift;
+    if (!core.settings.getClickV2OnboardingDone()) return null;
+    if (core.settings.getClickV2RightSideOnly()) return ClickV2UnlockChoice.rightSideOnly;
+    return ClickV2UnlockChoice.bothWithLeftRestarts;
   }
 
   static Future<void> _complete() async {

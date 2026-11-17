@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/ble.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/app_info_reassembler.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_gear.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
@@ -27,7 +28,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 class OpenBikeControlBluetoothEmulator extends TrainerConnection
     with PeripheralAdvertisingRecovery
-    implements SteeringAngleSink {
+    implements SteeringAngleSink, GearStateSink {
   final PeripheralServer _server;
   @override
   final ValueNotifier<AppInfo?> connectedApp = ValueNotifier<AppInfo?>(null);
@@ -160,7 +161,10 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
         ),
       );
 
-      // OpenBikeControl Service
+      // OpenBikeControl Service. Protected: the Bluetooth trainer bridge
+      // shares this peripheral and would otherwise wipe it when it starts or
+      // stops, leaving the trainer app with no button characteristic.
+      SharedPeripheral.protectServices([OpenBikeControlConstants.SERVICE_UUID]);
       await _server.addService(
         BlePeripheralService(
           uuid: OpenBikeControlConstants.SERVICE_UUID,
@@ -235,13 +239,24 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
     if (kDebugMode) {
       print('Stopping OpenBikeControl BLE server...');
     }
-    await _server.clearServices();
+    // Only our own services: the trainer bridge may be serving from the same
+    // peripheral.
+    SharedPeripheral.unprotectServices([OpenBikeControlConstants.SERVICE_UUID]);
+    for (final service in _ownServiceUuids) {
+      await _server.removeService(service);
+    }
     _isServiceAdded = false;
     await _server.stopAdvertising();
     isStarted.value = false;
     isConnected.value = false;
     connectedApp.value = null;
   }
+
+  List<String> get _ownServiceUuids => [
+    if (!Platform.isWindows) '180A',
+    '180F',
+    OpenBikeControlConstants.SERVICE_UUID,
+  ];
 
   BlePeripheralCharacteristic _immutableChar(String uuid, String value) => BlePeripheralCharacteristic(
     uuid: uuid,
@@ -338,6 +353,16 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
   Future<void> sendSteeringAngle(int value) => _server.notify(
     characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
     value: OpenBikeProtocolParser.encodeSteeringAngleState(value),
+    deviceId: _currentDeviceId,
+  );
+
+  @override
+  bool get canSendGearState => canSendSteeringAngle;
+
+  @override
+  Future<void> sendGearState(Uint8List message) => _server.notify(
+    characteristicId: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+    value: message,
     deviceId: _currentDeviceId,
   );
 

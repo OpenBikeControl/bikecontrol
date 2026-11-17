@@ -22,6 +22,11 @@ class Biketerra extends SupportedApp {
     (AppConnectionMethod.zwiftBle, ConnectionSupport.beta),
   ];
 
+  /// Biketerra pairs trainers over Bluetooth only — it has no WiFi (DirCon)
+  /// trainer connection, so the WiFi bridge is never offered.
+  @override
+  Set<TrainerConnectionType> get virtualShiftingTransports => const {TrainerConnectionType.bluetooth};
+
   @override
   String? get logoAsset => 'assets/biketerra.png';
 
@@ -33,6 +38,8 @@ class Biketerra extends SupportedApp {
         name: 'Biketerra',
         packageName: "Biketerra",
         officialIntegration: true,
+        // Each pair keeps its button's in-game action: that is what goes out
+        // over OpenBikeControl. The keyboard keys are only the fallback.
         keymap: Keymap(
           keyPairs: [
             ...ControllerButton.values
@@ -42,6 +49,7 @@ class Biketerra extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.keyS,
                     logicalKey: LogicalKeyboardKey.keyS,
+                    inGameAction: b.action,
                   ),
                 ),
             ...ControllerButton.values
@@ -51,6 +59,7 @@ class Biketerra extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.keyW,
                     logicalKey: LogicalKeyboardKey.keyW,
+                    inGameAction: b.action,
                   ),
                 ),
             ...ControllerButton.values
@@ -60,6 +69,7 @@ class Biketerra extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.arrowRight,
                     logicalKey: LogicalKeyboardKey.arrowRight,
+                    inGameAction: b.action,
                   ),
                 ),
             ...ControllerButton.values
@@ -69,6 +79,7 @@ class Biketerra extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.arrowLeft,
                     logicalKey: LogicalKeyboardKey.arrowLeft,
+                    inGameAction: b.action,
                   ),
                 ),
 
@@ -79,6 +90,7 @@ class Biketerra extends SupportedApp {
                     buttons: [b],
                     physicalKey: PhysicalKeyboardKey.keyU,
                     logicalKey: LogicalKeyboardKey.keyU,
+                    inGameAction: b.action,
                   ),
                 ),
           ],

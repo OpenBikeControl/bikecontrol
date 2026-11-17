@@ -4,6 +4,7 @@ import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/home/chain_state.dart' show LinkStatus;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/vs_trial_copy.dart';
 import 'package:bike_control/widgets/home/ampel.dart' show AmpelStyle;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_brand_band.dart';
@@ -47,7 +48,10 @@ class VsTrialMeterSlot extends StatelessWidget {
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [Gap(gap), VsTrialMeter(compact: compact)],
+            children: [
+              Gap(gap),
+              VsTrialMeter(compact: compact),
+            ],
           );
         },
       ),
@@ -79,7 +83,7 @@ class VsTrialMeter extends StatelessWidget {
     final fraction = limit.inSeconds > 0 ? (remaining.inSeconds / limit.inSeconds).clamp(0.0, 1.0) : 0.0;
     final low = fraction <= 0.25;
     final status = BkStatusColors.of(context);
-    final remainingText = l10n.bridgeMinutesRemainingToday(minutes);
+    final remainingText = VsTrialCopy.current(l10n).minutesLeftToday(minutes);
     final remainingStyle = context.typography.xSmall.copyWith(
       // On the brand band (the plan cards) only white reads; the bar still
       // turns amber when the day's minutes run low.

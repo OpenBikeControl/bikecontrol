@@ -27,4 +27,10 @@ void main() {
     expect(app.logoUrl,
         'https://bikecontrol.app/images/partners/biketerra-icon.png');
   });
+
+  test('Biketerra takes a Virtual Shifting trainer over Bluetooth only', () {
+    // Biketerra has no WiFi (DirCon) trainer connection, so offering the WiFi
+    // bridge leaves the rider on a transport it never finds.
+    expect(biketerra().virtualShiftingTransports, {TrainerConnectionType.bluetooth});
+  });
 }

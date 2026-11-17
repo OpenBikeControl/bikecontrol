@@ -80,5 +80,18 @@ class OpenBikeControlTrainerApp extends SupportedApp {
       logo: 'zwotrainer.png',
       officialUrl: 'https://steffenr.github.io/zwo-trainer/',
     ),
+    OpenBikeControlTrainerApp(
+      name: 'Incyclist',
+      logo: 'incyclist.png',
+      officialUrl: 'https://incyclist.com',
+      mdns: true,
+      wifiTrainers: true,
+    ),
+    OpenBikeControlTrainerApp(
+      name: 'Tour du Pain',
+      logo: 'tour-du-pain.png',
+      officialUrl: 'https://tourdupain.app',
+    ),
+    OpenBikeControlTrainerApp(name: 'Rampida', logo: 'rampida.png', officialUrl: 'https://rampida.com'),
   ];
 }

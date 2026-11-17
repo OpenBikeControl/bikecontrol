@@ -125,20 +125,27 @@ jobs:
       - name: Extract latest changelog
         id: changelog
         run: |
-          chmod +x scripts/get_latest_changelog.sh scripts/truncate_release_notes.sh
+          chmod +x scripts/get_latest_changelog.sh scripts/get_play_notes.sh scripts/truncate_release_notes.sh
           mkdir -p whatsnew store_notes
-          ./scripts/get_latest_changelog.sh > /tmp/changelog.txt
           # Store limits are in characters: Play 500, App Store 4000. Truncate by
           # character (not byte) at a line/word boundary so nothing is cut mid-word.
-          ./scripts/truncate_release_notes.sh 500 < /tmp/changelog.txt > /tmp/whatsnew.txt
-          # Kept outside whatsnew/ so the Play upload doesn't pick it up.
-          ./scripts/truncate_release_notes.sh 4000 < /tmp/changelog.txt > store_notes/app_store_release_notes.txt
-          # Both stores keep showing the previous (stale) note for any locale we
-          # don't provide, so ship the same English note to every managed locale.
-          # Keep this list in sync with scripts/prepare_store_screenshots.sh
-          # (ANDROID_LOCALES); iOS locales are handled by the fastlane lane.
+          # Each locale gets its translation from changelog/<lang>.md; a missing
+          # translation falls back to English (the script warns).
+          # Play locales — keep in sync with scripts/prepare_store_screenshots.sh
+          # (ANDROID_LOCALES).
+          # Play gets the short text from changelog/play/<lang>.txt (500-char
+          # limit); without one for this version, the full notes, truncated.
           for loc in en-US de-DE fr-FR es-ES it-IT pl-PL; do
-            cp /tmp/whatsnew.txt "whatsnew/whatsnew-$loc"
+            ./scripts/get_play_notes.sh "${loc%%-*}" | ./scripts/truncate_release_notes.sh 500 > "whatsnew/whatsnew-$loc"
+          done
+          # App Store: one file per listing language; the fastlane lane maps each
+          # App Store locale (de-DE, es-MX, it, ...) to its language's file and
+          # uses en.txt for any other. Kept outside whatsnew/ so the Play upload
+          # doesn't pick them up.
+          mkdir -p store_notes/app_store
+          for lang in en de fr es it pl; do
+            # --apple: Apple rejects notes that mention other platforms.
+            ./scripts/get_latest_changelog.sh "$lang" --apple | ./scripts/truncate_release_notes.sh 4000 > "store_notes/app_store/$lang.txt"
           done
           # Marketing version (without the +build) for the App Store release-notes push.
           version=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
@@ -188,7 +195,7 @@ jobs:
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          RELEASE_NOTES_PATH: ${{ github.workspace }}/store_notes/app_store_release_notes.txt
+          RELEASE_NOTES_DIR: ${{ github.workspace }}/store_notes/app_store
           APP_STORE_VERSION: ${{ env.APP_STORE_VERSION }}
         run: bundle exec fastlane upload_release_notes_macos
 
@@ -201,7 +208,7 @@ jobs:
           xcrun altool --upload-app -f build/ios/ipa/swift_play.ipa -t ios --apiKey "$APPSTORE_API_KEY" --apiIssuer "$APPSTORE_API_ISSUER_ID";
 
       # altool ships the binary but can't set "What's New"; deliver pushes the
-      # English changelog to every managed App Store locale (see the fastlane
+      # translated changelog to every managed App Store locale (see the fastlane
       # lane). Best-effort so it can't break the binary release.
       - name: Push iOS App Store release notes (all locales)
         if: inputs.build_ios
@@ -210,7 +217,7 @@ jobs:
         env:
           APPSTORE_API_KEY: ${{ secrets.APPSTORE_API_KEY }}
           APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          RELEASE_NOTES_PATH: ${{ github.workspace }}/store_notes/app_store_release_notes.txt
+          RELEASE_NOTES_DIR: ${{ github.workspace }}/store_notes/app_store
           APP_STORE_VERSION: ${{ env.APP_STORE_VERSION }}
         run: bundle exec fastlane upload_release_notes
 

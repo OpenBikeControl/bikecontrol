@@ -1,3 +1,6 @@
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 // A Zwift Ride that reports firmware 1.3 or newer is a "Zwift Ride V2": Zwift
 // locks it to its own app, and it is unlocked the same way as a Click V2 —
 // through Zwift, for about 24 hours at a time.
@@ -104,6 +107,18 @@ void main() {
       expect((left as ZwiftUnlock).requiresZwiftUnlock, isTrue);
       await core.settings.setUnlockWithZwift(false);
       expect(left.requiresZwiftUnlock, isFalse);
+    });
+
+    test('neither does anything while Zwift or Rouvy unlocks it', () {
+      final ride = _ride('1.3.0');
+      final click = ZwiftClickV2(BleDevice(deviceId: 'c2', name: 'Zwift Click'));
+      for (final app in [Zwift(), Rouvy()]) {
+        core.settings.setTrainerApp(app);
+        expect(ride.requiresZwiftUnlock, isFalse, reason: app.name);
+        expect(click.requiresZwiftUnlock, isFalse, reason: app.name);
+      }
+      core.settings.setTrainerApp(MyWhoosh());
+      expect(ride.requiresZwiftUnlock, isTrue);
     });
 
     test('the Click V2 right puck and a Play on firmware 2 never do', () {

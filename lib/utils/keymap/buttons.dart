@@ -1,4 +1,5 @@
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
+import 'package:bike_control/bluetooth/devices/cycplus/cycplus_t7h.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_square.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
@@ -344,6 +345,7 @@ class ControllerButton {
     ...WahooKickrShiftButtons.values,
     ...StagesSmartBikeButtons.values,
     ...CycplusBc2Buttons.values,
+    ...CycplusT7hButtons.values,
     ...OnelapKeyButtons.values,
     ...WheeltopEdsButtons.values,
     ...ShimanoDi2Buttons.values,

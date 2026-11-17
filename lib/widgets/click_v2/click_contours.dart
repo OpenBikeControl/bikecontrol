@@ -41,7 +41,11 @@ class ClickContours extends StatefulWidget {
   /// where a sweeping padlock would be cramped and distracting.
   final bool animate;
 
-  const ClickContours({super.key, required this.page, this.animate = true});
+  /// Swaps page 1's padlock for a restart badge on the left puck: both pucks
+  /// in use without Zwift, the left one kept alive by restarting it.
+  final bool leftRestarts;
+
+  const ClickContours({super.key, required this.page, this.animate = true, this.leftRestarts = false});
 
   static const double _mutedOpacity = 0.15;
   static const double _mutedScale = 0.92;
@@ -172,11 +176,18 @@ class _ClickContoursState extends State<ClickContours> with SingleTickerProvider
               opacity: 1 - t,
               child: _FreeBadge(scale: k),
             ),
-            Opacity(
-              key: const ValueKey('click-contour-lock-badge'),
-              opacity: t,
-              child: _LockBadge(sweep: loopAnim, settle: t, scale: k),
-            ),
+            if (widget.leftRestarts)
+              Opacity(
+                key: const ValueKey('click-contour-restart-badge'),
+                opacity: t,
+                child: _RestartBadge(spin: loopAnim, scale: k),
+              )
+            else
+              Opacity(
+                key: const ValueKey('click-contour-lock-badge'),
+                opacity: t,
+                child: _LockBadge(sweep: loopAnim, settle: t, scale: k),
+              ),
           ],
         );
       },
@@ -209,6 +220,48 @@ class _FreeBadge extends StatelessWidget {
           border: Border.all(color: cs.border),
         ),
         child: Icon(LucideIcons.lockOpen, size: 12 * k, color: cs.primary),
+      ),
+    );
+  }
+}
+
+/// The restart mode's badge: a pill under the left puck whose arrows turn once
+/// per loop — the one badge that is meant to read as "this happens again and
+/// again". Static under reduced motion ([spin] null).
+class _RestartBadge extends StatelessWidget {
+  final Animation<double>? spin;
+  final double scale;
+
+  const _RestartBadge({required this.spin, required this.scale});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final k = scale;
+    final icon = Icon(LucideIcons.refreshCw, size: 12 * k, color: cs.primary);
+    return Align(
+      alignment: const Alignment(-0.55, 0.85),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 6 * k, vertical: 2 * k),
+        decoration: BoxDecoration(
+          color: cs.card,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: cs.border),
+        ),
+        child: spin == null
+            ? icon
+            : AnimatedBuilder(
+                animation: spin!,
+                // One eased turn in the first half of the loop, then a rest,
+                // so it reads as a deliberate restart rather than a spinner.
+                // Computed here instead of through a CurvedAnimation, which
+                // would add a listener to the loop on every rebuild.
+                builder: (context, child) => Transform.rotate(
+                  angle: Curves.easeInOutCubic.transform((spin!.value / 0.45).clamp(0.0, 1.0)) * 2 * math.pi,
+                  child: child,
+                ),
+                child: icon,
+              ),
       ),
     );
   }

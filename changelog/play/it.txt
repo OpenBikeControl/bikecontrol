@@ -1,0 +1,13 @@
+7.6.0
+Novità:
+• Incyclist, Tour du Pain e Rampida tramite OpenBikeControl
+• I comandi CYCPLUS T7 funzionano come controller
+• Le app OpenBikeControl vedono il tuo rapporto virtuale
+• Editor dei pulsanti più chiaro, raggruppato per azione
+• Di2: imposta i canali D-Fly in E-TUBE, con una guida
+• Zwift Click V2: controller destro senza sblocco
+
+Correzioni:
+• Nessun crash quando Android riavvia il servizio in background
+• «Chiudi ed esci» esce sempre
+• I rulli Elite non compaiono più due volte

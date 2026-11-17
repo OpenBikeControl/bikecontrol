@@ -491,12 +491,11 @@ packages:
     source: hosted
     version: "1.0.0"
   flutter_local_notifications_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flutter_local_notifications_windows
-      sha256: "6f43bdd03b171b7a90f22647506fea33e2bb12294b7c7c7a3d690e960a382945"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/flutter_local_notifications_windows"
+      relative: true
+    source: path
     version: "3.1.1"
   flutter_localizations:
     dependency: "direct main"
@@ -1323,12 +1322,11 @@ packages:
     source: hosted
     version: "2.2.0"
   nsd_windows:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: nsd_windows
-      sha256: "68b4a256b0be258dbbad0ae789f2e8838d0935a353dac86b17c14c1a05df4ecd"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/nsd_windows"
+      relative: true
+    source: path
     version: "3.0.1"
   package_config:
     dependency: transitive
@@ -1986,8 +1984,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: f0fcdd3bce85723868c0cc064cd427af50906de9
-      resolved-ref: f0fcdd3bce85723868c0cc064cd427af50906de9
+      ref: "14a8c73f88f50cb4196e5e55e682aa76b718b694"
+      resolved-ref: "14a8c73f88f50cb4196e5e55e682aa76b718b694"
       url: "https://github.com/jonasbark/universal_ble.git"
     source: git
     version: "3.1.0"

@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/app_connection_latch.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_gear.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_steering_angle.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
@@ -31,6 +32,7 @@ import 'package:bike_control/services/shift_feedback/gamepad_shift_haptics.dart'
 import 'package:bike_control/services/shift_feedback/shift_feedback_service.dart';
 import 'package:bike_control/services/shift_feedback/shift_haptics.dart';
 import 'package:bike_control/services/shift_feedback/sound_players/shift_sound_player_factory.dart';
+import 'package:bike_control/services/sensors/pedalling_simulation.dart';
 import 'package:bike_control/services/sensors/sensor_hub.dart';
 import 'package:bike_control/services/shifting_configs_controller.dart';
 import 'package:bike_control/services/workout/trainer_metrics.dart';
@@ -110,10 +112,22 @@ class Core {
     sinks: () => logic.connectedTrainerConnections.whereType<SteeringAngleSink>(),
     isAllowed: obcSteeringAngleAllowed,
   );
+
+  /// The bridged trainer's virtual gear, as connected OpenBikeControl apps get it.
+  late final obcBridgeGear = BridgeGearPosition(proxies: () => connection.proxyDevices);
+
+  /// Reports [obcBridgeGear] to connected OpenBikeControl apps as `0x03` Gear Set.
+  late final obcGear = ObcGearBroadcaster(
+    sinks: () => logic.connectedTrainerConnections.whereType<GearStateSink>(),
+    position: obcBridgeGear,
+  );
   late final remotePairing = RemotePairing();
   late final remoteKeyboardPairing = RemoteKeyboardPairing();
   late final emulation = EmulationManager();
   late final sensors = SensorHub();
+
+  /// Debug-only fake power/cadence/heart rate, started from the debug menu.
+  late final pedallingSimulation = PedallingSimulation(sensors);
 
   late final mediaKeyHandler = MediaKeyHandler();
 

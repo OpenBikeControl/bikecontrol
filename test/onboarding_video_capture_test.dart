@@ -434,20 +434,15 @@ class _ClickV2Take extends _ControllerTake {
     // Entering step 3 with a new Click V2 in range opens the explainer.
     await rec.tap(find.byType(PrimaryButton).last, 'Continue to controller', thenFrames: _clickV2OptionPageFrames);
     rec.sighting('click-v2-explainer', find.byType(ClickV2OnboardingPage));
-    expect(find.text(l10n.clickV2Onboarding_rightOnlyTitle), findsOneWidget);
-
-    // Both options, one page each, then the choice.
-    await rec.tap(find.byKey(const ValueKey('click-onboarding-swipe-hint-0')), 'Click V2 setup: next option',
-        thenFrames: _clickV2OptionPageFrames);
-    expect(find.text(l10n.clickV2Onboarding_zwiftTitle).hitTestable(), findsOneWidget);
-    await rec.tap(find.byKey(const ValueKey('click-onboarding-swipe-hint-1')), 'Click V2 setup: to the choice');
-    rec.sighting('click-v2-choice', find.text(l10n.clickV2Onboarding_decisionTitle));
-    expect(find.text(l10n.clickV2Onboarding_zwiftCta).hitTestable(), findsOneWidget,
-        reason: 'both options are offered side by side');
+    expect(find.text(l10n.clickV2Onboarding_noUnlockTitle), findsOneWidget);
+    expect(find.text(l10n.clickV2Onboarding_zwiftTitle), findsOneWidget, reason: 'both options are offered side by side');
     await rec.frames(_readFrames);
 
     // The option a rider finishes inside BikeControl: the right side alone.
-    await rec.tap(find.text(l10n.clickV2Onboarding_rightOnlyCta), 'Use the right side');
+    await rec.tap(find.byKey(const ValueKey('click-onboarding-option-no-unlock')), 'Skip the Zwift unlock',
+        thenFrames: _clickV2OptionPageFrames);
+    rec.sighting('click-v2-choice', find.text(l10n.clickV2Onboarding_rightOnlyCta));
+    await rec.tap(find.byKey(const ValueKey('click-onboarding-cta')), 'Use the right side');
     expect(find.byType(ClickV2OnboardingPage), findsNothing, reason: 'the explainer closes on a choice');
     expect(core.settings.getClickV2RightSideOnly(), isTrue);
     expect(right.isConnected, isTrue, reason: 'the right puck connects once chosen');

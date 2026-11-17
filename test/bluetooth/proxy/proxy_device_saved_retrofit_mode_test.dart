@@ -13,9 +13,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
-  Future<void> seed({String? target, String? savedMode}) async {
+  Future<void> seed({String? target, String? savedMode, String? trainerApp}) async {
     SharedPreferences.setMockInitialValues({
       if (target != null) 'last_target': target,
+      if (trainerApp != null) 'trainer_app': trainerApp,
       if (savedMode != null) 'retrofit_mode_KICKR CORE': savedMode,
     });
     core.settings.prefs = await SharedPreferences.getInstance();
@@ -52,5 +53,30 @@ void main() {
     await seed(target: 'thisDevice');
     // No trainer connection enabled → the smart-trainer default is VS over WiFi.
     expect(smartTrainer().savedRetrofitMode, RetrofitMode.wifi);
+  });
+
+  // Biketerra takes its trainer over Bluetooth only: a saved or default WiFi
+  // transport would start a bridge it never finds.
+  test('a saved WiFi transport becomes Bluetooth for a Bluetooth-only trainer app', () async {
+    await seed(target: 'otherDevice', savedMode: 'wifi', trainerApp: 'Biketerra');
+    expect(smartTrainer().savedRetrofitMode, RetrofitMode.bluetooth);
+  });
+
+  test('the WiFi default becomes Bluetooth for a Bluetooth-only trainer app', () async {
+    await seed(target: 'otherDevice', trainerApp: 'Biketerra');
+    expect(smartTrainer().savedRetrofitMode, RetrofitMode.bluetooth);
+  });
+
+  test('a saved Proxy becomes Bluetooth Virtual Shifting for a Bluetooth-only trainer app', () async {
+    // Proxy mirrors the trainer over WiFi only — just as unreachable.
+    await seed(target: 'otherDevice', savedMode: 'proxy', trainerApp: 'Biketerra');
+    expect(smartTrainer().savedRetrofitMode, RetrofitMode.bluetooth);
+  });
+
+  test('a WiFi-capable trainer app keeps a saved WiFi transport and Proxy', () async {
+    await seed(target: 'otherDevice', savedMode: 'wifi', trainerApp: 'MyWhoosh');
+    expect(smartTrainer().savedRetrofitMode, RetrofitMode.wifi);
+    await seed(target: 'otherDevice', savedMode: 'proxy', trainerApp: 'MyWhoosh');
+    expect(smartTrainer().savedRetrofitMode, RetrofitMode.proxy);
   });
 }
