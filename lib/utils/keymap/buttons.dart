@@ -7,6 +7,7 @@ import 'package:bike_control/bluetooth/devices/magene/onelap_key.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/protocol_parser.dart';
 import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
 import 'package:bike_control/bluetooth/devices/stages/stages_smart_bike.dart';
+import 'package:bike_control/bluetooth/devices/tacx/tacx_neo_bike.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import 'package:bike_control/bluetooth/devices/wheeltop/wheeltop_eds.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
@@ -344,6 +345,7 @@ class ControllerButton {
     ...EliteSquareButtons.values,
     ...WahooKickrShiftButtons.values,
     ...StagesSmartBikeButtons.values,
+    ...TacxNeoBikeButtons.values,
     ...CycplusBc2Buttons.values,
     ...CycplusT7hButtons.values,
     ...OnelapKeyButtons.values,

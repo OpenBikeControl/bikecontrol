@@ -53,6 +53,7 @@ import 'sensors/ble_cadence_device.dart';
 import 'sensors/ble_heart_rate_device.dart';
 import 'sensors/ble_power_device.dart';
 import 'stages/stages_smart_bike.dart';
+import 'tacx/tacx_neo_bike.dart';
 import 'muov/muov_bike.dart';
 import 'thinkrider/thinkrider_vs200.dart';
 import 'wheeltop/wheeltop_eds.dart';
@@ -98,6 +99,7 @@ abstract class BluetoothDevice extends BaseDevice {
     // Stages smart bike buttons — on web a service must be listed here to be
     // accessible at all; matching itself stays name-gated.
     StagesSmartBikeConstants.BUTTON_SERVICE_UUID,
+    TacxNeoBikeConstants.SERVICE_UUID,
     WahooKickrHeadwindConstants.SERVICE_UUID,
     wahooClimbServiceUuid,
     SterzoConstants.SERVICE_UUID,
@@ -291,6 +293,8 @@ abstract class BluetoothDevice extends BaseDevice {
         // advertises FTMS, but its buttons only work on this class (the
         // trainer role is attached at connect time).
         _ when StagesSmartBikeConstants.matchesName(scanResult.name!) => StagesSmartBike(scanResult),
+        // Same for a Tacx NEO Bike: before the 'TACX NEO' trainer rule below.
+        _ when TacxNeoBikeConstants.matchesName(scanResult.name!) => TacxNeoBike(scanResult),
         // Same for a MUOV smart bike: it advertises FTMS and Cycling Power, and
         // its hood buttons (Zwift Ride service) only work on this class.
         _ when MuovBikeConstants.matchesName(scanResult.name!) => MuovBike(scanResult),
@@ -386,6 +390,8 @@ abstract class BluetoothDevice extends BaseDevice {
         // advertises FTMS, but its buttons only work on this class (the
         // trainer role is attached at connect time).
         _ when StagesSmartBikeConstants.matchesName(scanResult.name!) => StagesSmartBike(scanResult),
+        // Same for a Tacx NEO Bike: before the 'TACX NEO' trainer rule below.
+        _ when TacxNeoBikeConstants.matchesName(scanResult.name!) => TacxNeoBike(scanResult),
         // Same for a MUOV smart bike: it advertises FTMS and Cycling Power, and
         // its hood buttons (Zwift Ride service) only work on this class.
         _ when MuovBikeConstants.matchesName(scanResult.name!) => MuovBike(scanResult),
