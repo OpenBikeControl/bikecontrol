@@ -1,6 +1,6 @@
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Rampida jest teraz oficjalnie obsługiwana przez OpenBikeControl.
+- Incyclist, Tour du Pain i Rampida są teraz oficjalnie obsługiwane przez OpenBikeControl.
 - Manetki CYCPLUS T7 działają jako kontrolery: wszystkie osiem przycisków, domyślnie sterowanie tylnymi strzałkami.
 - Aplikacje OpenBikeControl widzą teraz twój wirtualny bieg na żywo.
 - Czytelniejszy edytor przycisków: akcje są pogrupowane według tego, co robią (Biegi, Trenażer, Trening, Jazda, …), a na telefonie otwiera się jako panel od dołu.

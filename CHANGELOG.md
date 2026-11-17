@@ -1,6 +1,6 @@
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Rampida is now officially supported via OpenBikeControl.
+- Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.
 - CYCPLUS T7 shifters work as controllers: all eight buttons, steering on the rear arrows by default.
 - OpenBikeControl apps now see your virtual gear, live.
 - A clearer button editor: actions are grouped by what they do (Gears, Trainer, Workout, Riding, …), and on phones it opens as a bottom sheet.

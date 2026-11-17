@@ -1,6 +1,6 @@
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Rampida è ora supportato ufficialmente tramite OpenBikeControl.
+- Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.
 - I comandi CYCPLUS T7 funzionano come controller: tutti e otto i pulsanti, con lo sterzo sulle frecce posteriori di default.
 - Le app OpenBikeControl ora vedono il tuo rapporto virtuale in tempo reale.
 - Un editor dei pulsanti più chiaro: le azioni sono raggruppate in base a ciò che fanno (Rapporti, Rullo, Allenamento, Pedalata, …), e sul telefono si apre come pannello dal basso.

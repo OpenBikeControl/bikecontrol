@@ -1,6 +1,6 @@
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Rampida wird jetzt offiziell über OpenBikeControl unterstützt.
+- Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.
 - CYCPLUS-T7-Schalthebel funktionieren als Controller: alle acht Tasten, standardmäßig Lenken mit den hinteren Pfeiltasten.
 - OpenBikeControl-Apps sehen jetzt live deinen virtuellen Gang.
 - Ein übersichtlicherer Tasten-Editor: Aktionen sind danach gruppiert, was sie tun (Gänge, Trainer, Workout, Fahren, …), und auf dem Handy öffnet er sich als Bottom Sheet.
