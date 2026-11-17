@@ -125,7 +125,7 @@ jobs:
       - name: Extract latest changelog
         id: changelog
         run: |
-          chmod +x scripts/get_latest_changelog.sh scripts/truncate_release_notes.sh
+          chmod +x scripts/get_latest_changelog.sh scripts/get_play_notes.sh scripts/truncate_release_notes.sh
           mkdir -p whatsnew store_notes
           # Store limits are in characters: Play 500, App Store 4000. Truncate by
           # character (not byte) at a line/word boundary so nothing is cut mid-word.
@@ -133,8 +133,10 @@ jobs:
           # translation falls back to English (the script warns).
           # Play locales — keep in sync with scripts/prepare_store_screenshots.sh
           # (ANDROID_LOCALES).
+          # Play gets the short text from changelog/play/<lang>.txt (500-char
+          # limit); without one for this version, the full notes, truncated.
           for loc in en-US de-DE fr-FR es-ES it-IT pl-PL; do
-            ./scripts/get_latest_changelog.sh "${loc%%-*}" | ./scripts/truncate_release_notes.sh 500 > "whatsnew/whatsnew-$loc"
+            ./scripts/get_play_notes.sh "${loc%%-*}" | ./scripts/truncate_release_notes.sh 500 > "whatsnew/whatsnew-$loc"
           done
           # App Store: one file per listing language; the fastlane lane maps each
           # App Store locale (de-DE, es-MX, it, ...) to its language's file and

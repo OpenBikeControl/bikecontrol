@@ -162,4 +162,29 @@ void main() {
     expect(apple.single.sections.single.entries.single.text, 'Power Lock.');
     expect(releases.single.sections, hasLength(2), reason: 'the input is untouched');
   });
+
+  test('Apple builds drop a release left with nothing, and sub-items about other platforms', () {
+    final releases = parseChangelog(
+      '### 2.1.0\n**Fixes**:\n- Windows: no crash.\n\n'
+      '### 2.0.0\n**Features**:\n- Gamepads:\n  - Android rumble.\n  - Shift feedback.\n',
+    );
+    final apple = withoutOtherPlatforms(releases);
+    expect(apple.map((r) => r.version), ['2.0.0']);
+    expect(apple.single.sections.single.entries.single.children, ['Shift feedback.']);
+  });
+
+  test('the short Play texts are for the newest release and fit Play\'s 500 characters', () {
+    final latest = parseChangelog(File('CHANGELOG.md').readAsStringSync()).first.version;
+    for (final file in Directory('changelog/play').listSync().whereType<File>()) {
+      final lines = file.readAsStringSync().trimRight().split('\n');
+      expect(lines.first.trim(), latest, reason: '${file.path} is for another release');
+      final text = lines.skip(1).join('\n').trim();
+      expect(text.runes.length, lessThanOrEqualTo(500), reason: file.path);
+      expect(
+        RegExp(r'\b(windows|linux|macos|ios|iphone|app store)\b', caseSensitive: false).hasMatch(text),
+        isFalse,
+        reason: '${file.path} names another platform',
+      );
+    }
+  });
 }

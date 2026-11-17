@@ -1,0 +1,13 @@
+7.6.0
+Neu:
+• Incyclist, Tour du Pain und Rampida über OpenBikeControl
+• CYCPLUS-T7-Schalthebel als Controller
+• OpenBikeControl-Apps sehen live deinen virtuellen Gang
+• Klarerer Tasten-Editor, nach Aktionen gruppiert
+• Di2: D-Fly-Kanäle selbst in E-TUBE einstellen, mit Anleitung
+• Zwift Click V2: rechten Controller ohne Entsperren nutzen
+
+Behoben:
+• Kein Absturz beim Neustart des Hintergrunddiensts
+• „Schließen & beenden“ beendet immer
+• Elite-Trainer erscheinen nicht mehr doppelt

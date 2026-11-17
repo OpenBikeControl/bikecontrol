@@ -10,16 +10,6 @@ import 'package:bike_control/utils/core.dart';
 import 'package:prop/devices/click_logic.dart';
 import 'package:prop/prop.dart' show LogLevel;
 
-/// Policy for the one-time Zwift Click V2 unlock-mode onboarding.
-///
-/// Zwift locks the Click V2 to their own app. BikeControl implements two
-/// workarounds, and which one suits a rider is a real trade-off — so a newly
-/// discovered Click V2 is held out of the connect queue until the rider has
-/// seen the explainer and picked one.
-///
-/// Every consumer (the device classes' connect gate, the placeholder card and
-/// the onboarding page) reads this class rather than assembling its own
-/// settings checks, so the rule lives in exactly one place.
 /// The three ways a Click V2 can be set up.
 enum ClickV2UnlockChoice {
   /// The right puck alone. Nothing to unlock, nothing restarts.
@@ -32,6 +22,16 @@ enum ClickV2UnlockChoice {
   unlockWithZwift,
 }
 
+/// Policy for the one-time Zwift Click V2 unlock-mode onboarding.
+///
+/// Zwift locks the Click V2 to their own app. BikeControl implements two
+/// workarounds, and which one suits a rider is a real trade-off — so a newly
+/// discovered Click V2 is held out of the connect queue until the rider has
+/// seen the explainer and picked one.
+///
+/// Every consumer (the device classes' connect gate, the placeholder card and
+/// the onboarding page) reads this class rather than assembling its own
+/// settings checks, so the rule lives in exactly one place.
 abstract final class ClickV2Onboarding {
   /// The one [BaseDevice.setupPromptKey] every Click V2 side shares: the unlock
   /// mode is a single choice for the whole controller, so it is offered once,

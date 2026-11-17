@@ -1,0 +1,13 @@
+7.6.0
+New:
+• Incyclist, Tour du Pain and Rampida via OpenBikeControl
+• CYCPLUS T7 shifters work as controllers
+• OpenBikeControl apps see your virtual gear live
+• A clearer button editor, grouped by what actions do
+• Di2: set the D-Fly channels yourself in E-TUBE, with a guide
+• Zwift Click V2: use the right controller without unlocking
+
+Fixed:
+• No crash when Android restarts the background service
+• Close & quit always quits
+• Elite trainers no longer show up twice

@@ -206,19 +206,24 @@ final _otherThanApple = RegExp(r'\b(windows|android|linux|google play)\b', caseS
 
 /// [releases] without the entries that name Windows, Android, Linux or
 /// Google Play — for the Apple builds, where Apple rejects mentions of other
-/// platforms. A group left empty goes too. Same rule as the App Store notes
-/// (scripts/get_latest_changelog.sh --apple).
+/// platforms. Sub-items are checked the same way; a group left empty goes,
+/// and so does a release left with nothing to say. Same rule as the App Store
+/// notes (scripts/get_latest_changelog.sh --apple).
 List<ChangelogRelease> withoutOtherPlatforms(List<ChangelogRelease> releases) {
-  return [
-    for (final r in releases)
-      ChangelogRelease(version: r.version, date: r.date)
-        ..notes.addAll(r.notes.where((n) => !_otherThanApple.hasMatch(n)))
-        ..sections.addAll([
-          for (final s in r.sections)
-            if (s.entries.where((e) => !_otherThanApple.hasMatch(e.text)).toList() case final kept when kept.isNotEmpty)
-              ChangelogSection(kind: s.kind, title: s.title)..entries.addAll(kept),
-        ]),
-  ];
+  bool apple(String text) => !_otherThanApple.hasMatch(text);
+  final result = <ChangelogRelease>[];
+  for (final r in releases) {
+    final release = ChangelogRelease(version: r.version, date: r.date)..notes.addAll(r.notes.where(apple));
+    for (final s in r.sections) {
+      final kept = [
+        for (final e in s.entries)
+          if (apple(e.text)) ChangelogEntry(e.text)..children.addAll(e.children.where(apple)),
+      ];
+      if (kept.isNotEmpty) release.sections.add(ChangelogSection(kind: s.kind, title: s.title)..entries.addAll(kept));
+    }
+    if (release.sections.isNotEmpty || release.notes.isNotEmpty) result.add(release);
+  }
+  return result;
 }
 
 final _versionLike = RegExp(r'^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]*)?$');
