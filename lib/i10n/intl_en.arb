@@ -3536,5 +3536,26 @@
   "whatsNewBlogLink": "More on the BikeControl blog",
   "whatsNewHelpTitle": "BikeControl needs your help",
   "whatsNewHelpBody": "BikeControl is made by one person, not a big company. A short rating in the store helps other riders find it and keeps it going.",
-  "whatsNewRateAction": "Rate BikeControl"
+  "whatsNewRateAction": "Rate BikeControl",
+  "vsBaseMinutesLeftToday": "{minutes} min left today",
+  "@vsBaseMinutesLeftToday": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "vsBaseEndingSoonTitle": "{minutes, plural, =1{1 minute} other{{minutes} minutes}} of BikeControl's virtual shifting left today",
+  "@vsBaseEndingSoonTitle": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "vsBaseEndingSoonBody": "Your buttons stay unlimited with Base. When the minutes run out, this ride keeps going until your trainer app disconnects.",
+  "vsBaseOverTitle": "BikeControl's virtual shifting is done for today",
+  "vsBaseOverBody": "Your ride keeps going until your trainer app disconnects, and your buttons stay unlimited with Base. To shift without any limit, pair the trainer directly in your trainer app and turn on its own virtual shifting: BikeControl keeps sending your shift buttons. Pro removes the daily limit on BikeControl's virtual shifting.",
+  "vsBaseAlreadyOverBody": "Your buttons stay unlimited with Base. To shift without any limit, pair the trainer directly in your trainer app and turn on its own virtual shifting: BikeControl keeps sending your shift buttons. Pro removes the daily limit on BikeControl's virtual shifting.",
+  "vsBaseGuideAction": "Show me how"
 }

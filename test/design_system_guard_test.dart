@@ -92,6 +92,12 @@ void main() {
       // Markers and key caps drawn over the rider's own screenshot of their
       // trainer app: they must read on arbitrary imagery, not on our grounds.
       'lib/pages/touch_area.dart': {'Colors.white', 'Colors.black', 'Colors.green', 'Colors.red'},
+      // A ShaderMask's alpha ramp (only its opacity counts), fading the body
+      // out above the footer.
+      'lib/pages/onboarding/onboarding_page.dart': {'Color(0xFFFFFFFF)', 'Color(0x00FFFFFF)'},
+      // The engraved rings of the OpenBikeControl seal, painted on the brand
+      // badge in both themes.
+      'lib/pages/onboarding/steps/step_app.dart': {'Color(0xFFFFFFFF)'},
     };
     final literal = RegExp(
       r'Color\(0x(?!00000000\))[0-9A-Fa-f]{8}\)|(?<![A-Za-z_])Colors\.(?!transparent\b)[A-Za-z]+|BKColor\.[A-Za-z]+',

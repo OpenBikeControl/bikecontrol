@@ -3083,5 +3083,12 @@
   "whatsNewBlogLink": "Więcej na blogu BikeControl",
   "whatsNewHelpTitle": "BikeControl potrzebuje twojej pomocy",
   "whatsNewHelpBody": "BikeControl tworzy jedna osoba, a nie duża firma. Krótka ocena w sklepie pomaga innym kolarzom ją znaleźć i pozwala jej dalej się rozwijać.",
-  "whatsNewRateAction": "Oceń BikeControl"
+  "whatsNewRateAction": "Oceń BikeControl",
+  "vsBaseMinutesLeftToday": "Dziś zostało {minutes} min",
+  "vsBaseEndingSoonTitle": "Dziś zostało {minutes, plural, =1{1 minuta} few{{minutes} minuty} other{{minutes} minut}} wirtualnej zmiany biegów BikeControl",
+  "vsBaseEndingSoonBody": "Z Base twoje przyciski pozostają bez limitu. Gdy minuty się skończą, ta jazda trwa dalej, dopóki aplikacja treningowa się nie rozłączy.",
+  "vsBaseOverTitle": "Wirtualna zmiana biegów BikeControl na dziś się skończyła",
+  "vsBaseOverBody": "Twoja jazda trwa dalej, dopóki aplikacja treningowa się nie rozłączy, a z Base twoje przyciski pozostają bez limitu. Aby zmieniać biegi bez żadnego limitu, sparuj trenażer bezpośrednio w aplikacji treningowej i włącz jej własną wirtualną zmianę biegów: BikeControl dalej wysyła twoje przyciski zmiany biegów. Pro znosi dzienny limit wirtualnej zmiany biegów BikeControl.",
+  "vsBaseAlreadyOverBody": "Z Base twoje przyciski pozostają bez limitu. Aby zmieniać biegi bez żadnego limitu, sparuj trenażer bezpośrednio w aplikacji treningowej i włącz jej własną wirtualną zmianę biegów: BikeControl dalej wysyła twoje przyciski zmiany biegów. Pro znosi dzienny limit wirtualnej zmiany biegów BikeControl.",
+  "vsBaseGuideAction": "Pokaż jak"
 }

@@ -4265,5 +4265,12 @@
   "whatsNewBlogLink": "在 BikeControl 博客了解更多",
   "whatsNewHelpTitle": "BikeControl 需要你的帮助",
   "whatsNewHelpBody": "BikeControl 由一个人开发，而不是一家大公司。在应用商店留下简短评分，能帮助其他骑手找到它，也让它持续发展。",
-  "whatsNewRateAction": "为 BikeControl 评分"
+  "whatsNewRateAction": "为 BikeControl 评分",
+  "vsBaseMinutesLeftToday": "今天还剩 {minutes} 分钟",
+  "vsBaseEndingSoonTitle": "今天 BikeControl 虚拟变速还剩 {minutes} 分钟",
+  "vsBaseEndingSoonBody": "使用 Base，你的按键始终不限次数。分钟用完后，本次骑行会继续，直到训练应用断开连接。",
+  "vsBaseOverTitle": "今天的 BikeControl 虚拟变速已用完",
+  "vsBaseOverBody": "本次骑行会继续，直到训练应用断开连接；使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
+  "vsBaseAlreadyOverBody": "使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
+  "vsBaseGuideAction": "教我怎么做"
 }

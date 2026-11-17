@@ -3083,5 +3083,12 @@
   "whatsNewBlogLink": "Plus sur le blog BikeControl",
   "whatsNewHelpTitle": "BikeControl a besoin de toi",
   "whatsNewHelpBody": "BikeControl est développé par une seule personne, pas par une grande entreprise. Une petite note dans le store aide d'autres cyclistes à le trouver et le fait vivre.",
-  "whatsNewRateAction": "Noter BikeControl"
+  "whatsNewRateAction": "Noter BikeControl",
+  "vsBaseMinutesLeftToday": "Encore {minutes} min aujourd'hui",
+  "vsBaseEndingSoonTitle": "Encore {minutes, plural, =1{1 minute} other{{minutes} minutes}} de changement de vitesse virtuel BikeControl aujourd'hui",
+  "vsBaseEndingSoonBody": "Avec Base, tes boutons restent illimités. Quand les minutes sont écoulées, cette sortie continue jusqu'à ce que ton appli d'entraînement se déconnecte.",
+  "vsBaseOverTitle": "Le changement de vitesse virtuel BikeControl est terminé pour aujourd'hui",
+  "vsBaseOverBody": "Ta sortie continue jusqu'à ce que ton appli d'entraînement se déconnecte, et avec Base tes boutons restent illimités. Pour changer de vitesse sans aucune limite, appaire le home trainer directement dans ton appli d'entraînement et active son propre changement de vitesse virtuel : BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne du changement de vitesse virtuel BikeControl.",
+  "vsBaseAlreadyOverBody": "Avec Base, tes boutons restent illimités. Pour changer de vitesse sans aucune limite, appaire le home trainer directement dans ton appli d'entraînement et active son propre changement de vitesse virtuel : BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne du changement de vitesse virtuel BikeControl.",
+  "vsBaseGuideAction": "Montre-moi comment"
 }

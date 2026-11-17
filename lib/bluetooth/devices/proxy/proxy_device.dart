@@ -17,6 +17,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/ble_device_ids.dart';
 import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/vs_trial_copy.dart';
 import 'package:bike_control/utils/erg_power_stepping.dart';
 import 'package:bike_control/utils/gear_readout.dart';
 import 'package:bike_control/utils/host_platform.dart';
@@ -469,8 +470,9 @@ class ProxyDevice extends BluetoothDevice {
     _trialHeadsUpDay = today;
     // Rounded up: with 1:30 left, "2 minutes" is the honest reading.
     final minutes = (remaining.inSeconds / 60).ceil();
-    final title = AppLocalizations.current.bridgeTrialEndingSoonTitle(minutes);
-    final body = AppLocalizations.current.bridgeTrialEndingSoonBody;
+    final copy = VsTrialCopy.current(AppLocalizations.current);
+    final title = copy.endingSoonTitle(minutes);
+    final body = copy.endingSoonBody;
     core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_INFO, '$title — $body'));
     _showTrialNotification(id: 1341, title: title, body: body);
   }
@@ -479,10 +481,9 @@ class ProxyDevice extends BluetoothDevice {
   /// keeps its connection, so the ride goes on. Otherwise the trainer just
   /// connected with the budget already gone, and the app won't find it.
   void _announceBridgeTrialOver({required bool midRide}) {
-    final title = AppLocalizations.current.bridgeTrialTimeOverTitle;
-    final body = midRide
-        ? AppLocalizations.current.bridgeTrialTimeOverBody
-        : AppLocalizations.current.bridgeTrialAlreadyOverBody;
+    final copy = VsTrialCopy.current(AppLocalizations.current);
+    final title = copy.overTitle;
+    final body = midRide ? copy.overMidRideBody : copy.alreadyOverBody;
     core.connection.signalNotification(
       AlertNotification(LogLevel.LOGLEVEL_WARNING, '$title — $body'),
     );

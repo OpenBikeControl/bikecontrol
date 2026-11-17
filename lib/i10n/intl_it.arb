@@ -3083,5 +3083,12 @@
   "whatsNewBlogLink": "Altro sul blog di BikeControl",
   "whatsNewHelpTitle": "BikeControl ha bisogno del tuo aiuto",
   "whatsNewHelpBody": "BikeControl è sviluppato da una sola persona, non da una grande azienda. Una breve valutazione nello store aiuta altri ciclisti a trovarlo e lo mantiene vivo.",
-  "whatsNewRateAction": "Valuta BikeControl"
+  "whatsNewRateAction": "Valuta BikeControl",
+  "vsBaseMinutesLeftToday": "Ancora {minutes} min oggi",
+  "vsBaseEndingSoonTitle": "Oggi restano {minutes, plural, =1{1 minuto} other{{minutes} minuti}} del cambio virtuale di BikeControl",
+  "vsBaseEndingSoonBody": "Con Base i tuoi pulsanti restano illimitati. Quando i minuti finiscono, questa uscita continua finché la tua app di allenamento non si disconnette.",
+  "vsBaseOverTitle": "Il cambio virtuale di BikeControl è finito per oggi",
+  "vsBaseOverBody": "La tua uscita continua finché la tua app di allenamento non si disconnette, e con Base i tuoi pulsanti restano illimitati. Per cambiare senza alcun limite, associa il rullo direttamente nella tua app di allenamento e attiva il suo cambio virtuale: BikeControl continua a inviare i tuoi pulsanti di cambio. Pro rimuove il limite giornaliero del cambio virtuale di BikeControl.",
+  "vsBaseAlreadyOverBody": "Con Base i tuoi pulsanti restano illimitati. Per cambiare senza alcun limite, associa il rullo direttamente nella tua app di allenamento e attiva il suo cambio virtuale: BikeControl continua a inviare i tuoi pulsanti di cambio. Pro rimuove il limite giornaliero del cambio virtuale di BikeControl.",
+  "vsBaseGuideAction": "Mostrami come"
 }

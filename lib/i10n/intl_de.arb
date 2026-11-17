@@ -3083,5 +3083,12 @@
   "whatsNewBlogLink": "Mehr im BikeControl-Blog",
   "whatsNewHelpTitle": "BikeControl braucht deine Hilfe",
   "whatsNewHelpBody": "BikeControl wird von einer einzigen Person entwickelt, nicht von einer großen Firma. Eine kurze Bewertung im Store hilft anderen, die App zu finden, und hält sie am Leben.",
-  "whatsNewRateAction": "BikeControl bewerten"
+  "whatsNewRateAction": "BikeControl bewerten",
+  "vsBaseMinutesLeftToday": "Heute noch {minutes} Min.",
+  "vsBaseEndingSoonTitle": "Heute noch {minutes, plural, =1{1 Minute} other{{minutes} Minuten}} virtuelles Schalten von BikeControl",
+  "vsBaseEndingSoonBody": "Mit Base bleiben deine Tasten unbegrenzt. Wenn die Minuten aufgebraucht sind, läuft diese Fahrt weiter, bis sich deine Trainings-App trennt.",
+  "vsBaseOverTitle": "Das virtuelle Schalten von BikeControl ist für heute vorbei",
+  "vsBaseOverBody": "Deine Fahrt läuft weiter, bis sich deine Trainings-App trennt, und mit Base bleiben deine Tasten unbegrenzt. Um ohne jedes Limit zu schalten, koppel den Trainer direkt in deiner Trainings-App und schalte dort ihr eigenes virtuelles Schalten ein: BikeControl sendet deine Schalttasten weiter. Pro hebt das tägliche Limit für das virtuelle Schalten von BikeControl auf.",
+  "vsBaseAlreadyOverBody": "Mit Base bleiben deine Tasten unbegrenzt. Um ohne jedes Limit zu schalten, koppel den Trainer direkt in deiner Trainings-App und schalte dort ihr eigenes virtuelles Schalten ein: BikeControl sendet deine Schalttasten weiter. Pro hebt das tägliche Limit für das virtuelle Schalten von BikeControl auf.",
+  "vsBaseGuideAction": "Zeig mir, wie"
 }

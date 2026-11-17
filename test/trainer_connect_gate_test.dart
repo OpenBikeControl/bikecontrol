@@ -131,6 +131,8 @@ void main() {
     });
 
     testWidgets('with today\'s budget used up, says so instead of connecting', (tester) async {
+      IAPManager.instance.isPurchased.value = false;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
       await _useUpTodaysBudget();
       final context = await pumpHost(tester);
 
@@ -145,6 +147,27 @@ void main() {
       expect(find.text(AppLocalizations.current.proFeature), findsNothing);
       // Still offers Pro.
       expect(find.text(AppLocalizations.current.goPro), findsOneWidget);
+    });
+
+    testWidgets('a Base owner hears their buttons stay unlimited, and how to shift without a limit', (tester) async {
+      IAPManager.instance.isPurchased.value = true;
+      addTearDown(() => IAPManager.instance.isPurchased.value = true);
+      await _useUpTodaysBudget();
+      final context = await pumpHost(tester);
+
+      await tester.runAsync(() async {
+        unawaited(connectTrainerFromPicker(context, trainer));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      });
+      await tester.pumpAndSettle();
+
+      final l = AppLocalizations.current;
+      expect(trainer.connectUpstreamCalls, 0);
+      expect(find.text(l.vsBaseOverTitle), findsOneWidget);
+      expect(find.text(l.vsBaseAlreadyOverBody), findsOneWidget);
+      expect(find.text(l.bridgeTrialTimeOverTitle), findsNothing, reason: 'no "trial" for someone who paid');
+      expect(find.byKey(const ValueKey('go-pro-guide')), findsOneWidget);
+      expect(find.text(l.goPro), findsOneWidget);
     });
   });
 

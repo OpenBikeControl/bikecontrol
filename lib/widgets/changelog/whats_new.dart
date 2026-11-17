@@ -7,6 +7,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/rate_app.dart';
 import 'package:bike_control/widgets/changelog/changelog_view.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkGroupedDivider;
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
@@ -334,7 +335,7 @@ class _HelpCard extends StatelessWidget {
               for (var i = 0; i < 5; i++)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Icon(RadixIcons.starFilled, size: 20, color: const Color(0xFFF5B301)),
+                  child: Icon(LucideIcons.star, size: 20, color: BkStatusColors.of(context).warning),
                 ),
             ],
           ),

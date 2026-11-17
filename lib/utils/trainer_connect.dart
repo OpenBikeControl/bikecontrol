@@ -7,6 +7,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:bike_control/utils/vs_trial_copy.dart';
 import 'package:prop/prop.dart' show LogLevel, RetrofitMode;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -63,10 +64,14 @@ Future<bool> passTrainerConnectGate(BuildContext context, RetrofitMode mode) asy
       return false;
     case TrainerConnectGate.vsTrialOverToday:
       final l10n = AppLocalizations.of(context);
+      final copy = VsTrialCopy.current(l10n);
       await showGoProDialog(
         context,
-        featureName: l10n.bridgeTrialTimeOverTitle,
-        message: l10n.bridgeTrialAlreadyOverBody,
+        featureName: copy.overTitle,
+        message: copy.alreadyOverBody,
+        // A Base owner's way forward is the trainer app's own shifting, not
+        // only Pro: show them how.
+        guide: copy.ownsBase ? (label: l10n.vsBaseGuideAction, url: vsWithoutBikeControlGuideUrl) : null,
       );
       return false;
   }
