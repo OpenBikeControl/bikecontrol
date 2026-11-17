@@ -10,6 +10,7 @@ import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/analytics/campaign_attributes.dart';
 import 'package:bike_control/utils/analytics/install_referrer_reporter.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart' show IAPManager;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -207,7 +208,7 @@ class RevenueCatService {
       _dailyCommandCount = int.tryParse(commandCount);
 
       if (!isTrialExpired) {
-        setDailyCommandLimit(80);
+        setDailyCommandLimit(IAPManager.trialDailyCommandLimit);
       }
       await setAttributes();
     } catch (e, s) {

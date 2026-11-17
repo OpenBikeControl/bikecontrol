@@ -16,7 +16,7 @@ import 'package:windows_iap/windows_iap.dart';
 class WindowsIAPService {
   static const String productId = '9NP42GS03Z26';
   static const int trialDays = 7;
-  static const int dailyCommandLimit = 15;
+  static const int dailyCommandLimit = IAPManager.freeDailyCommandLimit;
 
   static const String _purchaseStatusKey = 'iap_purchase_status_2';
   static const String _boughtBefore50 = 'iap_bought_before_50';

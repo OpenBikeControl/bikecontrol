@@ -12,7 +12,7 @@
 // `bridgeTrialTimeOverBody` strings before being written — see
 // task-11-report.md (original six) and content-round-report.md (the three
 // content-round additions) for the corrections that came out of each check
-// (most notably: the virtual-shifting trial is a 20-minute *daily*
+// (most notably: the virtual-shifting trial is a 30-minute *daily*
 // allowance that resets every day, not a per-ride limit; the pre-subscription
 // grandfather explicitly does not extend to virtual shifting; and Windows
 // purchases made outside the Microsoft Store go through Stripe, not

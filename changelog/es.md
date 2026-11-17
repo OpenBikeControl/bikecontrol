@@ -6,6 +6,7 @@
 - Un editor de botones más claro: las acciones se agrupan según lo que hacen (Marchas, Rodillo, Entrenamiento, Rodar, …), y en el móvil se abre como hoja inferior.
 - Shimano Di2: una tercera opción de configuración – configura tú mismo los canales D-Fly en E-TUBE, con una guía paso a paso.
 - Zwift Click V2: puedes usar opcionalmente el mando derecho sin desbloquearlo.
+- Más margen para probar: 120 pulsaciones al día durante la prueba (antes 80), 40 al día después (antes 15) y, sin Pro, 30 minutos al día del cambio virtual de BikeControl (antes 20).
 
 **Fixes**:
 - Los rodillos Elite ya no aparecen dos veces (WiFi y Bluetooth).

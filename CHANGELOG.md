@@ -6,6 +6,7 @@
 - A clearer button editor: actions are grouped by what they do (Gears, Trainer, Workout, Riding, …), and on phones it opens as a bottom sheet.
 - Shimano Di2: a third setup option – set the D-Fly channels yourself in E-TUBE, with a step-by-step guide.
 - Zwift Click V2: you can optionally use the right controller without unlocking it.
+- More room to try: 120 button presses a day during the trial (was 80), 40 a day after it (was 15), and 30 minutes a day of BikeControl's own virtual shifting without Pro (was 20).
 
 **Fixes**:
 - Elite trainers no longer show up twice (WiFi and Bluetooth).

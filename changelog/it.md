@@ -6,6 +6,7 @@
 - Un editor dei pulsanti più chiaro: le azioni sono raggruppate in base a ciò che fanno (Rapporti, Rullo, Allenamento, Pedalata, …), e sul telefono si apre come pannello dal basso.
 - Shimano Di2: una terza opzione di configurazione – imposta tu i canali D-Fly in E-TUBE, con una guida passo passo.
 - Zwift Click V2: puoi usare, se vuoi, il controller destro senza sbloccarlo.
+- Più margine per provare: 120 pressioni al giorno durante la prova (prima 80), poi 40 al giorno (prima 15) e, senza Pro, 30 minuti al giorno del cambio virtuale di BikeControl (prima 20).
 
 **Fixes**:
 - I rulli Elite non compaiono più due volte (WiFi e Bluetooth).

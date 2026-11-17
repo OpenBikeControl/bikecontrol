@@ -6,6 +6,7 @@
 - Un éditeur de boutons plus clair : les actions sont regroupées selon ce qu'elles font (Vitesses, Home trainer, Séance, Rouler, …), et sur téléphone il s'ouvre en volet du bas.
 - Shimano Di2 : une troisième option de configuration – règle toi-même les canaux D-Fly dans E-TUBE, avec un guide pas à pas.
 - Zwift Click V2 : tu peux utiliser la manette droite sans la déverrouiller, si tu le souhaites.
+- Plus de marge pour essayer : 120 appuis par jour pendant l'essai (avant 80), 40 par jour ensuite (avant 15) et, sans Pro, 30 minutes par jour de changement de vitesse virtuel BikeControl (avant 20).
 
 **Fixes**:
 - Les home trainers Elite n'apparaissent plus en double (WiFi et Bluetooth).

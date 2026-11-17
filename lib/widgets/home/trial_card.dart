@@ -43,7 +43,7 @@ class TrialCardState {
 /// — same surface, same 1.5px border, same tile + title + action header — so it
 /// belongs to the stack instead of sitting in it as a foreign slab.
 ///
-/// Both limits are shown as meters. "80 commands left" is meaningless without
+/// Both limits are shown as meters. "120 commands left" is meaningless without
 /// its ceiling; "80 of 100" tells a rider how much runway they have.
 class TrialCard extends StatelessWidget {
   const TrialCard({super.key, required this.state, this.onUpgrade, this.onRestore});

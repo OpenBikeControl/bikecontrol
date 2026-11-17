@@ -180,7 +180,7 @@ abstract class BaseActions {
   ///
   /// Two ways a free tester's shift earns its exemption:
   ///
-  /// * [bridgeCountingDown] — the 20-minute virtual-shifting budget is already
+  /// * [bridgeCountingDown] — the daily virtual-shifting budget is already
   ///   ticking, so the shift is being paid for out of that budget and charging
   ///   the daily command count as well would bill it twice.
   /// * [appHoldsBridge] is false — the bridge is running but no trainer app has
@@ -206,7 +206,7 @@ abstract class BaseActions {
 
   /// Whether a press still goes through once the daily command limit is used
   /// up: a trainer action (a gear change, …) while the virtual-shifting budget
-  /// is counting down. Those run on the 20-minute budget instead — see
+  /// is counting down. Those run on the daily virtual-shifting budget instead — see
   /// [isExemptInternalTrainerAction] — so the command limit must not cut the
   /// trial short. Pure for testability.
   @visibleForTesting
@@ -447,7 +447,7 @@ abstract class BaseActions {
           );
         }
         final result = proxy.handleTrainerAction(keyPair.buttons.firstOrNull ?? button, keyPair.inGameAction!);
-        // Free testers changing gears on the bridge during their 20-minute
+        // Free testers changing gears on the bridge during their daily virtual-shifting
         // window don't spend their daily command budget on actions the active
         // FitnessBikeDefinition handles internally — see
         // [isExemptInternalTrainerAction].

@@ -2,12 +2,11 @@
 Nouveautés :
 • Incyclist, Tour du Pain et Rampida via OpenBikeControl
 • Les manettes CYCPLUS T7 fonctionnent comme manettes
-• Les applis OpenBikeControl voient ta vitesse virtuelle
 • Éditeur de boutons plus clair, groupé par action
 • Di2 : règle les canaux D-Fly dans E-TUBE, avec un guide
 • Zwift Click V2 : manette droite sans déverrouillage
+• Plus d'essai : 120 appuis/jour pendant l'essai, 40 ensuite, 30 min de vitesses virtuelles
 
 Corrections :
 • Plus de plantage au redémarrage du service
 • « Fermer et quitter » quitte toujours
-• Les home trainers Elite ne sont plus en double

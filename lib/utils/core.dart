@@ -94,7 +94,7 @@ class Core {
   BridgeUsageTracker get bridgeUsageTracker {
     _bridgeUsageTracker ??= BridgeUsageTracker(
       prefs: settings.prefs,
-      dailyLimit: const Duration(minutes: 20),
+      dailyLimit: IAPManager.vsDailyTrialLimit,
     );
     return _bridgeUsageTracker!;
   }
