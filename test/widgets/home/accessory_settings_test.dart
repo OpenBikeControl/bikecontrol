@@ -193,4 +193,34 @@ void main() {
       expect(find.text(AppLocalizations.current.deviceSettings), findsOneWidget);
     });
   });
+
+  group('follow power', () {
+    testWidgets('the switch makes the fan follow the power and shows the full-speed power', (tester) async {
+      final writes = <List<int>>[];
+      final device = headwind()
+        ..debugWriteSink = ((Uint8List b) async => writes.add(b.toList()))
+        ..powerProvider = () => 150;
+      await pumpSettings(tester, device);
+      expect(find.byKey(const ValueKey('headwind-full-power')), findsNothing);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-power')));
+      await tester.tap(find.byKey(const ValueKey('headwind-power')));
+      await tester.pump();
+
+      expect(device.followsPower.value, isTrue);
+      expect(writes.last, [0x02, 50]);
+      expect(find.byKey(const ValueKey('headwind-full-power')), findsOneWidget);
+      expect(find.text('300 W'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('headwind-current')),
+          matching: find.text(AppLocalizations.current.headwindStatePower(50)),
+        ),
+        findsOneWidget,
+      );
+
+      // Stop the 1 Hz follow timer before the test ends.
+      await device.setFollowPower(false);
+    });
+  });
 }
