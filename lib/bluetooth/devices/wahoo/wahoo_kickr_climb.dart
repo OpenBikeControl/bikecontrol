@@ -47,7 +47,7 @@ class WahooKickrClimb extends BluetoothDevice with Accessory, ManualInclineDevic
   }
 
   @override
-  Future<bool> writeInclineRaw(int grade001Pct) async {
+  Future<bool> writeInclineToDevice(int grade001Pct) async {
     try {
       await _write(wahooClimbInclineToBytes(grade001Pct));
       return true;
