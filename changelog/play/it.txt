@@ -1,12 +1,4 @@
-7.6.0
+7.7.0
 Novità:
-• Incyclist, Tour du Pain e Rampida tramite OpenBikeControl
-• I comandi CYCPLUS T7 funzionano come controller
-• Editor dei pulsanti più chiaro, raggruppato per azione
-• Di2: imposta i canali D-Fly in E-TUBE, con una guida
-• Zwift Click V2: controller destro senza sblocco
-• Più prova: 120 pressioni/giorno nella prova, poi 40, 30 min di cambio virtuale
-
-Correzioni:
-• Nessun crash quando Android riavvia il servizio in background
-• «Chiudi ed esci» esce sempre
+• Configurazione in tre passaggi invece di sei
+• La configurazione collega il rullo tramite BikeControl per impostazione predefinita e mostra cosa fa il suo cambio virtuale

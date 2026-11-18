@@ -1,7 +1,6 @@
-// The wizard's frame: "Step N of 6" with Help, a segmented progress bar in
-// the accent, a display headline (no eyebrow), a full-width pill
-// with Back as text under it, and the list of steps (a tick and what the
-// step settled on for the finished ones, which take you back to them).
+// The wizard's frame: "Step N of 3" with Back and Help, a segmented progress
+// bar in the accent (finished segments take you back), a display headline (no
+// eyebrow) and a full-width pill. Wide windows add the list of steps as a rail.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
@@ -52,7 +51,7 @@ Future<void> main() async {
 
   Widget shell(
     BuildContext c, {
-    OnboardingStep step = OnboardingStep.controller,
+    OnboardingStep step = OnboardingStep.gear,
     VoidCallback? onBack,
     VoidCallback? onHelp,
     VoidCallback? onContinue,
@@ -67,24 +66,24 @@ Future<void> main() async {
     onBack: onBack ?? () {},
     onHelp: onHelp ?? () {},
     onSelectStep: onSelectStep ?? (_) {},
-    stepValues: const {OnboardingStep.app: 'MyWhoosh', OnboardingStep.where: 'This device'},
+    stepValues: const {OnboardingStep.app: 'MyWhoosh · This device'},
   );
 
   testWidgets('phone: step count, accent progress up to the step and display headline, no eyebrow', (tester) async {
     final l = await pump(tester, (c) => shell(c));
-    expect(find.text(l.onboardingStepOf('3', '6')), findsOneWidget);
-    expect(find.text('${l.onboardingStepController} · ${l.onboardingStepControllerSub}'), findsNothing);
+    expect(find.text(l.onboardingStepOf('2', '3')), findsOneWidget);
+    expect(find.text('${l.onboardingStepGear} · ${l.onboardingStepGearSub}'), findsNothing);
     expect(
-      find.bySemanticsLabel(RegExp('${RegExp.escape(l.onboardingStepOf('3', '6'))}.*${l.onboardingStepController}')),
+      find.bySemanticsLabel(RegExp('${RegExp.escape(l.onboardingStepOf('2', '3'))}.*${RegExp.escape(l.onboardingStepGear)}')),
       findsOneWidget,
       reason: 'the step count tells a screen reader which step this is',
     );
 
     final primary = BkTheme.build(Brightness.dark).colorScheme.primary;
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 3; i++) {
       final bar = tester.widget<AnimatedContainer>(find.byKey(ValueKey('onboarding-progress-$i')));
       final color = (bar.decoration! as BoxDecoration).color;
-      expect(color == primary, i <= 2, reason: 'segment $i');
+      expect(color == primary, i <= 1, reason: 'segment $i');
     }
 
     final headline = tester.renderObject<RenderParagraph>(find.text('YOUR CONTROLLER IS READY'));
@@ -92,7 +91,7 @@ Future<void> main() async {
     expect(find.bySemanticsLabel('Your controller is ready'), findsOneWidget, reason: 'read in its own case');
   });
 
-  testWidgets('phone: Continue is a full-width pill, Back is text under it, Help is the ? button', (tester) async {
+  testWidgets('phone: Continue is a full-width pill, Back and Help are the header buttons', (tester) async {
     var back = 0, help = 0, next = 0;
     final l = await pump(
       tester,
@@ -102,28 +101,35 @@ Future<void> main() async {
     final rect = tester.getRect(continueButton);
     expect(rect.width, greaterThan(390 - 2 * 16 - 1), reason: 'full width');
     expect(rect.height, greaterThanOrEqualTo(48));
-    final backText = tester.getRect(find.text(l.onboardingBack));
-    expect(backText.top, greaterThan(rect.bottom), reason: 'Back sits under Continue');
+    expect(find.text(l.onboardingBack), findsNothing, reason: 'the footer holds the step\'s own choices only');
+    final backButton = tester.getRect(find.byKey(const ValueKey('onboarding-back')));
+    expect(backButton.bottom, lessThan(rect.top), reason: 'Back sits in the header');
 
     await tester.tap(find.text(l.onboardingContinue));
-    await tester.tap(find.text(l.onboardingBack));
+    await tester.tap(find.byKey(const ValueKey('onboarding-back')));
     await tester.tap(find.bySemanticsLabel(l.onboardingHelp));
     expect((next, back, help), (1, 1, 1));
   });
 
-  testWidgets('phone: the list of steps ticks finished steps with their answer; a tap goes back', (tester) async {
+  testWidgets('phone: no list of steps; a finished progress segment goes back, one ahead does not', (tester) async {
     final visited = <OnboardingStep>[];
     await pump(tester, (c) => shell(c, onSelectStep: visited.add));
-    final list = find.byType(BkGroupedSection);
-    expect(list, findsOneWidget);
-    expect(find.descendant(of: list, matching: find.text('MyWhoosh')), findsOneWidget);
-    expect(find.descendant(of: list, matching: find.text('This device')), findsOneWidget);
-    expect(find.descendant(of: list, matching: find.byIcon(LucideIcons.check)), findsNWidgets(2));
+    expect(find.byType(BkGroupedSection), findsNothing);
 
-    await tester.ensureVisible(find.byKey(const ValueKey('onboarding-step-row-app')));
+    await tester.tap(find.byKey(const ValueKey('onboarding-progress-0')));
+    await tester.tap(find.byKey(const ValueKey('onboarding-progress-2')));
+    expect(visited, [OnboardingStep.app], reason: 'steps ahead are not a shortcut');
+  });
+
+  testWidgets('wide: the list of steps ticks finished steps with their answer; a tap goes back', (tester) async {
+    final visited = <OnboardingStep>[];
+    await pump(tester, (c) => shell(c, onSelectStep: visited.add), width: 1000);
+    final list = find.byType(BkGroupedSection).first;
+    expect(find.descendant(of: list, matching: find.text('MyWhoosh · This device')), findsOneWidget);
+    expect(find.descendant(of: list, matching: find.byIcon(LucideIcons.check)), findsOneWidget);
+
     await tester.tap(find.byKey(const ValueKey('onboarding-step-row-app')));
-    await tester.ensureVisible(find.byKey(const ValueKey('onboarding-step-row-connection')));
-    await tester.tap(find.byKey(const ValueKey('onboarding-step-row-connection')));
+    await tester.tap(find.byKey(const ValueKey('onboarding-step-row-ride')));
     expect(visited, [OnboardingStep.app], reason: 'steps ahead are not a shortcut');
   });
 
@@ -166,7 +172,7 @@ Future<void> main() async {
   });
 
   testWidgets('the next step starts at the top, not where the last one was scrolled to', (tester) async {
-    final step = ValueNotifier(OnboardingStep.controller);
+    final step = ValueNotifier(OnboardingStep.gear);
     addTearDown(step.dispose);
     await pump(
       tester,
@@ -188,7 +194,7 @@ Future<void> main() async {
     await tester.pump();
     expect(position().pixels, 1200);
 
-    step.value = OnboardingStep.virtualShifting;
+    step.value = OnboardingStep.ride;
     await tester.pump();
     expect(position().pixels, 0);
   });

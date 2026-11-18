@@ -223,11 +223,6 @@ Future<void> main() async {
     });
   });
 
-  test('the finish button waits for a blocking network problem', () {
-    expect(onboardingConnectionCanFinish(hasNoConnectionMethod: false, networkBlocking: false), isTrue);
-    expect(onboardingConnectionCanFinish(hasNoConnectionMethod: false, networkBlocking: true), isFalse);
-    expect(onboardingConnectionCanFinish(hasNoConnectionMethod: true, networkBlocking: false), isFalse);
-  });
   group('gate', () {
     NetworkMethodTarget target(
       NetworkMethodKind kind, {

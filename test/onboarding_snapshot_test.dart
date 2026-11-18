@@ -12,7 +12,8 @@ import 'package:bike_control/pages/onboarding/steps/step_connection.dart';
 import 'package:bike_control/pages/onboarding/steps/step_controller.dart';
 import 'package:bike_control/pages/onboarding/steps/step_done.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
-import 'package:bike_control/pages/onboarding/steps/step_where.dart';
+import 'package:bike_control/pages/onboarding/steps/step_gear.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
@@ -41,12 +42,12 @@ Future<void> main() async {
 
   testWidgets('shell mobile', (tester) async {
     await captureWidget(tester, name: 'onboarding_shell_mobile', width: 380,
-        builder: (c) => shell(c, step: OnboardingStep.controller));
+        builder: (c) => shell(c, step: OnboardingStep.gear));
   });
 
   testWidgets('shell desktop', (tester) async {
     await captureWidget(tester, name: 'onboarding_shell_desktop', width: 1000,
-        builder: (c) => shell(c, step: OnboardingStep.controller));
+        builder: (c) => shell(c, step: OnboardingStep.gear));
   });
 
   // Wrap a sheet body so it reads like the bottom sheet (surface + padding).
@@ -59,7 +60,7 @@ Future<void> main() async {
 
   testWidgets('help sheet', (tester) async {
     await captureWidget(tester, name: 'onboarding_help_sheet', width: 380,
-        builder: (c) => sheet(onboardingHelpSheetBody(c, step: OnboardingStep.controller, onClose: () {})));
+        builder: (c) => sheet(onboardingHelpSheetBody(c, topic: OnboardingHelpTopic.controller, onClose: () {})));
   });
 
   testWidgets('permission denied sheet', (tester) async {
@@ -86,23 +87,18 @@ Future<void> main() async {
         builder: (c) => onboardingAppBody(c, selected: null, onSelect: (_) {}));
   });
 
-  testWidgets('step where unselected', (tester) async {
-    await captureWidget(tester, name: 'onboarding_step_where', width: 380,
-        builder: (c) => onboardingWhereBody(
+  // Step 1 collapsed to the big platforms, with "runs on" under the grid.
+  testWidgets('step app with target', (tester) async {
+    await captureWidget(tester, name: 'onboarding_step_app_target', width: 380,
+        builder: (c) => onboardingAppBody(
               c,
-              app: SupportedApp.supportedApps.first,
-              selected: null,
+              selected: MyWhoosh(),
               onSelect: (_) {},
-            ));
-  });
-
-  testWidgets('step where selected', (tester) async {
-    await captureWidget(tester, name: 'onboarding_step_where_selected', width: 380,
-        builder: (c) => onboardingWhereBody(
-              c,
-              app: SupportedApp.supportedApps.first,
-              selected: Target.otherDevice,
-              onSelect: (_) {},
+              showAllApps: false,
+              onShowAll: () {},
+              targets: Target.values,
+              selectedTarget: Target.otherDevice,
+              onSelectTarget: (_) {},
             ));
   });
 
@@ -194,35 +190,87 @@ Future<void> main() async {
             app: MyWhoosh(), trainers: const [], onPick: (_) {}, virtualShiftingBlocked: true));
   });
 
-  // ── Step 5: connection methods + "Then in $app" guide + bridge card ────
-  // Network screenshots fail to load in tests — the errorBuilder swallows
-  // that and vanishes the image, which is the offline behaviour working as
-  // intended, so settle:false avoids pumpAndSettle hanging on the retries.
-  testWidgets('step connection no trainer', (tester) async {
-    await captureWidget(tester, name: 'onboarding_step_connection', width: 380, settle: false,
-        builder: (c) => onboardingConnectionBody(
-              c,
-              app: MyWhoosh(),
-              target: Target.otherDevice,
-              hasTrainer: false,
-              trainerName: null,
-              onUpdate: () {},
-            ));
+  // ── Step 2: controller + trainer on one screen ────────────────────────
+  final gearClick = ZwiftClick(BleDevice(deviceId: 'gear-click', name: 'Zwift Click'))..isConnected = true;
+  Widget gear(BuildContext c, {required List<ProxyDevice> trainers, List<ZwiftClick>? controllers}) => SizedBox(
+        height: 800,
+        child: onboardingShell(
+          c,
+          step: OnboardingStep.gear,
+          body: onboardingGearBody(
+            c,
+            controllerPhase: ControllerPhase.list,
+            controllers: controllers ?? [gearClick],
+            app: MyWhoosh(),
+            trainers: trainers,
+            onPickTrainer: (_) {},
+            onRescanTrainers: () {},
+            vsDailyMinutesWithoutPro: 30,
+          ),
+          footerActions: [
+            BkPillButton(
+              onPressed: trainers.length == 1 ? () {} : null,
+              child: Text(trainers.isEmpty
+                  ? 'Looking for Smart Trainers…'
+                  : trainers.single.isBridged
+                  ? 'Continue'
+                  : 'Connect ${trainers.single.name}'),
+            ),
+            if (trainers.isEmpty || !trainers.single.isBridged)
+              GhostButton(onPressed: () {}, child: const Text('Let MyWhoosh handle virtual shifting')),
+          ],
+          onBack: () {},
+          onHelp: () {},
+        ),
+      );
+
+  testWidgets('step gear searching', (tester) async {
+    await captureWidget(tester, name: 'onboarding_step_gear_searching', width: 390, settle: false,
+        builder: (c) => gear(c, trainers: const []));
   });
 
-  testWidgets('step connection with trainer', (tester) async {
-    await captureWidget(tester, name: 'onboarding_step_connection_trainer', width: 380, settle: false,
-        builder: (c) => onboardingConnectionBody(
+  testWidgets('step gear no controller yet', (tester) async {
+    await captureWidget(tester, name: 'onboarding_step_gear_no_controller', width: 390, settle: false,
+        builder: (c) => gear(c, trainers: const [], controllers: const []));
+  });
+
+  testWidgets('step gear trainer found', (tester) async {
+    final trainer = ProxyDevice(BleDevice(deviceId: 'gear-trainer', name: 'KICKR CORE 1EB7'));
+    await captureWidget(tester, name: 'onboarding_step_gear_found', width: 390, settle: false,
+        builder: (c) => gear(c, trainers: [trainer]));
+  });
+
+  testWidgets('step gear trainer connected', (tester) async {
+    final trainer = ProxyDevice(BleDevice(deviceId: 'gear-trainer-2', name: 'KICKR CORE 1EB7'))
+      ..debugSetTrainerAppConnected(true);
+    await captureWidget(tester, name: 'onboarding_step_gear_connected', width: 390, settle: false,
+        builder: (c) => gear(c, trainers: [trainer]));
+  });
+
+  for (var i = 0; i < 4; i++) {
+    testWidgets('flat vs stage scene $i', (tester) async {
+      await captureWidget(tester, name: 'onboarding_vs_stage_flat_$i', width: 360, settle: false,
+          builder: (c) => VirtualShiftingStage(initialScene: i, flat: true));
+    });
+  }
+
+  // ── Step 3: waiting for the app, with the guide and the folded methods ─
+  testWidgets('step ride waiting for app', (tester) async {
+    await captureWidget(tester, name: 'onboarding_step_ride_waiting', width: 380, settle: false,
+        builder: (c) => onboardingDoneBody(
               c,
               app: MyWhoosh(),
-              target: Target.otherDevice,
-              hasTrainer: true,
+              controllerName: 'Zwift Click',
               trainerName: 'KICKR CORE',
-              onUpdate: () {},
+              appConnected: false,
+              trainerAppConnected: false,
+              reduceMotion: true,
+              showTestMode: true,
+              connectionMethods: OnboardingMethodsDisclosure(app: MyWhoosh(), onUpdate: () {}),
             ));
   });
 
-  // ── Step 6: done / test mode / completion ──────────────────────────────
+  // ── Step 3 once the app is connected: done / test mode ──────────────────────────────
   testWidgets('step done no trainer', (tester) async {
     await captureWidget(tester, name: 'onboarding_step_done', width: 380,
         builder: (c) => onboardingDoneBody(

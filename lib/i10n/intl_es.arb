@@ -3090,5 +3090,15 @@
   "vsBaseOverTitle": "El cambio virtual de BikeControl ha terminado por hoy",
   "vsBaseOverBody": "Tu salida sigue hasta que tu app de entrenamiento se desconecte, y con Base tus botones siguen sin límite. Para cambiar sin ningún límite, empareja el rodillo directamente en tu app de entrenamiento y activa su propio cambio virtual: BikeControl sigue enviando tus botones de cambio. Pro quita el límite diario del cambio virtual de BikeControl.",
   "vsBaseAlreadyOverBody": "Con Base, tus botones siguen sin límite. Para cambiar sin ningún límite, empareja el rodillo directamente en tu app de entrenamiento y activa su propio cambio virtual: BikeControl sigue enviando tus botones de cambio. Pro quita el límite diario del cambio virtual de BikeControl.",
-  "vsBaseGuideAction": "Muéstrame cómo"
+  "vsBaseGuideAction": "Muéstrame cómo",
+  "onboardingStepGear": "Mando y rodillo",
+  "onboardingStepGearSub": "Conecta tu equipo",
+  "onboardingGearTitle": "Conecta tu equipo",
+  "onboardingGearSubtitle": "Pulsa un botón y pedalea para despertar tu rodillo.",
+  "onboardingRunsOn": "{app} se ejecuta en",
+  "onboardingShowAllApps": "Mostrar todas las apps",
+  "onboardingTrainerWakeHint": "Pedalea una vez para despertarlo.",
+  "onboardingTrainerVsByBikeControl": "Cambio virtual con BikeControl",
+  "onboardingConnectTrainer": "Conectar {trainer}",
+  "onboardingVsDailyWithoutPro": "Sin Pro: {minutes} min de cambio virtual al día."
 }

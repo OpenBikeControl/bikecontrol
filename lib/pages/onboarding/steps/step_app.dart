@@ -7,7 +7,8 @@ import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_update_banner.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_group_label.dart';
-import 'package:bike_control/pages/onboarding/widgets/onboarding_note.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
@@ -22,7 +23,6 @@ import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-
 
 /// 10 padding + 40 logo + 9 gap + two xSmall caption lines + 10 padding, with
 /// a little slack.
@@ -52,57 +52,61 @@ class OnboardingAppTile extends StatelessWidget {
     return Button.ghost(
       style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
       onPressed: onTap,
-      child: Stack(children: [
-        Container(
-          width: double.infinity,
-          height: double.infinity,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            border: Border.all(color: selected ? onboardingAccent(context) : const Color(0x00000000), width: 2),
-            borderRadius: BorderRadius.circular(16),
-            color: scheme.card,
+      child: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              border: Border.all(color: selected ? onboardingAccent(context) : const Color(0x00000000), width: 2),
+              borderRadius: BorderRadius.circular(16),
+              color: scheme.card,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: 40,
+                  // Wide logos (icTrainer) stay clear of the corner seal.
+                  padding: EdgeInsets.symmetric(horizontal: showOfficialBadge ? 20 : 0),
+                  child: Center(
+                    child: app.logoAsset != null
+                        ? TrainerAppLogo(asset: app.logoAsset!, url: app.logoUrl, height: 36, fit: BoxFit.contain)
+                        : Container(
+                            width: 40,
+                            height: 40,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: scheme.muted,
+                            ),
+                            child: Text(app.name.substring(0, 1).toUpperCase()).semiBold.muted,
+                          ),
+                  ),
+                ),
+                Gap(9),
+                _TileCaption(app.name),
+              ],
+            ),
           ),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
-              height: 40,
-              // Wide logos (icTrainer) stay clear of the corner seal.
-              padding: EdgeInsets.symmetric(horizontal: showOfficialBadge ? 20 : 0),
-              child: Center(
-                child: app.logoAsset != null
-                    ? TrainerAppLogo(asset: app.logoAsset!, url: app.logoUrl, height: 36, fit: BoxFit.contain)
-                    : Container(
-                        width: 40,
-                        height: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: scheme.muted,
-                        ),
-                        child: Text(app.name.substring(0, 1).toUpperCase()).semiBold.muted,
-                      ),
+          if (showOfficialBadge) Positioned(top: 5, right: 5, child: const _OfficialBadge()),
+          if (selected)
+            Positioned(
+              // The seal holds the top-right corner; the check takes the other.
+              top: 7,
+              left: showOfficialBadge ? 7 : null,
+              right: showOfficialBadge ? null : 7,
+              child: Container(
+                width: 18,
+                height: 18,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: onboardingAccent(context)),
+                child: Icon(LucideIcons.check, size: 11, color: onboardingOnAccent(context)),
               ),
             ),
-            Gap(9),
-            _TileCaption(app.name),
-          ]),
-        ),
-        if (showOfficialBadge)
-          Positioned(top: 5, right: 5, child: const _OfficialBadge()),
-        if (selected)
-          Positioned(
-            // The seal holds the top-right corner; the check takes the other.
-            top: 7,
-            left: showOfficialBadge ? 7 : null,
-            right: showOfficialBadge ? null : 7,
-            child: Container(
-              width: 18,
-              height: 18,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: onboardingAccent(context)),
-              child: Icon(LucideIcons.check, size: 11, color: onboardingOnAccent(context)),
-            ),
-          ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -125,7 +129,9 @@ class _OfficialBadge extends StatelessWidget {
           painter: _SealPainter(accent),
           child: SizedBox.square(
             dimension: size,
-            child: Center(child: OpenBikeControlLogo(size: size * 0.48, color: onboardingOnAccent(context))),
+            child: Center(
+              child: OpenBikeControlLogo(size: size * 0.48, color: onboardingOnAccent(context)),
+            ),
           ),
         ),
       ),
@@ -231,40 +237,52 @@ class _RenderAtLeastWidestWord extends RenderProxyBox {
 
 /// Explains the tile badge next to the "Big platforms" label.
 Widget _officialLegend(BuildContext context) => ExcludeSemantics(
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const _OfficialBadge(size: 18),
-        Gap(5),
-        Text(context.i18n.officiallySupported).xSmall.muted,
-      ]),
-    );
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const _OfficialBadge(size: 18),
+      Gap(5),
+      Text(context.i18n.officiallySupported).xSmall.muted,
+    ],
+  ),
+);
 
 Widget _verifiedBadge(BuildContext context) => Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        color: BkStatusColors.of(context).successWash,
-      ),
-      child: DefaultTextStyle.merge(
-        style: TextStyle(color: BkStatusColors.of(context).success, letterSpacing: 0.6),
-        child: Text(context.i18n.onboardingVerified.toUpperCase()).xSmall.semiBold,
-      ),
-    );
+  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(5),
+    color: BkStatusColors.of(context).successWash,
+  ),
+  child: DefaultTextStyle.merge(
+    style: TextStyle(color: BkStatusColors.of(context).success, letterSpacing: 0.6),
+    child: Text(context.i18n.onboardingVerified.toUpperCase()).xSmall.semiBold,
+  ),
+);
 
 /// The big platforms shown in the "Big platforms" group.
 bool _isBigPlatform(SupportedApp a) =>
     a is MyWhoosh ||
     a is Zwift ||
-    (a is OpenBikeControlTrainerApp && a.name == 'icTrainer') || a is TrainingPeaks || a is Biketerra || a is Rouvy || a is Tacx || a is FulGaz;
+    (a is OpenBikeControlTrainerApp && a.name == 'icTrainer') ||
+    a is TrainingPeaks ||
+    a is Biketerra ||
+    a is Rouvy ||
+    a is Tacx ||
+    a is FulGaz;
 
 /// Every supported trainer app as a grid of tiles: the big platforms first
 /// (official ones marked with the OpenBikeControl badge), then the other
 /// official integrations under their verified badge, then the rest. Onboarding's app step
 /// shows it, and so does the trainer-app picker in Connection settings.
 class TrainerAppGrid extends StatelessWidget {
-  const TrainerAppGrid({super.key, required this.selected, required this.onSelect});
+  const TrainerAppGrid({super.key, required this.selected, required this.onSelect, this.onShowAll});
 
   final SupportedApp? selected;
   final ValueChanged<SupportedApp> onSelect;
+
+  /// Set: only the big platforms, then a "Show all apps" button calling this.
+  /// The onboarding opens on the apps most riders ride with, not on thirty.
+  final VoidCallback? onShowAll;
 
   @override
   Widget build(BuildContext context) {
@@ -275,31 +293,33 @@ class TrainerAppGrid extends StatelessWidget {
     final official = rest.where((a) => a.officialIntegration).toList();
     final other = rest.where((a) => !a.officialIntegration).toList();
 
-    Widget grid(List<SupportedApp> apps, {bool badgeOfficial = false}) => LayoutBuilder(builder: (context, constraints) {
-          final cols = constraints.maxWidth >= Breakpoints.onboardingAppGridWide ? 5 : 3;
-          return GridView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            // Fixed tile height: the content (padding, logo, gap, two caption
-            // lines) doesn't shrink with the column width, so an aspect ratio
-            // would let two-line captions spill out of narrow tiles.
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: cols,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              mainAxisExtent: _tileHeight,
-            ),
-            children: [
-              for (final app in apps)
-                OnboardingAppTile(
-                  app: app,
-                  selected: selected?.name == app.name,
-                  onTap: () => onSelect(app),
-                  showOfficialBadge: badgeOfficial && app.officialIntegration,
-                ),
-            ],
-          );
-        });
+    Widget grid(List<SupportedApp> apps, {bool badgeOfficial = false}) => LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = constraints.maxWidth >= Breakpoints.onboardingAppGridWide ? 5 : 3;
+        return GridView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          // Fixed tile height: the content (padding, logo, gap, two caption
+          // lines) doesn't shrink with the column width, so an aspect ratio
+          // would let two-line captions spill out of narrow tiles.
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            mainAxisExtent: _tileHeight,
+          ),
+          children: [
+            for (final app in apps)
+              OnboardingAppTile(
+                app: app,
+                selected: selected?.name == app.name,
+                onTap: () => onSelect(app),
+                showOfficialBadge: badgeOfficial && app.officialIntegration,
+              ),
+          ],
+        );
+      },
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -307,33 +327,123 @@ class TrainerAppGrid extends StatelessWidget {
       children: [
         OnboardingGroupLabel(context.i18n.onboardingBigPlatforms, trailing: _officialLegend(context)),
         grid(big, badgeOfficial: true),
-        Gap(18),
-        OnboardingGroupLabel(context.i18n.officiallySupported, leading: const _OfficialBadge(size: 18), trailing: _verifiedBadge(context)),
-        grid(official),
-        Gap(18),
-        OnboardingGroupLabel(context.i18n.otherTrainerApps),
-        grid(other),
+        if (onShowAll != null) ...[
+          Gap(4),
+          Button.ghost(
+            key: const ValueKey('onboarding-show-all-apps'),
+            onPressed: onShowAll,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(context.i18n.onboardingShowAllApps).small.semiBold,
+                Gap(6),
+                Icon(LucideIcons.chevronDown, size: 15),
+              ],
+            ),
+          ),
+        ] else ...[
+          Gap(18),
+          OnboardingGroupLabel(
+            context.i18n.officiallySupported,
+            leading: const _OfficialBadge(size: 18),
+            trailing: _verifiedBadge(context),
+          ),
+          grid(official),
+          Gap(18),
+          OnboardingGroupLabel(context.i18n.otherTrainerApps),
+          grid(other),
+        ],
       ],
     );
   }
 }
 
-Widget onboardingAppBody(BuildContext context,
-    {required SupportedApp? selected,
-    required ValueChanged<SupportedApp> onSelect,
-    bool showUpdateBanner = false}) {
+/// Whether [app] is one of the big platforms the collapsed app grid shows.
+bool onboardingAppIsBigPlatform(SupportedApp app) => _isBigPlatform(app);
+
+/// Step 1: which app, and — where there is a choice — whether it runs on this
+/// device or another one. The grid opens on the big platforms; [onShowAll]
+/// unfolds the rest ([showAllApps]).
+Widget onboardingAppBody(
+  BuildContext context, {
+  required SupportedApp? selected,
+  required ValueChanged<SupportedApp> onSelect,
+  bool showUpdateBanner = false,
+  bool showAllApps = true,
+  VoidCallback? onShowAll,
+  List<Target> targets = const [],
+  Target? selectedTarget,
+  ValueChanged<Target>? onSelectTarget,
+}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: onboardingReveal([
       // Shown only when the welcome screen didn't already make the offer.
       if (showUpdateBanner) const OnboardingUpdateBanner(),
       OnboardingHeadline(context.i18n.onboardingAppTitle),
-      Gap(6),
-      Text(context.i18n.onboardingAppSubtitle).small.muted,
       Gap(18),
-      TrainerAppGrid(selected: selected, onSelect: onSelect),
-      Gap(14),
-      OnboardingNote(context.i18n.onboardingAppNote),
+      TrainerAppGrid(selected: selected, onSelect: onSelect, onShowAll: showAllApps ? null : onShowAll),
+      if (selected != null && targets.length > 1 && onSelectTarget != null) ...[
+        Gap(20),
+        OnboardingGroupLabel(context.i18n.onboardingRunsOn(selected.name)),
+        OnboardingTargetChoice(targets: targets, selected: selectedTarget, onSelect: onSelectTarget),
+      ],
     ]),
   );
+}
+
+/// "This device | Other device" as one segmented control.
+class OnboardingTargetChoice extends StatelessWidget {
+  const OnboardingTargetChoice({super.key, required this.targets, required this.selected, required this.onSelect});
+
+  final List<Target> targets;
+  final Target? selected;
+  final ValueChanged<Target> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(14)),
+      child: Row(
+        children: [
+          for (final t in targets)
+            Expanded(
+              child: Button.ghost(
+                key: ValueKey('onboarding-where-${t.name}'),
+                style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
+                onPressed: () => onSelect(t),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: t == selected ? onboardingAccent(context) : null,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(t.icon, size: 17, color: t == selected ? onboardingOnAccent(context) : cs.mutedForeground),
+                      Gap(8),
+                      Flexible(
+                        child: Text(
+                          t.getTitle(context),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.typography.small.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: t == selected ? onboardingOnAccent(context) : cs.foreground,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

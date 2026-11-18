@@ -1,3 +1,8 @@
+### 7.7.0 (18-11-2026)
+**Features**:
+- Una configurazione più breve: tre passaggi invece di sei. Scegli l'app di allenamento e dove gira, collega controller e rullo in un'unica schermata, poi collega l'app.
+- La configurazione ora collega il rullo tramite BikeControl per impostazione predefinita e mostra subito cosa fa il cambio virtuale di BikeControl.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.

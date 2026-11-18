@@ -1,7 +1,7 @@
-// Regression: tapping the Local method tile on step 5 opened the permission
-// sheet with a context above the wizard's Scaffold ("No DrawerOverlay found")
-// because _body/_footer were built with the page-level context. This walks
-// the real wizard to step 5 and taps Local.
+// Regression: tapping the Local method tile opened the permission sheet with a
+// context above the wizard's Scaffold ("No DrawerOverlay found") because
+// _body/_footer were built with the page-level context. This walks the real
+// wizard to the ride step and taps Local among its connection methods.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile;
@@ -16,7 +16,7 @@ import 'widget_snapshot.dart';
 Future<void> main() async {
   await ensureSnapshotHarness();
 
-  testWidgets('Local tile on step 5 opens the permission sheet without crashing', (tester) async {
+  testWidgets('Local tile on the ride step opens the permission sheet without crashing', (tester) async {
     // Deny the keypress-simulator permission so the sheet path runs (there's
     // no native plugin in tests) — and the toggle must then stay OFF.
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -65,30 +65,26 @@ Future<void> main() async {
     await tester.tap(find.byType(PrimaryButton).last);
     await settle();
 
-    // Step 1: pick the first app, continue.
+    // Step 1: pick the first app and "on this device", continue.
     await tester.tap(find.byType(OnboardingAppTile).first);
     await settle();
-    await tapContinue();
-
-    // Step 2: pick "on this device", continue.
+    await tester.ensureVisible(find.byKey(const ValueKey('onboarding-where-thisDevice')));
     await tester.tap(find.byKey(const ValueKey('onboarding-where-thisDevice')));
     await settle();
     await tapContinue();
 
-    // Step 3 (controller): the footer's "can't find" then "set up later"
-    // press through to step 4 (Back sits under them now).
-    final l10n = AppLocalizations.current;
-    await tester.tap(find.text(l10n.onboardingCantFindController));
-    await settle();
-    await tester.tap(find.text(l10n.onboardingSetUpLater));
+    // Step 2 (controller + trainer): skip the trainer.
+    await tester.tap(find.byKey(const ValueKey('onboarding-gear-skip-trainer')));
     await settle();
 
-    // Step 4 (virtual shifting): its ghost footer action skips it.
-    await tester.tap(find.textContaining(l10n.onboardingLetAppHandleVs('').split('  ').last.trim()));
-    await settle();
-
-    // Step 5: tap the Local method tile (keyboard icon).
-    expect(find.byIcon(LucideIcons.keyboard), findsOneWidget, reason: 'should be on step 5');
+    // Step 3: unfold the connection methods if they are folded, tap Local.
+    if (find.byIcon(LucideIcons.keyboard).evaluate().isEmpty) {
+      await tester.ensureVisible(find.byKey(const ValueKey('onboarding-methods-toggle')));
+      await tester.tap(find.byKey(const ValueKey('onboarding-methods-toggle')));
+      await settle();
+    }
+    expect(find.byIcon(LucideIcons.keyboard), findsOneWidget, reason: 'should be on the ride step');
+    await tester.ensureVisible(find.byIcon(LucideIcons.keyboard));
     await tester.tap(find.byIcon(LucideIcons.keyboard));
     await settle();
     await tester.pump(const Duration(milliseconds: 400));

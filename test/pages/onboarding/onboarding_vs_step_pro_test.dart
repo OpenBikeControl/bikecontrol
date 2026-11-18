@@ -121,7 +121,7 @@ Future<void> main() async {
             builder: (c) => SafeArea(
               child: onboardingShell(
                 c,
-                step: OnboardingStep.virtualShifting,
+                step: OnboardingStep.gear,
                 body: onboardingTrainerBody(
                   c,
                   app: MyWhoosh(),

@@ -38,14 +38,7 @@ Future<void> main() async {
         home: Scaffold(
           child: SingleChildScrollView(
             child: Builder(
-              builder: (c) => onboardingConnectionBody(
-                c,
-                app: app,
-                target: target,
-                hasTrainer: false,
-                trainerName: null,
-                onUpdate: () {},
-              ),
+              builder: (c) => Column(children: onboardingMethodTiles(c, app: app, onUpdate: () {})),
             ),
           ),
         ),

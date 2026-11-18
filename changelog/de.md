@@ -1,3 +1,8 @@
+### 7.7.0 (18-11-2026)
+**Features**:
+- Kürzere Einrichtung: drei Schritte statt sechs. Wähle deine Trainings-App und wo sie läuft, verbinde Controller und Smart Trainer auf einem Bildschirm, dann die App.
+- Die Einrichtung verbindet deinen Smart Trainer jetzt standardmäßig über BikeControl und zeigt direkt dort, was das virtuelle Schalten von BikeControl kann.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.

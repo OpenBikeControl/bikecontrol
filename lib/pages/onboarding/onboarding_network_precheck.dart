@@ -21,10 +21,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// Whether the connection step's "Finish setup" can be pressed.
-bool onboardingConnectionCanFinish({required bool hasNoConnectionMethod, required bool networkBlocking}) =>
-    !hasNoConnectionMethod && !networkBlocking;
-
 enum NetworkPrecheckPhase { idle, checking, done }
 
 class OnboardingNetworkPrecheck extends ChangeNotifier {

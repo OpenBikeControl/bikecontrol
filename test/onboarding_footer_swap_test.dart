@@ -28,7 +28,7 @@ class _SwapHostState extends State<_SwapHost> {
       height: 700,
       child: onboardingShell(
         context,
-        step: OnboardingStep.controller,
+        step: OnboardingStep.gear,
         body: const Text('body'),
         footerActions: [
           if (connected)

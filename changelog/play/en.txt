@@ -1,12 +1,4 @@
-7.6.0
+7.7.0
 New:
-• Incyclist, Tour du Pain and Rampida via OpenBikeControl
-• CYCPLUS T7 shifters work as controllers
-• A clearer button editor, grouped by what actions do
-• Di2: set the D-Fly channels yourself in E-TUBE, with a guide
-• Zwift Click V2: use the right controller without unlocking
-• More to try: 120 presses a day in the trial, 40 after, 30 min of virtual shifting
-
-Fixed:
-• No crash when Android restarts the background service
-• Close & quit always quits
+• Setup in three steps instead of six
+• Setup connects your smart trainer through BikeControl by default and shows what its virtual shifting does

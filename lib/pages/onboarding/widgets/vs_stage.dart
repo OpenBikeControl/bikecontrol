@@ -40,7 +40,15 @@ int? debugVirtualShiftingStageOpeningScene;
 /// Holds still under reduced motion and in [screenshotMode], where it shows
 /// the first scene only.
 class VirtualShiftingStage extends StatefulWidget {
-  const VirtualShiftingStage({super.key, this.initialScene = 0, this.zwiftReadyNearby = false});
+  const VirtualShiftingStage({super.key, this.initialScene = 0, this.zwiftReadyNearby = false, this.flat = false});
+
+  /// Drawn straight onto the surface it sits on — no frame of its own, every
+  /// scene the same compact height, and no cards inside the scenes. For a
+  /// stage that already sits inside a card (the onboarding trainer card).
+  final bool flat;
+
+  /// The height every [flat] scene gets.
+  static const double flatSceneHeight = 120;
 
   /// A trainer the scan found advertises the Zwift service: BikeControl will
   /// shift it natively, so the first scene shows the trainer applying the
@@ -166,12 +174,14 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
           }),
           child: Container(
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: cs.muted,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: cs.border),
-            ),
-            clipBehavior: Clip.antiAlias,
+            decoration: widget.flat
+                ? null
+                : BoxDecoration(
+                    color: cs.muted,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: cs.border),
+                  ),
+            clipBehavior: widget.flat ? Clip.none : Clip.antiAlias,
             child: AnimatedSlide(
               // Follows the finger a little, then springs back on release —
               // enough for the swipe to feel answered before the scene turns
@@ -194,9 +204,23 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
                         // the shorter scenes centre instead of hugging the top.
                         child: SizedBox(
                           width: double.infinity,
+                          height: widget.flat ? VirtualShiftingStage.flatSceneHeight : null,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                            child: switch (i) {
+                            padding: widget.flat
+                                ? EdgeInsets.zero
+                                : const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                            child: widget.flat
+                                ? switch (i) {
+                                    0 when compare => _FlatShiftChart(
+                                      app: paywallShiftAppName(selected),
+                                      native: widget.zwiftReadyNearby || _nativeTrainer(),
+                                    ),
+                                    0 => _SceneApps(active: i == scene && !still),
+                                    1 => _FlatRatios(active: i == scene && !still),
+                                    2 => _FlatFront(active: i == scene && !still),
+                                    _ => const _FlatMore(),
+                                  }
+                                : switch (i) {
                               0 when compare => VsShiftCompare(
                                 app: paywallShiftAppName(selected),
                                 native: widget.zwiftReadyNearby || _nativeTrainer(),
@@ -216,7 +240,7 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
             ),
           ),
         ),
-        const Gap(11),
+        Gap(widget.flat ? 12 : 11),
         Row(
           children: [
             Expanded(
@@ -701,6 +725,272 @@ class _SceneMore extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+
+// ── Flat scenes (see [VirtualShiftingStage.flat]) ───────────────────────────
+
+/// One shift, as the resistance it causes: BikeControl's line rises right
+/// after the press, the trainer app's a beat later. The flat stage's version
+/// of [VsShiftCompare] — one chart instead of two lanes.
+class _FlatShiftChart extends StatelessWidget {
+  const _FlatShiftChart({required this.app, required this.native});
+
+  final String? app;
+  final bool native;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final accent = onboardingAccent(context);
+    final grey = cs.mutedForeground.withValues(alpha: 0.5);
+    final i18n = context.i18n;
+    Widget key(Color color, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: 14, height: 3, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+        const Gap(6),
+        Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis).xSmall.semiBold),
+      ],
+    );
+    return Column(
+      key: const ValueKey('vs-stage-flat-shift'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Flexible(child: key(accent, i18n.vsStageLaneBikeControl)),
+            const Gap(14),
+            Flexible(child: key(grey, app == null ? i18n.vsStageLaneAppGeneric : i18n.vsStageLaneApp(app!))),
+          ],
+        ),
+        const Gap(8),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, box) => Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  bottom: 18,
+                  child: CustomPaint(
+                    painter: _ShiftChartPainter(grey: grey, accent: accent, grid: cs.border, native: native),
+                  ),
+                ),
+                PositionedDirectional(
+                  start: box.maxWidth * _ShiftChartPainter.press - 6,
+                  bottom: 0,
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.arrowUp, size: 11, color: cs.mutedForeground),
+                      const Gap(3),
+                      Text(i18n.vsStageStepButton).xSmall.muted,
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ShiftChartPainter extends CustomPainter {
+  _ShiftChartPainter({required this.grey, required this.accent, required this.grid, required this.native});
+
+  final Color grey, accent, grid;
+  final bool native;
+
+  /// Where along the width the button is pressed.
+  static const double press = 0.16;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const top = 8.0;
+    final base = size.height - 6;
+    final line = Paint()
+      ..color = grid
+      ..strokeWidth = 1;
+    canvas.drawLine(Offset(0, base + 4), Offset(size.width, base + 4), line);
+    final px = size.width * press;
+    for (var y = top; y < base + 4; y += 6) {
+      canvas.drawLine(Offset(px, y), Offset(px, y + 3), line..strokeWidth = 1.2);
+    }
+    Path curve(double start, double end) {
+      final mid = start + (end - start) / 2;
+      return Path()
+        ..moveTo(0, base)
+        ..lineTo(size.width * start, base)
+        ..cubicTo(size.width * mid, base, size.width * mid, top, size.width * end, top)
+        ..lineTo(size.width, top);
+    }
+
+    Paint stroke(Color c, double w) => Paint()
+      ..color = c
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(curve(0.52, 0.74), stroke(grey, 2.5));
+    canvas.drawPath(native ? curve(0.17, 0.24) : curve(0.2, 0.36), stroke(accent, 3));
+  }
+
+  @override
+  bool shouldRepaint(_ShiftChartPainter old) =>
+      old.grey != grey || old.accent != accent || old.grid != grid || old.native != native;
+}
+
+/// The gear editor's presets as bars, the selected gear sweeping up and down
+/// them — [_SceneRatios] without its card.
+class _FlatRatios extends StatelessWidget {
+  const _FlatRatios({required this.active});
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final accent = onboardingAccent(context);
+    final presets = gearRatioPresets(context, _SceneRatios._gears);
+    return _Stepper(
+      active: active,
+      period: const Duration(milliseconds: 300),
+      builder: (context, tick) {
+        final selected = (tick ~/ 8) % presets.length;
+        final ratios = presets[selected].values;
+        final gear = _SceneRatios._sweep(tick);
+        final lo = ratios.reduce((a, b) => a < b ? a : b);
+        final hi = ratios.reduce((a, b) => a > b ? a : b);
+        final span = (hi - lo).abs() < 0.0001 ? 1.0 : hi - lo;
+        return Column(
+          children: [
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (var i = 0; i < ratios.length; i++) ...[
+                    if (i > 0) const Gap(3),
+                    Expanded(
+                      child: AnimatedFractionallySizedBox(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        heightFactor: 0.18 + 0.82 * (ratios[i] - lo) / span,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: i + 1 == gear
+                                ? accent
+                                : Color.lerp(cs.border, cs.foreground, ratios.length == 1 ? 1 : i / (ratios.length - 1)),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Gap(10),
+            Row(
+              children: [
+                for (var i = 0; i < presets.length; i++) ...[
+                  if (i > 0) const Gap(6),
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: i == selected ? accent : cs.muted,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        presets[i].label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.typography.xSmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: i == selected ? onboardingOnAccent(context) : cs.mutedForeground,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// The chain walking between the two chainrings — [_SceneFront] without the
+/// setting's row and the drivetrain's frame.
+class _FlatFront extends StatelessWidget {
+  const _FlatFront({required this.active});
+
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) => _Stepper(
+    active: active,
+    period: const Duration(milliseconds: 1700),
+    builder: (context, tick) => Center(
+      child: DrivetrainView(
+        gear: _SceneFront._gear,
+        gearCount: _SceneFront._gears,
+        frontShift: true,
+        largeRingActive: tick.isOdd,
+        smallChainringTeeth: ShiftingConfig.smallChainringDefault,
+        largeChainringTeeth: ShiftingConfig.largeChainringDefault,
+        moving: active,
+        cadence: 85,
+        showGear: false,
+        framed: false,
+      ),
+    ),
+  );
+}
+
+/// The features that don't need a picture, as a two-column checklist.
+class _FlatMore extends StatelessWidget {
+  const _FlatMore();
+
+  @override
+  Widget build(BuildContext context) {
+    final i18n = context.i18n;
+    final accent = onboardingAccent(context);
+    final items = [
+      i18n.vsStageMoreInstantTitle,
+      i18n.vsStageMoreWifiTitle,
+      i18n.vsStageMoreControllersTitle,
+      i18n.vsStageMoreGearCountTitle,
+      i18n.vsStageMoreModesTitle,
+      i18n.vsStageMoreProfilesTitle,
+    ];
+    Widget cell(String text) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.check, size: 15, color: accent)),
+        const Gap(8),
+        Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis).xSmall.semiBold),
+      ],
+    );
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        for (var row = 0; row < items.length ~/ 2; row++)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: cell(items[row * 2])),
+              const Gap(10),
+              Expanded(child: cell(items[row * 2 + 1])),
+            ],
+          ),
+      ],
     );
   }
 }

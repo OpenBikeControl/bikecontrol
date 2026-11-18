@@ -3090,5 +3090,15 @@
   "vsBaseOverTitle": "Il cambio virtuale di BikeControl è finito per oggi",
   "vsBaseOverBody": "La tua uscita continua finché la tua app di allenamento non si disconnette, e con Base i tuoi pulsanti restano illimitati. Per cambiare senza alcun limite, associa il rullo direttamente nella tua app di allenamento e attiva il suo cambio virtuale: BikeControl continua a inviare i tuoi pulsanti di cambio. Pro rimuove il limite giornaliero del cambio virtuale di BikeControl.",
   "vsBaseAlreadyOverBody": "Con Base i tuoi pulsanti restano illimitati. Per cambiare senza alcun limite, associa il rullo direttamente nella tua app di allenamento e attiva il suo cambio virtuale: BikeControl continua a inviare i tuoi pulsanti di cambio. Pro rimuove il limite giornaliero del cambio virtuale di BikeControl.",
-  "vsBaseGuideAction": "Mostrami come"
+  "vsBaseGuideAction": "Mostrami come",
+  "onboardingStepGear": "Controller e rullo",
+  "onboardingStepGearSub": "Collega i tuoi dispositivi",
+  "onboardingGearTitle": "Collega i tuoi dispositivi",
+  "onboardingGearSubtitle": "Premi un pulsante, poi pedala per svegliare il rullo.",
+  "onboardingRunsOn": "{app} gira su",
+  "onboardingShowAllApps": "Mostra tutte le app",
+  "onboardingTrainerWakeHint": "Pedala una volta per svegliarlo.",
+  "onboardingTrainerVsByBikeControl": "Cambio virtuale di BikeControl",
+  "onboardingConnectTrainer": "Connetti {trainer}",
+  "onboardingVsDailyWithoutPro": "Senza Pro: {minutes} min di cambio virtuale al giorno."
 }
