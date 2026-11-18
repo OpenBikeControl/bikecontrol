@@ -374,6 +374,7 @@ Widget onboardingAppBody(
   List<Target> targets = const [],
   Target? selectedTarget,
   ValueChanged<Target>? onSelectTarget,
+  Key? targetChoiceKey,
 }) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,7 +387,12 @@ Widget onboardingAppBody(
       if (selected != null && targets.length > 1 && onSelectTarget != null) ...[
         Gap(20),
         OnboardingGroupLabel(context.i18n.onboardingRunsOn(selected.name)),
-        OnboardingTargetChoice(targets: targets, selected: selectedTarget, onSelect: onSelectTarget),
+        OnboardingTargetChoice(
+          key: targetChoiceKey,
+          targets: targets,
+          selected: selectedTarget,
+          onSelect: onSelectTarget,
+        ),
       ],
     ]),
   );

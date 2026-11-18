@@ -3100,5 +3100,6 @@
   "onboardingTrainerWakeHint": "Donne un coup de pédale pour le réveiller.",
   "onboardingTrainerVsByBikeControl": "Vitesses virtuelles par BikeControl",
   "onboardingConnectTrainer": "Connecter {trainer}",
-  "onboardingVsDailyWithoutPro": "Sans Pro : {minutes} min de vitesses virtuelles par jour."
+  "onboardingVsDailyWithoutPro": "Sans Pro : {minutes} min de vitesses virtuelles par jour.",
+  "a11yScrollDown": "Faire défiler vers le bas"
 }

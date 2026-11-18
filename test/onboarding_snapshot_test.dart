@@ -2,6 +2,7 @@
 library;
 
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
@@ -311,6 +312,69 @@ Future<void> main() async {
               trainerAppConnected: false,
               reduceMotion: true,
               showTestMode: false,
+            ));
+  });
+
+  // ── Desktop: rail, two-trainer footer with a long translation, folded tips ─
+  testWidgets('desktop gear empty controller', (tester) async {
+    final a = ProxyDevice(BleDevice(deviceId: 'desk-a', name: 'KICKR CORE 1EB7'));
+    final b = ProxyDevice(BleDevice(deviceId: 'desk-b', name: 'KICKR CORE 1EB7 WiFi'));
+    await captureWidget(tester, name: 'onboarding_desktop_gear', width: 1100, height: 760, locales: const ['de'],
+        settle: false, padding: EdgeInsets.zero,
+        builder: (c) => onboardingShell(
+              c,
+              step: OnboardingStep.gear,
+              body: onboardingGearBody(
+                c,
+                controllerPhase: ControllerPhase.empty,
+                controllers: const [],
+                app: MyWhoosh(),
+                trainers: [a, b],
+                onPickTrainer: (_) {},
+                onScanControllersAgain: () {},
+                vsDailyMinutesWithoutPro: 30,
+              ),
+              footerActions: [
+                PrimaryButton(onPressed: null, child: Text(AppLocalizations.of(c).onboardingTrainersFound(2))),
+                GhostButton(onPressed: () {}, child: Text(AppLocalizations.of(c).onboardingLetAppHandleVs('MyWhoosh'))),
+              ],
+              onBack: () {},
+              onHelp: () {},
+              onClose: () {},
+              onSelectStep: (_) {},
+              stepValues: const {OnboardingStep.app: 'MyWhoosh · Anderes Gerät'},
+            ),
+        beforeCapture: (tester) async {
+          await tester.pump(const Duration(milliseconds: 300));
+          await tester.pump(const Duration(milliseconds: 300));
+          expect(find.byKey(const ValueKey('onboarding-scroll-more')), findsOneWidget);
+          final opacity = tester.widget<AnimatedOpacity>(
+            find.ancestor(of: find.byKey(const ValueKey('onboarding-scroll-more')), matching: find.byType(AnimatedOpacity)),
+          );
+          expect(opacity.opacity, 1, reason: 'more below the fold: the arrow shows');
+        });
+  });
+
+  testWidgets('desktop app step', (tester) async {
+    await captureWidget(tester, name: 'onboarding_desktop_app', width: 1100, height: 760, locales: const ['de'],
+        settle: false, padding: EdgeInsets.zero,
+        builder: (c) => onboardingShell(
+              c,
+              step: OnboardingStep.app,
+              body: onboardingAppBody(
+                c,
+                selected: MyWhoosh(),
+                onSelect: (_) {},
+                showAllApps: false,
+                onShowAll: () {},
+                targets: Target.values,
+                selectedTarget: Target.otherDevice,
+                onSelectTarget: (_) {},
+              ),
+              footerActions: [PrimaryButton(onPressed: () {}, child: const Text('Weiter mit MyWhoosh'))],
+              onHelp: () {},
+              onClose: () {},
+              onSelectStep: (_) {},
             ));
   });
 }

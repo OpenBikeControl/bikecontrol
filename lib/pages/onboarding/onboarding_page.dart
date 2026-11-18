@@ -104,11 +104,11 @@ Widget onboardingShell(
       // Phones show the steps as the progress bar only — the list of steps
       // lives in the rail on wide windows.
       final content = body;
-      final scrolledBody = SingleChildScrollView(
+      final scrolledBody = OnboardingScrollArea(
         // Keyed per step: the next step starts at the top, not wherever the
         // last one was scrolled to.
         key: ValueKey('onboarding-scroll-$step'),
-        padding: EdgeInsets.fromLTRB(desktop ? 24 : 16, 8, desktop ? 24 : 16, desktop ? 16 : 32),
+        padding: EdgeInsets.fromLTRB(desktop ? 24 : 16, 8, desktop ? 24 : 16, desktop ? 24 : 32),
         child: desktop
             ? Center(
                 child: ConstrainedBox(
@@ -177,20 +177,7 @@ Widget onboardingShell(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
               child: _progressBar(context, step, onSelectStep),
             ),
-            // The body fades out above the footer instead of being cut off
-            // at a hard edge.
-            Expanded(
-              child: ShaderMask(
-                blendMode: BlendMode.dstIn,
-                shaderCallback: (rect) => const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
-                  stops: [0.0, 1.0],
-                ).createShader(Rect.fromLTRB(0, rect.height - 32, rect.width, rect.height)),
-                child: scrolledBody,
-              ),
-            ),
+            Expanded(child: scrolledBody),
             if (footerActions.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
@@ -286,6 +273,7 @@ Widget onboardingShell(
                       constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
                       child: _PillFooter(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (onBack != null)
                               BkTouchTarget(
@@ -295,11 +283,22 @@ Widget onboardingShell(
                                   child: Text(context.i18n.onboardingBack),
                                 ),
                               ),
-                            const Spacer(),
-                            for (var i = 0; i < footerActions.length; i++) ...[
-                              if (i > 0) Gap(10),
-                              BkTouchTarget(child: footerActions[i]),
-                            ],
+                            const Gap(10),
+                            // One row, the primary action rightmost — or, when
+                            // a translation doesn't fit, stacked with the
+                            // primary action on top, all flush right.
+                            Expanded(
+                              child: OverflowBar(
+                                alignment: MainAxisAlignment.end,
+                                spacing: 10,
+                                overflowSpacing: 4,
+                                overflowAlignment: OverflowBarAlignment.end,
+                                overflowDirection: VerticalDirection.up,
+                                children: [
+                                  for (final action in footerActions.reversed) BkTouchTarget(child: action),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -313,6 +312,115 @@ Widget onboardingShell(
       );
     },
   );
+}
+
+/// The step's scrolling body. Fades out above the footer instead of ending at
+/// a hard edge, and while there is more below the fold a round arrow says so —
+/// a fade alone didn't read as "scroll for more" (a step-1 "runs on" choice or
+/// step 2's trainer could sit unseen under it). The arrow scrolls on, and goes
+/// once the body has been scrolled.
+class OnboardingScrollArea extends StatefulWidget {
+  const OnboardingScrollArea({super.key, required this.padding, required this.child});
+
+  final EdgeInsets padding;
+  final Widget child;
+
+  @override
+  State<OnboardingScrollArea> createState() => _OnboardingScrollAreaState();
+}
+
+class _OnboardingScrollAreaState extends State<OnboardingScrollArea> {
+  final _controller = ScrollController();
+  bool _more = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  bool _onMetrics(ScrollMetrics metrics) {
+    // Only until the first scroll: by then the rider knows there is more, and
+    // the arrow would just sit on top of the content.
+    final more = metrics.extentAfter > 24 && metrics.extentBefore < 8;
+    if (more != _more) {
+      // Metrics notifications arrive during layout.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _more = more);
+      });
+    }
+    return false;
+  }
+
+  void _scrollOn() {
+    if (!_controller.hasClients) return;
+    final position = _controller.position;
+    final target = (position.pixels + position.viewportDimension * 0.75).clamp(0.0, position.maxScrollExtent);
+    if (prefersReducedMotion(context)) {
+      _controller.jumpTo(target);
+    } else {
+      _controller.animateTo(target, duration: const Duration(milliseconds: 350), curve: Curves.easeOutCubic);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: NotificationListener<ScrollMetricsNotification>(
+            onNotification: (n) => _onMetrics(n.metrics),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (n) => _onMetrics(n.metrics),
+              child: ShaderMask(
+                blendMode: BlendMode.dstIn,
+                shaderCallback: (rect) => const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+                  stops: [0.0, 1.0],
+                ).createShader(Rect.fromLTRB(0, rect.height - 32, rect.width, rect.height)),
+                child: SingleChildScrollView(controller: _controller, padding: widget.padding, child: widget.child),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 6,
+          child: Center(
+            child: IgnorePointer(
+              ignoring: !_more,
+              child: AnimatedOpacity(
+                opacity: _more ? 1 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: BkIconButton.ghost(
+                  key: const ValueKey('onboarding-scroll-more'),
+                  icon: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: cs.card,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: cs.border),
+                      boxShadow: [
+                        BoxShadow(color: cs.foreground.withValues(alpha: 0.12), blurRadius: 10, offset: const Offset(0, 3)),
+                      ],
+                    ),
+                    child: Icon(LucideIcons.chevronDown, size: 18, color: cs.foreground),
+                  ),
+                  label: context.i18n.a11yScrollDown,
+                  onPressed: _scrollOn,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// One segment per step, filled in the accent up to the current step. Finished
@@ -403,9 +511,10 @@ Widget onboardingStepList(
         key: ValueKey('onboarding-step-row-${s.name}'),
         leading: tile,
         title: onboardingStepLabel(context, s),
-        subtitle: showSubtitles || (!done && !active) ? onboardingStepSub(context, s) : null,
+        // What a finished step settled on replaces its description — a
+        // trailing value squeezed the title out of the narrow rail.
+        subtitle: value ?? (showSubtitles || (!done && !active) ? onboardingStepSub(context, s) : null),
         titleColor: active ? cs.foreground : (done ? cs.foreground : cs.mutedForeground),
-        trailing: value == null ? null : Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
         onPressed: done && onSelectStep != null ? () => onSelectStep(s) : null,
       ),
     );
@@ -458,6 +567,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   // The app grid opens on the big platforms — unless the rider's app is one
   // of the others, which must stay visible as the selection.
   bool _showAllApps = false;
+  // Brought into view once an app is picked: the "runs on" choice under the
+  // grid is easy to miss below the fold.
+  final _targetChoiceKey = GlobalKey();
 
   ControllerPhase _controllerPhase = ControllerPhase.permission;
   // Set once the permission sheet has been shown, so a declined notification
@@ -882,18 +994,34 @@ class _OnboardingPageState extends State<OnboardingPage> {
     if (mounted) _next();
   }
 
+  void _onSelectApp(SupportedApp app) {
+    setState(() => _selectedApp = app);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _targetChoiceKey.currentContext;
+      if (target == null || !target.mounted) return;
+      Scrollable.ensureVisible(
+        target,
+        alignment: 1,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
   Widget _body(BuildContext context) => switch (_step) {
     OnboardingStep.app => onboardingAppBody(
       context,
       // Mobile shows it on the welcome screen instead.
       showUpdateBanner: !_showedWelcome,
       selected: _selectedApp,
-      onSelect: (a) => setState(() => _selectedApp = a),
+      onSelect: _onSelectApp,
       showAllApps: _showAllApps,
       onShowAll: () => setState(() => _showAllApps = true),
       targets: _targetChoices,
       selectedTarget: _effectiveTarget,
       onSelectTarget: (t) => setState(() => _selectedTarget = t),
+      targetChoiceKey: _targetChoiceKey,
     ),
     OnboardingStep.gear => _controllerPhase == ControllerPhase.permission
         ? onboardingControllerBody(

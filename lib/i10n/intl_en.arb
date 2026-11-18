@@ -3577,5 +3577,7 @@
   "onboardingConnectTrainer": "Connect {trainer}",
   "@onboardingConnectTrainer": {"description": "Onboarding primary button that connects the found smart trainer.", "placeholders": {"trainer": {"type": "String"}}},
   "onboardingVsDailyWithoutPro": "Without Pro: {minutes} min of virtual shifting a day.",
-  "@onboardingVsDailyWithoutPro": {"description": "Note under the onboarding trainer card: daily minutes of BikeControl virtual shifting without Pro.", "placeholders": {"minutes": {"type": "String"}}}
+  "@onboardingVsDailyWithoutPro": {"description": "Note under the onboarding trainer card: daily minutes of BikeControl virtual shifting without Pro.", "placeholders": {"minutes": {"type": "String"}}},
+  "a11yScrollDown": "Scroll down",
+  "@a11yScrollDown": {"description": "Accessibility label of the round arrow button that scrolls the onboarding screen to the content below the fold."}
 }

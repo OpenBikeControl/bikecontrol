@@ -69,6 +69,7 @@ Future<void> main() async {
     await tester.tap(find.byType(OnboardingAppTile).first);
     await settle();
     await tester.ensureVisible(find.byKey(const ValueKey('onboarding-where-thisDevice')));
+    await settle();
     await tester.tap(find.byKey(const ValueKey('onboarding-where-thisDevice')));
     await settle();
     await tapContinue();
@@ -80,11 +81,14 @@ Future<void> main() async {
     // Step 3: unfold the connection methods if they are folded, tap Local.
     if (find.byIcon(LucideIcons.keyboard).evaluate().isEmpty) {
       await tester.ensureVisible(find.byKey(const ValueKey('onboarding-methods-toggle')));
+      // Scrolling hides the "more below" arrow, which sat over the toggle.
+      await settle();
       await tester.tap(find.byKey(const ValueKey('onboarding-methods-toggle')));
       await settle();
     }
     expect(find.byIcon(LucideIcons.keyboard), findsOneWidget, reason: 'should be on the ride step');
     await tester.ensureVisible(find.byIcon(LucideIcons.keyboard));
+    await settle();
     await tester.tap(find.byIcon(LucideIcons.keyboard));
     await settle();
     await tester.pump(const Duration(milliseconds: 400));

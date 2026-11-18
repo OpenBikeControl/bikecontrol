@@ -3100,5 +3100,6 @@
   "onboardingTrainerWakeHint": "Tritt einmal in die Pedale, um ihn aufzuwecken.",
   "onboardingTrainerVsByBikeControl": "Virtuelles Schalten durch BikeControl",
   "onboardingConnectTrainer": "{trainer} verbinden",
-  "onboardingVsDailyWithoutPro": "Ohne Pro: {minutes} Min. virtuelles Schalten am Tag."
+  "onboardingVsDailyWithoutPro": "Ohne Pro: {minutes} Min. virtuelles Schalten am Tag.",
+  "a11yScrollDown": "Nach unten scrollen"
 }

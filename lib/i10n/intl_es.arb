@@ -3100,5 +3100,6 @@
   "onboardingTrainerWakeHint": "Pedalea una vez para despertarlo.",
   "onboardingTrainerVsByBikeControl": "Cambio virtual con BikeControl",
   "onboardingConnectTrainer": "Conectar {trainer}",
-  "onboardingVsDailyWithoutPro": "Sin Pro: {minutes} min de cambio virtual al día."
+  "onboardingVsDailyWithoutPro": "Sin Pro: {minutes} min de cambio virtual al día.",
+  "a11yScrollDown": "Desplazarse hacia abajo"
 }

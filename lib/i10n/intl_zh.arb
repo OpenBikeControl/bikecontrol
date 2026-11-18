@@ -4282,5 +4282,6 @@
   "onboardingTrainerWakeHint": "踩一下踏板唤醒它。",
   "onboardingTrainerVsByBikeControl": "由 BikeControl 进行虚拟变速",
   "onboardingConnectTrainer": "连接 {trainer}",
-  "onboardingVsDailyWithoutPro": "没有 Pro：每天 {minutes} 分钟虚拟变速。"
+  "onboardingVsDailyWithoutPro": "没有 Pro：每天 {minutes} 分钟虚拟变速。",
+  "a11yScrollDown": "向下滚动"
 }

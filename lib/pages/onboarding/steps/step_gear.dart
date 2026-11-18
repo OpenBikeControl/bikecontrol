@@ -113,46 +113,8 @@ List<Widget> _controllerSection(
   VoidCallback? onScanAgain,
   VoidCallback? onUpdate,
 }) {
-  final cs = Theme.of(context).colorScheme;
   if (controllers.isEmpty) {
-    final empty = phase == ControllerPhase.empty;
-    return [
-      Container(
-        key: ValueKey('onboarding-controller-${empty ? 'empty' : 'scanning'}'),
-        padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-        decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
-        child: Row(
-          children: [
-            empty
-                ? const BkIconTile(icon: LucideIcons.searchX)
-                : const SizedBox(width: 40, height: 40, child: Center(child: CircularProgressIndicator(size: 20))),
-            Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(empty ? context.i18n.onboardingScanEmptyTitle : context.i18n.onboardingScanTitle).small.semiBold,
-                  Text(empty ? context.i18n.onboardingScanEmptySubtitle : context.i18n.onboardingScanSubtitle)
-                      .xSmall
-                      .muted,
-                ],
-              ),
-            ),
-            if (empty && onScanAgain != null) ...[
-              Gap(8),
-              Button.outline(
-                style: ButtonStyle.outline(size: ButtonSize.small),
-                onPressed: onScanAgain,
-                child: Text(context.i18n.onboardingScanAgain),
-              ),
-            ],
-          ],
-        ),
-      ),
-      // The controller may be here and simply on the ignore list.
-      const IgnoredDevicesNearbyHint(padding: EdgeInsets.only(top: 10)),
-      if (empty) ...[Gap(10), ...onboardingControllerTips(context)],
-    ];
+    return [_NoController(empty: phase == ControllerPhase.empty, onScanAgain: onScanAgain)];
   }
   return [
     for (final d in controllers)
@@ -173,6 +135,82 @@ List<Widget> _controllerSection(
           onSetup: onSetupDevice == null ? null : () => onSetupDevice(d),
         ),
   ];
+}
+
+/// No controller yet: still looking, or the scan came back empty. The tips
+/// for the empty case fold away under "Can't find your controller?" — open,
+/// they pushed the trainer card far below the fold.
+class _NoController extends StatefulWidget {
+  const _NoController({required this.empty, this.onScanAgain});
+
+  final bool empty;
+  final VoidCallback? onScanAgain;
+
+  @override
+  State<_NoController> createState() => _NoControllerState();
+}
+
+class _NoControllerState extends State<_NoController> {
+  bool _tips = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final empty = widget.empty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          key: ValueKey('onboarding-controller-${empty ? 'empty' : 'scanning'}'),
+          padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+          decoration: BoxDecoration(color: cs.card, borderRadius: BorderRadius.circular(16)),
+          child: Row(
+            children: [
+              empty
+                  ? const BkIconTile(icon: LucideIcons.searchX)
+                  : const SizedBox(width: 40, height: 40, child: Center(child: CircularProgressIndicator(size: 20))),
+              Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(empty ? context.i18n.onboardingScanEmptyTitle : context.i18n.onboardingScanTitle)
+                        .small
+                        .semiBold,
+                    Text(context.i18n.onboardingScanSubtitle).xSmall.muted,
+                  ],
+                ),
+              ),
+              if (empty && widget.onScanAgain != null) ...[
+                Gap(8),
+                Button.outline(
+                  style: ButtonStyle.outline(size: ButtonSize.small),
+                  onPressed: widget.onScanAgain,
+                  child: Text(context.i18n.onboardingScanAgain),
+                ),
+              ],
+            ],
+          ),
+        ),
+        // The controller may be here and simply on the ignore list.
+        const IgnoredDevicesNearbyHint(padding: EdgeInsets.only(top: 10)),
+        if (empty) ...[
+          Button.ghost(
+            key: const ValueKey('onboarding-controller-tips'),
+            style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4)),
+            onPressed: () => setState(() => _tips = !_tips),
+            child: Row(
+              children: [
+                Expanded(child: Text(context.i18n.onboardingCantFindController).small.semiBold),
+                Icon(_tips ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 15),
+              ],
+            ),
+          ),
+          if (_tips) ...[Gap(4), ...onboardingControllerTips(context)],
+        ],
+      ],
+    );
+  }
 }
 
 /// The trainer card: the scan or the trainers it found, and — until one is

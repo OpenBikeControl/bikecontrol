@@ -3100,5 +3100,6 @@
   "onboardingTrainerWakeHint": "Zakręć raz korbą, aby go wybudzić.",
   "onboardingTrainerVsByBikeControl": "Wirtualna zmiana biegów przez BikeControl",
   "onboardingConnectTrainer": "Połącz {trainer}",
-  "onboardingVsDailyWithoutPro": "Bez Pro: {minutes} min wirtualnej zmiany biegów dziennie."
+  "onboardingVsDailyWithoutPro": "Bez Pro: {minutes} min wirtualnej zmiany biegów dziennie.",
+  "a11yScrollDown": "Przewiń w dół"
 }
