@@ -99,6 +99,16 @@ void main() {
       final device = _createBleDevice(name: 'SQUARE 1337');
       expect(BluetoothDevice.fromScanResult(device), isInstanceOf<EliteSquare>());
     });
+    test('Elite Square with its bare advertised name', () {
+      final device = _createBleDevice(name: 'SQUARE');
+      expect(BluetoothDevice.fromScanResult(device), isInstanceOf<EliteSquare>());
+    });
+    test('Square payment hardware is not an Elite Square', () {
+      for (final name in ['Square Reader 2180', 'Square Terminal', 'SQUARE READER']) {
+        final device = _createBleDevice(name: name);
+        expect(BluetoothDevice.fromScanResult(device), isNot(isInstanceOf<EliteSquare>()), reason: name);
+      }
+    });
     test('Elite Sterzo', () {
       final device = _createBleDevice(name: 'STERZO 1337');
       expect(BluetoothDevice.fromScanResult(device), isInstanceOf<EliteSterzo>());

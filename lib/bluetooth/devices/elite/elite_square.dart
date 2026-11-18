@@ -76,6 +76,12 @@ class EliteSquare extends BluetoothDevice {
 
 class SquareConstants {
   static const String DEVICE_NAME = "SQUARE";
+
+  /// "SQUARE", optionally followed by a serial. A bare prefix check would also
+  /// claim unrelated hardware such as Square card readers.
+  static final RegExp _namePattern = RegExp(r'^SQUARE(\s+[0-9A-F]+)?$', caseSensitive: false);
+
+  static bool matchesName(String name) => _namePattern.hasMatch(name.trim());
   static const String CHARACTERISTIC_UUID = "347b0043-7635-408b-8918-8ff3949ce592";
   static const String SERVICE_UUID = "347b0001-7635-408b-8918-8ff3949ce592";
   static const int RECONNECT_DELAY = 5; // seconds between reconnection attempts

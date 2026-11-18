@@ -377,7 +377,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('KICKR CLIMB') && IAPManager.instance.isBetaTester =>
           WahooKickrClimb(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('HEADWIND') => WahooKickrHeadwind(scanResult),
-        _ when scanResult.name!.toUpperCase().startsWith('SQUARE') => EliteSquare(scanResult),
+        _ when SquareConstants.matchesName(scanResult.name!) => EliteSquare(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('RIZER') && IAPManager.instance.isBetaTester => EliteRizer(
           scanResult,
