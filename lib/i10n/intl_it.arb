@@ -3113,5 +3113,7 @@
   "headwindFollowPowerBody": "Il ventilatore accelera e rallenta con i watt del tuo rullo.",
   "headwindFullPowerAt": "Velocità massima a",
   "headwindFullPowerAtBody": "Sotto questa potenza il ventilatore gira più piano, in base ai tuoi watt.",
-  "headwindStatePower": "{speed}% dalla potenza"
+  "headwindStatePower": "{speed}% dalla potenza",
+  "accessorySteeringReadout": "Sterzo {value}",
+  "accessoryFanReadout": "Ventilatore {value}"
 }

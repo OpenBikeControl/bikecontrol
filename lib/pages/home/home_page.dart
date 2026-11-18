@@ -21,6 +21,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/widgets/devices/accessory_row.dart';
 import 'package:bike_control/widgets/ignored_devices_nearby_hint.dart';
 import 'package:bike_control/widgets/ui/bk_motion.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
@@ -883,6 +884,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             footerChild: ignoredNearby.isEmpty ? null : const IgnoredDevicesNearbyHint(),
             children: [
               for (final link in controllers) keyed(link, _row(link, devicesById[link.deviceId], inputs)),
+              // Accessories (Headwind, Climb, Rizer) sit with the controllers
+              // rather than in a list of their own at the bottom. They are not
+              // links in the chain, but every one the scanner finds connects
+              // by itself — a neighbour's too — and its page is the only way
+              // onto the ignore list.
+              for (final device in core.connection.allAccessories)
+                AccessoryRow(
+                  key: ValueKey('devices-accessory-${device.uniqueId}'),
+                  device: device,
+                  leading: _tile(device.icon, live: device.isConnected),
+                  onPressed: () => _openController(device),
+                ),
               if (!nothingPaired) _connectControllersRow(),
             ],
           ),

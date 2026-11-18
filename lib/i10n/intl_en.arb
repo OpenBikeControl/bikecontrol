@@ -3591,5 +3591,9 @@
   "headwindFullPowerAt": "Full speed at",
   "headwindFullPowerAtBody": "Below this power the fan runs slower, in step with your watts.",
   "headwindStatePower": "{speed}% from power",
-  "@headwindStatePower": {"description": "Headwind page: current fan state while BikeControl sets the speed from the trainer power.", "placeholders": {"speed": {"type": "int"}}}
+  "@headwindStatePower": {"description": "Headwind page: current fan state while BikeControl sets the speed from the trainer power.", "placeholders": {"speed": {"type": "int"}}},
+  "accessorySteeringReadout": "Steering {value}",
+  "accessoryFanReadout": "Fan {value}",
+  "@accessorySteeringReadout": {"description": "Devices page: live steering angle under an accessory, e.g. \"Steering -12°\".", "placeholders": {"value": {"type": "String"}}},
+  "@accessoryFanReadout": {"description": "Devices page: live Headwind fan state under the accessory, e.g. \"Fan 50%\".", "placeholders": {"value": {"type": "String"}}}
 }

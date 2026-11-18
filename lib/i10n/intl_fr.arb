@@ -3113,5 +3113,7 @@
   "headwindFollowPowerBody": "Le ventilateur accélère et ralentit avec les watts de votre home trainer.",
   "headwindFullPowerAt": "Pleine vitesse à",
   "headwindFullPowerAtBody": "En dessous de cette puissance, le ventilateur tourne moins vite, au rythme de vos watts.",
-  "headwindStatePower": "{speed}% selon la puissance"
+  "headwindStatePower": "{speed}% selon la puissance",
+  "accessorySteeringReadout": "Direction {value}",
+  "accessoryFanReadout": "Ventilateur {value}"
 }
