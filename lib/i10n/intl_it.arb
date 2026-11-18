@@ -1843,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Comandi oggi",
-  "chainTrialCommandsLimited": "Comandi limitati a {limit} al giorno",
+  "chainTrialCommandsMeter": "Pressioni rimaste oggi",
+  "chainTrialCommandsLimited": "Pressioni limitate a {limit} al giorno",
+  "chainTrialAfterTrial": "Dopo la prova: {limit} pressioni al giorno. Illimitate con Base.",
+  "commandsRunningLowTitle": "Ti restano {count} pressioni oggi",
+  "commandsRunningLowBody": "Poi i tuoi pulsanti non risponderanno fino a domani. Con Base o Pro sono illimitate.",
+  "localControlOptionalDescription": "Per cambiare marcia basta la connessione qui sopra. Attivalo solo per le azioni extra che {appName} gestisce con tastiera o mouse.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {

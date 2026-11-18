@@ -2139,8 +2139,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "今日指令",
-  "chainTrialCommandsLimited": "指令限制为每天 {limit} 次",
+  "chainTrialCommandsMeter": "今日剩余按键次数",
+  "chainTrialCommandsLimited": "按键次数限制为每天 {limit} 次",
+  "chainTrialAfterTrial": "试用结束后：每天 {limit} 次按键。基础版不受限制。",
+  "commandsRunningLowTitle": "今天还剩 {count} 次按键",
+  "commandsRunningLowBody": "用完后按键要到明天才会恢复。基础版或 Pro 不受限制。",
+  "localControlOptionalDescription": "换挡只需上面的连接。仅当你需要 {appName} 通过键盘或鼠标执行的额外操作时才开启。",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {

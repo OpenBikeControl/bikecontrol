@@ -1843,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Commandes aujourd’hui",
-  "chainTrialCommandsLimited": "Commandes limitées à {limit} par jour",
+  "chainTrialCommandsMeter": "Appuis restants aujourd’hui",
+  "chainTrialCommandsLimited": "Appuis limités à {limit} par jour",
+  "chainTrialAfterTrial": "Après l’essai : {limit} appuis par jour. Illimités avec Base.",
+  "commandsRunningLowTitle": "Plus que {count} appuis aujourd’hui",
+  "commandsRunningLowBody": "Ensuite, tes boutons ne répondront plus avant demain. Avec Base ou Pro, ils sont illimités.",
+  "localControlOptionalDescription": "La connexion ci-dessus suffit pour changer de vitesse. Active ceci seulement pour les actions supplémentaires que {appName} gère au clavier ou à la souris.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {

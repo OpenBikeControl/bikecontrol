@@ -1843,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Comandos hoy",
-  "chainTrialCommandsLimited": "Comandos limitados a {limit} al día",
+  "chainTrialCommandsMeter": "Pulsaciones restantes hoy",
+  "chainTrialCommandsLimited": "Pulsaciones limitadas a {limit} al día",
+  "chainTrialAfterTrial": "Tras la prueba: {limit} pulsaciones al día. Ilimitadas con Base.",
+  "commandsRunningLowTitle": "Te quedan {count} pulsaciones hoy",
+  "commandsRunningLowBody": "Cuando se acaben, tus botones no responderán hasta mañana. Con Base o Pro son ilimitadas.",
+  "localControlOptionalDescription": "Para cambiar de marcha basta con la conexión de arriba. Actívalo solo para acciones extra que {appName} controla con teclado o ratón.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {

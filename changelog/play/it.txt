@@ -5,7 +5,7 @@ Novità:
 • Editor dei pulsanti più chiaro, raggruppato per azione
 • Di2: imposta i canali D-Fly in E-TUBE, con una guida
 • Zwift Click V2: controller destro senza sblocco
-• Più prova: 120 pressioni/giorno nella prova, poi 40, 30 min di cambio virtuale
+• Più prova: 120 pressioni/giorno nella prova, poi 40, 30 min di cambio virtuale, con avviso
 
 Correzioni:
 • Nessun crash quando Android riavvia il servizio in background

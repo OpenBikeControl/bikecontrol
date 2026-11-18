@@ -5,7 +5,7 @@ Nouveautés :
 • Éditeur de boutons plus clair, groupé par action
 • Di2 : règle les canaux D-Fly dans E-TUBE, avec un guide
 • Zwift Click V2 : manette droite sans déverrouillage
-• Plus d'essai : 120 appuis/jour pendant l'essai, 40 ensuite, 30 min de vitesses virtuelles
+• Plus d'essai : 120 appuis/jour pendant l'essai, 40 ensuite, 30 min de vitesses virtuelles, avec alerte
 
 Corrections :
 • Plus de plantage au redémarrage du service

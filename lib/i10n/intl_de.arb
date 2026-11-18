@@ -1854,8 +1854,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Befehle heute",
-  "chainTrialCommandsLimited": "Befehle auf {limit} pro Tag begrenzt",
+  "chainTrialCommandsMeter": "Tastendrücke heute übrig",
+  "chainTrialCommandsLimited": "Tastendrücke auf {limit} pro Tag begrenzt",
+  "chainTrialAfterTrial": "Nach der Testphase: {limit} Tastendrücke pro Tag. Mit Basis unbegrenzt.",
+  "commandsRunningLowTitle": "Noch {count} Tastendrücke für heute",
+  "commandsRunningLowBody": "Danach reagieren deine Tasten erst morgen wieder. Mit Basis oder Pro sind sie unbegrenzt.",
+  "localControlOptionalDescription": "Zum Schalten reicht die Verbindung oben. Schalte das nur ein, wenn du Zusatzaktionen brauchst, die {appName} per Tastatur oder Maus steuert.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {

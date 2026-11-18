@@ -5,7 +5,7 @@ Nowości:
 • Czytelniejszy edytor przycisków, pogrupowany według akcji
 • Di2: ustaw kanały D-Fly w E-TUBE, z instrukcją
 • Zwift Click V2: prawy kontroler bez odblokowywania
-• Więcej testu: 120 naciśnięć/dzień w próbie, potem 40, 30 min wirtualnych biegów
+• Więcej testu: 120 naciśnięć/dzień w próbie, potem 40, 30 min wirtualnych biegów, z ostrzeżeniem
 
 Poprawki:
 • Bez awarii, gdy Android restartuje usługę w tle

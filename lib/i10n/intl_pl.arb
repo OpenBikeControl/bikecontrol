@@ -1843,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Polecenia dzisiaj",
-  "chainTrialCommandsLimited": "Polecenia ograniczone do {limit} dziennie",
+  "chainTrialCommandsMeter": "Pozostałe naciśnięcia dziś",
+  "chainTrialCommandsLimited": "Naciśnięcia ograniczone do {limit} dziennie",
+  "chainTrialAfterTrial": "Po okresie próbnym: {limit} naciśnięć dziennie. Bez limitu z Base.",
+  "commandsRunningLowTitle": "Zostało {count} naciśnięć na dziś",
+  "commandsRunningLowBody": "Potem przyciski zadziałają dopiero jutro. Z Base lub Pro są nieograniczone.",
+  "localControlOptionalDescription": "Do zmiany biegów wystarczy połączenie powyżej. Włącz to tylko dla dodatkowych akcji, które {appName} obsługuje klawiaturą lub myszą.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {

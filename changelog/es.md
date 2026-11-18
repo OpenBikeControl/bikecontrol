@@ -7,6 +7,7 @@
 - Shimano Di2: una tercera opción de configuración – configura tú mismo los canales D-Fly en E-TUBE, con una guía paso a paso.
 - Zwift Click V2: puedes usar opcionalmente el mando derecho sin desbloquearlo.
 - Más margen para probar: 120 pulsaciones al día durante la prueba (antes 80), 40 al día después (antes 15) y, sin Pro, 30 minutos al día del cambio virtual de BikeControl (antes 20).
+- Una prueba más clara: BikeControl te avisa (también con una notificación) cuando te quedan 10 pulsaciones para hoy, y la tarjeta de prueba muestra lo que tendrás después. Si tu app de entrenamiento cambia de marcha por sí misma, «Rodar» ya no sugiere el cambio virtual de BikeControl, y el control por teclado aparece como opcional junto a una conexión OpenBikeControl.
 
 **Fixes**:
 - Los rodillos Elite ya no aparecen dos veces (WiFi y Bluetooth).

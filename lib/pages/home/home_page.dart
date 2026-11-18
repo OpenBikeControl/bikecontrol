@@ -1216,8 +1216,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// - shifting (a definition is attached): the live card;
   /// - connecting: the trainer's name and "Connecting…";
   /// - lost this session: the trainer's name, the loss, and Connect;
-  /// - not bridged while the trainer app is working: one line saying the app
-  ///   handles shifting;
+  /// - not bridged while the trainer app is set up (connected or waiting):
+  ///   one line saying the app handles shifting;
   /// - otherwise: an invitation to connect a trainer.
   ///
   /// Nothing in sensors-only mode: that rider has said there is no smart
@@ -1271,7 +1271,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         actionLabel: l.connect,
         onAction: () => _openTrainer(proxy, bridged: false),
       );
-    } else if (inputs.app.isConnected && inputs.app.name != null && !inputs.app.selfHosted) {
+    } else if ((inputs.app.isConnected || inputs.app.hasEnabledConnection) &&
+        inputs.app.name != null &&
+        !inputs.app.selfHosted) {
+      // A trainer app with its connection set up does its own shifting —
+      // connected or not yet, an invitation to BikeControl's shifting would
+      // only raise the question whether the rider needs it.
       slot = RideStatusLine(
         key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
@@ -1540,6 +1545,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       commandsTotal: IAPManager.dailyCommandLimit,
       bridgeMinutesRemaining: trainerConnected ? bridge.remainingToday.inMinutes : null,
       bridgeMinutesTotal: trainerConnected ? bridge.dailyLimit.inMinutes : null,
+      commandsAfterTrial: IAPManager.freeDailyCommandLimit,
     );
   }
 

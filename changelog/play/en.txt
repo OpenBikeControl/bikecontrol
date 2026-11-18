@@ -5,7 +5,7 @@ New:
 • A clearer button editor, grouped by what actions do
 • Di2: set the D-Fly channels yourself in E-TUBE, with a guide
 • Zwift Click V2: use the right controller without unlocking
-• More to try: 120 presses a day in the trial, 40 after, 30 min of virtual shifting
+• More to try: 120 presses a day in the trial, 40 after, 30 min of virtual shifting, with a heads-up
 
 Fixed:
 • No crash when Android restarts the background service

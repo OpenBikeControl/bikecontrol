@@ -17,6 +17,7 @@ class TrialCardState {
     required this.commandsTotal,
     this.bridgeMinutesRemaining,
     this.bridgeMinutesTotal,
+    this.commandsAfterTrial,
   });
 
   final int daysRemaining;
@@ -30,13 +31,19 @@ class TrialCardState {
   final int? bridgeMinutesRemaining;
   final int? bridgeMinutesTotal;
 
+  /// The daily presses left once the trial is over, so "free" is never a
+  /// surprise mid-ride. Null hides the line.
+  final int? commandsAfterTrial;
+
   bool get showsBridgeMeter => bridgeMinutesRemaining != null && (bridgeMinutesTotal ?? 0) > 0;
 
   bool get _bridgeLow => showsBridgeMeter && bridgeMinutesRemaining! / bridgeMinutesTotal! <= 0.25;
 
   /// Urgency is earned, not constant: the card only turns amber when one of
   /// the budgets is genuinely close to running out.
-  bool get urgent => expired || daysRemaining <= 1 || _bridgeLow;
+  bool get _commandsLow => commandsTotal > 0 && commandsRemaining >= 0 && commandsRemaining / commandsTotal <= 0.25;
+
+  bool get urgent => expired || daysRemaining <= 1 || _bridgeLow || _commandsLow;
 }
 
 /// The licence card, deliberately built from the same parts as the chain cards
@@ -141,6 +148,13 @@ class TrialCard extends StatelessWidget {
                     value: state.bridgeMinutesRemaining!,
                     total: state.bridgeMinutesTotal!,
                     suffix: l.chainTrialBridgeMeterSuffix,
+                  ),
+                ],
+                if (!state.expired && state.commandsAfterTrial != null) ...[
+                  const Gap(10),
+                  Text(
+                    l.chainTrialAfterTrial(state.commandsAfterTrial!),
+                    style: context.typography.xSmall.copyWith(color: theme.colorScheme.mutedForeground),
                   ),
                 ],
               ],

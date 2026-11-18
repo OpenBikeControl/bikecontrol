@@ -80,6 +80,10 @@ class ConnectionMethod extends StatefulWidget {
   final VoidCallback? onInstructions;
   final Widget? additionalChild;
   final bool isRecommended;
+
+  /// An add-on to another method rather than a way in by itself: badged
+  /// "Optional" so a rider knows they can leave it off.
+  final bool isOptional;
   final bool isEnabled;
   final bool small;
   final bool showTroubleshooting;
@@ -94,6 +98,7 @@ class ConnectionMethod extends StatefulWidget {
     required this.trainerConnection,
     required this.title,
     required this.isRecommended,
+    this.isOptional = false,
     required this.isEnabled,
     required this.small,
     this.additionalChild,
@@ -349,6 +354,8 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
                   const BetaPill()
                 else if (widget.supportLevel == ConnectionSupport.experimental)
                   const BetaPill(text: 'EXPER.')
+                else if (widget.isOptional)
+                  OutlineBadge(child: Text(l10n.chainOptional))
                 else if (widget.isRecommended && !screenshotMode && !RecommendedConnectionMethods.contains(context))
                   SecondaryBadge(child: Text(l10n.recommended)),
                 if (withSwitch) ...[

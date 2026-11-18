@@ -7,6 +7,7 @@
 - Shimano Di2: trzecia opcja konfiguracji – ustaw kanały D-Fly samodzielnie w E-TUBE, z instrukcją krok po kroku.
 - Zwift Click V2: opcjonalnie możesz używać prawego kontrolera bez odblokowywania.
 - Więcej czasu na test: 120 naciśnięć dziennie w okresie próbnym (wcześniej 80), potem 40 dziennie (wcześniej 15), a bez Pro 30 minut dziennie wirtualnej zmiany biegów BikeControl (wcześniej 20).
+- Czytelniejszy okres próbny: BikeControl ostrzega cię (także powiadomieniem), gdy zostało 10 naciśnięć na dziś, a karta okresu próbnego pokazuje, co zostaje po nim. Jeśli twoja aplikacja treningowa sama zmienia biegi, „Jazda” nie proponuje już wirtualnej zmiany biegów BikeControl, a sterowanie klawiaturą jest oznaczone jako opcjonalne obok połączenia OpenBikeControl.
 
 **Fixes**:
 - Trenażery Elite nie pojawiają się już podwójnie (WiFi i Bluetooth).

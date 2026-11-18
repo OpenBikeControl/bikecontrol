@@ -2117,8 +2117,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Commands today",
-  "chainTrialCommandsLimited": "Commands limited to {limit} per day",
+  "chainTrialCommandsMeter": "Button presses left today",
+  "chainTrialCommandsLimited": "Button presses limited to {limit} a day",
+  "chainTrialAfterTrial": "After the trial: {limit} button presses a day. Unlimited with Base.",
+  "commandsRunningLowTitle": "{count} button presses left today",
+  "commandsRunningLowBody": "Once they run out, your buttons stop until tomorrow. Base or Pro makes them unlimited.",
+  "localControlOptionalDescription": "The connection above is all you need for shifting. Turn this on only for extra actions {appName} takes by keyboard or mouse.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {
