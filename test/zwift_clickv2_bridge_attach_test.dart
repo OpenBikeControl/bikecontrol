@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/sensor_definition.dart';
 import 'package:prop/emulators/definitions/zwift_click_definition.dart';
+import 'package:prop/emulators/definitions/zwift_emulator_definition.dart';
 import 'package:prop/prop.dart' show propPrefs;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -115,5 +116,33 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(ftmsEmulator.composite.children, isNot(contains(def)));
+  });
+
+  // Support chat 62e9c937: "Connect directly over Network" plus a Zwift
+  // trainer bridge put two of our controllers on the bridge. The Click took
+  // the place of one; the other kept the bridge looking the same, so it never
+  // restarted and a Zwift that was already connected never unlocked the Click.
+  test('the Click takes the place of every one of our controllers on the bridge', () async {
+    core.settings.setTrainerApp(Zwift());
+    final network = ZwiftEmulatorDefinition(
+      device: BleDevice(deviceId: 'network', name: 'BikeControl'),
+    );
+    final bridge = ZwiftEmulatorDefinition(
+      device: BleDevice(deviceId: 'bridge', name: 'BikeControl'),
+    );
+    final def = _clickDefinition();
+    await ftmsEmulator.attachDefinition(network);
+    await ftmsEmulator.attachDefinition(bridge);
+    addTearDown(() {
+      ftmsEmulator.composite.detach(def);
+      ftmsEmulator.composite.detach(network);
+      ftmsEmulator.composite.detach(bridge);
+    });
+
+    await ftmsEmulator.attachDefinition(def);
+    expect(ftmsEmulator.composite.children.whereType<ZwiftEmulatorDefinition>(), isEmpty);
+
+    await ftmsEmulator.detachDefinition(def);
+    expect(ftmsEmulator.composite.children, containsAll([network, bridge]));
   });
 }
