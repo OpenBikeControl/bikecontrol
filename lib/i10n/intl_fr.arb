@@ -3099,5 +3099,14 @@
   "vsBaseOverTitle": "Le changement de vitesse virtuel BikeControl est terminé pour aujourd'hui",
   "vsBaseOverBody": "Ta sortie continue jusqu'à ce que ton appli d'entraînement se déconnecte, et avec Base tes boutons restent illimités. Pour changer de vitesse sans aucune limite, appaire le home trainer directement dans ton appli d'entraînement et active son propre changement de vitesse virtuel : BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne du changement de vitesse virtuel BikeControl.",
   "vsBaseAlreadyOverBody": "Avec Base, tes boutons restent illimités. Pour changer de vitesse sans aucune limite, appaire le home trainer directement dans ton appli d'entraînement et active son propre changement de vitesse virtuel : BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne du changement de vitesse virtuel BikeControl.",
-  "vsBaseGuideAction": "Montre-moi comment"
+  "vsBaseGuideAction": "Montre-moi comment",
+  "headwindFan": "Ventilateur",
+  "headwindCurrent": "Réglage actuel",
+  "headwindSetSpeed": "Vitesse du ventilateur",
+  "headwindSetSpeedBody": "Touchez une vitesse pour régler le ventilateur à la main.",
+  "headwindFollowHeartRate": "Suivre la fréquence cardiaque",
+  "headwindFollowHeartRateBody": "Le ventilateur accélère avec votre fréquence cardiaque.",
+  "headwindStateOff": "Éteint",
+  "headwindStateHeartRate": "Fréquence cardiaque",
+  "headwindStateSpeed": "Suit la vitesse"
 }

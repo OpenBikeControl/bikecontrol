@@ -3099,5 +3099,14 @@
   "vsBaseOverTitle": "Wirtualna zmiana biegów BikeControl na dziś się skończyła",
   "vsBaseOverBody": "Twoja jazda trwa dalej, dopóki aplikacja treningowa się nie rozłączy, a z Base twoje przyciski pozostają bez limitu. Aby zmieniać biegi bez żadnego limitu, sparuj trenażer bezpośrednio w aplikacji treningowej i włącz jej własną wirtualną zmianę biegów: BikeControl dalej wysyła twoje przyciski zmiany biegów. Pro znosi dzienny limit wirtualnej zmiany biegów BikeControl.",
   "vsBaseAlreadyOverBody": "Z Base twoje przyciski pozostają bez limitu. Aby zmieniać biegi bez żadnego limitu, sparuj trenażer bezpośrednio w aplikacji treningowej i włącz jej własną wirtualną zmianę biegów: BikeControl dalej wysyła twoje przyciski zmiany biegów. Pro znosi dzienny limit wirtualnej zmiany biegów BikeControl.",
-  "vsBaseGuideAction": "Pokaż jak"
+  "vsBaseGuideAction": "Pokaż jak",
+  "headwindFan": "Wentylator",
+  "headwindCurrent": "Bieżące ustawienie",
+  "headwindSetSpeed": "Prędkość wentylatora",
+  "headwindSetSpeedBody": "Dotknij prędkości, aby ustawić wentylator ręcznie.",
+  "headwindFollowHeartRate": "Podążaj za tętnem",
+  "headwindFollowHeartRateBody": "Wentylator przyspiesza wraz z tętnem.",
+  "headwindStateOff": "Wyłączony",
+  "headwindStateHeartRate": "Tętno",
+  "headwindStateSpeed": "Podąża za prędkością"
 }

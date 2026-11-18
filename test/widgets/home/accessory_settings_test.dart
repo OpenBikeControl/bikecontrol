@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+
+import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
+import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/controller_settings.dart';
@@ -47,7 +51,7 @@ void main() {
 
   tearDown(() => core.connection.devices.clear());
 
-  Future<void> pumpSettings(WidgetTester tester, WahooKickrHeadwind device) async {
+  Future<void> pumpSettings(WidgetTester tester, BluetoothDevice device) async {
     await tester.pumpWidget(
       ShadcnApp(
         localizationsDelegates: [
@@ -112,6 +116,81 @@ void main() {
 
       expect(find.text(InGameAction.headwindSpeed.title), findsOneWidget);
       expect(find.textContaining(AppLocalizations.current.accessoryNoControllerYet), findsOneWidget);
+    });
+  });
+
+  // The fan is driven straight from its page too, not only from a controller.
+  group('direct control', () {
+    WahooKickrHeadwind recording(List<List<int>> writes) =>
+        headwind()..debugWriteSink = (Uint8List bytes) async => writes.add(bytes.toList());
+
+    testWidgets('a speed button switches to manual mode and sets that speed', (tester) async {
+      final writes = <List<int>>[];
+      final device = recording(writes);
+      await pumpSettings(tester, device);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-speed-50')));
+      await tester.tap(find.byKey(const ValueKey('headwind-speed-50')));
+      await tester.pump();
+
+      expect(writes, [
+        [0x04, 0x04],
+        [0x02, 50],
+      ]);
+      expect(device.mode.value, HeadwindMode.manual);
+      expect(device.speed.value, 50);
+      expect(
+        find.descendant(of: find.byKey(const ValueKey('headwind-current')), matching: find.text('50%')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the heart-rate switch puts the fan into heart-rate mode', (tester) async {
+      final writes = <List<int>>[];
+      final device = recording(writes);
+      await pumpSettings(tester, device);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.tap(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.pump();
+
+      expect(writes, [
+        [0x04, 0x02],
+      ]);
+      expect(device.mode.value, HeadwindMode.heartRate);
+    });
+
+    testWidgets('reflects the state the fan reports', (tester) async {
+      final device = headwind();
+      await pumpSettings(tester, device);
+
+      await device.processCharacteristic('', Uint8List.fromList([0xFD, 0x01, 75, 0x04]));
+      await tester.pump();
+
+      expect(
+        find.descendant(of: find.byKey(const ValueKey('headwind-current')), matching: find.text('75%')),
+        findsOneWidget,
+      );
+    });
+  });
+
+  // The Rizer gives incline and steering, not buttons: it is listed with the
+  // accessories, not with the controllers.
+  group('Elite Rizer', () {
+    EliteRizer rizer() => EliteRizer(BleDevice(deviceId: 'rizer-1', name: 'RIZER'));
+
+    test('counts as an accessory, not a controller', () {
+      final device = rizer();
+      core.connection.devices.add(device);
+
+      expect(core.connection.allAccessories, contains(device));
+      expect(core.connection.controllerDevices, isNot(contains(device)));
+    });
+
+    testWidgets('its page is titled for a device', (tester) async {
+      await pumpSettings(tester, rizer());
+
+      expect(find.text(AppLocalizations.current.deviceSettings), findsOneWidget);
     });
   });
 }

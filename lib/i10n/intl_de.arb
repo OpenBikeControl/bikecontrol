@@ -3099,5 +3099,14 @@
   "vsBaseOverTitle": "Das virtuelle Schalten von BikeControl ist für heute vorbei",
   "vsBaseOverBody": "Deine Fahrt läuft weiter, bis sich deine Trainings-App trennt, und mit Base bleiben deine Tasten unbegrenzt. Um ohne jedes Limit zu schalten, koppel den Trainer direkt in deiner Trainings-App und schalte dort ihr eigenes virtuelles Schalten ein: BikeControl sendet deine Schalttasten weiter. Pro hebt das tägliche Limit für das virtuelle Schalten von BikeControl auf.",
   "vsBaseAlreadyOverBody": "Mit Base bleiben deine Tasten unbegrenzt. Um ohne jedes Limit zu schalten, koppel den Trainer direkt in deiner Trainings-App und schalte dort ihr eigenes virtuelles Schalten ein: BikeControl sendet deine Schalttasten weiter. Pro hebt das tägliche Limit für das virtuelle Schalten von BikeControl auf.",
-  "vsBaseGuideAction": "Zeig mir, wie"
+  "vsBaseGuideAction": "Zeig mir, wie",
+  "headwindFan": "Ventilator",
+  "headwindCurrent": "Aktuelle Einstellung",
+  "headwindSetSpeed": "Lüfterstufe",
+  "headwindSetSpeedBody": "Tippe auf eine Stufe, um den Ventilator von Hand einzustellen.",
+  "headwindFollowHeartRate": "Herzfrequenz folgen",
+  "headwindFollowHeartRateBody": "Der Ventilator wird mit deiner Herzfrequenz schneller.",
+  "headwindStateOff": "Aus",
+  "headwindStateHeartRate": "Herzfrequenz",
+  "headwindStateSpeed": "Folgt der Geschwindigkeit"
 }
