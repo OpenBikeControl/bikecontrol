@@ -1,5 +1,6 @@
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
-import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
+import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart'
+    show OpenBikeControlConstants;
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart' show ftmsEmulator;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
@@ -87,19 +88,41 @@ class NetworkMethodTarget {
   /// Stops and starts the method's server — the `restartMethod` fix. Each
   /// emulator serializes its own start/stop, so a stop that has not finished
   /// tearing down is waited for by the start that follows it.
+  ///
+  /// Also switches the method on: the fix is offered when the method is off
+  /// too, and a server running behind a switched-off method serves a trainer
+  /// app BikeControl does not count as connected, so every press is refused.
+  /// A failed start puts the switch back.
   Future<void> restart() async {
-    switch (kind) {
-      case NetworkMethodKind.openBikeControl:
-        await core.obpMdnsEmulator.stopServer();
-        await core.obpMdnsEmulator.startServer();
-      case NetworkMethodKind.rouvyMdns:
-        core.rouvyMdnsEmulator.stop();
-        await core.rouvyMdnsEmulator.startServer();
-      case NetworkMethodKind.zwiftMdns:
-        core.zwiftMdnsEmulator.stop();
-        await core.zwiftMdnsEmulator.startServer();
+    final wasEnabled = _isEnabled;
+    await _setEnabled(true);
+    try {
+      switch (kind) {
+        case NetworkMethodKind.openBikeControl:
+          await core.obpMdnsEmulator.stopServer();
+          await core.obpMdnsEmulator.startServer();
+        case NetworkMethodKind.rouvyMdns:
+          core.rouvyMdnsEmulator.stop();
+          await core.rouvyMdnsEmulator.startServer();
+        case NetworkMethodKind.zwiftMdns:
+          core.zwiftMdnsEmulator.stop();
+          await core.zwiftMdnsEmulator.startServer();
+      }
+    } catch (_) {
+      await _setEnabled(wasEnabled);
+      rethrow;
     }
   }
+
+  bool get _isEnabled => switch (kind) {
+    NetworkMethodKind.openBikeControl => core.settings.getObpMdnsEnabled(),
+    NetworkMethodKind.rouvyMdns || NetworkMethodKind.zwiftMdns => core.settings.getZwiftMdnsEmulatorEnabled(),
+  };
+
+  Future<void> _setEnabled(bool enabled) => switch (kind) {
+    NetworkMethodKind.openBikeControl => core.settings.setObpMdnsEnabled(enabled),
+    NetworkMethodKind.rouvyMdns || NetworkMethodKind.zwiftMdns => core.settings.setZwiftMdnsEmulatorEnabled(enabled),
+  };
 
   /// What to tell the rider when [restart] threw.
   String get restartFailedMessage => switch (kind) {
