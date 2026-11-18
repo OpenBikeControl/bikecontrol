@@ -1,11 +1,13 @@
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
+import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/controller/controller_canvas.dart';
+import 'package:bike_control/widgets/controller/incline_section.dart';
 import 'package:bike_control/widgets/controller/steering_gauge.dart';
 import 'package:bike_control/widgets/controller/trigger_assignment_popup.dart';
 import 'package:bike_control/widgets/keymap/hold_action_warning.dart';
@@ -312,6 +314,13 @@ class ControllerButtonsCard extends StatelessWidget {
               children: [
                 if (hint != null) Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: hint),
                 if (picture != null) ...[const Gap(8), picture],
+                if (device case final ManualInclineDevice incline when !connecting) ...[
+                  const Gap(8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: InclineRideReadout(key: const ValueKey('ride-incline-readout'), device: incline),
+                  ),
+                ],
                 if (strip != null) ...[const Gap(8), strip],
                 if (list != null && picture != null) ...[
                   const Gap(8),

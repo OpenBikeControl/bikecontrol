@@ -187,7 +187,7 @@ class EliteRizer extends BluetoothDevice with ManualInclineDevice implements Ste
   }
 
   @override
-  Future<bool> writeInclineRaw(int grade001Pct) async {
+  Future<bool> writeInclineToDevice(int grade001Pct) async {
     try {
       final bytes = rizerInclineToBytes(grade001Pct);
       if (debugWriteSink != null) {

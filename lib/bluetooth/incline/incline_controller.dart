@@ -1,7 +1,8 @@
 import 'dart:async';
 
-import 'package:bike_control/bluetooth/incline/incline_sink.dart';
 import 'package:bike_control/bluetooth/incline/incline_manual_state.dart';
+import 'package:bike_control/bluetooth/incline/incline_sink.dart';
+import 'package:flutter/foundation.dart';
 
 /// Runs a ~1 Hz loop: read the active bridge's sim grade, pick a sink, and
 /// write the clamped incline while the sink follows grade (auto). Flattens once
@@ -15,6 +16,10 @@ class InclineController {
 
   final int? Function() _gradeProvider;
   final InclineSink? Function() _sinkProvider;
+
+  /// The grade the last tick read (0.01% signed), null while nothing sends
+  /// one. Lets the incline UI tell "waiting for a gradient" from "flat".
+  final ValueNotifier<int?> sourceGrade = ValueNotifier(null);
 
   Timer? _timer;
   int? _lastWritten;
@@ -34,6 +39,7 @@ class InclineController {
     if (_ticking) return; // don't overlap if a previous tick's write is still in flight
     _ticking = true;
     try {
+      sourceGrade.value = _gradeProvider();
       final sink = _sinkProvider();
       if (sink == null) {
         _lastWritten = null;
@@ -47,7 +53,7 @@ class InclineController {
         _lastSink = sink;
       }
 
-      final grade = _gradeProvider();
+      final grade = sourceGrade.value;
       if (grade == null) {
         // Source gone (trainer app left / mode swap): flatten once for safety.
         if (_lastWritten != null && _lastWritten != 0 && sink.followsGrade) {

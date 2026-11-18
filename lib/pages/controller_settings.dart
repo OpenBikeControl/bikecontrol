@@ -12,6 +12,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
+import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode, shownKeymapName;
@@ -21,6 +22,7 @@ import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/widgets/controller/incline_section.dart';
 import 'package:bike_control/widgets/controller/steering_sections.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
 import 'package:bike_control/widgets/emulation_card.dart';
@@ -146,6 +148,12 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                 ];
 
                 final rest = <Widget>[
+                  // An incline device: what it is tilted to, and how.
+                  if (device is ManualInclineDevice) ...[
+                    InclineSection(device: device),
+                    const Gap(24),
+                  ],
+
                   // What an accessory gets instead: the actions it obeys,
                   // and the controller whose buttons can carry them.
                   if (device is Accessory && device.assignableActions.isNotEmpty) ...[

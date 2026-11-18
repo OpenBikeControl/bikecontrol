@@ -426,6 +426,9 @@ class Connection {
   InactivityDisconnector? _inactivityDisconnector;
 
   InclineController? _inclineController;
+
+  /// Pushes the trainer app's grade to incline devices; null before start.
+  InclineController? get inclineController => _inclineController;
   _ClimbRelaySink? _relaySink;
   FitnessBikeDefinition? _relaySinkFbd;
 
@@ -1094,7 +1097,14 @@ class Connection {
     );
 
     _inclineController ??= InclineController(
-      gradeProvider: () => ftmsEmulator.fitnessBike?.simGrade.value,
+      gradeProvider: () {
+        // Debug: the pedalling simulation rides a hilly route, so an incline
+        // device can be tested without a trainer app. A connected trainer app's
+        // grade always wins.
+        final simulated = core.pedallingSimulation.grade.value;
+        if (simulated != null && core.logic.connectedNonLocalTrainerConnections.isEmpty) return simulated;
+        return ftmsEmulator.fitnessBike?.simGrade.value;
+      },
       sinkProvider: () {
         final direct = devices.whereType<InclineSink>().firstOrNullWhere(
           (d) => (d as BaseDevice).isConnected,

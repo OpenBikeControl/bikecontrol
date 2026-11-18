@@ -14,6 +14,9 @@ import 'sensor_quantity.dart';
 /// external sensor would, so they reach the bridge (and through it the trainer
 /// app) and the virtual shifting physics. Selecting it is not persisted, and
 /// stopping restores whatever was selected before.
+///
+/// It also rides a hilly route: [grade] is what an incline device (Elite
+/// Rizer, KICKR Climb) follows while no trainer app sends a grade.
 class PedallingSimulation {
   PedallingSimulation(this.hub);
 
@@ -22,6 +25,9 @@ class PedallingSimulation {
 
   final SensorHub hub;
   final ValueNotifier<bool> isRunning = ValueNotifier(false);
+
+  /// The simulated route's gradient (0.01% signed), null while stopped.
+  final ValueNotifier<int?> grade = ValueNotifier(null);
 
   final _source = FakeSensorSource(
     id: sourceId,
@@ -56,6 +62,7 @@ class PedallingSimulation {
       hub.select(quantity, _previousSelection.remove(quantity));
     }
     hub.unregister(sourceId);
+    grade.value = null;
     isRunning.value = false;
   }
 
@@ -69,5 +76,16 @@ class PedallingSimulation {
     _source.emit(SensorQuantity.power, wave(200, 60, 60, 10));
     _source.emit(SensorQuantity.cadence, wave(88, 8, 45, 2));
     _source.emit(SensorQuantity.heartRate, wave(135, 15, 120, 1));
+    grade.value = simulatedGrade001(t);
+  }
+
+  /// The route at second [t]: a 3-minute climb-and-descent from about -4% to
+  /// +10% with shorter rollers on top, in 0.5% steps like a real route's
+  /// segments, so an incline device moves now and then rather than every
+  /// second.
+  @visibleForTesting
+  static int simulatedGrade001(int t) {
+    final pct = 3 + 5 * math.sin(2 * math.pi * t / 180) + 2 * math.sin(2 * math.pi * t / 50);
+    return ((pct * 2).round() * 50).clamp(-1000, 2000);
   }
 }
