@@ -10,6 +10,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:flutter/widgets.dart' show Locale;
@@ -688,6 +689,45 @@ Future<void> main() async {
 
       expect(
         [for (var ch = 1; ch <= 4; ch++) di2.availableButtons.firstWhere((b) => b.name == 'D-Fly Channel $ch').action],
+        [
+          ShimanoDi2Buttons.leftButton.action,
+          ShimanoDi2Buttons.leftLever.action,
+          ShimanoDi2Buttons.rightButton.action,
+          ShimanoDi2Buttons.rightLever.action,
+        ],
+      );
+    });
+
+    // A Di2 whose hood buttons were on D-Fly channels before the setup already
+    // reported them: the keymap holds the channel buttons, with no action.
+    test('channel buttons the keymap already holds without an action get their paddle actions', () async {
+      final (:di2, t: _) = connected('di2-channels-stale-keymap');
+      final app = core.actionHandler.supportedApp;
+      final custom = CustomApp(profileName: 'di2-stale');
+      core.actionHandler.supportedApp = custom;
+      addTearDown(() => core.actionHandler.supportedApp = app);
+
+      // Reported before the channel setup.
+      await di2.processCharacteristic(ShimanoDi2Constants.D_FLY_CHANNEL_UUID, Uint8List.fromList([0, 0, 0, 0, 0]));
+      for (var ch = 1; ch <= 4; ch++) {
+        final button = di2.availableButtons.firstWhere((b) => b.name == 'D-Fly Channel $ch');
+        expect(custom.keymap.getKeyPair(button)!.hasNoAction, isTrue);
+      }
+
+      await core.settings.setShimanoDfly('di2-channels-stale-keymap', true);
+      final reconnected = ShimanoDi2(BleDevice(name: 'Di2', deviceId: 'di2-channels-stale-keymap'));
+      await reconnected.processCharacteristic(
+        ShimanoDi2Constants.D_FLY_CHANNEL_UUID,
+        Uint8List.fromList([0, 0, 0, 0, 0]),
+      );
+
+      expect(
+        [
+          for (var ch = 1; ch <= 4; ch++)
+            custom.keymap
+                .getKeyPair(reconnected.availableButtons.firstWhere((b) => b.name == 'D-Fly Channel $ch'))!
+                .inGameAction,
+        ],
         [
           ShimanoDi2Buttons.leftButton.action,
           ShimanoDi2Buttons.leftLever.action,
