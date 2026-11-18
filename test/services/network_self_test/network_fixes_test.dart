@@ -7,6 +7,7 @@ import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_fixes.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: depend_on_referenced_packages
@@ -223,6 +224,72 @@ Future<void> main() async {
         expect(obcServers(), hasLength(1));
         expect(obcServers().single.boundPort, 36867);
         expect(instanceAdvertiser.services.map((s) => s.port), [36867]);
+      });
+    });
+  });
+
+  // The troubleshooter offers the restart whenever the method's server is not
+  // running, including when the rider has the method switched off. Starting
+  // the server without switching the method on left a trainer app connected
+  // to a server BikeControl did not count: every button press was refused
+  // with "No connection method is connected or active".
+  group('restartMethod switches the method on', () {
+    testWidgets('OpenBikeControl switched off: after the restart a connected app counts', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        core.settings.setTrainerApp(TrainingPeaks());
+        await core.settings.setObpMdnsEnabled(false);
+
+        final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+        core.obpMdnsEmulator.isConnected.value = true;
+
+        expect(ok, isTrue);
+        expect(core.obpMdnsEmulator.isStarted.value, isTrue);
+        expect(core.settings.getObpMdnsEnabled(), isTrue);
+        expect(core.logic.connectedTrainerConnections, contains(core.obpMdnsEmulator));
+        expect(await core.logic.isTrainerConnected(), isTrue);
+      });
+    });
+
+    testWidgets('Rouvy with its network method switched off: the restart switches it on', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        core.settings.setTrainerApp(Rouvy());
+        await core.settings.setZwiftMdnsEmulatorEnabled(false);
+
+        final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+
+        expect(ok, isTrue);
+        expect(core.rouvyMdnsEmulator.isStarted.value, isTrue);
+        expect(core.settings.getZwiftMdnsEmulatorEnabled(), isTrue);
+      });
+    });
+
+    testWidgets('a restart that fails puts the switch back', (tester) async {
+      await tester.pumpWidget(const SizedBox(key: ValueKey('host')));
+      final context = tester.element(find.byKey(const ValueKey('host')));
+
+      await tester.runAsync(() async {
+        core.settings.setTrainerApp(TrainingPeaks());
+        await core.settings.setObpMdnsEnabled(false);
+        final blockers = <ServerSocket>[];
+        for (var port = 36867; port <= 36871; port++) {
+          blockers.add(await ServerSocket.bind(InternetAddress.anyIPv6, port, v6Only: false));
+        }
+        try {
+          final ok = await runNetworkFix(context, NetworkFixId.restartMethod);
+          expect(ok, isFalse);
+        } finally {
+          for (final b in blockers) {
+            await b.close();
+          }
+        }
+
+        expect(core.settings.getObpMdnsEnabled(), isFalse);
       });
     });
   });
