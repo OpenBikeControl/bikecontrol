@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
 import 'package:bike_control/services/screen_recording/screen_recording_service.dart';
@@ -14,7 +13,6 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/widgets/ignored_devices_dialog.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
-import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_switch_row.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -63,8 +61,6 @@ class _DevicesPageState extends State<DevicesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final accessories = core.connection.allAccessories;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 24,
@@ -79,33 +75,6 @@ class _DevicesPageState extends State<DevicesPage> {
         // In sensors-only mode the sensors already sit in the trainer's slot.
         if (!core.settings.getSensorsOnlyMode()) ShareSensorsSection(onUpdate: _update),
         OtherInputsSection(onUpdate: _update),
-        if (accessories.isNotEmpty)
-          BkGroupedSection(
-            key: const ValueKey('devices-accessories'),
-            header: l10n.accessories,
-            children: [
-              for (final device in accessories)
-                BkGroupedRow(
-                  // They are not links in the chain (nothing about a fan
-                  // decides whether the rider can shift), but they have to be
-                  // here: every accessory the scanner finds is connected
-                  // automatically, including a neighbour's, and its page is
-                  // the only way onto the ignore list.
-                  key: ValueKey('devices-accessory-${device.uniqueId}'),
-                  icon: device.icon,
-                  title: device.displayName(context),
-                  trailing: BkStatusDot(
-                    label: device.isConnected ? l10n.connected : l10n.notConnected,
-                    tone: device.isConnected ? BkStatusTone.success : BkStatusTone.neutral,
-                  ),
-                  chevron: true,
-                  onPressed: () async {
-                    await context.push(ControllerSettingsPage(device: device));
-                    _update();
-                  },
-                ),
-            ],
-          ),
         if (widget.isMobile) Gap(MediaQuery.viewPaddingOf(context).bottom + 8),
       ],
     );

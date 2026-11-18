@@ -3113,5 +3113,7 @@
   "headwindFollowPowerBody": "El ventilador acelera y frena con los vatios de tu rodillo.",
   "headwindFullPowerAt": "Velocidad máxima a",
   "headwindFullPowerAtBody": "Por debajo de esta potencia el ventilador va más lento, al ritmo de tus vatios.",
-  "headwindStatePower": "{speed}% según potencia"
+  "headwindStatePower": "{speed}% según potencia",
+  "accessorySteeringReadout": "Dirección {value}",
+  "accessoryFanReadout": "Ventilador {value}"
 }

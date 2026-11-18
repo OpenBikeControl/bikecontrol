@@ -4295,5 +4295,7 @@
   "headwindFollowPowerBody": "风扇随骑行台的功率加快或减慢。",
   "headwindFullPowerAt": "全速功率",
   "headwindFullPowerAtBody": "低于此功率时，风扇按你的功率相应减速。",
-  "headwindStatePower": "按功率 {speed}%"
+  "headwindStatePower": "按功率 {speed}%",
+  "accessorySteeringReadout": "转向 {value}",
+  "accessoryFanReadout": "风扇 {value}"
 }

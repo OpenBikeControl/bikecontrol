@@ -3113,5 +3113,7 @@
   "headwindFollowPowerBody": "Der Ventilator wird mit den Watt deines Trainers schneller und langsamer.",
   "headwindFullPowerAt": "Volle Stufe bei",
   "headwindFullPowerAtBody": "Darunter läuft der Ventilator passend zu deinen Watt langsamer.",
-  "headwindStatePower": "{speed}% nach Leistung"
+  "headwindStatePower": "{speed}% nach Leistung",
+  "accessorySteeringReadout": "Lenkung {value}",
+  "accessoryFanReadout": "Ventilator {value}"
 }

@@ -1,7 +1,9 @@
 // The Devices tab: the setup chain as grouped rows (controllers, the smart
-// trainer, the trainer app), then Share sensors, the other ways in and any
-// accessories. Each row states its status and opens its own page.
+// trainer, the trainer app; accessories sit with the controllers), then Share
+// sensors and the other ways in. Each row states its status and opens its own page.
+import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, debugKeepsTrainerAppNamesInScreenshotMode;
@@ -89,6 +91,61 @@ Future<void> main() async {
     core.connection.devices.clear();
     core.connection.isScanning.value = false;
     debugHostPlatformOverride = null;
+  });
+
+  group('accessories', () {
+    testWidgets('sit in the Controllers section with their live values, not in a list of their own', (
+      tester,
+    ) async {
+      final rizer = EliteRizer(BleDevice(name: 'RIZER', deviceId: 'devices-rizer'))..isConnected = true;
+      rizer.inclineReported.value = 450;
+      rizer.steeringAngle.value = -12.4;
+      final fan = WahooKickrHeadwind(BleDevice(name: 'HEADWIND', deviceId: 'devices-headwind'))..isConnected = true;
+      fan.mode.value = HeadwindMode.manual;
+      fan.speed.value = 50;
+      core.connection.devices.addAll([rizer, fan]);
+      await _pumpDevices(tester);
+
+      final controllers = find.byKey(const ValueKey('devices-controllers'));
+      final rizerRow = find.descendant(
+        of: controllers,
+        matching: find.byKey(ValueKey('devices-accessory-${rizer.uniqueId}')),
+      );
+      final fanRow = find.descendant(
+        of: controllers,
+        matching: find.byKey(ValueKey('devices-accessory-${fan.uniqueId}')),
+      );
+      expect(rizerRow, findsOneWidget);
+      expect(fanRow, findsOneWidget);
+      expect(find.byKey(const ValueKey('devices-accessories')), findsNothing);
+
+      expect(
+        find.descendant(
+          of: rizerRow,
+          matching: find.text('${l.inclineRideReadout('4.5%')} · ${l.accessorySteeringReadout('12° →')}'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.descendant(of: fanRow, matching: find.text(l.accessoryFanReadout('50%'))), findsOneWidget);
+
+      // The values follow the device.
+      fan.speed.value = 75;
+      await tester.pump();
+      expect(find.descendant(of: fanRow, matching: find.text(l.accessoryFanReadout('75%'))), findsOneWidget);
+    });
+
+    testWidgets('a disconnected accessory shows no stale values', (tester) async {
+      final fan = WahooKickrHeadwind(BleDevice(name: 'HEADWIND', deviceId: 'devices-headwind-off'));
+      fan.mode.value = HeadwindMode.manual;
+      fan.speed.value = 50;
+      core.connection.devices.add(fan);
+      await _pumpDevices(tester);
+
+      final fanRow = find.byKey(ValueKey('devices-accessory-${fan.uniqueId}'));
+      expect(fanRow, findsOneWidget);
+      expect(find.descendant(of: fanRow, matching: find.text(l.accessoryFanReadout('50%'))), findsNothing);
+      expect(find.descendant(of: fanRow, matching: find.text(l.notConnected)), findsOneWidget);
+    });
   });
 
   group('controllers', () {

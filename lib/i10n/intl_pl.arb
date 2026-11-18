@@ -3113,5 +3113,7 @@
   "headwindFollowPowerBody": "Wentylator przyspiesza i zwalnia wraz z watami trenażera.",
   "headwindFullPowerAt": "Pełna prędkość przy",
   "headwindFullPowerAtBody": "Poniżej tej mocy wentylator kręci się wolniej, zgodnie z twoimi watami.",
-  "headwindStatePower": "{speed}% wg mocy"
+  "headwindStatePower": "{speed}% wg mocy",
+  "accessorySteeringReadout": "Skręt {value}",
+  "accessoryFanReadout": "Wentylator {value}"
 }
