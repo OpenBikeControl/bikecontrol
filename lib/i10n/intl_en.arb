@@ -3575,5 +3575,15 @@
   "vsBaseOverTitle": "BikeControl's virtual shifting is done for today",
   "vsBaseOverBody": "Your ride keeps going until your trainer app disconnects, and your buttons stay unlimited with Base. To shift without any limit, pair the trainer directly in your trainer app and turn on its own virtual shifting: BikeControl keeps sending your shift buttons. Pro removes the daily limit on BikeControl's virtual shifting.",
   "vsBaseAlreadyOverBody": "Your buttons stay unlimited with Base. To shift without any limit, pair the trainer directly in your trainer app and turn on its own virtual shifting: BikeControl keeps sending your shift buttons. Pro removes the daily limit on BikeControl's virtual shifting.",
-  "vsBaseGuideAction": "Show me how"
+  "vsBaseGuideAction": "Show me how",
+  "headwindFan": "Fan",
+  "headwindCurrent": "Current setting",
+  "headwindSetSpeed": "Fan speed",
+  "headwindSetSpeedBody": "Tap a speed to set the fan by hand.",
+  "headwindFollowHeartRate": "Follow heart rate",
+  "headwindFollowHeartRateBody": "The fan speeds up with your heart rate.",
+  "headwindStateOff": "Off",
+  "headwindStateHeartRate": "Heart rate",
+  "headwindStateSpeed": "Follows speed",
+  "@headwindFan": {"description": "Wahoo KICKR Headwind page: header of the section that controls the fan directly."}
 }

@@ -100,6 +100,10 @@ class Connection {
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
   List<WahooKickrClimb> get climbAccessories => devices.whereType<WahooKickrClimb>().toList();
+
+  /// Every accessory, whatever it does — the Headwind, the Climb, the Rizer.
+  /// Listed apart from the controllers.
+  List<BluetoothDevice> get allAccessories => bluetoothDevices.where((d) => d is Accessory).toList();
   List<ManualInclineDevice> get inclineDevices => devices.whereType<ManualInclineDevice>().toList();
   List<BaseDevice> get controllerDevices => [
     ...bluetoothDevices.where((d) => d is! Accessory && d is! ProxyDevice),

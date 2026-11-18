@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:bike_control/utils/actions/base_actions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
@@ -9,9 +8,34 @@ import 'package:universal_ble/universal_ble.dart';
 import '../bluetooth_device.dart';
 
 class WahooKickrHeadwind extends BluetoothDevice with Accessory {
-  // Current mode state
-  HeadwindMode _currentMode = HeadwindMode.unknown;
-  int _currentSpeed = 0;
+  /// The speeds the fan accepts in manual mode, in percent.
+  static const allowedSpeeds = [0, 25, 50, 75, 100];
+
+  /// What the fan reports (or was last told) it is doing — the page's direct
+  /// controls render from these.
+  final ValueNotifier<HeadwindMode> mode = ValueNotifier(HeadwindMode.unknown);
+  final ValueNotifier<int> speed = ValueNotifier(0);
+
+  HeadwindMode get _currentMode => mode.value;
+  set _currentMode(HeadwindMode value) => mode.value = value;
+  int get _currentSpeed => speed.value;
+  set _currentSpeed(int value) => speed.value = value;
+
+  /// Captures writes in tests instead of sending them over BLE.
+  @visibleForTesting
+  Future<void> Function(Uint8List bytes)? debugWriteSink;
+
+  Future<void> _write(Uint8List data) {
+    final sink = debugWriteSink;
+    if (sink != null) return sink(data);
+    return UniversalBle.write(
+      device.deviceId,
+      WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase(),
+      WahooKickrHeadwindConstants.CHARACTERISTIC_UUID.toLowerCase(),
+      data,
+      withoutResponse: true,
+    );
+  }
 
   WahooKickrHeadwind(super.scanResult)
     : super(
@@ -73,58 +97,28 @@ class WahooKickrHeadwind extends BluetoothDevice with Accessory {
 
   Future<void> setSpeed(int speedPercent) async {
     // Validate against the allowed speed values
-    const allowedSpeeds = [0, 25, 50, 75, 100];
     if (!allowedSpeeds.contains(speedPercent)) {
       throw ArgumentError('Speed must be one of: ${allowedSpeeds.join(", ")}');
     }
 
-    final service = WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase();
-    final characteristic = WahooKickrHeadwindConstants.CHARACTERISTIC_UUID.toLowerCase();
-
     // Check if manual mode is enabled, if not enable it first
     if (_currentMode != HeadwindMode.manual) {
-      final manualModeData = Uint8List.fromList([0x04, 0x04]);
-      await UniversalBle.write(
-        device.deviceId,
-        service,
-        characteristic,
-        manualModeData,
-        withoutResponse: true,
-      );
+      await _write(Uint8List.fromList([0x04, 0x04]));
       _currentMode = HeadwindMode.manual;
 
       // Small delay to ensure mode change is processed before speed command
-      await Future.delayed(const Duration(milliseconds: 100));
+      if (debugWriteSink == null) await Future.delayed(const Duration(milliseconds: 100));
     }
 
     // Command format: [0x02, speed_value]
     // Speed value: 0x00 to 0x64 (0-100 in hex)
-    final data = Uint8List.fromList([0x02, speedPercent]);
-
-    await UniversalBle.write(
-      device.deviceId,
-      service,
-      characteristic,
-      data,
-      withoutResponse: true,
-    );
+    await _write(Uint8List.fromList([0x02, speedPercent]));
     _currentSpeed = speedPercent;
   }
 
   Future<void> setHeartRateMode() async {
-    final service = WahooKickrHeadwindConstants.SERVICE_UUID.toLowerCase();
-    final characteristic = WahooKickrHeadwindConstants.CHARACTERISTIC_UUID.toLowerCase();
-
     // Command format: [0x04, 0x02] for HR mode
-    final data = Uint8List.fromList([0x04, 0x02]);
-
-    await UniversalBle.write(
-      device.deviceId,
-      service,
-      characteristic,
-      data,
-      withoutResponse: true,
-    );
+    await _write(Uint8List.fromList([0x04, 0x02]));
     _currentMode = HeadwindMode.heartRate;
   }
 

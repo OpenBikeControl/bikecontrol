@@ -22,6 +22,8 @@ import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
+import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
+import 'package:bike_control/widgets/controller/headwind_section.dart';
 import 'package:bike_control/widgets/controller/incline_section.dart';
 import 'package:bike_control/widgets/controller/steering_sections.dart';
 import 'package:bike_control/widgets/device_script_drawer.dart';
@@ -148,6 +150,12 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
                 ];
 
                 final rest = <Widget>[
+                  // A Headwind fan: what it is set to, and setting it directly.
+                  if (device is WahooKickrHeadwind) ...[
+                    HeadwindSection(device: device),
+                    const Gap(24),
+                  ],
+
                   // An incline device: what it is tilted to, and how.
                   if (device is ManualInclineDevice) ...[
                     InclineSection(device: device),

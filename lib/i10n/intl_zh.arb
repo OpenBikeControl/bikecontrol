@@ -4281,5 +4281,14 @@
   "vsBaseOverTitle": "今天的 BikeControl 虚拟变速已用完",
   "vsBaseOverBody": "本次骑行会继续，直到训练应用断开连接；使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
   "vsBaseAlreadyOverBody": "使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
-  "vsBaseGuideAction": "教我怎么做"
+  "vsBaseGuideAction": "教我怎么做",
+  "headwindFan": "风扇",
+  "headwindCurrent": "当前设置",
+  "headwindSetSpeed": "风扇速度",
+  "headwindSetSpeedBody": "点按一个速度以手动设置风扇。",
+  "headwindFollowHeartRate": "跟随心率",
+  "headwindFollowHeartRateBody": "风扇随心率加快。",
+  "headwindStateOff": "关闭",
+  "headwindStateHeartRate": "心率",
+  "headwindStateSpeed": "跟随速度"
 }

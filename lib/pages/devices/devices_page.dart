@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
-import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
@@ -65,10 +64,7 @@ class _DevicesPageState extends State<DevicesPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final accessories = <BluetoothDevice>[
-      ...core.connection.accessories,
-      ...core.connection.climbAccessories,
-    ];
+    final accessories = core.connection.allAccessories;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 24,

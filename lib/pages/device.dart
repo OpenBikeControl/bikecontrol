@@ -17,7 +17,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../bluetooth/devices/base_device.dart';
-import '../bluetooth/devices/bluetooth_device.dart';
 import '../bluetooth/devices/zwift/zwift_clickv2_left_side.dart';
 import '../bluetooth/devices/zwift/zwift_clickv2_right_side.dart';
 
@@ -183,16 +182,13 @@ class _DevicePageState extends State<DevicePage> {
             )
             .flatten(),
 
-        if (core.connection.accessories.isNotEmpty || core.connection.climbAccessories.isNotEmpty) ...[
+        if (core.connection.allAccessories.isNotEmpty) ...[
           Gap(12),
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: ColoredTitle(text: AppLocalizations.of(context).accessories),
           ),
-          ...<BluetoothDevice>[
-            ...core.connection.accessories,
-            ...core.connection.climbAccessories,
-          ].map(
+          ...core.connection.allAccessories.map(
             (device) => Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               key: widget.cardKeys[device.uniqueId],
