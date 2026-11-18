@@ -3585,5 +3585,11 @@
   "headwindStateOff": "Off",
   "headwindStateHeartRate": "Heart rate",
   "headwindStateSpeed": "Follows speed",
-  "@headwindFan": {"description": "Wahoo KICKR Headwind page: header of the section that controls the fan directly."}
+  "@headwindFan": {"description": "Wahoo KICKR Headwind page: header of the section that controls the fan directly."},
+  "headwindFollowPower": "Follow power",
+  "headwindFollowPowerBody": "The fan speeds up and slows down with your trainer's watts.",
+  "headwindFullPowerAt": "Full speed at",
+  "headwindFullPowerAtBody": "Below this power the fan runs slower, in step with your watts.",
+  "headwindStatePower": "{speed}% from power",
+  "@headwindStatePower": {"description": "Headwind page: current fan state while BikeControl sets the speed from the trainer power.", "placeholders": {"speed": {"type": "int"}}}
 }

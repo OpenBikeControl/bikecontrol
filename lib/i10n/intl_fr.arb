@@ -3108,5 +3108,10 @@
   "headwindFollowHeartRateBody": "Le ventilateur accélère avec votre fréquence cardiaque.",
   "headwindStateOff": "Éteint",
   "headwindStateHeartRate": "Fréquence cardiaque",
-  "headwindStateSpeed": "Suit la vitesse"
+  "headwindStateSpeed": "Suit la vitesse",
+  "headwindFollowPower": "Suivre la puissance",
+  "headwindFollowPowerBody": "Le ventilateur accélère et ralentit avec les watts de votre home trainer.",
+  "headwindFullPowerAt": "Pleine vitesse à",
+  "headwindFullPowerAtBody": "En dessous de cette puissance, le ventilateur tourne moins vite, au rythme de vos watts.",
+  "headwindStatePower": "{speed}% selon la puissance"
 }

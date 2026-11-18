@@ -2,12 +2,14 @@ import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// What the fan is doing right now, in a word or two.
-String headwindStateText(BuildContext context, HeadwindMode mode, int speed) {
+String headwindStateText(BuildContext context, HeadwindMode mode, int speed, {bool followsPower = false}) {
   final l = context.i18n;
+  if (followsPower) return l.headwindStatePower(speed);
   return switch (mode) {
     HeadwindMode.unknown => '–',
     HeadwindMode.off => l.headwindStateOff,
@@ -42,15 +44,18 @@ class HeadwindSection extends StatelessWidget {
       ? _run(device.setHeartRateMode, 'setHeartRateMode')
       : _setSpeed(WahooKickrHeadwind.allowedSpeeds.contains(device.speed.value) ? device.speed.value : 0);
 
+  Future<void> _setFollowPower(bool follow) => _run(() => device.setFollowPower(follow), 'setFollowPower $follow');
+
   @override
   Widget build(BuildContext context) {
     final l = context.i18n;
     return ListenableBuilder(
-      listenable: Listenable.merge([device.mode, device.speed]),
+      listenable: Listenable.merge([device.mode, device.speed, device.followsPower, device.fullPowerWatts]),
       builder: (context, _) {
         final mode = device.mode.value;
         final speed = device.speed.value;
-        final followsHeartRate = mode == HeadwindMode.heartRate;
+        final followsPower = device.followsPower.value;
+        final followsHeartRate = !followsPower && mode == HeadwindMode.heartRate;
         return BkGroupedSection(
           header: l.headwindFan,
           dividerIndent: _indent,
@@ -60,7 +65,7 @@ class HeadwindSection extends StatelessWidget {
               icon: LucideIcons.fan,
               title: l.headwindCurrent,
               trailing: Text(
-                headwindStateText(context, mode, speed),
+                headwindStateText(context, mode, speed, followsPower: followsPower),
                 style: context.typography.base.copyWith(
                   fontWeight: FontWeight.w600,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -84,7 +89,7 @@ class HeadwindSection extends StatelessWidget {
                           child: _SpeedButton(
                             key: ValueKey('headwind-speed-$s'),
                             label: '$s%',
-                            selected: mode == HeadwindMode.manual && speed == s,
+                            selected: !followsPower && mode == HeadwindMode.manual && speed == s,
                             onPressed: () => _setSpeed(s),
                           ),
                         ),
@@ -101,6 +106,29 @@ class HeadwindSection extends StatelessWidget {
               trailing: Switch(value: followsHeartRate, onChanged: _setFollowHeartRate),
               onPressed: () => _setFollowHeartRate(!followsHeartRate),
             ),
+            BkGroupedRow(
+              key: const ValueKey('headwind-power'),
+              icon: LucideIcons.zap,
+              title: l.headwindFollowPower,
+              subtitle: l.headwindFollowPowerBody,
+              trailing: Switch(value: followsPower, onChanged: _setFollowPower),
+              onPressed: () => _setFollowPower(!followsPower),
+            ),
+            if (followsPower)
+              BkGroupedRow(
+                key: const ValueKey('headwind-full-power'),
+                icon: LucideIcons.gauge,
+                title: l.headwindFullPowerAt,
+                subtitle: l.headwindFullPowerAtBody,
+                trailing: StepperControl(
+                  value: device.fullPowerWatts.value.toDouble(),
+                  step: 25,
+                  min: WahooKickrHeadwind.minFullPowerWatts.toDouble(),
+                  max: WahooKickrHeadwind.maxFullPowerWatts.toDouble(),
+                  format: (v) => '${v.round()} W',
+                  onChanged: (v) => _run(() => device.setFullPowerWatts(v.round()), 'setFullPowerWatts'),
+                ),
+              ),
           ],
         );
       },

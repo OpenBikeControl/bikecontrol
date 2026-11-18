@@ -3108,5 +3108,10 @@
   "headwindFollowHeartRateBody": "Der Ventilator wird mit deiner Herzfrequenz schneller.",
   "headwindStateOff": "Aus",
   "headwindStateHeartRate": "Herzfrequenz",
-  "headwindStateSpeed": "Folgt der Geschwindigkeit"
+  "headwindStateSpeed": "Folgt der Geschwindigkeit",
+  "headwindFollowPower": "Leistung folgen",
+  "headwindFollowPowerBody": "Der Ventilator wird mit den Watt deines Trainers schneller und langsamer.",
+  "headwindFullPowerAt": "Volle Stufe bei",
+  "headwindFullPowerAtBody": "Darunter läuft der Ventilator passend zu deinen Watt langsamer.",
+  "headwindStatePower": "{speed}% nach Leistung"
 }

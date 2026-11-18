@@ -3108,5 +3108,10 @@
   "headwindFollowHeartRateBody": "Wentylator przyspiesza wraz z tętnem.",
   "headwindStateOff": "Wyłączony",
   "headwindStateHeartRate": "Tętno",
-  "headwindStateSpeed": "Podąża za prędkością"
+  "headwindStateSpeed": "Podąża za prędkością",
+  "headwindFollowPower": "Podążaj za mocą",
+  "headwindFollowPowerBody": "Wentylator przyspiesza i zwalnia wraz z watami trenażera.",
+  "headwindFullPowerAt": "Pełna prędkość przy",
+  "headwindFullPowerAtBody": "Poniżej tej mocy wentylator kręci się wolniej, zgodnie z twoimi watami.",
+  "headwindStatePower": "{speed}% wg mocy"
 }

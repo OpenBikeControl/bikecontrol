@@ -233,6 +233,15 @@ class Settings {
   /// Global, not per trainer: closing the "Need help?" card on one trainer's
   /// page means the rider knows where the Help Center lives — re-showing it
   /// on the next trainer would just be nagging.
+  /// Whether a Headwind fan follows the trainer's power (BikeControl sets
+  /// its speed), remembered across launches.
+  bool getHeadwindFollowPower() => prefs.getBool('headwind_follow_power') ?? false;
+  Future<void> setHeadwindFollowPower(bool value) => prefs.setBool('headwind_follow_power', value);
+
+  /// The power, in watts, at which a power-following Headwind runs at 100%.
+  int getHeadwindFullPowerWatts() => prefs.getInt('headwind_full_power_watts') ?? 300;
+  Future<void> setHeadwindFullPowerWatts(int watts) => prefs.setInt('headwind_full_power_watts', watts);
+
   bool getNeedHelpCardDismissed() {
     return prefs.getBool('need_help_card_dismissed') ?? false;
   }

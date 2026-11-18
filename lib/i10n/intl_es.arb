@@ -3108,5 +3108,10 @@
   "headwindFollowHeartRateBody": "El ventilador acelera con tu frecuencia cardíaca.",
   "headwindStateOff": "Apagado",
   "headwindStateHeartRate": "Frecuencia cardíaca",
-  "headwindStateSpeed": "Sigue la velocidad"
+  "headwindStateSpeed": "Sigue la velocidad",
+  "headwindFollowPower": "Seguir la potencia",
+  "headwindFollowPowerBody": "El ventilador acelera y frena con los vatios de tu rodillo.",
+  "headwindFullPowerAt": "Velocidad máxima a",
+  "headwindFullPowerAtBody": "Por debajo de esta potencia el ventilador va más lento, al ritmo de tus vatios.",
+  "headwindStatePower": "{speed}% según potencia"
 }
