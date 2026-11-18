@@ -22,7 +22,7 @@ String inclineStatusText(BuildContext context, {required bool followsGrade, requ
 }
 
 /// An incline device's page section (Elite Rizer, KICKR Climb): the incline
-/// it was last set to and why, whether it follows the trainer app's gradient,
+/// it is at (or was last set to) and why, whether it follows the trainer app's gradient,
 /// and − / 0% / + to set it by hand.
 class InclineSection extends StatelessWidget {
   const InclineSection({super.key, required this.device});
@@ -50,7 +50,7 @@ class InclineSection extends StatelessWidget {
     final l = context.i18n;
     final sourceGrade = _sourceGrade();
     return ListenableBuilder(
-      listenable: Listenable.merge([device.inclineState, device.inclineApplied, sourceGrade]),
+      listenable: Listenable.merge([device.inclineState, device.inclineApplied, device.inclineReported, sourceGrade]),
       builder: (context, _) {
         final follows = device.followsGrade;
         return BkGroupedSection(
@@ -63,7 +63,7 @@ class InclineSection extends StatelessWidget {
               title: l.inclineCurrent,
               subtitle: inclineStatusText(context, followsGrade: follows, sourceGrade: sourceGrade.value),
               trailing: Text(
-                formatIncline001(device.inclineApplied.value),
+                formatIncline001(device.inclineShown),
                 style: context.typography.base.copyWith(
                   fontWeight: FontWeight.w600,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -127,14 +127,14 @@ class InclineRideReadout extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final sourceGrade = _sourceGrade();
     return ListenableBuilder(
-      listenable: Listenable.merge([device.inclineState, device.inclineApplied, sourceGrade]),
+      listenable: Listenable.merge([device.inclineState, device.inclineApplied, device.inclineReported, sourceGrade]),
       builder: (context, _) => Row(
         spacing: 6,
         children: [
           Icon(LucideIcons.mountain, size: 14, color: cs.mutedForeground),
           Flexible(
             child: Text(
-              '${context.i18n.inclineRideReadout(formatIncline001(device.inclineApplied.value))} · '
+              '${context.i18n.inclineRideReadout(formatIncline001(device.inclineShown))} · '
               '${inclineStatusText(context, followsGrade: device.followsGrade, sourceGrade: sourceGrade.value)}',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_rizer_protocol.dart';
 import 'package:bike_control/bluetooth/incline/incline_controller.dart';
 import 'package:bike_control/bluetooth/incline/incline_manual_state.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -21,6 +22,36 @@ void main() {
     await rizer.writeInclineRaw(450);
     expect(rizer.inclineApplied.value, 450);
     expect(writes.single, [0x0a, 45, 0]);
+  });
+
+  test('a write the Rizer refuses is not recorded as applied', () async {
+    await rizer.writeInclineRaw(300);
+    rizer.debugWriteSink = (b) async {
+      writes.add(b);
+      await rizer.processCharacteristic(eliteRizerStatusCharacteristicUuid, Uint8List.fromList([0x80, 0x0a, 0x05]));
+    };
+    expect(await rizer.writeInclineRaw(500), isFalse);
+    expect(rizer.inclineApplied.value, 300);
+  });
+
+  test('a write the Rizer confirms is recorded as applied', () async {
+    rizer.debugWriteSink = (b) async {
+      writes.add(b);
+      await rizer.processCharacteristic(eliteRizerStatusCharacteristicUuid, Uint8List.fromList([0x80, 0x0a, 0x02]));
+    };
+    expect(await rizer.writeInclineRaw(500), isTrue);
+    expect(rizer.inclineApplied.value, 500);
+  });
+
+  test('the incline the Rizer reports is shown over the one it was told', () async {
+    await rizer.writeInclineRaw(1000);
+    expect(rizer.inclineShown, 1000);
+    await rizer.processCharacteristic(
+      eliteRizerInclineCharacteristicUuid,
+      Uint8List.fromList([0xff, 0x6d, 0x81, 0x64]),
+    );
+    expect(rizer.inclineReported.value, 450);
+    expect(rizer.inclineShown, 450);
   });
 
   test('a step out of auto starts from the incline the grade had set', () async {

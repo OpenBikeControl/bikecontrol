@@ -4,6 +4,7 @@ import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_rizer_protocol.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
+import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
@@ -18,6 +19,9 @@ const double _rizerLevelDegreeStep = 10.0;
 const int _rizerMaxLevels = 5;
 const int _rizerCalibrationSamples = 10;
 const int _rizerKeyRepeatMs = 40;
+
+/// How long an incline write waits for the Rizer's status reply.
+const Duration _rizerAckTimeout = Duration(seconds: 1);
 
 /// Pure steering decision: given a calibrated, rounded angle, returns null
 /// (center) or a (direction, levels). Unit-tested.
@@ -43,11 +47,16 @@ class RizerButtons {
 /// grade, via [ManualInclineDevice]) and steering (angle float from the
 /// steering characteristic). It is a standalone BLE device, so it works
 /// with any trainer.
-class EliteRizer extends BluetoothDevice with Accessory, ManualInclineDevice implements SteeringDevice, RecalibratableSteering {
+class EliteRizer extends BluetoothDevice
+    with Accessory, ManualInclineDevice
+    implements SteeringDevice, RecalibratableSteering {
   EliteRizer(super.scanResult) : super(availableButtons: RizerButtons.values, isBeta: true);
 
   @visibleForTesting
   Future<void> Function(Uint8List bytes)? debugWriteSink;
+
+  /// The status reply the in-flight incline write waits for.
+  Completer<int?>? _pendingAck;
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
@@ -129,9 +138,17 @@ class EliteRizer extends BluetoothDevice with Accessory, ManualInclineDevice imp
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
     if (characteristic == eliteRizerStatusCharacteristicUuid) {
-      debugPrint('[Rizer] status: $bytes'); // byte[2]==2 => success
+      final code = rizerAckCode(bytes);
+      if (code == null) {
+        debugPrint('[Rizer] status: $bytes');
+        return;
+      }
+      final pending = _pendingAck;
+      _pendingAck = null;
+      if (pending != null && !pending.isCompleted) pending.complete(code);
     } else if (characteristic == eliteRizerInclineCharacteristicUuid) {
-      debugPrint('[Rizer] current incline: $bytes');
+      final reported = rizerReportedIncline001(bytes);
+      if (reported != null) inclineReported.value = reported;
     } else if (characteristic == eliteRizerSteeringCharacteristicUuid) {
       _handleSteering(bytes);
     } else {
@@ -186,12 +203,22 @@ class EliteRizer extends BluetoothDevice with Accessory, ManualInclineDevice imp
     }
   }
 
+  /// Writes the incline and checks the Rizer's status reply: a refusal
+  /// (e.g. "command not accessible") counts as not written. No reply within
+  /// [_rizerAckTimeout] counts as written, as the command went out.
   @override
   Future<bool> writeInclineToDevice(int grade001Pct) async {
+    final bytes = rizerInclineToBytes(grade001Pct);
+    _pendingAck?.complete(null);
+    final ack = _pendingAck = Completer<int?>();
     try {
-      final bytes = rizerInclineToBytes(grade001Pct);
       if (debugWriteSink != null) {
         await debugWriteSink!(bytes);
+        // A test sink that does not reply stands for a write that went out.
+        if (!ack.isCompleted) {
+          if (identical(_pendingAck, ack)) _pendingAck = null;
+          return true;
+        }
       } else {
         await UniversalBle.write(
           device.deviceId,
@@ -201,10 +228,17 @@ class EliteRizer extends BluetoothDevice with Accessory, ManualInclineDevice imp
           withoutResponse: false,
         );
       }
-      return true;
     } catch (e, s) {
+      if (identical(_pendingAck, ack)) _pendingAck = null;
       recordError(e, s, context: 'EliteRizer: writeIncline failed');
       return false;
     }
+    final code = await ack.future.timeout(_rizerAckTimeout, onTimeout: () => null);
+    if (identical(_pendingAck, ack)) _pendingAck = null;
+    if (code == null || code == kEliteRizerAckSuccess) return true;
+    actionStreamInternal.add(
+      LogNotification('Elite Rizer refused incline ${(grade001Pct / 100).toStringAsFixed(1)}%: ${rizerAckName(code)}'),
+    );
+    return false;
   }
 }

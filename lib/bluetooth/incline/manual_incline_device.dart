@@ -20,6 +20,14 @@ mixin ManualInclineDevice on BluetoothDevice implements InclineSink {
   /// first write. What the device was told, not what it reports back.
   final ValueNotifier<int?> inclineApplied = ValueNotifier(null);
 
+  /// The incline the device reports it is at (0.01% signed), null for a device
+  /// that does not report one. Lags [inclineApplied] while the device moves.
+  final ValueNotifier<int?> inclineReported = ValueNotifier(null);
+
+  /// What to show as the device's incline: where it says it is, else what it
+  /// was last told.
+  int? get inclineShown => inclineReported.value ?? inclineApplied.value;
+
   @override
   bool get followsGrade => inclineState.mode == InclineMode.auto;
 
