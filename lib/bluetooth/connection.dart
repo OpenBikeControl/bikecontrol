@@ -1107,7 +1107,9 @@ class Connection {
         // grade always wins.
         final simulated = core.pedallingSimulation.grade.value;
         if (simulated != null && core.logic.connectedNonLocalTrainerConnections.isEmpty) return simulated;
-        return ftmsEmulator.fitnessBike?.simGrade.value;
+        // The grade as the app sent it: the resistance smoothing in simGrade
+        // stops short of it when the app goes quiet on a steady road.
+        return ftmsEmulator.fitnessBike?.appGrade.value;
       },
       sinkProvider: () {
         final direct = devices.whereType<InclineSink>().firstOrNullWhere(

@@ -118,7 +118,8 @@ class EliteRizer extends BluetoothDevice
       debugPrint('[Rizer] write char $eliteRizerWriteCharacteristicUuid not found — incompatible device');
       return;
     }
-    // Enable notifications on status, current-incline, and steering.
+    // Subscribe to status (indicate-only: the replies to our commands),
+    // current incline, and steering.
     for (final uuid in [
       eliteRizerStatusCharacteristicUuid,
       eliteRizerInclineCharacteristicUuid,
@@ -127,7 +128,12 @@ class EliteRizer extends BluetoothDevice
       final ch = service.characteristics.firstOrNullWhere((e) => e.uuid == uuid);
       if (ch != null) {
         try {
-          await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, ch.uuid);
+          if (ch.properties.contains(CharacteristicProperty.indicate) &&
+              !ch.properties.contains(CharacteristicProperty.notify)) {
+            await UniversalBle.subscribeIndications(device.deviceId, service.uuid, ch.uuid);
+          } else {
+            await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, ch.uuid);
+          }
         } catch (e, s) {
           recordError(e, s, context: 'EliteRizer: subscribe $uuid failed');
         }
