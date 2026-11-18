@@ -26,6 +26,7 @@ import '../../bluetooth/devices/shimano/shimano_di2.dart';
 import '../../bluetooth/devices/sram/sram_axs.dart';
 import '../../bluetooth/devices/muov/muov_bike.dart';
 import '../../bluetooth/devices/stages/stages_smart_bike.dart';
+import '../../bluetooth/devices/tacx/tacx_neo_bike.dart';
 import '../../bluetooth/devices/thinkrider/thinkrider_vs200.dart';
 import '../../bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart';
 import '../../bluetooth/devices/zwift/constants.dart';
@@ -201,7 +202,7 @@ String? controllerOptionIdFor(BaseDevice device) {
         : 'zwift_play_right';
   }
   // Reads its buttons like a Zwift Ride, but is not one.
-  if (device is MuovBike) return 'other';
+  if (device is MuovBike || device is TacxNeoBike) return 'other';
   if (device is ZwiftRide) return device.isRideV2 ? 'zwift_ride_v2' : 'zwift_ride';
   if (device is ShimanoDi2) return 'shimano_di2';
   if (device is SramAxs) return 'sram_axs';
