@@ -69,6 +69,7 @@ class SensorSinkController {
   bool _standalone = false;
   SensorSinkMode? _lastMode;
   StandaloneRequest? _lastStandalone;
+  Set<SensorQuantity>? _lastBridgeExposed;
 
   /// Serialises transitions. Sink state flaps, and a second call arriving
   /// while the first is suspended at an `await` would sail past the
@@ -88,17 +89,29 @@ class SensorSinkController {
   @visibleForTesting
   StandaloneRequest? get lastRequest => _lastStandalone;
 
-  Future<void> onSinkStateChanged({required SensorSinkMode mode, StandaloneRequest? standalone}) {
+  /// [bridgeExposed] is what the definition serves while on the bridge.
+  /// Heart rate only while a trainer is bridged (its FTMS packet carries
+  /// cadence/power); everything selected when the bridge runs without a
+  /// trainer, e.g. only for the network controller.
+  Future<void> onSinkStateChanged({
+    required SensorSinkMode mode,
+    StandaloneRequest? standalone,
+    Set<SensorQuantity> bridgeExposed = const {SensorQuantity.heartRate},
+  }) {
     assert(
       mode != SensorSinkMode.standalone || standalone != null,
       'standalone must be provided when mode is SensorSinkMode.standalone',
     );
-    _inFlight = _inFlight.then((_) => _apply(mode, standalone));
+    _inFlight = _inFlight.then((_) => _apply(mode, standalone, bridgeExposed));
     return _inFlight;
   }
 
-  Future<void> _apply(SensorSinkMode mode, StandaloneRequest? standalone) async {
-    if (_lastMode == mode && (mode != SensorSinkMode.standalone || _lastStandalone == standalone)) return;
+  Future<void> _apply(SensorSinkMode mode, StandaloneRequest? standalone, Set<SensorQuantity> bridgeExposed) async {
+    if (_lastMode == mode &&
+        (mode != SensorSinkMode.standalone || _lastStandalone == standalone) &&
+        (mode != SensorSinkMode.bridge || setEquals(_lastBridgeExposed, bridgeExposed))) {
+      return;
+    }
     // Entering a transition means there is no known-good state any more: the
     // branches below mutate (`detach`, `_attached = false`) BEFORE the fallible
     // await, so a throw can leave the sink half torn down. Nulling the guard
@@ -118,10 +131,22 @@ class SensorSinkController {
         // the first place, rather than leaking them in and never correcting
         // it (see SensorDefinition.exposeServices's doc comment for the
         // defect this fixes).
-        definition.exposeServices(heartRate: true, cadence: false, power: false);
+        //
+        // The transport only snapshots the services on attach, so a changed
+        // exposure on a live bridge needs a detach first.
+        if (_attached && !setEquals(_lastBridgeExposed, bridgeExposed)) {
+          await detach(definition);
+          _attached = false;
+        }
+        definition.exposeServices(
+          heartRate: bridgeExposed.contains(SensorQuantity.heartRate),
+          cadence: bridgeExposed.contains(SensorQuantity.cadence),
+          power: bridgeExposed.contains(SensorQuantity.power),
+        );
         await attach(definition);
         _attached = true;
         _lastStandalone = null;
+        _lastBridgeExposed = Set.unmodifiable(bridgeExposed);
       } else if (mode == SensorSinkMode.standalone) {
         final request = standalone!;
         if (_attached) {
@@ -151,6 +176,7 @@ class SensorSinkController {
           _standalone = true;
         }
         _lastStandalone = request;
+        _lastBridgeExposed = null;
       } else {
         // SensorSinkMode.none: served nowhere.
         if (_attached) {
@@ -162,6 +188,7 @@ class SensorSinkController {
           _standalone = false;
         }
         _lastStandalone = null;
+        _lastBridgeExposed = null;
       }
       _lastMode = mode;
     } catch (e, s) {

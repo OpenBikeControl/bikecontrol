@@ -1255,9 +1255,15 @@ class Connection {
       // doc comment). Also the retry path for a standalone start that failed
       // at launch: any later selection change re-syncs, not just a bridge
       // transition.
+      // Start/stop alone can flip it (e.g. the controller-only emulator
+      // stopping with a trainer still remembered); attach/detach of a trainer
+      // definition refreshes it from ProxyDevice.
+      ftmsEmulator.isStarted.addListener(refreshTrainerOnBridge);
+      refreshTrainerOnBridge();
       final sinkSync = SensorSinkSync(
         hub: core.sensors,
         isBridgeRunning: ftmsEmulator.isStarted,
+        isTrainerBridged: trainerOnBridge,
         sink: sensorSink,
         broadcast: broadcast!,
       );
@@ -1296,11 +1302,11 @@ class Connection {
         // comment for the defect this guards against).
         onCadence: (rpm) {
           ftmsEmulator.fitnessBike?.setExternalCadence(rpm);
-          if (!ftmsEmulator.isStarted.value) sensorDefinition.setCadence(rpm);
+          if (ftmsEmulator.fitnessBike == null) sensorDefinition.setCadence(rpm);
         },
         onPower: (watts) {
           ftmsEmulator.fitnessBike?.setExternalPower(watts);
-          if (!ftmsEmulator.isStarted.value) sensorDefinition.setPower(watts);
+          if (ftmsEmulator.fitnessBike == null) sensorDefinition.setPower(watts);
         },
       ).start();
     } catch (e, s) {

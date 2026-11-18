@@ -215,4 +215,85 @@ void main() {
 
     expect(calls, isEmpty);
   });
+
+  // Support chat 50ba7703: the Zwift network controller alone starts the
+  // shared emulator, so "emulator started" is not "a trainer is bridged".
+  // With no trainer on it there is no FTMS packet to carry cadence/power, so
+  // the sensor services must ride the bridge themselves.
+  group('bridge running without a trainer (network controller only)', () {
+    late ValueNotifier<bool> isTrainerBridged;
+    late SensorDefinition definition;
+    late SensorSinkController controllerSink;
+    late SensorSinkSync controllerSync;
+
+    setUp(() {
+      isTrainerBridged = ValueNotifier<bool>(false);
+      definition = SensorDefinition();
+      controllerSink = SensorSinkController(
+        definition: definition,
+        attach: (_) async => calls.add('attach'),
+        detach: (_) async => calls.add('detach'),
+        startStandalone: (_, __) async => calls.add('start'),
+        stopStandalone: () async => calls.add('stop'),
+      );
+      controllerSync = SensorSinkSync(
+        hub: hub,
+        isBridgeRunning: isBridgeRunning,
+        isTrainerBridged: isTrainerBridged,
+        sink: controllerSink,
+        broadcast: broadcast,
+      );
+      for (final q in SensorQuantity.values) {
+        hub.register(FakeSensorSource(id: q.name, displayName: q.name, provides: {q}));
+      }
+    });
+
+    tearDown(() => controllerSync.dispose());
+
+    test('exposes cadence and power on the bridge alongside heart rate', () async {
+      hub.select(SensorQuantity.heartRate, SensorQuantity.heartRate.name);
+      hub.select(SensorQuantity.cadence, SensorQuantity.cadence.name);
+      hub.select(SensorQuantity.power, SensorQuantity.power.name);
+      isBridgeRunning.value = true;
+
+      await controllerSync.sync();
+
+      expect(controllerSink.lastMode, SensorSinkMode.bridge);
+      expect(calls, ['attach']);
+      expect(definition.exposesHeartRate, isTrue);
+      expect(definition.exposesCadence, isTrue);
+      expect(definition.exposesPower, isTrue);
+    });
+
+    test('a trainer joining the bridge takes cadence and power back off it', () async {
+      hub.select(SensorQuantity.cadence, SensorQuantity.cadence.name);
+      hub.select(SensorQuantity.power, SensorQuantity.power.name);
+      isBridgeRunning.value = true;
+      controllerSync.start();
+      await controllerSync.sync();
+      calls.clear();
+
+      isTrainerBridged.value = true;
+      await controllerSync.sync();
+
+      expect(calls, ['detach', 'attach']);
+      expect(definition.exposesCadence, isFalse);
+      expect(definition.exposesPower, isFalse);
+    });
+
+    test('the trainer leaving a still-running bridge brings cadence and power back', () async {
+      hub.select(SensorQuantity.power, SensorQuantity.power.name);
+      isBridgeRunning.value = true;
+      isTrainerBridged.value = true;
+      await controllerSync.sync();
+      expect(definition.exposesPower, isFalse);
+      calls.clear();
+
+      isTrainerBridged.value = false;
+      await controllerSync.sync();
+
+      expect(calls, ['detach', 'attach']);
+      expect(definition.exposesPower, isTrue);
+    });
+  });
 }

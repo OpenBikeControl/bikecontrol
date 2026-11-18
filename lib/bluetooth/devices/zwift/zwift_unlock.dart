@@ -28,6 +28,17 @@ import 'package:universal_ble/universal_ble.dart';
 // port. Reasoning in `prop` ([kWahooDirconStandardPort]).
 final DirconEmulator ftmsEmulator = DirconEmulator()..preferStandardPort = bridgeServesStandardDirconPort;
 
+/// True while [ftmsEmulator] is running WITH a trainer on it. The emulator
+/// also runs for the network controller alone, so `isStarted` does not say
+/// that a trainer's FTMS packet carries cadence/power. The composite has no
+/// change notification, so whoever attaches/detaches a trainer definition
+/// calls [refreshTrainerOnBridge].
+final ValueNotifier<bool> trainerOnBridge = ValueNotifier(false);
+
+void refreshTrainerOnBridge() {
+  trainerOnBridge.value = ftmsEmulator.isStarted.value && ftmsEmulator.fitnessBike != null;
+}
+
 /// Whether the trainer bridges serve on the standard Wahoo DirCon port.
 /// TrainerRoad has no entry of its own, so its riders pick "Other"; every
 /// named app keeps the auto-assigned port it had before 7.0.

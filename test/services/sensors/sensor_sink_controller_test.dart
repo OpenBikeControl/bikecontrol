@@ -373,4 +373,39 @@ void main() {
       expect(definition.exposesPower, isFalse);
     });
   });
+
+  group('bridge exposure', () {
+    test('bridge mode exposes exactly the requested quantities', () async {
+      await controller.onSinkStateChanged(
+        mode: SensorSinkMode.bridge,
+        bridgeExposed: {SensorQuantity.heartRate, SensorQuantity.cadence, SensorQuantity.power},
+      );
+
+      expect(definition.exposesCadence, isTrue);
+      expect(definition.exposesPower, isTrue);
+      expect(log, ['attach']);
+    });
+
+    test('a changed exposure on a live bridge re-attaches so the transport re-advertises', () async {
+      await controller.onSinkStateChanged(
+        mode: SensorSinkMode.bridge,
+        bridgeExposed: {SensorQuantity.heartRate, SensorQuantity.power},
+      );
+      log.clear();
+
+      await controller.onSinkStateChanged(mode: SensorSinkMode.bridge, bridgeExposed: {SensorQuantity.heartRate});
+
+      expect(log, ['detach', 'attach']);
+      expect(definition.exposesPower, isFalse);
+    });
+
+    test('the same exposure again is a no-op', () async {
+      await controller.onSinkStateChanged(mode: SensorSinkMode.bridge, bridgeExposed: {SensorQuantity.power});
+      log.clear();
+
+      await controller.onSinkStateChanged(mode: SensorSinkMode.bridge, bridgeExposed: {SensorQuantity.power});
+
+      expect(log, isEmpty);
+    });
+  });
 }
