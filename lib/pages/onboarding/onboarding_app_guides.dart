@@ -10,13 +10,15 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 /// The "Then in $app" mini-guide shown at the bottom of the onboarding
-/// connection step: numbered steps plus optional screenshots and a link to
-/// the full setup guide on the marketing site.
+/// connection step: numbered steps, a screenshot under the steps that have one,
+/// and a link to the full setup guide on the marketing site.
 class OnboardingAppGuide {
-  const OnboardingAppGuide({required this.steps, this.screenshotUrls = const [], this.guideUrl});
+  const OnboardingAppGuide({required this.steps, this.screenshots = const {}, this.guideUrl});
 
   final List<String> steps;
-  final List<String> screenshotUrls;
+
+  /// Screenshot URL by the index of the step it shows.
+  final Map<int, String> screenshots;
   final String? guideUrl;
 }
 
@@ -27,17 +29,17 @@ OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
   if (app is MyWhoosh) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideMyWhoosh1, l.onboardingGuideMyWhoosh2, l.onboardingGuideMyWhoosh3],
-      screenshotUrls: [
-        '$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
-        '$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
-      ],
+      screenshots: {
+        1: '$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
+        2: '$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
+      },
       guideUrl: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership/',
     );
   }
   if (app is Rouvy) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideRouvy1, l.onboardingGuideRouvy2],
-      screenshotUrls: ['$_shots' 'blog_rouvy_screenshot.jpg'],
+      screenshots: {1: '$_shots' 'blog_rouvy_screenshot.jpg'},
       guideUrl: 'https://bikecontrol.app/blog/rouvy-bikecontrol-integration/',
     );
   }
@@ -134,6 +136,18 @@ class OnboardingAppGuideCard extends StatelessWidget {
                             const Gap(2),
                             Text(context.i18n.onboardingPairAsTrainerWarning(trainer, app.name)).xSmall.muted,
                           ],
+                          // Right under the step it shows, not in a strip
+                          // after all of them.
+                          if (guide.screenshots[i] case final url?) ...[
+                            const Gap(8),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 150, maxWidth: 320),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(url, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -141,25 +155,6 @@ class OnboardingAppGuideCard extends StatelessWidget {
                 ],
               ),
             ),
-          if (guide.screenshotUrls.isNotEmpty) ...[
-            const Gap(13),
-            SizedBox(
-              height: 118,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (final url in guide.screenshotUrls)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(url, height: 118, errorBuilder: (_, _, _) => const SizedBox.shrink()),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
           if (guideUrl != null) ...[
             const Gap(12),
             Button.ghost(
