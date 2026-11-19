@@ -2713,7 +2713,6 @@
   "rideEditButtons": "Modifica pulsanti",
   "rideTapButtonHint": "Tocca un pulsante per cambiare cosa fa.",
   "rideClickButtonHint": "Fai clic su un pulsante per cambiare cosa fa.",
-  "rideJustPressed": "Hai appena premuto {button}",
   "rideChange": "Cambia",
   "rideNoControllerTitle": "Nessun controller collegato",
   "rideNoControllerBody": "Risveglia il tuo controller o abbinane uno nuovo: i suoi pulsanti compariranno qui.",

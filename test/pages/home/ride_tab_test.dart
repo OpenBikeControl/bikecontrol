@@ -618,15 +618,13 @@ Future<void> main() async {
       final play = connectedPlay();
       await pumpRide(tester);
       final button = play.availableButtons.first;
-      expect(find.text(l.rideJustPressed(button.displayName), findRichText: true), findsNothing);
+      expect(find.byKey(const ValueKey('last-press-lead')), findsNothing);
 
       core.connection.signalNotification(ButtonNotification(device: play, buttonsClicked: [button]));
       await tester.pump();
 
-      expect(
-        find.textContaining(l.rideJustPressed(button.displayName), findRichText: true),
-        findsOneWidget,
-      );
+      expect(find.byKey(const ValueKey('last-press-lead')), findsOneWidget);
+      expect(find.textContaining(button.displayName, findRichText: true), findsWidgets);
       expect(find.text(l.rideChange), findsOneWidget);
     });
 

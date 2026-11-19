@@ -536,7 +536,7 @@ class _DeviceHeader extends StatelessWidget {
   }
 }
 
-/// "Just pressed Plus → Shift Up · Change": what the controller last sent,
+/// "Plus → Shift Up · Change": what the controller last sent,
 /// and a way to change it. Hidden until the first press.
 ///
 /// Rebuilds on its own notifier only, so a press never rebuilds Ride.
@@ -586,10 +586,11 @@ class LastPressStrip extends StatelessWidget {
                       spacing: 4,
                       runSpacing: 2,
                       children: [
+                        // The button by name only: the glyph beside it and
+                        // the arrow already say it was just pressed, and the
+                        // words cost the action its line on a phone.
                         Text(
-                          action != null
-                              ? '${context.i18n.rideJustPressed(button.displayName)} →'
-                              : context.i18n.rideJustPressed(button.displayName),
+                          action != null ? '${button.displayName} →' : button.displayName,
                           key: const ValueKey('last-press-lead'),
                           style: muted,
                           // A long button name in a narrow column (an iPad

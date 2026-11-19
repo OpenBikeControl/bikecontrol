@@ -1,10 +1,14 @@
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The action buttons on screen: shadcn's filled and outlined variants
-/// (primary, secondary, outline, destructive), however they were built.
-/// Ghost, link and text buttons are inline affordances and not included.
+/// (primary, secondary, outline, destructive), however they were built — the
+/// app's own [BkPillButton] included, whose rounded style no longer says which
+/// variant it wraps. Ghost, link and text buttons are inline affordances and
+/// not included.
 Finder actionButtons() => find.byWidgetPredicate((w) {
+  if (w is BkPillButton) return true;
   if (w is! Button) return false;
   final style = w.style;
   final variance = style is ButtonStyle ? style.variance : style;

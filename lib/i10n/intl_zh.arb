@@ -3540,15 +3540,6 @@
   "@rideClickButtonHint": {
     "description": "Ride tab: hint above the controller picture on desktop."
   },
-  "rideJustPressed": "刚刚按下 {button}",
-  "@rideJustPressed": {
-    "description": "Ride tab: strip under the controller picture naming the last button pressed; the action it sent follows after an arrow.",
-    "placeholders": {
-      "button": {
-        "type": "String"
-      }
-    }
-  },
   "rideChange": "更改",
   "@rideChange": {
     "description": "Ride tab: action on the last-press strip that opens the pressed button's assignment."

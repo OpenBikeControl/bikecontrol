@@ -2713,7 +2713,6 @@
   "rideEditButtons": "Edytuj przyciski",
   "rideTapButtonHint": "Stuknij przycisk, aby zmienić jego działanie.",
   "rideClickButtonHint": "Kliknij przycisk, aby zmienić jego działanie.",
-  "rideJustPressed": "Właśnie naciśnięto {button}",
   "rideChange": "Zmień",
   "rideNoControllerTitle": "Brak połączonego kontrolera",
   "rideNoControllerBody": "Wybudź kontroler lub sparuj nowy — jego przyciski pojawią się tutaj.",

@@ -27,12 +27,9 @@ bool onboardingAdvertisesZwiftService(List<String> services) => services.any((uu
       u == FtmsMdnsConstants.ZWIFT_RIDE_CUSTOM_SERVICE_UUID_SHORT;
 });
 
-/// The icon that says how BikeControl talks to this trainer. The same physical
-/// trainer is regularly discovered twice — once over BLE, once over mDNS/DirCon
-/// — and the rows are otherwise identical, so the leading icon carries the
-/// transport rather than the generic bike mark.
-IconData onboardingTrainerIcon(ProxyDevice trainer) =>
-    trainer.isWifiUpstream ? LucideIcons.wifi : LucideIcons.bluetooth;
+/// A smart trainer's icon: the bike, as on Home and in step 3's checklist.
+/// Its transport (Wi-Fi or Bluetooth) is in its subtitle, not the icon.
+IconData onboardingTrainerIcon(ProxyDevice trainer) => LucideIcons.bike;
 
 /// `WiFi · Supports virtual shifting` — the constant meta line alone is
 /// identical for both duplicates of one trainer, which is exactly what made
@@ -444,7 +441,7 @@ class _RadarState extends State<_Radar> with SingleTickerProviderStateMixin {
       width: 34,
       height: 34,
       decoration: BoxDecoration(shape: BoxShape.circle, color: widget.accent.withValues(alpha: 0.16)),
-      child: Icon(LucideIcons.bluetooth, size: 17, color: widget.accent),
+      child: Icon(LucideIcons.bike, size: 17, color: widget.accent),
     );
     if (still) return SizedBox(width: 40, height: 40, child: Center(child: mark));
     return SizedBox(

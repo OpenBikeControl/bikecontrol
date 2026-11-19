@@ -21,6 +21,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/keymap/keymap.dart' show ButtonTrigger;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -200,7 +201,7 @@ Future<void> main() async {
 
   // ── Step 2: controller + trainer on one screen ────────────────────────
   final gearClick = ZwiftClick(BleDevice(deviceId: 'gear-click', name: 'Zwift Click'))..isConnected = true;
-  Widget gear(BuildContext c, {required List<ProxyDevice> trainers, List<ZwiftClick>? controllers}) => SizedBox(
+  Widget gear(BuildContext c, {required List<ProxyDevice> trainers, List<ZwiftClick>? controllers, bool pressed = false}) => SizedBox(
         height: 800,
         child: onboardingShell(
           c,
@@ -214,6 +215,13 @@ Future<void> main() async {
             onPickTrainer: (_) {},
             onRescanTrainers: () {},
             vsDailyMinutesWithoutPro: 30,
+            presses: pressed
+                ? {
+                    gearClick.uniqueId: ValueNotifier(
+                      (button: gearClick.availableButtons.first, generation: 1, trigger: ButtonTrigger.singleClick),
+                    ),
+                  }
+                : const {},
           ),
           footerActions: [
             BkPillButton(
@@ -261,7 +269,7 @@ Future<void> main() async {
         ..setMaxGear(24),
     );
     await captureWidget(tester, name: 'onboarding_step_gear_connected', width: 390, settle: false,
-        builder: (c) => gear(c, trainers: [trainer]));
+        builder: (c) => gear(c, trainers: [trainer], pressed: true));
   });
 
   for (var i = 0; i < 4; i++) {

@@ -2713,7 +2713,6 @@
   "rideEditButtons": "Modifier les boutons",
   "rideTapButtonHint": "Touche un bouton pour changer son action.",
   "rideClickButtonHint": "Clique sur un bouton pour changer son action.",
-  "rideJustPressed": "Tu viens d'appuyer sur {button}",
   "rideChange": "Modifier",
   "rideNoControllerTitle": "Aucune manette connectée",
   "rideNoControllerBody": "Réveille ta manette ou associe-en une nouvelle : ses boutons s'afficheront ici.",

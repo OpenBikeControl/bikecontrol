@@ -53,7 +53,11 @@ class OnboardingWelcome extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
           // Scrolls when the content is taller than the screen (large system
           // text sizes); otherwise fills it so the spacers still centre it.
+          // Not primary: a primary scroll view can always be dragged, and with
+          // the app's bouncing physics the whole screen slid about under a
+          // finger although nothing was below it.
           child: CustomScrollView(
+            primary: false,
             slivers: [
               SliverFillRemaining(
                 hasScrollBody: false,

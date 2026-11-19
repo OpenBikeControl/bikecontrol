@@ -2713,7 +2713,6 @@
   "rideEditButtons": "Tasten bearbeiten",
   "rideTapButtonHint": "Tippe auf eine Taste, um ihre Aktion zu ändern.",
   "rideClickButtonHint": "Klicke auf eine Taste, um ihre Aktion zu ändern.",
-  "rideJustPressed": "Gerade gedrückt: {button}",
   "rideChange": "Ändern",
   "rideNoControllerTitle": "Kein Controller verbunden",
   "rideNoControllerBody": "Wecke deinen Controller auf oder kopple einen neuen – seine Tasten erscheinen dann hier.",
