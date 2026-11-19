@@ -3,6 +3,9 @@
 - 更简短的设置：从六步减为三步。选择训练应用及其运行位置，在同一屏幕上连接控制器和智能骑行台，然后连接应用。
 - 设置现在默认通过 BikeControl 连接智能骑行台，并直接展示 BikeControl 虚拟变速能做什么。
 
+**Fixes**:
+- Zwift 和 Rouvy：当 BikeControl 的网络连接正常时，网络测试不再报告问题。
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist、Tour du Pain 和 Rampida 现已通过 OpenBikeControl 获得官方支持。

@@ -2,3 +2,6 @@
 Neu:
 • Einrichtung in drei statt sechs Schritten
 • Die Einrichtung verbindet deinen Smart Trainer standardmäßig über BikeControl und zeigt, was das virtuelle Schalten kann
+
+Behoben:
+• Zwift & Rouvy: keine falsche Warnung im Netzwerktest

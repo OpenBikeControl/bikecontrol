@@ -11,7 +11,7 @@ import 'package:prop/utils/shared.dart';
 
 /// A context with no-op seams; nothing here is actually read by the inline
 /// stub probes used below — the engine only ever passes it through.
-NetworkProbeContext _ctx({String platform = 'macos'}) => NetworkProbeContext(
+NetworkProbeContext _ctx({String platform = 'macos', String? serverLabel, int? preferredPort}) => NetworkProbeContext(
   snapshot: null,
   snapshotError: null,
   emulatorStarted: true,
@@ -28,6 +28,8 @@ NetworkProbeContext _ctx({String platform = 'macos'}) => NetworkProbeContext(
   sleep: (d) async {},
   now: () => DateTime(2026, 8, 21),
   onWatchProgress: (progress) {},
+  methodServerLabel: serverLabel ?? 'OpenBikeControl',
+  methodPreferredPort: preferredPort ?? 36867,
 );
 
 NetworkCheck _pass(NetworkCheckId id) => NetworkCheck(id: id, verdict: NetworkVerdict.pass);
@@ -35,6 +37,31 @@ NetworkCheck _pass(NetworkCheckId id) => NetworkCheck(id: id, verdict: NetworkVe
 void main() {
   tearDown(() {
     Logger.onRecordError = null;
+  });
+
+  // The engine wraps the builder's context. Its copy left these two out —
+  // both optional — so Zwift's and Rouvy's checks looked for the
+  // OpenBikeControl server and failed with DirCon listening right there.
+  test("probes see the builder's network method, not OpenBikeControl", () async {
+    String? label;
+    int? port;
+    final engine = NetworkSelfTestEngine(
+      contextBuilder: () => _ctx(serverLabel: 'DirCon', preferredPort: 36868),
+      probes: [
+        ProbeSpec(
+          id: NetworkCheckId.methodListening,
+          timeout: const Duration(seconds: 1),
+          run: (ctx) async {
+            label = ctx.methodServerLabel;
+            port = ctx.methodPreferredPort;
+            return _pass(NetworkCheckId.methodListening);
+          },
+        ),
+      ],
+    );
+    await engine.run();
+    expect(label, 'DirCon');
+    expect(port, 36868);
   });
 
   test('probes run sequentially, in the order given', () async {

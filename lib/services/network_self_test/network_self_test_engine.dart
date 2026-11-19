@@ -182,6 +182,10 @@ class NetworkSelfTestEngine {
       queryLog: built.queryLog,
       sleep: built.sleep,
       now: built.now,
+      // Optional on the constructor, so a copy that leaves them out compiles
+      // — and then checks every app against the OpenBikeControl server.
+      methodServerLabel: built.methodServerLabel,
+      methodPreferredPort: built.methodPreferredPort,
       onWatchProgress: (progress) {
         built.onWatchProgress(progress);
         // A tick that arrives after the guided-watch probe's own timeout

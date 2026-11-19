@@ -2,3 +2,6 @@
 New:
 • Setup in three steps instead of six
 • Setup connects your smart trainer through BikeControl by default and shows what its virtual shifting does
+
+Fixed:
+• Zwift & Rouvy: no false network test warning

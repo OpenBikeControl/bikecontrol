@@ -2,3 +2,6 @@
 Novità:
 • Configurazione in tre passaggi invece di sei
 • La configurazione collega il rullo tramite BikeControl per impostazione predefinita e mostra cosa fa il suo cambio virtuale
+
+Correzioni:
+• Zwift e Rouvy: niente falsi avvisi nel test di rete

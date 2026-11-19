@@ -3,6 +3,9 @@
 - A shorter setup: three steps instead of six. Pick your trainer app and where it runs, connect your controller and smart trainer on one screen, then link the app.
 - Setup now connects your smart trainer through BikeControl by default, and shows right there what BikeControl's virtual shifting does.
 
+**Fixes**:
+- Zwift and Rouvy: the network test no longer reports a problem when BikeControl's network connection is working.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.
