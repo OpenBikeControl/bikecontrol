@@ -77,7 +77,10 @@ class ButtonWidget extends StatelessWidget {
             Text(
               button.shortLabel,
               style: TextStyle(
-                fontSize: size * 0.26,
+                // A quarter of the tile leaves room for the action badge on
+                // the big tiles; on a small one (a list row, the last-press
+                // strip) it shrank a "P" to a few pixels.
+                fontSize: size * (size < 40 ? 0.44 : 0.26),
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
                 color: onBg,

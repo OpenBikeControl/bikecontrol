@@ -442,6 +442,11 @@ class ActivityRow extends StatelessWidget {
       _ => (null, cs.foreground, cs.muted),
     };
     final shift = _shiftGlyph(entry);
+    // The button itself is the tile: drawn inside the wash circle it was a
+    // speck with a letter nobody could read.
+    if (icon == null && shift == null) {
+      return ExcludeSemantics(child: ButtonWidget(button: button!, size: _glyph));
+    }
     return ExcludeSemantics(
       child: Container(
         width: _glyph,
@@ -450,9 +455,7 @@ class ActivityRow extends StatelessWidget {
         decoration: BoxDecoration(color: wash, shape: BoxShape.circle),
         child: icon != null
             ? Icon(icon, size: 15, color: color)
-            : shift != null
-            ? Icon(shift, size: 14, color: cs.foreground)
-            : ButtonWidget(button: button!, size: 16),
+            : Icon(shift, size: 14, color: cs.foreground),
       ),
     );
   }
