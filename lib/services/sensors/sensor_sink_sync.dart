@@ -51,10 +51,22 @@ import 'sensor_sink_controller.dart';
 /// and the binding it feeds are: that file cannot be constructed in a unit
 /// test, and this rule is worth one.
 class SensorSinkSync {
-  SensorSinkSync({required this.hub, required this.isBridgeRunning, required this.sink, required this.broadcast});
+  SensorSinkSync({
+    required this.hub,
+    required this.isBridgeRunning,
+    required this.sink,
+    required this.broadcast,
+    this.isTrainerBridged,
+  });
 
   final SensorHub hub;
   final ValueListenable<bool> isBridgeRunning;
+
+  /// Whether a trainer (FTMS definition) sits on the running bridge. The
+  /// bridge also runs for the network controller alone (support chat
+  /// 50ba7703): then nothing else carries cadence/power, so the sensor
+  /// definition serves them itself. Null counts as "trainer bridged".
+  final ValueListenable<bool>? isTrainerBridged;
   final SensorSinkController sink;
   final BroadcastController broadcast;
 
@@ -66,6 +78,7 @@ class SensorSinkSync {
     if (_started) return;
     _started = true;
     isBridgeRunning.addListener(sync);
+    isTrainerBridged?.addListener(sync);
     hub.onSelectionChanged = sync;
     unawaited(sync());
   }
@@ -85,7 +98,16 @@ class SensorSinkSync {
     // Bridge wins outright — checked first and independent of the Broadcast
     // switch, see this class's own doc comment for why.
     if (hasSource && isBridgeRunning.value) {
-      return sink.onSinkStateChanged(mode: SensorSinkMode.bridge);
+      final trainerBridged = isTrainerBridged?.value ?? true;
+      return sink.onSinkStateChanged(
+        mode: SensorSinkMode.bridge,
+        bridgeExposed: trainerBridged
+            ? const {SensorQuantity.heartRate}
+            : {
+                for (final q in SensorQuantity.values)
+                  if (hub.selectionFor(q) != null) q,
+              },
+      );
     }
     // Otherwise standalone only while the rider has explicitly asked for it:
     // [BroadcastController.wantsStandalone] already folds in "is on" AND "has
@@ -103,6 +125,7 @@ class SensorSinkSync {
   void dispose() {
     if (!_started) return;
     isBridgeRunning.removeListener(sync);
+    isTrainerBridged?.removeListener(sync);
     hub.onSelectionChanged = null;
     _started = false;
   }

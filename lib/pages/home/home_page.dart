@@ -21,6 +21,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2_right_side.da
 import 'package:bike_control/pages/click_v2_onboarding.dart';
 import 'package:bike_control/utils/click_v2_onboarding.dart';
 import 'package:bike_control/pages/unlock.dart';
+import 'package:bike_control/widgets/devices/accessory_row.dart';
 import 'package:bike_control/widgets/ignored_devices_nearby_hint.dart';
 import 'package:bike_control/widgets/ui/bk_motion.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
@@ -883,6 +884,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             footerChild: ignoredNearby.isEmpty ? null : const IgnoredDevicesNearbyHint(),
             children: [
               for (final link in controllers) keyed(link, _row(link, devicesById[link.deviceId], inputs)),
+              // Accessories (Headwind, Climb, Rizer) sit with the controllers
+              // rather than in a list of their own at the bottom. They are not
+              // links in the chain, but every one the scanner finds connects
+              // by itself — a neighbour's too — and its page is the only way
+              // onto the ignore list.
+              for (final device in core.connection.allAccessories)
+                AccessoryRow(
+                  key: ValueKey('devices-accessory-${device.uniqueId}'),
+                  device: device,
+                  leading: _tile(device.icon, live: device.isConnected),
+                  onPressed: () => _openController(device),
+                ),
               if (!nothingPaired) _connectControllersRow(),
             ],
           ),
@@ -1203,8 +1216,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// - shifting (a definition is attached): the live card;
   /// - connecting: the trainer's name and "Connecting…";
   /// - lost this session: the trainer's name, the loss, and Connect;
-  /// - not bridged while the trainer app is working: one line saying the app
-  ///   handles shifting;
+  /// - not bridged while the trainer app is set up (connected or waiting):
+  ///   one line saying the app handles shifting;
   /// - otherwise: an invitation to connect a trainer.
   ///
   /// Nothing in sensors-only mode: that rider has said there is no smart
@@ -1258,7 +1271,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         actionLabel: l.connect,
         onAction: () => _openTrainer(proxy, bridged: false),
       );
-    } else if (inputs.app.isConnected && inputs.app.name != null && !inputs.app.selfHosted) {
+    } else if ((inputs.app.isConnected || inputs.app.hasEnabledConnection) &&
+        inputs.app.name != null &&
+        !inputs.app.selfHosted) {
+      // A trainer app with its connection set up does its own shifting —
+      // connected or not yet, an invitation to BikeControl's shifting would
+      // only raise the question whether the rider needs it.
       slot = RideStatusLine(
         key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
@@ -1527,6 +1545,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       commandsTotal: IAPManager.dailyCommandLimit,
       bridgeMinutesRemaining: trainerConnected ? bridge.remainingToday.inMinutes : null,
       bridgeMinutesTotal: trainerConnected ? bridge.dailyLimit.inMinutes : null,
+      commandsAfterTrial: IAPManager.freeDailyCommandLimit,
     );
   }
 

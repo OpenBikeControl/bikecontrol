@@ -1249,6 +1249,15 @@
   "actionInclineZero": "Wypoziomuj nachylenie (0%)",
   "actionInclineAutoMode": "Nachylenie automatyczne (podążaj za trasą)",
   "inclineActions": "Nachylenie",
+  "inclineCurrent": "Aktualne nachylenie",
+  "inclineFollowsGradient": "Podąża za nachyleniem z aplikacji treningowej",
+  "inclineWaitingForGradient": "Czeka na nachylenie z aplikacji treningowej",
+  "inclineHeldByHand": "Zostaje tam, gdzie je ustawisz",
+  "inclineFollowGradient": "Podążaj za nachyleniem",
+  "inclineFollowGradientBody": "Pochyla się razem z podjazdami i zjazdami w aplikacji treningowej. Nachylenie dociera do BikeControl tylko wtedy, gdy aplikacja treningowa jest połączona przez mostek trenażera BikeControl.",
+  "inclineSetByHand": "Ustaw ręcznie",
+  "inclineSetByHandBody": "1% na krok. Zostaje tak, dopóki ponownie nie włączysz „Podążaj za nachyleniem”.",
+  "inclineRideReadout": "Nachylenie {value}",
   "kickrClimb": "KICKR Climb",
   "enable": "Włącz",
   "enableLocalConnectionMethodDescription": "Ta akcja korzysta z lokalnej metody połączenia, która nie jest jeszcze włączona. Włącz ją, aby użyć tej akcji.",
@@ -1834,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Polecenia dzisiaj",
-  "chainTrialCommandsLimited": "Polecenia ograniczone do {limit} dziennie",
+  "chainTrialCommandsMeter": "Pozostałe naciśnięcia dziś",
+  "chainTrialCommandsLimited": "Naciśnięcia ograniczone do {limit} dziennie",
+  "chainTrialAfterTrial": "Po okresie próbnym: {limit} naciśnięć dziennie. Bez limitu z Base.",
+  "commandsRunningLowTitle": "Zostało {count} naciśnięć na dziś",
+  "commandsRunningLowBody": "Potem przyciski zadziałają dopiero jutro. Z Base lub Pro są nieograniczone.",
+  "localControlOptionalDescription": "Do zmiany biegów wystarczy połączenie powyżej. Włącz to tylko dla dodatkowych akcji, które {appName} obsługuje klawiaturą lub myszą.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {
@@ -3101,5 +3114,21 @@
   "onboardingTrainerVsByBikeControl": "Wirtualna zmiana biegów przez BikeControl",
   "onboardingConnectTrainer": "Połącz {trainer}",
   "onboardingVsDailyWithoutPro": "Bez Pro: {minutes} min wirtualnej zmiany biegów dziennie.",
-  "a11yScrollDown": "Przewiń w dół"
+  "a11yScrollDown": "Przewiń w dół",
+  "headwindFan": "Wentylator",
+  "headwindCurrent": "Bieżące ustawienie",
+  "headwindSetSpeed": "Prędkość wentylatora",
+  "headwindSetSpeedBody": "Dotknij prędkości, aby ustawić wentylator ręcznie.",
+  "headwindFollowHeartRate": "Podążaj za tętnem",
+  "headwindFollowHeartRateBody": "Wentylator przyspiesza wraz z tętnem.",
+  "headwindStateOff": "Wyłączony",
+  "headwindStateHeartRate": "Tętno",
+  "headwindStateSpeed": "Podąża za prędkością",
+  "headwindFollowPower": "Podążaj za mocą",
+  "headwindFollowPowerBody": "Wentylator przyspiesza i zwalnia wraz z watami trenażera.",
+  "headwindFullPowerAt": "Pełna prędkość przy",
+  "headwindFullPowerAtBody": "Poniżej tej mocy wentylator kręci się wolniej, zgodnie z twoimi watami.",
+  "headwindStatePower": "{speed}% wg mocy",
+  "accessorySteeringReadout": "Skręt {value}",
+  "accessoryFanReadout": "Wentylator {value}"
 }

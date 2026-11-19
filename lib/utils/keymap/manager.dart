@@ -256,7 +256,7 @@ class KeymapManager {
         await core.settings.setCustomKeymapOrigin(newName, core.actionHandler.supportedApp!.name);
 
         final connectedDeviceButtons = IterableFlatMap(
-          core.connection.controllerDevices,
+          [...core.connection.controllerDevices, ...core.connection.allAccessories],
         ).flatMap((e) => e.availableButtons).toSet();
         core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
           pair.buttons.filter((button) => connectedDeviceButtons.contains(button) == true).forEachIndexed((
@@ -300,7 +300,7 @@ class KeymapManager {
       core.settings.setCustomKeymapOrigin(newName, core.actionHandler.supportedApp!.name);
 
       final connectedDeviceButtons = IterableFlatMap(
-        core.connection.controllerDevices,
+        [...core.connection.controllerDevices, ...core.connection.allAccessories],
       ).flatMap((e) => e.availableButtons).toSet();
       core.actionHandler.supportedApp!.keymap.keyPairs.forEachIndexed((pair, index) {
         pair.buttons.filter((button) => connectedDeviceButtons.contains(button) == true).forEachIndexed((

@@ -1249,6 +1249,15 @@
   "actionInclineZero": "Pendenza in piano (0%)",
   "actionInclineAutoMode": "Pendenza automatica (segui il percorso)",
   "inclineActions": "Pendenza",
+  "inclineCurrent": "Pendenza attuale",
+  "inclineFollowsGradient": "Segue la pendenza della tua app di allenamento",
+  "inclineWaitingForGradient": "In attesa di una pendenza dalla tua app di allenamento",
+  "inclineHeldByHand": "Resta dove l'hai impostata",
+  "inclineFollowGradient": "Segui la pendenza",
+  "inclineFollowGradientBody": "Si inclina con salite e discese della tua app di allenamento. La pendenza arriva a BikeControl solo quando l'app di allenamento è collegata tramite il ponte rullo di BikeControl.",
+  "inclineSetByHand": "Imposta a mano",
+  "inclineSetByHandBody": "1% per passo. Resta così finché non riattivi «Segui la pendenza».",
+  "inclineRideReadout": "Pendenza {value}",
   "kickrClimb": "KICKR Climb",
   "enable": "Attiva",
   "enableLocalConnectionMethodDescription": "Questa azione usa il metodo di connessione Locale, non ancora attivo. Attivalo per usare l'azione.",
@@ -1834,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Comandi oggi",
-  "chainTrialCommandsLimited": "Comandi limitati a {limit} al giorno",
+  "chainTrialCommandsMeter": "Pressioni rimaste oggi",
+  "chainTrialCommandsLimited": "Pressioni limitate a {limit} al giorno",
+  "chainTrialAfterTrial": "Dopo la prova: {limit} pressioni al giorno. Illimitate con Base.",
+  "commandsRunningLowTitle": "Ti restano {count} pressioni oggi",
+  "commandsRunningLowBody": "Poi i tuoi pulsanti non risponderanno fino a domani. Con Base o Pro sono illimitate.",
+  "localControlOptionalDescription": "Per cambiare marcia basta la connessione qui sopra. Attivalo solo per le azioni extra che {appName} gestisce con tastiera o mouse.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {
@@ -3101,5 +3114,21 @@
   "onboardingTrainerVsByBikeControl": "Cambio virtuale di BikeControl",
   "onboardingConnectTrainer": "Connetti {trainer}",
   "onboardingVsDailyWithoutPro": "Senza Pro: {minutes} min di cambio virtuale al giorno.",
-  "a11yScrollDown": "Scorri verso il basso"
+  "a11yScrollDown": "Scorri verso il basso",
+  "headwindFan": "Ventilatore",
+  "headwindCurrent": "Impostazione attuale",
+  "headwindSetSpeed": "Velocità del ventilatore",
+  "headwindSetSpeedBody": "Tocca una velocità per regolare il ventilatore a mano.",
+  "headwindFollowHeartRate": "Segui la frequenza cardiaca",
+  "headwindFollowHeartRateBody": "Il ventilatore accelera con la tua frequenza cardiaca.",
+  "headwindStateOff": "Spento",
+  "headwindStateHeartRate": "Frequenza cardiaca",
+  "headwindStateSpeed": "Segue la velocità",
+  "headwindFollowPower": "Segui la potenza",
+  "headwindFollowPowerBody": "Il ventilatore accelera e rallenta con i watt del tuo rullo.",
+  "headwindFullPowerAt": "Velocità massima a",
+  "headwindFullPowerAtBody": "Sotto questa potenza il ventilatore gira più piano, in base ai tuoi watt.",
+  "headwindStatePower": "{speed}% dalla potenza",
+  "accessorySteeringReadout": "Sterzo {value}",
+  "accessoryFanReadout": "Ventilatore {value}"
 }

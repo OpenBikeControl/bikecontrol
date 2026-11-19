@@ -1260,6 +1260,15 @@
   "actionInclineZero": "Steigung ebnen (0 %)",
   "actionInclineAutoMode": "Steigung automatisch (Gelände folgen)",
   "inclineActions": "Steigung",
+  "inclineCurrent": "Aktuelle Steigung",
+  "inclineFollowsGradient": "Folgt der Steigung aus deiner Trainings-App",
+  "inclineWaitingForGradient": "Wartet auf eine Steigung aus deiner Trainings-App",
+  "inclineHeldByHand": "Bleibt, wo du sie eingestellt hast",
+  "inclineFollowGradient": "Der Steigung folgen",
+  "inclineFollowGradientBody": "Neigt sich mit den Anstiegen und Abfahrten in deiner Trainings-App. Die Steigung kommt nur bei BikeControl an, wenn deine Trainings-App über die Trainer-Brücke von BikeControl verbunden ist.",
+  "inclineSetByHand": "Von Hand einstellen",
+  "inclineSetByHandBody": "1 % pro Schritt. Bleibt so, bis du „Der Steigung folgen“ wieder einschaltest.",
+  "inclineRideReadout": "Steigung {value}",
   "kickrClimb": "KICKR Climb",
   "enable": "Aktivieren",
   "enableLocalConnectionMethodDescription": "Diese Aktion nutzt die lokale Verbindungsmethode, die noch nicht aktiviert ist. Aktiviere sie, um die Aktion zu verwenden.",
@@ -1845,8 +1854,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Befehle heute",
-  "chainTrialCommandsLimited": "Befehle auf {limit} pro Tag begrenzt",
+  "chainTrialCommandsMeter": "Tastendrücke heute übrig",
+  "chainTrialCommandsLimited": "Tastendrücke auf {limit} pro Tag begrenzt",
+  "chainTrialAfterTrial": "Nach der Testphase: {limit} Tastendrücke pro Tag. Mit Basis unbegrenzt.",
+  "commandsRunningLowTitle": "Noch {count} Tastendrücke für heute",
+  "commandsRunningLowBody": "Danach reagieren deine Tasten erst morgen wieder. Mit Basis oder Pro sind sie unbegrenzt.",
+  "localControlOptionalDescription": "Zum Schalten reicht die Verbindung oben. Schalte das nur ein, wenn du Zusatzaktionen brauchst, die {appName} per Tastatur oder Maus steuert.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {
@@ -3101,5 +3114,21 @@
   "onboardingTrainerVsByBikeControl": "Virtuelles Schalten durch BikeControl",
   "onboardingConnectTrainer": "{trainer} verbinden",
   "onboardingVsDailyWithoutPro": "Ohne Pro: {minutes} Min. virtuelles Schalten am Tag.",
-  "a11yScrollDown": "Nach unten scrollen"
+  "a11yScrollDown": "Nach unten scrollen",
+  "headwindFan": "Ventilator",
+  "headwindCurrent": "Aktuelle Einstellung",
+  "headwindSetSpeed": "Lüfterstufe",
+  "headwindSetSpeedBody": "Tippe auf eine Stufe, um den Ventilator von Hand einzustellen.",
+  "headwindFollowHeartRate": "Herzfrequenz folgen",
+  "headwindFollowHeartRateBody": "Der Ventilator wird mit deiner Herzfrequenz schneller.",
+  "headwindStateOff": "Aus",
+  "headwindStateHeartRate": "Herzfrequenz",
+  "headwindStateSpeed": "Folgt der Geschwindigkeit",
+  "headwindFollowPower": "Leistung folgen",
+  "headwindFollowPowerBody": "Der Ventilator wird mit den Watt deines Trainers schneller und langsamer.",
+  "headwindFullPowerAt": "Volle Stufe bei",
+  "headwindFullPowerAtBody": "Darunter läuft der Ventilator passend zu deinen Watt langsamer.",
+  "headwindStatePower": "{speed}% nach Leistung",
+  "accessorySteeringReadout": "Lenkung {value}",
+  "accessoryFanReadout": "Ventilator {value}"
 }

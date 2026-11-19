@@ -9,6 +9,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/device_setup_prompt.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart' show ButtonTrigger;
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:dartx/dartx.dart';
@@ -113,7 +114,7 @@ class ShimanoDi2 extends BluetoothDevice {
 
   void _addChannelButtons(int count) {
     for (var readableIndex = 1; readableIndex <= count; readableIndex++) {
-      getOrAddButton(
+      final button = getOrAddButton(
         'D-Fly Channel $readableIndex',
         () => ControllerButton(
           'D-Fly Channel $readableIndex',
@@ -121,7 +122,24 @@ class ShimanoDi2 extends BluetoothDevice {
           action: isDflyChosen ? ShimanoDi2Buttons.channelActions[readableIndex] : null,
         ),
       );
+      if (isDflyChosen) _fillChannelAction(button, ShimanoDi2Buttons.channelActions[readableIndex]);
     }
+  }
+
+  /// A channel button the keymap already held before the E-TUBE channels were
+  /// chosen (a hood button on a D-Fly channel reported it) kept no action;
+  /// give it its paddle's, so the paddles shift.
+  void _fillChannelAction(ControllerButton button, InGameAction? action) {
+    final app = core.actionHandler.supportedApp;
+    if (app == null || action == null) return;
+    final keyPairs = app.keymap.getKeyPairs(button);
+    if (keyPairs.isEmpty || keyPairs.any((k) => !k.hasNoAction)) return;
+    final keyPair = keyPairs.first
+      ..inGameAction = action
+      ..trigger = action.isLongPress ? ButtonTrigger.longPress : ButtonTrigger.singleClick;
+    app.keymap.signalUpdate();
+    core.settings.setKeyMap(app);
+    actionStreamInternal.add(LogNotification('ShimanoDi2: ${button.name} → ${keyPair.inGameAction}'));
   }
 
   void _initChannels(List<int> channels) {

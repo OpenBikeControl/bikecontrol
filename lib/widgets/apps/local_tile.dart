@@ -197,17 +197,25 @@ class _LocalTileState extends State<LocalTile> {
           ],
         ),
     ];
+    // Next to an OpenBikeControl connection that already carries shifting,
+    // Local only adds keyboard/mouse actions — say so, or the rider meets two
+    // switches and can't tell which one they need. Apps reached only through
+    // Zwift emulation ("Other") often need Local for the basics, so it stays
+    // a plain method there.
+    final optional = core.logic.showObpMdnsEmulator || core.logic.showObpBluetoothEmulator;
+    final appName = shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '');
     return ConnectionMethod(
       trainerConnection: core.local,
       isEnabled: core.settings.getLocalEnabled(),
       isRecommended: !core.logic.hasOfficialConnectionMethods,
+      isOptional: optional,
       showTroubleshooting: true,
       small: widget.small,
       instructionLink: 'INSTRUCTIONS_LOCAL.md',
-      title: context.i18n.controlAppUsingModes(
-        shownTrainerAppName(core.settings.getTrainerApp()?.name ?? ''),
-      ),
-      description: context.i18n.enableKeyboardMouseControl(shownTrainerAppName(core.settings.getTrainerApp()?.name ?? '')),
+      title: context.i18n.controlAppUsingModes(appName),
+      description: optional
+          ? context.i18n.localControlOptionalDescription(appName)
+          : context.i18n.enableKeyboardMouseControl(appName),
       requirements: core.permissions.getLocalControlRequirements(),
       onChange: (value) {
         core.settings.setLocalEnabled(value);

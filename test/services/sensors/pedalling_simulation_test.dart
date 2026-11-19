@@ -35,4 +35,30 @@ void main() {
       expect(async.pendingTimers, isEmpty);
     });
   });
+
+  test('rides a hilly route an incline device can follow, and stops it with the ride', () {
+    fakeAsync((async) {
+      final hub = SensorHub(now: () => async.getClock(DateTime(2026)).now());
+      final sim = PedallingSimulation(hub);
+      expect(sim.grade.value, isNull);
+
+      sim.start();
+      final grades = <int>[];
+      for (var i = 0; i < 180; i++) {
+        async.elapse(const Duration(seconds: 1));
+        grades.add(sim.grade.value!);
+      }
+      expect(grades.every((g) => g % 50 == 0), isTrue, reason: '0.5% steps');
+      expect(grades.reduce((a, b) => a < b ? a : b), lessThan(0), reason: 'descends');
+      expect(grades.reduce((a, b) => a > b ? a : b), greaterThan(800), reason: 'climbs');
+      var changes = 0;
+      for (var i = 1; i < grades.length; i++) {
+        if (grades[i] != grades[i - 1]) changes++;
+      }
+      expect(changes, lessThan(grades.length ~/ 2), reason: 'holds a grade for a while, not a new one every second');
+
+      sim.stop();
+      expect(sim.grade.value, isNull);
+    });
+  });
 }

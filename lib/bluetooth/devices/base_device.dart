@@ -9,6 +9,7 @@ import 'package:bike_control/utils/actions/base_actions.dart' show ActionResult,
 import 'package:bike_control/utils/actions/desktop.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/command_limit_heads_up.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/utils/keymap/manager.dart';
@@ -459,6 +460,7 @@ abstract class BaseDevice {
       if (result is Success) core.feedbackPromptService.recordCommandDelivered();
 
       actionStreamInternal.add(ActionNotification(result));
+      _maybeWarnCommandsLow();
     }
   }
 
@@ -514,6 +516,7 @@ abstract class BaseDevice {
       );
       if (result is Success) core.feedbackPromptService.recordCommandDelivered();
       actionStreamInternal.add(ActionNotification(result));
+      _maybeWarnCommandsLow();
     }
   }
 
@@ -761,6 +764,44 @@ abstract class BaseDevice {
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails('Limit', 'Limit reached'),
         iOS: DarwinNotificationDetails(presentAlert: true),
+        macOS: DarwinNotificationDetails(presentAlert: true),
+      ),
+    );
+  }
+
+  /// Shared across devices: the budget is per day, not per controller.
+  static final CommandLimitHeadsUp commandLimitHeadsUp = CommandLimitHeadsUp();
+
+  /// Warns once a day, while there is still time to act, that the presses are
+  /// about to run out — the trainer app is usually in front, so the alert
+  /// also goes out as a system notification.
+  void _maybeWarnCommandsLow() {
+    final int remaining;
+    try {
+      remaining = IAPManager.instance.commandsRemainingToday;
+    } catch (_) {
+      return;
+    }
+    if (!commandLimitHeadsUp.shouldWarn(remaining: remaining, now: DateTime.now())) return;
+    final l = AppLocalizations.current;
+    actionStreamInternal.add(
+      AlertNotification(
+        LogLevel.LOGLEVEL_WARNING,
+        '${l.commandsRunningLowTitle(remaining)}. ${l.commandsRunningLowBody}',
+        buttonTitle: l.purchase,
+        onTap: () {
+          IAPManager.instance.purchaseFullVersion(navigatorKey.currentContext!);
+        },
+      ),
+    );
+    core.flutterLocalNotificationsPlugin.show(
+      id: 1338,
+      title: l.commandsRunningLowTitle(remaining),
+      body: l.commandsRunningLowBody,
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails('Limit', 'Limit reached'),
+        iOS: DarwinNotificationDetails(presentAlert: true),
+        macOS: DarwinNotificationDetails(presentAlert: true),
       ),
     );
   }

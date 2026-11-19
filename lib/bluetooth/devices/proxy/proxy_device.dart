@@ -7,7 +7,8 @@ import 'package:bike_control/bluetooth/devices/proxy/stale_bluetooth_link_watch.
 import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
-import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart' show zwiftUnlockInProgress;
+import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart'
+    show refreshTrainerOnBridge, zwiftUnlockInProgress;
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/trainer_connect.dart' show trainerConnectErrorMessage;
@@ -333,6 +334,7 @@ class ProxyDevice extends BluetoothDevice {
     if (fbd == null) return;
     _fbd = null;
     await _detachLogged(ftmsEmulator.detachDefinition(fbd), context);
+    refreshTrainerOnBridge();
     fbd.dispose();
   }
 
@@ -968,6 +970,7 @@ class ProxyDevice extends BluetoothDevice {
           mode: mode,
           mdnsTxtBuilder: trainerMdnsTxt,
         );
+        refreshTrainerOnBridge();
       }
 
       applyTrainerSettings();
@@ -1576,6 +1579,7 @@ class ProxyDevice extends BluetoothDevice {
         mode: next,
         mdnsTxtBuilder: trainerMdnsTxt,
       );
+      refreshTrainerOnBridge();
     } else if (old != RetrofitMode.proxy && next == RetrofitMode.proxy) {
       // VS → proxy: detach from shared, start per-instance
       await _releaseFbd('detach FBD on VS→proxy switch');

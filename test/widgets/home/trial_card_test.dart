@@ -22,6 +22,7 @@ TrialCardState trial({
   int commandsTotal = 80,
   int? bridgeMinutesRemaining,
   int? bridgeMinutesTotal,
+  int? commandsAfterTrial,
 }) {
   return TrialCardState(
     daysRemaining: daysRemaining,
@@ -31,6 +32,7 @@ TrialCardState trial({
     commandsTotal: commandsTotal,
     bridgeMinutesRemaining: bridgeMinutesRemaining,
     bridgeMinutesTotal: bridgeMinutesTotal,
+    commandsAfterTrial: commandsAfterTrial,
   );
 }
 
@@ -70,6 +72,23 @@ void main() async {
 
     await pumpTrial(tester, trial(bridgeMinutesRemaining: 12, bridgeMinutesTotal: 20));
     expect(find.text(l.chainTrialBridgeMeter), findsOneWidget);
+  });
+
+  // A rider who thinks the app is free learns mid-ride that the buttons stop;
+  // the card says up front what is left once the trial ends.
+  testWidgets('during the trial, the card says what remains after it', (tester) async {
+    await pumpTrial(tester, trial(commandsAfterTrial: 40));
+    expect(find.text(l.chainTrialAfterTrial(40)), findsOneWidget);
+  });
+
+  testWidgets('an expired trial needs no after-trial line', (tester) async {
+    await pumpTrial(tester, trial(expired: true, daysRemaining: 0, commandsTotal: 40, commandsAfterTrial: 40));
+    expect(find.text(l.chainTrialAfterTrial(40)), findsNothing);
+  });
+
+  testWidgets('running low on presses turns the card amber', (tester) async {
+    expect(trial(commandsRemaining: 10, commandsTotal: 120).urgent, isTrue);
+    expect(trial(commandsRemaining: 62, commandsTotal: 120).urgent, isFalse);
   });
 
   group('urgency is earned', () {

@@ -1249,6 +1249,15 @@
   "actionInclineZero": "Pente à plat (0 %)",
   "actionInclineAutoMode": "Pente automatique (suivre le terrain)",
   "inclineActions": "Pente",
+  "inclineCurrent": "Inclinaison actuelle",
+  "inclineFollowsGradient": "Suit la pente de ton application d'entraînement",
+  "inclineWaitingForGradient": "En attente d'une pente de ton application d'entraînement",
+  "inclineHeldByHand": "Reste là où tu l'as réglée",
+  "inclineFollowGradient": "Suivre la pente",
+  "inclineFollowGradientBody": "S'incline avec les montées et les descentes de ton application d'entraînement. La pente n'arrive à BikeControl que si ton application d'entraînement est connectée via le pont home trainer de BikeControl.",
+  "inclineSetByHand": "Régler à la main",
+  "inclineSetByHandBody": "1 % par pas. Reste ainsi jusqu'à ce que tu réactives « Suivre la pente ».",
+  "inclineRideReadout": "Inclinaison {value}",
   "kickrClimb": "KICKR Climb",
   "enable": "Activer",
   "enableLocalConnectionMethodDescription": "Cette action utilise la méthode de connexion Locale, qui n'est pas encore activée. Active-la pour utiliser cette action.",
@@ -1834,8 +1843,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "Commandes aujourd’hui",
-  "chainTrialCommandsLimited": "Commandes limitées à {limit} par jour",
+  "chainTrialCommandsMeter": "Appuis restants aujourd’hui",
+  "chainTrialCommandsLimited": "Appuis limités à {limit} par jour",
+  "chainTrialAfterTrial": "Après l’essai : {limit} appuis par jour. Illimités avec Base.",
+  "commandsRunningLowTitle": "Plus que {count} appuis aujourd’hui",
+  "commandsRunningLowBody": "Ensuite, tes boutons ne répondront plus avant demain. Avec Base ou Pro, ils sont illimités.",
+  "localControlOptionalDescription": "La connexion ci-dessus suffit pour changer de vitesse. Active ceci seulement pour les actions supplémentaires que {appName} gère au clavier ou à la souris.",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {
@@ -3101,5 +3114,21 @@
   "onboardingTrainerVsByBikeControl": "Vitesses virtuelles par BikeControl",
   "onboardingConnectTrainer": "Connecter {trainer}",
   "onboardingVsDailyWithoutPro": "Sans Pro : {minutes} min de vitesses virtuelles par jour.",
-  "a11yScrollDown": "Faire défiler vers le bas"
+  "a11yScrollDown": "Faire défiler vers le bas",
+  "headwindFan": "Ventilateur",
+  "headwindCurrent": "Réglage actuel",
+  "headwindSetSpeed": "Vitesse du ventilateur",
+  "headwindSetSpeedBody": "Touchez une vitesse pour régler le ventilateur à la main.",
+  "headwindFollowHeartRate": "Suivre la fréquence cardiaque",
+  "headwindFollowHeartRateBody": "Le ventilateur accélère avec votre fréquence cardiaque.",
+  "headwindStateOff": "Éteint",
+  "headwindStateHeartRate": "Fréquence cardiaque",
+  "headwindStateSpeed": "Suit la vitesse",
+  "headwindFollowPower": "Suivre la puissance",
+  "headwindFollowPowerBody": "Le ventilateur accélère et ralentit avec les watts de votre home trainer.",
+  "headwindFullPowerAt": "Pleine vitesse à",
+  "headwindFullPowerAtBody": "En dessous de cette puissance, le ventilateur tourne moins vite, au rythme de vos watts.",
+  "headwindStatePower": "{speed}% selon la puissance",
+  "accessorySteeringReadout": "Direction {value}",
+  "accessoryFanReadout": "Ventilateur {value}"
 }

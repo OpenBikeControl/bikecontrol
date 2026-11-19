@@ -100,6 +100,10 @@ class Connection {
   List<GyroscopeSteering> get gyroscopeDevices => devices.whereType<GyroscopeSteering>().toList();
   List<WahooKickrHeadwind> get accessories => devices.whereType<WahooKickrHeadwind>().toList();
   List<WahooKickrClimb> get climbAccessories => devices.whereType<WahooKickrClimb>().toList();
+
+  /// Every accessory, whatever it does — the Headwind, the Climb, the Rizer.
+  /// Listed apart from the controllers.
+  List<BluetoothDevice> get allAccessories => bluetoothDevices.where((d) => d is Accessory).toList();
   List<ManualInclineDevice> get inclineDevices => devices.whereType<ManualInclineDevice>().toList();
   List<BaseDevice> get controllerDevices => [
     ...bluetoothDevices.where((d) => d is! Accessory && d is! ProxyDevice),
@@ -426,6 +430,9 @@ class Connection {
   InactivityDisconnector? _inactivityDisconnector;
 
   InclineController? _inclineController;
+
+  /// Pushes the trainer app's grade to incline devices; null before start.
+  InclineController? get inclineController => _inclineController;
   _ClimbRelaySink? _relaySink;
   FitnessBikeDefinition? _relaySinkFbd;
 
@@ -1094,7 +1101,16 @@ class Connection {
     );
 
     _inclineController ??= InclineController(
-      gradeProvider: () => ftmsEmulator.fitnessBike?.simGrade.value,
+      gradeProvider: () {
+        // Debug: the pedalling simulation rides a hilly route, so an incline
+        // device can be tested without a trainer app. A connected trainer app's
+        // grade always wins.
+        final simulated = core.pedallingSimulation.grade.value;
+        if (simulated != null && core.logic.connectedNonLocalTrainerConnections.isEmpty) return simulated;
+        // The grade as the app sent it: the resistance smoothing in simGrade
+        // stops short of it when the app goes quiet on a steady road.
+        return ftmsEmulator.fitnessBike?.appGrade.value;
+      },
       sinkProvider: () {
         final direct = devices.whereType<InclineSink>().firstOrNullWhere(
           (d) => (d as BaseDevice).isConnected,
@@ -1239,9 +1255,15 @@ class Connection {
       // doc comment). Also the retry path for a standalone start that failed
       // at launch: any later selection change re-syncs, not just a bridge
       // transition.
+      // Start/stop alone can flip it (e.g. the controller-only emulator
+      // stopping with a trainer still remembered); attach/detach of a trainer
+      // definition refreshes it from ProxyDevice.
+      ftmsEmulator.isStarted.addListener(refreshTrainerOnBridge);
+      refreshTrainerOnBridge();
       final sinkSync = SensorSinkSync(
         hub: core.sensors,
         isBridgeRunning: ftmsEmulator.isStarted,
+        isTrainerBridged: trainerOnBridge,
         sink: sensorSink,
         broadcast: broadcast!,
       );
@@ -1280,11 +1302,11 @@ class Connection {
         // comment for the defect this guards against).
         onCadence: (rpm) {
           ftmsEmulator.fitnessBike?.setExternalCadence(rpm);
-          if (!ftmsEmulator.isStarted.value) sensorDefinition.setCadence(rpm);
+          if (ftmsEmulator.fitnessBike == null) sensorDefinition.setCadence(rpm);
         },
         onPower: (watts) {
           ftmsEmulator.fitnessBike?.setExternalPower(watts);
-          if (!ftmsEmulator.isStarted.value) sensorDefinition.setPower(watts);
+          if (ftmsEmulator.fitnessBike == null) sensorDefinition.setPower(watts);
         },
       ).start();
     } catch (e, s) {

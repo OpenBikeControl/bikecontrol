@@ -32,6 +32,15 @@
   "actionInclineZero": "坡度拉平（0%）",
   "actionInclineAutoMode": "坡度自动（跟随路线坡度）",
   "inclineActions": "坡度",
+  "inclineCurrent": "当前坡度",
+  "inclineFollowsGradient": "跟随骑行应用中的坡度",
+  "inclineWaitingForGradient": "正在等待骑行应用发送坡度",
+  "inclineHeldByHand": "保持在你设置的位置",
+  "inclineFollowGradient": "跟随坡度",
+  "inclineFollowGradientBody": "随骑行应用中的上坡和下坡倾斜。只有当骑行应用通过 BikeControl 的骑行台桥接连接时，坡度才会传到 BikeControl。",
+  "inclineSetByHand": "手动设置",
+  "inclineSetByHandBody": "每步 1%。保持不变，直到你重新打开“跟随坡度”。",
+  "inclineRideReadout": "坡度 {value}",
   "kickrClimb": "KICKR Climb",
   "actionUp": "上",
   "actionDown": "下",
@@ -2130,8 +2139,12 @@
       }
     }
   },
-  "chainTrialCommandsMeter": "今日指令",
-  "chainTrialCommandsLimited": "指令限制为每天 {limit} 次",
+  "chainTrialCommandsMeter": "今日剩余按键次数",
+  "chainTrialCommandsLimited": "按键次数限制为每天 {limit} 次",
+  "chainTrialAfterTrial": "试用结束后：每天 {limit} 次按键。基础版不受限制。",
+  "commandsRunningLowTitle": "今天还剩 {count} 次按键",
+  "commandsRunningLowBody": "用完后按键要到明天才会恢复。基础版或 Pro 不受限制。",
+  "localControlOptionalDescription": "换挡只需上面的连接。仅当你需要 {appName} 通过键盘或鼠标执行的额外操作时才开启。",
   "@chainTrialCommandsLimited": {
     "placeholders": {
       "limit": {
@@ -4283,5 +4296,21 @@
   "onboardingTrainerVsByBikeControl": "由 BikeControl 进行虚拟变速",
   "onboardingConnectTrainer": "连接 {trainer}",
   "onboardingVsDailyWithoutPro": "没有 Pro：每天 {minutes} 分钟虚拟变速。",
-  "a11yScrollDown": "向下滚动"
+  "a11yScrollDown": "向下滚动",
+  "headwindFan": "风扇",
+  "headwindCurrent": "当前设置",
+  "headwindSetSpeed": "风扇速度",
+  "headwindSetSpeedBody": "点按一个速度以手动设置风扇。",
+  "headwindFollowHeartRate": "跟随心率",
+  "headwindFollowHeartRateBody": "风扇随心率加快。",
+  "headwindStateOff": "关闭",
+  "headwindStateHeartRate": "心率",
+  "headwindStateSpeed": "跟随速度",
+  "headwindFollowPower": "跟随功率",
+  "headwindFollowPowerBody": "风扇随骑行台的功率加快或减慢。",
+  "headwindFullPowerAt": "全速功率",
+  "headwindFullPowerAtBody": "低于此功率时，风扇按你的功率相应减速。",
+  "headwindStatePower": "按功率 {speed}%",
+  "accessorySteeringReadout": "转向 {value}",
+  "accessoryFanReadout": "风扇 {value}"
 }

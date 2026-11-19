@@ -439,6 +439,18 @@ Future<void> main() async {
       expect(find.byType(VirtualShiftingCard), findsNothing);
       expect(find.text(l.rideVsInviteBody), findsOneWidget);
     });
+
+    // MyWhoosh shifts by itself; with its connection set up, inviting the
+    // rider to connect a trainer for BikeControl's shifting only raises the
+    // question whether they need it.
+    testWidgets('trainer app set up but not connected yet: it handles shifting, no invitation', (tester) async {
+      await core.settings.setObpMdnsEnabled(true);
+      addTearDown(() => core.settings.setObpMdnsEnabled(false));
+      await pumpRide(tester);
+
+      expect(find.text(l.rideVsInviteBody), findsNothing);
+      expect(find.byKey(const ValueKey('ride-vs-handled')), findsOneWidget);
+    });
   });
 
   group('overlay offer', () {

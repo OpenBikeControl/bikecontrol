@@ -22,3 +22,33 @@ Uint8List rizerInclineToBytes(int grade001Pct) {
   final u = tenths & 0xFFFF;
   return Uint8List.fromList([eliteRizerSetInclineOpcode, u & 0xFF, (u >> 8) & 0xFF]);
 }
+
+/// Status code in the Rizer's reply to a command (`[0x80, opcode, code]` on
+/// the status characteristic).
+const int kEliteRizerAckSuccess = 0x02;
+
+/// The status code the Rizer sent for [opcode], or null when [bytes] is not
+/// its reply to that command.
+int? rizerAckCode(Uint8List bytes, {int opcode = eliteRizerSetInclineOpcode}) {
+  if (bytes.length < 3 || bytes[0] != 0x80 || bytes[1] != opcode) return null;
+  return bytes[2];
+}
+
+/// Readable name of a Rizer status code, for logs.
+String rizerAckName(int code) => switch (code) {
+  0 => 'wrong parameters',
+  1 => 'out of range',
+  2 => 'success',
+  3 => 'wrong',
+  4 => 'fail',
+  5 => 'command not accessible',
+  _ => 'unknown ($code)',
+};
+
+/// The incline the Rizer reports it is at (0.01%), from its incline
+/// characteristic: byte 1 is 100 + 2 × percent (0x64 = 0%, 0x6e = +5%,
+/// 0x50 = -10%). Null for a frame too short to carry it.
+int? rizerReportedIncline001(Uint8List bytes) {
+  if (bytes.length < 2) return null;
+  return (bytes[1] - 100) * 50;
+}
