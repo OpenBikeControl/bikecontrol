@@ -2,6 +2,7 @@
 // does, the live angle, which trainer-app action each direction drives, the
 // dead zone, calibration and how to turn it off — and none of a button's
 // single / double / long-press triggers.
+import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -148,15 +149,32 @@ Future<void> main() async {
     expect(core.settings.getPhoneSteeringEnabled(), isFalse);
   });
 
-  testWidgets('an Elite Sterzo keeps its fixed dead zone and Bluetooth disconnect, and can recalibrate', (tester) async {
+  testWidgets('an Elite Sterzo keeps its fixed dead zone and Bluetooth disconnect, and can recalibrate', (
+    tester,
+  ) async {
     final sterzo = EliteSterzo(BleDevice(name: 'STERZO', deviceId: 'sterzo'))..isConnected = true;
     sterzo.steeringCalibratedN.value = true;
     core.connection.devices.add(sterzo);
     final l = await pump(tester, device: sterzo);
     expect(find.byType(CustomizePage), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('steering-dead-zone')), matching: find.text('±10°')), findsOneWidget);
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('steering-dead-zone')), matching: find.text('±10°')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('steering-turn-off')), findsNothing);
     expect(find.byKey(const ValueKey('steering-recalibrate')), findsOneWidget);
     expect(find.text(l.disconnectAndForget), findsOneWidget);
+  });
+
+  testWidgets('a Rizer that isn\'t connected says so instead of calibrating', (tester) async {
+    final rizer = EliteRizer(BleDevice(name: 'RIZER', deviceId: 'rizer-off'));
+    core.connection.devices.add(rizer);
+
+    final l = await pump(tester, device: rizer);
+
+    expect(find.text(l.steeringCalibrating), findsNothing);
+    expect(find.text(l.steeringHoldStill), findsNothing);
+    expect(find.text(l.notConnected), findsOneWidget);
+    expect(find.byKey(const ValueKey('steering-angle-disconnected')), findsOneWidget);
   });
 }

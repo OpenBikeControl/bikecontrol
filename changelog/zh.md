@@ -4,6 +4,7 @@
 - 设置现在默认通过 BikeControl 连接智能骑行台，并直接展示 BikeControl 虚拟变速能做什么。
 
 **Fixes**:
+- Elite Rizer：不再显示为控制器；Rizer 未连接时，转向卡片也不再显示“正在校准”。
 - Zwift 和 Rouvy：当 BikeControl 的网络连接正常时，网络测试不再报告问题。
 
 ### 7.6.0 (17-11-2026)

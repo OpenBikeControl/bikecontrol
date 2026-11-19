@@ -4,6 +4,7 @@
 - La configuración ahora conecta tu rodillo a través de BikeControl de forma predeterminada y muestra ahí mismo lo que hace el cambio virtual de BikeControl.
 
 **Fixes**:
+- Elite Rizer: ya no aparece como mando, y la tarjeta de dirección ya no dice que se está calibrando mientras el Rizer no está conectado.
 - Zwift y Rouvy: la prueba de red ya no informa de un problema cuando la conexión de red de BikeControl funciona.
 
 ### 7.6.0 (17-11-2026)

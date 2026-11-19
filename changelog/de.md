@@ -4,6 +4,7 @@
 - Die Einrichtung verbindet deinen Smart Trainer jetzt standardmäßig über BikeControl und zeigt direkt dort, was das virtuelle Schalten von BikeControl kann.
 
 **Fixes**:
+- Elite Rizer: wird nicht mehr als Controller aufgeführt, und die Lenkungskarte zeigt nicht mehr „Wird kalibriert…“, solange der Rizer nicht verbunden ist.
 - Zwift und Rouvy: Der Netzwerktest meldet kein Problem mehr, wenn die Netzwerkverbindung von BikeControl funktioniert.
 
 ### 7.6.0 (17-11-2026)

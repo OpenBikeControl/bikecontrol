@@ -113,9 +113,14 @@ class SteeringGauge extends StatelessWidget {
 
   final bool large;
 
+  /// False while the device isn't connected (or still connecting): there is
+  /// no angle to read and nothing calibrating yet, so the face shows a dash.
+  final bool connected;
+
   const SteeringGauge({
     super.key,
     required this.angle,
+    this.connected = true,
     required this.calibrated,
     required this.threshold,
     this.leftAction,
@@ -131,7 +136,8 @@ class SteeringGauge extends StatelessWidget {
     final numeralSize = (context.typography.x2Large.fontSize ?? 24) * (large ? 1.5 : 1.0);
     return ValueListenableBuilder<bool>(
       valueListenable: calibrated,
-      builder: (context, isCalibrated, _) {
+      builder: (context, calibratedNow, _) {
+        final isCalibrated = connected && calibratedNow;
         return ValueListenableBuilder<double>(
           valueListenable: angle,
           builder: (context, liveAngle, _) {
@@ -143,6 +149,17 @@ class SteeringGauge extends StatelessWidget {
                     style: BkNumerals.display(
                       numeralSize,
                       color: side == SteerSide.none ? cs.foreground : bkAccentText(context),
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                    ),
+                  )
+                : !connected
+                ? Text(
+                    '–',
+                    key: const ValueKey('steering-angle-disconnected'),
+                    style: BkNumerals.display(
+                      numeralSize,
+                      color: cs.mutedForeground,
                       fontWeight: FontWeight.w700,
                       height: 1,
                     ),
@@ -162,8 +179,14 @@ class SteeringGauge extends StatelessWidget {
               container: true,
               label: isCalibrated
                   ? '${l.steeringAngle} ${steeringAngleText(liveAngle)}'
-                      '${side == SteerSide.left ? ', ${leftAction ?? ''}' : side == SteerSide.right ? ', ${rightAction ?? ''}' : ''}'
-                  : l.steeringCalibrating,
+                        '${side == SteerSide.left
+                            ? ', ${leftAction ?? ''}'
+                            : side == SteerSide.right
+                            ? ', ${rightAction ?? ''}'
+                            : ''}'
+                  : connected
+                  ? l.steeringCalibrating
+                  : l.notConnected,
               child: ExcludeSemantics(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -171,7 +194,10 @@ class SteeringGauge extends StatelessWidget {
                   children: [
                     // Holds the numeral's height either way, so calibrating
                     // moves nothing.
-                    SizedBox(height: numeralSize * 1.1, child: Center(child: readout)),
+                    SizedBox(
+                      height: numeralSize * 1.1,
+                      child: Center(child: readout),
+                    ),
                     SizedBox(
                       height: large ? 52 : 40,
                       // Smoothly eases the knob between sensor frames.

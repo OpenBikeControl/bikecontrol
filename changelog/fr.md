@@ -4,6 +4,7 @@
 - La configuration connecte désormais ton home trainer via BikeControl par défaut, et montre sur place ce que font les vitesses virtuelles de BikeControl.
 
 **Fixes**:
+- Elite Rizer : n'apparaît plus comme manette, et la carte de direction n'indique plus qu'elle se calibre tant que le Rizer n'est pas connecté.
 - Zwift et Rouvy : le test réseau ne signale plus de problème quand la connexion réseau de BikeControl fonctionne.
 
 ### 7.6.0 (17-11-2026)

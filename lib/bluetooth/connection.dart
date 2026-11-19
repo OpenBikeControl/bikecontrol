@@ -512,6 +512,17 @@ class Connection {
         // The stored advert is exactly what the factory reads, so this yields a
         // real device of the right subclass — correct buttons, correct contour.
         final device = BluetoothDevice.fromScanResult(remembered.toScanResult());
+        // An accessory (a Rizer, a Headwind) remembered by an older version
+        // as a controller: not a link in the chain. Drop it for good.
+        if (device is Accessory) {
+          unawaited(
+            core.rememberedDevices.forget(remembered.deviceId).catchError((Object e, StackTrace s) {
+              recordError(e, s, context: 'Connection.loadRememberedDevices forget accessory');
+              return null;
+            }),
+          );
+          continue;
+        }
         if (device != null) _offlineControllers[remembered.deviceId] = device;
       } catch (e, s) {
         recordError(e, s, context: 'Connection.loadRememberedDevices ${remembered.deviceId}');

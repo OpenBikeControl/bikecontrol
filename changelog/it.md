@@ -4,6 +4,7 @@
 - La configurazione ora collega il rullo tramite BikeControl per impostazione predefinita e mostra subito cosa fa il cambio virtuale di BikeControl.
 
 **Fixes**:
+- Elite Rizer: non compare più come controller, e la scheda dello sterzo non dice più che sta calibrando finché il Rizer non è collegato.
 - Zwift e Rouvy: il test di rete non segnala più un problema quando la connessione di rete di BikeControl funziona.
 
 ### 7.6.0 (17-11-2026)

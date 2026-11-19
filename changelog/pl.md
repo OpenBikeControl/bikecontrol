@@ -4,6 +4,7 @@
 - Konfiguracja domyślnie łączy teraz trenażer przez BikeControl i od razu pokazuje, co daje wirtualna zmiana biegów BikeControl.
 
 **Fixes**:
+- Elite Rizer: nie jest już wyświetlany jako kontroler, a karta skrętu nie pokazuje już kalibracji, gdy Rizer nie jest połączony.
 - Zwift i Rouvy: test sieci nie zgłasza już problemu, gdy połączenie sieciowe BikeControl działa.
 
 ### 7.6.0 (17-11-2026)
