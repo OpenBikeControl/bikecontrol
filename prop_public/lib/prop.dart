@@ -17,3 +17,4 @@ export 'utils/constants.dart';
 export 'utils/prefs.dart';
 export 'utils/shared.dart';
 export 'utils/wahoo_climb.dart';
+export 'emulators/transporter/shared_peripheral.dart';

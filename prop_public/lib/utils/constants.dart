@@ -48,6 +48,10 @@ class BikeControlMdnsMarkers {
   static const clickManufacturerData = '0000000001';
   static const obcMacAddress = '00:00:00:00:00:01';
 
+  /// A per-install suffix for the advertised identifiers. FAKE placeholder —
+  /// the full implementation derives a stable one per install.
+  static String get installId => '00000000';
+
   // FAKE placeholder — the real product identifier lives in the full
   // implementation.
   static const tacxProductId = '0';

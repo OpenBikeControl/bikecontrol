@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart';
 /// Stubbed shared emulator helpers. The full implementation handles the
 /// Zwift Click handshake / device-info responses and iOS keep-alive audio.
 class SharedLogic {
-  static Uint8List? handleWriteRequest(String characteristic, Uint8List value) {
+  /// [asRide] answers as a Zwift Ride instead of a Zwift Click.
+  static Uint8List? handleWriteRequest(String characteristic, Uint8List value, {bool asRide = false}) {
     return null;
   }
 
@@ -25,6 +26,17 @@ class Logger {
       onRecordError?.call(message, exception, stackTrace);
     } catch (e, s) {
       error('Logger.onRecordError listener failed: $e\n$s');
+    }
+  }
+
+  /// A line a support bundle must show: printed like [info] in a debug build
+  /// and forwarded to [onEvent].
+  static void event(String text) {
+    info(text);
+    try {
+      onEvent?.call(text);
+    } catch (e, s) {
+      error('Logger.onEvent sink failed: $e\n$s');
     }
   }
 
@@ -51,7 +63,7 @@ class Logger {
   /// no-op outside debug builds.
   static void Function(String message)? onTrace;
 
-  /// High-level lines the app shows with its own log. Stubbed: never called.
+  /// High-level lines the app shows with its own log; [event] forwards here.
   static void Function(String message)? onEvent;
 
   /// Emit a verbose wire trace. [build] runs only when a sink is attached or

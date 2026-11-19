@@ -169,6 +169,6 @@ Release APKs are signed with a key that is not in the repository. When
 `android/keystore.properties` is absent the release build falls back to the
 debug key, so `flutter build apk --release` works from a plain clone.
 
-`flutter test` runs, except for 11 of the 297 test files which exercise the
+`flutter test` runs, except for 20 of the 577 test files which exercise the
 emulator implementations themselves and import test seams from `prop`. Those
 need the private package; the rest of the suite does not.
