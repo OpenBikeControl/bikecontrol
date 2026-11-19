@@ -167,13 +167,17 @@ class TacxNeoBike extends BluetoothDevice with SmartBikeHost {
       return forwardToTrainer(characteristic, bytes);
     }
     final uuid = characteristic.toLowerCase();
-    _logFrame(uuid, bytes);
+    final logged = _logFrame(uuid, bytes);
 
     switch (uuid) {
       case TacxNeoBikeConstants.FEATURES_UUID:
         _handleFeatures(bytes);
-      case TacxNeoBikeConstants.ERRORS_UUID:
+      // The bike repeats this frame every couple of seconds; only a new one
+      // is worth a line.
+      case TacxNeoBikeConstants.ERRORS_UUID when logged:
         _log('error/diagnostic frame ${_hex(bytes)}');
+      case TacxNeoBikeConstants.ERRORS_UUID:
+        break;
       case TacxNeoBikeConstants.GEAR_STATUS_UUID:
         await _handleGearStatus(bytes);
       case TacxNeoBikeConstants.BUTTONS_UUID:
@@ -185,7 +189,8 @@ class TacxNeoBike extends BluetoothDevice with SmartBikeHost {
     }
   }
 
-  void _logFrame(String uuid, Uint8List bytes) {
+  /// Whether the frame made it into the log.
+  bool _logFrame(String uuid, Uint8List bytes) {
     final hex = _hex(bytes);
     final name = TacxNeoBikeConstants.describe(uuid);
     Logger.trace(() => '$this tacx< $name $hex');
@@ -195,7 +200,9 @@ class TacxNeoBike extends BluetoothDevice with SmartBikeHost {
     _lastFrames[uuid] = hex;
     if (count <= _alwaysLoggedFrames || changed) {
       _log('$name #$count $hex');
+      return true;
     }
+    return false;
   }
 
   void _handleFeatures(Uint8List bytes) {

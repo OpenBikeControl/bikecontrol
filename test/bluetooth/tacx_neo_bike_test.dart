@@ -185,6 +185,55 @@ void main() {
       ]);
     });
 
+    // Frames recorded on a real NEO Bike Smart (fw 4.5.0): the rear table
+    // comes largest cog first, and a shift is a frame with only that gear.
+    test('a real bike: one lever press is one shift each way', () async {
+      final bike = _RecordingBike();
+      await bike.processCharacteristic(
+        TacxNeoBikeConstants.CONTROL_POINT_UUID,
+        b([0x20, 0x04, 0x01, 0x02, 0x22, 0x32]),
+      );
+      await bike.processCharacteristic(
+        TacxNeoBikeConstants.CONTROL_POINT_UUID,
+        b([0x20, 0x05, 0x01, 0x0b, 0x20, 0x1c, 0x19, 0x16, 0x14, 0x12, 0x10, 0x0e, 0x0d, 0x0c, 0x0b]),
+      );
+      for (final frame in [
+        [0x03, 0x32, 0x14],
+        [0x02, 0x12],
+        [0x03, 0x32, 0x12],
+        [0x02, 0x14],
+        [0x03, 0x32, 0x14],
+        [0x01, 0x22],
+        [0x01, 0x32],
+        [0x03, 0x32, 0x14],
+      ]) {
+        await bike.processCharacteristic(TacxNeoBikeConstants.GEAR_STATUS_UUID, b(frame));
+      }
+      expect(bike.calls.where((c) => c.isNotEmpty), [
+        [TacxNeoBikeButtons.rearUp],
+        [TacxNeoBikeButtons.rearDown],
+        [TacxNeoBikeButtons.frontDown],
+        [TacxNeoBikeButtons.frontUp],
+      ]);
+    });
+
+    test('the repeated no-error frame stops being logged', () async {
+      final bike = _RecordingBike();
+      final logs = <String>[];
+      final sub = bike.actionStream.listen((n) {
+        if (n is LogNotification) logs.add(n.message);
+      });
+      for (var i = 0; i < 100; i++) {
+        await bike.processCharacteristic(TacxNeoBikeConstants.ERRORS_UUID, b([0x01, 0x00, 0x00]));
+      }
+      await bike.processCharacteristic(TacxNeoBikeConstants.ERRORS_UUID, b([0x01, 0x05, 0x00]));
+      await Future<void>.delayed(Duration.zero);
+      await sub.cancel();
+
+      expect(logs.where((l) => l.contains('error/diagnostic frame 01 00 00')), hasLength(20));
+      expect(logs, contains(contains('error/diagnostic frame 01 05 00')));
+    });
+
     test('every vendor frame is logged; a repeated one only at first', () async {
       final bike = _RecordingBike();
       final logs = <String>[];
