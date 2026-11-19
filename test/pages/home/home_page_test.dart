@@ -579,7 +579,7 @@ void _twoPairingsTests() {
         findsOneWidget,
       );
       expect(
-        find.descendant(of: card, matching: find.textContaining('separate tile from the trainer')),
+        find.descendant(of: card, matching: find.textContaining('need their own link')),
         findsOneWidget,
       );
       expect(find.text(l.chainStepAppConnectedPending), findsNothing);
@@ -595,7 +595,7 @@ void _twoPairingsTests() {
         find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending)),
         findsOneWidget,
       );
-      expect(find.textContaining('separate tile from the trainer'), findsNothing);
+      expect(find.textContaining('need their own link'), findsNothing);
     });
 
     testWidgets('trainer card: the pick-up hint names the bridge entry and the one to avoid', (tester) async {

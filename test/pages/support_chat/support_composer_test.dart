@@ -227,11 +227,11 @@ Logs:
       expect(tester.widget<TextField>(find.byKey(supportComposerFieldKey)).controller!.text, isEmpty);
     });
 
-    testWidgets('a two-character description is not enough and shows the hint', (tester) async {
+    testWidgets('a one-character description is not enough and shows the hint', (tester) async {
       await tester.pumpWidget(app(pinnedContext: pinned, pinnedContextLabel: label));
       await tester.pump();
 
-      await tester.enterText(find.byKey(supportComposerFieldKey), 'hi');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'h');
       await tester.pump();
 
       expect(sendEnabled(tester), isFalse);
@@ -294,7 +294,7 @@ Logs:
 
     testWidgets('the pinned line rides along with the first send only', (tester) async {
       // A follow-up "yes, still happening" must not be blocked by the
-      // 12-character gate, nor carry the (multi-line) test result again.
+      // minimum-length gate, nor carry the (multi-line) test result again.
       final sent = <String>[];
       await tester.pumpWidget(
         app(
@@ -357,7 +357,7 @@ Logs:
 
       await tester.enterText(find.byKey(supportComposerFieldKey), 'hi');
       await tester.pump();
-      expect(sendEnabled(tester), isTrue, reason: 'no 12-character gate without a pinned result');
+      expect(sendEnabled(tester), isTrue, reason: 'no minimum-length gate without a pinned result');
 
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
@@ -384,7 +384,7 @@ Logs:
       expect(find.text(l10n.supportDescribeProblemPlaceholder), findsNothing);
       expect(find.text(l10n.supportDescribeFirstMessageHint), findsNothing);
 
-      await tester.enterText(find.byKey(supportComposerFieldKey), 'help');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'h');
       await tester.pump();
       expect(sendEnabled(tester), isFalse, reason: 'too short to say what is wrong');
       expect(find.text(l10n.supportDescribeFirstMessageHint), findsOneWidget);

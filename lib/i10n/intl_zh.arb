@@ -1645,7 +1645,7 @@
   },
   "retry": "重试",
   "supportChatIntro": "你将与 BikeControl 的 Jonas 对话",
-  "supportChatIntroFatherNote": "我很快就要当爸爸了，所以可能要过几个小时才能回复 :-)",
+  "supportChatIntroFatherNote": "我刚当上爸爸，所以回复可能会慢一些 :-)",
   "supportIntakeTitle": "告诉我们问题所在",
   "supportIntakeSubtitle": "几个下拉菜单能帮我们更快回复——也可能直接出现能当场解决的教程。",
   "supportIntakeCategoryLabel": "怎么了？",
@@ -2060,7 +2060,7 @@
   "chainStepButtonsMappedHint": "至少为一个按键指定一个动作。",
   "chainStepInRange": "在范围内",
   "chainStepInRangePending": "把它移回范围内",
-  "chainStepInRangeHint": "按下任意按键唤醒它，并关闭可能正占用它的其他应用。",
+  "chainStepInRangeHint": "按任意按键唤醒它，并关闭正在占用它的其他应用。",
   "chainStepWakePending": "唤醒它",
   "chainStepUnlocked": "已解锁",
   "chainStepUnlockedPending": "用 Zwift 解锁",
@@ -2068,17 +2068,17 @@
   "chainStepUnlockedUntil": "已解锁至 {date}",
   "chainStepUnlockedLikelyUntil": "可能已解锁至 {date}",
   "chainStepSramSetup": "控制已设置",
-  "chainStepSramSetupHint": "它自己的换挡仍在控制挡位 — 把挡位交给 BikeControl，拨片就会发送按键操作。",
+  "chainStepSramSetupHint": "把档位交给 BikeControl，让拨杆发送按键。",
   "chainStepShimanoSetup": "Di2 按键已启用",
-  "chainStepShimanoSetupHint": "你的 Di2 仍在自行换挡 — 切换到按键模式，拨片就会发送按键操作。Di2 上的任何内容都不会被改动。",
+  "chainStepShimanoSetupHint": "将 Di2 切换到按键模式，让拨杆发送按键。Di2 本身不会有任何更改。",
   "chainStepClickV2Setup": "选择解锁方式",
-  "chainStepClickV2SetupHint": "Zwift 把 Click V2 锁定在自己的应用上。选择 BikeControl 如何绕过它，它就会立即连接。",
+  "chainStepClickV2SetupHint": "Zwift 将 Click V2 锁定在自家应用中。选择 BikeControl 绕过它的方式。",
   "chainStepClickV2KeepAwake": "打开左侧以保持灯亮",
-  "chainStepClickV2KeepAwakeHint": "BikeControl 已经阻止右侧自行关机。不过它的灯仍会自己熄灭 — 在附近打开左侧就能让灯保持亮着。只需在范围内，不必配对。",
+  "chainStepClickV2KeepAwakeHint": "左侧在附近开启时，右侧的灯会保持常亮。无需配对。",
   "chainStepTrainerPaired": "骑行台已连接",
   "chainStepTrainerPairedPending": "连接你的骑行台",
   "chainStepOverlayDone": "挡位悬浮窗已开启",
-  "chainStepOverlayHint": "{appName} 无法显示 BikeControl 的虚拟挡位。启用挡位悬浮窗，即可在骑行中看到当前挡位。",
+  "chainStepOverlayHint": "{appName} 无法显示 BikeControl 的档位。叠加层会在骑行时显示你的档位。",
   "@chainStepOverlayHint": {
     "placeholders": {
       "appName": {
@@ -2089,7 +2089,7 @@
   "chainStepOverlayAction": "启用悬浮窗",
   "chainStepLocalControl": "添加键盘和鼠标动作",
   "chainStepLocalControlDone": "键盘和鼠标动作已开启",
-  "chainStepLocalControlHint": "本机控制可以让一个按键在此设备的 {appName} 里按下键盘键或点击 — 截图、ERG 控制，以及该软件有快捷键的任何功能。",
+  "chainStepLocalControlHint": "让按键在本设备的 {appName} 中触发快捷键或点击，例如截图或 ERG。",
   "@chainStepLocalControlHint": {
     "placeholders": {
       "appName": {
@@ -2164,7 +2164,7 @@
       }
     }
   },
-  "chainStepTrainerBridgedPending": "正在等待 {app} 连接到「{bridge}」",
+  "chainStepTrainerBridgedPending": "等待 {app}",
   "@chainStepTrainerBridgedPending": {
     "placeholders": {
       "app": {
@@ -2175,7 +2175,7 @@
       }
     }
   },
-  "chainStepTrainerBridgedStaleLinkHint": "{app} 显示「{bridge}」已连接但没有数据？它仍在使用 BikeControl 重启前的连接。请在 {app} 中移除「{bridge}」，然后重新配对。",
+  "chainStepTrainerBridgedStaleLinkHint": "{app} 显示「{bridge}」已连接但没有数据？请在 {app} 中移除它并重新配对。",
   "@chainStepTrainerBridgedStaleLinkHint": {
     "placeholders": {
       "app": {
@@ -2692,7 +2692,7 @@
       }
     }
   },
-  "chainStepAppControllerHint": "{app} 已经通过 BikeControl 读取你的骑行台。你的按键需要第二条连接：在 {app} 的配对界面中，点按控制器下方的「{tile}」磁贴 — 它和骑行台是分开的磁贴。",
+  "chainStepAppControllerHint": "按键需要单独连接：在 {app} 的控制器下点按「{tile}」。",
   "@chainStepAppControllerHint": {
     "placeholders": {
       "app": {
@@ -2703,9 +2703,9 @@
       }
     }
   },
-  "chainStepAppConnectedTileHint": "打开 {app} 的配对界面，点按控制器下方的「{tile}」磁贴 — 那就是这台设备。",
+  "chainStepAppConnectedTileHint": "在 {app} 的控制器下点按「{tile}」。",
   "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepTrainerBridgedHint2": "在 {app} 的配对界面中选择「{bridge}」作为骑行台 — 不要选择以其自身名称显示的「{trainer}」，那会绕过 BikeControl。",
+  "chainStepTrainerBridgedHint2": "在 {app} 中选择「{bridge}」作为骑行台，而不是「{trainer}」。",
   "@chainStepTrainerBridgedHint2": {
     "placeholders": {
       "app": {
@@ -2727,7 +2727,7 @@
       }
     }
   },
-  "chainStatusWaitingForPickup": "正在等待 {app} 连接到「{bridge}」",
+  "chainStatusWaitingForPickup": "尚未在 {app} 中选择",
   "@chainStatusWaitingForPickup": {
     "placeholders": {
       "app": {
@@ -2793,7 +2793,7 @@
   "vsModeRecommended": "推荐",
   "vsModeUnsupported": "此骑行台不支持。 ",
   "chainStepNetworkAddressPending": "你的网络看起来不寻常",
-  "chainStepNetworkAddressHint": "BikeControl 正在通告 {address}，这看起来像 VPN 或热点地址。{app} 可能无法到达它。请关闭 VPN，或在此设备上使用本机方式。",
+  "chainStepNetworkAddressHint": "BikeControl 使用的 {address} 看起来像 VPN 或热点地址，{app} 可能无法访问。请关闭 VPN 或使用本地方式。",
   "@chainStepNetworkAddressHint": {
     "placeholders": {
       "address": {
@@ -2812,7 +2812,7 @@
       }
     }
   },
-  "chainStepNetworkAddressTwoNetworksHint": "此设备连接了不止一个网络，BikeControl 正在通告 {address}。如果 {app} 在另一个网络上，就找不到 BikeControl — 请把两者放到同一个 Wi-Fi。",
+  "chainStepNetworkAddressTwoNetworksHint": "此设备同时连接了两个网络（{address}）。请让它和 {app} 连接同一个 Wi-Fi。",
   "@chainStepNetworkAddressTwoNetworksHint": {
     "placeholders": {
       "address": {
@@ -4198,7 +4198,7 @@
   "powerLockReleased": "Power Lock 已释放，返回 SIM",
   "supportDiagnosticsAttached": "已附上诊断信息",
   "supportDiagnosticsView": "查看",
-  "supportChatGreeting": "你好，我是 BikeControl 的 Jonas！",
+  "supportChatGreeting": "你好，我是 Jonas，BikeControl 的开发者！",
   "supportChatAskWhatHappens": "你具体想做什么？实际发生了什么？一句话就够了。",
   "runCommand": "运行命令",
   "markedActionsNotWellSupportedByMyWhoosh": "标记的操作目前在 MyWhoosh 中支持不佳",

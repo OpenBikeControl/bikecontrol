@@ -976,7 +976,7 @@
   "supportAccountAlreadyLinked": "To konto jest już powiązane z innym kontem BikeControl. Wyloguj się i zaloguj się nim.",
   "retry": "Spróbuj ponownie",
   "supportChatIntro": "Będziesz rozmawiać z Jonasem z BikeControl",
-  "supportChatIntroFatherNote": "Niedługo zostanę tatą, więc odpowiedź może zająć mi kilka godzin :-)",
+  "supportChatIntroFatherNote": "Właśnie zostałem tatą, więc odpowiedzi mogą chwilę potrwać :-)",
   "supportIntakeTitle": "Opisz problem",
   "supportIntakeSubtitle": "Kilka pól pomoże nam szybciej odpowiedzieć — a może od razu pokażemy poradnik, który rozwiąże sprawę.",
   "supportIntakeCategoryLabel": "Co się dzieje?",
@@ -1734,7 +1734,7 @@
   "chainStepButtonsMappedHint": "Przypisz akcję do co najmniej jednego przycisku.",
   "chainStepInRange": "W zasięgu",
   "chainStepInRangePending": "Umieść go z powrotem w zasięgu",
-  "chainStepInRangeHint": "Naciśnij dowolny przycisk, aby go wybudzić, i zamknij każdą inną aplikację, która może go zajmować.",
+  "chainStepInRangeHint": "Naciśnij przycisk, aby go wybudzić, i zamknij inne aplikacje, które go używają.",
   "chainStepWakePending": "Wybudź go",
   "chainStepUnlocked": "Odblokowany",
   "chainStepUnlockedPending": "Odblokuj go w Zwift",
@@ -1742,17 +1742,17 @@
   "chainStepUnlockedUntil": "Odblokowany do {date}",
   "chainStepUnlockedLikelyUntil": "Prawdopodobnie odblokowany do {date}",
   "chainStepSramSetup": "Sterowanie skonfigurowane",
-  "chainStepSramSetupHint": "Przerzutka wciąż zmienia biegi sama — przekaż je BikeControl, aby manetki wysyłały naciśnięcia.",
+  "chainStepSramSetupHint": "Przekaż biegi BikeControl, aby manetki wysyłały naciśnięcia.",
   "chainStepShimanoSetup": "Przyciski Di2 aktywne",
-  "chainStepShimanoSetupHint": "Twoja Di2 wciąż zmienia biegi sama — przełącz ją w tryb przycisków, aby manetki wysyłały naciśnięcia. Nic w Di2 nie jest zmieniane.",
+  "chainStepShimanoSetupHint": "Przełącz Di2 w tryb przycisków, aby manetki wysyłały naciśnięcia. W Di2 nic się nie zmienia.",
   "chainStepClickV2Setup": "Wybierz sposób odblokowania",
-  "chainStepClickV2SetupHint": "Zwift przypisuje Click V2 do własnej aplikacji. Wybierz, jak BikeControl to obchodzi — połączy się od razu.",
+  "chainStepClickV2SetupHint": "Zwift blokuje Click V2 dla własnej aplikacji. Wybierz, jak BikeControl to obejdzie.",
   "chainStepClickV2KeepAwake": "Włącz lewą stronę, aby światła pozostały włączone",
-  "chainStepClickV2KeepAwakeHint": "BikeControl już zapobiega wyłączaniu się prawej strony. Jej światła i tak gasną same — gdy lewa strona jest włączona w pobliżu, pozostają zapalone. Musi być tylko w zasięgu, nie sparowana.",
+  "chainStepClickV2KeepAwakeHint": "Gdy lewa strona jest włączona w pobliżu, światła prawej nie gasną. Parowanie nie jest potrzebne.",
   "chainStepTrainerPaired": "Trenażer połączony",
   "chainStepTrainerPairedPending": "Połącz swój trenażer",
   "chainStepOverlayDone": "Overlay biegów jest włączony",
-  "chainStepOverlayHint": "{appName} nie może wyświetlać wirtualnych biegów BikeControl. Włącz Overlay, aby widzieć aktualny bieg podczas jazdy.",
+  "chainStepOverlayHint": "{appName} nie pokazuje biegów BikeControl. Nakładka pokazuje bieg podczas jazdy.",
   "@chainStepOverlayHint": {
     "placeholders": {
       "appName": {
@@ -1763,7 +1763,7 @@
   "chainStepOverlayAction": "Włącz Overlay",
   "chainStepLocalControl": "Dodaj akcje klawiatury i myszy",
   "chainStepLocalControlDone": "Akcje klawiatury i myszy są włączone",
-  "chainStepLocalControlHint": "Sterowanie lokalne pozwala przyciskowi nacisnąć klawisz lub kliknąć w {appName} na tym urządzeniu — zrzuty ekranu, sterowanie ERG i wszystko, co ma skrót w aplikacji.",
+  "chainStepLocalControlHint": "Pozwala przyciskowi wywołać skróty lub kliknięcia w {appName} na tym urządzeniu, np. zrzuty ekranu albo ERG.",
   "@chainStepLocalControlHint": {
     "placeholders": {
       "appName": {
@@ -1796,9 +1796,9 @@
       }
     }
   },
-  "chainStepTrainerBridgedPending": "Czekam, aż {app} połączy się z „{bridge}”",
+  "chainStepTrainerBridgedPending": "Czekam na {app}",
   "@chainStepTrainerBridgedPending": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
-  "chainStepTrainerBridgedStaleLinkHint": "{app} pokazuje „{bridge}” jako połączone, ale nie dostaje danych? Nadal trzyma połączenie sprzed ponownego uruchomienia BikeControl. Usuń „{bridge}” w {app} i sparuj je ponownie.",
+  "chainStepTrainerBridgedStaleLinkHint": "{app} pokazuje „{bridge}” jako połączony, ale bez danych? Usuń go w {app} i sparuj ponownie.",
   "@chainStepTrainerBridgedStaleLinkHint": {
     "placeholders": {
       "app": {
@@ -2293,15 +2293,15 @@
   "chainStepOverlayDecline": "Nie teraz",
   "chainStepAppControllerPending": "{app} nie jest jeszcze połączona z Twoimi przyciskami",
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
-  "chainStepAppControllerHint": "{app} odczytuje już Twój trenażer przez BikeControl. Twoje przyciski potrzebują drugiego połączenia: na ekranie parowania w {app} dotknij kafelka „{tile}” w sekcji „Kontrolery” — to osobny kafelek, inny niż trenażer.",
+  "chainStepAppControllerHint": "Przyciski potrzebują osobnego połączenia: w {app} stuknij „{tile}” w sekcji Kontrolery.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepAppConnectedTileHint": "Otwórz ekran parowania w {app} i dotknij kafelka „{tile}” w sekcji „Kontrolery” — to jest to urządzenie.",
+  "chainStepAppConnectedTileHint": "W {app} stuknij „{tile}” w sekcji Kontrolery.",
   "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepTrainerBridgedHint2": "Na ekranie parowania w {app} wybierz „{bridge}” jako trenażer — nie „{trainer}” pod jego własną nazwą, bo to omija BikeControl.",
+  "chainStepTrainerBridgedHint2": "W {app} wybierz „{bridge}” jako trenażer, nie „{trainer}”.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} ma Twój trenażer przez BikeControl, ale Twoje przyciski nie dotrą do {app}, dopóki nie połączysz też kontrolera BikeControl na jego ekranie parowania.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
-  "chainStatusWaitingForPickup": "Czekam, aż {app} połączy się z „{bridge}”",
+  "chainStatusWaitingForPickup": "Jeszcze niewybrany w {app}",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
   "vsTransportSameDeviceNote": "Bluetooth nie dotrze do aplikacji na tym samym urządzeniu — używane jest Wi-Fi.",
   "vsSameDeviceBlockedFix": "Co działa: BikeControl na telefonie lub tablecie obok roweru albo {app} na innym urządzeniu.",
@@ -2330,7 +2330,7 @@
   "vsModeRecommended": "Zalecane",
   "vsModeUnsupported": "Nieobsługiwane przez ten trenażer. ",
   "chainStepNetworkAddressPending": "Twoja sieć wygląda nietypowo",
-  "chainStepNetworkAddressHint": "BikeControl ogłasza adres {address}, który wygląda na adres VPN lub hotspotu. {app} może nie być w stanie się z nim połączyć. Wyłącz VPN albo użyj metody Lokalnej na tym urządzeniu.",
+  "chainStepNetworkAddressHint": "BikeControl używa {address}, co wygląda na VPN lub hotspot, więc {app} może go nie znaleźć. Wyłącz VPN albo użyj trybu Lokalnie.",
   "@chainStepNetworkAddressHint": {
     "placeholders": {
       "address": {
@@ -2343,7 +2343,7 @@
   },
   "chainStepNetworkAddressNoWifiHint": "To urządzenie nie jest połączone z Wi-Fi, a {app} nie dotrze do BikeControl przez dane komórkowe. Połącz się z tą samą siecią Wi-Fi co {app}.",
   "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
-  "chainStepNetworkAddressTwoNetworksHint": "To urządzenie jest w więcej niż jednej sieci, a BikeControl ogłasza adres {address}. Jeśli {app} jest w tej drugiej, nie znajdzie BikeControl — połącz oba z tą samą siecią Wi-Fi.",
+  "chainStepNetworkAddressTwoNetworksHint": "To urządzenie jest w dwóch sieciach ({address}). Połącz je i {app} z tym samym Wi-Fi.",
   "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Sprawdź sieć",
   "supportAccountLinkEmailTaken": "{email} ma już konto BikeControl, więc nie można go dodać do tego czatu. Aby użyć tego konta, zaloguj się w Ustawienia → Plan i konto. Ta rozmowa nie zostanie przeniesiona, więc wyślij swoją wiadomość ponownie stamtąd. Możesz też podać inny adres e-mail.",
@@ -3024,7 +3024,7 @@
   "powerLockReleased": "Power Lock zwolniony — powrót do SIM",
   "supportDiagnosticsAttached": "Dane diagnostyczne zostaną dołączone",
   "supportDiagnosticsView": "Pokaż",
-  "supportChatGreeting": "Cześć, jestem Jonas z BikeControl!",
+  "supportChatGreeting": "Cześć, jestem Jonas, twórca BikeControl!",
   "supportChatAskWhatHappens": "Co dokładnie próbujesz zrobić i co dzieje się zamiast tego? Wystarczy jedno zdanie.",
   "runCommand": "Uruchom polecenie",
   "markedActionsNotWellSupportedByMyWhoosh": "Oznaczone akcje nie są jeszcze dobrze obsługiwane przez MyWhoosh",

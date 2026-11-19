@@ -464,9 +464,17 @@ class SettingsPlanCard extends StatelessWidget {
                             onPressed: () => openPlanAccount(context, showAccount: true),
                             child: Text(l10n.signIn),
                           ),
+                        // Straight to the paywall, as Plan & account's Go Pro.
                         BkPillButton(
+                          key: const ValueKey('settings-plan-go-pro'),
                           expand: false,
-                          onPressed: () => openPlanAccount(context),
+                          onPressed: () async {
+                            try {
+                              await IAPManager.instance.purchaseSubscription(context);
+                            } catch (e, s) {
+                              recordError(e, s, context: 'Settings: go Pro');
+                            }
+                          },
                           child: Text(l10n.goPro),
                         ),
                       ],

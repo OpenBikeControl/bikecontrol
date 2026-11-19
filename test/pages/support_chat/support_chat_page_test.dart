@@ -247,7 +247,7 @@ Future<void> main() async {
       await selectSomethingElseAndContinue(tester);
 
       expect(tester.widget<SupportComposer>(find.byType(SupportComposer)).requireDescription, isTrue);
-      await tester.enterText(find.byKey(supportComposerFieldKey), 'hi');
+      await tester.enterText(find.byKey(supportComposerFieldKey), 'h');
       await tester.pump();
       await tester.tap(find.byIcon(LucideIcons.send));
       await tester.pumpAndSettle();
