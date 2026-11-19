@@ -1,18 +1,16 @@
-// Activity holds the blog again, as its News segment: the log and the posts
-// share the section, and a recent post the rider has not read marks the
-// Activity item and the News segment with a dot until News is viewed.
+// Activity is one page at every width: the blog's newest posts as a banner,
+// then the log and the rides, each with its action on its own title. A
+// recent post the rider has not read dots the Activity item until Activity
+// (and with it the banner) is opened.
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/activity/activity_log.dart';
-import 'package:bike_control/pages/activity/activity_section.dart';
 import 'package:bike_control/pages/activity/news_view.dart';
 import 'package:bike_control/pages/activity/rides_view.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/services/blog_service.dart';
-import 'package:bike_control/bluetooth/messages/notification.dart';
-import 'package:prop/prop.dart' show LogLevel;
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
@@ -49,44 +47,32 @@ Future<void> main() async {
   });
 
   Finder tabItem() => find.descendant(of: find.byType(ShellTabBar), matching: find.text(l().activity));
-  Finder segment(String label) => find.descendant(of: find.byType(ActivitySegments), matching: find.text(label));
-
   Future<void> openActivity(WidgetTester tester) async {
     await tester.tap(tabItem());
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
   }
 
-  testWidgets('Activity has Activity and News segments that switch the content', (tester) async {
+  testWidgets('phone: no tabs — the banner, then the log, then the rides, stacked', (tester) async {
     await pumpShell(tester, const Size(390, 844));
     await openActivity(tester);
 
-    expect(segment(l().activity), findsOneWidget);
-    expect(segment(l().activityTabNews), findsOneWidget);
-    expect(find.byType(ActivityLogView), findsOneWidget);
-    expect(find.byType(NewsView), findsNothing);
-    expect(find.byType(ActivityClearButton), findsOneWidget);
-
-    await tester.tap(segment(l().activityTabNews));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byType(NewsView), findsOneWidget);
-    expect(find.byType(ActivityLogView), findsNothing);
-    expect(find.text('Seven point one'), findsOneWidget);
-    expect(find.text('A calmer home screen.'), findsOneWidget);
-    expect(find.text('Winter update'), findsOneWidget);
-    // Clear is the log's; News has nothing to clear.
-    expect(find.byType(ActivityClearButton), findsNothing);
-
-    await tester.tap(segment(l().activity));
-    await tester.pump();
-    expect(find.byType(ActivityLogView), findsOneWidget);
+    expect(find.text('Seven point one'), findsOneWidget, reason: 'the newest post in the banner');
+    final banner = tester.getRect(find.byKey(const ValueKey('news-banner')));
+    final log = tester.getRect(find.byKey(const ValueKey('activity-log-pane')));
+    final rides = tester.getRect(find.byKey(const ValueKey('activity-rides-pane'), skipOffstage: false));
+    expect(log.top, greaterThan(banner.bottom));
+    expect(rides.top, greaterThan(log.bottom), reason: 'stacked, not side by side');
+    expect(rides.left, moreOrLessEquals(log.left));
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('activity-log-pane')), matching: find.byType(ActivityClearButton)),
+      findsOneWidget,
+    );
+    expect(find.descendant(of: find.byType(ShellTopBar), matching: find.byType(ActivityClearButton)), findsNothing);
     await disposeShell(tester);
   });
 
-  testWidgets('an unread post puts a dot on the Activity item and the News segment until News is viewed', (
-    tester,
-  ) async {
+  testWidgets('an unread post dots the Activity item until Activity is opened', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpShell(tester, const Size(390, 844));
     await tester.pump();
@@ -95,13 +81,7 @@ Future<void> main() async {
     expect(find.bySemanticsLabel(l().a11yTabHasNewPosts(l().activity)), findsOneWidget);
 
     await openActivity(tester);
-    expect(find.byKey(const ValueKey('news-segment-dot')), findsOneWidget);
-
-    await tester.tap(segment(l().activityTabNews));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
     expect(find.byKey(const ValueKey('activity-news-dot')), findsNothing);
-    expect(find.byKey(const ValueKey('news-segment-dot')), findsNothing);
     expect(core.settings.getSeenBlogPosts(), contains('seven-one'));
     semantics.dispose();
     await disposeShell(tester);
@@ -125,14 +105,8 @@ Future<void> main() async {
     await disposeShell(tester);
   });
 
-  group('from 840: the log and News side by side', () {
+  group('from 840: News as a banner over the log and the rides', () {
     Finder sidebarItem(String label) => find.descendant(of: find.byType(ShellSidebar), matching: find.text(label));
-
-    Future<void> showPane(WidgetTester tester, ActivityTab tab) async {
-      await tester.tap(find.byKey(ValueKey('activity-pane-tab-${tab.name}')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-    }
 
     Future<void> openWideActivity(WidgetTester tester, Size size) async {
       await pumpShell(tester, size);
@@ -143,85 +117,37 @@ Future<void> main() async {
     }
 
     for (final size in const [Size(1180, 820), Size(1280, 800)]) {
-      testWidgets('${size.width.toInt()}: two panes, no segments, each with its own header', (tester) async {
+      testWidgets('${size.width.toInt()}: the banner on top, the log and the rides under it', (tester) async {
         await openWideActivity(tester, size);
-        await showPane(tester, ActivityTab.news);
 
-        expect(find.byType(ActivitySegments), findsNothing);
+        final banner = tester.getRect(find.byType(NewsBanner));
         final logPane = find.byKey(const ValueKey('activity-log-pane'));
-        final newsPane = find.byKey(const ValueKey('activity-news-pane'));
+        final ridesPane = find.byKey(const ValueKey('activity-rides-pane'));
+        expect(find.text('Seven point one'), findsOneWidget, reason: 'the newest post in the banner');
+        expect(tester.getRect(logPane).top, greaterThan(banner.bottom));
+        expect(tester.getRect(ridesPane).left, greaterThan(tester.getRect(logPane).right), reason: 'log left');
         expect(find.descendant(of: logPane, matching: find.byType(ActivityLogView)), findsOneWidget);
-        expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsOneWidget);
-        expect(
-          tester.getRect(find.byType(NewsView)).left,
-          greaterThan(tester.getRect(find.byType(ActivityLogView)).right),
-          reason: 'log left, News right',
-        );
+        expect(find.descendant(of: ridesPane, matching: find.byType(RidesView)), findsOneWidget);
 
-        // The page title already says Activity: the log's pane has no header
-        // of its own, and Clear sits in the page's title bar. News keeps its
-        // header.
-        expect(find.descendant(of: logPane, matching: find.text(l().activity)), findsNothing);
-        expect(find.byType(ActivityPaneTabs), findsOneWidget, reason: 'the News | Rides tabs only');
-        expect(find.descendant(of: newsPane, matching: find.byType(ActivityPaneTabs)), findsOneWidget);
-        expect(
-          find.descendant(of: find.byType(ShellTopBar), matching: find.byType(ActivityClearButton)),
-          findsOneWidget,
-        );
-        expect(find.byType(ActivityClearButton), findsOneWidget, reason: 'only in the title bar');
-
-        // Each scrolls on its own.
-        expect(find.descendant(of: logPane, matching: find.byType(SingleChildScrollView)), findsOneWidget);
-        expect(find.descendant(of: newsPane, matching: find.byType(SingleChildScrollView)), findsOneWidget);
-
-        // The posts in one column in their pane.
-        final first = tester.getRect(find.widgetWithText(NewsCard, 'Seven point one'));
-        final second = tester.getRect(find.widgetWithText(NewsCard, 'Winter update'));
-        expect(second.left, moreOrLessEquals(first.left));
-        expect(second.top, greaterThan(first.bottom));
+        // Each pane's action sits on its own title, none in the page's bar.
+        expect(find.descendant(of: logPane, matching: find.byType(ActivityClearButton)), findsOneWidget);
+        expect(find.descendant(of: ridesPane, matching: find.byType(RidesMenuButton)), findsOneWidget);
+        expect(find.descendant(of: find.byType(ShellTopBar), matching: find.byType(ActivityClearButton)), findsNothing);
         await disposeShell(tester);
       });
     }
 
-    testWidgets('the panes line up: their first captions and their first cards', (tester) async {
-      await pumpShell(tester, const Size(1280, 800));
-      await tester.pump();
-      // An empty log: its card starts where News's header does.
-      await tester.tap(sidebarItem(l().activity));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      final newsHeader = tester.getRect(find.byType(ActivityPaneTabs));
-      expect(
-        tester.getRect(find.byKey(const ValueKey('activity-empty'))).top,
-        moreOrLessEquals(newsHeader.top, epsilon: 0.5),
-      );
-
-      // With an entry: "Last minute" beside "News", the first row beside the
-      // first post.
-      core.connection.signalNotification(
-        AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to the trainer app'),
-      );
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      final caption = tester.getRect(find.text(l().activityLastMinute.toUpperCase()));
-      final header = tester.getRect(find.byType(ActivityPaneTabs));
-      expect(caption.top, moreOrLessEquals(header.top, epsilon: 0.5));
-      await disposeShell(tester);
-    });
-
-    testWidgets('the tabs keep a gap above whatever the pane shows', (tester) async {
+    testWidgets('the two panes\' titles and first cards line up', (tester) async {
       await RideRig.install();
       await openWideActivity(tester, const Size(1280, 800));
-      final tabs = tester.getRect(find.byType(ActivityPaneTabs));
-      expect(tester.getRect(find.byType(RidesView)).top - tabs.bottom, moreOrLessEquals(12, epsilon: 0.5));
-
-      await showPane(tester, ActivityTab.news);
-      final firstPost = tester.getRect(find.byType(NewsCard).first);
-      expect(firstPost.top - tabs.bottom, moreOrLessEquals(12, epsilon: 0.5), reason: 'not flush on the tab line');
+      final logTitle = tester.getRect(find.byKey(const ValueKey('activity-log-title')));
+      final ridesTitle = tester.getRect(find.byKey(const ValueKey('activity-rides-title')));
+      expect(logTitle.top, moreOrLessEquals(ridesTitle.top));
+      expect(logTitle.height, moreOrLessEquals(ridesTitle.height));
       await disposeShell(tester);
     });
 
-    testWidgets('the pane opens on Fahrten, listed before News; News reads the news', (tester) async {
+    testWidgets('the banner reads the news; the dots step through the newest posts', (tester) async {
       await pumpShell(tester, const Size(1280, 800));
       await tester.pump();
       final dot = find.descendant(
@@ -233,68 +159,39 @@ Future<void> main() async {
       await tester.tap(sidebarItem(l().activity));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      final newsPane = find.byKey(const ValueKey('activity-news-pane'));
-      expect(find.descendant(of: newsPane, matching: find.byType(RidesView)), findsOneWidget);
-      expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsNothing);
-      expect(
-        tester.getRect(find.byKey(const ValueKey('activity-pane-tab-rides'))).left,
-        lessThan(tester.getRect(find.byKey(const ValueKey('activity-pane-tab-news'))).left),
-        reason: 'Fahrten first',
-      );
-      expect(dot, findsOneWidget, reason: 'Fahrten on screen leaves the news unread');
-      expect(core.settings.getSeenBlogPosts(), isNot(contains('seven-one')));
-
-      await showPane(tester, ActivityTab.news);
       expect(dot, findsNothing);
       expect(core.settings.getSeenBlogPosts(), contains('seven-one'));
-      expect(find.byKey(const ValueKey('news-segment-dot')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('news-banner-dot-1')));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('Winter update'), findsOneWidget);
+      expect(find.text('Seven point one'), findsNothing);
       await disposeShell(tester);
     });
 
-    testWidgets('the pane\'s News tab swaps the rides for News, on the same caption line', (tester) async {
-      await RideRig.install();
+    testWidgets('no posts: no banner, the panes start under the title', (tester) async {
+      BlogNewsController.debugFetchOverride = () async => [];
       await openWideActivity(tester, const Size(1280, 800));
-      final newsPane = find.byKey(const ValueKey('activity-news-pane'));
-      final tabs = tester.getRect(find.byType(ActivityPaneTabs));
-      expect(find.byKey(const ValueKey('rides-delete-all-pane')), findsOneWidget);
-      await showPane(tester, ActivityTab.news);
-      expect(find.descendant(of: newsPane, matching: find.byType(NewsView)), findsOneWidget);
-      expect(find.descendant(of: newsPane, matching: find.byType(RidesView)), findsNothing);
-      expect(find.byKey(const ValueKey('rides-delete-all-pane')), findsNothing);
-      expect(tester.getRect(find.byType(ActivityPaneTabs)).height, moreOrLessEquals(tabs.height));
+      expect(find.byKey(const ValueKey('news-banner')), findsNothing);
+      expect(find.byKey(const ValueKey('activity-log-pane')), findsOneWidget);
       await disposeShell(tester);
     });
 
-    test('Rides in the pane leaves the news unread', () {
+    test('the banner counts as viewing News', () {
       final shell = ShellController(news: BlogNewsController());
       addTearDown(shell.dispose);
-      shell.newsBesideLog.value = true;
-      shell.paneTab.value = ActivityTab.rides;
-      shell.section.value = AppSection.activity;
       expect(shell.viewingNews, isFalse);
-      shell.paneTab.value = ActivityTab.news;
+      shell.section.value = AppSection.activity;
       expect(shell.viewingNews, isTrue);
-    });
-
-    testWidgets('below 840 the segments stay', (tester) async {
-      await pumpShell(tester, const Size(700, 900));
-      await tester.tap(find.descendant(of: find.byType(ShellTabBar), matching: find.text(l().activity)));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.byType(ActivitySegments), findsOneWidget);
-      expect(find.byKey(const ValueKey('activity-news-pane')), findsNothing);
-      // Opening Activity on the log segment does not read the news.
-      expect(core.settings.getSeenBlogPosts(), isNot(contains('seven-one')));
-      await disposeShell(tester);
     });
   });
 
   group('one ⋮ per top bar', () {
     Finder menus() => find.byWidgetPredicate((w) => w is Icon && w.icon == LucideIcons.ellipsisVertical);
 
-    testWidgets('every section and every Activity segment has at most one ⋮', (tester) async {
+    testWidgets('every section\'s bar has at most one ⋮', (tester) async {
       await pumpShell(tester, const Size(390, 844));
-      for (final section in [AppSection.ride, AppSection.devices, AppSection.settings]) {
+      for (final section in AppSection.values) {
         await tester.tap(
           find.descendant(
             of: find.byType(ShellTabBar),
@@ -303,72 +200,48 @@ Future<void> main() async {
         );
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
-        expect(menus().evaluate().length, lessThanOrEqualTo(1), reason: section.name);
-      }
-      await openActivity(tester);
-      for (final label in [l().activity, l().activityTabNews, l().ridesTab]) {
-        await tester.tap(segment(label));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 100));
-        expect(menus().evaluate().length, lessThanOrEqualTo(1), reason: label);
+        expect(
+          find.descendant(of: find.byType(ShellTopBar), matching: menus()).evaluate().length,
+          lessThanOrEqualTo(1),
+          reason: section.name,
+        );
       }
       await disposeShell(tester);
     });
 
-    testWidgets('Fahrten: one ⋮ with "Alle löschen" (and, in debug builds, the developer entries)', (tester) async {
+    testWidgets('Fahrten: its own ⋮ on its title, with "Alle löschen"', (tester) async {
       await pumpShell(tester, const Size(390, 844));
       await openActivity(tester);
-      await tester.tap(find.byKey(const ValueKey('activity-segment-rides')));
+      final ridesMenu = find.descendant(
+        of: find.byKey(const ValueKey('activity-rides-pane')),
+        matching: find.byKey(const ValueKey('rides-menu')),
+      );
+      await tester.ensureVisible(ridesMenu);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(menus(), findsOneWidget);
-      await tester.tap(menus());
+      await tester.tap(ridesMenu);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('rides-delete-all')), findsOneWidget);
-      expect(find.text('Emulate device'), findsOneWidget, reason: 'tests run as a debug build');
       await disposeShell(tester);
     });
   });
 
   group('News states', () {
-    Future<void> openNews(WidgetTester tester) async {
+    testWidgets('no posts or a failed load: no banner, the log first', (tester) async {
+      BlogNewsController.debugFetchOverride = () async => throw Exception('offline');
       await pumpShell(tester, const Size(390, 844));
       await openActivity(tester);
-      await tester.tap(segment(l().activityTabNews));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-
-    testWidgets('no posts: says so', (tester) async {
-      BlogNewsController.debugFetchOverride = () async => [];
-      await openNews(tester);
-      expect(find.text(l().newsEmpty), findsOneWidget);
+      expect(find.byKey(const ValueKey('news-banner')), findsNothing);
+      expect(find.byKey(const ValueKey('activity-log-pane')), findsOneWidget);
       await disposeShell(tester);
     });
 
-    testWidgets('a failed load: says so, and Retry loads again', (tester) async {
-      var fail = true;
-      BlogNewsController.debugFetchOverride = () async {
-        if (fail) throw Exception('offline');
-        return [old];
-      };
-      await openNews(tester);
-      expect(find.text(l().newsLoadFailed), findsOneWidget);
-
-      fail = false;
-      await tester.tap(find.text(l().retry));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Winter update'), findsOneWidget);
-      await disposeShell(tester);
-    });
-
-    testWidgets('loading: placeholder cards', (tester) async {
+    testWidgets('loading: a placeholder banner', (tester) async {
       final never = Completer<List<BlogPost>>();
       BlogNewsController.debugFetchOverride = () => never.future;
-      await openNews(tester);
-      expect(find.byKey(const ValueKey('news-loading')), findsOneWidget);
+      await pumpShell(tester, const Size(390, 844));
+      await openActivity(tester);
+      expect(find.byKey(const ValueKey('news-banner')), findsOneWidget);
       never.complete([]);
       await disposeShell(tester);
     });

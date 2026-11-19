@@ -78,8 +78,12 @@ class SteeringHeroCard extends StatelessWidget {
                         children: [
                           Flexible(
                             child: BkStatusDot(
-                              label: calibrated ? l.steeringReady : l.steeringCalibrating,
-                              tone: calibrated ? BkStatusTone.success : BkStatusTone.neutral,
+                              label: !device.isConnected
+                                  ? l.notConnected
+                                  : calibrated
+                                  ? l.steeringReady
+                                  : l.steeringCalibrating,
+                              tone: device.isConnected && calibrated ? BkStatusTone.success : BkStatusTone.neutral,
                             ),
                           ),
                           if (battery != null)
@@ -101,8 +105,9 @@ class SteeringHeroCard extends StatelessWidget {
               leftAction: steeringActionFor(keymap, _steering.steerLeftButton),
               rightAction: steeringActionFor(keymap, _steering.steerRightButton),
               large: true,
+              connected: device.isConnected,
             ),
-            if (!calibrated) ...[
+            if (device.isConnected && !calibrated) ...[
               const Gap(12),
               Text(
                 _calibratingHint(l),
@@ -115,7 +120,8 @@ class SteeringHeroCard extends StatelessWidget {
     );
   }
 
-  String _calibratingHint(AppLocalizations l) => device is GyroscopeSteering ? l.calibratingSensorsHint : l.steeringHoldStill;
+  String _calibratingHint(AppLocalizations l) =>
+      device is GyroscopeSteering ? l.calibratingSensorsHint : l.steeringHoldStill;
 }
 
 /// What a steering input does in the trainer app and how it is tuned: each

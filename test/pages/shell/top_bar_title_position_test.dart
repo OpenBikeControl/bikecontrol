@@ -52,12 +52,7 @@ Future<void> main() async {
       await open(l10n().navDevices);
       tops['devices'] = titleTop(l10n().navDevices);
       await open(l10n().activity);
-      final tab = tester.widget<ShellTopBar>(bar).activityTab! as ValueNotifier<ActivityTab>;
-      for (final segment in ActivityTab.values) {
-        tab.value = segment;
-        await tester.pump();
-        tops['activity/${segment.name}'] = titleTop(l10n().activity);
-      }
+      tops['activity'] = titleTop(l10n().activity);
       await open(l10n().navSettings);
       tops['settings'] = titleTop(l10n().navSettings);
 

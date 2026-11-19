@@ -5,6 +5,7 @@
 - Die Einrichtung bietet das Gang-Overlay an, wo du es brauchst: MyWhoosh, Zwift, Rouvy und TrainingPeaks Virtual zeigen weiter ihre eigene Gangzahl, das Overlay zeigt darüber deinen echten Gang von BikeControl.
 
 **Fixes**:
+- Elite Rizer: wird nicht mehr als Controller aufgeführt, und die Lenkungskarte zeigt nicht mehr „Wird kalibriert…“, solange der Rizer nicht verbunden ist.
 - Zwift und Rouvy: Der Netzwerktest meldet kein Problem mehr, wenn die Netzwerkverbindung von BikeControl funktioniert.
 
 ### 7.6.0 (17-11-2026)

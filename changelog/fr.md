@@ -5,6 +5,7 @@
 - La configuration propose l'Overlay des vitesses là où tu en as besoin : MyWhoosh, Zwift, Rouvy et TrainingPeaks Virtual continuent d'afficher leur propre vitesse, l'Overlay affiche par-dessus ta vraie vitesse BikeControl.
 
 **Fixes**:
+- Elite Rizer : n'apparaît plus comme manette, et la carte de direction n'indique plus qu'elle se calibre tant que le Rizer n'est pas connecté.
 - Zwift et Rouvy : le test réseau ne signale plus de problème quand la connexion réseau de BikeControl fonctionne.
 
 ### 7.6.0 (17-11-2026)

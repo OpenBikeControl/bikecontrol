@@ -5,6 +5,7 @@
 - La configuración ofrece el Overlay de marchas donde lo necesitas: MyWhoosh, Zwift, Rouvy y TrainingPeaks Virtual siguen mostrando su propio número de marcha, así que el Overlay muestra encima la marcha real de BikeControl.
 
 **Fixes**:
+- Elite Rizer: ya no aparece como mando, y la tarjeta de dirección ya no dice que se está calibrando mientras el Rizer no está conectado.
 - Zwift y Rouvy: la prueba de red ya no informa de un problema cuando la conexión de red de BikeControl funciona.
 
 ### 7.6.0 (17-11-2026)

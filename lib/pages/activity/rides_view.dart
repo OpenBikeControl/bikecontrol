@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
-import 'package:bike_control/pages/activity/activity_log.dart' show ActivityGroupCaption;
 import 'package:bike_control/pages/rides/ride_details_page.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
 import 'package:bike_control/services/rides/ride_format.dart';
@@ -224,8 +223,11 @@ class _RideRowState extends State<_RideRow> {
         ? null
         : [
             formatRideDuration(s.activeDuration),
-            if (s.shownDistanceKm case final km?) '${formatRideDistance(km, units, locale)} ${units.distanceSymbol}',
-            if (s.avgPowerW > 0) 'Ø ${s.avgPowerW} W',
+            // No-break spaces: a narrow row wraps between the values, never
+            // between a number and its unit ("Ø 139 / W").
+            if (s.shownDistanceKm case final km?)
+              '${formatRideDistance(km, units, locale)}\u00A0${units.distanceSymbol}',
+            if (s.avgPowerW > 0) 'Ø\u00A0${s.avgPowerW}\u00A0W',
           ].join(' · ');
     final muted = context.typography.small.copyWith(color: cs.mutedForeground, fontFeatures: BkNumerals.tabular);
 
@@ -461,8 +463,8 @@ class RidesEmptyState extends StatelessWidget {
   }
 }
 
-/// Activity's ⋯ on the Rides segment (phone) / "Alle löschen" beside the
-/// pane tabs (desktop): delete every ride, after saying what stays in Health.
+/// Activity's ⋮ on the Rides segment (phone) / on the Rides pane's title
+/// (from 840): delete every ride, after saying what stays in Health.
 Future<void> confirmDeleteAllRides(BuildContext context) async {
   final l10n = AppLocalizations.of(context);
   final rides = await core.rides.list();
@@ -504,9 +506,9 @@ Future<void> confirmDeleteAllRides(BuildContext context) async {
   }
 }
 
-/// The phone's ⋮ in Activity's top bar while Rides shows: the folder (on a
-/// desktop-sized phone layout) and "Alle löschen", plus the developer tools
-/// in debug builds, all in the bar's one menu.
+/// Rides' ⋮ — in Activity's top bar while the phone's Rides segment shows,
+/// and on the Rides pane's title from 840: the folder (on desktop) and
+/// "Alle löschen", plus the developer tools in debug builds.
 class RidesMenuButton extends StatelessWidget {
   const RidesMenuButton({super.key});
 
@@ -532,80 +534,6 @@ class RidesMenuButton extends StatelessWidget {
           child: Text(l10n.ridesDeleteAll, style: TextStyle(color: cs.destructive)),
         ),
       ],
-    );
-  }
-}
-
-/// The desktop pane's caption tabs: FAHRTEN · NEUIGKEITEN, the same caps on
-/// the same baseline as the log's caption, "Alle löschen" trailing on Rides.
-class ActivityPaneTabs extends StatelessWidget {
-  const ActivityPaneTabs({super.key, required this.shell});
-
-  final ShellController shell;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final cs = Theme.of(context).colorScheme;
-    return ValueListenableBuilder<ActivityTab>(
-      valueListenable: shell.paneTab,
-      builder: (context, tab, _) {
-        Widget tabLabel(ActivityTab value, String text) {
-          final on = tab == value;
-          return BkTappable(
-            key: ValueKey('activity-pane-tab-${value.name}'),
-            label: text,
-            selected: on,
-            inMutuallyExclusiveGroup: true,
-            excludeChildSemantics: true,
-            onPressed: () => shell.paneTab.value = value,
-            child: Stack(
-              children: [
-                ActivityGroupCaption(title: text, color: on ? cs.foreground : cs.mutedForeground),
-                // The indicator sits inside the caption's own bottom space, so
-                // the tabs are exactly as tall as the log's caption.
-                if (on)
-                  Positioned(
-                    left: BkGroupedSection.inset,
-                    right: BkGroupedSection.inset,
-                    bottom: 0,
-                    height: 2,
-                    child: ColoredBox(color: cs.primary),
-                  ),
-              ],
-            ),
-          );
-        }
-
-        return Stack(
-          key: const ValueKey('activity-pane-tabs'),
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(left: 0, right: 0, bottom: 0, height: 1, child: ColoredBox(color: cs.border)),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                tabLabel(ActivityTab.rides, l10n.ridesTab),
-                tabLabel(ActivityTab.news, l10n.activityTabNews),
-                const Spacer(),
-              ],
-            ),
-            if (tab == ActivityTab.rides)
-              Positioned(
-                right: 0,
-                bottom: -6,
-                child: Button.ghost(
-                  key: const ValueKey('rides-delete-all-pane'),
-                  onPressed: () => unawaited(confirmDeleteAllRides(context)),
-                  child: Text(
-                    l10n.ridesDeleteAll,
-                    style: context.typography.small.copyWith(color: cs.destructive, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }

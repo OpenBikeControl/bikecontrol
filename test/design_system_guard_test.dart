@@ -120,13 +120,15 @@ void main() {
 
   group('brand band', () {
     // The blue→teal band is a signature, not decoration: Ride's virtual
-    // shifting header and the two plan cards (Settings, the sidebar). Never
+    // shifting header, the two plan cards (Settings, the sidebar) and the
+    // news banner on Activity from 840. Never
     // on buttons or state indicators.
     const allowed = {
       'lib/widgets/ui/bk_brand_band.dart',
       'lib/widgets/home/virtual_shifting_card.dart',
       'lib/pages/settings/settings_page.dart',
       'lib/pages/shell/app_shell.dart',
+      'lib/pages/activity/news_view.dart',
     };
     // Where the band's colours are defined, and the mark's disc, which is the
     // app icon's own gradient (not a band).

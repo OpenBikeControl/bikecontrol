@@ -8,7 +8,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_clickv2.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show screenshotMode;
 import 'package:bike_control/pages/activity/activity_log.dart' show activityLogClock;
-import 'package:bike_control/pages/activity/activity_section.dart';
 import 'package:bike_control/pages/navigation.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
 import 'package:bike_control/pages/proxy_device_details/gear_ratios_editor_page.dart';
@@ -289,7 +288,6 @@ Future<void> main() async {
         brightness: brightness,
         build: (_) => const Navigation(initialSection: AppSection.activity),
         beforeCapture: (tester) async {
-          await tester.tap(find.descendant(of: find.byType(ActivitySegments), matching: find.text('Neuigkeiten')));
           for (var i = 0; i < 4; i++) {
             await tester.pump(const Duration(milliseconds: 100));
           }

@@ -5,6 +5,7 @@
 - 设置会在需要时提供挡位悬浮窗：MyWhoosh、Zwift、Rouvy 和 TrainingPeaks Virtual 仍显示它们自己的挡位数字，悬浮窗会在上方显示 BikeControl 的真实挡位。
 
 **Fixes**:
+- Elite Rizer：不再显示为控制器；Rizer 未连接时，转向卡片也不再显示“正在校准”。
 - Zwift 和 Rouvy：当 BikeControl 的网络连接正常时，网络测试不再报告问题。
 
 ### 7.6.0 (17-11-2026)

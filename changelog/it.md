@@ -5,6 +5,7 @@
 - La configurazione propone l'Overlay delle marce dove serve: MyWhoosh, Zwift, Rouvy e TrainingPeaks Virtual continuano a mostrare il proprio numero di marcia, l'Overlay mostra sopra la marcia reale di BikeControl.
 
 **Fixes**:
+- Elite Rizer: non compare più come controller, e la scheda dello sterzo non dice più che sta calibrando finché il Rizer non è collegato.
 - Zwift e Rouvy: il test di rete non segnala più un problema quando la connessione di rete di BikeControl funziona.
 
 ### 7.6.0 (17-11-2026)

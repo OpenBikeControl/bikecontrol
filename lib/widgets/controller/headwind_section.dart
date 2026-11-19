@@ -4,6 +4,12 @@ import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/bk_motion.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
+import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:bike_control/widgets/ui/stepper_control.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -33,16 +39,16 @@ String headwindStateText(
   };
 }
 
-/// A Headwind's page section: what the fan is set to, its speeds to pick by
-/// hand, and whether BikeControl drives it from the power or the heart rate —
-/// with the ramp it uses spelled out and adjustable, and the live reading
-/// that decides the speed right now.
+/// A Headwind's page section, built around one question: what sets the fan?
+///
+/// The fan's speed leads as the one loud number, with a line saying where it
+/// comes from. Under it a Manual | Heart rate | Power track picks the source,
+/// and only the chosen source's controls follow: the speeds by hand, or the
+/// range BikeControl maps a reading onto.
 class HeadwindSection extends StatelessWidget {
   const HeadwindSection({super.key, required this.device});
 
   final WahooKickrHeadwind device;
-
-  static const double _indent = BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap;
 
   Future<void> _run(Future<void> Function() command, String what) async {
     try {
@@ -54,7 +60,7 @@ class HeadwindSection extends StatelessWidget {
 
   Future<void> _setSpeed(int speed) => _run(() => device.setSpeed(speed), 'setSpeed $speed');
 
-  // Turning a follow off leaves the fan at the speed it has.
+  // Back to Manual leaves the fan at the speed it has.
   Future<void> _setFollow(HeadwindFollow follow) => _run(() => device.setFollow(follow), 'setFollow ${follow.name}');
 
   @override
@@ -75,140 +81,130 @@ class HeadwindSection extends StatelessWidget {
         final mode = device.mode.value;
         final speed = device.speed.value;
         final follow = device.follow.value;
-        final followsPower = follow == HeadwindFollow.power;
-        final followsHeartRate = follow == HeadwindFollow.heartRate;
+        final input = device.followInput.value;
+        final fanOwnHeartRate = follow == HeadwindFollow.none && mode == HeadwindMode.heartRate;
+        final unit = follow == HeadwindFollow.power ? 'W' : 'bpm';
+
+        // The number shows a speed only when one is known: the fan reports
+        // it in manual mode, and while following BikeControl sets it.
+        final showsSpeed = follow != HeadwindFollow.none || mode == HeadwindMode.manual;
+        final caption = switch (follow) {
+          HeadwindFollow.none => switch (mode) {
+            HeadwindMode.manual => l.headwindSetByHand,
+            HeadwindMode.heartRate => l.headwindFanOwnHeartRateMode,
+            HeadwindMode.speed => l.headwindStateSpeed,
+            HeadwindMode.off => l.headwindStateOff,
+            HeadwindMode.unknown => null,
+          },
+          HeadwindFollow.heartRate => input == null ? l.headwindNoHeartRate : l.headwindFromInput('$input bpm'),
+          HeadwindFollow.power => input == null ? l.headwindNoPower : l.headwindFromInput('$input W'),
+        };
+
         return BkGroupedSection(
           header: l.headwindFan,
-          dividerIndent: _indent,
           children: [
-            BkGroupedRow(
-              key: const ValueKey('headwind-current'),
-              icon: LucideIcons.fan,
-              title: l.headwindCurrent,
-              subtitle: follow == HeadwindFollow.none && mode == HeadwindMode.heartRate
-                  ? l.headwindFanOwnHeartRateMode
-                  : null,
-              trailing: Text(
-                headwindStateText(context, mode, speed, follow: follow),
-                style: context.typography.base.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
             Padding(
-              key: const ValueKey('headwind-speeds'),
-              padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 8, BkGroupedSection.inset, 12),
+              key: const ValueKey('headwind-current'),
+              padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 16, BkGroupedSection.inset, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 8,
                 children: [
-                  Text(l.headwindSetSpeed).small.semiBold,
-                  Text(l.headwindSetSpeedBody).xSmall.muted,
-                  Row(
-                    spacing: 6,
-                    children: [
-                      for (final s in WahooKickrHeadwind.allowedSpeeds)
-                        Expanded(
-                          child: _SpeedButton(
-                            key: ValueKey('headwind-speed-$s'),
-                            label: '$s%',
-                            selected: follow == HeadwindFollow.none && mode == HeadwindMode.manual && speed == s,
-                            onPressed: () => _setSpeed(s),
-                          ),
-                        ),
+                  _FanReadout(speed: showsSpeed ? speed : null, caption: caption),
+                  const Gap(16),
+                  _Segments<HeadwindFollow?>(
+                    key: const ValueKey('headwind-source'),
+                    label: l.headwindFan,
+                    // The fan's own heart-rate mode is none of the three:
+                    // the caption names it, and nothing is lit.
+                    selected: fanOwnHeartRate ? null : follow,
+                    options: [
+                      (HeadwindFollow.none, l.headwindModeManual, const ValueKey('headwind-manual')),
+                      (HeadwindFollow.heartRate, l.headwindModeHeartRate, const ValueKey('headwind-heart-rate')),
+                      (HeadwindFollow.power, l.headwindModePower, const ValueKey('headwind-power')),
                     ],
+                    onSelected: (f) => _setFollow(f!),
                   ),
                 ],
               ),
             ),
-            BkGroupedRow(
-              key: const ValueKey('headwind-heart-rate'),
-              icon: LucideIcons.heart,
-              title: l.headwindFollowHeartRate,
-              subtitle: l.headwindFollowHeartRateBody,
-              trailing: Switch(
-                value: followsHeartRate,
-                onChanged: (on) => _setFollow(on ? HeadwindFollow.heartRate : HeadwindFollow.none),
-              ),
-              onPressed: () => _setFollow(followsHeartRate ? HeadwindFollow.none : HeadwindFollow.heartRate),
-            ),
-            if (followsHeartRate) ...[
-              _RampExplainer(
-                key: const ValueKey('headwind-heart-rate-ramp'),
-                start: '${device.startHeartRate.value} bpm',
-                full: '${device.fullHeartRate.value} bpm',
-                input: device.followInput.value == null ? null : '${device.followInput.value} bpm',
-                speed: speed,
-                waiting: l.headwindNoHeartRate,
-              ),
-              _RampStepperRow(
-                key: const ValueKey('headwind-start-heart-rate'),
-                icon: LucideIcons.heartPulse,
-                title: l.headwindStartsAbove,
-                value: device.startHeartRate.value,
-                step: 5,
-                min: WahooKickrHeadwind.minStartHeartRate,
-                max: device.fullHeartRate.value - WahooKickrHeadwind.minHeartRateRamp,
-                unit: 'bpm',
-                onChanged: (v) => _run(() => device.setStartHeartRate(v), 'setStartHeartRate'),
-              ),
-              _RampStepperRow(
-                key: const ValueKey('headwind-full-heart-rate'),
-                icon: LucideIcons.gauge,
-                title: l.headwindFullPowerAt,
-                value: device.fullHeartRate.value,
-                step: 5,
-                min: device.startHeartRate.value + WahooKickrHeadwind.minHeartRateRamp,
-                max: WahooKickrHeadwind.maxFullHeartRate,
-                unit: 'bpm',
-                onChanged: (v) => _run(() => device.setFullHeartRate(v), 'setFullHeartRate'),
-              ),
-            ],
-            BkGroupedRow(
-              key: const ValueKey('headwind-power'),
-              icon: LucideIcons.zap,
-              title: l.headwindFollowPower,
-              subtitle: l.headwindFollowPowerBody,
-              trailing: Switch(
-                value: followsPower,
-                onChanged: (on) => _setFollow(on ? HeadwindFollow.power : HeadwindFollow.none),
-              ),
-              onPressed: () => _setFollow(followsPower ? HeadwindFollow.none : HeadwindFollow.power),
-            ),
-            if (followsPower) ...[
-              _RampExplainer(
-                key: const ValueKey('headwind-power-ramp'),
-                start: '${device.startPowerWatts.value} W',
-                full: '${device.fullPowerWatts.value} W',
-                input: device.followInput.value == null ? null : '${device.followInput.value} W',
-                speed: speed,
-                waiting: l.headwindNoPower,
-              ),
-              _RampStepperRow(
-                key: const ValueKey('headwind-start-power'),
-                icon: LucideIcons.zap,
-                title: l.headwindStartsAbove,
-                value: device.startPowerWatts.value,
-                step: 25,
-                min: WahooKickrHeadwind.minStartPowerWatts,
-                max: device.fullPowerWatts.value - WahooKickrHeadwind.minPowerRampWatts,
-                unit: 'W',
-                onChanged: (v) => _run(() => device.setStartPowerWatts(v), 'setStartPowerWatts'),
-              ),
-              _RampStepperRow(
-                key: const ValueKey('headwind-full-power'),
-                icon: LucideIcons.gauge,
-                title: l.headwindFullPowerAt,
-                value: device.fullPowerWatts.value,
-                step: 25,
-                min: math.max(
-                  WahooKickrHeadwind.minFullPowerWatts,
-                  device.startPowerWatts.value + WahooKickrHeadwind.minPowerRampWatts,
+            if (follow == HeadwindFollow.none)
+              Padding(
+                key: const ValueKey('headwind-speeds'),
+                padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 12, BkGroupedSection.inset, 12),
+                child: _Segments<int>(
+                  label: l.headwindModeManual,
+                  selected: mode == HeadwindMode.manual ? speed : null,
+                  options: [
+                    for (final s in WahooKickrHeadwind.allowedSpeeds) (s, '$s%', ValueKey('headwind-speed-$s')),
+                  ],
+                  onSelected: _setSpeed,
                 ),
-                max: WahooKickrHeadwind.maxFullPowerWatts,
-                unit: 'W',
-                onChanged: (v) => _run(() => device.setFullPowerWatts(v), 'setFullPowerWatts'),
+              )
+            else ...[
+              BkGroupedRow(
+                key: ValueKey(follow == HeadwindFollow.power ? 'headwind-start-power' : 'headwind-start-heart-rate'),
+                title: l.headwindStartsAbove,
+                trailing: follow == HeadwindFollow.power
+                    ? _stepper(
+                        value: device.startPowerWatts.value,
+                        step: 25,
+                        min: WahooKickrHeadwind.minStartPowerWatts,
+                        max: device.fullPowerWatts.value - WahooKickrHeadwind.minPowerRampWatts,
+                        unit: unit,
+                        onChanged: (v) => _run(() => device.setStartPowerWatts(v), 'setStartPowerWatts'),
+                      )
+                    : _stepper(
+                        value: device.startHeartRate.value,
+                        step: 5,
+                        min: WahooKickrHeadwind.minStartHeartRate,
+                        max: device.fullHeartRate.value - WahooKickrHeadwind.minHeartRateRamp,
+                        unit: unit,
+                        onChanged: (v) => _run(() => device.setStartHeartRate(v), 'setStartHeartRate'),
+                      ),
+              ),
+              BkGroupedRow(
+                key: ValueKey(follow == HeadwindFollow.power ? 'headwind-full-power' : 'headwind-full-heart-rate'),
+                title: l.headwindFullPowerAt,
+                trailing: follow == HeadwindFollow.power
+                    ? _stepper(
+                        value: device.fullPowerWatts.value,
+                        step: 25,
+                        min: math.max(
+                          WahooKickrHeadwind.minFullPowerWatts,
+                          device.startPowerWatts.value + WahooKickrHeadwind.minPowerRampWatts,
+                        ),
+                        max: WahooKickrHeadwind.maxFullPowerWatts,
+                        unit: unit,
+                        onChanged: (v) => _run(() => device.setFullPowerWatts(v), 'setFullPowerWatts'),
+                      )
+                    : _stepper(
+                        value: device.fullHeartRate.value,
+                        step: 5,
+                        min: device.startHeartRate.value + WahooKickrHeadwind.minHeartRateRamp,
+                        max: WahooKickrHeadwind.maxFullHeartRate,
+                        unit: unit,
+                        onChanged: (v) => _run(() => device.setFullHeartRate(v), 'setFullHeartRate'),
+                      ),
+              ),
+              Padding(
+                key: const ValueKey('headwind-range-note'),
+                padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 12, BkGroupedSection.inset, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
+                  children: [
+                    Text(l.headwindRangeNote).xSmall.muted,
+                    // A strap paired only to the fan never reaches
+                    // BikeControl; the fan's own mode still works with it.
+                    if (follow == HeadwindFollow.heartRate && input == null)
+                      Button.ghost(
+                        key: const ValueKey('headwind-use-fan-heart-rate'),
+                        style: const ButtonStyle.ghost(density: ButtonDensity.compact),
+                        onPressed: () => _run(device.setHeartRateMode, 'setHeartRateMode'),
+                        child: Text(l.headwindUseFanHeartRateMode, style: TextStyle(color: bkAccentText(context))),
+                      ),
+                  ],
+                ),
               ),
             ],
           ],
@@ -216,136 +212,147 @@ class HeadwindSection extends StatelessWidget {
       },
     );
   }
+
+  Widget _stepper({
+    required int value,
+    required int step,
+    required int min,
+    required int max,
+    required String unit,
+    required ValueChanged<int> onChanged,
+  }) => StepperControl(
+    value: value.toDouble(),
+    step: step.toDouble(),
+    min: min.toDouble(),
+    max: max.toDouble(),
+    format: (v) => '${v.round()} $unit',
+    onChanged: (v) => onChanged(v.round()),
+  );
 }
 
-/// How a follow turns its input into a fan speed: the live "142 bpm → 60%",
-/// a bar showing where that sits on the ramp, and the rule in one sentence.
-class _RampExplainer extends StatelessWidget {
-  const _RampExplainer({
-    super.key,
-    required this.start,
-    required this.full,
-    required this.input,
-    required this.speed,
-    required this.waiting,
-  });
+/// The fan's speed as the section's one loud number, and what sets it.
+class _FanReadout extends StatelessWidget {
+  const _FanReadout({required this.speed, required this.caption});
 
-  final String start;
-  final String full;
-  final String? input;
-  final int speed;
-  final String waiting;
+  /// Null when the fan isn't in a mode that reports one.
+  final int? speed;
+  final String? caption;
 
   @override
   Widget build(BuildContext context) {
-    final l = context.i18n;
     final cs = Theme.of(context).colorScheme;
-    final input = this.input;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(HeadwindSection._indent, 4, BkGroupedSection.inset, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
-        children: [
-          if (input != null)
-            Text(
-              l.headwindRampNow(input, speed),
-              key: const ValueKey('headwind-ramp-now'),
-              style: context.typography.small.copyWith(
-                fontWeight: FontWeight.w600,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            )
-          else
-            Text(waiting, key: const ValueKey('headwind-ramp-waiting')).xSmall.muted,
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: SizedBox(
-              height: 6,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ColoredBox(color: cs.muted),
-                  FractionallySizedBox(
-                    alignment: AlignmentDirectional.centerStart,
-                    widthFactor: (speed / 100).clamp(0.0, 1.0),
-                    child: ColoredBox(color: cs.primary),
-                  ),
-                ],
+    final size = (context.typography.x2Large.fontSize ?? 24) * 2;
+    final speed = this.speed;
+    return Semantics(
+      container: true,
+      label: [if (speed != null) '$speed%', ?caption].join(', '),
+      child: ExcludeSemantics(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Sized for "100%" so the caption never shifts as the fan moves.
+            ConstrainedBox(
+              constraints: BoxConstraints(minWidth: size * 1.7),
+              child: Text(
+                speed == null ? '–' : '$speed%',
+                key: const ValueKey('headwind-speed-readout'),
+                style: BkNumerals.display(
+                  size,
+                  color: speed == null ? cs.mutedForeground : cs.foreground,
+                  fontWeight: FontWeight.w800,
+                  height: 0.9,
+                ),
               ),
             ),
-          ),
-          Row(
-            children: [
-              Text(start).xSmall.muted,
-              const Spacer(),
-              Text(full).xSmall.muted,
+            if (caption != null) ...[
+              const Gap(12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(caption!, key: const ValueKey('headwind-caption')).small.muted,
+                ),
+              ),
             ],
-          ),
-          Text(l.headwindRampExplain(start, full)).xSmall.muted,
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _RampStepperRow extends StatelessWidget {
-  const _RampStepperRow({
+/// A segmented track in the SIM/ERG style (DESIGN.md "SIM / ERG control"):
+/// a Fill track, the chosen segment in brand blue. Segments share the width.
+class _Segments<T> extends StatelessWidget {
+  const _Segments({
     super.key,
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.step,
-    required this.min,
-    required this.max,
-    required this.unit,
-    required this.onChanged,
+    required this.label,
+    required this.selected,
+    required this.options,
+    required this.onSelected,
   });
 
-  final IconData icon;
-  final String title;
-  final int value;
-  final int step;
-  final int min;
-  final int max;
-  final String unit;
-  final ValueChanged<int> onChanged;
+  final String label;
+  final T? selected;
+  final List<(T, String, Key)> options;
+  final ValueChanged<T> onSelected;
+
+  static bool get _touch =>
+      defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   Widget build(BuildContext context) {
-    return BkGroupedRow(
-      icon: icon,
-      title: title,
-      trailing: StepperControl(
-        value: value.toDouble(),
-        step: step.toDouble(),
-        min: min.toDouble(),
-        max: max.toDouble(),
-        format: (v) => '${v.round()} $unit',
-        onChanged: (v) => onChanged(v.round()),
+    final cs = Theme.of(context).colorScheme;
+    final style = context.typography.small.copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.3);
+    return Semantics(
+      label: label,
+      container: true,
+      explicitChildNodes: true,
+      child: Container(
+        height: _touch ? BkTouchTarget.minSize + 4 : 36,
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(10)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (value, text, key) in options)
+              Expanded(
+                child: BkTappable(
+                  key: key,
+                  onPressed: () {
+                    if (value == selected) return;
+                    HapticFeedback.selectionClick();
+                    onSelected(value);
+                  },
+                  label: text,
+                  selected: value == selected,
+                  inMutuallyExclusiveGroup: true,
+                  excludeChildSemantics: true,
+                  borderRadius: BorderRadius.circular(8),
+                  child: AnimatedContainer(
+                    duration: BkMotion.of(context),
+                    curve: BkMotion.curve,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: value == selected ? cs.primary : null,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        text,
+                        maxLines: 1,
+                        style: style.copyWith(
+                          color: value == selected ? cs.primaryForeground : cs.mutedForeground,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
-  }
-}
-
-class _SpeedButton extends StatelessWidget {
-  const _SpeedButton({super.key, required this.label, required this.selected, required this.onPressed});
-
-  final String label;
-  final bool selected;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final child = Text(label, maxLines: 1, softWrap: false);
-    return selected
-        ? Button.primary(
-            onPressed: onPressed,
-            child: Center(child: child),
-          )
-        : Button.outline(
-            onPressed: onPressed,
-            child: Center(child: child),
-          );
   }
 }

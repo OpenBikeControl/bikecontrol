@@ -5,6 +5,7 @@
 - Setup now offers the gear overlay where you need it: MyWhoosh, Zwift, Rouvy and TrainingPeaks Virtual keep showing their own gear number, so the overlay shows BikeControl's real gear on top.
 
 **Fixes**:
+- Elite Rizer: no longer listed as a controller, and its steering card no longer says it is calibrating while the Rizer isn't connected.
 - Zwift and Rouvy: the network test no longer reports a problem when BikeControl's network connection is working.
 
 ### 7.6.0 (17-11-2026)

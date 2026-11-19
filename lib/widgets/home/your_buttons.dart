@@ -139,6 +139,7 @@ Widget? controllerButtonsPicture({
       SteeringGauge(
         angle: steering.steeringAngle,
         calibrated: steering.steeringCalibrated,
+        connected: device.isConnected,
         threshold: steering.steeringThreshold,
         leftAction: steeringActionFor(keymap, steering.steerLeftButton),
         rightAction: steeringActionFor(keymap, steering.steerRightButton),

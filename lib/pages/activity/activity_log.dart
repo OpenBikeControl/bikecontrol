@@ -307,14 +307,13 @@ class _ActivityLogViewState extends State<ActivityLogView> {
   }
 }
 
-/// A group's caption in the grouped-list style: "LAST MINUTE", "EARLIER".
+/// A group's caption in the grouped-list style: "LAST MINUTE", "EARLIER" —
+/// the same face and ink as every other grouped header (the rides' weeks
+/// beside it, Devices, Settings).
 class ActivityGroupCaption extends StatelessWidget {
-  const ActivityGroupCaption({super.key, required this.title, this.top = 0, this.color});
+  const ActivityGroupCaption({super.key, required this.title, this.top = 0});
 
   final String title;
-
-  /// The caption's ink; secondary by default (a pane tab sets it).
-  final Color? color;
 
   /// Space above the caption: none for a pane's first, more between groups.
   final double top;
@@ -323,31 +322,9 @@ class ActivityGroupCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(BkGroupedSection.inset, top, BkGroupedSection.inset, 6),
-      child: Semantics(
-        header: true,
-        child: Text(
-          title.toUpperCase(),
-          style: context.typography.caption.copyWith(
-            color: color ?? Theme.of(context).colorScheme.mutedForeground,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.6,
-          ),
-        ),
-      ),
+      child: BkGroupedHeader(title),
     );
   }
-}
-
-/// News's header in its pane beside the log, from 840: a caption like the
-/// log's groups, at the same height, so the two panes' first cards line up
-/// under the page's title.
-class ActivityPaneHeader extends StatelessWidget {
-  const ActivityPaneHeader({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) => ActivityGroupCaption(title: title);
 }
 
 /// "Clear" for the activity log, in accent; disabled while there is nothing
