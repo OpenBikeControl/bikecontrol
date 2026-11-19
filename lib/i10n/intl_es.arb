@@ -3130,5 +3130,7 @@
   "headwindStatePower": "{speed}% según potencia",
   "accessorySteeringReadout": "Dirección {value}",
   "accessoryFanReadout": "Ventilador {value}",
-  "onboardingGuidePairTrainer": "Empareja tu rodillo: para fuente de potencia, resistencia y cadencia, elige «{bridge}»"
+  "onboardingGuidePairTrainer": "Empareja tu rodillo: para fuente de potencia, resistencia y cadencia, elige «{bridge}»",
+  "onboardingGuideZwiftBridge": "Elige «{bridge}» como fuente de potencia, resistencia, cadencia y controles, y listo",
+  "onboardingSlotControls": "Controles"
 }

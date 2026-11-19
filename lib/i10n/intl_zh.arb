@@ -4312,5 +4312,7 @@
   "headwindStatePower": "按功率 {speed}%",
   "accessorySteeringReadout": "转向 {value}",
   "accessoryFanReadout": "风扇 {value}",
-  "onboardingGuidePairTrainer": "配对你的骑行台：功率源、阻力和踏频都选择「{bridge}」"
+  "onboardingGuidePairTrainer": "配对你的骑行台：功率源、阻力和踏频都选择「{bridge}」",
+  "onboardingGuideZwiftBridge": "在功率源、阻力、踏频和控制器中都选择「{bridge}」，就可以开骑了",
+  "onboardingSlotControls": "控制器"
 }

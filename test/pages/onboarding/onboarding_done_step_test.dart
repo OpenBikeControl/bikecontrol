@@ -17,6 +17,7 @@ import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -379,6 +380,48 @@ Future<void> main() async {
       expect(find.text(l.onboardingGuidePairTrainer('BikeControl 73D3')), findsOneWidget);
       expect(find.text('4'), findsOneWidget, reason: "after MyWhoosh's three steps");
       expect(find.text(l.onboardingPairAsTrainerWarning('KICKR CORE 73D3', 'MyWhoosh')), findsOneWidget);
+    });
+
+    // Zwift takes the controller from the bridge as well: one entry for every
+    // pairing slot, Controls included.
+    testWidgets('Zwift with a trainer: pick the bridge for every slot, controls included', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: Zwift(),
+          controllerName: 'Zwift Click',
+          trainerName: 'Wahoo KICKR 1EB7',
+          bridgeName: 'BikeControl 1EB7',
+          appConnected: false,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.text(l.onboardingGuideZwiftBridge('BikeControl 1EB7')), findsOneWidget);
+      expect(find.text(l.onboardingGuideGeneric2), findsNothing, reason: 'the bridge entry is the pairing');
+      expect(find.text(l.onboardingGuidePairTrainer('BikeControl 1EB7')), findsNothing);
+      expect(find.text('3'), findsNothing);
+    });
+
+    testWidgets("Zwift's pick-the-trainer card lists Controls too", (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: Zwift(),
+          controllerName: 'Zwift Click',
+          trainerName: 'Wahoo KICKR 1EB7',
+          bridgeName: 'BikeControl 1EB7',
+          appConnected: true,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+        ),
+      );
+      expect(find.text(l10n(tester).onboardingSlotControls), findsOneWidget);
     });
 
     testWidgets('without a trainer the guide has no trainer step', (tester) async {

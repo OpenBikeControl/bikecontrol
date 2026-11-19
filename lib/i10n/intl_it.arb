@@ -3130,5 +3130,7 @@
   "headwindStatePower": "{speed}% dalla potenza",
   "accessorySteeringReadout": "Sterzo {value}",
   "accessoryFanReadout": "Ventilatore {value}",
-  "onboardingGuidePairTrainer": "Abbina il tuo rullo: per sorgente di potenza, resistenza e cadenza scegli «{bridge}»"
+  "onboardingGuidePairTrainer": "Abbina il tuo rullo: per sorgente di potenza, resistenza e cadenza scegli «{bridge}»",
+  "onboardingGuideZwiftBridge": "Scegli «{bridge}» per sorgente di potenza, resistenza, cadenza e comandi, ed è fatta",
+  "onboardingSlotControls": "Comandi"
 }

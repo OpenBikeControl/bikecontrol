@@ -3130,5 +3130,7 @@
   "headwindStatePower": "{speed}% selon la puissance",
   "accessorySteeringReadout": "Direction {value}",
   "accessoryFanReadout": "Ventilateur {value}",
-  "onboardingGuidePairTrainer": "Appaire ton home trainer : pour la source de puissance, la résistance et la cadence, choisis « {bridge} »"
+  "onboardingGuidePairTrainer": "Appaire ton home trainer : pour la source de puissance, la résistance et la cadence, choisis « {bridge} »",
+  "onboardingGuideZwiftBridge": "Choisis « {bridge} » pour la source de puissance, la résistance, la cadence et les commandes, et c'est parti",
+  "onboardingSlotControls": "Commandes"
 }

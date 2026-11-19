@@ -3130,5 +3130,7 @@
   "headwindStatePower": "{speed}% nach Leistung",
   "accessorySteeringReadout": "Lenkung {value}",
   "accessoryFanReadout": "Ventilator {value}",
-  "onboardingGuidePairTrainer": "Koppel deinen Trainer: Wähle für Leistungsquelle, Widerstand und Trittfrequenz „{bridge}“"
+  "onboardingGuidePairTrainer": "Koppel deinen Trainer: Wähle für Leistungsquelle, Widerstand und Trittfrequenz „{bridge}“",
+  "onboardingGuideZwiftBridge": "Wähle „{bridge}“ für Leistungsquelle, Widerstand, Trittfrequenz und Steuerung – dann bist du startklar",
+  "onboardingSlotControls": "Steuerung"
 }

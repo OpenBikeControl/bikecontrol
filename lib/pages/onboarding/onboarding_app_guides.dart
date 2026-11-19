@@ -4,6 +4,7 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/strappo.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -89,10 +90,14 @@ class OnboardingAppGuideCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final guideUrl = guide.guideUrl;
     final trainer = trainerName;
-    final steps = [
-      ...guide.steps,
-      if (trainer != null) context.i18n.onboardingGuidePairTrainer(bridgeName ?? '$trainer - BikeControl'),
-    ];
+    final bridge = bridgeName ?? '${trainer ?? ''} - BikeControl';
+    final steps = switch (trainer) {
+      null => guide.steps,
+      // Zwift takes the controller from the bridge too: one entry for every
+      // slot, Controls included, replaces "pair with BikeControl".
+      _ when app is Zwift => [context.i18n.onboardingGuideGeneric1(app.name), context.i18n.onboardingGuideZwiftBridge(bridge)],
+      _ => [...guide.steps, context.i18n.onboardingGuidePairTrainer(bridge)],
+    };
 
     return Container(
       width: double.infinity,
@@ -254,6 +259,9 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
         _slotRow(context, LucideIcons.slidersHorizontal, context.i18n.onboardingSlotControllable, bridgeEntry,
             first: false),
         _slotRow(context, LucideIcons.refreshCw, context.i18n.onboardingSlotCadence, bridgeEntry, first: false),
+        // Zwift takes the controller from the same entry.
+        if (app is Zwift)
+          _slotRow(context, LucideIcons.gamepad2, context.i18n.onboardingSlotControls, bridgeEntry, first: false),
         Gap(12),
         Container(
           width: double.infinity,

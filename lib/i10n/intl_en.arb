@@ -3621,5 +3621,9 @@
   "@accessorySteeringReadout": {"description": "Devices page: live steering angle under an accessory, e.g. \"Steering -12°\".", "placeholders": {"value": {"type": "String"}}},
   "@accessoryFanReadout": {"description": "Devices page: live Headwind fan state under the accessory, e.g. \"Fan 50%\".", "placeholders": {"value": {"type": "String"}}},
   "onboardingGuidePairTrainer": "Pair your trainer: for power source, resistance and cadence, pick “{bridge}”",
-  "@onboardingGuidePairTrainer": {"description": "Last step of the onboarding guide for the trainer app when BikeControl bridges a smart trainer: which entry to pair in the app.", "placeholders": {"bridge": {"type": "String"}}}
+  "@onboardingGuidePairTrainer": {"description": "Last step of the onboarding guide for the trainer app when BikeControl bridges a smart trainer: which entry to pair in the app.", "placeholders": {"bridge": {"type": "String"}}},
+  "onboardingGuideZwiftBridge": "Select “{bridge}” for power source, resistance, cadence and controls — then you're good to go",
+  "onboardingSlotControls": "Controls",
+  "@onboardingGuideZwiftBridge": {"description": "Onboarding guide step for Zwift with a trainer bridged through BikeControl: the one bridge entry to pick in every pairing slot.", "placeholders": {"bridge": {"type": "String"}}},
+  "@onboardingSlotControls": {"description": "Name of the Controls pairing slot in Zwift, listed with power source, resistance and cadence."}
 }

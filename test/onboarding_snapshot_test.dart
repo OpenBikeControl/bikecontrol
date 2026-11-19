@@ -17,6 +17,7 @@ import 'package:bike_control/pages/onboarding/steps/step_gear.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -276,6 +277,22 @@ Future<void> main() async {
               reduceMotion: true,
               showTestMode: true,
               connectionMethods: OnboardingMethodsDisclosure(app: MyWhoosh(), onUpdate: () {}),
+            ));
+  });
+
+  testWidgets('step ride waiting for zwift', (tester) async {
+    await captureWidget(tester, name: 'onboarding_step_ride_waiting_zwift', width: 380, settle: false,
+        locales: const ['de'],
+        builder: (c) => onboardingDoneBody(
+              c,
+              app: Zwift(),
+              controllerName: 'Zwift Click',
+              trainerName: 'Wahoo KICKR 1EB7',
+              bridgeName: 'BikeControl 1EB7',
+              appConnected: false,
+              trainerAppConnected: false,
+              reduceMotion: true,
+              showTestMode: false,
             ));
   });
 

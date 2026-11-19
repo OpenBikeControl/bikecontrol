@@ -3130,5 +3130,7 @@
   "headwindStatePower": "{speed}% wg mocy",
   "accessorySteeringReadout": "Skręt {value}",
   "accessoryFanReadout": "Wentylator {value}",
-  "onboardingGuidePairTrainer": "Sparuj trenażer: jako źródło mocy, opór i kadencję wybierz „{bridge}”"
+  "onboardingGuidePairTrainer": "Sparuj trenażer: jako źródło mocy, opór i kadencję wybierz „{bridge}”",
+  "onboardingGuideZwiftBridge": "Wybierz „{bridge}” jako źródło mocy, opór, kadencję i sterowanie – i gotowe",
+  "onboardingSlotControls": "Sterowanie"
 }
