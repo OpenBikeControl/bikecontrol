@@ -65,6 +65,30 @@ class NewsBanner extends StatefulWidget {
 class _NewsBannerState extends State<NewsBanner> {
   int _index = 0;
 
+  /// Which way the last change went, so the next post slides in from that side.
+  bool _forward = true;
+
+  /// How far the current horizontal drag has gone.
+  double _dragDx = 0;
+
+  void _show(int index, int count) {
+    if (index < 0 || index >= count || index == _index) return;
+    setState(() {
+      _forward = index > _index;
+      _index = index;
+    });
+  }
+
+  /// A swipe pages: a fling, or a slow drag past 48 px. Left shows the next
+  /// post, right the one before.
+  void _onDragEnd(DragEndDetails details, int count) {
+    final velocity = details.primaryVelocity ?? 0;
+    final dx = velocity.abs() > 300 ? velocity : _dragDx;
+    _dragDx = 0;
+    if (dx.abs() < 48) return;
+    _show(_index + (dx < 0 ? 1 : -1), count);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -141,119 +165,151 @@ class _NewsBannerState extends State<NewsBanner> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final withCover = image != null && constraints.maxWidth >= NewsBanner.coverBreakpoint;
-        return _band(
+        final band = _band(
           context,
-          Builder(
-            builder: (context) {
-              // On the band every text is full white: anything fainter drops
-              // under 4.5:1 on its light-mode blue.
-              final text = Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      title,
-                      key: const ValueKey('news-banner-title'),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: (_compact(context) ? context.typography.xLarge : context.typography.x2Large).copyWith(
-                        fontWeight: FontWeight.w700,
-                        height: 1.15,
-                      ),
-                    ),
-                  ),
-                  if (excerpt != null && excerpt.isNotEmpty) ...[
-                    const Gap(8),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: NewsBanner.excerptMaxWidth),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            layoutBuilder: (current, previous) => Stack(
+              alignment: Alignment.topLeft,
+              children: [...previous, if (current != null) current],
+            ),
+            transitionBuilder: (child, animation) {
+              // The incoming post comes from the swipe's side; the outgoing
+              // one leaves towards the other.
+              final incoming = child.key == ValueKey('news-banner-post-${post.slug}');
+              final from = (_forward == incoming) ? 0.12 : -0.12;
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween(begin: Offset(from, 0), end: Offset.zero).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: Builder(
+              key: ValueKey('news-banner-post-${post.slug}'),
+              builder: (context) {
+                // On the band every text is full white: anything fainter drops
+                // under 4.5:1 on its light-mode blue.
+                final text = Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      header: true,
                       child: Text(
-                        excerpt,
+                        title,
+                        key: const ValueKey('news-banner-title'),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: context.typography.small.copyWith(height: 1.45),
+                        style: (_compact(context) ? context.typography.xLarge : context.typography.x2Large).copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                        ),
+                      ),
+                    ),
+                    if (excerpt != null && excerpt.isNotEmpty) ...[
+                      const Gap(8),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: NewsBanner.excerptMaxWidth),
+                        child: Text(
+                          excerpt,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.typography.small.copyWith(height: 1.45),
+                        ),
+                      ),
+                    ],
+                    const Gap(10),
+                    Row(
+                      spacing: 8,
+                      children: [
+                        if (isNew) _NewBadge(label: l10n.newsNewBadge),
+                        Text(date, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
+                        const Spacer(),
+                        // The dots with the date: on a phone the actions fill
+                        // their own line.
+                        if (posts.length > 1)
+                          for (final (i, p) in posts.indexed)
+                            _PagerDot(
+                              key: ValueKey('news-banner-dot-$i'),
+                              selected: i == index,
+                              label: p.titleForLanguage(languageCode),
+                              onPressed: () => _show(i, posts.length),
+                            ),
+                      ],
+                    ),
+                    const Gap(18),
+                    // Wraps rather than overflows: German labels are long.
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        BkTouchTarget(
+                          child: Button.primary(
+                            key: const ValueKey('news-banner-read'),
+                            alignment: Alignment.center,
+                            onPressed: () => _open(post.urlForLanguage(languageCode)),
+                            child: Text(l10n.newsReadPost),
+                          ),
+                        ),
+                        BkTouchTarget(
+                          child: Button.ghost(
+                            key: const ValueKey('news-banner-all'),
+                            alignment: Alignment.center,
+                            onPressed: () => _open(blogUrl),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 6,
+                              children: [Text(l10n.newsAllPosts), const Icon(LucideIcons.externalLink, size: 14)],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+                if (!withCover) return text;
+                return Row(
+                  spacing: 28,
+                  children: [
+                    Expanded(child: text),
+                    // The whole cover, never cropped: the blog's covers carry
+                    // their own lettering.
+                    SizedBox(
+                      width: NewsBanner.coverWidth,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AspectRatio(
+                          aspectRatio: 1200 / 630,
+                          child: ExcludeSemantics(
+                            child: Image.network(
+                              image,
+                              key: ValueKey('news-banner-cover-${post.slug}'),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                  const Gap(10),
-                  Row(
-                    spacing: 8,
-                    children: [
-                      if (isNew) _NewBadge(label: l10n.newsNewBadge),
-                      Text(date, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
-                      const Spacer(),
-                      // The dots with the date: on a phone the actions fill
-                      // their own line.
-                      if (posts.length > 1)
-                        for (final (i, p) in posts.indexed)
-                          _PagerDot(
-                            key: ValueKey('news-banner-dot-$i'),
-                            selected: i == index,
-                            label: p.titleForLanguage(languageCode),
-                            onPressed: () => setState(() => _index = i),
-                          ),
-                    ],
-                  ),
-                  const Gap(18),
-                  // Wraps rather than overflows: German labels are long.
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      BkTouchTarget(
-                        child: Button.primary(
-                          key: const ValueKey('news-banner-read'),
-                          alignment: Alignment.center,
-                          onPressed: () => _open(post.urlForLanguage(languageCode)),
-                          child: Text(l10n.newsReadPost),
-                        ),
-                      ),
-                      BkTouchTarget(
-                        child: Button.ghost(
-                          key: const ValueKey('news-banner-all'),
-                          alignment: Alignment.center,
-                          onPressed: () => _open(blogUrl),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 6,
-                            children: [Text(l10n.newsAllPosts), const Icon(LucideIcons.externalLink, size: 14)],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-              if (!withCover) return text;
-              return Row(
-                spacing: 28,
-                children: [
-                  Expanded(child: text),
-                  // The whole cover, never cropped: the blog's covers carry
-                  // their own lettering.
-                  SizedBox(
-                    width: NewsBanner.coverWidth,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: AspectRatio(
-                        aspectRatio: 1200 / 630,
-                        child: ExcludeSemantics(
-                          child: Image.network(
-                            image,
-                            key: ValueKey('news-banner-cover-${post.slug}'),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stack) => const SizedBox.shrink(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+                );
+              },
+            ),
           ),
+        );
+        if (posts.length < 2) return band;
+        // Swipe between the posts, as the dots do; mouse drags count too.
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragStart: (_) => _dragDx = 0,
+          onHorizontalDragUpdate: (d) => _dragDx += d.primaryDelta ?? 0,
+          onHorizontalDragEnd: (d) => _onDragEnd(d, posts.length),
+          child: band,
         );
       },
     );

@@ -9,8 +9,6 @@ import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/utils/auth/social_sign_in.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/requirements/windows.dart';
-import 'package:bike_control/widgets/menu.dart' show debugText;
-import 'package:bike_control/widgets/title.dart' show isFromPlayStore, packageInfoValue;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
@@ -336,21 +334,5 @@ class _AccountSectionState extends State<AccountSection> {
       'email' => l10n.signInMethodEmailCode,
       _ => null,
     };
-  }
-}
-
-/// Opens a mail to support with this app's diagnostics, for a rider who would
-/// rather not sign in.
-Future<void> openMailFallback(BuildContext context) async {
-  try {
-    final isFromStore = (Platform.isAndroid ? isFromPlayStore == true : Platform.isIOS);
-    final suffix = isFromStore ? '' : '-sw';
-    final email = Uri.encodeComponent('jonas$suffix@bikecontrol.app');
-    final subject = Uri.encodeComponent(context.i18n.helpRequested(packageInfoValue?.version ?? ''));
-    final dbg = await debugText();
-    final body = Uri.encodeComponent('\n\n$dbg');
-    await launchUrl(Uri.parse('mailto:$email?subject=$subject&body=$body'));
-  } catch (e, s) {
-    recordError(e, s, context: 'Plan: mail instead of signing in');
   }
 }

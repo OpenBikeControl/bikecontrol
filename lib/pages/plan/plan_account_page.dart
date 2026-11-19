@@ -605,12 +605,19 @@ class _PlanAccountPageState extends State<PlanAccountPage> {
           trailing: const Icon(LucideIcons.externalLink, size: 16),
           onPressed: () => _openUrl('https://bikecontrol.app/terms-of-use'),
         ),
-        if (!_signedIn && !kIsWeb)
+        // Signed in or not: the chat needs no account.
+        if (!kIsWeb)
           BkGroupedRow(
-            icon: LucideIcons.mail,
-            title: l10n.dontWantToSignInWriteAMail,
+            key: const ValueKey('plan-support-chat'),
+            icon: LucideIcons.messageCircle,
+            title: l10n.supportChat,
             chevron: true,
-            onPressed: () => openMailFallback(context),
+            onPressed: () => context.push(
+              SupportChatPage(
+                diagnosticPreviewFuture: debugText(),
+                telemetryBuilder: () async => TelemetrySnapshot.general(freetext: await debugText()),
+              ),
+            ),
           ),
       ],
     );

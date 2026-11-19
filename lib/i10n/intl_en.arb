@@ -1632,7 +1632,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "Don't want to sign in? Write a mail instead",
   "proxyConnectFor": "Connect your {name} for:",
   "@proxyConnectFor": {
     "placeholders": {

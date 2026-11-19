@@ -1,6 +1,7 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -133,17 +134,17 @@ class TrialCard extends StatelessWidget {
                 // raises the ceiling to 80 while the trial runs and drops it
                 // afterwards. So the meter is always honest, and always shown.
                 if (!state.expired) ...[
-                  _Meter(label: l.chainTrialDaysMeter, value: state.daysRemaining, total: state.daysTotal),
+                  BudgetMeter(label: l.chainTrialDaysMeter, value: state.daysRemaining, total: state.daysTotal),
                   const Gap(11),
                 ],
-                _Meter(
+                BudgetMeter(
                   label: l.chainTrialCommandsMeter,
                   value: state.commandsRemaining,
                   total: state.commandsTotal,
                 ),
                 if (state.showsBridgeMeter) ...[
                   const Gap(11),
-                  _Meter(
+                  BudgetMeter(
                     label: l.chainTrialBridgeMeter,
                     value: state.bridgeMinutesRemaining!,
                     total: state.bridgeMinutesTotal!,
@@ -194,6 +195,12 @@ class TrialCard extends StatelessWidget {
     );
   }
 }
+
+/// The trial's full length, inferred from the largest remaining count seen, so
+/// the meter never shows a value above its own ceiling.
+int trialDaysTotal(int remaining) => remaining > _knownTrialDays ? remaining : _knownTrialDays;
+
+const int _knownTrialDays = 5;
 
 /// Today's virtual-shifting budget for a Base owner.
 class VsBudgetCardState {
@@ -248,7 +255,7 @@ class VsBudgetCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: _Meter(
+            child: BudgetMeter(
               label: l.chainTrialBridgeMeter,
               value: state.minutesRemaining,
               total: state.minutesTotal,
@@ -275,10 +282,12 @@ class VsBudgetCard extends StatelessWidget {
   }
 }
 
-/// A budget-of-total bar. Turns amber in the last quarter — the point at which
-/// the number starts to matter.
-class _Meter extends StatelessWidget {
-  const _Meter({required this.label, required this.value, required this.total, this.suffix});
+/// A budget-of-total bar: "Label … 80 / 100", the bar below. Turns amber in
+/// the last quarter — the point at which the number starts to matter. The
+/// licence card on Fahren and the plan cards (Settings, Plan & account) show
+/// their budgets with it, so they read the same.
+class BudgetMeter extends StatelessWidget {
+  const BudgetMeter({super.key, required this.label, required this.value, required this.total, this.suffix});
 
   final String label;
   final int value;
@@ -311,7 +320,9 @@ class _Meter extends StatelessWidget {
               '$value',
               style: context.typography.xSmall.copyWith(
                 fontWeight: FontWeight.w700,
-                color: low ? warningStyle.text : theme.colorScheme.foreground,
+                // On the brand band (Settings' plan card) only white reads;
+                // the bar still turns amber.
+                color: low && !BkBrandBand.isOn(context) ? warningStyle.text : theme.colorScheme.foreground,
               ),
             ),
             const Gap(4),

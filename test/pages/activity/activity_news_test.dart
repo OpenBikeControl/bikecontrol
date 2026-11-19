@@ -163,9 +163,32 @@ Future<void> main() async {
       expect(core.settings.getSeenBlogPosts(), contains('seven-one'));
 
       await tester.tap(find.byKey(const ValueKey('news-banner-dot-1')));
-      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Winter update'), findsOneWidget);
       expect(find.text('Seven point one'), findsNothing);
+      await disposeShell(tester);
+    });
+
+    testWidgets('swiping the banner pages through the posts', (tester) async {
+      await openWideActivity(tester, const Size(1280, 800));
+      final banner = find.byKey(const ValueKey('news-banner'));
+      expect(find.text('Seven point one'), findsOneWidget);
+
+      // Left: the next post.
+      await tester.drag(banner, const Offset(-200, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Winter update'), findsOneWidget);
+      expect(find.text('Seven point one'), findsNothing);
+
+      // Right: back to the one before.
+      await tester.drag(banner, const Offset(200, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Seven point one'), findsOneWidget);
+
+      // Right again from the first: stays.
+      await tester.drag(banner, const Offset(200, 0));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('Seven point one'), findsOneWidget);
       await disposeShell(tester);
     });
 

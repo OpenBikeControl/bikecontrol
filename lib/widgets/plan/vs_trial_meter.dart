@@ -6,6 +6,7 @@ import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/vs_trial_copy.dart';
 import 'package:bike_control/widgets/home/ampel.dart' show AmpelStyle;
+import 'package:bike_control/widgets/home/trial_card.dart' show BudgetMeter, trialDaysTotal;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
@@ -23,10 +24,19 @@ bool vsTrialMeterShown() =>
     !screenshotMode &&
     (!IAPManager.instance.isPurchased.value || core.connection.proxyDevices.any((d) => d.isConnected));
 
-/// [VsTrialMeter] behind a [gap], or nothing when [vsTrialMeterShown] says so.
-/// Rebuilds as trainers connect and disconnect, and as the Pro state changes:
-/// signing in to Pro (the device registering) hides it without waiting for a
-/// trainer to connect.
+/// Whether the plan cards show the trial's days and today's presses: on the
+/// free tier, as the licence card on Fahren does. Buying Base or Pro lifts
+/// both limits. Store renders stage a finished setup, not a limit.
+bool trialBudgetsShown() =>
+    !IAPManager.instance.isPurchased.value && !IAPManager.instance.isProEnabledForCurrentDevice && !screenshotMode;
+
+/// The plan's budgets behind a [gap], or nothing when none applies. The plan
+/// cards (Settings, Plan & account) show the same meters as the licence card
+/// on Fahren — trial days, presses left today, virtual shifting today — so
+/// the three places agree. [compact] (the sidebar) shows only the virtual
+/// shifting line. Rebuilds as trainers connect and disconnect, and as the Pro
+/// state changes: signing in to Pro (the device registering) hides it without
+/// waiting for a trainer to connect.
 class VsTrialMeterSlot extends StatelessWidget {
   const VsTrialMeterSlot({super.key, required this.gap, this.compact = false});
 
@@ -37,24 +47,88 @@ class VsTrialMeterSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     final iap = IAPManager.instance;
     return ListenableBuilder(
-      // Everything [vsTrialMeterShown] reads from the purchase state: the
-      // account's entitlements (and registration flag), the purchase flag and
-      // the store-side Pro flag.
+      // Everything [vsTrialMeterShown] and [trialBudgetsShown] read from the
+      // purchase state: the account's entitlements (and registration flag),
+      // the purchase flag and the store-side Pro flag.
       listenable: Listenable.merge([iap.entitlements, iap.isPurchased, iap.isLocalPro]),
       builder: (context, _) => StreamBuilder<BaseDevice>(
         stream: core.connection.connectionStream,
         builder: (context, _) {
-          if (!vsTrialMeterShown()) return const SizedBox.shrink();
+          final vs = vsTrialMeterShown();
+          final budgets = !compact && trialBudgetsShown();
+          if (!vs && !budgets) return const SizedBox.shrink();
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Gap(gap),
-              VsTrialMeter(compact: compact),
+              if (compact) const VsTrialMeter(compact: true) else PlanBudgetMeters(vs: vs, budgets: budgets),
             ],
           );
         },
       ),
+    );
+  }
+}
+
+/// The plan cards' meters, as on the licence card: trial days (while the
+/// trial runs), presses left today and virtual shifting today, each
+/// "remaining / total" over a bar.
+class PlanBudgetMeters extends StatelessWidget {
+  const PlanBudgetMeters({super.key, required this.vs, required this.budgets});
+
+  /// Show virtual shifting today.
+  final bool vs;
+
+  /// Show trial days and presses left today.
+  final bool budgets;
+
+  @override
+  Widget build(BuildContext context) {
+    final tracker = core.bridgeUsageTracker;
+    return ValueListenableBuilder<Duration>(
+      valueListenable: tracker.usedTodayListenable,
+      builder: (context, _, _) {
+        final l10n = AppLocalizations.of(context);
+        final iap = IAPManager.instance;
+        final days = iap.trialDaysRemaining;
+        final presses = iap.commandsRemainingToday;
+        final remaining = tracker.remainingToday;
+        final minutes = remaining.isNegative ? 0 : remaining.inMinutes;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 11,
+          children: [
+            if (budgets && !iap.isTrialExpired)
+              BudgetMeter(
+                key: const ValueKey('plan-meter-days'),
+                label: l10n.chainTrialDaysMeter,
+                value: days,
+                total: trialDaysTotal(days),
+              ),
+            // -1: no daily cap on this build.
+            if (budgets && presses >= 0 && IAPManager.dailyCommandLimit > 0)
+              BudgetMeter(
+                key: const ValueKey('plan-meter-presses'),
+                label: l10n.chainTrialCommandsMeter,
+                value: presses,
+                total: IAPManager.dailyCommandLimit,
+              ),
+            if (vs)
+              Semantics(
+                label: '${l10n.chainTrialBridgeMeter}: ${VsTrialCopy.current(l10n).minutesLeftToday(minutes)}',
+                excludeSemantics: true,
+                child: BudgetMeter(
+                  key: const ValueKey('plan-meter-vs'),
+                  label: l10n.chainTrialBridgeMeter,
+                  value: minutes,
+                  total: tracker.dailyLimit.inMinutes,
+                  suffix: l10n.chainTrialBridgeMeterSuffix,
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

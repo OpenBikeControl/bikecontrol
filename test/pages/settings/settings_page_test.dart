@@ -58,7 +58,9 @@ Future<void> main() async {
   });
 
   group('plan card', () {
-    testWidgets('on the trial: Go Pro and what is left of today\'s virtual shifting', (tester) async {
+    testWidgets('on the trial: Go Pro and the licence card\'s meters — days, presses, virtual shifting', (
+      tester,
+    ) async {
       IAPManager.instance.setProForTesting(enabled: false);
       IAPManager.instance.isPurchased.value = false;
       addTearDown(() => IAPManager.instance.isPurchased.value = true);
@@ -70,9 +72,14 @@ Future<void> main() async {
       final plan = find.byKey(const ValueKey('settings-plan'));
       expect(find.descendant(of: plan, matching: find.text(l.currentPlan)), findsOneWidget);
       expect(find.descendant(of: plan, matching: find.text(l.goPro)), findsOneWidget);
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialDaysMeter)), findsOneWidget);
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialCommandsMeter)), findsOneWidget);
       expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsOneWidget);
-      final minutes = core.bridgeUsageTracker.remainingToday.inMinutes;
-      expect(find.descendant(of: plan, matching: find.text(l.bridgeMinutesRemainingToday(minutes))), findsOneWidget);
+      final total = core.bridgeUsageTracker.dailyLimit.inMinutes;
+      expect(
+        find.descendant(of: plan, matching: find.text('/ $total ${l.chainTrialBridgeMeterSuffix}')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Base without a smart trainer: no trial meter, it only counts while a trainer runs', (tester) async {
@@ -99,10 +106,9 @@ Future<void> main() async {
 
       final plan = find.byKey(const ValueKey('settings-plan'));
       expect(find.descendant(of: plan, matching: find.text(l.chainTrialBridgeMeter)), findsOneWidget);
-      // They bought Base: minutes left, never "trial".
-      final minutes = core.bridgeUsageTracker.remainingToday.inMinutes;
-      expect(find.descendant(of: plan, matching: find.text(l.vsBaseMinutesLeftToday(minutes))), findsOneWidget);
-      expect(find.descendant(of: plan, matching: find.text(l.bridgeMinutesRemainingToday(minutes))), findsNothing);
+      // They bought Base: no trial days, no press limit.
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialDaysMeter)), findsNothing);
+      expect(find.descendant(of: plan, matching: find.text(l.chainTrialCommandsMeter)), findsNothing);
 
       trainer.isConnected = false;
       core.connection.signalChange(trainer);
