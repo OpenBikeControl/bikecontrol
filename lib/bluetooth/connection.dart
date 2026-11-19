@@ -120,9 +120,7 @@ class Connection {
   /// is listed once.
   ProxyDevice? twinOf(ProxyDevice device) => proxyDevices.firstOrNullWhere(
     (other) =>
-        !identical(other, device) &&
-        other.twinKey == device.twinKey &&
-        other.isWifiUpstream != device.isWifiUpstream,
+        !identical(other, device) && other.twinKey == device.twinKey && other.isWifiUpstream != device.isWifiUpstream,
   );
 
   var _androidNotificationsSetup = false;
@@ -1799,22 +1797,18 @@ class Connection {
       // failure already told the rider; the card shows the state.
       final isRetry = device is BluetoothDevice && _connectRetryCounts.containsKey(device.device.deviceId);
       final notify = willConnect && !device.isResetting && !_isInBackoff(device) && !isRetry;
+      // Connecting and connected are a log line, not a toast: every card
+      // already shows the device on its way and arriving, and on launch the
+      // toasts for each remembered device stacked up over the screen.
       if (notify) {
-        _actionStreams.add(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.connectingToDevice(device.toString())),
-        );
+        _actionStreams.add(LogNotification(AppLocalizations.current.connectingToDevice(device.toString())));
       }
       _connect(device)
           .then((_) {
             _handlingConnectionQueue = false;
 
             if (notify) {
-              _actionStreams.add(
-                AlertNotification(
-                  LogLevel.LOGLEVEL_INFO,
-                  AppLocalizations.current.connectionSucceeded(device.toString()),
-                ),
-              );
+              _actionStreams.add(LogNotification(AppLocalizations.current.connectionSucceeded(device.toString())));
             }
             if (_connectionQueue.isNotEmpty) {
               _handleConnectionQueue();

@@ -16,6 +16,7 @@
 - Zwift Click V2: puoi usare, se vuoi, il controller destro senza sbloccarlo.
 - Più margine per provare: 120 pressioni al giorno durante la prova (prima 80), poi 40 al giorno (prima 15) e, senza Pro, 30 minuti al giorno del cambio virtuale di BikeControl (prima 20).
 - Una prova più chiara: BikeControl ti avvisa (anche con una notifica) quando ti restano 10 pressioni per oggi, e la scheda della prova mostra cosa avrai dopo. Se la tua app di allenamento cambia marcia da sola, «Pedala» non propone più il cambio virtuale di BikeControl, e il controllo da tastiera è indicato come facoltativo accanto a una connessione OpenBikeControl.
+- KICKR Headwind: il ventilatore può seguire la tua frequenza cardiaca (da una fascia collegata a BikeControl) o la tua potenza, e scegli tu dove parte e dove arriva alla velocità massima. La pagina mostra il valore attuale e la velocità che ne deriva.
 
 **Fixes**:
 - I rulli Elite non compaiono più due volte (WiFi e Bluetooth).

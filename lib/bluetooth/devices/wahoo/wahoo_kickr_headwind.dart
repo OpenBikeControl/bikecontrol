@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
@@ -25,93 +27,203 @@ class WahooKickrHeadwind extends BluetoothDevice with Accessory {
   int get _currentSpeed => speed.value;
   set _currentSpeed(int value) => speed.value = value;
 
-  /// Whether BikeControl drives the fan from the trainer's power. The fan sits
-  /// in manual mode and gets a new speed whenever the power moves enough.
-  final ValueNotifier<bool> followsPower = ValueNotifier(false);
+  /// What BikeControl drives the fan from, if anything. While following, the
+  /// fan sits in manual mode and gets a new speed whenever its input moves
+  /// enough.
+  final ValueNotifier<HeadwindFollow> follow = ValueNotifier(HeadwindFollow.none);
 
-  /// The power at which the fan runs at 100%; linear from 0 W up to it.
-  final ValueNotifier<int> fullPowerWatts = ValueNotifier(300);
+  /// Whether the fan follows the trainer's power — see [follow].
+  bool get followsPower => follow.value == HeadwindFollow.power;
 
+  /// Whether the fan follows the rider's heart rate — see [follow].
+  bool get followsHeartRate => follow.value == HeadwindFollow.heartRate;
+
+  /// The ramp for power: off up to [startPowerWatts], 100% from
+  /// [fullPowerWatts], evenly in between.
+  final ValueNotifier<int> startPowerWatts = ValueNotifier(defaultStartPowerWatts);
+  final ValueNotifier<int> fullPowerWatts = ValueNotifier(defaultFullPowerWatts);
+
+  /// The ramp for heart rate: off up to [startHeartRate], 100% from
+  /// [fullHeartRate], evenly in between.
+  final ValueNotifier<int> startHeartRate = ValueNotifier(defaultStartHeartRate);
+  final ValueNotifier<int> fullHeartRate = ValueNotifier(defaultFullHeartRate);
+
+  /// The smoothed input (watts or bpm) the last speed came from; null while
+  /// not following or while nothing reports a reading. Shown on the page so
+  /// the rider sees why the fan runs at the speed it does.
+  final ValueNotifier<int?> followInput = ValueNotifier(null);
+
+  static const defaultStartPowerWatts = 0;
+  static const defaultFullPowerWatts = 300;
+  static const minStartPowerWatts = 0;
   static const minFullPowerWatts = 100;
   static const maxFullPowerWatts = 1000;
+
+  /// The full-speed point stays at least this far above the start.
+  static const minPowerRampWatts = 50;
+
+  static const defaultStartHeartRate = 100;
+  static const defaultFullHeartRate = 170;
+  static const minStartHeartRate = 50;
+  static const minFullHeartRate = 100;
+  static const maxFullHeartRate = 220;
+  static const minHeartRateRamp = 10;
 
   /// The current power in watts, null when nothing reports one. Defaults to
   /// the connected trainer (or a power meter); tests swap it.
   @visibleForTesting
   int? Function() powerProvider = () => core.rideSource()?.powerW.value;
 
-  Timer? _powerTimer;
-  double? _smoothedPower;
-  bool _powerTicking = false;
+  /// The current heart rate in bpm, null when nothing reports one. Defaults
+  /// to what the ride records (trainer or strap), else any connected strap;
+  /// tests swap it.
+  @visibleForTesting
+  int? Function() heartRateProvider = _currentHeartRate;
+
+  static int? _currentHeartRate() {
+    final fromRide = core.rideSource()?.heartRateBpm.value;
+    if (fromRide != null && fromRide > 0) return fromRide;
+    final now = DateTime.now();
+    final sources = core.sensors.sources.where((s) => s.provides.contains(SensorQuantity.heartRate)).toList();
+    final chosen = core.sensors.selectionFor(SensorQuantity.heartRate);
+    sources.sort((a, b) => (a.id == chosen ? 0 : 1) - (b.id == chosen ? 0 : 1));
+    for (final source in sources) {
+      final reading = source.readingFor(SensorQuantity.heartRate).value;
+      if (reading != null && reading.value > 0 && now.difference(reading.timestamp) <= source.ttl) {
+        return reading.value;
+      }
+    }
+    return null;
+  }
+
+  Timer? _followTimer;
+  double? _smoothed;
+  bool _ticking = false;
 
   /// Speeds are written in 5% steps, and only once they move this far, so the
   /// fan doesn't hunt with every pedal stroke.
-  static const _powerSpeedStep = 5;
-  static const _powerSpeedHysteresis = 10;
+  static const speedStep = 5;
+  static const speedHysteresis = 10;
 
   /// Weight of the newest sample in the moving average (1 Hz ticks: ~5 s).
-  static const _powerSmoothing = 0.3;
+  static const _smoothing = 0.3;
 
-  /// The fan speed (0–100, in 5% steps) for [watts] with [fullPower] at 100%.
+  /// The fan speed (0–100, in [speedStep] steps) for [value] on a ramp that
+  /// is off up to [start] and full from [full].
   @visibleForTesting
-  static int speedForPower(double watts, int fullPower) {
-    final fraction = (watts / fullPower).clamp(0.0, 1.0);
-    return ((fraction * 100) / _powerSpeedStep).round() * _powerSpeedStep;
+  static int speedForRamp(double value, int start, int full) {
+    if (full <= start) return value >= full ? 100 : 0;
+    final fraction = ((value - start) / (full - start)).clamp(0.0, 1.0);
+    return ((fraction * 100) / speedStep).round() * speedStep;
+  }
+
+  /// The fan speed for [watts] with [fullPower] at 100%, ramping from 0 W.
+  @visibleForTesting
+  static int speedForPower(double watts, int fullPower) => speedForRamp(watts, 0, fullPower);
+
+  /// The speed the current ramp asks for at [value].
+  int speedFor(double value) => switch (follow.value) {
+    HeadwindFollow.power => speedForRamp(value, startPowerWatts.value, fullPowerWatts.value),
+    HeadwindFollow.heartRate => speedForRamp(value, startHeartRate.value, fullHeartRate.value),
+    HeadwindFollow.none => _currentSpeed,
+  };
+
+  /// Starts following [source] (or stops, for [HeadwindFollow.none]) and
+  /// remembers the choice.
+  Future<void> setFollow(HeadwindFollow source) async {
+    final changed = follow.value != source;
+    follow.value = source;
+    if (core.settings.isInitialized) await core.settings.setHeadwindFollow(source.name);
+    if (source == HeadwindFollow.none) {
+      _stopFollow();
+    } else if (changed || _followTimer == null) {
+      _startFollow();
+    }
   }
 
   /// Starts or stops following the power, and remembers the choice.
-  Future<void> setFollowPower(bool follow) async {
-    followsPower.value = follow;
-    if (core.settings.isInitialized) await core.settings.setHeadwindFollowPower(follow);
-    if (follow) {
-      _startPowerFollow();
-    } else {
-      _stopPowerFollow();
-    }
+  Future<void> setFollowPower(bool on) => setFollow(on ? HeadwindFollow.power : HeadwindFollow.none);
+
+  /// Starts or stops following the heart rate, and remembers the choice.
+  Future<void> setFollowHeartRate(bool on) => setFollow(on ? HeadwindFollow.heartRate : HeadwindFollow.none);
+
+  Future<void> setStartPowerWatts(int watts) async {
+    startPowerWatts.value = watts.clamp(minStartPowerWatts, fullPowerWatts.value - minPowerRampWatts);
+    if (core.settings.isInitialized) await core.settings.setHeadwindStartPowerWatts(startPowerWatts.value);
+    if (followsPower) await followTick(force: true);
   }
 
   Future<void> setFullPowerWatts(int watts) async {
-    fullPowerWatts.value = watts.clamp(minFullPowerWatts, maxFullPowerWatts);
+    fullPowerWatts.value = watts.clamp(
+      math.max(minFullPowerWatts, startPowerWatts.value + minPowerRampWatts),
+      maxFullPowerWatts,
+    );
     if (core.settings.isInitialized) await core.settings.setHeadwindFullPowerWatts(fullPowerWatts.value);
-    if (followsPower.value) await powerTick(force: true);
+    if (followsPower) await followTick(force: true);
   }
 
-  void _startPowerFollow() {
-    _smoothedPower = null;
-    _powerTimer ??= Timer.periodic(const Duration(seconds: 1), (_) => powerTick());
-    unawaited(powerTick());
+  Future<void> setStartHeartRate(int bpm) async {
+    startHeartRate.value = bpm.clamp(minStartHeartRate, fullHeartRate.value - minHeartRateRamp);
+    if (core.settings.isInitialized) await core.settings.setHeadwindStartHeartRate(startHeartRate.value);
+    if (followsHeartRate) await followTick(force: true);
   }
 
-  void _stopPowerFollow() {
-    _powerTimer?.cancel();
-    _powerTimer = null;
-    _smoothedPower = null;
+  Future<void> setFullHeartRate(int bpm) async {
+    fullHeartRate.value = bpm.clamp(
+      math.max(minFullHeartRate, startHeartRate.value + minHeartRateRamp),
+      maxFullHeartRate,
+    );
+    if (core.settings.isInitialized) await core.settings.setHeadwindFullHeartRate(fullHeartRate.value);
+    if (followsHeartRate) await followTick(force: true);
   }
 
-  /// One step of power following: smooth the power and, when the speed it
-  /// asks for differs enough from the fan's, set it. No power, no change.
+  void _startFollow() {
+    _smoothed = null;
+    followInput.value = null;
+    _followTimer ??= Timer.periodic(const Duration(seconds: 1), (_) => followTick());
+    unawaited(followTick());
+  }
+
+  void _stopFollow() {
+    _followTimer?.cancel();
+    _followTimer = null;
+    _smoothed = null;
+    followInput.value = null;
+  }
+
+  /// One step of following: smooth the input and, when the speed it asks for
+  /// differs enough from the fan's, set it. No reading, no change.
   @visibleForTesting
-  Future<void> powerTick({bool force = false}) async {
-    if (!followsPower.value || _powerTicking) return;
-    final watts = powerProvider();
-    if (watts == null) return;
-    _powerTicking = true;
+  Future<void> followTick({bool force = false}) async {
+    final source = follow.value;
+    if (source == HeadwindFollow.none || _ticking) return;
+    final value = source == HeadwindFollow.power ? powerProvider() : heartRateProvider();
+    if (value == null) {
+      followInput.value = null;
+      return;
+    }
+    _ticking = true;
     try {
-      final previous = _smoothedPower;
-      final smoothed = previous == null ? watts.toDouble() : previous + _powerSmoothing * (watts - previous);
-      _smoothedPower = smoothed;
-      final target = speedForPower(smoothed, fullPowerWatts.value);
+      final previous = _smoothed;
+      final smoothed = previous == null ? value.toDouble() : previous + _smoothing * (value - previous);
+      _smoothed = smoothed;
+      followInput.value = smoothed.round();
+      final target = speedFor(smoothed);
       final current = _currentSpeed;
       final atEnd = (target == 0 || target == 100) && target != current;
-      if (force || _currentMode != HeadwindMode.manual || atEnd || (target - current).abs() >= _powerSpeedHysteresis) {
+      if (force || _currentMode != HeadwindMode.manual || atEnd || (target - current).abs() >= speedHysteresis) {
         if (target != current || _currentMode != HeadwindMode.manual) await _writeManualSpeed(target);
       }
     } catch (e, s) {
-      recordError(e, s, context: 'Headwind power follow');
+      recordError(e, s, context: 'Headwind follow ${source.name}');
     } finally {
-      _powerTicking = false;
+      _ticking = false;
     }
   }
+
+  /// Kept for the power tests: one tick of following.
+  @visibleForTesting
+  Future<void> powerTick({bool force = false}) => followTick(force: force);
 
   /// Captures writes in tests instead of sending them over BLE.
   @visibleForTesting
@@ -160,19 +272,23 @@ class WahooKickrHeadwind extends BluetoothDevice with Accessory {
     // Subscribe to notifications for status updates
     await UniversalBle.subscribeNotifications(device.deviceId, service.uuid, characteristic.uuid);
 
-    // Pick up where the rider left off: following the power, at their scale.
+    // Pick up where the rider left off: what the fan follows, at their ramps.
     if (core.settings.isInitialized) {
+      startPowerWatts.value = core.settings.getHeadwindStartPowerWatts();
       fullPowerWatts.value = core.settings.getHeadwindFullPowerWatts();
-      if (core.settings.getHeadwindFollowPower()) {
-        followsPower.value = true;
-        _startPowerFollow();
+      startHeartRate.value = core.settings.getHeadwindStartHeartRate();
+      fullHeartRate.value = core.settings.getHeadwindFullHeartRate();
+      final saved = HeadwindFollow.values.asNameMap()[core.settings.getHeadwindFollow()] ?? HeadwindFollow.none;
+      if (saved != HeadwindFollow.none) {
+        follow.value = saved;
+        _startFollow();
       }
     }
   }
 
   @override
   Future<void> disconnect() async {
-    _stopPowerFollow();
+    _stopFollow();
     await super.disconnect();
   }
 
@@ -202,13 +318,13 @@ class WahooKickrHeadwind extends BluetoothDevice with Accessory {
     return Future.value();
   }
 
-  /// Sets the fan to [speedPercent] by hand, which ends power following.
+  /// Sets the fan to [speedPercent] by hand, which ends following.
   Future<void> setSpeed(int speedPercent) async {
     // The fan takes 0–100%; the 25% steps are only what the page offers.
     if (speedPercent < 0 || speedPercent > 100) {
       throw ArgumentError('Speed must be between 0 and 100, got $speedPercent');
     }
-    if (followsPower.value) await setFollowPower(false);
+    if (follow.value != HeadwindFollow.none) await setFollow(HeadwindFollow.none);
     await _writeManualSpeed(speedPercent);
   }
 
@@ -228,8 +344,11 @@ class WahooKickrHeadwind extends BluetoothDevice with Accessory {
     _currentSpeed = speedPercent;
   }
 
+  /// Hands the fan to its own heart-rate mode, which uses the strap and the
+  /// zones set up in the Wahoo app. The page uses [setFollowHeartRate]
+  /// instead, whose ramp the rider can see and adjust.
   Future<void> setHeartRateMode() async {
-    if (followsPower.value) await setFollowPower(false);
+    if (follow.value != HeadwindFollow.none) await setFollow(HeadwindFollow.none);
     // Command format: [0x04, 0x02] for HR mode
     await _write(Uint8List.fromList([0x04, 0x02]));
     _currentMode = HeadwindMode.heartRate;
@@ -279,7 +398,7 @@ class WahooKickrHeadwind extends BluetoothDevice with Accessory {
           button: keyPair.buttons.firstOrNull,
         );
       } else if (keyPair.inGameAction == InGameAction.headwindHeartRateMode) {
-        await setHeartRateMode();
+        await setFollowHeartRate(true);
         return Success(
           'Headwind set to Heart Rate mode',
           button: keyPair.buttons.firstOrNull,
@@ -305,6 +424,9 @@ class WahooKickrHeadwindConstants {
   static const String SERVICE_UUID = "A026EE0C-0A7D-4AB3-97FA-F1500F9FEB8B";
   static const String CHARACTERISTIC_UUID = "A026E038-0A7D-4AB3-97FA-F1500F9FEB8B";
 }
+
+/// What BikeControl drives the fan's speed from.
+enum HeadwindFollow { none, power, heartRate }
 
 enum HeadwindMode {
   unknown,

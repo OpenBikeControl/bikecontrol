@@ -13,7 +13,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 Listenable accessoryReadoutListenable(BluetoothDevice device) => Listenable.merge([
   if (device is ManualInclineDevice) ...[device.inclineApplied, device.inclineReported],
   if (device is EliteRizer) device.steeringAngle,
-  if (device is WahooKickrHeadwind) ...[device.mode, device.speed, device.followsPower],
+  if (device is WahooKickrHeadwind) ...[device.mode, device.speed, device.follow],
 ]);
 
 /// "← 12°" (left), "12° →" (right) or "0°" for a gauge angle, where positive
@@ -33,9 +33,10 @@ String? accessoryReadout(BuildContext context, BluetoothDevice device) {
     if (device is ManualInclineDevice && device.inclineShown != null)
       l.inclineRideReadout(formatIncline001(device.inclineShown)),
     if (device is EliteRizer) l.accessorySteeringReadout(formatSteeringAngle(device.steeringAngle.value)),
-    if (device is WahooKickrHeadwind && (device.mode.value != HeadwindMode.unknown || device.followsPower.value))
+    if (device is WahooKickrHeadwind &&
+        (device.mode.value != HeadwindMode.unknown || device.follow.value != HeadwindFollow.none))
       l.accessoryFanReadout(
-        headwindStateText(context, device.mode.value, device.speed.value, followsPower: device.followsPower.value),
+        headwindStateText(context, device.mode.value, device.speed.value, follow: device.follow.value),
       ),
   ];
   return parts.isEmpty ? null : parts.join(' · ');
