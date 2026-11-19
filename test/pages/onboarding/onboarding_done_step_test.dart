@@ -404,6 +404,13 @@ Future<void> main() async {
       expect(find.text(l.onboardingGuideGeneric2), findsNothing, reason: 'the bridge entry is the pairing');
       expect(find.text(l.onboardingGuidePairTrainer('BikeControl 1EB7')), findsNothing);
       expect(find.text('3'), findsNothing);
+      // Zwift's own screens, under the step they show.
+      for (final shot in zwiftBridgeScreenshots) {
+        expect(
+          find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == shot),
+          findsOneWidget,
+        );
+      }
     });
 
     testWidgets("Zwift's pick-the-trainer card lists Controls too", (tester) async {

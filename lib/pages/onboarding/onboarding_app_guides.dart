@@ -18,12 +18,20 @@ class OnboardingAppGuide {
 
   final List<String> steps;
 
-  /// Screenshot URL by the index of the step it shows.
-  final Map<int, String> screenshots;
+  /// Screenshots by the index of the step they show: a URL, or an asset path
+  /// for the ones bundled with the app.
+  final Map<int, List<String>> screenshots;
   final String? guideUrl;
 }
 
 const String _shots = 'https://bikecontrol.app/images/';
+
+/// Zwift's pairing list with the bridge in it, and its paired devices with
+/// the bridge in every slot. Bundled: the website has no Zwift bridge guide.
+const List<String> zwiftBridgeScreenshots = [
+  'assets/guides/zwift-pair-device.jpg',
+  'assets/guides/zwift-paired-devices.jpg',
+];
 
 OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
   final l = context.i18n;
@@ -31,8 +39,8 @@ OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideMyWhoosh1, l.onboardingGuideMyWhoosh2, l.onboardingGuideMyWhoosh3],
       screenshots: {
-        1: '$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
-        2: '$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
+        1: ['$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg'],
+        2: ['$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg'],
       },
       guideUrl: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership/',
     );
@@ -40,7 +48,9 @@ OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
   if (app is Rouvy) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideRouvy1, l.onboardingGuideRouvy2],
-      screenshots: {1: '$_shots' 'blog_rouvy_screenshot.jpg'},
+      screenshots: {
+        1: ['$_shots' 'blog_rouvy_screenshot.jpg'],
+      },
       guideUrl: 'https://bikecontrol.app/blog/rouvy-bikecontrol-integration/',
     );
   }
@@ -91,13 +101,16 @@ class OnboardingAppGuideCard extends StatelessWidget {
     final guideUrl = guide.guideUrl;
     final trainer = trainerName;
     final bridge = bridgeName ?? '${trainer ?? ''} - BikeControl';
+    final zwiftBridge = trainer != null && app is Zwift;
     final steps = switch (trainer) {
       null => guide.steps,
       // Zwift takes the controller from the bridge too: one entry for every
       // slot, Controls included, replaces "pair with BikeControl".
-      _ when app is Zwift => [context.i18n.onboardingGuideGeneric1(app.name), context.i18n.onboardingGuideZwiftBridge(bridge)],
+      _ when zwiftBridge => [context.i18n.onboardingGuideGeneric1(app.name), context.i18n.onboardingGuideZwiftBridge(bridge)],
       _ => [...guide.steps, context.i18n.onboardingGuidePairTrainer(bridge)],
     };
+    // The bridge in Zwift's pairing list, then every slot on it.
+    final screenshots = zwiftBridge ? const {1: zwiftBridgeScreenshots} : guide.screenshots;
 
     return Container(
       width: double.infinity,
@@ -143,14 +156,23 @@ class OnboardingAppGuideCard extends StatelessWidget {
                           ],
                           // Right under the step it shows, not in a strip
                           // after all of them.
-                          if (guide.screenshots[i] case final url?) ...[
+                          if (screenshots[i] case final shots? when shots.isNotEmpty) ...[
                             const Gap(8),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxHeight: 150, maxWidth: 320),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(url, errorBuilder: (_, _, _) => const SizedBox.shrink()),
-                              ),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (final shot in shots)
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxHeight: 150, maxWidth: 320),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: shot.startsWith('http')
+                                          ? Image.network(shot, errorBuilder: (_, _, _) => const SizedBox.shrink())
+                                          : Image.asset(shot, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ],
                         ],
