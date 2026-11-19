@@ -123,21 +123,19 @@ Widget onboardingHelpSheetBody(
       // and Zwift/Rouvy mDNS fail to be discovered in exactly the same ways,
       // and a rider on one of those was previously offered nothing.
       if (core.logic.hasNetworkMethodEnabled)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: BkTouchTarget(
-            child: Button.outline(
-              alignment: Alignment.center,
-              onPressed: () {
-                // Dismiss the sheet first, as _openSupportChat does — the page
-                // must not open underneath a still-visible sheet. Synchronous,
-                // so `context` is still mounted for the push.
-                onClose();
-                context.push(const NetworkTroubleshootingPage());
-              },
-              child: Text(context.i18n.networkTroubleshootingTitle),
-            ),
-          ),
+        _channel(
+          context,
+          icon: LucideIcons.radioTower,
+          title: context.i18n.networkTroubleshootingTitle,
+          // An in-app page, like the support chat.
+          external: false,
+          onTap: () {
+            // Dismiss the sheet first, as _openSupportChat does — the page
+            // must not open underneath a still-visible sheet. Synchronous,
+            // so `context` is still mounted for the push.
+            onClose();
+            context.push(const NetworkTroubleshootingPage());
+          },
         ),
       _channel(
         context,

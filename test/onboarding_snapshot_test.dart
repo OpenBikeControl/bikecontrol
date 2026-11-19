@@ -22,6 +22,7 @@ import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/keymap/keymap.dart' show ButtonTrigger;
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -71,6 +72,19 @@ Future<void> main() async {
 
   testWidgets('help sheet', (tester) async {
     await captureWidget(tester, name: 'onboarding_help_sheet', width: 380,
+        builder: (c) => sheet(onboardingHelpSheetBody(c, topic: OnboardingHelpTopic.controller, onClose: () {})));
+  });
+
+  testWidgets('help sheet with a network method on', (tester) async {
+    final was = core.settings.getObpMdnsEnabled();
+    final app = core.settings.getTrainerApp();
+    core.settings.setTrainerApp(MyWhoosh());
+    await core.settings.setObpMdnsEnabled(true);
+    addTearDown(() async {
+      await core.settings.setObpMdnsEnabled(was);
+      if (app != null) core.settings.setTrainerApp(app);
+    });
+    await captureWidget(tester, name: 'onboarding_help_sheet_network', width: 390, locales: const ['de'],
         builder: (c) => sheet(onboardingHelpSheetBody(c, topic: OnboardingHelpTopic.controller, onClose: () {})));
   });
 
