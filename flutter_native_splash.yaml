@@ -1,0 +1,23 @@
+# Native launch screen: the app's own background with the brand mark's disc,
+# 128 dp/pt in the centre, light and dark. The Flutter startup splash
+# (lib/main.dart, _LaunchMark) draws the same disc at the same place, so the
+# hand-off to the first frame doesn't move. The PNGs are BkBrandMark rendered
+# at 4x; re-render them if the mark changes.
+# Regenerate: dart run flutter_native_splash:create
+flutter_native_splash:
+  # BkTheme's background, light and dark.
+  color: "#F2F2F7"
+  color_dark: "#101318"
+  image: assets/splash/splash.png
+  image_dark: assets/splash/splash.png
+
+  android_12:
+    # 1152 px canvas, masked to its inner 768 px circle; the disc is 512 px.
+    image: assets/splash/splash_android12.png
+    image_dark: assets/splash/splash_android12.png
+    color: "#F2F2F7"
+    color_dark: "#101318"
+
+  android: true
+  ios: true
+  web: false

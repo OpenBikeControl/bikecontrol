@@ -23,6 +23,7 @@ import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as m;
+import 'package:bike_control/widgets/ui/launch_mark.dart';
 import 'package:multi_window_native/multi_window_native.dart';
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/utils/shared.dart' show Logger;
@@ -223,6 +224,13 @@ Future<void> main(List<String> args) async {
       // BikeControlApp paints its themed shell from the first frame, shows a
       // splash while it initialises, then swaps in the real content in-place —
       // one app root throughout, so no black flash between splash and app.
+      // The native launch screen stays up until Flutter's first frame, and
+      // the splash below draws the same mark. Hold that frame until the mark
+      // is decoded (at most 300 ms), so no frame goes by without it.
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        final binding = WidgetsBinding.instance..deferFirstFrame();
+        unawaited(LaunchMark.precache().whenComplete(binding.allowFirstFrame));
+      }
       runApp(const BikeControlApp());
     },
     (Object error, StackTrace stack) {
@@ -858,11 +866,7 @@ class _BikeControlAppState extends State<BikeControlApp> {
         key: const ValueKey('startup-splash'),
         color: background,
         alignment: Alignment.center,
-        child: const SizedBox(
-          width: 30,
-          height: 30,
-          child: m.CircularProgressIndicator(strokeWidth: 2.4, color: BKColor.main),
-        ),
+        child: const LaunchMark(),
       );
     }
 

@@ -131,6 +131,7 @@ dev_dependencies:
   # without being declared.
   yet_another_json_isolate: ^2.1.0
   video_player_platform_interface: ^6.9.0
+  flutter_native_splash: ^2.4.8
 
 dependency_overrides:
   # 3.1.0 + Windows fixes: closes failed connect attempts (a rebooting Click V2 froze
@@ -183,6 +184,7 @@ flutter:
     - INSTRUCTIONS_LOCAL.md
     - shorebird.yaml
     - assets/silence.mp3
+    - assets/splash/splash.png
     - assets/guides/
     - assets/sounds/shift_up.wav
     - assets/sounds/shift_down.wav
