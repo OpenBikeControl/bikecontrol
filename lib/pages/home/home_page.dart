@@ -1558,7 +1558,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final bridge = core.bridgeUsageTracker;
     return TrialCardState(
       daysRemaining: iap.trialDaysRemaining,
-      daysTotal: _trialDaysTotal,
+      daysTotal: trialDaysTotal(iap.trialDaysRemaining),
       expired: iap.isTrialExpired,
       commandsRemaining: iap.commandsRemainingToday,
       commandsTotal: IAPManager.dailyCommandLimit,
@@ -1567,15 +1567,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       commandsAfterTrial: IAPManager.freeDailyCommandLimit,
     );
   }
-
-  /// The trial's full length, inferred from the largest remaining count we have
-  /// seen, so the meter never shows a value above its own ceiling.
-  int get _trialDaysTotal {
-    final remaining = IAPManager.instance.trialDaysRemaining;
-    return remaining > _knownTrialDays ? remaining : _knownTrialDays;
-  }
-
-  static const int _knownTrialDays = 5;
 
   // ── Devices rows ──────────────────────────────────────────────────────
 
