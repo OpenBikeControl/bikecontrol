@@ -5,8 +5,8 @@ Neu:
 • Klarerer Tasten-Editor, nach Aktionen gruppiert
 • Di2: D-Fly-Kanäle selbst in E-TUBE einstellen, mit Anleitung
 • Zwift Click V2: rechten Controller ohne Entsperren nutzen
-• Mehr zum Testen: 120 Drücke/Tag in der Testphase, danach 40, 30 Min. virtuelles Schalten, mit Vorwarnung
+• Mehr zum Testen: 120 Drücke/Tag, danach 40, 30 Min. virtuelles Schalten
 
 Behoben:
-• Kein Absturz beim Neustart des Hintergrunddiensts
-• „Schließen & beenden“ beendet immer
+• Zwift: Ride-On-Bombe auch bei kurzem Druck
+• Android: kein Absturz beim Dienst-Neustart, „Schließen & beenden“ beendet immer

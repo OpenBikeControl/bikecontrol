@@ -12,6 +12,7 @@
 - Elite Rizer：坡度模拟现在适用于任何智能骑行台。
 
 **Fixes**:
+- Zwift：短按也能发出 Ride On 炸弹（Zwift 需要按住按键片刻）。
 - Elite 骑行台不再重复显示（WiFi 和蓝牙）。
 - Windows：BikeControl 关闭时不再崩溃，也不会因网络、通知或蓝牙错误而崩溃。
 - Android：Android 重启后台服务时不再崩溃，“关闭并退出”总能退出应用。

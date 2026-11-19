@@ -12,6 +12,7 @@
 - Elite Rizer: la inclinación ahora funciona con cualquier rodillo inteligente.
 
 **Fixes**:
+- Zwift: la Bomba Ride On se lanza también con una pulsación corta (Zwift necesita el botón pulsado un momento).
 - Los rodillos Elite ya no aparecen dos veces (WiFi y Bluetooth).
 - Windows: BikeControl ya no se cierra inesperadamente al salir ni por errores de red, notificaciones o Bluetooth.
 - Android: ya no se cierra cuando Android reinicia el servicio en segundo plano, y «Cerrar y salir» siempre sale.

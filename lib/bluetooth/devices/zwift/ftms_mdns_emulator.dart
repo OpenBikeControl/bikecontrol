@@ -23,6 +23,8 @@ class FtmsMdnsEmulator extends TrainerConnection {
 
   var lastMessageId = 0;
 
+  final _releaseDelay = RideReleaseDelay();
+
   late final ZwiftEmulatorDefinition def = ZwiftEmulatorDefinition(
     device: BleDevice(deviceId: 'deviceId', name: 'name'),
     asRide: () => RideControllerPress.emulatesRide,
@@ -144,6 +146,7 @@ class FtmsMdnsEmulator extends TrainerConnection {
     }
 
     if (isKeyDown) {
+      _releaseDelay.down(action!, press);
       ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
         Opcode.CONTROLLER_NOTIFICATION.value,
         ...press.pressed,
@@ -151,10 +154,11 @@ class FtmsMdnsEmulator extends TrainerConnection {
     }
 
     if (isKeyUp) {
-      ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
+      void release() => ftmsEmulator.composite.sendCharacteristicNotification(_controllerCharacteristicUuid, [
         Opcode.CONTROLLER_NOTIFICATION.value,
         ...press.released,
       ]);
+      if (!_releaseDelay.deferRelease(action!, release)) release();
     }
     if (kDebugMode) {
       print('Sent action up $isKeyUp vs down $isKeyDown ${keyPair.inGameAction!.title} to Zwift Emulator');

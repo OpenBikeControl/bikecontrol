@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ftms_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
@@ -363,6 +364,89 @@ void main() {
       await ZwiftEmulator().sendAction(_pair(InGameAction.navigateLeft), isKeyDown: true, isKeyUp: false);
 
       expect(_buttonMapOf(channel.notifications.single, hasOpcode: true), _released(RideButtonMask.LEFT_BTN));
+    });
+
+    // Zwift fires the Ride On Bomb only when Z is held for 750 ms; a tap just
+    // shows it. A short press must still keep Z down long enough.
+    group('Ride On Bomb', () {
+      final zDown = _released(RideButtonMask.Z_BTN);
+      const nothing = 0xFFFFFFFF;
+
+      test('a tap keeps Z down long enough over the network', () {
+        fakeAsync((async) {
+          final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+          final emulator = FtmsMdnsEmulator();
+
+          emulator.sendAction(_pair(InGameAction.rideOnBomb), isKeyDown: true, isKeyUp: true);
+          async.flushMicrotasks();
+          expect(transporter.notifications.map((f) => _buttonMapOf(f, hasOpcode: true)), [zDown]);
+
+          async.elapse(const Duration(milliseconds: 800));
+          expect(transporter.notifications.map((f) => _buttonMapOf(f, hasOpcode: true)), [zDown]);
+
+          async.elapse(const Duration(milliseconds: 300));
+          expect(transporter.notifications.map((f) => _buttonMapOf(f, hasOpcode: true)), [zDown, nothing]);
+          transporter.dispose();
+        });
+      });
+
+      test('a press released right away keeps Z down over Bluetooth', () {
+        fakeAsync((async) {
+          final channel = _RecordingPeripheralChannel()..install();
+          final emulator = ZwiftEmulator();
+
+          emulator.sendAction(_pair(InGameAction.rideOnBomb), isKeyDown: true, isKeyUp: false);
+          async.flushMicrotasks();
+          emulator.sendAction(_pair(InGameAction.rideOnBomb), isKeyDown: false, isKeyUp: true);
+          async.flushMicrotasks();
+          expect(channel.notifications.map((f) => _buttonMapOf(f, hasOpcode: true)), [zDown]);
+
+          async.elapse(const Duration(milliseconds: 1100));
+          async.flushMicrotasks();
+          expect(channel.notifications.map((f) => _buttonMapOf(f, hasOpcode: true)), [zDown, nothing]);
+          channel.remove();
+        });
+      });
+
+      test('a long hold is released when the button is', () {
+        fakeAsync((async) {
+          final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+          final emulator = FtmsMdnsEmulator();
+
+          emulator.sendAction(_pair(InGameAction.rideOnBomb), isKeyDown: true, isKeyUp: false);
+          async.elapse(const Duration(seconds: 3));
+          emulator.sendAction(_pair(InGameAction.rideOnBomb), isKeyDown: false, isKeyUp: true);
+          async.flushMicrotasks();
+
+          expect(transporter.notifications.map((f) => _buttonMapOf(f, hasOpcode: true)), [zDown, nothing]);
+          transporter.dispose();
+        });
+      });
+
+      test('other taps are released right away', () {
+        fakeAsync((async) {
+          final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+
+          FtmsMdnsEmulator().sendAction(_pair(InGameAction.usePowerUp), isKeyDown: true, isKeyUp: true);
+          async.flushMicrotasks();
+
+          expect(transporter.notifications, hasLength(2));
+          transporter.dispose();
+        });
+      });
+
+      test('apps without a Ride release Z right away', () {
+        fakeAsync((async) {
+          core.settings.setTrainerApp(Rouvy());
+          final transporter = _RecordingTransporter(definition: ftmsEmulator.composite);
+
+          FtmsMdnsEmulator().sendAction(_pair(InGameAction.rideOnBomb), isKeyDown: true, isKeyUp: true);
+          async.flushMicrotasks();
+
+          expect(transporter.notifications, hasLength(2));
+          transporter.dispose();
+        });
+      });
     });
 
     test('Navigate is a Zwift action', () {

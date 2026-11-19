@@ -12,6 +12,7 @@
 - Elite Rizer: incline now works with any smart trainer.
 
 **Fixes**:
+- Zwift: Ride On Bomb fires on a short press too (Zwift needs the button held for a moment).
 - Elite trainers no longer show up twice (WiFi and Bluetooth).
 - Windows: BikeControl no longer crashes when it closes, or on network, notification and Bluetooth errors.
 - Android: no more crash when Android restarts the background service, and Close & quit always quits.

@@ -12,6 +12,7 @@
 - Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
 
 **Fixes**:
+- Zwift: Bomba Ride On odpala się też po krótkim naciśnięciu (Zwift wymaga chwilowego przytrzymania przycisku).
 - Trenażery Elite nie pojawiają się już podwójnie (WiFi i Bluetooth).
 - Windows: BikeControl nie zawiesza się już przy zamykaniu ani przy błędach sieci, powiadomień czy Bluetooth.
 - Android: koniec z awarią, gdy Android restartuje usługę w tle, a „Zamknij i wyjdź” zawsze zamyka aplikację.

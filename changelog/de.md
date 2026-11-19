@@ -12,6 +12,7 @@
 - Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
 
 **Fixes**:
+- Zwift: Die Ride-On-Bombe zündet jetzt auch bei kurzem Druck (Zwift braucht die Taste einen Moment lang gedrückt).
 - Elite-Trainer tauchen nicht mehr doppelt auf (WLAN und Bluetooth).
 - Windows: BikeControl stürzt nicht mehr beim Schließen ab, und auch nicht bei Netzwerk-, Benachrichtigungs- oder Bluetooth-Fehlern.
 - Android: kein Absturz mehr, wenn Android den Hintergrunddienst neu startet, und „Schließen & beenden“ beendet die App immer.

@@ -12,6 +12,7 @@
 - Elite Rizer: l'inclinazione ora funziona con qualsiasi rullo smart.
 
 **Fixes**:
+- Zwift: la Bomba Ride On parte anche con una pressione breve (Zwift vuole il pulsante tenuto premuto per un attimo).
 - I rulli Elite non compaiono più due volte (WiFi e Bluetooth).
 - Windows: BikeControl non va più in crash alla chiusura né per errori di rete, notifiche o Bluetooth.
 - Android: nessun crash quando Android riavvia il servizio in background, e «Chiudi ed esci» esce sempre.

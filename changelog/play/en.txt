@@ -5,8 +5,8 @@ New:
 • A clearer button editor, grouped by what actions do
 • Di2: set the D-Fly channels yourself in E-TUBE, with a guide
 • Zwift Click V2: use the right controller without unlocking
-• More to try: 120 presses a day in the trial, 40 after, 30 min of virtual shifting, with a heads-up
+• More to try: 120 presses/day in the trial, 40 after, 30 min of virtual shifting
 
 Fixed:
-• No crash when Android restarts the background service
-• Close & quit always quits
+• Zwift: Ride On Bomb works on a short press
+• Android: no crash on service restart, Close & quit always quits

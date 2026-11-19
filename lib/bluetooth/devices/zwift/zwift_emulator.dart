@@ -11,6 +11,7 @@ import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/bluetooth/peripheral_advertising_recovery.dart';
 import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/main.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
@@ -32,6 +33,7 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
   bool get isLoading => _isLoading;
 
   final _server = PeripheralServer();
+  final _releaseDelay = RideReleaseDelay();
   bool _isLoading = false;
   bool _isServiceAdded = false;
   bool _isSubscribedToEvents = false;
@@ -353,6 +355,7 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
     }
 
     if (isKeyDown) {
+      _releaseDelay.down(action!, press);
       final commandProto = Uint8List.fromList([
         Opcode.CONTROLLER_NOTIFICATION.value,
         ...press.pressed,
@@ -366,11 +369,18 @@ class ZwiftEmulator extends TrainerConnection with PeripheralAdvertisingRecovery
 
     if (isKeyUp) {
       final released = Uint8List.fromList([Opcode.CONTROLLER_NOTIFICATION.value, ...press.released]);
-      await _server.notify(
+      Future<void> release() => _server.notify(
         characteristicId: ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
         value: released,
         deviceId: _currentDeviceId,
       );
+      final deferred = _releaseDelay.deferRelease(
+        action!,
+        () => unawaited(
+          release().catchError((Object e, StackTrace s) => recordError(e, s, context: 'Zwift Emulator - release')),
+        ),
+      );
+      if (!deferred) await release();
     }
 
     return Success(

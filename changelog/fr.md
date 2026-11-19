@@ -12,6 +12,7 @@
 - Elite Rizer : l'inclinaison fonctionne maintenant avec n'importe quel home trainer connecté.
 
 **Fixes**:
+- Zwift : la Bombe Ride On part aussi sur un appui court (Zwift a besoin que le bouton reste appuyé un instant).
 - Les home trainers Elite n'apparaissent plus en double (WiFi et Bluetooth).
 - Windows : BikeControl ne plante plus à la fermeture, ni sur des erreurs réseau, de notification ou Bluetooth.
 - Android : plus de plantage quand Android redémarre le service en arrière-plan, et « Fermer et quitter » quitte toujours.
