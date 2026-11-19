@@ -1,16 +1,12 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
-import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
-import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
-import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
-import 'package:bike_control/pages/onboarding/widgets/onboarding_group_label.dart';
 import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
-import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 
@@ -178,16 +174,9 @@ class _MethodTile extends StatelessWidget {
 }
 
 
-Widget onboardingConnectionBody(
-  BuildContext context, {
-  required SupportedApp app,
-  required Target target,
-  required bool hasTrainer,
-  required String? trainerName,
-  String? bridgeName,
-  required VoidCallback onUpdate,
-  Widget? networkStatus,
-}) {
+/// The connection methods [app] can use, as toggle tiles. Toggling writes the
+/// same settings the Trainer Connections tiles do (see onboarding_methods.dart).
+List<Widget> onboardingMethodTiles(BuildContext context, {required SupportedApp app, required VoidCallback onUpdate}) {
   Widget methodTile(OnboardingMethod method) {
     final enabled = onboardingMethodEnabled(method, app);
     final available = onboardingMethodAvailable(method);
@@ -237,39 +226,54 @@ Widget onboardingConnectionBody(
     };
   }
 
-  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
-    OnboardingHeadline(context.i18n.onboardingConnectionTitle(app.name)),
-    Gap(6),
-    // On iOS a same-device app is reached over the network, not driven
-    // directly — there is no Local method there.
-    Text(onboardingWhereUsesLocal(target)
-            ? context.i18n.onboardingConnectionSubtitleLocal(app.name)
-            // Apps that only find trainers over Bluetooth never see the network
-            // advertisement, so promising them one sends riders looking for it.
-            : app.virtualShiftingTransports.contains(TrainerConnectionType.wifi)
-                ? context.i18n.onboardingConnectionSubtitleNetwork(app.name)
-                : context.i18n.onboardingConnectionSubtitleBluetooth(app.name))
-        .small
-        .muted,
-    Gap(18),
+  return [
+    for (final method in OnboardingMethod.values)
+      if (onboardingMethodVisible(method, app))
+        Padding(padding: const EdgeInsets.only(bottom: 10), child: methodTile(method)),
+  ];
+}
+
+/// The ride step's connection methods, folded away behind their heading: the
+/// app step already turned on the right one. Unfolded while none is on —
+/// then picking one is the thing to do.
+class OnboardingMethodsDisclosure extends StatefulWidget {
+  const OnboardingMethodsDisclosure({super.key, required this.app, required this.onUpdate});
+
+  final SupportedApp app;
+  final VoidCallback onUpdate;
+
+  @override
+  State<OnboardingMethodsDisclosure> createState() => _OnboardingMethodsDisclosureState();
+}
+
+class _OnboardingMethodsDisclosureState extends State<OnboardingMethodsDisclosure> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tiles = onboardingMethodTiles(context, app: widget.app, onUpdate: widget.onUpdate);
     // An app with no controller integration at all (Tacx Training) offers no
-    // method on a second device — only the Bridge below. Drop the heading
-    // rather than leave it standing over nothing.
-    if (OnboardingMethod.values.any((m) => onboardingMethodVisible(m, app))) ...[
-      OnboardingGroupLabel(context.i18n.onboardingConnectionMethods),
-      for (final method in OnboardingMethod.values)
-        if (onboardingMethodVisible(method, app))
-          Padding(padding: const EdgeInsets.only(bottom: 10), child: methodTile(method)),
-    ],
-    // The background network check, while a network method is on.
-    ?networkStatus,
-    Gap(10),
-    OnboardingGroupLabel(context.i18n.onboardingThenInApp(app.name)),
-    OnboardingAppGuideCard(app: app),
-    if (hasTrainer) ...[
-      Gap(20),
-      OnboardingGroupLabel(context.i18n.onboardingPairAsTrainer),
-      OnboardingPairAsTrainerCard(app: app, trainerName: trainerName, bridgeName: bridgeName),
-    ],
-  ]));
+    // method — nothing to fold.
+    if (tiles.isEmpty) return const SizedBox.shrink();
+    final open = _open || core.logic.hasNoConnectionMethod;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Button.ghost(
+          key: const ValueKey('onboarding-methods-toggle'),
+          style: ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(vertical: 10)),
+          onPressed: () => setState(() => _open = !_open),
+          child: Row(
+            children: [
+              Icon(LucideIcons.settings2, size: 15, color: Theme.of(context).colorScheme.mutedForeground),
+              Gap(8),
+              Expanded(child: Text(context.i18n.onboardingConnectionMethods).small.semiBold),
+              Icon(open ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 15),
+            ],
+          ),
+        ),
+        if (open) ...[Gap(6), ...tiles],
+      ],
+    );
+  }
 }

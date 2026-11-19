@@ -1,6 +1,6 @@
-// Step 5 used to say nothing while a network method sat there not connecting.
-// The only route to the self-test was the wizard's help button, which nobody
-// presses while they still think it is working.
+// The connection method tiles used to say nothing while a network method sat
+// there not connecting. The only route to the self-test was the wizard's help
+// button, which nobody presses while they still think it is working.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
@@ -44,14 +44,7 @@ Future<void> main() async {
         home: Scaffold(
           child: SingleChildScrollView(
             child: Builder(
-              builder: (context) => onboardingConnectionBody(
-                context,
-                app: app,
-                target: Target.otherDevice,
-                hasTrainer: false,
-                trainerName: null,
-                onUpdate: () {},
-              ),
+              builder: (context) => Column(children: onboardingMethodTiles(context, app: app, onUpdate: () {})),
             ),
           ),
         ),

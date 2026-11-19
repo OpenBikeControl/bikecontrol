@@ -150,7 +150,7 @@ Future<void> main() async {
         build: (c) => Scaffold(
           child: onboardingShell(
             c,
-            step: OnboardingStep.controller,
+            step: OnboardingStep.gear,
             body: onboardingControllerBody(
               c,
               phase: ControllerPhase.list,
@@ -164,7 +164,7 @@ Future<void> main() async {
             onBack: () {},
             onHelp: () {},
             onSelectStep: (_) {},
-            stepValues: const {OnboardingStep.app: 'MyWhoosh', OnboardingStep.where: 'This device'},
+            stepValues: const {OnboardingStep.app: 'MyWhoosh · This Device'},
           ),
         ),
       );
@@ -179,7 +179,7 @@ Future<void> main() async {
         build: (c) => Scaffold(
           child: onboardingShell(
             c,
-            step: OnboardingStep.done,
+            step: OnboardingStep.ride,
             body: onboardingDoneBody(
               c,
               app: MyWhoosh(),

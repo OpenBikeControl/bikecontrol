@@ -3104,6 +3104,16 @@
   "vsBaseOverBody": "Deine Fahrt läuft weiter, bis sich deine Trainings-App trennt, und mit Base bleiben deine Tasten unbegrenzt. Um ohne jedes Limit zu schalten, koppel den Trainer direkt in deiner Trainings-App und schalte dort ihr eigenes virtuelles Schalten ein: BikeControl sendet deine Schalttasten weiter. Pro hebt das tägliche Limit für das virtuelle Schalten von BikeControl auf.",
   "vsBaseAlreadyOverBody": "Mit Base bleiben deine Tasten unbegrenzt. Um ohne jedes Limit zu schalten, koppel den Trainer direkt in deiner Trainings-App und schalte dort ihr eigenes virtuelles Schalten ein: BikeControl sendet deine Schalttasten weiter. Pro hebt das tägliche Limit für das virtuelle Schalten von BikeControl auf.",
   "vsBaseGuideAction": "Zeig mir, wie",
+  "onboardingStepGear": "Controller & Trainer",
+  "onboardingStepGearSub": "Verbinde deine Geräte",
+  "onboardingGearTitle": "Verbinde deine Geräte",
+  "onboardingGearSubtitle": "Drück eine Taste und tritt kurz in die Pedale, um deinen Trainer aufzuwecken.",
+  "onboardingRunsOn": "{app} läuft auf",
+  "onboardingTrainerWakeHint": "Tritt einmal in die Pedale, um ihn aufzuwecken.",
+  "onboardingTrainerVsByBikeControl": "Virtuelles Schalten durch BikeControl",
+  "onboardingConnectTrainer": "{trainer} verbinden",
+  "onboardingVsDailyWithoutPro": "Ohne Pro: {minutes} Min. virtuelles Schalten am Tag.",
+  "a11yScrollDown": "Nach unten scrollen",
   "headwindFan": "Ventilator",
   "headwindCurrent": "Aktuelle Einstellung",
   "headwindSetSpeed": "Lüfterstufe",
@@ -3125,5 +3135,8 @@
   "headwindNoHeartRate": "Noch keine Herzfrequenz in BikeControl. Verbinde einen Brustgurt auf der Geräte-Seite; bis dahin behält der Ventilator seine Stufe.",
   "headwindNoPower": "Noch keine Leistung. Der Ventilator behält seine Stufe, bis dein Trainer oder Powermeter Watt sendet.",
   "accessorySteeringReadout": "Lenkung {value}",
-  "accessoryFanReadout": "Ventilator {value}"
+  "accessoryFanReadout": "Ventilator {value}",
+  "onboardingGuidePairTrainer": "Koppel deinen Trainer: Wähle für Leistungsquelle, Widerstand und Trittfrequenz „{bridge}“",
+  "onboardingGuideZwiftBridge": "Wähle „{bridge}“ für Leistungsquelle, Widerstand, Trittfrequenz und Steuerung – dann bist du startklar",
+  "onboardingSlotControls": "Steuerung"
 }

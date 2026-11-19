@@ -1,3 +1,11 @@
+### 7.7.0 (18-11-2026)
+**Features**:
+- Une configuration plus courte : trois étapes au lieu de six. Choisis ton appli d'entraînement et où elle tourne, connecte ta commande et ton home trainer sur un seul écran, puis relie l'appli.
+- La configuration connecte désormais ton home trainer via BikeControl par défaut, et montre sur place ce que font les vitesses virtuelles de BikeControl.
+
+**Fixes**:
+- Zwift et Rouvy : le test réseau ne signale plus de problème quand la connexion réseau de BikeControl fonctionne.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain et Rampida sont désormais officiellement pris en charge via OpenBikeControl.

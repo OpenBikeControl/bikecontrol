@@ -202,6 +202,107 @@ Widget _contourCard(
   );
 }
 
+/// What to try when no controller turns up: wake it, free it from other
+/// apps, bring it closer, update its firmware.
+List<Widget> onboardingControllerTips(BuildContext context) => [
+        _infoRow(
+          context,
+          LucideIcons.power,
+          context.i18n.onboardingScanEmptyWakeTitle,
+          context.i18n.onboardingScanEmptyWakeSub,
+        ),
+        _infoRow(
+          context,
+          LucideIcons.unlink,
+          context.i18n.onboardingScanEmptyDisconnectTitle,
+          context.i18n.onboardingScanEmptyDisconnectSub,
+        ),
+        _infoRow(
+          context,
+          LucideIcons.ruler,
+          context.i18n.onboardingScanEmptyCloserTitle,
+          context.i18n.onboardingScanEmptyCloserSub,
+        ),
+        // Riders rarely know controller firmware is updated from the Zwift
+        // Companion app, so the tip links straight to it.
+        _infoRow(
+          context,
+          LucideIcons.refreshCw,
+          context.i18n.onboardingScanEmptyFirmwareTitle,
+          context.i18n.onboardingScanEmptyFirmwareSub,
+          linkLabel: context.i18n.zwiftCompanionApp,
+          onLink: () => launchUrlString(ZwiftConstants.ZWIFT_COMPANION_URL, mode: LaunchMode.externalApplication),
+        ),
+];
+
+/// A connected controller as one compact row: the picture of its buttons on
+/// the left (a press lights the button up), its name and status on the right,
+/// and what the last press did under them.
+Widget onboardingControllerCompactCard(
+  BuildContext context,
+  BaseDevice device, {
+  required Map<String, ControllerButton> pressedButtons,
+  required Map<String, int> pressGenerations,
+  ValueListenable<ControllerPress>? presses,
+  VoidCallback? onUpdate,
+}) {
+  final scheme = Theme.of(context).colorScheme;
+  final pressed = pressedButtons[device.uniqueId];
+  final generation = pressGenerations[device.uniqueId] ?? 0;
+  final keymap = core.actionHandler.supportedApp?.keymap;
+  final size = 34 / Theme.of(context).scaling;
+  return Container(
+    key: ValueKey('onboarding-controller-${device.uniqueId}'),
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
+    decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: scheme.card),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 120,
+          height: 96,
+          child: ControllerCanvas(
+            layout: device.controllerLayout!,
+            availableButtons: device.availableButtons,
+            buttonSize: size,
+            buttonBuilder: (btn) => AnimatedButtonWidget(
+              key: ValueKey(btn.name),
+              button: btn,
+              pressGeneration: pressed?.name == btn.name ? generation : 0,
+              keymap: keymap,
+              device: device,
+              size: size,
+              onUpdate: onUpdate ?? () {},
+            ),
+          ),
+        ),
+        Gap(12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(device.displayName(context), maxLines: 2, overflow: TextOverflow.ellipsis).small.semiBold,
+              Gap(2),
+              BkStatusDot(label: context.i18n.onboardingDeviceConnected),
+              Gap(6),
+              if (presses == null)
+                Text(context.i18n.onboardingControllerReadySubtitle).xSmall.muted
+              else
+                ValueListenableBuilder<ControllerPress>(
+                  valueListenable: presses,
+                  builder: (context, press, _) => press.button == null
+                      ? Text(context.i18n.onboardingControllerReadySubtitle).xSmall.muted
+                      : LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate ?? () {}),
+                ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 Widget onboardingControllerBody(
   BuildContext context, {
   required ControllerPhase phase,
@@ -283,34 +384,7 @@ Widget onboardingControllerBody(
           // that is on the ignore list.
           const IgnoredDevicesNearbyHint(padding: EdgeInsets.only(top: 12)),
           Gap(18),
-          _infoRow(
-            context,
-            LucideIcons.power,
-            context.i18n.onboardingScanEmptyWakeTitle,
-            context.i18n.onboardingScanEmptyWakeSub,
-          ),
-          _infoRow(
-            context,
-            LucideIcons.unlink,
-            context.i18n.onboardingScanEmptyDisconnectTitle,
-            context.i18n.onboardingScanEmptyDisconnectSub,
-          ),
-          _infoRow(
-            context,
-            LucideIcons.ruler,
-            context.i18n.onboardingScanEmptyCloserTitle,
-            context.i18n.onboardingScanEmptyCloserSub,
-          ),
-          // Riders rarely know controller firmware is updated from the Zwift
-          // Companion app, so the tip links straight to it.
-          _infoRow(
-            context,
-            LucideIcons.refreshCw,
-            context.i18n.onboardingScanEmptyFirmwareTitle,
-            context.i18n.onboardingScanEmptyFirmwareSub,
-            linkLabel: context.i18n.zwiftCompanionApp,
-            onLink: () => launchUrlString(ZwiftConstants.ZWIFT_COMPANION_URL, mode: LaunchMode.externalApplication),
-          ),
+          ...onboardingControllerTips(context),
           // The footer lets the rider move on without one — say what that
           // costs before they take it.
           Gap(6),

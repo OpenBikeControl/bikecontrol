@@ -3104,6 +3104,16 @@
   "vsBaseOverBody": "La tua uscita continua finché la tua app di allenamento non si disconnette, e con Base i tuoi pulsanti restano illimitati. Per cambiare senza alcun limite, associa il rullo direttamente nella tua app di allenamento e attiva il suo cambio virtuale: BikeControl continua a inviare i tuoi pulsanti di cambio. Pro rimuove il limite giornaliero del cambio virtuale di BikeControl.",
   "vsBaseAlreadyOverBody": "Con Base i tuoi pulsanti restano illimitati. Per cambiare senza alcun limite, associa il rullo direttamente nella tua app di allenamento e attiva il suo cambio virtuale: BikeControl continua a inviare i tuoi pulsanti di cambio. Pro rimuove il limite giornaliero del cambio virtuale di BikeControl.",
   "vsBaseGuideAction": "Mostrami come",
+  "onboardingStepGear": "Controller e rullo",
+  "onboardingStepGearSub": "Collega i tuoi dispositivi",
+  "onboardingGearTitle": "Collega i tuoi dispositivi",
+  "onboardingGearSubtitle": "Premi un pulsante, poi pedala per svegliare il rullo.",
+  "onboardingRunsOn": "{app} gira su",
+  "onboardingTrainerWakeHint": "Pedala una volta per svegliarlo.",
+  "onboardingTrainerVsByBikeControl": "Cambio virtuale di BikeControl",
+  "onboardingConnectTrainer": "Connetti {trainer}",
+  "onboardingVsDailyWithoutPro": "Senza Pro: {minutes} min di cambio virtuale al giorno.",
+  "a11yScrollDown": "Scorri verso il basso",
   "headwindFan": "Ventilatore",
   "headwindCurrent": "Impostazione attuale",
   "headwindSetSpeed": "Velocità del ventilatore",
@@ -3125,5 +3135,8 @@
   "headwindNoHeartRate": "Ancora nessuna frequenza cardiaca in BikeControl. Collega una fascia nella pagina Dispositivi; fino ad allora il ventilatore mantiene la sua velocità.",
   "headwindNoPower": "Ancora nessuna potenza. Il ventilatore mantiene la sua velocità finché il rullo o il misuratore di potenza non invia watt.",
   "accessorySteeringReadout": "Sterzo {value}",
-  "accessoryFanReadout": "Ventilatore {value}"
+  "accessoryFanReadout": "Ventilatore {value}",
+  "onboardingGuidePairTrainer": "Abbina il tuo rullo: per sorgente di potenza, resistenza e cadenza scegli «{bridge}»",
+  "onboardingGuideZwiftBridge": "Scegli «{bridge}» per sorgente di potenza, resistenza, cadenza e comandi, ed è fatta",
+  "onboardingSlotControls": "Comandi"
 }

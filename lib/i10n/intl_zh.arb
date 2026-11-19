@@ -4286,6 +4286,16 @@
   "vsBaseOverBody": "本次骑行会继续，直到训练应用断开连接；使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
   "vsBaseAlreadyOverBody": "使用 Base，你的按键始终不限次数。想要不受任何限制地变速，请在训练应用中直接配对骑行台并开启它自带的虚拟变速：BikeControl 会继续发送你的变速按键。Pro 可取消 BikeControl 虚拟变速的每日限制。",
   "vsBaseGuideAction": "教我怎么做",
+  "onboardingStepGear": "控制器和骑行台",
+  "onboardingStepGearSub": "连接你的设备",
+  "onboardingGearTitle": "连接你的设备",
+  "onboardingGearSubtitle": "按一个按键，然后踩踏板唤醒你的骑行台。",
+  "onboardingRunsOn": "{app} 运行在",
+  "onboardingTrainerWakeHint": "踩一下踏板唤醒它。",
+  "onboardingTrainerVsByBikeControl": "由 BikeControl 进行虚拟变速",
+  "onboardingConnectTrainer": "连接 {trainer}",
+  "onboardingVsDailyWithoutPro": "没有 Pro：每天 {minutes} 分钟虚拟变速。",
+  "a11yScrollDown": "向下滚动",
   "headwindFan": "风扇",
   "headwindCurrent": "当前设置",
   "headwindSetSpeed": "风扇速度",
@@ -4307,5 +4317,8 @@
   "headwindNoHeartRate": "BikeControl 中还没有心率。请在“设备”页面连接心率带；在此之前风扇保持当前速度。",
   "headwindNoPower": "还没有功率数据。在骑行台或功率计发送功率之前，风扇保持当前速度。",
   "accessorySteeringReadout": "转向 {value}",
-  "accessoryFanReadout": "风扇 {value}"
+  "accessoryFanReadout": "风扇 {value}",
+  "onboardingGuidePairTrainer": "配对你的骑行台：功率源、阻力和踏频都选择「{bridge}」",
+  "onboardingGuideZwiftBridge": "在功率源、阻力、踏频和控制器中都选择「{bridge}」，就可以开骑了",
+  "onboardingSlotControls": "控制器"
 }

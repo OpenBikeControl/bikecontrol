@@ -124,6 +124,8 @@ Widget onboardingDoneBody(
   VoidCallback? onTestNetwork,
   bool offerOverlay = false,
   VoidCallback? onShowOverlay,
+  Widget? networkStatus,
+  Widget? connectionMethods,
 }) {
   final hasController = controllerName != null;
   final selfHosted = app is BikeControl;
@@ -182,16 +184,21 @@ Widget onboardingDoneBody(
   return Column(
     crossAxisAlignment: CrossAxisAlignment.center,
     children: onboardingReveal([
-      Gap(24),
-      _SuccessBurst(reduceMotion: reduceMotion, ready: allReady),
-      Gap(24),
+      // The burst celebrates a finished setup; while it still waits on the
+      // app, the checklist and what to do next come first.
+      if (allReady) ...[
+        Gap(24),
+        _SuccessBurst(reduceMotion: reduceMotion, ready: allReady),
+        Gap(24),
+      ] else
+        Gap(8),
       OnboardingHeadline(title, textAlign: TextAlign.center),
       Gap(8),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Text(subtitle, textAlign: TextAlign.center).small.muted,
       ),
-      Gap(28),
+      Gap(allReady ? 28 : 20),
       BkGroupedSection(
         children: [
           for (final (icon, title, sub, ok, action) in rows)
@@ -279,11 +286,13 @@ Widget onboardingDoneBody(
           ),
         ),
       ],
-      // Waiting on the app: show what to do in it, right here — the previous
-      // page with these steps is no longer on screen.
+      // The background network check, while the app hasn't connected over a
+      // network method.
+      if (networkStatus != null && state == OnboardingDoneState.waitingForApp) ...[Gap(10), networkStatus],
+      // Waiting on the app: show what to do in it, right here.
       if (state == OnboardingDoneState.waitingForApp) ...[
         Gap(10),
-        OnboardingAppGuideCard(app: app),
+        OnboardingAppGuideCard(app: app, trainerName: selfHosted ? null : trainerName, bridgeName: bridgeName),
         if (waitingOnNetworkMethod && onTestNetwork != null)
           _StillWaitingNetworkHint(reduceMotion: reduceMotion, onTestNetwork: onTestNetwork),
       ],
@@ -293,6 +302,7 @@ Widget onboardingDoneBody(
         Gap(10),
         OnboardingPairAsTrainerCard(app: app, trainerName: trainerName, bridgeName: bridgeName),
       ],
+      if (connectionMethods != null && !selfHosted) ...[Gap(6), connectionMethods],
       if (showTestMode) ...[
         Gap(10),
         Container(

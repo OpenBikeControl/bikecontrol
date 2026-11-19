@@ -3104,6 +3104,16 @@
   "vsBaseOverBody": "Twoja jazda trwa dalej, dopóki aplikacja treningowa się nie rozłączy, a z Base twoje przyciski pozostają bez limitu. Aby zmieniać biegi bez żadnego limitu, sparuj trenażer bezpośrednio w aplikacji treningowej i włącz jej własną wirtualną zmianę biegów: BikeControl dalej wysyła twoje przyciski zmiany biegów. Pro znosi dzienny limit wirtualnej zmiany biegów BikeControl.",
   "vsBaseAlreadyOverBody": "Z Base twoje przyciski pozostają bez limitu. Aby zmieniać biegi bez żadnego limitu, sparuj trenażer bezpośrednio w aplikacji treningowej i włącz jej własną wirtualną zmianę biegów: BikeControl dalej wysyła twoje przyciski zmiany biegów. Pro znosi dzienny limit wirtualnej zmiany biegów BikeControl.",
   "vsBaseGuideAction": "Pokaż jak",
+  "onboardingStepGear": "Kontroler i trenażer",
+  "onboardingStepGearSub": "Połącz swój sprzęt",
+  "onboardingGearTitle": "Połącz swój sprzęt",
+  "onboardingGearSubtitle": "Naciśnij przycisk, a potem zakręć korbą, aby wybudzić trenażer.",
+  "onboardingRunsOn": "{app} działa na",
+  "onboardingTrainerWakeHint": "Zakręć raz korbą, aby go wybudzić.",
+  "onboardingTrainerVsByBikeControl": "Wirtualna zmiana biegów przez BikeControl",
+  "onboardingConnectTrainer": "Połącz {trainer}",
+  "onboardingVsDailyWithoutPro": "Bez Pro: {minutes} min wirtualnej zmiany biegów dziennie.",
+  "a11yScrollDown": "Przewiń w dół",
   "headwindFan": "Wentylator",
   "headwindCurrent": "Bieżące ustawienie",
   "headwindSetSpeed": "Prędkość wentylatora",
@@ -3125,5 +3135,8 @@
   "headwindNoHeartRate": "Brak tętna w BikeControl. Połącz pas na stronie Urządzenia; do tego czasu wentylator utrzymuje prędkość.",
   "headwindNoPower": "Brak odczytu mocy. Wentylator utrzymuje prędkość, dopóki trenażer lub miernik mocy nie wyśle watów.",
   "accessorySteeringReadout": "Skręt {value}",
-  "accessoryFanReadout": "Wentylator {value}"
+  "accessoryFanReadout": "Wentylator {value}",
+  "onboardingGuidePairTrainer": "Sparuj trenażer: jako źródło mocy, opór i kadencję wybierz „{bridge}”",
+  "onboardingGuideZwiftBridge": "Wybierz „{bridge}” jako źródło mocy, opór, kadencję i sterowanie – i gotowe",
+  "onboardingSlotControls": "Sterowanie"
 }

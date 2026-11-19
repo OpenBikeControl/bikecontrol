@@ -2,18 +2,15 @@ import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('next advances linearly', () {
-    expect(onboardingNextStep(OnboardingStep.app, appIsSelfHosted: false), OnboardingStep.where);
-    expect(onboardingNextStep(OnboardingStep.connection, appIsSelfHosted: false), OnboardingStep.done);
+  test('three steps, advancing linearly', () {
+    expect(OnboardingStep.values, [OnboardingStep.app, OnboardingStep.gear, OnboardingStep.ride]);
+    expect(onboardingNextStep(OnboardingStep.app), OnboardingStep.gear);
+    expect(onboardingNextStep(OnboardingStep.gear), OnboardingStep.ride);
+    expect(onboardingPreviousStep(OnboardingStep.ride), OnboardingStep.gear);
   });
 
-  test('self-hosted app (BikeControl) skips the where step in both directions', () {
-    expect(onboardingNextStep(OnboardingStep.app, appIsSelfHosted: true), OnboardingStep.controller);
-    expect(onboardingPreviousStep(OnboardingStep.controller, appIsSelfHosted: true), OnboardingStep.app);
-  });
-
-  test('done does not advance, app does not go back', () {
-    expect(onboardingNextStep(OnboardingStep.done, appIsSelfHosted: false), OnboardingStep.done);
-    expect(onboardingPreviousStep(OnboardingStep.app, appIsSelfHosted: false), OnboardingStep.app);
+  test('ride does not advance, app does not go back', () {
+    expect(onboardingNextStep(OnboardingStep.ride), OnboardingStep.ride);
+    expect(onboardingPreviousStep(OnboardingStep.app), OnboardingStep.app);
   });
 }

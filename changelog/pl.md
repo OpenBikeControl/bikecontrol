@@ -1,3 +1,11 @@
+### 7.7.0 (18-11-2026)
+**Features**:
+- Krótsza konfiguracja: trzy kroki zamiast sześciu. Wybierz aplikację treningową i to, gdzie działa, połącz kontroler i trenażer na jednym ekranie, a potem połącz aplikację.
+- Konfiguracja domyślnie łączy teraz trenażer przez BikeControl i od razu pokazuje, co daje wirtualna zmiana biegów BikeControl.
+
+**Fixes**:
+- Zwift i Rouvy: test sieci nie zgłasza już problemu, gdy połączenie sieciowe BikeControl działa.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain i Rampida są teraz oficjalnie obsługiwane przez OpenBikeControl.

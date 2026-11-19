@@ -3104,6 +3104,16 @@
   "vsBaseOverBody": "Tu salida sigue hasta que tu app de entrenamiento se desconecte, y con Base tus botones siguen sin límite. Para cambiar sin ningún límite, empareja el rodillo directamente en tu app de entrenamiento y activa su propio cambio virtual: BikeControl sigue enviando tus botones de cambio. Pro quita el límite diario del cambio virtual de BikeControl.",
   "vsBaseAlreadyOverBody": "Con Base, tus botones siguen sin límite. Para cambiar sin ningún límite, empareja el rodillo directamente en tu app de entrenamiento y activa su propio cambio virtual: BikeControl sigue enviando tus botones de cambio. Pro quita el límite diario del cambio virtual de BikeControl.",
   "vsBaseGuideAction": "Muéstrame cómo",
+  "onboardingStepGear": "Mando y rodillo",
+  "onboardingStepGearSub": "Conecta tu equipo",
+  "onboardingGearTitle": "Conecta tu equipo",
+  "onboardingGearSubtitle": "Pulsa un botón y pedalea para despertar tu rodillo.",
+  "onboardingRunsOn": "{app} se ejecuta en",
+  "onboardingTrainerWakeHint": "Pedalea una vez para despertarlo.",
+  "onboardingTrainerVsByBikeControl": "Cambio virtual con BikeControl",
+  "onboardingConnectTrainer": "Conectar {trainer}",
+  "onboardingVsDailyWithoutPro": "Sin Pro: {minutes} min de cambio virtual al día.",
+  "a11yScrollDown": "Desplazarse hacia abajo",
   "headwindFan": "Ventilador",
   "headwindCurrent": "Ajuste actual",
   "headwindSetSpeed": "Velocidad del ventilador",
@@ -3125,5 +3135,8 @@
   "headwindNoHeartRate": "Todavía no hay frecuencia cardíaca en BikeControl. Conecta una banda en la página Dispositivos; mientras tanto el ventilador mantiene su velocidad.",
   "headwindNoPower": "Todavía no hay potencia. El ventilador mantiene su velocidad hasta que tu rodillo o medidor de potencia envíe vatios.",
   "accessorySteeringReadout": "Dirección {value}",
-  "accessoryFanReadout": "Ventilador {value}"
+  "accessoryFanReadout": "Ventilador {value}",
+  "onboardingGuidePairTrainer": "Empareja tu rodillo: para fuente de potencia, resistencia y cadencia, elige «{bridge}»",
+  "onboardingGuideZwiftBridge": "Elige «{bridge}» como fuente de potencia, resistencia, cadencia y controles, y listo",
+  "onboardingSlotControls": "Controles"
 }

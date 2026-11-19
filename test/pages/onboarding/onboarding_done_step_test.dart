@@ -17,6 +17,7 @@ import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -354,6 +355,86 @@ Future<void> main() async {
       expect(find.text(l.onboardingDonePickTrainerTitle.toUpperCase()), findsNothing);
       expect(find.byType(OnboardingAppGuideCard), findsOneWidget);
       expect(find.byKey(const ValueKey('onboarding-done-trainer-check')), findsNothing);
+    });
+
+    // Waiting for the app with a bridged trainer: pairing the trainer in the
+    // app is the guide's last step, not a second card after it.
+    testWidgets('waiting for the app with a trainer: the guide ends with pairing the bridge', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: MyWhoosh(),
+          controllerName: 'Zwift Click',
+          trainerName: 'KICKR CORE 73D3',
+          bridgeName: 'BikeControl 73D3',
+          appConnected: false,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.byType(OnboardingAppGuideCard), findsOneWidget);
+      expect(find.byType(OnboardingPairAsTrainerCard), findsNothing);
+      expect(find.text(l.onboardingGuidePairTrainer('BikeControl 73D3')), findsOneWidget);
+      expect(find.text('4'), findsOneWidget, reason: "after MyWhoosh's three steps");
+      expect(find.text(l.onboardingPairAsTrainerWarning('KICKR CORE 73D3', 'MyWhoosh')), findsOneWidget);
+    });
+
+    // Zwift takes the controller from the bridge as well: one entry for every
+    // pairing slot, Controls included.
+    testWidgets('Zwift with a trainer: pick the bridge for every slot, controls included', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: Zwift(),
+          controllerName: 'Zwift Click',
+          trainerName: 'Wahoo KICKR 1EB7',
+          bridgeName: 'BikeControl 1EB7',
+          appConnected: false,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.text(l.onboardingGuideZwiftBridge('BikeControl 1EB7')), findsOneWidget);
+      expect(find.text(l.onboardingGuideGeneric2), findsNothing, reason: 'the bridge entry is the pairing');
+      expect(find.text(l.onboardingGuidePairTrainer('BikeControl 1EB7')), findsNothing);
+      expect(find.text('3'), findsNothing);
+      // Zwift's own screens, under the step they show.
+      for (final shot in zwiftBridgeScreenshots) {
+        expect(
+          find.byWidgetPredicate((w) => w is Image && w.image is AssetImage && (w.image as AssetImage).assetName == shot),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets("Zwift's pick-the-trainer card lists Controls too", (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: Zwift(),
+          controllerName: 'Zwift Click',
+          trainerName: 'Wahoo KICKR 1EB7',
+          bridgeName: 'BikeControl 1EB7',
+          appConnected: true,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+        ),
+      );
+      expect(find.text(l10n(tester).onboardingSlotControls), findsOneWidget);
+    });
+
+    testWidgets('without a trainer the guide has no trainer step', (tester) async {
+      await pump(tester, (c) => waiting(c, networkMethod: false));
+      expect(find.text(l10n(tester).onboardingGuidePairTrainer('KICKR CORE - BikeControl')), findsNothing);
+      expect(find.text('4'), findsNothing);
     });
 
     Future<String> primaryLabel(WidgetTester tester, OnboardingDoneState state) async {

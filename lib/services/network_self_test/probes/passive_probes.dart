@@ -51,10 +51,13 @@ NetworkCheck methodListeningCheck(NetworkProbeContext ctx) {
   }
   final server = snapshot.servers.firstOrNullWhere((s) => s.label == ctx.methodServerLabel && s.listening);
   if (server == null) {
-    return const NetworkCheck(
+    return NetworkCheck(
       id: NetworkCheckId.methodListening,
       verdict: NetworkVerdict.fail,
-      fixes: [NetworkFixId.restartMethod],
+      // What the check looked for and what it saw instead, so a bundle shows
+      // why a server listed as listening at send time didn't count here.
+      detail: {'want': '${ctx.methodServerLabel}', 'servers': _serversSeen(snapshot.servers)},
+      fixes: const [NetworkFixId.restartMethod],
     );
   }
   final port = server.port;
@@ -273,12 +276,25 @@ NetworkCheck advertisementVisibleCheck(NetworkProbeContext ctx) {
   if (seen) {
     return const NetworkCheck(id: NetworkCheckId.advertisementVisible, verdict: NetworkVerdict.pass);
   }
-  return const NetworkCheck(
+  return NetworkCheck(
     id: NetworkCheckId.advertisementVisible,
     verdict: NetworkVerdict.fail,
-    detail: {'hint': 'advertisement not seen by the OS browser'},
-    fixes: [NetworkFixId.restartMethod],
+    detail: {
+      'hint': 'advertisement not seen by the OS browser',
+      'ports': methodPorts.join('+'),
+      'advertised': snapshot.advertised.map((r) => '${r.name}:${r.port}').join('+').ifEmpty('none'),
+      'self': snapshot.discovered.where((d) => d.isSelf).map((d) => '${d.name}:${d.port}').join('+').ifEmpty('none'),
+    },
+    fixes: const [NetworkFixId.restartMethod],
   );
+}
+
+/// `label:port` of every server in the snapshot, `-` for one not listening.
+String _serversSeen(List<TcpServerInfo> servers) =>
+    servers.map((s) => '${s.label ?? '?'}:${s.listening ? s.port : '-'}').join('+').ifEmpty('none');
+
+extension on String {
+  String ifEmpty(String fallback) => isEmpty ? fallback : this;
 }
 
 /// Check 5: Apple's Local Network privacy permission (iOS/macOS only).

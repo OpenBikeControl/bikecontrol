@@ -1,3 +1,11 @@
+### 7.7.0 (18-11-2026)
+**Features**:
+- Una configuración más corta: tres pasos en lugar de seis. Elige tu app de entrenamiento y dónde se ejecuta, conecta tu mando y tu rodillo en una sola pantalla y luego vincula la app.
+- La configuración ahora conecta tu rodillo a través de BikeControl de forma predeterminada y muestra ahí mismo lo que hace el cambio virtual de BikeControl.
+
+**Fixes**:
+- Zwift y Rouvy: la prueba de red ya no informa de un problema cuando la conexión de red de BikeControl funciona.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain y Rampida tienen ahora soporte oficial a través de OpenBikeControl.

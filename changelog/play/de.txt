@@ -1,12 +1,7 @@
-7.6.0
+7.7.0
 Neu:
-• Incyclist, Tour du Pain und Rampida über OpenBikeControl
-• CYCPLUS-T7-Schalthebel als Controller
-• Klarerer Tasten-Editor, nach Aktionen gruppiert
-• Di2: D-Fly-Kanäle selbst in E-TUBE einstellen, mit Anleitung
-• Zwift Click V2: rechten Controller ohne Entsperren nutzen
-• Mehr zum Testen: 120 Drücke/Tag in der Testphase, danach 40, 30 Min. virtuelles Schalten, mit Vorwarnung
+• Einrichtung in drei statt sechs Schritten
+• Die Einrichtung verbindet deinen Smart Trainer standardmäßig über BikeControl und zeigt, was das virtuelle Schalten kann
 
 Behoben:
-• Kein Absturz beim Neustart des Hintergrunddiensts
-• „Schließen & beenden“ beendet immer
+• Zwift & Rouvy: keine falsche Warnung im Netzwerktest

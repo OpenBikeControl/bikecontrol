@@ -3104,6 +3104,16 @@
   "vsBaseOverBody": "Ta sortie continue jusqu'à ce que ton appli d'entraînement se déconnecte, et avec Base tes boutons restent illimités. Pour changer de vitesse sans aucune limite, appaire le home trainer directement dans ton appli d'entraînement et active son propre changement de vitesse virtuel : BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne du changement de vitesse virtuel BikeControl.",
   "vsBaseAlreadyOverBody": "Avec Base, tes boutons restent illimités. Pour changer de vitesse sans aucune limite, appaire le home trainer directement dans ton appli d'entraînement et active son propre changement de vitesse virtuel : BikeControl continue d'envoyer tes boutons de vitesse. Pro supprime la limite quotidienne du changement de vitesse virtuel BikeControl.",
   "vsBaseGuideAction": "Montre-moi comment",
+  "onboardingStepGear": "Commande et home trainer",
+  "onboardingStepGearSub": "Connecte ton matériel",
+  "onboardingGearTitle": "Connecte ton matériel",
+  "onboardingGearSubtitle": "Appuie sur un bouton, puis pédale pour réveiller ton home trainer.",
+  "onboardingRunsOn": "{app} tourne sur",
+  "onboardingTrainerWakeHint": "Donne un coup de pédale pour le réveiller.",
+  "onboardingTrainerVsByBikeControl": "Vitesses virtuelles par BikeControl",
+  "onboardingConnectTrainer": "Connecter {trainer}",
+  "onboardingVsDailyWithoutPro": "Sans Pro : {minutes} min de vitesses virtuelles par jour.",
+  "a11yScrollDown": "Faire défiler vers le bas",
   "headwindFan": "Ventilateur",
   "headwindCurrent": "Réglage actuel",
   "headwindSetSpeed": "Vitesse du ventilateur",
@@ -3125,5 +3135,8 @@
   "headwindNoHeartRate": "Pas encore de fréquence cardiaque dans BikeControl. Connectez une ceinture sur la page Appareils ; en attendant, le ventilateur garde sa vitesse.",
   "headwindNoPower": "Pas encore de puissance. Le ventilateur garde sa vitesse jusqu'à ce que votre home trainer ou capteur de puissance envoie des watts.",
   "accessorySteeringReadout": "Direction {value}",
-  "accessoryFanReadout": "Ventilateur {value}"
+  "accessoryFanReadout": "Ventilateur {value}",
+  "onboardingGuidePairTrainer": "Appaire ton home trainer : pour la source de puissance, la résistance et la cadence, choisis « {bridge} »",
+  "onboardingGuideZwiftBridge": "Choisis « {bridge} » pour la source de puissance, la résistance, la cadence et les commandes, et c'est parti",
+  "onboardingSlotControls": "Commandes"
 }

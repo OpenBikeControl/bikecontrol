@@ -1,27 +1,14 @@
-enum OnboardingStep { app, where, controller, virtualShifting, connection, done }
+/// The wizard's three screens: which app (and where it runs), the controller
+/// and trainer, then linking the app and riding.
+enum OnboardingStep { app, gear, ride }
 
-/// Sub-phases of the controller step. "Connected" is not a phase — it is
-/// derived live from `core.connection.controllerDevices` so auto-connect can
-/// flip the UI at any moment.
+/// Sub-phases of the controller part of the gear step. "Connected" is not a
+/// phase — it is derived live from `core.connection.controllerDevices` so
+/// auto-connect can flip the UI at any moment.
 enum ControllerPhase { permission, scanning, empty, list }
 
-/// BikeControl-as-trainer-app is self-hosted, so "where does it run" is
-/// meaningless — the settings side of this rule lives in
-/// applyTrainerAppSelection (Task 4), which pins Target.thisDevice.
-OnboardingStep onboardingNextStep(OnboardingStep step, {required bool appIsSelfHosted}) {
-  if (step == OnboardingStep.done) return OnboardingStep.done;
-  var next = OnboardingStep.values[step.index + 1];
-  if (next == OnboardingStep.where && appIsSelfHosted) {
-    next = OnboardingStep.controller;
-  }
-  return next;
-}
+OnboardingStep onboardingNextStep(OnboardingStep step) =>
+    step == OnboardingStep.ride ? OnboardingStep.ride : OnboardingStep.values[step.index + 1];
 
-OnboardingStep onboardingPreviousStep(OnboardingStep step, {required bool appIsSelfHosted}) {
-  if (step == OnboardingStep.app) return OnboardingStep.app;
-  var prev = OnboardingStep.values[step.index - 1];
-  if (prev == OnboardingStep.where && appIsSelfHosted) {
-    prev = OnboardingStep.app;
-  }
-  return prev;
-}
+OnboardingStep onboardingPreviousStep(OnboardingStep step) =>
+    step == OnboardingStep.app ? OnboardingStep.app : OnboardingStep.values[step.index - 1];

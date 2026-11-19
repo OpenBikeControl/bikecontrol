@@ -4,7 +4,6 @@
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
-import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/onboarding_sheets.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -46,7 +45,7 @@ Future<void> main() async {
             child: Builder(
               builder: (context) => onboardingHelpSheetBody(
                 context,
-                step: OnboardingStep.connection,
+                topic: OnboardingHelpTopic.connection,
                 onClose: () => pageAbsentWhenClosed = find.byType(NetworkTroubleshootingPage).evaluate().isEmpty,
               ),
             ),
@@ -82,7 +81,7 @@ Future<void> main() async {
         home: Scaffold(
           child: SingleChildScrollView(
             child: Builder(
-              builder: (context) => onboardingHelpSheetBody(context, step: OnboardingStep.done, onClose: () {}),
+              builder: (context) => onboardingHelpSheetBody(context, topic: OnboardingHelpTopic.connection, onClose: () {}),
             ),
           ),
         ),

@@ -183,6 +183,7 @@ flutter:
     - INSTRUCTIONS_LOCAL.md
     - shorebird.yaml
     - assets/silence.mp3
+    - assets/guides/
     - assets/sounds/shift_up.wav
     - assets/sounds/shift_down.wav
     - assets/sounds/shift_limit.wav

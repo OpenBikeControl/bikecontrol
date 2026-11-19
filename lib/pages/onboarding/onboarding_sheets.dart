@@ -9,7 +9,6 @@ import 'package:bike_control/pages/network_troubleshooting_page.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -19,31 +18,36 @@ import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-({String title, String body}) _stepHelp(BuildContext context, OnboardingStep step) => switch (step) {
-  OnboardingStep.app => (title: context.i18n.onboardingHelpAppTitle, body: context.i18n.onboardingHelpAppBody),
-  OnboardingStep.where => (title: context.i18n.onboardingHelpWhereTitle, body: context.i18n.onboardingHelpWhereBody),
-  OnboardingStep.controller => (
+/// What the help sheet answers first. The wizard asks about its current
+/// step ([onboardingHelpTopicFor]); the home screen's cards ask about the part
+/// that needs help.
+enum OnboardingHelpTopic { app, controller, trainer, connection }
+
+OnboardingHelpTopic onboardingHelpTopicFor(OnboardingStep step) => switch (step) {
+  OnboardingStep.app => OnboardingHelpTopic.app,
+  OnboardingStep.gear => OnboardingHelpTopic.controller,
+  OnboardingStep.ride => OnboardingHelpTopic.connection,
+};
+
+({String title, String body}) _topicHelp(BuildContext context, OnboardingHelpTopic topic) => switch (topic) {
+  OnboardingHelpTopic.app => (title: context.i18n.onboardingHelpAppTitle, body: context.i18n.onboardingHelpAppBody),
+  OnboardingHelpTopic.controller => (
     title: context.i18n.onboardingHelpControllerTitle,
     body: context.i18n.onboardingHelpControllerBody,
   ),
-  OnboardingStep.virtualShifting => (
-    title: context.i18n.onboardingHelpVsTitle,
-    body: context.i18n.onboardingHelpVsBody,
-  ),
-  OnboardingStep.connection => (
+  OnboardingHelpTopic.trainer => (title: context.i18n.onboardingHelpVsTitle, body: context.i18n.onboardingHelpVsBody),
+  OnboardingHelpTopic.connection => (
     title: context.i18n.onboardingHelpConnectionTitle,
     body: context.i18n.onboardingHelpConnectionBody,
   ),
-  // Pro riders have no test-mode limits — answer the question they'd
-  // actually have on the final step instead.
-  OnboardingStep.done =>
-    IAPManager.instance.isPurchased.value
-        ? (title: context.i18n.onboardingHelpDoneProTitle, body: context.i18n.onboardingHelpDoneProBody)
-        : (title: context.i18n.onboardingHelpDoneTitle, body: context.i18n.onboardingHelpDoneBody),
 };
 
-Widget onboardingHelpSheetBody(BuildContext context, {required OnboardingStep step, required VoidCallback onClose}) {
-  final h = _stepHelp(context, step);
+Widget onboardingHelpSheetBody(
+  BuildContext context, {
+  required OnboardingHelpTopic topic,
+  required VoidCallback onClose,
+}) {
+  final h = _topicHelp(context, topic);
   final reduceMotion = MediaQuery.of(context).disableAnimations;
   final article = helpArticleFor(
     context,
@@ -209,12 +213,12 @@ Widget _channel(
   );
 }
 
-Future<void> openOnboardingHelpSheet(BuildContext context, OnboardingStep step) {
+Future<void> openOnboardingHelpSheet(BuildContext context, OnboardingHelpTopic topic) {
   return openBottomSheet<void>(
     context: context,
     builder: (sheetContext) => _sheetFrame(
       sheetContext,
-      onboardingHelpSheetBody(sheetContext, step: step, onClose: () => closeSheet(sheetContext)),
+      onboardingHelpSheetBody(sheetContext, topic: topic, onClose: () => closeSheet(sheetContext)),
     ),
   );
 }

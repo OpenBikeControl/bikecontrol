@@ -314,7 +314,7 @@ Future<void> main() async {
         brightness: brightness,
         build: (c) => onboardingShell(
           c,
-          step: OnboardingStep.virtualShifting,
+          step: OnboardingStep.gear,
           body: onboardingTrainerBody(c, app: MyWhoosh(), trainers: [found], onPick: (_) {}, onRescan: () {}),
           footerActions: [
             GhostButton(onPressed: () {}, child: Text(AppLocalizations.of(c).onboardingLetAppHandleVs('MyWhoosh'))),

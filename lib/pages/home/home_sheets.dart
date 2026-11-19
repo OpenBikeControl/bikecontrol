@@ -6,7 +6,6 @@ import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
 import 'package:bike_control/utils/trainer_connect.dart';
-import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/onboarding_sheets.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -78,11 +77,11 @@ Future<void> openControllerSetupSheet(BuildContext context) {
 /// state, never on step wording, so a never-paired controller gets the pairing
 /// flow above and a dropped one gets this.
 Future<void> openControllerHelpSheet(BuildContext context) {
-  return openOnboardingHelpSheet(context, OnboardingStep.controller);
+  return openOnboardingHelpSheet(context, OnboardingHelpTopic.controller);
 }
 
 Future<void> openTrainerHelpSheet(BuildContext context) {
-  return openOnboardingHelpSheet(context, OnboardingStep.virtualShifting);
+  return openOnboardingHelpSheet(context, OnboardingHelpTopic.trainer);
 }
 
 /// The per-app "then in {app}" guide — the same numbered steps, screenshots and
@@ -90,7 +89,7 @@ Future<void> openTrainerHelpSheet(BuildContext context) {
 /// connection help when no app has been chosen yet.
 Future<void> openAppGuideSheet(BuildContext context) {
   final app = core.settings.getTrainerApp();
-  if (app == null) return openOnboardingHelpSheet(context, OnboardingStep.connection);
+  if (app == null) return openOnboardingHelpSheet(context, OnboardingHelpTopic.connection);
 
   return openBottomSheet<void>(
     context: context,
@@ -144,7 +143,7 @@ class _AppGuide extends StatelessWidget {
 /// step's pairing instructions, not the trainer picker.
 Future<void> openPairAsTrainerSheet(BuildContext context, {required String? trainerName, String? bridgeName}) {
   final app = core.settings.getTrainerApp();
-  if (app == null) return openOnboardingHelpSheet(context, OnboardingStep.connection);
+  if (app == null) return openOnboardingHelpSheet(context, OnboardingHelpTopic.connection);
 
   return openBottomSheet<void>(
     context: context,

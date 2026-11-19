@@ -4,41 +4,53 @@ import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/strappo.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
+import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 /// The "Then in $app" mini-guide shown at the bottom of the onboarding
-/// connection step: numbered steps plus optional screenshots and a link to
-/// the full setup guide on the marketing site.
+/// connection step: numbered steps, a screenshot under the steps that have one,
+/// and a link to the full setup guide on the marketing site.
 class OnboardingAppGuide {
-  const OnboardingAppGuide({required this.steps, this.screenshotUrls = const [], this.guideUrl});
+  const OnboardingAppGuide({required this.steps, this.screenshots = const {}, this.guideUrl});
 
   final List<String> steps;
-  final List<String> screenshotUrls;
+
+  /// Screenshots by the index of the step they show: a URL, or an asset path
+  /// for the ones bundled with the app.
+  final Map<int, List<String>> screenshots;
   final String? guideUrl;
 }
 
 const String _shots = 'https://bikecontrol.app/images/';
+
+/// Zwift's pairing list with the bridge in it, and its paired devices with
+/// the bridge in every slot. Bundled: the website has no Zwift bridge guide.
+const List<String> zwiftBridgeScreenshots = [
+  'assets/guides/zwift-pair-device.jpg',
+  'assets/guides/zwift-paired-devices.jpg',
+];
 
 OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
   final l = context.i18n;
   if (app is MyWhoosh) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideMyWhoosh1, l.onboardingGuideMyWhoosh2, l.onboardingGuideMyWhoosh3],
-      screenshotUrls: [
-        '$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
-        '$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
-        '$_shots' 'mywhoosh_obc/6-bikecontrol-connected.jpg',
-      ],
+      screenshots: {
+        1: ['$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg'],
+        2: ['$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg'],
+      },
       guideUrl: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership/',
     );
   }
   if (app is Rouvy) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideRouvy1, l.onboardingGuideRouvy2],
-      screenshotUrls: ['$_shots' 'blog_rouvy_screenshot.jpg'],
+      screenshots: {
+        1: ['$_shots' 'blog_rouvy_screenshot.jpg'],
+      },
       guideUrl: 'https://bikecontrol.app/blog/rouvy-bikecontrol-integration/',
     );
   }
@@ -62,9 +74,22 @@ OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
 /// exactly the same instructions — including the screenshots — that walked them
 /// through it the first time, instead of a thinner second-hand retelling.
 class OnboardingAppGuideCard extends StatelessWidget {
-  const OnboardingAppGuideCard({super.key, required this.app, this.bordered = true});
+  const OnboardingAppGuideCard({
+    super.key,
+    required this.app,
+    this.bordered = true,
+    this.trainerName,
+    this.bridgeName,
+  });
 
   final SupportedApp app;
+
+  /// A trainer BikeControl bridges: pairing it in the app is one more step of
+  /// the same guide, not a second card after it.
+  final String? trainerName;
+
+  /// What the bridge advertises (see [OnboardingPairAsTrainerCard.bridgeName]).
+  final String? bridgeName;
 
   /// The onboarding step draws its own border; a sheet doesn't need one.
   final bool bordered;
@@ -74,6 +99,18 @@ class OnboardingAppGuideCard extends StatelessWidget {
     final guide = onboardingGuideFor(context, app);
     final scheme = Theme.of(context).colorScheme;
     final guideUrl = guide.guideUrl;
+    final trainer = trainerName;
+    final bridge = bridgeName ?? '${trainer ?? ''} - BikeControl';
+    final zwiftBridge = trainer != null && app is Zwift;
+    final steps = switch (trainer) {
+      null => guide.steps,
+      // Zwift takes the controller from the bridge too: one entry for every
+      // slot, Controls included, replaces "pair with BikeControl".
+      _ when zwiftBridge => [context.i18n.onboardingGuideGeneric1(app.name), context.i18n.onboardingGuideZwiftBridge(bridge)],
+      _ => [...guide.steps, context.i18n.onboardingGuidePairTrainer(bridge)],
+    };
+    // The bridge in Zwift's pairing list, then every slot on it.
+    final screenshots = zwiftBridge ? const {1: zwiftBridgeScreenshots} : guide.screenshots;
 
     return Container(
       width: double.infinity,
@@ -87,7 +124,7 @@ class OnboardingAppGuideCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < guide.steps.length; i++)
+          for (var i = 0; i < steps.length; i++)
             Padding(
               padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
               child: Row(
@@ -105,30 +142,46 @@ class OnboardingAppGuideCard extends StatelessWidget {
                   ),
                   const Gap(11),
                   Expanded(
-                    child: Padding(padding: const EdgeInsets.only(top: 2), child: Text(guide.steps[i]).small),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(steps[i]).small,
+                          // The trainer step's catch: the bare trainer is in
+                          // the same list, and picking it loses the gears.
+                          if (trainer != null && i == steps.length - 1) ...[
+                            const Gap(2),
+                            Text(context.i18n.onboardingPairAsTrainerWarning(trainer, app.name)).xSmall.muted,
+                          ],
+                          // Right under the step it shows, not in a strip
+                          // after all of them.
+                          if (screenshots[i] case final shots? when shots.isNotEmpty) ...[
+                            const Gap(8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (final shot in shots)
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxHeight: 150, maxWidth: 320),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: shot.startsWith('http')
+                                          ? Image.network(shot, errorBuilder: (_, _, _) => const SizedBox.shrink())
+                                          : Image.asset(shot, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          if (guide.screenshotUrls.isNotEmpty) ...[
-            const Gap(13),
-            SizedBox(
-              height: 118,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (final url in guide.screenshotUrls)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(url, height: 118, errorBuilder: (_, _, _) => const SizedBox.shrink()),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
           if (guideUrl != null) ...[
             const Gap(12),
             Button.ghost(
@@ -228,6 +281,9 @@ class OnboardingPairAsTrainerCard extends StatelessWidget {
         _slotRow(context, LucideIcons.slidersHorizontal, context.i18n.onboardingSlotControllable, bridgeEntry,
             first: false),
         _slotRow(context, LucideIcons.refreshCw, context.i18n.onboardingSlotCadence, bridgeEntry, first: false),
+        // Zwift takes the controller from the same entry.
+        if (app is Zwift)
+          _slotRow(context, LucideIcons.gamepad2, context.i18n.onboardingSlotControls, bridgeEntry, first: false),
         Gap(12),
         Container(
           width: double.infinity,

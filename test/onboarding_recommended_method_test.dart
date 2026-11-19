@@ -1,10 +1,10 @@
-// Picking where the trainer app runs turns on the method the connection step
-// recommends, so "Finish setup" isn't greyed out for apps like Zwift whose
-// network method used to start off. When no method is on, the step says why
-// Finish is unavailable instead of leaving a dead button.
+// Picking where the trainer app runs turns on the method the ride step
+// recommends, for apps like Zwift whose network method used to start off. The
+// ride step keeps the methods folded away then — and unfolds them while none
+// is on, since picking one is the thing to do.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
-import 'package:bike_control/pages/onboarding/onboarding_page.dart';
+import 'package:bike_control/pages/onboarding/steps/step_connection.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
@@ -55,7 +55,7 @@ void main() {
     expect(core.settings.getZwiftMdnsEmulatorEnabled(), isFalse);
   });
 
-  Future<AppLocalizations> pumpFinish(WidgetTester tester, {required bool noMethod}) async {
+  Future<AppLocalizations> pumpMethods(WidgetTester tester) async {
     await tester.pumpWidget(
       ShadcnApp(
         localizationsDelegates: [
@@ -65,29 +65,33 @@ void main() {
         ],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
         home: Scaffold(
-          child: Builder(
-            builder: (c) => onboardingConnectionFinishAction(
-              c,
-              onFinish: noMethod ? null : () {},
-              noConnectionMethod: noMethod,
-            ),
-          ),
+          child: SingleChildScrollView(child: OnboardingMethodsDisclosure(app: Zwift(), onUpdate: () {})),
         ),
       ),
     );
     await tester.pump();
-    return AppLocalizations.of(tester.element(find.byType(PrimaryButton)));
+    return AppLocalizations.of(tester.element(find.byType(OnboardingMethodsDisclosure)));
   }
 
-  testWidgets('no method on: Finish is disabled and says what to do', (tester) async {
-    final l = await pumpFinish(tester, noMethod: true);
-    expect(tester.widget<PrimaryButton>(find.byType(PrimaryButton)).onPressed, isNull);
-    expect(find.text(l.onboardingConnectionTurnOnMethod), findsOneWidget);
+  testWidgets('no method on: the methods are unfolded', (tester) async {
+    core.settings.setTrainerApp(Zwift());
+    await core.settings.setLastTarget(Target.otherDevice);
+    expect(core.logic.hasNoConnectionMethod, isTrue);
+
+    final l = await pumpMethods(tester);
+    expect(find.text(l.onboardingMethodNetwork), findsOneWidget);
   });
 
-  testWidgets('a method on: no hint under Finish', (tester) async {
-    final l = await pumpFinish(tester, noMethod: false);
-    expect(tester.widget<PrimaryButton>(find.byType(PrimaryButton)).onPressed, isNotNull);
-    expect(find.text(l.onboardingConnectionTurnOnMethod), findsNothing);
+  testWidgets('a method on: folded away until the heading is tapped', (tester) async {
+    await applyTrainerAppSelection(Zwift());
+    await applyTargetSelection(Target.otherDevice);
+
+    final l = await pumpMethods(tester);
+    expect(find.text(l.onboardingConnectionMethods), findsOneWidget);
+    expect(find.text(l.onboardingMethodNetwork), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('onboarding-methods-toggle')));
+    await tester.pump();
+    expect(find.text(l.onboardingMethodNetwork), findsOneWidget);
   });
 }

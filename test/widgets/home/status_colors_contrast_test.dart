@@ -100,30 +100,30 @@ Future<void> main() async {
         expect(contrast(icon.color!, fillBehind(tester, glyph)), greaterThanOrEqualTo(3));
       });
 
-      for (final ready in [true, false]) {
-        testWidgets('done-step badge glyph clears 3:1 (${ready ? 'ready' : 'waiting'})', (tester) async {
-          await pump(
-            tester,
-            brightness,
-            Builder(
-              builder: (c) => onboardingDoneBody(
-                c,
-                app: MyWhoosh(),
-                controllerName: 'Zwift Click',
-                trainerName: null,
-                appConnected: ready,
-                trainerAppConnected: false,
-                reduceMotion: true,
-                showTestMode: false,
-              ),
+      // The badge only shows a finished setup; while it waits on the app the
+      // checklist leads instead.
+      testWidgets('done-step badge glyph clears 3:1', (tester) async {
+        await pump(
+          tester,
+          brightness,
+          Builder(
+            builder: (c) => onboardingDoneBody(
+              c,
+              app: MyWhoosh(),
+              controllerName: 'Zwift Click',
+              trainerName: null,
+              appConnected: true,
+              trainerAppConnected: false,
+              reduceMotion: true,
+              showTestMode: false,
             ),
-          );
-          final glyph = find.byWidgetPredicate((w) => w is Icon && w.size == 44);
-          expect(glyph, findsOneWidget);
-          final icon = tester.widget<Icon>(glyph);
-          expect(contrast(icon.color!, fillBehind(tester, glyph)), greaterThanOrEqualTo(3));
-        });
-      }
+          ),
+        );
+        final glyph = find.byWidgetPredicate((w) => w is Icon && w.size == 44);
+        expect(glyph, findsOneWidget);
+        final icon = tester.widget<Icon>(glyph);
+        expect(contrast(icon.color!, fillBehind(tester, glyph)), greaterThanOrEqualTo(3));
+      });
     });
   }
 }

@@ -79,6 +79,56 @@ Widget _alternative(BuildContext context, IconData icon, String title, String bo
   );
 }
 
+/// Why virtual shifting needs a second device with [app] on this one, and
+/// the two setups that work instead (see [vsSameDeviceBlock]).
+List<Widget> onboardingVsBlockedDetails(BuildContext context, SupportedApp app) {
+  final explainer = vsSameDeviceBlock(app) == VsSameDeviceBlock.storeAppIsolation
+      ? context.i18n.onboardingVsBlockedExplainerStoreApp(app.name)
+      : context.i18n.onboardingVsBlockedExplainer(app.name);
+  return [
+    _sameDeviceWarning(context, Text(explainer).xSmall),
+    Gap(16),
+    Text(context.i18n.onboardingVsBlockedAlternatives).xSmall.semiBold.muted,
+    Gap(8),
+    _alternative(context, LucideIcons.monitorSmartphone, context.i18n.onboardingVsBlockedAltAppTitle(app.name),
+        context.i18n.onboardingVsBlockedAltAppBody(app.name)),
+    _alternative(context, LucideIcons.bluetooth, context.i18n.onboardingVsBlockedAltBtTitle,
+        context.i18n.onboardingVsBlockedAltBtBody(app.name)),
+    Gap(6),
+    Button.ghost(
+      style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
+      onPressed: () => openVsBlogPost(context),
+      child: Row(children: [
+        Icon(LucideIcons.bookOpen, size: 15),
+        Gap(8),
+        Flexible(child: Text(context.i18n.onboardingTrainerHowItWorks).small),
+        Gap(6),
+        Icon(LucideIcons.externalLink, size: 13),
+      ]),
+    ),
+  ];
+}
+
+/// An app that only ever runs on a second device (FulGaz) was never asked
+/// "this or another device" — say it before riders put it on the same iPad
+/// and wait for a trainer that will never show up in it.
+Widget onboardingSecondDeviceWarning(BuildContext context, SupportedApp app) => _sameDeviceWarning(
+  context,
+  key: const ValueKey('onboarding-vs-second-device-note'),
+  Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(context.i18n.onboardingVsBlockedAltAppTitle(app.name)).xSmall.semiBold,
+    Text(context.i18n.onboardingVsBlockedExplainer(app.name)).xSmall,
+  ]),
+);
+
+/// The pulsing Bluetooth radar of the trainer scan.
+class OnboardingTrainerRadar extends StatelessWidget {
+  const OnboardingTrainerRadar({super.key});
+
+  @override
+  Widget build(BuildContext context) => _Radar(accent: onboardingAccent(context));
+}
+
 /// [app] is optional: the home screen's trainer picker is reachable before a
 /// trainer app was ever chosen (skipped onboarding), and the list itself does
 /// not depend on one. Only the app-naming copy is dropped when it is null.
@@ -97,34 +147,12 @@ Widget onboardingTrainerBody(BuildContext context,
   // hiding the step. The block is only meaningful for a chosen app — its copy
   // names it.
   if (bridged.isEmpty && virtualShiftingBlocked && app != null) {
-    final explainer = vsSameDeviceBlock(app) == VsSameDeviceBlock.storeAppIsolation
-        ? context.i18n.onboardingVsBlockedExplainerStoreApp(app.name)
-        : context.i18n.onboardingVsBlockedExplainer(app.name);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: onboardingReveal([
       OnboardingHeadline(context.i18n.onboardingVsBlockedTitle),
       Gap(6),
       Text(context.i18n.onboardingVsBlockedSubtitle(app.name)).small.muted,
       Gap(16),
-      _sameDeviceWarning(context, Text(explainer).xSmall),
-      Gap(16),
-      Text(context.i18n.onboardingVsBlockedAlternatives).xSmall.semiBold.muted,
-      Gap(8),
-      _alternative(context, LucideIcons.monitorSmartphone, context.i18n.onboardingVsBlockedAltAppTitle(app.name),
-          context.i18n.onboardingVsBlockedAltAppBody(app.name)),
-      _alternative(context, LucideIcons.bluetooth, context.i18n.onboardingVsBlockedAltBtTitle,
-          context.i18n.onboardingVsBlockedAltBtBody(app.name)),
-      Gap(6),
-      Button.ghost(
-        style: ButtonStyle.ghost().withPadding(padding: EdgeInsets.zero),
-        onPressed: () => openVsBlogPost(context),
-        child: Row(children: [
-          Icon(LucideIcons.bookOpen, size: 15),
-          Gap(8),
-          Flexible(child: Text(context.i18n.onboardingTrainerHowItWorks).small),
-          Gap(6),
-          Icon(LucideIcons.externalLink, size: 13),
-        ]),
-      ),
+      ...onboardingVsBlockedDetails(context, app),
     ]));
   }
 
@@ -175,14 +203,7 @@ Widget onboardingTrainerBody(BuildContext context,
     // "this or another device" — say it here, before riders put it on the same
     // iPad and wait for a trainer that will never show up in it.
     if (needsSecondDevice && app != null) ...[
-      _sameDeviceWarning(
-        context,
-        key: const ValueKey('onboarding-vs-second-device-note'),
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(context.i18n.onboardingVsBlockedAltAppTitle(app.name)).xSmall.semiBold,
-          Text(context.i18n.onboardingVsBlockedExplainer(app.name)).xSmall,
-        ]),
-      ),
+      onboardingSecondDeviceWarning(context, app),
       Gap(16),
     ],
     // Once a trainer is found, connecting it is the step's job: the list
