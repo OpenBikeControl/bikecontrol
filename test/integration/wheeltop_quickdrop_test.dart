@@ -60,9 +60,10 @@ Future<void> main() async {
       .where((n) => n.alertMessage.contains(AppLocalizations.current.wheeltopClaimedByDerailleurHint))
       .toList();
 
+  // "Connecting to:" is a log line, not a toast, since the calmer app start.
   int connectingCount() => notifications
-      .whereType<AlertNotification>()
-      .where((n) => n.alertMessage.startsWith('Connecting to:') && n.alertMessage.contains('WHEELTOP EDS TX Left'))
+      .whereType<LogNotification>()
+      .where((n) => n.message.startsWith('Connecting to:') && n.message.contains('WHEELTOP EDS TX Left'))
       .length;
 
   test('three quick drops give up with one guidance alert', () async {
@@ -87,7 +88,10 @@ Future<void> main() async {
     // Exactly three connect attempts led to the give-up (maxAutoConnectAttempts).
     expect(connectingCount(), 3);
     final alert = guidanceAlerts().single;
-    expect(alert.alertMessage, contains(AppLocalizations.current.connectionGaveUpAfterAttempts('WHEELTOP EDS TX Left')));
+    expect(
+      alert.alertMessage,
+      contains(AppLocalizations.current.connectionGaveUpAfterAttempts('WHEELTOP EDS TX Left')),
+    );
     expect(alert.buttonTitle, AppLocalizations.current.reconnect);
 
     // Suppressed now: the drop loop stops churning.

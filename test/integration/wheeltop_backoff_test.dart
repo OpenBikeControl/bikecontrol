@@ -56,14 +56,21 @@ Future<void> main() async {
     await env.resetConnection();
   });
 
+  // "Connecting to:" is a log line, not a toast, since the calmer app start.
   int connectingCount() => notifications
-      .whereType<AlertNotification>()
-      .where((n) => n.alertMessage.startsWith('Connecting to:') && n.alertMessage.contains('WHEELTOP EDS TX Left'))
+      .whereType<LogNotification>()
+      .where((n) => n.message.startsWith('Connecting to:') && n.message.contains('WHEELTOP EDS TX Left'))
       .length;
 
   int failedToastCount() => notifications
       .whereType<AlertNotification>()
-      .where((n) => n.alertMessage.startsWith('Connection failed:') && n.alertMessage.contains('WHEELTOP EDS TX Left'))
+      .where(
+        (n) =>
+            n.alertMessage.startsWith("Couldn't connect to WHEELTOP EDS TX Left")
+            // The give-up alert starts the same way.
+            &&
+            !n.alertMessage.contains(AppLocalizations.current.wheeltopClaimedByDerailleurHint),
+      )
       .length;
 
   List<AlertNotification> guidanceAlerts() => notifications
@@ -101,7 +108,10 @@ Future<void> main() async {
     // suppressing third attempt shows the guidance alert instead.
     expect(failedToastCount(), 2);
     final alert = guidanceAlerts().single;
-    expect(alert.alertMessage, contains(AppLocalizations.current.connectionGaveUpAfterAttempts('WHEELTOP EDS TX Left')));
+    expect(
+      alert.alertMessage,
+      contains(AppLocalizations.current.connectionGaveUpAfterAttempts('WHEELTOP EDS TX Left')),
+    );
     expect(alert.buttonTitle, AppLocalizations.current.reconnect);
 
     // Suppression holds while the pod keeps advertising: no further attempts.
@@ -210,12 +220,8 @@ Future<void> main() async {
     );
     await core.connection.performScanning();
 
-    int clickConnecting() => notifications
-        .whereType<AlertNotification>()
-        .where((n) => n.alertMessage.startsWith('Connecting to:') && n.alertMessage.contains('Zwift Click'))
-        .length;
     await IntegrationEnv.waitFor(
-      () => clickConnecting() >= 5,
+      () => click.connectAttempts >= 5,
       timeout: const Duration(seconds: 10),
       description: 'unlimited retries',
     );
