@@ -2040,7 +2040,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               borderRadius: BorderRadius.circular(8),
               child: TrainerAppLogo(asset: logo, url: app?.logoUrl, width: BkIconTile.size, height: BkIconTile.size),
             )
-          : _tile(LucideIcons.monitor, live: app != null),
+          : app != null
+          ? TrainerAppMonogram(name: app.name)
+          : _tile(LucideIcons.monitor, live: false),
       title: link.title.isEmpty ? l.chainAppTitle : link.title,
       subtitle: app == null ? null : connectionMethodSummary(context),
       statusLabel: statusLabel,

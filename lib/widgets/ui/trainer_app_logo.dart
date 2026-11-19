@@ -1,3 +1,5 @@
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart' show BkIconTile;
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkBrandColors;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A trainer app's logo: the bundled [asset], falling back to [url] when the
@@ -38,4 +40,47 @@ class TrainerAppLogo extends StatelessWidget {
   }
 
   Widget get _empty => SizedBox(width: width, height: height);
+}
+
+/// A trainer app without a bundled logo, as its initial ("Z" for Zwift) on a
+/// tile — what the onboarding's app picker shows for it, instead of a generic
+/// screen icon that says nothing about which app it is.
+///
+/// Styled like [BkIconTile], so it sits in a row of icon tiles; [size]
+/// defaults to theirs.
+class TrainerAppMonogram extends StatelessWidget {
+  const TrainerAppMonogram({super.key, required this.name, this.size = BkIconTile.size, this.live = true});
+
+  final String name;
+  final double size;
+
+  /// False greys it out, like an icon tile for something not set up.
+  final bool live;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final brand = BkBrandColors.of(context);
+    final initial = name.trim().isEmpty ? '?' : name.trim().substring(0, 1).toUpperCase();
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: live ? brand.tileWash : cs.muted,
+          borderRadius: BorderRadius.circular(size * 8 / 30),
+        ),
+        child: Text(
+          initial,
+          style: TextStyle(
+            fontSize: size * 0.5,
+            fontWeight: FontWeight.w700,
+            height: 1,
+            color: live ? brand.tileInk : cs.mutedForeground,
+          ),
+        ),
+      ),
+    );
+  }
 }
