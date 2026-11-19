@@ -223,8 +223,11 @@ class _RideRowState extends State<_RideRow> {
         ? null
         : [
             formatRideDuration(s.activeDuration),
-            if (s.shownDistanceKm case final km?) '${formatRideDistance(km, units, locale)} ${units.distanceSymbol}',
-            if (s.avgPowerW > 0) 'Ø ${s.avgPowerW} W',
+            // No-break spaces: a narrow row wraps between the values, never
+            // between a number and its unit ("Ø 139 / W").
+            if (s.shownDistanceKm case final km?)
+              '${formatRideDistance(km, units, locale)}\u00A0${units.distanceSymbol}',
+            if (s.avgPowerW > 0) 'Ø\u00A0${s.avgPowerW}\u00A0W',
           ].join(' · ');
     final muted = context.typography.small.copyWith(color: cs.mutedForeground, fontFeatures: BkNumerals.tabular);
 

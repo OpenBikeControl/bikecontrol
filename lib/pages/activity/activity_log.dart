@@ -307,14 +307,13 @@ class _ActivityLogViewState extends State<ActivityLogView> {
   }
 }
 
-/// A group's caption in the grouped-list style: "LAST MINUTE", "EARLIER".
+/// A group's caption in the grouped-list style: "LAST MINUTE", "EARLIER" —
+/// the same face and ink as every other grouped header (the rides' weeks
+/// beside it, Devices, Settings).
 class ActivityGroupCaption extends StatelessWidget {
-  const ActivityGroupCaption({super.key, required this.title, this.top = 0, this.color});
+  const ActivityGroupCaption({super.key, required this.title, this.top = 0});
 
   final String title;
-
-  /// The caption's ink; secondary by default (a pane tab sets it).
-  final Color? color;
 
   /// Space above the caption: none for a pane's first, more between groups.
   final double top;
@@ -323,17 +322,7 @@ class ActivityGroupCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(BkGroupedSection.inset, top, BkGroupedSection.inset, 6),
-      child: Semantics(
-        header: true,
-        child: Text(
-          title.toUpperCase(),
-          style: context.typography.caption.copyWith(
-            color: color ?? Theme.of(context).colorScheme.mutedForeground,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.6,
-          ),
-        ),
-      ),
+      child: BkGroupedHeader(title),
     );
   }
 }

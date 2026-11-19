@@ -308,10 +308,10 @@ class _NewsMessage extends StatelessWidget {
 }
 
 /// From 840, News's place on Activity: the newest posts as one wide banner
-/// on the brand band above the log and the rides — the date (with "New"
-/// while recent), the title, the excerpt, "Read post" and "All news", and
-/// the cover beside it. Dots step through the three newest posts. Nothing
-/// shows while there is nothing to show (no posts, or a failed load).
+/// on the brand band above the log and the rides — the title, the excerpt,
+/// "Read post" and "All news", the date (with "New" while recent) and the
+/// cover beside it. Dots step through the three newest posts. Nothing shows
+/// while there is nothing to show (no posts, or a failed load).
 class NewsBanner extends StatefulWidget {
   const NewsBanner({super.key, required this.controller});
 
@@ -320,11 +320,18 @@ class NewsBanner extends StatefulWidget {
   /// How many of the newest posts the dots step through.
   static const int maxPosts = 3;
 
-  /// The banner's height, so loading and loaded take the same room.
-  static const double height = 208;
+  /// The banner's least height, so loading and loaded take the same room; a
+  /// long title (German wraps wide) grows it instead of overflowing.
+  static const double minHeight = 208;
 
   /// From this width the cover sits beside the text.
-  static const double coverWidth = 720;
+  static const double coverBreakpoint = 720;
+
+  /// The cover's width beside the text, at the blog's 1200 × 630.
+  static const double coverWidth = 300;
+
+  /// The excerpt's measure: about 70 characters, not the banner's width.
+  static const double excerptMaxWidth = 560;
 
   @override
   State<NewsBanner> createState() => _NewsBannerState();
@@ -352,7 +359,7 @@ class _NewsBannerState extends State<NewsBanner> {
     return ValueListenableBuilder<NewsState>(
       valueListenable: widget.controller.state,
       builder: (context, state, _) => switch (state) {
-        NewsLoading() => _band(context, const SizedBox.expand()).asSkeleton(),
+        NewsLoading() => _band(context, const SizedBox(height: NewsBanner.minHeight - 48)).asSkeleton(),
         NewsLoaded(:final posts) when posts.isNotEmpty => _loaded(
           context,
           posts.take(NewsBanner.maxPosts).toList(),
@@ -362,9 +369,9 @@ class _NewsBannerState extends State<NewsBanner> {
     );
   }
 
-  Widget _band(BuildContext context, Widget child) => SizedBox(
+  Widget _band(BuildContext context, Widget child) => ConstrainedBox(
     key: const ValueKey('news-banner'),
-    height: NewsBanner.height,
+    constraints: const BoxConstraints(minHeight: NewsBanner.minHeight),
     child: BkBrandBand(
       borderRadius: const BorderRadius.all(Radius.circular(BkComponentThemes.cardRadius + 4)),
       contours: const BkContourPlacement.card(),
@@ -390,26 +397,17 @@ class _NewsBannerState extends State<NewsBanner> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final withCover = image != null && constraints.maxWidth >= NewsBanner.coverWidth;
+        final withCover = image != null && constraints.maxWidth >= NewsBanner.coverBreakpoint;
         return _band(
           context,
           Builder(
             builder: (context) {
-              final cs = Theme.of(context).colorScheme;
+              // On the band every text is full white: anything fainter drops
+              // under 4.5:1 on its light-mode blue.
               final text = Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    spacing: 8,
-                    children: [
-                      if (isNew) _NewBadge(label: l10n.newsNewBadge),
-                      Text(
-                        '${l10n.activityTabNews} · $date',
-                        style: context.typography.small.copyWith(color: cs.foreground.withValues(alpha: 0.85)),
-                      ),
-                    ],
-                  ),
-                  const Gap(10),
                   Semantics(
                     header: true,
                     child: Text(
@@ -421,18 +419,18 @@ class _NewsBannerState extends State<NewsBanner> {
                     ),
                   ),
                   if (excerpt != null && excerpt.isNotEmpty) ...[
-                    const Gap(6),
-                    Text(
-                      excerpt,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.typography.small.copyWith(
-                        height: 1.4,
-                        color: cs.foreground.withValues(alpha: 0.88),
+                    const Gap(8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: NewsBanner.excerptMaxWidth),
+                      child: Text(
+                        excerpt,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.typography.small.copyWith(height: 1.45),
                       ),
                     ),
                   ],
-                  const Spacer(),
+                  const Gap(20),
                   Row(
                     spacing: 8,
                     children: [
@@ -451,7 +449,10 @@ class _NewsBannerState extends State<NewsBanner> {
                         ),
                       ),
                       const Spacer(),
-                      if (posts.length > 1)
+                      if (isNew) _NewBadge(label: l10n.newsNewBadge),
+                      Text(date, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
+                      if (posts.length > 1) ...[
+                        const Gap(4),
                         for (final (i, p) in posts.indexed)
                           _PagerDot(
                             key: ValueKey('news-banner-dot-$i'),
@@ -459,28 +460,31 @@ class _NewsBannerState extends State<NewsBanner> {
                             label: p.titleForLanguage(languageCode),
                             onPressed: () => setState(() => _index = i),
                           ),
+                      ],
                     ],
                   ),
                 ],
               );
               if (!withCover) return text;
               return Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: 24,
+                spacing: 28,
                 children: [
                   Expanded(child: text),
                   // The whole cover, never cropped: the blog's covers carry
                   // their own lettering.
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AspectRatio(
-                      aspectRatio: 1200 / 630,
-                      child: ExcludeSemantics(
-                        child: Image.network(
-                          image,
-                          key: ValueKey('news-banner-cover-${post.slug}'),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+                  SizedBox(
+                    width: NewsBanner.coverWidth,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: AspectRatio(
+                        aspectRatio: 1200 / 630,
+                        child: ExcludeSemantics(
+                          child: Image.network(
+                            image,
+                            key: ValueKey('news-banner-cover-${post.slug}'),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+                          ),
                         ),
                       ),
                     ),
@@ -514,7 +518,7 @@ class _PagerDot extends StatelessWidget {
       excludeChildSemantics: true,
       borderRadius: BorderRadius.circular(999),
       child: SizedBox(
-        width: selected ? 32 : 18,
+        width: selected ? 34 : 24,
         height: 28,
         child: Center(
           child: AnimatedContainer(
@@ -522,7 +526,8 @@ class _PagerDot extends StatelessWidget {
             width: selected ? 22 : 8,
             height: 8,
             decoration: BoxDecoration(
-              color: cs.foreground.withValues(alpha: selected ? 1 : 0.45),
+              // Unselected at 70%: still 3:1 on the band, as a control must be.
+              color: cs.foreground.withValues(alpha: selected ? 1 : 0.7),
               borderRadius: BorderRadius.circular(999),
             ),
           ),

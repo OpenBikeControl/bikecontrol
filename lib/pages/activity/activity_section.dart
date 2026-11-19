@@ -21,6 +21,10 @@ class ActivitySection extends StatelessWidget {
   final ActivityFixAction fixAction;
   final bool sideBySide;
 
+  /// From this content width the log and the rides sit side by side; below
+  /// it (a small desktop window) they stack under the banner.
+  static const double twoPaneWidth = 760;
+
   @override
   Widget build(BuildContext context) {
     if (sideBySide) return _panes(context);
@@ -57,39 +61,48 @@ class ActivitySection extends StatelessWidget {
             _ => const Gap(24),
           },
         ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 20,
-          children: [
-            Expanded(
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final log = Column(
               key: const ValueKey('activity-log-pane'),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ActivityPaneTitle(
-                    key: const ValueKey('activity-log-title'),
-                    title: l10n.activityLogTitle,
-                    trailing: ActivityClearButton(controller: shell.activity),
-                  ),
-                  ActivityLogView(controller: shell.activity, fixAction: fixAction),
-                ],
-              ),
-            ),
-            Expanded(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ActivityPaneTitle(
+                  key: const ValueKey('activity-log-title'),
+                  title: l10n.activityLogTitle,
+                  trailing: ActivityClearButton(controller: shell.activity),
+                ),
+                ActivityLogView(controller: shell.activity, fixAction: fixAction),
+              ],
+            );
+            final rides = Column(
               key: const ValueKey('activity-rides-pane'),
-              child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ActivityPaneTitle(
+                  key: const ValueKey('activity-rides-title'),
+                  title: l10n.ridesTab,
+                  trailing: const RidesMenuButton(),
+                ),
+                const RidesView(desktop: true),
+              ],
+            );
+            // Too narrow for two readable panes: the log over the rides.
+            if (constraints.maxWidth < ActivitySection.twoPaneWidth) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ActivityPaneTitle(
-                    key: const ValueKey('activity-rides-title'),
-                    title: l10n.ridesTab,
-                    trailing: const RidesMenuButton(),
-                  ),
-                  const RidesView(desktop: true),
-                ],
-              ),
-            ),
-          ],
+                children: [log, const Gap(28), rides],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 20,
+              children: [
+                Expanded(child: log),
+                Expanded(child: rides),
+              ],
+            );
+          },
         ),
       ],
     );
