@@ -166,7 +166,7 @@ class SupportComposer extends StatefulWidget {
 
   /// The shortest description that unlocks send while a [pinnedContext] is
   /// attached, or for the first message ([requireDescription]). Trimmed length, so whitespace alone counts as nothing.
-  static const int minDescriptionLength = 12;
+  static const int minDescriptionLength = 2;
 
   @override
   State<SupportComposer> createState() => _SupportComposerState();
