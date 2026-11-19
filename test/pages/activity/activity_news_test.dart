@@ -16,6 +16,7 @@ import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../helpers/ride_fixtures.dart';
 import '../../helpers/ride_rig.dart';
 import '../../helpers/shell_harness.dart';
 import '../../widget_snapshot.dart';
@@ -233,6 +234,9 @@ Future<void> main() async {
     });
 
     testWidgets('Fahrten: its own ⋮ on its title, with "Alle löschen"', (tester) async {
+      // The ⋮ is there once there is a ride to act on.
+      final rig = await RideRig.install();
+      await saveSampleRide(rig.repository, start: DateTime.now().subtract(const Duration(hours: 3)));
       await pumpShell(tester, const Size(390, 844));
       await openActivity(tester);
       final ridesMenu = find.descendant(

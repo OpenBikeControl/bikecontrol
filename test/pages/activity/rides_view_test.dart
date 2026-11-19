@@ -115,6 +115,25 @@ Future<void> main() async {
     expect(find.byKey(const ValueKey('rides-empty-start')), findsNothing);
   });
 
+  // A folder with nothing in it and "delete all" of nothing: no ⋮ until
+  // there is a ride for it to act on, and gone again once they are deleted.
+  testWidgets('no ⋮ while there are no rides', (tester) async {
+    await RideRig.install();
+    await pump(tester);
+    expect(find.byKey(const ValueKey('rides-menu')), findsNothing);
+  });
+
+  testWidgets('the ⋮ while there are rides, gone once they are deleted', (tester) async {
+    final rig = await RideRig.install();
+    await saveSampleRide(rig.repository, start: DateTime.now().subtract(const Duration(hours: 3)));
+    await pump(tester);
+    expect(find.byKey(const ValueKey('rides-menu')), findsOneWidget);
+
+    await rig.service.deleteAll();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('rides-menu')), findsNothing);
+  });
+
   testWidgets('empty with automatic recording off: the manual start', (tester) async {
     RideRig.source = TrainerMetrics(
       powerW: ValueNotifier<int?>(0),

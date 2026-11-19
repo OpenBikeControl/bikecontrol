@@ -509,11 +509,51 @@ Future<void> confirmDeleteAllRides(BuildContext context) async {
 /// Rides' ⋮ — in Activity's top bar while the phone's Rides segment shows,
 /// and on the Rides pane's title from 840: the folder (on desktop) and
 /// "Alle löschen", plus the developer tools in debug builds.
-class RidesMenuButton extends StatelessWidget {
+///
+/// Not there while there are no rides: a folder with nothing in it and
+/// "delete all" of nothing are a menu that opens onto no choice.
+class RidesMenuButton extends StatefulWidget {
   const RidesMenuButton({super.key});
 
   @override
+  State<RidesMenuButton> createState() => _RidesMenuButtonState();
+}
+
+class _RidesMenuButtonState extends State<RidesMenuButton> {
+  late Future<List<PastWorkout>> _rides = core.rides.list();
+
+  @override
+  void initState() {
+    super.initState();
+    core.rides.ridesVersion.addListener(_reload);
+  }
+
+  @override
+  void dispose() {
+    core.rides.ridesVersion.removeListener(_reload);
+    super.dispose();
+  }
+
+  void _reload() {
+    if (!mounted) return;
+    setState(() {
+      _rides = core.rides.list();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    return FutureBuilder<List<PastWorkout>>(
+      future: _rides,
+      builder: (context, snapshot) {
+        final rides = snapshot.data;
+        if (rides == null || rides.isEmpty) return const SizedBox.shrink();
+        return _menu(context);
+      },
+    );
+  }
+
+  Widget _menu(BuildContext context) {
     final l10n = context.i18n;
     final cs = Theme.of(context).colorScheme;
     return SectionMenuButton(
