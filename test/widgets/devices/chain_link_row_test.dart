@@ -4,7 +4,6 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/devices/chain_link_row.dart';
-import 'package:bike_control/widgets/home/chain_card.dart' show StepRow;
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
@@ -96,7 +95,7 @@ Rect _card(WidgetTester tester) => tester.getRect(
 
 /// The fix button of the active step, and the card it has to fit in.
 void _expectCtaInsideWithPadding(WidgetTester tester, String when) {
-  final cta = tester.getRect(find.byType(PrimaryButton));
+  final cta = tester.getRect(find.byKey(chainRowStepActionKey));
   final card = _card(tester);
   expect(cta.top, greaterThanOrEqualTo(card.top), reason: when);
   expect(
@@ -123,9 +122,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final row = tester.getRect(find.byType(ChainLinkRow));
-    final lastStep = tester.getRect(find.byType(StepRow).last);
-    // The last line (its own 2px gap included) and the checklist's 10px bottom inset.
-    expect(row.bottom, lastStep.bottom + 10);
+    final lastStep = tester.getRect(find.byKey(chainRowLaterStepKey(SetupStepId.appConnected)));
+    // The last step's line and the checklist's 12px bottom inset.
+    expect(row.bottom, lastStep.bottom + 12);
     expect(row.bottom, _card(tester).bottom);
   });
 

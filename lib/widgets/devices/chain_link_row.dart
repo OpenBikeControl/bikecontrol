@@ -2,7 +2,8 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart'
-    show StepRow, chainCardFooterKey, chainCardHighlightKey, chainCardSubtitleKey;
+    show OptionalTag, chainCardFooterKey, chainCardHighlightKey, chainCardSubtitleKey;
+import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
@@ -27,14 +28,21 @@ const double chainRowTextInset = BkGroupedSection.inset + BkIconTile.size + BkGr
 /// The chevron a row with somewhere to go ends its header with.
 const Key chainRowChevronKey = ValueKey('chain-row-chevron');
 
+/// The active step's fix, at the end of the row's header.
+const Key chainRowStepActionKey = ValueKey('chain-row-step-action');
+
+/// A later step's line under the row.
+Key chainRowLaterStepKey(SetupStepId id) => ValueKey('chain-row-later-step-${id.name}');
+
 /// One link of the setup chain as a row of a Devices group: the device's tile,
 /// its name and a detail line, and its status as a dot and words at the end.
 ///
-/// Whatever the link still needs sits under the row, indented to the text:
-/// the outstanding steps with the next one's fix ("Set up", "Enable overlay"),
-/// then any live readout ([body]) and an offer along the bottom ([footer]).
-/// Nothing a rider could reach from the old chain card is lost — only its
-/// frame.
+/// While the link still needs something, the status moves under the name and
+/// the next step's fix ("Show me how", "Enable overlay") takes its place at
+/// the end of the row; what to do sits under it, indented to the text, with
+/// the steps after it as a quiet checklist. Said once, in the row itself —
+/// not repeated as the title of a box inside the card. Then any live readout
+/// ([body]) and an offer along the bottom ([footer]).
 class ChainLinkRow extends StatefulWidget {
   const ChainLinkRow({
     super.key,
@@ -230,7 +238,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   }
 
   /// What the link still needs, indented to the row's text — see
-  /// [_checklist] for when it moves.
+  /// [_checklist] for when it moves. The step in front gives its hint (and
+  /// its title, when the status says something else); the rest are a quiet
+  /// checklist, each optional one with its own offer.
   Widget _checklistSection(BuildContext context, ChainLink link, List<SetupStep> pending) {
     if (pending.isNotEmpty) _lastPending = pending;
     final steps = pending.isNotEmpty ? pending : _lastPending;
@@ -241,38 +251,94 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         // At full size this lays the checklist out at exactly its own height.
         return SizeTransition(sizeFactor: _checklistSize, alignment: Alignment.topCenter, child: child);
       },
-      child: Padding(
-        // The step's own tick sits where the row's text starts.
-        padding: const EdgeInsets.fromLTRB(chainRowTextInset - 10, 0, 10, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final (index, step) in steps.indexed)
-              // A standby controller's steps are all offers: none is "the
-              // next thing to do", so none is highlighted, and the first
-              // keeps its fix as a quiet button.
-              StepRow(
-                step: step,
-                active: index == 0 && !link.standby,
-                appName: widget.appName,
-                onInstructions: index == 0 ? widget.onInstructions : null,
-                instructionsLabel: widget.instructionsLabel,
-                onSecondaryAction: index == 0 ? widget.onSecondaryAction : null,
-                secondaryActionLabel: widget.secondaryActionLabel,
-                onOffer: link.standby
-                    ? (index == 0 ? widget.onInstructions : null)
-                    : widget.onOffer == null
-                    ? null
-                    : () => widget.onOffer!(step),
-                offerLabel: link.standby
-                    ? (index == 0 ? widget.instructionsLabel ?? context.i18n.chainShowMeHow : null)
-                    : widget.offerLabel?.call(step),
+      child: steps.isEmpty ? const SizedBox.shrink() : _steps(context, link, steps),
+    );
+  }
+
+  Widget _steps(BuildContext context, ChainLink link, List<SetupStep> steps) {
+    final cs = Theme.of(context).colorScheme;
+    final typography = context.typography;
+    final first = chainStepText(context, steps.first, appName: widget.appName);
+    final hint = first.hint;
+    // The status already says it ("Waiting for connection"): the step's own
+    // title would only repeat it.
+    final showTitle = first.label != _statusLabel(context, steps);
+    final showSecondary = widget.onSecondaryAction != null && widget.secondaryActionLabel != null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(chainRowTextInset, 0, BkGroupedSection.inset, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showTitle)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 3),
+              child: Text(first.label, style: typography.small.copyWith(fontWeight: FontWeight.w600)),
+            ),
+          if (hint != null && hint.isNotEmpty)
+            Text(hint, style: typography.small.copyWith(height: 1.4, color: cs.mutedForeground)),
+          if (showSecondary)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: BkTouchTarget(
+                child: Button.ghost(
+                  alignment: Alignment.center,
+                  style: const ButtonStyle.ghost(size: ButtonSize.small),
+                  onPressed: widget.onSecondaryAction,
+                  child: Text(widget.secondaryActionLabel!),
+                ),
               ),
-          ],
-        ),
+            ),
+          for (final step in steps.skip(1)) _laterStep(context, link, step),
+        ],
       ),
     );
   }
+
+  /// A step behind the one in front: an open circle and its title, and — for
+  /// an optional one — its offer, so it can be taken up now.
+  Widget _laterStep(BuildContext context, ChainLink link, SetupStep step) {
+    final cs = Theme.of(context).colorScheme;
+    final text = chainStepText(context, step, appName: widget.appName);
+    final offer = link.standby ? null : widget.offerLabel?.call(step);
+    return Padding(
+      key: chainRowLaterStepKey(step.id),
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.circle, size: 13, color: cs.mutedForeground),
+              const Gap(7),
+              Flexible(
+                child: Text(text.label, style: context.typography.small.copyWith(color: cs.mutedForeground)),
+              ),
+              if (step.optional) ...[const Gap(7), const OptionalTag()],
+            ],
+          ),
+          if (step.optional && offer != null && widget.onOffer != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 20, top: 6),
+              child: BkTouchTarget(
+                child: Button.outline(
+                  alignment: Alignment.center,
+                  style: const ButtonStyle.outline(size: ButtonSize.small),
+                  onPressed: () => widget.onOffer!(step),
+                  child: Text(offer),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// What the row says about itself while steps are open: the caller's
+  /// status, else the step in front.
+  String _statusLabel(BuildContext context, List<SetupStep> steps) =>
+      widget.statusLabel ?? chainStepText(context, steps.first, appName: widget.appName).label;
 
   Widget _header(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -282,6 +348,23 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     final tone = widget.link.standby ? BkStatusTone.neutral : chainStatusTone(widget.link.status);
     final detail = widget.statusDetail;
     final badges = widget.statusBadges;
+    // Open steps: the status moves under the name and the step in front's
+    // fix takes its place at the end — see [ChainLinkRow].
+    final pending = widget.link.pendingSteps;
+    final open = pending.isNotEmpty;
+    final fix = open ? widget.onInstructions : null;
+    final detailRow = DefaultTextStyle.merge(
+      style: typography.xSmall.copyWith(color: cs.mutedForeground),
+      textAlign: open ? TextAlign.start : TextAlign.end,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4,
+        children: [
+          ...badges,
+          if (detail != null) Flexible(child: detail),
+        ],
+      ),
+    );
 
     final row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 56),
@@ -306,6 +389,17 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                       color: widget.titleColor ?? cs.foreground,
                     ),
                   ),
+                  if (open)
+                    Row(
+                      children: [
+                        Flexible(child: BkStatusDot(label: _statusLabel(context, pending), tone: tone)),
+                        // An optional step says so where its title now stands.
+                        if (pending.first.optional && !widget.link.standby) ...[
+                          const Gap(7),
+                          const OptionalTag(),
+                        ],
+                      ],
+                    ),
                   if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
                     Text(
                       subtitle,
@@ -314,10 +408,23 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                       overflow: TextOverflow.ellipsis,
                       style: typography.xSmall.copyWith(color: cs.mutedForeground),
                     ),
+                  if (open && (detail != null || badges.isNotEmpty)) detailRow,
                 ],
               ),
             ),
-            if (widget.statusLabel != null || detail != null || badges.isNotEmpty) ...[
+            if (fix != null) ...[
+              const Gap(8),
+              BkTouchTarget(
+                child: Button.outline(
+                  key: chainRowStepActionKey,
+                  alignment: Alignment.center,
+                  style: const ButtonStyle.outline(size: ButtonSize.small),
+                  onPressed: fix,
+                  leading: const Icon(LucideIcons.bookOpen, size: 13),
+                  child: Text(widget.instructionsLabel ?? context.i18n.chainShowMeHow),
+                ),
+              ),
+            ] else if (!open && (widget.statusLabel != null || detail != null || badges.isNotEmpty)) ...[
               const Gap(8),
               ConstrainedBox(
                 // A long status ("Waiting for MyWhoosh to connect to …") wraps
@@ -329,27 +436,16 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                   spacing: 3,
                   children: [
                     if (widget.statusLabel case final label?) BkStatusDot(label: label, tone: tone),
-                    if (detail != null || badges.isNotEmpty)
-                      DefaultTextStyle.merge(
-                        style: typography.xSmall.copyWith(color: cs.mutedForeground),
-                        textAlign: TextAlign.end,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          spacing: 4,
-                          children: [
-                            ...badges,
-                            if (detail != null) Flexible(child: detail),
-                          ],
-                        ),
-                      ),
+                    if (detail != null || badges.isNotEmpty) detailRow,
                   ],
                 ),
               ),
             ],
             // The whole header opens the link's page, and a green row has no
             // button left to hint at that — the same quiet chevron as every
-            // other row that opens something, and Ride's step rows.
-            if (widget.onTap != null) ...[
+            // other row that opens something, and Ride's step rows. A row with
+            // its fix at the end has a button there instead.
+            if (widget.onTap != null && fix == null) ...[
               const Gap(4),
               Icon(LucideIcons.chevronRight, key: chainRowChevronKey, size: 16, color: cs.mutedForeground),
             ],
