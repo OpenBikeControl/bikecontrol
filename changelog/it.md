@@ -2,6 +2,7 @@
 **Features**:
 - Una configurazione più breve: tre passaggi invece di sei. Scegli l'app di allenamento e dove gira, collega controller e rullo in un'unica schermata, poi collega l'app.
 - La configurazione ora collega il rullo tramite BikeControl per impostazione predefinita e mostra subito cosa fa il cambio virtuale di BikeControl.
+- La configurazione propone l'Overlay delle marce dove serve: MyWhoosh, Zwift, Rouvy e TrainingPeaks Virtual continuano a mostrare il proprio numero di marcia, l'Overlay mostra sopra la marcia reale di BikeControl.
 
 **Fixes**:
 - Zwift e Rouvy: il test di rete non segnala più un problema quando la connessione di rete di BikeControl funziona.

@@ -3138,5 +3138,8 @@
   "accessoryFanReadout": "Ventilador {value}",
   "onboardingGuidePairTrainer": "Empareja tu rodillo: para fuente de potencia, resistencia y cadencia, elige «{bridge}»",
   "onboardingGuideZwiftBridge": "Elige «{bridge}» como fuente de potencia, resistencia, cadencia y controles, y listo",
-  "onboardingSlotControls": "Controles"
+  "onboardingSlotControls": "Controles",
+  "onboardingOverlayTitle": "{app} no mostrará tu marcha",
+  "onboardingOverlayRow": "Overlay de marchas",
+  "onboardingOverlayOn": "Activado"
 }

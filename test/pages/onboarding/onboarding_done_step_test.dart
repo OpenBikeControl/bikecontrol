@@ -471,30 +471,22 @@ Future<void> main() async {
   });
 
   group('gear overlay offer', () {
-    bool offers({
-      SupportedApp? app,
-      bool pickedUp = true,
-      bool platform = true,
-      bool enabled = false,
-      bool declined = false,
-    }) => onboardingDoneOffersOverlay(
+    bool offers({SupportedApp? app, bool platform = true, bool enabled = false}) => onboardingDoneOffersOverlay(
       app: app ?? MyWhoosh(),
       trainerBridged: true,
-      trainerAppConnected: pickedUp,
       overlayOffered: platform,
       overlayEnabled: enabled,
-      overlayDeclined: declined,
     );
 
-    test('offered for an app that shows its own gear, once the trainer is picked up', () {
+    // Part of the setup, not a tip for once the app has the trainer: riders
+    // never connected the app's wrong gear number with BikeControl.
+    test('offered for an app that shows its own gear, before the app has the trainer', () {
       expect(offers(), isTrue);
-      expect(offers(pickedUp: false), isFalse);
     });
 
-    test('not offered where the overlay cannot be shown, or once answered', () {
+    test('not offered where the overlay cannot be shown, or once it is on', () {
       expect(offers(platform: false), isFalse, reason: 'other device, unsupported platform or no VS session');
       expect(offers(enabled: true), isFalse);
-      expect(offers(declined: true), isFalse);
     });
 
     test('not offered for an app without its own gear display', () {
@@ -506,13 +498,52 @@ Future<void> main() async {
         onboardingDoneOffersOverlay(
           app: MyWhoosh(),
           trainerBridged: false,
-          trainerAppConnected: false,
           overlayOffered: true,
           overlayEnabled: false,
-          overlayDeclined: false,
         ),
         isFalse,
       );
+    });
+
+    testWidgets('while waiting for the app, the offer sits with the setup steps', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: MyWhoosh(),
+          controllerName: 'Zwift Click',
+          trainerName: 'KICKR CORE',
+          appConnected: false,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+          offerOverlay: true,
+          onShowOverlay: () {},
+        ),
+      );
+      expect(find.byKey(const ValueKey('onboarding-overlay-offer')), findsOneWidget);
+      expect(find.text(l10n(tester).onboardingOverlayTitle('MyWhoosh')), findsOneWidget);
+    });
+
+    testWidgets('once on, the overlay is a checklist row instead of an offer', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: MyWhoosh(),
+          controllerName: 'Zwift Click',
+          trainerName: 'KICKR CORE',
+          appConnected: true,
+          trainerAppConnected: true,
+          reduceMotion: true,
+          showTestMode: false,
+          overlayOn: true,
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.text(l.onboardingOverlayRow), findsOneWidget);
+      expect(find.text(l.onboardingOverlayOn), findsOneWidget);
+      expect(find.byKey(const ValueKey('onboarding-overlay-offer')), findsNothing);
     });
 
     testWidgets('the offer explains the gear display and shows the overlay in one tap', (tester) async {

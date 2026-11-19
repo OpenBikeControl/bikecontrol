@@ -944,12 +944,20 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return onboardingDoneOffersOverlay(
       app: app,
       trainerBridged: true,
-      trainerAppConnected: trainer.isConnectedListenable.value,
       overlayOffered: trainerOverlayOffered(trainer),
       overlayEnabled: core.settings.getOverlayEnabled(),
-      overlayDeclined: core.settings.getOverlayDeclined(),
     );
   }
+
+  /// The overlay is on for a setup that needs it: a checklist row, where the
+  /// offer stood.
+  bool get _doneOverlayOn {
+    final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
+    final app = _selectedApp;
+    if (trainer == null || app == null || !app.showsOwnGear) return false;
+    return trainerOverlayOffered(trainer) && core.settings.getOverlayEnabled();
+  }
+
 
   /// Shows the gear overlay through the app's one enable path, which asks for
   /// Android's draw-over permission first and only records the overlay as on
@@ -1082,6 +1090,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       onTestNetwork: () => context.push(const NetworkTroubleshootingPage()),
       offerOverlay: _doneOffersOverlay,
       onShowOverlay: _onShowOverlay,
+      overlayOn: _doneOverlayOn,
       networkStatus: switch (_precheckGate.precheck) {
         null => null,
         final precheck => OnboardingNetworkPrecheckCard(

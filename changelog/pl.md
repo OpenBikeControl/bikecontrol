@@ -2,6 +2,7 @@
 **Features**:
 - Krótsza konfiguracja: trzy kroki zamiast sześciu. Wybierz aplikację treningową i to, gdzie działa, połącz kontroler i trenażer na jednym ekranie, a potem połącz aplikację.
 - Konfiguracja domyślnie łączy teraz trenażer przez BikeControl i od razu pokazuje, co daje wirtualna zmiana biegów BikeControl.
+- Konfiguracja proponuje Overlay biegów tam, gdzie go potrzebujesz: MyWhoosh, Zwift, Rouvy i TrainingPeaks Virtual nadal pokazują własny numer biegu, więc Overlay pokazuje nad nimi prawdziwy bieg BikeControl.
 
 **Fixes**:
 - Zwift i Rouvy: test sieci nie zgłasza już problemu, gdy połączenie sieciowe BikeControl działa.

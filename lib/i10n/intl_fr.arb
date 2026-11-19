@@ -3138,5 +3138,8 @@
   "accessoryFanReadout": "Ventilateur {value}",
   "onboardingGuidePairTrainer": "Appaire ton home trainer : pour la source de puissance, la résistance et la cadence, choisis « {bridge} »",
   "onboardingGuideZwiftBridge": "Choisis « {bridge} » pour la source de puissance, la résistance, la cadence et les commandes, et c'est parti",
-  "onboardingSlotControls": "Commandes"
+  "onboardingSlotControls": "Commandes",
+  "onboardingOverlayTitle": "{app} n'affichera pas ta vitesse",
+  "onboardingOverlayRow": "Overlay des vitesses",
+  "onboardingOverlayOn": "Activé"
 }

@@ -2,6 +2,7 @@
 **Features**:
 - A shorter setup: three steps instead of six. Pick your trainer app and where it runs, connect your controller and smart trainer on one screen, then link the app.
 - Setup now connects your smart trainer through BikeControl by default, and shows right there what BikeControl's virtual shifting does.
+- Setup now offers the gear overlay where you need it: MyWhoosh, Zwift, Rouvy and TrainingPeaks Virtual keep showing their own gear number, so the overlay shows BikeControl's real gear on top.
 
 **Fixes**:
 - Zwift and Rouvy: the network test no longer reports a problem when BikeControl's network connection is working.

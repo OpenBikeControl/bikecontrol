@@ -3138,5 +3138,8 @@
   "accessoryFanReadout": "Ventilator {value}",
   "onboardingGuidePairTrainer": "Koppel deinen Trainer: Wähle für Leistungsquelle, Widerstand und Trittfrequenz „{bridge}“",
   "onboardingGuideZwiftBridge": "Wähle „{bridge}“ für Leistungsquelle, Widerstand, Trittfrequenz und Steuerung – dann bist du startklar",
-  "onboardingSlotControls": "Steuerung"
+  "onboardingSlotControls": "Steuerung",
+  "onboardingOverlayTitle": "{app} zeigt nicht deinen Gang",
+  "onboardingOverlayRow": "Gang-Overlay",
+  "onboardingOverlayOn": "An"
 }

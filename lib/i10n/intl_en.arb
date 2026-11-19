@@ -3638,5 +3638,11 @@
   "onboardingGuideZwiftBridge": "Select “{bridge}” for power source, resistance, cadence and controls — then you're good to go",
   "onboardingSlotControls": "Controls",
   "@onboardingGuideZwiftBridge": {"description": "Onboarding guide step for Zwift with a trainer bridged through BikeControl: the one bridge entry to pick in every pairing slot.", "placeholders": {"bridge": {"type": "String"}}},
-  "@onboardingSlotControls": {"description": "Name of the Controls pairing slot in Zwift, listed with power source, resistance and cadence."}
+  "@onboardingSlotControls": {"description": "Name of the Controls pairing slot in Zwift, listed with power source, resistance and cadence."},
+  "onboardingOverlayTitle": "{app} won't show your gear",
+  "onboardingOverlayRow": "Gear overlay",
+  "onboardingOverlayOn": "On",
+  "@onboardingOverlayTitle": {"description": "Onboarding step 3: heading of the card offering the gear overlay; the trainer app keeps drawing its own gear number.", "placeholders": {"app": {"type": "String"}}},
+  "@onboardingOverlayRow": {"description": "Onboarding step 3 checklist row for the gear overlay, once it is on."},
+  "@onboardingOverlayOn": {"description": "Status of the gear overlay row in the onboarding checklist: the overlay is shown."}
 }
