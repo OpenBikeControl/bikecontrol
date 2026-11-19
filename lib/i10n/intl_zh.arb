@@ -1796,7 +1796,7 @@
       }
     }
   },
-  "connectionFailed": "连接失败：{device} - {error}",
+  "connectionFailed": "无法连接 {device}。{error}",
   "@connectionFailed": {
     "placeholders": {
       "device": {
@@ -4303,5 +4303,14 @@
   "onboardingOverlayTitle": "{app} 不会显示你的挡位",
   "onboardingOverlayRow": "挡位悬浮窗",
   "onboardingOverlayOn": "已开启",
-  "onboardingWelcomeHaveReady": "大约 2 分钟。请准备好："
+  "onboardingWelcomeHaveReady": "大约 2 分钟。请准备好：",
+  "connectErrorNotFound": "不在范围内，请唤醒设备。",
+  "connectErrorBluetoothOff": "蓝牙已关闭。",
+  "connectErrorNotAllowed": "BikeControl 无权使用蓝牙。请检查应用权限。",
+  "connectErrorTimeout": "设备未及时响应。",
+  "connectErrorRefused": "设备拒绝了连接。它可能已连接到其他应用。",
+  "connectErrorPairing": "配对失败。请在蓝牙设置中移除该设备后重试。",
+  "connectErrorDropped": "连接过程中断开。",
+  "connectErrorUnknown": "出了点问题。",
+  "connectErrorRetrying": "BikeControl 会继续尝试。"
 }

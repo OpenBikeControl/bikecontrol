@@ -1114,7 +1114,7 @@
       }
     }
   },
-  "connectionFailed": "Połączenie nie powiodło się: {device} - {error}",
+  "connectionFailed": "Nie udało się połączyć z {device}. {error}",
   "@connectionFailed": {
     "placeholders": {
       "device": {
@@ -3129,5 +3129,14 @@
   "onboardingOverlayTitle": "{app} nie pokaże Twojego biegu",
   "onboardingOverlayRow": "Overlay biegów",
   "onboardingOverlayOn": "Włączony",
-  "onboardingWelcomeHaveReady": "Około 2 minut. Przygotuj:"
+  "onboardingWelcomeHaveReady": "Około 2 minut. Przygotuj:",
+  "connectErrorNotFound": "Poza zasięgiem – wybudź urządzenie.",
+  "connectErrorBluetoothOff": "Bluetooth jest wyłączony.",
+  "connectErrorNotAllowed": "BikeControl nie ma uprawnień do Bluetooth. Sprawdź uprawnienia aplikacji.",
+  "connectErrorTimeout": "Urządzenie nie odpowiedziało na czas.",
+  "connectErrorRefused": "Urządzenie odrzuciło połączenie. Może jest połączone z inną aplikacją.",
+  "connectErrorPairing": "Parowanie nie powiodło się. Usuń urządzenie w ustawieniach Bluetooth i spróbuj ponownie.",
+  "connectErrorDropped": "Połączenie zerwało się podczas łączenia.",
+  "connectErrorUnknown": "Coś poszło nie tak.",
+  "connectErrorRetrying": "BikeControl próbuje dalej."
 }

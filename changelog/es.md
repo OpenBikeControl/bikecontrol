@@ -7,6 +7,7 @@
 **Fixes**:
 - Elite Rizer: ya no aparece como mando, y la tarjeta de dirección ya no dice que se está calibrando mientras el Rizer no está conectado.
 - Zwift y Rouvy: la prueba de red ya no informa de un problema cuando la conexión de red de BikeControl funciona.
+- Si un dispositivo Bluetooth no se puede conectar, ahora se explica el motivo con palabras claras (fuera de alcance, Bluetooth desactivado, emparejamiento, …) en lugar de un código de error.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

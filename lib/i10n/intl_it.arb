@@ -1114,7 +1114,7 @@
       }
     }
   },
-  "connectionFailed": "Connessione fallita: {device} - {error}",
+  "connectionFailed": "Impossibile collegarsi a {device}. {error}",
   "@connectionFailed": {
     "placeholders": {
       "device": {
@@ -3129,5 +3129,14 @@
   "onboardingOverlayTitle": "{app} non mostrerà la tua marcia",
   "onboardingOverlayRow": "Overlay delle marce",
   "onboardingOverlayOn": "Attivo",
-  "onboardingWelcomeHaveReady": "Circa 2 minuti. Tieni a portata di mano:"
+  "onboardingWelcomeHaveReady": "Circa 2 minuti. Tieni a portata di mano:",
+  "connectErrorNotFound": "Fuori portata: riattiva il dispositivo.",
+  "connectErrorBluetoothOff": "Il Bluetooth è spento.",
+  "connectErrorNotAllowed": "BikeControl non ha il permesso di usare il Bluetooth. Controlla i permessi dell'app.",
+  "connectErrorTimeout": "Il dispositivo non ha risposto in tempo.",
+  "connectErrorRefused": "Il dispositivo ha rifiutato la connessione. Forse è collegato a un'altra app.",
+  "connectErrorPairing": "L'abbinamento non è riuscito. Rimuovi il dispositivo nelle impostazioni Bluetooth e riprova.",
+  "connectErrorDropped": "La connessione si è interrotta durante il collegamento.",
+  "connectErrorUnknown": "Qualcosa è andato storto.",
+  "connectErrorRetrying": "BikeControl continua a provare."
 }

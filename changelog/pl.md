@@ -7,6 +7,7 @@
 **Fixes**:
 - Elite Rizer: nie jest już wyświetlany jako kontroler, a karta skrętu nie pokazuje już kalibracji, gdy Rizer nie jest połączony.
 - Zwift i Rouvy: test sieci nie zgłasza już problemu, gdy połączenie sieciowe BikeControl działa.
+- Gdy urządzenie Bluetooth nie może się połączyć, powód jest opisany zrozumiale (poza zasięgiem, Bluetooth wyłączony, parowanie, …) zamiast surowego kodu błędu.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

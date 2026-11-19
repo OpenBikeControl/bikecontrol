@@ -7,6 +7,7 @@
 **Fixes**:
 - Elite Rizer: wird nicht mehr als Controller aufgeführt, und die Lenkungskarte zeigt nicht mehr „Wird kalibriert…“, solange der Rizer nicht verbunden ist.
 - Zwift und Rouvy: Der Netzwerktest meldet kein Problem mehr, wenn die Netzwerkverbindung von BikeControl funktioniert.
+- Kann sich ein Bluetooth-Gerät nicht verbinden, steht jetzt verständlich da, warum (nicht in Reichweite, Bluetooth aus, Koppeln, …) statt eines rohen Fehlercodes.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

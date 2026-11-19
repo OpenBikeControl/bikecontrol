@@ -6,3 +6,4 @@ Novedades:
 
 Correcciones:
 • Zwift y Rouvy: sin falsos avisos en la prueba de red
+• Errores de conexión Bluetooth explicados con claridad

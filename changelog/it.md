@@ -7,6 +7,7 @@
 **Fixes**:
 - Elite Rizer: non compare più come controller, e la scheda dello sterzo non dice più che sta calibrando finché il Rizer non è collegato.
 - Zwift e Rouvy: il test di rete non segnala più un problema quando la connessione di rete di BikeControl funziona.
+- Se un dispositivo Bluetooth non si collega, il motivo è spiegato in parole semplici (fuori portata, Bluetooth spento, abbinamento, …) invece di un codice di errore.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

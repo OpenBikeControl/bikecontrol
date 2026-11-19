@@ -1114,7 +1114,7 @@
       }
     }
   },
-  "connectionFailed": "Échec de la connexion : {device} - {error}",
+  "connectionFailed": "Impossible de se connecter à {device}. {error}",
   "@connectionFailed": {
     "placeholders": {
       "device": {
@@ -3129,5 +3129,14 @@
   "onboardingOverlayTitle": "{app} n'affichera pas ta vitesse",
   "onboardingOverlayRow": "Overlay des vitesses",
   "onboardingOverlayOn": "Activé",
-  "onboardingWelcomeHaveReady": "Environ 2 minutes. Prépare ceci :"
+  "onboardingWelcomeHaveReady": "Environ 2 minutes. Prépare ceci :",
+  "connectErrorNotFound": "Hors de portée – réveille l'appareil.",
+  "connectErrorBluetoothOff": "Le Bluetooth est désactivé.",
+  "connectErrorNotAllowed": "BikeControl n'a pas le droit d'utiliser le Bluetooth. Vérifie les autorisations de l'appli.",
+  "connectErrorTimeout": "L'appareil n'a pas répondu à temps.",
+  "connectErrorRefused": "L'appareil a refusé la connexion. Il est peut-être connecté à une autre appli.",
+  "connectErrorPairing": "L'appairage n'a pas fonctionné. Supprime l'appareil dans les réglages Bluetooth et réessaie.",
+  "connectErrorDropped": "La connexion s'est coupée pendant l'établissement.",
+  "connectErrorUnknown": "Quelque chose s'est mal passé.",
+  "connectErrorRetrying": "BikeControl continue d'essayer."
 }

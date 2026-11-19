@@ -6,3 +6,4 @@ New:
 
 Fixed:
 • Zwift & Rouvy: no false network test warning
+• Bluetooth connect errors in plain words

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bike_control/bluetooth/connect_error_text.dart';
 import 'package:bike_control/bluetooth/ble_command_queue_config.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/gamepad/gamepad_device.dart';
@@ -1847,10 +1848,20 @@ class Connection {
                 ),
               );
             } else {
+              // The rider gets the reason in words; the raw error stays in
+              // the log for support.
+              _actionStreams.add(LogNotification('${device.toString()}: connect failed ($e)'));
               _actionStreams.add(
                 AlertNotification(
                   LogLevel.LOGLEVEL_ERROR,
-                  AppLocalizations.current.connectionFailed(device.toString(), e.toString()),
+                  AppLocalizations.current.connectionFailed(
+                    device.toString(),
+                    connectErrorReason(
+                      AppLocalizations.current,
+                      e,
+                      retrying: device is BluetoothDevice && _connectRetryTimers.containsKey(device.device.deviceId),
+                    ),
+                  ),
                 ),
               );
             }

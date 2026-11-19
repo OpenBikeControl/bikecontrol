@@ -1741,7 +1741,7 @@
       }
     }
   },
-  "connectionFailed": "Connection failed: {device} - {error}",
+  "connectionFailed": "Couldn't connect to {device}. {error}",
   "@connectionFailed": {
     "placeholders": {
       "device": {
@@ -3637,5 +3637,23 @@
   "@onboardingOverlayRow": {"description": "Onboarding step 3 checklist row for the gear overlay, once it is on."},
   "@onboardingOverlayOn": {"description": "Status of the gear overlay row in the onboarding checklist: the overlay is shown."},
   "onboardingWelcomeHaveReady": "About 2 minutes. Have these ready:",
-  "@onboardingWelcomeHaveReady": {"description": "Welcome screen line under the title, above three pictures: controller, smart trainer, trainer app."}
+  "@onboardingWelcomeHaveReady": {"description": "Welcome screen line under the title, above three pictures: controller, smart trainer, trainer app."},
+  "connectErrorNotFound": "Not in range – wake the device up.",
+  "@connectErrorNotFound": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorBluetoothOff": "Bluetooth is off.",
+  "@connectErrorBluetoothOff": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorNotAllowed": "BikeControl isn't allowed to use Bluetooth. Check the app's permissions.",
+  "@connectErrorNotAllowed": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorTimeout": "The device didn't answer in time.",
+  "@connectErrorTimeout": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorRefused": "The device refused the connection. It may be connected to another app.",
+  "@connectErrorRefused": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorPairing": "Pairing didn't work. Remove the device in your Bluetooth settings and try again.",
+  "@connectErrorPairing": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorDropped": "The connection dropped while connecting.",
+  "@connectErrorDropped": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorUnknown": "Something went wrong.",
+  "@connectErrorUnknown": {"description": "Why connecting to a Bluetooth device failed, after \"Connection failed: <device> - \" in the alert and Activity log."},
+  "connectErrorRetrying": "BikeControl keeps trying.",
+  "@connectErrorRetrying": {"description": "Added after the reason a Bluetooth connect failed, when BikeControl has scheduled another attempt."}
 }

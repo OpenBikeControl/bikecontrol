@@ -6,3 +6,4 @@ Nowości:
 
 Poprawki:
 • Zwift i Rouvy: bez fałszywych ostrzeżeń w teście sieci
+• Błędy połączenia Bluetooth opisane zrozumiale

@@ -6,3 +6,4 @@ Neu:
 
 Behoben:
 • Zwift & Rouvy: keine falsche Warnung im Netzwerktest
+• Bluetooth-Verbindungsfehler verständlich erklärt

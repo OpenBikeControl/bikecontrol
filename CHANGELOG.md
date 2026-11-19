@@ -7,6 +7,7 @@
 **Fixes**:
 - Elite Rizer: no longer listed as a controller, and its steering card no longer says it is calibrating while the Rizer isn't connected.
 - Zwift and Rouvy: the network test no longer reports a problem when BikeControl's network connection is working.
+- A Bluetooth device that can't connect says why in plain words (out of range, Bluetooth off, pairing, …) instead of a raw error code.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

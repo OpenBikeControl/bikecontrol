@@ -1125,7 +1125,7 @@
       }
     }
   },
-  "connectionFailed": "Verbindung fehlgeschlagen: {device} – {error}",
+  "connectionFailed": "Verbindung zu {device} fehlgeschlagen. {error}",
   "@connectionFailed": {
     "placeholders": {
       "device": {
@@ -3129,5 +3129,14 @@
   "onboardingOverlayTitle": "{app} zeigt nicht deinen Gang",
   "onboardingOverlayRow": "Gang-Overlay",
   "onboardingOverlayOn": "An",
-  "onboardingWelcomeHaveReady": "Etwa 2 Minuten. Halte das hier bereit:"
+  "onboardingWelcomeHaveReady": "Etwa 2 Minuten. Halte das hier bereit:",
+  "connectErrorNotFound": "Nicht in Reichweite – weck das Gerät auf.",
+  "connectErrorBluetoothOff": "Bluetooth ist aus.",
+  "connectErrorNotAllowed": "BikeControl darf Bluetooth nicht nutzen. Prüf die Berechtigungen der App.",
+  "connectErrorTimeout": "Das Gerät hat nicht rechtzeitig geantwortet.",
+  "connectErrorRefused": "Das Gerät hat die Verbindung abgelehnt. Vielleicht ist es mit einer anderen App verbunden.",
+  "connectErrorPairing": "Das Koppeln hat nicht geklappt. Entferne das Gerät in den Bluetooth-Einstellungen und versuch es erneut.",
+  "connectErrorDropped": "Die Verbindung ist beim Aufbau abgebrochen.",
+  "connectErrorUnknown": "Etwas ist schiefgelaufen.",
+  "connectErrorRetrying": "BikeControl versucht es weiter."
 }
