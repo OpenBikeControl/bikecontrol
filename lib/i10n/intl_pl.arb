@@ -3141,5 +3141,8 @@
   "accessoryFanReadout": "Wentylator {value}",
   "onboardingGuidePairTrainer": "Sparuj trenażer: jako źródło mocy, opór i kadencję wybierz „{bridge}”",
   "onboardingGuideZwiftBridge": "Wybierz „{bridge}” jako źródło mocy, opór, kadencję i sterowanie – i gotowe",
-  "onboardingSlotControls": "Sterowanie"
+  "onboardingSlotControls": "Sterowanie",
+  "onboardingOverlayTitle": "{app} nie pokaże Twojego biegu",
+  "onboardingOverlayRow": "Overlay biegów",
+  "onboardingOverlayOn": "Włączony"
 }

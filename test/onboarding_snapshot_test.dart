@@ -280,6 +280,33 @@ Future<void> main() async {
             ));
   });
 
+  // The gear overlay as part of step 3: offered while the app is still
+  // being set up, and a checklist row once it is on.
+  for (final (name, appConnected, overlayOn) in [
+    ('waiting', false, false),
+    ('ready', true, false),
+    ('on', true, true),
+  ]) {
+    testWidgets('step ride overlay $name', (tester) async {
+      await captureWidget(tester, name: 'onboarding_step_ride_overlay_$name', width: 390, settle: false,
+          locales: const ['de'],
+          builder: (c) => onboardingDoneBody(
+                c,
+                app: MyWhoosh(),
+                controllerName: 'Zwift Click',
+                trainerName: 'Wahoo KICKR 1EB7',
+                bridgeName: 'Wahoo KICKR 1EB7 - BikeControl',
+                appConnected: appConnected,
+                trainerAppConnected: appConnected,
+                reduceMotion: true,
+                showTestMode: false,
+                offerOverlay: !overlayOn,
+                onShowOverlay: () {},
+                overlayOn: overlayOn,
+              ));
+    });
+  }
+
   testWidgets('step ride waiting for zwift', (tester) async {
     await captureWidget(tester, name: 'onboarding_step_ride_waiting_zwift', width: 380, settle: false,
         locales: const ['de'],

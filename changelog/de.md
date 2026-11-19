@@ -2,6 +2,7 @@
 **Features**:
 - Kürzere Einrichtung: drei Schritte statt sechs. Wähle deine Trainings-App und wo sie läuft, verbinde Controller und Smart Trainer auf einem Bildschirm, dann die App.
 - Die Einrichtung verbindet deinen Smart Trainer jetzt standardmäßig über BikeControl und zeigt direkt dort, was das virtuelle Schalten von BikeControl kann.
+- Die Einrichtung bietet das Gang-Overlay an, wo du es brauchst: MyWhoosh, Zwift, Rouvy und TrainingPeaks Virtual zeigen weiter ihre eigene Gangzahl, das Overlay zeigt darüber deinen echten Gang von BikeControl.
 
 **Fixes**:
 - Elite Rizer: wird nicht mehr als Controller aufgeführt, und die Lenkungskarte zeigt nicht mehr „Wird kalibriert…“, solange der Rizer nicht verbunden ist.

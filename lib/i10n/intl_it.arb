@@ -3141,5 +3141,8 @@
   "accessoryFanReadout": "Ventilatore {value}",
   "onboardingGuidePairTrainer": "Abbina il tuo rullo: per sorgente di potenza, resistenza e cadenza scegli «{bridge}»",
   "onboardingGuideZwiftBridge": "Scegli «{bridge}» per sorgente di potenza, resistenza, cadenza e comandi, ed è fatta",
-  "onboardingSlotControls": "Comandi"
+  "onboardingSlotControls": "Comandi",
+  "onboardingOverlayTitle": "{app} non mostrerà la tua marcia",
+  "onboardingOverlayRow": "Overlay delle marce",
+  "onboardingOverlayOn": "Attivo"
 }

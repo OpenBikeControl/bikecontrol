@@ -2,6 +2,7 @@ import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'dart:async';
 
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
+import 'package:bike_control/pages/onboarding/widgets/overlay_offer.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -90,23 +91,20 @@ bool onboardingDoneReady({
     OnboardingDoneState.ready;
 
 /// Whether the done step offers the gear overlay: the app draws its own gear
-/// number, a bridged trainer is held by the app, the overlay can be shown
-/// here ([overlayOffered]: platform, same device, a virtual-shifting
-/// session), and the rider hasn't already turned it on or declined it.
+/// number (which isn't BikeControl's), a trainer is bridged, and the overlay
+/// can be shown here ([overlayOffered]: platform, same device, a
+/// virtual-shifting session) and isn't on yet.
+///
+/// Offered from the moment the step opens, not once the app has picked the
+/// trainer up: riders didn't connect a wrong gear number in their app with
+/// BikeControl, so turning the overlay on is part of the setup, not a tip for
+/// after it.
 bool onboardingDoneOffersOverlay({
   required SupportedApp app,
   required bool trainerBridged,
-  required bool trainerAppConnected,
   required bool overlayOffered,
   required bool overlayEnabled,
-  required bool overlayDeclined,
-}) =>
-    app.showsOwnGear &&
-    trainerBridged &&
-    trainerAppConnected &&
-    overlayOffered &&
-    !overlayEnabled &&
-    !overlayDeclined;
+}) => app.showsOwnGear && trainerBridged && overlayOffered && !overlayEnabled;
 
 Widget onboardingDoneBody(
   BuildContext context, {
@@ -124,6 +122,7 @@ Widget onboardingDoneBody(
   VoidCallback? onTestNetwork,
   bool offerOverlay = false,
   VoidCallback? onShowOverlay,
+  bool overlayOn = false,
   Widget? networkStatus,
   Widget? connectionMethods,
 }) {
@@ -180,6 +179,7 @@ Widget onboardingDoneBody(
           : trainerAppConnected
           ? (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
           : (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
+    if (overlayOn) (LucideIcons.layers, context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
   ];
   return Column(
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -249,43 +249,6 @@ Widget onboardingDoneBody(
             ),
           ),
         ),
-      if (offerOverlay && onShowOverlay != null) ...[
-        Gap(10),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.card,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(LucideIcons.layers, size: 17, color: Theme.of(context).colorScheme.primary),
-                  Gap(10),
-                  Expanded(child: Text(context.i18n.onboardingDoneOverlayNote(app.name)).small),
-                ],
-              ),
-              Gap(10),
-              Button.outline(
-                key: const ValueKey('onboarding-done-show-overlay'),
-                onPressed: onShowOverlay,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(LucideIcons.layers, size: 15),
-                    Gap(8),
-                    Flexible(child: Text(context.i18n.onboardingDoneShowOverlay).small),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
       // The background network check, while the app hasn't connected over a
       // network method.
       if (networkStatus != null && state == OnboardingDoneState.waitingForApp) ...[Gap(10), networkStatus],
@@ -301,6 +264,12 @@ Widget onboardingDoneBody(
       if (state == OnboardingDoneState.waitingForTrainerPickup) ...[
         Gap(10),
         OnboardingPairAsTrainerCard(app: app, trainerName: trainerName, bridgeName: bridgeName),
+      ],
+      // Next to what to do in the app: the app's own gear number is the
+      // thing riders get wrong, so the fix sits with the setup steps.
+      if (offerOverlay && onShowOverlay != null) ...[
+        Gap(10),
+        OnboardingOverlayOffer(app: app, onShow: onShowOverlay),
       ],
       if (connectionMethods != null && !selfHosted) ...[Gap(6), connectionMethods],
       if (showTestMode) ...[

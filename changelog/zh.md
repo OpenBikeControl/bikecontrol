@@ -2,6 +2,7 @@
 **Features**:
 - 更简短的设置：从六步减为三步。选择训练应用及其运行位置，在同一屏幕上连接控制器和智能骑行台，然后连接应用。
 - 设置现在默认通过 BikeControl 连接智能骑行台，并直接展示 BikeControl 虚拟变速能做什么。
+- 设置会在需要时提供挡位悬浮窗：MyWhoosh、Zwift、Rouvy 和 TrainingPeaks Virtual 仍显示它们自己的挡位数字，悬浮窗会在上方显示 BikeControl 的真实挡位。
 
 **Fixes**:
 - Elite Rizer：不再显示为控制器；Rizer 未连接时，转向卡片也不再显示“正在校准”。
