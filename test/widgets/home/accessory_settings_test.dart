@@ -145,21 +145,6 @@ void main() {
       );
     });
 
-    testWidgets('the heart-rate switch puts the fan into heart-rate mode', (tester) async {
-      final writes = <List<int>>[];
-      final device = recording(writes);
-      await pumpSettings(tester, device);
-
-      await tester.ensureVisible(find.byKey(const ValueKey('headwind-heart-rate')));
-      await tester.tap(find.byKey(const ValueKey('headwind-heart-rate')));
-      await tester.pump();
-
-      expect(writes, [
-        [0x04, 0x02],
-      ]);
-      expect(device.mode.value, HeadwindMode.heartRate);
-    });
-
     testWidgets('reflects the state the fan reports', (tester) async {
       final device = headwind();
       await pumpSettings(tester, device);
@@ -207,10 +192,14 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('headwind-power')));
       await tester.pump();
 
-      expect(device.followsPower.value, isTrue);
+      expect(device.followsPower, isTrue);
       expect(writes.last, [0x02, 50]);
       expect(find.byKey(const ValueKey('headwind-full-power')), findsOneWidget);
-      expect(find.text('300 W'), findsOneWidget);
+      expect(
+        find.descendant(of: find.byKey(const ValueKey('headwind-full-power')), matching: find.text('300 W')),
+        findsOneWidget,
+      );
+      expect(find.text(AppLocalizations.current.headwindRampNow('150 W', 50)), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const ValueKey('headwind-current')),
@@ -221,6 +210,45 @@ void main() {
 
       // Stop the 1 Hz follow timer before the test ends.
       await device.setFollowPower(false);
+    });
+  });
+
+  group('follow heart rate', () {
+    testWidgets('the switch drives the fan from the heart rate and spells out the ramp', (tester) async {
+      final writes = <List<int>>[];
+      final device = headwind()
+        ..debugWriteSink = ((Uint8List b) async => writes.add(b.toList()))
+        ..heartRateProvider = () => 135;
+      await pumpSettings(tester, device);
+      expect(find.byKey(const ValueKey('headwind-full-heart-rate')), findsNothing);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.tap(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.pump();
+
+      // 135 bpm on the default 100–170 bpm ramp → 50%.
+      expect(device.followsHeartRate, isTrue);
+      expect(writes.last, [0x02, 50]);
+      expect(find.text(AppLocalizations.current.headwindRampNow('135 bpm', 50)), findsOneWidget);
+      expect(find.text(AppLocalizations.current.headwindRampExplain('100 bpm', '170 bpm')), findsOneWidget);
+      expect(find.byKey(const ValueKey('headwind-start-heart-rate')), findsOneWidget);
+
+      await device.setFollowHeartRate(false);
+    });
+
+    testWidgets('says so when BikeControl has no heart rate', (tester) async {
+      final device = headwind()
+        ..debugWriteSink = ((Uint8List b) async {})
+        ..heartRateProvider = () => null;
+      await pumpSettings(tester, device);
+
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.tap(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.pump();
+
+      expect(find.text(AppLocalizations.current.headwindNoHeartRate), findsOneWidget);
+
+      await device.setFollowHeartRate(false);
     });
   });
 }

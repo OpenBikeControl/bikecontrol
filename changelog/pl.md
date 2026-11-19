@@ -8,6 +8,7 @@
 - Zwift Click V2: opcjonalnie możesz używać prawego kontrolera bez odblokowywania.
 - Więcej czasu na test: 120 naciśnięć dziennie w okresie próbnym (wcześniej 80), potem 40 dziennie (wcześniej 15), a bez Pro 30 minut dziennie wirtualnej zmiany biegów BikeControl (wcześniej 20).
 - Czytelniejszy okres próbny: BikeControl ostrzega cię (także powiadomieniem), gdy zostało 10 naciśnięć na dziś, a karta okresu próbnego pokazuje, co zostaje po nim. Jeśli twoja aplikacja treningowa sama zmienia biegi, „Jazda” nie proponuje już wirtualnej zmiany biegów BikeControl, a sterowanie klawiaturą jest oznaczone jako opcjonalne obok połączenia OpenBikeControl.
+- KICKR Headwind: wentylator może podążać za tętnem (z pasa połączonego z BikeControl) lub mocą, a ty ustawiasz, kiedy rusza i kiedy osiąga pełną prędkość. Strona pokazuje bieżący odczyt i wynikającą z niego prędkość.
 
 **Fixes**:
 - Trenażery Elite nie pojawiają się już podwójnie (WiFi i Bluetooth).
