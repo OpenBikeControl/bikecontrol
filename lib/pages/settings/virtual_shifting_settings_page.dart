@@ -65,11 +65,18 @@ String virtualShiftingModeLabel(AppLocalizations l10n, VirtualShiftingMode mode)
 
 /// Ride's short form of the summary: the gear count and how the trainer
 /// shifts — "24 gears · Track Resistance".
-String rideVirtualShiftingSummary(BuildContext context, FitnessBikeDefinition definition) {
+///
+/// With no mode saved ([modeKnown] false) the mode is a default that waits on
+/// the trainer's feature probe: Target Power first, Track Resistance a second
+/// later on most trainers. Until the probe lands the line leaves the mode out
+/// rather than name one it is about to take back.
+String rideVirtualShiftingSummary(BuildContext context, FitnessBikeDefinition definition, {bool modeKnown = true}) {
   final l10n = AppLocalizations.of(context);
+  final mode = definition.virtualShiftingMode.value;
+  final showMode = modeKnown || mode != VirtualShiftingMode.targetPower || definition.trainerFeature.value != null;
   return [
     l10n.gearsCount(definition.gearRatios.value.length),
-    virtualShiftingModeLabel(l10n, definition.virtualShiftingMode.value),
+    if (showMode) virtualShiftingModeLabel(l10n, mode),
   ].join(' · ');
 }
 
