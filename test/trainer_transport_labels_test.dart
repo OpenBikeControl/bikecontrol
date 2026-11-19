@@ -91,7 +91,9 @@ Future<void> main() async {
       ShadcnApp(
         localizationsDelegates: const [AppLocalizations.delegate],
         supportedLocales: AppLocalizations.delegate.supportedLocales,
-        home: Scaffold(child: SizedBox(width: 380, child: Builder(builder: builder))),
+        home: Scaffold(
+          child: SizedBox(width: 380, child: Builder(builder: builder)),
+        ),
       ),
     );
     await tester.pump();
@@ -128,7 +130,7 @@ Future<void> main() async {
       expect(find.text('WiFi · Supports virtual shifting'), findsNothing);
     });
 
-    testWidgets('two entries for one trainer are told apart by subtitle and icon', (tester) async {
+    testWidgets('two entries for one trainer are told apart by their subtitle', (tester) async {
       await pumpPicker(tester, [bleTrainer(), wifiTrainer()]);
 
       // Same name twice — that is the support case — but two distinct rows.
@@ -136,13 +138,8 @@ Future<void> main() async {
       expect(find.text('WiFi · Supports virtual shifting'), findsOneWidget);
       expect(find.text('Bluetooth · Supports virtual shifting'), findsOneWidget);
 
-      // The leading mark carries the transport too; the generic bike icon that
-      // said nothing about either row is no longer used for trainers.
-      expect(find.byIcon(LucideIcons.bike), findsNothing);
-      expect(find.byIcon(LucideIcons.wifi), findsOneWidget);
-      // One in the Bluetooth card's leading tile; the radar is only shown
-      // while nothing has been found.
-      expect(find.byIcon(LucideIcons.bluetooth), findsOneWidget);
+      // A trainer is a bike everywhere; the subtitle names the transport.
+      expect(find.byIcon(LucideIcons.bike), findsNWidgets(2));
     });
 
     testWidgets('the connected variant names the transport as well', (tester) async {
@@ -152,13 +149,12 @@ Future<void> main() async {
       await pumpPicker(tester, [trainer]);
 
       expect(find.text('WiFi · Supports virtual shifting'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.wifi), findsOneWidget);
-      expect(find.byIcon(LucideIcons.bike), findsNothing);
+      expect(find.byIcon(LucideIcons.bike), findsOneWidget);
     });
 
-    testWidgets('picker icons come straight from the helper', (tester) async {
-      expect(onboardingTrainerIcon(wifiTrainer()), LucideIcons.wifi);
-      expect(onboardingTrainerIcon(bleTrainer()), LucideIcons.bluetooth);
+    testWidgets('a trainer is a bike, whatever its transport', (tester) async {
+      expect(onboardingTrainerIcon(wifiTrainer()), LucideIcons.bike);
+      expect(onboardingTrainerIcon(bleTrainer()), LucideIcons.bike);
     });
   });
 
@@ -187,11 +183,13 @@ Future<void> main() async {
     });
 
     testWidgets('non-trainers stay unbadged', (tester) async {
-      final hrStrap = ProxyDevice(BleDevice(
-        deviceId: 'hr',
-        name: 'TICKR',
-        services: const [FitnessBikeDefinition.HEART_RATE_MEASUREMENT_UUID],
-      ));
+      final hrStrap = ProxyDevice(
+        BleDevice(
+          deviceId: 'hr',
+          name: 'TICKR',
+          services: const [FitnessBikeDefinition.HEART_RATE_MEASUREMENT_UUID],
+        ),
+      );
       expect(hrStrap.isSmartTrainer, isFalse);
       expect(await badgeOf(tester, hrStrap), isNull);
     });

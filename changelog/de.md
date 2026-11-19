@@ -10,8 +10,10 @@
 - Klarere Testphase: BikeControl warnt dich (auch als Mitteilung), wenn für heute noch 10 Tastendrücke übrig sind, und die Testphasen-Karte zeigt, was nach der Testphase gilt. Schaltet deine Trainer-App selbst, schlägt „Fahren“ kein virtuelles Schalten von BikeControl mehr vor, und die Tastatursteuerung ist neben einer OpenBikeControl-Verbindung als optional markiert.
 - KICKR Headwind: Der Ventilator kann deiner Herzfrequenz (von einem mit BikeControl verbundenen Brustgurt) oder deiner Leistung folgen, und du legst fest, ab wann er anläuft und wann er volle Stufe erreicht. Die Seite zeigt den aktuellen Wert und die Stufe, die daraus wird.
 - Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
+- Trainer-Steuerung (Companion Mode) gestaltest du jetzt selbst: Verschieb jede Taste und ändere ihre Größe, füge Gang, Leistung, Trittfrequenz und Übersetzung hinzu und schalte auf Vollbild. Der Fahrmodus zeigt ein großes − und + mit deinem Gang dazwischen, und die Karte für virtuelles Schalten auf Fahren öffnet ihn mit einem Tipp. − und + schalten dort jetzt BikeControls eigenes virtuelles Schalten, mit Vibration beim Schalten.
 
 **Fixes**:
+- Zwift: Die Ride-On-Bombe zündet jetzt auch bei kurzem Druck (Zwift braucht die Taste einen Moment lang gedrückt).
 - Elite-Trainer tauchen nicht mehr doppelt auf (WLAN und Bluetooth).
 - Windows: BikeControl stürzt nicht mehr beim Schließen ab, und auch nicht bei Netzwerk-, Benachrichtigungs- oder Bluetooth-Fehlern.
 - Android: kein Absturz mehr, wenn Android den Hintergrunddienst neu startet, und „Schließen & beenden“ beendet die App immer.

@@ -5,8 +5,8 @@ Novedades:
 • Editor de botones más claro, agrupado por acción
 • Di2: configura los canales D-Fly en E-TUBE, con una guía
 • Zwift Click V2: usa el mando derecho sin desbloquearlo
-• Más para probar: 120 pulsaciones/día en la prueba, 40 después, 30 min de cambio virtual, con aviso
+• Más para probar: 120 pulsaciones/día, luego 40, 30 min de cambio virtual
 
 Correcciones:
-• Sin cierres al reiniciar el servicio en segundo plano
-• «Cerrar y salir» siempre sale
+• Zwift: Bomba Ride On con pulsación corta
+• Android: sin cierres al reiniciar el servicio, «Cerrar y salir» siempre sale

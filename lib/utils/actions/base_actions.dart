@@ -239,9 +239,12 @@ abstract class BaseActions {
 
   /// Dispatch [action] as if a mapped button fired it, with no physical button.
   /// Used by the both-shifters combo (this file's coincidence detector and the
-  /// same-frame detector in base_device.dart) to emit a frontShift.
-  Future<ActionResult> performInGameAction(InGameAction action) async {
-    final synthButton = ControllerButton('frontShiftCombo', action: action);
+  /// same-frame detector in base_device.dart) to emit a frontShift, and by the
+  /// companion page's on-screen buttons, so a shift there goes through
+  /// BikeControl's own virtual shifting (and its haptics) like a controller's.
+  /// [source] names the stand-in button.
+  Future<ActionResult> performInGameAction(InGameAction action, {String source = 'frontShiftCombo'}) async {
+    final synthButton = ControllerButton(source, action: action);
     final keyPair = KeyPair(
       buttons: [synthButton],
       physicalKey: null,

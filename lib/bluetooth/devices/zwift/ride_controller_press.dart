@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart' show RideButtonMask;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -14,7 +16,14 @@ class RideControllerPress {
   /// Paddles tilt outward (steering) unless [inward] (braking).
   final bool inward;
 
-  const RideControllerPress({this.buttonMask = 0, this.paddles = const [], this.inward = false});
+  /// How long the press stays down at least, even if the button is let go
+  /// sooner. Zwift only fires some actions on a hold.
+  final Duration? minHold;
+
+  const RideControllerPress({this.buttonMask = 0, this.paddles = const [], this.inward = false, this.minHold});
+
+  /// Zwift fires the Ride On Bomb when Z is held for 750 ms; a tap only shows it.
+  static const rideOnBombHold = Duration(milliseconds: 1000);
 
   RideControllerPress.button(RideButtonMask button) : this(buttonMask: button.mask);
 
@@ -37,6 +46,10 @@ class RideControllerPress {
       InGameAction.usePowerUp => RideControllerPress.button(RideButtonMask.Y_BTN),
       InGameAction.select => RideControllerPress.button(RideButtonMask.A_BTN),
       InGameAction.back => RideControllerPress.button(RideButtonMask.B_BTN),
+      InGameAction.rideOnBomb when emulatesRide => RideControllerPress(
+        buttonMask: RideButtonMask.Z_BTN.mask,
+        minHold: rideOnBombHold,
+      ),
       InGameAction.rideOnBomb => RideControllerPress.button(RideButtonMask.Z_BTN),
       InGameAction.leftDropButton => RideControllerPress.button(RideButtonMask.POWERUP_L_BTN),
       InGameAction.rightDropButton => RideControllerPress.button(RideButtonMask.POWERUP_R_BTN),
@@ -79,5 +92,33 @@ class RideControllerPress {
       status.analogPaddles.add(RideAnalogKeyPress(location: paddle, analogValue: value));
     }
     return status.writeToBuffer();
+  }
+}
+
+/// Holds back the release of a press with a [RideControllerPress.minHold]
+/// until that time has passed since it went down.
+class RideReleaseDelay {
+  final Map<InGameAction, Timer> _holds = {};
+  final Map<InGameAction, void Function()> _pending = {};
+
+  /// Call when [action] goes down.
+  void down(InGameAction action, RideControllerPress press) {
+    // A new press of the same action: let go of the previous one first.
+    _holds.remove(action)?.cancel();
+    _pending.remove(action)?.call();
+    final minHold = press.minHold;
+    if (minHold == null) return;
+    _holds[action] = Timer(minHold, () {
+      _holds.remove(action);
+      _pending.remove(action)?.call();
+    });
+  }
+
+  /// Whether the release of [action] waits for its minimum hold. If so,
+  /// [release] runs once that time has passed; otherwise the caller releases.
+  bool deferRelease(InGameAction action, void Function() release) {
+    if (!(_holds[action]?.isActive ?? false)) return false;
+    _pending[action] = release;
+    return true;
   }
 }

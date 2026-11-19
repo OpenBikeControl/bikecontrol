@@ -1,12 +1,12 @@
 7.6.0
 Nouveautés :
 • Incyclist, Tour du Pain et Rampida via OpenBikeControl
-• Les manettes CYCPLUS T7 fonctionnent comme manettes
+• Manettes CYCPLUS T7 comme manettes
 • Éditeur de boutons plus clair, groupé par action
 • Di2 : règle les canaux D-Fly dans E-TUBE, avec un guide
 • Zwift Click V2 : manette droite sans déverrouillage
-• Plus d'essai : 120 appuis/jour pendant l'essai, 40 ensuite, 30 min de vitesses virtuelles, avec alerte
+• Plus d'essai : 120 appuis/jour, puis 40, 30 min de vitesses virtuelles
 
 Corrections :
-• Plus de plantage au redémarrage du service
-• « Fermer et quitter » quitte toujours
+• Zwift : Bombe Ride On sur appui court
+• Android : plus de plantage du service, « Fermer et quitter » quitte toujours

@@ -80,7 +80,7 @@ class ButtonWidget extends StatelessWidget {
                 // A quarter of the tile leaves room for the action badge on
                 // the big tiles; on a small one (a list row, the last-press
                 // strip) it shrank a "P" to a few pixels.
-                fontSize: size * (size < 40 ? 0.44 : 0.26),
+                fontSize: size * _shortLabelScale(size),
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.2,
                 color: onBg,
@@ -140,3 +140,7 @@ class ButtonWidget extends StatelessWidget {
     return Hero(tag: heroTag!, child: core);
   }
 }
+
+/// Share of the tile a one- or two-letter label takes: a quarter leaves room
+/// for the action badge on big tiles, small ones need more to stay readable.
+double _shortLabelScale(double size) => size < 40 ? 0.44 : 0.26;

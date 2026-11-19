@@ -10,8 +10,10 @@
 - Czytelniejszy okres próbny: BikeControl ostrzega cię (także powiadomieniem), gdy zostało 10 naciśnięć na dziś, a karta okresu próbnego pokazuje, co zostaje po nim. Jeśli twoja aplikacja treningowa sama zmienia biegi, „Jazda” nie proponuje już wirtualnej zmiany biegów BikeControl, a sterowanie klawiaturą jest oznaczone jako opcjonalne obok połączenia OpenBikeControl.
 - KICKR Headwind: wentylator może podążać za tętnem (z pasa połączonego z BikeControl) lub mocą, a ty ustawiasz, kiedy rusza i kiedy osiąga pełną prędkość. Strona pokazuje bieżący odczyt i wynikającą z niego prędkość.
 - Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
+- Sterowanie trenażerem (Companion Mode) układasz teraz sam: przesuwaj i zmieniaj rozmiar każdego przycisku, dodaj bieg, moc, kadencję i przełożenie, i włącz pełny ekran. Tryb jazdy pokazuje duże − i + z biegiem pośrodku, a karta wirtualnej zmiany biegów w Jeździe otwiera go jednym dotknięciem. Jego − i + zmieniają teraz biegi przez wirtualną zmianę biegów BikeControl, z wibracją przy zmianie.
 
 **Fixes**:
+- Zwift: Bomba Ride On odpala się też po krótkim naciśnięciu (Zwift wymaga chwilowego przytrzymania przycisku).
 - Trenażery Elite nie pojawiają się już podwójnie (WiFi i Bluetooth).
 - Windows: BikeControl nie zawiesza się już przy zamykaniu ani przy błędach sieci, powiadomień czy Bluetooth.
 - Android: koniec z awarią, gdy Android restartuje usługę w tle, a „Zamknij i wyjdź” zawsze zamyka aplikację.

@@ -10,8 +10,10 @@
 - Clearer trial: BikeControl warns you (also as a notification) when 10 button presses are left for today, and the trial card shows what you get after the trial. If your trainer app does its own shifting, Ride no longer suggests BikeControl's virtual shifting, and keyboard control is marked optional next to an OpenBikeControl connection.
 - KICKR Headwind: the fan can follow your heart rate (from a strap connected to BikeControl) as well as your power, and you set where it starts and where it reaches full speed. The page shows the live reading and the speed it gives.
 - Elite Rizer: incline now works with any smart trainer.
+- Trainer Controls (Companion mode) is now yours to arrange: move and resize every button, add your gear, power, cadence and ratio, and go full screen. Ride mode puts a big − and + on the screen with your gear between them, and Ride's virtual shifting card opens it with one tap. Its − and + now shift BikeControl's own virtual shifting, with the shift vibration.
 
 **Fixes**:
+- Zwift: Ride On Bomb fires on a short press too (Zwift needs the button held for a moment).
 - Elite trainers no longer show up twice (WiFi and Bluetooth).
 - Windows: BikeControl no longer crashes when it closes, or on network, notification and Bluetooth errors.
 - Android: no more crash when Android restarts the background service, and Close & quit always quits.

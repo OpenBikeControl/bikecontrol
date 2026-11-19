@@ -1,3 +1,14 @@
+import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:math' as math;
+
+import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/pages/companion/companion_canvas.dart';
+import 'package:bike_control/pages/companion/companion_info_tile.dart';
+import 'package:bike_control/pages/companion/companion_layout.dart';
+import 'package:bike_control/widgets/ui/bk_icon_button.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:bike_control/bluetooth/devices/zwift/ride_controller_press.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/connection_method.dart' show ConnectionMethodWithoutSwitch;
@@ -27,7 +38,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
 class ButtonSimulator extends StatefulWidget {
-  const ButtonSimulator({super.key});
+  const ButtonSimulator({super.key, this.startFullScreen = false});
+
+  /// Opens straight into the full-screen view — from Ride's virtual
+  /// shifting card. Until the rider saves a layout of their own, that view
+  /// starts from the ride mode one: big − and + with the readings between.
+  final bool startFullScreen;
 
   @override
   State<ButtonSimulator> createState() => _ButtonSimulatorState();
@@ -79,11 +95,24 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   static const Duration _keyPressDuration = Duration(milliseconds: 200);
 
+  /// Rows of the grid that one screen shows.
+  static const int _screenRows = CompanionLayout.gridRows;
+
   InGameAction? _pressedAction;
   InGameAction? _editingHotkeyAction;
 
   DateTime? _lastDown;
   final ScrollController _scrollController = ScrollController();
+
+  late bool _fullScreen = widget.startFullScreen;
+  bool _editing = false;
+
+  /// The rider's own layout per orientation (key: landscape); absent while
+  /// they haven't changed it.
+  final Map<bool, CompanionLayout?> _saved = {};
+
+  StreamSubscription<BaseDevice>? _connectionSub;
+  static final ValueNotifier<FitnessBikeDefinition?> _noDefinition = ValueNotifier(null);
 
   @override
   void initState() {
@@ -91,14 +120,50 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     _focusNode = FocusNode(debugLabel: 'ButtonSimulatorFocus', canRequestFocus: true);
     _loadHotkeys();
     _focusNode.requestFocus();
+    for (final landscape in [false, true]) {
+      final raw = core.settings.getCompanionLayout(landscape: landscape);
+      _saved[landscape] = raw == null ? null : CompanionLayout.tryParse(raw, landscape: landscape);
+    }
+    // A trainer connecting or dropping changes which buttons and readings
+    // the page can offer.
+    _connectionSub = core.connection.connectionStream.listen((_) {
+      if (mounted) setState(() {});
+    });
+    if (_fullScreen) _applySystemUi(true);
   }
 
   @override
   void dispose() {
+    if (_fullScreen) _applySystemUi(false);
+    _connectionSub?.cancel();
     _focusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
+
+  /// On a phone, full screen hides the status and navigation bars too.
+  void _applySystemUi(bool fullScreen) {
+    if (screenshotMode || !(Platform.isAndroid || Platform.isIOS)) return;
+    unawaited(
+      (fullScreen
+              ? SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: [])
+              : SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values))
+          .catchError((Object e, StackTrace s) => recordError(e, s, context: 'companion full screen')),
+    );
+  }
+
+  void _setFullScreen(bool value) {
+    if (value == _fullScreen) return;
+    _applySystemUi(value);
+    setState(() {
+      _fullScreen = value;
+      if (value) _editing = false;
+    });
+  }
+
+  /// The trainer BikeControl shifts itself, when there is one: its shifts
+  /// and readings are what the page's gear buttons and ride data use.
+  ProxyDevice? get _vsProxy => core.connection.proxyDevices.where((d) => d.isConnected).firstOrNull;
 
   Future<void> _loadHotkeys() async {
     _loadRecentValues();
@@ -106,12 +171,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
     // If no saved hotkeys, initialize with defaults
     if (savedHotkeys.isEmpty) {
-      final connectedTrainers = core.logic.enabledTrainerConnections;
-      final allActions = <InGameAction>[];
-
-      for (final connection in connectedTrainers) {
-        allActions.addAll(appControllerActions(connection.supportedActions));
-      }
+      final allActions = _availableActions(_vsProxy?.fitnessBike != null);
 
       // Assign default hotkeys to actions
       final Map<InGameAction, String> defaultHotkeys = {};
@@ -198,41 +258,31 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       return KeyEventResult.ignored;
     }
 
+    if (_fullScreen && event.logicalKey == LogicalKeyboardKey.escape) {
+      _setFullScreen(false);
+      return KeyEventResult.handled;
+    }
+
     // Find the action associated with this key
     final action = _hotkeys.entries.firstOrNullWhere((entry) => entry.value == key)?.key;
 
     if (action == null) return KeyEventResult.ignored;
 
-    _pressedAction = action;
-    setState(() {});
-
-    // Find the connection that supports this action (check both original and mapped actions)
-    final connectedTrainers = core.logic.connectedNonLocalTrainerConnections;
-    final connection = connectedTrainers.firstOrNullWhere(
-      (c) => appControllerActions(c.supportedActions).contains(action),
-    );
-
-    if (connection != null) {
-      _sendKey(context, down: true, action: action, connection: connection);
-      // Schedule key up event
-      Future.delayed(
-        _keyPressDuration,
-        () {
-          if (mounted) {
-            _pressedAction = null;
-            setState(() {});
-            _sendKey(context, down: false, action: action, connection: connection);
-          }
-        },
-      );
-      return KeyEventResult.handled;
-    } else {
-      _pressedAction = null;
-      setState(() {});
+    if (!_canPress(action)) {
       buildToast(title: context.i18n.notConnected);
+      return KeyEventResult.ignored;
     }
 
-    return KeyEventResult.ignored;
+    setState(() => _pressedAction = action);
+    _press(action, down: true);
+    // Schedule key up event
+    Future.delayed(_keyPressDuration, () {
+      if (mounted) {
+        setState(() => _pressedAction = null);
+        _press(action, down: false);
+      }
+    });
+    return KeyEventResult.handled;
   }
 
   /// The actions [connection] can send, under the trainer app's own names.
@@ -244,283 +294,514 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     ).distinct().toList();
   }
 
+  /// Everything the page can press: the trainer apps' actions, and − / +
+  /// whenever BikeControl shifts the trainer itself (also with no trainer
+  /// app connection on this page, as when Rouvy rides BikeControl's bridge).
+  List<InGameAction> _availableActions(bool hasRideData) => [
+    if (hasRideData) ...[InGameAction.shiftDown, InGameAction.shiftUp],
+    for (final c in core.logic.enabledNonLocalTrainerConnections) ..._actionsOf(c),
+  ].distinct().toList();
+
+  /// The connected trainer app connection that takes [action].
+  TrainerConnection? _connectionFor(InGameAction action) =>
+      core.logic.connectedNonLocalTrainerConnections.firstOrNullWhere((c) => _actionsOf(c).contains(action));
+
+  bool _routesToVirtualShifting(InGameAction action) =>
+      trainerActions.contains(action) && _vsProxy?.fitnessBike != null;
+
+  bool _canPress(InGameAction action) => _routesToVirtualShifting(action) || _connectionFor(action) != null;
+
+  /// Presses [action]. Gear actions go the way a controller's do — through
+  /// BikeControl's own virtual shifting when it runs (so ERG steps watts
+  /// and the shift buzzes), else on to the trainer app; everything else
+  /// straight to the trainer app connection that takes it.
+  Future<void> _press(InGameAction action, {required bool down}) async {
+    if (_routesToVirtualShifting(action)) {
+      if (!down) return;
+      try {
+        final result = await core.actionHandler.performInGameAction(action, source: 'companion');
+        if (result is Error && mounted) buildToast(title: result.message);
+      } catch (e, s) {
+        recordError(e, s, context: 'companion ${action.name}');
+      }
+      return;
+    }
+    final connection = _connectionFor(action);
+    if (connection == null) {
+      if (down) buildToast(title: context.i18n.notConnected);
+      return;
+    }
+    await _sendKey(context, down: down, action: action, connection: connection);
+  }
+
+  // ── Layout ────────────────────────────────────────────────────────────
+
+  /// The layout for this orientation: the rider's own, else the one the page
+  /// starts from — ride mode when opened full screen from Ride, else today's
+  /// page.
+  CompanionLayout _layoutFor({required bool landscape, required bool hasRideData}) {
+    if (_saved[landscape] case final saved?) return saved;
+    if (widget.startFullScreen) return CompanionLayout.rideMode(landscape: landscape, hasRideData: hasRideData);
+    return CompanionLayout.standard(
+      actions: _availableActions(hasRideData),
+      landscape: landscape,
+      hasRideData: hasRideData,
+    );
+  }
+
+  void _save(CompanionLayout layout) {
+    setState(() => _saved[layout.landscape] = layout);
+    unawaited(
+      core.settings
+          .setCompanionLayout(layout.toJsonString(), landscape: layout.landscape)
+          .catchError((Object e, StackTrace s) => recordError(e, s, context: 'companion layout save')),
+    );
+  }
+
+  void _resetLayout(bool landscape) {
+    setState(() => _saved[landscape] = null);
+    unawaited(
+      core.settings
+          .setCompanionLayout(null, landscape: landscape)
+          .catchError((Object e, StackTrace s) => recordError(e, s, context: 'companion layout reset')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final connectedTrainers = core.logic.enabledNonLocalTrainerConnections;
+    final proxy = _vsProxy;
+    return ValueListenableBuilder<FitnessBikeDefinition?>(
+      valueListenable: proxy?.fitnessBikeListenable ?? _noDefinition,
+      builder: (context, definition, _) => Focus(
+        focusNode: _focusNode,
+        autofocus: true,
+        onKeyEvent: _onKey,
+        child: _fullScreen ? _buildFullScreen(definition) : _buildPage(definition),
+      ),
+    );
+  }
 
-    return Focus(
-      focusNode: _focusNode,
-      autofocus: true,
-      onKeyEvent: _onKey,
-      child: Scaffold(
-        headers: [
-          BkPageHeader(title: context.i18n.simulateButtons, showDivider: false),
-        ],
-        child: Scrollbar(
-          controller: _scrollController,
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-            child: BkPageColumn(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (connectedTrainers.isEmpty)
-                    BkGroupedSection(
-                      children: [
-                        BkGroupedRow(
-                          icon: LucideIcons.unplug,
-                          quietIcon: true,
-                          title: context.i18n.trainerControlsNoConnection,
-                        ),
-                      ],
-                    ),
-                  for (final connection in connectedTrainers) ...[
-                    _buildConnection(connection),
-                    const Gap(24),
-                  ],
-                  _buildHotkeySection(connectedTrainers),
-                ],
+  Widget _buildFullScreen(FitnessBikeDefinition? definition) {
+    final l = AppLocalizations.of(context);
+    return Scaffold(
+      child: SafeArea(
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final landscape = constraints.maxWidth > constraints.maxHeight;
+                    final layout = _layoutFor(landscape: landscape, hasRideData: definition != null);
+                    return SingleChildScrollView(
+                      child: _canvas(layout, definition, rowHeight: constraints.maxHeight / _screenRows),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
+            PositionedDirectional(
+              top: 4,
+              end: 4,
+              child: Opacity(
+                opacity: 0.8,
+                child: BkIconButton.ghost(
+                  key: const ValueKey('companion-exit-full-screen'),
+                  icon: const Icon(LucideIcons.minimize2, size: 20),
+                  label: l.companionExitFullScreen,
+                  onPressed: () => _setFullScreen(false),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  /// One connection's remote: its name and state, then shifting (the biggest
-  /// targets, − left and + right as on Ride) with steering under it, the
-  /// actions that take a value as rows with their recent values, and the
-  /// rest as an even grid.
-  Widget _buildConnection(TrainerConnection connection) {
-    final actions = _actionsOf(connection);
-    final hasShift = actions.contains(InGameAction.shiftUp) && actions.contains(InGameAction.shiftDown);
-    final hasSteer = actions.contains(InGameAction.steerLeft) && actions.contains(InGameAction.steerRight);
-    final rest = actions.where(
-      (a) =>
-          !(hasShift && (a == InGameAction.shiftUp || a == InGameAction.shiftDown)) &&
-          !(hasSteer && (a == InGameAction.steerLeft || a == InGameAction.steerRight)),
-    );
-    final valued = rest.where((a) => a.possibleValues != null).toList();
-    final plain = rest.where((a) => a.possibleValues == null).toList();
+  Widget _buildPage(FitnessBikeDefinition? definition) {
+    final connections = core.logic.enabledNonLocalTrainerConnections;
+    final hasRideData = definition != null;
+    final l = AppLocalizations.of(context);
     final cs = Theme.of(context).colorScheme;
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: connection.isConnected,
-      builder: (context, connected, _) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 8),
-              child: Row(
-                spacing: 12,
-                children: [
-                  Expanded(child: BkGroupedHeader(connection.title)),
-                  BkStatusDot(
-                    label: connected ? context.i18n.connected : context.i18n.notConnected,
-                    tone: connected ? BkStatusTone.success : BkStatusTone.neutral,
+    return Scaffold(
+      headers: [
+        BkPageHeader(
+          title: context.i18n.simulateButtons,
+          showDivider: false,
+          actions: _editing
+              ? [
+                  BkIconButton.ghost(
+                    key: const ValueKey('companion-add'),
+                    icon: const Icon(LucideIcons.plus, size: 22),
+                    label: l.companionAddTile,
+                    onPressed: () => _openAdd(definition),
+                  ),
+                  _layoutsMenu(hasRideData),
+                  Button.ghost(
+                    key: const ValueKey('companion-done'),
+                    onPressed: () => setState(() => _editing = false),
+                    child: Text(l.done),
+                  ),
+                ]
+              : [
+                  BkIconButton.ghost(
+                    key: const ValueKey('companion-edit'),
+                    icon: const Icon(LucideIcons.layoutDashboard, size: 22),
+                    label: l.companionEditLayout,
+                    onPressed: () => setState(() => _editing = true),
+                  ),
+                  BkIconButton.ghost(
+                    key: const ValueKey('companion-full-screen'),
+                    icon: const Icon(LucideIcons.maximize2, size: 22),
+                    label: l.companionFullScreen,
+                    onPressed: () => _setFullScreen(true),
                   ),
                 ],
+        ),
+      ],
+      child: LayoutBuilder(
+        builder: (context, viewport) {
+          return Scrollbar(
+            controller: _scrollController,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              // Dragging a tile must not scroll the page under it.
+              physics: _editing ? const NeverScrollableScrollPhysics() : null,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: BkPageColumn(
+                child: LayoutBuilder(
+                  builder: (context, column) {
+                    // One screen of grid fills what's left under the header.
+                    final height = math.max(viewport.maxHeight - 32, 240.0);
+                    final landscape = column.maxWidth > height;
+                    final layout = _layoutFor(landscape: landscape, hasRideData: hasRideData);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (connections.isEmpty && !hasRideData)
+                          BkGroupedSection(
+                            children: [
+                              BkGroupedRow(
+                                icon: LucideIcons.unplug,
+                                quietIcon: true,
+                                title: context.i18n.trainerControlsNoConnection,
+                              ),
+                            ],
+                          ),
+                        for (final connection in connections) _buildConnectionState(connection),
+                        if (_editing)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 8),
+                            child: Text(
+                              l.companionEditHint,
+                              style: context.typography.small.copyWith(color: cs.mutedForeground),
+                            ),
+                          ),
+                        _canvas(layout, definition, rowHeight: height / _screenRows),
+                        const Gap(24),
+                        _buildHotkeySection(_availableActions(hasRideData)),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
-            // Not connected yet: the method's own card, with its instructions
-            // and network check, so the rider can fix it right here. No
-            // switch: this page is for using the method, not turning it off.
-            if (!connected && !screenshotMode) ...[
-              ConnectionMethodWithoutSwitch(child: connection.getTile()),
-              const Gap(16),
-            ],
-            if (hasShift || hasSteer)
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: cs.card,
-                  borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-                  boxShadow: bkCardShadow(context),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Ride mode, today's page, or back to the generated layout.
+  Widget _layoutsMenu(bool hasRideData) {
+    final l = AppLocalizations.of(context);
+    return Builder(
+      builder: (anchor) => BkIconButton.ghost(
+        key: const ValueKey('companion-layouts'),
+        icon: const Icon(LucideIcons.layoutTemplate, size: 22),
+        label: l.companionLayouts,
+        tooltip: false,
+        onPressed: () {
+          final landscape = _currentLandscape(anchor);
+          showDropdown(
+            context: anchor,
+            builder: (_) => DropdownMenu(
+              children: [
+                MenuButton(
+                  key: const ValueKey('companion-layout-ride-mode'),
+                  leading: const Icon(LucideIcons.squarePlus, size: 16),
+                  onPressed: (_) => _save(CompanionLayout.rideMode(landscape: landscape, hasRideData: hasRideData)),
+                  child: Text(l.companionLayoutRideMode),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 12,
+                MenuButton(
+                  key: const ValueKey('companion-layout-standard'),
+                  leading: const Icon(LucideIcons.layoutGrid, size: 16),
+                  onPressed: (_) => _resetLayout(landscape),
+                  child: Text(l.companionLayoutStandard),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Whether the page lays out in landscape right now, as [_buildPage]
+  /// decides it.
+  bool _currentLandscape(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    return math.min(size.width - 32, BkPageColumn.defaultMaxWidth) > size.height - 120;
+  }
+
+  Future<void> _openAdd(FitnessBikeDefinition? definition) async {
+    final l = AppLocalizations.of(context);
+    final landscape = _currentLandscape(context);
+    final layout = _layoutFor(landscape: landscape, hasRideData: definition != null);
+    final actions = _availableActions(definition != null).where((a) => layout.tileFor(a) == null).toList();
+    final data = CompanionTileKind.values.where((k) => k.isRideData && !layout.tiles.any((t) => t.kind == k)).toList();
+    void add(CompanionTileKind kind, [InGameAction? action]) {
+      Navigator.of(context).pop();
+      _save(layout.added(kind: kind, action: action));
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l.companionAddTile),
+        content: SizedBox(
+          width: 360,
+          height: math.min(MediaQuery.sizeOf(dialogContext).height * 0.6, 520),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (actions.isEmpty && (data.isEmpty || definition == null))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(l.companionAllAdded),
+                  ),
+                if (actions.isNotEmpty)
+                  BkGroupedSection(
+                    header: l.companionAddButtons,
                     children: [
-                      if (hasShift)
-                        _padRow(
-                          [
-                            (InGameAction.shiftDown, _PadTone.fill, LucideIcons.minus),
-                            (InGameAction.shiftUp, _PadTone.primary, LucideIcons.plus),
-                          ],
-                          _PadSize.hero,
-                          connection,
-                        ),
-                      if (hasSteer)
-                        _padRow(
-                          [
-                            (InGameAction.steerLeft, _PadTone.fill, null),
-                            (InGameAction.steerRight, _PadTone.fill, null),
-                          ],
-                          _PadSize.medium,
-                          connection,
+                      for (final action in actions)
+                        BkGroupedRow(
+                          key: ValueKey('companion-add-${action.name}'),
+                          icon: action.icon ?? LucideIcons.squareMousePointer,
+                          quietIcon: true,
+                          title: action.title,
+                          onPressed: () => add(CompanionTileKind.action, action),
                         ),
                     ],
                   ),
-                ),
-              ),
-            if (valued.isNotEmpty || plain.isNotEmpty) ...[
-              const Gap(24),
-              if (hasShift || hasSteer)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 6),
-                  child: BkGroupedHeader(AppLocalizations.of(context).actionCategoryOther),
-                ),
-              if (valued.isNotEmpty)
-                BkGroupedSection(
-                  dividerIndent: BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
-                  children: [for (final action in valued) _buildValueRow(action, connection)],
-                ),
-              if (valued.isNotEmpty && plain.isNotEmpty) const Gap(12),
-              if (plain.isNotEmpty) _buildGrid(plain, connection),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _padRow(
-    List<(InGameAction, _PadTone, IconData?)> pads,
-    _PadSize size,
-    TrainerConnection connection,
-  ) {
-    final scaling = Theme.of(context).scaling;
-    final compact = isCompactWindow(context);
-    final height =
-        switch (size) {
-          _PadSize.hero => compact ? 124.0 : 104.0,
-          _PadSize.medium => compact ? 64.0 : 56.0,
-          _PadSize.tile => 84.0,
-        } *
-        scaling;
-    return Row(
-      spacing: 12,
-      children: [
-        for (final (action, tone, icon) in pads)
-          Expanded(
-            child: SizedBox(
-              height: height,
-              child: _buildPad(action, tone, size, connection, icon: icon),
+                if (data.isNotEmpty) ...[
+                  const Gap(16),
+                  BkGroupedSection(
+                    header: l.companionAddRideData,
+                    footer: definition == null ? l.companionRideDataHint : null,
+                    children: [
+                      for (final kind in data)
+                        BkGroupedRow(
+                          key: ValueKey('companion-add-${kind.name}'),
+                          icon: companionTileIcon(kind),
+                          quietIcon: true,
+                          title: companionTileName(l, kind),
+                          onPressed: definition == null ? null : () => add(kind),
+                        ),
+                    ],
+                  ),
+                ],
+              ],
             ),
           ),
-      ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l.close)),
+        ],
+      ),
     );
   }
 
-  /// The other actions: an even grid of card tiles, as many to a row as fit.
-  Widget _buildGrid(List<InGameAction> actions, TrainerConnection connection) {
-    final scaling = Theme.of(context).scaling;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        const gap = 12.0;
-        final columns = width >= 560 * scaling
-            ? 4
-            : width >= 300 * scaling
-            ? 3
-            : 2;
-        final tileWidth = (width - gap * (columns - 1)) / columns;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final action in actions)
-              SizedBox(
-                width: tileWidth,
-                height: 84 * scaling,
-                child: _buildPad(action, _PadTone.card, _PadSize.tile, connection),
+  Widget _canvas(CompanionLayout layout, FitnessBikeDefinition? definition, {required double rowHeight}) {
+    final l = AppLocalizations.of(context);
+    return CompanionCanvas(
+      key: ValueKey('companion-canvas-${layout.landscape ? 'landscape' : 'portrait'}'),
+      layout: layout,
+      rowHeight: rowHeight,
+      editing: _editing,
+      onChanged: _save,
+      removeLabel: (tile) => l.companionRemoveTile(
+        tile.kind == CompanionTileKind.action ? tile.action!.title : companionTileName(l, tile.kind),
+      ),
+      tileBuilder: (context, tile) => _buildTile(tile, definition),
+    );
+  }
+
+  Widget _buildTile(CompanionTile tile, FitnessBikeDefinition? definition) {
+    if (tile.kind != CompanionTileKind.action) {
+      return CompanionInfoTile(kind: tile.kind, definition: definition);
+    }
+    final action = tile.action!;
+    final enabled = _canPress(action);
+    final Widget child;
+    if (action.possibleValues != null) {
+      child = _buildValueTile(action);
+    } else {
+      final (tone, size, icon) = switch (action) {
+        InGameAction.shiftUp => (_PadTone.primary, _PadSize.hero, LucideIcons.plus),
+        InGameAction.shiftDown => (_PadTone.fill, _PadSize.hero, LucideIcons.minus),
+        InGameAction.steerLeft || InGameAction.steerRight => (_PadTone.fill, _PadSize.medium, null),
+        _ => (_PadTone.card, _PadSize.tile, null),
+      };
+      child = _buildPad(action, tone, size, icon: icon);
+    }
+    // A button whose connection isn't there yet stays where it is, quieter.
+    return AnimatedOpacity(duration: const Duration(milliseconds: 150), opacity: enabled ? 1 : 0.5, child: child);
+  }
+
+  /// Under a connection's name, its state; not connected, the method's own
+  /// card with its instructions and network check, so the rider can fix it
+  /// right here. No switch: this page is for using the method, not turning
+  /// it off.
+  Widget _buildConnectionState(TrainerConnection connection) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: connection.isConnected,
+      builder: (context, connected, _) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 8),
+                child: Row(
+                  spacing: 12,
+                  children: [
+                    Expanded(child: BkGroupedHeader(connection.title)),
+                    BkStatusDot(
+                      label: connected ? context.i18n.connected : context.i18n.notConnected,
+                      tone: connected ? BkStatusTone.success : BkStatusTone.neutral,
+                    ),
+                  ],
+                ),
               ),
-          ],
+              if (!connected && !screenshotMode) ConnectionMethodWithoutSwitch(child: connection.getTile()),
+            ],
+          ),
         );
       },
     );
   }
 
   /// An action that takes a value (camera angle, emote): its name opens the
-  /// full list, and the two values used last sit beside it, one tap each.
-  Widget _buildValueRow(InGameAction action, TrainerConnection connection) {
+  /// full list, and with room the two values used last sit under it, one
+  /// tap each.
+  Widget _buildValueTile(InGameAction action) {
     final cs = Theme.of(context).colorScheme;
     final scaling = Theme.of(context).scaling;
     final recent = _recentValues[action] ?? action.possibleValues!.take(2).toList();
     final hotkey = _hotkeys[action];
-    final showKeycap = hotkey != null && !isCompactWindow(context);
-    return Row(
+    final showKeycap = hotkey != null && !isCompactWindow(context) && !_fullScreen;
+    return DecoratedBox(
       key: ValueKey('quick-values-${action.name}'),
-      children: [
-        Expanded(
-          child: Builder(
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        boxShadow: bkCardShadow(context),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final chipHeight = 44 * scaling;
+          final roomForChips = constraints.maxHeight >= chipHeight + 52 * scaling && constraints.maxWidth >= 120;
+          final title = Builder(
             builder: (context) => BkTappable(
               wash: true,
-              onPressed: () => _openValueMenu(context, action, connection),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: 60 * scaling),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 8, 8, 8),
-                  child: Row(
-                    children: [
-                      BkIconTile(icon: action.icon ?? LucideIcons.listOrdered),
-                      const Gap(BkGroupedRow.gap),
-                      Flexible(
-                        // Beside two chips on a small phone: shrink rather
-                        // than break "Kamerawinkel" mid-word.
-                        child: BkWordSafeText(
-                          action.title,
-                          style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
-                        ),
+              onPressed: () => _openValueMenuFor(context, action),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(action.icon ?? LucideIcons.listOrdered, size: 18, color: BkBrandColors.of(context).tileInk),
+                    const Gap(8),
+                    Flexible(
+                      // Beside a chevron on a small phone: shrink rather
+                      // than break "Kamerawinkel" mid-word.
+                      child: BkWordSafeText(
+                        action.title,
+                        style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
                       ),
-                      const Gap(4),
-                      Icon(LucideIcons.chevronDown, size: 16, color: cs.mutedForeground),
-                      if (showKeycap) ...[const Gap(8), _Keycap(hotkey, color: cs.mutedForeground)],
-                    ],
-                  ),
+                    ),
+                    const Gap(4),
+                    Icon(LucideIcons.chevronDown, size: 16, color: cs.mutedForeground),
+                    if (showKeycap) ...[const Gap(8), _Keycap(hotkey, color: cs.mutedForeground)],
+                  ],
                 ),
               ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
-          child: Row(
-            spacing: 8,
+          );
+          if (!roomForChips) return Center(child: title);
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (final value in recent)
-                SizedBox(
-                  width: 52 * scaling,
-                  height: 44 * scaling,
-                  child: Button(
-                    style: ButtonStyle.secondary()
-                        .withBorderRadius(borderRadius: BorderRadius.circular(999))
-                        .withPadding(padding: EdgeInsets.zero),
-                    onPressed: () => _sendQuickValue(action, value, connection),
-                    child: Center(
-                      child: Text(
-                        '$value',
-                        style: context.typography.small.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+              title,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 8,
+                  children: [
+                    for (final value in recent)
+                      SizedBox(
+                        width: 52 * scaling,
+                        height: chipHeight,
+                        child: Button(
+                          style: ButtonStyle.secondary()
+                              .withBorderRadius(borderRadius: BorderRadius.circular(999))
+                              .withPadding(padding: EdgeInsets.zero),
+                          onPressed: () {
+                            final connection = _connectionFor(action);
+                            if (connection == null) {
+                              buildToast(title: context.i18n.notConnected);
+                              return;
+                            }
+                            _sendQuickValue(action, value, connection);
+                          },
+                          child: Center(
+                            child: Text(
+                              '$value',
+                              style: context.typography.small.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                  ],
                 ),
+              ),
             ],
-          ),
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildHotkeySection(List<TrainerConnection> connections) {
-    final uniqueActions = [for (final c in connections) ..._actionsOf(c)].distinct().toList();
+  void _openValueMenuFor(BuildContext context, InGameAction action) {
+    final connection = _connectionFor(action);
+    if (connection == null) {
+      buildToast(title: context.i18n.notConnected);
+      return;
+    }
+    _openValueMenu(context, action, connection);
+  }
+
+  Widget _buildHotkeySection(List<InGameAction> uniqueActions) {
     if (uniqueActions.isEmpty) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context);
 
@@ -597,8 +878,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   Widget _buildPad(
     InGameAction action,
     _PadTone tone,
-    _PadSize size,
-    TrainerConnection connection, {
+    _PadSize size, {
     IconData? icon,
   }) {
     final cs = Theme.of(context).colorScheme;
@@ -619,7 +899,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     });
     final keyboardPressed = _pressedAction == action;
     final hotkey = _hotkeys[action];
-    final showKeycap = hotkey != null && !isCompactWindow(context);
+    final showKeycap = hotkey != null && !isCompactWindow(context) && !_fullScreen;
     final glyph = icon ?? action.icon;
     final typography = context.typography;
 
@@ -635,48 +915,50 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     };
     final iconColor = tone == _PadTone.card ? brand.tileInk : ink;
 
-    final label = BkWordSafeText(
-      action.title,
-      textAlign: size == _PadSize.medium ? TextAlign.start : TextAlign.center,
-      style: labelStyle,
-      maxLines: 2,
-    );
-    final captionText = RideControllerPress.caption(action);
-    final caption = captionText == null
-        ? null
-        : Text(
-            captionText.toUpperCase(),
-            style: typography.caption.copyWith(color: subInk, fontWeight: FontWeight.w600, letterSpacing: 0.6),
-          );
+    Widget content(double iconSize, TextStyle labelStyle) {
+      final label = BkWordSafeText(
+        action.title,
+        textAlign: size == _PadSize.medium ? TextAlign.start : TextAlign.center,
+        style: labelStyle,
+        maxLines: 2,
+      );
+      final captionText = RideControllerPress.caption(action);
+      final caption = captionText == null
+          ? null
+          : Text(
+              captionText.toUpperCase(),
+              style: typography.caption.copyWith(color: subInk, fontWeight: FontWeight.w600, letterSpacing: 0.6),
+            );
 
-    final Widget content = switch (size) {
-      // Steering: icon and words side by side, a low wide pad.
-      _PadSize.medium => Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: 10,
-        children: [
-          if (glyph != null) Icon(glyph, size: iconSize, color: iconColor),
-          Flexible(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [label, ?caption],
+      return switch (size) {
+        // Steering: icon and words side by side, a low wide pad.
+        _PadSize.medium => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 10,
+          children: [
+            if (glyph != null) Icon(glyph, size: iconSize, color: iconColor),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [label, ?caption],
+              ),
             ),
-          ),
-        ],
-      ),
-      _ => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (glyph != null) ...[
-            Icon(glyph, size: iconSize, color: iconColor),
-            Gap(size == _PadSize.hero ? 6 : 8),
           ],
-          label,
-          ?caption,
-        ],
-      ),
-    };
+        ),
+        _ => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (glyph != null) ...[
+              Icon(glyph, size: iconSize, color: iconColor),
+              Gap(size == _PadSize.hero ? 6 : 8),
+            ],
+            label,
+            ?caption,
+          ],
+        ),
+      };
+    }
 
     return Button(
       style: ButtonStyle.ghost()
@@ -693,12 +975,31 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             ),
           ),
       onPressed: () {},
-      onTapDown: (_) => _sendKey(context, down: true, action: action, connection: connection),
-      onTapUp: (_) => _sendKey(context, down: false, action: action, connection: connection),
+      onTapDown: (_) => _press(action, down: true),
+      onTapUp: (_) => _press(action, down: false),
+      onTapCancel: () => _press(action, down: false),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          content,
+          // A tile grows its glyph and words with it — a screen-high + in
+          // ride mode reads from the saddle — and shrinks them rather than
+          // overflow a small one.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final side = math.min(constraints.maxWidth, constraints.maxHeight);
+              final grow = size == _PadSize.hero && side.isFinite ? (side / 110).clamp(1.0, 3.5) : 1.0;
+              return FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: constraints.maxWidth.isFinite ? constraints.maxWidth : 400),
+                  child: content(
+                    iconSize * grow,
+                    labelStyle.copyWith(fontSize: (labelStyle.fontSize ?? 18) * math.min(grow, 1.8)),
+                  ),
+                ),
+              );
+            },
+          ),
           if (showKeycap)
             PositionedDirectional(
               top: 0,
