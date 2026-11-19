@@ -1,8 +1,3 @@
-### 7.6.1 (19-11-2026)
-**Features**:
-- Elite Rizer: incline now works with any smart trainer.
-- You can choose the folder screenshots are saved to.
-
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.
@@ -14,6 +9,7 @@
 - More room to try: 120 button presses a day during the trial (was 80), 40 a day after it (was 15), and 30 minutes a day of BikeControl's own virtual shifting without Pro (was 20).
 - Clearer trial: BikeControl warns you (also as a notification) when 10 button presses are left for today, and the trial card shows what you get after the trial. If your trainer app does its own shifting, Ride no longer suggests BikeControl's virtual shifting, and keyboard control is marked optional next to an OpenBikeControl connection.
 - KICKR Headwind: the fan can follow your heart rate (from a strap connected to BikeControl) as well as your power, and you set where it starts and where it reaches full speed. The page shows the live reading and the speed it gives.
+- Elite Rizer: incline now works with any smart trainer.
 
 **Fixes**:
 - Elite trainers no longer show up twice (WiFi and Bluetooth).

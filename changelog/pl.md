@@ -1,8 +1,3 @@
-### 7.6.1 (19-11-2026)
-**Features**:
-- Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
-- Możesz wybrać folder, w którym zapisywane są zrzuty ekranu.
-
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain i Rampida są teraz oficjalnie obsługiwane przez OpenBikeControl.
@@ -14,6 +9,7 @@
 - Więcej czasu na test: 120 naciśnięć dziennie w okresie próbnym (wcześniej 80), potem 40 dziennie (wcześniej 15), a bez Pro 30 minut dziennie wirtualnej zmiany biegów BikeControl (wcześniej 20).
 - Czytelniejszy okres próbny: BikeControl ostrzega cię (także powiadomieniem), gdy zostało 10 naciśnięć na dziś, a karta okresu próbnego pokazuje, co zostaje po nim. Jeśli twoja aplikacja treningowa sama zmienia biegi, „Jazda” nie proponuje już wirtualnej zmiany biegów BikeControl, a sterowanie klawiaturą jest oznaczone jako opcjonalne obok połączenia OpenBikeControl.
 - KICKR Headwind: wentylator może podążać za tętnem (z pasa połączonego z BikeControl) lub mocą, a ty ustawiasz, kiedy rusza i kiedy osiąga pełną prędkość. Strona pokazuje bieżący odczyt i wynikającą z niego prędkość.
+- Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
 
 **Fixes**:
 - Trenażery Elite nie pojawiają się już podwójnie (WiFi i Bluetooth).

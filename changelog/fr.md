@@ -1,8 +1,3 @@
-### 7.6.1 (19-11-2026)
-**Features**:
-- Elite Rizer : l'inclinaison fonctionne maintenant avec n'importe quel home trainer connecté.
-- Tu peux choisir le dossier où sont enregistrées les captures d'écran.
-
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain et Rampida sont désormais officiellement pris en charge via OpenBikeControl.
@@ -14,6 +9,7 @@
 - Plus de marge pour essayer : 120 appuis par jour pendant l'essai (avant 80), 40 par jour ensuite (avant 15) et, sans Pro, 30 minutes par jour de changement de vitesse virtuel BikeControl (avant 20).
 - Un essai plus clair : BikeControl te prévient (aussi par notification) quand il te reste 10 appuis pour aujourd'hui, et la carte d'essai indique ce que tu auras après l'essai. Si ton app d'entraînement gère elle-même les vitesses, « Rouler » ne propose plus le changement de vitesse virtuel de BikeControl, et le contrôle au clavier est indiqué comme optionnel à côté d'une connexion OpenBikeControl.
 - KICKR Headwind : le ventilateur peut suivre votre fréquence cardiaque (d'une ceinture connectée à BikeControl) ou votre puissance, et vous réglez où il démarre et où il atteint la pleine vitesse. La page affiche la valeur actuelle et la vitesse qui en découle.
+- Elite Rizer : l'inclinaison fonctionne maintenant avec n'importe quel home trainer connecté.
 
 **Fixes**:
 - Les home trainers Elite n'apparaissent plus en double (WiFi et Bluetooth).

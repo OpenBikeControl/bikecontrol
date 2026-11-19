@@ -1,4 +1,12 @@
-7.6.1
+7.6.0
 Nouveautés :
-• Elite Rizer : inclinaison avec n'importe quel home trainer connecté
-• Choisis le dossier des captures d'écran
+• Incyclist, Tour du Pain et Rampida via OpenBikeControl
+• Les manettes CYCPLUS T7 fonctionnent comme manettes
+• Éditeur de boutons plus clair, groupé par action
+• Di2 : règle les canaux D-Fly dans E-TUBE, avec un guide
+• Zwift Click V2 : manette droite sans déverrouillage
+• Plus d'essai : 120 appuis/jour pendant l'essai, 40 ensuite, 30 min de vitesses virtuelles, avec alerte
+
+Corrections :
+• Plus de plantage au redémarrage du service
+• « Fermer et quitter » quitte toujours

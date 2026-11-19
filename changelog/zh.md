@@ -1,8 +1,3 @@
-### 7.6.1 (19-11-2026)
-**Features**:
-- Elite Rizer：坡度模拟现在适用于任何智能骑行台。
-- 可以自行选择截图的保存文件夹。
-
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist、Tour du Pain 和 Rampida 现已通过 OpenBikeControl 获得官方支持。
@@ -14,6 +9,7 @@
 - 更多试用空间：试用期内每天 120 次按键（之前 80 次），试用期后每天 40 次（之前 15 次）；没有 Pro 时，BikeControl 自带的虚拟变速每天可用 30 分钟（之前 20 分钟）。
 - 更清晰的试用：今天还剩 10 次按键时，BikeControl 会提醒你（也会发送通知），试用卡片会显示试用结束后的额度。如果你的训练 App 自己负责换挡，“骑行”页不再推荐 BikeControl 的虚拟变速；在 OpenBikeControl 连接旁，键盘控制会标为可选。
 - KICKR Headwind：风扇可以跟随你的心率（来自连接到 BikeControl 的心率带）或功率，并由你设置启动点和全速点。页面会显示实时读数及对应的风扇速度。
+- Elite Rizer：坡度模拟现在适用于任何智能骑行台。
 
 **Fixes**:
 - Elite 骑行台不再重复显示（WiFi 和蓝牙）。

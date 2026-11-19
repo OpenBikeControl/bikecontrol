@@ -1,4 +1,12 @@
-7.6.1
+7.6.0
 Neu:
-• Elite Rizer: Steigung mit jedem Smart Trainer
-• Ordner für Screenshots selbst wählen
+• Incyclist, Tour du Pain und Rampida über OpenBikeControl
+• CYCPLUS-T7-Schalthebel als Controller
+• Klarerer Tasten-Editor, nach Aktionen gruppiert
+• Di2: D-Fly-Kanäle selbst in E-TUBE einstellen, mit Anleitung
+• Zwift Click V2: rechten Controller ohne Entsperren nutzen
+• Mehr zum Testen: 120 Drücke/Tag in der Testphase, danach 40, 30 Min. virtuelles Schalten, mit Vorwarnung
+
+Behoben:
+• Kein Absturz beim Neustart des Hintergrunddiensts
+• „Schließen & beenden“ beendet immer

@@ -1,8 +1,3 @@
-### 7.6.1 (19-11-2026)
-**Features**:
-- Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
-- Du kannst den Ordner für Screenshots selbst wählen.
-
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.
@@ -14,6 +9,7 @@
 - Mehr Raum zum Ausprobieren: 120 Tastendrücke am Tag in der Testphase (vorher 80), danach 40 am Tag (vorher 15), und ohne Pro 30 Minuten am Tag virtuelles Schalten von BikeControl (vorher 20).
 - Klarere Testphase: BikeControl warnt dich (auch als Mitteilung), wenn für heute noch 10 Tastendrücke übrig sind, und die Testphasen-Karte zeigt, was nach der Testphase gilt. Schaltet deine Trainer-App selbst, schlägt „Fahren“ kein virtuelles Schalten von BikeControl mehr vor, und die Tastatursteuerung ist neben einer OpenBikeControl-Verbindung als optional markiert.
 - KICKR Headwind: Der Ventilator kann deiner Herzfrequenz (von einem mit BikeControl verbundenen Brustgurt) oder deiner Leistung folgen, und du legst fest, ab wann er anläuft und wann er volle Stufe erreicht. Die Seite zeigt den aktuellen Wert und die Stufe, die daraus wird.
+- Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
 
 **Fixes**:
 - Elite-Trainer tauchen nicht mehr doppelt auf (WLAN und Bluetooth).
