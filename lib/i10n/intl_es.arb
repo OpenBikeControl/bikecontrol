@@ -1018,7 +1018,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "¿No quieres iniciar sesión? Escribe un correo",
   "proxyConnectFor": "Conecta tu {name} para:",
   "proxyFeatureAddVirtualShifting": "Añadir Virtual Shifting",
   "proxyFeatureAdjustGears": "Ajustar marchas de Virtual Shifting",

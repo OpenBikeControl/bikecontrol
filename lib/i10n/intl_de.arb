@@ -1029,7 +1029,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "Keine Lust dich anzumelden? Schreibe stattdessen eine Mail",
   "proxyConnectFor": "Verbinde {name} für:",
   "proxyFeatureAddVirtualShifting": "Virtual Shifting hinzufügen",
   "proxyFeatureAdjustGears": "Virtual-Shifting-Gänge anpassen",

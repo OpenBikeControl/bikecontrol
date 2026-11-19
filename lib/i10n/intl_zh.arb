@@ -1692,7 +1692,6 @@
       }
     }
   },
-  "dontWantToSignInWriteAMail": "不想登录？改为写邮件",
   "proxyConnectFor": "连接你的 {name}，用于：",
   "@proxyConnectFor": {
     "placeholders": {
