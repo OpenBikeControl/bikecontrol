@@ -244,13 +244,12 @@ class _NavigationState extends State<Navigation> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Activity's log and News sit side by side here, so
-                        // Clear is always the log's.
+                        // Activity's panes carry their own actions here
+                        // (Clear on the log, ⋮ on the rides).
                         ShellTopBar(
                           section: section,
                           compact: false,
                           shell: _shell,
-                          activity: _shell.activity,
                           scrolled: _contentScrolled,
                         ),
                         Expanded(child: content),

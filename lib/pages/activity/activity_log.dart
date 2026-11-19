@@ -338,18 +338,6 @@ class ActivityGroupCaption extends StatelessWidget {
   }
 }
 
-/// News's header in its pane beside the log, from 840: a caption like the
-/// log's groups, at the same height, so the two panes' first cards line up
-/// under the page's title.
-class ActivityPaneHeader extends StatelessWidget {
-  const ActivityPaneHeader({super.key, required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) => ActivityGroupCaption(title: title);
-}
-
 /// "Clear" for the activity log, in accent; disabled while there is nothing
 /// to clear.
 class ActivityClearButton extends StatelessWidget {

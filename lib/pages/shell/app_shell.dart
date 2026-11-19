@@ -73,7 +73,6 @@ class ShellController {
     section.addListener(_markNewsReadIfViewed);
     activityTab.addListener(_markNewsReadIfViewed);
     newsBesideLog.addListener(_markNewsReadIfViewed);
-    paneTab.addListener(_markNewsReadIfViewed);
     this.news.hasUnread.addListener(_markNewsReadIfViewed);
   }
 
@@ -83,24 +82,18 @@ class ShellController {
   /// Which of Activity's segments is showing.
   final ValueNotifier<ActivityTab> activityTab = ValueNotifier(ActivityTab.log);
 
-  /// From 840, the right pane beside the log: Rides or News (never the log).
-  /// Opens on Rides; remembers the last choice.
-  final ValueNotifier<ActivityTab> paneTab = ValueNotifier(ActivityTab.rides);
-
   final BlogNewsController news;
 
-  /// Whether Activity shows the log and News side by side (from 840) instead
-  /// of behind segments. Set by the content area from the window's width.
+  /// Whether Activity shows News as a banner over the log and the rides
+  /// (from 840) instead of behind segments. Set by the content area from the window's width.
   final ValueNotifier<bool> newsBesideLog = ValueNotifier(false);
 
   void select(AppSection value) => section.value = value;
 
   /// Whether News is on screen right now: Activity is open and shows News,
-  /// as its chosen segment or in its pane beside the log. Rides in that pane
-  /// leave the news unread.
+  /// as its chosen segment or as the banner over the panes.
   bool get viewingNews =>
-      section.value == AppSection.activity &&
-      (newsBesideLog.value ? paneTab.value == ActivityTab.news : activityTab.value == ActivityTab.news);
+      section.value == AppSection.activity && (newsBesideLog.value || activityTab.value == ActivityTab.news);
 
   /// Posts on screen are posts read: the dot goes the moment News shows.
   void _markNewsReadIfViewed() {
@@ -111,11 +104,9 @@ class ShellController {
     section.removeListener(_markNewsReadIfViewed);
     activityTab.removeListener(_markNewsReadIfViewed);
     newsBesideLog.removeListener(_markNewsReadIfViewed);
-    paneTab.removeListener(_markNewsReadIfViewed);
     news.hasUnread.removeListener(_markNewsReadIfViewed);
     section.dispose();
     activityTab.dispose();
-    paneTab.dispose();
     newsBesideLog.dispose();
     activity.dispose();
     news.dispose();

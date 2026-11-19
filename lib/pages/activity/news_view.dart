@@ -3,6 +3,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/services/blog_service.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_brand_band.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -301,6 +302,231 @@ class _NewsMessage extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// From 840, News's place on Activity: the newest posts as one wide banner
+/// on the brand band above the log and the rides — the date (with "New"
+/// while recent), the title, the excerpt, "Read post" and "All news", and
+/// the cover beside it. Dots step through the three newest posts. Nothing
+/// shows while there is nothing to show (no posts, or a failed load).
+class NewsBanner extends StatefulWidget {
+  const NewsBanner({super.key, required this.controller});
+
+  final BlogNewsController controller;
+
+  /// How many of the newest posts the dots step through.
+  static const int maxPosts = 3;
+
+  /// The banner's height, so loading and loaded take the same room.
+  static const double height = 208;
+
+  /// From this width the cover sits beside the text.
+  static const double coverWidth = 720;
+
+  @override
+  State<NewsBanner> createState() => _NewsBannerState();
+}
+
+class _NewsBannerState extends State<NewsBanner> {
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.load();
+  }
+
+  Future<void> _open(String url) async {
+    try {
+      await launchUrl(Uri.parse(url));
+    } catch (e, s) {
+      recordError(e, s, context: 'NewsBanner.open');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<NewsState>(
+      valueListenable: widget.controller.state,
+      builder: (context, state, _) => switch (state) {
+        NewsLoading() => _band(context, const SizedBox.expand()).asSkeleton(),
+        NewsLoaded(:final posts) when posts.isNotEmpty => _loaded(
+          context,
+          posts.take(NewsBanner.maxPosts).toList(),
+        ),
+        _ => const SizedBox.shrink(),
+      },
+    );
+  }
+
+  Widget _band(BuildContext context, Widget child) => SizedBox(
+    key: const ValueKey('news-banner'),
+    height: NewsBanner.height,
+    child: BkBrandBand(
+      borderRadius: const BorderRadius.all(Radius.circular(BkComponentThemes.cardRadius + 4)),
+      contours: const BkContourPlacement.card(),
+      padding: const EdgeInsets.all(24),
+      child: child,
+    ),
+  );
+
+  Widget _loaded(BuildContext context, List<BlogPost> posts) {
+    final index = _index.clamp(0, posts.length - 1);
+    final post = posts[index];
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
+    final languageCode = locale.languageCode;
+    final title = post.titleForLanguage(languageCode);
+    final excerpt = post.excerptForLanguage(languageCode);
+    final date = DateFormat.yMMMd(locale.toLanguageTag()).format(post.date);
+    final isNew = widget.controller.isNew(post);
+    final image = post.imageUrl;
+    final blogUrl = post.translationFor(languageCode) != null
+        ? 'https://bikecontrol.app/$languageCode/blog/'
+        : 'https://bikecontrol.app/blog/';
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final withCover = image != null && constraints.maxWidth >= NewsBanner.coverWidth;
+        return _band(
+          context,
+          Builder(
+            builder: (context) {
+              final cs = Theme.of(context).colorScheme;
+              final text = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    spacing: 8,
+                    children: [
+                      if (isNew) _NewBadge(label: l10n.newsNewBadge),
+                      Text(
+                        '${l10n.activityTabNews} · $date',
+                        style: context.typography.small.copyWith(color: cs.foreground.withValues(alpha: 0.85)),
+                      ),
+                    ],
+                  ),
+                  const Gap(10),
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      title,
+                      key: const ValueKey('news-banner-title'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.typography.x2Large.copyWith(fontWeight: FontWeight.w700, height: 1.15),
+                    ),
+                  ),
+                  if (excerpt != null && excerpt.isNotEmpty) ...[
+                    const Gap(6),
+                    Text(
+                      excerpt,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.typography.small.copyWith(
+                        height: 1.4,
+                        color: cs.foreground.withValues(alpha: 0.88),
+                      ),
+                    ),
+                  ],
+                  const Spacer(),
+                  Row(
+                    spacing: 8,
+                    children: [
+                      Button.primary(
+                        key: const ValueKey('news-banner-read'),
+                        onPressed: () => _open(post.urlForLanguage(languageCode)),
+                        child: Text(l10n.newsReadPost),
+                      ),
+                      Button.ghost(
+                        key: const ValueKey('news-banner-all'),
+                        onPressed: () => _open(blogUrl),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          spacing: 6,
+                          children: [Text(l10n.newsAllPosts), const Icon(LucideIcons.externalLink, size: 14)],
+                        ),
+                      ),
+                      const Spacer(),
+                      if (posts.length > 1)
+                        for (final (i, p) in posts.indexed)
+                          _PagerDot(
+                            key: ValueKey('news-banner-dot-$i'),
+                            selected: i == index,
+                            label: p.titleForLanguage(languageCode),
+                            onPressed: () => setState(() => _index = i),
+                          ),
+                    ],
+                  ),
+                ],
+              );
+              if (!withCover) return text;
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 24,
+                children: [
+                  Expanded(child: text),
+                  // The whole cover, never cropped: the blog's covers carry
+                  // their own lettering.
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AspectRatio(
+                      aspectRatio: 1200 / 630,
+                      child: ExcludeSemantics(
+                        child: Image.network(
+                          image,
+                          key: ValueKey('news-banner-cover-${post.slug}'),
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stack) => const SizedBox.shrink(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// One of the banner's dots: the chosen post's is a wider pill.
+class _PagerDot extends StatelessWidget {
+  const _PagerDot({super.key, required this.selected, required this.label, required this.onPressed});
+
+  final bool selected;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return BkTappable(
+      onPressed: onPressed,
+      label: label,
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      excludeChildSemantics: true,
+      borderRadius: BorderRadius.circular(999),
+      child: SizedBox(
+        width: selected ? 32 : 18,
+        height: 28,
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: selected ? 22 : 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: cs.foreground.withValues(alpha: selected ? 1 : 0.45),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        ),
       ),
     );
   }

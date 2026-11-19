@@ -338,10 +338,14 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         'devices',
         DevicesPage(isMobile: widget.isMobile, onUpdate: _update, reveal: _reveal),
       ),
-      // From 840 the log and News sit side by side, each scrolling on its own.
+      // From 840 News is a banner over the log and the rides, side by side.
       AppSection.activity =>
         _screenWidth >= Breakpoints.medium
-            ? ActivitySection(shell: _shell, fixAction: _errorFixAction, sideBySide: true)
+            ? _scroll(
+                'activity',
+                ActivitySection(shell: _shell, fixAction: _errorFixAction, sideBySide: true),
+                maxWidth: 1080,
+              )
             : _scroll('activity', ActivitySection(shell: _shell, fixAction: _errorFixAction)),
       AppSection.settings => _scroll('settings', SettingsPage(onUpdate: _update)),
     };

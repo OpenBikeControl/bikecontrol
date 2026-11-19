@@ -1599,6 +1599,8 @@
   "newsEmpty": "暂无新闻。",
   "newsLoadFailed": "无法加载新闻。请检查网络连接后重试。",
   "newsNewBadge": "新",
+  "newsReadPost": "阅读文章",
+  "newsAllPosts": "全部新闻",
   "openConnectionSettings": "打开连接设置",
   "noTargetSelected": "未选择目标",
   "stay": "留下",
@@ -4020,6 +4022,7 @@
     }
   },
   "activityClearLog": "清除日志",
+  "activityLogTitle": "日志",
   "ridesHealthStaysNote": "已在 {store} 中的内容会保留。",
   "@ridesHealthStaysNote": {
     "placeholders": {

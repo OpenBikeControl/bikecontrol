@@ -3,25 +3,23 @@ import 'package:bike_control/pages/activity/activity_log.dart';
 import 'package:bike_control/pages/activity/news_view.dart';
 import 'package:bike_control/pages/activity/rides_view.dart';
 import 'package:bike_control/pages/shell/app_shell.dart';
+import 'package:bike_control/services/blog_news.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The Activity section: a segmented control over the session's log and the
-/// blog's News — or, [sideBySide] (from 840), the two as panes: the log on
-/// the left under the page's own title, News on the right under its header,
-/// each scrolling on its own.
+/// The Activity section: a segmented control over the session's log, the
+/// blog's News and the rides — or, [sideBySide] (from 840), News as a banner
+/// across the top with the log and the rides as two titled panes under it,
+/// each pane's action in its own title row.
 class ActivitySection extends StatelessWidget {
   const ActivitySection({super.key, required this.shell, required this.fixAction, this.sideBySide = false});
 
   final ShellController shell;
   final ActivityFixAction fixAction;
   final bool sideBySide;
-
-  /// The two panes together are no wider than Ride's two columns.
-  static const double sideBySideMaxWidth = 1080;
 
   @override
   Widget build(BuildContext context) {
@@ -45,47 +43,94 @@ class ActivitySection extends StatelessWidget {
 
   Widget _panes(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    // The same insets as the other sections' scroll views, split between the
-    // panes so each scrolls to the window's edge.
-    const outer = 24.0;
-    const gutter = 10.0;
-    return Align(
-      alignment: Alignment.topLeft,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: sideBySideMaxWidth + 2 * outer),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        NewsBanner(controller: shell.news),
+        // The banner hides with nothing to show; the panes then start under
+        // the title like any section.
+        ValueListenableBuilder(
+          valueListenable: shell.news.state,
+          builder: (context, state, _) => switch (state) {
+            NewsFailed() => const SizedBox.shrink(),
+            NewsLoaded(:final posts) when posts.isEmpty => const SizedBox.shrink(),
+            _ => const Gap(24),
+          },
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 20,
           children: [
             Expanded(
               key: const ValueKey('activity-log-pane'),
-              child: SingleChildScrollView(
-                key: const PageStorageKey('section-activity-log'),
-                padding: const EdgeInsets.fromLTRB(outer, 8, gutter, 24),
-                child: ActivityLogView(controller: shell.activity, fixAction: fixAction),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ActivityPaneTitle(
+                    key: const ValueKey('activity-log-title'),
+                    title: l10n.activityLogTitle,
+                    trailing: ActivityClearButton(controller: shell.activity),
+                  ),
+                  ActivityLogView(controller: shell.activity, fixAction: fixAction),
+                ],
               ),
             ),
             Expanded(
-              key: const ValueKey('activity-news-pane'),
-              child: SingleChildScrollView(
-                key: const PageStorageKey('section-activity-news'),
-                padding: const EdgeInsets.fromLTRB(gutter, 8, outer, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Rides and News as caption-height tabs on the log
-                    // caption's baseline, with a gap below their line.
-                    ActivityPaneTabs(shell: shell),
-                    const Gap(12),
-                    ValueListenableBuilder<ActivityTab>(
-                      valueListenable: shell.paneTab,
-                      builder: (context, tab, _) => tab == ActivityTab.rides
-                          ? const RidesView(desktop: true)
-                          : NewsView(controller: shell.news, singleColumn: true),
-                    ),
-                  ],
+              key: const ValueKey('activity-rides-pane'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ActivityPaneTitle(
+                    key: const ValueKey('activity-rides-title'),
+                    title: l10n.ridesTab,
+                    trailing: const RidesMenuButton(),
+                  ),
+                  const RidesView(desktop: true),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// A pane's title beside the other's, from 840: "Log" with Clear, "Rides"
+/// with its ⋮ — each action next to what it acts on.
+class ActivityPaneTitle extends StatelessWidget {
+  const ActivityPaneTitle({super.key, required this.title, this.trailing});
+
+  final String title;
+  final Widget? trailing;
+
+  /// Every pane title is this tall, with or without an action, so the two
+  /// panes' first cards line up.
+  static const double height = 44;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: SizedBox(
+        height: height,
+        child: Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: BkNumerals.display(
+                    (context.typography.x2Large.fontSize ?? 24),
+                    color: Theme.of(context).colorScheme.foreground,
+                  ),
                 ),
               ),
             ),
+            ?trailing,
           ],
         ),
       ),
