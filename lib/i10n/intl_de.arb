@@ -3136,6 +3136,7 @@
   "headwindRampNow": "Jetzt {input} → Ventilator auf {speed}%",
   "headwindRampExplain": "0% bei {start}, 100% ab {full}, dazwischen gleichmäßig steigend. BikeControl mittelt über ein paar Sekunden und verstellt den Ventilator erst ab 10%, damit er nicht ständig hin und her springt.",
   "headwindNoHeartRate": "Noch keine Herzfrequenz in BikeControl. Verbinde einen Brustgurt auf der Geräte-Seite; bis dahin behält der Ventilator seine Stufe.",
+  "headwindUseFanHeartRateMode": "Herzfrequenz-Modus des Ventilators nutzen",
   "headwindNoPower": "Noch keine Leistung. Der Ventilator behält seine Stufe, bis dein Trainer oder Powermeter Watt sendet.",
   "accessorySteeringReadout": "Lenkung {value}",
   "accessoryFanReadout": "Ventilator {value}",

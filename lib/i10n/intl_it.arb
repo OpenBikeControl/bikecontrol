@@ -3136,6 +3136,7 @@
   "headwindRampNow": "Ora {input} → ventilatore al {speed}%",
   "headwindRampExplain": "0% a {start}, 100% da {full}, crescendo in modo uniforme nel mezzo. BikeControl fa la media su qualche secondo e cambia il ventilatore solo a passi del 10% o più, così non oscilla.",
   "headwindNoHeartRate": "Ancora nessuna frequenza cardiaca in BikeControl. Collega una fascia nella pagina Dispositivi; fino ad allora il ventilatore mantiene la sua velocità.",
+  "headwindUseFanHeartRateMode": "Usa la modalità frequenza cardiaca del ventilatore",
   "headwindNoPower": "Ancora nessuna potenza. Il ventilatore mantiene la sua velocità finché il rullo o il misuratore di potenza non invia watt.",
   "accessorySteeringReadout": "Sterzo {value}",
   "accessoryFanReadout": "Ventilatore {value}",

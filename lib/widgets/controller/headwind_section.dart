@@ -85,11 +85,16 @@ class HeadwindSection extends StatelessWidget {
               key: const ValueKey('headwind-current'),
               icon: LucideIcons.fan,
               title: l.headwindCurrent,
-              subtitle: follow == HeadwindFollow.none && mode == HeadwindMode.heartRate
-                  ? l.headwindFanOwnHeartRateMode
-                  : null,
+              // While following, the number goes on the right and what it
+              // follows underneath, so the title keeps its line.
+              subtitle: switch (follow) {
+                HeadwindFollow.power => l.headwindFollowPower,
+                HeadwindFollow.heartRate => l.headwindFollowHeartRate,
+                HeadwindFollow.none when mode == HeadwindMode.heartRate => l.headwindFanOwnHeartRateMode,
+                HeadwindFollow.none => null,
+              },
               trailing: Text(
-                headwindStateText(context, mode, speed, follow: follow),
+                follow == HeadwindFollow.none ? headwindStateText(context, mode, speed) : '$speed%',
                 style: context.typography.base.copyWith(
                   fontWeight: FontWeight.w600,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -141,6 +146,10 @@ class HeadwindSection extends StatelessWidget {
                 input: device.followInput.value == null ? null : '${device.followInput.value} bpm',
                 speed: speed,
                 waiting: l.headwindNoHeartRate,
+                // A strap paired only to the fan never reaches BikeControl:
+                // the fan's own heart-rate mode still works with it.
+                fallbackLabel: l.headwindUseFanHeartRateMode,
+                onFallback: () => _run(device.setHeartRateMode, 'setHeartRateMode'),
               ),
               _RampStepperRow(
                 key: const ValueKey('headwind-start-heart-rate'),
@@ -228,8 +237,12 @@ class _RampExplainer extends StatelessWidget {
     required this.input,
     required this.speed,
     required this.waiting,
+    this.fallbackLabel,
+    this.onFallback,
   });
 
+  final String? fallbackLabel;
+  final VoidCallback? onFallback;
   final String start;
   final String full;
   final String? input;
@@ -256,8 +269,18 @@ class _RampExplainer extends StatelessWidget {
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             )
-          else
+          else ...[
             Text(waiting, key: const ValueKey('headwind-ramp-waiting')).xSmall.muted,
+            if (fallbackLabel != null && onFallback != null)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Button.outline(
+                  key: const ValueKey('headwind-use-fan-heart-rate'),
+                  onPressed: onFallback,
+                  child: Text(fallbackLabel!),
+                ),
+              ),
+          ],
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
             child: SizedBox(
@@ -337,15 +360,15 @@ class _SpeedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = Text(label, maxLines: 1, softWrap: false);
-    return selected
-        ? Button.primary(
-            onPressed: onPressed,
-            child: Center(child: child),
-          )
-        : Button.outline(
-            onPressed: onPressed,
-            child: Center(child: child),
-          );
+    // Five across a phone leaves little room: tight padding, and "100%"
+    // shrinks a touch rather than clipping on the narrowest screens.
+    final child = FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1, softWrap: false));
+    return Button(
+      style: (selected ? const ButtonStyle.primary() : const ButtonStyle.outline()).copyWith(
+        padding: (context, states, value) => const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      ),
+      onPressed: onPressed,
+      child: Center(child: child),
+    );
   }
 }

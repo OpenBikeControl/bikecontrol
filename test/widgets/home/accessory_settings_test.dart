@@ -203,7 +203,7 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const ValueKey('headwind-current')),
-          matching: find.text(AppLocalizations.current.headwindStatePower(50)),
+          matching: find.text('50%'),
         ),
         findsOneWidget,
       );
@@ -249,6 +249,26 @@ void main() {
       expect(find.text(AppLocalizations.current.headwindNoHeartRate), findsOneWidget);
 
       await device.setFollowHeartRate(false);
+    });
+
+    testWidgets('without a heart rate in BikeControl, offers the fan\'s own heart-rate mode', (tester) async {
+      final writes = <List<int>>[];
+      final device = headwind()
+        ..debugWriteSink = ((Uint8List b) async => writes.add(b.toList()))
+        ..heartRateProvider = () => null;
+      await pumpSettings(tester, device);
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.tap(find.byKey(const ValueKey('headwind-heart-rate')));
+      await tester.pump();
+
+      await tester.ensureVisible(find.byKey(const ValueKey('headwind-use-fan-heart-rate')));
+      await tester.tap(find.byKey(const ValueKey('headwind-use-fan-heart-rate')));
+      await tester.pump();
+
+      expect(device.followsHeartRate, isFalse);
+      expect(writes.last, [0x04, 0x02]);
+      expect(device.mode.value, HeadwindMode.heartRate);
+      expect(find.text(AppLocalizations.current.headwindFanOwnHeartRateMode), findsOneWidget);
     });
   });
 }

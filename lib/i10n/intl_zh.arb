@@ -4318,6 +4318,7 @@
   "headwindRampNow": "当前 {input} → 风扇 {speed}%",
   "headwindRampExplain": "{start} 时为 0%，{full} 起为 100%，中间均匀上升。BikeControl 会取几秒的平均值，且仅在变化达到 10% 或以上时调整风扇，避免来回跳动。",
   "headwindNoHeartRate": "BikeControl 中还没有心率。请在“设备”页面连接心率带；在此之前风扇保持当前速度。",
+  "headwindUseFanHeartRateMode": "使用风扇自带的心率模式",
   "headwindNoPower": "还没有功率数据。在骑行台或功率计发送功率之前，风扇保持当前速度。",
   "accessorySteeringReadout": "转向 {value}",
   "accessoryFanReadout": "风扇 {value}",

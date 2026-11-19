@@ -3136,6 +3136,7 @@
   "headwindRampNow": "Teraz {input} → wentylator na {speed}%",
   "headwindRampExplain": "0% przy {start}, 100% od {full}, pomiędzy rośnie równomiernie. BikeControl uśrednia z kilku sekund i zmienia wentylator dopiero o 10% lub więcej, żeby nie skakał.",
   "headwindNoHeartRate": "Brak tętna w BikeControl. Połącz pas na stronie Urządzenia; do tego czasu wentylator utrzymuje prędkość.",
+  "headwindUseFanHeartRateMode": "Użyj trybu tętna wentylatora",
   "headwindNoPower": "Brak odczytu mocy. Wentylator utrzymuje prędkość, dopóki trenażer lub miernik mocy nie wyśle watów.",
   "accessorySteeringReadout": "Skręt {value}",
   "accessoryFanReadout": "Wentylator {value}",

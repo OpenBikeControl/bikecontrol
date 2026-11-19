@@ -3136,6 +3136,7 @@
   "headwindRampNow": "Maintenant {input} → ventilateur à {speed}%",
   "headwindRampExplain": "0% à {start}, 100% dès {full}, en montant régulièrement entre les deux. BikeControl fait la moyenne sur quelques secondes et ne change le ventilateur que par pas de 10% ou plus, pour qu'il ne s'emballe pas.",
   "headwindNoHeartRate": "Pas encore de fréquence cardiaque dans BikeControl. Connectez une ceinture sur la page Appareils ; en attendant, le ventilateur garde sa vitesse.",
+  "headwindUseFanHeartRateMode": "Utiliser le mode fréquence cardiaque du ventilateur",
   "headwindNoPower": "Pas encore de puissance. Le ventilateur garde sa vitesse jusqu'à ce que votre home trainer ou capteur de puissance envoie des watts.",
   "accessorySteeringReadout": "Direction {value}",
   "accessoryFanReadout": "Ventilateur {value}",
