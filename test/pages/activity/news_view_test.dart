@@ -1,6 +1,6 @@
-// A News card must render its post in the app's ACTIVE language: the
+// The news banner must render its post in the app's ACTIVE language: the
 // German build of a post has its own slug (/de/blog/<german-slug>/), so the
-// card's title and the launched URL both follow `Localizations.localeOf`.
+// banner's title and the launched URL both follow `Localizations.localeOf`.
 // Posts without a translation stay on the English /blog/ URL — the /de/ URL
 // for an untranslated post 404s.
 import 'package:bike_control/gen/l10n.dart';
@@ -66,7 +66,8 @@ Future<void> _pump(WidgetTester tester, Locale locale, List<BlogPost> posts) asy
       supportedLocales: AppLocalizations.delegate.supportedLocales,
       home: Scaffold(
         child: SingleChildScrollView(
-          child: NewsView(controller: BlogNewsController(fetch: () async => posts)),
+          padding: const EdgeInsets.all(16),
+          child: NewsBanner(controller: BlogNewsController(fetch: () async => posts)),
         ),
       ),
     ),
@@ -93,7 +94,7 @@ void main() {
 
     expect(find.text('Configure Your Controller Tutorial'), findsOneWidget);
 
-    await tester.tap(find.text('Configure Your Controller Tutorial'));
+    await tester.tap(find.byKey(const ValueKey('news-banner-read')));
     await tester.pump();
 
     expect(tester.takeException(), isNull);
@@ -106,7 +107,7 @@ void main() {
     expect(find.text('Controller einrichten: Tastenbelegung'), findsOneWidget);
     expect(find.text('Configure Your Controller Tutorial'), findsNothing);
 
-    await tester.tap(find.text('Controller einrichten: Tastenbelegung'));
+    await tester.tap(find.byKey(const ValueKey('news-banner-read')));
     await tester.pump();
 
     expect(tester.takeException(), isNull);
@@ -118,11 +119,23 @@ void main() {
 
     expect(find.text('6.6 - More Trainers, More Apps'), findsOneWidget);
 
-    await tester.tap(find.text('6.6 - More Trainers, More Apps'));
+    await tester.tap(find.byKey(const ValueKey('news-banner-read')));
     await tester.pump();
 
     expect(tester.takeException(), isNull);
     // NOT /de/blog/... — that URL does not exist for this post.
     expect(fake.launchedUrls, ['https://bikecontrol.app/blog/bikecontrol-6-6-more-trainers-more-apps/']);
+  });
+
+  testWidgets('"All news" opens the blog in the post\'s language, English without a translation', (tester) async {
+    await _pump(tester, const Locale('de'), [_translated]);
+    await tester.tap(find.byKey(const ValueKey('news-banner-all')));
+    await tester.pump();
+    expect(fake.launchedUrls, ['https://bikecontrol.app/de/blog/']);
+
+    await _pump(tester, const Locale('de'), [_untranslated]);
+    await tester.tap(find.byKey(const ValueKey('news-banner-all')));
+    await tester.pump();
+    expect(fake.launchedUrls.last, 'https://bikecontrol.app/blog/');
   });
 }

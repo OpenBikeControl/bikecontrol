@@ -28,7 +28,6 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable, defaultTargetPlatform;
 import 'package:bike_control/widgets/changelog/whats_new.dart';
-import 'package:bike_control/pages/activity/rides_view.dart' show RidesMenuButton;
 import 'package:flutter/rendering.dart'
     show
         BoxHitTestResult,
@@ -63,37 +62,23 @@ enum AppSection {
   }
 }
 
-/// Activity's two segments: the session's log and the blog.
-enum ActivityTab { log, news, rides }
-
 /// What the shell's chrome and its content share: the selected section, the
-/// session's activity log, and the blog behind Activity's News segment.
+/// session's activity log, and the blog behind Activity's news banner.
 class ShellController {
   ShellController({BlogNewsController? news}) : news = news ?? BlogNewsController() {
     section.addListener(_markNewsReadIfViewed);
-    activityTab.addListener(_markNewsReadIfViewed);
-    newsBesideLog.addListener(_markNewsReadIfViewed);
     this.news.hasUnread.addListener(_markNewsReadIfViewed);
   }
 
   final ValueNotifier<AppSection> section = ValueNotifier(AppSection.ride);
   final ActivityLogController activity = ActivityLogController();
 
-  /// Which of Activity's segments is showing.
-  final ValueNotifier<ActivityTab> activityTab = ValueNotifier(ActivityTab.log);
-
   final BlogNewsController news;
-
-  /// Whether Activity shows News as a banner over the log and the rides
-  /// (from 840) instead of behind segments. Set by the content area from the window's width.
-  final ValueNotifier<bool> newsBesideLog = ValueNotifier(false);
 
   void select(AppSection value) => section.value = value;
 
-  /// Whether News is on screen right now: Activity is open and shows News,
-  /// as its chosen segment or as the banner over the panes.
-  bool get viewingNews =>
-      section.value == AppSection.activity && (newsBesideLog.value || activityTab.value == ActivityTab.news);
+  /// Whether News is on screen right now: Activity opens on its banner.
+  bool get viewingNews => section.value == AppSection.activity;
 
   /// Posts on screen are posts read: the dot goes the moment News shows.
   void _markNewsReadIfViewed() {
@@ -102,12 +87,8 @@ class ShellController {
 
   void dispose() {
     section.removeListener(_markNewsReadIfViewed);
-    activityTab.removeListener(_markNewsReadIfViewed);
-    newsBesideLog.removeListener(_markNewsReadIfViewed);
     news.hasUnread.removeListener(_markNewsReadIfViewed);
     section.dispose();
-    activityTab.dispose();
-    newsBesideLog.dispose();
     activity.dispose();
     news.dispose();
   }
@@ -131,21 +112,7 @@ enum _NavLayout { bottom, side }
 
 enum _NavDot { error, news }
 
-/// A segment that never changes, for a top bar shown without the shell.
-class _FixedTab implements ValueListenable<ActivityTab> {
-  const _FixedTab(this.value);
-
-  @override
-  final ActivityTab value;
-
-  @override
-  void addListener(VoidCallback listener) {}
-
-  @override
-  void removeListener(VoidCallback listener) {}
-}
-
-/// The small status dot on a navigation item or segment: a filled circle with
+/// The small status dot on a navigation item: a filled circle with
 /// a ring in the background colour, so it reads over the icon's edge.
 class NavDot extends StatelessWidget {
   const NavDot({super.key, required this.color});
@@ -457,8 +424,6 @@ class ShellTopBar extends StatelessWidget {
     required this.section,
     required this.compact,
     this.showPlanAndHelp = false,
-    this.activity,
-    this.activityTab,
     this.shell,
     this.scrolled,
   });
@@ -467,17 +432,11 @@ class ShellTopBar extends StatelessWidget {
   /// separates the two. Flush with the page at the top.
   final ValueListenable<bool>? scrolled;
 
-  /// Activity's segment: Clear belongs to the log, not to News.
-  final ValueListenable<ActivityTab>? activityTab;
-
   /// The shell, for the expanded window's device chips (a tap opens
   /// Devices). The chips show only when it is given.
   final ShellController? shell;
 
   final AppSection section;
-
-  /// The session's log, for Activity's Clear.
-  final ActivityLogController? activity;
 
   /// The phone's large title, with the update strip under the bar instead of
   /// a button in it — below 840.
@@ -522,24 +481,12 @@ class ShellTopBar extends StatelessWidget {
       trailingGap: 4,
       trailing: [
         if (shell != null) ShellDeviceChips(shell: shell!),
-        if (section == AppSection.activity && activity != null)
-          ValueListenableBuilder<ActivityTab>(
-            valueListenable: activityTab ?? const _FixedTab(ActivityTab.log),
-            builder: (context, tab, _) =>
-                tab == ActivityTab.log ? ActivityClearButton(controller: activity!) : const SizedBox.shrink(),
-          ),
         if (!compact) const AppUpdateButton(),
         if (showPlanAndHelp) const PlanBadge(),
         if (showPlanAndHelp) const HelpButton(),
-        // The bar's one ⋮: the section's own entries (Rides: "Alle löschen")
-        // and, in debug builds, the developer tools.
-        if (section == AppSection.activity && activity != null)
-          ValueListenableBuilder<ActivityTab>(
-            valueListenable: activityTab ?? const _FixedTab(ActivityTab.log),
-            builder: (context, tab, _) => tab == ActivityTab.rides ? const RidesMenuButton() : const DebugMenuButton(),
-          )
-        else
-          const DebugMenuButton(),
+        // The bar's ⋮: in debug builds, the developer tools. Activity's own
+        // actions sit on its sections' titles (Clear, the rides' ⋮).
+        const DebugMenuButton(),
       ],
     );
     final scrolled = this.scrolled;

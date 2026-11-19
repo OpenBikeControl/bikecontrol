@@ -222,8 +222,6 @@ class _NavigationState extends State<Navigation> {
                   section: section,
                   compact: true,
                   showPlanAndHelp: section == AppSection.ride,
-                  activity: _shell.activity,
-                  activityTab: _shell.activityTab,
                   scrolled: _contentScrolled,
                 ),
               ],
