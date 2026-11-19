@@ -309,8 +309,8 @@ class _NewsMessage extends StatelessWidget {
 
 /// From 840, News's place on Activity: the newest posts as one wide banner
 /// on the brand band above the log and the rides — the title, the excerpt,
-/// "Read post" and "All news", the date (with "New" while recent) and the
-/// cover beside it. Dots step through the three newest posts. Nothing shows
+/// the date (with "New" while recent), "Read post" and "All news", and the
+/// cover beside it on a wide window. Dots step through the three newest posts. Nothing shows
 /// while there is nothing to show (no posts, or a failed load).
 class NewsBanner extends StatefulWidget {
   const NewsBanner({super.key, required this.controller});
@@ -324,8 +324,9 @@ class NewsBanner extends StatefulWidget {
   /// long title (German wraps wide) grows it instead of overflowing.
   static const double minHeight = 208;
 
-  /// From this width the cover sits beside the text.
-  static const double coverBreakpoint = 720;
+  /// From this width the cover sits beside the text, which then still has
+  /// ~600 px: below it the cover would squeeze the title and the actions.
+  static const double coverBreakpoint = 980;
 
   /// The cover's width beside the text, at the blog's 1200 × 630.
   static const double coverWidth = 300;
@@ -430,9 +431,21 @@ class _NewsBannerState extends State<NewsBanner> {
                       ),
                     ),
                   ],
-                  const Gap(20),
+                  const Gap(10),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     spacing: 8,
+                    children: [
+                      if (isNew) _NewBadge(label: l10n.newsNewBadge),
+                      Text(date, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  const Gap(18),
+                  // Wraps rather than overflows: German labels are long.
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Button.primary(
                         key: const ValueKey('news-banner-read'),
@@ -448,19 +461,22 @@ class _NewsBannerState extends State<NewsBanner> {
                           children: [Text(l10n.newsAllPosts), const Icon(LucideIcons.externalLink, size: 14)],
                         ),
                       ),
-                      const Spacer(),
-                      if (isNew) _NewBadge(label: l10n.newsNewBadge),
-                      Text(date, style: context.typography.small.copyWith(fontWeight: FontWeight.w500)),
-                      if (posts.length > 1) ...[
-                        const Gap(4),
-                        for (final (i, p) in posts.indexed)
-                          _PagerDot(
-                            key: ValueKey('news-banner-dot-$i'),
-                            selected: i == index,
-                            label: p.titleForLanguage(languageCode),
-                            onPressed: () => setState(() => _index = i),
+                      if (posts.length > 1)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (final (i, p) in posts.indexed)
+                                _PagerDot(
+                                  key: ValueKey('news-banner-dot-$i'),
+                                  selected: i == index,
+                                  label: p.titleForLanguage(languageCode),
+                                  onPressed: () => setState(() => _index = i),
+                                ),
+                            ],
                           ),
-                      ],
+                        ),
                     ],
                   ),
                 ],
