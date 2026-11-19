@@ -1270,14 +1270,9 @@
   "onboardingUpdateRestart": "Uruchom ponownie",
   "appUpdatePatchReady": "Aktualizacja gotowa do instalacji.",
   "onboardingUpdateOpenStore": "Aktualizuj",
-  "onboardingWelcomeTitle": "Skonfigurujmy wszystko",
-  "onboardingWelcomeSubtitle": "Kilka minut teraz i Twój kontroler będzie zmieniał biegi w aplikacji treningowej podczas każdej jazdy.",
-  "onboardingWelcomePointController": "Sparuj kontroler i zobacz, jak podświetlają się jego przyciski",
-  "onboardingWelcomePointTrainer": "Opcjonalnie podłącz trenażer do wirtualnej zmiany biegów",
-  "onboardingWelcomePointApp": "Połącz się z aplikacją treningową, krok po kroku",
-  "onboardingWelcomeStart": "Zaczynamy",
-  "onboardingWelcomeLater": "Zrobię to później",
-  "onboardingWelcomeFootnote": "Możesz wrócić tu w każdej chwili przez Menu → Przewodnik konfiguracji.",
+  "onboardingWelcomeTitle": "Zaczynamy",
+  "onboardingWelcomeStart": "Rozpocznij konfigurację",
+  "onboardingWelcomeLater": "Później",
   "onboardingStepOf": "Krok {current} z {total}",
   "@onboardingStepOf": {
     "placeholders": {
@@ -3135,5 +3130,6 @@
   "onboardingSlotControls": "Sterowanie",
   "onboardingOverlayTitle": "{app} nie pokaże Twojego biegu",
   "onboardingOverlayRow": "Overlay biegów",
-  "onboardingOverlayOn": "Włączony"
+  "onboardingOverlayOn": "Włączony",
+  "onboardingWelcomeHaveReady": "Około 2 minut. Przygotuj:"
 }

@@ -1270,14 +1270,9 @@
   "onboardingUpdateRestart": "Riavvia",
   "appUpdatePatchReady": "Aggiornamento scaricato: riavvia per installarlo.",
   "onboardingUpdateOpenStore": "Aggiorna",
-  "onboardingWelcomeTitle": "Configuriamo tutto insieme",
-  "onboardingWelcomeSubtitle": "Un paio di minuti adesso e il tuo controller cambierà le marce nella tua app di allenamento a ogni uscita.",
-  "onboardingWelcomePointController": "Associa il controller e guarda i suoi pulsanti accendersi",
-  "onboardingWelcomePointTrainer": "Se vuoi, collega il tuo smart trainer per il cambio virtuale",
-  "onboardingWelcomePointApp": "Collegati alla tua app di allenamento, passo dopo passo",
-  "onboardingWelcomeStart": "Iniziamo",
-  "onboardingWelcomeLater": "Lo farò più tardi",
-  "onboardingWelcomeFootnote": "Puoi riaprire tutto quando vuoi da Menu → Guida alla configurazione.",
+  "onboardingWelcomeTitle": "Si parte",
+  "onboardingWelcomeStart": "Inizia la configurazione",
+  "onboardingWelcomeLater": "Più tardi",
   "onboardingStepOf": "Passo {current} di {total}",
   "@onboardingStepOf": {
     "placeholders": {
@@ -3135,5 +3130,6 @@
   "onboardingSlotControls": "Comandi",
   "onboardingOverlayTitle": "{app} non mostrerà la tua marcia",
   "onboardingOverlayRow": "Overlay delle marce",
-  "onboardingOverlayOn": "Attivo"
+  "onboardingOverlayOn": "Attivo",
+  "onboardingWelcomeHaveReady": "Circa 2 minuti. Tieni a portata di mano:"
 }

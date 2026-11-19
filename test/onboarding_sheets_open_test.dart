@@ -6,6 +6,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/widgets/guided_operation_sheet.dart' show StageBadge;
+import 'package:bike_control/pages/onboarding/steps/step_welcome.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -48,7 +49,7 @@ Future<void> main() async {
     await tester.pump(const Duration(milliseconds: 400));
 
     // Mobile opens on the welcome screen — enter the wizard first.
-    await tester.tap(find.byType(PrimaryButton).last);
+    await tester.tap(find.byKey(onboardingWelcomeStartKey));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 

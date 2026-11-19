@@ -13,6 +13,7 @@ import 'package:bike_control/pages/onboarding/steps/step_connection.dart';
 import 'package:bike_control/pages/onboarding/steps/step_controller.dart';
 import 'package:bike_control/pages/onboarding/steps/step_done.dart';
 import 'package:bike_control/pages/onboarding/steps/step_trainer.dart';
+import 'package:bike_control/pages/onboarding/steps/step_welcome.dart';
 import 'package:bike_control/pages/onboarding/steps/step_gear.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/vs_stage.dart';
@@ -60,6 +61,12 @@ Future<void> main() async {
           child: body,
         ),
       );
+
+  testWidgets('welcome', (tester) async {
+    await captureWidget(tester, name: 'onboarding_welcome', width: 390, height: 800, locales: const ['de', 'en'],
+        padding: EdgeInsets.zero,
+        builder: (c) => SizedBox(height: 800, child: OnboardingWelcome(onStart: () {}, onLater: () {})));
+  });
 
   testWidgets('help sheet', (tester) async {
     await captureWidget(tester, name: 'onboarding_help_sheet', width: 380,

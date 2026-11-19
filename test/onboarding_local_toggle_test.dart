@@ -8,6 +8,7 @@ import 'package:bike_control/pages/onboarding/steps/step_app.dart' show Onboardi
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:flutter/services.dart';
+import 'package:bike_control/pages/onboarding/steps/step_welcome.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -62,7 +63,7 @@ Future<void> main() async {
     }
 
     // Mobile now opens on the welcome screen — enter the wizard first.
-    await tester.tap(find.byType(PrimaryButton).last);
+    await tester.tap(find.byKey(onboardingWelcomeStartKey));
     await settle();
 
     // Step 1: pick the first app and "on this device", continue.

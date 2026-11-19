@@ -1270,14 +1270,9 @@
   "onboardingUpdateRestart": "Redémarrer",
   "appUpdatePatchReady": "Mise à jour téléchargée — redémarre pour l'installer.",
   "onboardingUpdateOpenStore": "Mettre à jour",
-  "onboardingWelcomeTitle": "On installe tout ça",
-  "onboardingWelcomeSubtitle": "Quelques minutes maintenant, et ta commande changera les vitesses dans ton app d'entraînement à chaque sortie.",
-  "onboardingWelcomePointController": "Associe ta commande et vois ses boutons s'allumer",
-  "onboardingWelcomePointTrainer": "Relie éventuellement ton home-trainer pour le passage de vitesses virtuel",
-  "onboardingWelcomePointApp": "Connecte-toi à ton app d'entraînement, étape par étape",
-  "onboardingWelcomeStart": "C'est parti",
-  "onboardingWelcomeLater": "Je le ferai plus tard",
-  "onboardingWelcomeFootnote": "Tu peux rouvrir ceci à tout moment via Menu → Guide de configuration.",
+  "onboardingWelcomeTitle": "C'est parti",
+  "onboardingWelcomeStart": "Commencer la configuration",
+  "onboardingWelcomeLater": "Plus tard",
   "onboardingStepOf": "Étape {current} sur {total}",
   "@onboardingStepOf": {
     "placeholders": {
@@ -3135,5 +3130,6 @@
   "onboardingSlotControls": "Commandes",
   "onboardingOverlayTitle": "{app} n'affichera pas ta vitesse",
   "onboardingOverlayRow": "Overlay des vitesses",
-  "onboardingOverlayOn": "Activé"
+  "onboardingOverlayOn": "Activé",
+  "onboardingWelcomeHaveReady": "Environ 2 minutes. Prépare ceci :"
 }

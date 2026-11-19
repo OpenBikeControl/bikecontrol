@@ -642,14 +642,9 @@
   "onboardingUpdateStoreBody": "请先更新，以便设置在最新版本上运行。",
   "onboardingUpdateRestart": "重新启动",
   "onboardingUpdateOpenStore": "更新",
-  "onboardingWelcomeTitle": "来完成设置",
-  "onboardingWelcomeSubtitle": "现在花几分钟，之后每次骑行，你的控制器都能在骑行软件中换挡。",
-  "onboardingWelcomePointController": "配对控制器，看按键亮起",
-  "onboardingWelcomePointTrainer": "可选：让智能骑行台通过 BikeControl 进行虚拟换挡",
-  "onboardingWelcomePointApp": "逐步连接到你的骑行软件",
-  "onboardingWelcomeStart": "开始吧",
-  "onboardingWelcomeLater": "我稍后再设置",
-  "onboardingWelcomeFootnote": "你可以随时通过菜单 → 设置指南重新打开。",
+  "onboardingWelcomeTitle": "开始吧",
+  "onboardingWelcomeStart": "开始设置",
+  "onboardingWelcomeLater": "稍后",
   "onboardingStepOf": "第 {current} 步，共 {total} 步",
   "@onboardingStepOf": {
     "placeholders": {
@@ -4317,5 +4312,6 @@
   "onboardingSlotControls": "控制器",
   "onboardingOverlayTitle": "{app} 不会显示你的挡位",
   "onboardingOverlayRow": "挡位悬浮窗",
-  "onboardingOverlayOn": "已开启"
+  "onboardingOverlayOn": "已开启",
+  "onboardingWelcomeHaveReady": "大约 2 分钟。请准备好："
 }

@@ -3,16 +3,18 @@ import 'package:bike_control/pages/onboarding/onboarding_page.dart' show kOnboar
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_update_banner.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
+import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The welcome screen: the headline's words arrive one after the other, then
-/// the subtitle, the reassurance rows and the actions.
+/// The welcome screen: who this is, how long it takes, and what to have at
+/// hand — the controller, the smart trainer and the trainer app, as three
+/// pictures rather than three sentences — then start, or later.
 ///
 /// Shown on every platform. It is capped to the same measure as the wizard's
-/// own body so a wide desktop window doesn't stretch a column of short lines
-/// across the screen, and so stepping from here into the rail keeps the text
-/// at one width instead of snapping narrower.
+/// own body so a wide desktop window doesn't stretch it across the screen, and
+/// so stepping from here into the rail keeps the content at one width instead
+/// of snapping narrower.
 ///
 /// [onStart] enters the wizard; [onLater] leaves it — and marks onboarding
 /// done, so riders who decline aren't asked again on every launch.
@@ -24,26 +26,22 @@ class OnboardingWelcome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = onboardingAccent(context);
-    final words = context.i18n.onboardingWelcomeTitle.split(' ');
+    final l = context.i18n;
 
-    Widget point(IconData icon, String text, int index) => OnboardingReveal(
-      delay: Duration(milliseconds: 900 + index * 110),
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
+    Widget need(IconData icon, String label, int index) => Expanded(
+      child: OnboardingReveal(
+        delay: Duration(milliseconds: 420 + index * 110),
+        child: Column(
           children: [
             Container(
-              width: 30,
-              height: 30,
+              width: 52,
+              height: 52,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: accent.withValues(alpha: 0.12),
-              ),
-              child: Icon(icon, size: 15, color: accent),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: 0.12)),
+              child: Icon(icon, size: 22, color: accent),
             ),
-            Gap(12),
-            Expanded(child: Text(text).small),
+            const Gap(8),
+            Text(label, textAlign: TextAlign.center).small.semiBold,
           ],
         ),
       ),
@@ -60,68 +58,56 @@ class OnboardingWelcome extends StatelessWidget {
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: Padding(
+                  key: onboardingWelcomeContentKey,
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const Spacer(flex: 2),
                       const OnboardingUpdateBanner(),
                       OnboardingReveal(
                         delay: Duration.zero,
-                        child: Image.asset('icon.png', width: 64, height: 64),
+                        child: Center(child: Image.asset('icon.png', width: 72, height: 72)),
                       ),
-                      Gap(22),
-                      // Word-by-word reveal — the headline writes itself in.
-                      Wrap(
-                        spacing: 9,
-                        runSpacing: 2,
+                      const Gap(22),
+                      OnboardingReveal(
+                        delay: const Duration(milliseconds: 150),
+                        child: Text(l.onboardingWelcomeTitle, textAlign: TextAlign.center).x3Large.semiBold,
+                      ),
+                      const Gap(8),
+                      OnboardingReveal(
+                        delay: const Duration(milliseconds: 280),
+                        child: Text(l.onboardingWelcomeHaveReady, textAlign: TextAlign.center).small.muted,
+                      ),
+                      const Gap(28),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          for (var i = 0; i < words.length; i++)
-                            OnboardingReveal(
-                              delay: Duration(milliseconds: 180 + i * 90),
-                              child: Text(words[i]).x3Large.semiBold,
-                            ),
+                          need(LucideIcons.gamepad2, l.onboardingStepController, 0),
+                          need(LucideIcons.bike, l.smartTrainer, 1),
+                          need(LucideIcons.monitor, l.onboardingStepApp, 2),
                         ],
                       ),
-                      Gap(12),
-                      OnboardingReveal(
-                        delay: Duration(milliseconds: 180 + words.length * 90),
-                        child: Text(context.i18n.onboardingWelcomeSubtitle).small.muted,
-                      ),
-                      Gap(26),
-                      point(LucideIcons.gamepad2, context.i18n.onboardingWelcomePointController, 0),
-                      point(LucideIcons.bike, context.i18n.onboardingWelcomePointTrainer, 1),
-                      point(LucideIcons.wifi, context.i18n.onboardingWelcomePointApp, 2),
                       const Spacer(flex: 3),
                       OnboardingReveal(
-                        delay: const Duration(milliseconds: 1300),
+                        delay: const Duration(milliseconds: 800),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            BkTouchTarget(
-                              child: PrimaryButton(
-                                alignment: Alignment.center,
-                                onPressed: onStart,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(context.i18n.onboardingWelcomeStart),
-                                    Gap(8),
-                                    Icon(LucideIcons.arrowRight, size: 16),
-                                  ],
-                                ),
-                              ),
+                            BkPillButton(
+                              key: onboardingWelcomeStartKey,
+                              onPressed: onStart,
+                              child: Text(l.onboardingWelcomeStart),
                             ),
-                            Gap(8),
+                            const Gap(6),
                             BkTouchTarget(
                               child: GhostButton(
+                                key: onboardingWelcomeLaterKey,
                                 alignment: Alignment.center,
                                 onPressed: onLater,
-                                child: Center(child: Text(context.i18n.onboardingWelcomeLater)),
+                                child: Center(child: Text(l.onboardingWelcomeLater).muted),
                               ),
                             ),
-                            Gap(6),
-                            Center(child: Text(context.i18n.onboardingWelcomeFootnote).xSmall.muted),
                           ],
                         ),
                       ),
@@ -136,3 +122,8 @@ class OnboardingWelcome extends StatelessWidget {
     );
   }
 }
+
+/// The welcome screen's start button, its "later", and its content column.
+const Key onboardingWelcomeStartKey = ValueKey('onboarding-welcome-start');
+const Key onboardingWelcomeLaterKey = ValueKey('onboarding-welcome-later');
+const Key onboardingWelcomeContentKey = ValueKey('onboarding-welcome-content');

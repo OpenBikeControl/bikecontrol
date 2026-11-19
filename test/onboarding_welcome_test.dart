@@ -49,7 +49,7 @@ Future<void> main() async {
     expect(find.byType(OnboardingWelcome), findsOneWidget);
     expect(find.byType(OnboardingAppTile), findsNothing, reason: 'step 1 comes after the welcome screen');
 
-    await tester.tap(find.byType(PrimaryButton).last);
+    await tester.tap(find.byKey(onboardingWelcomeStartKey));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(OnboardingWelcome), findsNothing);
@@ -63,7 +63,7 @@ Future<void> main() async {
     expect(find.byType(OnboardingWelcome), findsOneWidget);
     expect(find.byType(OnboardingAppTile), findsNothing, reason: 'step 1 comes after the welcome screen');
 
-    await tester.tap(find.byType(PrimaryButton).last);
+    await tester.tap(find.byKey(onboardingWelcomeStartKey));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(OnboardingWelcome), findsNothing);
@@ -78,7 +78,7 @@ Future<void> main() async {
     // here into the rail doesn't snap the text narrower.
     final width = tester.getSize(find.byType(OnboardingWelcome)).width;
     expect(width, 1400);
-    final column = tester.getSize(find.byType(Wrap).first).width;
+    final column = tester.getSize(find.byKey(onboardingWelcomeContentKey)).width;
     expect(column, lessThanOrEqualTo(kOnboardingBodyMaxWidth));
   });
 
@@ -92,7 +92,7 @@ Future<void> main() async {
     await pumpWizard(tester, const Size(375, 812));
 
     expect(tester.takeException(), isNull, reason: 'the welcome page must not overflow');
-    final start = find.byType(PrimaryButton).last;
+    final start = find.byKey(onboardingWelcomeStartKey);
     await tester.ensureVisible(start);
     await tester.pump(const Duration(milliseconds: 500));
     expect(tester.getRect(start).bottom, lessThanOrEqualTo(812));

@@ -1270,14 +1270,9 @@
   "onboardingUpdateRestart": "Reiniciar",
   "appUpdatePatchReady": "Actualización descargada: reinicia para instalarla.",
   "onboardingUpdateOpenStore": "Actualizar",
-  "onboardingWelcomeTitle": "Vamos a configurarlo",
-  "onboardingWelcomeSubtitle": "Un par de minutos ahora y tu mando cambiará de marchas en tu app de entrenamiento en cada salida.",
-  "onboardingWelcomePointController": "Empareja tu mando y ve cómo se iluminan sus botones",
-  "onboardingWelcomePointTrainer": "Opcionalmente, conecta tu rodillo inteligente para el cambio virtual",
-  "onboardingWelcomePointApp": "Conecta con tu app de entrenamiento, paso a paso",
-  "onboardingWelcomeStart": "Vamos allá",
-  "onboardingWelcomeLater": "Lo configuraré más tarde",
-  "onboardingWelcomeFootnote": "Puedes volver a abrirlo cuando quieras en Menú → Guía de configuración.",
+  "onboardingWelcomeTitle": "¡Vamos!",
+  "onboardingWelcomeStart": "Empezar la configuración",
+  "onboardingWelcomeLater": "Más tarde",
   "onboardingStepOf": "Paso {current} de {total}",
   "@onboardingStepOf": {
     "placeholders": {
@@ -3135,5 +3130,6 @@
   "onboardingSlotControls": "Controles",
   "onboardingOverlayTitle": "{app} no mostrará tu marcha",
   "onboardingOverlayRow": "Overlay de marchas",
-  "onboardingOverlayOn": "Activado"
+  "onboardingOverlayOn": "Activado",
+  "onboardingWelcomeHaveReady": "Unos 2 minutos. Ten esto a mano:"
 }

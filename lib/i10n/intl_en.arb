@@ -642,14 +642,9 @@
   "onboardingUpdateRestart": "Restart",
   "appUpdatePatchReady": "Update downloaded — restart to install it.",
   "onboardingUpdateOpenStore": "Update",
-  "onboardingWelcomeTitle": "Let's get you set up",
-  "onboardingWelcomeSubtitle": "A couple of minutes now, and your controller shifts gears in your trainer app for every ride after this.",
-  "onboardingWelcomePointController": "Pair your controller and see its buttons light up",
-  "onboardingWelcomePointTrainer": "Optionally run your smart trainer through BikeControl for virtual shifting",
-  "onboardingWelcomePointApp": "Connect to your trainer app, step by step",
-  "onboardingWelcomeStart": "Let's go",
-  "onboardingWelcomeLater": "I'll set this up later",
-  "onboardingWelcomeFootnote": "You can reopen this anytime via Menu → Setup guide.",
+  "onboardingWelcomeTitle": "Let's go",
+  "onboardingWelcomeStart": "Start setup",
+  "onboardingWelcomeLater": "Later",
   "onboardingStepOf": "Step {current} of {total}",
   "@onboardingStepOf": {
     "placeholders": {
@@ -3643,5 +3638,7 @@
   "onboardingOverlayOn": "On",
   "@onboardingOverlayTitle": {"description": "Onboarding step 3: heading of the card offering the gear overlay; the trainer app keeps drawing its own gear number.", "placeholders": {"app": {"type": "String"}}},
   "@onboardingOverlayRow": {"description": "Onboarding step 3 checklist row for the gear overlay, once it is on."},
-  "@onboardingOverlayOn": {"description": "Status of the gear overlay row in the onboarding checklist: the overlay is shown."}
+  "@onboardingOverlayOn": {"description": "Status of the gear overlay row in the onboarding checklist: the overlay is shown."},
+  "onboardingWelcomeHaveReady": "About 2 minutes. Have these ready:",
+  "@onboardingWelcomeHaveReady": {"description": "Welcome screen line under the title, above three pictures: controller, smart trainer, trainer app."}
 }

@@ -1281,14 +1281,9 @@
   "onboardingUpdateRestart": "Neu starten",
   "appUpdatePatchReady": "Update heruntergeladen — starte neu, um es zu installieren.",
   "onboardingUpdateOpenStore": "Aktualisieren",
-  "onboardingWelcomeTitle": "Los geht's mit der Einrichtung",
-  "onboardingWelcomeSubtitle": "Ein paar Minuten jetzt — und dein Controller schaltet ab sofort bei jeder Fahrt die Gänge in deiner Trainer-App.",
-  "onboardingWelcomePointController": "Controller verbinden und seine Tasten aufleuchten sehen",
-  "onboardingWelcomePointTrainer": "Optional deinen Smart Trainer für Virtual Shifting einbinden",
-  "onboardingWelcomePointApp": "Schritt für Schritt mit deiner Trainer-App verbinden",
-  "onboardingWelcomeStart": "Los geht's",
-  "onboardingWelcomeLater": "Später einrichten",
-  "onboardingWelcomeFootnote": "Du kannst das jederzeit über Menü → Einrichtungsassistent erneut öffnen.",
+  "onboardingWelcomeTitle": "Los geht's",
+  "onboardingWelcomeStart": "Einrichtung starten",
+  "onboardingWelcomeLater": "Später",
   "onboardingStepOf": "Schritt {current} von {total}",
   "@onboardingStepOf": {
     "placeholders": {
@@ -3135,5 +3130,6 @@
   "onboardingSlotControls": "Steuerung",
   "onboardingOverlayTitle": "{app} zeigt nicht deinen Gang",
   "onboardingOverlayRow": "Gang-Overlay",
-  "onboardingOverlayOn": "An"
+  "onboardingOverlayOn": "An",
+  "onboardingWelcomeHaveReady": "Etwa 2 Minuten. Halte das hier bereit:"
 }
