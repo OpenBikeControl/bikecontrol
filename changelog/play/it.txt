@@ -3,6 +3,7 @@ Novità:
 • Configurazione in tre passaggi invece di sei
 • La configurazione collega il rullo tramite BikeControl per impostazione predefinita e mostra cosa fa il suo cambio virtuale
 • La configurazione propone l'Overlay delle marce se la tua app mostra le sue marce
+• Elite Rizer esce dalla beta
 
 Correzioni:
 • Zwift e Rouvy: niente falsi avvisi nel test di rete

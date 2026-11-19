@@ -282,9 +282,7 @@ abstract class BluetoothDevice extends BaseDevice {
           WahooKickrClimb(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('HEADWIND') => WahooKickrHeadwind(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
-        _ when scanResult.name!.toUpperCase().startsWith('RIZER') && IAPManager.instance.isBetaTester => EliteRizer(
-          scanResult,
-        ),
+        _ when scanResult.name!.toUpperCase().startsWith('RIZER') => EliteRizer(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE PRO') => WahooKickrBikePro(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE') => WahooKickrBikeShift(scanResult),
@@ -379,9 +377,7 @@ abstract class BluetoothDevice extends BaseDevice {
         _ when scanResult.name!.toUpperCase().startsWith('HEADWIND') => WahooKickrHeadwind(scanResult),
         _ when SquareConstants.matchesName(scanResult.name!) => EliteSquare(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('STERZO') => EliteSterzo(scanResult),
-        _ when scanResult.name!.toUpperCase().startsWith('RIZER') && IAPManager.instance.isBetaTester => EliteRizer(
-          scanResult,
-        ),
+        _ when scanResult.name!.toUpperCase().startsWith('RIZER') => EliteRizer(scanResult),
         _ when scanResult.name!.toUpperCase().contains('KICKR BIKE SHIFT') => WahooKickrBikeShift(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE PRO') => WahooKickrBikePro(scanResult),
         _ when scanResult.name!.toUpperCase().startsWith('KICKR BIKE') => WahooKickrBikeShift(scanResult),

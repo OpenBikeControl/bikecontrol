@@ -3,6 +3,7 @@
 - Una configuración más corta: tres pasos en lugar de seis. Elige tu app de entrenamiento y dónde se ejecuta, conecta tu mando y tu rodillo en una sola pantalla y luego vincula la app.
 - La configuración ahora conecta tu rodillo a través de BikeControl de forma predeterminada y muestra ahí mismo lo que hace el cambio virtual de BikeControl.
 - La configuración ofrece el Overlay de marchas donde lo necesitas: MyWhoosh, Zwift, Rouvy y TrainingPeaks Virtual siguen mostrando su propio número de marcha, así que el Overlay muestra encima la marcha real de BikeControl.
+- Elite Rizer deja la beta: todos pueden conectarlo, para la inclinación y la dirección.
 
 **Fixes**:
 - Elite Rizer: ya no aparece como mando, y la tarjeta de dirección ya no dice que se está calibrando mientras el Rizer no está conectado.

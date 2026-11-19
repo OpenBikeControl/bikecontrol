@@ -8,6 +8,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 void main() {
+  test('the Rizer is a released device, not a beta one', () {
+    final device = EliteRizer(BleDevice(name: 'RIZER', deviceId: 'test-rizer'));
+    expect(device.isBeta, isFalse);
+  });
+
   test('recalibrate clears the old center and learns a new one', () async {
     final device = EliteRizer(BleDevice(name: 'RIZER', deviceId: 'test-rizer'));
     expect(device, isA<RecalibratableSteering>());

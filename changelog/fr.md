@@ -3,6 +3,7 @@
 - Une configuration plus courte : trois étapes au lieu de six. Choisis ton appli d'entraînement et où elle tourne, connecte ta commande et ton home trainer sur un seul écran, puis relie l'appli.
 - La configuration connecte désormais ton home trainer via BikeControl par défaut, et montre sur place ce que font les vitesses virtuelles de BikeControl.
 - La configuration propose l'Overlay des vitesses là où tu en as besoin : MyWhoosh, Zwift, Rouvy et TrainingPeaks Virtual continuent d'afficher leur propre vitesse, l'Overlay affiche par-dessus ta vraie vitesse BikeControl.
+- L'Elite Rizer sort de la bêta : tout le monde peut le connecter, pour l'inclinaison et la direction.
 
 **Fixes**:
 - Elite Rizer : n'apparaît plus comme manette, et la carte de direction n'indique plus qu'elle se calibre tant que le Rizer n'est pas connecté.

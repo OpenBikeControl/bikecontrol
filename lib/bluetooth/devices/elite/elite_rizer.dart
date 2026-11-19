@@ -43,14 +43,14 @@ class RizerButtons {
   static List<ControllerButton> get values => [leftSteer, rightSteer];
 }
 
-/// Elite Rizer — a beta device that simulates incline (driven by the bridge's
+/// Elite Rizer — a device that simulates incline (driven by the bridge's
 /// grade, via [ManualInclineDevice]) and steering (angle float from the
 /// steering characteristic). It is a standalone BLE device, so it works
 /// with any trainer.
 class EliteRizer extends BluetoothDevice
     with Accessory, ManualInclineDevice
     implements SteeringDevice, RecalibratableSteering {
-  EliteRizer(super.scanResult) : super(availableButtons: RizerButtons.values, isBeta: true);
+  EliteRizer(super.scanResult) : super(availableButtons: RizerButtons.values);
 
   @visibleForTesting
   Future<void> Function(Uint8List bytes)? debugWriteSink;

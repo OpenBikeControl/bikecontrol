@@ -3,6 +3,7 @@
 - A shorter setup: three steps instead of six. Pick your trainer app and where it runs, connect your controller and smart trainer on one screen, then link the app.
 - Setup now connects your smart trainer through BikeControl by default, and shows right there what BikeControl's virtual shifting does.
 - Setup now offers the gear overlay where you need it: MyWhoosh, Zwift, Rouvy and TrainingPeaks Virtual keep showing their own gear number, so the overlay shows BikeControl's real gear on top.
+- Elite Rizer is out of beta: everyone can connect it, for incline and steering.
 
 **Fixes**:
 - Elite Rizer: no longer listed as a controller, and its steering card no longer says it is calibrating while the Rizer isn't connected.
