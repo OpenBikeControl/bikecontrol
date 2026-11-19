@@ -93,6 +93,25 @@ void main() {
       final check = methodListeningCheck(ctx(snapshot: _diag(servers: const [])));
       expect(check.verdict, NetworkVerdict.fail);
       expect(check.fixes, [NetworkFixId.restartMethod]);
+      expect(check.detail, {'want': 'OpenBikeControl', 'servers': 'none'});
+    });
+
+    // A support bundle listed the server as listening while this check had
+    // failed: the failure now says what it looked for and what it saw.
+    test('fail: names the servers it saw instead', () {
+      final check = methodListeningCheck(
+        ctx(
+          methodServerLabel: 'DirCon',
+          snapshot: _diag(
+            servers: const [
+              TcpServerInfo(label: 'Click', port: 36860, listening: true, hasClient: false),
+              TcpServerInfo(label: 'DirCon', port: null, listening: false, hasClient: false),
+            ],
+          ),
+        ),
+      );
+      expect(check.verdict, NetworkVerdict.fail);
+      expect(check.detail, {'want': 'DirCon', 'servers': 'Click:36860+DirCon:-'});
     });
 
     test('warn: listening on a non-standard port offers the restart fix', () {
