@@ -24,7 +24,7 @@ class _ComboStubActions extends StubActions {
   bool get frontShiftComboEnabled => comboEnabled;
 
   @override
-  Future<ActionResult> performInGameAction(InGameAction action) async {
+  Future<ActionResult> performInGameAction(InGameAction action, {String source = 'frontShiftCombo'}) async {
     inGameActionsPerformed.add(action);
     return Success('stub', button: null);
   }

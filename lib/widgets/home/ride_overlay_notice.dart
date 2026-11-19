@@ -200,6 +200,10 @@ class RideSettingsLine extends StatelessWidget {
     required this.text,
     required this.linkLabel,
     required this.onPressed,
+    this.trailingIcon,
+    this.trailingLabel,
+    this.onTrailing,
+    this.trailingKey,
   });
 
   final IconData icon;
@@ -207,13 +211,21 @@ class RideSettingsLine extends StatelessWidget {
   final String linkLabel;
   final VoidCallback onPressed;
 
+  /// A button of its own at the end of the line, after a hairline: a 48
+  /// target beside the line rather than a line of its own, so the card
+  /// keeps its height. Shown when [onTrailing] is set.
+  final IconData? trailingIcon;
+  final String? trailingLabel;
+  final VoidCallback? onTrailing;
+  final Key? trailingKey;
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final accent = bkAccentText(context);
     final textStyle = context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500);
     final linkStyle = context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600);
-    return BkTappable(
+    final line = BkTappable(
       onPressed: onPressed,
       label: '$text, $linkLabel',
       excludeChildSemantics: true,
@@ -267,6 +279,26 @@ class RideSettingsLine extends StatelessWidget {
           },
         ),
       ),
+    );
+    final onTrailing = this.onTrailing;
+    if (onTrailing == null) return line;
+    return Row(
+      children: [
+        Expanded(child: line),
+        const Gap(4),
+        Container(width: 1, height: 24, color: cs.border),
+        const Gap(4),
+        BkTappable(
+          key: trailingKey,
+          onPressed: onTrailing,
+          label: trailingLabel,
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox.square(
+            dimension: BkTouchTarget.minSize,
+            child: Icon(trailingIcon, size: 18, color: accent),
+          ),
+        ),
+      ],
     );
   }
 }

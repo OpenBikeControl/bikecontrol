@@ -1,7 +1,7 @@
 // The companion page is used mid-ride: shifting leads and is the biggest
 // target, steering follows it (it used to sit below "Other", off the first
 // screen), the remaining actions are an even grid, and an action's quick
-// values sit in its own row instead of floating under a tile.
+// values sit in its own tile, under its name.
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/utils/core.dart';
@@ -65,18 +65,20 @@ Future<void> main() async {
     expect(tuck.height, uturn.height, reason: 'the other actions are an even grid');
   });
 
-  testWidgets('quick values sit in their action\'s own row', (tester) async {
+  testWidgets('quick values sit in their action\'s own tile, under its name', (tester) async {
     connectMyWhoosh();
     await render(tester);
 
     final row = find.byKey(ValueKey('quick-values-${InGameAction.cameraAngle.name}'));
     expect(row, findsOneWidget);
+    final tile = tester.getRect(row);
     final title = tester.getRect(find.descendant(of: row, matching: find.text(InGameAction.cameraAngle.title)));
     final chips = find.descendant(of: row, matching: find.byType(Button));
     expect(chips, findsAtLeastNWidgets(2));
     for (final chip in chips.evaluate()) {
       final r = tester.getRect(find.byElementPredicate((e) => identical(e, chip)));
-      expect((r.center.dy - title.center.dy).abs(), lessThan(r.height / 2), reason: 'chips beside the title');
+      expect(r.top, greaterThanOrEqualTo(title.bottom), reason: 'chips under the title');
+      expect(tile.contains(r.center), isTrue, reason: 'chips inside their tile');
       expect(r.height, greaterThanOrEqualTo(44), reason: 'a sweaty thumb needs a 44 pt target');
     }
   });
@@ -128,9 +130,14 @@ Future<void> main() async {
       final l10n = AppLocalizations.current;
       final row = find.ancestor(of: find.text(l10n.setShortcut), matching: find.byType(BkGroupedRow)).first;
       expect(find.descendant(of: row, matching: find.text(l10n.clear)), findsNothing);
+      // The shortcuts sit under a screen of buttons.
+      await tester.ensureVisible(row);
+      await tester.pump();
       await tester.tap(find.descendant(of: row, matching: find.text(l10n.setShortcut)));
       await tester.pump();
       expect(find.text(l10n.pressAKey), findsOneWidget);
+      await tester.ensureVisible(find.text(l10n.clear));
+      await tester.pump();
       await tester.tap(find.text(l10n.clear));
       await tester.pump();
       expect(core.settings.getButtonSimulatorHotkeys().containsKey(InGameAction.shiftUp), isFalse);

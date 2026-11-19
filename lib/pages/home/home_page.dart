@@ -1355,6 +1355,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
             linkLabel: context.i18n.rideVsSettingsLink,
             onPressed: () => _openVsSettings(proxy),
+            // Big − and + on this screen, full screen: for riders who shift
+            // from the phone on the bars.
+            trailingKey: const ValueKey('ride-vs-full-screen'),
+            trailingIcon: LucideIcons.maximize2,
+            trailingLabel: context.i18n.companionRideLine,
+            onTrailing: () => context.push(const ButtonSimulator(startFullScreen: true)),
           ),
         ),
         ?overlay,

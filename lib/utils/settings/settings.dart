@@ -928,6 +928,22 @@ class Settings {
     await setButtonSimulatorHotkeys(hotkeys);
   }
 
+  /// The companion page's own layout for one orientation, as saved by
+  /// `CompanionLayout.toJsonString`; null while the rider hasn't changed it.
+  String? getCompanionLayout({required bool landscape}) =>
+      prefs.getString(landscape ? 'companion_layout_landscape' : 'companion_layout_portrait');
+
+  /// Saves [json] as the companion layout for one orientation; null goes back
+  /// to the generated one.
+  Future<void> setCompanionLayout(String? json, {required bool landscape}) async {
+    final key = landscape ? 'companion_layout_landscape' : 'companion_layout_portrait';
+    if (json == null) {
+      await prefs.remove(key);
+    } else {
+      await prefs.setString(key, json);
+    }
+  }
+
   /// WHEELTOP keepalive experiment (see WheeltopProbe): tries reply
   /// candidates to the TX pod's status frame, one per reconnect. On by
   /// default — TX shifters are unusable without it, and the pod drops too

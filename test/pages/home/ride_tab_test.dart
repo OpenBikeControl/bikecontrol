@@ -9,6 +9,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
+import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
@@ -305,6 +306,22 @@ Future<void> main() async {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget);
+    });
+
+    testWidgets('a button on the settings line opens the companion page full screen', (tester) async {
+      liveTrainer();
+      await pumpRide(tester);
+
+      final line = find.byKey(const ValueKey('ride-vs-full-screen'));
+      expect(find.descendant(of: find.byType(VirtualShiftingCard), matching: line), findsOneWidget);
+      expect(tester.getSize(line).height, greaterThanOrEqualTo(48));
+      await tester.ensureVisible(line);
+      await tester.pump();
+      await tester.tap(line);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      final page = tester.widget<ButtonSimulator>(find.byType(ButtonSimulator));
+      expect(page.startFullScreen, isTrue);
     });
 
     testWidgets('the trainer name opens the trainer page', (tester) async {
