@@ -427,7 +427,7 @@ void main() async {
       );
 
       expect(find.text(l.chainStepAppLocalNetworkPending), findsOneWidget);
-      expect(find.text(l.chainStepAppConnectedPending('MyWhoosh')), findsNothing);
+      expect(find.text(l.chainStepAppConnectedPending), findsNothing);
       await tester.tap(find.text(l.readyBannerMoreSteps(2)));
       await tester.pump();
       expect(revealed, 1);

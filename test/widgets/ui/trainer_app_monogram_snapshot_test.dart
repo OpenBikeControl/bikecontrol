@@ -40,7 +40,7 @@ Future<void> main() async {
                     title: 'Zwift',
                     subtitle: 'Netzwerk',
                     appName: 'Zwift',
-                    statusLabel: 'Warte auf die Verbindung von Zwift',
+                    statusLabel: 'Warte auf Verbindung',
                     onTap: () {},
                     onInstructions: () {},
                   ),

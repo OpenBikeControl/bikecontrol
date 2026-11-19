@@ -147,7 +147,7 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
         : step.variant == SetupStepVariant.controllerLinkMissing
         ? ChainStepText(l.chainStepAppControllerPending(app), l.chainStepAppControllerHint(app, _controllerTile()))
         : ChainStepText(
-            l.chainStepAppConnectedPending(app),
+            l.chainStepAppConnectedPending,
             _controllerTile() == 'BikeControl'
                 ? l.chainStepAppConnectedHint
                 : l.chainStepAppConnectedTileHint(app, _controllerTile()),

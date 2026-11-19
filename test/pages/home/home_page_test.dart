@@ -315,7 +315,7 @@ void _bannerStepTests() {
       expect(inBanner(find.text(l.chainStepControllerPairedPending)), findsOneWidget);
       // Neither asks for something the missing controller has to come first for.
       expect(inBanner(find.text(l.chainStepButtonsMappedPending)), findsNothing);
-      expect(inBanner(find.text(l.chainStepAppConnectedPending('MyWhoosh'))), findsNothing);
+      expect(inBanner(find.text(l.chainStepAppConnectedPending)), findsNothing);
       // The controller's fix reads as on Devices — to a screen reader; on
       // screen the row is the button, with a chevron rather than a label.
       final controllerStep = banner.steps.firstWhere((s) => s.step.id == SetupStepId.controllerPaired);
@@ -582,7 +582,7 @@ void _twoPairingsTests() {
         find.descendant(of: card, matching: find.textContaining('separate tile from the trainer')),
         findsOneWidget,
       );
-      expect(find.text(l.chainStepAppConnectedPending('MyWhoosh')), findsNothing);
+      expect(find.text(l.chainStepAppConnectedPending), findsNothing);
     });
 
     testWidgets('app card: while the bridge is not picked up yet, the ordinary wording stays', (tester) async {
@@ -592,7 +592,7 @@ void _twoPairingsTests() {
 
       final card = _chainCard(ChainLinkKey.app);
       expect(
-        find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending('MyWhoosh'))),
+        find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending)),
         findsOneWidget,
       );
       expect(find.textContaining('separate tile from the trainer'), findsNothing);

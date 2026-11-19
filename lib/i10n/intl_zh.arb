@@ -2119,14 +2119,7 @@
       }
     }
   },
-  "chainStepAppConnectedPending": "正在等待 {app} 连接",
-  "@chainStepAppConnectedPending": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
+  "chainStepAppConnectedPending": "正在等待连接",
   "chainStepAppConnectedHint": "打开该软件，并在其配对界面中选择 BikeControl。",
   "chainTrialTitle": "试用",
   "chainTrialExpiredTitle": "试用已到期",

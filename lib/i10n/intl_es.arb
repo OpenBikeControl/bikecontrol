@@ -1790,14 +1790,7 @@
       }
     }
   },
-  "chainStepAppConnectedPending": "Esperando a que {app} se conecte",
-  "@chainStepAppConnectedPending": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
+  "chainStepAppConnectedPending": "Esperando la conexión",
   "chainStepAppConnectedHint": "Abre la app y elige BikeControl en su pantalla de emparejamiento.",
   "chainStepTrainerBridged": "Detectado por {app}",
   "@chainStepTrainerBridged": {

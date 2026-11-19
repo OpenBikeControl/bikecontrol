@@ -2097,14 +2097,7 @@
       }
     }
   },
-  "chainStepAppConnectedPending": "Waiting for {app} to connect",
-  "@chainStepAppConnectedPending": {
-    "placeholders": {
-      "app": {
-        "type": "String"
-      }
-    }
-  },
+  "chainStepAppConnectedPending": "Waiting for connection",
   "chainStepAppConnectedHint": "Open the app and pick BikeControl in its pairing screen.",
   "chainTrialTitle": "Trial",
   "chainTrialExpiredTitle": "Trial expired",
