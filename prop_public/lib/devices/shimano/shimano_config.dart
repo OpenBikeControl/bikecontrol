@@ -67,8 +67,145 @@ class ShimanoConfig {
   static Future<ShimanoButtonSession> enterButtonMode(
     ShimanoTransport transport, {
     required void Function(ShimanoPaddleEvent event) onPaddle,
+    void Function(ShimanoWiredSwitchEvent event)? onWiredSwitch,
     void Function(Uint8List frame)? onUnknownFrame,
-    void Function(int step, Object error, StackTrace stackTrace)? onStepError,
+    required void Function(String step, Object error, StackTrace stack) onStepError,
   }) =>
       throw UnsupportedError('Shimano Di2 button mode is not available in this build');
+
+  /// The pause [writeSwitches] waits after the last press before writing.
+  static const switchWriteQuiet = Duration(milliseconds: 400);
+
+  /// Writes [switches] to its shifter and waits for the shifter to confirm.
+  static Future<void> writeSwitches(
+    ShimanoTransport transport,
+    ShimanoShifterSwitches switches, {
+    Duration quiet = switchWriteQuiet,
+    Duration timeout = const Duration(minutes: 2),
+    int rejectAfterPresses = 3,
+    Duration rejectGrace = const Duration(seconds: 3),
+    void Function(Uint8List command)? onWrite,
+  }) =>
+      throw UnsupportedError('Shimano Di2 switch setup is not available in this build');
+}
+
+/// Decodes the paddle presses a Di2 relays. The stub never finds any.
+class ShimanoButtons {
+  static List<ShimanoPaddleEvent> decode(Uint8List frame) => const [];
+}
+
+/// A press of a wired switch, reported by the Di2.
+class ShimanoWiredSwitchEvent {
+  const ShimanoWiredSwitchEvent(this.input, this.switchNo, this.state);
+
+  final int input;
+  final int switchNo;
+  final ShimanoPaddleState state;
+
+  /// The stub never decodes one.
+  static ShimanoWiredSwitchEvent? decode(Uint8List frame) => null;
+}
+
+/// What a switch on a wireless shifter does.
+enum ShimanoSwitchFunction {
+  fdUp,
+  fdDown,
+  rdUp,
+  rdUp2,
+  rdDown,
+  rdDown2,
+  cycleComputerLeft,
+  cycleComputerRight,
+  assistUp,
+  assistDown,
+  suspensionFirmer,
+  suspensionSofter,
+  dflyCh1,
+  dflyCh2,
+  dflyCh3,
+  dflyCh4,
+  none,
+  rdFunction,
+  lamp,
+  frontShiftNext,
+  shiftAdjust,
+  multiPurposeCh1;
+
+  static ShimanoSwitchFunction? fromName(String name) {
+    for (final f in values) {
+      if (f.name == name) return f;
+    }
+    return null;
+  }
+}
+
+/// The four switches of one wireless shifter, by its pairing [slot].
+class ShimanoShifterSwitches {
+  const ShimanoShifterSwitches({
+    required this.slot,
+    required this.a,
+    required this.b,
+    required this.c,
+    required this.s,
+  });
+
+  final int slot;
+  final ShimanoSwitchFunction a;
+  final ShimanoSwitchFunction b;
+  final ShimanoSwitchFunction c;
+  final ShimanoSwitchFunction s;
+
+  /// The stub never reads switches from a Di2.
+  static ShimanoShifterSwitches? fromTelemetry(Uint8List frame) => null;
+
+  (ShimanoSwitchFunction, ShimanoSwitchFunction) get dflyPaddles => slot == 0
+      ? (ShimanoSwitchFunction.dflyCh1, ShimanoSwitchFunction.dflyCh2)
+      : (ShimanoSwitchFunction.dflyCh3, ShimanoSwitchFunction.dflyCh4);
+
+  bool get paddlesOnDfly => (a, b) == dflyPaddles;
+
+  ShimanoShifterSwitches withDflyPaddles() {
+    final (pa, pb) = dflyPaddles;
+    return ShimanoShifterSwitches(slot: slot, a: pa, b: pb, c: c, s: s);
+  }
+
+  Map<String, dynamic> toJson() => {'slot': slot, 'a': a.name, 'b': b.name, 'c': c.name, 's': s.name};
+
+  static ShimanoShifterSwitches? fromJson(Map<String, dynamic> json) {
+    final [a, b, c, s] = [for (final k in ['a', 'b', 'c', 's']) ShimanoSwitchFunction.fromName('${json[k]}')];
+    final slot = json['slot'];
+    if (slot is! int || a == null || b == null || c == null || s == null) return null;
+    return ShimanoShifterSwitches(slot: slot, a: a, b: b, c: c, s: s);
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is ShimanoShifterSwitches &&
+      other.slot == slot &&
+      other.a == a &&
+      other.b == b &&
+      other.c == c &&
+      other.s == s;
+
+  @override
+  int get hashCode => Object.hash(slot, a, b, c, s);
+
+  @override
+  String toString() => 'ShimanoShifterSwitches($slot: ${a.name}, ${b.name}, ${c.name}, ${s.name})';
+}
+
+class ShimanoSwitchWriteException implements Exception {
+  ShimanoSwitchWriteException(this.message);
+  final String message;
+
+  @override
+  String toString() => 'ShimanoSwitchWriteException: $message';
+}
+
+class ShimanoSwitchWriteRejectedException implements Exception {
+  ShimanoSwitchWriteRejectedException(this.message);
+  final String message;
+
+  @override
+  String toString() => 'ShimanoSwitchWriteRejectedException: $message';
 }

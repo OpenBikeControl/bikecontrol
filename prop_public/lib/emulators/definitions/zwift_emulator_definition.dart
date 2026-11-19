@@ -6,8 +6,12 @@ import 'package:prop/utils/constants.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 class ZwiftEmulatorDefinition extends ProxyBikeDefinition {
+  /// Answers as a Zwift Ride instead of a Zwift Click while it returns true.
+  final bool Function()? asRide;
+
   ZwiftEmulatorDefinition({
     required super.device,
+    this.asRide,
   }) : super(
          data: ValueNotifier(''),
          services: [

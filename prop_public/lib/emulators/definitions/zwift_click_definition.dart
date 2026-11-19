@@ -10,7 +10,7 @@ import 'package:universal_ble/universal_ble.dart';
 
 class ZwiftClickDefinition extends ProxyBikeDefinition {
   final DateTime connectionDate;
-  final Uint8List? vendorMessage;
+  Uint8List? vendorMessage;
   final ValueNotifier<bool> isUnlocked;
   final ValueNotifier<bool> alreadyUnlocked;
   final ValueNotifier<bool> waiting;

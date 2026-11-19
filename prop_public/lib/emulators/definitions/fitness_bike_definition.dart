@@ -265,6 +265,27 @@ class FitnessBikeDefinition extends BleDefinition {
   final ValueNotifier<int> _simGradeN = ValueNotifier<int>(0);
   ValueListenable<int> get simGrade => _simGradeN;
 
+  final ValueNotifier<int> _appGradeN = ValueNotifier<int>(0);
+
+  /// The grade the trainer app sent, before BikeControl's own adjustments.
+  ValueListenable<int> get appGrade => _appGradeN;
+
+  /// Cadence below which a manual ERG lock counts as stopped, rpm.
+  static const int powerLockReleaseCadenceRpm = 25;
+
+  /// How long the cadence has to stay below [powerLockReleaseCadenceRpm].
+  static const Duration powerLockReleaseAfter = Duration(seconds: 3);
+
+  bool _powerLockAutoRelease = true;
+
+  /// Whether a manual ERG lock lets go when the rider stops pedalling.
+  bool get powerLockAutoRelease => _powerLockAutoRelease;
+
+  void setPowerLockAutoRelease(bool enabled) => _powerLockAutoRelease = enabled;
+
+  /// Called after a manual ERG lock was released for low cadence.
+  void Function()? onPowerLockReleased;
+
   bool get supportsClimbRelay => false;
 
   static const int minGear = 1;
@@ -357,4 +378,4 @@ enum TrainerMode { ergMode, simMode, simModeVirtualShifting }
 enum VirtualShiftingMode { targetPower, trackResistance, basicResistance }
 
 /// The wire a trainer's control commands are delivered over.
-enum TrainerControlProtocol { ftms, fec, zwiftHub }
+enum TrainerControlProtocol { ftms, fec, zwiftHub, wahooCps }

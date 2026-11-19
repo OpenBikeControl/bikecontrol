@@ -194,7 +194,44 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final link = widget.link;
     final pending = link.pendingSteps;
-    final content = Column(
+    final content = LayoutBuilder(
+      builder: (context, constraints) {
+        _fixInHeader = _fixFitsHeader(context, constraints.maxWidth);
+        return _content(context, link, pending);
+      },
+    );
+    return _highlighted(context, content);
+  }
+
+  /// Whether the step in front's fix sits at the end of the header (true) or
+  /// under its hint. Beside the name only while it takes at most half of what
+  /// is left of the row: a long label ("Enable local control") squeezed the
+  /// name to a few letters and wrapped the status into a tall empty column.
+  bool _fixInHeader = true;
+
+  bool _fixFitsHeader(BuildContext context, double width) {
+    if (widget.onInstructions == null || widget.link.pendingSteps.isEmpty) return true;
+    final label = widget.instructionsLabel ?? context.i18n.chainShowMeHow;
+    final painter = TextPainter(
+      // The app's font, as the button draws it — not the painter's default.
+      text: TextSpan(
+        text: label,
+        style: DefaultTextStyle.of(context).style.merge(context.typography.small.copyWith(fontWeight: FontWeight.w500)),
+      ),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    // Label plus icon, gap, padding and border: a small outlined button is
+    // its label and about 30 px (measured: "Zeig mir wie" 98 → 127).
+    final button = painter.width + 30;
+    painter.dispose();
+    final text = width - chainRowTextInset - BkGroupedSection.inset;
+    return button <= text / 2;
+  }
+
+  Widget _content(BuildContext context, ChainLink link, List<SetupStep> pending) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -234,8 +271,20 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
           ),
       ],
     );
-    return _highlighted(context, content);
   }
+
+  /// The step in front's fix as a quiet outlined button — at the end of the
+  /// header, or under the hint when it doesn't fit there.
+  Widget _fixButton(BuildContext context, VoidCallback onPressed) => BkTouchTarget(
+    child: Button.outline(
+      key: chainRowStepActionKey,
+      alignment: Alignment.center,
+      style: const ButtonStyle.outline(size: ButtonSize.small),
+      onPressed: onPressed,
+      leading: const Icon(LucideIcons.bookOpen, size: 13),
+      child: Text(widget.instructionsLabel ?? context.i18n.chainShowMeHow),
+    ),
+  );
 
   /// What the link still needs, indented to the row's text — see
   /// [_checklist] for when it moves. The step in front gives its hint (and
@@ -277,6 +326,12 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
             ),
           if (hint != null && hint.isNotEmpty)
             Text(hint, style: typography.small.copyWith(height: 1.4, color: cs.mutedForeground)),
+          if (!_fixInHeader && widget.onInstructions != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              // Its own width, not the column's.
+              child: Row(mainAxisSize: MainAxisSize.min, children: [_fixButton(context, widget.onInstructions!)]),
+            ),
           if (showSecondary)
             Padding(
               padding: const EdgeInsets.only(top: 6),
@@ -352,7 +407,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     // fix takes its place at the end — see [ChainLinkRow].
     final pending = widget.link.pendingSteps;
     final open = pending.isNotEmpty;
-    final fix = open ? widget.onInstructions : null;
+    final fix = open && _fixInHeader ? widget.onInstructions : null;
     final detailRow = DefaultTextStyle.merge(
       style: typography.xSmall.copyWith(color: cs.mutedForeground),
       textAlign: open ? TextAlign.start : TextAlign.end,
@@ -414,16 +469,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
             ),
             if (fix != null) ...[
               const Gap(8),
-              BkTouchTarget(
-                child: Button.outline(
-                  key: chainRowStepActionKey,
-                  alignment: Alignment.center,
-                  style: const ButtonStyle.outline(size: ButtonSize.small),
-                  onPressed: fix,
-                  leading: const Icon(LucideIcons.bookOpen, size: 13),
-                  child: Text(widget.instructionsLabel ?? context.i18n.chainShowMeHow),
-                ),
-              ),
+              _fixButton(context, fix),
             ] else if (!open && (widget.statusLabel != null || detail != null || badges.isNotEmpty)) ...[
               const Gap(8),
               ConstrainedBox(
