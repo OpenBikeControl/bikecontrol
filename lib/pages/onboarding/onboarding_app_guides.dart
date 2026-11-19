@@ -30,7 +30,6 @@ OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
       screenshotUrls: [
         '$_shots' 'mywhoosh_obc/4-mywhoosh-connection-screen.jpg',
         '$_shots' 'mywhoosh_obc/5-mywhoosh-openbikecontrol.jpg',
-        '$_shots' 'mywhoosh_obc/6-bikecontrol-connected.jpg',
       ],
       guideUrl: 'https://bikecontrol.app/blog/mywhoosh-bikecontrol-partnership/',
     );
@@ -62,9 +61,22 @@ OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
 /// exactly the same instructions — including the screenshots — that walked them
 /// through it the first time, instead of a thinner second-hand retelling.
 class OnboardingAppGuideCard extends StatelessWidget {
-  const OnboardingAppGuideCard({super.key, required this.app, this.bordered = true});
+  const OnboardingAppGuideCard({
+    super.key,
+    required this.app,
+    this.bordered = true,
+    this.trainerName,
+    this.bridgeName,
+  });
 
   final SupportedApp app;
+
+  /// A trainer BikeControl bridges: pairing it in the app is one more step of
+  /// the same guide, not a second card after it.
+  final String? trainerName;
+
+  /// What the bridge advertises (see [OnboardingPairAsTrainerCard.bridgeName]).
+  final String? bridgeName;
 
   /// The onboarding step draws its own border; a sheet doesn't need one.
   final bool bordered;
@@ -74,6 +86,11 @@ class OnboardingAppGuideCard extends StatelessWidget {
     final guide = onboardingGuideFor(context, app);
     final scheme = Theme.of(context).colorScheme;
     final guideUrl = guide.guideUrl;
+    final trainer = trainerName;
+    final steps = [
+      ...guide.steps,
+      if (trainer != null) context.i18n.onboardingGuidePairTrainer(bridgeName ?? '$trainer - BikeControl'),
+    ];
 
     return Container(
       width: double.infinity,
@@ -87,7 +104,7 @@ class OnboardingAppGuideCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var i = 0; i < guide.steps.length; i++)
+          for (var i = 0; i < steps.length; i++)
             Padding(
               padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
               child: Row(
@@ -105,7 +122,21 @@ class OnboardingAppGuideCard extends StatelessWidget {
                   ),
                   const Gap(11),
                   Expanded(
-                    child: Padding(padding: const EdgeInsets.only(top: 2), child: Text(guide.steps[i]).small),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(steps[i]).small,
+                          // The trainer step's catch: the bare trainer is in
+                          // the same list, and picking it loses the gears.
+                          if (trainer != null && i == steps.length - 1) ...[
+                            const Gap(2),
+                            Text(context.i18n.onboardingPairAsTrainerWarning(trainer, app.name)).xSmall.muted,
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),

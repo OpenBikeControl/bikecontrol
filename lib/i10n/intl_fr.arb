@@ -3109,7 +3109,6 @@
   "onboardingGearTitle": "Connecte ton matériel",
   "onboardingGearSubtitle": "Appuie sur un bouton, puis pédale pour réveiller ton home trainer.",
   "onboardingRunsOn": "{app} tourne sur",
-  "onboardingShowAllApps": "Afficher toutes les applis",
   "onboardingTrainerWakeHint": "Donne un coup de pédale pour le réveiller.",
   "onboardingTrainerVsByBikeControl": "Vitesses virtuelles par BikeControl",
   "onboardingConnectTrainer": "Connecter {trainer}",
@@ -3130,5 +3129,6 @@
   "headwindFullPowerAtBody": "En dessous de cette puissance, le ventilateur tourne moins vite, au rythme de vos watts.",
   "headwindStatePower": "{speed}% selon la puissance",
   "accessorySteeringReadout": "Direction {value}",
-  "accessoryFanReadout": "Ventilateur {value}"
+  "accessoryFanReadout": "Ventilateur {value}",
+  "onboardingGuidePairTrainer": "Appaire ton home trainer : pour la source de puissance, la résistance et la cadence, choisis « {bridge} »"
 }

@@ -20,6 +20,7 @@ import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -88,15 +89,13 @@ Future<void> main() async {
         builder: (c) => onboardingAppBody(c, selected: null, onSelect: (_) {}));
   });
 
-  // Step 1 collapsed to the big platforms, with "runs on" under the grid.
+  // Step 1 with "runs on" under the grid.
   testWidgets('step app with target', (tester) async {
     await captureWidget(tester, name: 'onboarding_step_app_target', width: 380,
         builder: (c) => onboardingAppBody(
               c,
               selected: MyWhoosh(),
               onSelect: (_) {},
-              showAllApps: false,
-              onShowAll: () {},
               targets: Target.values,
               selectedTarget: Target.otherDevice,
               onSelectTarget: (_) {},
@@ -244,6 +243,15 @@ Future<void> main() async {
   testWidgets('step gear trainer connected', (tester) async {
     final trainer = ProxyDevice(BleDevice(deviceId: 'gear-trainer-2', name: 'KICKR CORE 1EB7'))
       ..debugSetTrainerAppConnected(true);
+    trainer.debugAttachFitnessBike(
+      FitnessBikeDefinition(
+        connectedDevice: trainer.scanResult,
+        connectedDeviceServices: const [],
+        data: ValueNotifier(''),
+      )
+        ..setDebugValues()
+        ..setMaxGear(24),
+    );
     await captureWidget(tester, name: 'onboarding_step_gear_connected', width: 390, settle: false,
         builder: (c) => gear(c, trainers: [trainer]));
   });
@@ -365,8 +373,6 @@ Future<void> main() async {
                 c,
                 selected: MyWhoosh(),
                 onSelect: (_) {},
-                showAllApps: false,
-                onShowAll: () {},
                 targets: Target.values,
                 selectedTarget: Target.otherDevice,
                 onSelectTarget: (_) {},

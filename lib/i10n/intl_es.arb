@@ -3109,7 +3109,6 @@
   "onboardingGearTitle": "Conecta tu equipo",
   "onboardingGearSubtitle": "Pulsa un botón y pedalea para despertar tu rodillo.",
   "onboardingRunsOn": "{app} se ejecuta en",
-  "onboardingShowAllApps": "Mostrar todas las apps",
   "onboardingTrainerWakeHint": "Pedalea una vez para despertarlo.",
   "onboardingTrainerVsByBikeControl": "Cambio virtual con BikeControl",
   "onboardingConnectTrainer": "Conectar {trainer}",
@@ -3130,5 +3129,6 @@
   "headwindFullPowerAtBody": "Por debajo de esta potencia el ventilador va más lento, al ritmo de tus vatios.",
   "headwindStatePower": "{speed}% según potencia",
   "accessorySteeringReadout": "Dirección {value}",
-  "accessoryFanReadout": "Ventilador {value}"
+  "accessoryFanReadout": "Ventilador {value}",
+  "onboardingGuidePairTrainer": "Empareja tu rodillo: para fuente de potencia, resistencia y cadencia, elige «{bridge}»"
 }

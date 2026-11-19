@@ -275,14 +275,10 @@ bool _isBigPlatform(SupportedApp a) =>
 /// official integrations under their verified badge, then the rest. Onboarding's app step
 /// shows it, and so does the trainer-app picker in Connection settings.
 class TrainerAppGrid extends StatelessWidget {
-  const TrainerAppGrid({super.key, required this.selected, required this.onSelect, this.onShowAll});
+  const TrainerAppGrid({super.key, required this.selected, required this.onSelect});
 
   final SupportedApp? selected;
   final ValueChanged<SupportedApp> onSelect;
-
-  /// Set: only the big platforms, then a "Show all apps" button calling this.
-  /// The onboarding opens on the apps most riders ride with, not on thirty.
-  final VoidCallback? onShowAll;
 
   @override
   Widget build(BuildContext context) {
@@ -327,50 +323,28 @@ class TrainerAppGrid extends StatelessWidget {
       children: [
         OnboardingGroupLabel(context.i18n.onboardingBigPlatforms, trailing: _officialLegend(context)),
         grid(big, badgeOfficial: true),
-        if (onShowAll != null) ...[
-          Gap(4),
-          Button.ghost(
-            key: const ValueKey('onboarding-show-all-apps'),
-            onPressed: onShowAll,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(context.i18n.onboardingShowAllApps).small.semiBold,
-                Gap(6),
-                Icon(LucideIcons.chevronDown, size: 15),
-              ],
-            ),
-          ),
-        ] else ...[
-          Gap(18),
-          OnboardingGroupLabel(
-            context.i18n.officiallySupported,
-            leading: const _OfficialBadge(size: 18),
-            trailing: _verifiedBadge(context),
-          ),
-          grid(official),
-          Gap(18),
-          OnboardingGroupLabel(context.i18n.otherTrainerApps),
-          grid(other),
-        ],
+        Gap(18),
+        OnboardingGroupLabel(
+          context.i18n.officiallySupported,
+          leading: const _OfficialBadge(size: 18),
+          trailing: _verifiedBadge(context),
+        ),
+        grid(official),
+        Gap(18),
+        OnboardingGroupLabel(context.i18n.otherTrainerApps),
+        grid(other),
       ],
     );
   }
 }
 
-/// Whether [app] is one of the big platforms the collapsed app grid shows.
-bool onboardingAppIsBigPlatform(SupportedApp app) => _isBigPlatform(app);
-
 /// Step 1: which app, and — where there is a choice — whether it runs on this
-/// device or another one. The grid opens on the big platforms; [onShowAll]
-/// unfolds the rest ([showAllApps]).
+/// device or another one.
 Widget onboardingAppBody(
   BuildContext context, {
   required SupportedApp? selected,
   required ValueChanged<SupportedApp> onSelect,
   bool showUpdateBanner = false,
-  bool showAllApps = true,
-  VoidCallback? onShowAll,
   List<Target> targets = const [],
   Target? selectedTarget,
   ValueChanged<Target>? onSelectTarget,
@@ -383,7 +357,7 @@ Widget onboardingAppBody(
       if (showUpdateBanner) const OnboardingUpdateBanner(),
       OnboardingHeadline(context.i18n.onboardingAppTitle),
       Gap(18),
-      TrainerAppGrid(selected: selected, onSelect: onSelect, onShowAll: showAllApps ? null : onShowAll),
+      TrainerAppGrid(selected: selected, onSelect: onSelect),
       if (selected != null && targets.length > 1 && onSelectTarget != null) ...[
         Gap(20),
         OnboardingGroupLabel(context.i18n.onboardingRunsOn(selected.name)),

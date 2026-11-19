@@ -3109,7 +3109,6 @@
   "onboardingGearTitle": "Połącz swój sprzęt",
   "onboardingGearSubtitle": "Naciśnij przycisk, a potem zakręć korbą, aby wybudzić trenażer.",
   "onboardingRunsOn": "{app} działa na",
-  "onboardingShowAllApps": "Pokaż wszystkie aplikacje",
   "onboardingTrainerWakeHint": "Zakręć raz korbą, aby go wybudzić.",
   "onboardingTrainerVsByBikeControl": "Wirtualna zmiana biegów przez BikeControl",
   "onboardingConnectTrainer": "Połącz {trainer}",
@@ -3130,5 +3129,6 @@
   "headwindFullPowerAtBody": "Poniżej tej mocy wentylator kręci się wolniej, zgodnie z twoimi watami.",
   "headwindStatePower": "{speed}% wg mocy",
   "accessorySteeringReadout": "Skręt {value}",
-  "accessoryFanReadout": "Wentylator {value}"
+  "accessoryFanReadout": "Wentylator {value}",
+  "onboardingGuidePairTrainer": "Sparuj trenażer: jako źródło mocy, opór i kadencję wybierz „{bridge}”"
 }

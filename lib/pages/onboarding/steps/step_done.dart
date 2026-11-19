@@ -292,7 +292,7 @@ Widget onboardingDoneBody(
       // Waiting on the app: show what to do in it, right here.
       if (state == OnboardingDoneState.waitingForApp) ...[
         Gap(10),
-        OnboardingAppGuideCard(app: app),
+        OnboardingAppGuideCard(app: app, trainerName: selfHosted ? null : trainerName, bridgeName: bridgeName),
         if (waitingOnNetworkMethod && onTestNetwork != null)
           _StillWaitingNetworkHint(reduceMotion: reduceMotion, onTestNetwork: onTestNetwork),
       ],

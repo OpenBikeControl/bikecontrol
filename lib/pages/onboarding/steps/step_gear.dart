@@ -20,6 +20,8 @@ import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
+import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
+import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -260,11 +262,25 @@ class _TrainerCard extends StatelessWidget {
                 ],
               ),
             ),
-          for (final (i, t) in trainers.indexed)
+          for (final (i, t) in trainers.indexed) ...[
             Container(
               decoration: i == 0 ? null : divider,
               child: _TrainerRow(trainer: t, onPick: onPick),
             ),
+            // Connected: its live numbers, so the rider sees it working (and
+            // the gear) before going on.
+            if (t.isBridged)
+              ValueListenableBuilder<FitnessBikeDefinition?>(
+                valueListenable: t.fitnessBikeListenable,
+                builder: (context, definition, _) => definition == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        key: ValueKey('onboarding-trainer-metrics-${t.uniqueId}'),
+                        padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                        child: TrainerMetricsStrip(definition: definition),
+                      ),
+              ),
+          ],
           if (!bridged)
             Container(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 6),

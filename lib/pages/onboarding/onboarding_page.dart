@@ -332,6 +332,9 @@ class OnboardingScrollArea extends StatefulWidget {
 class _OnboardingScrollAreaState extends State<OnboardingScrollArea> {
   final _controller = ScrollController();
   bool _more = false;
+  // The bottom fade, only while there is content under it: at the end it
+  // would wash out the last thing on the step.
+  bool _fade = false;
 
   @override
   void dispose() {
@@ -343,10 +346,16 @@ class _OnboardingScrollAreaState extends State<OnboardingScrollArea> {
     // Only until the first scroll: by then the rider knows there is more, and
     // the arrow would just sit on top of the content.
     final more = metrics.extentAfter > 24 && metrics.extentBefore < 8;
-    if (more != _more) {
+    final fade = metrics.extentAfter > 1;
+    if (more != _more || fade != _fade) {
       // Metrics notifications arrive during layout.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _more = more);
+        if (mounted) {
+          setState(() {
+            _more = more;
+            _fade = fade;
+          });
+        }
       });
     }
     return false;
@@ -375,10 +384,10 @@ class _OnboardingScrollAreaState extends State<OnboardingScrollArea> {
               onNotification: (n) => _onMetrics(n.metrics),
               child: ShaderMask(
                 blendMode: BlendMode.dstIn,
-                shaderCallback: (rect) => const LinearGradient(
+                shaderCallback: (rect) => LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+                  colors: [const Color(0xFFFFFFFF), _fade ? const Color(0x00FFFFFF) : const Color(0xFFFFFFFF)],
                   stops: [0.0, 1.0],
                 ).createShader(Rect.fromLTRB(0, rect.height - 32, rect.width, rect.height)),
                 child: SingleChildScrollView(controller: _controller, padding: widget.padding, child: widget.child),
@@ -564,11 +573,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
   OnboardingStep _step = OnboardingStep.app;
   SupportedApp? _selectedApp;
   Target? _selectedTarget;
-  // The app grid opens on the big platforms — unless the rider's app is one
-  // of the others, which must stay visible as the selection.
-  bool _showAllApps = false;
-  // Brought into view once an app is picked: the "runs on" choice under the
-  // grid is easy to miss below the fold.
+  // Once an app is picked the step scrolls to the end, where the "runs on"
+  // choice under the grid is easy to miss below the fold.
   final _targetChoiceKey = GlobalKey();
 
   ControllerPhase _controllerPhase = ControllerPhase.permission;
@@ -652,7 +658,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     onboardingActive = true;
     _selectedApp = core.settings.getTrainerApp();
     _selectedTarget = core.settings.getLastTarget();
-    _showAllApps = _selectedApp != null && !onboardingAppIsBigPlatform(_selectedApp!);
     _attachProxyListeners();
     for (final l in _methodListenables) {
       l.addListener(_onMethodConnectionChanged);
@@ -997,15 +1002,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void _onSelectApp(SupportedApp app) {
     setState(() => _selectedApp = app);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // All the way down, not just far enough to show the choice: the bottom
+      // fade would otherwise still sit on top of it.
       final target = _targetChoiceKey.currentContext;
       if (target == null || !target.mounted) return;
-      Scrollable.ensureVisible(
-        target,
-        alignment: 1,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
-        duration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-      );
+      final position = Scrollable.maybeOf(target)?.position;
+      if (position == null) return;
+      if (prefersReducedMotion(context)) {
+        position.jumpTo(position.maxScrollExtent);
+      } else {
+        position.animateTo(
+          position.maxScrollExtent,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOutCubic,
+        );
+      }
     });
   }
 
@@ -1016,8 +1027,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
       showUpdateBanner: !_showedWelcome,
       selected: _selectedApp,
       onSelect: _onSelectApp,
-      showAllApps: _showAllApps,
-      onShowAll: () => setState(() => _showAllApps = true),
       targets: _targetChoices,
       selectedTarget: _effectiveTarget,
       onSelectTarget: (t) => setState(() => _selectedTarget = t),

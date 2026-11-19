@@ -3109,7 +3109,6 @@
   "onboardingGearTitle": "Collega i tuoi dispositivi",
   "onboardingGearSubtitle": "Premi un pulsante, poi pedala per svegliare il rullo.",
   "onboardingRunsOn": "{app} gira su",
-  "onboardingShowAllApps": "Mostra tutte le app",
   "onboardingTrainerWakeHint": "Pedala una volta per svegliarlo.",
   "onboardingTrainerVsByBikeControl": "Cambio virtuale di BikeControl",
   "onboardingConnectTrainer": "Connetti {trainer}",
@@ -3130,5 +3129,6 @@
   "headwindFullPowerAtBody": "Sotto questa potenza il ventilatore gira più piano, in base ai tuoi watt.",
   "headwindStatePower": "{speed}% dalla potenza",
   "accessorySteeringReadout": "Sterzo {value}",
-  "accessoryFanReadout": "Ventilatore {value}"
+  "accessoryFanReadout": "Ventilatore {value}",
+  "onboardingGuidePairTrainer": "Abbina il tuo rullo: per sorgente di potenza, resistenza e cadenza scegli «{bridge}»"
 }

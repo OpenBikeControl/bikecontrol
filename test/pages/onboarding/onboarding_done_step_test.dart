@@ -356,6 +356,37 @@ Future<void> main() async {
       expect(find.byKey(const ValueKey('onboarding-done-trainer-check')), findsNothing);
     });
 
+    // Waiting for the app with a bridged trainer: pairing the trainer in the
+    // app is the guide's last step, not a second card after it.
+    testWidgets('waiting for the app with a trainer: the guide ends with pairing the bridge', (tester) async {
+      await pump(
+        tester,
+        (c) => onboardingDoneBody(
+          c,
+          app: MyWhoosh(),
+          controllerName: 'Zwift Click',
+          trainerName: 'KICKR CORE 73D3',
+          bridgeName: 'BikeControl 73D3',
+          appConnected: false,
+          trainerAppConnected: false,
+          reduceMotion: true,
+          showTestMode: false,
+        ),
+      );
+      final l = l10n(tester);
+      expect(find.byType(OnboardingAppGuideCard), findsOneWidget);
+      expect(find.byType(OnboardingPairAsTrainerCard), findsNothing);
+      expect(find.text(l.onboardingGuidePairTrainer('BikeControl 73D3')), findsOneWidget);
+      expect(find.text('4'), findsOneWidget, reason: "after MyWhoosh's three steps");
+      expect(find.text(l.onboardingPairAsTrainerWarning('KICKR CORE 73D3', 'MyWhoosh')), findsOneWidget);
+    });
+
+    testWidgets('without a trainer the guide has no trainer step', (tester) async {
+      await pump(tester, (c) => waiting(c, networkMethod: false));
+      expect(find.text(l10n(tester).onboardingGuidePairTrainer('KICKR CORE - BikeControl')), findsNothing);
+      expect(find.text('4'), findsNothing);
+    });
+
     Future<String> primaryLabel(WidgetTester tester, OnboardingDoneState state) async {
       await pump(
         tester,

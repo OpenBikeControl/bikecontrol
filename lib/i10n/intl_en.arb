@@ -3590,8 +3590,6 @@
   "@onboardingGearSubtitle": {"description": "Subtitle under the onboarding controller & trainer headline."},
   "onboardingRunsOn": "{app} runs on",
   "@onboardingRunsOn": {"description": "Label above the choice of where the trainer app runs (this device / another device).", "placeholders": {"app": {"type": "String"}}},
-  "onboardingShowAllApps": "Show all apps",
-  "@onboardingShowAllApps": {"description": "Button that expands the onboarding app picker to every supported app."},
   "onboardingTrainerWakeHint": "Pedal once to wake it up.",
   "@onboardingTrainerWakeHint": {"description": "Shown under \"Looking for Smart Trainers…\" while the onboarding scans for a trainer."},
   "onboardingTrainerVsByBikeControl": "Virtual shifting by BikeControl",
@@ -3621,5 +3619,7 @@
   "accessorySteeringReadout": "Steering {value}",
   "accessoryFanReadout": "Fan {value}",
   "@accessorySteeringReadout": {"description": "Devices page: live steering angle under an accessory, e.g. \"Steering -12°\".", "placeholders": {"value": {"type": "String"}}},
-  "@accessoryFanReadout": {"description": "Devices page: live Headwind fan state under the accessory, e.g. \"Fan 50%\".", "placeholders": {"value": {"type": "String"}}}
+  "@accessoryFanReadout": {"description": "Devices page: live Headwind fan state under the accessory, e.g. \"Fan 50%\".", "placeholders": {"value": {"type": "String"}}},
+  "onboardingGuidePairTrainer": "Pair your trainer: for power source, resistance and cadence, pick “{bridge}”",
+  "@onboardingGuidePairTrainer": {"description": "Last step of the onboarding guide for the trainer app when BikeControl bridges a smart trainer: which entry to pair in the app.", "placeholders": {"bridge": {"type": "String"}}}
 }

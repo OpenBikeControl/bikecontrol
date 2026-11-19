@@ -3109,7 +3109,6 @@
   "onboardingGearTitle": "Verbinde deine Geräte",
   "onboardingGearSubtitle": "Drück eine Taste und tritt kurz in die Pedale, um deinen Trainer aufzuwecken.",
   "onboardingRunsOn": "{app} läuft auf",
-  "onboardingShowAllApps": "Alle Apps anzeigen",
   "onboardingTrainerWakeHint": "Tritt einmal in die Pedale, um ihn aufzuwecken.",
   "onboardingTrainerVsByBikeControl": "Virtuelles Schalten durch BikeControl",
   "onboardingConnectTrainer": "{trainer} verbinden",
@@ -3130,5 +3129,6 @@
   "headwindFullPowerAtBody": "Darunter läuft der Ventilator passend zu deinen Watt langsamer.",
   "headwindStatePower": "{speed}% nach Leistung",
   "accessorySteeringReadout": "Lenkung {value}",
-  "accessoryFanReadout": "Ventilator {value}"
+  "accessoryFanReadout": "Ventilator {value}",
+  "onboardingGuidePairTrainer": "Koppel deinen Trainer: Wähle für Leistungsquelle, Widerstand und Trittfrequenz „{bridge}“"
 }
