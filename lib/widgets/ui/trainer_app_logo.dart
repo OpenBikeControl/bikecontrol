@@ -84,3 +84,24 @@ class TrainerAppMonogram extends StatelessWidget {
     );
   }
 }
+
+/// A trainer app in a row of icon tiles: its bundled logo, else its initial
+/// ([TrainerAppMonogram]). Shared by the home screen's trainer-app row and the
+/// onboarding's checklist, so an app looks the same in both.
+class TrainerAppMark extends StatelessWidget {
+  const TrainerAppMark({super.key, required this.name, this.logoAsset, this.logoUrl});
+
+  final String name;
+  final String? logoAsset;
+  final String? logoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final logo = logoAsset;
+    if (logo == null) return TrainerAppMonogram(name: name);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: TrainerAppLogo(asset: logo, url: logoUrl, width: BkIconTile.size, height: BkIconTile.size),
+    );
+  }
+}

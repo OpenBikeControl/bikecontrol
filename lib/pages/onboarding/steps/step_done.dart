@@ -13,6 +13,7 @@ import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/trainer_app_logo.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Where the done step stands, in the order a rider has to fix things.
@@ -151,13 +152,16 @@ Widget onboardingDoneBody(
     OnboardingDoneState.waitingForApp => context.i18n.onboardingAlmostThereSubtitle(app.name),
     OnboardingDoneState.waitingForTrainerPickup => context.i18n.onboardingDonePickTrainerSubtitle(app.name),
   };
-  // (icon, title, status, ok, action) — a bridge whose virtual trainer the app
-  // hasn't picked up yet is honest about it instead of claiming "Bridged".
-  final rows = <(IconData, String, String, bool, Widget?)>[
+  // (leading, title, status, ok, action) — a bridge whose virtual trainer the
+  // app hasn't picked up yet is honest about it instead of claiming "Bridged".
+  Widget tile(IconData icon) => BkIconTile(icon: icon);
+  // The app by its logo or initial, as in the app picker and on Home.
+  final appMark = TrainerAppMark(name: app.name, logoAsset: app.logoAsset, logoUrl: app.logoUrl);
+  final rows = <(Widget, String, String, bool, Widget?)>[
     hasController
-        ? (LucideIcons.gamepad2, controllerName, context.i18n.onboardingDeviceConnected, true, null)
+        ? (tile(LucideIcons.gamepad2), controllerName, context.i18n.onboardingDeviceConnected, true, null)
         : (
-            LucideIcons.gamepad2,
+            tile(LucideIcons.gamepad2),
             context.i18n.onboardingYourController,
             context.i18n.onboardingSummaryNotPaired,
             false,
@@ -171,15 +175,15 @@ Widget onboardingDoneBody(
                   ),
           ),
     appConnected || selfHosted
-        ? (LucideIcons.monitor, app.name, context.i18n.onboardingDeviceConnected, true, null)
-        : (LucideIcons.monitor, app.name, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
+        ? (appMark, app.name, context.i18n.onboardingDeviceConnected, true, null)
+        : (appMark, app.name, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
     if (trainerName != null)
       selfHosted
-          ? (LucideIcons.bike, trainerName, context.i18n.onboardingDeviceConnected, true, null)
+          ? (tile(LucideIcons.bike), trainerName, context.i18n.onboardingDeviceConnected, true, null)
           : trainerAppConnected
-          ? (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
-          : (LucideIcons.bike, trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
-    if (overlayOn) (LucideIcons.layers, context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
+          ? (tile(LucideIcons.bike), trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
+          : (tile(LucideIcons.bike), trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
+    if (overlayOn) (tile(LucideIcons.layers), context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
   ];
   return Column(
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -201,14 +205,14 @@ Widget onboardingDoneBody(
       Gap(allReady ? 28 : 20),
       BkGroupedSection(
         children: [
-          for (final (icon, title, sub, ok, action) in rows)
+          for (final (leading, title, sub, ok, action) in rows)
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 56),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Row(
                   children: [
-                    BkIconTile(icon: icon),
+                    leading,
                     Gap(12),
                     Expanded(flex: 3, child: Text(title).small.semiBold),
                     Gap(8),

@@ -2035,13 +2035,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       link: link,
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
-      leading: logo != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: TrainerAppLogo(asset: logo, url: app?.logoUrl, width: BkIconTile.size, height: BkIconTile.size),
-            )
-          : app != null
-          ? TrainerAppMonogram(name: app.name)
+      leading: app != null
+          ? TrainerAppMark(name: app.name, logoAsset: logo, logoUrl: app.logoUrl)
           : _tile(LucideIcons.monitor, live: false),
       title: link.title.isEmpty ? l.chainAppTitle : link.title,
       subtitle: app == null ? null : connectionMethodSummary(context),
