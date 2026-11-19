@@ -1,14 +1,7 @@
-### 7.7.0 (18-11-2026)
+### 7.6.1 (19-11-2026)
 **Features**:
-- Una configurazione più breve: tre passaggi invece di sei. Scegli l'app di allenamento e dove gira, collega controller e rullo in un'unica schermata, poi collega l'app.
-- La configurazione ora collega il rullo tramite BikeControl per impostazione predefinita e mostra subito cosa fa il cambio virtuale di BikeControl.
-- La configurazione propone l'Overlay delle marce dove serve: MyWhoosh, Zwift, Rouvy e TrainingPeaks Virtual continuano a mostrare il proprio numero di marcia, l'Overlay mostra sopra la marcia reale di BikeControl.
-- Elite Rizer esce dalla beta: tutti possono collegarlo, per inclinazione e sterzo.
-
-**Fixes**:
-- Elite Rizer: non compare più come controller, e la scheda dello sterzo non dice più che sta calibrando finché il Rizer non è collegato.
-- Zwift e Rouvy: il test di rete non segnala più un problema quando la connessione di rete di BikeControl funziona.
-- Se un dispositivo Bluetooth non si collega, il motivo è spiegato in parole semplici (fuori portata, Bluetooth spento, abbinamento, …) invece di un codice di errore.
+- Elite Rizer: l'inclinazione ora funziona con qualsiasi rullo smart.
+- Puoi scegliere la cartella in cui vengono salvati gli screenshot.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

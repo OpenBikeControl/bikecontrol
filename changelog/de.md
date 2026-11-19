@@ -1,14 +1,7 @@
-### 7.7.0 (18-11-2026)
+### 7.6.1 (19-11-2026)
 **Features**:
-- Kürzere Einrichtung: drei Schritte statt sechs. Wähle deine Trainings-App und wo sie läuft, verbinde Controller und Smart Trainer auf einem Bildschirm, dann die App.
-- Die Einrichtung verbindet deinen Smart Trainer jetzt standardmäßig über BikeControl und zeigt direkt dort, was das virtuelle Schalten von BikeControl kann.
-- Die Einrichtung bietet das Gang-Overlay an, wo du es brauchst: MyWhoosh, Zwift, Rouvy und TrainingPeaks Virtual zeigen weiter ihre eigene Gangzahl, das Overlay zeigt darüber deinen echten Gang von BikeControl.
-- Elite Rizer ist keine Beta mehr: Alle können ihn verbinden – für Steigung und Lenkung.
-
-**Fixes**:
-- Elite Rizer: wird nicht mehr als Controller aufgeführt, und die Lenkungskarte zeigt nicht mehr „Wird kalibriert…“, solange der Rizer nicht verbunden ist.
-- Zwift und Rouvy: Der Netzwerktest meldet kein Problem mehr, wenn die Netzwerkverbindung von BikeControl funktioniert.
-- Kann sich ein Bluetooth-Gerät nicht verbinden, steht jetzt verständlich da, warum (nicht in Reichweite, Bluetooth aus, Koppeln, …) statt eines rohen Fehlercodes.
+- Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
+- Du kannst den Ordner für Screenshots selbst wählen.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

@@ -1,14 +1,7 @@
-### 7.7.0 (18-11-2026)
+### 7.6.1 (19-11-2026)
 **Features**:
-- Krótsza konfiguracja: trzy kroki zamiast sześciu. Wybierz aplikację treningową i to, gdzie działa, połącz kontroler i trenażer na jednym ekranie, a potem połącz aplikację.
-- Konfiguracja domyślnie łączy teraz trenażer przez BikeControl i od razu pokazuje, co daje wirtualna zmiana biegów BikeControl.
-- Konfiguracja proponuje Overlay biegów tam, gdzie go potrzebujesz: MyWhoosh, Zwift, Rouvy i TrainingPeaks Virtual nadal pokazują własny numer biegu, więc Overlay pokazuje nad nimi prawdziwy bieg BikeControl.
-- Elite Rizer nie jest już w becie: każdy może go podłączyć – do nachylenia i sterowania.
-
-**Fixes**:
-- Elite Rizer: nie jest już wyświetlany jako kontroler, a karta skrętu nie pokazuje już kalibracji, gdy Rizer nie jest połączony.
-- Zwift i Rouvy: test sieci nie zgłasza już problemu, gdy połączenie sieciowe BikeControl działa.
-- Gdy urządzenie Bluetooth nie może się połączyć, powód jest opisany zrozumiale (poza zasięgiem, Bluetooth wyłączony, parowanie, …) zamiast surowego kodu błędu.
+- Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
+- Możesz wybrać folder, w którym zapisywane są zrzuty ekranu.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

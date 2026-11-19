@@ -1,10 +1,4 @@
-7.7.0
+7.6.1
 Novedades:
-• Configuración en tres pasos en lugar de seis
-• La configuración conecta tu rodillo a través de BikeControl de forma predeterminada y muestra lo que hace su cambio virtual
-• La configuración ofrece el Overlay de marchas si tu app muestra sus propias marchas
-• Elite Rizer deja la beta
-
-Correcciones:
-• Zwift y Rouvy: sin falsos avisos en la prueba de red
-• Errores de conexión Bluetooth explicados con claridad
+• Elite Rizer: inclinación con cualquier rodillo inteligente
+• Elige la carpeta de las capturas de pantalla

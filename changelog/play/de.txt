@@ -1,10 +1,4 @@
-7.7.0
+7.6.1
 Neu:
-• Einrichtung in drei statt sechs Schritten
-• Die Einrichtung verbindet deinen Smart Trainer standardmäßig über BikeControl und zeigt, was das virtuelle Schalten kann
-• Die Einrichtung bietet das Gang-Overlay an, wenn deine App eigene Gänge zeigt
-• Elite Rizer ist keine Beta mehr
-
-Behoben:
-• Zwift & Rouvy: keine falsche Warnung im Netzwerktest
-• Bluetooth-Verbindungsfehler verständlich erklärt
+• Elite Rizer: Steigung mit jedem Smart Trainer
+• Ordner für Screenshots selbst wählen

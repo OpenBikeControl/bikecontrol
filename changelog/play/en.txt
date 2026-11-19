@@ -1,10 +1,4 @@
-7.7.0
+7.6.1
 New:
-• Setup in three steps instead of six
-• Setup connects your smart trainer through BikeControl by default and shows what its virtual shifting does
-• Setup offers the gear overlay when your app shows its own gear
-• Elite Rizer is out of beta
-
-Fixed:
-• Zwift & Rouvy: no false network test warning
-• Bluetooth connect errors in plain words
+• Elite Rizer: incline works with any smart trainer
+• Choose the folder for screenshots

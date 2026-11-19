@@ -1,14 +1,7 @@
-### 7.7.0 (18-11-2026)
+### 7.6.1 (19-11-2026)
 **Features**:
-- A shorter setup: three steps instead of six. Pick your trainer app and where it runs, connect your controller and smart trainer on one screen, then link the app.
-- Setup now connects your smart trainer through BikeControl by default, and shows right there what BikeControl's virtual shifting does.
-- Setup now offers the gear overlay where you need it: MyWhoosh, Zwift, Rouvy and TrainingPeaks Virtual keep showing their own gear number, so the overlay shows BikeControl's real gear on top.
-- Elite Rizer is out of beta: everyone can connect it, for incline and steering.
-
-**Fixes**:
-- Elite Rizer: no longer listed as a controller, and its steering card no longer says it is calibrating while the Rizer isn't connected.
-- Zwift and Rouvy: the network test no longer reports a problem when BikeControl's network connection is working.
-- A Bluetooth device that can't connect says why in plain words (out of range, Bluetooth off, pairing, …) instead of a raw error code.
+- Elite Rizer: incline now works with any smart trainer.
+- You can choose the folder screenshots are saved to.
 
 ### 7.6.0 (17-11-2026)
 **Features**:
