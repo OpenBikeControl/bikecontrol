@@ -1734,7 +1734,7 @@
   "chainStepButtonsMappedHint": "Asigna una acción al menos a un botón.",
   "chainStepInRange": "Dentro del alcance",
   "chainStepInRangePending": "Ponlo de nuevo dentro del alcance",
-  "chainStepInRangeHint": "Pulsa cualquier botón para despertarlo y cierra cualquier otra app que pueda estar usándolo.",
+  "chainStepInRangeHint": "Pulsa un botón para despertarlo y cierra otras apps que lo usen.",
   "chainStepWakePending": "Despiértalo",
   "chainStepUnlocked": "Desbloqueado",
   "chainStepUnlockedPending": "Desbloquéalo con Zwift",
@@ -1742,17 +1742,17 @@
   "chainStepUnlockedUntil": "Desbloqueado hasta {date}",
   "chainStepUnlockedLikelyUntil": "Probablemente desbloqueado hasta {date}",
   "chainStepSramSetup": "Control configurado",
-  "chainStepSramSetupHint": "El desviador aún cambia por su cuenta: cédele las marchas a BikeControl para que las palancas envíen pulsaciones.",
+  "chainStepSramSetupHint": "Cede las marchas a BikeControl para que las manetas envíen pulsaciones.",
   "chainStepShimanoSetup": "Botones Di2 activos",
-  "chainStepShimanoSetupHint": "Tu Di2 aún cambia por su cuenta: pásala al modo botones para que las palancas envíen pulsaciones. No se cambia nada en la Di2.",
+  "chainStepShimanoSetupHint": "Pon tu Di2 en modo botones para que las manetas envíen pulsaciones. En el Di2 no cambia nada.",
   "chainStepClickV2Setup": "Elige cómo se desbloquea",
-  "chainStepClickV2SetupHint": "Zwift limita el Click V2 a su propia aplicación. Elige cómo lo resuelve BikeControl y se conectará enseguida.",
+  "chainStepClickV2SetupHint": "Zwift bloquea el Click V2 a su propia app. Elige cómo lo resuelve BikeControl.",
   "chainStepClickV2KeepAwake": "Enciende el lado izquierdo para mantener las luces encendidas",
-  "chainStepClickV2KeepAwakeHint": "BikeControl ya evita que el lado derecho se apague. Aun así, sus luces se apagan solas: con el lado izquierdo encendido cerca, se mantienen encendidas. Solo tiene que estar al alcance, no emparejado.",
+  "chainStepClickV2KeepAwakeHint": "Con el lado izquierdo encendido cerca, las luces del derecho siguen encendidas. No hace falta emparejarlo.",
   "chainStepTrainerPaired": "Rodillo conectado",
   "chainStepTrainerPairedPending": "Conecta tu rodillo",
   "chainStepOverlayDone": "El Overlay de marchas está activo",
-  "chainStepOverlayHint": "{appName} no puede mostrar las marchas virtuales de BikeControl. Activa el Overlay para ver tu marcha actual durante la sesión.",
+  "chainStepOverlayHint": "{appName} no muestra las marchas de BikeControl. La superposición te muestra tu marcha mientras pedaleas.",
   "@chainStepOverlayHint": {
     "placeholders": {
       "appName": {
@@ -1763,7 +1763,7 @@
   "chainStepOverlayAction": "Activar el Overlay",
   "chainStepLocalControl": "Añade acciones de teclado y ratón",
   "chainStepLocalControlDone": "Las acciones de teclado y ratón están activas",
-  "chainStepLocalControlHint": "El control local permite que un botón pulse una tecla o haga clic en {appName} en este dispositivo: capturas, controles ERG y todo lo que la app tenga como atajo.",
+  "chainStepLocalControlHint": "Permite que un botón active atajos o clics en {appName} en este dispositivo, como capturas o ERG.",
   "@chainStepLocalControlHint": {
     "placeholders": {
       "appName": {
@@ -1796,9 +1796,9 @@
       }
     }
   },
-  "chainStepTrainerBridgedPending": "Esperando a que {app} se conecte a «{bridge}»",
+  "chainStepTrainerBridgedPending": "Esperando a {app}",
   "@chainStepTrainerBridgedPending": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
-  "chainStepTrainerBridgedStaleLinkHint": "¿{app} muestra «{bridge}» como conectado pero no recibe datos? Sigue usando la conexión de antes de que BikeControl se reiniciara. Elimina «{bridge}» en {app} y vuelve a emparejarlo.",
+  "chainStepTrainerBridgedStaleLinkHint": "¿{app} muestra «{bridge}» conectado pero sin datos? Elimínalo en {app} y vuelve a emparejarlo.",
   "@chainStepTrainerBridgedStaleLinkHint": {
     "placeholders": {
       "app": {
@@ -2293,15 +2293,15 @@
   "chainStepOverlayDecline": "Ahora no",
   "chainStepAppControllerPending": "{app} aún no está conectada a tus botones",
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
-  "chainStepAppControllerHint": "{app} ya lee tu rodillo a través de BikeControl. Tus botones necesitan un segundo enlace: en la pantalla de emparejamiento de {app}, toca la ficha «{tile}» en «Controladores» — es una ficha distinta de la del rodillo.",
+  "chainStepAppControllerHint": "Tus botones necesitan su propia conexión: en {app}, toca «{tile}» en Controladores.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepAppConnectedTileHint": "Abre la pantalla de emparejamiento de {app} y toca la ficha «{tile}» en «Controladores»: es este dispositivo.",
+  "chainStepAppConnectedTileHint": "En {app}, toca «{tile}» en Controladores.",
   "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepTrainerBridgedHint2": "En la pantalla de emparejamiento de {app}, elige «{bridge}» como rodillo — no «{trainer}» con su propio nombre, eso deja a BikeControl fuera.",
+  "chainStepTrainerBridgedHint2": "En {app}, elige «{bridge}» como rodillo, no «{trainer}».",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} ya tiene tu rodillo a través de BikeControl, pero tus botones no llegarán a {app} hasta que conectes también el controlador de BikeControl en su pantalla de emparejamiento.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
-  "chainStatusWaitingForPickup": "Esperando a que {app} se conecte a «{bridge}»",
+  "chainStatusWaitingForPickup": "Aún sin elegir en {app}",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
   "vsTransportSameDeviceNote": "El Bluetooth no puede llegar a una app en este mismo dispositivo — se usa Wifi.",
   "vsSameDeviceBlockedFix": "Lo que funciona: BikeControl en un móvil o tablet junto a tu bici, o {app} en otro dispositivo.",
@@ -2330,7 +2330,7 @@
   "vsModeRecommended": "Recomendado",
   "vsModeUnsupported": "No compatible con este rodillo. ",
   "chainStepNetworkAddressPending": "Tu red parece inusual",
-  "chainStepNetworkAddressHint": "BikeControl anuncia la dirección {address}, que parece una dirección de VPN o de punto de acceso. Puede que {app} no llegue a ella. Desactiva la VPN o usa el método Local en este dispositivo.",
+  "chainStepNetworkAddressHint": "BikeControl usa {address}, que parece una VPN o un punto de acceso, así que {app} quizá no lo alcance. Desactiva la VPN o usa Local.",
   "@chainStepNetworkAddressHint": {
     "placeholders": {
       "address": {
@@ -2343,7 +2343,7 @@
   },
   "chainStepNetworkAddressNoWifiHint": "Este dispositivo no está conectado a una red WiFi, y {app} no puede llegar a BikeControl por datos móviles. Conéctate a la misma WiFi que {app}.",
   "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
-  "chainStepNetworkAddressTwoNetworksHint": "Este dispositivo está en más de una red, y BikeControl anuncia la dirección {address}. Si {app} está en la otra, no encontrará BikeControl: conecta ambos a la misma WiFi.",
+  "chainStepNetworkAddressTwoNetworksHint": "Este dispositivo está en dos redes ({address}). Pon este y {app} en la misma Wi-Fi.",
   "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Comprobar la red",
   "supportAccountLinkEmailTaken": "{email} ya tiene una cuenta de BikeControl, así que no se puede añadir a este chat. Para usar esa cuenta, inicia sesión en Ajustes → Plan y cuenta. Esta conversación no se trasladará, así que vuelve a enviar tu mensaje desde allí. O introduce otro correo electrónico.",

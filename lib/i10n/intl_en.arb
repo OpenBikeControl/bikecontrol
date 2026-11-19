@@ -2038,7 +2038,7 @@
   "chainStepButtonsMappedHint": "Assign an action to at least one button.",
   "chainStepInRange": "In range",
   "chainStepInRangePending": "Bring it back in range",
-  "chainStepInRangeHint": "Press any button to wake it, and close any other app that might be holding it.",
+  "chainStepInRangeHint": "Press any button to wake it, and close other apps using it.",
   "chainStepWakePending": "Wake it up",
   "chainStepUnlocked": "Unlocked",
   "chainStepUnlockedPending": "Unlock it with Zwift",
@@ -2046,17 +2046,17 @@
   "chainStepUnlockedUntil": "Unlocked until {date}",
   "chainStepUnlockedLikelyUntil": "Likely unlocked until {date}",
   "chainStepSramSetup": "Controls set up",
-  "chainStepSramSetupHint": "Its own shifting still runs the gears — hand them to BikeControl so the paddles send button presses.",
+  "chainStepSramSetupHint": "Hand the gears to BikeControl so the paddles send presses.",
   "chainStepShimanoSetup": "Di2 buttons active",
-  "chainStepShimanoSetupHint": "Your Di2 still shifts by itself — switch it to button mode so the paddles send button presses. Nothing on the Di2 is changed.",
+  "chainStepShimanoSetupHint": "Switch your Di2 to button mode so the paddles send presses. Nothing on the Di2 changes.",
   "chainStepClickV2Setup": "Choose how it unlocks",
-  "chainStepClickV2SetupHint": "Zwift locks the Click V2 to their own app. Pick how BikeControl works around it and it connects straight away.",
+  "chainStepClickV2SetupHint": "Zwift locks the Click V2 to its own app. Pick how BikeControl gets around it.",
   "chainStepClickV2KeepAwake": "Switch the left side on to keep the lights on",
-  "chainStepClickV2KeepAwakeHint": "BikeControl already stops the right side switching itself off. Its lights still go dark on their own, though — switching the left side on nearby keeps them lit. It only needs to be in range, not paired.",
+  "chainStepClickV2KeepAwakeHint": "With the left side on nearby, the right side's lights stay on. No pairing needed.",
   "chainStepTrainerPaired": "Trainer connected",
   "chainStepTrainerPairedPending": "Connect your trainer",
   "chainStepOverlayDone": "Gear overlay is on",
-  "chainStepOverlayHint": "{appName} can't display BikeControl's virtual gears. Enable the gear overlay to see your current gear during the ride.",
+  "chainStepOverlayHint": "{appName} can't show BikeControl's gears. The overlay shows your gear while you ride.",
   "@chainStepOverlayHint": {
     "placeholders": {
       "appName": {
@@ -2067,7 +2067,7 @@
   "chainStepOverlayAction": "Enable overlay",
   "chainStepLocalControl": "Add keyboard and mouse actions",
   "chainStepLocalControlDone": "Keyboard and mouse actions are on",
-  "chainStepLocalControlHint": "Local control lets a button press a key or click in {appName} on this device — screenshots, ERG controls, anything the app has a shortcut for.",
+  "chainStepLocalControlHint": "Lets a button trigger shortcuts or clicks in {appName} on this device, like screenshots or ERG.",
   "@chainStepLocalControlHint": {
     "placeholders": {
       "appName": {
@@ -2142,9 +2142,9 @@
       }
     }
   },
-  "chainStepTrainerBridgedPending": "Waiting for {app} to connect to “{bridge}”",
+  "chainStepTrainerBridgedPending": "Waiting for {app}",
   "@chainStepTrainerBridgedPending": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
-  "chainStepTrainerBridgedStaleLinkHint": "Does {app} show “{bridge}” as connected but get no data? It is still holding the connection from before BikeControl restarted. Remove “{bridge}” in {app}, then pair it again.",
+  "chainStepTrainerBridgedStaleLinkHint": "{app} shows “{bridge}” as connected but gets no data? Remove it in {app} and pair it again.",
   "@chainStepTrainerBridgedStaleLinkHint": {
     "placeholders": {
       "app": {
@@ -2522,15 +2522,15 @@
   "chainStepOverlayDecline": "Not now",
   "chainStepAppControllerPending": "{app} isn't connected to your buttons yet",
   "@chainStepAppControllerPending": {"placeholders": {"app": {"type": "String"}}},
-  "chainStepAppControllerHint": "{app} is already reading your trainer through BikeControl. Your buttons need a second link: in {app}'s pairing screen, tap the “{tile}” tile under Controllers — it's a separate tile from the trainer.",
+  "chainStepAppControllerHint": "Your buttons need their own link: in {app}, tap “{tile}” under Controllers.",
   "@chainStepAppControllerHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepAppConnectedTileHint": "Open {app}'s pairing screen and tap the “{tile}” tile under Controllers — that's this device.",
+  "chainStepAppConnectedTileHint": "In {app}, tap “{tile}” under Controllers.",
   "@chainStepAppConnectedTileHint": {"placeholders": {"app": {"type": "String"}, "tile": {"type": "String"}}},
-  "chainStepTrainerBridgedHint2": "In {app}'s pairing screen choose “{bridge}” as the trainer — not “{trainer}” under its own name, that bypasses BikeControl.",
+  "chainStepTrainerBridgedHint2": "In {app}, pick “{bridge}” as the trainer — not “{trainer}”.",
   "@chainStepTrainerBridgedHint2": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}, "trainer": {"type": "String"}}},
   "chainPendingSubtitleController": "{app} has your trainer through BikeControl, but your buttons won't reach {app} until you also connect the BikeControl controller in its pairing screen.",
   "@chainPendingSubtitleController": {"placeholders": {"app": {"type": "String"}}},
-  "chainStatusWaitingForPickup": "Waiting for {app} to connect to “{bridge}”",
+  "chainStatusWaitingForPickup": "Not picked in {app} yet",
   "@chainStatusWaitingForPickup": {"placeholders": {"app": {"type": "String"}, "bridge": {"type": "String"}}},
   "vsTransportSameDeviceNote": "Bluetooth can't reach an app on this same device — using WiFi.",
   "vsSameDeviceBlockedFix": "What works: BikeControl on a phone or tablet next to your bike, or {app} on another device.",
@@ -2559,7 +2559,7 @@
   "vsModeRecommended": "Recommended",
   "vsModeUnsupported": "Not supported by this trainer. ",
   "chainStepNetworkAddressPending": "Your network looks unusual",
-  "chainStepNetworkAddressHint": "BikeControl is advertising {address}, which looks like a VPN or hotspot address. {app} may not reach it. Turn the VPN off, or use the Local method on this device.",
+  "chainStepNetworkAddressHint": "BikeControl uses {address}, which looks like a VPN or hotspot, so {app} may not reach it. Turn the VPN off or use Local.",
   "@chainStepNetworkAddressHint": {
     "placeholders": {
       "address": {
@@ -2572,7 +2572,7 @@
   },
   "chainStepNetworkAddressNoWifiHint": "This device isn't on Wi-Fi, and {app} can't reach BikeControl over mobile data. Join the same Wi-Fi as {app}.",
   "@chainStepNetworkAddressNoWifiHint": {"placeholders": {"app": {"type": "String"}}},
-  "chainStepNetworkAddressTwoNetworksHint": "This device is on more than one network, and BikeControl is advertising {address}. If {app} is on the other one, it won't find BikeControl — put both on the same Wi-Fi.",
+  "chainStepNetworkAddressTwoNetworksHint": "This device is on two networks ({address}). Put it and {app} on the same Wi-Fi.",
   "@chainStepNetworkAddressTwoNetworksHint": {"placeholders": {"address": {"type": "String"}, "app": {"type": "String"}}},
   "chainStepNetworkAddressAction": "Run network check",
   "chainStatusAppDisconnected": "{app} disconnected",
