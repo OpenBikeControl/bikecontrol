@@ -637,7 +637,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         presence = DevicePresence.connected;
       } else if (!wanted) {
         presence = DevicePresence.discovered;
-      } else if (proxy.isStarting.value || proxy.isConnected) {
+      } else if (proxy.isStarting.value ||
+          proxy.isConnected ||
+          // Remembered and found again right after launch, but still waiting
+          // its turn in the connect queue (one device at a time): on its way,
+          // not a trainer the rider has yet to set up — or the shifting card
+          // flips to "the app shifts" and back while another device connects.
+          core.connection.startupReconnecting.value.contains(proxy.uniqueId)) {
         // The connect is still running. The Bluetooth link comes up before the
         // bridge does, and `wasConnectedThisSession` latches the moment it
         // does — so without this branch the whole window between "link up" and
@@ -934,7 +940,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // their cards say "Connecting…". "Switch it on" in the banner would
     // contradict that — and vanish a second later, shifting the screen — so
     // their steps wait until the window has run out.
-    final reconnecting = core.connection.startupReconnecting.value;
+    // The trainer counts as on its way until it is bridged, not just until
+    // its Bluetooth link is up: in between, its card still says
+    // "Connecting…", and the banner listing "Connect your trainer" for that
+    // second only to drop it again moved the whole screen.
+    final trainerConnecting = inputs.trainer?.presence == DevicePresence.connecting ? inputs.trainer!.deviceId : null;
+    final reconnecting = [...core.connection.startupReconnecting.value, ?trainerConnecting];
     final reconnectingLinks = banner.kind == ChainBannerKind.pending
         ? links.where((l) => l.deviceId != null && reconnecting.contains(l.deviceId) && l.isBlocking).toList()
         : const <ChainLink>[];
@@ -1329,11 +1340,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       mainAxisSize: MainAxisSize.min,
       children: [
         AnimatedBuilder(
-          animation: Listenable.merge([definition.gearRatios, definition.virtualShiftingMode]),
+          animation: Listenable.merge([
+            definition.gearRatios,
+            definition.virtualShiftingMode,
+            definition.trainerFeature,
+          ]),
           builder: (context, _) => RideSettingsLine(
             key: const ValueKey('ride-vs-settings-line'),
             icon: LucideIcons.slidersHorizontal,
-            text: rideVirtualShiftingSummary(context, definition),
+            text: rideVirtualShiftingSummary(
+              context,
+              definition,
+              modeKnown: core.shiftingConfigs.storedActiveFor(proxy.trainerKey) != null,
+            ),
             linkLabel: context.i18n.rideVsSettingsLink,
             onPressed: () => _openVsSettings(proxy),
           ),

@@ -233,14 +233,31 @@ class Settings {
   /// Global, not per trainer: closing the "Need help?" card on one trainer's
   /// page means the rider knows where the Help Center lives — re-showing it
   /// on the next trainer would just be nagging.
-  /// Whether a Headwind fan follows the trainer's power (BikeControl sets
-  /// its speed), remembered across launches.
-  bool getHeadwindFollowPower() => prefs.getBool('headwind_follow_power') ?? false;
-  Future<void> setHeadwindFollowPower(bool value) => prefs.setBool('headwind_follow_power', value);
+  /// What a Headwind fan follows: `power`, `heartRate` or `none` (a
+  /// `HeadwindFollow` name). Riders from before heart rate could be followed
+  /// only have the old power switch.
+  String getHeadwindFollow() =>
+      prefs.getString('headwind_follow') ?? ((prefs.getBool('headwind_follow_power') ?? false) ? 'power' : 'none');
+  Future<void> setHeadwindFollow(String value) async {
+    await prefs.remove('headwind_follow_power');
+    await prefs.setString('headwind_follow', value);
+  }
 
-  /// The power, in watts, at which a power-following Headwind runs at 100%.
+  /// Kept for older callers: whether the fan follows the trainer's power.
+  bool getHeadwindFollowPower() => getHeadwindFollow() == 'power';
+
+  /// The power ramp of a power-following Headwind: off up to the start,
+  /// 100% from the full power.
+  int getHeadwindStartPowerWatts() => prefs.getInt('headwind_start_power_watts') ?? 0;
+  Future<void> setHeadwindStartPowerWatts(int watts) => prefs.setInt('headwind_start_power_watts', watts);
   int getHeadwindFullPowerWatts() => prefs.getInt('headwind_full_power_watts') ?? 300;
   Future<void> setHeadwindFullPowerWatts(int watts) => prefs.setInt('headwind_full_power_watts', watts);
+
+  /// The heart-rate ramp of a heart-rate-following Headwind.
+  int getHeadwindStartHeartRate() => prefs.getInt('headwind_start_heart_rate') ?? 100;
+  Future<void> setHeadwindStartHeartRate(int bpm) => prefs.setInt('headwind_start_heart_rate', bpm);
+  int getHeadwindFullHeartRate() => prefs.getInt('headwind_full_heart_rate') ?? 170;
+  Future<void> setHeadwindFullHeartRate(int bpm) => prefs.setInt('headwind_full_heart_rate', bpm);
 
   bool getNeedHelpCardDismissed() {
     return prefs.getBool('need_help_card_dismissed') ?? false;

@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -30,7 +32,7 @@ void main() {
   /// Follow on without the 1 Hz timer, so each test drives the ticks itself.
   Future<WahooKickrHeadwind> following() async {
     final device = fan();
-    device.followsPower.value = true;
+    device.follow.value = HeadwindFollow.power;
     return device;
   }
 
@@ -111,7 +113,7 @@ void main() {
 
     await device.setSpeed(75);
 
-    expect(device.followsPower.value, isFalse);
+    expect(device.followsPower, isFalse);
     expect(core.settings.getHeadwindFollowPower(), isFalse);
     expect(device.speed.value, 75);
   });
@@ -133,5 +135,110 @@ void main() {
     await device.setSpeed(60);
 
     expect(device.speed.value, 60);
+  });
+
+  group('ramp', () {
+    test('is off up to the start, full from the full point, even in between', () {
+      expect(WahooKickrHeadwind.speedForRamp(90, 100, 170), 0);
+      expect(WahooKickrHeadwind.speedForRamp(100, 100, 170), 0);
+      expect(WahooKickrHeadwind.speedForRamp(135, 100, 170), 50);
+      expect(WahooKickrHeadwind.speedForRamp(170, 100, 170), 100);
+      expect(WahooKickrHeadwind.speedForRamp(190, 100, 170), 100);
+    });
+
+    test('a power start point keeps the fan off at low watts', () async {
+      final device = await following();
+      await device.setStartPowerWatts(100);
+      watts = 80;
+
+      await device.powerTick();
+
+      expect(device.speed.value, 0);
+      expect(device.followInput.value, 80);
+    });
+
+    test('start and full points stay apart and are remembered', () async {
+      final device = fan();
+
+      await device.setStartPowerWatts(290);
+      expect(device.startPowerWatts.value, 300 - WahooKickrHeadwind.minPowerRampWatts);
+      await device.setFullPowerWatts(100);
+      expect(device.fullPowerWatts.value, 250 + WahooKickrHeadwind.minPowerRampWatts);
+
+      await device.setFullHeartRate(105);
+      expect(device.fullHeartRate.value, 100 + WahooKickrHeadwind.minHeartRateRamp);
+      expect(core.settings.getHeadwindFullHeartRate(), 110);
+    });
+  });
+
+  group('heart rate', () {
+    late int? bpm;
+
+    WahooKickrHeadwind hrFan() {
+      bpm = null;
+      final device = fan()..heartRateProvider = (() => bpm);
+      device.follow.value = HeadwindFollow.heartRate;
+      return device;
+    }
+
+    test('sets the fan from the heart rate on its ramp', () async {
+      final device = hrFan();
+      bpm = 135;
+
+      await device.followTick();
+
+      expect(writes, [
+        [0x04, 0x04],
+        [0x02, 50],
+      ]);
+      expect(device.followInput.value, 135);
+    });
+
+    test('no heart rate keeps the speed and clears the reading', () async {
+      final device = hrFan();
+
+      await device.followTick();
+
+      expect(writes, isEmpty);
+      expect(device.followInput.value, isNull);
+    });
+
+    test('switching to heart rate ends power following and is remembered', () async {
+      final device = await following();
+
+      await device.setFollowHeartRate(true);
+      expect(device.followsPower, isFalse);
+      expect(core.settings.getHeadwindFollow(), 'heartRate');
+
+      await device.setFollow(HeadwindFollow.none);
+    });
+
+    test('the controller heart-rate action follows the heart rate', () async {
+      final device = hrFan()..follow.value = HeadwindFollow.none;
+      bpm = 170;
+
+      await device.handleKeypair(
+        KeyPair(
+          buttons: const [],
+          physicalKey: null,
+          logicalKey: null,
+          inGameAction: InGameAction.headwindHeartRateMode,
+        ),
+        isKeyDown: true,
+      );
+
+      await pumpEventQueue();
+
+      expect(device.followsHeartRate, isTrue);
+      expect(device.speed.value, 100);
+      await device.setFollow(HeadwindFollow.none);
+    });
+  });
+
+  test('an old power-follow setting still reads as following power', () async {
+    SharedPreferences.setMockInitialValues({'headwind_follow_power': true});
+    core.settings.prefs = await SharedPreferences.getInstance();
+
+    expect(core.settings.getHeadwindFollow(), 'power');
   });
 }
