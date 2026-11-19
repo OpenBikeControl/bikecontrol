@@ -36,6 +36,10 @@ on:
 
 env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  # Pinned, not "latest": Flutter 3.50 crashes on Windows in ANGLE (flutter/flutter#196618).
+  # 7.6.1 picked it up the day it came out and crashed as soon as a trainer connected.
+  # Move on once a 3.50.x with the fix (flutter/flutter#196897) is out.
+  FLUTTER_VERSION: 3.47.9
 
 jobs:
   build:
@@ -90,6 +94,8 @@ jobs:
 
       - name: Set Up Flutter
         uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: Decode Keystore
         if: inputs.build_android
@@ -102,7 +108,7 @@ jobs:
         if: inputs.build_ios
         uses: shorebirdtech/shorebird-release@v1
         with:
-          flutter-version: latest
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: ios
           args: "--export-options-plist ios/ExportOptions.plist --obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
@@ -110,7 +116,7 @@ jobs:
         if: inputs.build_android
         uses: shorebirdtech/shorebird-release@v1
         with:
-          flutter-version: latest
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: android
           args: "--obfuscate --split-debug-info=symbols -- --dart-define=REVENUECAT_API_KEY_ANDROID=${{ secrets.REVENUECAT_API_KEY_ANDROID }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
@@ -118,7 +124,7 @@ jobs:
         if: inputs.build_mac
         uses: shorebirdtech/shorebird-release@v1
         with:
-          flutter-version: latest
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: macos
           args: "--obfuscate --split-debug-info=symbols -- --dart-define=VERIFYING_SHARED_SECRET=${{ secrets.VERIFYING_SHARED_SECRET }} --dart-define=REVENUECAT_API_KEY_IOS=${{ secrets.REVENUECAT_API_KEY_IOS }} --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
@@ -301,11 +307,13 @@ jobs:
 
       - name: Set Up Flutter
         uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - name: 🚀 Shorebird Release Windows
         uses: shorebirdtech/shorebird-release@v1
         with:
-          flutter-version: latest
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: windows
           args: "--obfuscate --split-debug-info=symbols-win -- --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
@@ -438,13 +446,15 @@ jobs:
       - name: Set Up Flutter
         if: matrix.shorebird
         uses: ./.github/actions/setup-flutter
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       # Flutter publishes no Linux arm64 SDK download, so the setup action
-      # can't install one there: use the stable branch from git.
+      # can't install one there: clone the pinned version from git.
       - name: Set Up Flutter (arm64)
         if: ${{ !matrix.shorebird }}
         run: |
-          git clone --depth 1 --branch stable https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
           echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
           echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
@@ -459,7 +469,7 @@ jobs:
         if: matrix.shorebird
         uses: shorebirdtech/shorebird-release@v1
         with:
-          flutter-version: latest
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           platform: linux
           args: "--obfuscate --split-debug-info=symbols-linux -- --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}"
 
