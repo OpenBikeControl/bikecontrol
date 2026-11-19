@@ -490,8 +490,10 @@ jobs:
           name: release-linux-${{ matrix.arch }}.zip
           token: ${{ secrets.SYMBOLS_UPLOAD_TOKEN }}
 
+  # linux-latest is what the website and the app's update check point at, so
+  # it's refreshed on every Linux build, not only when build_github is set.
   linux_publish:
-    if: inputs.build_linux && inputs.build_github
+    if: inputs.build_linux
     name: Publish Linux packages
     needs: linux
     runs-on: ubuntu-latest
@@ -519,6 +521,7 @@ jobs:
         run: echo "${VERSION%%+*}" > dist/VERSION.txt
 
       - name: Add to the version's release
+        if: inputs.build_github
         uses: ncipollo/release-action@v1
         with:
           artifacts: "dist/*.deb,dist/*.AppImage"
@@ -528,6 +531,17 @@ jobs:
           replacesArtifacts: false
           tag: v${{ env.VERSION }}
           token: ${{ github.token }}
+
+      # The release action only sets `commit` when it creates the tag, so an
+      # existing linux-latest tag would keep pointing at its first build.
+      - name: Move the linux-latest tag to this build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/linux-latest" \
+            -f sha="$GITHUB_SHA" -F force=true \
+          || gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f ref=refs/tags/linux-latest -f sha="$GITHUB_SHA"
 
       # Fixed file names under a fixed tag, so the download links on the
       # website and the app's update check never change.
