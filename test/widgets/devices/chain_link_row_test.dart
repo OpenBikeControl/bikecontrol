@@ -7,8 +7,13 @@ import 'package:bike_control/widgets/devices/chain_link_row.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/rendering.dart' show RenderParagraph;
+import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import '../../widget_snapshot.dart';
 
 /// The trainer-app link as Jonas saw it: a network method on, the advertised
 /// address flagged, the app not connected yet.
@@ -105,7 +110,10 @@ void _expectCtaInsideWithPadding(WidgetTester tester, String when) {
   );
 }
 
-void main() {
+Future<void> main() async {
+  // Real fonts: where the fix goes depends on how wide its label really is.
+  await ensureSnapshotHarness();
+
   testWidgets('the address step appearing on a checklist shows its button in full at once', (tester) async {
     final link = await _pump(tester, _appLink(addressWarning: false));
 
@@ -187,6 +195,73 @@ void main() {
     testWidgets('absent when the row opens nothing', (tester) async {
       await pumpRow(tester);
       expect(find.byKey(chainRowChevronKey), findsNothing);
+    });
+  });
+
+  // The store's Devices capture: "Lokale Steuerung aktivieren" beside the name
+  // took most of the row, squeezed "Trainer-App" to "Train…" and wrapped the
+  // status into a tall empty column. A fix that long goes under the hint.
+  group('where the step in front\'s fix goes', () {
+    Future<void> pumpRow(WidgetTester tester, String label) async {
+      tester.view.physicalSize = const Size(390, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final app = ShadcnApp(
+        locale: const Locale('de'),
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.light),
+        home: Scaffold(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: BkGroupedSection(
+              header: 'Trainer-App',
+              children: [
+                ChainLinkRow(
+                  link: _appLink(addressWarning: false),
+                  leading: const SizedBox(width: 30, height: 30),
+                  title: 'Trainer-App',
+                  subtitle: 'Netzwerk',
+                  appName: 'MyWhoosh',
+                  statusLabel: 'Warte auf Verbindung',
+                  onTap: () {},
+                  onInstructions: () {},
+                  instructionsLabel: label,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      // The real fonts: where the fix goes depends on how wide its label is.
+      await tester.pumpWidget(app);
+      await tester.pump();
+      await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
+      await remountWithLoadedFonts(tester, app);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a long label goes under the hint, and the name keeps its room', (tester) async {
+      await pumpRow(tester, 'Lokale Steuerung aktivieren');
+      final fix = tester.getRect(find.byKey(chainRowStepActionKey));
+      final title = tester.getRect(find.text('Trainer-App').last);
+      expect(fix.top, greaterThan(title.bottom), reason: 'under the header, not beside the name');
+      final name = tester.renderObject<RenderParagraph>(
+        find.descendant(of: find.text('Trainer-App').last, matching: find.byType(RichText)),
+      );
+      expect(name.didExceedMaxLines, isFalse, reason: 'the name is not cut off');
+    });
+
+    testWidgets('a short label sits at the end of the header', (tester) async {
+      await pumpRow(tester, 'Zeig mir wie');
+      final fix = tester.getRect(find.byKey(chainRowStepActionKey));
+      final title = tester.getRect(find.text('Trainer-App').last);
+      expect(fix.top, lessThan(title.bottom), reason: 'beside the name');
+      expect(fix.left, greaterThan(title.right));
     });
   });
 }
