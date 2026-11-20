@@ -970,6 +970,7 @@ class RidePromptCard extends StatelessWidget {
   const RidePromptCard({
     super.key,
     required this.icon,
+    this.glyph,
     required this.title,
     required this.body,
     this.bodyColor,
@@ -988,6 +989,9 @@ class RidePromptCard extends StatelessWidget {
   final Key? secondaryKey;
 
   final IconData icon;
+
+  /// A drawn mark in place of [icon] (the trainer's).
+  final Widget? glyph;
   final String title;
   final String body;
 
@@ -1019,7 +1023,14 @@ class RidePromptCard extends StatelessWidget {
               color: BkBrandColors.of(context).tileWash,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: BkBrandColors.of(context).tileInk),
+            child: glyph != null
+                ? Center(
+                    child: IconTheme(
+                      data: IconThemeData(size: 20, color: BkBrandColors.of(context).tileInk),
+                      child: glyph!,
+                    ),
+                  )
+                : Icon(icon, size: 20, color: BkBrandColors.of(context).tileInk),
           ),
           const Gap(12),
           Expanded(

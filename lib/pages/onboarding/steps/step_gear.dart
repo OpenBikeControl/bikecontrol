@@ -24,6 +24,7 @@ import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 
 /// The trainer the gear step's primary button connects: the only one found
 /// that isn't bridged or connecting yet. Null with none — or with several,
@@ -176,9 +177,9 @@ class _NoControllerState extends State<_NoController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(empty ? context.i18n.onboardingScanEmptyTitle : context.i18n.onboardingScanTitle)
-                        .small
-                        .semiBold,
+                    Text(
+                      empty ? context.i18n.onboardingScanEmptyTitle : context.i18n.onboardingScanTitle,
+                    ).small.semiBold,
                     Text(context.i18n.onboardingScanSubtitle).xSmall.muted,
                   ],
                 ),
@@ -229,7 +230,9 @@ class _TrainerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final bridged = trainers.any((t) => t.isBridged);
-    final divider = BoxDecoration(border: Border(top: BorderSide(color: cs.border)));
+    final divider = BoxDecoration(
+      border: Border(top: BorderSide(color: cs.border)),
+    );
     return Container(
       key: const ValueKey('onboarding-trainer-card'),
       clipBehavior: Clip.antiAlias,
@@ -313,7 +316,7 @@ class _TrainerRow extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: Row(
           children: [
-            BkIconTile(icon: onboardingTrainerIcon(t), color: t.isBridged ? status.success : null),
+            BkIconTile(glyph: const TrainerGlyph(), color: t.isBridged ? status.success : null),
             Gap(12),
             Expanded(
               child: Column(

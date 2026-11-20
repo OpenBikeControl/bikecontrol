@@ -1295,6 +1295,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       slot = RidePromptCard(
         key: const ValueKey('ride-vs-lost'),
         icon: LucideIcons.bike,
+        glyph: const TrainerGlyph(),
         title: trainer.name,
         body: l.chainStatusLostConnection,
         bodyColor: BkStatusColors.of(context).danger,

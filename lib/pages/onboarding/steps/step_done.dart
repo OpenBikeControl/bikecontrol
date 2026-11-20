@@ -15,6 +15,7 @@ import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/trainer_app_logo.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 
 /// Where the done step stands, in the order a rider has to fix things.
 enum OnboardingDoneState {
@@ -155,6 +156,8 @@ Widget onboardingDoneBody(
   // (leading, title, status, ok, action) — a bridge whose virtual trainer the
   // app hasn't picked up yet is honest about it instead of claiming "Bridged".
   Widget tile(IconData icon) => BkIconTile(icon: icon);
+  // The trainer as the drawn trainer, as on Home.
+  const trainerTile = BkIconTile(glyph: TrainerGlyph());
   // The app by its logo or initial, as in the app picker and on Home.
   final appMark = TrainerAppMark(name: app.name, logoAsset: app.logoAsset, logoUrl: app.logoUrl);
   final rows = <(Widget, String, String, bool, Widget?)>[
@@ -179,11 +182,12 @@ Widget onboardingDoneBody(
         : (appMark, app.name, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
     if (trainerName != null)
       selfHosted
-          ? (tile(LucideIcons.bike), trainerName, context.i18n.onboardingDeviceConnected, true, null)
+          ? (trainerTile, trainerName, context.i18n.onboardingDeviceConnected, true, null)
           : trainerAppConnected
-          ? (tile(LucideIcons.bike), trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
-          : (tile(LucideIcons.bike), trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
-    if (overlayOn) (tile(LucideIcons.layers), context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
+          ? (trainerTile, trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
+          : (trainerTile, trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
+    if (overlayOn)
+      (tile(LucideIcons.layers), context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
   ];
   return Column(
     crossAxisAlignment: CrossAxisAlignment.center,

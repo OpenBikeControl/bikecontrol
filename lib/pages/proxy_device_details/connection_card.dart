@@ -22,6 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:prop/prop.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 
 /// Explains BikeControl's virtual shifting versus the trainer app's own, so
 /// the user can pick a connect mode with the trade-offs in hand.
@@ -331,7 +332,12 @@ class _ConnectionCardState extends State<ConnectionCard> {
           : l10n.chainStatusConnecting;
       final title = widget.device.toString();
       return Basic(
-        leading: StatusIcon(icon: LucideIcons.bike, status: running, started: connecting),
+        leading: StatusIcon(
+          icon: LucideIcons.bike,
+          glyph: const TrainerGlyph(),
+          status: running,
+          started: connecting,
+        ),
         title: running ? Text(title).small.semiBold : Text(title).small.muted,
         subtitle: Text(status).xSmall.textMuted,
       );

@@ -51,28 +51,47 @@ class ControllerMark extends StatelessWidget {
 }
 
 /// The smart trainer's mark in a device row and the setup banner: a drawn
-/// direct-drive trainer — a solid disc with its hub, the flywheel, the
-/// A-frame — rather than Lucide's bicycle, which read as "a bike" more than
-/// "the trainer". Drawn bare, like the controllers' silhouettes.
+/// direct-drive trainer — the disc with its hub, the flywheel behind the
+/// front leg, the A-frame — rather than Lucide's bicycle, which read as "a
+/// bike" more than "the trainer". Outlined at the controller contours' line
+/// weight and drawn bare like them; filled, it outweighed them.
 class TrainerMark extends StatelessWidget {
   const TrainerMark({super.key, this.live = true, this.size = BkIconTile.defaultSize});
 
   /// The art, inline rather than an asset: a Shorebird patch can change
   /// Dart code but not assets, so this stays fixable after release.
-  /// 64-unit box: the disc (with the hub cut out) and the flywheel filled,
-  /// the legs and feet as round strokes.
+  /// 64-unit box, 1.8-unit round strokes; the flywheel's outline stops
+  /// where the front leg passes in front of it.
   static const String svg = '''
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <g fill="#000" fill-rule="evenodd">
-    <path d="M38 5a14 14 0 1 0 0.01 0Z M38 15.5a3.5 3.5 0 1 1 -0.01 0Z"/>
-    <circle cx="24" cy="42" r="8"/>
-  </g>
-  <g fill="none" stroke="#000" stroke-width="4.5" stroke-linecap="round">
-    <path d="M30 30L13 54"/>
-    <path d="M44 32L51 54"/>
-    <path d="M6 57.5H19M45 57.5H58"/>
+  <g fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M29.74 35.48A8.0 8.0 0 1 1 21.20 48.51"/>
+    <circle cx="27.0" cy="43.0" r="2.6"/>
+    <circle cx="38.0" cy="19.0" r="13.5"/>
+    <circle cx="38.0" cy="19.0" r="4"/>
+    <path d="M29.69 29.64L13.0 55.0"/>
+    <path d="M43.49 31.33L51.0 55.0"/>
+    <path d="M7.0 57.5H19.0M45.0 57.5H57.0"/>
   </g>
 </svg>''';
+
+  /// The same drawing for icon sizes (under [smallBelow]): strokes heavy
+  /// enough to survive 16 px, the hubs as dots rather than rings.
+  static const String svgSmall = '''
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <g fill="none" stroke="#000" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M30.82 35.97A8.0 8.0 0 1 1 22.07 49.30"/>
+    <circle cx="27.0" cy="43.0" r="2.2" fill="#000" stroke="none"/>
+    <circle cx="38.0" cy="19.0" r="13.5"/>
+    <circle cx="38.0" cy="19.0" r="3.4" fill="#000" stroke="none"/>
+    <path d="M29.69 29.64L13.0 55.0"/>
+    <path d="M43.49 31.33L51.0 55.0"/>
+    <path d="M7.0 57.5H19.0M45.0 57.5H57.0"/>
+  </g>
+</svg>''';
+
+  /// Edges under this draw [svgSmall].
+  static const double smallBelow = 26;
 
   /// Brand ink while it is connected and bridged; muted otherwise.
   final bool live;
@@ -83,13 +102,33 @@ class TrainerMark extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final brand = BkBrandColors.of(context);
+    // The controllers' contour inks, so the marks in one list match.
+    return TrainerGlyph(size: size, color: live ? brand.tileInk : cs.foreground.withValues(alpha: 0.62));
+  }
+}
+
+/// The smart trainer's drawing used like an [Icon]: anywhere the app means
+/// "the trainer" — the header chip, onboarding, a lost-trainer card — and
+/// not "riding" (the Ride tab, a bike's weight), which keeps Lucide's bike.
+/// Size and colour come from the surrounding [IconTheme] unless given.
+class TrainerGlyph extends StatelessWidget {
+  const TrainerGlyph({super.key, this.size, this.color});
+
+  final double? size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = IconTheme.of(context);
+    final edge = size ?? theme.size ?? 24;
+    final ink = color ?? theme.color ?? Theme.of(context).colorScheme.foreground;
     return ExcludeSemantics(
       child: SizedBox.square(
-        dimension: size,
+        dimension: edge,
         child: SvgPicture.string(
-          svg,
+          edge < TrainerMark.smallBelow ? TrainerMark.svgSmall : TrainerMark.svg,
           fit: BoxFit.contain,
-          colorFilter: ColorFilter.mode(live ? brand.tileInk : cs.mutedForeground, BlendMode.srcIn),
+          colorFilter: ColorFilter.mode(ink, BlendMode.srcIn),
         ),
       ),
     );

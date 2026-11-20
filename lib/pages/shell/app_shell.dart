@@ -36,6 +36,7 @@ import 'package:flutter/rendering.dart'
         RenderBoxContainerDefaultsMixin,
         RenderObjectVisitor;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 
 /// The app's four top-level sections.
 enum AppSection {
@@ -748,7 +749,12 @@ class _ShellDeviceChipsState extends State<ShellDeviceChips> {
                     ? trainer.displayName(context)
                     : AppLocalizations.of(context).shellTrainerChipLabel(trainer.displayName(context), appName),
                 children: [
-                  Icon(trainer.icon, size: 14, color: cs.foreground),
+                  // A smart trainer as the drawn trainer; a power meter or
+                  // HR strap bridged instead keeps its own glyph.
+                  if (trainer.icon == LucideIcons.bike)
+                    TrainerGlyph(size: 16, color: cs.foreground)
+                  else
+                    Icon(trainer.icon, size: 14, color: cs.foreground),
                   Flexible(
                     child: Text(
                       trainer.displayName(context),

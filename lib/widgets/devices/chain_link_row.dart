@@ -477,8 +477,10 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                     widget.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: typography.base.copyWith(
-                      fontWeight: FontWeight.w600,
+                    // The grouped rows' title — an accessory's or "Connect
+                    // controllers" in the same list — not a heading of its own.
+                    style: typography.small.copyWith(
+                      fontWeight: FontWeight.w500,
                       color: widget.titleColor ?? cs.foreground,
                     ),
                   ),
