@@ -670,10 +670,18 @@ class _ButtonList extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final buttons = device.availableButtons.distinctBy((b) => b.name).toList();
-    // Its first trigger that does something: the action at the row's end,
-    // the trigger under the name unless a single click.
+    // A row per trigger that does something — a single click, a double
+    // click, a long press — the action at the row's end, the trigger under
+    // the name unless a single click. A button that does nothing still gets
+    // its row, with a dash.
+    List<ButtonTrigger?> triggersOf(ControllerButton button) {
+      final active = mappingActiveTriggers(keymap, button);
+      return active.isEmpty ? const [null] : active;
+    }
+
     final rows = [
-      for (final button in buttons) (button: button, trigger: mappingActiveTriggers(keymap, button).firstOrNull),
+      for (final button in buttons)
+        for (final trigger in triggersOf(button)) (button: button, trigger: trigger),
     ];
     KeyPair? pairOf(({ControllerButton button, ButtonTrigger? trigger}) row) =>
         row.trigger == null ? null : keymap.getKeyPair(row.button, trigger: row.trigger!);
@@ -692,7 +700,12 @@ class _ButtonList extends StatelessWidget {
               final action = pair == null || pair.waitsForConnectionMethod ? null : pair.actionLabel;
               final triggerName = trigger != null && trigger != ButtonTrigger.singleClick ? trigger.title : null;
               return BkTappable(
-                key: ValueKey('ride-button-row-${button.name}'),
+                key: ValueKey(
+                  // The button's first row keeps the plain key.
+                  trigger == triggersOf(button).first
+                      ? 'ride-button-row-${button.name}'
+                      : 'ride-button-row-${button.name}-${trigger!.name}',
+                ),
                 onPressed: () => showTriggerAssignmentPopup(
                   context: context,
                   device: device,
@@ -700,7 +713,9 @@ class _ButtonList extends StatelessWidget {
                   keymap: keymap,
                   onUpdate: onUpdate,
                 ),
-                label: context.i18n.a11yEditButtonMapping(button.displayName),
+                label: context.i18n.a11yEditButtonMapping(
+                  triggerName == null ? button.displayName : '${button.displayName}, $triggerName',
+                ),
                 excludeChildSemantics: true,
                 borderRadius: BorderRadius.circular(8),
                 // The cards' hover and pressed washes: the row opens its

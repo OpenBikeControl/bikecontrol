@@ -33,6 +33,13 @@ Future<void> main() async {
           trigger: ButtonTrigger.longPress,
         ),
         KeyPair(buttons: [right], physicalKey: null, logicalKey: null, inGameAction: InGameAction.shiftUp),
+        KeyPair(
+          buttons: [right],
+          physicalKey: null,
+          logicalKey: null,
+          inGameAction: InGameAction.shiftDown,
+          trigger: ButtonTrigger.doubleClick,
+        ),
       ],
     );
     final device = ZwiftPlay(
@@ -86,5 +93,20 @@ Future<void> main() async {
     final row = find.byKey(ValueKey('ride-button-row-${right.name}'));
     expect(find.descendant(of: row, matching: find.text(InGameAction.shiftUp.title)), findsOneWidget);
     expect(find.descendant(of: row, matching: find.text(l.triggerSingleClick)), findsNothing);
+  });
+
+  testWidgets('a double click gets its own row under the single click', (tester) async {
+    final l = await pump(tester);
+    final single = find.byKey(ValueKey('ride-button-row-${right.name}'));
+    final double = find.byKey(ValueKey('ride-button-row-${right.name}-${ButtonTrigger.doubleClick.name}'));
+    expect(double, findsOneWidget);
+    expect(find.descendant(of: double, matching: find.text(InGameAction.shiftDown.title)), findsOneWidget);
+    expect(find.descendant(of: double, matching: find.text(l.triggerDoubleClick)), findsOneWidget);
+    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(single).bottom - 1));
+  });
+
+  test("a button's device id is left off while no other controller has that button", () {
+    const button = ControllerButton('shiftUp', sourceDeviceId: 'AA:BB:C9:E9');
+    expect(button.displayName, 'Shift Up');
   });
 }

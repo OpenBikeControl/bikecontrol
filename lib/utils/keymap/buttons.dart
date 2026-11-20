@@ -12,6 +12,7 @@ import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_bike_shift.dart
 import 'package:bike_control/bluetooth/devices/wheeltop/wheeltop_eds.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -271,8 +272,11 @@ class ControllerButton {
     );
   }
 
+  /// The name, and the end of its controller's id when another controller
+  /// the app knows (connected or remembered) has a button of the same name —
+  /// two Cycplus remotes each have a "Shift Up". With one, the id is noise.
   String get displayName {
-    if (sourceDeviceId == null) {
+    if (sourceDeviceId == null || !_nameSharedWithAnotherController) {
       return name.splitByUpperCase();
     }
 
@@ -280,6 +284,13 @@ class ControllerButton {
         ? sourceDeviceId!
         : sourceDeviceId!.substring(sourceDeviceId!.length - _deviceIdSuffixLength);
     return '${name.splitByUpperCase()} (${shortenedId.toUpperCase()})';
+  }
+
+  bool get _nameSharedWithAnotherController {
+    final connection = core.connection;
+    return [...connection.controllerDevices, ...connection.offlineControllers].any(
+      (d) => d.uniqueId != sourceDeviceId && d.availableButtons.any((b) => b.name == name),
+    );
   }
 
   /// Uppercase initials derived from the camelCase [name].
