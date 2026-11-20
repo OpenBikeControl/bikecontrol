@@ -89,7 +89,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
       final res = await _controller.show(
         widget.definition,
         _fields,
-        liveDef: () => widget.device.fitnessBike,
+        liveDef: widget.device.fitnessBikeListenable,
       );
       if (mounted) setState(() => _enabled = res.ok);
     }

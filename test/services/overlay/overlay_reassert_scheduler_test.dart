@@ -19,7 +19,7 @@ class _FakeController implements TrainerOverlayController {
 
   @override
   Future<OverlayShowResult> show(FitnessBikeDefinition def, Set<OverlayField> fields,
-          {LiveDefinitionLookup? liveDef}) async =>
+          {LiveDefinition? liveDef}) async =>
       const OverlayShowResult.ok();
   @override
   Future<void> hide() async {}
