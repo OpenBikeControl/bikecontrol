@@ -9,6 +9,9 @@ import 'package:bike_control/services/support_chat_models.dart';
 import 'package:bike_control/services/support_chat_service.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/utils/keymap/apps/rouvy.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -202,5 +205,60 @@ Future<void> main() async {
     await pump(tester, const IntakeAnswers(category: IntakeCategory.somethingElse));
     expect(find.text(l10n.supportIntakeDidThisSolveIt), findsNothing);
     expect(find.text(l10n.supportIntakeContinue), findsOneWidget);
+  });
+
+  group('MyWhoosh on another device can switch to Bluetooth', () {
+    const cantFind = IntakeAnswers(
+      category: IntakeCategory.trainerApp,
+      subcategory: 'app',
+      subcategoryValue: 'MyWhoosh',
+      symptom: 'network_bridge_fails',
+    );
+
+    testWidgets('beside the network test, with what it gives', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      await core.settings.setLastTarget(Target.otherDevice);
+      await pump(tester, cantFind);
+      expect(find.text(l10n.intakeSelfHelpNetworkAction), findsOneWidget);
+      expect(find.text(l10n.bluetoothFallbackAction), findsOneWidget);
+      expect(find.text(l10n.bluetoothFallbackBody('MyWhoosh')), findsOneWidget);
+    });
+
+    testWidgets('also when BikeControl shifts and MyWhoosh does not react', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      await core.settings.setLastTarget(Target.otherDevice);
+      await pump(
+        tester,
+        const IntakeAnswers(
+          category: IntakeCategory.trainerApp,
+          subcategory: 'app',
+          subcategoryValue: 'MyWhoosh',
+          symptom: 'shifts_not_recognized',
+        ),
+      );
+      expect(find.text(l10n.bluetoothFallbackAction), findsOneWidget);
+    });
+
+    testWidgets('not on the same device', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      await core.settings.setLastTarget(Target.thisDevice);
+      await pump(tester, cantFind);
+      expect(find.text(l10n.bluetoothFallbackAction), findsNothing);
+    });
+
+    testWidgets('not once Bluetooth is on', (tester) async {
+      core.settings.setTrainerApp(MyWhoosh());
+      await core.settings.setLastTarget(Target.otherDevice);
+      await core.settings.setBc2BleEnabled(true);
+      await pump(tester, cantFind);
+      expect(find.text(l10n.bluetoothFallbackAction), findsNothing);
+    });
+
+    testWidgets('not for an app without it', (tester) async {
+      core.settings.setTrainerApp(Rouvy());
+      await core.settings.setLastTarget(Target.otherDevice);
+      await pump(tester, cantFind);
+      expect(find.text(l10n.bluetoothFallbackAction), findsNothing);
+    });
   });
 }
