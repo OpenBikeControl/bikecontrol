@@ -272,6 +272,9 @@ class ControllerButton {
     );
   }
 
+  /// The name alone, for where its controller is already named (its own card).
+  String get plainName => name.splitByUpperCase();
+
   /// The name, and the end of its controller's id when another controller
   /// the app knows (connected or remembered) has a button of the same name —
   /// two Cycplus remotes each have a "Shift Up". With one, the id is noise.

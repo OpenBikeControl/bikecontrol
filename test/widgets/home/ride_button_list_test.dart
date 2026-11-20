@@ -95,14 +95,17 @@ Future<void> main() async {
     expect(find.descendant(of: row, matching: find.text(l.triggerSingleClick)), findsNothing);
   });
 
-  testWidgets('a double click gets its own row under the single click', (tester) async {
+  testWidgets('a double click is a line under the single click, the name said once', (tester) async {
     final l = await pump(tester);
-    final single = find.byKey(ValueKey('ride-button-row-${right.name}'));
+    final block = find.byKey(ValueKey('ride-button-row-${right.name}'));
     final double = find.byKey(ValueKey('ride-button-row-${right.name}-${ButtonTrigger.doubleClick.name}'));
-    expect(double, findsOneWidget);
+    expect(find.descendant(of: block, matching: double), findsOneWidget);
     expect(find.descendant(of: double, matching: find.text(InGameAction.shiftDown.title)), findsOneWidget);
     expect(find.descendant(of: double, matching: find.text(l.triggerDoubleClick)), findsOneWidget);
-    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(single).bottom - 1));
+    // The name once, for both.
+    final name = find.descendant(of: block, matching: find.text(right.plainName));
+    expect(name, findsOneWidget);
+    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
   });
 
   test("a button's device id is left off while no other controller has that button", () {
