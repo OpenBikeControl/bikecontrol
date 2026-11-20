@@ -109,4 +109,21 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('flat, on a phone, the "every app" scene stays inside its height', (tester) async {
+    // In the onboarding trainer card the two chip lists wrapped and ran over
+    // the caption below.
+    core.settings.setTrainerApp(Zwift());
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(tester, const VirtualShiftingStage(flat: true));
+    expect(tester.takeException(), isNull);
+    final caption = tester.getRect(find.text(l.vsStageAppsLabel));
+    final chips = find.text('Wahoo KICKR');
+    expect(chips, findsOneWidget);
+    for (final chip in [chips, find.text('Zwift')]) {
+      expect(tester.getRect(chip).bottom, lessThanOrEqualTo(caption.top), reason: 'over the caption');
+    }
+  });
 }
