@@ -70,9 +70,9 @@ class _Host extends StatelessWidget {
   }
 }
 
-Future<ValueNotifier<ChainLink>> _pump(WidgetTester tester, ChainLink initial) async {
+Future<ValueNotifier<ChainLink>> _pump(WidgetTester tester, ChainLink initial, {double width = 390}) async {
   // Jonas's phone: ~390 dp wide, German, dark.
-  tester.view.physicalSize = const Size(390, 2000);
+  tester.view.physicalSize = Size(width, 2000);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final link = ValueNotifier(initial);
@@ -329,5 +329,53 @@ Future<void> main() async {
     expect(find.byIcon(LucideIcons.circle), findsNothing);
     await tester.tap(offer);
     expect(offered, 1);
+  });
+
+  // "Öffne die App …" and its button sat centred under the name on a wide
+  // window: the checklist's slide was anchored top-centre, and a checklist
+  // narrower than the row (a one-line hint) took that centre — at rest too.
+  testWidgets('a checklist narrower than the row stays at the row\'s text edge', (tester) async {
+    // A desktop window and the real font, so the hint fits one line.
+    tester.view.physicalSize = const Size(1100, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final app = ShadcnApp(
+      locale: const Locale('de'),
+      localizationsDelegates: [
+        ...ShadcnLocalizations.localizationsDelegates,
+        const OtherLocalizationsDelegate(),
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
+      theme: BkTheme.build(Brightness.light),
+      home: Scaffold(
+        child: BkGroupedSection(
+          key: const ValueKey('section'),
+          children: [
+            ChainLinkRow(
+              link: _appLink(addressWarning: false),
+              leading: const BkIconTile(icon: LucideIcons.monitor),
+              title: 'MyWhoosh',
+              appName: 'MyWhoosh',
+              statusLabel: 'Warte auf MyWhoosh',
+              onInstructions: () {},
+              instructionsLabel: 'Fehler beheben',
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(app);
+    await tester.pump();
+    await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
+    await remountWithLoadedFonts(tester, app);
+    await tester.pumpAndSettle();
+
+    final title = tester.getRect(find.text('MyWhoosh').last);
+    final hint = tester.getRect(find.textContaining('Kopplungsbildschirm'));
+    final card = _card(tester);
+    expect(hint.width, lessThan(card.width - chainRowTextInset * 2), reason: 'the hint is narrower than the row');
+    expect(hint.left, moreOrLessEquals(title.left, epsilon: 1));
+    expect(tester.getRect(find.byKey(chainRowStepActionKey)).left, moreOrLessEquals(title.left, epsilon: 1));
   });
 }

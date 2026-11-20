@@ -340,8 +340,8 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   Widget _laterStep(BuildContext context, ChainLink link, SetupStep step) {
     final cs = Theme.of(context).colorScheme;
     final text = chainStepText(context, step, appName: widget.appName);
-    final offer = link.standby ? null : widget.offerLabel?.call(step);
-    final actionable = step.optional && offer != null && widget.onOffer != null;
+    final offer = _offerFor(link, step);
+    final actionable = step.optional && offer != null;
     final accent = bkAccentText(context);
     final style = context.typography.small.copyWith(
       color: actionable ? accent : cs.mutedForeground,
@@ -356,7 +356,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
           if (step.optional)
             TextSpan(
               text: '${context.i18n.chainOptional}: ',
-              style: TextStyle(color: actionable ? cs.mutedForeground : cs.foreground, fontWeight: FontWeight.w500),
+              style: TextStyle(color: cs.mutedForeground, fontWeight: FontWeight.w500),
             ),
           TextSpan(text: actionable ? offer : text.label),
           // After the last word, wherever the line wraps — not out at the
@@ -389,6 +389,10 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
             ),
     );
   }
+
+  /// What tapping [step]'s line does, or null when it has no action.
+  String? _offerFor(ChainLink link, SetupStep step) =>
+      link.standby || widget.onOffer == null ? null : widget.offerLabel?.call(step);
 
   /// The waiting steps' titles only ever restate the status ("Waiting for
   /// MyWhoosh …" over "Waiting for MyWhoosh"); their hint is what's new.

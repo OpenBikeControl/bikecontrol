@@ -629,7 +629,13 @@ void _twoPairingsTests() {
       await _pumpHome(tester);
 
       expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh', trainer.advertisementName)), findsOneWidget);
-      expect(statusText(l.onboardingSummaryWaitingFor('MyWhoosh')), findsNothing);
+      expect(
+        find.descendant(
+          of: _chainCard(ChainLinkKey.trainer),
+          matching: statusText(l.chainStatusWaitingForApp('MyWhoosh')),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('trainer card: with the app not connected at all, the status keeps waiting for it', (tester) async {
@@ -637,7 +643,14 @@ void _twoPairingsTests() {
 
       await _pumpHome(tester);
 
-      expect(statusText(l.onboardingSummaryWaitingFor('MyWhoosh')), findsOneWidget);
+      // The trainer app's card says the same words; this is the trainer's.
+      expect(
+        find.descendant(
+          of: _chainCard(ChainLinkKey.trainer),
+          matching: statusText(l.chainStatusWaitingForApp('MyWhoosh')),
+        ),
+        findsOneWidget,
+      );
       expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh', trainer.advertisementName)), findsNothing);
     });
 
@@ -712,7 +725,7 @@ void _selfHostedTrainerTests() {
         findsNothing,
       );
       expect(statusText(l.chainStatusWaitingForPickup('BikeControl', trainer.advertisementName)), findsNothing);
-      expect(statusText(l.onboardingSummaryWaitingFor('BikeControl')), findsNothing);
+      expect(statusText(l.chainStatusWaitingForApp('BikeControl')), findsNothing);
       expect(statusText(l.connected), findsOneWidget);
     });
 
@@ -724,8 +737,8 @@ void _selfHostedTrainerTests() {
       await _pumpHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);
-      expect(find.descendant(of: card, matching: find.text(l.connectionWifi)), findsNothing);
-      expect(find.descendant(of: card, matching: find.text(l.connectionBluetooth)), findsNothing);
+      expect(find.descendant(of: card, matching: find.text(l.onboardingMethodNetwork)), findsNothing);
+      expect(find.descendant(of: card, matching: find.text(l.onboardingMethodBluetooth)), findsNothing);
     });
   });
 }
@@ -1817,7 +1830,7 @@ void _droppedAppTests() {
         matching: find.byType(BkStatusDot),
       );
       expect(
-        find.descendant(of: trainerStatus, matching: find.text(l.onboardingSummaryWaitingFor('MyWhoosh'))),
+        find.descendant(of: trainerStatus, matching: find.text(l.chainStatusWaitingForApp('MyWhoosh'))),
         findsOneWidget,
       );
       expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
@@ -1830,12 +1843,13 @@ void _droppedAppTests() {
         tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer)).link.activeStep?.id,
         SetupStepId.trainerAppBridged,
       );
+      // Once, as the status — the step's title would only say it again.
       expect(
         find.descendant(
           of: _chainCard(ChainLinkKey.trainer),
           matching: find.text(l.chainStepTrainerBridgedPending('MyWhoosh', trainer.advertisementName)),
         ),
-        findsNothing,
+        findsOneWidget,
       );
 
       expect(pushed.routes, isNotEmpty);
@@ -1875,12 +1889,13 @@ void _droppedAppTests() {
         tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer)).link.activeStep?.id,
         SetupStepId.trainerAppBridged,
       );
+      // Once, as the status — the step's title would only say it again.
       expect(
         find.descendant(
           of: _chainCard(ChainLinkKey.trainer),
           matching: find.text(l.chainStepTrainerBridgedPending('MyWhoosh', trainer.advertisementName)),
         ),
-        findsNothing,
+        findsOneWidget,
       );
 
       await tester.pumpWidget(const SizedBox());

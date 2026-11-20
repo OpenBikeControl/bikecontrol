@@ -1840,7 +1840,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // trainer entry up — the other half of its pairing screen.
           : appReady
           ? l.chainStatusWaitingForPickup(appName, proxy!.advertisementName)
-          : l.onboardingSummaryWaitingFor(appName);
+          // The same words as the trainer app's card: both wait on one thing.
+          : l.chainStatusWaitingForApp(appName);
     } else if (appReady && inputs.app.name != null) {
       // Only vouch for the app handling shifting when the app is actually
       // working — otherwise this row would excuse a broken link.
@@ -1926,10 +1927,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  /// How the trainer app reaches the bridged trainer.
+  /// How the trainer app reaches the bridged trainer — in the trainer app
+  /// card's words ("Network", not "WiFi"), since it is the same connection.
   String? _bridgeTransport(ProxyDevice proxy) => switch (proxy.retrofitMode.value) {
-    RetrofitMode.bluetooth => context.i18n.connectionBluetooth,
-    RetrofitMode.wifi => context.i18n.connectionWifi,
+    RetrofitMode.bluetooth => context.i18n.onboardingMethodBluetooth,
+    RetrofitMode.wifi => context.i18n.onboardingMethodNetwork,
     RetrofitMode.proxy => null,
   };
 
