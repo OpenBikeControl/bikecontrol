@@ -23,7 +23,7 @@ void main() {
     await _pump(tester, ControllerMark(device: click));
     final svg = tester.widget<SvgPicture>(find.byType(SvgPicture));
     expect((svg.bytesLoader as SvgAssetLoader).assetName, click.controllerLayout.svgAsset);
-    expect(tester.getSize(find.byType(ControllerMark)), const Size.square(BkIconTile.size));
+    expect(tester.getSize(find.byType(ControllerMark)), const Size.square(BkIconTile.defaultSize));
   });
 
   testWidgets('one without falls back to the one controller glyph', (tester) async {
@@ -32,5 +32,14 @@ void main() {
     await _pump(tester, ControllerMark(device: sterzo));
     expect(find.byType(SvgPicture), findsNothing);
     expect(tester.widget<BkIconTile>(find.byType(BkIconTile)).icon, LucideIcons.gamepad2);
+  });
+
+  // Shorebird patches change Dart, not assets: the trainer's drawing has to
+  // live in code to stay fixable after release.
+  testWidgets('the trainer mark is drawn from code, not an asset', (tester) async {
+    await _pump(tester, const TrainerMark(size: deviceMarkSize));
+    final svg = tester.widget<SvgPicture>(find.byType(SvgPicture));
+    expect(svg.bytesLoader, isA<SvgStringLoader>());
+    expect(tester.getSize(find.byType(TrainerMark)), const Size.square(deviceMarkSize));
   });
 }

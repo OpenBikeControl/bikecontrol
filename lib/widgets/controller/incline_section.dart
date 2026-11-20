@@ -29,7 +29,7 @@ class InclineSection extends StatelessWidget {
 
   final ManualInclineDevice device;
 
-  static const double _indent = BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap;
+  static const double _indent = BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap;
 
   Future<void> _apply(InGameAction action) async {
     try {

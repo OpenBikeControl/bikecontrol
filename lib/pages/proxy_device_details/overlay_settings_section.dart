@@ -183,7 +183,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
             BkGroupedRow(icon: LucideIcons.blend, title: l10n.overlayOpacity, subtitle: l10n.overlayOpacitySubtitle),
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
+                BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap,
                 0,
                 BkGroupedSection.inset,
                 12,
@@ -229,7 +229,7 @@ class _OverlaySettingsSectionState extends State<OverlaySettingsSection> {
   Widget _fieldRow(OverlayField f, String label) {
     final on = _fields.contains(f);
     return BkGroupedRow(
-      leading: const SizedBox(width: BkIconTile.size),
+      leading: const SizedBox(width: BkIconTile.defaultSize),
       title: label,
       trailing: Switch(value: on, onChanged: (v) => _toggleField(f, v)),
       onPressed: () => _toggleField(f, !on),

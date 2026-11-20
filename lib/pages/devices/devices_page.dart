@@ -120,7 +120,7 @@ class ShareSensorsSection extends StatelessWidget {
                 if (on && quantities.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
+                      BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap,
                       0,
                       BkGroupedSection.inset,
                       12,

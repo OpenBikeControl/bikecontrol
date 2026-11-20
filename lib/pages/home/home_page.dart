@@ -1121,7 +1121,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final device = _controllerById(link.deviceId);
         return device == null ? null : ControllerMark(device: device);
       case ChainLinkKey.trainer:
-        return const BkIconTile(icon: LucideIcons.bike);
+        return const TrainerMark();
       case ChainLinkKey.app:
         final app = core.settings.getTrainerApp();
         return app == null ? null : TrainerAppMark(name: app.name, logoAsset: app.logoAsset, logoUrl: app.logoUrl);
@@ -1622,8 +1622,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// The icon tile of a device row, faded while the device is not here.
-  Widget _tile(IconData icon, {required bool live}) =>
-      BkIconTile(icon: icon, color: live ? null : Theme.of(context).colorScheme.mutedForeground);
+  Widget _tile(IconData icon, {required bool live}) => BkIconTile(
+    icon: icon,
+    color: live ? null : Theme.of(context).colorScheme.mutedForeground,
+    size: deviceMarkSize,
+  );
 
   /// "Scanning · Wake it with a button press first." while a scan runs.
   Widget _connectControllersRow() {
@@ -1670,7 +1673,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       link: link,
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
-      leading: ControllerMark(device: device, live: connected, size: 40),
+      leading: ControllerMark(device: device, live: connected, size: deviceMarkSize),
       title: link.title,
       subtitle: _controllerSubtitle(device),
       statusLabel: _controllerStatusLabel(link, device),
@@ -1890,7 +1893,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Nullable on purpose: the step wording falls back to "Trainer app"
       // itself, and the overlay step has a sentence of its own for that case.
       appName: inputs.app.name,
-      leading: _tile(LucideIcons.bike, live: link.status == LinkStatus.ready || bridged),
+      leading: TrainerMark(live: link.status == LinkStatus.ready || bridged, size: deviceMarkSize),
       title: link.title.isEmpty ? l.chainTrainerTitle : link.title,
       // How another app reaches the bridge. With BikeControl as the trainer
       // app nothing is handed to another app, so "WiFi" would mislead.
@@ -2064,7 +2067,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       leading: app != null
-          ? TrainerAppMark(name: app.name, logoAsset: logo, logoUrl: app.logoUrl)
+          ? TrainerAppMark(name: app.name, logoAsset: logo, logoUrl: app.logoUrl, size: deviceMarkSize)
           : _tile(LucideIcons.monitor, live: false),
       title: link.title.isEmpty ? l.chainAppTitle : link.title,
       subtitle: app == null ? null : connectionMethodSummary(context),

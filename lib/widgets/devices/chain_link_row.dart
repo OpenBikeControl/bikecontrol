@@ -10,6 +10,7 @@ import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart' show deviceMarkSize;
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -28,7 +29,7 @@ BkStatusTone chainStatusTone(LinkStatus status) => switch (status) {
 };
 
 /// Where a link row's text starts: the row inset, the icon tile and the gap.
-const double chainRowTextInset = BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap;
+const double chainRowTextInset = BkGroupedSection.inset + deviceMarkSize + BkGroupedRow.gap;
 
 /// The chevron a row with somewhere to go ends its header with.
 const Key chainRowChevronKey = ValueKey('chain-row-chevron');
@@ -459,11 +460,11 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset, vertical: 10),
         child: Row(
           children: [
-            // A 30 px slot, as the text inset assumes; a larger mark (a
-            // controller's silhouette) spills evenly into the space around it.
+            // Every device list's mark has this one slot, so every row's text
+            // starts at [chainRowTextInset].
             SizedBox.square(
-              dimension: BkIconTile.size,
-              child: OverflowBox(maxWidth: 48, maxHeight: 48, child: widget.leading),
+              dimension: deviceMarkSize,
+              child: Center(child: widget.leading),
             ),
             const Gap(BkGroupedRow.gap),
             Expanded(
@@ -615,7 +616,7 @@ class DeviceAddRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = bkAccentText(context);
     return BkGroupedRow(
-      leading: BkIconTile(icon: icon ?? LucideIcons.plus, color: accent),
+      leading: BkIconTile(icon: icon ?? LucideIcons.plus, color: accent, size: deviceMarkSize),
       title: title,
       subtitle: subtitle,
       titleColor: accent,

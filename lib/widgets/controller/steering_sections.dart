@@ -140,7 +140,7 @@ class SteeringSections extends StatefulWidget {
 }
 
 class _SteeringSectionsState extends State<SteeringSections> {
-  static const double _indent = BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap;
+  static const double _indent = BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap;
 
   SteeringDevice get _steering => widget.device as SteeringDevice;
 

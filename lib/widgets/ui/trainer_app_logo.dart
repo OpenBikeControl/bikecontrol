@@ -49,7 +49,7 @@ class TrainerAppLogo extends StatelessWidget {
 /// Styled like [BkIconTile], so it sits in a row of icon tiles; [size]
 /// defaults to theirs.
 class TrainerAppMonogram extends StatelessWidget {
-  const TrainerAppMonogram({super.key, required this.name, this.size = BkIconTile.size, this.live = true});
+  const TrainerAppMonogram({super.key, required this.name, this.size = BkIconTile.defaultSize, this.live = true});
 
   final String name;
   final double size;
@@ -89,19 +89,28 @@ class TrainerAppMonogram extends StatelessWidget {
 /// ([TrainerAppMonogram]). Shared by the home screen's trainer-app row and the
 /// onboarding's checklist, so an app looks the same in both.
 class TrainerAppMark extends StatelessWidget {
-  const TrainerAppMark({super.key, required this.name, this.logoAsset, this.logoUrl});
+  const TrainerAppMark({
+    super.key,
+    required this.name,
+    this.logoAsset,
+    this.logoUrl,
+    this.size = BkIconTile.defaultSize,
+  });
 
   final String name;
   final String? logoAsset;
   final String? logoUrl;
 
+  /// The mark's edge; the device lists draw it at `deviceMarkSize`.
+  final double size;
+
   @override
   Widget build(BuildContext context) {
     final logo = logoAsset;
-    if (logo == null) return TrainerAppMonogram(name: name);
+    if (logo == null) return TrainerAppMonogram(name: name, size: size);
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: TrainerAppLogo(asset: logo, url: logoUrl, width: BkIconTile.size, height: BkIconTile.size),
+      borderRadius: BorderRadius.circular(size * 0.27),
+      child: TrainerAppLogo(asset: logo, url: logoUrl, width: size, height: size),
     );
   }
 }

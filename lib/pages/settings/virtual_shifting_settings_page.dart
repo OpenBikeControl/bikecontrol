@@ -448,7 +448,7 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
     Widget teethRow(String label, int value, {required int min, required int max, required ValueChanged<int> set}) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(
-          BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
+          BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap,
           4,
           BkGroupedSection.inset,
           4,

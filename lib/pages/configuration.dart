@@ -154,8 +154,8 @@ class _OpenBikeControlNote extends StatelessWidget {
           children: [
             ExcludeSemantics(
               child: Container(
-                width: BkIconTile.size,
-                height: BkIconTile.size,
+                width: BkIconTile.defaultSize,
+                height: BkIconTile.defaultSize,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(8)),
                 child: OpenBikeControlLogo(size: 18, color: bkAccentText(context)),
@@ -217,7 +217,12 @@ class TrainerAppCard extends StatelessWidget {
           if (logo != null && (!screenshotMode || showRealName))
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: TrainerAppLogo(asset: logo, url: app?.logoUrl, width: BkIconTile.size, height: BkIconTile.size),
+              child: TrainerAppLogo(
+                asset: logo,
+                url: app?.logoUrl,
+                width: BkIconTile.defaultSize,
+                height: BkIconTile.defaultSize,
+              ),
             )
           else
             const BkIconTile(icon: LucideIcons.monitor),
