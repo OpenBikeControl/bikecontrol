@@ -775,6 +775,57 @@ Future<VideoCapture> _filmCompanion(WidgetTester tester, _Studio studio) async {
   return rec.capture;
 }
 
+// ── 4b. Companion ride mode ───────────────────────────────────────────────
+
+/// Trainer Controls as it opens in 7.6: ride mode, a big + and − with the
+/// gear, power, cadence and ratio between them, shifting BikeControl's own
+/// virtual shifting on the bridged trainer while the rider pedals. Then the
+/// layout is edited (a reading removed, the + resized) and the page goes full
+/// screen for one more shift.
+Future<VideoCapture> _filmCompanionRideMode(WidgetTester tester, _Studio studio) async {
+  await _resetApp();
+  await _connectMyWhoosh(tester, studio);
+  final trainer = await _bridgeTrainer(tester, studio);
+  core.actionHandler = FilmActions()..init(core.settings.getTrainerApp());
+  const watts = [212, 218, 224, 221, 216, 226, 231, 228, 219, 223, 217, 225];
+  _pedal(studio, watts: (second) => watts[second % watts.length]);
+  await tester.pump(const Duration(seconds: 1));
+  final def = trainer.fitnessBike!;
+
+  final boundary = GlobalKey();
+  final rec = await _roll(tester, boundary, () => const ButtonSimulator());
+  await rec.frames(_endHold);
+
+  Finder tile(String id) => find.byKey(ValueKey('companion-tile-$id'));
+  Future<void> shift(String id, String label) async {
+    final before = def.currentGear.value;
+    await rec.tap(tile(id), label, thenFrames: 30);
+    expect(def.currentGear.value, isNot(before), reason: '"$label" should change the gear');
+  }
+
+  await shift('t0', 'Shift up');
+  await shift('t0', 'Shift up again');
+  await shift('t5', 'Shift down');
+
+  // Edit: the ratio reading goes, the + gets a row shorter.
+  await rec.tap(find.byKey(const ValueKey('companion-edit')), 'Edit layout', thenFrames: 30);
+  await rec.tap(find.byKey(const ValueKey('companion-remove-t4')), 'Remove the ratio', thenFrames: 30);
+  final handle = tester.getCenter(find.byKey(const ValueKey('companion-resize-t0')));
+  await rec.swipe(handle, handle - const Offset(0, 70), 'Resize the +', overFrames: 20, thenFrames: 30);
+  await rec.tap(find.byKey(const ValueKey('companion-compact')), 'Close gaps', thenFrames: 30);
+  await rec.tap(find.byKey(const ValueKey('companion-done')), 'Done', thenFrames: 30);
+
+  // Full screen, one more shift, and back.
+  await rec.tap(find.byKey(const ValueKey('companion-full-screen')), 'Full screen', thenFrames: 30);
+  await shift('t0', 'Shift up full screen');
+  await shift('t0', 'Shift up full screen again');
+  await rec.frames(30);
+  await rec.tap(find.byKey(const ValueKey('companion-exit-full-screen')), 'Exit full screen', thenFrames: 30);
+  await rec.frames(_endHold);
+  await _wrapUp(tester, studio);
+  return rec.capture;
+}
+
 // ── 7. Android control ────────────────────────────────────────────────────
 
 /// On Android, buttons can press the system's own keys through the
@@ -1336,6 +1387,22 @@ final _scenes = <_Scene>[
   _Scene(id: 'feature-button-gestures', loops: false, film: _filmGestures, check: _checkPresses),
   _Scene(id: 'feature-music', loops: false, film: _filmMusic, check: _checkPresses),
   _Scene(id: 'feature-companion-mode', loops: true, film: _filmCompanion, check: _checkTaps),
+  _Scene(
+    id: 'feature-companion-ride-mode',
+    loops: false,
+    film: _filmCompanionRideMode,
+    check: (_) {},
+    settles: false,
+    unsettled: {
+      'Shift up again',
+      'Shift down',
+      'Edit layout',
+      'Remove the ratio',
+      'Close gaps',
+      'Done',
+      'Full screen',
+    },
+  ),
   _Scene(id: 'feature-android-control', loops: false, film: _filmAndroidControl, check: _checkPresses),
   _Scene(id: 'feature-hands-free-steering', loops: false, film: _filmHandsFreeSteering, check: _checkSteering),
   _Scene(id: 'feature-overlay', loops: true, film: _filmOverlaySettings, check: _checkTaps),
