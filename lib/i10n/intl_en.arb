@@ -3681,7 +3681,5 @@
   "companionTileRideCard": "Gear card",
   "companionRemoveTile": "Remove {name}",
   "@companionRemoveTile": {"description": "Companion page, edit mode: accessibility label of a tile's remove button.", "placeholders": {"name": {"type": "String"}}},
-  "companionRideLine": "Shift with big buttons on this screen",
-  "@companionRideLine": {"description": "Ride tab: line at the foot of the virtual shifting card; its link opens the companion page full screen."},
   "companionAllAdded": "Everything is on the page already."
 }

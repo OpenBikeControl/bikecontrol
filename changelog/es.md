@@ -10,7 +10,7 @@
 - Una prueba más clara: BikeControl te avisa (también con una notificación) cuando te quedan 10 pulsaciones para hoy, y la tarjeta de prueba muestra lo que tendrás después. Si tu app de entrenamiento cambia de marcha por sí misma, «Rodar» ya no sugiere el cambio virtual de BikeControl, y el control por teclado aparece como opcional junto a una conexión OpenBikeControl.
 - KICKR Headwind: el ventilador puede seguir tu frecuencia cardíaca (de una banda conectada a BikeControl) o tu potencia, y tú decides dónde arranca y dónde llega a velocidad máxima. La página muestra la lectura actual y la velocidad resultante.
 - Elite Rizer: la inclinación ahora funciona con cualquier rodillo inteligente.
-- Los Controles del rodillo (modo Companion) abren ahora en modo pedaleo: un − y un + grandes con tu marcha, potencia, cadencia y desarrollo en medio, y los demás botones debajo. Con Editar mueves y cambias el tamaño de los mosaicos y añades botones, datos y control de música; también hay pantalla completa. La tarjeta de cambio virtual de Rodar lo abre con un toque. Su − y + cambian ahora con el cambio virtual de BikeControl, con la vibración al cambiar.
+- Los Controles del rodillo (modo Companion) abren ahora en modo pedaleo: un − y un + grandes con tu marcha, potencia, cadencia y desarrollo en medio, y los demás botones debajo. Con Editar mueves y cambias el tamaño de los mosaicos y añades botones, datos y control de música; también hay pantalla completa. Su − y + cambian ahora con el cambio virtual de BikeControl, con la vibración al cambiar.
 
 **Fixes**:
 - Zwift: la Bomba Ride On se lanza también con una pulsación corta (Zwift necesita el botón pulsado un momento).

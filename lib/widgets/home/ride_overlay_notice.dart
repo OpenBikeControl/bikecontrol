@@ -95,7 +95,7 @@ class RideOverlayNotice extends StatelessWidget {
     return Row(
       key: const ValueKey('ride-overlay-offer'),
       children: [
-        Icon(LucideIcons.layers, size: 18, color: accent),
+        Icon(LucideIcons.layers, size: 15, color: accent),
         const Gap(8),
         Expanded(
           child: Text(
@@ -160,13 +160,20 @@ class RideOverlayNotice extends StatelessWidget {
         child: Row(
           children: [
             // Green when on, a hollow ring when off: a status, not a button.
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: on ? BkStatusColors.of(context).success : null,
-                border: on ? null : Border.all(color: cs.mutedForeground, width: 1.5),
+            // In the settings line's 15 px icon slot, so both texts start at
+            // one edge.
+            SizedBox(
+              width: 15,
+              child: Center(
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: on ? BkStatusColors.of(context).success : null,
+                    border: on ? null : Border.all(color: cs.mutedForeground, width: 1.5),
+                  ),
+                ),
               ),
             ),
             const Gap(8),
@@ -200,10 +207,6 @@ class RideSettingsLine extends StatelessWidget {
     required this.text,
     required this.linkLabel,
     required this.onPressed,
-    this.trailingIcon,
-    this.trailingLabel,
-    this.onTrailing,
-    this.trailingKey,
   });
 
   final IconData icon;
@@ -211,21 +214,13 @@ class RideSettingsLine extends StatelessWidget {
   final String linkLabel;
   final VoidCallback onPressed;
 
-  /// A button of its own at the end of the line, after a hairline: a 48
-  /// target beside the line rather than a line of its own, so the card
-  /// keeps its height. Shown when [onTrailing] is set.
-  final IconData? trailingIcon;
-  final String? trailingLabel;
-  final VoidCallback? onTrailing;
-  final Key? trailingKey;
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final accent = bkAccentText(context);
     final textStyle = context.typography.small.copyWith(color: cs.foreground, fontWeight: FontWeight.w500);
     final linkStyle = context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600);
-    final line = BkTappable(
+    return BkTappable(
       onPressed: onPressed,
       label: '$text, $linkLabel',
       excludeChildSemantics: true,
@@ -279,26 +274,6 @@ class RideSettingsLine extends StatelessWidget {
           },
         ),
       ),
-    );
-    final onTrailing = this.onTrailing;
-    if (onTrailing == null) return line;
-    return Row(
-      children: [
-        Expanded(child: line),
-        const Gap(4),
-        Container(width: 1, height: 24, color: cs.border),
-        const Gap(4),
-        BkTappable(
-          key: trailingKey,
-          onPressed: onTrailing,
-          label: trailingLabel,
-          borderRadius: BorderRadius.circular(12),
-          child: SizedBox.square(
-            dimension: BkTouchTarget.minSize,
-            child: Icon(trailingIcon, size: 18, color: accent),
-          ),
-        ),
-      ],
     );
   }
 }

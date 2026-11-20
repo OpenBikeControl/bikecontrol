@@ -10,7 +10,7 @@
 - Una prova più chiara: BikeControl ti avvisa (anche con una notifica) quando ti restano 10 pressioni per oggi, e la scheda della prova mostra cosa avrai dopo. Se la tua app di allenamento cambia marcia da sola, «Pedala» non propone più il cambio virtuale di BikeControl, e il controllo da tastiera è indicato come facoltativo accanto a una connessione OpenBikeControl.
 - KICKR Headwind: il ventilatore può seguire la tua frequenza cardiaca (da una fascia collegata a BikeControl) o la tua potenza, e scegli tu dove parte e dove arriva alla velocità massima. La pagina mostra il valore attuale e la velocità che ne deriva.
 - Elite Rizer: l'inclinazione ora funziona con qualsiasi rullo smart.
-- I Controlli del rullo (Companion Mode) ora si aprono in modalità pedalata: un − e un + grandi con rapporto, potenza, cadenza e sviluppo al centro, e tutti gli altri pulsanti sotto. Con Modifica sposti e ridimensioni i riquadri e aggiungi pulsanti, valori e controllo della musica; c'è anche lo schermo intero. La scheda della cambiata virtuale in Pedala la apre con un tocco. I suoi − e + ora usano la cambiata virtuale di BikeControl, con la vibrazione alla cambiata.
+- I Controlli del rullo (Companion Mode) ora si aprono in modalità pedalata: un − e un + grandi con rapporto, potenza, cadenza e sviluppo al centro, e tutti gli altri pulsanti sotto. Con Modifica sposti e ridimensioni i riquadri e aggiungi pulsanti, valori e controllo della musica; c'è anche lo schermo intero. I suoi − e + ora usano la cambiata virtuale di BikeControl, con la vibrazione alla cambiata.
 
 **Fixes**:
 - Zwift: la Bomba Ride On parte anche con una pressione breve (Zwift vuole il pulsante tenuto premuto per un attimo).

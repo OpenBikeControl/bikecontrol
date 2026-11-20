@@ -3155,6 +3155,5 @@
   "companionTileMode": "SIM / ERG",
   "companionTileRideCard": "Carte de vitesse",
   "companionRemoveTile": "Retirer {name}",
-  "companionRideLine": "Changez de vitesse avec de grands boutons sur cet écran",
   "companionAllAdded": "Tout est déjà sur la page."
 }

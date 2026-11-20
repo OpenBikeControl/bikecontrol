@@ -4329,6 +4329,5 @@
   "companionTileMode": "SIM / ERG",
   "companionTileRideCard": "档位卡片",
   "companionRemoveTile": "移除 {name}",
-  "companionRideLine": "在此屏幕上用大按钮换挡",
   "companionAllAdded": "所有内容都已在页面上。"
 }

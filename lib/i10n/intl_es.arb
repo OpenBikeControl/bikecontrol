@@ -3155,6 +3155,5 @@
   "companionTileMode": "SIM / ERG",
   "companionTileRideCard": "Tarjeta de marcha",
   "companionRemoveTile": "Quitar {name}",
-  "companionRideLine": "Cambia de marcha con botones grandes en esta pantalla",
   "companionAllAdded": "Ya está todo en la página."
 }
