@@ -1,22 +1,22 @@
 ### 7.6.1 (20-11-2026)
 **Features**:
-- MyWhoosh über Bluetooth: Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck). Klappt die Verbindung übers Netzwerk nicht, bietet BikeControl stattdessen Bluetooth an.
-- Sensoren: Eine Liste zeigt, woher Leistung, Herzfrequenz, Trittfrequenz und Geschwindigkeit kommen – dein Trainer eingeschlossen – und du kannst jeden Wert durch einen eigenen Sensor ersetzen. „An Trainer-App senden“ erscheint nur noch ohne verbundenen Trainer, denn mit Trainer laufen die Werte ohnehin über ihn.
-- Steuerungsprotokoll: Bei Automatisch zeigt die Trainerseite jetzt, welches Protokoll gewählt wurde (z. B. „Automatisch: FTMS“).
+- (Base) MyWhoosh über Bluetooth: Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck). Klappt die Verbindung übers Netzwerk nicht, bietet BikeControl stattdessen Bluetooth an.
+- (Pro) Sensoren: Eine Liste zeigt, woher Leistung, Herzfrequenz, Trittfrequenz und Geschwindigkeit kommen – dein Trainer eingeschlossen – und du kannst jeden Wert durch einen eigenen Sensor ersetzen. „An Trainer-App senden“ erscheint nur noch ohne verbundenen Trainer, denn mit Trainer laufen die Werte ohnehin über ihn.
+- (Pro) Steuerungsprotokoll: Bei Automatisch zeigt die Trainerseite jetzt, welches Protokoll gewählt wurde (z. B. „Automatisch: FTMS“).
 
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.
-- CYCPLUS-T7-Schalthebel funktionieren als Controller: alle acht Tasten, standardmäßig Lenken mit den hinteren Pfeiltasten.
-- OpenBikeControl-Apps sehen jetzt live deinen virtuellen Gang.
-- Ein übersichtlicherer Tasten-Editor: Aktionen sind danach gruppiert, was sie tun (Gänge, Trainer, Workout, Fahren, …), und auf dem Handy öffnet er sich als Bottom Sheet.
-- Shimano Di2: eine dritte Einrichtungsoption – stell die D-Fly-Kanäle selbst in E-TUBE ein, mit einer Schritt-für-Schritt-Anleitung.
-- Zwift Click V2: Du kannst den rechten Controller optional ohne Entsperren nutzen.
+- (Base) Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.
+- (Base) CYCPLUS-T7-Schalthebel funktionieren als Controller: alle acht Tasten, standardmäßig Lenken mit den hinteren Pfeiltasten.
+- (Pro) OpenBikeControl-Apps sehen jetzt live deinen virtuellen Gang.
+- (Base) Ein übersichtlicherer Tasten-Editor: Aktionen sind danach gruppiert, was sie tun (Gänge, Trainer, Workout, Fahren, …), und auf dem Handy öffnet er sich als Bottom Sheet.
+- (Base) Shimano Di2: eine dritte Einrichtungsoption – stell die D-Fly-Kanäle selbst in E-TUBE ein, mit einer Schritt-für-Schritt-Anleitung.
+- (Base) Zwift Click V2: Du kannst den rechten Controller optional ohne Entsperren nutzen.
 - Mehr Raum zum Ausprobieren: 120 Tastendrücke am Tag in der Testphase (vorher 80), danach 40 am Tag (vorher 15), und ohne Pro 30 Minuten am Tag virtuelles Schalten von BikeControl (vorher 20).
 - Klarere Testphase: BikeControl warnt dich (auch als Mitteilung), wenn für heute noch 10 Tastendrücke übrig sind, und die Testphasen-Karte zeigt, was nach der Testphase gilt. Schaltet deine Trainer-App selbst, schlägt „Fahren“ kein virtuelles Schalten von BikeControl mehr vor, und die Tastatursteuerung ist neben einer OpenBikeControl-Verbindung als optional markiert.
-- KICKR Headwind: Der Ventilator kann deiner Herzfrequenz (von einem mit BikeControl verbundenen Brustgurt) oder deiner Leistung folgen, und du legst fest, ab wann er anläuft und wann er volle Stufe erreicht. Die Seite zeigt den aktuellen Wert und die Stufe, die daraus wird.
-- Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
-- Trainer-Steuerung (Companion Mode) startet jetzt im Fahrmodus: ein großes − und + mit Gang, Leistung, Trittfrequenz und Übersetzung dazwischen, alle anderen Tasten darunter. Über Bearbeiten verschiebst du Kacheln, änderst ihre Größe und fügst Tasten, Werte und Musiksteuerung hinzu; dazu gibt es Vollbild. − und + schalten dort jetzt BikeControls eigenes virtuelles Schalten, mit Vibration beim Schalten.
+- (Base) KICKR Headwind: Der Ventilator kann deiner Herzfrequenz (von einem mit BikeControl verbundenen Brustgurt) oder deiner Leistung folgen, und du legst fest, ab wann er anläuft und wann er volle Stufe erreicht. Die Seite zeigt den aktuellen Wert und die Stufe, die daraus wird.
+- (Base) Elite Rizer: Die Steigung funktioniert jetzt mit jedem Smart Trainer.
+- (Pro) Trainer-Steuerung (Companion Mode) startet jetzt im Fahrmodus: ein großes − und + mit Gang, Leistung, Trittfrequenz und Übersetzung dazwischen, alle anderen Tasten darunter. Über Bearbeiten verschiebst du Kacheln, änderst ihre Größe und fügst Tasten, Werte und Musiksteuerung hinzu; dazu gibt es Vollbild. − und + schalten dort jetzt BikeControls eigenes virtuelles Schalten, mit Vibration beim Schalten.
 
 **Fixes**:
 - Zwift: Die Ride-On-Bombe zündet jetzt auch bei kurzem Druck (Zwift braucht die Taste einen Moment lang gedrückt).

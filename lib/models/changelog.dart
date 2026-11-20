@@ -25,11 +25,25 @@ enum ChangeKind {
   other,
 }
 
-class ChangelogEntry {
-  ChangelogEntry(this.text);
+/// The plan an entry needs, marked in the file as `(Base)` or `(Pro)` at the
+/// start or end of the entry; the app shows it as a badge.
+enum ChangelogTier { base, pro }
 
-  /// The entry's text, inline markdown (links, emphasis) kept.
+class ChangelogEntry {
+  ChangelogEntry(String text, {this.tier}) : text = text {
+    if (tier == null) {
+      final (marked, rest) = _splitTier(text);
+      tier = marked;
+      this.text = rest;
+    }
+  }
+
+  /// The entry's text, inline markdown (links, emphasis) kept, without its
+  /// plan marker.
   String text;
+
+  /// The plan the entry needs, when it says.
+  ChangelogTier? tier;
 
   /// Indented sub-items.
   final List<String> children = [];
@@ -149,7 +163,9 @@ List<ChangelogRelease> parseChangelog(String markdown) {
       if (lastWasChild && entry.children.isNotEmpty) {
         entry.children[entry.children.length - 1] = '${entry.children.last} $more';
       } else {
-        entry.text = '${entry.text} $more';
+        final (marked, rest) = _splitTier('${entry.text} $more');
+        entry.text = rest;
+        entry.tier ??= marked;
       }
       continue;
     }
@@ -217,7 +233,7 @@ List<ChangelogRelease> withoutOtherPlatforms(List<ChangelogRelease> releases) {
     for (final s in r.sections) {
       final kept = [
         for (final e in s.entries)
-          if (apple(e.text)) ChangelogEntry(e.text)..children.addAll(e.children.where(apple)),
+          if (apple(e.text)) ChangelogEntry(e.text, tier: e.tier)..children.addAll(e.children.where(apple)),
       ];
       if (kept.isNotEmpty) release.sections.add(ChangelogSection(kind: s.kind, title: s.title)..entries.addAll(kept));
     }
@@ -250,6 +266,17 @@ ChangeKind? _classify(String heading) {
   if (h.contains('improv')) return ChangeKind.improved;
   if (h.contains('feature') || h.startsWith('new')) return ChangeKind.added;
   return null;
+}
+
+final _leadingTier = RegExp(r'^\((base|pro)\)\s*', caseSensitive: false);
+final _trailingTier = RegExp(r'\s*\((base|pro)\)$', caseSensitive: false);
+
+/// [text]'s `(Base)` / `(Pro)` marker, and the text without it.
+(ChangelogTier?, String) _splitTier(String text) {
+  final m = _leadingTier.firstMatch(text) ?? _trailingTier.firstMatch(text);
+  if (m == null) return (null, text);
+  final tier = m.group(1)!.toLowerCase() == 'pro' ? ChangelogTier.pro : ChangelogTier.base;
+  return (tier, text.replaceRange(m.start, m.end, '').trim());
 }
 
 String _clean(String text) => text.replaceAll(_strayBold, '').trim();
