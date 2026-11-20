@@ -6,6 +6,9 @@ import 'dart:io' show Platform, Process;
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/pages/home/home_sheets.dart' show openAppGuideSheet;
+import 'package:bike_control/pages/onboarding/onboarding_methods.dart'
+    show offersBluetoothFallback, useBluetoothInstead;
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:bike_control/services/network_self_test/network_check.dart';
@@ -419,6 +422,7 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _verdictCard(context, l10n, state),
+            if (result != null && _offersBluetooth) ...[const Gap(18), _bluetoothFallback(context, l10n)],
             ..._groupedSections(context, l10n, state),
             if (result != null) ...[const Gap(18), _footer(context, l10n, result)],
           ],
@@ -641,6 +645,67 @@ class _NetworkTroubleshootingPageState extends State<NetworkTroubleshootingPage>
             ),
             if (narrow) ...[const Gap(14), actions],
           ],
+        ),
+      ),
+    );
+  }
+
+  /// The app is still not here after the checks, and it also takes BikeControl
+  /// over Bluetooth — whatever the checks found, that sidesteps the network.
+  bool get _offersBluetooth =>
+      offersBluetoothFallback(core.settings.getTrainerApp()) && !currentNetworkMethodTarget().isConnected.value;
+
+  Widget _bluetoothFallback(BuildContext context, AppLocalizations l10n) {
+    final cs = Theme.of(context).colorScheme;
+    final app = core.settings.getTrainerApp()!;
+    return _Panel(
+      key: const ValueKey('network-bluetooth-fallback'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+        child: _RowOrColumn(
+          narrow: _narrow(context),
+          leading: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(LucideIcons.bluetooth, size: 18, color: cs.primary),
+              const Gap(10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.bluetoothFallbackTitle,
+                      style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const Gap(2),
+                    Text(
+                      l10n.bluetoothFallbackBody(app.name),
+                      style: context.typography.small.copyWith(color: cs.mutedForeground),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          trailing: Button.outline(
+            key: const ValueKey('network-use-bluetooth'),
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              await useBluetoothInstead(
+                context,
+                app,
+                onUpdate: () {
+                  if (mounted) setState(() {});
+                },
+              );
+              if (!core.settings.getBc2BleEnabled() || !mounted) return;
+              // The network is no longer the method: leave its checks and show
+              // how to pair over Bluetooth instead.
+              navigator.pop();
+              unawaited(openAppGuideSheet(navigator.context));
+            },
+            child: Text(l10n.bluetoothFallbackAction),
+          ),
         ),
       ),
     );

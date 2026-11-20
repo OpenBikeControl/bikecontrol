@@ -1,4 +1,4 @@
 7.6.1
 Nouveautés :
-• MyWhoosh en Bluetooth (bêta) : associe BikeControl comme appareil de direction pour changer de vitesse et choisir ta route aux intersections
+• MyWhoosh en Bluetooth : associe BikeControl comme appareil de direction pour changer de vitesse et choisir ta route aux intersections
 • Capteurs : vois d'où vient chaque valeur et remplace celles du home trainer par ton capteur

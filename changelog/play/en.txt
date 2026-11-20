@@ -1,4 +1,4 @@
 7.6.1
 New:
-• MyWhoosh over Bluetooth (beta): pair BikeControl as a steering device to shift and choose your way at junctions
+• MyWhoosh over Bluetooth: pair BikeControl as a steering device to shift and choose your way at junctions
 • Sensors: see where each value comes from and replace trainer values with your own sensor

@@ -1,4 +1,4 @@
 7.6.1
 Neu:
-• MyWhoosh über Bluetooth (Beta): BikeControl als Lenkgerät koppeln, um zu schalten und an Kreuzungen den Weg zu wählen
+• MyWhoosh über Bluetooth: BikeControl als Lenkgerät koppeln, um zu schalten und an Kreuzungen den Weg zu wählen
 • Sensoren: sehen, woher jeder Wert kommt, und Trainerwerte durch eigene Sensoren ersetzen

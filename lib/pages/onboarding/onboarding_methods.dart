@@ -41,6 +41,25 @@ bool _supportsBluetooth(SupportedApp app) =>
 bool onboardingBluetoothIsBc2(SupportedApp app) =>
     !app.supports(AppConnectionMethod.obpBle) && app.supports(AppConnectionMethod.cycplusBc2Ble);
 
+/// Whether a rider whose network connection isn't coming up should be offered
+/// Bluetooth instead: the app runs on another device and also takes
+/// BikeControl as a BC2 over Bluetooth, which isn't on yet.
+bool offersBluetoothFallback(SupportedApp? app) =>
+    app != null &&
+    core.settings.getLastTarget() == Target.otherDevice &&
+    onboardingBluetoothIsBc2(app) &&
+    !core.settings.getBc2BleEnabled();
+
+/// Swaps the network method for Bluetooth. The network one goes off: should it
+/// come up later after all, every press would reach the app twice.
+Future<void> useBluetoothInstead(BuildContext context, SupportedApp app, {required VoidCallback onUpdate}) async {
+  await setOnboardingMethodEnabled(context, OnboardingMethod.bluetooth, app, true, onUpdate: onUpdate);
+  // Refused a Bluetooth permission: keep the network method as it was.
+  if (!core.settings.getBc2BleEnabled() || !context.mounted) return;
+  await setOnboardingMethodEnabled(context, OnboardingMethod.network, app, false, onUpdate: onUpdate);
+  onUpdate();
+}
+
 bool get _localPlatform =>
     HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isAndroid;
 

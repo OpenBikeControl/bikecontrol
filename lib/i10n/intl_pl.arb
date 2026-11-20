@@ -3175,5 +3175,11 @@
   "companionAllAdded": "Wszystko jest już na stronie.",
   "addBikeControlAsSteeringDevice": "W {appName} dodaj BikeControl jako urządzenie do skrętu.",
   "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
-  "errorStartingBluetoothServer": "Błąd podczas uruchamiania serwera Bluetooth."
+  "errorStartingBluetoothServer": "Błąd podczas uruchamiania serwera Bluetooth.",
+  "onboardingGuideMyWhooshBc2Pair": "Stuknij kafelek skrętu, a potem Pair obok BikeControl",
+  "onboardingGuideMyWhooshBc2Done": "Kafelek skrętu pokazuje BikeControl — zmieniaj biegi i wybieraj drogę na skrzyżowaniach kontrolerem",
+  "bluetoothFallbackTitle": "Nie łączy się przez sieć?",
+  "bluetoothFallbackBody": "{app} przyjmuje BikeControl także przez Bluetooth, jako urządzenie do skrętu. Zmiana biegów i skręty na skrzyżowaniach działają tak samo.",
+  "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
+  "bluetoothFallbackAction": "Użyj Bluetooth zamiast tego"
 }

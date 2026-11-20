@@ -3175,5 +3175,11 @@
   "companionAllAdded": "Alles ist schon auf der Seite.",
   "addBikeControlAsSteeringDevice": "Füge BikeControl in {appName} als Lenkgerät hinzu.",
   "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
-  "errorStartingBluetoothServer": "Fehler beim Starten des Bluetooth-Servers."
+  "errorStartingBluetoothServer": "Fehler beim Starten des Bluetooth-Servers.",
+  "onboardingGuideMyWhooshBc2Pair": "Tippe auf die Lenk-Kachel, dann neben BikeControl auf Pair",
+  "onboardingGuideMyWhooshBc2Done": "Die Lenk-Kachel zeigt BikeControl – schalte und wähle an Kreuzungen deinen Weg mit deinem Controller",
+  "bluetoothFallbackTitle": "Klappt die Verbindung übers Netzwerk nicht?",
+  "bluetoothFallbackBody": "{app} nimmt BikeControl auch über Bluetooth an, als Lenkgerät. Schalten und Abbiegen an Kreuzungen funktionieren genauso.",
+  "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
+  "bluetoothFallbackAction": "Stattdessen Bluetooth nutzen"
 }

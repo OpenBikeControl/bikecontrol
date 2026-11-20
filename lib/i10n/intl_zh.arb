@@ -4349,5 +4349,11 @@
   "companionAllAdded": "所有内容都已在页面上。",
   "addBikeControlAsSteeringDevice": "在 {appName} 中将 BikeControl 添加为转向设备。",
   "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
-  "errorStartingBluetoothServer": "启动蓝牙服务器时出错。"
+  "errorStartingBluetoothServer": "启动蓝牙服务器时出错。",
+  "onboardingGuideMyWhooshBc2Pair": "点按转向图块，然后点按 BikeControl 旁的 Pair",
+  "onboardingGuideMyWhooshBc2Done": "转向图块显示 BikeControl——用控制器换挡，并在路口选择路线",
+  "bluetoothFallbackTitle": "无法通过网络连接？",
+  "bluetoothFallbackBody": "{app} 也可以通过蓝牙连接 BikeControl，作为转向设备。换挡和路口转弯同样可用。",
+  "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
+  "bluetoothFallbackAction": "改用蓝牙"
 }

@@ -3701,5 +3701,11 @@
   "companionAllAdded": "Everything is on the page already.",
   "addBikeControlAsSteeringDevice": "In {appName}, add BikeControl as a steering device.",
   "@addBikeControlAsSteeringDevice": {"description": "Bluetooth connection tile for apps that pair BikeControl as a steering device (MyWhoosh).", "placeholders": {"appName": {"type": "String"}}},
-  "errorStartingBluetoothServer": "Error starting the Bluetooth server."
+  "errorStartingBluetoothServer": "Error starting the Bluetooth server.",
+  "onboardingGuideMyWhooshBc2Pair": "Tap the steering tile, then Pair next to BikeControl",
+  "onboardingGuideMyWhooshBc2Done": "The steering tile shows BikeControl — shift and pick your way at junctions with your controller",
+  "bluetoothFallbackTitle": "Not connecting over the network?",
+  "bluetoothFallbackBody": "{app} also takes BikeControl over Bluetooth, as a steering device. Shifting and turns at junctions work the same.",
+  "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
+  "bluetoothFallbackAction": "Use Bluetooth instead"
 }

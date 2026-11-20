@@ -3175,5 +3175,11 @@
   "companionAllAdded": "È già tutto sulla pagina.",
   "addBikeControlAsSteeringDevice": "In {appName}, aggiungi BikeControl come dispositivo di sterzo.",
   "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
-  "errorStartingBluetoothServer": "Errore durante l'avvio del server Bluetooth."
+  "errorStartingBluetoothServer": "Errore durante l'avvio del server Bluetooth.",
+  "onboardingGuideMyWhooshBc2Pair": "Tocca il riquadro dello sterzo, poi Pair accanto a BikeControl",
+  "onboardingGuideMyWhooshBc2Done": "Il riquadro dello sterzo mostra BikeControl: cambia marcia e scegli la strada agli incroci con il tuo controller",
+  "bluetoothFallbackTitle": "Non si connette tramite la rete?",
+  "bluetoothFallbackBody": "{app} accetta BikeControl anche via Bluetooth, come dispositivo di sterzo. Cambi e svolte agli incroci funzionano allo stesso modo.",
+  "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
+  "bluetoothFallbackAction": "Usa il Bluetooth invece"
 }

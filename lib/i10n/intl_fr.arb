@@ -3175,5 +3175,11 @@
   "companionAllAdded": "Tout est déjà sur la page.",
   "addBikeControlAsSteeringDevice": "Dans {appName}, ajoute BikeControl comme appareil de direction.",
   "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
-  "errorStartingBluetoothServer": "Erreur au démarrage du serveur Bluetooth."
+  "errorStartingBluetoothServer": "Erreur au démarrage du serveur Bluetooth.",
+  "onboardingGuideMyWhooshBc2Pair": "Touche la tuile de direction, puis Pair à côté de BikeControl",
+  "onboardingGuideMyWhooshBc2Done": "La tuile de direction affiche BikeControl : change de vitesse et choisis ta route aux intersections avec ta manette",
+  "bluetoothFallbackTitle": "Ça ne se connecte pas par le réseau ?",
+  "bluetoothFallbackBody": "{app} accepte aussi BikeControl en Bluetooth, comme appareil de direction. Les changements de vitesse et les virages aux intersections fonctionnent pareil.",
+  "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
+  "bluetoothFallbackAction": "Utiliser le Bluetooth à la place"
 }
