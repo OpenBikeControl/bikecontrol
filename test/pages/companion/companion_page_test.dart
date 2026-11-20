@@ -357,14 +357,36 @@ Future<void> main() async {
     await render(tester, name: 'companion_not_connected');
 
     expect(find.byType(ConnectionMethodWithoutSwitch), findsNothing);
-    final status = find.byWidgetPredicate(
-      (w) => w.key is ValueKey<String> && (w.key! as ValueKey<String>).value.startsWith('companion-connection-'),
-    );
+    final status = find.byKey(const ValueKey('companion-connection-status'));
     expect(status, findsOneWidget);
+    expect(find.descendant(of: status, matching: find.text(AppLocalizations.current.notConnected)), findsOneWidget);
+    expect(find.textContaining('MyWhoosh'), findsNothing, reason: 'just the state, not the method');
     expect(tester.getRect(status).bottom, lessThan(tester.getRect(pad(InGameAction.shiftUp)).top + 1));
     await tester.tap(status);
     await tester.pumpAndSettle();
     expect(find.byType(ConnectionMethodWithoutSwitch), findsOneWidget);
+  });
+
+  testWidgets('close gaps pulls tiles up under each other', (tester) async {
+    connectMyWhoosh();
+    await core.settings.setCompanionLayout(
+      CompanionLayout(
+        landscape: false,
+        tiles: const [
+          CompanionTile(id: 'a', kind: CompanionTileKind.action, action: InGameAction.tuck, col: 0, row: 4, w: 4, h: 1),
+        ],
+      ).toJsonString(),
+      landscape: false,
+    );
+    await render(tester);
+    await tester.tap(find.byKey(const ValueKey('companion-edit')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('companion-compact')));
+    await tester.pump();
+    expect(
+      CompanionLayout.tryParse(core.settings.getCompanionLayout(landscape: false)!, landscape: false)!.tile('a')!.row,
+      0,
+    );
   });
 
   testWidgets('a saved layout comes back next time', (tester) async {

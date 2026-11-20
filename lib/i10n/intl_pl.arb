@@ -3141,6 +3141,8 @@
   "connectErrorRetrying": "BikeControl próbuje dalej.",
   "companionEditLayout": "Edytuj układ",
   "companionAddTile": "Dodaj kafelek",
+  "companionAdd": "Dodaj",
+  "companionCompact": "Usuń odstępy",
   "companionResetLayout": "Przywróć układ",
   "companionResetLayoutBody": "Powrót do trybu jazdy ze wszystkimi przyciskami. Zmiany dla tej orientacji zostaną utracone.",
   "companionFullScreen": "Pełny ekran",

@@ -3141,6 +3141,8 @@
   "connectErrorRetrying": "BikeControl versucht es weiter.",
   "companionEditLayout": "Layout bearbeiten",
   "companionAddTile": "Kachel hinzufügen",
+  "companionAdd": "Hinzufügen",
+  "companionCompact": "Lücken schließen",
   "companionResetLayout": "Layout zurücksetzen",
   "companionResetLayoutBody": "Zurück zum Fahrmodus mit allen Tasten. Deine Änderungen für diese Ausrichtung gehen verloren.",
   "companionFullScreen": "Vollbild",

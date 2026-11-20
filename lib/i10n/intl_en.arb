@@ -3658,6 +3658,8 @@
   "@connectErrorRetrying": {"description": "Added after the reason a Bluetooth connect failed, when BikeControl has scheduled another attempt."},
   "companionEditLayout": "Edit layout",
   "companionAddTile": "Add tile",
+  "companionAdd": "Add",
+  "companionCompact": "Close gaps",
   "companionResetLayout": "Reset layout",
   "companionResetLayoutBody": "Back to ride mode with every button. Your changes for this orientation are lost.",
   "companionFullScreen": "Full screen",

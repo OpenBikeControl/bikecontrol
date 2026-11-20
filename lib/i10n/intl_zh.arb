@@ -4315,6 +4315,8 @@
   "connectErrorRetrying": "BikeControl 会继续尝试。",
   "companionEditLayout": "编辑布局",
   "companionAddTile": "添加图块",
+  "companionAdd": "添加",
+  "companionCompact": "消除空隙",
   "companionResetLayout": "重置布局",
   "companionResetLayoutBody": "恢复为包含所有按钮的骑行模式。此方向上的更改将丢失。",
   "companionFullScreen": "全屏",

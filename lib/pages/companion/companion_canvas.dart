@@ -15,6 +15,7 @@ class CompanionCanvas extends StatefulWidget {
     required this.onChanged,
     required this.tileBuilder,
     required this.removeLabel,
+    this.radiusOf,
     this.gap = 8,
   });
 
@@ -26,6 +27,10 @@ class CompanionCanvas extends StatefulWidget {
 
   /// The remove button's accessibility label for [tile].
   final String Function(CompanionTile tile) removeLabel;
+
+  /// The corner radius [tile]'s content draws with, so the edit outline
+  /// follows it.
+  final double Function(CompanionTile tile)? radiusOf;
 
   /// Space between tiles.
   final double gap;
@@ -154,7 +159,7 @@ class _CompanionCanvasState extends State<CompanionCanvas> {
               child: IgnorePointer(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(widget.radiusOf?.call(tile) ?? 16),
                     border: Border.all(
                       color: active ? cs.primary : cs.mutedForeground.withValues(alpha: 0.6),
                       width: 2,

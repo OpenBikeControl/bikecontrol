@@ -3141,6 +3141,8 @@
   "connectErrorRetrying": "BikeControl continua a provare.",
   "companionEditLayout": "Modifica layout",
   "companionAddTile": "Aggiungi riquadro",
+  "companionAdd": "Aggiungi",
+  "companionCompact": "Chiudi gli spazi",
   "companionResetLayout": "Ripristina layout",
   "companionResetLayoutBody": "Torna alla modalità corsa con tutti i pulsanti. Le modifiche per questo orientamento andranno perse.",
   "companionFullScreen": "Schermo intero",

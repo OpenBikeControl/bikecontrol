@@ -527,18 +527,6 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           showDivider: false,
           actions: _editing
               ? [
-                  BkIconButton.ghost(
-                    key: const ValueKey('companion-add'),
-                    icon: const Icon(LucideIcons.plus, size: 22),
-                    label: l.companionAddTile,
-                    onPressed: () => _openAdd(definition),
-                  ),
-                  BkIconButton.ghost(
-                    key: const ValueKey('companion-reset'),
-                    icon: const Icon(LucideIcons.rotateCcw, size: 22),
-                    label: l.companionResetLayout,
-                    onPressed: () => _confirmReset(),
-                  ),
                   Button.ghost(
                     key: const ValueKey('companion-done'),
                     onPressed: () => setState(() => _editing = false),
@@ -563,7 +551,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       ],
       child: LayoutBuilder(
         builder: (context, viewport) {
-          return Scrollbar(
+          final scroll = Scrollbar(
             controller: _scrollController,
             child: SingleChildScrollView(
               controller: _scrollController,
@@ -596,9 +584,61 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               ),
             ),
           );
+          if (!_editing) return scroll;
+          // The tools stay put while the grid scrolls under them; the grid
+          // keeps the size it has outside editing.
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: BkPageColumn(child: _editToolbar(definition)),
+              ),
+              Expanded(child: scroll),
+            ],
+          );
         },
       ),
     );
+  }
+
+  /// While editing, what can be done to the layout, each with its name: in a
+  /// row under the header, where a long title can't crowd them.
+  Widget _editToolbar(FitnessBikeDefinition? definition) {
+    final l = AppLocalizations.of(context);
+    Widget tool(String key, IconData icon, String label, VoidCallback onPressed) => Expanded(
+      child: Button(
+        key: ValueKey(key),
+        style: const ButtonStyle.outline(size: ButtonSize.small),
+        onPressed: onPressed,
+        // Three to a row on a phone: a long label shrinks rather than wrap.
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [Icon(icon, size: 14), Text(label, maxLines: 1)],
+          ),
+        ),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        spacing: 8,
+        children: [
+          tool('companion-add', LucideIcons.plus, l.companionAdd, () => _openAdd(definition)),
+          tool('companion-compact', LucideIcons.foldVertical, l.companionCompact, () => _compact(definition)),
+          tool('companion-reset', LucideIcons.rotateCcw, l.reset, _confirmReset),
+        ],
+      ),
+    );
+  }
+
+  /// Closes the empty space between the tiles on this orientation's layout.
+  void _compact(FitnessBikeDefinition? definition) {
+    final layout = _layoutFor(landscape: _currentLandscape(context), hasRideData: definition != null);
+    _save(layout.compacted());
   }
 
   /// Back to ride mode with every button, for this orientation.
@@ -724,6 +764,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       rowHeight: rowHeight,
       editing: _editing,
       onChanged: _save,
+      radiusOf: _tileRadius,
       removeLabel: (tile) => l.companionRemoveTile(switch (tile.kind) {
         CompanionTileKind.action => tile.action!.title,
         CompanionTileKind.music => _musicName(l, tile.music!),
@@ -732,6 +773,19 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       tileBuilder: (context, tile) => _buildTile(tile, definition),
     );
   }
+
+  /// The corner radius [tile] draws with.
+  static double _tileRadius(CompanionTile tile) => switch (tile.action) {
+    InGameAction.shiftUp || InGameAction.shiftDown => _padRadius(_PadSize.hero),
+    InGameAction.steerLeft || InGameAction.steerRight => _padRadius(_PadSize.medium),
+    _ => BkComponentThemes.cardRadius,
+  };
+
+  static double _padRadius(_PadSize size) => switch (size) {
+    _PadSize.hero => 24,
+    _PadSize.medium => 18,
+    _PadSize.tile => BkComponentThemes.cardRadius,
+  };
 
   Widget _buildTile(CompanionTile tile, FitnessBikeDefinition? definition) {
     if (tile.kind == CompanionTileKind.music) {
@@ -765,56 +819,60 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     return AnimatedOpacity(duration: const Duration(milliseconds: 150), opacity: enabled ? 1 : 0.5, child: child);
   }
 
-  /// The trainer app connections' state as one quiet line under the title.
-  /// One not connected opens its method's card — the instructions and the
+  /// The trainer app connection's state as one quiet line under the title.
+  /// Not connected, it opens the method's card — the instructions and the
   /// network check — so the rider can fix it from here.
   Widget? _connectionStatus(List<TrainerConnection> connections, bool hasRideData) {
     if (connections.isEmpty) {
       if (hasRideData) return null;
       return BkStatusDot(label: context.i18n.trainerControlsNoConnection, tone: BkStatusTone.neutral);
     }
-    return Wrap(
-      spacing: 12,
-      children: [
-        for (final connection in connections)
-          ValueListenableBuilder<bool>(
-            valueListenable: connection.isConnected,
-            builder: (context, connected, _) {
-              final dot = BkStatusDot(
-                label: '${connection.title} · ${connected ? context.i18n.connected : context.i18n.notConnected}',
-                tone: connected ? BkStatusTone.success : BkStatusTone.neutral,
-              );
-              if (connected) return dot;
-              return BkTappable(
-                key: ValueKey('companion-connection-${connection.title}'),
-                onPressed: () => _showConnection(connection),
-                borderRadius: BorderRadius.circular(8),
-                wash: true,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 4,
-                    children: [
-                      Flexible(child: dot),
-                      Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
-                    ],
-                  ),
-                ),
-              );
-            },
+    return ListenableBuilder(
+      listenable: Listenable.merge([for (final c in connections) c.isConnected]),
+      builder: (context, _) {
+        final down = connections.where((c) => !c.isConnected.value).toList();
+        final dot = BkStatusDot(
+          label: down.isEmpty ? context.i18n.connected : context.i18n.notConnected,
+          tone: down.isEmpty ? BkStatusTone.success : BkStatusTone.neutral,
+        );
+        if (down.isEmpty) return dot;
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: BkTappable(
+            key: const ValueKey('companion-connection-status'),
+            onPressed: () => _showConnection(down),
+            borderRadius: BorderRadius.circular(8),
+            wash: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 4,
+                children: [
+                  Flexible(child: dot),
+                  Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+                ],
+              ),
+            ),
           ),
-      ],
+        );
+      },
     );
   }
 
-  Future<void> _showConnection(TrainerConnection connection) => showDialog<void>(
+  Future<void> _showConnection(List<TrainerConnection> connections) => showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: Text(connection.title),
+      title: Text(context.i18n.notConnected),
       content: SizedBox(
         width: 420,
-        child: SingleChildScrollView(child: ConnectionMethodWithoutSwitch(child: connection.getTile())),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12,
+            children: [for (final c in connections) ConnectionMethodWithoutSwitch(child: c.getTile())],
+          ),
+        ),
       ),
       actions: [
         TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(context.i18n.close)),
@@ -1039,11 +1097,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     final pressed = tone == _PadTone.card
         ? bkCardPressed(context)
         : Color.alphaBlend(ink.withValues(alpha: 0.16), base);
-    final radius = BorderRadius.circular(switch (size) {
-      _PadSize.hero => 24,
-      _PadSize.medium => 18,
-      _PadSize.tile => BkComponentThemes.cardRadius,
-    });
+    final radius = BorderRadius.circular(_padRadius(size));
     final showKeycap = hotkey != null && !isCompactWindow(context) && !_fullScreen;
     final typography = context.typography;
 

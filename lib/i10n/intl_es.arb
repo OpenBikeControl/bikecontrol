@@ -3141,6 +3141,8 @@
   "connectErrorRetrying": "BikeControl sigue intentándolo.",
   "companionEditLayout": "Editar diseño",
   "companionAddTile": "Añadir mosaico",
+  "companionAdd": "Añadir",
+  "companionCompact": "Cerrar huecos",
   "companionResetLayout": "Restablecer diseño",
   "companionResetLayoutBody": "Vuelve al modo de rodaje con todos los botones. Se pierden tus cambios para esta orientación.",
   "companionFullScreen": "Pantalla completa",

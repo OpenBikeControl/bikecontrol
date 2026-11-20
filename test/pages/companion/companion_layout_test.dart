@@ -196,19 +196,19 @@ void main() {
       expect(top.row, 0);
     });
 
-    test('a reading goes down to one row, a button stays two', () {
+    test('a reading and a button both go down to one row', () {
       final withGear = base.added(kind: CompanionTileKind.cadence);
       final cadence = withGear.tiles.last;
       final low = withGear.resized(cadence.id, w: 0, h: 0)!.tile(cadence.id)!;
       expect(low.h, 1);
       expect(low.w, CompanionLayout.minSpan);
-      expect(base.resized('a', w: 6, h: 1)!.tile('a')!.h, CompanionLayout.minSpan);
+      expect(base.resized('a', w: 6, h: 1)!.tile('a')!.h, 1);
     });
 
     test('resizing keeps a minimum size and stops at a neighbour', () {
       final small = base.resized('a', w: 0, h: 0)!;
       expect(small.tile('a')!.w, CompanionLayout.minSpan);
-      expect(small.tile('a')!.h, CompanionLayout.minSpan);
+      expect(small.tile('a')!.h, 1);
       expect(base.resized('a', w: 8, h: 3), isNull, reason: 'would cover b');
       expect(base.resized('a', w: 6, h: 6)!.tile('a')!.h, 6);
     });
@@ -229,6 +229,33 @@ void main() {
       expectNoOverlap(added);
       expect(added.tiles.last.row, greaterThanOrEqualTo(full.rows));
       expect(added.usedRows, greaterThan(full.rows));
+    });
+
+    test('compacting closes the gaps above every tile, keeping columns and sizes', () {
+      final spread = CompanionLayout(
+        landscape: false,
+        tiles: const [
+          CompanionTile(id: 'a', kind: CompanionTileKind.action, action: InGameAction.tuck, col: 0, row: 2, w: 4, h: 2),
+          CompanionTile(id: 'b', kind: CompanionTileKind.power, col: 4, row: 5, w: 4, h: 1),
+          CompanionTile(
+            id: 'c',
+            kind: CompanionTileKind.action,
+            action: InGameAction.uturn,
+            col: 0,
+            row: 9,
+            w: 6,
+            h: 2,
+          ),
+        ],
+      );
+      final tight = spread.compacted();
+      expect(tight.tile('a')!.row, 0);
+      expect(tight.tile('b')!.row, 0);
+      expect(tight.tile('c')!.row, 2, reason: 'stops under a, which shares its columns');
+      expect(tight.tile('c')!.col, 0);
+      expect(tight.tile('c')!.w, 6);
+      expectNoOverlap(tight);
+      expect(tight.tiles.map((t) => t.id), ['a', 'b', 'c']);
     });
 
     test('new ids never collide', () {

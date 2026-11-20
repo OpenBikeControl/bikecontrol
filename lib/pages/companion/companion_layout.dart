@@ -27,10 +27,6 @@ enum CompanionTileKind {
 
   bool get isRideData => this != action && this != music;
 
-  /// The fewest rows a tile of this kind can have: a reading reads fine in
-  /// one, a button needs two to be hit.
-  int get minHeight => isRideData ? 1 : CompanionLayout.minSpan;
-
   static CompanionTileKind? fromName(Object? name) {
     for (final k in values) {
       if (k.name == name) return k;
@@ -149,8 +145,8 @@ class CompanionLayout {
   static const int gridColumns = 12;
   static const int gridRows = 12;
 
-  /// The narrowest a tile can be resized to, in cells, and the lowest a
-  /// button can be ([CompanionTileKind.minHeight]).
+  /// The narrowest a tile can be resized to, in cells. Any tile can be as
+  /// low as one row.
   static const int minSpan = 2;
 
   /// How far down a tile may go, so a runaway drag can't lose it.
@@ -196,18 +192,38 @@ class CompanionLayout {
     return _replace(next);
   }
 
-  /// [id] resized to [w] × [h] cells (at least [minSpan] wide and its
-  /// kind's [CompanionTileKind.minHeight] high, at most to the grid's edge),
-  /// or null when it would cover another tile.
+  /// [id] resized to [w] × [h] cells (at least [minSpan] wide and one row
+  /// high, at most to the grid's edge), or null when it would cover another
+  /// tile.
   CompanionLayout? resized(String id, {required int w, required int h}) {
     final t = tile(id);
     if (t == null) return null;
     final next = t.copyWith(
       w: w.clamp(minSpan, columns - t.col),
-      h: h.clamp(t.kind.minHeight, maxRows - t.row),
+      h: h.clamp(1, maxRows - t.row),
     );
     if (!_fits(next)) return null;
     return _replace(next);
+  }
+
+  /// Every tile moved up as far as it goes, top to bottom, so the empty rows
+  /// and gaps between them close. Columns and sizes stay.
+  CompanionLayout compacted() {
+    final placed = <CompanionTile>[];
+    final order = [...tiles]..sort((a, b) => a.row != b.row ? a.row.compareTo(b.row) : a.col.compareTo(b.col));
+    for (final t in order) {
+      var next = t;
+      while (next.row > 0) {
+        final up = next.copyWith(row: next.row - 1);
+        if (placed.any((p) => p.overlaps(up))) break;
+        next = up;
+      }
+      placed.add(next);
+    }
+    return CompanionLayout(
+      landscape: landscape,
+      tiles: [for (final t in tiles) placed.firstWhere((p) => p.id == t.id)],
+    );
   }
 
   CompanionLayout removed(String id) => CompanionLayout(
