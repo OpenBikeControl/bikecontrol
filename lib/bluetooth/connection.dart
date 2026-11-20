@@ -1805,6 +1805,17 @@ class Connection {
       final device = _connectionQueue.removeAt(0);
       if (device is BluetoothDevice) _disconnectedDuringConnect.remove(device.device.deviceId);
 
+      // A second remembered trainer stays put while another trainer holds the
+      // bridge: it would be bridged to nothing the rider sees, and its idle
+      // telemetry and the app's commands would cross over. Picking it by hand
+      // (connectDevice) still connects it.
+      if (device is ProxyDevice && device.otherTrainerHoldsBridge) {
+        _actionStreams.add(LogNotification('${device.toString()}: not auto-connecting — another trainer is bridged'));
+        _handlingConnectionQueue = false;
+        if (_connectionQueue.isNotEmpty) _handleConnectionQueue();
+        return;
+      }
+
       final willConnect = device.shouldAutoConnect;
       // Reconnections after an automatic reset happen every minute — keep
       // them silent. Captured here because the flag clears during handshake.
