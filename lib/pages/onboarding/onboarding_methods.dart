@@ -37,6 +37,10 @@ bool _supportsBluetooth(SupportedApp app) =>
     app.supports(AppConnectionMethod.cycplusBc2Ble) ||
     app.supports(AppConnectionMethod.zwiftBle);
 
+/// Whether the Bluetooth method presents BikeControl as a CYCPLUS BC2.
+bool onboardingBluetoothIsBc2(SupportedApp app) =>
+    !app.supports(AppConnectionMethod.obpBle) && app.supports(AppConnectionMethod.cycplusBc2Ble);
+
 bool get _localPlatform =>
     HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isAndroid;
 

@@ -37,11 +37,14 @@ class _CycplusBc2BluetoothTileState extends State<CycplusBc2BluetoothTile> {
               supportedActions: isConnected ? emulator.supportedActions : null,
               isEnabled: core.settings.getBc2BleEnabled(),
               title: context.i18n.connectUsingBluetooth,
+              // The steering-device hint shows before switching on too: it
+              // decides whether this is the method the rider wants.
               description: isConnected
                   ? context.i18n.connectedTo(appName)
                   : isStarted
                   ? context.i18n.addBikeControlAsSteeringDevice(appName)
-                  : context.i18n.letsAppConnectOverBluetooth(appName),
+                  : '${context.i18n.letsAppConnectOverBluetooth(appName)} '
+                        '${context.i18n.addBikeControlAsSteeringDevice(appName)}',
               requirements: _requirements,
               onChange: (value) async {
                 if (value) {

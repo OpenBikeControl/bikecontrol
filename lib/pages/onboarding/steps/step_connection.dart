@@ -201,6 +201,9 @@ List<Widget> onboardingMethodTiles(BuildContext context, {required SupportedApp 
           // Platform badges only where they apply.
           badge: HostPlatform.isIOS ? context.i18n.onboardingMethodBluetoothBadge : null,
           description: context.i18n.onboardingMethodBluetoothDesc(app.name),
+          // Paired as a BC2 shifter, BikeControl sits in the app's steering
+          // devices — not where a rider looks for a controller.
+          footNote: onboardingBluetoothIsBc2(app) ? context.i18n.addBikeControlAsSteeringDevice(app.name) : null,
           enabled: enabled,
           connection: connection,
           appName: app.name,
