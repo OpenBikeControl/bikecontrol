@@ -254,7 +254,10 @@ void _bannerStepTests() {
       final row = find.byWidgetPredicate((w) => w is ChainLinkRow && w.link.deviceId == click.uniqueId);
       expect(row, findsOneWidget);
       expect(find.descendant(of: row, matching: find.text(l.chainStepWakePending)), findsOneWidget);
-      expect(find.descendant(of: row, matching: find.byType(OptionalTag)), findsWidgets);
+      expect(
+        find.descendant(of: row, matching: find.textContaining(l.chainOptional, findRichText: true)),
+        findsWidgets,
+      );
     });
 
     // Right after launch the steps would flip as the scan finds things and
@@ -591,10 +594,10 @@ void _twoPairingsTests() {
       await _pumpHome(tester);
 
       final card = _chainCard(ChainLinkKey.app);
-      expect(
-        find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending)),
-        findsOneWidget,
-      );
+      // "Waiting for MyWhoosh" already says it: no "Waiting for connection"
+      // title repeating it, just the hint.
+      expect(find.descendant(of: card, matching: find.text(l.chainStepAppConnectedHint)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending)), findsNothing);
       expect(find.textContaining('need their own link'), findsNothing);
     });
 
@@ -1282,7 +1285,10 @@ void _overlayStepTests() {
       final card = _chainCard(ChainLinkKey.trainer);
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.chainOptional.toUpperCase())), findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.textContaining(l.chainOptional, findRichText: true)),
+        findsOneWidget,
+      );
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)), findsNothing);
       final link = tester.widget<ChainLinkRow>(card).link;
       expect(link.status, LinkStatus.ready);

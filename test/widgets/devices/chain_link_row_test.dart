@@ -200,7 +200,8 @@ Future<void> main() async {
 
   // The store's Devices capture: "Lokale Steuerung aktivieren" beside the name
   // took most of the row, squeezed "Trainer-App" to "Train…" and wrapped the
-  // status into a tall empty column. A fix that long goes under the hint.
+  // status into a tall empty column. The fix always goes under the hint now,
+  // whatever its length, so the card has one place for its actions.
   group('where the step in front\'s fix goes', () {
     Future<void> pumpRow(WidgetTester tester, String label) async {
       tester.view.physicalSize = const Size(390, 900);
@@ -245,23 +246,25 @@ Future<void> main() async {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a long label goes under the hint, and the name keeps its room', (tester) async {
-      await pumpRow(tester, 'Lokale Steuerung aktivieren');
-      final fix = tester.getRect(find.byKey(chainRowStepActionKey));
-      final title = tester.getRect(find.text('Trainer-App').last);
-      expect(fix.top, greaterThan(title.bottom), reason: 'under the header, not beside the name');
-      final name = tester.renderObject<RenderParagraph>(
-        find.descendant(of: find.text('Trainer-App').last, matching: find.byType(RichText)),
-      );
-      expect(name.didExceedMaxLines, isFalse, reason: 'the name is not cut off');
-    });
+    for (final label in ['Lokale Steuerung aktivieren', 'Zeig mir wie']) {
+      testWidgets('"$label" goes under the hint, and the name keeps its room', (tester) async {
+        await pumpRow(tester, label);
+        final fix = tester.getRect(find.byKey(chainRowStepActionKey));
+        final title = tester.getRect(find.text('Trainer-App').last);
+        expect(fix.top, greaterThan(title.bottom), reason: 'under the header, not beside the name');
+        final name = tester.renderObject<RenderParagraph>(
+          find.descendant(of: find.text('Trainer-App').last, matching: find.byType(RichText)),
+        );
+        expect(name.didExceedMaxLines, isFalse, reason: 'the name is not cut off');
+      });
+    }
 
-    testWidgets('a short label sits at the end of the header', (tester) async {
+    testWidgets('the status and the transport share one line', (tester) async {
       await pumpRow(tester, 'Zeig mir wie');
-      final fix = tester.getRect(find.byKey(chainRowStepActionKey));
-      final title = tester.getRect(find.text('Trainer-App').last);
-      expect(fix.top, lessThan(title.bottom), reason: 'beside the name');
-      expect(fix.left, greaterThan(title.right));
+      final status = tester.getRect(find.text('Warte auf Verbindung'));
+      final transport = tester.getRect(find.text('Netzwerk'));
+      expect((status.center.dy - transport.center.dy).abs(), lessThan(2));
+      expect(transport.left, greaterThan(status.right));
     });
   });
 }
