@@ -140,7 +140,7 @@ class DesktopActions extends BaseActions {
           // Increment command count after successful execution
           await IAPManager.instance.incrementCommandCount();
           return Success(
-            'Media key pressed: $keyPair',
+            'Media key pressed: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         } catch (e) {
@@ -171,7 +171,7 @@ class DesktopActions extends BaseActions {
           );
 
           return Success(
-            'Key clicked: $keyPair',
+            'Key clicked: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         } else if (isKeyDown) {
@@ -181,7 +181,7 @@ class DesktopActions extends BaseActions {
             core.settings.getTrainerApp()?.name,
           );
           return Success(
-            'Key pressed: $keyPair',
+            'Key pressed: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         } else {
@@ -191,7 +191,7 @@ class DesktopActions extends BaseActions {
             core.settings.getTrainerApp()?.name,
           );
           return Success(
-            'Key released: $keyPair',
+            'Key released: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         }

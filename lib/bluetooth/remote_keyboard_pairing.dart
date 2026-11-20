@@ -261,19 +261,19 @@ class RemoteKeyboardPairing extends TrainerConnection {
     if (isKeyDown && isKeyUp) {
       await sendKeyPress(keyPair);
       return Success(
-        'Key ${keyPair.toString()} press sent',
+        'Key ${keyPair.label} press sent',
         button: keyPair.buttons.firstOrNull,
       );
     } else if (isKeyDown) {
       await sendKeyDown(keyPair);
       return Success(
-        'Key ${keyPair.toString()} down sent',
+        'Key ${keyPair.label} down sent',
         button: keyPair.buttons.firstOrNull,
       );
     } else if (isKeyUp) {
       await sendKeyUp();
       return Success(
-        'Key ${keyPair.toString()} up sent',
+        'Key ${keyPair.label} up sent',
         button: keyPair.buttons.firstOrNull,
       );
     }

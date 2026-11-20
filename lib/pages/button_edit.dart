@@ -351,7 +351,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                               _keyPair.physicalKey != null &&
                               !_keyPair.isSpecialKey &&
                               (core.settings.getLocalEnabled() || core.settings.getRemoteKeyboardControlEnabled()),
-                          value: _keyPair.toString(),
+                          value: _keyPair.label,
                           onPressed: () async {
                             await _showModeDropdown(context, SupportedMode.keyboard);
                           },
@@ -368,7 +368,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                               ((core.actionHandler is AndroidActions || _keyPair.physicalKey == null) &&
                                   _keyPair.touchPosition != Offset.zero) &&
                               (core.settings.getLocalEnabled() || core.settings.getRemoteControlEnabled()),
-                          value: _keyPair.toString(),
+                          value: _keyPair.label,
                           trailing: BkIconButton.secondary(
                             icon: Icon(LucideIcons.monitorPlay),
                             label: context.i18n.instructionVideo,
@@ -389,7 +389,7 @@ class _ButtonEditPageState extends State<ButtonEditPage> {
                         icon: LucideIcons.music,
                         isActive: _keyPair.isSpecialKey && core.settings.getLocalEnabled(),
                         title: Text(context.i18n.simulateMediaKey),
-                        value: _keyPair.toString(),
+                        value: _keyPair.label,
                         trailing: BkIconButton.secondary(
                           icon: Icon(LucideIcons.monitorPlay),
                           label: context.i18n.instructionVideo,

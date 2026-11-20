@@ -141,7 +141,7 @@ class AndroidActions extends BaseActions {
       // Increment command count after successful execution
       await IAPManager.instance.incrementCommandCount();
       return Success(
-        "Key pressed: ${keyPair.toString()}",
+        "Key pressed: ${keyPair.label}",
         button: keyPair.buttons.firstOrNull,
       );
     }

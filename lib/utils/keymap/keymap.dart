@@ -443,12 +443,17 @@ class KeyPair {
   /// True when this keypair has an action, but no connection method that's
   /// on right now can carry it — so pressing the button does nothing yet.
   bool get waitsForConnectionMethod =>
-      !hasNoAction && toString() == AppLocalizations.current.actionWaitsForConnectionMethod;
+      !hasNoAction && label == AppLocalizations.current.actionWaitsForConnectionMethod;
+
+  /// What this keypair does, for UI and log text. Use this, not string
+  /// interpolation of the keypair: release builds can drop [toString]
+  /// overrides, which then read "Instance of '…'".
+  String get label => _label(coordinates: true);
 
   @override
-  String toString() => _label(coordinates: true);
+  String toString() => label;
 
-  /// [toString] without where Local taps on the screen ("X:80, Y:94
+  /// [label] without where Local taps on the screen ("X:80, Y:94
   /// (Shift down)" reads "Shift down"): for a list of buttons, where the
   /// rider wants to know what a press does, not where it lands.
   String get actionLabel => _label(coordinates: false);
