@@ -1454,6 +1454,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
     final keymap = core.actionHandler.supportedApp?.keymap;
     final single = shown.length == 1 ? shown.single : null;
+    // With no controller to press, the trainer app's buttons can be pressed
+    // from the screen instead — as the trainer page offers it.
+    final manualLabel = switch (core.settings.getTrainerApp()) {
+      final app? when app is! BikeControl => l.manualyControllingButton(shownTrainerAppName(app.name)),
+      _ => null,
+    };
     return Column(
       key: const ValueKey('ride-your-buttons'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1485,6 +1491,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 actionLabel: l.rideControllerPairNew,
                 actionIsSecondary: true,
                 onAction: () => _openController(null),
+                // Until it wakes, the on-screen buttons stand in for it.
+                secondaryKey: const ValueKey('ride-manual-control'),
+                secondaryLabel: manualLabel,
+                onSecondary: () => context.push(const ButtonSimulator()),
               )
             else if (shown.isEmpty)
               RidePromptCard(
@@ -1494,13 +1504,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 body: l.rideNoControllerBody,
                 actionLabel: l.connect,
                 onAction: () => _openController(null),
-                // Or press the trainer app's buttons from here, as the
-                // trainer page offers it.
                 secondaryKey: const ValueKey('ride-manual-control'),
-                secondaryLabel: switch (core.settings.getTrainerApp()) {
-                  final app? when app is! BikeControl => l.manualyControllingButton(shownTrainerAppName(app.name)),
-                  _ => null,
-                },
+                secondaryLabel: manualLabel,
                 onSecondary: () => context.push(const ButtonSimulator()),
               ),
             for (final (i, device) in shown.indexed)

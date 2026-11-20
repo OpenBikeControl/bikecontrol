@@ -2097,6 +2097,8 @@ void _asleepControllerTests() {
       expect(find.descendant(of: card, matching: find.text(l.rideNoControllerTitle)), findsNothing);
       final pairNew = find.descendant(of: card, matching: find.text(l.rideControllerPairNew));
       expect(pairNew, findsOneWidget);
+      // Until it wakes, the trainer app's buttons are a tap away on screen.
+      expect(find.descendant(of: card, matching: find.byKey(const ValueKey('ride-manual-control'))), findsOneWidget);
       expect(find.descendant(of: card, matching: find.byType(PrimaryButton)), findsNothing);
 
       await tester.tap(pairNew);
