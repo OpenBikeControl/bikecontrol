@@ -1966,6 +1966,8 @@
   "controlProtocolUseAuto": "Przełącz na Auto",
   "controlProtocolNativeShiftingAvailable": "Ten trenażer obsługuje natywną wirtualną zmianę biegów BikeControl: sam stosuje wybrany bieg. Ustaw protokół na Auto, aby zmiana biegów była jak najbardziej realistyczna.",
   "controlProtocolAuto": "Auto (zalecane)",
+  "controlProtocolAutoResolved": "Auto: {protocol}",
+  "@controlProtocolAutoResolved": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
   "controlProtocolWahoo": "Wahoo",

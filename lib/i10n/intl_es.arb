@@ -1966,6 +1966,8 @@
   "controlProtocolUseAuto": "Cambiar a Auto",
   "controlProtocolNativeShiftingAvailable": "Este rodillo admite el cambio virtual nativo de BikeControl: aplica tu marcha por sí mismo. Pon el protocolo en Auto para que los cambios se sientan lo más realistas posible.",
   "controlProtocolAuto": "Auto (recomendado)",
+  "controlProtocolAutoResolved": "Auto: {protocol}",
+  "@controlProtocolAutoResolved": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
   "controlProtocolWahoo": "Wahoo",

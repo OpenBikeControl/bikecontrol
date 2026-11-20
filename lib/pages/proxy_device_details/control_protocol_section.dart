@@ -189,9 +189,10 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
             ],
           ),
         ).call,
-        itemBuilder: (c, protocol) =>
-            Text(protocol == null ? context.i18n.controlProtocolAuto : _protocolLabel(protocol)),
-        placeholder: Text(context.i18n.controlProtocolAuto),
+        // Closed on Auto it says what Auto picked: the rider troubleshooting
+        // a trainer needs to know which wire is live without a support log.
+        itemBuilder: (c, protocol) => Text(protocol == null ? _autoResolvedLabel() : _protocolLabel(protocol)),
+        placeholder: Text(_autoResolvedLabel()),
         onChanged: (protocol) async {
           final before = def.controlProtocol;
           def.setControlProtocolOverride(protocol);
@@ -213,11 +214,13 @@ class _ControlProtocolSectionState extends State<ControlProtocolSection> {
     );
   }
 
+  /// "Auto: FTMS" — the protocol auto-detection is driving the trainer with.
+  String _autoResolvedLabel() => context.i18n.controlProtocolAutoResolved(_protocolLabel(def.controlProtocol));
+
   String _protocolLabel(TrainerControlProtocol protocol) => switch (protocol) {
     TrainerControlProtocol.ftms => context.i18n.controlProtocolFtms,
     TrainerControlProtocol.fec => context.i18n.controlProtocolFec,
     TrainerControlProtocol.zwiftHub => context.i18n.controlProtocolNative,
     TrainerControlProtocol.wahooCps => context.i18n.controlProtocolWahoo,
   };
-
 }

@@ -2309,6 +2309,8 @@
   "controlProtocolUseAuto": "Switch to Auto",
   "controlProtocolNativeShiftingAvailable": "This trainer supports BikeControl's native virtual shifting: it applies your gear itself. Set the protocol to Auto for the most realistic shifting.",
   "controlProtocolAuto": "Auto (recommended)",
+  "controlProtocolAutoResolved": "Auto: {protocol}",
+  "@controlProtocolAutoResolved": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
   "controlProtocolWahoo": "Wahoo",

@@ -2372,6 +2372,8 @@
   "controlProtocolUseAuto": "切换到自动",
   "controlProtocolNativeShiftingAvailable": "这台骑行台支持 BikeControl 的原生虚拟换挡：它会自行应用你的挡位。将协议设为自动，换挡最接近真实。",
   "controlProtocolAuto": "自动（推荐）",
+  "controlProtocolAutoResolved": "自动：{protocol}",
+  "@controlProtocolAutoResolved": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
   "controlProtocolWahoo": "Wahoo",

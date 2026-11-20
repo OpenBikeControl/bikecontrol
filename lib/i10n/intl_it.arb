@@ -1966,6 +1966,8 @@
   "controlProtocolUseAuto": "Passa ad Auto",
   "controlProtocolNativeShiftingAvailable": "Questo rullo supporta il cambio virtuale nativo di BikeControl: applica da solo il tuo rapporto. Imposta il protocollo su Auto per una cambiata il più realistica possibile.",
   "controlProtocolAuto": "Auto (consigliato)",
+  "controlProtocolAutoResolved": "Auto: {protocol}",
+  "@controlProtocolAutoResolved": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
   "controlProtocolWahoo": "Wahoo",

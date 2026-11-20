@@ -1977,6 +1977,8 @@
   "controlProtocolUseAuto": "Auf Automatisch umstellen",
   "controlProtocolNativeShiftingAvailable": "Dieser Trainer unterstützt das native virtuelle Schalten von BikeControl: Er setzt deinen Gang selbst um. Stell das Protokoll auf Automatisch, damit sich das Schalten am realistischsten anfühlt.",
   "controlProtocolAuto": "Automatisch (empfohlen)",
+  "controlProtocolAutoResolved": "Automatisch: {protocol}",
+  "@controlProtocolAutoResolved": {"placeholders": {"protocol": {"type": "String"}}},
   "controlProtocolFtms": "FTMS",
   "controlProtocolFec": "FE-C",
   "controlProtocolWahoo": "Wahoo",
