@@ -1,4 +1,5 @@
 import 'package:bike_control/pages/companion/companion_layout.dart';
+import 'package:flutter/gestures.dart' show DeviceGestureSettings, PanGestureRecognizer;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Lays [layout]'s tiles out on its grid, [rowHeight] tall per row and the
@@ -124,13 +125,19 @@ class _CompanionCanvasState extends State<CompanionCanvas> {
     final cs = Theme.of(context).colorScheme;
     final active = _activeId == tile.id;
     return LayoutBuilder(
-      builder: (context, constraints) => GestureDetector(
+      builder: (context, constraints) => RawGestureDetector(
         key: ValueKey('companion-move-${tile.id}'),
         behavior: HitTestBehavior.opaque,
-        onPanDown: (d) => _begin(tile, d.localPosition, constraints.biggest),
-        onPanUpdate: (d) => _drag(d.delta, cellWidth),
-        onPanEnd: (_) => _end(),
-        onPanCancel: _end,
+        gestures: {
+          _TileDragRecognizer: GestureRecognizerFactoryWithHandlers<_TileDragRecognizer>(
+            () => _TileDragRecognizer(debugOwner: this),
+            (r) => r
+              ..onDown = ((d) => _begin(tile, d.localPosition, constraints.biggest))
+              ..onUpdate = ((d) => _drag(d.delta, cellWidth))
+              ..onEnd = ((_) => _end())
+              ..onCancel = _end,
+          ),
+        },
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -206,6 +213,15 @@ class _CompanionCanvasState extends State<CompanionCanvas> {
         ),
       ),
     );
+  }
+}
+
+/// A tile's drag. It claims the pointer after a shorter move than the page's
+/// scroll does, so a drag that starts on a tile moves the tile while one on
+/// the empty grid (or the mouse wheel) still scrolls the page.
+class _TileDragRecognizer extends PanGestureRecognizer {
+  _TileDragRecognizer({super.debugOwner}) {
+    gestureSettings = const DeviceGestureSettings(touchSlop: 4);
   }
 }
 

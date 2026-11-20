@@ -18,6 +18,7 @@ import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PhysicalKeyboardKey;
 import 'package:screen_retriever/screen_retriever.dart';
 
 import '../keymap/apps/supported_app.dart';
@@ -309,6 +310,46 @@ abstract class BaseActions {
       }
     }
 
+    return _performResolved(keyPair, button, isKeyDown: isKeyDown, isKeyUp: isKeyUp, trigger: trigger);
+  }
+
+  /// Presses [keyPair] with no button mapped to it, the way a mapped button
+  /// would: the companion page's on-screen buttons for what lies outside the
+  /// trainer app (Headwind, incline, the trainer's ERG/SIM, music).
+  Future<ActionResult> performKeyPair(
+    KeyPair keyPair, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    String source = 'companion',
+  }) async {
+    final button = ControllerButton(source, action: keyPair.inGameAction);
+    if (keyPair.isSpecialKey) {
+      final guard = proGuard(button: button, trigger: ButtonTrigger.singleClick, keyPair: keyPair);
+      if (guard is! NotHandled) return guard;
+      if (!isKeyDown) return Ignored('', button: button);
+      return performMediaKey(keyPair.physicalKey!, button: button);
+    }
+    return _performResolved(
+      keyPair,
+      button,
+      isKeyDown: isKeyDown,
+      isKeyUp: isKeyUp,
+      trigger: ButtonTrigger.singleClick,
+    );
+  }
+
+  /// Controls whatever music is playing with a media [key]. Only platforms
+  /// with [SupportedMode.media] can.
+  Future<ActionResult> performMediaKey(PhysicalKeyboardKey key, {required ControllerButton button}) async =>
+      Error('Music control is not available on this device', button: button);
+
+  Future<ActionResult> _performResolved(
+    KeyPair keyPair,
+    ControllerButton button, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+    required ButtonTrigger trigger,
+  }) async {
     final guard = proGuard(button: button, trigger: trigger, keyPair: keyPair);
     if (guard is! NotHandled) {
       return guard;
@@ -502,7 +543,7 @@ abstract class BaseActions {
       // "connected" connection that never handles in-game actions (issue #367).
       if (keyPair.isTrainerAppActionOnly) {
         final buttonName = button.name.splitByUpperCase();
-        final appName = core.settings.getTrainerApp()?.name ?? supportedApp!.name;
+        final appName = core.settings.getTrainerApp()?.name ?? supportedApp?.name ?? '';
         // Distinguish "the app isn't connected" from "the app is connected but
         // this action isn't part of the protocol it exposes" (e.g. a D-pad
         // button with no matching command). An app-facing connection that is

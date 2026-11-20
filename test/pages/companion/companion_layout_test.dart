@@ -42,8 +42,17 @@ void main() {
             w: 4,
             h: 3,
           ),
-          for (final (i, kind) in CompanionTileKind.values.where((k) => k != CompanionTileKind.action).indexed)
+          for (final (i, kind) in CompanionTileKind.values.where((k) => k.isRideData).indexed)
             CompanionTile(id: 'i$i', kind: kind, col: 4 + i % 2 * 4, row: i * 2, w: 4, h: 2),
+          const CompanionTile(
+            id: 'm',
+            kind: CompanionTileKind.music,
+            music: CompanionMusic.playPause,
+            col: 0,
+            row: 4,
+            w: 4,
+            h: 2,
+          ),
         ],
       );
       final back = CompanionLayout.tryParse(layout.toJsonString(), landscape: true);
@@ -65,37 +74,36 @@ void main() {
   });
 
   group('default layout', () {
-    test('portrait: − left and + right lead, steering under them, the rest an even grid', () {
-      final layout = CompanionLayout.standard(actions: actions, landscape: false, hasRideData: false);
+    test('ride mode first, every other button a scroll below it', () {
+      final layout = CompanionLayout.initial(actions: actions, landscape: false, hasRideData: false);
       final up = layout.tileFor(InGameAction.shiftUp)!;
       final down = layout.tileFor(InGameAction.shiftDown)!;
-      final left = layout.tileFor(InGameAction.steerLeft)!;
-      final tuck = layout.tileFor(InGameAction.tuck)!;
-      final uturn = layout.tileFor(InGameAction.uturn)!;
-      expect(down.col, lessThan(up.col));
       expect(up.row, 0);
-      expect(up.h, greaterThan(left.h));
-      expect(left.row, greaterThanOrEqualTo(up.row + up.h));
-      expect(tuck.row, greaterThanOrEqualTo(left.row + left.h));
-      expect(tuck.w, uturn.w);
-      expect(tuck.h, uturn.h);
-      expectNoOverlap(layout);
+      expect(up.w, layout.columns);
+      expect(down.row + down.h, layout.rows);
+      for (final action in actions.where((a) => a != InGameAction.shiftUp && a != InGameAction.shiftDown)) {
+        expect(layout.tileFor(action)!.row, greaterThanOrEqualTo(layout.rows), reason: '$action below one screen');
+      }
       expect(layout.tiles.where((t) => t.kind == CompanionTileKind.action).length, actions.length);
-    });
-
-    test('with ride data the gear leads above the buttons', () {
-      final layout = CompanionLayout.standard(actions: actions, landscape: false, hasRideData: true);
-      final card = layout.tiles.firstWhere((t) => t.kind == CompanionTileKind.rideCard);
-      expect(card.row, 0);
-      expect(layout.tileFor(InGameAction.shiftUp)!.row, greaterThanOrEqualTo(card.h));
       expectNoOverlap(layout);
     });
 
-    test('landscape fits more to a row', () {
-      final portrait = CompanionLayout.standard(actions: actions, landscape: false, hasRideData: false);
-      final landscape = CompanionLayout.standard(actions: actions, landscape: true, hasRideData: false);
-      expect(landscape.tileFor(InGameAction.tuck)!.w, lessThan(portrait.tileFor(InGameAction.tuck)!.w));
-      expectNoOverlap(landscape);
+    test('with ride data the readings sit between − and +', () {
+      final layout = CompanionLayout.initial(actions: actions, landscape: false, hasRideData: true);
+      final gear = layout.tiles.firstWhere((t) => t.kind == CompanionTileKind.gear);
+      expect(gear.row, greaterThan(layout.tileFor(InGameAction.shiftUp)!.row));
+      expect(gear.row, lessThan(layout.tileFor(InGameAction.shiftDown)!.row));
+      expectNoOverlap(layout);
+    });
+
+    test('a trainer app without − and + starts with its buttons from the top', () {
+      final layout = CompanionLayout.initial(
+        actions: const [InGameAction.tuck, InGameAction.uturn],
+        landscape: true,
+        hasRideData: false,
+      );
+      expect(layout.tiles, hasLength(2));
+      expect(layout.tileFor(InGameAction.tuck)!.row, 0);
     });
   });
 
@@ -186,6 +194,15 @@ void main() {
       expect(right.row, 10);
       final top = base.moved('a', col: 0, row: -4)!.tile('a')!;
       expect(top.row, 0);
+    });
+
+    test('a reading goes down to one row, a button stays two', () {
+      final withGear = base.added(kind: CompanionTileKind.cadence);
+      final cadence = withGear.tiles.last;
+      final low = withGear.resized(cadence.id, w: 0, h: 0)!.tile(cadence.id)!;
+      expect(low.h, 1);
+      expect(low.w, CompanionLayout.minSpan);
+      expect(base.resized('a', w: 6, h: 1)!.tile('a')!.h, CompanionLayout.minSpan);
     });
 
     test('resizing keeps a minimum size and stops at a neighbour', () {

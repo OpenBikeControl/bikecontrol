@@ -20,9 +20,16 @@ enum CompanionTileKind {
   mode,
 
   /// The gear overlay's card: gear, mode and the readings in one.
-  rideCard;
+  rideCard,
 
-  bool get isRideData => this != action;
+  /// A music control: [CompanionTile.music] on whatever is playing.
+  music;
+
+  bool get isRideData => this != action && this != music;
+
+  /// The fewest rows a tile of this kind can have: a reading reads fine in
+  /// one, a button needs two to be hit.
+  int get minHeight => isRideData ? 1 : CompanionLayout.minSpan;
 
   static CompanionTileKind? fromName(Object? name) {
     for (final k in values) {
@@ -32,12 +39,24 @@ enum CompanionTileKind {
   }
 }
 
+/// What a music tile does to whatever is playing.
+enum CompanionMusic {
+  playPause,
+  previous,
+  next,
+  volumeDown,
+  volumeUp;
+
+  static CompanionMusic? fromName(Object? name) => values.where((m) => m.name == name).firstOrNull;
+}
+
 /// One tile, placed on the grid in whole cells.
 class CompanionTile {
   const CompanionTile({
     required this.id,
     required this.kind,
     this.action,
+    this.music,
     required this.col,
     required this.row,
     required this.w,
@@ -47,6 +66,7 @@ class CompanionTile {
   final String id;
   final CompanionTileKind kind;
   final InGameAction? action;
+  final CompanionMusic? music;
   final int col;
   final int row;
   final int w;
@@ -62,6 +82,7 @@ class CompanionTile {
     id: id,
     kind: kind,
     action: action,
+    music: music,
     col: col ?? this.col,
     row: row ?? this.row,
     w: w ?? this.w,
@@ -72,6 +93,7 @@ class CompanionTile {
     'id': id,
     'kind': kind.name,
     if (action != null) 'action': action!.name,
+    if (music != null) 'music': music!.name,
     'col': col,
     'row': row,
     'w': w,
@@ -87,6 +109,8 @@ class CompanionTile {
       action = InGameAction.values.where((a) => a.name == json['action']).firstOrNull;
       if (action == null) return null;
     }
+    final music = kind == CompanionTileKind.music ? CompanionMusic.fromName(json['music']) : null;
+    if (kind == CompanionTileKind.music && music == null) return null;
     final id = json['id'];
     final col = json['col'];
     final row = json['row'];
@@ -94,7 +118,7 @@ class CompanionTile {
     final h = json['h'];
     if (id is! String || col is! int || row is! int || w is! int || h is! int) return null;
     if (col < 0 || row < 0 || w < 1 || h < 1 || col + w > CompanionLayout.gridColumns) return null;
-    return CompanionTile(id: id, kind: kind, action: action, col: col, row: row, w: w, h: h);
+    return CompanionTile(id: id, kind: kind, action: action, music: music, col: col, row: row, w: w, h: h);
   }
 
   @override
@@ -103,16 +127,17 @@ class CompanionTile {
       other.id == id &&
       other.kind == kind &&
       other.action == action &&
+      other.music == music &&
       other.col == col &&
       other.row == row &&
       other.w == w &&
       other.h == h;
 
   @override
-  int get hashCode => Object.hash(id, kind, action, col, row, w, h);
+  int get hashCode => Object.hash(id, kind, action, music, col, row, w, h);
 
   @override
-  String toString() => 'CompanionTile($id, ${action?.name ?? kind.name}, $col,$row ${w}x$h)';
+  String toString() => 'CompanionTile($id, ${action?.name ?? music?.name ?? kind.name}, $col,$row ${w}x$h)';
 }
 
 /// The companion page's layout for one orientation: tiles on a grid of
@@ -124,7 +149,8 @@ class CompanionLayout {
   static const int gridColumns = 12;
   static const int gridRows = 12;
 
-  /// The smallest a tile can be resized to, in cells.
+  /// The narrowest a tile can be resized to, in cells, and the lowest a
+  /// button can be ([CompanionTileKind.minHeight]).
   static const int minSpan = 2;
 
   /// How far down a tile may go, so a runaway drag can't lose it.
@@ -143,6 +169,9 @@ class CompanionLayout {
 
   CompanionTile? tileFor(InGameAction action) =>
       tiles.where((t) => t.kind == CompanionTileKind.action && t.action == action).firstOrNull;
+
+  CompanionTile? tileForMusic(CompanionMusic music) =>
+      tiles.where((t) => t.kind == CompanionTileKind.music && t.music == music).firstOrNull;
 
   bool _fits(CompanionTile candidate) =>
       candidate.col >= 0 &&
@@ -167,14 +196,15 @@ class CompanionLayout {
     return _replace(next);
   }
 
-  /// [id] resized to [w] × [h] cells (at least [minSpan], at most to the
-  /// grid's edge), or null when it would cover another tile.
+  /// [id] resized to [w] × [h] cells (at least [minSpan] wide and its
+  /// kind's [CompanionTileKind.minHeight] high, at most to the grid's edge),
+  /// or null when it would cover another tile.
   CompanionLayout? resized(String id, {required int w, required int h}) {
     final t = tile(id);
     if (t == null) return null;
     final next = t.copyWith(
       w: w.clamp(minSpan, columns - t.col),
-      h: h.clamp(minSpan, maxRows - t.row),
+      h: h.clamp(t.kind.minHeight, maxRows - t.row),
     );
     if (!_fits(next)) return null;
     return _replace(next);
@@ -191,7 +221,7 @@ class CompanionLayout {
   /// The size a new tile of [kind] starts at.
   (int, int) _startSize(CompanionTileKind kind) => switch (kind) {
     CompanionTileKind.rideCard => (landscape ? 6 : 12, 3),
-    CompanionTileKind.action => (landscape ? 3 : 4, landscape ? 3 : 2),
+    CompanionTileKind.action || CompanionTileKind.music => (landscape ? 3 : 4, landscape ? 3 : 2),
     _ => (landscape ? 3 : 4, landscape ? 3 : 2),
   };
 
@@ -206,12 +236,21 @@ class CompanionLayout {
 
   /// A new tile in the first free spot, reading order; below everything when
   /// the screen is full.
-  CompanionLayout added({required CompanionTileKind kind, InGameAction? action}) {
+  CompanionLayout added({required CompanionTileKind kind, InGameAction? action, CompanionMusic? music}) {
     final (w, h) = _startSize(kind);
     final id = _nextId();
     for (var row = 0; row <= maxRows - h; row++) {
       for (var col = 0; col <= columns - w; col++) {
-        final candidate = CompanionTile(id: id, kind: kind, action: action, col: col, row: row, w: w, h: h);
+        final candidate = CompanionTile(
+          id: id,
+          kind: kind,
+          action: action,
+          music: music,
+          col: col,
+          row: row,
+          w: w,
+          h: h,
+        );
         if (_fits(candidate)) {
           return CompanionLayout(landscape: landscape, tiles: [...tiles, candidate]);
         }
@@ -245,88 +284,27 @@ class CompanionLayout {
     return CompanionLayout(landscape: landscape, tiles: tiles);
   }
 
-  /// Today's page as a layout: the ride card when there is ride data, − and
-  /// + side by side as the biggest targets, steering under them, then the
-  /// other [actions] as an even grid.
-  factory CompanionLayout.standard({
+  /// The page before the rider changes it: ride mode (when it has − and +
+  /// to show), then every other of [actions] below it, a scroll away —
+  /// steering side by side, actions that take a value (camera angle, emote)
+  /// half a row wide with room for their two last values, the rest an even
+  /// grid.
+  factory CompanionLayout.initial({
     required List<InGameAction> actions,
     required bool landscape,
     required bool hasRideData,
   }) {
-    final tiles = <CompanionTile>[];
-    var row = 0;
-    var n = 0;
-    String id() => 't${n++}';
-    if (hasRideData) {
-      tiles.add(CompanionTile(id: id(), kind: CompanionTileKind.rideCard, col: 0, row: 0, w: gridColumns, h: 3));
-      row = 3;
-    }
     final hasShift = actions.contains(InGameAction.shiftUp) && actions.contains(InGameAction.shiftDown);
-    final hasSteer = actions.contains(InGameAction.steerLeft) && actions.contains(InGameAction.steerRight);
-    const half = gridColumns ~/ 2;
-    if (hasShift) {
-      final h = landscape ? 5 : 4;
-      tiles
-        ..add(
-          CompanionTile(
-            id: id(),
-            kind: CompanionTileKind.action,
-            action: InGameAction.shiftDown,
-            col: 0,
-            row: row,
-            w: half,
-            h: h,
-          ),
-        )
-        ..add(
-          CompanionTile(
-            id: id(),
-            kind: CompanionTileKind.action,
-            action: InGameAction.shiftUp,
-            col: half,
-            row: row,
-            w: half,
-            h: h,
-          ),
-        );
-      row += h;
-    }
-    if (hasSteer) {
-      tiles
-        ..add(
-          CompanionTile(
-            id: id(),
-            kind: CompanionTileKind.action,
-            action: InGameAction.steerLeft,
-            col: 0,
-            row: row,
-            w: half,
-            h: 2,
-          ),
-        )
-        ..add(
-          CompanionTile(
-            id: id(),
-            kind: CompanionTileKind.action,
-            action: InGameAction.steerRight,
-            col: half,
-            row: row,
-            w: half,
-            h: 2,
-          ),
-        );
-      row += 2;
-    }
-    final rest = actions.where(
-      (a) =>
-          !(hasShift && (a == InGameAction.shiftUp || a == InGameAction.shiftDown)) &&
-          !(hasSteer && (a == InGameAction.steerLeft || a == InGameAction.steerRight)),
-    );
-    // Actions that take a value (camera angle, emote) are half a row wide:
-    // their name and the two values used last sit in them. The rest are an
-    // even grid under them.
+    final base = hasShift || hasRideData
+        ? CompanionLayout.rideMode(landscape: landscape, hasRideData: hasRideData)
+        : CompanionLayout(landscape: landscape, tiles: const []);
+    final tiles = [...base.tiles];
+    var n = tiles.length;
+    String id() => 't${n++}';
+    var row = base.tiles.isEmpty ? 0 : base.usedRows;
     var col = 0;
     var rowHeight = 0;
+    const half = gridColumns ~/ 2;
     void place(InGameAction action, int w, int h) {
       if (col + w > gridColumns || (rowHeight != 0 && rowHeight != h)) {
         col = 0;
@@ -340,10 +318,16 @@ class CompanionLayout {
       rowHeight = h;
     }
 
+    final rest = actions.where((a) => !tiles.any((t) => t.action == a)).toList();
+    for (final action in rest.where((a) => a == InGameAction.steerLeft || a == InGameAction.steerRight)) {
+      place(action, half, 2);
+    }
     for (final action in rest.where((a) => a.possibleValues != null)) {
       place(action, half, landscape ? 4 : 3);
     }
-    for (final action in rest.where((a) => a.possibleValues == null)) {
+    for (final action in rest.where(
+      (a) => a.possibleValues == null && a != InGameAction.steerLeft && a != InGameAction.steerRight,
+    )) {
       place(action, landscape ? 3 : 4, landscape ? 3 : 2);
     }
     return CompanionLayout(landscape: landscape, tiles: tiles);
