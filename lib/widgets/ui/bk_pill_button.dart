@@ -13,6 +13,7 @@ class BkPillButton extends StatelessWidget {
     this.leading,
     this.trailing,
     this.expand = true,
+    this.horizontalPadding = 24,
   }) : secondary = false;
 
   /// The second choice beside a primary pill (DESIGN.md
@@ -24,6 +25,7 @@ class BkPillButton extends StatelessWidget {
     this.leading,
     this.trailing,
     this.expand = true,
+    this.horizontalPadding = 24,
   }) : secondary = true;
 
   final Widget child;
@@ -33,6 +35,10 @@ class BkPillButton extends StatelessWidget {
 
   /// Fill the available width (the phone default).
   final bool expand;
+
+  /// Room on either side of the label. Pills sharing a row on a phone need
+  /// less, or a label like "Exportieren" breaks mid-word.
+  final double horizontalPadding;
 
   /// Neutral fill instead of the primary colour.
   final bool secondary;
@@ -57,7 +63,7 @@ class BkPillButton extends StatelessWidget {
       child: Button(
         style: shape(
           (secondary ? const ButtonStyle.secondary() : const ButtonStyle.primary()).withPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 14),
           ),
         ),
         alignment: Alignment.center,

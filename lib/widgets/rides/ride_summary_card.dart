@@ -170,16 +170,18 @@ class _Card extends StatelessWidget {
                       Expanded(
                         child: BkPillButton.secondary(
                           key: const ValueKey('ride-summary-details'),
+                          horizontalPadding: 12,
                           onPressed: () => _details(context),
-                          child: Text(l10n.ridesDetails),
+                          child: _OneLine(l10n.ridesDetails),
                         ),
                       ),
                       const Gap(8),
                       Expanded(
                         child: BkPillButton.secondary(
                           key: const ValueKey('ride-summary-export'),
+                          horizontalPadding: 12,
                           onPressed: () => unawaited(showRideExportSheet(context, ride)),
-                          child: Text(l10n.ridesExport),
+                          child: _OneLine(l10n.ridesExport),
                         ),
                       ),
                       const Gap(8),
@@ -437,4 +439,18 @@ class _HealthQuestion extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A pill's label in a row of pills: one line, scaled down rather than broken
+/// mid-word ("Exportiere / n") when the text is large or the card narrow.
+class _OneLine extends StatelessWidget {
+  const _OneLine(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text(text, maxLines: 1, softWrap: false),
+  );
 }

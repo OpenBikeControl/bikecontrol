@@ -10,6 +10,7 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/rides/ride_chart.dart';
 import 'package:bike_control/widgets/rides/ride_summary_card.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -82,6 +83,19 @@ Future<void> main() async {
     expect(find.byType(RideChartView), findsOneWidget);
     expect(find.byKey(const ValueKey('ride-summary-gears')), findsOneWidget);
     expect(find.byKey(const ValueKey('ride-health-question')), findsNothing);
+  });
+
+  testWidgets('Details and Export keep their labels on one line on a narrow phone', (tester) async {
+    await withRide(prefs: {'health_rides_prompt_dismissed': true});
+    await pump(tester);
+    tester.view.physicalSize = const Size(300, 1400);
+    await tester.pumpAndSettle();
+    for (final key in ['ride-summary-details', 'ride-summary-export']) {
+      final label = find.descendant(of: find.byKey(ValueKey(key)), matching: find.byType(RichText));
+      final paragraph = tester.renderObject<RenderParagraph>(label);
+      // "Exportiere / n" was two lines.
+      expect(paragraph.size.height, lessThan(paragraph.text.style!.fontSize! * 2), reason: key);
+    }
   });
 
   testWidgets('no speed source: no Distanz column', (tester) async {
