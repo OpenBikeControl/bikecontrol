@@ -182,10 +182,31 @@ void main() {
       ],
     );
 
-    test('a move onto another tile is refused, a free spot is taken', () {
-      expect(base.moved('a', col: 4, row: 0), isNull);
+    test('a move onto another tile pushes it down, a free spot is just taken', () {
+      final onto = base.moved('a', col: 4, row: 0)!;
+      expect(onto.tile('a')!.col, 4);
+      expect(onto.tile('a')!.row, 0);
+      expect(onto.tile('b')!.row, 3, reason: 'b goes just under a');
+      expectNoOverlap(onto);
       final moved = base.moved('a', col: 0, row: 5)!;
       expect(moved.tile('a')!.row, 5);
+      expect(moved.tile('b'), base.tile('b'));
+    });
+
+    test('a tile moved to the top pushes the tiles there down, in a chain', () {
+      final stack = CompanionLayout(
+        landscape: false,
+        tiles: const [
+          CompanionTile(id: 'x', kind: CompanionTileKind.power, col: 0, row: 0, w: 12, h: 2),
+          CompanionTile(id: 'y', kind: CompanionTileKind.cadence, col: 0, row: 2, w: 6, h: 2),
+          CompanionTile(id: 'z', kind: CompanionTileKind.action, action: InGameAction.tuck, col: 0, row: 8, w: 4, h: 2),
+        ],
+      );
+      final next = stack.moved('z', col: 0, row: 0)!;
+      expect(next.tile('z')!.row, 0);
+      expect(next.tile('x')!.row, 2);
+      expect(next.tile('y')!.row, 4);
+      expectNoOverlap(next);
     });
 
     test('a move is clamped to the grid', () {
@@ -209,7 +230,9 @@ void main() {
       final small = base.resized('a', w: 0, h: 0)!;
       expect(small.tile('a')!.w, CompanionLayout.minSpan);
       expect(small.tile('a')!.h, 1);
-      expect(base.resized('a', w: 8, h: 3), isNull, reason: 'would cover b');
+      final grown = base.resized('a', w: 8, h: 3)!;
+      expect(grown.tile('b')!.row, 3, reason: 'b is pushed under a');
+      expectNoOverlap(grown);
       expect(base.resized('a', w: 6, h: 6)!.tile('a')!.h, 6);
     });
 

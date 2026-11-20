@@ -44,6 +44,10 @@ class _CompanionCanvasState extends State<CompanionCanvas> {
   /// finger has gone since.
   String? _activeId;
   CompanionTile? _start;
+
+  /// The layout as the drag found it: every step of the drag is worked out
+  /// from it, so a tile pushed aside slides back once the drag moves on.
+  CompanionLayout? _startLayout;
   Offset _delta = Offset.zero;
   bool _resizing = false;
 
@@ -57,6 +61,7 @@ class _CompanionCanvasState extends State<CompanionCanvas> {
     setState(() {
       _activeId = tile.id;
       _start = tile;
+      _startLayout = widget.layout;
       _delta = Offset.zero;
       _resizing = local.dx >= size.width - _handle && local.dy >= size.height - _handle;
     });
@@ -65,23 +70,26 @@ class _CompanionCanvasState extends State<CompanionCanvas> {
   void _end() => setState(() {
     _activeId = null;
     _start = null;
+    _startLayout = null;
   });
 
   void _drag(Offset delta, double cellWidth) {
     final resize = _resizing;
     final start = _start;
-    if (start == null) return;
+    final base = _startLayout;
+    if (start == null || base == null) return;
     _delta += delta;
     final dc = (_delta.dx / cellWidth).round();
     final dr = (_delta.dy / widget.rowHeight).round();
     final next = resize
-        ? widget.layout.resized(start.id, w: start.w + dc, h: start.h + dr)
-        : widget.layout.moved(start.id, col: start.col + dc, row: start.row + dr);
-    if (next == null) return;
-    final now = widget.layout.tile(start.id);
-    if (next.tile(start.id) == now) return;
+        ? base.resized(start.id, w: start.w + dc, h: start.h + dr)
+        : base.moved(start.id, col: start.col + dc, row: start.row + dr);
+    if (next == null || _same(next, widget.layout)) return;
     widget.onChanged(next);
   }
+
+  static bool _same(CompanionLayout a, CompanionLayout b) =>
+      a.tiles.length == b.tiles.length && a.tiles.every((t) => b.tile(t.id) == t);
 
   @override
   Widget build(BuildContext context) {

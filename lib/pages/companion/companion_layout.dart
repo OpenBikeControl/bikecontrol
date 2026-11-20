@@ -176,34 +176,54 @@ class CompanionLayout {
       candidate.bottom <= maxRows &&
       !tiles.any((t) => t.id != candidate.id && t.overlaps(candidate));
 
-  CompanionLayout _replace(CompanionTile tile) =>
-      CompanionLayout(landscape: landscape, tiles: [for (final t in tiles) t.id == tile.id ? tile : t]);
-
-  /// [id] moved to [col], [row] (clamped to the grid), or null when it would
-  /// land on another tile.
+  /// [id] moved to [col], [row] (clamped to the grid). Tiles in the way
+  /// are pushed down under it. Null only when that would push one past
+  /// [maxRows].
   CompanionLayout? moved(String id, {required int col, required int row}) {
     final t = tile(id);
     if (t == null) return null;
-    final next = t.copyWith(
-      col: col.clamp(0, columns - t.w),
-      row: row.clamp(0, maxRows - t.h),
+    return _placePushing(
+      t.copyWith(
+        col: col.clamp(0, columns - t.w),
+        row: row.clamp(0, maxRows - t.h),
+      ),
     );
-    if (!_fits(next)) return null;
-    return _replace(next);
   }
 
   /// [id] resized to [w] × [h] cells (at least [minSpan] wide and one row
-  /// high, at most to the grid's edge), or null when it would cover another
-  /// tile.
+  /// high, at most to the grid's edge). Tiles it grows into are pushed down.
   CompanionLayout? resized(String id, {required int w, required int h}) {
     final t = tile(id);
     if (t == null) return null;
-    final next = t.copyWith(
-      w: w.clamp(minSpan, columns - t.col),
-      h: h.clamp(1, maxRows - t.row),
+    return _placePushing(
+      t.copyWith(
+        w: w.clamp(minSpan, columns - t.col),
+        h: h.clamp(1, maxRows - t.row),
+      ),
     );
-    if (!_fits(next)) return null;
-    return _replace(next);
+  }
+
+  /// [placed] where it is, every other tile it lands on moved down just
+  /// below it, and so on down the grid: the others keep their order and
+  /// columns.
+  CompanionLayout? _placePushing(CompanionTile placed) {
+    final settled = <CompanionTile>[placed];
+    final others = tiles.where((t) => t.id != placed.id).toList()
+      ..sort((a, b) => a.row != b.row ? a.row.compareTo(b.row) : a.col.compareTo(b.col));
+    for (final t in others) {
+      var next = t;
+      while (true) {
+        final hits = settled.where((s) => s.overlaps(next));
+        if (hits.isEmpty) break;
+        next = next.copyWith(row: hits.map((s) => s.bottom).reduce(math.max));
+      }
+      if (next.bottom > maxRows) return null;
+      settled.add(next);
+    }
+    return CompanionLayout(
+      landscape: landscape,
+      tiles: [for (final t in tiles) settled.firstWhere((s) => s.id == t.id)],
+    );
   }
 
   /// Every tile moved up as far as it goes, top to bottom, so the empty rows

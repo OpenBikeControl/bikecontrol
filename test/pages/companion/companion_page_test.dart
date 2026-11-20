@@ -194,17 +194,22 @@ Future<void> main() async {
       expect(saved().tile(id)!.row, greaterThan(0));
     });
 
-    testWidgets('dropping onto another tile leaves it where it was', (tester) async {
+    testWidgets('dropping onto another tile takes its place and pushes it down', (tester) async {
       connectMyWhoosh();
       await render(tester);
       await tester.tap(find.byKey(const ValueKey('companion-edit')));
       await tester.pump();
-      final id = idOf(tester, InGameAction.shiftDown);
-      final before = tester.getRect(find.byKey(ValueKey('companion-tile-$id')));
-      // Up onto the + above it.
-      await tester.drag(find.byKey(ValueKey('companion-move-$id')), Offset(0, -before.height / 2));
+      final downId = idOf(tester, InGameAction.shiftDown);
+      final upId = idOf(tester, InGameAction.shiftUp);
+      final up = tester.getRect(find.byKey(ValueKey('companion-tile-$upId')));
+      final down = tester.getRect(find.byKey(ValueKey('companion-tile-$downId')));
+      // − up to the top, where + is.
+      await tester.drag(find.byKey(ValueKey('companion-move-$downId')), Offset(0, up.top - down.top));
       await tester.pump();
-      expect(tester.getRect(find.byKey(ValueKey('companion-tile-$id'))), before);
+      final downAfter = tester.getRect(find.byKey(ValueKey('companion-tile-$downId')));
+      final upAfter = tester.getRect(find.byKey(ValueKey('companion-tile-$upId')));
+      expect(downAfter.top, closeTo(up.top, 1));
+      expect(upAfter.top, greaterThanOrEqualTo(downAfter.bottom), reason: '+ pushed under −');
     });
 
     testWidgets('the corner handle resizes, the × removes', (tester) async {
