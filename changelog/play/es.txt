@@ -1,3 +1,4 @@
 7.6.1
 Novedades:
 • MyWhoosh por Bluetooth (beta): empareja BikeControl como dispositivo de dirección para cambiar y elegir camino en los cruces
+• Sensores: ve de dónde viene cada valor y sustituye los del rodillo por tu propio sensor

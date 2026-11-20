@@ -13,6 +13,7 @@ import 'package:bike_control/services/sensors/sensor_source.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/units.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -20,26 +21,19 @@ import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-/// The 2×2 live-metrics "signals grid" — POWER / HEART / CADENCE / SPEED —
-/// and, per the Claude Design system spec, the app's ONE sensor surface: each
-/// of the first three tiles grows an optional inline source control (see
-/// `MetricSourceOption`) that both shows where the reading is coming from and
-/// lets the rider pick a different one directly on the tile — no picker
-/// sheet, no dropdown.
+/// The Sensors page's signal list — POWER / HEART / CADENCE / SPEED — and the
+/// app's one sensor surface: each row shows the live value, where it comes
+/// from, and (when there is anything to choose) the list of sources, so a
+/// rider can replace the trainer's own reading with a sensor of their own.
 ///
-/// [device] is optional so this section also works in standalone mode — a
-/// rider who has never bridged a trainer still needs somewhere to pick a
-/// heart rate strap. When present, its own live telemetry is ONE input among
-/// several: `core.sensors` (the external-sensor selection) always wins when
-/// it resolves to a value, and the trainer is the fallback both when nothing
-/// is selected and when a selection has gone stale — see `_quantityCard`.
+/// [device] is the trainer the readings fall back to. It is optional so the
+/// list also works without a trainer: the fallback then reads "No source"
+/// and the speed row, which only a trainer can fill, is left out.
+/// `core.sensors` (the external-sensor selection) always wins when it
+/// resolves to a value — see `_quantityRow`.
 ///
-/// A rider with no external sensors sees every tile render exactly as it did
-/// before this feature existed: "--" and nothing else, no new affordance.
-/// [_sourceOptionsFor] enforces this by returning null (no control at all)
-/// whenever a quantity has no possible source besides the trainer. See
-/// [hideWhenDeviceHasNoMetrics] for the one other pixel-fidelity case this
-/// section has to preserve: a trainer present but not yet reporting anything.
+/// A quantity with no possible source besides the trainer gets no list at
+/// all — see [_sourceOptionsFor].
 class LiveMetricsSection extends StatefulWidget {
   final ProxyDevice? device;
 
@@ -134,68 +128,78 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
     final metrics = _metrics();
     // A device that is present but has nothing to report (not yet connected,
     // or connected without a parsed fitness definition) renders nothing at
-    // all — exactly what this section rendered before it knew about sensors,
-    // for exactly this case. Only [device] being entirely absent (standalone
-    // mode; impossible under the old, non-nullable signature) is new: THAT
-    // case always renders the grid, "--" placeholders and all, since it is
-    // the only route standalone mode has to the source control at all.
+    // all when the caller asks for that. Without a device the list always
+    // renders: it is the only route standalone mode has to the source picker.
     if (device != null && metrics == null && widget.hideWhenDeviceHasNoMetrics) {
       return const SizedBox.shrink();
     }
     final l10n = AppLocalizations.of(context);
     final units = unitSystemOf(context);
+    final cs = Theme.of(context).colorScheme;
 
-    return Column(
-      spacing: 10,
-      children: [
-        _EqualHeightRow(
-          spacing: 10,
-          children: [
-            _quantityCard(
-              context: context,
-              l10n: l10n,
-              quantity: SensorQuantity.power,
-              icon: LucideIcons.zap,
-              label: l10n.powerLabel,
-              unit: 'W',
-              trainerValue: metrics?.power,
-            ),
-            _quantityCard(
-              context: context,
-              l10n: l10n,
-              quantity: SensorQuantity.heartRate,
-              icon: LucideIcons.heart,
-              label: l10n.heartLabel,
-              unit: 'bpm',
-              trainerValue: metrics?.heartRate,
-            ),
+    final rows = <Widget>[
+      _quantityRow(
+        context: context,
+        l10n: l10n,
+        quantity: SensorQuantity.power,
+        icon: LucideIcons.zap,
+        label: l10n.sensorQuantityPower,
+        unit: 'W',
+        trainerValue: metrics?.power,
+      ),
+      _quantityRow(
+        context: context,
+        l10n: l10n,
+        quantity: SensorQuantity.heartRate,
+        icon: LucideIcons.heart,
+        label: l10n.sensorQuantityHeartRate,
+        unit: 'bpm',
+        trainerValue: metrics?.heartRate,
+      ),
+      _quantityRow(
+        context: context,
+        l10n: l10n,
+        quantity: SensorQuantity.cadence,
+        icon: LucideIcons.rotateCw,
+        label: l10n.sensorQuantityCadence,
+        unit: 'rpm',
+        trainerValue: metrics?.cadence,
+      ),
+      // Only a trainer reports speed; without one the row could only ever
+      // say "--".
+      if (device != null) _speedRow(context, l10n, units, metrics?.speed),
+    ];
+
+    return Container(
+      key: const ValueKey('live-metrics-list'),
+      decoration: BoxDecoration(
+        color: cs.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cs.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (i, row) in rows.indexed) ...[
+            if (i > 0) Divider(height: 1, color: cs.border),
+            row,
           ],
-        ),
-        _EqualHeightRow(
-          spacing: 10,
-          children: [
-            _quantityCard(
-              context: context,
-              l10n: l10n,
-              quantity: SensorQuantity.cadence,
-              icon: LucideIcons.rotateCw,
-              label: l10n.cadenceLabel,
-              unit: 'rpm',
-              trainerValue: metrics?.cadence,
-            ),
-            _speedCard(context, l10n, units, metrics?.speed),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  /// POWER / HEART / CADENCE: value is the external-sensor selection when it
-  /// resolves, else this trainer's own reading (present-but-no-device and
-  /// no-selection both collapse to null, i.e. "--" — unchanged from before
-  /// this feature). Also renders the optional inline source control for this
-  /// quantity.
-  Widget _quantityCard({
+  /// The trainer's name, or "No source" when there is no trainer to fall
+  /// back to.
+  String _trainerLabel(BuildContext context, AppLocalizations l10n) =>
+      widget.device?.displayName(context) ?? l10n.sensorSourceNone;
+
+  /// POWER / HEART / CADENCE: the external-sensor selection when it
+  /// resolves, else the trainer's own reading. Also carries this quantity's
+  /// source list.
+  Widget _quantityRow({
     required BuildContext context,
     required AppLocalizations l10n,
     required SensorQuantity quantity,
@@ -211,15 +215,26 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
           final value = external ?? deviceReading;
           return ValueListenableBuilder<bool>(
             valueListenable: core.sensors.droppedOut(quantity),
-            builder: (context, droppedOut, _) => MetricCard(
-              key: Key('metric-card-${quantity.name}'),
-              icon: icon,
-              iconColor: Theme.of(context).colorScheme.mutedForeground,
-              label: label,
-              value: value?.toString(),
-              unit: unit,
-              sources: _sourceOptionsFor(l10n, quantity, droppedOut),
-            ),
+            builder: (context, droppedOut, _) {
+              final options = _sourceOptionsFor(context, l10n, quantity, droppedOut, trainerReading: deviceReading);
+              final selected = options?.where((o) => o.selected).firstOrNull;
+              final onTrainer = selected == null || selected.id == 'trainer';
+              final status = BkStatusColors.of(context);
+              final muted = Theme.of(context).colorScheme.mutedForeground;
+              return SignalRow(
+                key: Key('metric-card-${quantity.name}'),
+                icon: icon,
+                label: label,
+                value: value?.toString(),
+                unit: unit,
+                sourceLabel: onTrainer ? _trainerLabel(context, l10n) : selected.label,
+                sourceDotColor: onTrainer
+                    ? (widget.device != null && deviceReading != null ? status.success : muted)
+                    : selected.state.dotColor(context),
+                replaced: widget.device != null && !onTrainer,
+                sources: options,
+              );
+            },
           );
         }
 
@@ -232,32 +247,21 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
     );
   }
 
-  /// SPEED never gets a source control: no sensor in this codebase provides
-  /// it (see `BleSensorSource`'s fixed set of characteristics), so a control
-  /// that could only ever say "Trainer" would be noise. Reads straight off
-  /// the trainer, exactly as before this feature.
-  Widget _speedCard(BuildContext context, AppLocalizations l10n, UnitSystem units, ValueListenable<double?>? speed) {
-    if (speed == null) {
-      return MetricCard(
-        key: const Key('metric-card-speed'),
-        icon: LucideIcons.gauge,
-        iconColor: Theme.of(context).colorScheme.mutedForeground,
-        label: l10n.speedLabel,
-        value: null,
-        unit: units.speedSymbol,
-      );
-    }
-    return ValueListenableBuilder<double?>(
-      valueListenable: speed,
-      builder: (context, v, _) => MetricCard(
-        key: const Key('metric-card-speed'),
-        icon: LucideIcons.gauge,
-        iconColor: Theme.of(context).colorScheme.mutedForeground,
-        label: l10n.speedLabel,
-        value: v == null ? null : units.fromKph(v).toStringAsFixed(1),
-        unit: units.speedSymbol,
-      ),
+  /// SPEED never gets a source list: no sensor in this codebase provides it
+  /// (see `BleSensorSource`'s fixed set of characteristics). Reads straight
+  /// off the trainer.
+  Widget _speedRow(BuildContext context, AppLocalizations l10n, UnitSystem units, ValueListenable<double?>? speed) {
+    Widget row(double? v) => SignalRow(
+      key: const Key('metric-card-speed'),
+      icon: LucideIcons.gauge,
+      label: l10n.sensorQuantitySpeed,
+      value: v == null ? null : units.fromKph(v).toStringAsFixed(1),
+      unit: units.speedSymbol,
+      sourceLabel: _trainerLabel(context, l10n),
+      sourceDotColor: v != null ? BkStatusColors.of(context).success : Theme.of(context).colorScheme.mutedForeground,
     );
+    if (speed == null) return row(null);
+    return ValueListenableBuilder<double?>(valueListenable: speed, builder: (context, v, _) => row(v));
   }
 
   /// [quantity]'s full source-list option set — Trainer first, then every
@@ -269,7 +273,13 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
   /// the rider can always see what they picked and switch back to Trainer
   /// even if that sensor is currently out of range (the trailing "ghost"
   /// branch below).
-  List<MetricSourceOption>? _sourceOptionsFor(AppLocalizations l10n, SensorQuantity quantity, bool droppedOut) {
+  List<MetricSourceOption>? _sourceOptionsFor(
+    BuildContext context,
+    AppLocalizations l10n,
+    SensorQuantity quantity,
+    bool droppedOut, {
+    required int? trainerReading,
+  }) {
     final selectedId = core.sensors.selectionFor(quantity);
     final candidates = _candidatesFor(quantity);
     if (selectedId == null && candidates.isEmpty) return null;
@@ -277,8 +287,12 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
     final options = <MetricSourceOption>[
       MetricSourceOption(
         id: 'trainer',
-        label: l10n.sensorSourceTrainer,
-        subtitle: l10n.sensorSourceTrainerSubtitle,
+        label: _trainerLabel(context, l10n),
+        subtitle: widget.device == null
+            ? l10n.sensorSourceNoneSubtitle
+            : trainerReading == null
+            ? l10n.sensorSourceTrainerNoReading
+            : l10n.sensorSourceTrainerSubtitle,
         state: MetricSourceState.trainer,
         selected: selectedId == null,
         onSelect: () => _select(quantity, null),
@@ -359,7 +373,12 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
   /// is the right message in every one of `connected` /
   /// `waitingForFirstReading` / `lost`, so long as this IS the rider's
   /// current pick.
-  String _subtitleFor(AppLocalizations l10n, _SourceCandidate candidate, MetricSourceState state, {required bool isSelected}) {
+  String _subtitleFor(
+    AppLocalizations l10n,
+    _SourceCandidate candidate,
+    MetricSourceState state, {
+    required bool isSelected,
+  }) {
     final source = candidate.source;
     if (isSelected && source is HealthKitSensorSource && source.mode.value == HealthKitMode.passive) {
       return l10n.sensorSourceHealthKitPassiveSubtitle;
@@ -503,7 +522,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
       if (sourceId != null && !IAPManager.instance.isProEnabledForCurrentDevice) {
         final granted = await IAPManager.instance.ensureProForFeature(
           context,
-          featureName: _quantityTitle(AppLocalizations.of(context), quantity),
+          featureName: quantityTitle(AppLocalizations.of(context), quantity),
         );
         if (!granted) {
           // Nothing changed in the hub — force a rebuild so the control
@@ -669,7 +688,7 @@ class _LiveMetricsSectionState extends State<LiveMetricsSection> {
 /// deleted `SensorQuantitySelector`'s `SensorQuantityPresentation` extension:
 /// nothing else in the surviving tree needs a title per [SensorQuantity] any
 /// more.
-String _quantityTitle(AppLocalizations l10n, SensorQuantity quantity) => switch (quantity) {
+String quantityTitle(AppLocalizations l10n, SensorQuantity quantity) => switch (quantity) {
   SensorQuantity.heartRate => l10n.sensorQuantityHeartRate,
   SensorQuantity.cadence => l10n.sensorQuantityCadence,
   SensorQuantity.power => l10n.sensorQuantityPower,
@@ -716,126 +735,4 @@ class _LiveMetrics {
     required this.cadence,
     required this.speed,
   });
-}
-
-/// A `Row` where every child ends up the row's own height — the shorter
-/// card's `Container` stretches to match the taller one, per direct author
-/// feedback on this grid ("let the left card have the same height as the
-/// right card, otherwise it looks odd"): a metric with no source list (e.g.
-/// POWER, with only one possible source) renders short next to one that has
-/// grown an inline source list (e.g. HEART), and the mismatch reads as
-/// broken.
-///
-/// Deliberately NOT `IntrinsicHeight` + `Row(crossAxisAlignment: stretch)` —
-/// that is the obvious fix, and it is unsafe HERE for two independent
-/// reasons:
-///
-///  1. `IntrinsicHeight` measures each child through Flutter's *intrinsic
-///     dimensions* protocol (`RenderBox.getMaxIntrinsicHeight`), and
-///     `MetricCard` uses a `LayoutBuilder` for its own width-reactive
-///     side-by-side/stacked source-list switch. `LayoutBuilder` explicitly
-///     refuses intrinsic queries — see its own source
-///     (`_RenderLayoutBuilder._debugThrowIfNotCheckingIntrinsics`): "does
-///     not support returning intrinsic dimensions", because answering would
-///     mean running its builder speculatively against a hypothetical width.
-///     So `IntrinsicHeight` here throws on EVERY tile that has grown a
-///     source list — proven by pumping a minimal `IntrinsicHeight` +
-///     `LayoutBuilder` reproduction under `flutter_test` before writing
-///     this — not just under the unbounded-height page below.
-///  2. Separately, `CrossAxisAlignment.stretch` needs the row's OWN
-///     incoming height to be bounded (it tightens every child to
-///     `constraints.maxHeight`), so it throws under an unbounded-height
-///     parent — and this section renders inside a `SingleChildScrollView`
-///     on both of its real call sites.
-///
-/// This class avoids both failure modes by never touching the intrinsics
-/// protocol at all: [_RenderEqualHeightRow] runs the ordinary `RenderFlex`
-/// layout once for real (exactly what a plain `Row` already does — safe for
-/// `LayoutBuilder`, and safe unbounded, since nothing here needs the
-/// incoming height to be finite), reads the row's own resulting height off
-/// that, and then, only for a child shorter than that, lays that ONE child
-/// out again for real with a tight height matching the row. Every layout
-/// call is a genuine `RenderBox.layout()`, never an intrinsic-dimension
-/// query, and the row's own height always comes from its children's real
-/// (natural) sizes.
-///
-/// Subclasses shadcn_flutter's OWN `Row`/`RenderFlex` (`shadcn_flutter
-/// .dart`'s barrel hides Flutter's stock `Row`/`Expanded`/`Flex` in favor of
-/// its own paint-order-aware versions — see that file's "patched flex with
-/// paint order" export), NOT Flutter's raw `Row`/`RenderFlex`: `MetricCard`'s
-/// `Expanded` is shadcn's own `Expanded`, which requires shadcn's own
-/// `FlexParentData` subtype on its render object, and throws "Incorrect use
-/// of ParentDataWidget" against a plain `RenderFlex` that only knows how to
-/// hand out Flutter's base `FlexParentData`.
-class _EqualHeightRow extends Row {
-  const _EqualHeightRow({required super.children, super.spacing});
-
-  @override
-  RenderFlex createRenderObject(BuildContext context) {
-    return _RenderEqualHeightRow(textDirection: getEffectiveTextDirection(context), spacing: spacing);
-  }
-
-  @override
-  void updateRenderObject(BuildContext context, covariant _RenderEqualHeightRow renderObject) {
-    renderObject
-      ..textDirection = getEffectiveTextDirection(context)
-      ..spacing = spacing;
-  }
-}
-
-/// See [_EqualHeightRow]'s doc comment for why this exists instead of
-/// `IntrinsicHeight` + `CrossAxisAlignment.stretch` — and why it extends
-/// shadcn_flutter's `RenderFlex`, not Flutter's own.
-class _RenderEqualHeightRow extends RenderFlex {
-  _RenderEqualHeightRow({required super.textDirection, required super.spacing})
-    : super(
-        direction: Axis.horizontal,
-        // `start`, not the `RenderFlex` default `center`: once the second
-        // pass below grows a shorter child to the row's own height, its
-        // vertical position is moot (it now spans the whole row either
-        // way) — but keeping it `start` for the (common, unaffected) case
-        // where every child is already the same height costs nothing and
-        // keeps this row's own semantics closest to "top-aligned, stretch
-        // when needed" rather than momentarily centering during the first
-        // pass.
-        crossAxisAlignment: CrossAxisAlignment.start,
-      );
-
-  @override
-  void performLayout() {
-    // Pass 1: the ordinary, real `RenderFlex` algorithm (shadcn_flutter's
-    // `super.performLayout()` runs Flutter's real single-pass Flex layout,
-    // then its own paint-order bookkeeping) — every child is laid out for
-    // real, at its own natural (loosely-constrained) height. This is
-    // exactly what an unmodified `Row` does today, so it is exactly as safe
-    // for a `LayoutBuilder` descendant and exactly as safe under an
-    // unbounded incoming height. `size.height` afterward is the max of the
-    // children's own real heights.
-    super.performLayout();
-    final rowHeight = size.height;
-    // Pass 2: any child shorter than the row itself gets ONE more real
-    // layout call, this time with a tight height equal to the row's own —
-    // still a real `RenderBox.layout()`, not an intrinsic query, so it
-    // stays safe for `MetricCard`'s `LayoutBuilder`. `MetricCard`'s
-    // `Container` has no explicit height and no `alignment`, and its
-    // `Column` defaults to `mainAxisSize.max` / `mainAxisAlignment.start`,
-    // so the extra height lands as trailing space below the existing
-    // content — the label/value/source-list stay top-aligned, they don't
-    // re-centre into the middle of the taller box. Only the height changes
-    // (the width, and therefore each child's `x` offset, is untouched), and
-    // a child can only grow up to `rowHeight` — exactly the row's own size —
-    // so this can never introduce overflow for shadcn's overflow check
-    // above to catch.
-    var child = firstChild;
-    while (child != null) {
-      final childParentData = child.parentData! as FlexParentData;
-      if (child.size.height < rowHeight) {
-        child.layout(
-          BoxConstraints.tightFor(width: child.size.width, height: rowHeight),
-          parentUsesSize: true,
-        );
-      }
-      child = childParentData.nextSibling;
-    }
-  }
 }

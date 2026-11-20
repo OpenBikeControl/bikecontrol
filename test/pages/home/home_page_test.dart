@@ -194,7 +194,7 @@ Future<void> main() async {
     await tester.pump();
 
     expect(find.byKey(const ValueKey('live-metrics')), findsNothing);
-    expect(find.byType(MetricCard), findsNothing);
+    expect(find.byType(SignalRow), findsNothing);
 
     // Unmount before the test ends: with `screenshotMode` off, HomePage's own
     // periodic metrics timer is running, and `flutter_test` fails a test that

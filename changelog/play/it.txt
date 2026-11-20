@@ -1,3 +1,4 @@
 7.6.1
 Novità:
 • MyWhoosh via Bluetooth (beta): abbina BikeControl come dispositivo di sterzo per cambiare e scegliere la strada agli incroci
+• Sensori: vedi da dove arriva ogni valore e sostituisci quelli del rullo con un tuo sensore

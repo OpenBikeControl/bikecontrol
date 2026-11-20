@@ -5,7 +5,11 @@ import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
+import 'package:bike_control/pages/home/home_page.dart' show chainProxy;
+import 'package:bike_control/services/sensors/sensor_quantity.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart';
 import 'package:bike_control/pages/sensors/sensor_transport_requirements.dart';
 import 'package:bike_control/services/sensors/broadcast_controller.dart';
@@ -21,15 +25,22 @@ import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:bike_control/widgets/ui/bk_page_column.dart';
 
-/// The no-trainer path's own page: the Broadcast switch, the transport choice
-/// and the signals grid behind the Sensors chain card.
+/// The trainer whose readings the Sensors page falls back to: the chain's
+/// trainer, once it is actually connected. Null without one.
+ProxyDevice? sensorsTrainer() {
+  final proxy = chainProxy();
+  if (proxy == null || !(proxy.isConnected || proxy.isBridged)) return null;
+  return proxy;
+}
+
+/// Where every value BikeControl hands on comes from: one row per signal,
+/// with its live reading and its source, so a rider can replace a trainer
+/// reading with a sensor of their own.
 ///
-/// Same scaffold shape as `ProxyDeviceDetailsPage`, so a rider moving between
-/// a trainer's page and this one meets the same header in the same place.
-/// The consequence (Broadcast) sits directly above its cause (the sources
-/// picked in the grid) — spec Decision 7 — and speaks the home screen's
-/// status vocabulary (tile + Ampel + status line) so the card reads like the
-/// chain card that opened it.
+/// With a trainer connected the values already travel through the bridge,
+/// so that is all there is. Without one, the Send card below the list puts
+/// the picked sensors on air as "BikeControl" — Bluetooth or Network.
+/// "Found sensors" lists every source in reach, the trainer included.
 class SensorsPage extends StatefulWidget {
   const SensorsPage({super.key, this.ensureTransportReady});
 
@@ -183,6 +194,8 @@ class _SensorsPageState extends State<SensorsPage> {
     final isOn = _isOn;
     final hasSelection = _hasSelection;
 
+    final trainer = sensorsTrainer();
+
     return Scaffold(
       headers: [
         BkPageHeader(title: l10n.sensorsPageTitle),
@@ -193,32 +206,43 @@ class _SensorsPageState extends State<SensorsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _BroadcastCard(
-                isOn: isOn,
-                hasSelection: hasSelection,
-                pending: _pending,
-                connecting: _inFlight == true,
-                clientName: core.connection.standaloneClientName,
-                transport: _broadcast?.transport.value ?? RetrofitMode.bluetooth,
-                onChanged: _setBroadcast,
-                onTransport: _setTransport,
+              Text(
+                trainer != null ? l10n.sensorsLeadTrainer(trainer.displayName(context)) : l10n.sensorsLeadNoTrainer,
+                key: const Key('sensors-lead'),
+                style: context.typography.small.copyWith(height: 1.45, color: theme.colorScheme.mutedForeground),
               ),
-              const Gap(18),
-              _SectionHeader(l10n.sensorsSignalsHeader),
-              const Gap(8),
-              if (_noCandidates) ...[
+              const Gap(12),
+              if (trainer == null && _noCandidates) ...[
                 const _EmptyPanel(key: Key('sensors-empty')),
                 const Gap(10),
               ],
-              const LiveMetricsSection(device: null),
-              if (!isOn && hasSelection) ...[
-                const Gap(12),
-                Text(
-                  l10n.sensorsOffHint,
-                  key: const Key('sensors-off-hint'),
-                  style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
+              LiveMetricsSection(device: trainer),
+              // With a trainer the values already travel through the bridge;
+              // sending them a second time would only add a duplicate.
+              if (trainer == null) ...[
+                const Gap(18),
+                _SectionHeader(l10n.sensorsBroadcastEyebrow),
+                const Gap(8),
+                _BroadcastCard(
+                  isOn: isOn,
+                  hasSelection: hasSelection,
+                  pending: _pending,
+                  connecting: _inFlight == true,
+                  clientName: core.connection.standaloneClientName,
+                  transport: _broadcast?.transport.value ?? RetrofitMode.bluetooth,
+                  onChanged: _setBroadcast,
+                  onTransport: _setTransport,
                 ),
+                if (!isOn && hasSelection) ...[
+                  const Gap(12),
+                  Text(
+                    l10n.sensorsOffHint,
+                    key: const Key('sensors-off-hint'),
+                    style: context.typography.xSmall.copyWith(height: 1.4, color: theme.colorScheme.mutedForeground),
+                  ),
+                ],
               ],
+              _FoundSensors(trainer: trainer),
             ],
           ),
         ),
@@ -286,14 +310,6 @@ class _BroadcastCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      l10n.sensorsBroadcastEyebrow.toUpperCase(),
-                      style: context.typography.caption.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
-                        color: theme.colorScheme.mutedForeground,
-                      ),
-                    ),
                     Text(
                       l10n.sensorsBroadcastTitle,
                       maxLines: 1,
@@ -478,6 +494,183 @@ class _EmptyPanel extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// FOUND SENSORS: every source in reach — the trainer, the sensors already
+/// linked, and the ones merely nearby — with its state and what it measures.
+/// The picking itself happens on the signal rows above.
+class _FoundSensors extends StatelessWidget {
+  const _FoundSensors({required this.trainer});
+
+  final ProxyDevice? trainer;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.i18n;
+    final cs = Theme.of(context).colorScheme;
+    final status = BkStatusColors.of(context);
+    final broadcast = core.connection.broadcast;
+    final served = core.connection.isBridgeRunning || (broadcast?.isOn.value ?? false);
+    final selectedIds = {for (final q in SensorQuantity.values) ?core.sensors.selectionFor(q)};
+    final registered = core.sensors.sources;
+    final registeredIds = {for (final s in registered) s.id};
+
+    final entries = <_FoundEntry>[
+      if (trainer case final trainer?)
+        _FoundEntry(
+          id: 'trainer',
+          icon: LucideIcons.bike,
+          name: trainer.displayName(context),
+          state: l10n.sensorSourceTrainer,
+          dot: status.success,
+          provides: const [SensorQuantity.power, SensorQuantity.cadence, SensorQuantity.speed],
+        ),
+      for (final source in registered)
+        _FoundEntry(
+          id: source.id,
+          icon: _iconFor(source.provides),
+          name: source.displayName,
+          state: l10n.sensorsFoundConnected,
+          dot: status.success,
+          provides: source.provides.toList(),
+        ),
+      for (final device in core.connection.devices.whereType<BleSensorDevice>())
+        if (!registeredIds.contains(device.source.id))
+          _FoundEntry(
+            id: device.source.id,
+            icon: _iconFor(device.source.provides),
+            name: device.source.displayName,
+            state: !selectedIds.contains(device.source.id)
+                ? l10n.sensorsFoundNearby
+                : served
+                ? l10n.sensorConnecting
+                : l10n.sensorsFoundWaitsForBroadcast,
+            dot: selectedIds.contains(device.source.id) ? status.warning : cs.mutedForeground,
+            provides: device.source.provides.toList(),
+          ),
+    ];
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Gap(18),
+        _SectionHeader(l10n.sensorsFoundHeader),
+        const Gap(8),
+        Container(
+          decoration: BoxDecoration(
+            color: cs.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: cs.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final (i, entry) in entries.indexed) ...[
+                if (i > 0) Divider(height: 1, color: cs.border),
+                _FoundRow(entry: entry),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static IconData _iconFor(Set<SensorQuantity> provides) => provides.contains(SensorQuantity.power)
+      ? LucideIcons.zap
+      : provides.contains(SensorQuantity.heartRate)
+      ? LucideIcons.heartPulse
+      : LucideIcons.rotateCw;
+}
+
+class _FoundEntry {
+  const _FoundEntry({
+    required this.id,
+    required this.icon,
+    required this.name,
+    required this.state,
+    required this.dot,
+    required this.provides,
+  });
+
+  final String id;
+  final IconData icon;
+  final String name;
+  final String state;
+  final Color dot;
+  final List<SensorQuantity> provides;
+}
+
+class _FoundRow extends StatelessWidget {
+  const _FoundRow({required this.entry});
+
+  final _FoundEntry entry;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l10n = context.i18n;
+    final measures = [
+      // The order of the signal rows above.
+      for (final q in const [
+        SensorQuantity.power,
+        SensorQuantity.heartRate,
+        SensorQuantity.cadence,
+        SensorQuantity.speed,
+      ])
+        if (entry.provides.contains(q)) quantityTitle(l10n, q),
+    ].join(', ');
+    return Padding(
+      key: Key('sensors-found-${entry.id}'),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(9)),
+            child: Icon(entry.icon, size: 16, color: cs.mutedForeground),
+          ),
+          const Gap(10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  entry.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const Gap(2),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5),
+                      child: Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: entry.dot),
+                      ),
+                    ),
+                    const Gap(6),
+                    Expanded(
+                      child: Text(
+                        measures.isEmpty ? entry.state : '${entry.state} · $measures',
+                        style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

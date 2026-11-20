@@ -1,6 +1,7 @@
 ### 7.6.1 (20-11-2026)
 **Features**:
 - MyWhoosh über Bluetooth (Beta): Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck).
+- Sensoren: Eine Liste zeigt, woher Leistung, Herzfrequenz, Trittfrequenz und Geschwindigkeit kommen – dein Trainer eingeschlossen – und du kannst jeden Wert durch einen eigenen Sensor ersetzen. „An Trainer-App senden“ erscheint nur noch ohne verbundenen Trainer, denn mit Trainer laufen die Werte ohnehin über ihn.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

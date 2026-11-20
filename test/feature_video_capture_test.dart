@@ -1230,15 +1230,15 @@ Future<VideoCapture> _filmHeartRate(WidgetTester tester, _Studio studio) async {
 
   Finder inHeart(String key) =>
       find.descendant(of: find.byKey(const Key('metric-card-heartRate')), matching: find.byKey(Key(key)));
-  await rec.tap(inHeart('metric-card-source-picker'), 'Heart rate source');
+  await rec.tap(inHeart('signal-row-header'), 'Heart rate source');
   await rec.tap(
-    find.byKey(const Key('metric-card-source-option-healthkit')).hitTestable().last,
+    inHeart('metric-card-source-option-healthkit').hitTestable().last,
     'Heart rate from Apple Health',
     thenFrames: 45,
   );
   expect(core.sensors.selectionFor(SensorQuantity.heartRate), 'healthkit');
   await rec.tap(find.byKey(const Key('sensors-transport-network')), 'Share over Network', thenFrames: 30);
-  await rec.tap(find.byKey(const Key('sensors-broadcast-switch')), 'Share sensors', thenFrames: 0);
+  await rec.tap(find.byKey(const Key('sensors-broadcast-switch')), 'Send to trainer app', thenFrames: 0);
   await driveUntil(
     tester,
     Future.doWhile(() async {

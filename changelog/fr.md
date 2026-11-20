@@ -1,6 +1,7 @@
 ### 7.6.1 (20-11-2026)
 **Features**:
 - MyWhoosh en Bluetooth (bêta) : associe BikeControl dans MyWhoosh comme appareil de direction, puis change de vitesse et choisis ta route aux intersections (appui long).
+- Capteurs : une liste montre d'où viennent la puissance, la fréquence cardiaque, la cadence et la vitesse, home trainer compris, et te permet de remplacer chacune par ton propre capteur. « Envoyer à l'app d'entraînement » n'apparaît plus que sans home trainer connecté, puisque celui-ci les transmet déjà.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

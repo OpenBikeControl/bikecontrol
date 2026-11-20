@@ -1,6 +1,7 @@
 ### 7.6.1 (20-11-2026)
 **Features**:
 - MyWhoosh over Bluetooth (beta): pair BikeControl in MyWhoosh as a steering device, then shift gears and choose your way at junctions (long press).
+- Sensors: one list shows where power, heart rate, cadence and speed come from, your trainer included, and lets you replace any of them with your own sensor. Sending sensors to the trainer app only shows up when no trainer is connected, since the trainer already carries them.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

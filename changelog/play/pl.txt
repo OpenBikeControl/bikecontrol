@@ -1,3 +1,4 @@
 7.6.1
 Nowości:
 • MyWhoosh przez Bluetooth (beta): sparuj BikeControl jako urządzenie do skrętu, by zmieniać biegi i wybierać drogę na skrzyżowaniach
+• Czujniki: zobacz, skąd pochodzi każda wartość, i zastąp wartości trenażera własnym czujnikiem
