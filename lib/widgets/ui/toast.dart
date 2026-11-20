@@ -29,6 +29,7 @@ void buildToast({
   VoidCallback? onClose,
   String? subtitle,
   Duration? duration,
+  String? replaceKey,
 }) {
   final context = navigatorKey.currentContext;
   if (context == null || !context.mounted) return;
@@ -41,8 +42,16 @@ void buildToast({
     onClose: onClose,
     subtitle: subtitle,
     duration: duration,
+    replaceKey: replaceKey,
   );
 }
+
+/// The toast on screen for each replace key: a newer toast with the same key
+/// closes it (see [AlertNotification.replaceKey]).
+final Map<String, ToastOverlay> _toastsByKey = {};
+
+/// Closes the toast showing under [key], if any — its news is out of date.
+void dismissToast(String key) => _toastsByKey.remove(key)?.close();
 
 /// [buildToast] from an explicit [context]: the toast goes to the nearest
 /// [ToastLayer] above it. For captures and tests without the app's navigator.
@@ -55,10 +64,12 @@ void showBkToast(
   VoidCallback? onClose,
   String? subtitle,
   Duration? duration,
+  String? replaceKey,
 }) {
   _announce(context, level: level, title: title, subtitle: subtitle);
   final compact = isCompactWindow(context);
-  showToast(
+  if (replaceKey != null) dismissToast(replaceKey);
+  final overlay = showToast(
     context: context,
     location: compact ? ToastLocation.bottomCenter : ToastLocation.bottomRight,
     entryDuration: prefersReducedMotion(context) ? Duration.zero : const Duration(milliseconds: 400),
@@ -86,6 +97,11 @@ void showBkToast(
       ),
     ),
   );
+  if (replaceKey != null) {
+    // Those that ran out on their own are gone already.
+    _toastsByKey.removeWhere((_, toast) => !toast.isShowing);
+    _toastsByKey[replaceKey] = overlay;
+  }
 }
 
 /// How far app chrome along the bottom edge — the phone's tab bar — reaches

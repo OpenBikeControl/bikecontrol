@@ -1346,7 +1346,11 @@ class Connection {
       final device = bluetoothDevices.firstOrNullWhere((e) => e.device.deviceId == deviceId);
       if (device != null) {
         _actionStreams.add(
-          AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.deviceIsRestarting(device.toString())),
+          AlertNotification(
+            LogLevel.LOGLEVEL_INFO,
+            AppLocalizations.current.deviceIsRestarting(device.toString()),
+            replaceKey: AlertNotification.deviceKey(device.uniqueId),
+          ),
         );
       }
     };
@@ -1845,6 +1849,7 @@ class Connection {
                 AlertNotification(
                   LogLevel.LOGLEVEL_WARNING,
                   AppLocalizations.current.unableToConnectToDeviceTimeout(device.toString()),
+                  replaceKey: AlertNotification.deviceKey(device.uniqueId),
                 ),
               );
             } else {
@@ -1862,6 +1867,7 @@ class Connection {
                       retrying: device is BluetoothDevice && _connectRetryTimers.containsKey(device.device.deviceId),
                     ),
                   ),
+                  replaceKey: AlertNotification.deviceKey(device.uniqueId),
                 ),
               );
             }
@@ -1986,6 +1992,7 @@ class Connection {
         AlertNotification(
           LogLevel.LOGLEVEL_WARNING,
           message,
+          replaceKey: AlertNotification.deviceKey(device.uniqueId),
           buttonTitle: AppLocalizations.current.reconnect,
           onTap: () {
             _backoffCooldownTimers.remove(id)?.cancel();
@@ -2156,6 +2163,7 @@ class Connection {
             AlertNotification(
               state ? LogLevel.LOGLEVEL_INFO : LogLevel.LOGLEVEL_WARNING,
               '${device.toString()} ${state ? AppLocalizations.current.connected.decapitalize() : AppLocalizations.current.disconnected.decapitalize()}',
+              replaceKey: AlertNotification.deviceKey(device.uniqueId),
             ),
           );
         }

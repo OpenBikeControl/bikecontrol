@@ -123,7 +123,9 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         _onAlert(notification);
       }
     });
-    _connectionListener = core.connection.connectionStream.listen((_) {
+    _connectionListener = core.connection.connectionStream.listen((device) {
+      // Connected after all: its failure and disconnect toasts are old news.
+      if (device.isConnected) dismissToast(AlertNotification.deviceKey(device.uniqueId));
       if (mounted) setState(() {});
     });
 
@@ -254,6 +256,7 @@ class _OverviewPageState extends State<OverviewPage> with WidgetsBindingObserver
         title: notification.alertMessage,
         closeTitle: notification.buttonTitle ?? AppLocalizations.current.close,
         onClose: notification.onTap,
+        replaceKey: notification.replaceKey ?? notification.alertMessage,
       );
     }
 
