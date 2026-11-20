@@ -6,6 +6,10 @@ import 'package:bike_control/services/sensors/ble_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/widgets/devices/accessory_row.dart';
+import 'package:bike_control/gen/l10n.dart';
+import 'package:flutter/widgets.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_ble/universal_ble.dart';
@@ -134,5 +138,30 @@ void main() {
     final device = _device();
 
     expect(device, isA<Accessory>());
+  });
+
+  test('wears a heart, not the controller glyph', () {
+    expect(_device().icon, LucideIcons.heart);
+  });
+
+  testWidgets('its Devices row shows the live bpm once connected', (tester) async {
+    final device = _device()..isConnected = true;
+    late BuildContext context;
+    await tester.pumpWidget(
+      Localizations(
+        locale: const Locale('en'),
+        delegates: const [AppLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
+        child: Builder(
+          builder: (c) {
+            context = c;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(accessoryReadout(context, device), isNull);
+    await device.processCharacteristic(BleSensorSource.heartRateMeasurementUuid, Uint8List.fromList([0x00, 142]));
+    expect(accessoryReadout(context, device), '142 bpm');
   });
 }
