@@ -186,6 +186,12 @@ bool get _touchPlatform => switch (defaultTargetPlatform) {
 /// "Connecting…" where the hint goes — so when it connects nothing moves, the
 /// picture just comes up to full strength.
 ///
+/// [awayLabel] is the card of a remembered controller that is not here and
+/// not on its way — asleep, or out of range: the same faded picture, without
+/// the shimmer, and its name with the reason where the hint goes. The card
+/// stays, so the rider still sees which controller it is and what its buttons
+/// do, and it comes up to full strength in place when it wakes.
+///
 /// [setupNeed] is a controller that does nothing until the rider has set it up
 /// or unlocked it (see [BaseDevice.setupNeed]): a warning above the picture
 /// says so and [onSetup] leads into that setup, and the picture wears a
@@ -202,6 +208,7 @@ class ControllerButtonsCard extends StatelessWidget {
     this.wide = false,
     this.showButtonList = false,
     this.connecting = false,
+    this.awayLabel,
     this.setupNeed,
     this.onSetup,
   });
@@ -215,7 +222,11 @@ class ControllerButtonsCard extends StatelessWidget {
   final bool wide;
   final bool showButtonList;
   final bool connecting;
+  final String? awayLabel;
   final DeviceSetupNeed? setupNeed;
+
+  /// Not live: on its way back, or away.
+  bool get _quiet => connecting || awayLabel != null;
   final VoidCallback? onSetup;
 
   /// Below this a list beside the picture would squeeze both; the list goes
@@ -247,11 +258,11 @@ class ControllerButtonsCard extends StatelessWidget {
         ? null
         : AnimatedOpacity(
             key: const ValueKey('ride-buttons-picture'),
-            opacity: connecting ? 0.45 : 1,
+            opacity: _quiet ? 0.45 : 1,
             duration: duration,
             curve: BkMotion.curve,
             child: AnimatedScale(
-              scale: connecting ? 0.97 : 1,
+              scale: _quiet ? 0.97 : 1,
               duration: duration,
               curve: BkMotion.curve,
               child: connecting ? BkShimmer(child: rawPicture) : rawPicture,
@@ -315,7 +326,7 @@ class ControllerButtonsCard extends StatelessWidget {
               children: [
                 if (hint != null) Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: hint),
                 if (picture != null) ...[const Gap(8), picture],
-                if (device case final ManualInclineDevice incline when !connecting) ...[
+                if (device case final ManualInclineDevice incline when !_quiet) ...[
                   const Gap(8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -350,7 +361,7 @@ class ControllerButtonsCard extends StatelessWidget {
   Widget _steeringHint(BuildContext context) {
     final hint = _hint(context, context.i18n.steeringRideHint);
     final steering = device;
-    if (connecting || steering is! RecalibratableSteering || steering is! SteeringDevice) return hint;
+    if (_quiet || steering is! RecalibratableSteering || steering is! SteeringDevice) return hint;
     // On the hint's first line: a wrapped hint must not push it to the middle.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -385,14 +396,14 @@ class ControllerButtonsCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final style = context.typography.small.copyWith(color: cs.mutedForeground);
     final text = Text(hint, style: style);
-    final Widget slot = connecting
+    final Widget slot = _quiet
         ? Stack(
             children: [
               // Holds the hint's height, so the swap moves nothing.
               Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: text),
               Text(
-                '${device.displayName(context)} · ${context.i18n.chainStatusConnecting}',
-                key: const ValueKey('ride-buttons-connecting'),
+                '${device.displayName(context)} · ${awayLabel ?? context.i18n.chainStatusConnecting}',
+                key: ValueKey(awayLabel == null ? 'ride-buttons-connecting' : 'ride-buttons-away'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: style,
@@ -408,7 +419,7 @@ class ControllerButtonsCard extends StatelessWidget {
         alignment: AlignmentDirectional.topStart,
         children: [...previous, ?current],
       ),
-      child: KeyedSubtree(key: ValueKey(connecting), child: slot),
+      child: KeyedSubtree(key: ValueKey((connecting, awayLabel)), child: slot),
     );
   }
 }

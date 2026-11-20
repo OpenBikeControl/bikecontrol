@@ -2105,17 +2105,25 @@ void _asleepControllerTests() {
       expect(find.text(l.chainPendingSubtitleSingle(l.chainControllerTitle)), findsNothing);
     });
 
-    testWidgets('Ride says it is asleep, with pairing a new one as the quieter option', (tester) async {
+    testWidgets('Ride keeps its card, saying it is asleep, with pairing a new one as the quieter option', (
+      tester,
+    ) async {
       await _pumpHome(tester);
-      final card = find.byKey(const ValueKey('ride-no-controller'));
-      expect(find.descendant(of: card, matching: find.text(l.rideControllerAsleepTitle)), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.rideNoControllerTitle)), findsNothing);
-      final pairNew = find.descendant(of: card, matching: find.text(l.rideControllerPairNew));
-      expect(pairNew, findsOneWidget);
+      // The card stays, faded, rather than giving way to a "no controller"
+      // prompt: which controller, and what its buttons do, still shows.
+      final card = find.byKey(ValueKey('ride-buttons-${play.uniqueId}'));
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.textContaining(l.chainStatusAsleep)),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('ride-no-controller')), findsNothing);
       // Until it wakes, the trainer app's buttons are a tap away on screen.
-      expect(find.descendant(of: card, matching: find.byKey(const ValueKey('ride-manual-control'))), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.byType(PrimaryButton)), findsNothing);
+      expect(find.byKey(const ValueKey('ride-manual-control')), findsOneWidget);
+      final pairNew = find.byKey(const ValueKey('ride-pair-new-controller'));
+      expect(pairNew, findsOneWidget);
 
+      await tester.ensureVisible(pairNew);
       await tester.tap(pairNew);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
@@ -2126,8 +2134,10 @@ void _asleepControllerTests() {
       core.connection.debugSetConnectedThisSession(play.uniqueId, true);
       await _pumpHome(tester);
       expect(controllerStatus(l.chainStatusAsleep), findsNothing);
-      final card = find.byKey(const ValueKey('ride-no-controller'));
-      expect(find.descendant(of: card, matching: find.text(l.rideControllerAsleepTitle)), findsNothing);
+      // Ride's card says the same: out of range, not asleep.
+      final card = find.byKey(ValueKey('ride-buttons-${play.uniqueId}'));
+      expect(find.descendant(of: card, matching: find.textContaining(l.chainStatusOutOfRange)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.textContaining(l.chainStatusAsleep)), findsNothing);
     });
   });
 }

@@ -558,14 +558,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ...core.connection.offlineControllers,
   ];
 
-  /// Whether a controller remembered from an earlier ride is waiting to be
-  /// woken: none is connected, and none went away during this session.
-  bool get _hasSleepingController {
-    if (core.connection.controllerDevices.any((d) => d.isConnected)) return false;
-    final known = _knownControllers;
-    return core.connection.offlineControllers.isNotEmpty &&
-        !known.any((d) => core.connection.wasConnectedThisSession(d.uniqueId));
-  }
 
   BaseDevice? _controllerById(String? uniqueId) =>
       uniqueId == null ? null : _knownControllers.firstOrNullWhere((d) => d.uniqueId == uniqueId);
@@ -1445,15 +1437,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // held back for its unlock-mode choice never connects until then — with
     // the warning that leads into it. Only one the scanner has found: a
     // remembered stand-in is not here to set up.
+    //
+    // Every other known controller stays too, faded, saying why it is away:
+    // a Click V2 that went to sleep vanished from the list, and the rider
+    // lost sight of which controller it was and what its buttons do.
     final present = _knownControllers
-        .where(
-          (d) =>
-              d.isConnected ||
-              reconnecting.contains(d.uniqueId) ||
-              (d.setupNeed != null && core.connection.devices.contains(d)),
-        )
+        .where((d) => d.setupNeed == null || d.isConnected || core.connection.devices.contains(d))
         .distinctBy((d) => d.uniqueId)
         .toList();
+    // Not here and not on its way: asleep if it hasn't been seen this
+    // session, else simply out of range — the Devices row's words.
+    String? awayLabel(BaseDevice d) {
+      if (d.isConnected || reconnecting.contains(d.uniqueId) || d.setupNeed != null) return null;
+      return core.connection.wasConnectedThisSession(d.uniqueId) ? l.chainStatusOutOfRange : l.chainStatusAsleep;
+    }
+
     // One that still needs its setup and has nothing to draw yet (a SRAM
     // derailleur before its guided setup has heard its paddles) would be a
     // card with a warning and nothing else — the banner already lists the
@@ -1493,24 +1491,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // "no controller" prompt gives way to the first one the same way.
         BkAnimatedColumn(
           children: [
-            // A controller remembered from an earlier ride, not back yet and
-            // not lost in this session, is asleep: the card says how to wake
-            // it, and pairing a new one is the quieter option.
-            if (shown.isEmpty && _hasSleepingController)
-              RidePromptCard(
-                key: const ValueKey('ride-no-controller'),
-                icon: LucideIcons.gamepad2,
-                title: l.rideControllerAsleepTitle,
-                body: l.rideControllerAsleepBody,
-                actionLabel: l.rideControllerPairNew,
-                actionIsSecondary: true,
-                onAction: () => _openController(null),
-                // Until it wakes, the on-screen buttons stand in for it.
-                secondaryKey: const ValueKey('ride-manual-control'),
-                secondaryLabel: manualLabel,
-                onSecondary: () => context.push(const ButtonSimulator()),
-              )
-            else if (shown.isEmpty)
+            if (shown.isEmpty)
               RidePromptCard(
                 key: const ValueKey('ride-no-controller'),
                 icon: LucideIcons.gamepad2,
@@ -1535,11 +1516,38 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   onEdit: () => _openController(device),
                   showDeviceHeader: single == null,
                   // Held back for its setup is not on its way.
-                  connecting: !device.isConnected && device.setupNeed == null,
+                  connecting: reconnecting.contains(device.uniqueId) && !device.isConnected && device.setupNeed == null,
+                  awayLabel: awayLabel(device),
                   setupNeed: device.setupNeed,
                   onSetup: () => _openSetup(device),
                   wide: wide,
                   showButtonList: showButtonList,
+                ),
+              ),
+            // None of them here: what the asleep card offered — pairing a
+            // new one, and the on-screen buttons until one wakes — quietly
+            // under the cards that say they are asleep.
+            if (shown.isNotEmpty && shown.every((d) => awayLabel(d) != null))
+              Padding(
+                key: const ValueKey('ride-away-actions'),
+                padding: const EdgeInsets.only(top: 6),
+                child: Wrap(
+                  spacing: 4,
+                  children: [
+                    Button.ghost(
+                      key: const ValueKey('ride-pair-new-controller'),
+                      style: const ButtonStyle.ghost(size: ButtonSize.small),
+                      onPressed: () => _openController(null),
+                      child: Text(l.rideControllerPairNew),
+                    ),
+                    if (manualLabel != null)
+                      Button.ghost(
+                        key: const ValueKey('ride-manual-control'),
+                        style: const ButtonStyle.ghost(size: ButtonSize.small),
+                        onPressed: () => context.push(const ButtonSimulator()),
+                        child: Text(manualLabel),
+                      ),
+                  ],
                 ),
               ),
           ],
