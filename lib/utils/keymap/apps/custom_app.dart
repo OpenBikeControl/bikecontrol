@@ -20,7 +20,7 @@ class CustomApp extends SupportedApp {
         name: profileName,
         packageName: "custom_$profileName",
         officialIntegration: false,
-        keymap: Keymap(keyPairs: []),
+        keymap: Keymap(keyPairs: [], isCustom: true),
       );
 
   List<String> encodeKeymap() {
