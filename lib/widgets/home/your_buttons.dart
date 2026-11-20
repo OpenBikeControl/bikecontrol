@@ -703,6 +703,9 @@ class _ButtonList extends StatelessWidget {
                 label: context.i18n.a11yEditButtonMapping(button.displayName),
                 excludeChildSemantics: true,
                 borderRadius: BorderRadius.circular(8),
+                // The cards' hover and pressed washes: the row opens its
+                // assignment, and nothing else said it could be tapped.
+                wash: true,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 32),
                   child: Padding(
