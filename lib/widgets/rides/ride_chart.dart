@@ -276,6 +276,7 @@ class _Geometry {
     required this.gearMin,
     required this.gearMax,
     required this.axisY,
+    this.pauseLabelY,
   });
 
   final double left, width;
@@ -296,6 +297,10 @@ class _Geometry {
   final double cadenceMin = 0, cadenceMax;
   final int gearMin, gearMax;
   final double? axisY;
+
+  /// Where the pauses' labels stand: a row of their own above the first
+  /// strip, clear of its title ("Power · W"). Null without labelled pauses.
+  final double? pauseLabelY;
 
   double xAt(int i) => left + (count <= 1 ? 0 : i / (count - 1) * width);
 
@@ -346,6 +351,12 @@ class _Geometry {
     final left = compact ? 0.0 : 30.0;
     final plotW = width - left - (compact ? 0 : 4);
     double y = compact ? labelH + 2 : labelH + 6;
+    // The pauses' labels get their own row above the first strip's title.
+    double? pauseLabelY;
+    if (!compact && chart.pauses.isNotEmpty) {
+      pauseLabelY = labelH - 2;
+      y += labelH;
+    }
     double? pTop, pH, hTop, hH, cTop, cH, gTop, gH, eTop, eH;
     if (hasP) {
       pTop = y;
@@ -413,6 +424,7 @@ class _Geometry {
       gearMin: gearMin,
       gearMax: gearMax,
       axisY: axis,
+      pauseLabelY: pauseLabelY,
     );
   }
 }
@@ -459,6 +471,9 @@ class _RideChartPainter extends CustomPainter {
     final bottom = g.plotBottom;
 
     // Pauses: a hatched column across both strips.
+    // The right edge of the last pause label drawn: two pauses close together
+    // name only the first, rather than printing one label over the other.
+    double labelsEnd = double.negativeInfinity;
     for (final (start, end) in chart.pauses) {
       final x0 = g.xAtSeconds(start, chart.stepSeconds);
       final x1 = g.xAtSeconds(end, chart.stepSeconds);
@@ -473,14 +488,18 @@ class _RideChartPainter extends CustomPainter {
         canvas.drawLine(Offset(d, rect.bottom), Offset(d + rect.height, rect.top), hatch);
       }
       canvas.restore();
-      if (!compact) {
-        _text(
-          canvas,
-          labels.pause,
-          style.tick.copyWith(fontWeight: FontWeight.w600),
-          Offset((x0 + x1) / 2, top - 4),
-          align: TextAlign.center,
-        );
+      if (!compact && g.pauseLabelY != null) {
+        final labelStyle = style.tick.copyWith(fontWeight: FontWeight.w600);
+        final w = (TextPainter(
+          text: TextSpan(text: labels.pause, style: labelStyle),
+          textDirection: TextDirection.ltr,
+        )..layout()).width;
+        // Centred on the pause, kept inside the plot.
+        final x = ((x0 + x1) / 2 - w / 2).clamp(g.left, math.max(g.left, g.left + g.width - w)).toDouble();
+        if (x >= labelsEnd + 6) {
+          _text(canvas, labels.pause, labelStyle, Offset(x, g.pauseLabelY!));
+          labelsEnd = x + w;
+        }
       }
     }
 
