@@ -226,6 +226,18 @@ class Keymap {
   }
 }
 
+/// Name of a media key for UI and log text. Release builds strip
+/// [PhysicalKeyboardKey.toString], so never interpolate the key itself.
+String mediaKeyLabel(PhysicalKeyboardKey key) => switch (key) {
+  PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,
+  PhysicalKeyboardKey.mediaStop => AppLocalizations.current.stop,
+  PhysicalKeyboardKey.mediaTrackPrevious => AppLocalizations.current.previous,
+  PhysicalKeyboardKey.mediaTrackNext => AppLocalizations.current.next,
+  PhysicalKeyboardKey.audioVolumeUp => AppLocalizations.current.volumeUp,
+  PhysicalKeyboardKey.audioVolumeDown => AppLocalizations.current.volumeDown,
+  _ => 'Unknown (0x${key.usbHidUsage.toRadixString(16)})',
+};
+
 class KeyPair {
   static const String intentActionPrefix = 'app.bikecontrol.trigger.';
 
@@ -443,12 +455,17 @@ class KeyPair {
   /// True when this keypair has an action, but no connection method that's
   /// on right now can carry it — so pressing the button does nothing yet.
   bool get waitsForConnectionMethod =>
-      !hasNoAction && toString() == AppLocalizations.current.actionWaitsForConnectionMethod;
+      !hasNoAction && label == AppLocalizations.current.actionWaitsForConnectionMethod;
+
+  /// What this keypair does, for UI and log text. Use this, not string
+  /// interpolation of the keypair: release builds can drop [toString]
+  /// overrides, which then read "Instance of '…'".
+  String get label => _label(coordinates: true);
 
   @override
-  String toString() => _label(coordinates: true);
+  String toString() => label;
 
-  /// [toString] without where Local taps on the screen ("X:80, Y:94
+  /// [label] without where Local taps on the screen ("X:80, Y:94
   /// (Shift down)" reads "Shift down"): for a list of buttons, where the
   /// rider wants to know what a press does, not where it lands.
   String get actionLabel => _label(coordinates: false);
@@ -472,15 +489,7 @@ class KeyPair {
         : (command != null && command!.trim().isNotEmpty)
         ? command!
         : (isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
-        ? switch (physicalKey) {
-            PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,
-            PhysicalKeyboardKey.mediaStop => AppLocalizations.current.stop,
-            PhysicalKeyboardKey.mediaTrackPrevious => AppLocalizations.current.previous,
-            PhysicalKeyboardKey.mediaTrackNext => AppLocalizations.current.next,
-            PhysicalKeyboardKey.audioVolumeUp => AppLocalizations.current.volumeUp,
-            PhysicalKeyboardKey.audioVolumeDown => AppLocalizations.current.volumeDown,
-            _ => 'Unknown',
-          }
+        ? mediaKeyLabel(physicalKey!)
         : (physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
         ? null
         : (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)

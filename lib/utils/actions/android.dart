@@ -108,12 +108,12 @@ class AndroidActions extends BaseActions {
       PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
       PhysicalKeyboardKey.audioVolumeUp => MediaAction.volumeUp,
       PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
-      _ => throw SingleLineException("No action for key: $key"),
+      _ => throw SingleLineException("No action for key: ${mediaKeyLabel(key)}"),
     };
     await accessibilityHandler.controlMedia(action);
     // Increment command count after successful execution
     await IAPManager.instance.incrementCommandCount();
-    return Success("Key pressed: $key", button: button);
+    return Success("Key pressed: ${mediaKeyLabel(key)}", button: button);
   }
 
   @override

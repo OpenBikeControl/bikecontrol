@@ -331,7 +331,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
       wash: true,
       onPressed: () => _onTriggerPressed(device: device, button: button, trigger: trigger),
       label:
-          '${trigger.title}: ${hasAction ? keyPair.toString() : context.i18n.noActionAssigned}'
+          '${trigger.title}: ${hasAction ? keyPair.label : context.i18n.noActionAssigned}'
           '${holdOnClick ? '. ${holdActionMarkerLabel(context)}' : ''}',
       excludeChildSemantics: true,
       child: ConstrainedBox(
@@ -364,7 +364,7 @@ class _KeymapExplanationState extends State<KeymapExplanation> {
                               // second line, breaking only between words.
                               Flexible(
                                 child: BkWordSafeText(
-                                  hasAction ? keyPair.toString() : context.i18n.noActionAssignedShort,
+                                  hasAction ? keyPair.label : context.i18n.noActionAssignedShort,
                                   textAlign: TextAlign.end,
                                   style: hasAction
                                       ? context.typography.small.copyWith(

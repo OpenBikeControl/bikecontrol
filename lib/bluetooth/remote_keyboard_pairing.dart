@@ -261,19 +261,19 @@ class RemoteKeyboardPairing extends TrainerConnection {
     if (isKeyDown && isKeyUp) {
       await sendKeyPress(keyPair);
       return Success(
-        'Key ${keyPair.toString()} press sent',
+        'Key ${keyPair.label} press sent',
         button: keyPair.buttons.firstOrNull,
       );
     } else if (isKeyDown) {
       await sendKeyDown(keyPair);
       return Success(
-        'Key ${keyPair.toString()} down sent',
+        'Key ${keyPair.label} down sent',
         button: keyPair.buttons.firstOrNull,
       );
     } else if (isKeyUp) {
       await sendKeyUp();
       return Success(
-        'Key ${keyPair.toString()} up sent',
+        'Key ${keyPair.label} up sent',
         button: keyPair.buttons.firstOrNull,
       );
     }
@@ -398,7 +398,7 @@ class RemoteKeyboardPairing extends TrainerConnection {
     final downReport = keyboardReport(modifiers, [keyCode]);
     if (kDebugMode) {
       print(
-        'Sending keyboard key down: $keyPair (0x${keyCode.toRadixString(16)}) with modifiers: 0x${modifiers.toRadixString(16)}',
+        'Sending keyboard key down: ${keyPair.label} (0x${keyCode.toRadixString(16)}) with modifiers: 0x${modifiers.toRadixString(16)}',
       );
     }
     await notifyCharacteristic(downReport);

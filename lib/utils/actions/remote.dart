@@ -77,7 +77,7 @@ class RemoteActions extends BaseActions {
     if (core.remotePairing.isStarted.value && core.remotePairing.isConnected.value) {
       if (keyPair.touchPosition == Offset.zero) {
         return Error(
-          'Key $keyPair does not have a valid touch position',
+          'Key ${keyPair.label} does not have a valid touch position',
           button: keyPair.buttons.firstOrNull,
         );
       }
@@ -85,7 +85,7 @@ class RemoteActions extends BaseActions {
     } else if (core.remoteKeyboardPairing.isStarted.value && core.remoteKeyboardPairing.isConnected.value) {
       if (keyPair.physicalKey == null) {
         return Error(
-          'Key $keyPair does not have a valid physical key for keyboard actions',
+          'Key ${keyPair.label} does not have a valid physical key for keyboard actions',
           button: keyPair.buttons.firstOrNull,
         );
       }
