@@ -4344,5 +4344,8 @@
   "companionTileMode": "SIM / ERG",
   "companionTileRideCard": "档位卡片",
   "companionRemoveTile": "移除 {name}",
-  "companionAllAdded": "所有内容都已在页面上。"
+  "companionAllAdded": "所有内容都已在页面上。",
+  "addBikeControlAsSteeringDevice": "在 {appName} 中将 BikeControl 添加为转向设备。",
+  "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
+  "errorStartingBluetoothServer": "启动蓝牙服务器时出错。"
 }

@@ -1149,6 +1149,7 @@ class Connection {
       core.rouvyMdnsEmulator,
       core.obpMdnsEmulator,
       core.obpBluetoothEmulator,
+      core.bc2BluetoothEmulator,
       core.whooshLink,
       core.remotePairing,
       core.remoteKeyboardPairing,

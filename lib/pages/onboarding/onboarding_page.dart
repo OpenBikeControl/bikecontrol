@@ -595,6 +595,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   late final List<Listenable> _methodListenables = [
     core.obpMdnsEmulator.isConnected,
     core.obpBluetoothEmulator.isConnected,
+    core.bc2BluetoothEmulator.isConnected,
     core.whooshLink.isConnected,
     core.zwiftEmulator.isConnected,
     core.zwiftMdnsEmulator.isConnected,

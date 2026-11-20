@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bike_control/bluetooth/app_connection_latch.dart';
 import 'package:bike_control/utils/host_platform.dart';
+import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_ble_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_mdns_emulator.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obc_gear.dart';
@@ -105,6 +106,7 @@ class Core {
   late final obpMdnsEmulator = OpenBikeControlMdnsEmulator();
   late final local = Local();
   late final obpBluetoothEmulator = OpenBikeControlBluetoothEmulator();
+  late final bc2BluetoothEmulator = CycplusBc2BluetoothEmulator();
 
   /// Streams steering devices' calibrated angle to connected OpenBikeControl
   /// apps as `0x1B`. Not final: tests swap in their own.
@@ -227,6 +229,10 @@ class Core {
     if (settings.getObpBleEnabled()) {
       settings.setObpBleEnabled(false);
       await obpBluetoothEmulator.stopServer();
+    }
+    if (settings.getBc2BleEnabled()) {
+      settings.setBc2BleEnabled(false);
+      await bc2BluetoothEmulator.stopServer();
     }
     if (settings.getRemoteControlEnabled()) {
       settings.setRemoteControlEnabled(false);
@@ -358,6 +364,10 @@ class CoreLogic {
     return core.settings.getObpBleEnabled() && showObpBluetoothEmulator;
   }
 
+  bool get isBc2BleEnabled {
+    return core.settings.getBc2BleEnabled() && showBc2BluetoothEmulator;
+  }
+
   bool get isObpMdnsEnabled {
     return core.settings.getObpMdnsEnabled() && showObpMdnsEmulator;
   }
@@ -387,6 +397,15 @@ class CoreLogic {
     final app = core.settings.getTrainerApp();
     return app != null &&
         app.supports(AppConnectionMethod.obpBle) &&
+        core.settings.getLastTarget() != Target.thisDevice;
+  }
+
+  /// BC2 is a Bluetooth peripheral the trainer app pairs with, so the app
+  /// has to run on another device.
+  bool get showBc2BluetoothEmulator {
+    final app = core.settings.getTrainerApp();
+    return app != null &&
+        app.supports(AppConnectionMethod.cycplusBc2Ble) &&
         core.settings.getLastTarget() != Target.thisDevice;
   }
 
@@ -435,6 +454,7 @@ class CoreLogic {
       (core.settings.getZwiftBleEmulatorEnabled() && showZwiftBleEmulator) ||
       (core.settings.getZwiftMdnsEmulatorEnabled() && showZwiftMsdnEmulator) ||
       (core.settings.getObpBleEnabled() && showObpBluetoothEmulator) ||
+      isBc2BleEnabled ||
       (core.settings.getObpMdnsEnabled() && showObpMdnsEmulator);
 
   bool get showObpActions =>
@@ -486,12 +506,14 @@ class CoreLogic {
       (core.settings.getTrainerApp()?.receivesButtonEvents ?? true) &&
       !isZwiftBleEnabled &&
       !isZwiftMdnsEnabled &&
+      !isBc2BleEnabled &&
       !showObpActions &&
       !(core.settings.getMyWhooshLinkEnabled() && showMyWhooshLink) &&
       !showLocalRemoteOptions;
 
   bool get hasRecommendedConnectionMethods =>
       showObpBluetoothEmulator ||
+      showBc2BluetoothEmulator ||
       showObpMdnsEmulator ||
       showLocalControl ||
       showZwiftBleEmulator ||
@@ -499,11 +521,16 @@ class CoreLogic {
       showMyWhooshLink;
 
   bool get hasOfficialConnectionMethods =>
-      showObpBluetoothEmulator || showObpMdnsEmulator || showZwiftBleEmulator || showZwiftMsdnEmulator;
+      showObpBluetoothEmulator ||
+      showBc2BluetoothEmulator ||
+      showObpMdnsEmulator ||
+      showZwiftBleEmulator ||
+      showZwiftMsdnEmulator;
 
   List<TrainerConnection> get connectedTrainerConnections => <TrainerConnection>[
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isBc2BleEnabled) core.bc2BluetoothEmulator,
     if (core.settings.getLocalEnabled()) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
@@ -515,6 +542,7 @@ class CoreLogic {
   List<TrainerConnection> get connectedNonLocalTrainerConnections => <TrainerConnection>[
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isBc2BleEnabled) core.bc2BluetoothEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
     if (isZwiftMdnsEnabled) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
@@ -524,6 +552,7 @@ class CoreLogic {
 
   List<TrainerConnection> get enabledTrainerConnections => <TrainerConnection>[
     if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isBc2BleEnabled) core.bc2BluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (core.settings.getLocalEnabled() && showLocalControl) core.local,
     if (isMyWhooshLinkEnabled) core.whooshLink,
@@ -572,6 +601,7 @@ class CoreLogic {
 
   List<TrainerConnection> get enabledNonLocalTrainerConnections => <TrainerConnection>[
     if (isObpBleEnabled) core.obpBluetoothEmulator,
+    if (isBc2BleEnabled) core.bc2BluetoothEmulator,
     if (isObpMdnsEnabled) core.obpMdnsEmulator,
     if (isMyWhooshLinkEnabled) core.whooshLink,
     if (isZwiftBleEnabled) core.zwiftEmulator,
@@ -583,6 +613,7 @@ class CoreLogic {
   List<TrainerConnection> get trainerConnections => <TrainerConnection>[
     if (showObpMdnsEmulator) core.obpMdnsEmulator,
     if (showObpBluetoothEmulator) core.obpBluetoothEmulator,
+    if (showBc2BluetoothEmulator) core.bc2BluetoothEmulator,
     if (showMyWhooshLink) core.whooshLink,
     if (showZwiftBleEmulator) core.zwiftEmulator,
     if (showZwiftMsdnEmulator) core.settings.getTrainerApp() is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator,
@@ -710,6 +741,18 @@ class CoreLogic {
         core.settings.setObpBleEnabled(false);
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start OpenBikeControl BLE Emulator: $e'),
+        );
+      });
+    }
+
+    if (isBc2BleEnabled &&
+        await core.permissions.getRemoteControlRequirements().allGranted &&
+        !core.bc2BluetoothEmulator.isStarted.value) {
+      core.bc2BluetoothEmulator.startServer().catchError((e, s) {
+        recordError(e, s, context: 'BC2 BLE Emulator');
+        core.settings.setBc2BleEnabled(false);
+        core.connection.signalNotification(
+          AlertNotification(LogLevel.LOGLEVEL_WARNING, 'Failed to start BC2 BLE Emulator: $e'),
         );
       });
     }

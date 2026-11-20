@@ -544,7 +544,10 @@ String? connectionMethodSummary(BuildContext context) {
   for (final method in methods) {
     final label = switch (method) {
       _ when identical(method, core.local) => l.onboardingMethodLocal,
-      _ when identical(method, core.obpBluetoothEmulator) || identical(method, core.zwiftEmulator) =>
+      _
+          when identical(method, core.obpBluetoothEmulator) ||
+              identical(method, core.bc2BluetoothEmulator) ||
+              identical(method, core.zwiftEmulator) =>
         l.onboardingMethodBluetooth,
       _ => l.onboardingMethodNetwork,
     };

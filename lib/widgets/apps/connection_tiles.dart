@@ -1,5 +1,6 @@
 import 'package:bike_control/main.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
+import 'package:bike_control/widgets/apps/cycplus_bc2_ble_tile.dart';
 import 'package:bike_control/widgets/apps/local_tile.dart';
 import 'package:bike_control/widgets/apps/mywhoosh_link_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
@@ -27,6 +28,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
   final recommendedTiles = [
     if (core.logic.showObpMdnsEmulator) OpenBikeControlMdnsTile(small: small),
     if (core.logic.showObpBluetoothEmulator) OpenBikeControlBluetoothTile(small: small),
+    if (core.logic.showBc2BluetoothEmulator) CycplusBc2BluetoothTile(small: small),
 
     if (core.logic.showZwiftMsdnEmulator)
       ZwiftMdnsTile(

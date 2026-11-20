@@ -3696,5 +3696,8 @@
   "companionTileRideCard": "Gear card",
   "companionRemoveTile": "Remove {name}",
   "@companionRemoveTile": {"description": "Companion page, edit mode: accessibility label of a tile's remove button.", "placeholders": {"name": {"type": "String"}}},
-  "companionAllAdded": "Everything is on the page already."
+  "companionAllAdded": "Everything is on the page already.",
+  "addBikeControlAsSteeringDevice": "In {appName}, add BikeControl as a steering device.",
+  "@addBikeControlAsSteeringDevice": {"description": "Bluetooth connection tile for apps that pair BikeControl as a steering device (MyWhoosh).", "placeholders": {"appName": {"type": "String"}}},
+  "errorStartingBluetoothServer": "Error starting the Bluetooth server."
 }

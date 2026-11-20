@@ -3170,5 +3170,8 @@
   "companionTileMode": "SIM / ERG",
   "companionTileRideCard": "Gang-Karte",
   "companionRemoveTile": "{name} entfernen",
-  "companionAllAdded": "Alles ist schon auf der Seite."
+  "companionAllAdded": "Alles ist schon auf der Seite.",
+  "addBikeControlAsSteeringDevice": "Füge BikeControl in {appName} als Lenkgerät hinzu.",
+  "@addBikeControlAsSteeringDevice": {"placeholders": {"appName": {"type": "String"}}},
+  "errorStartingBluetoothServer": "Fehler beim Starten des Bluetooth-Servers."
 }
