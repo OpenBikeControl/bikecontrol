@@ -145,8 +145,10 @@ class VirtualShiftingCard extends StatelessWidget {
           ),
           // The card's 16 plus a deliberate 8 under the band, so the gear
           // reads as the card's content rather than the header's caption.
+          // A footer's lines are 48 tall touch targets that already carry
+          // their own air below the text: the card adds only a little.
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16 + 8, 16, 16),
+            padding: EdgeInsets.fromLTRB(16, 16 + 8, 16, _footer(context) == null ? 16 : 4),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
