@@ -104,7 +104,9 @@ Future<void> main() async {
         final row = find.byKey(ValueKey('ride-button-row-${button.name}'));
         expect(row, findsOneWidget, reason: button.name);
         expectReadsWhole(tester, row, reason: '[$locale] ${button.name}');
-        expect(tester.getSize(row).height, lessThanOrEqualTo(48), reason: '[$locale] ${button.name} row too tall');
+        // The name over its one action: two lines, not an action squeezed
+        // into five.
+        expect(tester.getSize(row).height, lessThanOrEqualTo(64), reason: '[$locale] ${button.name} row too tall');
       }
     });
   }

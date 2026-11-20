@@ -658,11 +658,13 @@ class LastPressStrip extends StatelessWidget {
   }
 }
 
-/// Every button and the action it sends, for windows wide enough to list
-/// them beside the picture. One block per button, its name once: a single
-/// click's action on the name's line, and a line of its own for each other
-/// gesture that does something ("Double click · Pause/Resume"). A block opens
-/// that button's assignment.
+/// Every button and what it does: the button's name, and under it a line
+/// per gesture that does something — a single click's action plain, any other
+/// gesture's after its name ("Langes Drücken · Headwind-Geschwindigkeit
+/// erhöhen"). Stacked rather than in a column beside the name: a column half
+/// the row wide broke a long German action mid-word, and right-aligned
+/// actions wrapping over three lines left the gesture floating beside them.
+/// A block opens that button's assignment.
 class _ButtonList extends StatelessWidget {
   const _ButtonList({super.key, required this.device, required this.keymap, required this.onUpdate});
 
@@ -673,6 +675,7 @@ class _ButtonList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final typography = context.typography;
     final buttons = device.availableButtons.distinctBy((b) => b.name).toList();
     KeyPair? pairOf(ControllerButton button, ButtonTrigger trigger) => keymap.getKeyPair(button, trigger: trigger);
     // An action no connection method that's on can carry: a dash on its line
@@ -683,7 +686,6 @@ class _ButtonList extends StatelessWidget {
         button,
       ).any((trigger) => pairOf(button, trigger)?.waitsForConnectionMethod ?? false),
     );
-    final actionStyle = context.typography.small.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w500);
 
     String actionOf(ControllerButton button, ButtonTrigger? trigger) {
       final pair = trigger == null ? null : pairOf(button, trigger);
@@ -691,36 +693,18 @@ class _ButtonList extends StatelessWidget {
       return (action == null || action.isEmpty) ? '–' : action;
     }
 
-    // The label takes the rest; the action its own width, up to half the
-    // line, so neither is starved into breaking mid-word ("Navigatio" /
-    // "n Left") while a short action leaves room unused.
-    Widget line(Widget label, String? action, {Key? key}) => LayoutBuilder(
-      key: key,
-      builder: (context, constraints) => Row(
-        children: [
-          Expanded(child: label),
-          if (action != null) ...[
-            const Gap(8),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: (constraints.maxWidth - 8) / 2),
-              child: Text(action, textAlign: TextAlign.end, style: actionStyle),
-            ),
-          ],
-        ],
-      ),
-    );
+    final actionStyle = typography.small.copyWith(color: cs.mutedForeground, height: 1.35);
+    final gestureStyle = typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w600);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 2,
       children: [
         if (anyWaits) _WaitsNote(onUpdate: onUpdate),
         for (final button in buttons)
           Builder(
             builder: (context) {
               final active = mappingActiveTriggers(keymap, button);
-              // A single click — or nothing at all, a dash — on the name's line.
-              final onName = active.isEmpty || active.first == ButtonTrigger.singleClick;
-              final others = active.where((t) => t != ButtonTrigger.singleClick).toList();
               // The card already names its controller: no id after the name.
               final name = button.plainName;
               return BkTappable(
@@ -733,56 +717,66 @@ class _ButtonList extends StatelessWidget {
                   onUpdate: onUpdate,
                 ),
                 label: context.i18n.a11yEditButtonMapping(
-                  [name, for (final t in others) t.title].join(', '),
+                  [name, for (final t in active.where((t) => t != ButtonTrigger.singleClick)) t.title].join(', '),
                 ),
                 excludeChildSemantics: true,
                 borderRadius: BorderRadius.circular(8),
                 // The cards' hover and pressed washes: the block opens its
                 // assignment, and nothing else said it could be tapped.
                 wash: true,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 32),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ButtonWidget(button: button, size: 22),
-                        const Gap(10),
-                        Expanded(
-                          child: Padding(
-                            // The name's first line level with the glyph.
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              spacing: 2,
-                              children: [
-                                line(
-                                  Text(
-                                    name,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.typography.small,
-                                  ),
-                                  onName ? actionOf(button, active.firstOrNull) : null,
-                                ),
-                                for (final trigger in others)
-                                  line(
-                                    key: ValueKey('ride-button-row-${button.name}-${trigger.name}'),
-                                    Text(
-                                      trigger.title,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ButtonWidget(button: button, size: 22),
+                      const Gap(10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 2,
+                          children: [
+                            // Level with the glyph's centre. A button that does
+                            // nothing says so on this line, not one of its own.
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 22),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
+                                      style: typography.small.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: active.isEmpty ? cs.mutedForeground : cs.foreground,
+                                      ),
                                     ),
-                                    actionOf(button, trigger),
                                   ),
-                              ],
+                                  if (active.isEmpty) Text('–', style: actionStyle),
+                                ],
+                              ),
                             ),
-                          ),
+                            for (final trigger in active)
+                              Text.rich(
+                                key: trigger == ButtonTrigger.singleClick
+                                    ? null
+                                    : ValueKey('ride-button-row-${button.name}-${trigger.name}'),
+                                TextSpan(
+                                  children: [
+                                    // A single click is what a button does
+                                    // unless told otherwise: it goes unnamed.
+                                    if (trigger != ButtonTrigger.singleClick)
+                                      TextSpan(text: '${trigger.title} · ', style: gestureStyle),
+                                    TextSpan(text: actionOf(button, trigger)),
+                                  ],
+                                ),
+                                style: actionStyle,
+                              ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );

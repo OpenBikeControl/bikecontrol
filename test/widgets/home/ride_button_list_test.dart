@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../../helpers/text_breaks.dart';
 import '../../widget_snapshot.dart';
 
 Future<void> main() async {
@@ -20,7 +21,7 @@ Future<void> main() async {
   const left = ZwiftButtons.navigationLeft;
   const right = ZwiftButtons.navigationRight;
 
-  Future<AppLocalizations> pump(WidgetTester tester) async {
+  Future<AppLocalizations> pump(WidgetTester tester, {KeyPair? extra}) async {
     await AppLocalizations.load(const Locale('de'));
     addTearDown(() => AppLocalizations.load(const Locale('en')));
     final keymap = Keymap(
@@ -40,6 +41,7 @@ Future<void> main() async {
           inGameAction: InGameAction.shiftDown,
           trigger: ButtonTrigger.doubleClick,
         ),
+        ?extra,
       ],
     );
     final device = ZwiftPlay(
@@ -77,15 +79,20 @@ Future<void> main() async {
     return AppLocalizations.current;
   }
 
-  testWidgets('a long press is named under the button; the value is the action alone', (tester) async {
+  testWidgets('a long press is named before its action, under the button', (tester) async {
     final l = await pump(tester);
     final row = find.byKey(ValueKey('ride-button-row-${left.name}'));
     expect(row, findsOneWidget);
-    expect(find.descendant(of: row, matching: find.text(l.actionSteerLeft)), findsOneWidget);
-    final subtitle = find.descendant(of: row, matching: find.text(l.triggerLongPress));
-    expect(subtitle, findsOneWidget);
-    final name = find.descendant(of: row, matching: find.text(left.displayName));
-    expect(tester.getRect(subtitle).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
+    final line = find.byKey(ValueKey('ride-button-row-${left.name}-${ButtonTrigger.longPress.name}'));
+    expect(
+      find.descendant(
+        of: line,
+        matching: find.text('${l.triggerLongPress} · ${l.actionSteerLeft}', findRichText: true),
+      ),
+      findsOneWidget,
+    );
+    final name = find.descendant(of: row, matching: find.text(left.plainName));
+    expect(tester.getRect(line).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
   });
 
   testWidgets('a single click has no subtitle', (tester) async {
@@ -100,12 +107,32 @@ Future<void> main() async {
     final block = find.byKey(ValueKey('ride-button-row-${right.name}'));
     final double = find.byKey(ValueKey('ride-button-row-${right.name}-${ButtonTrigger.doubleClick.name}'));
     expect(find.descendant(of: block, matching: double), findsOneWidget);
-    expect(find.descendant(of: double, matching: find.text(InGameAction.shiftDown.title)), findsOneWidget);
-    expect(find.descendant(of: double, matching: find.text(l.triggerDoubleClick)), findsOneWidget);
+    expect(
+      find.descendant(
+        of: double,
+        matching: find.text('${l.triggerDoubleClick} · ${InGameAction.shiftDown.title}', findRichText: true),
+      ),
+      findsOneWidget,
+    );
     // The name once, for both.
     final name = find.descendant(of: block, matching: find.text(right.plainName));
     expect(name, findsOneWidget);
     expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
+  });
+
+  testWidgets('a long action wraps between words, never inside one', (tester) async {
+    // "Headwind-Geschwindigkeit erhöhen" broke as "Headwind-Ges" / "chwindigkeit".
+    await pump(
+      tester,
+      extra: KeyPair(
+        buttons: [right],
+        physicalKey: null,
+        logicalKey: null,
+        inGameAction: InGameAction.headwindSpeedInc,
+        trigger: ButtonTrigger.longPress,
+      ),
+    );
+    expectReadsWhole(tester, find.byKey(const ValueKey('ride-button-list')));
   });
 
   test("a button's device id is left off while no other controller has that button", () {
