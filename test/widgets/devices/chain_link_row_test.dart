@@ -267,4 +267,63 @@ Future<void> main() async {
       expect(transport.left, greaterThan(status.right));
     });
   });
+
+  // "○ Add keyboard and mouse actions [OPTIONAL]" with a separate "Enable
+  // local control" under it: the circle read as a stray dot and the button
+  // only repeated the line. The optional line is the button now.
+  testWidgets('an optional later step with an offer is itself the button', (tester) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var offered = 0;
+    await tester.pumpWidget(
+      ShadcnApp(
+        locale: const Locale('de'),
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.light),
+        home: Scaffold(
+          child: BkGroupedSection(
+            children: [
+              ChainLinkRow(
+                link: const ChainLink(
+                  key: ChainLinkKey.app,
+                  id: 'app',
+                  status: LinkStatus.attention,
+                  title: 'MyWhoosh',
+                  steps: [
+                    SetupStep(id: SetupStepId.appConnected, done: false),
+                    SetupStep(id: SetupStepId.appLocalControl, done: false, optional: true),
+                  ],
+                ),
+                leading: const SizedBox(width: 30, height: 30),
+                title: 'MyWhoosh',
+                appName: 'MyWhoosh',
+                statusLabel: 'Warte auf MyWhoosh',
+                offerLabel: (_) => 'Lokale Steuerung aktivieren',
+                onOffer: (_) => offered++,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.current;
+
+    final offer = find.byKey(chainRowOfferKey(SetupStepId.appLocalControl));
+    expect(offer, findsOneWidget);
+    expect(
+      find.descendant(of: offer, matching: find.textContaining(l.chainStepLocalControl, findRichText: true)),
+      findsOneWidget,
+    );
+    expect(find.text('Lokale Steuerung aktivieren'), findsNothing, reason: 'no second label repeating the line');
+    expect(find.byIcon(LucideIcons.circle), findsNothing);
+    await tester.tap(offer);
+    expect(offered, 1);
+  });
 }

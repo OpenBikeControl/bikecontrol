@@ -14,6 +14,10 @@ import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// A text action's padding without its sides, so its words start where the
+/// line above starts rather than a button's inset further in.
+EdgeInsets _flushStart(EdgeInsets padding) => EdgeInsets.only(top: padding.top, bottom: padding.bottom);
+
 /// The status tone a link's state reads in.
 BkStatusTone chainStatusTone(LinkStatus status) => switch (status) {
   LinkStatus.ready => BkStatusTone.success,
@@ -30,6 +34,9 @@ const Key chainRowChevronKey = ValueKey('chain-row-chevron');
 
 /// The active step's fix, at the end of the row's header.
 const Key chainRowStepActionKey = ValueKey('chain-row-step-action');
+
+/// An optional later step's line, when it is a button itself.
+Key chainRowOfferKey(SetupStepId id) => ValueKey('chain-row-offer-${id.name}');
 
 /// A later step's line under the row.
 Key chainRowLaterStepKey(SetupStepId id) => ValueKey('chain-row-later-step-${id.name}');
@@ -319,66 +326,66 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     );
   }
 
-  /// A step behind the one in front: an open circle and its title, and — for
-  /// an optional one — its offer, so it can be taken up now.
+  /// A step behind the one in front: its title, quiet — "Optional:" first for
+  /// an optional one. An optional step with an offer is itself the button:
+  /// the line says what tapping it gets, so a second "Enable …" label under
+  /// it only repeated it.
   Widget _laterStep(BuildContext context, ChainLink link, SetupStep step) {
     final cs = Theme.of(context).colorScheme;
     final text = chainStepText(context, step, appName: widget.appName);
     final offer = link.standby ? null : widget.offerLabel?.call(step);
-    final style = context.typography.small.copyWith(color: cs.mutedForeground, height: 1.4);
+    final actionable = step.optional && offer != null && widget.onOffer != null;
+    final accent = bkAccentText(context);
+    final style = context.typography.small.copyWith(
+      color: actionable ? accent : cs.mutedForeground,
+      fontWeight: actionable ? FontWeight.w500 : null,
+      height: 1.4,
+    );
+    // No checklist circle: on its own it read as a radio button or a stray
+    // dot. An optional step says what it is up front instead.
+    final label = Text.rich(
+      TextSpan(
+        children: [
+          if (step.optional)
+            TextSpan(
+              text: '${context.i18n.chainOptional}: ',
+              style: TextStyle(color: actionable ? cs.mutedForeground : cs.foreground, fontWeight: FontWeight.w500),
+            ),
+          TextSpan(text: text.label),
+        ],
+      ),
+      style: style,
+    );
     return Padding(
       key: chainRowLaterStepKey(step.id),
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                // On the first line's centre, however the label wraps.
-                padding: const EdgeInsets.only(top: 3),
-                child: Icon(LucideIcons.circle, size: 14, color: cs.mutedForeground),
-              ),
-              const Gap(8),
-              Flexible(
-                child: Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: text.label),
-                      // Said in the line's own voice, not a shouting pill.
-                      if (step.optional) TextSpan(text: ' · ${context.i18n.chainOptional}'),
-                    ],
-                  ),
-                  style: style,
-                ),
-              ),
-            ],
-          ),
-          if (step.optional && offer != null && widget.onOffer != null)
-            Padding(
-              // The label's start, less the button's own inset — the words
-              // line up, not the hover box.
-              padding: const EdgeInsets.only(left: 22 - 8, top: 2),
-              // Optional, so a quiet text action rather than a second box
-              // competing with the fix above.
+      padding: EdgeInsets.only(top: actionable ? 8 : 16),
+      child: !actionable
+          ? label
+          : Semantics(
+              // What it does, for a screen reader; the line shows what it gets.
+              label: offer,
+              button: true,
+              excludeSemantics: true,
               child: BkTouchTarget(
                 child: Button.ghost(
+                  key: chainRowOfferKey(step.id),
                   alignment: Alignment.centerLeft,
-                  style: const ButtonStyle.ghost(density: ButtonDensity.dense),
+                  style: const ButtonStyle.ghost(density: ButtonDensity(_flushStart)),
                   onPressed: () => widget.onOffer!(step),
-                  child: Text(offer, style: _buttonText(context).copyWith(color: bkAccentText(context))),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(child: label),
+                      const Gap(4),
+                      Icon(LucideIcons.chevronRight, size: 16, color: accent),
+                    ],
+                  ),
                 ),
               ),
             ),
-        ],
-      ),
     );
   }
 
-  /// Whether the caller's status already names what [step] is waiting for —
-  /// "Waiting for MyWhoosh" over "Waiting for connection".
   /// The waiting steps' titles only ever restate the status ("Waiting for
   /// MyWhoosh …" over "Waiting for MyWhoosh"); their hint is what's new.
   bool _statusSaysIt(SetupStep step) =>
