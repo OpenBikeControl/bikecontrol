@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../bluetooth/devices/base_device.dart';
+import '../../bluetooth/devices/elite/elite_square.dart';
 import '../actions/base_actions.dart';
 import 'apps/bike_control.dart';
 import 'apps/custom_app.dart';
@@ -43,7 +44,10 @@ class Keymap {
 
   List<KeyPair> keyPairs;
 
-  Keymap({required this.keyPairs});
+  /// A rider's own keymap, saved to and reloaded from settings.
+  final bool isCustom;
+
+  Keymap({required this.keyPairs, this.isCustom = false});
 
   final StreamController<void> _updateStream = StreamController<void>.broadcast();
   Stream<void> get updateStream => _updateStream.stream;
@@ -194,6 +198,7 @@ class Keymap {
     if (newButtons.isEmpty) return;
     final offered = core.settings.getTrainerApp()?.offeredInGameActions;
     for (final button in newButtons) {
+      if (_adoptLegacyMapping(button)) continue;
       final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
         button,
         trigger: ButtonTrigger.singleClick,
@@ -219,6 +224,38 @@ class Keymap {
         ),
       );
     }
+  }
+
+  /// A custom keymap saved before a button was renamed still holds its
+  /// mapping under the old name. Copies the first saved pair per trigger —
+  /// the rider's own, any later ones being defaults appended on restarts.
+  bool _adoptLegacyMapping(ControllerButton button) {
+    if (!isCustom) return false;
+    final legacyName = EliteSquareButtons.legacyNames[button.name];
+    if (legacyName == null) return false;
+    final legacyPairs = keyPairs
+        .where((kp) => kp.buttons.any((b) => b.name == legacyName && b.sourceDeviceId == button.sourceDeviceId))
+        .toList();
+    if (legacyPairs.isEmpty) return false;
+    for (final legacy in legacyPairs.distinctBy((kp) => kp.trigger)) {
+      addKeyPair(
+        KeyPair(
+          buttons: [button],
+          physicalKey: legacy.physicalKey,
+          logicalKey: legacy.logicalKey,
+          modifiers: List.of(legacy.modifiers),
+          touchPosition: legacy.touchPosition,
+          trigger: legacy.trigger,
+          inGameAction: legacy.inGameAction,
+          inGameActionValue: legacy.inGameActionValue,
+          androidAction: legacy.androidAction,
+          androidIntentAction: legacy.androidIntentAction,
+          command: legacy.command,
+          screenshotPath: legacy.screenshotPath,
+        ),
+      );
+    }
+    return true;
   }
 
   void signalUpdate() {

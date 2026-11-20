@@ -122,10 +122,10 @@ class EliteSquareButtons {
   static const ControllerButton leftBrake = ControllerButton('eliteSquareLeftBrake', action: null);
   static const ControllerButton leftShift1 = ControllerButton('eliteSquareLeftShift1', action: InGameAction.shiftUp);
   static const ControllerButton leftShift2 = ControllerButton('eliteSquareLeftShift2', action: InGameAction.shiftDown);
-  static const ControllerButton y = ControllerButton('y', action: null);
-  static const ControllerButton a = ControllerButton('a', action: null);
-  static const ControllerButton b = ControllerButton('b', action: null);
-  static const ControllerButton z = ControllerButton('z', action: null);
+  static const ControllerButton y = ControllerButton('eliteSquareY', action: null);
+  static const ControllerButton a = ControllerButton('eliteSquareA', action: null);
+  static const ControllerButton b = ControllerButton('eliteSquareB', action: null);
+  static const ControllerButton z = ControllerButton('eliteSquareZ', action: null);
   static const ControllerButton circle = ControllerButton('eliteSquareCircle', action: null);
   static const ControllerButton triangle = ControllerButton('eliteSquareTriangle', action: null);
   static const ControllerButton campagnoloRight = ControllerButton('eliteSquareCampagnoloRight', action: null);
@@ -135,6 +135,15 @@ class EliteSquareButtons {
     'eliteSquareRightShift2',
     action: InGameAction.shiftDown,
   );
+
+  /// Y/A/B/Z were saved under these bare names, the ones the Zwift right
+  /// controller uses, so a saved custom keymap reloaded them as Zwift buttons.
+  static const Map<String, String> legacyNames = {
+    'eliteSquareY': 'y',
+    'eliteSquareA': 'a',
+    'eliteSquareB': 'b',
+    'eliteSquareZ': 'z',
+  };
 
   static const List<ControllerButton> values = [
     up,
