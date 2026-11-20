@@ -1977,6 +1977,7 @@
       }
     }
   },
+  "rideShiftWithBikeControl": "Shift with BikeControl",
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Smart Trainer",
   "sensorsChainEyebrow": "Sensors",

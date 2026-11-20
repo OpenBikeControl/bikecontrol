@@ -558,7 +558,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ...core.connection.offlineControllers,
   ];
 
-
   BaseDevice? _controllerById(String? uniqueId) =>
       uniqueId == null ? null : _knownControllers.firstOrNullWhere((d) => d.uniqueId == uniqueId);
 
@@ -1304,7 +1303,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
         text: l.chainStatusHandledByApp(inputs.app.name!),
-        actionLabel: l.connect,
+        // What connecting a trainer would get you, not "Connect" with no
+        // object: BikeControl's own shifting instead of the app's.
+        actionLabel: l.rideShiftWithBikeControl,
         onAction: () => _openTrainer(proxy, bridged: false),
       );
     } else {

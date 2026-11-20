@@ -1129,24 +1129,60 @@ class RideStatusLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final textStyle = context.typography.small.copyWith(color: cs.mutedForeground);
+    final linkStyle = context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600);
+    final hasAction = actionLabel != null && onAction != null;
+    final line = Row(
+      children: [
+        Icon(icon, size: 16, color: cs.mutedForeground),
+        const Gap(8),
+        Expanded(child: Text(text, style: textStyle)),
+      ],
+    );
+    if (!hasAction) return Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: line);
+    final link = Button.ghost(
+      key: const ValueKey('ride-status-line-action'),
+      onPressed: onAction,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 2,
+        children: [
+          Text(actionLabel!, style: linkStyle),
+          Icon(LucideIcons.chevronRight, size: 16, color: bkAccentText(context)),
+        ],
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: cs.mutedForeground),
-          const Gap(8),
-          Expanded(
-            child: Text(text, style: context.typography.small.copyWith(color: cs.mutedForeground)),
-          ),
-          if (actionLabel != null && onAction != null)
-            Button.ghost(
-              onPressed: onAction,
-              child: Text(
-                actionLabel!,
-                style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
-              ),
-            ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Side by side when both read on one line; otherwise the link goes
+          // under the status, at its text — squeezed beside it, "MyWhoosh
+          // handles shifting" broke over three lines.
+          double width(String s, TextStyle style) => (TextPainter(
+            text: TextSpan(text: s, style: DefaultTextStyle.of(context).style.merge(style)),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout()).width;
+          // Icon and gap, the link's padding and chevron.
+          final needed = 24 + width(text, textStyle) + 12 + width(actionLabel!, linkStyle) + 18 + 24;
+          if (needed <= constraints.maxWidth) {
+            return Row(
+              children: [
+                Expanded(child: line),
+                link,
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              line,
+              // The ghost button's own padding brings its label under the text.
+              Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: link),
+            ],
+          );
+        },
       ),
     );
   }

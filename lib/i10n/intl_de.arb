@@ -1731,6 +1731,7 @@
       }
     }
   },
+  "rideShiftWithBikeControl": "Mit BikeControl schalten",
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Smart Trainer",
   "chainAppTitle": "Trainer-App",

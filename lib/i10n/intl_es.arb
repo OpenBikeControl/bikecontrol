@@ -1720,6 +1720,7 @@
       }
     }
   },
+  "rideShiftWithBikeControl": "Cambiar con BikeControl",
   "chainControllerTitle": "Mando",
   "chainTrainerTitle": "Rodillo inteligente",
   "chainAppTitle": "App de entrenamiento",

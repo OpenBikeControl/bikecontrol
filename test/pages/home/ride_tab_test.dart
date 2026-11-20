@@ -450,6 +450,14 @@ Future<void> main() async {
 
       expect(find.text(l.rideVsInviteBody), findsNothing);
       expect(find.byKey(const ValueKey('ride-vs-handled')), findsOneWidget);
+      // The way to BikeControl's own shifting says what it is, not "Connect".
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('ride-vs-handled')),
+          matching: find.text(l.rideShiftWithBikeControl),
+        ),
+        findsOneWidget,
+      );
     });
   });
 
