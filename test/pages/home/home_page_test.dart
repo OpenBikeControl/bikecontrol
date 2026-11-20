@@ -1825,12 +1825,17 @@ void _droppedAppTests() {
       // One cause, counted once — while the trainer card keeps its own step.
       expect(find.text(l.chainStepsLeftTitle(1)), findsOneWidget);
       expect(find.text(l.chainStepsLeftTitle(2)), findsNothing);
+      // (Its title only restated the status, so the card shows its hint alone.)
+      expect(
+        tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer)).link.activeStep?.id,
+        SetupStepId.trainerAppBridged,
+      );
       expect(
         find.descendant(
           of: _chainCard(ChainLinkKey.trainer),
           matching: find.text(l.chainStepTrainerBridgedPending('MyWhoosh', trainer.advertisementName)),
         ),
-        findsOneWidget,
+        findsNothing,
       );
 
       expect(pushed.routes, isNotEmpty);
@@ -1865,12 +1870,17 @@ void _droppedAppTests() {
       final banner = tester.widget<ReadyBanner>(find.byType(ReadyBanner));
       expect(banner.steps.map((s) => s.step.id), [SetupStepId.appConnected]);
       // The trainer card keeps its own step.
+      // (Its title only restated the status, so the card shows its hint alone.)
+      expect(
+        tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer)).link.activeStep?.id,
+        SetupStepId.trainerAppBridged,
+      );
       expect(
         find.descendant(
           of: _chainCard(ChainLinkKey.trainer),
           matching: find.text(l.chainStepTrainerBridgedPending('MyWhoosh', trainer.advertisementName)),
         ),
-        findsOneWidget,
+        findsNothing,
       );
 
       await tester.pumpWidget(const SizedBox());

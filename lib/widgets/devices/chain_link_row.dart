@@ -219,6 +219,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
               ),
             ),
           ),
+        // What to do right under the status it explains; the live numbers
+        // after it, not wedged between the two.
+        _checklistSection(context, link, pending),
         if (widget.body case final body?) ...[
           const BkGroupedDivider(indent: chainRowTextInset),
           Padding(
@@ -226,7 +229,6 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
             child: body,
           ),
         ],
-        _checklistSection(context, link, pending),
         if (widget.footer case final footer?)
           Column(
             key: chainCardFooterKey,
@@ -377,8 +379,16 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
 
   /// Whether the caller's status already names what [step] is waiting for —
   /// "Waiting for MyWhoosh" over "Waiting for connection".
+  /// The waiting steps' titles only ever restate the status ("Waiting for
+  /// MyWhoosh …" over "Waiting for MyWhoosh"); their hint is what's new.
   bool _statusSaysIt(SetupStep step) =>
-      widget.statusLabel != null && step.id == SetupStepId.appConnected && step.variant == SetupStepVariant.standard;
+      widget.statusLabel != null &&
+      switch (step.id) {
+        // Its "pick up the controller tile" variant has news in its title.
+        SetupStepId.appConnected => step.variant == SetupStepVariant.standard,
+        SetupStepId.trainerAppBridged => true,
+        _ => false,
+      };
 
   TextStyle _buttonText(BuildContext context) => context.typography.small.copyWith(fontWeight: FontWeight.w500);
 
