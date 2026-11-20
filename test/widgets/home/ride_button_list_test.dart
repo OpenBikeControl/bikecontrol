@@ -79,20 +79,16 @@ Future<void> main() async {
     return AppLocalizations.current;
   }
 
-  testWidgets('a long press is named before its action, beside the glyph', (tester) async {
+  testWidgets('a long press sits under its gesture heading, the action alone on its line', (tester) async {
     final l = await pump(tester);
-    final row = find.byKey(ValueKey('ride-button-row-${left.name}'));
-    expect(row, findsOneWidget);
-    final line = find.byKey(ValueKey('ride-button-row-${left.name}-${ButtonTrigger.longPress.name}'));
-    expect(
-      find.descendant(
-        of: line,
-        matching: find.text('${l.triggerLongPress} · ${l.actionSteerLeft}', findRichText: true),
-      ),
-      findsOneWidget,
-    );
+    // Its only gesture: the line carries the button's plain key.
+    final line = find.byKey(ValueKey('ride-button-row-${left.name}'));
+    expect(find.descendant(of: line, matching: find.text(l.actionSteerLeft)), findsOneWidget);
+    final heading = find.byKey(ValueKey('ride-button-group-${ButtonTrigger.longPress.name}'));
+    expect(find.descendant(of: heading, matching: find.text(l.triggerLongPress)), findsOneWidget);
+    expect(tester.getRect(line).top, greaterThanOrEqualTo(tester.getRect(heading).bottom - 1));
     // No name: the glyph says which button.
-    expect(find.descendant(of: row, matching: find.text(left.plainName)), findsNothing);
+    expect(find.text(left.plainName), findsNothing);
   });
 
   testWidgets('a single click has no subtitle', (tester) async {
@@ -102,20 +98,30 @@ Future<void> main() async {
     expect(find.descendant(of: row, matching: find.text(l.triggerSingleClick)), findsNothing);
   });
 
-  testWidgets('a double click is a line under the single click', (tester) async {
+  testWidgets('a double click is listed under its heading, after the single clicks', (tester) async {
     final l = await pump(tester);
-    final block = find.byKey(ValueKey('ride-button-row-${right.name}'));
+    final single = find.byKey(ValueKey('ride-button-row-${right.name}'));
     final double = find.byKey(ValueKey('ride-button-row-${right.name}-${ButtonTrigger.doubleClick.name}'));
-    expect(find.descendant(of: block, matching: double), findsOneWidget);
+    expect(find.descendant(of: single, matching: find.text(InGameAction.shiftUp.title)), findsOneWidget);
+    expect(find.descendant(of: double, matching: find.text(InGameAction.shiftDown.title)), findsOneWidget);
+    final heading = find.byKey(ValueKey('ride-button-group-${ButtonTrigger.doubleClick.name}'));
+    expect(find.descendant(of: heading, matching: find.text(l.triggerDoubleClick)), findsOneWidget);
+    expect(tester.getRect(heading).top, greaterThanOrEqualTo(tester.getRect(single).bottom - 1));
+    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(heading).bottom - 1));
+  });
+
+  testWidgets('buttons that do nothing fold into one line of glyphs', (tester) async {
+    final l = await pump(tester);
+    final idle = find.byKey(const ValueKey('ride-button-list-idle'));
+    expect(find.descendant(of: idle, matching: find.text(l.noActionAssigned)), findsOneWidget);
+    // The Play's d-pad up and down and the rest carry nothing here.
     expect(
       find.descendant(
-        of: double,
-        matching: find.text('${l.triggerDoubleClick} · ${InGameAction.shiftDown.title}', findRichText: true),
+        of: idle,
+        matching: find.byKey(ValueKey('ride-button-row-${ZwiftButtons.navigationUp.name}')),
       ),
       findsOneWidget,
     );
-    final single = find.descendant(of: block, matching: find.text(InGameAction.shiftUp.title, findRichText: true));
-    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(single).bottom - 1));
   });
 
   testWidgets('a long action wraps between words, never inside one', (tester) async {

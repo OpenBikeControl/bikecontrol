@@ -658,13 +658,12 @@ class LastPressStrip extends StatelessWidget {
   }
 }
 
-/// Every button and what it does: the button's name, and under it a line
-/// per gesture that does something — a single click's action plain, any other
-/// gesture's after its name ("Langes Drücken · Headwind-Geschwindigkeit
-/// erhöhen"). Stacked rather than in a column beside the name: a column half
-/// the row wide broke a long German action mid-word, and right-aligned
-/// actions wrapping over three lines left the gesture floating beside them.
-/// A block opens that button's assignment.
+/// What each button does, grouped by gesture: the single clicks first, then
+/// a small heading for double click and long press, said once rather than on
+/// every line. A line is the button's glyph — the pods above say which button
+/// that is — and its action, wrapping between words at full width. Buttons
+/// that do nothing fold into one line of glyphs at the end. Every line, and
+/// every glyph in that last one, opens the button's assignment.
 class _ButtonList extends StatelessWidget {
   const _ButtonList({super.key, required this.device, required this.keymap, required this.onUpdate});
 
@@ -672,111 +671,127 @@ class _ButtonList extends StatelessWidget {
   final Keymap keymap;
   final VoidCallback onUpdate;
 
+  void _edit(BuildContext context, ControllerButton button) => showTriggerAssignmentPopup(
+    context: context,
+    device: device,
+    button: button,
+    keymap: keymap,
+    onUpdate: onUpdate,
+  );
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final typography = context.typography;
     final buttons = device.availableButtons.distinctBy((b) => b.name).toList();
+    final activeOf = {for (final b in buttons) b: mappingActiveTriggers(keymap, b)};
     KeyPair? pairOf(ControllerButton button, ButtonTrigger trigger) => keymap.getKeyPair(button, trigger: trigger);
     // An action no connection method that's on can carry: a dash on its line
     // and one note above them all, not the same sentence on every line.
     final anyWaits = buttons.any(
-      (button) => mappingActiveTriggers(
-        keymap,
-        button,
-      ).any((trigger) => pairOf(button, trigger)?.waitsForConnectionMethod ?? false),
+      (b) => activeOf[b]!.any((trigger) => pairOf(b, trigger)?.waitsForConnectionMethod ?? false),
+    );
+    final idle = buttons.where((b) => activeOf[b]!.isEmpty).toList();
+    // A button's first line (or its glyph among the idle ones) carries the
+    // plain key, so every button is found by one.
+    final keyed = <String>{};
+    Key keyFor(ControllerButton button, ButtonTrigger trigger) => ValueKey(
+      keyed.add(button.name) ? 'ride-button-row-${button.name}' : 'ride-button-row-${button.name}-${trigger.name}',
     );
 
-    String actionOf(ControllerButton button, ButtonTrigger? trigger) {
-      final pair = trigger == null ? null : pairOf(button, trigger);
-      final action = pair == null || pair.waitsForConnectionMethod ? null : pair.actionLabel;
-      return (action == null || action.isEmpty) ? '–' : action;
+    final children = <Widget>[if (anyWaits) _WaitsNote(onUpdate: onUpdate)];
+    for (final trigger in ButtonTrigger.values) {
+      final group = buttons.where((b) => activeOf[b]!.contains(trigger)).toList();
+      if (group.isEmpty) continue;
+      // A single click is what a button does unless told otherwise: no heading.
+      if (trigger != ButtonTrigger.singleClick) {
+        children.add(
+          Padding(
+            key: ValueKey('ride-button-group-${trigger.name}'),
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 2),
+            child: Semantics(
+              header: true,
+              child: Text(
+                trigger.title,
+                style: typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        );
+      }
+      for (final button in group) {
+        final pair = pairOf(button, trigger);
+        final label = pair == null || pair.waitsForConnectionMethod ? null : pair.actionLabel;
+        final action = (label == null || label.isEmpty) ? '–' : label;
+        children.add(
+          BkTappable(
+            key: keyFor(button, trigger),
+            onPressed: () => _edit(context, button),
+            // The name is not shown — the glyph says which button — but spoken.
+            label: context.i18n.a11yEditButtonMapping(
+              trigger == ButtonTrigger.singleClick ? button.plainName : '${button.plainName}, ${trigger.title}',
+            ),
+            excludeChildSemantics: true,
+            borderRadius: BorderRadius.circular(8),
+            // The cards' hover and pressed washes: the line opens its
+            // assignment, and nothing else said it could be tapped.
+            wash: true,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 32),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                child: Row(
+                  children: [
+                    ButtonWidget(button: button, size: 22),
+                    const Gap(10),
+                    Expanded(
+                      child: Text(action, style: typography.small.copyWith(color: cs.foreground, height: 1.35)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
     }
-
-    final actionStyle = typography.small.copyWith(color: cs.foreground, height: 1.35);
-    final gestureStyle = typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w600);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 2,
-      children: [
-        if (anyWaits) _WaitsNote(onUpdate: onUpdate),
-        for (final button in buttons)
-          Builder(
-            builder: (context) {
-              final active = mappingActiveTriggers(keymap, button);
-              // Not shown — the glyph says which button — but spoken.
-              final name = button.plainName;
-              return BkTappable(
-                key: ValueKey('ride-button-row-${button.name}'),
-                onPressed: () => showTriggerAssignmentPopup(
-                  context: context,
-                  device: device,
-                  button: button,
-                  keymap: keymap,
-                  onUpdate: onUpdate,
+    if (idle.isNotEmpty) {
+      children.add(
+        Padding(
+          key: const ValueKey('ride-button-list-idle'),
+          padding: EdgeInsets.fromLTRB(6, children.isEmpty ? 0 : 8, 6, 0),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 2,
+            runSpacing: 2,
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 4),
+                child: Text(
+                  context.i18n.noActionAssigned,
+                  style: typography.xSmall.copyWith(color: cs.mutedForeground),
                 ),
-                label: context.i18n.a11yEditButtonMapping(
-                  [name, for (final t in active.where((t) => t != ButtonTrigger.singleClick)) t.title].join(', '),
-                ),
-                excludeChildSemantics: true,
-                borderRadius: BorderRadius.circular(8),
-                // The cards' hover and pressed washes: the block opens its
-                // assignment, and nothing else said it could be tapped.
-                wash: true,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ButtonWidget(button: button, size: 22),
-                      const Gap(10),
-                      Expanded(
-                        child: Padding(
-                          // The first line's centre level with the glyph's.
-                          padding: const EdgeInsets.only(top: 1.5),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 2,
-                            children: [
-                              // No name: the glyph is the button, as on the
-                              // contour above. A button that does nothing is a dash.
-                              if (active.isEmpty)
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(minHeight: 22),
-                                  child: Align(
-                                    alignment: AlignmentDirectional.centerStart,
-                                    child: Text('–', style: actionStyle.copyWith(color: cs.mutedForeground)),
-                                  ),
-                                ),
-                              for (final trigger in active)
-                                Text.rich(
-                                  key: trigger == ButtonTrigger.singleClick
-                                      ? null
-                                      : ValueKey('ride-button-row-${button.name}-${trigger.name}'),
-                                  TextSpan(
-                                    children: [
-                                      // A single click is what a button does
-                                      // unless told otherwise: it goes unnamed.
-                                      if (trigger != ButtonTrigger.singleClick)
-                                        TextSpan(text: '${trigger.title} · ', style: gestureStyle),
-                                      TextSpan(text: actionOf(button, trigger)),
-                                    ],
-                                  ),
-                                  style: actionStyle,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+              ),
+              for (final button in idle)
+                BkTappable(
+                  key: ValueKey('ride-button-row-${button.name}'),
+                  onPressed: () => _edit(context, button),
+                  label: context.i18n.a11yEditButtonMapping(button.plainName),
+                  excludeChildSemantics: true,
+                  borderRadius: BorderRadius.circular(999),
+                  wash: true,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    // Quieter than the ones that do something.
+                    child: Opacity(opacity: 0.7, child: ButtonWidget(button: button, size: 22)),
                   ),
                 ),
-              );
-            },
+            ],
           ),
-      ],
-    );
+        ),
+      );
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
   }
 }
 
