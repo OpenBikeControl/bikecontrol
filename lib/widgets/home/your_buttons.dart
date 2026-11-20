@@ -693,7 +693,7 @@ class _ButtonList extends StatelessWidget {
       return (action == null || action.isEmpty) ? '–' : action;
     }
 
-    final actionStyle = typography.small.copyWith(color: cs.mutedForeground, height: 1.35);
+    final actionStyle = typography.small.copyWith(color: cs.foreground, height: 1.35);
     final gestureStyle = typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w600);
 
     return Column(
@@ -705,7 +705,7 @@ class _ButtonList extends StatelessWidget {
           Builder(
             builder: (context) {
               final active = mappingActiveTriggers(keymap, button);
-              // The card already names its controller: no id after the name.
+              // Not shown — the glyph says which button — but spoken.
               final name = button.plainName;
               return BkTappable(
                 key: ValueKey('ride-button-row-${button.name}'),
@@ -732,48 +732,41 @@ class _ButtonList extends StatelessWidget {
                       ButtonWidget(button: button, size: 22),
                       const Gap(10),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 2,
-                          children: [
-                            // Level with the glyph's centre. A button that does
-                            // nothing says so on this line, not one of its own.
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(minHeight: 22),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      name,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: typography.small.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                        color: active.isEmpty ? cs.mutedForeground : cs.foreground,
-                                      ),
-                                    ),
+                        child: Padding(
+                          // The first line's centre level with the glyph's.
+                          padding: const EdgeInsets.only(top: 1.5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 2,
+                            children: [
+                              // No name: the glyph is the button, as on the
+                              // contour above. A button that does nothing is a dash.
+                              if (active.isEmpty)
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(minHeight: 22),
+                                  child: Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: Text('–', style: actionStyle.copyWith(color: cs.mutedForeground)),
                                   ),
-                                  if (active.isEmpty) Text('–', style: actionStyle),
-                                ],
-                              ),
-                            ),
-                            for (final trigger in active)
-                              Text.rich(
-                                key: trigger == ButtonTrigger.singleClick
-                                    ? null
-                                    : ValueKey('ride-button-row-${button.name}-${trigger.name}'),
-                                TextSpan(
-                                  children: [
-                                    // A single click is what a button does
-                                    // unless told otherwise: it goes unnamed.
-                                    if (trigger != ButtonTrigger.singleClick)
-                                      TextSpan(text: '${trigger.title} · ', style: gestureStyle),
-                                    TextSpan(text: actionOf(button, trigger)),
-                                  ],
                                 ),
-                                style: actionStyle,
-                              ),
-                          ],
+                              for (final trigger in active)
+                                Text.rich(
+                                  key: trigger == ButtonTrigger.singleClick
+                                      ? null
+                                      : ValueKey('ride-button-row-${button.name}-${trigger.name}'),
+                                  TextSpan(
+                                    children: [
+                                      // A single click is what a button does
+                                      // unless told otherwise: it goes unnamed.
+                                      if (trigger != ButtonTrigger.singleClick)
+                                        TextSpan(text: '${trigger.title} · ', style: gestureStyle),
+                                      TextSpan(text: actionOf(button, trigger)),
+                                    ],
+                                  ),
+                                  style: actionStyle,
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

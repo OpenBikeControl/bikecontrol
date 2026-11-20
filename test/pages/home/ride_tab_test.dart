@@ -764,7 +764,11 @@ Future<void> main() async {
         expect(list, findsOneWidget);
         final play = core.connection.controllerDevices.single;
         for (final button in play.availableButtons) {
-          expect(find.descendant(of: list, matching: find.text(button.displayName)), findsOneWidget);
+          // By its glyph, as on the pods: the name is spoken, not shown.
+          expect(
+            find.descendant(of: list, matching: find.byKey(ValueKey('ride-button-row-${button.name}'))),
+            findsOneWidget,
+          );
         }
         final cut = find.descendant(of: list, matching: find.byType(RichText)).evaluate().where((e) {
           final paragraph = e.renderObject! as RenderParagraph;

@@ -79,7 +79,7 @@ Future<void> main() async {
     return AppLocalizations.current;
   }
 
-  testWidgets('a long press is named before its action, under the button', (tester) async {
+  testWidgets('a long press is named before its action, beside the glyph', (tester) async {
     final l = await pump(tester);
     final row = find.byKey(ValueKey('ride-button-row-${left.name}'));
     expect(row, findsOneWidget);
@@ -91,8 +91,8 @@ Future<void> main() async {
       ),
       findsOneWidget,
     );
-    final name = find.descendant(of: row, matching: find.text(left.plainName));
-    expect(tester.getRect(line).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
+    // No name: the glyph says which button.
+    expect(find.descendant(of: row, matching: find.text(left.plainName)), findsNothing);
   });
 
   testWidgets('a single click has no subtitle', (tester) async {
@@ -102,7 +102,7 @@ Future<void> main() async {
     expect(find.descendant(of: row, matching: find.text(l.triggerSingleClick)), findsNothing);
   });
 
-  testWidgets('a double click is a line under the single click, the name said once', (tester) async {
+  testWidgets('a double click is a line under the single click', (tester) async {
     final l = await pump(tester);
     final block = find.byKey(ValueKey('ride-button-row-${right.name}'));
     final double = find.byKey(ValueKey('ride-button-row-${right.name}-${ButtonTrigger.doubleClick.name}'));
@@ -114,10 +114,8 @@ Future<void> main() async {
       ),
       findsOneWidget,
     );
-    // The name once, for both.
-    final name = find.descendant(of: block, matching: find.text(right.plainName));
-    expect(name, findsOneWidget);
-    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(name).bottom - 1));
+    final single = find.descendant(of: block, matching: find.text(InGameAction.shiftUp.title, findRichText: true));
+    expect(tester.getRect(double).top, greaterThanOrEqualTo(tester.getRect(single).bottom - 1));
   });
 
   testWidgets('a long action wraps between words, never inside one', (tester) async {
