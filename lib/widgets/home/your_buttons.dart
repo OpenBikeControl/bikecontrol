@@ -389,9 +389,10 @@ class ControllerButtonsCard extends StatelessWidget {
     );
   }
 
-  /// "Tap a button to change what it does." — or, while connecting, the
-  /// controller's name and "Connecting…" in the same slot, at the hint's
-  /// height either way.
+  /// "Tap a button to change what it does." — or, while connecting or away,
+  /// "Connecting…" or why it is away in the same slot (after the
+  /// controller's name when no header names it), at the hint's height
+  /// either way.
   Widget _hint(BuildContext context, String hint) {
     final cs = Theme.of(context).colorScheme;
     final style = context.typography.small.copyWith(color: cs.mutedForeground);
@@ -402,7 +403,10 @@ class ControllerButtonsCard extends StatelessWidget {
               // Holds the hint's height, so the swap moves nothing.
               Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: text),
               Text(
-                '${device.displayName(context)} · ${awayLabel ?? context.i18n.chainStatusConnecting}',
+                // The name only where no header above already says it.
+                showDeviceHeader
+                    ? awayLabel ?? context.i18n.chainStatusConnecting
+                    : '${device.displayName(context)} · ${awayLabel ?? context.i18n.chainStatusConnecting}',
                 key: ValueKey(awayLabel == null ? 'ride-buttons-connecting' : 'ride-buttons-away'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
