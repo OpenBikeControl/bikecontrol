@@ -108,6 +108,16 @@ class OnboardingAppGuideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Which steps to show follows the Bluetooth method, and switching it on
+    // rebuilds nothing else around this card (the done step only listens for
+    // connections): listen to it here.
+    return ValueListenableBuilder<bool>(
+      valueListenable: core.bc2BluetoothEmulator.isStarted,
+      builder: (context, _, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final guide = onboardingGuideFor(context, app);
     final scheme = Theme.of(context).colorScheme;
     final guideUrl = guide.guideUrl;

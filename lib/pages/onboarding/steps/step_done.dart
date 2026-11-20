@@ -214,26 +214,30 @@ Widget onboardingDoneBody(
                 constraints: const BoxConstraints(minHeight: 56),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      leading,
-                      Gap(12),
-                      Expanded(flex: 3, child: Text(title).small.semiBold),
-                      Gap(8),
-                      // Flexible so a long "Waiting for {app}…" or the Pair
-                      // button can't push the name off.
-                      Flexible(
-                        flex: 2,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerEnd,
+                  // The status takes the width it needs — "Waiting for
+                  // MyWhoosh…" stays on one line beside a short name — up to
+                  // 60% of the row, so a long one can't push the name off.
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      children: [
+                        leading,
+                        Gap(12),
+                        Expanded(child: Text(title).small.semiBold),
+                        Gap(8),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.6),
                           child: BkStatusDot(label: sub, tone: ok ? BkStatusTone.success : BkStatusTone.neutral),
                         ),
-                      ),
-                      if (onTap != null) ...[
-                        Gap(6),
-                        Icon(LucideIcons.chevronRight, size: 18, color: Theme.of(context).colorScheme.mutedForeground),
+                        if (onTap != null) ...[
+                          Gap(6),
+                          Icon(
+                            LucideIcons.chevronRight,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),
