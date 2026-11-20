@@ -525,6 +525,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
           title: context.i18n.simulateButtons,
           subtitle: _connectionStatus(connections, hasRideData),
           showDivider: false,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           actions: _editing
               ? [
                   Button.ghost(
@@ -591,7 +592,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: BkPageColumn(child: _editToolbar(definition)),
               ),
               Expanded(child: scroll),
@@ -607,17 +608,20 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   Widget _editToolbar(FitnessBikeDefinition? definition) {
     final l = AppLocalizations.of(context);
     Widget tool(String key, IconData icon, String label, VoidCallback onPressed) => Expanded(
-      child: Button(
-        key: ValueKey(key),
-        style: const ButtonStyle.outline(size: ButtonSize.small),
-        onPressed: onPressed,
-        // Three to a row on a phone: a long label shrinks rather than wrap.
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 6,
-            children: [Icon(icon, size: 14), Text(label, maxLines: 1)],
+      child: SizedBox(
+        height: 40,
+        child: Button(
+          key: ValueKey(key),
+          style: const ButtonStyle.outline(size: ButtonSize.small),
+          onPressed: onPressed,
+          // Three to a row on a phone: a long label shrinks rather than wrap.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [Icon(icon, size: 14), Text(label, maxLines: 1)],
+            ),
           ),
         ),
       ),
@@ -844,7 +848,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             borderRadius: BorderRadius.circular(8),
             wash: true,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 spacing: 4,
