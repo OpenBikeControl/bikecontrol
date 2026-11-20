@@ -67,7 +67,9 @@ abstract class BluetoothDevice extends BaseDevice {
     bool allowMultiple = false,
     bool isBeta = false,
     bool supportsLongPress = true,
-    IconData icon = LucideIcons.gamepad,
+    // The app's one controller glyph — `gamepad` here drew a different
+    // controller than every other screen's `gamepad2`.
+    IconData icon = LucideIcons.gamepad2,
     String? buttonPrefix,
   }) : super(
          scanResult.name,

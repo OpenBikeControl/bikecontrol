@@ -402,6 +402,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         // Its "pick up the controller tile" variant has news in its title.
         SetupStepId.appConnected => step.variant == SetupStepVariant.standard,
         SetupStepId.trainerAppBridged => true,
+        // "Asleep – press a button to wake it" over "Wake it up" — not on a
+        // controller ridden without, whose status says something else.
+        SetupStepId.controllerInRange => step.variant == SetupStepVariant.controllerAsleep && !widget.link.standby,
         _ => false,
       };
 

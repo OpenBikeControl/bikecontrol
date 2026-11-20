@@ -71,6 +71,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart'
 import 'package:bike_control/widgets/devices/chain_link_row.dart';
 import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -1657,7 +1658,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       link: link,
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
-      leading: _tile(device.icon, live: connected),
+      leading: ControllerMark(device: device, live: connected),
       title: link.title,
       subtitle: _controllerSubtitle(device),
       statusLabel: _controllerStatusLabel(link, device),
@@ -1669,18 +1670,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  /// "FW 1.2.0 · Signal good" for a connected Bluetooth controller; else what
-  /// it is.
-  String _controllerSubtitle(BaseDevice device) {
+  /// "FW 1.2.0 · Signal good" for a connected Bluetooth controller. Nothing
+  /// otherwise: "Controller" under a row in the Controller section, beside
+  /// its silhouette, told the rider nothing.
+  String? _controllerSubtitle(BaseDevice device) {
     final l = context.i18n;
-    if (device is! BluetoothDevice || !device.isConnected) return l.chainControllerTitle;
+    if (device is! BluetoothDevice || !device.isConnected) return null;
     final rssi = device.rssi;
     final parts = [
       if (device.firmwareVersion case final fw? when fw.isNotEmpty) 'FW $fw',
       // -70 dBm is where the device page stops calling the link "Good".
       if (rssi != null) rssi >= -70 ? l.devicesSignalGood : l.devicesSignalWeak,
     ];
-    return parts.isEmpty ? l.chainControllerTitle : parts.join(' · ');
+    return parts.isEmpty ? null : parts.join(' · ');
   }
 
   /// The battery under the status, red below 20 % (the device page's
