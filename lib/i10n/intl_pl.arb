@@ -1761,6 +1761,7 @@
     }
   },
   "chainStepOverlayAction": "Włącz Overlay",
+  "chainStepOverlayOffer": "Pokazuj bieg nad {appName}",
   "chainStepLocalControl": "Dodaj akcje klawiatury i myszy",
   "chainStepLocalControlDone": "Akcje klawiatury i myszy są włączone",
   "chainStepLocalControlHint": "Pozwala przyciskowi wywołać skróty lub kliknięcia w {appName} na tym urządzeniu, np. zrzuty ekranu albo ERG.",

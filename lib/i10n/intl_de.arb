@@ -1772,6 +1772,7 @@
     }
   },
   "chainStepOverlayAction": "Overlay aktivieren",
+  "chainStepOverlayOffer": "Deinen Gang über {appName} einblenden",
   "chainStepLocalControl": "Tastatur- und Maus-Aktionen freischalten",
   "chainStepLocalControlDone": "Tastatur- und Maus-Aktionen sind aktiv",
   "chainStepLocalControlHint": "Damit löst eine Taste Tastenkürzel oder Klicks in {appName} auf diesem Gerät aus, etwa Screenshots oder ERG.",

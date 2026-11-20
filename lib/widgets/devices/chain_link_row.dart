@@ -15,8 +15,9 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// A text action's padding without its sides, so its words start where the
-/// line above starts rather than a button's inset further in.
-EdgeInsets _flushStart(EdgeInsets padding) => EdgeInsets.only(top: padding.top, bottom: padding.bottom);
+/// line above starts rather than a button's inset further in — and half its
+/// height, so it sits in the checklist's rhythm rather than in a tall box.
+EdgeInsets _flushStart(EdgeInsets padding) => EdgeInsets.only(top: padding.top / 2, bottom: padding.bottom / 2);
 
 /// The status tone a link's state reads in.
 BkStatusTone chainStatusTone(LinkStatus status) => switch (status) {
@@ -252,12 +253,15 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   /// The step in front's fix as a quiet outlined button under its hint. Never
   /// beside the name: there it squeezed the status into a narrow column and
   /// gave the card two places for its actions.
+  /// Small padding, body-size label: the default size made a box twice the
+  /// height of the line it answers.
   Widget _fixButton(BuildContext context, VoidCallback onPressed) => BkTouchTarget(
     child: Button.outline(
       key: chainRowStepActionKey,
       alignment: Alignment.center,
+      style: const ButtonStyle.outline(size: ButtonSize.small),
       onPressed: onPressed,
-      leading: const Icon(LucideIcons.bookOpen, size: 16),
+      leading: const Icon(LucideIcons.bookOpen, size: 15),
       child: Text(widget.instructionsLabel ?? context.i18n.chainShowMeHow, style: _buttonText(context)),
     ),
   );
@@ -274,7 +278,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
       builder: (context, child) {
         if (_checklist.isDismissed || steps.isEmpty) return const SizedBox(width: double.infinity);
         // At full size this lays the checklist out at exactly its own height.
-        return SizeTransition(sizeFactor: _checklistSize, alignment: Alignment.topCenter, child: child);
+        // Start-aligned: a hint narrower than the row (one short line on a
+        // wide window) sat centred under the name while this ran.
+        return SizeTransition(sizeFactor: _checklistSize, alignment: AlignmentDirectional.topStart, child: child);
       },
       child: steps.isEmpty ? const SizedBox.shrink() : _steps(context, link, steps),
     );
@@ -327,9 +333,10 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   }
 
   /// A step behind the one in front: its title, quiet — "Optional:" first for
-  /// an optional one. An optional step with an offer is itself the button:
-  /// the line says what tapping it gets, so a second "Enable …" label under
-  /// it only repeated it.
+  /// an optional one. An optional step with an offer is itself the button,
+  /// and then the line is the offer ("Show your gear on top of MyWhoosh"): a
+  /// step title that states a problem ("MyWhoosh still shows its own gear")
+  /// says nothing about what tapping it does.
   Widget _laterStep(BuildContext context, ChainLink link, SetupStep step) {
     final cs = Theme.of(context).colorScheme;
     final text = chainStepText(context, step, appName: widget.appName);
@@ -351,36 +358,33 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
               text: '${context.i18n.chainOptional}: ',
               style: TextStyle(color: actionable ? cs.mutedForeground : cs.foreground, fontWeight: FontWeight.w500),
             ),
-          TextSpan(text: text.label),
+          TextSpan(text: actionable ? offer : text.label),
+          // After the last word, wherever the line wraps — not out at the
+          // row's far edge.
+          if (actionable)
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Icon(LucideIcons.chevronRight, size: 16, color: accent),
+              ),
+            ),
         ],
       ),
       style: style,
     );
     return Padding(
       key: chainRowLaterStepKey(step.id),
-      padding: EdgeInsets.only(top: actionable ? 8 : 16),
+      padding: EdgeInsets.only(top: actionable ? 10 : 14),
       child: !actionable
           ? label
-          : Semantics(
-              // What it does, for a screen reader; the line shows what it gets.
-              label: offer,
-              button: true,
-              excludeSemantics: true,
-              child: BkTouchTarget(
-                child: Button.ghost(
-                  key: chainRowOfferKey(step.id),
-                  alignment: Alignment.centerLeft,
-                  style: const ButtonStyle.ghost(density: ButtonDensity(_flushStart)),
-                  onPressed: () => widget.onOffer!(step),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(child: label),
-                      const Gap(4),
-                      Icon(LucideIcons.chevronRight, size: 16, color: accent),
-                    ],
-                  ),
-                ),
+          : BkTouchTarget(
+              child: Button.ghost(
+                key: chainRowOfferKey(step.id),
+                alignment: Alignment.centerLeft,
+                style: const ButtonStyle.ghost(density: ButtonDensity(_flushStart)),
+                onPressed: () => widget.onOffer!(step),
+                child: label,
               ),
             ),
     );

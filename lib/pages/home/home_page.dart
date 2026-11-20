@@ -1900,6 +1900,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       instructionsLabel: offersOverlay ? l.chainStepOverlayAction : null,
       secondaryActionLabel: overlayAsksForAnswer ? l.chainStepOverlayDecline : null,
       onSecondaryAction: overlayAsksForAnswer ? _declineOverlay : null,
+      // Optional and behind another step, the overlay is still one tap away —
+      // worded as what it does, not as the problem it solves.
+      offerLabel: (step) => step.id == SetupStepId.trainerGearOverlay && inputs.app.name != null
+          ? l.chainStepOverlayOffer(inputs.app.name!)
+          : null,
+      onOffer: (step) async {
+        if (step.id != SetupStepId.trainerGearOverlay) return;
+        await _enableOverlay();
+        _update();
+      },
       // Paired and shifting: the live numbers, the gear among them.
       body: proxy != null && definition != null
           ? _LiveTrainerBody(
@@ -2050,7 +2060,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Local control is optional and sits behind "Waiting for {app}" while
       // the app is away — it still gets its button, the same one it has when
       // it is the step in front.
-      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControlAction : null,
+      // The step's own wording is already the action ("Add keyboard and
+      // mouse actions"), so the line offers itself.
+      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControl : null,
       onOffer: (step) async {
         if (step.id != SetupStepId.appLocalControl) return;
         await enableLocalControl(context);

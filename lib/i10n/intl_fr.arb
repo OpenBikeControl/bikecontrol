@@ -1761,6 +1761,7 @@
     }
   },
   "chainStepOverlayAction": "Activer l'Overlay",
+  "chainStepOverlayOffer": "Afficher ta vitesse par-dessus {appName}",
   "chainStepLocalControl": "Ajoute les actions clavier et souris",
   "chainStepLocalControlDone": "Les actions clavier et souris sont activées",
   "chainStepLocalControlHint": "Permet à un bouton de déclencher des raccourcis ou des clics dans {appName} sur cet appareil, comme des captures ou l'ERG.",

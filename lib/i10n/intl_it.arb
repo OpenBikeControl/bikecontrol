@@ -1761,6 +1761,7 @@
     }
   },
   "chainStepOverlayAction": "Attiva l'Overlay",
+  "chainStepOverlayOffer": "Mostra il tuo rapporto sopra {appName}",
   "chainStepLocalControl": "Aggiungi azioni da tastiera e mouse",
   "chainStepLocalControlDone": "Le azioni da tastiera e mouse sono attive",
   "chainStepLocalControlHint": "Permette a un tasto di attivare scorciatoie o clic in {appName} su questo dispositivo, come screenshot o ERG.",

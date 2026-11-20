@@ -304,7 +304,7 @@ Future<void> main() async {
                 title: 'MyWhoosh',
                 appName: 'MyWhoosh',
                 statusLabel: 'Warte auf MyWhoosh',
-                offerLabel: (_) => 'Lokale Steuerung aktivieren',
+                offerLabel: (_) => 'Deinen Gang über MyWhoosh einblenden',
                 onOffer: (_) => offered++,
               ),
             ],
@@ -317,11 +317,15 @@ Future<void> main() async {
 
     final offer = find.byKey(chainRowOfferKey(SetupStepId.appLocalControl));
     expect(offer, findsOneWidget);
+    // The line is the offer — what tapping does — not the step's title.
     expect(
-      find.descendant(of: offer, matching: find.textContaining(l.chainStepLocalControl, findRichText: true)),
+      find.descendant(
+        of: offer,
+        matching: find.textContaining('Deinen Gang über MyWhoosh einblenden', findRichText: true),
+      ),
       findsOneWidget,
     );
-    expect(find.text('Lokale Steuerung aktivieren'), findsNothing, reason: 'no second label repeating the line');
+    expect(find.textContaining(l.chainStepLocalControl, findRichText: true), findsNothing);
     expect(find.byIcon(LucideIcons.circle), findsNothing);
     await tester.tap(offer);
     expect(offered, 1);

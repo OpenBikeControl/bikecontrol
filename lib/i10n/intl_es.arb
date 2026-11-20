@@ -1761,6 +1761,7 @@
     }
   },
   "chainStepOverlayAction": "Activar el Overlay",
+  "chainStepOverlayOffer": "Mostrar tu marcha sobre {appName}",
   "chainStepLocalControl": "Añade acciones de teclado y ratón",
   "chainStepLocalControlDone": "Las acciones de teclado y ratón están activas",
   "chainStepLocalControlHint": "Permite que un botón active atajos o clics en {appName} en este dispositivo, como capturas o ERG.",

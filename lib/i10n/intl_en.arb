@@ -2065,6 +2065,14 @@
     }
   },
   "chainStepOverlayAction": "Enable overlay",
+  "chainStepOverlayOffer": "Show your gear on top of {appName}",
+  "@chainStepOverlayOffer": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "chainStepLocalControl": "Add keyboard and mouse actions",
   "chainStepLocalControlDone": "Keyboard and mouse actions are on",
   "chainStepLocalControlHint": "Lets a button trigger shortcuts or clicks in {appName} on this device, like screenshots or ERG.",

@@ -2087,6 +2087,7 @@
     }
   },
   "chainStepOverlayAction": "启用悬浮窗",
+  "chainStepOverlayOffer": "在 {appName} 上方显示你的档位",
   "chainStepLocalControl": "添加键盘和鼠标动作",
   "chainStepLocalControlDone": "键盘和鼠标动作已开启",
   "chainStepLocalControlHint": "让按键在本设备的 {appName} 中触发快捷键或点击，例如截图或 ERG。",
