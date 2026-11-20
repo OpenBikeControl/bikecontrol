@@ -1,3 +1,7 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- MyWhoosh via Bluetooth (beta): abbina BikeControl in MyWhoosh come dispositivo di sterzo, poi cambi marcia e scegli la strada agli incroci (pressione lunga).
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.

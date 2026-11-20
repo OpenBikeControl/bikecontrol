@@ -1,3 +1,7 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- 通过蓝牙连接 MyWhoosh（测试版）：在 MyWhoosh 中将 BikeControl 配对为转向设备，即可换挡，并在路口选择路线（长按）。
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist、Tour du Pain 和 Rampida 现已通过 OpenBikeControl 获得官方支持。

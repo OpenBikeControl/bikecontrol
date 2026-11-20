@@ -1,3 +1,7 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- MyWhoosh über Bluetooth (Beta): Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck).
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.

@@ -1,12 +1,3 @@
-7.6.0
+7.6.1
 Nowości:
-• Incyclist, Tour du Pain i Rampida przez OpenBikeControl
-• Manetki CYCPLUS T7 działają jako kontrolery
-• Czytelniejszy edytor przycisków, pogrupowany według akcji
-• Di2: ustaw kanały D-Fly w E-TUBE, z instrukcją
-• Zwift Click V2: prawy kontroler bez odblokowywania
-• Więcej testu: 120 naciśnięć/dzień, potem 40, 30 min wirtualnych biegów
-
-Poprawki:
-• Zwift: Bomba Ride On po krótkim naciśnięciu
-• Android: bez awarii przy restarcie usługi, „Zamknij i wyjdź” zawsze zamyka
+• MyWhoosh przez Bluetooth (beta): sparuj BikeControl jako urządzenie do skrętu, by zmieniać biegi i wybierać drogę na skrzyżowaniach

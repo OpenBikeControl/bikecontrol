@@ -15,6 +15,8 @@ class MyWhoosh extends SupportedApp {
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.myWhooshLink, ConnectionSupport.supported),
     (AppConnectionMethod.obpMdns, ConnectionSupport.supported),
+    // Buttons over Bluetooth, as the shifter MyWhoosh reads (pair as Steering).
+    (AppConnectionMethod.obpBle, ConnectionSupport.beta),
   ];
 
   @override

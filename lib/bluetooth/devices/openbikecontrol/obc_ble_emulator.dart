@@ -15,6 +15,7 @@ import 'package:bike_control/bluetooth/peripheral_server.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show TrainerConnectionType;
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
@@ -36,6 +37,23 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
   bool _isSubscribedToEvents = false;
   String? _currentDeviceId;
   final _appInfoReassembler = AppInfoReassembler();
+
+  /// MyWhoosh takes buttons over Bluetooth only as a CYCPLUS BC2 shifter, so
+  /// for it this peripheral serves a BC2 instead of OpenBikeControl. Fixed when
+  /// the server starts; switching the trainer app restarts it.
+  bool _servesBc2 = false;
+  final _bc2 = CycplusBc2Emulator();
+
+  bool get servesBc2 => _servesBc2;
+  @visibleForTesting
+  set servesBc2(bool value) => _servesBc2 = value;
+
+  static const bc2SupportedActions = [
+    InGameAction.shiftUp,
+    InGameAction.shiftDown,
+    InGameAction.steerLeft,
+    InGameAction.steerRight,
+  ];
 
   @override
   PeripheralServer get advertisingServer => _server;
@@ -64,6 +82,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
         _currentDeviceId = null;
         // Drop any half-received app-info so it can't poison the next central.
         _appInfoReassembler.reset();
+        _bc2.reset();
       }
     });
 
@@ -89,6 +108,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
 
     if (!_isServiceAdded) {
       await Future.delayed(Duration(seconds: 1));
+      _servesBc2 = core.settings.getTrainerApp() is MyWhoosh;
 
       if (!_isSubscribedToEvents) {
         _isSubscribedToEvents = true;
@@ -96,6 +116,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
         _server.onSubscriptionChanged((deviceId, characteristicId, isSubscribed) {
           if (isSubscribed) _currentDeviceId = deviceId;
           print('Notify state changed for $characteristicId: $isSubscribed');
+          if (isSubscribed &&
+              _servesBc2 &&
+              characteristicId.toLowerCase() == CycplusBc2Emulator.TX_CHARACTERISTIC_UUID.toLowerCase()) {
+            unawaited(onBc2Subscribed(deviceId));
+          }
         });
 
         _server.setReadHandler(BleUuid.DEVICE_INFORMATION_CHARACTERISTIC_BATTERY_LEVEL, (
@@ -161,36 +186,56 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
         ),
       );
 
-      // OpenBikeControl Service. Protected: the Bluetooth trainer bridge
-      // shares this peripheral and would otherwise wipe it when it starts or
-      // stops, leaving the trainer app with no button characteristic.
-      SharedPeripheral.protectServices([OpenBikeControlConstants.SERVICE_UUID]);
-      await _server.addService(
-        BlePeripheralService(
-          uuid: OpenBikeControlConstants.SERVICE_UUID,
-          characteristics: [
-            BlePeripheralCharacteristic(
-              uuid: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
-              properties: [CharacteristicProperty.notify],
-              permissions: [],
-            ),
-            BlePeripheralCharacteristic(
-              uuid: OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID,
-              properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
-              permissions: [PeripheralAttributePermission.writeable],
-            ),
-            BlePeripheralCharacteristic(
-              uuid: OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
-              properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
-              permissions: [PeripheralAttributePermission.readable, PeripheralAttributePermission.writeable],
-            ),
-          ],
-        ),
-      );
+      // The button service. Protected: the Bluetooth trainer bridge shares this
+      // peripheral and would otherwise wipe it when it starts or stops, leaving
+      // the trainer app with no button characteristic.
+      SharedPeripheral.protectServices([_buttonServiceUuid]);
+      if (_servesBc2) {
+        await _server.addService(
+          BlePeripheralService(
+            uuid: CycplusBc2Emulator.SERVICE_UUID,
+            characteristics: [
+              BlePeripheralCharacteristic(
+                uuid: CycplusBc2Emulator.TX_CHARACTERISTIC_UUID,
+                properties: [CharacteristicProperty.notify],
+                permissions: [],
+              ),
+              BlePeripheralCharacteristic(
+                uuid: CycplusBc2Emulator.RX_CHARACTERISTIC_UUID,
+                properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+                permissions: [PeripheralAttributePermission.writeable],
+              ),
+            ],
+          ),
+        );
+      } else {
+        await _server.addService(
+          BlePeripheralService(
+            uuid: OpenBikeControlConstants.SERVICE_UUID,
+            characteristics: [
+              BlePeripheralCharacteristic(
+                uuid: OpenBikeControlConstants.BUTTON_STATE_CHARACTERISTIC_UUID,
+                properties: [CharacteristicProperty.notify],
+                permissions: [],
+              ),
+              BlePeripheralCharacteristic(
+                uuid: OpenBikeControlConstants.HAPTIC_CHARACTERISTIC_UUID,
+                properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+                permissions: [PeripheralAttributePermission.writeable],
+              ),
+              BlePeripheralCharacteristic(
+                uuid: OpenBikeControlConstants.APPINFO_CHARACTERISTIC_UUID,
+                properties: [CharacteristicProperty.writeWithoutResponse, CharacteristicProperty.write],
+                permissions: [PeripheralAttributePermission.readable, PeripheralAttributePermission.writeable],
+              ),
+            ],
+          ),
+        );
+      }
       _isServiceAdded = true;
     }
 
-    print('Starting advertising with OpenBikeControl service...');
+    print('Starting advertising with ${_servesBc2 ? 'BC2' : 'OpenBikeControl'} service...');
     // Drop any stale/foreign advertisement (e.g. left over from a previous
     // session or another peripheral role) before claiming the shared manager.
     // stopAdvertising is idempotent on Darwin, so this is safe when idle.
@@ -225,9 +270,33 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
     return PeripheralWriteRequestResult();
   }
 
+  /// The trainer app subscribed to the BC2 lever notifications: it's connected.
+  @visibleForTesting
+  Future<void> onBc2Subscribed(String deviceId) async {
+    _currentDeviceId = deviceId;
+    supportedActions = bc2SupportedActions;
+    connectedApp.value = AppInfo(
+      appId: core.settings.getTrainerApp()?.name ?? 'MyWhoosh',
+      appVersion: '',
+      supportedButtons: const [],
+      supportedActions: bc2SupportedActions,
+    );
+    isConnected.value = true;
+    core.connection.signalNotification(
+      AlertNotification(LogLevel.LOGLEVEL_INFO, 'Connected to app: ${connectedApp.value?.appId}'),
+    );
+    await _server.notify(
+      characteristicId: CycplusBc2Emulator.TX_CHARACTERISTIC_UUID,
+      value: _bc2.connectFrame(),
+      deviceId: deviceId,
+    );
+  }
+
+  String get _buttonServiceUuid => _servesBc2 ? CycplusBc2Emulator.SERVICE_UUID : OpenBikeControlConstants.SERVICE_UUID;
+
   @override
   Future<void> startServiceAdvertising() => _server.startAdvertising(
-    services: [OpenBikeControlConstants.SERVICE_UUID],
+    services: [_buttonServiceUuid],
     localName: 'BikeControl',
     // The 128-bit service UUID plus the name overflows the 31-byte primary
     // advertisement (Android "Data too large"); move the service UUID to the
@@ -241,7 +310,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
     }
     // Only our own services: the trainer bridge may be serving from the same
     // peripheral.
-    SharedPeripheral.unprotectServices([OpenBikeControlConstants.SERVICE_UUID]);
+    SharedPeripheral.unprotectServices([_buttonServiceUuid]);
     for (final service in _ownServiceUuids) {
       await _server.removeService(service);
     }
@@ -255,7 +324,7 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
   List<String> get _ownServiceUuids => [
     if (!Platform.isWindows) '180A',
     '180F',
-    OpenBikeControlConstants.SERVICE_UUID,
+    _buttonServiceUuid,
   ];
 
   BlePeripheralCharacteristic _immutableChar(String uuid, String value) => BlePeripheralCharacteristic(
@@ -287,6 +356,8 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
         button: keyPair.buttons.firstOrNull,
       );
     }
+
+    if (_servesBc2) return _sendBc2(keyPair, inGameAction, isKeyDown: isKeyDown, isKeyUp: isKeyUp);
 
     if (steersByAngleOnly(app, keyPair)) {
       return Success(
@@ -346,8 +417,41 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
     );
   }
 
+  /// Shifting is a short lever press, steering (MyWhoosh's path choice at a
+  /// junction) a long one.
+  Future<ActionResult> _sendBc2(
+    KeyPair keyPair,
+    InGameAction action, {
+    required bool isKeyDown,
+    required bool isKeyUp,
+  }) async {
+    final (lever, long) = switch (action) {
+      InGameAction.shiftUp => (Bc2Lever.plus, false),
+      InGameAction.shiftDown => (Bc2Lever.minus, false),
+      InGameAction.steerRight => (Bc2Lever.plus, true),
+      InGameAction.steerLeft => (Bc2Lever.minus, true),
+      _ => (null, false),
+    };
+    if (lever == null) {
+      return NotHandled(
+        'App does not support all buttons for action: ${action.title}',
+        button: keyPair.buttons.firstOrNull,
+      );
+    }
+    Future<void> send(Uint8List frame) => _server.notify(
+      characteristicId: CycplusBc2Emulator.TX_CHARACTERISTIC_UUID,
+      value: frame,
+      deviceId: _currentDeviceId,
+    );
+    if (isKeyDown) await send(_bc2.press(lever, long: long));
+    if (isKeyDown && isKeyUp) await Future.delayed(const Duration(milliseconds: 50));
+    // A release without a press would read as one, and shift.
+    if (isKeyUp && _bc2.isPressed(lever)) await send(_bc2.release(lever));
+    return Success('Buttons ${action.title} sent', button: keyPair.buttons.firstOrNull);
+  }
+
   @override
-  bool get canSendSteeringAngle => _currentDeviceId != null && connectedApp.value != null;
+  bool get canSendSteeringAngle => !_servesBc2 && _currentDeviceId != null && connectedApp.value != null;
 
   @override
   Future<void> sendSteeringAngle(int value) => _server.notify(
