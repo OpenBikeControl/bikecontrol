@@ -48,6 +48,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/utils/network_address.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -325,6 +326,13 @@ void _bannerStepTests() {
       expect(controllerStep.actionLabel, l.chainSetUp);
       expect(inBanner(find.text(l.chainSetUp)), findsNothing);
       expect(inDevices(find.text(l.chainSetUp)), findsOneWidget);
+    });
+
+    testWidgets('a controller not found yet wears the controller glyph, not a bare ring', (tester) async {
+      await _pumpHome(tester);
+      final banner = tester.widget<ReadyBanner>(find.byType(ReadyBanner));
+      final controllerStep = banner.steps.firstWhere((s) => s.step.id == SetupStepId.controllerPaired);
+      expect(controllerStep.mark, isA<BkIconTile>().having((t) => t.icon, 'icon', LucideIcons.gamepad2));
     });
 
     testWidgets('tapping a step opens what the Devices row\'s fix opens', (tester) async {

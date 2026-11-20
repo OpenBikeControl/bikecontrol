@@ -1110,7 +1110,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     switch (link.key) {
       case ChainLinkKey.controller:
         final device = _controllerById(link.deviceId);
-        return device == null ? null : ControllerMark(device: device);
+        // None found yet ("Find your controller"): the app's controller glyph
+        // in its tile, as on every other screen — a bare ring read as a
+        // checkbox.
+        return device == null ? const BkIconTile(icon: LucideIcons.gamepad2) : ControllerMark(device: device);
       case ChainLinkKey.trainer:
         return const TrainerMark();
       case ChainLinkKey.app:
