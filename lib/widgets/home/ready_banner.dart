@@ -5,6 +5,7 @@ import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_motion.dart';
+import 'package:bike_control/widgets/ui/bk_skeleton.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -17,7 +18,14 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// button on the Devices row. [onFix] is null for a step that waits on an
 /// earlier one of the same card: its fix is that step's.
 class ReadyBannerStep {
-  const ReadyBannerStep({required this.linkId, required this.step, this.linkTitle, this.actionLabel, this.onFix});
+  const ReadyBannerStep({
+    required this.linkId,
+    required this.step,
+    this.linkTitle,
+    this.actionLabel,
+    this.onFix,
+    this.mark,
+  });
 
   final String linkId;
 
@@ -29,6 +37,11 @@ class ReadyBannerStep {
   /// The fix's label; null reads "Show me how", as on the Devices row.
   final String? actionLabel;
   final VoidCallback? onFix;
+
+  /// The device's own tile — a controller's silhouette, the trainer, the
+  /// app's logo — in place of the plain ring, so the list says at a glance
+  /// which thing each step is about. Null keeps the ring.
+  final Widget? mark;
 }
 
 /// The one-glance answer at the top of the home screen: am I good?
@@ -453,16 +466,19 @@ class _StepLine extends StatelessWidget {
             SizedBox(
               width: 32,
               child: Center(
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    // The step to do now in the banner's tone; one that waits on
-                    // it, quieter.
-                    border: Border.all(color: actionable ? tone : cs.mutedForeground, width: 2),
-                  ),
-                ),
+                child: step.mark != null
+                    // Still to do: a slow light passes over it.
+                    ? BkShimmer(child: step.mark!)
+                    : Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          // The step to do now in the banner's tone; one that waits on
+                          // it, quieter.
+                          border: Border.all(color: actionable ? tone : cs.mutedForeground, width: 2),
+                        ),
+                      ),
               ),
             ),
             const Gap(12),

@@ -294,7 +294,12 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     // The status already says it ("Waiting for MyWhoosh"): the step's own
     // title ("Waiting for connection") would only repeat it in other words.
     final showTitle = first.label != _statusLabel(context, steps) && !_statusSaysIt(steps.first);
+    // "Asleep – press a button to wake it" is the whole instruction: a hint
+    // saying "press a button to wake it" again, and a "Show me how" for
+    // pressing a button, only repeated it.
+    final statusSaysAll = _statusSaysAll(steps.first);
     final showSecondary = widget.onSecondaryAction != null && widget.secondaryActionLabel != null;
+    if (statusSaysAll && steps.length == 1 && !showSecondary) return const SizedBox(width: double.infinity);
     return Padding(
       padding: const EdgeInsets.fromLTRB(chainRowTextInset, 0, BkGroupedSection.inset, 12),
       child: Column(
@@ -306,9 +311,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(first.label, style: typography.small.copyWith(fontWeight: FontWeight.w500)),
             ),
-          if (hint != null && hint.isNotEmpty)
+          if (!statusSaysAll && hint != null && hint.isNotEmpty)
             Text(hint, style: typography.small.copyWith(height: 1.4, color: cs.mutedForeground)),
-          if (widget.onInstructions != null)
+          if (!statusSaysAll && widget.onInstructions != null)
             Padding(
               padding: const EdgeInsets.only(top: 10),
               // Its own width, not the column's.
@@ -394,6 +399,14 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   String? _offerFor(ChainLink link, SetupStep step) =>
       link.standby || widget.onOffer == null ? null : widget.offerLabel?.call(step);
 
+  /// Whether the status is the step's whole instruction — title, hint and
+  /// fix alike: an asleep controller's "press a button to wake it".
+  bool _statusSaysAll(SetupStep step) =>
+      widget.statusLabel != null &&
+      !widget.link.standby &&
+      step.id == SetupStepId.controllerInRange &&
+      step.variant == SetupStepVariant.controllerAsleep;
+
   /// The waiting steps' titles only ever restate the status ("Waiting for
   /// MyWhoosh …" over "Waiting for MyWhoosh"); their hint is what's new.
   bool _statusSaysIt(SetupStep step) =>
@@ -446,7 +459,12 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset, vertical: 10),
         child: Row(
           children: [
-            widget.leading,
+            // A 30 px slot, as the text inset assumes; a larger mark (a
+            // controller's silhouette) spills evenly into the space around it.
+            SizedBox.square(
+              dimension: BkIconTile.size,
+              child: OverflowBox(maxWidth: 48, maxHeight: 48, child: widget.leading),
+            ),
             const Gap(BkGroupedRow.gap),
             Expanded(
               child: Column(

@@ -378,4 +378,56 @@ Future<void> main() async {
     expect(hint.left, moreOrLessEquals(title.left, epsilon: 1));
     expect(tester.getRect(find.byKey(chainRowStepActionKey)).left, moreOrLessEquals(title.left, epsilon: 1));
   });
+
+  // "Asleep – press a button to wake it" under the name, then "Press a button
+  // to wake it …" and a "Show me how" for pressing a button: said three times.
+  testWidgets('an asleep controller says it once, in its status', (tester) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ShadcnApp(
+        locale: const Locale('de'),
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.light),
+        home: Scaffold(
+          child: BkGroupedSection(
+            children: [
+              ChainLinkRow(
+                link: const ChainLink(
+                  key: ChainLinkKey.controller,
+                  id: 'click',
+                  status: LinkStatus.attention,
+                  title: 'Zwift Click V2',
+                  steps: [
+                    SetupStep(
+                      id: SetupStepId.controllerInRange,
+                      done: false,
+                      variant: SetupStepVariant.controllerAsleep,
+                    ),
+                  ],
+                ),
+                leading: const SizedBox(width: 30, height: 30),
+                title: 'Zwift Click V2',
+                statusLabel: 'Schläft – drück eine Taste, um ihn aufzuwecken',
+                onInstructions: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.current;
+
+    expect(find.text('Schläft – drück eine Taste, um ihn aufzuwecken'), findsOneWidget);
+    expect(find.text(l.chainStepWakePending), findsNothing);
+    expect(find.text(l.chainStepInRangeHint), findsNothing);
+    expect(find.byKey(chainRowStepActionKey), findsNothing);
+  });
 }

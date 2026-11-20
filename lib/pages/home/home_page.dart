@@ -1113,6 +1113,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  /// The thing a banner step is about, as its card shows it: a controller's
+  /// silhouette, the trainer's tile, the trainer app's logo.
+  Widget? _bannerMark(ChainLink link) {
+    switch (link.key) {
+      case ChainLinkKey.controller:
+        final device = _controllerById(link.deviceId);
+        return device == null ? null : ControllerMark(device: device);
+      case ChainLinkKey.trainer:
+        return const BkIconTile(icon: LucideIcons.bike);
+      case ChainLinkKey.app:
+        final app = core.settings.getTrainerApp();
+        return app == null ? null : TrainerAppMark(name: app.name, logoAsset: app.logoAsset, logoUrl: app.logoUrl);
+      case ChainLinkKey.sensors:
+        return const BkIconTile(icon: LucideIcons.heartPulse);
+    }
+  }
+
   /// The banner's list while setup is incomplete: every required step still
   /// outstanding, card by card. The step each card can act on now carries
   /// that card's fix — the Devices row's action under the Devices row's
@@ -1143,6 +1160,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             step: step,
             actionLabel: actionable ? _fixLabel(link, inputs) : null,
             onFix: actionable ? () => _fix(link, inputs) : null,
+            mark: _bannerMark(link),
           ),
         );
       }
@@ -1658,7 +1676,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       link: link,
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
-      leading: ControllerMark(device: device, live: connected),
+      leading: ControllerMark(device: device, live: connected, size: 40),
       title: link.title,
       subtitle: _controllerSubtitle(device),
       statusLabel: _controllerStatusLabel(link, device),
