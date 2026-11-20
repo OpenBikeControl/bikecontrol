@@ -294,7 +294,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     final hint = first.hint;
     // The status already says it ("Waiting for MyWhoosh"): the step's own
     // title ("Waiting for connection") would only repeat it in other words.
-    final showTitle = first.label != _statusLabel(context, steps) && !_statusSaysIt(steps.first);
+    final showTitle = _stepTitleShown(context, steps);
     // "Asleep – press a button to wake it" is the whole instruction: a hint
     // saying "press a button to wake it" again, and a "Show me how" for
     // pressing a button, only repeated it.
@@ -310,7 +310,20 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
           if (showTitle)
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
-              child: Text(first.label, style: typography.small.copyWith(fontWeight: FontWeight.w500)),
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    // Said with the step it is about, as on the later ones.
+                    if (steps.first.optional && !link.standby)
+                      TextSpan(
+                        text: '${context.i18n.chainOptional}: ',
+                        style: TextStyle(color: cs.mutedForeground),
+                      ),
+                    TextSpan(text: first.label),
+                  ],
+                ),
+                style: typography.small.copyWith(fontWeight: FontWeight.w500),
+              ),
             ),
           if (!statusSaysAll && hint != null && hint.isNotEmpty)
             Text(hint, style: typography.small.copyWith(height: 1.4, color: cs.mutedForeground)),
@@ -422,6 +435,13 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         _ => false,
       };
 
+  /// Whether the step in front's title shows under the status: the status
+  /// says something else ("TrainingPeaks Virtual disconnected"), so the step
+  /// needs its own words.
+  bool _stepTitleShown(BuildContext context, List<SetupStep> steps) =>
+      chainStepText(context, steps.first, appName: widget.appName).label != _statusLabel(context, steps) &&
+      !_statusSaysIt(steps.first);
+
   TextStyle _buttonText(BuildContext context) => context.typography.small.copyWith(fontWeight: FontWeight.w500);
 
   /// What the row says about itself while steps are open: the caller's
@@ -491,8 +511,11 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         BkStatusDot(label: _statusLabel(context, pending), tone: tone),
-                        // An optional step says so where its title now stands.
-                        if (pending.first.optional && !widget.link.standby)
+                        // An optional step says so where its title now stands
+                        // — not after a status of other news ("TrainingPeaks
+                        // Virtual disconnected" · Optional): then its title
+                        // below says it.
+                        if (pending.first.optional && !widget.link.standby && !_stepTitleShown(context, pending))
                           _metaSuffix(context, context.i18n.chainOptional),
                         if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
                           _metaSuffix(context, subtitle, key: chainCardSubtitleKey),

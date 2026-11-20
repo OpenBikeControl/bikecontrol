@@ -1250,7 +1250,13 @@ void _overlayStepTests() {
       await pumpTallHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);
-      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('${l.chainOptional}: ${l.chainStepOverlayPending('MyWhoosh')}', findRichText: true),
+        ),
+        findsOneWidget,
+      );
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
       expect(tester.widget<ChainLinkRow>(card).link.isBlocking, isFalse);
 
@@ -1296,7 +1302,13 @@ void _overlayStepTests() {
       await pumpTallHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);
-      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('${l.chainOptional}: ${l.chainStepOverlayPending('MyWhoosh')}', findRichText: true),
+        ),
+        findsOneWidget,
+      );
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
       expect(
         find.descendant(of: card, matching: find.textContaining(l.chainOptional, findRichText: true)),
