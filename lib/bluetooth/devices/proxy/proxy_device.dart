@@ -1104,7 +1104,9 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    emulator.processCharacteristic(characteristic, bytes);
+    // The shared emulator can bridge a second trainer; its definition must not
+    // ingest this trainer's frames. [fitnessBike] is null in proxy mode.
+    emulator.processCharacteristic(characteristic, bytes, from: fitnessBike);
   }
 
   @override
