@@ -857,24 +857,6 @@ class _SelectedAppSpotlight extends StatelessWidget {
               children: [
                 card,
                 if (app.officialIntegration) const Positioned(top: 10, left: 10, child: _OfficialBadge(size: 32)),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  // Pops once the tile has landed.
-                  child: _entrance(
-                    delay: const Duration(milliseconds: 320),
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOutBack,
-                    builder: (t, child) => Transform.scale(scale: t, child: child),
-                    child: Container(
-                      width: 26,
-                      height: 26,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
-                      child: Icon(LucideIcons.check, size: 15, color: onboardingOnAccent(context)),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
