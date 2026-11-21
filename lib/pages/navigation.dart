@@ -138,7 +138,7 @@ class _NavigationState extends State<Navigation> {
       core.settings.getOverlayFields(),
       // ProxyDevice.fitnessBike always returns the current FBD regardless of
       // which emulator is active, so this stays live across mode swaps.
-      liveDef: () => device.fitnessBike,
+      liveDef: device.fitnessBikeListenable,
     );
     return true;
   }

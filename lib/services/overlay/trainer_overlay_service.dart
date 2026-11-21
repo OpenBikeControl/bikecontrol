@@ -95,7 +95,7 @@ Future<OverlayShowResult> enableTrainerOverlay(ProxyDevice device) async {
   final result = await TrainerOverlayService.forCurrentPlatform().show(
     definition,
     core.settings.getOverlayFields(),
-    liveDef: () => device.fitnessBike,
+    liveDef: device.fitnessBikeListenable,
   );
   if (result.ok) await core.settings.setOverlayEnabled(true);
   return result;

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/overlay/ios_pip_controller.dart';
+import 'package:bike_control/services/overlay/overlay_definition_binding.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
@@ -47,9 +48,10 @@ class IosOverlayController implements TrainerOverlayController {
   /// can clear.
   Future<OverlayShowResult>? _showInFlight;
 
-  FitnessBikeDefinition? _def;
-  LiveDefinitionLookup? _liveDef;
-  Listenable? _bound;
+  late final OverlayDefinitionBinding _binding = OverlayDefinitionBinding(
+    onChange: _onChange,
+    onSwap: () => _push(force: true),
+  );
   Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
   Timer? _pushDebounce;
@@ -68,7 +70,7 @@ class IosOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   }) {
     final inFlight = _showInFlight;
     if (inFlight != null) return inFlight;
@@ -82,7 +84,7 @@ class IosOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> _show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   }) async {
     try {
       await _la.init(appGroupId: _appGroupId);
@@ -91,10 +93,9 @@ class IosOverlayController implements TrainerOverlayController {
       _markNotShowing();
       return OverlayShowResult.fail(OverlayShowFailure.systemDisabled, message: 'Live Activities init failed: $e');
     }
-    _def = def;
-    _liveDef = liveDef;
     _fields = fields;
-    _bind();
+    _binding.attach(def, live: liveDef);
+    final generation = _binding.generation;
     _installActionHandler();
 
     final s = _snapshot(def);
@@ -116,7 +117,7 @@ class IosOverlayController implements TrainerOverlayController {
     // hide() may have run during the awaits above and cleared the definition —
     // don't leave the activity we just adopted or requested on screen with
     // nothing feeding it, that is one more orphan holding a slot.
-    if (!identical(_def, def)) {
+    if (_binding.generation != generation) {
       await _endActivities([activity]);
       _markNotShowing();
       return const OverlayShowResult.fail(OverlayShowFailure.unknown, message: 'Overlay was hidden while starting');
@@ -151,10 +152,7 @@ class IosOverlayController implements TrainerOverlayController {
 
   @override
   Future<void> hide() async {
-    _bound?.removeListener(_onChange);
-    _bound = null;
-    _def = null;
-    _liveDef = null;
+    _binding.detach();
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -203,21 +201,6 @@ class IosOverlayController implements TrainerOverlayController {
     // overlay — the OS owns their elevation. Nothing to re-top.
   }
 
-  void _bind() {
-    final def = _def;
-    if (def == null) return;
-    _bound?.removeListener(_onChange);
-    _bound = Listenable.merge([
-      def.currentGear,
-      def.gearRatio,
-      def.trainerMode,
-      def.powerW,
-      def.cadenceRpm,
-      def.ergTargetPower,
-    ]);
-    _bound!.addListener(_onChange);
-  }
-
   void _onChange() {
     final now = DateTime.now();
     final elapsed = now.difference(_lastPushAt).inMilliseconds;
@@ -253,8 +236,8 @@ class IosOverlayController implements TrainerOverlayController {
 
   Future<void> _push({bool force = false}) async {
     final id = _activityId;
-    final def = _def;
-    // Guard against a race where hide() clears _def/_activityId between a
+    final def = _binding.current;
+    // Guard against a race where hide() clears the definition/_activityId between a
     // Timer firing and this method executing.
     if (id == null || def == null) return;
     final s = _snapshot(def);
@@ -274,7 +257,7 @@ class IosOverlayController implements TrainerOverlayController {
   /// Wire the MethodCallHandler that receives action forwards from the Live
   /// Activity buttons (via `AppDelegate.swift`'s Darwin notification observer).
   /// One-shot for the lifetime of the controller; the handler no-ops while
-  /// `_def` is null (overlay hidden).
+  /// no definition is bound (overlay hidden).
   void _installActionHandler() {
     if (_actionHandlerInstalled) return;
     _actionHandlerInstalled = true;
@@ -290,10 +273,9 @@ class IosOverlayController implements TrainerOverlayController {
         return null;
       }
 
-      // Re-resolve the live FitnessBikeDefinition each call — see comment
-      // on LiveDefinitionLookup; the trainer emulator rebinds a fresh def
-      // on every transport restart.
-      final live = _liveDef?.call() ?? _def;
+      // The binding follows the trainer onto the definition each reconnect
+      // builds, so this is never a stale one.
+      final live = _binding.current;
       if (live == null) return null;
       switch (action) {
         case 'primaryDecrement':

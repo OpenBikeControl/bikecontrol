@@ -36,6 +36,9 @@ class _FakeLiveActivities extends LiveActivities {
 
   int creates = 0;
   int updates = 0;
+
+  /// What the activity on screen shows right now.
+  Map<String, dynamic>? shown;
   final List<String> ended = [];
   int endAllCalls = 0;
   bool hideNextQuery = false;
@@ -78,12 +81,14 @@ class _FakeLiveActivities extends LiveActivities {
       throw PlatformException(
         code: 'LIVE_ACTIVITY_ERROR',
         message: "can't launch live activity",
-        details: "The operation couldn't be completed. "
+        details:
+            "The operation couldn't be completed. "
             'Maximum number of activities for target already exists',
       );
     }
     final id = 'activity-${_nextId++}';
     live[id] = LiveActivityState.active;
+    shown = data;
     return id;
   }
 
@@ -100,6 +105,7 @@ class _FakeLiveActivities extends LiveActivities {
     }
     updates++;
     live[activityId] = LiveActivityState.active;
+    shown = data;
   }
 
   @override
@@ -305,6 +311,80 @@ void main() {
       await showOn(controller);
       expect(la.creates, 2);
       expect(la.live, hasLength(1));
+    });
+  });
+
+  // Every trainer (re)connect builds a fresh FitnessBikeDefinition. A trainer
+  // that drops and reconnects at the start of a ride left the overlay showing
+  // the old, now silent definition: the rider kept shifting, the gear readout
+  // stayed frozen for the whole ride (support a1c3592b).
+  group('after the trainer reconnects', () {
+    // The Live Activity is updated at most every 500 ms.
+    Future<void> pastThrottle() => Future<void>.delayed(const Duration(milliseconds: 600));
+
+    test('the overlay shows the new definition\'s gear', () async {
+      final la = _FakeLiveActivities();
+      final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
+      final before = makeDefinition();
+      final live = ValueNotifier<FitnessBikeDefinition?>(before);
+
+      await controller.show(before, {OverlayField.power}, liveDef: live);
+
+      final after = makeDefinition();
+      live.value = after;
+      after.setTargetGear(before.currentGear.value + 3);
+      await pastThrottle();
+
+      expect(la.shown?['gear'], after.currentGear.value);
+    });
+
+    test('the overlay buttons shift the new definition', () async {
+      final la = _FakeLiveActivities();
+      final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
+      final before = makeDefinition();
+      final live = ValueNotifier<FitnessBikeDefinition?>(before);
+      await controller.show(before, {OverlayField.power}, liveDef: live);
+
+      final after = makeDefinition();
+      live.value = after;
+      final gear = after.currentGear.value;
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+        'bike_control/overlay_actions_ios',
+        const StandardMethodCodec().encodeMethodCall(const MethodCall('action', 'primaryIncrement')),
+        (_) {},
+      );
+
+      expect(after.currentGear.value, gear + 1);
+      expect(before.currentGear.value, gear);
+    });
+
+    test('a trainer that is gone keeps the last reading on screen', () async {
+      final la = _FakeLiveActivities();
+      final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
+      final before = makeDefinition()..setTargetGear(5);
+      final live = ValueNotifier<FitnessBikeDefinition?>(before);
+      await controller.show(before, {OverlayField.power}, liveDef: live);
+
+      live.value = null;
+      await pastThrottle();
+
+      expect(controller.isShowing.value, isTrue);
+      expect(la.shown?['gear'], 5);
+    });
+
+    test('hide stops following the trainer', () async {
+      final la = _FakeLiveActivities();
+      final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
+      final before = makeDefinition();
+      final live = ValueNotifier<FitnessBikeDefinition?>(before);
+      await controller.show(before, {OverlayField.power}, liveDef: live);
+      await controller.hide();
+      final updates = la.updates;
+
+      live.value = makeDefinition()..setTargetGear(7);
+      await pastThrottle();
+
+      expect(la.updates, updates);
     });
   });
 }
