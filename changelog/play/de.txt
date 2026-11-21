@@ -2,4 +2,3 @@
 Neu:
 • MyWhoosh über Bluetooth: BikeControl als Lenkgerät koppeln, um zu schalten und an Kreuzungen den Weg zu wählen
 • Sensoren: sehen, woher jeder Wert kommt, und Trainerwerte durch eigene Sensoren ersetzen
-• Einrichtung: die gewählte Trainer-App groß in der Mitte, „läuft auf“ direkt darunter

@@ -2,4 +2,3 @@
 Nowości:
 • MyWhoosh przez Bluetooth: sparuj BikeControl jako urządzenie do skrętu, by zmieniać biegi i wybierać drogę na skrzyżowaniach
 • Czujniki: zobacz, skąd pochodzi każda wartość, i zastąp wartości trenażera własnym czujnikiem
-• Konfiguracja: wybrana aplikacja na środku, a „działa na” tuż pod nią

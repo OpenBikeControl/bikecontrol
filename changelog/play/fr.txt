@@ -2,4 +2,3 @@
 Nouveautés :
 • MyWhoosh en Bluetooth : associe BikeControl comme appareil de direction pour changer de vitesse et choisir ta route aux intersections
 • Capteurs : vois d'où vient chaque valeur et remplace celles du home trainer par ton capteur
-• Configuration : ton app d'entraînement au centre, avec « tourne sur » juste en dessous
