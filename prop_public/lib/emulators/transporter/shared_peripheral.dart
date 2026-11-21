@@ -26,4 +26,22 @@ class SharedPeripheral {
   static Future<void> clearUnprotectedServices() async {}
 
   static String normalize(String uuid) => uuid.toLowerCase();
+
+  static void setAdvertisedServices(
+    String role,
+    Iterable<String> serviceUuids, {
+    Future<void> Function()? readvertise,
+  }) {}
+
+  static void removeAdvertisedServices(String role) {}
+
+  static bool othersAdvertise(String role) => false;
+
+  static List<String> advertisedServices(String role, Iterable<String> own) => own.toList();
+
+  static int advertisedServicesCost(List<String> services) => 0;
+
+  static List<String> fitPacket(List<String> services) => services;
+
+  static Future<void> readvertiseOthers(String role) async {}
 }
