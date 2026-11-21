@@ -1034,37 +1034,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             // column puts it under the pods (see [ControllerButtonsCard]).
             showButtonList: twoColumns || constraints.maxWidth >= Breakpoints.compact,
           );
+          // Without a trainer card the left column is the banner and a line at
+          // most — your buttons move up under it instead of leaving the left
+          // side empty; the rides stay on the right.
+          final buttonsLeft = twoColumns && buttons != null && !_vsSlotIsCard(inputs);
           // Ride's second column: your buttons, then the ride being recorded
           // or the last one.
           final rideColumn = <Widget>[
-            ?buttons,
+            if (!buttonsLeft) ?buttons,
             // While a ride records: where the record card was;
             // the finished ride's card takes its place.
-            const RideRecordingSlot(key: ValueKey('ride-recording-slot'), textActions: true, spacing: 20),
-            if (widget.activityPreview case final preview?) ...[if (buttons != null) const Gap(20), preview],
+            RideRecordingSlot(
+              key: const ValueKey('ride-recording-slot'),
+              textActions: true,
+              spacing: buttonsLeft ? 0 : 20,
+            ),
+            if (widget.activityPreview case final preview?) ...[
+              if (buttons != null && !buttonsLeft) const Gap(20) else const _GapWhenRecording(),
+              preview,
+            ],
           ];
-          // Without a trainer card the left column is the banner and a line at
-          // most — the buttons and rides move up under it instead of leaving
-          // the left side empty.
-          if (twoColumns && !_vsSlotIsCard(inputs)) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ...status,
-                      if (vs != null) ...[vs, const Gap(20)],
-                      ...rideColumn,
-                    ],
-                  ),
-                ),
-                const Gap(20),
-                const Expanded(child: SizedBox.shrink()),
-              ],
-            );
-          }
           if (twoColumns) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1075,6 +1064,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     children: [
                       ...status,
                       ?vs,
+                      if (buttonsLeft) ...[if (vs != null) const Gap(20), buttons],
                     ],
                   ),
                 ),
