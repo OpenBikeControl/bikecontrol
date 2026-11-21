@@ -1,7 +1,7 @@
 // Step 1: picking an app folds the grid into one enlarged tile with a way back
 // ("Change app") and the "runs on" choice right under it.
 import 'package:bike_control/main.dart' show debugAnimatesInScreenshotMode;
-import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile, onboardingAppBody;
+import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile, TrainerAppGrid, onboardingAppBody;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_viewport.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
@@ -96,9 +96,13 @@ Future<void> main() async {
         final tileRect = tester.getRect(tile<MyWhoosh>());
         await tester.tap(tile<MyWhoosh>());
         await tester.pump();
+        // The very frame that swaps the grid out already shows the tile and the
+        // fading grid — no blank frame for the grid to flash back from.
+        expect(flight, findsOneWidget, reason: 'the tile is up from the first frame');
+        expect(find.byType(TrainerAppGrid), findsOneWidget, reason: 'the grid fades out, it does not blink');
         await tester.pump();
         firstFrame = tester.getRect(spotlight);
-        await tester.pump(const Duration(milliseconds: 200));
+        await tester.pump(const Duration(milliseconds: 140));
         expect(flight, findsOneWidget, reason: 'the tile is in flight');
         midFlight = tester.getRect(flight);
         expect(midFlight!.width, greaterThan(tileRect.width), reason: 'it grows on the way');

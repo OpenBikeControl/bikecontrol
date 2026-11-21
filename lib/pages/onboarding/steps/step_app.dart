@@ -409,7 +409,7 @@ class _AppStepBodyState extends State<_AppStepBody> with SingleTickerProviderSta
   late final AnimationController _flight = AnimationController(vsync: this, duration: _flightDuration);
   OverlayEntry? _flightEntry;
 
-  static const _flightDuration = Duration(milliseconds: 520);
+  static const _flightDuration = Duration(milliseconds: 364);
 
   bool get _showSpotlight => _spotlight && widget.selected != null;
   bool get _still => screenshotMotionPinned || prefersReducedMotion(context);
@@ -464,70 +464,83 @@ class _AppStepBodyState extends State<_AppStepBody> with SingleTickerProviderSta
     // The visible part of the step: the flight and the fading grid stay
     // inside it instead of drawing over the header and footer.
     final clip = _globalRect(Scrollable.maybeOf(context)?.context);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final target = to();
-      if (!mounted || overlay == null || target == null) {
-        if (mounted) onLanded();
-        return;
-      }
-      final overlayBox = overlay.context.findRenderObject() as RenderBox;
-      Rect local(Rect r) => overlayBox.globalToLocal(r.topLeft) & r.size;
-      _flightEntry?.remove();
-      final curve = CurvedAnimation(parent: _flight, curve: Curves.easeInOutCubic);
-      final entry = OverlayEntry(
-        builder: (context) {
-          final flight = AnimatedBuilder(
-            animation: curve,
-            builder: (context, _) {
-              final t = curve.value;
-              final rect = Rect.lerp(local(from), local(target), t)!;
-              return Stack(
-                children: [
-                  if (fading != null && fadingRect != null)
-                    _positionedAt(
-                      local(fadingRect),
-                      child: Opacity(opacity: (1 - _flight.value * 3).clamp(0.0, 1.0), child: fading),
-                    ),
+    final overlayBox = overlay?.context.findRenderObject();
+    if (overlay == null || overlayBox is! RenderBox) {
+      onLanded();
+      return;
+    }
+    Rect local(Rect r) => overlayBox.globalToLocal(r.topLeft) & r.size;
+    // The landing spot only exists once the new layout is built; until then
+    // the tile waits where it was tapped.
+    Rect? target;
+    _flightEntry?.remove();
+    _flight.stop();
+    _flight.value = 0;
+    final curve = CurvedAnimation(parent: _flight, curve: Curves.easeInOutCubic);
+    final entry = OverlayEntry(
+      builder: (context) {
+        final flight = AnimatedBuilder(
+          animation: curve,
+          builder: (context, _) {
+            final t = curve.value;
+            final rect = target == null ? local(from) : Rect.lerp(local(from), local(target!), t)!;
+            return Stack(
+              children: [
+                if (fading != null && fadingRect != null)
                   _positionedAt(
-                    rect,
-                    child: _FlightCard(app: app, t: growing ? t : 1 - t),
+                    local(fadingRect),
+                    child: Opacity(opacity: (1 - _flight.value * 3).clamp(0.0, 1.0), child: fading),
                   ),
-                ],
-              );
-            },
-          );
-          return IgnorePointer(
-            child: clip == null
-                ? flight
-                : Stack(
-                    children: [
-                      _positionedAt(
-                        local(clip),
-                        child: ClipRect(
-                          child: OverflowBox(
-                            alignment: Alignment.topLeft,
-                            minWidth: overlayBox.size.width,
-                            maxWidth: overlayBox.size.width,
-                            minHeight: overlayBox.size.height,
-                            maxHeight: overlayBox.size.height,
-                            child: Transform.translate(offset: -local(clip).topLeft, child: flight),
-                          ),
+                _positionedAt(
+                  rect,
+                  child: _FlightCard(app: app, t: growing ? t : 1 - t),
+                ),
+              ],
+            );
+          },
+        );
+        return IgnorePointer(
+          child: clip == null
+              ? flight
+              : Stack(
+                  children: [
+                    _positionedAt(
+                      local(clip),
+                      child: ClipRect(
+                        child: OverflowBox(
+                          alignment: Alignment.topLeft,
+                          minWidth: overlayBox.size.width,
+                          maxWidth: overlayBox.size.width,
+                          minHeight: overlayBox.size.height,
+                          maxHeight: overlayBox.size.height,
+                          child: Transform.translate(offset: -local(clip).topLeft, child: flight),
                         ),
                       ),
-                    ],
-                  ),
-          );
-        },
-      );
-      _flightEntry = entry;
-      overlay.insert(entry);
-      _flight.forward(from: 0).whenCompleteOrCancel(() {
-        if (_flightEntry == entry) {
-          entry.remove();
-          _flightEntry = null;
-        }
-        if (mounted) onLanded();
-      });
+                    ),
+                  ],
+                ),
+        );
+      },
+    );
+    // In the overlay before the page rebuilds, so the frame that swaps the
+    // grid for the spotlight already shows the fading grid and the tile —
+    // no blank frame for the grid to flash back from.
+    _flightEntry = entry;
+    overlay.insert(entry);
+    void land() {
+      if (_flightEntry == entry) {
+        entry.remove();
+        _flightEntry = null;
+      }
+      if (mounted) onLanded();
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_flightEntry != entry) return;
+      target = mounted ? to() : null;
+      if (target == null) return land();
+      entry.markNeedsBuild();
+      _flight.forward(from: 0).whenCompleteOrCancel(land);
     });
   }
 
@@ -656,7 +669,7 @@ class _FadeIn extends StatelessWidget {
     if (still) return child;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 360),
+      duration: const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
       builder: (context, t, child) => Opacity(opacity: t, child: child),
       child: child,
@@ -823,7 +836,7 @@ class _SelectedAppSpotlight extends StatelessWidget {
     // Everything around the card arrives while the tile is still flying.
     Widget arriving(Duration delay, Widget child) => _entrance(
       delay: delay,
-      duration: const Duration(milliseconds: 420),
+      duration: const Duration(milliseconds: 295),
       curve: Curves.easeOutCubic,
       builder: (t, child) => Opacity(
         opacity: t,
@@ -849,8 +862,8 @@ class _SelectedAppSpotlight extends StatelessWidget {
                   right: 12,
                   // Pops once the tile has landed.
                   child: _entrance(
-                    delay: const Duration(milliseconds: 460),
-                    duration: const Duration(milliseconds: 360),
+                    delay: const Duration(milliseconds: 320),
+                    duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutBack,
                     builder: (t, child) => Transform.scale(scale: t, child: child),
                     child: Container(
@@ -868,7 +881,7 @@ class _SelectedAppSpotlight extends StatelessWidget {
         ),
         Gap(10),
         arriving(
-          const Duration(milliseconds: 200),
+          const Duration(milliseconds: 140),
           Center(
             child: Button.ghost(
               key: const ValueKey('onboarding-change-app'),
@@ -881,7 +894,7 @@ class _SelectedAppSpotlight extends StatelessWidget {
         if (hasChoice) ...[
           Gap(22),
           arriving(
-            const Duration(milliseconds: 280),
+            const Duration(milliseconds: 196),
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
