@@ -441,6 +441,10 @@ Future<void> main() async {
 
       expect(find.byType(VirtualShiftingCard), findsNothing);
       expect(find.text(l.rideVsInviteBody), findsOneWidget);
+      expect(
+        find.descendant(of: find.byKey(const ValueKey('ride-vs-invite')), matching: find.byType(TrainerGlyph)),
+        findsOneWidget,
+      );
     });
 
     // MyWhoosh shifts by itself; with its connection set up, inviting the
