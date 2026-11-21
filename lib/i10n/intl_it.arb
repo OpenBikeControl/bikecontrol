@@ -1721,6 +1721,7 @@
     }
   },
   "rideShiftWithBikeControl": "Cambia con BikeControl",
+  "rideVsHandledBody": "Con BikeControl: rapporti personalizzati, cambio anteriore, subito percepibile sui rulli.",
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Rullo smart",
   "chainAppTitle": "App di allenamento",

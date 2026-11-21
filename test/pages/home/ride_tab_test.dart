@@ -36,6 +36,7 @@ import 'dart:ui' show Tristate;
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart' show TrainerGlyph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -451,7 +452,13 @@ Future<void> main() async {
       await pumpRide(tester);
 
       expect(find.text(l.rideVsInviteBody), findsNothing);
-      expect(find.byKey(const ValueKey('ride-vs-handled')), findsOneWidget);
+      final handled = find.byKey(const ValueKey('ride-vs-handled'));
+      expect(handled, findsOneWidget);
+      // A card with the trainer's mark that names what BikeControl's own
+      // shifting offers instead.
+      expect(tester.widget(handled), isA<RidePromptCard>());
+      expect(find.descendant(of: handled, matching: find.byType(TrainerGlyph)), findsOneWidget);
+      expect(find.descendant(of: handled, matching: find.text(l.rideVsHandledBody)), findsOneWidget);
       // The way to BikeControl's own shifting says what it is, not "Connect".
       expect(
         find.descendant(

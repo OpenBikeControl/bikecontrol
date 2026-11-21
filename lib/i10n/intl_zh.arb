@@ -2000,6 +2000,7 @@
     }
   },
   "rideShiftWithBikeControl": "用 BikeControl 换挡",
+  "rideVsHandledBody": "使用 BikeControl：自定义档位、前拨换挡，骑行台上立即感受到。",
   "chainControllerTitle": "控制器",
   "chainTrainerTitle": "智能骑行台",
   "sensorsChainEyebrow": "传感器",

@@ -1330,14 +1330,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // A trainer app with its connection set up does its own shifting —
       // connected or not yet, an invitation to BikeControl's shifting would
       // only raise the question whether the rider needs it.
-      slot = RideStatusLine(
+      slot = RidePromptCard(
         key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
-        text: l.chainStatusHandledByApp(inputs.app.name!),
-        // What connecting a trainer would get you, not "Connect" with no
-        // object: BikeControl's own shifting instead of the app's.
-        actionLabel: l.rideShiftWithBikeControl,
-        onAction: () => _openTrainer(proxy, bridged: false),
+        glyph: const TrainerGlyph(),
+        title: l.chainStatusHandledByApp(inputs.app.name!),
+        // Names, in a few words, what BikeControl's own shifting offers
+        // instead of the app's.
+        body: l.rideVsHandledBody,
+        // A quiet link, not a button: the app's own shifting works fine.
+        // It says what connecting a trainer gets you, not "Connect".
+        secondaryLabel: l.rideShiftWithBikeControl,
+        onSecondary: () => _openTrainer(proxy, bridged: false),
       );
     } else {
       slot = RidePromptCard(

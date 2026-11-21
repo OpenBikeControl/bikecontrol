@@ -1978,6 +1978,7 @@
     }
   },
   "rideShiftWithBikeControl": "Shift with BikeControl",
+  "rideVsHandledBody": "With BikeControl: custom gears, front shifting, instantly felt on the trainer.",
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Smart Trainer",
   "sensorsChainEyebrow": "Sensors",

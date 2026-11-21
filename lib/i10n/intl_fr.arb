@@ -1721,6 +1721,7 @@
     }
   },
   "rideShiftWithBikeControl": "Changer avec BikeControl",
+  "rideVsHandledBody": "Avec BikeControl : vos propres vitesses, le plateau avant, ressenti immédiat sur le home trainer.",
   "chainControllerTitle": "Contrôleur",
   "chainTrainerTitle": "Home trainer connecté",
   "chainAppTitle": "Application d’entraînement",

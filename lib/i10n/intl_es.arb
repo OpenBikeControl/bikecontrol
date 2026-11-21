@@ -1721,6 +1721,7 @@
     }
   },
   "rideShiftWithBikeControl": "Cambiar con BikeControl",
+  "rideVsHandledBody": "Con BikeControl: marchas propias, cambio delantero y se nota al instante en el rodillo.",
   "chainControllerTitle": "Mando",
   "chainTrainerTitle": "Rodillo inteligente",
   "chainAppTitle": "App de entrenamiento",

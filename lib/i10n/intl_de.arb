@@ -1732,6 +1732,7 @@
     }
   },
   "rideShiftWithBikeControl": "Mit BikeControl schalten",
+  "rideVsHandledBody": "Mit BikeControl: eigene Gänge, vorne schalten, sofort spürbar am Trainer.",
   "chainControllerTitle": "Controller",
   "chainTrainerTitle": "Smart Trainer",
   "chainAppTitle": "Trainer-App",

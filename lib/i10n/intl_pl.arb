@@ -1721,6 +1721,7 @@
     }
   },
   "rideShiftWithBikeControl": "Zmieniaj z BikeControl",
+  "rideVsHandledBody": "Z BikeControl: własne przełożenia, przednia przerzutka, od razu czuć na trenażerze.",
   "chainControllerTitle": "Kontroler",
   "chainTrainerTitle": "Trenażer smart",
   "chainAppTitle": "Aplikacja treningowa",
