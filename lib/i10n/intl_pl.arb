@@ -3117,6 +3117,7 @@
   "onboardingGearTitle": "Połącz swój sprzęt",
   "onboardingGearSubtitle": "Naciśnij przycisk, a potem zakręć korbą, aby wybudzić trenażer.",
   "onboardingRunsOn": "{app} działa na",
+  "onboardingChangeApp": "Zmień aplikację",
   "onboardingTrainerWakeHint": "Zakręć raz korbą, aby go wybudzić.",
   "onboardingTrainerVsByBikeControl": "Wirtualna zmiana biegów przez BikeControl",
   "onboardingConnectTrainer": "Połącz {trainer}",

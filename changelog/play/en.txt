@@ -2,3 +2,4 @@
 New:
 • MyWhoosh over Bluetooth: pair BikeControl as a steering device to shift and choose your way at junctions
 • Sensors: see where each value comes from and replace trainer values with your own sensor
+• Setup: your chosen trainer app moves to the centre, with "runs on" right below

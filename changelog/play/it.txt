@@ -2,3 +2,4 @@
 Novità:
 • MyWhoosh via Bluetooth: abbina BikeControl come dispositivo di sterzo per cambiare e scegliere la strada agli incroci
 • Sensori: vedi da dove arriva ogni valore e sostituisci quelli del rullo con un tuo sensore
+• Configurazione: l'app di allenamento scelta al centro, con «gira su» subito sotto

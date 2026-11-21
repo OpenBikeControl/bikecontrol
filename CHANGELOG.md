@@ -3,6 +3,7 @@
 - (Base) MyWhoosh over Bluetooth: pair BikeControl in MyWhoosh as a steering device, then shift gears and choose your way at junctions (long press). If the network connection doesn't come up, BikeControl offers Bluetooth instead.
 - (Pro) Sensors: one list shows where power, heart rate, cadence and speed come from, your trainer included, and lets you replace any of them with your own sensor. Sending sensors to the trainer app only shows up when no trainer is connected, since the trainer already carries them.
 - (Pro) Control protocol: on Auto, the trainer page now shows which protocol Auto picked (e.g. "Auto: FTMS").
+- (Base) Setup: the trainer app you pick now moves to the centre, enlarged, with the "runs on" question right below it. "Change app" brings the full list back.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

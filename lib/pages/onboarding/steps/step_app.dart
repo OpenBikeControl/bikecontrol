@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:bike_control/main.dart' show screenshotMotionPinned;
+import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/utils/window_size.dart';
@@ -340,6 +342,10 @@ class TrainerAppGrid extends StatelessWidget {
 
 /// Step 1: which app, and — where there is a choice — whether it runs on this
 /// device or another one.
+///
+/// Picking an app folds the grid away: the chosen tile grows into the middle of
+/// the screen, with a "Change app" button to bring the grid back, and the "runs
+/// on" choice sits right under it — the one question left on this step.
 Widget onboardingAppBody(
   BuildContext context, {
   required SupportedApp? selected,
@@ -348,37 +354,324 @@ Widget onboardingAppBody(
   List<Target> targets = const [],
   Target? selectedTarget,
   ValueChanged<Target>? onSelectTarget,
-  Key? targetChoiceKey,
 }) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: onboardingReveal([
-      // Shown only when the welcome screen didn't already make the offer.
-      if (showUpdateBanner) const OnboardingUpdateBanner(),
-      OnboardingHeadline(context.i18n.onboardingAppTitle),
-      Gap(18),
-      TrainerAppGrid(selected: selected, onSelect: onSelect),
-      if (selected != null && targets.length > 1 && onSelectTarget != null) ...[
-        Gap(20),
-        OnboardingGroupLabel(context.i18n.onboardingRunsOn(selected.name)),
-        OnboardingTargetChoice(
-          key: targetChoiceKey,
-          targets: targets,
-          selected: selectedTarget,
-          onSelect: onSelectTarget,
-        ),
-      ],
-    ]),
+  return _AppStepBody(
+    selected: selected,
+    onSelect: onSelect,
+    showUpdateBanner: showUpdateBanner,
+    targets: targets,
+    selectedTarget: selectedTarget,
+    onSelectTarget: onSelectTarget,
   );
+}
+
+class _AppStepBody extends StatefulWidget {
+  const _AppStepBody({
+    required this.selected,
+    required this.onSelect,
+    required this.showUpdateBanner,
+    required this.targets,
+    required this.selectedTarget,
+    required this.onSelectTarget,
+  });
+
+  final SupportedApp? selected;
+  final ValueChanged<SupportedApp> onSelect;
+  final bool showUpdateBanner;
+  final List<Target> targets;
+  final Target? selectedTarget;
+  final ValueChanged<Target>? onSelectTarget;
+
+  @override
+  State<_AppStepBody> createState() => _AppStepBodyState();
+}
+
+class _AppStepBodyState extends State<_AppStepBody> {
+  /// Starts on the grid even when an app is already chosen (a re-run from the
+  /// menu): someone re-running setup most likely came to change it. Only a tap
+  /// in the grid folds it into the spotlight.
+  bool _spotlight = false;
+
+  static const _morph = Duration(milliseconds: 480);
+
+  bool get _showSpotlight => _spotlight && widget.selected != null;
+
+  void _select(SupportedApp app) {
+    widget.onSelect(app);
+    setState(() => _spotlight = true);
+    // The rider may have scrolled down to "Other trainer apps"; the spotlight
+    // is short and starts at the top.
+    final position = Scrollable.maybeOf(context)?.position;
+    if (position == null || position.pixels <= position.minScrollExtent) return;
+    if (prefersReducedMotion(context)) {
+      position.jumpTo(position.minScrollExtent);
+    } else {
+      position.animateTo(position.minScrollExtent, duration: _morph, curve: Curves.easeOutCubic);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = screenshotMotionPinned || prefersReducedMotion(context);
+    final selected = widget.selected;
+    final content = _showSpotlight
+        ? _SelectedAppSpotlight(
+            key: ValueKey('onboarding-app-spotlight-${selected!.name}'),
+            app: selected,
+            still: still,
+            onChange: () => setState(() => _spotlight = false),
+            targets: widget.targets,
+            selectedTarget: widget.selectedTarget,
+            onSelectTarget: widget.onSelectTarget,
+          )
+        : Column(
+            key: const ValueKey('onboarding-app-grid'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TrainerAppGrid(selected: selected, onSelect: _select),
+              // Back on the grid after "Change app": the choice stays reachable
+              // here too, so going back and forth never hides it.
+              if (selected != null && widget.targets.length > 1 && widget.onSelectTarget != null) ...[
+                Gap(20),
+                OnboardingGroupLabel(context.i18n.onboardingRunsOn(selected.name)),
+                OnboardingTargetChoice(
+                  targets: widget.targets,
+                  selected: widget.selectedTarget,
+                  onSelect: widget.onSelectTarget!,
+                ),
+              ],
+            ],
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: onboardingReveal([
+        // Shown only when the welcome screen didn't already make the offer.
+        if (widget.showUpdateBanner) const OnboardingUpdateBanner(),
+        OnboardingHeadline(context.i18n.onboardingAppTitle),
+        Gap(18),
+        if (still)
+          content
+        else
+          AnimatedSize(
+            duration: _morph,
+            curve: Curves.easeInOutCubic,
+            alignment: Alignment.topCenter,
+            child: AnimatedSwitcher(
+              duration: _morph,
+              reverseDuration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              // Old and new stacked from the top, so the grid fades out where
+              // it stood while the spotlight grows in over it.
+              layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.topCenter,
+                children: [...previous, ?current],
+              ),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: ScaleTransition(
+                  scale: Tween(begin: 0.96, end: 1.0).animate(animation),
+                  alignment: Alignment.topCenter,
+                  child: child,
+                ),
+              ),
+              child: content,
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+/// The chosen app, enlarged and centred, with a way back to the grid and the
+/// "runs on" choice under it.
+class _SelectedAppSpotlight extends StatelessWidget {
+  const _SelectedAppSpotlight({
+    super.key,
+    required this.app,
+    required this.still,
+    required this.onChange,
+    required this.targets,
+    required this.selectedTarget,
+    required this.onSelectTarget,
+  });
+
+  final SupportedApp app;
+  final bool still;
+  final VoidCallback onChange;
+  final List<Target> targets;
+  final Target? selectedTarget;
+  final ValueChanged<Target>? onSelectTarget;
+
+  /// Plays [builder] from 0 to 1 once, after [delay] — or sits at 1 when
+  /// motion is off.
+  Widget _entrance({
+    required Duration delay,
+    required Duration duration,
+    required Curve curve,
+    required Widget Function(double t, Widget child) builder,
+    required Widget child,
+  }) {
+    if (still) return builder(1, child);
+    final total = delay + duration;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: total,
+      curve: Interval(delay.inMilliseconds / total.inMilliseconds, 1, curve: curve),
+      builder: (context, t, child) => builder(t, child!),
+      child: child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = onboardingAccent(context);
+    final hasChoice = targets.length > 1 && onSelectTarget != null;
+
+    final logo = app.logoAsset != null
+        ? TrainerAppLogo(asset: app.logoAsset!, url: app.logoUrl, height: 72, fit: BoxFit.contain)
+        : Container(
+            width: 72,
+            height: 72,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), color: scheme.muted),
+            child: Text(app.name.substring(0, 1).toUpperCase(), style: context.typography.h3).muted,
+          );
+
+    final card = Container(
+      width: 240,
+      padding: const EdgeInsets.fromLTRB(20, 26, 20, 20),
+      decoration: BoxDecoration(
+        color: scheme.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: accent, width: 2),
+        boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.22), blurRadius: 32, offset: const Offset(0, 10))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 80,
+            child: Center(
+              child: _entrance(
+                delay: const Duration(milliseconds: 120),
+                duration: const Duration(milliseconds: 520),
+                curve: Curves.easeOutBack,
+                builder: (t, child) => Transform.scale(scale: 0.6 + 0.4 * t, child: child),
+                child: logo,
+              ),
+            ),
+          ),
+          Gap(14),
+          Text(
+            app.name,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: context.typography.large.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Gap(6),
+        Center(
+          child: _entrance(
+            delay: Duration.zero,
+            duration: const Duration(milliseconds: 560),
+            curve: Curves.easeOutBack,
+            builder: (t, child) => Transform.scale(scale: 0.82 + 0.18 * t, child: child),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                card,
+                if (app.officialIntegration) const Positioned(top: 10, left: 10, child: _OfficialBadge(size: 32)),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _entrance(
+                    delay: const Duration(milliseconds: 280),
+                    duration: const Duration(milliseconds: 380),
+                    curve: Curves.easeOutBack,
+                    builder: (t, child) => Transform.scale(scale: t, child: child),
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: accent),
+                      child: Icon(LucideIcons.check, size: 15, color: onboardingOnAccent(context)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Gap(10),
+        Center(
+          child: Button.ghost(
+            key: const ValueKey('onboarding-change-app'),
+            onPressed: onChange,
+            leading: const Icon(LucideIcons.arrowLeftRight, size: 15),
+            child: Text(context.i18n.onboardingChangeApp).small,
+          ),
+        ),
+        if (hasChoice) ...[
+          Gap(22),
+          _entrance(
+            delay: const Duration(milliseconds: 220),
+            duration: const Duration(milliseconds: 480),
+            curve: Curves.easeOutCubic,
+            builder: (t, child) => Opacity(
+              opacity: t,
+              child: Transform.translate(offset: Offset(0, 18 * (1 - t)), child: child),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  context.i18n.onboardingRunsOn(app.name),
+                  textAlign: TextAlign.center,
+                  style: context.typography.h4,
+                ),
+                Gap(14),
+                OnboardingTargetChoice(
+                  targets: targets,
+                  selected: selectedTarget,
+                  onSelect: onSelectTarget!,
+                  large: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 /// "This device | Other device" as one segmented control.
 class OnboardingTargetChoice extends StatelessWidget {
-  const OnboardingTargetChoice({super.key, required this.targets, required this.selected, required this.onSelect});
+  const OnboardingTargetChoice({
+    super.key,
+    required this.targets,
+    required this.selected,
+    required this.onSelect,
+    this.large = false,
+  });
 
   final List<Target> targets;
   final Target? selected;
   final ValueChanged<Target> onSelect;
+
+  /// The spotlight's version: taller segments and bigger icons, as the one
+  /// question left on the step.
+  final bool large;
 
   @override
   Widget build(BuildContext context) {
@@ -396,7 +689,7 @@ class OnboardingTargetChoice extends StatelessWidget {
                 onPressed: () => onSelect(t),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  padding: EdgeInsets.symmetric(vertical: large ? 18 : 12, horizontal: 8),
                   decoration: BoxDecoration(
                     color: t == selected ? onboardingAccent(context) : null,
                     borderRadius: BorderRadius.circular(10),
@@ -404,14 +697,18 @@ class OnboardingTargetChoice extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(t.icon, size: 17, color: t == selected ? onboardingOnAccent(context) : cs.mutedForeground),
+                      Icon(
+                        t.icon,
+                        size: large ? 22 : 17,
+                        color: t == selected ? onboardingOnAccent(context) : cs.mutedForeground,
+                      ),
                       Gap(8),
                       Flexible(
                         child: Text(
                           t.getTitle(context),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: context.typography.small.copyWith(
+                          style: (large ? context.typography.base : context.typography.small).copyWith(
                             fontWeight: FontWeight.w600,
                             color: t == selected ? onboardingOnAccent(context) : cs.foreground,
                           ),

@@ -3,6 +3,7 @@
 - (Base) MyWhoosh por Bluetooth: empareja BikeControl en MyWhoosh como dispositivo de dirección; luego cambia de marcha y elige tu camino en los cruces (pulsación larga). Si la conexión por red no funciona, BikeControl te ofrece Bluetooth en su lugar.
 - (Pro) Sensores: una lista muestra de dónde vienen la potencia, el pulso, la cadencia y la velocidad, rodillo incluido, y te deja sustituir cualquiera por tu propio sensor. «Enviar a la app de entrenamiento» solo aparece sin rodillo conectado, ya que el rodillo ya los transmite.
 - (Pro) Protocolo de control: en Auto, la página del rodillo muestra qué protocolo eligió Auto (p. ej. «Auto: FTMS»).
+- (Base) Configuración: la app de entrenamiento que eliges pasa al centro, ampliada, con la pregunta «se ejecuta en» justo debajo. «Cambiar app» vuelve a mostrar la lista completa.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

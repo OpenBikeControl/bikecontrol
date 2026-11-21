@@ -573,9 +573,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   OnboardingStep _step = OnboardingStep.app;
   SupportedApp? _selectedApp;
   Target? _selectedTarget;
-  // Once an app is picked the step scrolls to the end, where the "runs on"
-  // choice under the grid is easy to miss below the fold.
-  final _targetChoiceKey = GlobalKey();
 
   ControllerPhase _controllerPhase = ControllerPhase.permission;
   // Set once the permission sheet has been shown, so a declined notification
@@ -1010,23 +1007,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _onSelectApp(SupportedApp app) {
     setState(() => _selectedApp = app);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // All the way down, not just far enough to show the choice: the bottom
-      // fade would otherwise still sit on top of it.
-      final target = _targetChoiceKey.currentContext;
-      if (target == null || !target.mounted) return;
-      final position = Scrollable.maybeOf(target)?.position;
-      if (position == null) return;
-      if (prefersReducedMotion(context)) {
-        position.jumpTo(position.maxScrollExtent);
-      } else {
-        position.animateTo(
-          position.maxScrollExtent,
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
   }
 
   Widget _body(BuildContext context) => switch (_step) {
@@ -1039,7 +1019,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
       targets: _targetChoices,
       selectedTarget: _effectiveTarget,
       onSelectTarget: (t) => setState(() => _selectedTarget = t),
-      targetChoiceKey: _targetChoiceKey,
     ),
     OnboardingStep.gear => _controllerPhase == ControllerPhase.permission
         ? onboardingControllerBody(

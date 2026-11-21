@@ -3604,6 +3604,8 @@
   "@onboardingGearSubtitle": {"description": "Subtitle under the onboarding controller & trainer headline."},
   "onboardingRunsOn": "{app} runs on",
   "@onboardingRunsOn": {"description": "Label above the choice of where the trainer app runs (this device / another device).", "placeholders": {"app": {"type": "String"}}},
+  "onboardingChangeApp": "Change app",
+  "@onboardingChangeApp": {"description": "Onboarding step 1: button under the enlarged selected trainer app tile that brings the full app grid back."},
   "onboardingTrainerWakeHint": "Pedal once to wake it up.",
   "@onboardingTrainerWakeHint": {"description": "Shown under \"Looking for Smart Trainers…\" while the onboarding scans for a trainer."},
   "onboardingTrainerVsByBikeControl": "Virtual shifting by BikeControl",

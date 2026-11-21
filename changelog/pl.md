@@ -3,6 +3,7 @@
 - (Base) MyWhoosh przez Bluetooth: sparuj BikeControl w MyWhoosh jako urządzenie do skrętu, a potem zmieniaj biegi i wybieraj drogę na skrzyżowaniach (długie naciśnięcie). Jeśli połączenie przez sieć nie działa, BikeControl proponuje zamiast tego Bluetooth.
 - (Pro) Czujniki: jedna lista pokazuje, skąd pochodzą moc, tętno, kadencja i prędkość – łącznie z trenażerem – i pozwala zastąpić każdą z nich własnym czujnikiem. „Wysyłaj do aplikacji treningowej” pojawia się tylko bez połączonego trenażera, bo trenażer już je przekazuje.
 - (Pro) Protokół sterowania: w trybie Auto strona trenażera pokazuje, który protokół został wybrany (np. „Auto: FTMS”).
+- (Base) Konfiguracja: wybrana aplikacja treningowa przesuwa się powiększona na środek, a pytanie „działa na” jest tuż pod nią. „Zmień aplikację” przywraca pełną listę.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

@@ -3117,6 +3117,7 @@
   "onboardingGearTitle": "Collega i tuoi dispositivi",
   "onboardingGearSubtitle": "Premi un pulsante, poi pedala per svegliare il rullo.",
   "onboardingRunsOn": "{app} gira su",
+  "onboardingChangeApp": "Cambia app",
   "onboardingTrainerWakeHint": "Pedala una volta per svegliarlo.",
   "onboardingTrainerVsByBikeControl": "Cambio virtuale di BikeControl",
   "onboardingConnectTrainer": "Connetti {trainer}",
