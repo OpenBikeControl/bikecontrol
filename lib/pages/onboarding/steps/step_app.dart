@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:bike_control/main.dart' show screenshotMotionPinned;
@@ -7,6 +8,7 @@ import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_viewport.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_update_banner.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_group_label.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
@@ -392,15 +394,39 @@ class _AppStepBodyState extends State<_AppStepBody> {
   /// in the grid folds it into the spotlight.
   bool _spotlight = false;
 
+  /// Whether the content sits centred in the space under the headline. Stays
+  /// on for the length of the morph after "Change app", so the growing grid
+  /// glides up from the middle instead of jumping to the top first.
+  bool _centered = false;
+  Timer? _uncenter;
+
   static const _morph = Duration(milliseconds: 480);
+
+  @override
+  void dispose() {
+    _uncenter?.cancel();
+    super.dispose();
+  }
+
+  void _change() {
+    setState(() => _spotlight = false);
+    _uncenter?.cancel();
+    _uncenter = Timer(_morph, () {
+      if (mounted && !_spotlight) setState(() => _centered = false);
+    });
+  }
 
   bool get _showSpotlight => _spotlight && widget.selected != null;
 
   void _select(SupportedApp app) {
     widget.onSelect(app);
-    setState(() => _spotlight = true);
+    _uncenter?.cancel();
+    setState(() {
+      _spotlight = true;
+      _centered = true;
+    });
     // The rider may have scrolled down to "Other trainer apps"; the spotlight
-    // is short and starts at the top.
+    // is short and sits in the first screen.
     final position = Scrollable.maybeOf(context)?.position;
     if (position == null || position.pixels <= position.minScrollExtent) return;
     if (prefersReducedMotion(context)) {
@@ -419,7 +445,7 @@ class _AppStepBodyState extends State<_AppStepBody> {
             key: ValueKey('onboarding-app-spotlight-${selected!.name}'),
             app: selected,
             still: still,
-            onChange: () => setState(() => _spotlight = false),
+            onChange: _change,
             targets: widget.targets,
             selectedTarget: widget.selectedTarget,
             onSelectTarget: widget.onSelectTarget,
@@ -443,43 +469,62 @@ class _AppStepBodyState extends State<_AppStepBody> {
             ],
           );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: onboardingReveal([
-        // Shown only when the welcome screen didn't already make the offer.
-        if (widget.showUpdateBanner) const OnboardingUpdateBanner(),
-        OnboardingHeadline(context.i18n.onboardingAppTitle),
-        Gap(18),
-        if (still)
-          content
-        else
-          AnimatedSize(
+    final revealed = onboardingReveal([
+      // Shown only when the welcome screen didn't already make the offer.
+      if (widget.showUpdateBanner) const OnboardingUpdateBanner(),
+      OnboardingHeadline(context.i18n.onboardingAppTitle),
+      Gap(18),
+      if (still)
+        content
+      else
+        AnimatedSize(
+          duration: _morph,
+          curve: Curves.easeInOutCubic,
+          alignment: Alignment.topCenter,
+          child: AnimatedSwitcher(
             duration: _morph,
-            curve: Curves.easeInOutCubic,
-            alignment: Alignment.topCenter,
-            child: AnimatedSwitcher(
-              duration: _morph,
-              reverseDuration: const Duration(milliseconds: 220),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              // Old and new stacked from the top, so the grid fades out where
-              // it stood while the spotlight grows in over it.
-              layoutBuilder: (current, previous) => Stack(
-                alignment: Alignment.topCenter,
-                children: [...previous, ?current],
-              ),
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(
-                  scale: Tween(begin: 0.96, end: 1.0).animate(animation),
-                  alignment: Alignment.topCenter,
-                  child: child,
-                ),
-              ),
-              child: content,
+            reverseDuration: const Duration(milliseconds: 220),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            // Old and new stacked from the top, so the grid fades out where
+            // it stood while the spotlight grows in over it.
+            layoutBuilder: (current, previous) => Stack(
+              alignment: Alignment.topCenter,
+              children: [...previous, ?current],
             ),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: Tween(begin: 0.96, end: 1.0).animate(animation),
+                alignment: Alignment.topCenter,
+                child: child,
+              ),
+            ),
+            child: content,
           ),
-      ]),
+        ),
+    ]);
+
+    // Centred in what is left of the screen under the headline: the space
+    // above and below the content splits evenly (spaceBetween over header,
+    // content and an empty end). Content taller than the screen just stacks.
+    final viewport = OnboardingViewport.bodyHeightOf(context);
+    final centered = _centered && widget.selected != null && viewport != null;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: centered ? viewport : 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: revealed.sublist(0, revealed.length - 1),
+          ),
+          revealed.last,
+          const SizedBox.shrink(),
+        ],
+      ),
     );
   }
 }

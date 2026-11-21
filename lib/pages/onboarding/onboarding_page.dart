@@ -15,6 +15,7 @@ import 'package:prop/prop.dart' show LogLevel;
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_viewport.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -394,7 +395,12 @@ class _OnboardingScrollAreaState extends State<OnboardingScrollArea> {
                   colors: [const Color(0xFFFFFFFF), _fade ? const Color(0x00FFFFFF) : const Color(0xFFFFFFFF)],
                   stops: [0.0, 1.0],
                 ).createShader(Rect.fromLTRB(0, rect.height - 32, rect.width, rect.height)),
-                child: SingleChildScrollView(controller: _controller, padding: widget.padding, child: widget.child),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => OnboardingViewport(
+                    bodyHeight: (constraints.maxHeight - widget.padding.vertical).clamp(0, double.infinity),
+                    child: SingleChildScrollView(controller: _controller, padding: widget.padding, child: widget.child),
+                  ),
+                ),
               ),
             ),
           ),
