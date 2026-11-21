@@ -14,12 +14,15 @@ import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../widget_snapshot.dart';
 
 Future<void> main() async {
   await ensureSnapshotHarness();
+  // Real font metrics: the fallback font's wide boxes would wrap any label.
+  setUpAll(loadAppFonts);
 
   Future<AppLocalizations> pump(
     WidgetTester tester,
@@ -74,7 +77,9 @@ Future<void> main() async {
     expect(find.text(l.onboardingStepOf('2', '3')), findsOneWidget);
     expect(find.text('${l.onboardingStepGear} · ${l.onboardingStepGearSub}'), findsNothing);
     expect(
-      find.bySemanticsLabel(RegExp('${RegExp.escape(l.onboardingStepOf('2', '3'))}.*${RegExp.escape(l.onboardingStepGear)}')),
+      find.bySemanticsLabel(
+        RegExp('${RegExp.escape(l.onboardingStepOf('2', '3'))}.*${RegExp.escape(l.onboardingStepGear)}'),
+      ),
       findsOneWidget,
       reason: 'the step count tells a screen reader which step this is',
     );
@@ -142,8 +147,37 @@ Future<void> main() async {
     expect(find.text(l.onboardingHelpAndSupport), findsOneWidget);
   });
 
-  testWidgets('wide: Back, the ghost action and the pill share one text line in the footer', (tester) async {
+  testWidgets('wide: a long secondary action wraps beside the pill instead of dropping under it', (tester) async {
+    const long = 'TrainingPeaks Virtual das Virtual Shifting überlassen';
     final l = await pump(
+      tester,
+      (c) => onboardingShell(
+        c,
+        step: OnboardingStep.gear,
+        body: const OnboardingHeadline('Your controller is ready'),
+        footerActions: [
+          PrimaryButton(onPressed: () {}, child: const Text('2 Trainer gefunden')),
+          GhostButton(onPressed: () {}, child: const Text(long)),
+        ],
+        onBack: () {},
+        onHelp: () {},
+        onSelectStep: (_) {},
+      ),
+      width: 1000,
+    );
+    expect(tester.takeException(), isNull);
+    final back = tester.getCenter(find.text(l.onboardingBack));
+    final ghost = tester.getRect(find.text(long));
+    final pill = tester.getRect(find.text('2 Trainer gefunden'));
+    expect(back.dy, closeTo(pill.center.dy, 1), reason: 'Back on the pill\'s line');
+    expect(ghost.center.dy, closeTo(pill.center.dy, 1), reason: 'beside the pill, not under it');
+    expect(ghost.right, lessThan(pill.left));
+    final paragraph = tester.renderObject<RenderParagraph>(find.text(long));
+    expect(paragraph.didExceedMaxLines, isFalse, reason: 'two lines hold it');
+  });
+
+  testWidgets('wide: a short secondary action and the pill share one text line', (tester) async {
+    await pump(
       tester,
       (c) => onboardingShell(
         c,
@@ -159,11 +193,7 @@ Future<void> main() async {
       ),
       width: 1400,
     );
-    final back = tester.getCenter(find.text(l.onboardingBack));
-    final ghost = tester.getCenter(find.text('Skip'));
-    final pill = tester.getCenter(find.text('2 found'));
-    expect(back.dy, closeTo(pill.dy, 1));
-    expect(ghost.dy, closeTo(pill.dy, 1));
+    expect(tester.getCenter(find.text('Skip')).dy, closeTo(tester.getCenter(find.text('2 found')).dy, 1));
   });
 
   testWidgets('done: success tile, display headline, summary with status dots, trial card', (tester) async {
@@ -231,7 +261,10 @@ Future<void> main() async {
         alignment: Alignment.topRight,
         child: SizedBox(
           width: 120,
-          child: Align(alignment: AlignmentDirectional.centerEnd, child: BkStatusDot(label: label)),
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: BkStatusDot(label: label),
+          ),
         ),
       ),
     );

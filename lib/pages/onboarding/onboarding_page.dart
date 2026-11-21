@@ -273,12 +273,11 @@ Widget onboardingShell(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
                       child: _PillFooter(
-                        // On one text line: the pill is taller than Back and
-                        // the ghost actions, and the overflow bar's baseline
-                        // is its top row's once the actions stack.
+                        // One row, always: Back left, the primary action
+                        // rightmost, and a secondary action that doesn't fit
+                        // wraps onto a second line rather than dropping
+                        // under the pill.
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             if (onBack != null)
                               BkTouchTarget(
@@ -289,18 +288,22 @@ Widget onboardingShell(
                                 ),
                               ),
                             const Gap(10),
-                            // One row, the primary action rightmost — or, when
-                            // a translation doesn't fit, stacked with the
-                            // primary action on top, all flush right.
                             Expanded(
-                              child: OverflowBar(
-                                alignment: MainAxisAlignment.end,
-                                spacing: 10,
-                                overflowSpacing: 4,
-                                overflowAlignment: OverflowBarAlignment.end,
-                                overflowDirection: VerticalDirection.up,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  for (final action in footerActions.reversed) BkTouchTarget(child: action),
+                                  for (final action in footerActions.skip(1).toList().reversed) ...[
+                                    Flexible(
+                                      child: DefaultTextStyle.merge(
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        child: BkTouchTarget(child: action),
+                                      ),
+                                    ),
+                                    const Gap(10),
+                                  ],
+                                  if (footerActions.isNotEmpty) BkTouchTarget(child: footerActions.first),
                                 ],
                               ),
                             ),
