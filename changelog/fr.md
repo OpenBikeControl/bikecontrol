@@ -1,16 +1,22 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- (Base) MyWhoosh en Bluetooth : associe BikeControl dans MyWhoosh comme appareil de direction, puis change de vitesse et choisis ta route aux intersections (appui long). Si la connexion réseau ne marche pas, BikeControl te propose le Bluetooth à la place.
+- (Pro) Capteurs : une liste montre d'où viennent la puissance, la fréquence cardiaque, la cadence et la vitesse, home trainer compris, et te permet de remplacer chacune par ton propre capteur. « Envoyer à l'app d'entraînement » n'apparaît plus que sans home trainer connecté, puisque celui-ci les transmet déjà.
+- (Pro) Protocole de contrôle : en Auto, la page du home trainer indique le protocole choisi (p. ex. « Auto : FTMS »).
+
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain et Rampida sont désormais officiellement pris en charge via OpenBikeControl.
-- Les manettes CYCPLUS T7 fonctionnent comme manettes BikeControl : les huit boutons, avec la direction sur les flèches arrière par défaut.
-- Les applis OpenBikeControl voient maintenant ta vitesse virtuelle en direct.
-- Un éditeur de boutons plus clair : les actions sont regroupées selon ce qu'elles font (Vitesses, Home trainer, Séance, Rouler, …), et sur téléphone il s'ouvre en volet du bas.
-- Shimano Di2 : une troisième option de configuration – règle toi-même les canaux D-Fly dans E-TUBE, avec un guide pas à pas.
-- Zwift Click V2 : tu peux utiliser la manette droite sans la déverrouiller, si tu le souhaites.
+- (Base) Incyclist, Tour du Pain et Rampida sont désormais officiellement pris en charge via OpenBikeControl.
+- (Base) Les manettes CYCPLUS T7 fonctionnent comme manettes BikeControl : les huit boutons, avec la direction sur les flèches arrière par défaut.
+- (Pro) Les applis OpenBikeControl voient maintenant ta vitesse virtuelle en direct.
+- (Base) Un éditeur de boutons plus clair : les actions sont regroupées selon ce qu'elles font (Vitesses, Home trainer, Séance, Rouler, …), et sur téléphone il s'ouvre en volet du bas.
+- (Base) Shimano Di2 : une troisième option de configuration – règle toi-même les canaux D-Fly dans E-TUBE, avec un guide pas à pas.
+- (Base) Zwift Click V2 : tu peux utiliser la manette droite sans la déverrouiller, si tu le souhaites.
 - Plus de marge pour essayer : 120 appuis par jour pendant l'essai (avant 80), 40 par jour ensuite (avant 15) et, sans Pro, 30 minutes par jour de changement de vitesse virtuel BikeControl (avant 20).
 - Un essai plus clair : BikeControl te prévient (aussi par notification) quand il te reste 10 appuis pour aujourd'hui, et la carte d'essai indique ce que tu auras après l'essai. Si ton app d'entraînement gère elle-même les vitesses, « Rouler » ne propose plus le changement de vitesse virtuel de BikeControl, et le contrôle au clavier est indiqué comme optionnel à côté d'une connexion OpenBikeControl.
-- KICKR Headwind : le ventilateur peut suivre votre fréquence cardiaque (d'une ceinture connectée à BikeControl) ou votre puissance, et vous réglez où il démarre et où il atteint la pleine vitesse. La page affiche la valeur actuelle et la vitesse qui en découle.
-- Elite Rizer : l'inclinaison fonctionne maintenant avec n'importe quel home trainer connecté.
-- Tu organises maintenant toi-même les Commandes du home trainer (mode Companion) : déplace et redimensionne chaque bouton, ajoute ta vitesse, ta puissance, ta cadence et ton développement, et passe en plein écran. Le mode pédalage affiche un grand − et un grand + avec ta vitesse au milieu, et la carte de changement de vitesse virtuel de Rouler l'ouvre d'un geste. Ses − et + passent maintenant par le changement de vitesse virtuel de BikeControl, avec la vibration au changement.
+- (Base) KICKR Headwind : le ventilateur peut suivre votre fréquence cardiaque (d'une ceinture connectée à BikeControl) ou votre puissance, et vous réglez où il démarre et où il atteint la pleine vitesse. La page affiche la valeur actuelle et la vitesse qui en découle.
+- (Base) Elite Rizer : l'inclinaison fonctionne maintenant avec n'importe quel home trainer connecté.
+- (Pro) Les Commandes du home trainer (mode Companion) s'ouvrent maintenant en mode pédalage : un grand − et un grand + avec ta vitesse, ta puissance, ta cadence et ton développement au milieu, et tous les autres boutons en dessous. Avec Modifier, tu déplaces et redimensionnes les tuiles et ajoutes des boutons, des valeurs et le contrôle de la musique ; le plein écran est aussi là. Ses − et + passent maintenant par le changement de vitesse virtuel de BikeControl, avec la vibration au changement.
 
 **Fixes**:
 - Zwift : la Bombe Ride On part aussi sur un appui court (Zwift a besoin que le bouton reste appuyé un instant).

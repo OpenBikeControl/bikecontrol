@@ -42,8 +42,17 @@ void main() {
             w: 4,
             h: 3,
           ),
-          for (final (i, kind) in CompanionTileKind.values.where((k) => k != CompanionTileKind.action).indexed)
+          for (final (i, kind) in CompanionTileKind.values.where((k) => k.isRideData).indexed)
             CompanionTile(id: 'i$i', kind: kind, col: 4 + i % 2 * 4, row: i * 2, w: 4, h: 2),
+          const CompanionTile(
+            id: 'm',
+            kind: CompanionTileKind.music,
+            music: CompanionMusic.playPause,
+            col: 0,
+            row: 4,
+            w: 4,
+            h: 2,
+          ),
         ],
       );
       final back = CompanionLayout.tryParse(layout.toJsonString(), landscape: true);
@@ -65,37 +74,36 @@ void main() {
   });
 
   group('default layout', () {
-    test('portrait: − left and + right lead, steering under them, the rest an even grid', () {
-      final layout = CompanionLayout.standard(actions: actions, landscape: false, hasRideData: false);
+    test('ride mode first, every other button a scroll below it', () {
+      final layout = CompanionLayout.initial(actions: actions, landscape: false, hasRideData: false);
       final up = layout.tileFor(InGameAction.shiftUp)!;
       final down = layout.tileFor(InGameAction.shiftDown)!;
-      final left = layout.tileFor(InGameAction.steerLeft)!;
-      final tuck = layout.tileFor(InGameAction.tuck)!;
-      final uturn = layout.tileFor(InGameAction.uturn)!;
-      expect(down.col, lessThan(up.col));
       expect(up.row, 0);
-      expect(up.h, greaterThan(left.h));
-      expect(left.row, greaterThanOrEqualTo(up.row + up.h));
-      expect(tuck.row, greaterThanOrEqualTo(left.row + left.h));
-      expect(tuck.w, uturn.w);
-      expect(tuck.h, uturn.h);
-      expectNoOverlap(layout);
+      expect(up.w, layout.columns);
+      expect(down.row + down.h, layout.rows);
+      for (final action in actions.where((a) => a != InGameAction.shiftUp && a != InGameAction.shiftDown)) {
+        expect(layout.tileFor(action)!.row, greaterThanOrEqualTo(layout.rows), reason: '$action below one screen');
+      }
       expect(layout.tiles.where((t) => t.kind == CompanionTileKind.action).length, actions.length);
-    });
-
-    test('with ride data the gear leads above the buttons', () {
-      final layout = CompanionLayout.standard(actions: actions, landscape: false, hasRideData: true);
-      final card = layout.tiles.firstWhere((t) => t.kind == CompanionTileKind.rideCard);
-      expect(card.row, 0);
-      expect(layout.tileFor(InGameAction.shiftUp)!.row, greaterThanOrEqualTo(card.h));
       expectNoOverlap(layout);
     });
 
-    test('landscape fits more to a row', () {
-      final portrait = CompanionLayout.standard(actions: actions, landscape: false, hasRideData: false);
-      final landscape = CompanionLayout.standard(actions: actions, landscape: true, hasRideData: false);
-      expect(landscape.tileFor(InGameAction.tuck)!.w, lessThan(portrait.tileFor(InGameAction.tuck)!.w));
-      expectNoOverlap(landscape);
+    test('with ride data the readings sit between − and +', () {
+      final layout = CompanionLayout.initial(actions: actions, landscape: false, hasRideData: true);
+      final gear = layout.tiles.firstWhere((t) => t.kind == CompanionTileKind.gear);
+      expect(gear.row, greaterThan(layout.tileFor(InGameAction.shiftUp)!.row));
+      expect(gear.row, lessThan(layout.tileFor(InGameAction.shiftDown)!.row));
+      expectNoOverlap(layout);
+    });
+
+    test('a trainer app without − and + starts with its buttons from the top', () {
+      final layout = CompanionLayout.initial(
+        actions: const [InGameAction.tuck, InGameAction.uturn],
+        landscape: true,
+        hasRideData: false,
+      );
+      expect(layout.tiles, hasLength(2));
+      expect(layout.tileFor(InGameAction.tuck)!.row, 0);
     });
   });
 
@@ -174,10 +182,31 @@ void main() {
       ],
     );
 
-    test('a move onto another tile is refused, a free spot is taken', () {
-      expect(base.moved('a', col: 4, row: 0), isNull);
+    test('a move onto another tile pushes it down, a free spot is just taken', () {
+      final onto = base.moved('a', col: 4, row: 0)!;
+      expect(onto.tile('a')!.col, 4);
+      expect(onto.tile('a')!.row, 0);
+      expect(onto.tile('b')!.row, 3, reason: 'b goes just under a');
+      expectNoOverlap(onto);
       final moved = base.moved('a', col: 0, row: 5)!;
       expect(moved.tile('a')!.row, 5);
+      expect(moved.tile('b'), base.tile('b'));
+    });
+
+    test('a tile moved to the top pushes the tiles there down, in a chain', () {
+      final stack = CompanionLayout(
+        landscape: false,
+        tiles: const [
+          CompanionTile(id: 'x', kind: CompanionTileKind.power, col: 0, row: 0, w: 12, h: 2),
+          CompanionTile(id: 'y', kind: CompanionTileKind.cadence, col: 0, row: 2, w: 6, h: 2),
+          CompanionTile(id: 'z', kind: CompanionTileKind.action, action: InGameAction.tuck, col: 0, row: 8, w: 4, h: 2),
+        ],
+      );
+      final next = stack.moved('z', col: 0, row: 0)!;
+      expect(next.tile('z')!.row, 0);
+      expect(next.tile('x')!.row, 2);
+      expect(next.tile('y')!.row, 4);
+      expectNoOverlap(next);
     });
 
     test('a move is clamped to the grid', () {
@@ -188,11 +217,22 @@ void main() {
       expect(top.row, 0);
     });
 
+    test('a reading and a button both go down to one row', () {
+      final withGear = base.added(kind: CompanionTileKind.cadence);
+      final cadence = withGear.tiles.last;
+      final low = withGear.resized(cadence.id, w: 0, h: 0)!.tile(cadence.id)!;
+      expect(low.h, 1);
+      expect(low.w, CompanionLayout.minSpan);
+      expect(base.resized('a', w: 6, h: 1)!.tile('a')!.h, 1);
+    });
+
     test('resizing keeps a minimum size and stops at a neighbour', () {
       final small = base.resized('a', w: 0, h: 0)!;
       expect(small.tile('a')!.w, CompanionLayout.minSpan);
-      expect(small.tile('a')!.h, CompanionLayout.minSpan);
-      expect(base.resized('a', w: 8, h: 3), isNull, reason: 'would cover b');
+      expect(small.tile('a')!.h, 1);
+      final grown = base.resized('a', w: 8, h: 3)!;
+      expect(grown.tile('b')!.row, 3, reason: 'b is pushed under a');
+      expectNoOverlap(grown);
       expect(base.resized('a', w: 6, h: 6)!.tile('a')!.h, 6);
     });
 
@@ -212,6 +252,33 @@ void main() {
       expectNoOverlap(added);
       expect(added.tiles.last.row, greaterThanOrEqualTo(full.rows));
       expect(added.usedRows, greaterThan(full.rows));
+    });
+
+    test('compacting closes the gaps above every tile, keeping columns and sizes', () {
+      final spread = CompanionLayout(
+        landscape: false,
+        tiles: const [
+          CompanionTile(id: 'a', kind: CompanionTileKind.action, action: InGameAction.tuck, col: 0, row: 2, w: 4, h: 2),
+          CompanionTile(id: 'b', kind: CompanionTileKind.power, col: 4, row: 5, w: 4, h: 1),
+          CompanionTile(
+            id: 'c',
+            kind: CompanionTileKind.action,
+            action: InGameAction.uturn,
+            col: 0,
+            row: 9,
+            w: 6,
+            h: 2,
+          ),
+        ],
+      );
+      final tight = spread.compacted();
+      expect(tight.tile('a')!.row, 0);
+      expect(tight.tile('b')!.row, 0);
+      expect(tight.tile('c')!.row, 2, reason: 'stops under a, which shares its columns');
+      expect(tight.tile('c')!.col, 0);
+      expect(tight.tile('c')!.w, 6);
+      expectNoOverlap(tight);
+      expect(tight.tiles.map((t) => t.id), ['a', 'b', 'c']);
     });
 
     test('new ids never collide', () {

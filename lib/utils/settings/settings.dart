@@ -657,6 +657,14 @@ class Settings {
     await prefs.setBool('openbikeprotocol_ble_enabled', enabled);
   }
 
+  bool getBc2BleEnabled() {
+    return prefs.getBool('cycplus_bc2_ble_enabled') ?? false;
+  }
+
+  Future<void> setBc2BleEnabled(bool enabled) async {
+    await prefs.setBool('cycplus_bc2_ble_enabled', enabled);
+  }
+
   bool getZwiftBleEmulatorEnabled() {
     return prefs.getBool('zwift_emulator_enabled') ?? false;
   }

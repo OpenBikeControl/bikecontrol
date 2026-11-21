@@ -41,11 +41,11 @@ class ClickV2OnboardingCard extends StatelessWidget {
                 // The same 38x38 status badge every other device entry uses
                 // -- a 64x40 contour thumbnail read as broken scratchy
                 // outlines at this scale (that art is authored for a 180px
-                // hero). `LucideIcons.gamepad` mirrors BluetoothDevice's
+                // hero). `LucideIcons.gamepad2` mirrors BluetoothDevice's
                 // default `icon`, which neither ZwiftClickV2 nor its
                 // left/right side subclasses override, so this matches
                 // whatever glyph the real entry will show once connected.
-                const StatusIcon(status: false, icon: LucideIcons.gamepad, started: false),
+                const StatusIcon(status: false, icon: LucideIcons.gamepad2, started: false),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

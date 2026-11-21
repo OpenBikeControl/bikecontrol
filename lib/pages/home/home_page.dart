@@ -71,6 +71,7 @@ import 'package:bike_control/widgets/ui/connection_method.dart'
 import 'package:bike_control/widgets/devices/chain_link_row.dart';
 import 'package:bike_control/widgets/devices/trainer_metrics_strip.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
@@ -556,15 +557,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ...core.connection.controllerDevices,
     ...core.connection.offlineControllers,
   ];
-
-  /// Whether a controller remembered from an earlier ride is waiting to be
-  /// woken: none is connected, and none went away during this session.
-  bool get _hasSleepingController {
-    if (core.connection.controllerDevices.any((d) => d.isConnected)) return false;
-    final known = _knownControllers;
-    return core.connection.offlineControllers.isNotEmpty &&
-        !known.any((d) => core.connection.wasConnectedThisSession(d.uniqueId));
-  }
 
   BaseDevice? _controllerById(String? uniqueId) =>
       uniqueId == null ? null : _knownControllers.firstOrNullWhere((d) => d.uniqueId == uniqueId);
@@ -1112,6 +1104,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  /// The thing a banner step is about, as its card shows it: a controller's
+  /// silhouette, the trainer's tile, the trainer app's logo.
+  Widget? _bannerMark(ChainLink link) {
+    switch (link.key) {
+      case ChainLinkKey.controller:
+        final device = _controllerById(link.deviceId);
+        // None found yet ("Find your controller"): the app's controller glyph
+        // in its tile, as on every other screen — a bare ring read as a
+        // checkbox.
+        return device == null ? const BkIconTile(icon: LucideIcons.gamepad2) : ControllerMark(device: device);
+      case ChainLinkKey.trainer:
+        return const TrainerMark();
+      case ChainLinkKey.app:
+        final app = core.settings.getTrainerApp();
+        return app == null ? null : TrainerAppMark(name: app.name, logoAsset: app.logoAsset, logoUrl: app.logoUrl);
+      case ChainLinkKey.sensors:
+        return const BkIconTile(icon: LucideIcons.heartPulse);
+    }
+  }
+
   /// The banner's list while setup is incomplete: every required step still
   /// outstanding, card by card. The step each card can act on now carries
   /// that card's fix — the Devices row's action under the Devices row's
@@ -1142,6 +1154,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             step: step,
             actionLabel: actionable ? _fixLabel(link, inputs) : null,
             onFix: actionable ? () => _fix(link, inputs) : null,
+            mark: _bannerMark(link),
           ),
         );
       }
@@ -1276,6 +1289,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       slot = RidePromptCard(
         key: const ValueKey('ride-vs-lost'),
         icon: LucideIcons.bike,
+        glyph: const TrainerGlyph(),
         title: trainer.name,
         body: l.chainStatusLostConnection,
         bodyColor: BkStatusColors.of(context).danger,
@@ -1292,7 +1306,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
         text: l.chainStatusHandledByApp(inputs.app.name!),
-        actionLabel: l.connect,
+        // What connecting a trainer would get you, not "Connect" with no
+        // object: BikeControl's own shifting instead of the app's.
+        actionLabel: l.rideShiftWithBikeControl,
         onAction: () => _openTrainer(proxy, bridged: false),
       );
     } else {
@@ -1355,12 +1371,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
             linkLabel: context.i18n.rideVsSettingsLink,
             onPressed: () => _openVsSettings(proxy),
-            // Big − and + on this screen, full screen: for riders who shift
-            // from the phone on the bars.
-            trailingKey: const ValueKey('ride-vs-full-screen'),
-            trailingIcon: LucideIcons.maximize2,
-            trailingLabel: context.i18n.companionRideLine,
-            onTrailing: () => context.push(const ButtonSimulator(startFullScreen: true)),
           ),
         ),
         ?overlay,
@@ -1431,15 +1441,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // held back for its unlock-mode choice never connects until then — with
     // the warning that leads into it. Only one the scanner has found: a
     // remembered stand-in is not here to set up.
+    //
+    // Every other known controller stays too, faded, saying why it is away:
+    // a Click V2 that went to sleep vanished from the list, and the rider
+    // lost sight of which controller it was and what its buttons do.
     final present = _knownControllers
-        .where(
-          (d) =>
-              d.isConnected ||
-              reconnecting.contains(d.uniqueId) ||
-              (d.setupNeed != null && core.connection.devices.contains(d)),
-        )
+        .where((d) => d.setupNeed == null || d.isConnected || core.connection.devices.contains(d))
         .distinctBy((d) => d.uniqueId)
         .toList();
+    // Not here and not on its way: asleep if it hasn't been seen this
+    // session, else simply out of range — the Devices row's words.
+    String? awayLabel(BaseDevice d) {
+      if (d.isConnected || reconnecting.contains(d.uniqueId) || d.setupNeed != null) return null;
+      return core.connection.wasConnectedThisSession(d.uniqueId) ? l.chainStatusOutOfRange : l.chainStatusAsleep;
+    }
+
     // One that still needs its setup and has nothing to draw yet (a SRAM
     // derailleur before its guided setup has heard its paddles) would be a
     // card with a warning and nothing else — the banner already lists the
@@ -1454,6 +1470,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
     final keymap = core.actionHandler.supportedApp?.keymap;
     final single = shown.length == 1 ? shown.single : null;
+    // With no controller to press, the trainer app's buttons can be pressed
+    // from the screen instead — as the trainer page offers it.
+    final manualLabel = switch (core.settings.getTrainerApp()) {
+      final app? when app is! BikeControl => l.manualyControllingButton(shownTrainerAppName(app.name)),
+      _ => null,
+    };
     return Column(
       key: const ValueKey('ride-your-buttons'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1473,20 +1495,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // "no controller" prompt gives way to the first one the same way.
         BkAnimatedColumn(
           children: [
-            // A controller remembered from an earlier ride, not back yet and
-            // not lost in this session, is asleep: the card says how to wake
-            // it, and pairing a new one is the quieter option.
-            if (shown.isEmpty && _hasSleepingController)
-              RidePromptCard(
-                key: const ValueKey('ride-no-controller'),
-                icon: LucideIcons.gamepad2,
-                title: l.rideControllerAsleepTitle,
-                body: l.rideControllerAsleepBody,
-                actionLabel: l.rideControllerPairNew,
-                actionIsSecondary: true,
-                onAction: () => _openController(null),
-              )
-            else if (shown.isEmpty)
+            if (shown.isEmpty)
               RidePromptCard(
                 key: const ValueKey('ride-no-controller'),
                 icon: LucideIcons.gamepad2,
@@ -1494,13 +1503,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 body: l.rideNoControllerBody,
                 actionLabel: l.connect,
                 onAction: () => _openController(null),
-                // Or press the trainer app's buttons from here, as the
-                // trainer page offers it.
                 secondaryKey: const ValueKey('ride-manual-control'),
-                secondaryLabel: switch (core.settings.getTrainerApp()) {
-                  final app? when app is! BikeControl => l.manualyControllingButton(shownTrainerAppName(app.name)),
-                  _ => null,
-                },
+                secondaryLabel: manualLabel,
                 onSecondary: () => context.push(const ButtonSimulator()),
               ),
             for (final (i, device) in shown.indexed)
@@ -1516,11 +1520,38 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   onEdit: () => _openController(device),
                   showDeviceHeader: single == null,
                   // Held back for its setup is not on its way.
-                  connecting: !device.isConnected && device.setupNeed == null,
+                  connecting: reconnecting.contains(device.uniqueId) && !device.isConnected && device.setupNeed == null,
+                  awayLabel: awayLabel(device),
                   setupNeed: device.setupNeed,
                   onSetup: () => _openSetup(device),
                   wide: wide,
                   showButtonList: showButtonList,
+                ),
+              ),
+            // None of them here: what the asleep card offered — pairing a
+            // new one, and the on-screen buttons until one wakes — quietly
+            // under the cards that say they are asleep.
+            if (shown.isNotEmpty && shown.every((d) => awayLabel(d) != null))
+              Padding(
+                key: const ValueKey('ride-away-actions'),
+                padding: const EdgeInsets.only(top: 6),
+                child: Wrap(
+                  spacing: 4,
+                  children: [
+                    Button.ghost(
+                      key: const ValueKey('ride-pair-new-controller'),
+                      style: const ButtonStyle.ghost(size: ButtonSize.small),
+                      onPressed: () => _openController(null),
+                      child: Text(l.rideControllerPairNew),
+                    ),
+                    if (manualLabel != null)
+                      Button.ghost(
+                        key: const ValueKey('ride-manual-control'),
+                        style: const ButtonStyle.ghost(size: ButtonSize.small),
+                        onPressed: () => context.push(const ButtonSimulator()),
+                        child: Text(manualLabel),
+                      ),
+                  ],
                 ),
               ),
           ],
@@ -1604,8 +1635,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   /// The icon tile of a device row, faded while the device is not here.
-  Widget _tile(IconData icon, {required bool live}) =>
-      BkIconTile(icon: icon, color: live ? null : Theme.of(context).colorScheme.mutedForeground);
+  Widget _tile(IconData icon, {required bool live}) => BkIconTile(
+    icon: icon,
+    color: live ? null : Theme.of(context).colorScheme.mutedForeground,
+    size: deviceMarkSize,
+  );
 
   /// "Scanning · Wake it with a button press first." while a scan runs.
   Widget _connectControllersRow() {
@@ -1652,7 +1686,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       link: link,
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
-      leading: _tile(device.icon, live: connected),
+      leading: ControllerMark(device: device, live: connected, size: deviceMarkSize),
       title: link.title,
       subtitle: _controllerSubtitle(device),
       statusLabel: _controllerStatusLabel(link, device),
@@ -1664,18 +1698,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  /// "FW 1.2.0 · Signal good" for a connected Bluetooth controller; else what
-  /// it is.
-  String _controllerSubtitle(BaseDevice device) {
+  /// "FW 1.2.0 · Signal good" for a connected Bluetooth controller. Nothing
+  /// otherwise: "Controller" under a row in the Controller section, beside
+  /// its silhouette, told the rider nothing.
+  String? _controllerSubtitle(BaseDevice device) {
     final l = context.i18n;
-    if (device is! BluetoothDevice || !device.isConnected) return l.chainControllerTitle;
+    if (device is! BluetoothDevice || !device.isConnected) return null;
     final rssi = device.rssi;
     final parts = [
       if (device.firmwareVersion case final fw? when fw.isNotEmpty) 'FW $fw',
       // -70 dBm is where the device page stops calling the link "Good".
       if (rssi != null) rssi >= -70 ? l.devicesSignalGood : l.devicesSignalWeak,
     ];
-    return parts.isEmpty ? l.chainControllerTitle : parts.join(' · ');
+    return parts.isEmpty ? null : parts.join(' · ');
   }
 
   /// The battery under the status, red below 20 % (the device page's
@@ -1835,7 +1870,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // trainer entry up — the other half of its pairing screen.
           : appReady
           ? l.chainStatusWaitingForPickup(appName, proxy!.advertisementName)
-          : l.onboardingSummaryWaitingFor(appName);
+          // The same words as the trainer app's card: both wait on one thing.
+          : l.chainStatusWaitingForApp(appName);
     } else if (appReady && inputs.app.name != null) {
       // Only vouch for the app handling shifting when the app is actually
       // working — otherwise this row would excuse a broken link.
@@ -1870,7 +1906,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Nullable on purpose: the step wording falls back to "Trainer app"
       // itself, and the overlay step has a sentence of its own for that case.
       appName: inputs.app.name,
-      leading: _tile(LucideIcons.bike, live: link.status == LinkStatus.ready || bridged),
+      leading: TrainerMark(live: link.status == LinkStatus.ready || bridged, size: deviceMarkSize),
       title: link.title.isEmpty ? l.chainTrainerTitle : link.title,
       // How another app reaches the bridge. With BikeControl as the trainer
       // app nothing is handed to another app, so "WiFi" would mislead.
@@ -1900,6 +1936,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       instructionsLabel: offersOverlay ? l.chainStepOverlayAction : null,
       secondaryActionLabel: overlayAsksForAnswer ? l.chainStepOverlayDecline : null,
       onSecondaryAction: overlayAsksForAnswer ? _declineOverlay : null,
+      // Optional and behind another step, the overlay is still one tap away —
+      // worded as what it does, not as the problem it solves.
+      offerLabel: (step) => step.id == SetupStepId.trainerGearOverlay && inputs.app.name != null
+          ? l.chainStepOverlayOffer(inputs.app.name!)
+          : null,
+      onOffer: (step) async {
+        if (step.id != SetupStepId.trainerGearOverlay) return;
+        await _enableOverlay();
+        _update();
+      },
       // Paired and shifting: the live numbers, the gear among them.
       body: proxy != null && definition != null
           ? _LiveTrainerBody(
@@ -1911,10 +1957,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  /// How the trainer app reaches the bridged trainer.
+  /// How the trainer app reaches the bridged trainer — in the trainer app
+  /// card's words ("Network", not "WiFi"), since it is the same connection.
   String? _bridgeTransport(ProxyDevice proxy) => switch (proxy.retrofitMode.value) {
-    RetrofitMode.bluetooth => context.i18n.connectionBluetooth,
-    RetrofitMode.wifi => context.i18n.connectionWifi,
+    RetrofitMode.bluetooth => context.i18n.onboardingMethodBluetooth,
+    RetrofitMode.wifi => context.i18n.onboardingMethodNetwork,
     RetrofitMode.proxy => null,
   };
 
@@ -2033,7 +2080,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       highlight: _highlights.tickFor(link.id),
       appName: inputs.app.name,
       leading: app != null
-          ? TrainerAppMark(name: app.name, logoAsset: logo, logoUrl: app.logoUrl)
+          ? TrainerAppMark(name: app.name, logoAsset: logo, logoUrl: app.logoUrl, size: deviceMarkSize)
           : _tile(LucideIcons.monitor, live: false),
       title: link.title.isEmpty ? l.chainAppTitle : link.title,
       subtitle: app == null ? null : connectionMethodSummary(context),
@@ -2050,7 +2097,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Local control is optional and sits behind "Waiting for {app}" while
       // the app is away — it still gets its button, the same one it has when
       // it is the step in front.
-      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControlAction : null,
+      // The step's own wording is already the action ("Add keyboard and
+      // mouse actions"), so the line offers itself.
+      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControl : null,
       onOffer: (step) async {
         if (step.id != SetupStepId.appLocalControl) return;
         await enableLocalControl(context);

@@ -102,6 +102,21 @@ class AndroidActions extends BaseActions {
   }
 
   @override
+  Future<ActionResult> performMediaKey(PhysicalKeyboardKey key, {required ControllerButton button}) async {
+    final action = switch (key) {
+      PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
+      PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
+      PhysicalKeyboardKey.audioVolumeUp => MediaAction.volumeUp,
+      PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
+      _ => throw SingleLineException("No action for key: ${mediaKeyLabel(key)}"),
+    };
+    await accessibilityHandler.controlMedia(action);
+    // Increment command count after successful execution
+    await IAPManager.instance.incrementCommandCount();
+    return Success("Key pressed: ${mediaKeyLabel(key)}", button: button);
+  }
+
+  @override
   Future<ActionResult> performAction(
     ControllerButton button, {
     required bool isKeyDown,
@@ -131,19 +146,7 @@ class AndroidActions extends BaseActions {
     }
 
     if (keyPair.isSpecialKey) {
-      await accessibilityHandler.controlMedia(switch (keyPair.physicalKey) {
-        PhysicalKeyboardKey.mediaTrackNext => MediaAction.next,
-        PhysicalKeyboardKey.mediaPlayPause => MediaAction.playPause,
-        PhysicalKeyboardKey.audioVolumeUp => MediaAction.volumeUp,
-        PhysicalKeyboardKey.audioVolumeDown => MediaAction.volumeDown,
-        _ => throw SingleLineException("No action for key: ${keyPair.physicalKey}"),
-      });
-      // Increment command count after successful execution
-      await IAPManager.instance.incrementCommandCount();
-      return Success(
-        "Key pressed: ${keyPair.toString()}",
-        button: keyPair.buttons.firstOrNull,
-      );
+      return performMediaKey(keyPair.physicalKey!, button: keyPair.buttons.firstOrNull ?? button);
     }
 
     if (keyPair.androidAction == AndroidSystemAction.assistant) {

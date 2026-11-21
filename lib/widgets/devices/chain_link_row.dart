@@ -2,7 +2,7 @@ import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/home/ampel.dart';
 import 'package:bike_control/widgets/home/chain_card.dart'
-    show OptionalTag, chainCardFooterKey, chainCardHighlightKey, chainCardSubtitleKey;
+    show chainCardFooterKey, chainCardHighlightKey, chainCardSubtitleKey;
 import 'package:bike_control/widgets/home/chain_labels.dart';
 import 'package:bike_control/widgets/home/chain_highlight.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
@@ -10,9 +10,15 @@ import 'package:bike_control/widgets/ui/bk_status_dot.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart' show deviceMarkSize;
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+/// A text action's padding without its sides, so its words start where the
+/// line above starts rather than a button's inset further in — and half its
+/// height, so it sits in the checklist's rhythm rather than in a tall box.
+EdgeInsets _flushStart(EdgeInsets padding) => EdgeInsets.only(top: padding.top / 2, bottom: padding.bottom / 2);
 
 /// The status tone a link's state reads in.
 BkStatusTone chainStatusTone(LinkStatus status) => switch (status) {
@@ -23,7 +29,7 @@ BkStatusTone chainStatusTone(LinkStatus status) => switch (status) {
 };
 
 /// Where a link row's text starts: the row inset, the icon tile and the gap.
-const double chainRowTextInset = BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap;
+const double chainRowTextInset = BkGroupedSection.inset + deviceMarkSize + BkGroupedRow.gap;
 
 /// The chevron a row with somewhere to go ends its header with.
 const Key chainRowChevronKey = ValueKey('chain-row-chevron');
@@ -31,16 +37,19 @@ const Key chainRowChevronKey = ValueKey('chain-row-chevron');
 /// The active step's fix, at the end of the row's header.
 const Key chainRowStepActionKey = ValueKey('chain-row-step-action');
 
+/// An optional later step's line, when it is a button itself.
+Key chainRowOfferKey(SetupStepId id) => ValueKey('chain-row-offer-${id.name}');
+
 /// A later step's line under the row.
 Key chainRowLaterStepKey(SetupStepId id) => ValueKey('chain-row-later-step-${id.name}');
 
 /// One link of the setup chain as a row of a Devices group: the device's tile,
 /// its name and a detail line, and its status as a dot and words at the end.
 ///
-/// While the link still needs something, the status moves under the name and
-/// the next step's fix ("Show me how", "Enable overlay") takes its place at
-/// the end of the row; what to do sits under it, indented to the text, with
-/// the steps after it as a quiet checklist. Said once, in the row itself —
+/// While the link still needs something, the status moves under the name
+/// (with the transport after it, quieter); what to do sits under that,
+/// indented to the text, with the step's fix ("Show me how") below it and the
+/// steps after it as a quiet checklist. Said once, in the row itself —
 /// not repeated as the title of a box inside the card. Then any live readout
 /// ([body]) and an offer along the bottom ([footer]).
 class ChainLinkRow extends StatefulWidget {
@@ -194,40 +203,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
   Widget build(BuildContext context) {
     final link = widget.link;
     final pending = link.pendingSteps;
-    final content = LayoutBuilder(
-      builder: (context, constraints) {
-        _fixInHeader = _fixFitsHeader(context, constraints.maxWidth);
-        return _content(context, link, pending);
-      },
-    );
-    return _highlighted(context, content);
-  }
-
-  /// Whether the step in front's fix sits at the end of the header (true) or
-  /// under its hint. Beside the name only while it takes at most half of what
-  /// is left of the row: a long label ("Enable local control") squeezed the
-  /// name to a few letters and wrapped the status into a tall empty column.
-  bool _fixInHeader = true;
-
-  bool _fixFitsHeader(BuildContext context, double width) {
-    if (widget.onInstructions == null || widget.link.pendingSteps.isEmpty) return true;
-    final label = widget.instructionsLabel ?? context.i18n.chainShowMeHow;
-    final painter = TextPainter(
-      // The app's font, as the button draws it — not the painter's default.
-      text: TextSpan(
-        text: label,
-        style: DefaultTextStyle.of(context).style.merge(context.typography.small.copyWith(fontWeight: FontWeight.w500)),
-      ),
-      textDirection: TextDirection.ltr,
-      textScaler: MediaQuery.textScalerOf(context),
-      maxLines: 1,
-    )..layout();
-    // Label plus icon, gap, padding and border: a small outlined button is
-    // its label and about 30 px (measured: "Zeig mir wie" 98 → 127).
-    final button = painter.width + 30;
-    painter.dispose();
-    final text = width - chainRowTextInset - BkGroupedSection.inset;
-    return button <= text / 2;
+    return _highlighted(context, _content(context, link, pending));
   }
 
   Widget _content(BuildContext context, ChainLink link, List<SetupStep> pending) {
@@ -252,6 +228,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
               ),
             ),
           ),
+        // What to do right under the status it explains; the live numbers
+        // after it, not wedged between the two.
+        _checklistSection(context, link, pending),
         if (widget.body case final body?) ...[
           const BkGroupedDivider(indent: chainRowTextInset),
           Padding(
@@ -259,7 +238,6 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
             child: body,
           ),
         ],
-        _checklistSection(context, link, pending),
         if (widget.footer case final footer?)
           Column(
             key: chainCardFooterKey,
@@ -273,16 +251,19 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     );
   }
 
-  /// The step in front's fix as a quiet outlined button — at the end of the
-  /// header, or under the hint when it doesn't fit there.
+  /// The step in front's fix as a quiet outlined button under its hint. Never
+  /// beside the name: there it squeezed the status into a narrow column and
+  /// gave the card two places for its actions.
+  /// Small padding, body-size label: the default size made a box twice the
+  /// height of the line it answers.
   Widget _fixButton(BuildContext context, VoidCallback onPressed) => BkTouchTarget(
     child: Button.outline(
       key: chainRowStepActionKey,
       alignment: Alignment.center,
       style: const ButtonStyle.outline(size: ButtonSize.small),
       onPressed: onPressed,
-      leading: const Icon(LucideIcons.bookOpen, size: 13),
-      child: Text(widget.instructionsLabel ?? context.i18n.chainShowMeHow),
+      leading: const Icon(LucideIcons.bookOpen, size: 15),
+      child: Text(widget.instructionsLabel ?? context.i18n.chainShowMeHow, style: _buttonText(context)),
     ),
   );
 
@@ -298,7 +279,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
       builder: (context, child) {
         if (_checklist.isDismissed || steps.isEmpty) return const SizedBox(width: double.infinity);
         // At full size this lays the checklist out at exactly its own height.
-        return SizeTransition(sizeFactor: _checklistSize, alignment: Alignment.topCenter, child: child);
+        // Start-aligned: a hint narrower than the row (one short line on a
+        // wide window) sat centred under the name while this ran.
+        return SizeTransition(sizeFactor: _checklistSize, alignment: AlignmentDirectional.topStart, child: child);
       },
       child: steps.isEmpty ? const SizedBox.shrink() : _steps(context, link, steps),
     );
@@ -309,10 +292,15 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     final typography = context.typography;
     final first = chainStepText(context, steps.first, appName: widget.appName);
     final hint = first.hint;
-    // The status already says it ("Waiting for connection"): the step's own
-    // title would only repeat it.
-    final showTitle = first.label != _statusLabel(context, steps);
+    // The status already says it ("Waiting for MyWhoosh"): the step's own
+    // title ("Waiting for connection") would only repeat it in other words.
+    final showTitle = _stepTitleShown(context, steps);
+    // "Asleep – press a button to wake it" is the whole instruction: a hint
+    // saying "press a button to wake it" again, and a "Show me how" for
+    // pressing a button, only repeated it.
+    final statusSaysAll = _statusSaysAll(steps.first);
     final showSecondary = widget.onSecondaryAction != null && widget.secondaryActionLabel != null;
+    if (statusSaysAll && steps.length == 1 && !showSecondary) return const SizedBox(width: double.infinity);
     return Padding(
       padding: const EdgeInsets.fromLTRB(chainRowTextInset, 0, BkGroupedSection.inset, 12),
       child: Column(
@@ -322,13 +310,26 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
           if (showTitle)
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
-              child: Text(first.label, style: typography.small.copyWith(fontWeight: FontWeight.w600)),
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    // Said with the step it is about, as on the later ones.
+                    if (steps.first.optional && !link.standby)
+                      TextSpan(
+                        text: '${context.i18n.chainOptional}: ',
+                        style: TextStyle(color: cs.mutedForeground),
+                      ),
+                    TextSpan(text: first.label),
+                  ],
+                ),
+                style: typography.small.copyWith(fontWeight: FontWeight.w500),
+              ),
             ),
-          if (hint != null && hint.isNotEmpty)
+          if (!statusSaysAll && hint != null && hint.isNotEmpty)
             Text(hint, style: typography.small.copyWith(height: 1.4, color: cs.mutedForeground)),
-          if (!_fixInHeader && widget.onInstructions != null)
+          if (!statusSaysAll && widget.onInstructions != null)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: 10),
               // Its own width, not the column's.
               child: Row(mainAxisSize: MainAxisSize.min, children: [_fixButton(context, widget.onInstructions!)]),
             ),
@@ -350,45 +351,98 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     );
   }
 
-  /// A step behind the one in front: an open circle and its title, and — for
-  /// an optional one — its offer, so it can be taken up now.
+  /// A step behind the one in front: its title, quiet — "Optional:" first for
+  /// an optional one. An optional step with an offer is itself the button,
+  /// and then the line is the offer ("Show your gear on top of MyWhoosh"): a
+  /// step title that states a problem ("MyWhoosh still shows its own gear")
+  /// says nothing about what tapping it does.
   Widget _laterStep(BuildContext context, ChainLink link, SetupStep step) {
     final cs = Theme.of(context).colorScheme;
     final text = chainStepText(context, step, appName: widget.appName);
-    final offer = link.standby ? null : widget.offerLabel?.call(step);
-    return Padding(
-      key: chainRowLaterStepKey(step.id),
-      padding: const EdgeInsets.only(top: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+    final offer = _offerFor(link, step);
+    final actionable = step.optional && offer != null;
+    final accent = bkAccentText(context);
+    final style = context.typography.small.copyWith(
+      color: actionable ? accent : cs.mutedForeground,
+      fontWeight: actionable ? FontWeight.w500 : null,
+      height: 1.4,
+    );
+    // No checklist circle: on its own it read as a radio button or a stray
+    // dot. An optional step says what it is up front instead.
+    final label = Text.rich(
+      TextSpan(
         children: [
-          Row(
-            children: [
-              Icon(LucideIcons.circle, size: 13, color: cs.mutedForeground),
-              const Gap(7),
-              Flexible(
-                child: Text(text.label, style: context.typography.small.copyWith(color: cs.mutedForeground)),
-              ),
-              if (step.optional) ...[const Gap(7), const OptionalTag()],
-            ],
-          ),
-          if (step.optional && offer != null && widget.onOffer != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 20, top: 6),
-              child: BkTouchTarget(
-                child: Button.outline(
-                  alignment: Alignment.center,
-                  style: const ButtonStyle.outline(size: ButtonSize.small),
-                  onPressed: () => widget.onOffer!(step),
-                  child: Text(offer),
-                ),
+          if (step.optional)
+            TextSpan(
+              text: '${context.i18n.chainOptional}: ',
+              style: TextStyle(color: cs.mutedForeground, fontWeight: FontWeight.w500),
+            ),
+          TextSpan(text: actionable ? offer : text.label),
+          // After the last word, wherever the line wraps — not out at the
+          // row's far edge.
+          if (actionable)
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Icon(LucideIcons.chevronRight, size: 16, color: accent),
               ),
             ),
         ],
       ),
+      style: style,
+    );
+    return Padding(
+      key: chainRowLaterStepKey(step.id),
+      padding: EdgeInsets.only(top: actionable ? 10 : 14),
+      child: !actionable
+          ? label
+          : BkTouchTarget(
+              child: Button.ghost(
+                key: chainRowOfferKey(step.id),
+                alignment: Alignment.centerLeft,
+                style: const ButtonStyle.ghost(density: ButtonDensity(_flushStart)),
+                onPressed: () => widget.onOffer!(step),
+                child: label,
+              ),
+            ),
     );
   }
+
+  /// What tapping [step]'s line does, or null when it has no action.
+  String? _offerFor(ChainLink link, SetupStep step) =>
+      link.standby || widget.onOffer == null ? null : widget.offerLabel?.call(step);
+
+  /// Whether the status is the step's whole instruction — title, hint and
+  /// fix alike: an asleep controller's "press a button to wake it".
+  bool _statusSaysAll(SetupStep step) =>
+      widget.statusLabel != null &&
+      !widget.link.standby &&
+      step.id == SetupStepId.controllerInRange &&
+      step.variant == SetupStepVariant.controllerAsleep;
+
+  /// The waiting steps' titles only ever restate the status ("Waiting for
+  /// MyWhoosh …" over "Waiting for MyWhoosh"); their hint is what's new.
+  bool _statusSaysIt(SetupStep step) =>
+      widget.statusLabel != null &&
+      switch (step.id) {
+        // Its "pick up the controller tile" variant has news in its title.
+        SetupStepId.appConnected => step.variant == SetupStepVariant.standard,
+        SetupStepId.trainerAppBridged => true,
+        // "Asleep – press a button to wake it" over "Wake it up" — not on a
+        // controller ridden without, whose status says something else.
+        SetupStepId.controllerInRange => step.variant == SetupStepVariant.controllerAsleep && !widget.link.standby,
+        _ => false,
+      };
+
+  /// Whether the step in front's title shows under the status: the status
+  /// says something else ("TrainingPeaks Virtual disconnected"), so the step
+  /// needs its own words.
+  bool _stepTitleShown(BuildContext context, List<SetupStep> steps) =>
+      chainStepText(context, steps.first, appName: widget.appName).label != _statusLabel(context, steps) &&
+      !_statusSaysIt(steps.first);
+
+  TextStyle _buttonText(BuildContext context) => context.typography.small.copyWith(fontWeight: FontWeight.w500);
 
   /// What the row says about itself while steps are open: the caller's
   /// status, else the step in front.
@@ -407,7 +461,6 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
     // fix takes its place at the end — see [ChainLinkRow].
     final pending = widget.link.pendingSteps;
     final open = pending.isNotEmpty;
-    final fix = open && _fixInHeader ? widget.onInstructions : null;
     final detailRow = DefaultTextStyle.merge(
       style: typography.xSmall.copyWith(color: cs.mutedForeground),
       textAlign: open ? TextAlign.start : TextAlign.end,
@@ -427,7 +480,12 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         padding: const EdgeInsets.symmetric(horizontal: BkGroupedSection.inset, vertical: 10),
         child: Row(
           children: [
-            widget.leading,
+            // Every device list's mark has this one slot, so every row's text
+            // starts at [chainRowTextInset].
+            SizedBox.square(
+              dimension: deviceMarkSize,
+              child: Center(child: widget.leading),
+            ),
             const Gap(BkGroupedRow.gap),
             Expanded(
               child: Column(
@@ -439,23 +497,31 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                     widget.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: typography.base.copyWith(
-                      fontWeight: FontWeight.w600,
+                    // The grouped rows' title — an accessory's or "Connect
+                    // controllers" in the same list — not a heading of its own.
+                    style: typography.small.copyWith(
+                      fontWeight: FontWeight.w500,
                       color: widget.titleColor ?? cs.foreground,
                     ),
                   ),
                   if (open)
-                    Row(
+                    // One line under the name: the state, then — quieter —
+                    // how it is connected.
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(child: BkStatusDot(label: _statusLabel(context, pending), tone: tone)),
-                        // An optional step says so where its title now stands.
-                        if (pending.first.optional && !widget.link.standby) ...[
-                          const Gap(7),
-                          const OptionalTag(),
-                        ],
+                        BkStatusDot(label: _statusLabel(context, pending), tone: tone),
+                        // An optional step says so where its title now stands
+                        // — not after a status of other news ("TrainingPeaks
+                        // Virtual disconnected" · Optional): then its title
+                        // below says it.
+                        if (pending.first.optional && !widget.link.standby && !_stepTitleShown(context, pending))
+                          _metaSuffix(context, context.i18n.chainOptional),
+                        if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
+                          _metaSuffix(context, subtitle, key: chainCardSubtitleKey),
                       ],
-                    ),
-                  if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
+                    )
+                  else if (widget.subtitle case final subtitle? when subtitle.isNotEmpty)
                     Text(
                       subtitle,
                       key: chainCardSubtitleKey,
@@ -467,10 +533,7 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                 ],
               ),
             ),
-            if (fix != null) ...[
-              const Gap(8),
-              _fixButton(context, fix),
-            ] else if (!open && (widget.statusLabel != null || detail != null || badges.isNotEmpty)) ...[
+            if (!open && (widget.statusLabel != null || detail != null || badges.isNotEmpty)) ...[
               const Gap(8),
               ConstrainedBox(
                 // A long status ("Waiting for MyWhoosh to connect to …") wraps
@@ -487,11 +550,9 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
                 ),
               ),
             ],
-            // The whole header opens the link's page, and a green row has no
-            // button left to hint at that — the same quiet chevron as every
-            // other row that opens something, and Ride's step rows. A row with
-            // its fix at the end has a button there instead.
-            if (widget.onTap != null && fix == null) ...[
+            // The whole header opens the link's page — the same quiet chevron
+            // as every other row that opens something, and Ride's step rows.
+            if (widget.onTap != null) ...[
               const Gap(4),
               Icon(LucideIcons.chevronRight, key: chainRowChevronKey, size: 16, color: cs.mutedForeground),
             ],
@@ -508,6 +569,22 @@ class _ChainLinkRowState extends State<ChainLinkRow> with TickerProviderStateMix
         color: _hovered ? bkCardHover(context) : const Color(0x00000000),
         child: row,
       ),
+    );
+  }
+
+  /// " · Network" after the status: the status line's size, muted. Its own
+  /// widget, so it drops to the next line whole instead of squeezing the
+  /// status.
+  Widget _metaSuffix(BuildContext context, String text, {Key? key}) {
+    final style = context.typography.xSmall.copyWith(color: Theme.of(context).colorScheme.mutedForeground);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(' · ', style: style),
+        Flexible(
+          child: Text(text, key: key, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+        ),
+      ],
     );
   }
 
@@ -564,7 +641,7 @@ class DeviceAddRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = bkAccentText(context);
     return BkGroupedRow(
-      leading: BkIconTile(icon: icon ?? LucideIcons.plus, color: accent),
+      leading: BkIconTile(icon: icon ?? LucideIcons.plus, color: accent, size: deviceMarkSize),
       title: title,
       subtitle: subtitle,
       titleColor: accent,

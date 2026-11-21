@@ -1,12 +1,4 @@
-7.6.0
+7.6.1
 Novità:
-• Incyclist, Tour du Pain e Rampida tramite OpenBikeControl
-• I comandi CYCPLUS T7 funzionano come controller
-• Editor dei pulsanti più chiaro, raggruppato per azione
-• Di2: imposta i canali D-Fly in E-TUBE, con una guida
-• Zwift Click V2: controller destro senza sblocco
-• Più prova: 120 pressioni/giorno, poi 40, 30 min di cambio virtuale
-
-Correzioni:
-• Zwift: Bomba Ride On con pressione breve
-• Android: nessun crash al riavvio del servizio, «Chiudi ed esci» esce sempre
+• MyWhoosh via Bluetooth: abbina BikeControl come dispositivo di sterzo per cambiare e scegliere la strada agli incroci
+• Sensori: vedi da dove arriva ogni valore e sostituisci quelli del rullo con un tuo sensore

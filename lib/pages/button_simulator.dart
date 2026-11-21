@@ -18,6 +18,7 @@ import 'package:bike_control/widgets/ui/bk_word_safe_text.dart';
 import 'package:bike_control/bluetooth/devices/trainer_connection.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
@@ -294,13 +295,93 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     ).distinct().toList();
   }
 
-  /// Everything the page can press: the trainer apps' actions, and − / +
-  /// whenever BikeControl shifts the trainer itself (also with no trainer
-  /// app connection on this page, as when Rouvy rides BikeControl's bridge).
+  /// Everything the page can press: the trainer apps' actions; − / + and
+  /// the trainer's own controls whenever BikeControl shifts the trainer
+  /// itself (also with no trainer app connection on this page, as when Rouvy
+  /// rides BikeControl's bridge); and a connected Headwind's or incline
+  /// device's.
   List<InGameAction> _availableActions(bool hasRideData) => [
-    if (hasRideData) ...[InGameAction.shiftDown, InGameAction.shiftUp],
+    if (hasRideData) ...[
+      InGameAction.shiftDown,
+      InGameAction.shiftUp,
+    ],
     for (final c in core.logic.enabledNonLocalTrainerConnections) ..._actionsOf(c),
+    if (hasRideData) ...[
+      if (_vsProxy?.fitnessBike?.frontShiftEnabled == true) InGameAction.frontShift,
+      InGameAction.trainerSwitchMode,
+      InGameAction.trainerIntensityDown,
+      InGameAction.trainerIntensityUp,
+    ],
+    if (_hasHeadwind) ..._headwindActions,
+    if (_hasIncline) ..._inclineActions,
   ].distinct().toList();
+
+  static const _headwindActions = [
+    InGameAction.headwindSpeedDec,
+    InGameAction.headwindSpeedInc,
+    InGameAction.headwindSpeedCyclicInc,
+    InGameAction.headwindHeartRateMode,
+  ];
+  static const _inclineActions = [
+    InGameAction.inclineDecrease,
+    InGameAction.inclineIncrease,
+    InGameAction.inclineZero,
+    InGameAction.inclineAutoMode,
+  ];
+
+  bool get _hasHeadwind => core.connection.accessories.any((d) => d.isConnected);
+  bool get _hasIncline => core.connection.inclineDevices.any((d) => d.isConnected);
+
+  /// A Headwind's or incline device's action: BikeControl does it itself.
+  bool _isDeviceAction(InGameAction action) =>
+      (_headwindActions.contains(action) && _hasHeadwind) || (_inclineActions.contains(action) && _hasIncline);
+
+  /// The music controls this platform can send.
+  List<CompanionMusic> get _availableMusic {
+    if (!core.actionHandler.supportedModes.contains(SupportedMode.media)) return const [];
+    // Android's media control has no "previous".
+    return [
+      for (final m in CompanionMusic.values)
+        if (!(core.actionHandler is AndroidActions && m == CompanionMusic.previous)) m,
+    ];
+  }
+
+  static PhysicalKeyboardKey _musicKey(CompanionMusic music) => switch (music) {
+    CompanionMusic.playPause => PhysicalKeyboardKey.mediaPlayPause,
+    CompanionMusic.previous => PhysicalKeyboardKey.mediaTrackPrevious,
+    CompanionMusic.next => PhysicalKeyboardKey.mediaTrackNext,
+    CompanionMusic.volumeDown => PhysicalKeyboardKey.audioVolumeDown,
+    CompanionMusic.volumeUp => PhysicalKeyboardKey.audioVolumeUp,
+  };
+
+  static String _musicName(AppLocalizations l, CompanionMusic music) => switch (music) {
+    CompanionMusic.playPause => l.playPause,
+    CompanionMusic.previous => l.previous,
+    CompanionMusic.next => l.next,
+    CompanionMusic.volumeDown => l.volumeDown,
+    CompanionMusic.volumeUp => l.volumeUp,
+  };
+
+  static IconData _musicIcon(CompanionMusic music) => switch (music) {
+    CompanionMusic.playPause => LucideIcons.play,
+    CompanionMusic.previous => LucideIcons.skipBack,
+    CompanionMusic.next => LucideIcons.skipForward,
+    CompanionMusic.volumeDown => LucideIcons.volume1,
+    CompanionMusic.volumeUp => LucideIcons.volume2,
+  };
+
+  Future<void> _pressMusic(CompanionMusic music) async {
+    try {
+      final result = await core.actionHandler.performKeyPair(
+        KeyPair(buttons: [], physicalKey: _musicKey(music), logicalKey: null),
+        isKeyDown: true,
+        isKeyUp: true,
+      );
+      if (result is Error && mounted) buildToast(title: result.message);
+    } catch (e, s) {
+      recordError(e, s, context: 'companion music ${music.name}');
+    }
+  }
 
   /// The connected trainer app connection that takes [action].
   TrainerConnection? _connectionFor(InGameAction action) =>
@@ -309,7 +390,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
   bool _routesToVirtualShifting(InGameAction action) =>
       trainerActions.contains(action) && _vsProxy?.fitnessBike != null;
 
-  bool _canPress(InGameAction action) => _routesToVirtualShifting(action) || _connectionFor(action) != null;
+  bool _canPress(InGameAction action) =>
+      _routesToVirtualShifting(action) || _isDeviceAction(action) || _connectionFor(action) != null;
 
   /// Presses [action]. Gear actions go the way a controller's do — through
   /// BikeControl's own virtual shifting when it runs (so ERG steps watts
@@ -326,6 +408,19 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       }
       return;
     }
+    if (_isDeviceAction(action)) {
+      try {
+        final result = await core.actionHandler.performKeyPair(
+          KeyPair(buttons: [], physicalKey: null, logicalKey: null, inGameAction: action),
+          isKeyDown: down,
+          isKeyUp: !down,
+        );
+        if (result is Error && mounted) buildToast(title: result.message);
+      } catch (e, s) {
+        recordError(e, s, context: 'companion ${action.name}');
+      }
+      return;
+    }
     final connection = _connectionFor(action);
     if (connection == null) {
       if (down) buildToast(title: context.i18n.notConnected);
@@ -336,13 +431,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
 
   // ── Layout ────────────────────────────────────────────────────────────
 
-  /// The layout for this orientation: the rider's own, else the one the page
-  /// starts from — ride mode when opened full screen from Ride, else today's
-  /// page.
+  /// The layout for this orientation: the rider's own, else ride mode with
+  /// the other buttons below it.
   CompanionLayout _layoutFor({required bool landscape, required bool hasRideData}) {
     if (_saved[landscape] case final saved?) return saved;
-    if (widget.startFullScreen) return CompanionLayout.rideMode(landscape: landscape, hasRideData: hasRideData);
-    return CompanionLayout.standard(
+    return CompanionLayout.initial(
       actions: _availableActions(hasRideData),
       landscape: landscape,
       hasRideData: hasRideData,
@@ -430,16 +523,11 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       headers: [
         BkPageHeader(
           title: context.i18n.simulateButtons,
+          subtitle: _connectionStatus(connections, hasRideData),
           showDivider: false,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           actions: _editing
               ? [
-                  BkIconButton.ghost(
-                    key: const ValueKey('companion-add'),
-                    icon: const Icon(LucideIcons.plus, size: 22),
-                    label: l.companionAddTile,
-                    onPressed: () => _openAdd(definition),
-                  ),
-                  _layoutsMenu(hasRideData),
                   Button.ghost(
                     key: const ValueKey('companion-done'),
                     onPressed: () => setState(() => _editing = false),
@@ -464,12 +552,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       ],
       child: LayoutBuilder(
         builder: (context, viewport) {
-          return Scrollbar(
+          final scroll = Scrollbar(
             controller: _scrollController,
             child: SingleChildScrollView(
               controller: _scrollController,
-              // Dragging a tile must not scroll the page under it.
-              physics: _editing ? const NeverScrollableScrollPhysics() : null,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               child: BkPageColumn(
                 child: LayoutBuilder(
@@ -481,17 +567,6 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (connections.isEmpty && !hasRideData)
-                          BkGroupedSection(
-                            children: [
-                              BkGroupedRow(
-                                icon: LucideIcons.unplug,
-                                quietIcon: true,
-                                title: context.i18n.trainerControlsNoConnection,
-                              ),
-                            ],
-                          ),
-                        for (final connection in connections) _buildConnectionState(connection),
                         if (_editing)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 8),
@@ -510,44 +585,86 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               ),
             ),
           );
+          if (!_editing) return scroll;
+          // The tools stay put while the grid scrolls under them; the grid
+          // keeps the size it has outside editing.
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: BkPageColumn(child: _editToolbar(definition)),
+              ),
+              Expanded(child: scroll),
+            ],
+          );
         },
       ),
     );
   }
 
-  /// Ride mode, today's page, or back to the generated layout.
-  Widget _layoutsMenu(bool hasRideData) {
+  /// While editing, what can be done to the layout, each with its name: in a
+  /// row under the header, where a long title can't crowd them.
+  Widget _editToolbar(FitnessBikeDefinition? definition) {
     final l = AppLocalizations.of(context);
-    return Builder(
-      builder: (anchor) => BkIconButton.ghost(
-        key: const ValueKey('companion-layouts'),
-        icon: const Icon(LucideIcons.layoutTemplate, size: 22),
-        label: l.companionLayouts,
-        tooltip: false,
-        onPressed: () {
-          final landscape = _currentLandscape(anchor);
-          showDropdown(
-            context: anchor,
-            builder: (_) => DropdownMenu(
-              children: [
-                MenuButton(
-                  key: const ValueKey('companion-layout-ride-mode'),
-                  leading: const Icon(LucideIcons.squarePlus, size: 16),
-                  onPressed: (_) => _save(CompanionLayout.rideMode(landscape: landscape, hasRideData: hasRideData)),
-                  child: Text(l.companionLayoutRideMode),
-                ),
-                MenuButton(
-                  key: const ValueKey('companion-layout-standard'),
-                  leading: const Icon(LucideIcons.layoutGrid, size: 16),
-                  onPressed: (_) => _resetLayout(landscape),
-                  child: Text(l.companionLayoutStandard),
-                ),
-              ],
+    Widget tool(String key, IconData icon, String label, VoidCallback onPressed) => Expanded(
+      child: SizedBox(
+        height: 40,
+        child: Button(
+          key: ValueKey(key),
+          style: const ButtonStyle.outline(size: ButtonSize.small),
+          onPressed: onPressed,
+          // Three to a row on a phone: a long label shrinks rather than wrap.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [Icon(icon, size: 14), Text(label, maxLines: 1)],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        spacing: 8,
+        children: [
+          tool('companion-add', LucideIcons.plus, l.companionAdd, () => _openAdd(definition)),
+          tool('companion-compact', LucideIcons.foldVertical, l.companionCompact, () => _compact(definition)),
+          tool('companion-reset', LucideIcons.rotateCcw, l.reset, _confirmReset),
+        ],
+      ),
+    );
+  }
+
+  /// Closes the empty space between the tiles on this orientation's layout.
+  void _compact(FitnessBikeDefinition? definition) {
+    final layout = _layoutFor(landscape: _currentLandscape(context), hasRideData: definition != null);
+    _save(layout.compacted());
+  }
+
+  /// Back to ride mode with every button, for this orientation.
+  Future<void> _confirmReset() async {
+    final l = AppLocalizations.of(context);
+    final landscape = _currentLandscape(context);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l.companionResetLayout),
+        content: Text(l.companionResetLayoutBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(l.cancel)),
+          Button.destructive(
+            key: const ValueKey('companion-reset-confirm'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l.reset),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) _resetLayout(landscape);
   }
 
   /// Whether the page lays out in landscape right now, as [_buildPage]
@@ -563,9 +680,10 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     final layout = _layoutFor(landscape: landscape, hasRideData: definition != null);
     final actions = _availableActions(definition != null).where((a) => layout.tileFor(a) == null).toList();
     final data = CompanionTileKind.values.where((k) => k.isRideData && !layout.tiles.any((t) => t.kind == k)).toList();
-    void add(CompanionTileKind kind, [InGameAction? action]) {
+    final music = _availableMusic.where((m) => layout.tileForMusic(m) == null).toList();
+    void add(CompanionTileKind kind, {InGameAction? action, CompanionMusic? music}) {
       Navigator.of(context).pop();
-      _save(layout.added(kind: kind, action: action));
+      _save(layout.added(kind: kind, action: action, music: music));
     }
 
     await showDialog<void>(
@@ -579,7 +697,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (actions.isEmpty && (data.isEmpty || definition == null))
+                if (actions.isEmpty && music.isEmpty && (data.isEmpty || definition == null))
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(l.companionAllAdded),
@@ -594,10 +712,26 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
                           icon: action.icon ?? LucideIcons.squareMousePointer,
                           quietIcon: true,
                           title: action.title,
-                          onPressed: () => add(CompanionTileKind.action, action),
+                          onPressed: () => add(CompanionTileKind.action, action: action),
                         ),
                     ],
                   ),
+                if (music.isNotEmpty) ...[
+                  const Gap(16),
+                  BkGroupedSection(
+                    header: l.simulateMediaKey,
+                    children: [
+                      for (final m in music)
+                        BkGroupedRow(
+                          key: ValueKey('companion-add-music-${m.name}'),
+                          icon: _musicIcon(m),
+                          quietIcon: true,
+                          title: _musicName(l, m),
+                          onPressed: () => add(CompanionTileKind.music, music: m),
+                        ),
+                    ],
+                  ),
+                ],
                 if (data.isNotEmpty) ...[
                   const Gap(16),
                   BkGroupedSection(
@@ -634,14 +768,40 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
       rowHeight: rowHeight,
       editing: _editing,
       onChanged: _save,
-      removeLabel: (tile) => l.companionRemoveTile(
-        tile.kind == CompanionTileKind.action ? tile.action!.title : companionTileName(l, tile.kind),
-      ),
+      radiusOf: _tileRadius,
+      removeLabel: (tile) => l.companionRemoveTile(switch (tile.kind) {
+        CompanionTileKind.action => tile.action!.title,
+        CompanionTileKind.music => _musicName(l, tile.music!),
+        _ => companionTileName(l, tile.kind),
+      }),
       tileBuilder: (context, tile) => _buildTile(tile, definition),
     );
   }
 
+  /// The corner radius [tile] draws with.
+  static double _tileRadius(CompanionTile tile) => switch (tile.action) {
+    InGameAction.shiftUp || InGameAction.shiftDown => _padRadius(_PadSize.hero),
+    InGameAction.steerLeft || InGameAction.steerRight => _padRadius(_PadSize.medium),
+    _ => BkComponentThemes.cardRadius,
+  };
+
+  static double _padRadius(_PadSize size) => switch (size) {
+    _PadSize.hero => 24,
+    _PadSize.medium => 18,
+    _PadSize.tile => BkComponentThemes.cardRadius,
+  };
+
   Widget _buildTile(CompanionTile tile, FitnessBikeDefinition? definition) {
+    if (tile.kind == CompanionTileKind.music) {
+      final music = tile.music!;
+      return _pad(
+        label: _musicName(AppLocalizations.of(context), music),
+        glyph: _musicIcon(music),
+        tone: _PadTone.card,
+        size: _PadSize.tile,
+        onDown: () => _pressMusic(music),
+      );
+    }
     if (tile.kind != CompanionTileKind.action) {
       return CompanionInfoTile(kind: tile.kind, definition: definition);
     }
@@ -663,39 +823,66 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     return AnimatedOpacity(duration: const Duration(milliseconds: 150), opacity: enabled ? 1 : 0.5, child: child);
   }
 
-  /// Under a connection's name, its state; not connected, the method's own
-  /// card with its instructions and network check, so the rider can fix it
-  /// right here. No switch: this page is for using the method, not turning
-  /// it off.
-  Widget _buildConnectionState(TrainerConnection connection) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: connection.isConnected,
-      builder: (context, connected, _) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(BkGroupedSection.inset, 0, BkGroupedSection.inset, 8),
-                child: Row(
-                  spacing: 12,
-                  children: [
-                    Expanded(child: BkGroupedHeader(connection.title)),
-                    BkStatusDot(
-                      label: connected ? context.i18n.connected : context.i18n.notConnected,
-                      tone: connected ? BkStatusTone.success : BkStatusTone.neutral,
-                    ),
-                  ],
-                ),
+  /// The trainer app connection's state as one quiet line under the title.
+  /// Not connected, it opens the method's card — the instructions and the
+  /// network check — so the rider can fix it from here.
+  Widget? _connectionStatus(List<TrainerConnection> connections, bool hasRideData) {
+    if (connections.isEmpty) {
+      if (hasRideData) return null;
+      return BkStatusDot(label: context.i18n.trainerControlsNoConnection, tone: BkStatusTone.neutral);
+    }
+    return ListenableBuilder(
+      listenable: Listenable.merge([for (final c in connections) c.isConnected]),
+      builder: (context, _) {
+        final down = connections.where((c) => !c.isConnected.value).toList();
+        final dot = BkStatusDot(
+          label: down.isEmpty ? context.i18n.connected : context.i18n.notConnected,
+          tone: down.isEmpty ? BkStatusTone.success : BkStatusTone.neutral,
+        );
+        if (down.isEmpty) return dot;
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: BkTappable(
+            key: const ValueKey('companion-connection-status'),
+            onPressed: () => _showConnection(down),
+            borderRadius: BorderRadius.circular(8),
+            wash: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 2),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 4,
+                children: [
+                  Flexible(child: dot),
+                  Icon(LucideIcons.chevronRight, size: 14, color: Theme.of(context).colorScheme.mutedForeground),
+                ],
               ),
-              if (!connected && !screenshotMode) ConnectionMethodWithoutSwitch(child: connection.getTile()),
-            ],
+            ),
           ),
         );
       },
     );
   }
+
+  Future<void> _showConnection(List<TrainerConnection> connections) => showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(context.i18n.notConnected),
+      content: SizedBox(
+        width: 420,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 12,
+            children: [for (final c in connections) ConnectionMethodWithoutSwitch(child: c.getTile())],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(context.i18n.close)),
+      ],
+    ),
+  );
 
   /// An action that takes a value (camera angle, emote): its name opens the
   /// full list, and with room the two values used last sit under it, one
@@ -880,6 +1067,28 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     _PadTone tone,
     _PadSize size, {
     IconData? icon,
+  }) => _pad(
+    label: action.title,
+    glyph: icon ?? action.icon,
+    caption: RideControllerPress.caption(action),
+    tone: tone,
+    size: size,
+    keyboardPressed: _pressedAction == action,
+    hotkey: _hotkeys[action],
+    onDown: () => _press(action, down: true),
+    onUp: () => _press(action, down: false),
+  );
+
+  Widget _pad({
+    required String label,
+    required IconData? glyph,
+    String? caption,
+    required _PadTone tone,
+    required _PadSize size,
+    bool keyboardPressed = false,
+    String? hotkey,
+    required VoidCallback onDown,
+    VoidCallback? onUp,
   }) {
     final cs = Theme.of(context).colorScheme;
     final brand = BkBrandColors.of(context);
@@ -892,15 +1101,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     final pressed = tone == _PadTone.card
         ? bkCardPressed(context)
         : Color.alphaBlend(ink.withValues(alpha: 0.16), base);
-    final radius = BorderRadius.circular(switch (size) {
-      _PadSize.hero => 24,
-      _PadSize.medium => 18,
-      _PadSize.tile => BkComponentThemes.cardRadius,
-    });
-    final keyboardPressed = _pressedAction == action;
-    final hotkey = _hotkeys[action];
+    final radius = BorderRadius.circular(_padRadius(size));
     final showKeycap = hotkey != null && !isCompactWindow(context) && !_fullScreen;
-    final glyph = icon ?? action.icon;
     final typography = context.typography;
 
     final labelStyle = switch (size) {
@@ -916,17 +1118,16 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
     final iconColor = tone == _PadTone.card ? brand.tileInk : ink;
 
     Widget content(double iconSize, TextStyle labelStyle) {
-      final label = BkWordSafeText(
-        action.title,
+      final title = BkWordSafeText(
+        label,
         textAlign: size == _PadSize.medium ? TextAlign.start : TextAlign.center,
         style: labelStyle,
         maxLines: 2,
       );
-      final captionText = RideControllerPress.caption(action);
-      final caption = captionText == null
+      final captionLine = caption == null
           ? null
           : Text(
-              captionText.toUpperCase(),
+              caption.toUpperCase(),
               style: typography.caption.copyWith(color: subInk, fontWeight: FontWeight.w600, letterSpacing: 0.6),
             );
 
@@ -941,7 +1142,7 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [label, ?caption],
+                children: [title, ?captionLine],
               ),
             ),
           ],
@@ -953,8 +1154,8 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
               Icon(glyph, size: iconSize, color: iconColor),
               Gap(size == _PadSize.hero ? 6 : 8),
             ],
-            label,
-            ?caption,
+            title,
+            ?captionLine,
           ],
         ),
       };
@@ -975,9 +1176,9 @@ class _ButtonSimulatorState extends State<ButtonSimulator> {
             ),
           ),
       onPressed: () {},
-      onTapDown: (_) => _press(action, down: true),
-      onTapUp: (_) => _press(action, down: false),
-      onTapCancel: () => _press(action, down: false),
+      onTapDown: (_) => onDown(),
+      onTapUp: onUp == null ? null : (_) => onUp(),
+      onTapCancel: onUp,
       child: Stack(
         alignment: Alignment.center,
         children: [

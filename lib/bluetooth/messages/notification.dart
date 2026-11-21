@@ -92,12 +92,23 @@ class AlertNotification extends LogNotification {
   /// (WiFi vs Bluetooth). Null for alerts unrelated to a trainer connection.
   final ConnectionMethodType? connectionType;
 
+  /// What this alert is news about — one device's connection, say. A newer
+  /// alert with the same key makes the older one obsolete: its toast closes
+  /// instead of stacking up under the new one. Without a key, the alert's
+  /// text is its key, so the same words are never on screen twice.
+  final String? replaceKey;
+
+  /// The [replaceKey] of alerts about [device]'s connection, so a device that
+  /// keeps failing shows its latest news only, and connecting clears it.
+  static String deviceKey(String uniqueId) => 'device-$uniqueId';
+
   AlertNotification(
     this.level,
     this.alertMessage, {
     this.onTap,
     this.buttonTitle,
     this.connectionType,
+    this.replaceKey,
   }) : super(alertMessage);
 
   /// Builds the `<app> connected/disconnected` alert shown when a trainer app

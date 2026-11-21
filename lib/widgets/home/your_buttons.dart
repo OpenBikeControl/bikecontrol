@@ -186,6 +186,12 @@ bool get _touchPlatform => switch (defaultTargetPlatform) {
 /// "Connecting…" where the hint goes — so when it connects nothing moves, the
 /// picture just comes up to full strength.
 ///
+/// [awayLabel] is the card of a remembered controller that is not here and
+/// not on its way — asleep, or out of range: the same faded picture, without
+/// the shimmer, and its name with the reason where the hint goes. The card
+/// stays, so the rider still sees which controller it is and what its buttons
+/// do, and it comes up to full strength in place when it wakes.
+///
 /// [setupNeed] is a controller that does nothing until the rider has set it up
 /// or unlocked it (see [BaseDevice.setupNeed]): a warning above the picture
 /// says so and [onSetup] leads into that setup, and the picture wears a
@@ -202,6 +208,7 @@ class ControllerButtonsCard extends StatelessWidget {
     this.wide = false,
     this.showButtonList = false,
     this.connecting = false,
+    this.awayLabel,
     this.setupNeed,
     this.onSetup,
   });
@@ -215,7 +222,11 @@ class ControllerButtonsCard extends StatelessWidget {
   final bool wide;
   final bool showButtonList;
   final bool connecting;
+  final String? awayLabel;
   final DeviceSetupNeed? setupNeed;
+
+  /// Not live: on its way back, or away.
+  bool get _quiet => connecting || awayLabel != null;
   final VoidCallback? onSetup;
 
   /// Below this a list beside the picture would squeeze both; the list goes
@@ -247,11 +258,11 @@ class ControllerButtonsCard extends StatelessWidget {
         ? null
         : AnimatedOpacity(
             key: const ValueKey('ride-buttons-picture'),
-            opacity: connecting ? 0.45 : 1,
+            opacity: _quiet ? 0.45 : 1,
             duration: duration,
             curve: BkMotion.curve,
             child: AnimatedScale(
-              scale: connecting ? 0.97 : 1,
+              scale: _quiet ? 0.97 : 1,
               duration: duration,
               curve: BkMotion.curve,
               child: connecting ? BkShimmer(child: rawPicture) : rawPicture,
@@ -315,7 +326,7 @@ class ControllerButtonsCard extends StatelessWidget {
               children: [
                 if (hint != null) Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: hint),
                 if (picture != null) ...[const Gap(8), picture],
-                if (device case final ManualInclineDevice incline when !connecting) ...[
+                if (device case final ManualInclineDevice incline when !_quiet) ...[
                   const Gap(8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -350,7 +361,7 @@ class ControllerButtonsCard extends StatelessWidget {
   Widget _steeringHint(BuildContext context) {
     final hint = _hint(context, context.i18n.steeringRideHint);
     final steering = device;
-    if (connecting || steering is! RecalibratableSteering || steering is! SteeringDevice) return hint;
+    if (_quiet || steering is! RecalibratableSteering || steering is! SteeringDevice) return hint;
     // On the hint's first line: a wrapped hint must not push it to the middle.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -378,21 +389,25 @@ class ControllerButtonsCard extends StatelessWidget {
     );
   }
 
-  /// "Tap a button to change what it does." — or, while connecting, the
-  /// controller's name and "Connecting…" in the same slot, at the hint's
-  /// height either way.
+  /// "Tap a button to change what it does." — or, while connecting or away,
+  /// "Connecting…" or why it is away in the same slot (after the
+  /// controller's name when no header names it), at the hint's height
+  /// either way.
   Widget _hint(BuildContext context, String hint) {
     final cs = Theme.of(context).colorScheme;
     final style = context.typography.small.copyWith(color: cs.mutedForeground);
     final text = Text(hint, style: style);
-    final Widget slot = connecting
+    final Widget slot = _quiet
         ? Stack(
             children: [
               // Holds the hint's height, so the swap moves nothing.
               Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: text),
               Text(
-                '${device.displayName(context)} · ${context.i18n.chainStatusConnecting}',
-                key: const ValueKey('ride-buttons-connecting'),
+                // The name only where no header above already says it.
+                showDeviceHeader
+                    ? awayLabel ?? context.i18n.chainStatusConnecting
+                    : '${device.displayName(context)} · ${awayLabel ?? context.i18n.chainStatusConnecting}',
+                key: ValueKey(awayLabel == null ? 'ride-buttons-connecting' : 'ride-buttons-away'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: style,
@@ -408,7 +423,7 @@ class ControllerButtonsCard extends StatelessWidget {
         alignment: AlignmentDirectional.topStart,
         children: [...previous, ?current],
       ),
-      child: KeyedSubtree(key: ValueKey(connecting), child: slot),
+      child: KeyedSubtree(key: ValueKey((connecting, awayLabel)), child: slot),
     );
   }
 }
@@ -590,7 +605,8 @@ class LastPressStrip extends StatelessWidget {
                         // the arrow already say it was just pressed, and the
                         // words cost the action its line on a phone.
                         Text(
-                          action != null ? '${button.displayName} →' : button.displayName,
+                          // Its card names the controller already: no id here.
+                          action != null ? '${button.plainName} →' : button.plainName,
                           key: const ValueKey('last-press-lead'),
                           style: muted,
                           // A long button name in a narrow column (an iPad
@@ -642,8 +658,12 @@ class LastPressStrip extends StatelessWidget {
   }
 }
 
-/// Every button and the action it sends, for windows wide enough to list
-/// them beside the picture. A row opens that button's assignment.
+/// What each button does, grouped by gesture: the single clicks first, then
+/// a small heading for double click and long press, said once rather than on
+/// every line. A line is the button's glyph — the pods above say which button
+/// that is — and its action, wrapping between words at full width. Buttons
+/// that do nothing fold into one line of glyphs at the end. Every line, and
+/// every glyph in that last one, opens the button's assignment.
 class _ButtonList extends StatelessWidget {
   const _ButtonList({super.key, required this.device, required this.keymap, required this.onUpdate});
 
@@ -651,105 +671,127 @@ class _ButtonList extends StatelessWidget {
   final Keymap keymap;
   final VoidCallback onUpdate;
 
+  void _edit(BuildContext context, ControllerButton button) => showTriggerAssignmentPopup(
+    context: context,
+    device: device,
+    button: button,
+    keymap: keymap,
+    onUpdate: onUpdate,
+  );
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final typography = context.typography;
     final buttons = device.availableButtons.distinctBy((b) => b.name).toList();
-    // Its first trigger that does something: the action at the row's end,
-    // the trigger under the name unless a single click.
-    final rows = [
-      for (final button in buttons) (button: button, trigger: mappingActiveTriggers(keymap, button).firstOrNull),
-    ];
-    KeyPair? pairOf(({ControllerButton button, ButtonTrigger? trigger}) row) =>
-        row.trigger == null ? null : keymap.getKeyPair(row.button, trigger: row.trigger!);
-    // An action no connection method that's on can carry: a dash on its row
-    // and one note above them all, not the same sentence on every row.
-    final anyWaits = rows.any((row) => pairOf(row)?.waitsForConnectionMethod ?? false);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (anyWaits) _WaitsNote(onUpdate: onUpdate),
-        for (final row in rows)
-          Builder(
-            builder: (context) {
-              final (:button, :trigger) = row;
-              final pair = pairOf(row);
-              final action = pair == null || pair.waitsForConnectionMethod ? null : pair.actionLabel;
-              final triggerName = trigger != null && trigger != ButtonTrigger.singleClick ? trigger.title : null;
-              return BkTappable(
-                key: ValueKey('ride-button-row-${button.name}'),
-                onPressed: () => showTriggerAssignmentPopup(
-                  context: context,
-                  device: device,
-                  button: button,
-                  keymap: keymap,
-                  onUpdate: onUpdate,
-                ),
-                label: context.i18n.a11yEditButtonMapping(button.displayName),
-                excludeChildSemantics: true,
-                borderRadius: BorderRadius.circular(8),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 32),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    child: Row(
-                      children: [
-                        ButtonWidget(button: button, size: 22),
-                        const Gap(10),
-                        // The action takes its own width, up to half the row;
-                        // the name and its trigger get the rest, so neither
-                        // is starved into breaking mid-word ("Navigatio" /
-                        // "n Left") while a short action leaves room unused.
-                        Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) => Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        button.displayName,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: context.typography.small,
-                                      ),
-                                      if (triggerName != null)
-                                        Text(
-                                          triggerName,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: context.typography.xSmall.copyWith(color: cs.mutedForeground),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                const Gap(8),
-                                ConstrainedBox(
-                                  constraints: BoxConstraints(maxWidth: (constraints.maxWidth - 8) / 2),
-                                  child: Text(
-                                    (action == null || action.isEmpty) ? '–' : action,
-                                    textAlign: TextAlign.end,
-                                    style: context.typography.small.copyWith(
-                                      color: cs.mutedForeground,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+    final activeOf = {for (final b in buttons) b: mappingActiveTriggers(keymap, b)};
+    KeyPair? pairOf(ControllerButton button, ButtonTrigger trigger) => keymap.getKeyPair(button, trigger: trigger);
+    // An action no connection method that's on can carry: a dash on its line
+    // and one note above them all, not the same sentence on every line.
+    final anyWaits = buttons.any(
+      (b) => activeOf[b]!.any((trigger) => pairOf(b, trigger)?.waitsForConnectionMethod ?? false),
+    );
+    final idle = buttons.where((b) => activeOf[b]!.isEmpty).toList();
+    // A button's first line (or its glyph among the idle ones) carries the
+    // plain key, so every button is found by one.
+    final keyed = <String>{};
+    Key keyFor(ControllerButton button, ButtonTrigger trigger) => ValueKey(
+      keyed.add(button.name) ? 'ride-button-row-${button.name}' : 'ride-button-row-${button.name}-${trigger.name}',
+    );
+
+    final children = <Widget>[if (anyWaits) _WaitsNote(onUpdate: onUpdate)];
+    for (final trigger in ButtonTrigger.values) {
+      final group = buttons.where((b) => activeOf[b]!.contains(trigger)).toList();
+      if (group.isEmpty) continue;
+      // A single click is what a button does unless told otherwise: no heading.
+      if (trigger != ButtonTrigger.singleClick) {
+        children.add(
+          Padding(
+            key: ValueKey('ride-button-group-${trigger.name}'),
+            padding: const EdgeInsets.fromLTRB(6, 10, 6, 2),
+            child: Semantics(
+              header: true,
+              child: Text(
+                trigger.title,
+                style: typography.xSmall.copyWith(color: cs.mutedForeground, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        );
+      }
+      for (final button in group) {
+        final pair = pairOf(button, trigger);
+        final label = pair == null || pair.waitsForConnectionMethod ? null : pair.actionLabel;
+        final action = (label == null || label.isEmpty) ? '–' : label;
+        children.add(
+          BkTappable(
+            key: keyFor(button, trigger),
+            onPressed: () => _edit(context, button),
+            // The name is not shown — the glyph says which button — but spoken.
+            label: context.i18n.a11yEditButtonMapping(
+              trigger == ButtonTrigger.singleClick ? button.plainName : '${button.plainName}, ${trigger.title}',
+            ),
+            excludeChildSemantics: true,
+            borderRadius: BorderRadius.circular(8),
+            // The cards' hover and pressed washes: the line opens its
+            // assignment, and nothing else said it could be tapped.
+            wash: true,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 32),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                child: Row(
+                  children: [
+                    ButtonWidget(button: button, size: 22),
+                    const Gap(10),
+                    Expanded(
+                      child: Text(action, style: typography.small.copyWith(color: cs.foreground, height: 1.35)),
                     ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    if (idle.isNotEmpty) {
+      children.add(
+        Padding(
+          key: const ValueKey('ride-button-list-idle'),
+          padding: EdgeInsets.fromLTRB(6, children.isEmpty ? 0 : 8, 6, 0),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 2,
+            runSpacing: 2,
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 4),
+                child: Text(
+                  context.i18n.noActionAssigned,
+                  style: typography.xSmall.copyWith(color: cs.mutedForeground),
+                ),
+              ),
+              for (final button in idle)
+                BkTappable(
+                  key: ValueKey('ride-button-row-${button.name}'),
+                  onPressed: () => _edit(context, button),
+                  label: context.i18n.a11yEditButtonMapping(button.plainName),
+                  excludeChildSemantics: true,
+                  borderRadius: BorderRadius.circular(999),
+                  wash: true,
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    // Quieter than the ones that do something.
+                    child: Opacity(opacity: 0.7, child: ButtonWidget(button: button, size: 22)),
                   ),
                 ),
-              );
-            },
+            ],
           ),
-      ],
-    );
+        ),
+      );
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
   }
 }
 

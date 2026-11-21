@@ -48,6 +48,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/utils/network_address.dart';
+import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 
@@ -194,7 +195,7 @@ Future<void> main() async {
     await tester.pump();
 
     expect(find.byKey(const ValueKey('live-metrics')), findsNothing);
-    expect(find.byType(MetricCard), findsNothing);
+    expect(find.byType(SignalRow), findsNothing);
 
     // Unmount before the test ends: with `screenshotMode` off, HomePage's own
     // periodic metrics timer is running, and `flutter_test` fails a test that
@@ -254,7 +255,10 @@ void _bannerStepTests() {
       final row = find.byWidgetPredicate((w) => w is ChainLinkRow && w.link.deviceId == click.uniqueId);
       expect(row, findsOneWidget);
       expect(find.descendant(of: row, matching: find.text(l.chainStepWakePending)), findsOneWidget);
-      expect(find.descendant(of: row, matching: find.byType(OptionalTag)), findsWidgets);
+      expect(
+        find.descendant(of: row, matching: find.textContaining(l.chainOptional, findRichText: true)),
+        findsWidgets,
+      );
     });
 
     // Right after launch the steps would flip as the scan finds things and
@@ -322,6 +326,13 @@ void _bannerStepTests() {
       expect(controllerStep.actionLabel, l.chainSetUp);
       expect(inBanner(find.text(l.chainSetUp)), findsNothing);
       expect(inDevices(find.text(l.chainSetUp)), findsOneWidget);
+    });
+
+    testWidgets('a controller not found yet wears the controller glyph, not a bare ring', (tester) async {
+      await _pumpHome(tester);
+      final banner = tester.widget<ReadyBanner>(find.byType(ReadyBanner));
+      final controllerStep = banner.steps.firstWhere((s) => s.step.id == SetupStepId.controllerPaired);
+      expect(controllerStep.mark, isA<BkIconTile>().having((t) => t.icon, 'icon', LucideIcons.gamepad2));
     });
 
     testWidgets('tapping a step opens what the Devices row\'s fix opens', (tester) async {
@@ -591,10 +602,10 @@ void _twoPairingsTests() {
       await _pumpHome(tester);
 
       final card = _chainCard(ChainLinkKey.app);
-      expect(
-        find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending)),
-        findsOneWidget,
-      );
+      // "Waiting for MyWhoosh" already says it: no "Waiting for connection"
+      // title repeating it, just the hint.
+      expect(find.descendant(of: card, matching: find.text(l.chainStepAppConnectedHint)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.text(l.chainStepAppConnectedPending)), findsNothing);
       expect(find.textContaining('need their own link'), findsNothing);
     });
 
@@ -626,7 +637,13 @@ void _twoPairingsTests() {
       await _pumpHome(tester);
 
       expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh', trainer.advertisementName)), findsOneWidget);
-      expect(statusText(l.onboardingSummaryWaitingFor('MyWhoosh')), findsNothing);
+      expect(
+        find.descendant(
+          of: _chainCard(ChainLinkKey.trainer),
+          matching: statusText(l.chainStatusWaitingForApp('MyWhoosh')),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('trainer card: with the app not connected at all, the status keeps waiting for it', (tester) async {
@@ -634,7 +651,14 @@ void _twoPairingsTests() {
 
       await _pumpHome(tester);
 
-      expect(statusText(l.onboardingSummaryWaitingFor('MyWhoosh')), findsOneWidget);
+      // The trainer app's card says the same words; this is the trainer's.
+      expect(
+        find.descendant(
+          of: _chainCard(ChainLinkKey.trainer),
+          matching: statusText(l.chainStatusWaitingForApp('MyWhoosh')),
+        ),
+        findsOneWidget,
+      );
       expect(statusText(l.chainStatusWaitingForPickup('MyWhoosh', trainer.advertisementName)), findsNothing);
     });
 
@@ -709,7 +733,7 @@ void _selfHostedTrainerTests() {
         findsNothing,
       );
       expect(statusText(l.chainStatusWaitingForPickup('BikeControl', trainer.advertisementName)), findsNothing);
-      expect(statusText(l.onboardingSummaryWaitingFor('BikeControl')), findsNothing);
+      expect(statusText(l.chainStatusWaitingForApp('BikeControl')), findsNothing);
       expect(statusText(l.connected), findsOneWidget);
     });
 
@@ -721,8 +745,8 @@ void _selfHostedTrainerTests() {
       await _pumpHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);
-      expect(find.descendant(of: card, matching: find.text(l.connectionWifi)), findsNothing);
-      expect(find.descendant(of: card, matching: find.text(l.connectionBluetooth)), findsNothing);
+      expect(find.descendant(of: card, matching: find.text(l.onboardingMethodNetwork)), findsNothing);
+      expect(find.descendant(of: card, matching: find.text(l.onboardingMethodBluetooth)), findsNothing);
     });
   });
 }
@@ -1234,7 +1258,13 @@ void _overlayStepTests() {
       await pumpTallHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);
-      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('${l.chainOptional}: ${l.chainStepOverlayPending('MyWhoosh')}', findRichText: true),
+        ),
+        findsOneWidget,
+      );
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
       expect(tester.widget<ChainLinkRow>(card).link.isBlocking, isFalse);
 
@@ -1280,9 +1310,18 @@ void _overlayStepTests() {
       await pumpTallHome(tester);
 
       final card = _chainCard(ChainLinkKey.trainer);
-      expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayPending('MyWhoosh'))), findsOneWidget);
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('${l.chainOptional}: ${l.chainStepOverlayPending('MyWhoosh')}', findRichText: true),
+        ),
+        findsOneWidget,
+      );
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayAction)), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.chainOptional.toUpperCase())), findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.textContaining(l.chainOptional, findRichText: true)),
+        findsOneWidget,
+      );
       expect(find.descendant(of: card, matching: find.text(l.chainStepOverlayDecline)), findsNothing);
       final link = tester.widget<ChainLinkRow>(card).link;
       expect(link.status, LinkStatus.ready);
@@ -1811,7 +1850,7 @@ void _droppedAppTests() {
         matching: find.byType(BkStatusDot),
       );
       expect(
-        find.descendant(of: trainerStatus, matching: find.text(l.onboardingSummaryWaitingFor('MyWhoosh'))),
+        find.descendant(of: trainerStatus, matching: find.text(l.chainStatusWaitingForApp('MyWhoosh'))),
         findsOneWidget,
       );
       expect(appStatusLine(l.chainStatusAppDisconnected('MyWhoosh')), findsOneWidget);
@@ -1819,6 +1858,12 @@ void _droppedAppTests() {
       // One cause, counted once — while the trainer card keeps its own step.
       expect(find.text(l.chainStepsLeftTitle(1)), findsOneWidget);
       expect(find.text(l.chainStepsLeftTitle(2)), findsNothing);
+      // (Its title only restated the status, so the card shows its hint alone.)
+      expect(
+        tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer)).link.activeStep?.id,
+        SetupStepId.trainerAppBridged,
+      );
+      // Once, as the status — the step's title would only say it again.
       expect(
         find.descendant(
           of: _chainCard(ChainLinkKey.trainer),
@@ -1859,6 +1904,12 @@ void _droppedAppTests() {
       final banner = tester.widget<ReadyBanner>(find.byType(ReadyBanner));
       expect(banner.steps.map((s) => s.step.id), [SetupStepId.appConnected]);
       // The trainer card keeps its own step.
+      // (Its title only restated the status, so the card shows its hint alone.)
+      expect(
+        tester.widget<ChainLinkRow>(_chainCard(ChainLinkKey.trainer)).link.activeStep?.id,
+        SetupStepId.trainerAppBridged,
+      );
+      // Once, as the status — the step's title would only say it again.
       expect(
         find.descendant(
           of: _chainCard(ChainLinkKey.trainer),
@@ -2074,15 +2125,25 @@ void _asleepControllerTests() {
       expect(find.text(l.chainPendingSubtitleSingle(l.chainControllerTitle)), findsNothing);
     });
 
-    testWidgets('Ride says it is asleep, with pairing a new one as the quieter option', (tester) async {
+    testWidgets('Ride keeps its card, saying it is asleep, with pairing a new one as the quieter option', (
+      tester,
+    ) async {
       await _pumpHome(tester);
-      final card = find.byKey(const ValueKey('ride-no-controller'));
-      expect(find.descendant(of: card, matching: find.text(l.rideControllerAsleepTitle)), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.text(l.rideNoControllerTitle)), findsNothing);
-      final pairNew = find.descendant(of: card, matching: find.text(l.rideControllerPairNew));
+      // The card stays, faded, rather than giving way to a "no controller"
+      // prompt: which controller, and what its buttons do, still shows.
+      final card = find.byKey(ValueKey('ride-buttons-${play.uniqueId}'));
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.textContaining(l.chainStatusAsleep)),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('ride-no-controller')), findsNothing);
+      // Until it wakes, the trainer app's buttons are a tap away on screen.
+      expect(find.byKey(const ValueKey('ride-manual-control')), findsOneWidget);
+      final pairNew = find.byKey(const ValueKey('ride-pair-new-controller'));
       expect(pairNew, findsOneWidget);
-      expect(find.descendant(of: card, matching: find.byType(PrimaryButton)), findsNothing);
 
+      await tester.ensureVisible(pairNew);
       await tester.tap(pairNew);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
@@ -2093,8 +2154,10 @@ void _asleepControllerTests() {
       core.connection.debugSetConnectedThisSession(play.uniqueId, true);
       await _pumpHome(tester);
       expect(controllerStatus(l.chainStatusAsleep), findsNothing);
-      final card = find.byKey(const ValueKey('ride-no-controller'));
-      expect(find.descendant(of: card, matching: find.text(l.rideControllerAsleepTitle)), findsNothing);
+      // Ride's card says the same: out of range, not asleep.
+      final card = find.byKey(ValueKey('ride-buttons-${play.uniqueId}'));
+      expect(find.descendant(of: card, matching: find.textContaining(l.chainStatusOutOfRange)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.textContaining(l.chainStatusAsleep)), findsNothing);
     });
   });
 }

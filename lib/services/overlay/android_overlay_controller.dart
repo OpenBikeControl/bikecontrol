@@ -10,6 +10,7 @@ import 'package:bike_control/main.dart' show recordError;
 // window service`.
 // ignore: unused_import
 import 'package:bike_control/services/overlay/overlay_entry_point.dart';
+import 'package:bike_control/services/overlay/overlay_definition_binding.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
@@ -90,9 +91,10 @@ Future<bool> styleAndroidOverlayNotification(
 class AndroidOverlayController implements TrainerOverlayController {
   static const _minPushIntervalMs = 100; // ~10 Hz
   final ValueNotifier<bool> _showing = ValueNotifier(false);
-  FitnessBikeDefinition? _def;
-  LiveDefinitionLookup? _liveDef;
-  Listenable? _bound;
+  late final OverlayDefinitionBinding _binding = OverlayDefinitionBinding(
+    onChange: _onChange,
+    onSwap: () => _push(force: true),
+  );
   Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
   Timer? _pushDebounce;
@@ -102,7 +104,7 @@ class AndroidOverlayController implements TrainerOverlayController {
   /// `true` once we've registered our MethodCallHandler on the main-side
   /// MethodChannel that receives forwarded actions from the overlay engine.
   /// One-shot: handler is set and then never replaced; it gates dispatch on
-  /// `_def != null` so messages received while the overlay is hidden are
+  /// a bound definition so messages received while the overlay is hidden are
   /// silently dropped.
   bool _mainHandlerInstalled = false;
 
@@ -120,7 +122,7 @@ class AndroidOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   }) async {
     final granted = await FlutterOverlayWindow.isPermissionGranted();
     if (!granted) {
@@ -130,10 +132,8 @@ class AndroidOverlayController implements TrainerOverlayController {
       }
     }
 
-    _def = def;
-    _liveDef = liveDef;
     _fields = fields;
-    _bind();
+    _binding.attach(def, live: liveDef);
     _installMainHandler();
 
     // flutter_overlay_window 0.5.0 passes width/height through to
@@ -234,10 +234,7 @@ class AndroidOverlayController implements TrainerOverlayController {
 
   @override
   Future<void> hide() async {
-    _bound?.removeListener(_onChange);
-    _bound = null;
-    _def = null;
-    _liveDef = null;
+    _binding.detach();
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -277,10 +274,9 @@ class AndroidOverlayController implements TrainerOverlayController {
         }
         return null;
       }
-      // Re-resolve the live FitnessBikeDefinition each call — see comment
-      // on LiveDefinitionLookup; the trainer emulator rebinds a fresh def
-      // on every transport restart.
-      final live = _liveDef?.call() ?? _def;
+      // The binding follows the trainer onto the definition each reconnect
+      // builds, so this is never a stale one.
+      final live = _binding.current;
       if (live == null) return null; // overlay hidden — drop
       final action = call.arguments;
       if (action is! String) return null;
@@ -334,21 +330,6 @@ class AndroidOverlayController implements TrainerOverlayController {
     }
   }
 
-  void _bind() {
-    final def = _def;
-    if (def == null) return;
-    _bound?.removeListener(_onChange);
-    _bound = Listenable.merge([
-      def.currentGear,
-      def.gearRatio,
-      def.trainerMode,
-      def.powerW,
-      def.cadenceRpm,
-      def.ergTargetPower,
-    ]);
-    _bound!.addListener(_onChange);
-  }
-
   void _onChange() {
     final now = DateTime.now();
     final elapsed = now.difference(_lastPushAt).inMilliseconds;
@@ -366,7 +347,7 @@ class AndroidOverlayController implements TrainerOverlayController {
   }
 
   Future<void> _push({bool force = false}) async {
-    final def = _def;
+    final def = _binding.current;
     if (def == null) return;
     final s = _stateFor(def);
     if (!force && s == _lastPushed) return;

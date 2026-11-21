@@ -326,7 +326,7 @@ Future<void> main() async {
     expect(tester.widget<Button>(button.first).onPressed, isNotNull);
   });
 
-  testWidgets('Share sensors wears the PRO badge without Pro and opens the Sensors page', (tester) async {
+  testWidgets('Sensors wears the PRO badge without Pro and opens the Sensors page', (tester) async {
     IAPManager.instance.setProForTesting(enabled: false);
     await _pumpDevices(tester);
 
@@ -339,6 +339,19 @@ Future<void> main() async {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(SensorsPage), findsOneWidget);
+  });
+
+  testWidgets('with a trainer the Sensors row says where the values come from and has no On/Off', (tester) async {
+    final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-devices-sensors', name: 'Wahoo KICKR'))..isConnected = true;
+    core.connection.devices.add(trainer);
+    addTearDown(() => core.connection.devices.remove(trainer));
+    await _pumpDevices(tester);
+
+    final row = find.byKey(const ValueKey('devices-share-sensors'));
+    final name = trainer.displayName(tester.element(row));
+    expect(find.descendant(of: row, matching: find.text(l.sensorsPageTitle)), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.text(l.sensorsSummaryFrom(name))), findsOneWidget);
+    expect(find.descendant(of: row, matching: find.text(l.statusOff)), findsNothing);
   });
 
   testWidgets('Other inputs: phone steering on a phone, the ignored devices with their count', (tester) async {

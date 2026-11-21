@@ -6,6 +6,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/bk_pill_button.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 
 /// The welcome screen: who this is, how long it takes, and what to have at
 /// hand — the controller, the smart trainer and the trainer app, as three
@@ -28,7 +29,7 @@ class OnboardingWelcome extends StatelessWidget {
     final accent = onboardingAccent(context);
     final l = context.i18n;
 
-    Widget need(IconData icon, String label, int index) => Expanded(
+    Widget need(IconData? icon, String label, int index, {Widget? glyph}) => Expanded(
       child: OnboardingReveal(
         delay: Duration(milliseconds: 420 + index * 110),
         child: Column(
@@ -38,7 +39,7 @@ class OnboardingWelcome extends StatelessWidget {
               height: 52,
               alignment: Alignment.center,
               decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: 0.12)),
-              child: Icon(icon, size: 22, color: accent),
+              child: glyph ?? Icon(icon, size: 22, color: accent),
             ),
             const Gap(8),
             Text(label, textAlign: TextAlign.center).small.semiBold,
@@ -88,7 +89,7 @@ class OnboardingWelcome extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           need(LucideIcons.gamepad2, l.onboardingStepController, 0),
-                          need(LucideIcons.bike, l.smartTrainer, 1),
+                          need(null, l.smartTrainer, 1, glyph: TrainerGlyph(size: 24, color: accent)),
                           need(LucideIcons.monitor, l.onboardingStepApp, 2),
                         ],
                       ),

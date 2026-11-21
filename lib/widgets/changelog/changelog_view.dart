@@ -5,6 +5,7 @@ import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
+import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:flutter/gestures.dart' show TapGestureRecognizer;
 import 'package:intl/intl.dart';
@@ -229,7 +230,16 @@ class _Entry extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _bulleted(context, ChangelogInlineText(entry.text, style: style), style, indent: 0),
+        _bulleted(
+          context,
+          ChangelogInlineText(
+            entry.text,
+            style: style,
+            leading: entry.tier == null ? null : ChangelogTierBadge(tier: entry.tier!),
+          ),
+          style,
+          indent: 0,
+        ),
         for (final child in entry.children) ...[
           const Gap(6),
           _bulleted(context, ChangelogInlineText(child, style: small), small, indent: 22, hollow: true),
@@ -284,6 +294,30 @@ class _CurrentBadge extends StatelessWidget {
         style: context.typography.caption.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w700),
       ),
     );
+  }
+}
+
+/// The plan an entry needs, in front of its text: PRO in the Pro orange, Base
+/// as the quiet pill the plan badge wears.
+class ChangelogTierBadge extends StatelessWidget {
+  const ChangelogTierBadge({super.key, required this.tier});
+
+  final ChangelogTier tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return switch (tier) {
+      ChangelogTier.pro => const ProBadge(padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2)),
+      ChangelogTier.base => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(color: cs.muted, borderRadius: BorderRadius.circular(999)),
+        child: Text(
+          context.i18n.fullVersion,
+          style: context.typography.caption.copyWith(color: cs.foreground, fontWeight: FontWeight.w700),
+        ),
+      ),
+    };
   }
 }
 
@@ -376,10 +410,13 @@ class _EarlierReleaseState extends State<_EarlierRelease> {
 /// A line of the changelog with its inline markdown: `[links](url)` and bare
 /// URLs open in the browser, `**bold**` and `*emphasis*` keep their weight.
 class ChangelogInlineText extends StatefulWidget {
-  const ChangelogInlineText(this.text, {super.key, required this.style});
+  const ChangelogInlineText(this.text, {super.key, required this.style, this.leading});
 
   final String text;
   final TextStyle style;
+
+  /// Set in front of the text, on its first line (an entry's plan badge).
+  final Widget? leading;
 
   @override
   State<ChangelogInlineText> createState() => _ChangelogInlineTextState();
@@ -434,7 +471,13 @@ class _ChangelogInlineTextState extends State<ChangelogInlineText> {
       decoration: TextDecoration.underline,
       decorationColor: accent.withValues(alpha: 0.5),
     );
-    final spans = <InlineSpan>[];
+    final spans = <InlineSpan>[
+      if (widget.leading case final leading?)
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Padding(padding: const EdgeInsetsDirectional.only(end: 8), child: leading),
+        ),
+    ];
     var index = 0;
     final text = widget.text;
     for (final m in _token.allMatches(text)) {

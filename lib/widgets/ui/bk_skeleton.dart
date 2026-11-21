@@ -25,8 +25,9 @@ class BkBone extends StatelessWidget {
   }
 }
 
-/// A slow light passing over [child] — "this is loading", for placeholders
-/// only. Still under reduced motion (and in store renders).
+/// A slow light passing over [child] — "this is loading" on placeholders,
+/// "still to do" on the setup banner's device marks. Still under reduced
+/// motion (and in store renders).
 class BkShimmer extends StatefulWidget {
   const BkShimmer({super.key, required this.child});
 

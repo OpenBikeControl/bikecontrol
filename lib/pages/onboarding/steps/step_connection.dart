@@ -29,6 +29,7 @@ class _MethodTile extends StatelessWidget {
     this.disabled = false,
     this.footNote,
     this.onTroubleshoot,
+    this.onUseBluetooth,
   });
 
   final IconData icon;
@@ -50,6 +51,10 @@ class _MethodTile extends StatelessWidget {
   /// wizard's help button, which nobody presses while they still believe it is
   /// working.
   final VoidCallback? onTroubleshoot;
+
+  /// Offered beside [onTroubleshoot]: the same app also takes BikeControl over
+  /// Bluetooth (see [offersBluetoothFallback]).
+  final VoidCallback? onUseBluetooth;
 
   @override
   Widget build(BuildContext context) {
@@ -144,11 +149,21 @@ class _MethodTile extends StatelessWidget {
                       if (connection!.isConnected.value) return const SizedBox.shrink();
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Button.outline(
-                          style: ButtonStyle.outline(size: ButtonSize.small),
-                          onPressed: onTroubleshoot,
-                          child: Text(context.i18n.networkTroubleshootTroubleshoot),
-                        ),
+                        child: Wrap(spacing: 8, runSpacing: 8, children: [
+                          Button.outline(
+                            style: ButtonStyle.outline(size: ButtonSize.small),
+                            onPressed: onTroubleshoot,
+                            child: Text(context.i18n.networkTroubleshootTroubleshoot),
+                          ),
+                          if (onUseBluetooth != null)
+                            Button.outline(
+                              key: const ValueKey('onboarding-use-bluetooth'),
+                              style: ButtonStyle.outline(size: ButtonSize.small),
+                              onPressed: onUseBluetooth,
+                              leading: const Icon(LucideIcons.bluetooth, size: 14),
+                              child: Text(context.i18n.bluetoothFallbackAction),
+                            ),
+                        ]),
                       );
                     },
                   ),
@@ -185,6 +200,9 @@ List<Widget> onboardingMethodTiles(BuildContext context, {required SupportedApp 
     return switch (method) {
       OnboardingMethod.network => _MethodTile(
           onTroubleshoot: () => context.push(const NetworkTroubleshootingPage()),
+          onUseBluetooth: offersBluetoothFallback(app)
+              ? () => useBluetoothInstead(context, app, onUpdate: onUpdate)
+              : null,
           icon: LucideIcons.wifi,
           title: context.i18n.onboardingMethodNetwork,
           badge: context.i18n.recommended,
@@ -201,6 +219,9 @@ List<Widget> onboardingMethodTiles(BuildContext context, {required SupportedApp 
           // Platform badges only where they apply.
           badge: HostPlatform.isIOS ? context.i18n.onboardingMethodBluetoothBadge : null,
           description: context.i18n.onboardingMethodBluetoothDesc(app.name),
+          // Paired as a BC2 shifter, BikeControl sits in the app's steering
+          // devices — not where a rider looks for a controller.
+          footNote: onboardingBluetoothIsBc2(app) ? context.i18n.addBikeControlAsSteeringDevice(app.name) : null,
           enabled: enabled,
           connection: connection,
           appName: app.name,

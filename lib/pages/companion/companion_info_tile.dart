@@ -12,7 +12,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// The name a ride-data tile goes by in the add list.
 String companionTileName(AppLocalizations l, CompanionTileKind kind) => switch (kind) {
-  CompanionTileKind.action => '',
+  CompanionTileKind.action || CompanionTileKind.music => '',
   CompanionTileKind.gear => l.rideGear,
   CompanionTileKind.power => l.sensorQuantityPower,
   CompanionTileKind.cadence => l.sensorQuantityCadence,
@@ -31,6 +31,7 @@ IconData companionTileIcon(CompanionTileKind kind) => switch (kind) {
   CompanionTileKind.ergTarget => LucideIcons.target,
   CompanionTileKind.mode => LucideIcons.toggleLeft,
   CompanionTileKind.rideCard => LucideIcons.panelTop,
+  CompanionTileKind.music => LucideIcons.music,
 };
 
 /// A ride-data tile: one reading of [definition], its label above and the

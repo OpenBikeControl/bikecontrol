@@ -99,4 +99,31 @@ Future<void> main() async {
     expect(undone, 1);
     await finish(tester);
   });
+
+  testWidgets('a newer toast about the same device replaces the older one', (tester) async {
+    await pumpApp(tester, const Size(390, 844));
+    Future<void> settle() async {
+      for (var i = 0; i < 8; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    for (var i = 0; i < 3; i++) {
+      buildToast(level: LogLevel.LOGLEVEL_ERROR, title: 'HEADWIND failed $i', replaceKey: 'device-hw');
+      await settle();
+    }
+    buildToast(level: LogLevel.LOGLEVEL_ERROR, title: 'Climb failed', replaceKey: 'device-climb');
+    await settle();
+
+    expect(find.byType(BkToastCard), findsNWidgets(2));
+    expect(find.text('HEADWIND failed 2'), findsOneWidget);
+    expect(find.text('HEADWIND failed 0'), findsNothing);
+
+    // It connected after all: its failure is old news.
+    dismissToast('device-hw');
+    await settle();
+    expect(find.text('HEADWIND failed 2'), findsNothing);
+    expect(find.text('Climb failed'), findsOneWidget);
+    await finish(tester);
+  });
 }

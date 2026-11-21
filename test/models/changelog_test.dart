@@ -187,4 +187,35 @@ void main() {
       );
     }
   });
+
+  test('(Base) and (Pro) mark the plan an entry needs, and leave its text', () {
+    final entries = parseChangelog(
+      '### 3.0.0\n**Features**:\n'
+      '- (Pro) Sensors: replace any value.\n'
+      '- CYCPLUS T7 shifters work. (base)\n'
+      '- Long entry\n  run on (Pro)\n'
+      '- Tacx NEO Bike (Smart and Plus).\n',
+    ).single.sections.single.entries;
+    expect(entries.map((e) => e.tier), [ChangelogTier.pro, ChangelogTier.base, ChangelogTier.pro, null]);
+    expect(entries.map((e) => e.text), [
+      'Sensors: replace any value.',
+      'CYCPLUS T7 shifters work.',
+      'Long entry run on',
+      'Tacx NEO Bike (Smart and Plus).',
+    ]);
+    final apple = withoutOtherPlatforms(parseChangelog('### 3.0.0\n**Features**:\n- (Pro) Power Lock.\n'));
+    expect(apple.single.sections.single.entries.single.tier, ChangelogTier.pro, reason: 'the Apple copy keeps it');
+  });
+
+  test('a translation marks the same entries as CHANGELOG.md', () {
+    List<List<ChangelogTier?>> tiers(String path) => [
+      for (final r in parseChangelog(File(path).readAsStringSync()).take(2))
+        for (final s in r.sections) [for (final e in s.entries) e.tier],
+    ];
+    final english = tiers('CHANGELOG.md');
+    for (final file in Directory('changelog').listSync().whereType<File>().where((f) => f.path.endsWith('.md'))) {
+      if (file.path.endsWith('README.md')) continue;
+      expect(tiers(file.path), english, reason: file.path);
+    }
+  });
 }

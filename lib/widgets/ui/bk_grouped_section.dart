@@ -53,7 +53,9 @@ class BkGroupedSection extends StatelessWidget {
       if (i < children.length - 1) {
         final hasTile = child is BkGroupedRow && (child.icon != null || child.leading != null);
         rows.add(
-          BkGroupedDivider(indent: dividerIndent ?? (hasTile ? inset + BkIconTile.size + BkGroupedRow.gap : inset)),
+          BkGroupedDivider(
+            indent: dividerIndent ?? (hasTile ? inset + BkIconTile.defaultSize + BkGroupedRow.gap : inset),
+          ),
         );
       }
     }
@@ -288,9 +290,20 @@ class _BkGroupedRowState extends State<BkGroupedRow> {
 /// blue glyph. A tile given its own [color] (a status, a quiet grey) keeps
 /// the neutral fill, so state colours never sit on the brand wash.
 class BkIconTile extends StatelessWidget {
-  const BkIconTile({super.key, required this.icon, this.color, this.background});
+  const BkIconTile({
+    super.key,
+    this.icon,
+    this.glyph,
+    this.color,
+    this.background,
+    this.size = BkIconTile.defaultSize,
+  }) : assert((icon == null) != (glyph == null), 'an icon or a glyph');
 
-  final IconData icon;
+  final IconData? icon;
+
+  /// A drawn mark in place of [icon] (the trainer's), given the tile's ink and
+  /// glyph size through [IconTheme].
+  final Widget? glyph;
 
   /// Icon colour; defaults to the brand's tile ink.
   final Color? color;
@@ -299,7 +312,12 @@ class BkIconTile extends StatelessWidget {
   /// [color] is something other than the tile ink.
   final Color? background;
 
-  static const double size = 30;
+  /// The tile's edge; [defaultSize] everywhere but the device lists, which
+  /// draw their marks larger (see `deviceMarkSize`).
+  final double size;
+
+  /// The tile edge every grouped row's text inset is measured from.
+  static const double defaultSize = 30;
 
   @override
   Widget build(BuildContext context) {
@@ -312,9 +330,14 @@ class BkIconTile extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: background ?? (ink == brand.tileInk ? brand.tileWash : cs.muted),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(size * 0.27),
           ),
-          child: Icon(icon, size: 16, color: ink),
+          child: glyph != null
+              ? IconTheme(
+                  data: IconThemeData(size: (16 * size / defaultSize).roundToDouble(), color: ink),
+                  child: Center(child: glyph),
+                )
+              : Icon(icon, size: (16 * size / defaultSize).roundToDouble(), color: ink),
         ),
       ),
     );

@@ -1,12 +1,4 @@
-7.6.0
+7.6.1
 Nouveautés :
-• Incyclist, Tour du Pain et Rampida via OpenBikeControl
-• Manettes CYCPLUS T7 comme manettes
-• Éditeur de boutons plus clair, groupé par action
-• Di2 : règle les canaux D-Fly dans E-TUBE, avec un guide
-• Zwift Click V2 : manette droite sans déverrouillage
-• Plus d'essai : 120 appuis/jour, puis 40, 30 min de vitesses virtuelles
-
-Corrections :
-• Zwift : Bombe Ride On sur appui court
-• Android : plus de plantage du service, « Fermer et quitter » quitte toujours
+• MyWhoosh en Bluetooth : associe BikeControl comme appareil de direction pour changer de vitesse et choisir ta route aux intersections
+• Capteurs : vois d'où vient chaque valeur et remplace celles du home trainer par ton capteur

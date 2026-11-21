@@ -12,9 +12,11 @@ import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
 import 'package:bike_control/widgets/ui/bk_status_dot.dart';
+import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
 import 'package:bike_control/widgets/ui/trainer_app_logo.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 
 /// Where the done step stands, in the order a rider has to fix things.
 enum OnboardingDoneState {
@@ -155,9 +157,11 @@ Widget onboardingDoneBody(
   // (leading, title, status, ok, action) — a bridge whose virtual trainer the
   // app hasn't picked up yet is honest about it instead of claiming "Bridged".
   Widget tile(IconData icon) => BkIconTile(icon: icon);
+  // The trainer as the drawn trainer, as on Home.
+  const trainerTile = BkIconTile(glyph: TrainerGlyph());
   // The app by its logo or initial, as in the app picker and on Home.
   final appMark = TrainerAppMark(name: app.name, logoAsset: app.logoAsset, logoUrl: app.logoUrl);
-  final rows = <(Widget, String, String, bool, Widget?)>[
+  final rows = <(Widget, String, String, bool, VoidCallback?)>[
     hasController
         ? (tile(LucideIcons.gamepad2), controllerName, context.i18n.onboardingDeviceConnected, true, null)
         : (
@@ -165,25 +169,21 @@ Widget onboardingDoneBody(
             context.i18n.onboardingYourController,
             context.i18n.onboardingSummaryNotPaired,
             false,
-            onPairController == null
-                ? null
-                : Button.outline(
-                    key: const ValueKey('onboarding-done-pair-controller'),
-                    style: ButtonStyle.outline(size: ButtonSize.small),
-                    onPressed: onPairController,
-                    child: Text(context.i18n.onboardingPairControllerAction),
-                  ),
+            // The whole row pairs it, with a chevron, as rows elsewhere do —
+            // a "Pair" button squeezed "Not paired" onto two lines.
+            onPairController,
           ),
     appConnected || selfHosted
         ? (appMark, app.name, context.i18n.onboardingDeviceConnected, true, null)
         : (appMark, app.name, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
     if (trainerName != null)
       selfHosted
-          ? (tile(LucideIcons.bike), trainerName, context.i18n.onboardingDeviceConnected, true, null)
+          ? (trainerTile, trainerName, context.i18n.onboardingDeviceConnected, true, null)
           : trainerAppConnected
-          ? (tile(LucideIcons.bike), trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
-          : (tile(LucideIcons.bike), trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
-    if (overlayOn) (tile(LucideIcons.layers), context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
+          ? (trainerTile, trainerName, context.i18n.onboardingSummaryTrainerInApp(app.name), true, null)
+          : (trainerTile, trainerName, context.i18n.onboardingSummaryWaitingFor(app.name), false, null),
+    if (overlayOn)
+      (tile(LucideIcons.layers), context.i18n.onboardingOverlayRow, context.i18n.onboardingOverlayOn, true, null),
   ];
   return Column(
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -205,28 +205,40 @@ Widget onboardingDoneBody(
       Gap(allReady ? 28 : 20),
       BkGroupedSection(
         children: [
-          for (final (leading, title, sub, ok, action) in rows)
-            ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 56),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Row(
-                  children: [
-                    leading,
-                    Gap(12),
-                    Expanded(flex: 3, child: Text(title).small.semiBold),
-                    Gap(8),
-                    // Flexible so a long "Waiting for {app}…" or the Pair
-                    // button can't push the name off.
-                    Flexible(
-                      flex: 2,
-                      child: Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: BkStatusDot(label: sub, tone: ok ? BkStatusTone.success : BkStatusTone.neutral),
-                      ),
+          for (final (leading, title, sub, ok, onTap) in rows)
+            _tappable(
+              context,
+              onTap: onTap,
+              label: '$title, $sub',
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 56),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  // The status takes the width it needs — "Waiting for
+                  // MyWhoosh…" stays on one line beside a short name — up to
+                  // 60% of the row, so a long one can't push the name off.
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      children: [
+                        leading,
+                        Gap(12),
+                        Expanded(child: Text(title).small.semiBold),
+                        Gap(8),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.6),
+                          child: BkStatusDot(label: sub, tone: ok ? BkStatusTone.success : BkStatusTone.neutral),
+                        ),
+                        if (onTap != null) ...[
+                          Gap(6),
+                          Icon(
+                            LucideIcons.chevronRight,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.mutedForeground,
+                          ),
+                        ],
+                      ],
                     ),
-                    if (action != null) ...[Gap(10), action],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -420,3 +432,17 @@ class _SuccessBurst extends StatelessWidget {
     );
   }
 }
+
+/// A summary row that does something when it has [onTap] — the whole row, with
+/// the cards' hover and pressed washes — and a plain row otherwise.
+Widget _tappable(BuildContext context, {required VoidCallback? onTap, required String label, required Widget child}) =>
+    onTap == null
+    ? child
+    : BkTappable(
+        key: const ValueKey('onboarding-done-pair-controller'),
+        onPressed: onTap,
+        label: label,
+        excludeChildSemantics: true,
+        wash: true,
+        child: child,
+      );

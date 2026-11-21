@@ -183,118 +183,18 @@ void main() {
       expect(find.byKey(const Key('metric-card-power')), findsOneWidget);
       expect(find.byKey(const Key('metric-card-heartRate')), findsOneWidget);
       expect(find.byKey(const Key('metric-card-cadence')), findsOneWidget);
-      expect(find.byKey(const Key('metric-card-speed')), findsOneWidget);
-      expect(find.text('--'), findsNWidgets(4));
+      // Only a trainer reports speed — without one there is no speed row.
+      expect(find.byKey(const Key('metric-card-speed')), findsNothing);
+      expect(find.text('--'), findsNWidgets(3));
       expect(controlIn('power'), findsNothing);
       expect(controlIn('heartRate'), findsNothing);
       expect(controlIn('cadence'), findsNothing);
-      expect(controlIn('speed'), findsNothing);
-
-      // The equal-height fix must be a no-op here: with no card growing a
-      // source list, all four tiles were already the same height before
-      // this feature existed, and must stay exactly that way — see
-      // `_EqualHeightRow`'s own doc comment on why it only re-lays out a
-      // child that is SHORTER than its row.
-      final powerHeight = tester.getSize(find.byKey(const Key('metric-card-power'))).height;
-      final heartHeight = tester.getSize(find.byKey(const Key('metric-card-heartRate'))).height;
-      final cadenceHeight = tester.getSize(find.byKey(const Key('metric-card-cadence'))).height;
-      final speedHeight = tester.getSize(find.byKey(const Key('metric-card-speed'))).height;
-      expect(powerHeight, heartHeight);
-      expect(cadenceHeight, speedHeight);
+      // With nothing to fall back to, every row says so.
+      expect(find.text(AppLocalizations.current.sensorSourceNone), findsNWidgets(3));
     });
   });
 
-  group('equal-height rows (direct author feedback: "otherwise it looks odd")', () {
-    testWidgets(
-      'a card with a source list and its short row-mate render the SAME height, top-aligned content',
-      (tester) async {
-        // A nearby, not-yet-connected sensor is enough to grow HEART's
-        // inline source list (Trainer + the sensor itself) — POWER has no
-        // candidate at all, so it stays the short, list-less card. Exactly
-        // the mismatch from the author's screenshot.
-        final device = BleHeartRateDevice(BleDevice(deviceId: 'equal-height-hr', name: 'TICKR 5555'));
-        core.connection.devices.add(device);
-        addTearDown(() => core.connection.devices.clear());
-
-        await pump(tester);
-
-        // The fixture actually reproduces the reported mismatch — HEART
-        // really does carry extra content POWER doesn't.
-        expect(controlIn('heartRate'), findsOneWidget);
-        expect(controlIn('power'), findsNothing);
-
-        final powerCard = find.byKey(const Key('metric-card-power'));
-        final heartCard = find.byKey(const Key('metric-card-heartRate'));
-        expect(tester.getSize(powerCard).height, tester.getSize(heartCard).height);
-
-        // Top-aligned, not centred: POWER's label sits at the same y as
-        // HEART's label, even though POWER's container is now taller than
-        // its own (short) content.
-        final powerLabelTop = tester.getTopLeft(find.descendant(of: powerCard, matching: find.text('POWER'))).dy;
-        final heartLabelTop = tester.getTopLeft(find.descendant(of: heartCard, matching: find.text('HEART'))).dy;
-        expect(powerLabelTop, heartLabelTop);
-      },
-    );
-
-    testWidgets(
-      "when BOTH cards grow a list of different lengths, the shorter card's list is pinned to the "
-      'top — not centred or bottom-weighted by the extra stretched height',
-      (tester) async {
-        // POWER: one candidate (Trainer + the meter) — the shorter list,
-        // whose card ends up stretched to HEART's height below.
-        final powerMeter = BlePowerDevice(BleDevice(deviceId: 'equal-height-power', name: 'ASSIOMA DUO'));
-        core.connection.devices.add(powerMeter);
-        // HEART: two candidates (Trainer + both straps) — the taller list,
-        // driving the row's own height.
-        final hr1 = BleHeartRateDevice(BleDevice(deviceId: 'equal-height-hr-1', name: 'TICKR 5555'));
-        final hr2 = BleHeartRateDevice(BleDevice(deviceId: 'equal-height-hr-2', name: 'TICKR 6666'));
-        core.connection.devices.add(hr1);
-        core.connection.devices.add(hr2);
-        addTearDown(() => core.connection.devices.clear());
-
-        await pump(tester);
-
-        expect(controlIn('power'), findsOneWidget);
-        expect(controlIn('heartRate'), findsOneWidget);
-
-        final powerCard = find.byKey(const Key('metric-card-power'));
-        final heartCard = find.byKey(const Key('metric-card-heartRate'));
-        final powerCardRect = tester.getRect(powerCard);
-        final heartCardRect = tester.getRect(heartCard);
-        // The fixture actually reproduces the mismatch: HEART's list really
-        // is longer, so POWER's card is the one equalised (stretched) here.
-        expect(powerCardRect.height, heartCardRect.height);
-
-        // The header (and so the whole list under it) sits at the SAME y in
-        // both cards — level with where the value column ends, regardless
-        // of which card's own list is shorter and got stretched to fit a
-        // taller row-mate.
-        final powerHeaderTop = tester
-            .getTopLeft(
-              find.descendant(of: powerCard, matching: find.byKey(const Key('metric-card-source-header'))),
-            )
-            .dy;
-        final heartHeaderTop = tester
-            .getTopLeft(
-              find.descendant(of: heartCard, matching: find.byKey(const Key('metric-card-source-header'))),
-            )
-            .dy;
-        expect(powerHeaderTop, heartHeaderTop);
-
-        // And the spare height from equalisation lands BELOW POWER's
-        // (shorter) list, not squeezed above it or spread invisibly through
-        // it — the list's own bottom edge sits above the card's own bottom
-        // padding edge, with room to spare.
-        final powerListBottom = tester
-            .getBottomLeft(
-              find.descendant(of: powerCard, matching: find.byKey(const Key('metric-card-source-control'))),
-            )
-            .dy;
-        final powerCardContentBottom = powerCardRect.bottom - 14; // the card's own 14px padding
-        expect(powerCardContentBottom - powerListBottom, greaterThan(8));
-      },
-    );
-
+  group('layout', () {
     testWidgets('renders without throwing when laid out with unbounded height (inside a scroll view)', (
       tester,
     ) async {
@@ -350,7 +250,7 @@ void main() {
       expect(
         find.descendant(
           of: segmentIn('heartRate', 'trainer'),
-          matching: find.text(AppLocalizations.current.sensorSourceTrainer),
+          matching: find.text(AppLocalizations.current.sensorSourceNone),
         ),
         findsOneWidget,
       );
@@ -363,7 +263,7 @@ void main() {
       expect(
         find.descendant(
           of: segmentIn('heartRate', 'trainer'),
-          matching: find.text(AppLocalizations.current.sensorSourceTrainerSubtitle),
+          matching: find.text(AppLocalizations.current.sensorSourceNoneSubtitle),
         ),
         findsOneWidget,
       );
@@ -455,7 +355,7 @@ void main() {
       expect(
         find.descendant(
           of: segmentIn('cadence', 'trainer'),
-          matching: find.text(AppLocalizations.current.sensorSourceTrainer),
+          matching: find.text(AppLocalizations.current.sensorSourceNone),
         ),
         findsOneWidget,
       );
@@ -609,7 +509,7 @@ void main() {
 
       await pump(tester, device: device, hideWhenDeviceHasNoMetrics: true);
 
-      expect(find.byType(MetricCard), findsNothing);
+      expect(find.byType(SignalRow), findsNothing);
     });
 
     testWidgets('false (home page\'s default): the same device still renders the grid', (tester) async {
@@ -617,7 +517,7 @@ void main() {
 
       await pump(tester, device: device);
 
-      expect(find.byType(MetricCard), findsNWidgets(4));
+      expect(find.byType(SignalRow), findsNWidgets(4));
     });
   });
 
@@ -1311,8 +1211,82 @@ void main() {
       expect(segmentIn('heartRate', device.source.id), findsOneWidget);
     });
   });
+
+  group('with a trainer', () {
+    Finder sourceLineOf(String quantityName) => find.descendant(
+      of: find.byKey(Key('metric-card-$quantityName')),
+      matching: find.byKey(const Key('signal-row-source')),
+    );
+
+    testWidgets('every row names the trainer as its source, and speed gets a row of its own', (tester) async {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-signal-rows', name: 'Wahoo KICKR'));
+      await pump(tester, device: trainer);
+      final name = trainer.displayName(tester.element(find.byType(LiveMetricsSection)));
+
+      for (final q in ['power', 'heartRate', 'cadence', 'speed']) {
+        expect(tester.widget<Text>(sourceLineOf(q)).data, name);
+      }
+      expect(find.byKey(const Key('signal-row-replaced')), findsNothing);
+    });
+
+    testWidgets('a sensor in the trainer\'s place is tagged Replaced; the trainer option keeps its name', (
+      tester,
+    ) async {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-replaced', name: 'Wahoo KICKR'));
+      final strap = FakeSensorSource(id: 'hr-replaces', displayName: 'Polar H10', provides: {SensorQuantity.heartRate});
+      core.sensors.register(strap);
+      core.sensors.select(SensorQuantity.heartRate, strap.id);
+      strap.emit(SensorQuantity.heartRate, 138);
+      addTearDown(() {
+        core.sensors.unregister(strap.id);
+        core.sensors.select(SensorQuantity.heartRate, null);
+      });
+
+      await pump(tester, device: trainer);
+      final name = trainer.displayName(tester.element(find.byType(LiveMetricsSection)));
+
+      expect(tester.widget<Text>(sourceLineOf('heartRate')).data, 'Polar H10');
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('metric-card-heartRate')),
+          matching: find.byKey(const Key('signal-row-replaced')),
+        ),
+        findsOneWidget,
+      );
+      expect(find.descendant(of: segmentIn('heartRate', 'trainer'), matching: find.text(name)), findsOneWidget);
+      // The trainer is not reporting a heart rate, and the option says so.
+      expect(
+        find.descendant(
+          of: segmentIn('heartRate', 'trainer'),
+          matching: find.text(AppLocalizations.current.sensorSourceTrainerNoReading),
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('phone width', () {
+    testWidgets('the source list folds away and opens with a tap on the row', (tester) async {
+      tester.view.physicalSize = const Size(390, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final device = BleHeartRateDevice(BleDevice(deviceId: 'fold-hr', name: 'TICKR 1234'));
+      core.connection.devices.add(device);
+
+      await pump(tester);
+      expect(controlIn('heartRate'), findsNothing);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('metric-card-heartRate')),
+          matching: find.byKey(const Key('signal-row-header')),
+        ),
+      );
+      await tester.pump();
+      expect(segmentIn('heartRate', device.source.id), findsOneWidget);
+    });
+  });
 }
 
 /// The status palette of the theme the section was pumped in.
 BkStatusColors _status(WidgetTester tester) => BkStatusColors.of(tester.element(find.byType(LiveMetricsSection).first));
-

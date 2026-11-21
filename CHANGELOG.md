@@ -1,16 +1,22 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- (Base) MyWhoosh over Bluetooth: pair BikeControl in MyWhoosh as a steering device, then shift gears and choose your way at junctions (long press). If the network connection doesn't come up, BikeControl offers Bluetooth instead.
+- (Pro) Sensors: one list shows where power, heart rate, cadence and speed come from, your trainer included, and lets you replace any of them with your own sensor. Sending sensors to the trainer app only shows up when no trainer is connected, since the trainer already carries them.
+- (Pro) Control protocol: on Auto, the trainer page now shows which protocol Auto picked (e.g. "Auto: FTMS").
+
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.
-- CYCPLUS T7 shifters work as controllers: all eight buttons, steering on the rear arrows by default.
-- OpenBikeControl apps now see your virtual gear, live.
-- A clearer button editor: actions are grouped by what they do (Gears, Trainer, Workout, Riding, …), and on phones it opens as a bottom sheet.
-- Shimano Di2: a third setup option – set the D-Fly channels yourself in E-TUBE, with a step-by-step guide.
-- Zwift Click V2: you can optionally use the right controller without unlocking it.
+- (Base) Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.
+- (Base) CYCPLUS T7 shifters work as controllers: all eight buttons, steering on the rear arrows by default.
+- (Pro) OpenBikeControl apps now see your virtual gear, live.
+- (Base) A clearer button editor: actions are grouped by what they do (Gears, Trainer, Workout, Riding, …), and on phones it opens as a bottom sheet.
+- (Base) Shimano Di2: a third setup option – set the D-Fly channels yourself in E-TUBE, with a step-by-step guide.
+- (Base) Zwift Click V2: you can optionally use the right controller without unlocking it.
 - More room to try: 120 button presses a day during the trial (was 80), 40 a day after it (was 15), and 30 minutes a day of BikeControl's own virtual shifting without Pro (was 20).
 - Clearer trial: BikeControl warns you (also as a notification) when 10 button presses are left for today, and the trial card shows what you get after the trial. If your trainer app does its own shifting, Ride no longer suggests BikeControl's virtual shifting, and keyboard control is marked optional next to an OpenBikeControl connection.
-- KICKR Headwind: the fan can follow your heart rate (from a strap connected to BikeControl) as well as your power, and you set where it starts and where it reaches full speed. The page shows the live reading and the speed it gives.
-- Elite Rizer: incline now works with any smart trainer.
-- Trainer Controls (Companion mode) is now yours to arrange: move and resize every button, add your gear, power, cadence and ratio, and go full screen. Ride mode puts a big − and + on the screen with your gear between them, and Ride's virtual shifting card opens it with one tap. Its − and + now shift BikeControl's own virtual shifting, with the shift vibration.
+- (Base) KICKR Headwind: the fan can follow your heart rate (from a strap connected to BikeControl) as well as your power, and you set where it starts and where it reaches full speed. The page shows the live reading and the speed it gives.
+- (Base) Elite Rizer: incline now works with any smart trainer.
+- (Pro) Trainer Controls (Companion mode) now opens in ride mode: a big − and + with your gear, power, cadence and ratio between them, and every other button a scroll below. Tap Edit to move and resize tiles or add buttons, readings and music controls, and go full screen. Its − and + now shift BikeControl's own virtual shifting, with the shift vibration.
 
 **Fixes**:
 - Zwift: Ride On Bomb fires on a short press too (Zwift needs the button held for a moment).

@@ -1,16 +1,22 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- (Base) MyWhoosh por Bluetooth: empareja BikeControl en MyWhoosh como dispositivo de dirección; luego cambia de marcha y elige tu camino en los cruces (pulsación larga). Si la conexión por red no funciona, BikeControl te ofrece Bluetooth en su lugar.
+- (Pro) Sensores: una lista muestra de dónde vienen la potencia, el pulso, la cadencia y la velocidad, rodillo incluido, y te deja sustituir cualquiera por tu propio sensor. «Enviar a la app de entrenamiento» solo aparece sin rodillo conectado, ya que el rodillo ya los transmite.
+- (Pro) Protocolo de control: en Auto, la página del rodillo muestra qué protocolo eligió Auto (p. ej. «Auto: FTMS»).
+
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain y Rampida tienen ahora soporte oficial a través de OpenBikeControl.
-- Las manetas CYCPLUS T7 funcionan como mandos: los ocho botones, con la dirección en las flechas traseras por defecto.
-- Las apps de OpenBikeControl ven ahora tu marcha virtual en directo.
-- Un editor de botones más claro: las acciones se agrupan según lo que hacen (Marchas, Rodillo, Entrenamiento, Rodar, …), y en el móvil se abre como hoja inferior.
-- Shimano Di2: una tercera opción de configuración – configura tú mismo los canales D-Fly en E-TUBE, con una guía paso a paso.
-- Zwift Click V2: puedes usar opcionalmente el mando derecho sin desbloquearlo.
+- (Base) Incyclist, Tour du Pain y Rampida tienen ahora soporte oficial a través de OpenBikeControl.
+- (Base) Las manetas CYCPLUS T7 funcionan como mandos: los ocho botones, con la dirección en las flechas traseras por defecto.
+- (Pro) Las apps de OpenBikeControl ven ahora tu marcha virtual en directo.
+- (Base) Un editor de botones más claro: las acciones se agrupan según lo que hacen (Marchas, Rodillo, Entrenamiento, Rodar, …), y en el móvil se abre como hoja inferior.
+- (Base) Shimano Di2: una tercera opción de configuración – configura tú mismo los canales D-Fly en E-TUBE, con una guía paso a paso.
+- (Base) Zwift Click V2: puedes usar opcionalmente el mando derecho sin desbloquearlo.
 - Más margen para probar: 120 pulsaciones al día durante la prueba (antes 80), 40 al día después (antes 15) y, sin Pro, 30 minutos al día del cambio virtual de BikeControl (antes 20).
 - Una prueba más clara: BikeControl te avisa (también con una notificación) cuando te quedan 10 pulsaciones para hoy, y la tarjeta de prueba muestra lo que tendrás después. Si tu app de entrenamiento cambia de marcha por sí misma, «Rodar» ya no sugiere el cambio virtual de BikeControl, y el control por teclado aparece como opcional junto a una conexión OpenBikeControl.
-- KICKR Headwind: el ventilador puede seguir tu frecuencia cardíaca (de una banda conectada a BikeControl) o tu potencia, y tú decides dónde arranca y dónde llega a velocidad máxima. La página muestra la lectura actual y la velocidad resultante.
-- Elite Rizer: la inclinación ahora funciona con cualquier rodillo inteligente.
-- Ahora organizas tú los Controles del rodillo (modo Companion): mueve y cambia el tamaño de cada botón, añade tu marcha, potencia, cadencia y desarrollo, y ponlo a pantalla completa. El modo pedaleo muestra un − y un + grandes con tu marcha en medio, y la tarjeta de cambio virtual de Rodar lo abre con un toque. Su − y + cambian ahora con el cambio virtual de BikeControl, con la vibración al cambiar.
+- (Base) KICKR Headwind: el ventilador puede seguir tu frecuencia cardíaca (de una banda conectada a BikeControl) o tu potencia, y tú decides dónde arranca y dónde llega a velocidad máxima. La página muestra la lectura actual y la velocidad resultante.
+- (Base) Elite Rizer: la inclinación ahora funciona con cualquier rodillo inteligente.
+- (Pro) Los Controles del rodillo (modo Companion) abren ahora en modo pedaleo: un − y un + grandes con tu marcha, potencia, cadencia y desarrollo en medio, y los demás botones debajo. Con Editar mueves y cambias el tamaño de los mosaicos y añades botones, datos y control de música; también hay pantalla completa. Su − y + cambian ahora con el cambio virtual de BikeControl, con la vibración al cambiar.
 
 **Fixes**:
 - Zwift: la Bomba Ride On se lanza también con una pulsación corta (Zwift necesita el botón pulsado un momento).

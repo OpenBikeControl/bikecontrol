@@ -186,6 +186,30 @@ Future<void> main() async {
     await letControlWritePacingWindowClose(tester);
   });
 
+  testWidgets('on Auto the closed select names the protocol Auto picked', (tester) async {
+    final device = trainer(dualProtocolServices());
+    final def = device.fitnessBike!;
+    expect(def.controlProtocolOverride, isNull);
+
+    await pumpSection(tester, device);
+
+    final l = AppLocalizations.current;
+    final picked = switch (def.controlProtocol) {
+      TrainerControlProtocol.ftms => l.controlProtocolFtms,
+      TrainerControlProtocol.fec => l.controlProtocolFec,
+      TrainerControlProtocol.zwiftHub => l.controlProtocolNative,
+      TrainerControlProtocol.wahooCps => l.controlProtocolWahoo,
+    };
+    expect(
+      find.descendant(
+        of: find.byType(Select<TrainerControlProtocol?>),
+        matching: find.text(l.controlProtocolAutoResolved(picked)),
+      ),
+      findsOneWidget,
+    );
+    await tester.pump(const Duration(seconds: 1));
+  });
+
   testWidgets('switching to a different effective protocol cycles the connection', (tester) async {
     final device = trainer(dualProtocolServices());
     var reconnects = 0;

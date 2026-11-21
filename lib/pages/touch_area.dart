@@ -414,7 +414,7 @@ class KeypairExplanation extends StatelessWidget {
       leadingAlignment: Alignment.centerLeft,
       contentSpacing: 10,
       subtitle: Text(keyPair.trigger.title).muted.xSmall,
-      title: Text(keyPair.toString()),
+      title: Text(keyPair.label),
     );
   }
 }

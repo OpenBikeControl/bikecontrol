@@ -1104,7 +1104,9 @@ class ProxyDevice extends BluetoothDevice {
 
   @override
   Future<void> processCharacteristic(String characteristic, Uint8List bytes) async {
-    emulator.processCharacteristic(characteristic, bytes);
+    // The shared emulator can bridge a second trainer; its definition must not
+    // ingest this trainer's frames. [fitnessBike] is null in proxy mode.
+    emulator.processCharacteristic(characteristic, bytes, from: fitnessBike);
   }
 
   @override
@@ -1387,6 +1389,13 @@ class ProxyDevice extends BluetoothDevice {
   /// Whether the same trainer is currently held through its other-transport
   /// entry (see [Connection.twinOf]).
   bool get twinHoldsTrainer => core.connection.twinOf(this)?.isConnectedOrConnecting ?? false;
+
+  /// Whether a different trainer (not this one's twin) is connected or
+  /// connecting. The bridge serves one trainer and the Ride page shows one, so
+  /// a second remembered trainer must not come up beside it on its own.
+  bool get otherTrainerHoldsBridge => core.connection.proxyDevices.any(
+    (p) => !identical(p, this) && p.twinKey != twinKey && p.isConnectedOrConnecting,
+  );
 
   /// The list subtitle for this entry while its twin holds the trainer: this
   /// is not a second trainer, and connecting here switches paths (see

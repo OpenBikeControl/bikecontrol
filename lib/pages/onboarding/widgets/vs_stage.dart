@@ -215,22 +215,22 @@ class _VirtualShiftingStageState extends State<VirtualShiftingStage> {
                                       app: paywallShiftAppName(selected),
                                       native: widget.zwiftReadyNearby || _nativeTrainer(),
                                     ),
-                                    0 => _SceneApps(active: i == scene && !still),
+                                    0 => _SceneApps(active: i == scene && !still, flat: true),
                                     1 => _FlatRatios(active: i == scene && !still),
                                     2 => _FlatFront(active: i == scene && !still),
                                     _ => const _FlatMore(),
                                   }
                                 : switch (i) {
-                              0 when compare => VsShiftCompare(
-                                app: paywallShiftAppName(selected),
-                                native: widget.zwiftReadyNearby || _nativeTrainer(),
-                                active: i == scene && !still,
-                              ),
-                              0 => _SceneApps(active: i == scene && !still),
-                              1 => _SceneRatios(active: i == scene && !still),
-                              2 => _SceneFront(active: i == scene && !still),
-                              _ => const _SceneMore(),
-                            },
+                                    0 when compare => VsShiftCompare(
+                                      app: paywallShiftAppName(selected),
+                                      native: widget.zwiftReadyNearby || _nativeTrainer(),
+                                      active: i == scene && !still,
+                                    ),
+                                    0 => _SceneApps(active: i == scene && !still),
+                                    1 => _SceneRatios(active: i == scene && !still),
+                                    2 => _SceneFront(active: i == scene && !still),
+                                    _ => const _SceneMore(),
+                                  },
                           ),
                         ),
                       ),
@@ -375,15 +375,36 @@ List<String> _rideApps() => SupportedApp.supportedApps
     .toList();
 
 class _SceneApps extends StatelessWidget {
-  const _SceneApps({required this.active});
+  const _SceneApps({required this.active, this.flat = false});
 
   final bool active;
 
+  /// The [VirtualShiftingStage.flatSceneHeight] version: no headings and one
+  /// line of chips each, as many as fit — wrapped, the two lists ran out of
+  /// the scene and over the caption below.
+  final bool flat;
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final apps = _rideApps();
     final ok = BkStatusColors.of(context).success;
+    if (flat) {
+      return _Stepper(
+        active: active,
+        period: const Duration(milliseconds: 950),
+        builder: (context, tick) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _chipLine(context, _trainers, tick, onboardingAccent(context)),
+            const Gap(10),
+            _divider(context),
+            const Gap(10),
+            _chipLine(context, apps, tick, ok),
+          ],
+        ),
+      );
+    }
     return _Stepper(
       active: active,
       period: const Duration(milliseconds: 950),
@@ -395,29 +416,7 @@ class _SceneApps extends StatelessWidget {
           const Gap(6),
           _chips(context, _trainers, tick % _trainers.length, onboardingAccent(context)),
           const Gap(9),
-          Row(
-            children: [
-              Expanded(child: Container(height: 1, color: cs.border)),
-              const Gap(8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: onboardingAccent(context).withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'BIKECONTROL',
-                  style: context.typography.caption.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: onboardingAccent(context),
-                  ),
-                ),
-              ),
-              const Gap(8),
-              Expanded(child: Container(height: 1, color: cs.border)),
-            ],
-          ),
+          _divider(context),
           const Gap(9),
           _heading(context, context.i18n.vsStageAppsHeading),
           const Gap(6),
@@ -426,6 +425,62 @@ class _SceneApps extends StatelessWidget {
       ),
     );
   }
+
+  /// "── BIKECONTROL ──": what sits between the trainers and the apps.
+  Widget _divider(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: cs.border)),
+        const Gap(8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: onboardingAccent(context).withValues(alpha: 0.16),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            'BIKECONTROL',
+            style: context.typography.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+              color: onboardingAccent(context),
+            ),
+          ),
+        ),
+        const Gap(8),
+        Expanded(child: Container(height: 1, color: cs.border)),
+      ],
+    );
+  }
+
+  /// One line of [items]: as many as fit whole, the highlight stepping
+  /// through those — never onto a chip that is cut off or not there.
+  Widget _chipLine(BuildContext context, List<String> items, int tick, Color accent) => LayoutBuilder(
+    builder: (context, constraints) {
+      // As the chip draws it: the inherited font, not the painter's default.
+      final style = DefaultTextStyle.of(
+        context,
+      ).style.merge(context.typography.caption.copyWith(fontWeight: FontWeight.w600));
+      var used = 0.0;
+      var fit = 0;
+      for (final item in items) {
+        final w =
+            (TextPainter(
+              text: TextSpan(text: item, style: style),
+              textDirection: TextDirection.ltr,
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout()).width +
+            18 +
+            2;
+        if (used + w + (fit > 0 ? 5 : 0) > constraints.maxWidth) break;
+        used += w + (fit > 0 ? 5 : 0);
+        fit++;
+      }
+      final shown = items.take(fit).toList();
+      return _chips(context, shown, shown.isEmpty ? -1 : tick % shown.length, accent);
+    },
+  );
 
   Widget _heading(BuildContext context, String text) => Text(
     text,
@@ -436,7 +491,7 @@ class _SceneApps extends StatelessWidget {
     ),
   );
 
-  Widget _chips(BuildContext context, List<String> items, int highlighted, Color accent) {
+  Wrap _chips(BuildContext context, List<String> items, int highlighted, Color accent) {
     final cs = Theme.of(context).colorScheme;
     return Wrap(
       spacing: 5,
@@ -729,7 +784,6 @@ class _SceneMore extends StatelessWidget {
   }
 }
 
-
 // ── Flat scenes (see [VirtualShiftingStage.flat]) ───────────────────────────
 
 /// One shift, as the resistance it causes: BikeControl's line rises right
@@ -750,7 +804,11 @@ class _FlatShiftChart extends StatelessWidget {
     Widget key(Color color, String label) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 14, height: 3, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+        Container(
+          width: 14,
+          height: 3,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+        ),
         const Gap(6),
         Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis).xSmall.semiBold),
       ],
@@ -881,7 +939,11 @@ class _FlatRatios extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: i + 1 == gear
                                 ? accent
-                                : Color.lerp(cs.border, cs.foreground, ratios.length == 1 ? 1 : i / (ratios.length - 1)),
+                                : Color.lerp(
+                                    cs.border,
+                                    cs.foreground,
+                                    ratios.length == 1 ? 1 : i / (ratios.length - 1),
+                                  ),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -973,7 +1035,10 @@ class _FlatMore extends StatelessWidget {
     Widget cell(String text) => Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.check, size: 15, color: accent)),
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(LucideIcons.check, size: 15, color: accent),
+        ),
         const Gap(8),
         Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis).xSmall.semiBold),
       ],

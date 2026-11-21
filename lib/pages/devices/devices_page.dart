@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
+import 'package:bike_control/pages/proxy_device_details/live_metrics_section.dart' show quantityTitle;
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/sensors/sensors_page.dart';
@@ -81,8 +84,10 @@ class _DevicesPageState extends State<DevicesPage> {
   }
 }
 
-/// "Share sensors": the broadcast of heart rate, power and cadence to the
-/// trainer app, Pro. Its live readings ride along while it is on.
+/// "Sensors": where heart rate, power and cadence come from — the trainer, or
+/// a sensor that replaces its reading. Without a trainer it is also the
+/// switch that sends them to the trainer app (Pro), with the live readings
+/// riding along while that is on.
 class ShareSensorsSection extends StatelessWidget {
   const ShareSensorsSection({super.key, this.onUpdate});
 
@@ -93,6 +98,7 @@ class ShareSensorsSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final broadcast = core.connection.broadcast;
     final isOn = broadcast?.isOn ?? const _Off();
+    final trainer = sensorsTrainer();
     return ValueListenableBuilder<bool>(
       valueListenable: isOn,
       builder: (context, on, _) {
@@ -107,20 +113,22 @@ class ShareSensorsSection extends StatelessWidget {
                 BkGroupedRow(
                   key: const ValueKey('devices-share-sensors'),
                   icon: LucideIcons.heartPulse,
-                  title: l10n.sensorsBroadcastTitle,
-                  subtitle: l10n.devicesShareSensorsSubtitle,
+                  title: l10n.sensorsPageTitle,
+                  subtitle: _summary(context, l10n, trainer),
                   badge: IAPManager.instance.isProEnabledForCurrentDevice ? null : const ProBadge(),
-                  trailing: Text(on ? l10n.statusOn : l10n.statusOff),
+                  // With a trainer there is nothing to switch: the bridge
+                  // carries the values.
+                  trailing: trainer == null ? Text(on ? l10n.statusOn : l10n.statusOff) : null,
                   chevron: true,
                   onPressed: () async {
                     await context.push(const SensorsPage());
                     onUpdate?.call();
                   },
                 ),
-                if (on && quantities.isNotEmpty)
+                if (trainer == null && on && quantities.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
+                      BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap,
                       0,
                       BkGroupedSection.inset,
                       12,
@@ -134,6 +142,31 @@ class ShareSensorsSection extends StatelessWidget {
       },
     );
   }
+}
+
+/// "From KICKR CORE · Heart rate: Polar H10" — the trainer first, then every
+/// value a sensor replaces. Without a trainer just the sensors, or what the
+/// row is for while nothing is picked.
+String _summary(BuildContext context, AppLocalizations l10n, ProxyDevice? trainer) {
+  final replaced = [
+    for (final q in const [SensorQuantity.power, SensorQuantity.heartRate, SensorQuantity.cadence])
+      if (core.sensors.selectionFor(q) case final id?)
+        if (_sourceName(id) case final name?) l10n.sensorsSummaryReplaced(quantityTitle(l10n, q), name),
+  ];
+  if (trainer != null) return [l10n.sensorsSummaryFrom(trainer.displayName(context)), ...replaced].join(' · ');
+  return replaced.isEmpty ? l10n.devicesShareSensorsSubtitle : replaced.join(' · ');
+}
+
+/// A picked source's name, whether it is linked yet or only nearby.
+String? _sourceName(String id) {
+  for (final source in core.sensors.sources) {
+    if (source.id == id) return source.displayName;
+  }
+  for (final device in core.connection.devices.whereType<BleSensorDevice>()) {
+    if (device.source.id == id) return device.source.displayName;
+  }
+  final healthKit = core.connection.healthKitSource;
+  return healthKit?.id == id ? healthKit!.displayName : null;
 }
 
 class _Off implements ValueListenable<bool> {

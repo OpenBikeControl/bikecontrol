@@ -33,7 +33,7 @@ class _FakeOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   }) async {
     shows++;
     shownFields = fields;

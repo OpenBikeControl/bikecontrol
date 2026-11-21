@@ -1,12 +1,4 @@
-7.6.0
+7.6.1
 Neu:
-• Incyclist, Tour du Pain und Rampida über OpenBikeControl
-• CYCPLUS-T7-Schalthebel als Controller
-• Klarerer Tasten-Editor, nach Aktionen gruppiert
-• Di2: D-Fly-Kanäle selbst in E-TUBE einstellen, mit Anleitung
-• Zwift Click V2: rechten Controller ohne Entsperren nutzen
-• Mehr zum Testen: 120 Drücke/Tag, danach 40, 30 Min. virtuelles Schalten
-
-Behoben:
-• Zwift: Ride-On-Bombe auch bei kurzem Druck
-• Android: kein Absturz beim Dienst-Neustart, „Schließen & beenden“ beendet immer
+• MyWhoosh über Bluetooth: BikeControl als Lenkgerät koppeln, um zu schalten und an Kreuzungen den Weg zu wählen
+• Sensoren: sehen, woher jeder Wert kommt, und Trainerwerte durch eigene Sensoren ersetzen

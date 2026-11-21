@@ -70,9 +70,9 @@ class _Host extends StatelessWidget {
   }
 }
 
-Future<ValueNotifier<ChainLink>> _pump(WidgetTester tester, ChainLink initial) async {
+Future<ValueNotifier<ChainLink>> _pump(WidgetTester tester, ChainLink initial, {double width = 390}) async {
   // Jonas's phone: ~390 dp wide, German, dark.
-  tester.view.physicalSize = const Size(390, 2000);
+  tester.view.physicalSize = Size(width, 2000);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final link = ValueNotifier(initial);
@@ -200,7 +200,8 @@ Future<void> main() async {
 
   // The store's Devices capture: "Lokale Steuerung aktivieren" beside the name
   // took most of the row, squeezed "Trainer-App" to "Train…" and wrapped the
-  // status into a tall empty column. A fix that long goes under the hint.
+  // status into a tall empty column. The fix always goes under the hint now,
+  // whatever its length, so the card has one place for its actions.
   group('where the step in front\'s fix goes', () {
     Future<void> pumpRow(WidgetTester tester, String label) async {
       tester.view.physicalSize = const Size(390, 900);
@@ -245,23 +246,188 @@ Future<void> main() async {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('a long label goes under the hint, and the name keeps its room', (tester) async {
-      await pumpRow(tester, 'Lokale Steuerung aktivieren');
-      final fix = tester.getRect(find.byKey(chainRowStepActionKey));
-      final title = tester.getRect(find.text('Trainer-App').last);
-      expect(fix.top, greaterThan(title.bottom), reason: 'under the header, not beside the name');
-      final name = tester.renderObject<RenderParagraph>(
-        find.descendant(of: find.text('Trainer-App').last, matching: find.byType(RichText)),
-      );
-      expect(name.didExceedMaxLines, isFalse, reason: 'the name is not cut off');
-    });
+    for (final label in ['Lokale Steuerung aktivieren', 'Zeig mir wie']) {
+      testWidgets('"$label" goes under the hint, and the name keeps its room', (tester) async {
+        await pumpRow(tester, label);
+        final fix = tester.getRect(find.byKey(chainRowStepActionKey));
+        final title = tester.getRect(find.text('Trainer-App').last);
+        expect(fix.top, greaterThan(title.bottom), reason: 'under the header, not beside the name');
+        final name = tester.renderObject<RenderParagraph>(
+          find.descendant(of: find.text('Trainer-App').last, matching: find.byType(RichText)),
+        );
+        expect(name.didExceedMaxLines, isFalse, reason: 'the name is not cut off');
+      });
+    }
 
-    testWidgets('a short label sits at the end of the header', (tester) async {
+    testWidgets('the status and the transport share one line', (tester) async {
       await pumpRow(tester, 'Zeig mir wie');
-      final fix = tester.getRect(find.byKey(chainRowStepActionKey));
-      final title = tester.getRect(find.text('Trainer-App').last);
-      expect(fix.top, lessThan(title.bottom), reason: 'beside the name');
-      expect(fix.left, greaterThan(title.right));
+      final status = tester.getRect(find.text('Warte auf Verbindung'));
+      final transport = tester.getRect(find.text('Netzwerk'));
+      expect((status.center.dy - transport.center.dy).abs(), lessThan(2));
+      expect(transport.left, greaterThan(status.right));
     });
+  });
+
+  // "○ Add keyboard and mouse actions [OPTIONAL]" with a separate "Enable
+  // local control" under it: the circle read as a stray dot and the button
+  // only repeated the line. The optional line is the button now.
+  testWidgets('an optional later step with an offer is itself the button', (tester) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var offered = 0;
+    await tester.pumpWidget(
+      ShadcnApp(
+        locale: const Locale('de'),
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.light),
+        home: Scaffold(
+          child: BkGroupedSection(
+            children: [
+              ChainLinkRow(
+                link: const ChainLink(
+                  key: ChainLinkKey.app,
+                  id: 'app',
+                  status: LinkStatus.attention,
+                  title: 'MyWhoosh',
+                  steps: [
+                    SetupStep(id: SetupStepId.appConnected, done: false),
+                    SetupStep(id: SetupStepId.appLocalControl, done: false, optional: true),
+                  ],
+                ),
+                leading: const SizedBox(width: 30, height: 30),
+                title: 'MyWhoosh',
+                appName: 'MyWhoosh',
+                statusLabel: 'Warte auf MyWhoosh',
+                offerLabel: (_) => 'Deinen Gang über MyWhoosh einblenden',
+                onOffer: (_) => offered++,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.current;
+
+    final offer = find.byKey(chainRowOfferKey(SetupStepId.appLocalControl));
+    expect(offer, findsOneWidget);
+    // The line is the offer — what tapping does — not the step's title.
+    expect(
+      find.descendant(
+        of: offer,
+        matching: find.textContaining('Deinen Gang über MyWhoosh einblenden', findRichText: true),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining(l.chainStepLocalControl, findRichText: true), findsNothing);
+    expect(find.byIcon(LucideIcons.circle), findsNothing);
+    await tester.tap(offer);
+    expect(offered, 1);
+  });
+
+  // "Öffne die App …" and its button sat centred under the name on a wide
+  // window: the checklist's slide was anchored top-centre, and a checklist
+  // narrower than the row (a one-line hint) took that centre — at rest too.
+  testWidgets('a checklist narrower than the row stays at the row\'s text edge', (tester) async {
+    // A desktop window and the real font, so the hint fits one line.
+    tester.view.physicalSize = const Size(1100, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final app = ShadcnApp(
+      locale: const Locale('de'),
+      localizationsDelegates: [
+        ...ShadcnLocalizations.localizationsDelegates,
+        const OtherLocalizationsDelegate(),
+        AppLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.delegate.supportedLocales,
+      theme: BkTheme.build(Brightness.light),
+      home: Scaffold(
+        child: BkGroupedSection(
+          key: const ValueKey('section'),
+          children: [
+            ChainLinkRow(
+              link: _appLink(addressWarning: false),
+              leading: const BkIconTile(icon: LucideIcons.monitor),
+              title: 'MyWhoosh',
+              appName: 'MyWhoosh',
+              statusLabel: 'Warte auf MyWhoosh',
+              onInstructions: () {},
+              instructionsLabel: 'Fehler beheben',
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpWidget(app);
+    await tester.pump();
+    await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
+    await remountWithLoadedFonts(tester, app);
+    await tester.pumpAndSettle();
+
+    final title = tester.getRect(find.text('MyWhoosh').last);
+    final hint = tester.getRect(find.textContaining('Kopplungsbildschirm'));
+    final card = _card(tester);
+    expect(hint.width, lessThan(card.width - chainRowTextInset * 2), reason: 'the hint is narrower than the row');
+    expect(hint.left, moreOrLessEquals(title.left, epsilon: 1));
+    expect(tester.getRect(find.byKey(chainRowStepActionKey)).left, moreOrLessEquals(title.left, epsilon: 1));
+  });
+
+  // "Asleep – press a button to wake it" under the name, then "Press a button
+  // to wake it …" and a "Show me how" for pressing a button: said three times.
+  testWidgets('an asleep controller says it once, in its status', (tester) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ShadcnApp(
+        locale: const Locale('de'),
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.light),
+        home: Scaffold(
+          child: BkGroupedSection(
+            children: [
+              ChainLinkRow(
+                link: const ChainLink(
+                  key: ChainLinkKey.controller,
+                  id: 'click',
+                  status: LinkStatus.attention,
+                  title: 'Zwift Click V2',
+                  steps: [
+                    SetupStep(
+                      id: SetupStepId.controllerInRange,
+                      done: false,
+                      variant: SetupStepVariant.controllerAsleep,
+                    ),
+                  ],
+                ),
+                leading: const SizedBox(width: 30, height: 30),
+                title: 'Zwift Click V2',
+                statusLabel: 'Schläft – drück eine Taste, um ihn aufzuwecken',
+                onInstructions: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.current;
+
+    expect(find.text('Schläft – drück eine Taste, um ihn aufzuwecken'), findsOneWidget);
+    expect(find.text(l.chainStepWakePending), findsNothing);
+    expect(find.text(l.chainStepInRangeHint), findsNothing);
+    expect(find.byKey(chainRowStepActionKey), findsNothing);
   });
 }

@@ -15,6 +15,7 @@ class MyWhoosh extends SupportedApp {
   List<(AppConnectionMethod, ConnectionSupport)> get connections => [
     (AppConnectionMethod.myWhooshLink, ConnectionSupport.supported),
     (AppConnectionMethod.obpMdns, ConnectionSupport.supported),
+    (AppConnectionMethod.cycplusBc2Ble, ConnectionSupport.supported),
   ];
 
   @override

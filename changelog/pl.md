@@ -1,16 +1,22 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- (Base) MyWhoosh przez Bluetooth: sparuj BikeControl w MyWhoosh jako urządzenie do skrętu, a potem zmieniaj biegi i wybieraj drogę na skrzyżowaniach (długie naciśnięcie). Jeśli połączenie przez sieć nie działa, BikeControl proponuje zamiast tego Bluetooth.
+- (Pro) Czujniki: jedna lista pokazuje, skąd pochodzą moc, tętno, kadencja i prędkość – łącznie z trenażerem – i pozwala zastąpić każdą z nich własnym czujnikiem. „Wysyłaj do aplikacji treningowej” pojawia się tylko bez połączonego trenażera, bo trenażer już je przekazuje.
+- (Pro) Protokół sterowania: w trybie Auto strona trenażera pokazuje, który protokół został wybrany (np. „Auto: FTMS”).
+
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain i Rampida są teraz oficjalnie obsługiwane przez OpenBikeControl.
-- Manetki CYCPLUS T7 działają jako kontrolery: wszystkie osiem przycisków, domyślnie sterowanie tylnymi strzałkami.
-- Aplikacje OpenBikeControl widzą teraz twój wirtualny bieg na żywo.
-- Czytelniejszy edytor przycisków: akcje są pogrupowane według tego, co robią (Biegi, Trenażer, Trening, Jazda, …), a na telefonie otwiera się jako panel od dołu.
-- Shimano Di2: trzecia opcja konfiguracji – ustaw kanały D-Fly samodzielnie w E-TUBE, z instrukcją krok po kroku.
-- Zwift Click V2: opcjonalnie możesz używać prawego kontrolera bez odblokowywania.
+- (Base) Incyclist, Tour du Pain i Rampida są teraz oficjalnie obsługiwane przez OpenBikeControl.
+- (Base) Manetki CYCPLUS T7 działają jako kontrolery: wszystkie osiem przycisków, domyślnie sterowanie tylnymi strzałkami.
+- (Pro) Aplikacje OpenBikeControl widzą teraz twój wirtualny bieg na żywo.
+- (Base) Czytelniejszy edytor przycisków: akcje są pogrupowane według tego, co robią (Biegi, Trenażer, Trening, Jazda, …), a na telefonie otwiera się jako panel od dołu.
+- (Base) Shimano Di2: trzecia opcja konfiguracji – ustaw kanały D-Fly samodzielnie w E-TUBE, z instrukcją krok po kroku.
+- (Base) Zwift Click V2: opcjonalnie możesz używać prawego kontrolera bez odblokowywania.
 - Więcej czasu na test: 120 naciśnięć dziennie w okresie próbnym (wcześniej 80), potem 40 dziennie (wcześniej 15), a bez Pro 30 minut dziennie wirtualnej zmiany biegów BikeControl (wcześniej 20).
 - Czytelniejszy okres próbny: BikeControl ostrzega cię (także powiadomieniem), gdy zostało 10 naciśnięć na dziś, a karta okresu próbnego pokazuje, co zostaje po nim. Jeśli twoja aplikacja treningowa sama zmienia biegi, „Jazda” nie proponuje już wirtualnej zmiany biegów BikeControl, a sterowanie klawiaturą jest oznaczone jako opcjonalne obok połączenia OpenBikeControl.
-- KICKR Headwind: wentylator może podążać za tętnem (z pasa połączonego z BikeControl) lub mocą, a ty ustawiasz, kiedy rusza i kiedy osiąga pełną prędkość. Strona pokazuje bieżący odczyt i wynikającą z niego prędkość.
-- Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
-- Sterowanie trenażerem (Companion Mode) układasz teraz sam: przesuwaj i zmieniaj rozmiar każdego przycisku, dodaj bieg, moc, kadencję i przełożenie, i włącz pełny ekran. Tryb jazdy pokazuje duże − i + z biegiem pośrodku, a karta wirtualnej zmiany biegów w Jeździe otwiera go jednym dotknięciem. Jego − i + zmieniają teraz biegi przez wirtualną zmianę biegów BikeControl, z wibracją przy zmianie.
+- (Base) KICKR Headwind: wentylator może podążać za tętnem (z pasa połączonego z BikeControl) lub mocą, a ty ustawiasz, kiedy rusza i kiedy osiąga pełną prędkość. Strona pokazuje bieżący odczyt i wynikającą z niego prędkość.
+- (Base) Elite Rizer: nachylenie działa teraz z każdym trenażerem smart.
+- (Pro) Sterowanie trenażerem (Companion Mode) otwiera się teraz w trybie jazdy: duże − i + z biegiem, mocą, kadencją i przełożeniem pośrodku, a pozostałe przyciski poniżej. Przez Edytuj przesuwasz kafelki, zmieniasz ich rozmiar i dodajesz przyciski, wartości i sterowanie muzyką; jest też pełny ekran. Jego − i + zmieniają teraz biegi przez wirtualną zmianę biegów BikeControl, z wibracją przy zmianie.
 
 **Fixes**:
 - Zwift: Bomba Ride On odpala się też po krótkim naciśnięciu (Zwift wymaga chwilowego przytrzymania przycisku).

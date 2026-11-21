@@ -7,6 +7,7 @@ export 'devices/sram/sram_axs_logic.dart';
 export 'devices/sram/sram_axs_transport.dart';
 export 'devices/sram/sram_shifter_buttons.dart';
 export 'emulators/click_emulator.dart';
+export 'emulators/cycplus_bc2_emulator.dart';
 export 'emulators/definitions/composite_ble_definition.dart';
 export 'emulators/definitions/zwift_emulator_definition.dart';
 export 'emulators/dircon_emulator.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/bluetooth/devices/sensors/ble_heart_rate_device.dart';
 import 'package:bike_control/bluetooth/emulation/emulated_ble_platform.dart';
 import 'package:bike_control/gen/l10n.dart';
@@ -443,5 +444,65 @@ void main() {
 
       expect(find.byKey(const Key('sensors-empty')), findsNothing);
     });
+  });
+
+  group('with a trainer connected', () {
+    ProxyDevice connectTrainer() {
+      final trainer = ProxyDevice(BleDevice(deviceId: 'kickr-sensors-page', name: 'Wahoo KICKR'))..isConnected = true;
+      core.connection.devices.add(trainer);
+      return trainer;
+    }
+
+    testWidgets('no Send card: the bridge already carries the values', (tester) async {
+      connectTrainer();
+      selectStrap();
+      await pump(tester);
+
+      expect(switchFinder, findsNothing);
+      expect(find.byKey(const Key('sensors-transport-bluetooth')), findsNothing);
+      expect(find.byKey(const Key('sensors-off-hint')), findsNothing);
+      expect(find.byKey(const Key('sensors-empty')), findsNothing);
+    });
+
+    testWidgets('the lead names the trainer, and its readings get a row each, speed included', (tester) async {
+      final trainer = connectTrainer();
+      await pump(tester);
+      final name = trainer.displayName(tester.element(find.byType(SensorsPage)));
+
+      expect(find.text(AppLocalizations.current.sensorsLeadTrainer(name)), findsOneWidget);
+      expect(find.byKey(const Key('metric-card-speed')), findsOneWidget);
+    });
+
+    testWidgets('Found sensors lists the trainer next to the linked strap', (tester) async {
+      connectTrainer();
+      selectStrap();
+      await pump(tester);
+
+      expect(find.text(AppLocalizations.current.sensorsFoundHeader.toUpperCase()), findsOneWidget);
+      expect(find.byKey(const Key('sensors-found-trainer')), findsOneWidget);
+      expect(find.byKey(const Key('sensors-found-strap')), findsOneWidget);
+    });
+  });
+
+  testWidgets('without a trainer the lead explains sending, and a picked strap waits for it', (tester) async {
+    final ble = FakeUniversalBlePlatform();
+    UniversalBle.setInstance(ble);
+    addTearDown(() => UniversalBle.setInstance(FakeUniversalBlePlatform()));
+    final peripheral = strapPeripheral(deviceId: 'hr-waits');
+    ble.addPeripheral(peripheral);
+    final strap = BleHeartRateDevice(peripheral.scanResult);
+    core.connection.devices.add(strap);
+    core.sensors.select(SensorQuantity.heartRate, strap.source.id);
+    await pump(tester);
+
+    expect(find.text(AppLocalizations.current.sensorsLeadNoTrainer), findsOneWidget);
+    expect(switchFinder, findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(Key('sensors-found-${strap.source.id}')),
+        matching: find.textContaining(AppLocalizations.current.sensorsFoundWaitsForBroadcast),
+      ),
+      findsOneWidget,
+    );
   });
 }

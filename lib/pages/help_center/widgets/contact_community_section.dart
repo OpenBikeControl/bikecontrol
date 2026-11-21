@@ -160,36 +160,27 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
           child: Text(context.i18n.helpCenterChatLanguageHint).xSmall.muted,
         ),
         const Divider(),
-        // Reddit/Facebook/GitHub as three equal-width bordered buttons in a
-        // row (icon above label), matching the mockup — replacing the old
-        // stacked full-width list rows.
+        // The community links as equal-width bordered buttons, icon above
+        // label: one row where five fit, else three over two — at phone width
+        // five squeezed "Instagram" and "Facebook" past their tiles.
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-          child: Row(
-            spacing: 8,
-            children: [
-              Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              Widget tile(_CommunityLink link) => Expanded(
                 child: _CommunityLinkButton(
-                  icon: Icons.reddit_outlined,
-                  label: 'Reddit',
-                  onPressed: () => launchUrlString('https://www.reddit.com/r/BikeControl/'),
+                  icon: link.icon,
+                  label: link.label,
+                  onPressed: () => launchUrlString(link.url),
                 ),
-              ),
-              Expanded(
-                child: _CommunityLinkButton(
-                  icon: LucideIcons.facebook,
-                  label: 'Facebook',
-                  onPressed: () => launchUrlString('https://www.facebook.com/groups/1892836898778912'),
-                ),
-              ),
-              Expanded(
-                child: _CommunityLinkButton(
-                  icon: LucideIcons.github,
-                  label: 'GitHub',
-                  onPressed: () => launchUrlString('https://github.com/OpenBikeControl/bikecontrol/issues'),
-                ),
-              ),
-            ],
+              );
+              Widget row(Iterable<_CommunityLink> links) => Row(spacing: 8, children: [for (final l in links) tile(l)]);
+              if (constraints.maxWidth >= 480) return row(_communityLinks);
+              return Column(
+                spacing: 8,
+                children: [row(_communityLinks.take(3)), row(_communityLinks.skip(3))],
+              );
+            },
           ),
         ),
       ],
@@ -197,7 +188,18 @@ class _ContactCommunitySectionState extends State<ContactCommunitySection> {
   }
 }
 
-/// One tile in the Reddit/Facebook/GitHub row: a bordered, equal-width
+typedef _CommunityLink = ({IconData icon, String label, String url});
+
+/// Where BikeControl's community is, in display order.
+const List<_CommunityLink> _communityLinks = [
+  (icon: Icons.reddit_outlined, label: 'Reddit', url: 'https://www.reddit.com/r/BikeControl/'),
+  (icon: LucideIcons.facebook, label: 'Facebook', url: 'https://www.facebook.com/groups/1892836898778912'),
+  (icon: LucideIcons.instagram, label: 'Instagram', url: 'https://www.instagram.com/openbikecontrol/'),
+  (icon: LucideIcons.youtube, label: 'YouTube', url: 'https://www.youtube.com/@OpenBikeControl'),
+  (icon: LucideIcons.github, label: 'GitHub', url: 'https://github.com/OpenBikeControl/bikecontrol/issues'),
+];
+
+/// One tile in the community links row: a bordered, equal-width
 /// button with its icon stacked above its label (mockup's Contact &
 /// Community card).
 class _CommunityLinkButton extends StatelessWidget {

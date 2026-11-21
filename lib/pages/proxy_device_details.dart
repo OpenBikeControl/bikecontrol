@@ -1,4 +1,5 @@
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/colors.dart' show bkCardShadow;
 import 'package:bike_control/widgets/ui/bk_page_header.dart';
 import 'dart:async';
 
@@ -248,13 +249,15 @@ class _ProxyDeviceDetailsPageState extends State<ProxyDeviceDetailsPage> {
   }
 
   Widget _deviceCard() {
+    // The page's card: the connection card's inset, corners and shadow, so
+    // the two tiles and their text line up one above the other.
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.card,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Theme.of(context).colorScheme.border),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: bkCardShadow(context),
       ),
       child: widget.device.showInformation(context, showFull: true),
     );

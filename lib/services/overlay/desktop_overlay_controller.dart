@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
+import 'package:bike_control/services/overlay/overlay_definition_binding.dart';
 import 'package:bike_control/services/overlay/overlay_state.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
@@ -23,9 +24,10 @@ class DesktopOverlayController implements TrainerOverlayController {
   @override
   ValueListenable<bool> get isShowing => _showing;
 
-  FitnessBikeDefinition? _def;
-  LiveDefinitionLookup? _liveDef;
-  Listenable? _bound;
+  late final OverlayDefinitionBinding _binding = OverlayDefinitionBinding(
+    onChange: _onChange,
+    onSwap: () => _push(force: true),
+  );
   Set<OverlayField> _fields = {OverlayField.power, OverlayField.cadence};
 
   Timer? _pushDebounce;
@@ -50,11 +52,14 @@ class DesktopOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   }) async {
-    _liveDef = liveDef;
-    if (_showing.value) return const OverlayShowResult.ok();
-    return _showOverlay(def, fields);
+    if (_showing.value) {
+      _binding.attach(def, live: liveDef);
+      _push(force: true);
+      return const OverlayShowResult.ok();
+    }
+    return _showOverlay(def, fields, liveDef);
   }
 
   @override
@@ -98,8 +103,12 @@ class DesktopOverlayController implements TrainerOverlayController {
   // Implementation (multi_window_native)
   // ---------------------------------------------------------------------------
 
-  Future<OverlayShowResult> _showOverlay(FitnessBikeDefinition def, Set<OverlayField> fields) async {
-    _registerListeners(def);
+  Future<OverlayShowResult> _showOverlay(
+    FitnessBikeDefinition def,
+    Set<OverlayField> fields,
+    LiveDefinition? liveDef,
+  ) async {
+    _registerListeners();
 
     final saved = core.settings.getOverlayPosition();
     final argsJson = jsonEncode({
@@ -125,9 +134,8 @@ class DesktopOverlayController implements TrainerOverlayController {
       );
     }
 
-    _def = def;
     _fields = fields;
-    _bind();
+    _binding.attach(def, live: liveDef);
     _showing.value = true;
     // Initial push happens on the kOverlayReadyMethod handler, once the
     // sub-engine has registered its kStateMethod listener.
@@ -135,10 +143,7 @@ class DesktopOverlayController implements TrainerOverlayController {
   }
 
   Future<void> _hideOverlay() async {
-    _bound?.removeListener(_onChange);
-    _bound = null;
-    _def = null;
-    _liveDef = null;
+    _binding.detach();
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -160,7 +165,7 @@ class DesktopOverlayController implements TrainerOverlayController {
     _showing.value = false;
   }
 
-  void _registerListeners(FitnessBikeDefinition def) {
+  void _registerListeners() {
     _unregisterListeners();
 
     _listenerIds.add((
@@ -187,11 +192,10 @@ class DesktopOverlayController implements TrainerOverlayController {
           final m = _asMap(call.arguments);
           final action = m['action'];
           if (action is! String) return;
-          // Re-resolve the live definition on every action — the trainer
-          // emulator rebinds a new `FitnessBikeDefinition` whenever its
-          // transport restarts (e.g. when a trainer app connects), so the
-          // `def` captured at show() time can already be stale.
-          final live = _liveDef?.call() ?? def;
+          // The binding follows the trainer onto the definition each
+          // reconnect builds, so this is never a stale one.
+          final live = _binding.current;
+          if (live == null) return;
           switch (action) {
             case 'toggleMode':
               if (live.trainerMode.value == TrainerMode.ergMode) {
@@ -244,10 +248,7 @@ class DesktopOverlayController implements TrainerOverlayController {
   /// — used when the sub-window closed itself.
   void _cleanupAfterClose() {
     if (!_showing.value) return;
-    _bound?.removeListener(_onChange);
-    _bound = null;
-    _def = null;
-    _liveDef = null;
+    _binding.detach();
     _pushDebounce?.cancel();
     _pushDebounce = null;
     _lastPushed = null;
@@ -296,21 +297,6 @@ class DesktopOverlayController implements TrainerOverlayController {
     }
   }
 
-  void _bind() {
-    final def = _def;
-    if (def == null) return;
-    _bound?.removeListener(_onChange);
-    _bound = Listenable.merge([
-      def.currentGear,
-      def.gearRatio,
-      def.trainerMode,
-      def.powerW,
-      def.cadenceRpm,
-      def.ergTargetPower,
-    ]);
-    _bound!.addListener(_onChange);
-  }
-
   void _onChange() {
     final now = DateTime.now();
     final elapsed = now.difference(_lastPushAt).inMilliseconds;
@@ -328,7 +314,7 @@ class DesktopOverlayController implements TrainerOverlayController {
   }
 
   Future<void> _push({bool force = false}) async {
-    final def = _def;
+    final def = _binding.current;
     if (def == null) return;
     final s = TrainerOverlayState(
       gear: def.currentGear.value,

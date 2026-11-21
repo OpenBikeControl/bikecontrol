@@ -1,5 +1,5 @@
-// The companion page is used mid-ride: shifting leads and is the biggest
-// target, steering follows it (it used to sit below "Other", off the first
+// The companion page is used mid-ride: ride mode's − and + lead, steering
+// follows them (it used to sit below "Other", off the first
 // screen), the remaining actions are an even grid, and an action's quick
 // values sit in its own tile, under its name.
 import 'package:bike_control/gen/l10n.dart';
@@ -47,20 +47,21 @@ Future<void> main() async {
     builder: (_) => const ButtonSimulator(),
   );
 
-  testWidgets('shifting leads and is the biggest target; steering comes before the other actions', (tester) async {
+  testWidgets('ride mode leads; steering comes before the other actions', (tester) async {
     connectMyWhoosh();
     await render(tester);
 
     final up = pad(tester, InGameAction.shiftUp);
     final down = pad(tester, InGameAction.shiftDown);
     final left = pad(tester, InGameAction.steerLeft);
+    final right = pad(tester, InGameAction.steerRight);
     final tuck = pad(tester, InGameAction.tuck);
     final uturn = pad(tester, InGameAction.uturn);
 
-    expect(down.center.dx, lessThan(up.center.dx), reason: '− left, + right, as on Ride');
+    expect(up.bottom, lessThan(down.top), reason: '+ on top, − below, as in ride mode');
     expect(up.height, greaterThan(left.height));
-    expect(up.height, greaterThan(tuck.height));
-    expect(left.top, greaterThan(up.bottom));
+    expect(left.top, greaterThan(down.bottom));
+    expect(left.top, right.top, reason: 'steering side by side');
     expect(left.bottom, lessThan(tuck.top), reason: 'steering sits above the other actions');
     expect(tuck.height, uturn.height, reason: 'the other actions are an even grid');
   });

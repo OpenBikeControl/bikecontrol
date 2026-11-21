@@ -69,6 +69,9 @@ Future<void> applyTrainerAppSelection(
   if (core.obpBluetoothEmulator.isStarted.value) {
     core.obpBluetoothEmulator.stopServer();
   }
+  if (core.bc2BluetoothEmulator.isStarted.value) {
+    core.bc2BluetoothEmulator.stopServer();
+  }
 
   core.settings.setTrainerApp(selectedApp);
   final active = core.actionHandler.supportedApp;

@@ -27,6 +27,9 @@ enum AppConnectionMethod {
   obpBle,
   obpMdns,
   obpDirCon,
+
+  /// Buttons over Bluetooth as a CYCPLUS BC2 shifter.
+  cycplusBc2Ble,
   myWhooshLink,
   local,
   remoteMouse,
@@ -162,6 +165,7 @@ abstract class SupportedApp {
       if (supports(AppConnectionMethod.zwiftBle)) core.zwiftEmulator,
       if (supports(AppConnectionMethod.zwiftMdns)) core.zwiftMdnsEmulator,
       if (supports(AppConnectionMethod.rouvyMdns)) core.rouvyMdnsEmulator,
+      if (supports(AppConnectionMethod.cycplusBc2Ble)) core.bc2BluetoothEmulator,
     ];
     for (final emulator in emulators) {
       known = true;

@@ -1,3 +1,4 @@
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
@@ -35,6 +36,17 @@ const List<String> zwiftBridgeScreenshots = [
 
 OnboardingAppGuide onboardingGuideFor(BuildContext context, SupportedApp app) {
   final l = context.i18n;
+  if (app is MyWhoosh && core.settings.getBc2BleEnabled()) {
+    // Over Bluetooth MyWhoosh takes BikeControl as a steering device.
+    return OnboardingAppGuide(
+      steps: [l.onboardingGuideMyWhoosh1, l.onboardingGuideMyWhooshBc2Pair, l.onboardingGuideMyWhooshBc2Done],
+      screenshots: const {
+        0: ['assets/guides/mywhoosh-bc2-1-connection-screen.jpg'],
+        1: ['assets/guides/mywhoosh-bc2-2-pair-bikecontrol.jpg'],
+        2: ['assets/guides/mywhoosh-bc2-3-steering-tile.jpg'],
+      },
+    );
+  }
   if (app is MyWhoosh) {
     return OnboardingAppGuide(
       steps: [l.onboardingGuideMyWhoosh1, l.onboardingGuideMyWhoosh2, l.onboardingGuideMyWhoosh3],
@@ -96,6 +108,16 @@ class OnboardingAppGuideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Which steps to show follows the Bluetooth method, and switching it on
+    // rebuilds nothing else around this card (the done step only listens for
+    // connections): listen to it here.
+    return ValueListenableBuilder<bool>(
+      valueListenable: core.bc2BluetoothEmulator.isStarted,
+      builder: (context, _, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final guide = onboardingGuideFor(context, app);
     final scheme = Theme.of(context).colorScheme;
     final guideUrl = guide.guideUrl;
@@ -156,25 +178,12 @@ class OnboardingAppGuideCard extends StatelessWidget {
                           ],
                           // Right under the step it shows, not in a strip
                           // after all of them.
-                          if (screenshots[i] case final shots? when shots.isNotEmpty) ...[
-                            const Gap(8),
+                          if (screenshots[i] case final shots? when shots.isNotEmpty)
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              children: [
-                                for (final shot in shots)
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(maxHeight: 150, maxWidth: 320),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: shot.startsWith('http')
-                                          ? Image.network(shot, errorBuilder: (_, _, _) => const SizedBox.shrink())
-                                          : Image.asset(shot, errorBuilder: (_, _, _) => const SizedBox.shrink()),
-                                    ),
-                                  ),
-                              ],
+                              children: [for (final shot in shots) GuideScreenshot(shot)],
                             ),
-                          ],
                         ],
                       ),
                     ),
@@ -320,3 +329,29 @@ Widget _slotRow(BuildContext context, IconData icon, String slot, String entryNa
   );
 }
 
+/// One guide screenshot — a URL or a bundled asset — with the gap above it.
+///
+/// Takes no space at all when the image can't be loaded: offline for a URL,
+/// or an asset a Shorebird patch couldn't ship (patches carry code only), so
+/// the step reads as if it never had one.
+class GuideScreenshot extends StatelessWidget {
+  const GuideScreenshot(this.source, {super.key});
+
+  final String source;
+
+  @override
+  Widget build(BuildContext context) {
+    // Only a loaded image gets the frame; the error builder replaces it whole.
+    Widget frame(BuildContext context, Widget child, int? frame, bool wasSynchronouslyLoaded) => Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 150, maxWidth: 320),
+        child: ClipRRect(borderRadius: BorderRadius.circular(8), child: child),
+      ),
+    );
+    Widget none(BuildContext context, Object error, StackTrace? stackTrace) => const SizedBox.shrink();
+    return source.startsWith('http')
+        ? Image.network(source, frameBuilder: frame, errorBuilder: none)
+        : Image.asset(source, frameBuilder: frame, errorBuilder: none);
+  }
+}

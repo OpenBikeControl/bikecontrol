@@ -14,6 +14,7 @@ import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/widgets/keymap_explanation.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PhysicalKeyboardKey;
 import 'package:flutter_screen_capture/flutter_screen_capture.dart';
 import 'package:image/image.dart' as image_lib;
 import 'package:keypress_simulator/keypress_simulator.dart';
@@ -24,6 +25,18 @@ class DesktopActions extends BaseActions {
   DesktopActions({super.supportedModes = const [SupportedMode.keyboard, SupportedMode.touch, SupportedMode.media]});
 
   // Track keys that are currently held down in long press mode
+
+  @override
+  Future<ActionResult> performMediaKey(PhysicalKeyboardKey key, {required ControllerButton button}) async {
+    try {
+      await keyPressSimulator.simulateMediaKey(key);
+      // Increment command count after successful execution
+      await IAPManager.instance.incrementCommandCount();
+      return Success('Media key pressed: ${mediaKeyLabel(key)}', button: button);
+    } catch (e) {
+      return Error('Failed to simulate media key: $e', button: button);
+    }
+  }
 
   @override
   Future<ActionResult> performAction(
@@ -135,20 +148,7 @@ class DesktopActions extends BaseActions {
     if (core.settings.getLocalEnabled()) {
       // Handle media keys
       if (keyPair.isSpecialKey) {
-        try {
-          await keyPressSimulator.simulateMediaKey(keyPair.physicalKey!);
-          // Increment command count after successful execution
-          await IAPManager.instance.incrementCommandCount();
-          return Success(
-            'Media key pressed: $keyPair',
-            button: keyPair.buttons.firstOrNull,
-          );
-        } catch (e) {
-          return Error(
-            'Failed to simulate media key: $e',
-            button: keyPair.buttons.firstOrNull,
-          );
-        }
+        return performMediaKey(keyPair.physicalKey!, button: keyPair.buttons.firstOrNull ?? button);
       }
 
       if (keyPair.physicalKey != null) {
@@ -171,7 +171,7 @@ class DesktopActions extends BaseActions {
           );
 
           return Success(
-            'Key clicked: $keyPair',
+            'Key clicked: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         } else if (isKeyDown) {
@@ -181,7 +181,7 @@ class DesktopActions extends BaseActions {
             core.settings.getTrainerApp()?.name,
           );
           return Success(
-            'Key pressed: $keyPair',
+            'Key pressed: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         } else {
@@ -191,7 +191,7 @@ class DesktopActions extends BaseActions {
             core.settings.getTrainerApp()?.name,
           );
           return Success(
-            'Key released: $keyPair',
+            'Key released: ${keyPair.label}',
             button: keyPair.buttons.firstOrNull,
           );
         }

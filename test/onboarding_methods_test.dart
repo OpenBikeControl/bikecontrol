@@ -51,11 +51,14 @@ Future<void> main() async {
     await core.settings.setLastTarget(Target.otherDevice);
     for (final app in SupportedApp.supportedApps) {
       core.settings.setTrainerApp(app);
-      final expected = app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.zwiftBle);
+      final expected =
+          app.supports(AppConnectionMethod.obpBle) ||
+          app.supports(AppConnectionMethod.cycplusBc2Ble) ||
+          app.supports(AppConnectionMethod.zwiftBle);
       expect(
         onboardingMethodVisible(OnboardingMethod.bluetooth, app),
         expected,
-        reason: '${app.name}: bluetooth tile must match obpBle/zwiftBle support',
+        reason: '${app.name}: bluetooth tile must match obpBle/cycplusBc2Ble/zwiftBle support',
       );
     }
   });

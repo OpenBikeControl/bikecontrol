@@ -249,18 +249,31 @@ void main() {
       expect(wifi.startCalls, 1);
     });
 
-    test('a trainer with a different key is unaffected', () async {
+    test('a different trainer does not auto-connect while another trainer holds the bridge', () async {
+      // The bridge serves one trainer: an idle second one came up beside the
+      // ridden one and fed its 0 W telemetry to the trainer app.
       final ble = bleTrainer()..isConnected = true;
       final other = wifiTrainer(name: 'TACX NEO 9999', tag: 'other');
       await core.settings.setAutoConnect('TACX NEO 9999', true);
       core.connection.devices.add(ble);
 
-      expect(other.shouldAutoConnect, isTrue);
+      expect(other.otherTrainerHoldsBridge, isTrue);
       core.connection.addDevices([other]);
       await drainQueue();
 
-      expect(other.startCalls, 1);
+      expect(other.startCalls, 0);
       expect(ble.isConnected, isTrue);
+    });
+
+    test('a different trainer picked by hand still connects', () async {
+      final ble = bleTrainer()..isConnected = true;
+      final other = wifiTrainer(name: 'TACX NEO 9999', tag: 'other');
+      await core.settings.setAutoConnect('TACX NEO 9999', true);
+      core.connection.devices.addAll([ble, other]);
+
+      await core.connection.connectDevice(other);
+
+      expect(other.startCalls, 1);
     });
   });
 

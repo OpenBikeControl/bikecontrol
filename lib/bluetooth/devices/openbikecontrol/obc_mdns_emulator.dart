@@ -455,7 +455,7 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
 
     if (inGameAction == null) {
       return Error(
-        'Invalid in-game action for key pair: $keyPair',
+        'Invalid in-game action for key pair: ${keyPair.label}',
         button: keyPair.buttons.firstOrNull,
       );
     } else if (_server?.client == null) {

@@ -8,9 +8,19 @@ class StatusIcon extends StatelessWidget {
   final bool status;
   final bool started;
   final IconData? icon;
+
+  /// A drawn mark in place of [icon] (the trainer's).
+  final Widget? glyph;
   final VoidCallback? onPressed;
 
-  const StatusIcon({super.key, required this.status, required this.icon, required this.started, this.onPressed});
+  const StatusIcon({
+    super.key,
+    required this.status,
+    required this.icon,
+    required this.started,
+    this.onPressed,
+    this.glyph,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +45,17 @@ class StatusIcon extends StatelessWidget {
                 color: Theme.of(context).colorScheme.muted,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: icon != null
+              child: glyph != null
+                  ? Center(
+                      child: IconTheme(
+                        data: IconThemeData(
+                          size: 20,
+                          color: status ? null : Theme.of(context).colorScheme.mutedForeground,
+                        ),
+                        child: glyph!,
+                      ),
+                    )
+                  : icon != null
                   ? Icon(
                       icon,
                       size: 20,

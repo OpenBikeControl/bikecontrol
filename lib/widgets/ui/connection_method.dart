@@ -264,7 +264,7 @@ class _ConnectionMethodState extends State<ConnectionMethod> with WidgetsBinding
     final appName = realAppName == null ? null : shownTrainerAppName(realAppName);
     final accent = bkAccentText(context);
     final linkStyle = context.typography.small.copyWith(color: accent, fontWeight: FontWeight.w600);
-    const textInset = BkIconTile.size + BkGroupedRow.gap;
+    const textInset = BkIconTile.defaultSize + BkGroupedRow.gap;
 
     Widget link(String label, VoidCallback onPressed, {Widget? leading}) => Button.ghost(
       style: const ButtonStyle.ghost().withPadding(padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8)),
@@ -544,7 +544,10 @@ String? connectionMethodSummary(BuildContext context) {
   for (final method in methods) {
     final label = switch (method) {
       _ when identical(method, core.local) => l.onboardingMethodLocal,
-      _ when identical(method, core.obpBluetoothEmulator) || identical(method, core.zwiftEmulator) =>
+      _
+          when identical(method, core.obpBluetoothEmulator) ||
+              identical(method, core.bc2BluetoothEmulator) ||
+              identical(method, core.zwiftEmulator) =>
         l.onboardingMethodBluetooth,
       _ => l.onboardingMethodNetwork,
     };

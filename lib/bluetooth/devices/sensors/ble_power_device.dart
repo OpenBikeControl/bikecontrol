@@ -5,6 +5,7 @@ import 'package:bike_control/bluetooth/devices/sensors/ble_sensor_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/services/sensors/ble_sensor_source.dart';
 import 'package:bike_control/services/sensors/sensor_quantity.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart' show LucideIcons;
 import 'package:universal_ble/universal_ble.dart';
 
 /// A standards-compliant BLE power meter (Cycling Power Service) paired
@@ -35,7 +36,7 @@ import 'package:universal_ble/universal_ble.dart';
 /// power meter can all be reached the same way — see that mixin's doc
 /// comment.
 class BlePowerDevice extends BluetoothDevice with Accessory, BleSensorDevice {
-  BlePowerDevice(super.scanResult) : super(availableButtons: const []) {
+  BlePowerDevice(super.scanResult) : super(availableButtons: const [], icon: LucideIcons.zap) {
     source = BleSensorSource(
       // The device id is stable across restarts, which is what the rider's
       // persisted per-quantity selection is keyed on. The advertised name is

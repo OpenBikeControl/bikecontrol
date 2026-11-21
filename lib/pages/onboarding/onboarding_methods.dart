@@ -33,7 +33,32 @@ bool _supportsZwiftStyleMdns(SupportedApp app) =>
 bool _supportsNetwork(SupportedApp app) => _supportsObpNetwork(app) || _supportsZwiftStyleMdns(app);
 
 bool _supportsBluetooth(SupportedApp app) =>
-    app.supports(AppConnectionMethod.obpBle) || app.supports(AppConnectionMethod.zwiftBle);
+    app.supports(AppConnectionMethod.obpBle) ||
+    app.supports(AppConnectionMethod.cycplusBc2Ble) ||
+    app.supports(AppConnectionMethod.zwiftBle);
+
+/// Whether the Bluetooth method presents BikeControl as a CYCPLUS BC2.
+bool onboardingBluetoothIsBc2(SupportedApp app) =>
+    !app.supports(AppConnectionMethod.obpBle) && app.supports(AppConnectionMethod.cycplusBc2Ble);
+
+/// Whether a rider whose network connection isn't coming up should be offered
+/// Bluetooth instead: the app runs on another device and also takes
+/// BikeControl as a BC2 over Bluetooth, which isn't on yet.
+bool offersBluetoothFallback(SupportedApp? app) =>
+    app != null &&
+    core.settings.getLastTarget() == Target.otherDevice &&
+    onboardingBluetoothIsBc2(app) &&
+    !core.settings.getBc2BleEnabled();
+
+/// Swaps the network method for Bluetooth. The network one goes off: should it
+/// come up later after all, every press would reach the app twice.
+Future<void> useBluetoothInstead(BuildContext context, SupportedApp app, {required VoidCallback onUpdate}) async {
+  await setOnboardingMethodEnabled(context, OnboardingMethod.bluetooth, app, true, onUpdate: onUpdate);
+  // Refused a Bluetooth permission: keep the network method as it was.
+  if (!core.settings.getBc2BleEnabled() || !context.mounted) return;
+  await setOnboardingMethodEnabled(context, OnboardingMethod.network, app, false, onUpdate: onUpdate);
+  onUpdate();
+}
 
 bool get _localPlatform =>
     HostPlatform.isMacOS || HostPlatform.isWindows || HostPlatform.isLinux || HostPlatform.isAndroid;
@@ -88,35 +113,40 @@ bool onboardingMethodVisible(OnboardingMethod method, SupportedApp app) {
 }
 
 /// Whether the tile can be toggled (Local on iOS cannot).
-bool onboardingMethodAvailable(OnboardingMethod method) =>
-    method != OnboardingMethod.local || _localPlatform;
+bool onboardingMethodAvailable(OnboardingMethod method) => method != OnboardingMethod.local || _localPlatform;
 
 /// The concrete connection backing a tile, so the UI can show live
 /// started/connected state (enabled is a pref; connected means the trainer
 /// app is actually talking to us).
 TrainerConnection? onboardingMethodConnection(OnboardingMethod method, SupportedApp app) => switch (method) {
-      OnboardingMethod.network => _supportsObpNetwork(app)
-          ? core.obpMdnsEmulator
-          : _supportsZwiftStyleMdns(app)
-              ? (app is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator)
-              : null,
-      OnboardingMethod.bluetooth => app.supports(AppConnectionMethod.obpBle)
-          ? core.obpBluetoothEmulator
-          : app.supports(AppConnectionMethod.zwiftBle)
-              ? core.zwiftEmulator
-              : null,
-      OnboardingMethod.local => core.local,
-    };
+  OnboardingMethod.network =>
+    _supportsObpNetwork(app)
+        ? core.obpMdnsEmulator
+        : _supportsZwiftStyleMdns(app)
+        ? (app is Rouvy ? core.rouvyMdnsEmulator : core.zwiftMdnsEmulator)
+        : null,
+  OnboardingMethod.bluetooth =>
+    app.supports(AppConnectionMethod.obpBle)
+        ? core.obpBluetoothEmulator
+        : app.supports(AppConnectionMethod.cycplusBc2Ble)
+        ? core.bc2BluetoothEmulator
+        : app.supports(AppConnectionMethod.zwiftBle)
+        ? core.zwiftEmulator
+        : null,
+  OnboardingMethod.local => core.local,
+};
 
 bool onboardingMethodEnabled(OnboardingMethod method, SupportedApp app) => switch (method) {
-      OnboardingMethod.network => _supportsObpNetwork(app)
-          ? core.settings.getObpMdnsEnabled()
-          : core.settings.getZwiftMdnsEmulatorEnabled(),
-      OnboardingMethod.bluetooth => app.supports(AppConnectionMethod.obpBle)
-          ? core.settings.getObpBleEnabled()
-          : core.settings.getZwiftBleEmulatorEnabled(),
-      OnboardingMethod.local => core.settings.getLocalEnabled(),
-    };
+  OnboardingMethod.network =>
+    _supportsObpNetwork(app) ? core.settings.getObpMdnsEnabled() : core.settings.getZwiftMdnsEmulatorEnabled(),
+  OnboardingMethod.bluetooth =>
+    app.supports(AppConnectionMethod.obpBle)
+        ? core.settings.getObpBleEnabled()
+        : app.supports(AppConnectionMethod.cycplusBc2Ble)
+        ? core.settings.getBc2BleEnabled()
+        : core.settings.getZwiftBleEmulatorEnabled(),
+  OnboardingMethod.local => core.settings.getLocalEnabled(),
+};
 
 /// Toggles [method] with exactly the side effects of the corresponding
 /// settings tile's onChange handler. [onUpdate] is invoked when async state
@@ -195,6 +225,7 @@ Future<void> setOnboardingMethodEnabled(
           toastError(e);
           onUpdate();
         }
+
         if (app is Rouvy) {
           value ? core.rouvyMdnsEmulator.startServer().catchError(onStartError) : core.rouvyMdnsEmulator.stop();
         } else {
@@ -225,6 +256,19 @@ Future<void> setOnboardingMethodEnabled(
           core.obpBluetoothEmulator.startServer().catchError((e, s) {
             recordError(e, s, context: 'onboarding OBP BLE Emulator');
             core.settings.setObpBleEnabled(false);
+            toastError(e);
+            onUpdate();
+          });
+        }
+      } else if (app.supports(AppConnectionMethod.cycplusBc2Ble)) {
+        // Mirrors cycplus_bc2_ble_tile.dart onChange.
+        core.settings.setBc2BleEnabled(value);
+        if (!value) {
+          core.bc2BluetoothEmulator.stopServer();
+        } else {
+          core.bc2BluetoothEmulator.startServer().catchError((e, s) {
+            recordError(e, s, context: 'onboarding BC2 BLE Emulator');
+            core.settings.setBc2BleEnabled(false);
             toastError(e);
             onUpdate();
           });
@@ -281,12 +325,14 @@ Future<void> setOnboardingMethodEnabled(
       // Mirrors local_tile.dart onChange.
       core.settings.setLocalEnabled(value);
       if (core.logic.canRunAndroidService) {
-        unawaited(core.logic.isAndroidServiceRunning().then((isRunning) {
-          core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
-          core.local.isStarted.value = isRunning;
-          core.local.isConnected.value = isRunning;
-          onUpdate();
-        }));
+        unawaited(
+          core.logic.isAndroidServiceRunning().then((isRunning) {
+            core.connection.signalNotification(LogNotification('Local Control: $isRunning'));
+            core.local.isStarted.value = isRunning;
+            core.local.isConnected.value = isRunning;
+            onUpdate();
+          }),
+        );
       } else {
         core.local.isStarted.value = value;
         core.local.isConnected.value = value;

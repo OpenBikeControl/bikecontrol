@@ -145,8 +145,10 @@ class VirtualShiftingCard extends StatelessWidget {
           ),
           // The card's 16 plus a deliberate 8 under the band, so the gear
           // reads as the card's content rather than the header's caption.
+          // A footer's lines are 48 tall touch targets that already carry
+          // their own air below the text: the card adds only a little.
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16 + 8, 16, 16),
+            padding: EdgeInsets.fromLTRB(16, 16 + 8, 16, _footer(context) == null ? 16 : 4),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
@@ -968,6 +970,7 @@ class RidePromptCard extends StatelessWidget {
   const RidePromptCard({
     super.key,
     required this.icon,
+    this.glyph,
     required this.title,
     required this.body,
     this.bodyColor,
@@ -986,6 +989,9 @@ class RidePromptCard extends StatelessWidget {
   final Key? secondaryKey;
 
   final IconData icon;
+
+  /// A drawn mark in place of [icon] (the trainer's).
+  final Widget? glyph;
   final String title;
   final String body;
 
@@ -1017,7 +1023,14 @@ class RidePromptCard extends StatelessWidget {
               color: BkBrandColors.of(context).tileWash,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: BkBrandColors.of(context).tileInk),
+            child: glyph != null
+                ? Center(
+                    child: IconTheme(
+                      data: IconThemeData(size: 20, color: BkBrandColors.of(context).tileInk),
+                      child: glyph!,
+                    ),
+                  )
+                : Icon(icon, size: 20, color: BkBrandColors.of(context).tileInk),
           ),
           const Gap(12),
           Expanded(
@@ -1116,24 +1129,60 @@ class RideStatusLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final textStyle = context.typography.small.copyWith(color: cs.mutedForeground);
+    final linkStyle = context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600);
+    final hasAction = actionLabel != null && onAction != null;
+    final line = Row(
+      children: [
+        Icon(icon, size: 16, color: cs.mutedForeground),
+        const Gap(8),
+        Expanded(child: Text(text, style: textStyle)),
+      ],
+    );
+    if (!hasAction) return Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: line);
+    final link = Button.ghost(
+      key: const ValueKey('ride-status-line-action'),
+      onPressed: onAction,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 2,
+        children: [
+          Text(actionLabel!, style: linkStyle),
+          Icon(LucideIcons.chevronRight, size: 16, color: bkAccentText(context)),
+        ],
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: cs.mutedForeground),
-          const Gap(8),
-          Expanded(
-            child: Text(text, style: context.typography.small.copyWith(color: cs.mutedForeground)),
-          ),
-          if (actionLabel != null && onAction != null)
-            Button.ghost(
-              onPressed: onAction,
-              child: Text(
-                actionLabel!,
-                style: context.typography.small.copyWith(color: bkAccentText(context), fontWeight: FontWeight.w600),
-              ),
-            ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Side by side when both read on one line; otherwise the link goes
+          // under the status, at its text — squeezed beside it, "MyWhoosh
+          // handles shifting" broke over three lines.
+          double width(String s, TextStyle style) => (TextPainter(
+            text: TextSpan(text: s, style: DefaultTextStyle.of(context).style.merge(style)),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout()).width;
+          // Icon and gap, the link's padding and chevron.
+          final needed = 24 + width(text, textStyle) + 12 + width(actionLabel!, linkStyle) + 18 + 24;
+          if (needed <= constraints.maxWidth) {
+            return Row(
+              children: [
+                Expanded(child: line),
+                link,
+              ],
+            );
+          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              line,
+              // The ghost button's own padding brings its label under the text.
+              Padding(padding: const EdgeInsetsDirectional.only(start: 4), child: link),
+            ],
+          );
+        },
       ),
     );
   }

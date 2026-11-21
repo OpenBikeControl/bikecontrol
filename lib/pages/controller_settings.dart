@@ -382,7 +382,7 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
   Widget _buildActions(BaseDevice device, Keymap? keymap) {
     final noPurchase = !IAPManager.instance.isPurchased.value && !IAPManager.instance.hasActiveSubscription;
     return BkGroupedSection(
-      dividerIndent: BkGroupedSection.inset + BkIconTile.size + BkGroupedRow.gap,
+      dividerIndent: BkGroupedSection.inset + BkIconTile.defaultSize + BkGroupedRow.gap,
       children: [
         // The controller's own buzz on every shift, for the ones that can.
         if ((device is ZwiftDevice && device.canVibrate) || (device is GamepadDevice && device.canRumble))

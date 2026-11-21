@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../bluetooth/devices/base_device.dart';
+import '../../bluetooth/devices/elite/elite_square.dart';
 import '../actions/base_actions.dart';
 import 'apps/bike_control.dart';
 import 'apps/custom_app.dart';
@@ -43,7 +44,10 @@ class Keymap {
 
   List<KeyPair> keyPairs;
 
-  Keymap({required this.keyPairs});
+  /// A rider's own keymap, saved to and reloaded from settings.
+  final bool isCustom;
+
+  Keymap({required this.keyPairs, this.isCustom = false});
 
   final StreamController<void> _updateStream = StreamController<void>.broadcast();
   Stream<void> get updateStream => _updateStream.stream;
@@ -194,6 +198,7 @@ class Keymap {
     if (newButtons.isEmpty) return;
     final offered = core.settings.getTrainerApp()?.offeredInGameActions;
     for (final button in newButtons) {
+      if (_adoptLegacyMapping(button)) continue;
       final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
         button,
         trigger: ButtonTrigger.singleClick,
@@ -221,10 +226,54 @@ class Keymap {
     }
   }
 
+  /// A custom keymap saved before a button was renamed still holds its
+  /// mapping under the old name. Copies the first saved pair per trigger —
+  /// the rider's own, any later ones being defaults appended on restarts.
+  bool _adoptLegacyMapping(ControllerButton button) {
+    if (!isCustom) return false;
+    final legacyName = EliteSquareButtons.legacyNames[button.name];
+    if (legacyName == null) return false;
+    final legacyPairs = keyPairs
+        .where((kp) => kp.buttons.any((b) => b.name == legacyName && b.sourceDeviceId == button.sourceDeviceId))
+        .toList();
+    if (legacyPairs.isEmpty) return false;
+    for (final legacy in legacyPairs.distinctBy((kp) => kp.trigger)) {
+      addKeyPair(
+        KeyPair(
+          buttons: [button],
+          physicalKey: legacy.physicalKey,
+          logicalKey: legacy.logicalKey,
+          modifiers: List.of(legacy.modifiers),
+          touchPosition: legacy.touchPosition,
+          trigger: legacy.trigger,
+          inGameAction: legacy.inGameAction,
+          inGameActionValue: legacy.inGameActionValue,
+          androidAction: legacy.androidAction,
+          androidIntentAction: legacy.androidIntentAction,
+          command: legacy.command,
+          screenshotPath: legacy.screenshotPath,
+        ),
+      );
+    }
+    return true;
+  }
+
   void signalUpdate() {
     _updateStream.add(null);
   }
 }
+
+/// Name of a media key for UI and log text. Release builds strip
+/// [PhysicalKeyboardKey.toString], so never interpolate the key itself.
+String mediaKeyLabel(PhysicalKeyboardKey key) => switch (key) {
+  PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,
+  PhysicalKeyboardKey.mediaStop => AppLocalizations.current.stop,
+  PhysicalKeyboardKey.mediaTrackPrevious => AppLocalizations.current.previous,
+  PhysicalKeyboardKey.mediaTrackNext => AppLocalizations.current.next,
+  PhysicalKeyboardKey.audioVolumeUp => AppLocalizations.current.volumeUp,
+  PhysicalKeyboardKey.audioVolumeDown => AppLocalizations.current.volumeDown,
+  _ => 'Unknown (0x${key.usbHidUsage.toRadixString(16)})',
+};
 
 class KeyPair {
   static const String intentActionPrefix = 'app.bikecontrol.trigger.';
@@ -443,12 +492,17 @@ class KeyPair {
   /// True when this keypair has an action, but no connection method that's
   /// on right now can carry it — so pressing the button does nothing yet.
   bool get waitsForConnectionMethod =>
-      !hasNoAction && toString() == AppLocalizations.current.actionWaitsForConnectionMethod;
+      !hasNoAction && label == AppLocalizations.current.actionWaitsForConnectionMethod;
+
+  /// What this keypair does, for UI and log text. Use this, not string
+  /// interpolation of the keypair: release builds can drop [toString]
+  /// overrides, which then read "Instance of '…'".
+  String get label => _label(coordinates: true);
 
   @override
-  String toString() => _label(coordinates: true);
+  String toString() => label;
 
-  /// [toString] without where Local taps on the screen ("X:80, Y:94
+  /// [label] without where Local taps on the screen ("X:80, Y:94
   /// (Shift down)" reads "Shift down"): for a list of buttons, where the
   /// rider wants to know what a press does, not where it lands.
   String get actionLabel => _label(coordinates: false);
@@ -472,15 +526,7 @@ class KeyPair {
         : (command != null && command!.trim().isNotEmpty)
         ? command!
         : (isSpecialKey && core.actionHandler.supportedModes.contains(SupportedMode.media))
-        ? switch (physicalKey) {
-            PhysicalKeyboardKey.mediaPlayPause => AppLocalizations.current.playPause,
-            PhysicalKeyboardKey.mediaStop => AppLocalizations.current.stop,
-            PhysicalKeyboardKey.mediaTrackPrevious => AppLocalizations.current.previous,
-            PhysicalKeyboardKey.mediaTrackNext => AppLocalizations.current.next,
-            PhysicalKeyboardKey.audioVolumeUp => AppLocalizations.current.volumeUp,
-            PhysicalKeyboardKey.audioVolumeDown => AppLocalizations.current.volumeDown,
-            _ => 'Unknown',
-          }
+        ? mediaKeyLabel(physicalKey!)
         : (physicalKey != null && core.actionHandler.supportedModes.contains(SupportedMode.keyboard))
         ? null
         : (touchPosition != Offset.zero && core.logic.showLocalRemoteOptions)

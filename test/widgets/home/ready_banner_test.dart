@@ -4,6 +4,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/pages/home/chain_state.dart';
 import 'package:bike_control/widgets/home/ready_banner.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
+import 'package:bike_control/widgets/ui/bk_skeleton.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -476,5 +477,35 @@ void main() async {
     expect(shadows.single.color, BkBrandColors.light.readyHalo);
     expect(shadows.single.blurRadius, 0, reason: 'a crisp ring, not a glow');
     expect(shadows.single.spreadRadius, 5);
+  });
+
+  // The list's plain rings said nothing about which thing each step was for;
+  // the device's own mark does, with a light passing over it while it waits.
+  testWidgets('a step with a mark shows it, shimmering, instead of the ring', (tester) async {
+    const mark = SizedBox(key: ValueKey('the-mark'), width: 30, height: 30);
+    await pumpBanner(
+      tester,
+      const ChainBanner(kind: ChainBannerKind.pending, status: LinkStatus.attention, stepsLeft: 2),
+      steps: [
+        ReadyBannerStep(
+          linkId: 'a',
+          step: const SetupStep(id: SetupStepId.appConnected, done: false),
+          mark: mark,
+        ),
+        const ReadyBannerStep(
+          linkId: 'b',
+          step: SetupStep(id: SetupStepId.trainerPaired, done: false),
+        ),
+      ],
+    );
+    final marked = find.byKey(const ValueKey('ready-step-a-appConnected'));
+    expect(find.descendant(of: marked, matching: find.byKey(const ValueKey('the-mark'))), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(BkShimmer), matching: find.byKey(const ValueKey('the-mark'))),
+      findsOneWidget,
+    );
+    // A step without one keeps the ring.
+    final plain = find.byKey(const ValueKey('ready-step-b-trainerPaired'));
+    expect(find.descendant(of: plain, matching: find.byType(BkShimmer)), findsNothing);
   });
 }

@@ -26,19 +26,19 @@ class OverlayShowResult {
   };
 }
 
-/// Looks up the current live [FitnessBikeDefinition] for the active trainer.
-/// The emulator rebinds a fresh definition each time its transport starts,
-/// so the controller can't cache the def captured at show() time — action
-/// handlers must re-resolve it on every call or buttons silently no-op
-/// against a stale instance.
-typedef LiveDefinitionLookup = FitnessBikeDefinition? Function();
+/// The trainer's current [FitnessBikeDefinition] (`ProxyDevice.fitnessBikeListenable`).
+/// The trainer builds a fresh definition on every (re)connect, so a
+/// controller can't stay on the def it was shown with: it follows this, for
+/// both what it displays and what its buttons shift. Null while no trainer is
+/// connected.
+typedef LiveDefinition = ValueListenable<FitnessBikeDefinition?>;
 
 abstract class TrainerOverlayController {
   ValueListenable<bool> get isShowing;
   Future<OverlayShowResult> show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   });
   Future<void> hide();
   void updateFields(Set<OverlayField> fields);
@@ -70,7 +70,7 @@ class NoOpOverlayController implements TrainerOverlayController {
   Future<OverlayShowResult> show(
     FitnessBikeDefinition def,
     Set<OverlayField> fields, {
-    LiveDefinitionLookup? liveDef,
+    LiveDefinition? liveDef,
   }) async {
     return const OverlayShowResult.fail(
       OverlayShowFailure.systemDisabled,

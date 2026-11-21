@@ -1,7 +1,10 @@
 import 'package:bike_control/pages/settings/overlay_settings_page.dart' show overlaySettingsDestination;
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/pages/help_center/help_checks.dart';
+import 'package:bike_control/pages/home/home_sheets.dart' show openAppGuideSheet;
 import 'package:bike_control/pages/network_troubleshooting_page.dart';
+import 'package:bike_control/pages/onboarding/onboarding_methods.dart'
+    show offersBluetoothFallback, useBluetoothInstead;
 import 'package:bike_control/pages/plan/plan_account_page.dart' show openPlanAccount;
 import 'package:bike_control/pages/settings/virtual_shifting_settings_page.dart' show openTrainerSelfTest;
 import 'package:bike_control/services/support_chat_models.dart';
@@ -383,6 +386,21 @@ class _InlineSelfHelp extends StatelessWidget {
     final proxy = (trainer ?? _knownTrainer)();
     final connectedTrainer = proxy != null && proxy.isConnected ? proxy : null;
     void openNetworkTest() => context.push(const NetworkTroubleshootingPage());
+    // MyWhoosh on another device also takes BikeControl over Bluetooth: the
+    // way around a network that keeps the two apart.
+    final app = core.settings.getTrainerApp();
+    final bluetoothFallback = app != null && offersBluetoothFallback(app)
+        ? (
+            const ValueKey('intake-use-bluetooth'),
+            LucideIcons.bluetooth,
+            l10n.bluetoothFallbackAction,
+            () async {
+              await useBluetoothInstead(context, app, onUpdate: () {});
+              if (core.settings.getBc2BleEnabled() && context.mounted) await openAppGuideSheet(context);
+            },
+          )
+        : null;
+    final bluetoothNote = bluetoothFallback != null ? l10n.bluetoothFallbackBody(app!.name) : null;
     void openOverlay() => context.push(overlaySettingsDestination(proxy!));
     final planAccountAction = (
       const ValueKey('intake-open-plan-account'),
@@ -433,8 +451,8 @@ class _InlineSelfHelp extends StatelessWidget {
           onNetworkTest: openNetworkTest,
           onOverlay: proxy != null ? openOverlay : null,
         ),
-        const <(Key?, IconData, String, VoidCallback)>[],
-        null,
+        [?bluetoothFallback],
+        bluetoothNote,
       ),
       IntakeSelfHelp.trainerAppGear => (
         LucideIcons.eye,
@@ -452,8 +470,8 @@ class _InlineSelfHelp extends StatelessWidget {
         l10n.helpCenterNetworkEntry,
         l10n.intakeSelfHelpNetworkBody,
         const <HelpCheck>[],
-        [(null, LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest)],
-        null,
+        [(null, LucideIcons.radioTower, l10n.intakeSelfHelpNetworkAction, openNetworkTest), ?bluetoothFallback],
+        bluetoothNote,
       ),
       // The self-test needs a live trainer: run it directly when there is
       // one, otherwise say to connect it first.

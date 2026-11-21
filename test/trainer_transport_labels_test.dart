@@ -15,6 +15,7 @@ import 'package:bike_control/utils/actions/base_actions.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/menu.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
@@ -138,8 +139,8 @@ Future<void> main() async {
       expect(find.text('WiFi · Supports virtual shifting'), findsOneWidget);
       expect(find.text('Bluetooth · Supports virtual shifting'), findsOneWidget);
 
-      // A trainer is a bike everywhere; the subtitle names the transport.
-      expect(find.byIcon(LucideIcons.bike), findsNWidgets(2));
+      // The drawn trainer for both; the subtitle names the transport.
+      expect(find.byType(TrainerGlyph), findsNWidgets(2));
     });
 
     testWidgets('the connected variant names the transport as well', (tester) async {
@@ -149,12 +150,8 @@ Future<void> main() async {
       await pumpPicker(tester, [trainer]);
 
       expect(find.text('WiFi · Supports virtual shifting'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.bike), findsOneWidget);
-    });
-
-    testWidgets('a trainer is a bike, whatever its transport', (tester) async {
-      expect(onboardingTrainerIcon(wifiTrainer()), LucideIcons.bike);
-      expect(onboardingTrainerIcon(bleTrainer()), LucideIcons.bike);
+      // The drawn trainer, whatever its transport — that's in the subtitle.
+      expect(find.byType(TrainerGlyph), findsOneWidget);
     });
   });
 

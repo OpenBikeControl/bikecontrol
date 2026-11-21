@@ -1,16 +1,22 @@
+### 7.6.1 (20-11-2026)
+**Features**:
+- (Base) MyWhoosh via Bluetooth: abbina BikeControl in MyWhoosh come dispositivo di sterzo, poi cambi marcia e scegli la strada agli incroci (pressione lunga). Se la connessione di rete non funziona, BikeControl propone il Bluetooth al suo posto.
+- (Pro) Sensori: un elenco mostra da dove arrivano potenza, frequenza cardiaca, cadenza e velocità, rullo compreso, e ti permette di sostituirle con un tuo sensore. «Invia all'app di allenamento» appare solo senza rullo collegato, perché il rullo le trasmette già.
+- (Pro) Protocollo di controllo: in Auto, la pagina del rullo mostra quale protocollo è stato scelto (ad es. «Auto: FTMS»).
+
 ### 7.6.0 (17-11-2026)
 **Features**:
-- Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.
-- I comandi CYCPLUS T7 funzionano come controller: tutti e otto i pulsanti, con lo sterzo sulle frecce posteriori di default.
-- Le app OpenBikeControl ora vedono il tuo rapporto virtuale in tempo reale.
-- Un editor dei pulsanti più chiaro: le azioni sono raggruppate in base a ciò che fanno (Rapporti, Rullo, Allenamento, Pedalata, …), e sul telefono si apre come pannello dal basso.
-- Shimano Di2: una terza opzione di configurazione – imposta tu i canali D-Fly in E-TUBE, con una guida passo passo.
-- Zwift Click V2: puoi usare, se vuoi, il controller destro senza sbloccarlo.
+- (Base) Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.
+- (Base) I comandi CYCPLUS T7 funzionano come controller: tutti e otto i pulsanti, con lo sterzo sulle frecce posteriori di default.
+- (Pro) Le app OpenBikeControl ora vedono il tuo rapporto virtuale in tempo reale.
+- (Base) Un editor dei pulsanti più chiaro: le azioni sono raggruppate in base a ciò che fanno (Rapporti, Rullo, Allenamento, Pedalata, …), e sul telefono si apre come pannello dal basso.
+- (Base) Shimano Di2: una terza opzione di configurazione – imposta tu i canali D-Fly in E-TUBE, con una guida passo passo.
+- (Base) Zwift Click V2: puoi usare, se vuoi, il controller destro senza sbloccarlo.
 - Più margine per provare: 120 pressioni al giorno durante la prova (prima 80), poi 40 al giorno (prima 15) e, senza Pro, 30 minuti al giorno del cambio virtuale di BikeControl (prima 20).
 - Una prova più chiara: BikeControl ti avvisa (anche con una notifica) quando ti restano 10 pressioni per oggi, e la scheda della prova mostra cosa avrai dopo. Se la tua app di allenamento cambia marcia da sola, «Pedala» non propone più il cambio virtuale di BikeControl, e il controllo da tastiera è indicato come facoltativo accanto a una connessione OpenBikeControl.
-- KICKR Headwind: il ventilatore può seguire la tua frequenza cardiaca (da una fascia collegata a BikeControl) o la tua potenza, e scegli tu dove parte e dove arriva alla velocità massima. La pagina mostra il valore attuale e la velocità che ne deriva.
-- Elite Rizer: l'inclinazione ora funziona con qualsiasi rullo smart.
-- I Controlli del rullo (Companion Mode) ora li organizzi tu: sposta e ridimensiona ogni pulsante, aggiungi rapporto, potenza, cadenza e sviluppo, e passa a schermo intero. La modalità pedalata mostra un − e un + grandi con il rapporto al centro, e la scheda della cambiata virtuale in Pedala la apre con un tocco. I suoi − e + ora usano la cambiata virtuale di BikeControl, con la vibrazione alla cambiata.
+- (Base) KICKR Headwind: il ventilatore può seguire la tua frequenza cardiaca (da una fascia collegata a BikeControl) o la tua potenza, e scegli tu dove parte e dove arriva alla velocità massima. La pagina mostra il valore attuale e la velocità che ne deriva.
+- (Base) Elite Rizer: l'inclinazione ora funziona con qualsiasi rullo smart.
+- (Pro) I Controlli del rullo (Companion Mode) ora si aprono in modalità pedalata: un − e un + grandi con rapporto, potenza, cadenza e sviluppo al centro, e tutti gli altri pulsanti sotto. Con Modifica sposti e ridimensioni i riquadri e aggiungi pulsanti, valori e controllo della musica; c'è anche lo schermo intero. I suoi − e + ora usano la cambiata virtuale di BikeControl, con la vibrazione alla cambiata.
 
 **Fixes**:
 - Zwift: la Bomba Ride On parte anche con una pressione breve (Zwift vuole il pulsante tenuto premuto per un attimo).

@@ -21,6 +21,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart' show TrainerGlyph;
 
 import '../../utils/keymap/buttons.dart';
 import '../messages/notification.dart';
@@ -648,6 +649,9 @@ abstract class BaseDevice {
             children: [
               StatusIcon(
                 icon: icon,
+                // A smart trainer as the drawn trainer, as on Home; a power
+                // meter or HR strap keeps its own glyph.
+                glyph: this is ProxyDevice && icon == LucideIcons.bike ? const TrainerGlyph() : null,
                 status: isConnected,
                 started: !isConnected && (this is! ProxyDevice || (this as ProxyDevice).isStarting.value),
               ),

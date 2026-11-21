@@ -9,7 +9,6 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_play.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate, screenshotMode;
-import 'package:bike_control/pages/button_simulator.dart';
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/pages/home/home_page.dart';
 import 'package:bike_control/pages/proxy_device_details.dart';
@@ -308,22 +307,6 @@ Future<void> main() async {
       expect(find.byType(VirtualShiftingSettingsPage), findsOneWidget);
     });
 
-    testWidgets('a button on the settings line opens the companion page full screen', (tester) async {
-      liveTrainer();
-      await pumpRide(tester);
-
-      final line = find.byKey(const ValueKey('ride-vs-full-screen'));
-      expect(find.descendant(of: find.byType(VirtualShiftingCard), matching: line), findsOneWidget);
-      expect(tester.getSize(line).height, greaterThanOrEqualTo(48));
-      await tester.ensureVisible(line);
-      await tester.pump();
-      await tester.tap(line);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      final page = tester.widget<ButtonSimulator>(find.byType(ButtonSimulator));
-      expect(page.startFullScreen, isTrue);
-    });
-
     testWidgets('the trainer name opens the trainer page', (tester) async {
       liveTrainer();
       await pumpRide(tester);
@@ -467,6 +450,14 @@ Future<void> main() async {
 
       expect(find.text(l.rideVsInviteBody), findsNothing);
       expect(find.byKey(const ValueKey('ride-vs-handled')), findsOneWidget);
+      // The way to BikeControl's own shifting says what it is, not "Connect".
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('ride-vs-handled')),
+          matching: find.text(l.rideShiftWithBikeControl),
+        ),
+        findsOneWidget,
+      );
     });
   });
 
@@ -781,7 +772,11 @@ Future<void> main() async {
         expect(list, findsOneWidget);
         final play = core.connection.controllerDevices.single;
         for (final button in play.availableButtons) {
-          expect(find.descendant(of: list, matching: find.text(button.displayName)), findsOneWidget);
+          // By its glyph, as on the pods: the name is spoken, not shown.
+          expect(
+            find.descendant(of: list, matching: find.byKey(ValueKey('ride-button-row-${button.name}'))),
+            findsOneWidget,
+          );
         }
         final cut = find.descendant(of: list, matching: find.byType(RichText)).evaluate().where((e) {
           final paragraph = e.renderObject! as RenderParagraph;
