@@ -1034,6 +1034,37 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             // column puts it under the pods (see [ControllerButtonsCard]).
             showButtonList: twoColumns || constraints.maxWidth >= Breakpoints.compact,
           );
+          // Ride's second column: your buttons, then the ride being recorded
+          // or the last one.
+          final rideColumn = <Widget>[
+            ?buttons,
+            // While a ride records: where the record card was;
+            // the finished ride's card takes its place.
+            const RideRecordingSlot(key: ValueKey('ride-recording-slot'), textActions: true, spacing: 20),
+            if (widget.activityPreview case final preview?) ...[if (buttons != null) const Gap(20), preview],
+          ];
+          // Without a trainer card the left column is the banner and a line at
+          // most — the buttons and rides move up under it instead of leaving
+          // the left side empty.
+          if (twoColumns && !_vsSlotIsCard(inputs)) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ...status,
+                      if (vs != null) ...[vs, const Gap(20)],
+                      ...rideColumn,
+                    ],
+                  ),
+                ),
+                const Gap(20),
+                const Expanded(child: SizedBox.shrink()),
+              ],
+            );
+          }
           if (twoColumns) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1051,13 +1082,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ?buttons,
-                      // While a ride records: where the record card was;
-                      // the finished ride's card takes its place.
-                      const RideRecordingSlot(key: ValueKey('ride-recording-slot'), textActions: true, spacing: 20),
-                      if (widget.activityPreview case final preview?) ...[if (buttons != null) const Gap(20), preview],
-                    ],
+                    children: rideColumn,
                   ),
                 ),
               ],
@@ -1246,6 +1271,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ///
   /// Nothing in sensors-only mode: that rider has said there is no smart
   /// trainer to connect.
+  /// Whether [_vsSlot] shows a trainer card — live, or on its way — rather
+  /// than a line or an invitation.
+  bool _vsSlotIsCard(ChainInputs inputs) {
+    if (inputs.trainer == null && inputs.sensors != null) return false;
+    final proxy = chainProxy();
+    if (proxy != null && proxy.fitnessBike != null) return true;
+    final trainer = inputs.trainer;
+    return trainer != null &&
+        (trainer.presence == DevicePresence.connecting ||
+            (trainer.presence == DevicePresence.remembered &&
+                core.connection.startupReconnecting.value.contains(trainer.deviceId)));
+  }
+
   Widget? _vsSlot(ChainInputs inputs, List<ChainLink> links, {required bool stacked}) {
     if (inputs.trainer == null && inputs.sensors != null) return null;
     final proxy = chainProxy();

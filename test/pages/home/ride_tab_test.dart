@@ -1,4 +1,5 @@
 // The Ride tab: the ready banner, the virtual shifting card and "Your
+import 'package:bike_control/widgets/home/ready_banner.dart' show ReadyBanner;
 // buttons". The setup chain's cards live on Devices now (HomeView.setup); Ride
 // keeps the banner that points at them.
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
@@ -758,6 +759,18 @@ Future<void> main() async {
       final vs = rectOf(tester, find.byType(VirtualShiftingCard));
       final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
       expect(buttons.left, greaterThan(vs.right), reason: 'two columns');
+      await disposeShell(tester);
+    });
+
+    testWidgets('1440 wide without a trainer: the buttons move up under the banner, left', (tester) async {
+      connectedPlay();
+      await pumpShell(tester, const Size(1440, 900));
+      expect(tester.takeException(), isNull);
+
+      final banner = rectOf(tester, find.byType(ReadyBanner));
+      final buttons = rectOf(tester, find.byType(ControllerButtonsCard));
+      expect(buttons.left, closeTo(banner.left, 1), reason: 'same column as the banner');
+      expect(buttons.top, greaterThan(banner.bottom));
       await disposeShell(tester);
     });
 
