@@ -142,6 +142,30 @@ Future<void> main() async {
     expect(find.text(l.onboardingHelpAndSupport), findsOneWidget);
   });
 
+  testWidgets('wide: Back, the ghost action and the pill share one text line in the footer', (tester) async {
+    final l = await pump(
+      tester,
+      (c) => onboardingShell(
+        c,
+        step: OnboardingStep.gear,
+        body: const OnboardingHeadline('Your controller is ready'),
+        footerActions: [
+          PrimaryButton(onPressed: () {}, child: const Text('2 found')),
+          GhostButton(onPressed: () {}, child: const Text('Skip')),
+        ],
+        onBack: () {},
+        onHelp: () {},
+        onSelectStep: (_) {},
+      ),
+      width: 1400,
+    );
+    final back = tester.getCenter(find.text(l.onboardingBack));
+    final ghost = tester.getCenter(find.text('Skip'));
+    final pill = tester.getCenter(find.text('2 found'));
+    expect(back.dy, closeTo(pill.dy, 1));
+    expect(ghost.dy, closeTo(pill.dy, 1));
+  });
+
   testWidgets('done: success tile, display headline, summary with status dots, trial card', (tester) async {
     final l = await pump(
       tester,

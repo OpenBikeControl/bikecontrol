@@ -272,8 +272,12 @@ Widget onboardingShell(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
                       child: _PillFooter(
+                        // On one text line: the pill is taller than Back and
+                        // the ghost actions, and the overflow bar's baseline
+                        // is its top row's once the actions stack.
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             if (onBack != null)
                               BkTouchTarget(
