@@ -191,7 +191,7 @@ class SensorHub {
     // A lapsed subscriber's reading is treated exactly like "nothing to
     // read yet" — never surfaced, but [_selection] itself is untouched, so
     // resolution resumes with no rider action the moment Pro comes back.
-    final allowed = isProEnabled?.call() ?? true;
+    final allowed = source?.requiresPro == false || (isProEnabled?.call() ?? true);
     final reading = (source != null && allowed) ? source.readingFor(quantity).value : null;
 
     final stale = reading == null || now().difference(reading.timestamp) > (source?.ttl ?? bleSensorTtl);

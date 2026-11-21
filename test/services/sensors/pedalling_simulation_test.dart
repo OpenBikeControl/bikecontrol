@@ -6,6 +6,20 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('runs without Pro: a trial or Base install hides real sensors, not the simulation', () {
+    fakeAsync((async) {
+      final hub = SensorHub(now: () => async.getClock(DateTime(2026)).now())..isProEnabled = () => false;
+      final sim = PedallingSimulation(hub);
+
+      sim.start();
+      async.elapse(const Duration(seconds: 1));
+
+      expect(hub.resolved(SensorQuantity.power).value, isNotNull);
+      expect(hub.resolved(SensorQuantity.cadence).value, isNotNull);
+      sim.stop();
+    });
+  });
+
   test('feeds power, cadence and heart rate while running, then restores the selection', () {
     fakeAsync((async) {
       final hub = SensorHub(now: () => async.getClock(DateTime(2026)).now());

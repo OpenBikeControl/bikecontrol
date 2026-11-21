@@ -80,4 +80,19 @@ void main() {
 
     expect(hub.resolved(SensorQuantity.heartRate).value, 150);
   });
+
+  test('a source that needs no Pro (the pedalling simulation) resolves without it', () {
+    final hub = SensorHub()..isProEnabled = () => false;
+    final source = FakeSensorSource(
+      id: 'sim',
+      displayName: 'Simulation',
+      provides: {SensorQuantity.power},
+      requiresPro: false,
+    );
+    hub.register(source);
+    hub.select(SensorQuantity.power, 'sim');
+    source.emit(SensorQuantity.power, 210);
+
+    expect(hub.resolved(SensorQuantity.power).value, 210);
+  });
 }

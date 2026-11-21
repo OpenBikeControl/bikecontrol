@@ -10,7 +10,11 @@ class FakeSensorSource extends SensorSource {
     required this.id,
     required this.displayName,
     required this.provides,
+    this.requiresPro = true,
   });
+
+  @override
+  final bool requiresPro;
 
   @override
   final String id;
@@ -26,8 +30,7 @@ class FakeSensorSource extends SensorSource {
   bool started = false;
 
   @override
-  ValueListenable<SensorReading?> readingFor(SensorQuantity quantity) =>
-      _notifierFor(quantity);
+  ValueListenable<SensorReading?> readingFor(SensorQuantity quantity) => _notifierFor(quantity);
 
   ValueNotifier<SensorReading?> _notifierFor(SensorQuantity quantity) =>
       _readings.putIfAbsent(quantity, () => ValueNotifier<SensorReading?>(null));
