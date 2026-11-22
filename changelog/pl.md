@@ -4,6 +4,9 @@
 - (Pro) Czujniki: jedna lista pokazuje, skąd pochodzą moc, tętno, kadencja i prędkość – łącznie z trenażerem – i pozwala zastąpić każdą z nich własnym czujnikiem. „Wysyłaj do aplikacji treningowej” pojawia się tylko bez połączonego trenażera, bo trenażer już je przekazuje.
 - (Pro) Protokół sterowania: w trybie Auto strona trenażera pokazuje, który protokół został wybrany (np. „Auto: FTMS”).
 
+**Fixes**:
+- (Base) Shimano Di2: konfiguracja kanałów D-Fly rozpoznaje teraz, która manetka jest lewa, a która prawa, i żaden zmieniony przez nią przycisk nie zmienia już biegów w rowerze.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - (Base) Incyclist, Tour du Pain i Rampida są teraz oficjalnie obsługiwane przez OpenBikeControl.

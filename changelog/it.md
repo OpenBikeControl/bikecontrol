@@ -4,6 +4,9 @@
 - (Pro) Sensori: un elenco mostra da dove arrivano potenza, frequenza cardiaca, cadenza e velocità, rullo compreso, e ti permette di sostituirle con un tuo sensore. «Invia all'app di allenamento» appare solo senza rullo collegato, perché il rullo le trasmette già.
 - (Pro) Protocollo di controllo: in Auto, la pagina del rullo mostra quale protocollo è stato scelto (ad es. «Auto: FTMS»).
 
+**Fixes**:
+- (Base) Shimano Di2: la configurazione dei canali D-Fly ora riconosce quale comando è il sinistro e quale il destro, e nessun pulsante che modifica cambia ancora marcia sulla bici.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - (Base) Incyclist, Tour du Pain e Rampida sono ora supportati ufficialmente tramite OpenBikeControl.

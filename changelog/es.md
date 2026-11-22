@@ -4,6 +4,9 @@
 - (Pro) Sensores: una lista muestra de dónde vienen la potencia, el pulso, la cadencia y la velocidad, rodillo incluido, y te deja sustituir cualquiera por tu propio sensor. «Enviar a la app de entrenamiento» solo aparece sin rodillo conectado, ya que el rodillo ya los transmite.
 - (Pro) Protocolo de control: en Auto, la página del rodillo muestra qué protocolo eligió Auto (p. ej. «Auto: FTMS»).
 
+**Fixes**:
+- (Base) Shimano Di2: la configuración de los canales D-Fly ahora reconoce qué maneta es la izquierda y cuál la derecha, y ningún botón que cambia sigue cambiando de marcha en la bici.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - (Base) Incyclist, Tour du Pain y Rampida tienen ahora soporte oficial a través de OpenBikeControl.

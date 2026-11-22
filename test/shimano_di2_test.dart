@@ -451,9 +451,10 @@ Future<void> main() async {
       ]);
     });
 
-    // Rider logs (XT Di2): the hood button already was on D-Fly Ch1; neither
-    // Ch1 on a paddle as well nor the hood button on none was confirmed.
-    test('a button on a paddle channel takes over that paddle\'s function, its setting kept in the backup', () async {
+    // Rider logs (XT Di2, right shifter only, on slot 0): the hood button
+    // already was on D-Fly Ch1; neither Ch1 on a paddle as well nor the hood
+    // button on none was confirmed. As a right shifter its paddles get Ch3/Ch4.
+    test('a single right shifter on slot 0 gets the right channels, its hood kept', () async {
       ShimanoDi2.debugOneShifterGrace = Duration.zero;
       addTearDown(() => ShimanoDi2.debugOneShifterGrace = null);
       final (:di2, :t) = connected('di2-channels-hood-dfly');
@@ -464,8 +465,28 @@ Future<void> main() async {
       t.press(hoodOnCh1);
       await setup;
 
-      expect(t.switchWrites, ['00134120000111abf30000']);
+      expect(t.switchWrites, ['00134120000111cdfa0000']);
       expect(di2.switchBackup, [ShimanoShifterSwitches.fromTelemetry(hoodOnCh1)]);
+    });
+
+    // Rider log (Ultegra R8150, 2026-11-22): the right shifter is on slot 0.
+    // The sheet showed it as the left one, and its hood button was given
+    // "rear derailleur down", so it kept shifting.
+    test('a right shifter on slot 0 is shown and set up as the right one', () async {
+      final (:di2, :t) = connected('di2-channels-swapped');
+      final asks = <ShimanoShifterAsk?>[];
+      di2.shifterAsk.addListener(() => asks.add(di2.shifterAsk.value));
+
+      final setup = di2.setupChannels(passkey: '000000');
+      await untilWaitingForShifters(di2);
+      t.press(_hex('33411800e524e4f501ff'));
+      t.press(_hex('33411801e223e5f401ff'));
+      await setup;
+
+      // Left first: Ch1/Ch2, its hood off Ch1 onto Ch3. Right: Ch3/Ch4, its
+      // hood keeps Ch2. No switch shifts.
+      expect(t.switchWrites, ['00134120010111ab3c0000', '00134120000111cd2b0000']);
+      expect(asks.take(2), [const ShimanoShifterAsk({}), const ShimanoShifterAsk({ShimanoShifter.right})]);
     });
 
     // Rider log (XT Di2, SW-M8250): pressed again and again after the write,

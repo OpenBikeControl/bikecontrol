@@ -2,3 +2,5 @@
 Nowości:
 • MyWhoosh przez Bluetooth: sparuj BikeControl jako urządzenie do skrętu, by zmieniać biegi i wybierać drogę na skrzyżowaniach
 • Czujniki: zobacz, skąd pochodzi każda wartość, i zastąp wartości trenażera własnym czujnikiem
+Poprawki:
+• Shimano Di2: konfiguracja D-Fly odróżnia lewą i prawą stronę, żaden zmieniony przycisk już nie zmienia biegów

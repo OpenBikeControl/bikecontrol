@@ -2,3 +2,5 @@
 Nouveautés :
 • MyWhoosh en Bluetooth : associe BikeControl comme appareil de direction pour changer de vitesse et choisir ta route aux intersections
 • Capteurs : vois d'où vient chaque valeur et remplace celles du home trainer par ton capteur
+Corrigé :
+• Shimano Di2 : la configuration D-Fly distingue gauche et droite, aucun bouton modifié ne passe plus les vitesses

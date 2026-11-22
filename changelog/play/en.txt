@@ -2,3 +2,5 @@
 New:
 • MyWhoosh over Bluetooth: pair BikeControl as a steering device to shift and choose your way at junctions
 • Sensors: see where each value comes from and replace trainer values with your own sensor
+Fixed:
+• Shimano Di2: the D-Fly setup knows left from right, and no changed button keeps shifting

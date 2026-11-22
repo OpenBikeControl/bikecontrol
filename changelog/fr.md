@@ -4,6 +4,9 @@
 - (Pro) Capteurs : une liste montre d'où viennent la puissance, la fréquence cardiaque, la cadence et la vitesse, home trainer compris, et te permet de remplacer chacune par ton propre capteur. « Envoyer à l'app d'entraînement » n'apparaît plus que sans home trainer connecté, puisque celui-ci les transmet déjà.
 - (Pro) Protocole de contrôle : en Auto, la page du home trainer indique le protocole choisi (p. ex. « Auto : FTMS »).
 
+**Fixes**:
+- (Base) Shimano Di2 : la configuration des canaux D-Fly reconnaît maintenant quelle manette est à gauche et laquelle à droite, et aucun bouton qu'elle modifie ne passe encore les vitesses du vélo.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - (Base) Incyclist, Tour du Pain et Rampida sont désormais officiellement pris en charge via OpenBikeControl.

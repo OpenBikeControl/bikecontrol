@@ -4,6 +4,9 @@
 - (Pro) Sensors: one list shows where power, heart rate, cadence and speed come from, your trainer included, and lets you replace any of them with your own sensor. Sending sensors to the trainer app only shows up when no trainer is connected, since the trainer already carries them.
 - (Pro) Control protocol: on Auto, the trainer page now shows which protocol Auto picked (e.g. "Auto: FTMS").
 
+**Fixes**:
+- (Base) Shimano Di2: the D-Fly channel setup now recognises which shifter is left and which is right, and no button it changes keeps shifting the bike.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - (Base) Incyclist, Tour du Pain and Rampida are now officially supported via OpenBikeControl.

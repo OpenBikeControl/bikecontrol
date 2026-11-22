@@ -4,6 +4,9 @@
 - (Pro) Sensoren: Eine Liste zeigt, woher Leistung, Herzfrequenz, Trittfrequenz und Geschwindigkeit kommen – dein Trainer eingeschlossen – und du kannst jeden Wert durch einen eigenen Sensor ersetzen. „An Trainer-App senden“ erscheint nur noch ohne verbundenen Trainer, denn mit Trainer laufen die Werte ohnehin über ihn.
 - (Pro) Steuerungsprotokoll: Bei Automatisch zeigt die Trainerseite jetzt, welches Protokoll gewählt wurde (z. B. „Automatisch: FTMS“).
 
+**Fixes**:
+- (Base) Shimano Di2: Die Einrichtung der D-Fly-Kanäle erkennt jetzt, welcher Schalthebel links und welcher rechts ist, und keine Taste, die sie ändert, schaltet noch am Rad.
+
 ### 7.6.0 (17-11-2026)
 **Features**:
 - (Base) Incyclist, Tour du Pain und Rampida werden jetzt offiziell über OpenBikeControl unterstützt.
