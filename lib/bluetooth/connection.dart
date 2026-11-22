@@ -1854,7 +1854,11 @@ class Connection {
             } else if (_recordConnectFailure(device)) {
               // Backoff engaged — _recordConnectFailure emitted the guidance alert
               // (or the silent per-round log) in place of the generic toast.
-            } else if (isRetry) {
+            } else if (isRetry || device.isResetting) {
+              // A device restarted on purpose (ClickLogic's unlock cycle) is
+              // often found again from its last advertisement while it is
+              // still rebooting, so this attempt fails every cycle. The
+              // reconnect after it is silent; the failure is too.
               _actionStreams.add(LogNotification('${device.toString()}: connect attempt failed ($e)'));
             } else if (e is TimeoutException) {
               _actionStreams.add(
