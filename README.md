@@ -62,6 +62,7 @@ Best follow our landing page and the "Get Started" button: [bikecontrol.app](htt
 - Incyclist
 - Tour du Pain
 - Rampida
+- Everycol
 - Tacx Training
 - FulGaz
 - [OpenBikeControl](https://openbikecontrol.org) compatible apps

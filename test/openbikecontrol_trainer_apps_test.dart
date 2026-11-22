@@ -18,6 +18,7 @@ void main() {
     'Incyclist',
     'Tour du Pain',
     'Rampida',
+    'Everycol',
   ];
 
   SupportedApp byName(String name) => SupportedApp.supportedApps.singleWhere((app) => app.name == name);
