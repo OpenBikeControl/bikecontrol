@@ -1,7 +1,3 @@
-7.6.1
+7.6.2
 Novedades:
-• MyWhoosh por Bluetooth: empareja BikeControl como dispositivo de dirección para cambiar y elegir camino en los cruces
-• Sensores: ve de dónde viene cada valor y sustituye los del rodillo por tu propio sensor
-• App Wahoo: BikeControl aparece como rodillo inteligente y se encarga del cambio virtual
-Corregido:
-• Shimano Di2: la configuración D-Fly distingue izquierda y derecha, y ningún botón cambiado sigue cambiando
+• Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro y hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual se aplica a ambos

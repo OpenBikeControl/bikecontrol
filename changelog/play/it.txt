@@ -1,7 +1,3 @@
-7.6.1
+7.6.2
 Novità:
-• MyWhoosh via Bluetooth: abbina BikeControl come dispositivo di sterzo per cambiare e scegliere la strada agli incroci
-• Sensori: vedi da dove arriva ogni valore e sostituisci quelli del rullo con un tuo sensore
-• App Wahoo: BikeControl vi compare come rullo smart e gestisce il cambio virtuale
-Corretto:
-• Shimano Di2: la configurazione D-Fly distingue sinistra e destra, nessun pulsante modificato cambia più marcia
+• Levette di Zwift Play / Zwift Ride: inclinare verso l'interno e verso l'esterno sono ora due pulsanti separati, ognuno con la sua azione. La tua assegnazione attuale vale per entrambi

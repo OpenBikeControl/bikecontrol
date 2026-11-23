@@ -1,3 +1,7 @@
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Zwift Play / Zwift Ride paddles: tilting inward and tilting outward are now two separate buttons, each mappable to its own action. Your existing paddle mapping applies to both.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh over Bluetooth: pair BikeControl in MyWhoosh as a steering device, then shift gears and choose your way at junctions (long press). If the network connection doesn't come up, BikeControl offers Bluetooth instead.

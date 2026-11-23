@@ -98,7 +98,18 @@ class ZwiftButtons {
     action: InGameAction.shiftDown,
     label: 'SB',
   );
-  static const ControllerButton paddleLeft = ControllerButton('paddleLeft', action: InGameAction.shiftDown, label: 'P');
+  // Paddle chevrons point the way the paddle tilts: on the left pod inward
+  // is toward the bike's centre (to the right), on the right pod to the left.
+  static const ControllerButton paddleLeftInward = ControllerButton(
+    'paddleLeftInward',
+    action: InGameAction.shiftDown,
+    label: 'P›',
+  );
+  static const ControllerButton paddleLeftOutward = ControllerButton(
+    'paddleLeftOutward',
+    action: InGameAction.shiftDown,
+    label: '‹P',
+  );
 
   // zwift ride only
   static const ControllerButton shiftUpLeft = ControllerButton(
@@ -137,7 +148,16 @@ class ZwiftButtons {
     action: InGameAction.shiftUp,
     label: 'SB',
   );
-  static const ControllerButton paddleRight = ControllerButton('paddleRight', action: InGameAction.shiftUp, label: 'P');
+  static const ControllerButton paddleRightInward = ControllerButton(
+    'paddleRightInward',
+    action: InGameAction.shiftUp,
+    label: '‹P',
+  );
+  static const ControllerButton paddleRightOutward = ControllerButton(
+    'paddleRightOutward',
+    action: InGameAction.shiftUp,
+    label: 'P›',
+  );
 
   // zwift ride only
   static const ControllerButton shiftUpRight = ControllerButton(
@@ -165,7 +185,8 @@ class ZwiftButtons {
     navigationRight,
     onOffLeft,
     sideButtonLeft,
-    paddleLeft,
+    paddleLeftInward,
+    paddleLeftOutward,
     shiftUpLeft,
     shiftDownLeft,
     powerUpLeft,
@@ -176,11 +197,55 @@ class ZwiftButtons {
     y,
     onOffRight,
     sideButtonRight,
-    paddleRight,
+    paddleRightInward,
+    paddleRightOutward,
     shiftUpRight,
     shiftDownRight,
     powerUpRight,
   ];
+
+  /// Buttons that older builds saved under a name that no longer exists, and
+  /// the buttons a saved mapping of that name now applies to. Until the
+  /// paddles were split by direction, each paddle was a single button.
+  static const Map<String, List<ControllerButton>> legacyNames = {
+    'paddleLeft': [paddleLeftInward, paddleLeftOutward],
+    'paddleRight': [paddleRightInward, paddleRightOutward],
+  };
+}
+
+/// Which way a Zwift Play / Zwift Ride paddle tilts, from the sign of its
+/// analog value. The ONE place that maps sign to direction: the Play and Ride
+/// parsers and the emulators that send paddles all go through it.
+///
+/// NOT hardware-verified for reading paddles. It follows what BikeControl
+/// sends to Zwift as a Ride: steering tilts outward (left negative, right
+/// positive), and braking tilts inward (left positive, right negative), which
+/// is the sign Zwift brakes on (860c8459: the opposite never braked).
+abstract final class ZwiftPaddle {
+  /// Analog value of a fully tilted paddle.
+  static const int full = 100;
+
+  /// Whether a [value] of the [right] (or left) paddle is an inward tilt.
+  /// Only meaningful for a non-zero value.
+  static bool isInward({required bool right, required int value}) => right ? value < 0 : value > 0;
+
+  /// The analog value of the [right] (or left) paddle tilted [inward] (or
+  /// outward) by [magnitude].
+  static int value({required bool right, required bool inward, int magnitude = full}) {
+    final outward = right ? magnitude : -magnitude;
+    return inward ? -outward : outward;
+  }
+
+  static ControllerButton buttonFor({required bool right, required bool inward}) => switch ((right, inward)) {
+    (false, true) => ZwiftButtons.paddleLeftInward,
+    (false, false) => ZwiftButtons.paddleLeftOutward,
+    (true, true) => ZwiftButtons.paddleRightInward,
+    (true, false) => ZwiftButtons.paddleRightOutward,
+  };
+
+  /// The button a non-zero [value] of the [right] (or left) paddle presses.
+  static ControllerButton button({required bool right, required int value}) =>
+      buttonFor(right: right, inward: isInward(right: right, value: value));
 }
 
 enum ZwiftDeviceType {

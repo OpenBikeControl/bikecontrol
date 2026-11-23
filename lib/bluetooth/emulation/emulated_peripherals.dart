@@ -310,13 +310,19 @@ List<int> zwiftClickNotification({required bool plusPressed, required bool minus
 /// Encodes a Zwift Ride keypad notification (CONTROLLER_NOTIFICATION opcode).
 /// In the Ride buttonMap a CLEARED bit means pressed (ON == 0). Uses the
 /// app-side [RideButtonMask] enum (zwift_ride.dart), whose bit layout is what
-/// the parser checks.
-List<int> zwiftRideNotification({List<RideButtonMask> pressed = const []}) {
+/// the parser checks. [paddles] adds analog paddle values by location.
+List<int> zwiftRideNotification({
+  List<RideButtonMask> pressed = const [],
+  Map<RideAnalogLocation, int> paddles = const {},
+}) {
   var buttonMap = 0xFFFFFFFF;
   for (final mask in pressed) {
     buttonMap &= ~mask.mask;
   }
   final status = RideKeyPadStatus(buttonMap: buttonMap);
+  for (final MapEntry(key: location, value: value) in paddles.entries) {
+    status.analogPaddles.add(RideAnalogKeyPress(location: location, analogValue: value));
+  }
   return [ZwiftConstants.RIDE_NOTIFICATION_MESSAGE_TYPE, ...status.writeToBuffer()];
 }
 

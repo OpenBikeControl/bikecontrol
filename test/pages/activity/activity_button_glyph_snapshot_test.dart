@@ -24,9 +24,9 @@ Future<void> main() async {
     for (final (i, gear) in [17, 16, 15].indexed) {
       log.insert(
         ActivityEntry(
-          button: ZwiftButtons.paddleRight,
+          button: ZwiftButtons.paddleRightOutward,
           time: now.subtract(Duration(minutes: 2, seconds: i * 10)),
-          result: Ignored('Hochgeschaltet auf Gang $gear', button: ZwiftButtons.paddleRight),
+          result: Ignored('Hochgeschaltet auf Gang $gear', button: ZwiftButtons.paddleRightOutward),
           deviceName: 'Zwift Play (Right)',
         ),
       );

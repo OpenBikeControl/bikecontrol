@@ -1,7 +1,3 @@
-7.6.1
+7.6.2
 New:
-• MyWhoosh over Bluetooth: pair BikeControl as a steering device to shift and choose your way at junctions
-• Sensors: see where each value comes from and replace trainer values with your own sensor
-• Wahoo app: BikeControl shows up in it as a smart trainer and does the virtual shifting
-Fixed:
-• Shimano Di2: the D-Fly setup knows left from right, and no changed button keeps shifting
+• Zwift Play / Zwift Ride paddles: tilting inward and outward are now two separate buttons, each mappable to its own action. Your existing paddle mapping applies to both

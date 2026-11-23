@@ -11,7 +11,7 @@ void main() {
 
     test('single-word name → single uppercase letter', () {
       expect(const ControllerButton('a').initials, 'A');
-      expect(const ControllerButton('paddleLeft').initials, 'P←');
+      expect(const ControllerButton('paddle').initials, 'P');
     });
 
     test('generic gamepad keys keep their number', () {

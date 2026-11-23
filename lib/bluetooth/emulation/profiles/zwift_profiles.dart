@@ -50,13 +50,34 @@ List<EmulatedInput> rideMaskInputs(EmulationSession session, List<RideButtonMask
   ];
 }
 
+/// Inputs for a Ride-protocol device's analog paddles, both directions of
+/// each. The release sends the paddle back at 0.
+List<EmulatedInput> ridePaddleInputs(EmulationSession session) {
+  void send(RideAnalogLocation location, int value) {
+    session.notify(
+      ZwiftConstants.ZWIFT_ASYNC_CHARACTERISTIC_UUID,
+      zwiftRideNotification(paddles: {location: value}),
+    );
+  }
+
+  return [
+    for (final location in [RideAnalogLocation.LEFT, RideAnalogLocation.RIGHT])
+      for (final inward in [true, false])
+        EmulatedButton(
+          '${location == RideAnalogLocation.LEFT ? 'Left' : 'Right'} paddle ${inward ? 'inward' : 'outward'}',
+          onDown: () => send(location, ZwiftPaddle.value(right: location == RideAnalogLocation.RIGHT, inward: inward)),
+          onUp: () => send(location, 0),
+        ),
+  ];
+}
+
 final zwiftRideProfile = EmulationProfile(
   name: 'Zwift Ride',
   category: EmulationCategory.controller,
   build: () => buildZwiftRide(deviceId: 'emulated:zwift-ride'),
   onRegistered: (ble, peripheral) =>
       autoRespondToZwiftHandshake(ble, peripheral, startResponse: ZwiftConstants.RESPONSE_START_PLAY),
-  inputs: (session) => rideMaskInputs(session, RideButtonMask.values),
+  inputs: (session) => [...rideMaskInputs(session, RideButtonMask.values), ...ridePaddleInputs(session)],
 );
 
 /// Generic Zwift-controller peripheral: custom service with async / syncTx /
@@ -167,7 +188,8 @@ EmulationProfile _zwiftPlayProfile({required bool right}) {
         button(right ? 'B' : 'Nav Down', () => send(quaternary: true)),
         button('Side button', () => send(shoulder: true)),
         button('On/Off', () => send(onOff: true)),
-        button('Paddle', () => send(analogLR: right ? 100 : -100)),
+        button('Paddle inward', () => send(analogLR: ZwiftPaddle.value(right: right, inward: true))),
+        button('Paddle outward', () => send(analogLR: ZwiftPaddle.value(right: right, inward: false))),
       ];
     },
   );
@@ -185,7 +207,7 @@ final zwiftPlayFw2Profile = EmulationProfile(
     manufacturerType: ZwiftConstants.RC1_FW2,
   ),
   onRegistered: autoRespondToZwiftHandshake,
-  inputs: (session) => rideMaskInputs(session, RideButtonMask.values),
+  inputs: (session) => [...rideMaskInputs(session, RideButtonMask.values), ...ridePaddleInputs(session)],
 );
 
 const _clickV2UnlockCharacteristics = [

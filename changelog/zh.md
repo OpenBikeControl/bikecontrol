@@ -1,3 +1,7 @@
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Zwift Play / Zwift Ride 拨片：向内拨和向外拨现在是两个独立的按键，可分别设置各自的操作。原有的拨片设置会同时应用到两者。
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) 通过蓝牙连接 MyWhoosh：在 MyWhoosh 中将 BikeControl 配对为转向设备，即可换挡，并在路口选择路线（长按）。如果网络连接不上，BikeControl 会改为提供蓝牙连接。
