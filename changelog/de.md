@@ -2,10 +2,13 @@
 **Features**:
 - (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.
 - (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: BikeControl erscheint darin auf einem zweiten Gerät als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
+- (Base) Elite Rizer und Sterzo: Die Totzone der Lenkung lässt sich jetzt auf der Geräteseite einstellen.
+- (Base) Zubehör-Aktionen (z. B. Steigung hoch / runter am Rizer) legst du jetzt direkt auf der Zubehörseite auf eine Taste deines verbundenen Controllers.
 
 **Fixes**:
 - (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher fehlten rechts und unten Teile.
 - (Base) Elite Rizer: Ist der Rizer gesperrt (rote LED) und lässt sich nicht neigen, zeigen seine Seite und der Fahren-Tab das jetzt an, statt zu behaupten, er folge der Steigung.
+- (Base) Elite Rizer: Ein gesperrter Rizer wird jetzt schon beim Verbinden als gesperrt angezeigt, nicht erst, wenn eine Steigung ankommt.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

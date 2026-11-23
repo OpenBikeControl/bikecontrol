@@ -2,5 +2,6 @@
 Novedades:
 • Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro y hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual se aplica a ambos
 • App Wahoo: BikeControl aparece como rodillo inteligente Bluetooth en un segundo dispositivo y se encarga del cambio virtual
+• Elite Rizer / Sterzo: zona muerta ajustable
 Corregido:
 • Elite Rizer: un Rizer bloqueado (LED rojo) ahora se muestra como bloqueado

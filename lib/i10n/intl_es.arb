@@ -924,6 +924,7 @@
   "otherActions": "Otras acciones",
   "takeScreenshot": "Hacer captura de pantalla",
   "accessoryNoControllerYet": "Conecta un controlador para asignar estas acciones a sus botones.",
+  "accessoryActionNoButton": "Ningún botón",
   "accessorySetUpOnController": "Configurar en {device}",
   "accessoryActions": "Acciones de accesorios",
   "kickrHeadwind": "KICKR Headwind",

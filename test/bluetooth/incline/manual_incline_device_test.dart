@@ -71,6 +71,32 @@ void main() {
     expect(logs.where((m) => m.contains('unlocked')), hasLength(1));
   });
 
+  test('the first incline the Rizer reports is written back once, so a lock shows without a gradient', () async {
+    rizer.debugWriteSink = (b) async {
+      writes.add(b);
+      await rizer.processCharacteristic(eliteRizerStatusCharacteristicUuid, Uint8List.fromList([0x80, 0x0a, 0x05]));
+    };
+    final report = Uint8List.fromList([0xff, 0x6d, 0x81, 0x64]); // 4.5%
+    await rizer.processCharacteristic(eliteRizerInclineCharacteristicUuid, report);
+    await pumpEventQueue();
+    expect(writes.single, [0x0a, 45, 0], reason: 'the incline it is at, so it does not move');
+    expect(rizer.inclineLocked.value, isTrue);
+
+    await rizer.processCharacteristic(eliteRizerInclineCharacteristicUuid, report);
+    await pumpEventQueue();
+    expect(writes, hasLength(1), reason: 'only once per connection');
+  });
+
+  test('no write-back once something was already written', () async {
+    await rizer.writeInclineRaw(300);
+    await rizer.processCharacteristic(
+      eliteRizerInclineCharacteristicUuid,
+      Uint8List.fromList([0xff, 0x6d, 0x81, 0x64]),
+    );
+    await pumpEventQueue();
+    expect(writes, hasLength(1));
+  });
+
   test('another refusal does not mark the Rizer locked', () async {
     rizer.debugWriteSink = (b) async {
       await rizer.processCharacteristic(eliteRizerStatusCharacteristicUuid, Uint8List.fromList([0x80, 0x0a, 0x01]));
