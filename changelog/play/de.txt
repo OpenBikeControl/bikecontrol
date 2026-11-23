@@ -2,5 +2,6 @@
 Neu:
 • MyWhoosh über Bluetooth: BikeControl als Lenkgerät koppeln, um zu schalten und an Kreuzungen den Weg zu wählen
 • Sensoren: sehen, woher jeder Wert kommt, und Trainerwerte durch eigene Sensoren ersetzen
+• Wahoo App: BikeControl erscheint darin als Smart Trainer und übernimmt das virtuelle Schalten
 Behoben:
 • Shimano Di2: Die D-Fly-Einrichtung erkennt links und rechts, keine geänderte Taste schaltet mehr

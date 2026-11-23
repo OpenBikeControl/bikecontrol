@@ -3,6 +3,7 @@
 - (Base) MyWhoosh en Bluetooth : associe BikeControl dans MyWhoosh comme appareil de direction, puis change de vitesse et choisis ta route aux intersections (appui long). Si la connexion réseau ne marche pas, BikeControl te propose le Bluetooth à la place.
 - (Pro) Capteurs : une liste montre d'où viennent la puissance, la fréquence cardiaque, la cadence et la vitesse, home trainer compris, et te permet de remplacer chacune par ton propre capteur. « Envoyer à l'app d'entraînement » n'apparaît plus que sans home trainer connecté, puisque celui-ci les transmet déjà.
 - (Pro) Protocole de contrôle : en Auto, la page du home trainer indique le protocole choisi (p. ex. « Auto : FTMS »).
+- (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : BikeControl y apparaît comme home trainer connecté, en Bluetooth ou via le réseau, et assure les vitesses virtuelles.
 
 **Fixes**:
 - (Base) Shimano Di2 : la configuration des canaux D-Fly reconnaît maintenant quelle manette est à gauche et laquelle à droite, et aucun bouton qu'elle modifie ne passe encore les vitesses du vélo.

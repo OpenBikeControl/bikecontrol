@@ -3,6 +3,7 @@
 - (Base) MyWhoosh przez Bluetooth: sparuj BikeControl w MyWhoosh jako urządzenie do skrętu, a potem zmieniaj biegi i wybieraj drogę na skrzyżowaniach (długie naciśnięcie). Jeśli połączenie przez sieć nie działa, BikeControl proponuje zamiast tego Bluetooth.
 - (Pro) Czujniki: jedna lista pokazuje, skąd pochodzą moc, tętno, kadencja i prędkość – łącznie z trenażerem – i pozwala zastąpić każdą z nich własnym czujnikiem. „Wysyłaj do aplikacji treningowej” pojawia się tylko bez połączonego trenażera, bo trenażer już je przekazuje.
 - (Pro) Protokół sterowania: w trybie Auto strona trenażera pokazuje, który protokół został wybrany (np. „Auto: FTMS”).
+- (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: BikeControl pojawia się w niej jako trenażer smart, przez Bluetooth lub sieć, i sam zajmuje się wirtualną zmianą biegów.
 
 **Fixes**:
 - (Base) Shimano Di2: konfiguracja kanałów D-Fly rozpoznaje teraz, która manetka jest lewa, a która prawa, i żaden zmieniony przez nią przycisk nie zmienia już biegów w rowerze.

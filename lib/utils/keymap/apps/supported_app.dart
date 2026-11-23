@@ -12,6 +12,7 @@ import 'package:bike_control/utils/keymap/apps/strappo.dart';
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
 import 'package:bike_control/utils/keymap/apps/training_peaks.dart';
 import 'package:bike_control/utils/keymap/apps/velotoss.dart';
+import 'package:bike_control/utils/keymap/apps/wahoo.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:dartx/dartx.dart';
 
@@ -265,6 +266,7 @@ abstract class SupportedApp {
     ...OpenBikeControlTrainerApp.all,
     Tacx(),
     FulGaz(),
+    WahooApp(),
     BikeControl(),
     OpenBikeControl(),
     CustomApp(),
