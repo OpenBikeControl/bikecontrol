@@ -8,13 +8,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/steering_device.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import '../../messages/notification.dart';
 
-class EliteSterzo extends BluetoothDevice implements SteeringDevice, RecalibratableSteering {
+class EliteSterzo extends BluetoothDevice implements SteeringDevice, RecalibratableSteering, AdjustableDeadZone {
   EliteSterzo(super.scanResult) : super(availableButtons: SterzoButtons.values);
 
   @override
@@ -54,7 +55,11 @@ class EliteSterzo extends BluetoothDevice implements SteeringDevice, Recalibrata
   @override
   ValueListenable<bool> get steeringCalibrated => steeringCalibratedN;
   @override
-  double get steeringThreshold => SterzoConstants.STEERING_THRESHOLD;
+  double get steeringThreshold => core.settings.getSteeringThreshold('sterzo', SterzoConstants.STEERING_THRESHOLD);
+  @override
+  List<int> get deadZoneChoices => [for (var v = 3; v <= 20; v++) v];
+  @override
+  void setSteeringThreshold(int degrees) => core.settings.setSteeringThreshold('sterzo', degrees);
   @override
   ControllerButton get steerLeftButton => SterzoButtons.leftSteer;
   @override
@@ -323,7 +328,7 @@ class EliteSterzo extends BluetoothDevice implements SteeringDevice, Recalibrata
     _keypressTimer?.cancel();
 
     // Determine if we're steering
-    if (roundedAngle.abs() > SterzoConstants.STEERING_THRESHOLD) {
+    if (roundedAngle.abs() > steeringThreshold) {
       // Determine direction
       final button = roundedAngle > 0 ? SterzoButtons.rightSteer : SterzoButtons.leftSteer;
 

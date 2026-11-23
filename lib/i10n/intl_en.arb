@@ -1501,6 +1501,8 @@
   "otherActions": "Other Actions",
   "takeScreenshot": "Take Screenshot",
   "accessoryNoControllerYet": "Connect a controller to assign these actions to its buttons.",
+  "accessoryActionNoButton": "No button",
+  "@accessoryActionNoButton": {"description": "Accessory page (Rizer, Climb, Headwind): an accessory action that is on no controller button yet; also the dropdown entry that takes it off its button."},
   "accessorySetUpOnController": "Set up on {device}",
   "accessoryActions": "Accessory Actions",
   "kickrHeadwind": "KICKR Headwind",

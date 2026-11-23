@@ -924,6 +924,7 @@
   "otherActions": "Autres actions",
   "takeScreenshot": "Capture d'écran",
   "accessoryNoControllerYet": "Connecte une télécommande pour attribuer ces actions à ses boutons.",
+  "accessoryActionNoButton": "Aucun bouton",
   "accessorySetUpOnController": "Configurer sur {device}",
   "accessoryActions": "Actions accessoires",
   "kickrHeadwind": "KICKR Headwind",

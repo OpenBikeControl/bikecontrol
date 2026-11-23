@@ -981,6 +981,17 @@ class Settings {
     return prefs.getInt('phone_steering_threshold')?.toDouble() ?? GyroscopeSteering.STEERING_THRESHOLD;
   }
 
+  /// The dead zone (degrees) the rider set for a hardware steering device
+  /// ([kind], e.g. 'rizer', 'sterzo'), else [fallback].
+  void setSteeringThreshold(String kind, int value) {
+    prefs.setInt('${kind}_steering_threshold', value);
+  }
+
+  double getSteeringThreshold(String kind, double fallback) {
+    if (!isInitialized) return fallback;
+    return prefs.getInt('${kind}_steering_threshold')?.toDouble() ?? fallback;
+  }
+
   /// Whether phone steering lets the compass correct the gyroscope's drift.
   void setPhoneSteeringMagnetometer(bool value) {
     prefs.setBool('phone_steering_magnetometer', value);

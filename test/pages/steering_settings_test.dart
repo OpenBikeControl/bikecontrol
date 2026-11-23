@@ -149,7 +149,7 @@ Future<void> main() async {
     expect(core.settings.getPhoneSteeringEnabled(), isFalse);
   });
 
-  testWidgets('an Elite Sterzo keeps its fixed dead zone and Bluetooth disconnect, and can recalibrate', (
+  testWidgets('an Elite Sterzo keeps its Bluetooth disconnect, can recalibrate and its dead zone can be set', (
     tester,
   ) async {
     final sterzo = EliteSterzo(BleDevice(name: 'STERZO', deviceId: 'sterzo'))..isConnected = true;
@@ -157,13 +157,35 @@ Future<void> main() async {
     core.connection.devices.add(sterzo);
     final l = await pump(tester, device: sterzo);
     expect(find.byType(CustomizePage), findsNothing);
-    expect(
-      find.descendant(of: find.byKey(const ValueKey('steering-dead-zone')), matching: find.text('±10°')),
-      findsOneWidget,
-    );
+    final row = find.byKey(const ValueKey('steering-dead-zone'));
+    expect(find.descendant(of: row, matching: find.text('±10°')), findsOneWidget);
     expect(find.byKey(const ValueKey('steering-turn-off')), findsNothing);
     expect(find.byKey(const ValueKey('steering-recalibrate')), findsOneWidget);
     expect(find.text(l.disconnectAndForget), findsOneWidget);
+
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    await tester.tap(find.text('±14°').last);
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(sterzo.steeringThreshold, 14);
+    expect(find.descendant(of: row, matching: find.text('±14°')), findsOneWidget);
+  });
+
+  testWidgets('a Rizer\'s dead zone is set from its row and steering follows it', (tester) async {
+    final rizer = EliteRizer(BleDevice(name: 'RIZER', deviceId: 'rizer-dz'))..isConnected = true;
+    rizer.steeringCalibratedN.value = true;
+    core.connection.devices.add(rizer);
+    await pump(tester, device: rizer);
+    final row = find.byKey(const ValueKey('steering-dead-zone'));
+    await tester.ensureVisible(row);
+    await tester.tap(row);
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    await tester.tap(find.text('±5°').last);
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(rizer.steeringThreshold, 5);
+    expect(rizerSteerDecision(7, threshold: rizer.steeringThreshold)?.right, isTrue);
+    expect(rizerSteerDecision(7, threshold: 10), isNull);
   });
 
   testWidgets('a Rizer that isn\'t connected says so instead of calibrating', (tester) async {

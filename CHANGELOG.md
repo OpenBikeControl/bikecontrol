@@ -2,10 +2,13 @@
 **Features**:
 - (Base) Zwift Play / Zwift Ride paddles: tilting inward and tilting outward are now two separate buttons, each mappable to its own action. Your existing paddle mapping applies to both.
 - (Pro) Wahoo app is now selectable as a trainer app: BikeControl shows up in it as a Bluetooth smart trainer on a second device and does the virtual shifting.
+- (Base) Elite Rizer and Sterzo: the steering dead zone can now be set on the device's page.
+- (Base) Accessory actions (e.g. the Rizer's incline up / down) go straight onto a button of your connected controller from the accessory's page.
 
 **Fixes**:
 - (Base) Windows: screenshots taken with a controller button now capture the whole screen when display scaling is above 100 %. Before, the right and bottom were cut off.
 - (Base) Elite Rizer: when the Rizer is locked (red LED) and refuses to tilt, its page and the Ride tab now say so, instead of claiming it follows the gradient.
+- (Base) Elite Rizer: a locked Rizer now shows as locked as soon as it connects, not only once a gradient arrives.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

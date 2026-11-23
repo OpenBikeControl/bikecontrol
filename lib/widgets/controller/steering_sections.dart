@@ -178,18 +178,18 @@ class _SteeringSectionsState extends State<SteeringSections> {
     );
   }
 
-  Future<void> _pickDeadZone(BuildContext context) async {
-    final current = core.settings.getPhoneSteeringThreshold().round();
+  Future<void> _pickDeadZone(BuildContext context, AdjustableDeadZone adjustable) async {
+    final current = _steering.steeringThreshold.round();
     showDropdown<void>(
       context: context,
       consumeOutsideTaps: true,
       builder: (c) => DropdownMenu(
         children: [
-          for (var v = 3; v <= 12; v++)
+          for (final v in adjustable.deadZoneChoices)
             MenuButton(
               leading: v == current ? const Icon(LucideIcons.check, size: 16) : const SizedBox(width: 16),
               onPressed: (_) {
-                core.settings.setPhoneSteeringThreshold(v);
+                adjustable.setSteeringThreshold(v);
                 _changed();
               },
               child: Text(steeringDeadZoneText(v.toDouble())),
@@ -221,6 +221,7 @@ class _SteeringSectionsState extends State<SteeringSections> {
     final l = AppLocalizations.of(context);
     final device = widget.device;
     final phone = device is GyroscopeSteering ? device : null;
+    final adjustable = device is AdjustableDeadZone ? device as AdjustableDeadZone : null;
     final recalibrate = device is RecalibratableSteering ? device as RecalibratableSteering : null;
     final sinks = _liveSinks().toList();
     return Column(
@@ -261,8 +262,8 @@ class _SteeringSectionsState extends State<SteeringSections> {
                 title: l.steeringDeadZone,
                 subtitle: l.steeringDeadZoneBody,
                 trailing: Text(steeringDeadZoneText(_steering.steeringThreshold)),
-                chevron: phone != null,
-                onPressed: phone == null ? null : () => _pickDeadZone(context),
+                chevron: adjustable != null,
+                onPressed: adjustable == null ? null : () => _pickDeadZone(context, adjustable),
               ),
             ),
             if (phone != null)

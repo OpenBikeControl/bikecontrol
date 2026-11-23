@@ -1549,6 +1549,7 @@
   "otherActions": "其他动作",
   "takeScreenshot": "截图",
   "accessoryNoControllerYet": "连接一个控制器，以便将这些动作分配到它的按键。",
+  "accessoryActionNoButton": "无按键",
   "accessorySetUpOnController": "在 {device} 上设置",
   "accessoryActions": "配件动作",
   "kickrHeadwind": "KICKR Headwind",

@@ -4,7 +4,11 @@ import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_rizer_protocol.dart';
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
 import 'package:bike_control/bluetooth/incline/incline_manual_state.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/controller_settings.dart';
@@ -127,6 +131,59 @@ Future<void> main() async {
     );
     await tester.pump();
     expect(find.textContaining(l.inclineLocked), findsOneWidget);
+  });
+
+  // A toast (the copied custom profile) keeps animating, so no pumpAndSettle.
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+  }
+
+  testWidgets('an accessory action goes on a button of the connected controller from a dropdown', (tester) async {
+    final click = ZwiftClick(BleDevice(name: 'Zwift Click', deviceId: 'click'))..isConnected = true;
+    core.connection.devices.add(click);
+    final l = await pump(tester);
+
+    final row = find.byKey(const ValueKey('accessory-action-inclineIncrease'));
+    await tester.ensureVisible(row);
+    expect(find.descendant(of: row, matching: find.text(l.accessoryActionNoButton)), findsOneWidget);
+    await tester.tap(row);
+    await settle(tester);
+    await tester.tap(find.text(ZwiftButtons.shiftUpRight.displayName).last);
+    await settle(tester);
+
+    final keymap = core.actionHandler.supportedApp!.keymap;
+    expect(
+      keymap.getKeyPair(ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.singleClick)?.inGameAction,
+      InGameAction.inclineIncrease,
+    );
+    expect(find.descendant(of: row, matching: find.text(ZwiftButtons.shiftUpRight.displayName)), findsOneWidget);
+
+    // Another button takes it over; the first one lets go.
+    await tester.tap(row);
+    await settle(tester);
+    await tester.tap(find.text(ZwiftButtons.shiftUpLeft.displayName).last);
+    await settle(tester);
+    final current = core.actionHandler.supportedApp!.keymap;
+    expect(
+      current.getKeyPair(ZwiftButtons.shiftUpLeft, trigger: ButtonTrigger.singleClick)?.inGameAction,
+      InGameAction.inclineIncrease,
+    );
+    expect(
+      current.getKeyPair(ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.singleClick)?.inGameAction,
+      isNot(InGameAction.inclineIncrease),
+    );
+
+    // "No button" takes it off again.
+    await tester.tap(row);
+    await settle(tester);
+    await tester.tap(find.text(l.accessoryActionNoButton).last);
+    await settle(tester);
+    expect(
+      core.actionHandler.supportedApp!.keymap.keyPairs.where((k) => k.inGameAction == InGameAction.inclineIncrease),
+      isEmpty,
+    );
   });
 
   testWidgets('snapshot', (tester) async {

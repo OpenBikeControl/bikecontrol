@@ -2,10 +2,13 @@
 **Features**:
 - (Base) Palettes Zwift Play / Zwift Ride : incliner vers l'intérieur et vers l'extérieur sont maintenant deux boutons distincts, chacun avec sa propre action. Ton assignation actuelle de la palette s'applique aux deux.
 - (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : BikeControl y apparaît comme home trainer Bluetooth sur un second appareil et assure les vitesses virtuelles.
+- (Base) Elite Rizer et Sterzo : la zone morte de la direction se règle maintenant sur la page de l'appareil.
+- (Base) Les actions d'accessoire (p. ex. monter / descendre l'inclinaison du Rizer) s'assignent maintenant directement à un bouton de ta manette connectée depuis la page de l'accessoire.
 
 **Fixes**:
 - (Base) Windows : les captures d'écran prises avec un bouton de la manette couvrent maintenant tout l'écran, même avec une mise à l'échelle supérieure à 100 %. Avant, la droite et le bas étaient coupés.
 - (Base) Elite Rizer : quand le Rizer est verrouillé (LED rouge) et refuse de s'incliner, sa page et l'onglet Rouler l'indiquent maintenant, au lieu d'affirmer qu'il suit la pente.
+- (Base) Elite Rizer : un Rizer verrouillé s'affiche maintenant comme verrouillé dès sa connexion, pas seulement quand une pente arrive.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
