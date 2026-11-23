@@ -3,7 +3,7 @@
 - (Base) Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro e inclinar hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual de la palanca se aplica a ambos.
 - (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: BikeControl aparece en ella como rodillo inteligente Bluetooth en un segundo dispositivo y se encarga del cambio virtual.
 - (Base) Elite Rizer y Sterzo: la zona muerta de la dirección ahora se ajusta en la página del dispositivo.
-- (Base) Las acciones de accesorios (p. ej. subir / bajar la inclinación del Rizer) se asignan ahora directamente a un botón de tu mando conectado desde la página del accesorio.
+- (Base) Las acciones de accesorios (p. ej. subir / bajar la inclinación del Rizer) se asignan ahora directamente a un botón de tu mando conectado desde la página del accesorio: toca el botón en la imagen del mando y elige pulsación simple, doble o larga.
 
 **Fixes**:
 - (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla aunque el escalado de pantalla sea superior al 100 %. Antes se cortaban por la derecha y por abajo.

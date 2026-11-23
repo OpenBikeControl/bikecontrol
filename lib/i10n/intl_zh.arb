@@ -1550,6 +1550,8 @@
   "takeScreenshot": "截图",
   "accessoryNoControllerYet": "连接一个控制器，以便将这些动作分配到它的按键。",
   "accessoryActionNoButton": "无按键",
+  "accessoryActionPickButton": "点按要放置的按键，然后选择按法。",
+  "accessoryActionRemove": "从 {button} 移除",
   "accessorySetUpOnController": "在 {device} 上设置",
   "accessoryActions": "配件动作",
   "kickrHeadwind": "KICKR Headwind",

@@ -925,6 +925,8 @@
   "takeScreenshot": "Screenshot aufnehmen",
   "accessoryNoControllerYet": "Verbinde einen Controller, um diese Aktionen auf seine Tasten zu legen.",
   "accessoryActionNoButton": "Keine Taste",
+  "accessoryActionPickButton": "Tippe auf die Taste, auf die sie soll, und wähle dann, wie du drückst.",
+  "accessoryActionRemove": "Von {button} entfernen",
   "accessorySetUpOnController": "Auf {device} einrichten",
   "accessoryActions": "Zubehör-Aktionen",
   "kickrHeadwind": "KICKR Headwind",

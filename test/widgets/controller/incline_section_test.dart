@@ -13,7 +13,10 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/controller_settings.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
+import 'package:bike_control/widgets/controller/accessory_action_picker.dart';
+import 'package:bike_control/widgets/controller/controller_canvas.dart';
 import 'package:bike_control/widgets/controller/incline_section.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,7 +143,10 @@ Future<void> main() async {
     }
   }
 
-  testWidgets('an accessory action goes on a button of the connected controller from a dropdown', (tester) async {
+  testWidgets('an accessory action goes on a button of the controller picture, with the press chosen', (tester) async {
+    // Pro: a second press of an already mapped button needs no question.
+    IAPManager.instance.isLocalPro.value = true;
+    addTearDown(() => IAPManager.instance.isLocalPro.value = false);
     final click = ZwiftClick(BleDevice(name: 'Zwift Click', deviceId: 'click'))..isConnected = true;
     core.connection.devices.add(click);
     final l = await pump(tester);
@@ -148,22 +154,40 @@ Future<void> main() async {
     final row = find.byKey(const ValueKey('accessory-action-inclineIncrease'));
     await tester.ensureVisible(row);
     expect(find.descendant(of: row, matching: find.text(l.accessoryActionNoButton)), findsOneWidget);
+
+    // The controller's own picture, a button on it, then how to press it.
     await tester.tap(row);
     await settle(tester);
-    await tester.tap(find.text(ZwiftButtons.shiftUpRight.displayName).last);
+    expect(find.byType(AccessoryActionPicker), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(AccessoryActionPicker), matching: find.byType(ControllerCanvas)),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('accessory-pick-shiftUpRight')));
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('accessory-trigger-longPress')));
     await settle(tester);
 
+    expect(find.byType(AccessoryActionPicker), findsNothing, reason: 'closes once placed');
     final keymap = core.actionHandler.supportedApp!.keymap;
     expect(
-      keymap.getKeyPair(ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.singleClick)?.inGameAction,
+      keymap.getKeyPair(ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.longPress)?.inGameAction,
       InGameAction.inclineIncrease,
     );
-    expect(find.descendant(of: row, matching: find.text(ZwiftButtons.shiftUpRight.displayName)), findsOneWidget);
+    expect(
+      find.descendant(
+        of: row,
+        matching: find.text('${ZwiftButtons.shiftUpRight.displayName} · ${ButtonTrigger.longPress.title}'),
+      ),
+      findsOneWidget,
+    );
 
     // Another button takes it over; the first one lets go.
     await tester.tap(row);
     await settle(tester);
-    await tester.tap(find.text(ZwiftButtons.shiftUpLeft.displayName).last);
+    await tester.tap(find.byKey(const ValueKey('accessory-pick-shiftUpLeft')));
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('accessory-trigger-singleClick')));
     await settle(tester);
     final current = core.actionHandler.supportedApp!.keymap;
     expect(
@@ -171,19 +195,20 @@ Future<void> main() async {
       InGameAction.inclineIncrease,
     );
     expect(
-      current.getKeyPair(ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.singleClick)?.inGameAction,
+      current.getKeyPair(ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.longPress)?.inGameAction,
       isNot(InGameAction.inclineIncrease),
     );
 
-    // "No button" takes it off again.
+    // And it comes off again.
     await tester.tap(row);
     await settle(tester);
-    await tester.tap(find.text(l.accessoryActionNoButton).last);
+    await tester.tap(find.byKey(const ValueKey('accessory-action-remove')));
     await settle(tester);
     expect(
       core.actionHandler.supportedApp!.keymap.keyPairs.where((k) => k.inGameAction == InGameAction.inclineIncrease),
       isEmpty,
     );
+    expect(find.descendant(of: row, matching: find.text(l.accessoryActionNoButton)), findsOneWidget);
   });
 
   testWidgets('snapshot', (tester) async {
@@ -203,5 +228,21 @@ Future<void> main() async {
       name: 'incline-ride-readout',
       builder: (_) => InclineRideReadout(device: rizer),
     );
+
+    final click = ZwiftClick(BleDevice(name: 'Zwift Click', deviceId: 'click'))..isConnected = true;
+    core.connection.devices.add(click);
+    for (final b in Brightness.values) {
+      await captureWidget(
+        tester,
+        name: 'accessory-action-picker-${b.name}',
+        brightness: b,
+        builder: (_) => AccessoryActionPicker(
+          action: InGameAction.inclineIncrease,
+          controllers: [click],
+          assigned: (controller: click, button: ZwiftButtons.shiftUpRight, trigger: ButtonTrigger.longPress),
+          onAssign: (_, _, _) async {},
+        ),
+      );
+    }
   });
 }

@@ -3,7 +3,7 @@
 - (Base) Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Twoje dotychczasowe przypisanie łopatki działa dla obu.
 - (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: BikeControl pojawia się w niej jako trenażer smart Bluetooth na drugim urządzeniu i sam zajmuje się wirtualną zmianą biegów.
 - (Base) Elite Rizer i Sterzo: martwą strefę skrętu można teraz ustawić na stronie urządzenia.
-- (Base) Akcje akcesoriów (np. zwiększanie / zmniejszanie nachylenia Rizera) przypiszesz teraz bezpośrednio do przycisku połączonego kontrolera na stronie akcesorium.
+- (Base) Akcje akcesoriów (np. zwiększanie / zmniejszanie nachylenia Rizera) przypiszesz teraz bezpośrednio do przycisku połączonego kontrolera na stronie akcesorium: dotknij przycisku na obrazku kontrolera i wybierz pojedyncze, podwójne lub długie naciśnięcie.
 
 **Fixes**:
 - (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część były ucinane.
