@@ -1254,6 +1254,7 @@
   "inclineFollowsGradient": "Segue la pendenza della tua app di allenamento",
   "inclineWaitingForGradient": "In attesa di una pendenza dalla tua app di allenamento",
   "inclineHeldByHand": "Resta dove l'hai impostata",
+  "inclineLocked": "Bloccato (LED rosso). Sblocca il Rizer perché BikeControl possa inclinarlo.",
   "inclineFollowGradient": "Segui la pendenza",
   "inclineFollowGradientBody": "Si inclina con salite e discese della tua app di allenamento. La pendenza arriva a BikeControl solo quando l'app di allenamento è collegata tramite il ponte rullo di BikeControl.",
   "inclineSetByHand": "Imposta a mano",

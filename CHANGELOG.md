@@ -5,6 +5,7 @@
 
 **Fixes**:
 - (Base) Windows: screenshots taken with a controller button now capture the whole screen when display scaling is above 100 %. Before, the right and bottom were cut off.
+- (Base) Elite Rizer: when the Rizer is locked (red LED) and refuses to tilt, its page and the Ride tab now say so, instead of claiming it follows the gradient.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

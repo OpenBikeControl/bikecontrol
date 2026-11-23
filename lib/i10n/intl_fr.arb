@@ -1254,6 +1254,7 @@
   "inclineFollowsGradient": "Suit la pente de ton application d'entraînement",
   "inclineWaitingForGradient": "En attente d'une pente de ton application d'entraînement",
   "inclineHeldByHand": "Reste là où tu l'as réglée",
+  "inclineLocked": "Verrouillé (LED rouge). Déverrouille le Rizer pour que BikeControl puisse l'incliner.",
   "inclineFollowGradient": "Suivre la pente",
   "inclineFollowGradientBody": "S'incline avec les montées et les descentes de ton application d'entraînement. La pente n'arrive à BikeControl que si ton application d'entraînement est connectée via le pont home trainer de BikeControl.",
   "inclineSetByHand": "Régler à la main",

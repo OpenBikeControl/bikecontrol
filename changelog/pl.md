@@ -5,6 +5,7 @@
 
 **Fixes**:
 - (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część były ucinane.
+- (Base) Elite Rizer: gdy Rizer jest zablokowany (czerwona dioda) i nie chce się pochylać, jego strona i karta Jazda pokazują to teraz, zamiast twierdzić, że podąża za nachyleniem.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

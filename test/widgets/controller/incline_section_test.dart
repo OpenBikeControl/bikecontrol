@@ -3,6 +3,7 @@
 import 'dart:typed_data';
 
 import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_rizer_protocol.dart';
 import 'package:bike_control/bluetooth/incline/incline_manual_state.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
@@ -99,6 +100,35 @@ Future<void> main() async {
     expect(rizer.followsGrade, isTrue);
   });
 
+  testWidgets('a locked Rizer says so on its page and on Ride instead of following the gradient', (tester) async {
+    final l = await pump(tester);
+    rizer.debugWriteSink = (b) async {
+      await rizer.processCharacteristic(eliteRizerStatusCharacteristicUuid, Uint8List.fromList([0x80, 0x0a, 0x05]));
+    };
+    await rizer.writeInclineRaw(450);
+    await tester.pump();
+    expect(find.text(l.inclineLocked), findsOneWidget);
+    expect(find.text(l.inclineFollowsGradient), findsNothing);
+    expect(find.text(l.inclineWaitingForGradient), findsNothing);
+
+    await tester.pumpWidget(
+      ShadcnApp(
+        localizationsDelegates: [
+          ...ShadcnLocalizations.localizationsDelegates,
+          const OtherLocalizationsDelegate(),
+          AppLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: BkTheme.build(Brightness.dark),
+        home: BkComponentThemes(
+          child: Scaffold(child: InclineRideReadout(device: rizer)),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.textContaining(l.inclineLocked), findsOneWidget);
+  });
+
   testWidgets('snapshot', (tester) async {
     await rizer.writeInclineRaw(450);
     for (final b in Brightness.values) {
@@ -111,6 +141,10 @@ Future<void> main() async {
     }
     rizer.inclineState.holdAt(-200);
     await rizer.writeInclineRaw(-200);
-    await captureWidget(tester, name: 'incline-ride-readout', builder: (_) => InclineRideReadout(device: rizer));
+    await captureWidget(
+      tester,
+      name: 'incline-ride-readout',
+      builder: (_) => InclineRideReadout(device: rizer),
+    );
   });
 }

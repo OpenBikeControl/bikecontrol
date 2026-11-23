@@ -5,6 +5,7 @@
 
 **Fixes**:
 - (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla aunque el escalado de pantalla sea superior al 100 %. Antes se cortaban por la derecha y por abajo.
+- (Base) Elite Rizer: cuando el Rizer está bloqueado (LED rojo) y no se inclina, su página y la pestaña Rodar ahora lo indican, en lugar de decir que sigue la pendiente.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

@@ -1265,6 +1265,7 @@
   "inclineFollowsGradient": "Folgt der Steigung aus deiner Trainings-App",
   "inclineWaitingForGradient": "Wartet auf eine Steigung aus deiner Trainings-App",
   "inclineHeldByHand": "Bleibt, wo du sie eingestellt hast",
+  "inclineLocked": "Gesperrt (rote LED). Entsperre den Rizer, damit BikeControl ihn neigen kann.",
   "inclineFollowGradient": "Der Steigung folgen",
   "inclineFollowGradientBody": "Neigt sich mit den Anstiegen und Abfahrten in deiner Trainings-App. Die Steigung kommt nur bei BikeControl an, wenn deine Trainings-App über die Trainer-Brücke von BikeControl verbunden ist.",
   "inclineSetByHand": "Von Hand einstellen",

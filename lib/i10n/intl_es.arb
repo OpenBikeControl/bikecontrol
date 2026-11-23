@@ -1254,6 +1254,7 @@
   "inclineFollowsGradient": "Sigue la pendiente de tu app de entrenamiento",
   "inclineWaitingForGradient": "Esperando una pendiente de tu app de entrenamiento",
   "inclineHeldByHand": "Se mantiene donde la pusiste",
+  "inclineLocked": "Bloqueado (LED rojo). Desbloquea el Rizer para que BikeControl pueda inclinarlo.",
   "inclineFollowGradient": "Seguir la pendiente",
   "inclineFollowGradientBody": "Se inclina con las subidas y bajadas de tu app de entrenamiento. La pendiente solo llega a BikeControl cuando tu app de entrenamiento está conectada a través del puente de rodillo de BikeControl.",
   "inclineSetByHand": "Ajustar a mano",

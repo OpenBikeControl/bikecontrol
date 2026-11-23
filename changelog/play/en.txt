@@ -2,3 +2,5 @@
 New:
 • Zwift Play / Zwift Ride paddles: tilting inward and outward are now two separate buttons, each mappable to its own action. Your existing paddle mapping applies to both
 • Wahoo app: BikeControl shows up in it as a Bluetooth smart trainer on a second device and does the virtual shifting
+Fixed:
+• Elite Rizer: a locked Rizer (red LED) now shows as locked

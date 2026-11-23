@@ -5,6 +5,7 @@
 
 **Fixes**:
 - (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo anche con un ridimensionamento dello schermo oltre il 100 %. Prima venivano tagliati a destra e in basso.
+- (Base) Elite Rizer: quando il Rizer è bloccato (LED rosso) e non si inclina, la sua pagina e la scheda Pedala ora lo indicano, invece di dire che segue la pendenza.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

@@ -5,6 +5,7 @@
 
 **Fixes**:
 - (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher fehlten rechts und unten Teile.
+- (Base) Elite Rizer: Ist der Rizer gesperrt (rote LED) und lässt sich nicht neigen, zeigen seine Seite und der Fahren-Tab das jetzt an, statt zu behaupten, er folge der Steigung.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

@@ -36,6 +36,7 @@
   "inclineFollowsGradient": "跟随骑行应用中的坡度",
   "inclineWaitingForGradient": "正在等待骑行应用发送坡度",
   "inclineHeldByHand": "保持在你设置的位置",
+  "inclineLocked": "已锁定（红色 LED）。请解锁 Rizer，BikeControl 才能调整它的坡度。",
   "inclineFollowGradient": "跟随坡度",
   "inclineFollowGradientBody": "随骑行应用中的上坡和下坡倾斜。只有当骑行应用通过 BikeControl 的骑行台桥接连接时，坡度才会传到 BikeControl。",
   "inclineSetByHand": "手动设置",

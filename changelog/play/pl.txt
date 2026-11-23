@@ -2,3 +2,5 @@
 Nowości:
 • Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Dotychczasowe przypisanie działa dla obu
 • Aplikacja Wahoo: BikeControl pojawia się jako trenażer smart Bluetooth na drugim urządzeniu i zmienia wirtualne biegi
+Poprawki:
+• Elite Rizer: zablokowany Rizer (czerwona dioda) jest teraz pokazywany jako zablokowany
