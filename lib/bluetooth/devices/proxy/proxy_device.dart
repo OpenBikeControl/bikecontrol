@@ -26,7 +26,6 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart' show SupportedApp, TrainerConnectionType;
 import 'package:bike_control/utils/keymap/apps/tacx.dart';
-import 'package:bike_control/utils/keymap/apps/wahoo.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
@@ -558,7 +557,6 @@ class ProxyDevice extends BluetoothDevice {
     Rouvy() => rouvyAdvertisementNameFor(scanResult.name),
     Zwift() => zwiftAdvertisementNameFor(scanResult.name),
     _ when zwiftUnlockInProgress.value => zwiftAdvertisementNameFor(scanResult.name),
-    WahooApp() => WahooApp.wahooAdvertisementNameFor(scanResult.name),
     _ => null,
   };
 

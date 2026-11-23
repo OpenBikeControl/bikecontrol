@@ -1,13 +1,13 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.
+- (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: BikeControl erscheint darin auf einem zweiten Gerät als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh über Bluetooth: Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck). Klappt die Verbindung übers Netzwerk nicht, bietet BikeControl stattdessen Bluetooth an.
 - (Pro) Sensoren: Eine Liste zeigt, woher Leistung, Herzfrequenz, Trittfrequenz und Geschwindigkeit kommen – dein Trainer eingeschlossen – und du kannst jeden Wert durch einen eigenen Sensor ersetzen. „An Trainer-App senden“ erscheint nur noch ohne verbundenen Trainer, denn mit Trainer laufen die Werte ohnehin über ihn.
 - (Pro) Steuerungsprotokoll: Bei Automatisch zeigt die Trainerseite jetzt, welches Protokoll gewählt wurde (z. B. „Automatisch: FTMS“).
-- (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: BikeControl erscheint darin als Smart Trainer, über Bluetooth oder das Netzwerk, und übernimmt das virtuelle Schalten.
 
 **Fixes**:
 - (Base) Shimano Di2: Die Einrichtung der D-Fly-Kanäle erkennt jetzt, welcher Schalthebel links und welcher rechts ist, und keine Taste, die sie ändert, schaltet noch am Rad.

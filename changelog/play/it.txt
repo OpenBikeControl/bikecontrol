@@ -1,3 +1,4 @@
 7.6.2
 Novità:
 • Levette di Zwift Play / Zwift Ride: inclinare verso l'interno e verso l'esterno sono ora due pulsanti separati, ognuno con la sua azione. La tua assegnazione attuale vale per entrambi
+• App Wahoo: BikeControl vi compare come rullo smart Bluetooth su un secondo dispositivo e gestisce il cambio virtuale
