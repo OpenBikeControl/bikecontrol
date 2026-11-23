@@ -16,7 +16,13 @@ String formatIncline001(int? grade001) => grade001 == null ? '–' : '${(grade00
 ValueListenable<int?> _sourceGrade() => core.connection.inclineController?.sourceGrade ?? ValueNotifier<int?>(null);
 
 /// What the incline is doing right now, in one line.
-String inclineStatusText(BuildContext context, {required bool followsGrade, required int? sourceGrade}) {
+String inclineStatusText(
+  BuildContext context, {
+  required bool followsGrade,
+  required int? sourceGrade,
+  bool locked = false,
+}) {
+  if (locked) return context.i18n.inclineLocked;
   if (!followsGrade) return context.i18n.inclineHeldByHand;
   return sourceGrade == null ? context.i18n.inclineWaitingForGradient : context.i18n.inclineFollowsGradient;
 }
@@ -50,7 +56,13 @@ class InclineSection extends StatelessWidget {
     final l = context.i18n;
     final sourceGrade = _sourceGrade();
     return ListenableBuilder(
-      listenable: Listenable.merge([device.inclineState, device.inclineApplied, device.inclineReported, sourceGrade]),
+      listenable: Listenable.merge([
+        device.inclineState,
+        device.inclineApplied,
+        device.inclineReported,
+        device.inclineLocked,
+        sourceGrade,
+      ]),
       builder: (context, _) {
         final follows = device.followsGrade;
         return BkGroupedSection(
@@ -61,7 +73,12 @@ class InclineSection extends StatelessWidget {
               key: const ValueKey('incline-current'),
               icon: LucideIcons.mountain,
               title: l.inclineCurrent,
-              subtitle: inclineStatusText(context, followsGrade: follows, sourceGrade: sourceGrade.value),
+              subtitle: inclineStatusText(
+                context,
+                followsGrade: follows,
+                sourceGrade: sourceGrade.value,
+                locked: device.inclineLocked.value,
+              ),
               trailing: Text(
                 formatIncline001(device.inclineShown),
                 style: context.typography.base.copyWith(
@@ -127,7 +144,13 @@ class InclineRideReadout extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final sourceGrade = _sourceGrade();
     return ListenableBuilder(
-      listenable: Listenable.merge([device.inclineState, device.inclineApplied, device.inclineReported, sourceGrade]),
+      listenable: Listenable.merge([
+        device.inclineState,
+        device.inclineApplied,
+        device.inclineReported,
+        device.inclineLocked,
+        sourceGrade,
+      ]),
       builder: (context, _) => Row(
         spacing: 6,
         children: [
@@ -135,7 +158,7 @@ class InclineRideReadout extends StatelessWidget {
           Flexible(
             child: Text(
               '${context.i18n.inclineRideReadout(formatIncline001(device.inclineShown))} · '
-              '${inclineStatusText(context, followsGrade: device.followsGrade, sourceGrade: sourceGrade.value)}',
+              '${inclineStatusText(context, followsGrade: device.followsGrade, sourceGrade: sourceGrade.value, locked: device.inclineLocked.value)}',
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: context.typography.xSmall.copyWith(color: cs.mutedForeground),

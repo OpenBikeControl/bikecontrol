@@ -28,6 +28,10 @@ mixin ManualInclineDevice on BluetoothDevice implements InclineSink {
   /// was last told.
   int? get inclineShown => inclineReported.value ?? inclineApplied.value;
 
+  /// True while the device refuses incline commands because it is locked (an
+  /// Elite Rizer with a red LED). Until it is unlocked nothing tilts it.
+  final ValueNotifier<bool> inclineLocked = ValueNotifier(false);
+
   @override
   bool get followsGrade => inclineState.mode == InclineMode.auto;
 

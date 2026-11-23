@@ -241,7 +241,22 @@ class EliteRizer extends BluetoothDevice
     }
     final code = await ack.future.timeout(_rizerAckTimeout, onTimeout: () => null);
     if (identical(_pendingAck, ack)) _pendingAck = null;
-    if (code == null || code == kEliteRizerAckSuccess) return true;
+    if (code == null || code == kEliteRizerAckSuccess) {
+      if (code == kEliteRizerAckSuccess && inclineLocked.value) {
+        inclineLocked.value = false;
+        actionStreamInternal.add(LogNotification('Elite Rizer unlocked, incline follows again'));
+      }
+      return true;
+    }
+    if (code == kEliteRizerAckNotAccessible) {
+      // Locked (red LED): every write is refused until the rider unlocks it,
+      // so say it once instead of once per write.
+      if (!inclineLocked.value) {
+        inclineLocked.value = true;
+        actionStreamInternal.add(LogNotification('Elite Rizer is locked (red LED): incline commands are refused'));
+      }
+      return false;
+    }
     actionStreamInternal.add(
       LogNotification('Elite Rizer refused incline ${(grade001Pct / 100).toStringAsFixed(1)}%: ${rizerAckName(code)}'),
     );

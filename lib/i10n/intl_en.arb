@@ -46,6 +46,8 @@
   "inclineWaitingForGradient": "Waiting for a gradient from your trainer app",
   "@inclineWaitingForGradient": {"description": "Incline device page: status while following the gradient but no trainer app sends one yet."},
   "inclineHeldByHand": "Held where you set it",
+  "inclineLocked": "Locked (red LED). Unlock the Rizer so BikeControl can tilt it.",
+  "@inclineLocked": {"description": "Incline device page and Ride tab: status while the Elite Rizer refuses incline commands because it is locked (its LED is red)."},
   "@inclineHeldByHand": {"description": "Incline device page: status while the rider holds a manual incline."},
   "inclineFollowGradient": "Follow the gradient",
   "@inclineFollowGradient": {"description": "Incline device page: switch title, on = the device tilts with the trainer app gradient."},
