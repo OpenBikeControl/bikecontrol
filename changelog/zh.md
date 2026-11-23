@@ -3,6 +3,9 @@
 - (Base) Zwift Play / Zwift Ride 拨片：向内拨和向外拨现在是两个独立的按键，可分别设置各自的操作。原有的拨片设置会同时应用到两者。
 - (Pro) 现在可以选择 Wahoo App 作为骑行软件：BikeControl 会在另一台设备上作为蓝牙智能骑行台出现在其中，并负责虚拟变速。
 
+**Fixes**:
+- (Base) Windows：当显示缩放大于 100% 时，用控制器按键截取的截图现在会包含整个屏幕。此前右侧和底部会被裁掉。
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) 通过蓝牙连接 MyWhoosh：在 MyWhoosh 中将 BikeControl 配对为转向设备，即可换挡，并在路口选择路线（长按）。如果网络连接不上，BikeControl 会改为提供蓝牙连接。

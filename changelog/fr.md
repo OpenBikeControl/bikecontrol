@@ -3,6 +3,9 @@
 - (Base) Palettes Zwift Play / Zwift Ride : incliner vers l'intérieur et vers l'extérieur sont maintenant deux boutons distincts, chacun avec sa propre action. Ton assignation actuelle de la palette s'applique aux deux.
 - (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : BikeControl y apparaît comme home trainer Bluetooth sur un second appareil et assure les vitesses virtuelles.
 
+**Fixes**:
+- (Base) Windows : les captures d'écran prises avec un bouton de la manette couvrent maintenant tout l'écran, même avec une mise à l'échelle supérieure à 100 %. Avant, la droite et le bas étaient coupés.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh en Bluetooth : associe BikeControl dans MyWhoosh comme appareil de direction, puis change de vitesse et choisis ta route aux intersections (appui long). Si la connexion réseau ne marche pas, BikeControl te propose le Bluetooth à la place.

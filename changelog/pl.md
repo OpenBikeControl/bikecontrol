@@ -3,6 +3,9 @@
 - (Base) Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Twoje dotychczasowe przypisanie łopatki działa dla obu.
 - (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: BikeControl pojawia się w niej jako trenażer smart Bluetooth na drugim urządzeniu i sam zajmuje się wirtualną zmianą biegów.
 
+**Fixes**:
+- (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część były ucinane.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh przez Bluetooth: sparuj BikeControl w MyWhoosh jako urządzenie do skrętu, a potem zmieniaj biegi i wybieraj drogę na skrzyżowaniach (długie naciśnięcie). Jeśli połączenie przez sieć nie działa, BikeControl proponuje zamiast tego Bluetooth.

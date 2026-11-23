@@ -3,6 +3,9 @@
 - (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.
 - (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: BikeControl erscheint darin auf einem zweiten Gerät als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
 
+**Fixes**:
+- (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher fehlten rechts und unten Teile.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh über Bluetooth: Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck). Klappt die Verbindung übers Netzwerk nicht, bietet BikeControl stattdessen Bluetooth an.

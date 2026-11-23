@@ -3,6 +3,9 @@
 - (Base) Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro e inclinar hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual de la palanca se aplica a ambos.
 - (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: BikeControl aparece en ella como rodillo inteligente Bluetooth en un segundo dispositivo y se encarga del cambio virtual.
 
+**Fixes**:
+- (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla aunque el escalado de pantalla sea superior al 100 %. Antes se cortaban por la derecha y por abajo.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh por Bluetooth: empareja BikeControl en MyWhoosh como dispositivo de dirección; luego cambia de marcha y elige tu camino en los cruces (pulsación larga). Si la conexión por red no funciona, BikeControl te ofrece Bluetooth en su lugar.

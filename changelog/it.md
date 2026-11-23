@@ -3,6 +3,9 @@
 - (Base) Levette di Zwift Play / Zwift Ride: inclinare verso l'interno e verso l'esterno sono ora due pulsanti separati, ognuno con la sua azione. La tua assegnazione attuale della levetta vale per entrambi.
 - (Pro) L'app Wahoo ora è selezionabile come app di allenamento: BikeControl vi compare come rullo smart Bluetooth su un secondo dispositivo e gestisce il cambio virtuale.
 
+**Fixes**:
+- (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo anche con un ridimensionamento dello schermo oltre il 100 %. Prima venivano tagliati a destra e in basso.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh via Bluetooth: abbina BikeControl in MyWhoosh come dispositivo di sterzo, poi cambi marcia e scegli la strada agli incroci (pressione lunga). Se la connessione di rete non funziona, BikeControl propone il Bluetooth al suo posto.
