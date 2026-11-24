@@ -155,12 +155,13 @@ class TrainerOverlayView extends StatelessWidget {
   }
 
   /// The widest value each reading keeps room for: three-digit watts,
-  /// three-digit rpm, a ratio under ten. In tabular figures every digit is as
+  /// two-digit rpm, a ratio under ten. In tabular figures every digit is as
   /// wide as an 8, so values within these ranges never change the width. A
-  /// sprint past 999 W shrinks the readings a little rather than keeping
-  /// room for it all ride.
+  /// sprint past 999 W or a spin past 99 rpm shrinks the readings a little
+  /// rather than keeping room for it all ride — room kept for a third rpm
+  /// digit sat as empty padding at the pill's right edge (Android).
   static const (String, String) _widestPower = ('888', 'W');
-  static const (String, String) _widestCadence = ('188', 'rpm');
+  static const (String, String) _widestCadence = ('88', 'rpm');
   static const (String, String) _widestRatio = ('×8.88', '');
 
   /// What the gear numeral keeps room for in [mode]: two digits, with the
@@ -420,9 +421,10 @@ class TrainerOverlayView extends StatelessWidget {
           return width;
         }
 
-        // The window keeps room for three-digit watts; a sprint's fourth
-        // digit shrinks the row a little instead of pushing a reading out.
-        var room = constraints.maxWidth + widthOf(('8', ''));
+        // The window keeps room for three-digit watts and two-digit rpm; a
+        // sprint's fourth watt digit and a spin's third rpm digit shrink the
+        // row a little instead of pushing a reading out.
+        var room = constraints.maxWidth + widthOf(('88', ''));
         final shown = <(String, String)>[];
         for (final r in readings) {
           final needed = widthOf(r) + (shown.isEmpty ? 0 : readingGap);

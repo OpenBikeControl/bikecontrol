@@ -1,7 +1,7 @@
 // The desktop overlay window is as wide as what it shows: the gear (or ERG
 // target), the mode over the readings the rider turned on, and the drag
 // handle at the edge — no room kept for readings that are off. Each reading
-// keeps room for its widest value (four-digit watts, three-digit rpm), so the
+// keeps room for its everyday widest value (three-digit watts, two-digit rpm), so the
 // window doesn't change while the numbers do; it changes when a reading is
 // turned on or off.
 import 'package:bike_control/gen/l10n.dart';
@@ -97,7 +97,9 @@ Future<void> main() async {
         .where((e) => !glyphs.contains(e))
         .map((e) {
           final box = e.renderObject! as RenderBox;
-          return box.localToGlobal(Offset.zero).dx + box.size.width;
+          // The far edge through any transform: readings past their kept
+          // room are scaled down by a FittedBox.
+          return box.localToGlobal(Offset(box.size.width, 0)).dx;
         });
     final contentEnd = texts.reduce((a, b) => a > b ? a : b);
     final handle = tester.getRect(find.byIcon(LucideIcons.gripVertical));
@@ -177,4 +179,52 @@ Future<void> main() async {
     expect(sizes, hasLength(2));
     expect(sizes.last.width, greaterThan(sizes.first.width));
   }, variant: desktop);
+
+  // The Android pill sizes itself (no drag handle). Room kept for a third
+  // rpm digit sat as padding at its right edge at an everyday 86 rpm.
+  group('Android pill', () {
+    final android = TargetPlatformVariant.only(TargetPlatform.android);
+
+    Future<void> pumpPill(WidgetTester tester, TrainerOverlayState s) async {
+      final notifier = ValueNotifier(s);
+      Widget app() => OverlayShadcnApp(
+        home: Scaffold(
+          child: Center(
+            child: TrainerOverlayView(state: notifier, onPrimaryDecrement: () {}, onPrimaryIncrement: () {}),
+          ),
+        ),
+      );
+      await tester.pumpWidget(app());
+      await tester.loadAssets(alsoLoadTheseFonts: const ['BarlowCondensed']);
+      await remountWithLoadedFonts(tester, app());
+      await tester.pump();
+    }
+
+    /// The empty room between the last reading and the pill's inner edge.
+    double rightRoom(WidgetTester tester, String last) {
+      final pill = tester.getRect(find.byType(TrainerOverlayView));
+      final reading = find.textContaining(last, findRichText: true);
+      final box = tester.renderObject<RenderBox>(reading);
+      final end = box.localToGlobal(Offset(box.size.width, 0)).dx;
+      // 8 px padding and the 1 px hairline.
+      return pill.right - 9 - end;
+    }
+
+    for (final MapEntry(key: name, value: fields) in combos.entries) {
+      if (!fields.contains(OverlayField.cadence) || fields.contains(OverlayField.gearRatio)) continue;
+      testWidgets('$name at 86 rpm: no empty room on the right', (tester) async {
+        await pumpPill(tester, state(fields, power: 178, cadence: 86));
+        expect(tester.takeException(), isNull);
+        expect(rightRoom(tester, 'rpm'), lessThanOrEqualTo(3));
+      }, variant: android);
+
+      testWidgets('$name at 1999 W and 120 rpm: every reading still shown', (tester) async {
+        await pumpPill(tester, state(fields, power: 1999, cadence: 120));
+        expect(tester.takeException(), isNull, reason: 'no overflow');
+        expect(find.textContaining('1999', findRichText: true), findsOneWidget);
+        expect(find.textContaining('120', findRichText: true), findsOneWidget);
+        expect(rightRoom(tester, 'rpm'), greaterThanOrEqualTo(-0.5));
+      }, variant: android);
+    }
+  });
 }
