@@ -19,7 +19,17 @@ void main() {
     'Tour du Pain',
     'Rampida',
     'Everycol',
+    'PedalCraft',
+    'suffer.online',
+    'Kardiacs',
+    'Sueur',
+    'TrainerKit',
+    'Pedal Mania',
+    'Warp',
+    'hupser',
+    'SaddleOut',
   ];
+  const overNetwork = {'VoxVelo', 'Vieta', 'Incyclist', 'Sueur'};
 
   SupportedApp byName(String name) => SupportedApp.supportedApps.singleWhere((app) => app.name == name);
 
@@ -29,11 +39,11 @@ void main() {
     }
   });
 
-  test('they connect via OpenBikeControl over Bluetooth, VoxVelo, Vieta and Incyclist also over the network', () {
+  test('they connect via OpenBikeControl over Bluetooth, the overNetwork apps also over the network', () {
     for (final name in names) {
       final app = byName(name);
       expect(app.supportLevel(AppConnectionMethod.obpBle), ConnectionSupport.supported, reason: name);
-      final mdns = name == 'VoxVelo' || name == 'Vieta' || name == 'Incyclist';
+      final mdns = overNetwork.contains(name);
       expect(app.supportLevel(AppConnectionMethod.obpMdns), mdns ? ConnectionSupport.supported : isNull, reason: name);
       // OBC delivers button events over the protocol, so there is no keyboard map.
       expect(app.keymap.keyPairs, isEmpty, reason: name);
