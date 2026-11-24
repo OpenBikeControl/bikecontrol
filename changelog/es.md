@@ -6,7 +6,7 @@
 - (Base) Las acciones de accesorios (p. ej. subir / bajar la inclinación del Rizer) se asignan ahora directamente a un botón de tu mando conectado desde la página del accesorio: toca el botón en la imagen del mando y elige pulsación simple, doble o larga.
 
 **Fixes**:
-- (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla aunque el escalado de pantalla sea superior al 100 %. Antes se cortaban por la derecha y por abajo.
+- (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla con los colores correctos, también con un escalado de pantalla superior al 100 %. Antes podían cortarse por la derecha y por abajo, y el rojo y el azul estaban intercambiados.
 - (Base) Elite Rizer: cuando el Rizer está bloqueado (LED rojo) y no se inclina, su página y la pestaña Rodar ahora lo indican, en lugar de decir que sigue la pendiente.
 - (Base) Elite Rizer: un Rizer bloqueado ahora se muestra como bloqueado en cuanto se conecta, no solo cuando llega una pendiente.
 

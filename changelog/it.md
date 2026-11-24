@@ -6,7 +6,7 @@
 - (Base) Le azioni degli accessori (ad es. aumentare / diminuire la pendenza del Rizer) si assegnano ora direttamente a un pulsante del controller collegato dalla pagina dell'accessorio: tocca il pulsante nell'immagine del controller e scegli pressione singola, doppia o lunga.
 
 **Fixes**:
-- (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo anche con un ridimensionamento dello schermo oltre il 100 %. Prima venivano tagliati a destra e in basso.
+- (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo con i colori giusti, anche con un ridimensionamento dello schermo oltre il 100 %. Prima potevano essere tagliati a destra e in basso, e rosso e blu erano invertiti.
 - (Base) Elite Rizer: quando il Rizer è bloccato (LED rosso) e non si inclina, la sua pagina e la scheda Pedala ora lo indicano, invece di dire che segue la pendenza.
 - (Base) Elite Rizer: un Rizer bloccato ora viene mostrato come bloccato appena si collega, non solo quando arriva una pendenza.
 

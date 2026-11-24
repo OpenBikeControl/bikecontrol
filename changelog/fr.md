@@ -6,7 +6,7 @@
 - (Base) Les actions d'accessoire (p. ex. monter / descendre l'inclinaison du Rizer) s'assignent maintenant directement à un bouton de ta manette connectée depuis la page de l'accessoire : touche le bouton sur l'image de la manette, puis choisis appui simple, double ou long.
 
 **Fixes**:
-- (Base) Windows : les captures d'écran prises avec un bouton de la manette couvrent maintenant tout l'écran, même avec une mise à l'échelle supérieure à 100 %. Avant, la droite et le bas étaient coupés.
+- (Base) Windows : les captures d'écran prises avec un bouton de la manette couvrent maintenant tout l'écran avec les bonnes couleurs, même avec une mise à l'échelle supérieure à 100 %. Avant, la droite et le bas pouvaient être coupés, et le rouge et le bleu étaient inversés.
 - (Base) Elite Rizer : quand le Rizer est verrouillé (LED rouge) et refuse de s'incliner, sa page et l'onglet Rouler l'indiquent maintenant, au lieu d'affirmer qu'il suit la pente.
 - (Base) Elite Rizer : un Rizer verrouillé s'affiche maintenant comme verrouillé dès sa connexion, pas seulement quand une pente arrive.
 

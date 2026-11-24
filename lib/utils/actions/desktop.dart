@@ -101,7 +101,14 @@ class DesktopActions extends BaseActions {
 
         final screenshotFile = await saveScreenshotFile(
           screenshotDirectory,
-          image_lib.encodeJpg(capturedArea.toImage()),
+          image_lib.encodeJpg(
+            screenshotImage(
+              bytes: capturedArea.buffer,
+              width: capturedArea.width,
+              height: capturedArea.height,
+              platform: defaultTargetPlatform,
+            ),
+          ),
           DateTime.now(),
         );
         await IAPManager.instance.incrementCommandCount();

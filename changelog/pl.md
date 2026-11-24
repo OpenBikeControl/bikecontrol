@@ -6,7 +6,7 @@
 - (Base) Akcje akcesoriów (np. zwiększanie / zmniejszanie nachylenia Rizera) przypiszesz teraz bezpośrednio do przycisku połączonego kontrolera na stronie akcesorium: dotknij przycisku na obrazku kontrolera i wybierz pojedyncze, podwójne lub długie naciśnięcie.
 
 **Fixes**:
-- (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część były ucinane.
+- (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran we właściwych kolorach, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część mogły być ucinane, a czerwony i niebieski były zamienione.
 - (Base) Elite Rizer: gdy Rizer jest zablokowany (czerwona dioda) i nie chce się pochylać, jego strona i karta Jazda pokazują to teraz, zamiast twierdzić, że podąża za nachyleniem.
 - (Base) Elite Rizer: zablokowany Rizer jest teraz pokazywany jako zablokowany zaraz po połączeniu, a nie dopiero gdy przyjdzie nachylenie.
 

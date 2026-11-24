@@ -6,7 +6,7 @@
 - (Base) Accessory actions (e.g. the Rizer's incline up / down) go straight onto a button of your connected controller from the accessory's page: tap the button on the controller's picture, then choose single, double or long press.
 
 **Fixes**:
-- (Base) Windows: screenshots taken with a controller button now capture the whole screen when display scaling is above 100 %. Before, the right and bottom were cut off.
+- (Base) Windows: screenshots taken with a controller button now capture the whole screen, also with display scaling above 100 %, and with the right colours. Before, the right and bottom could be cut off and red and blue were swapped.
 - (Base) Elite Rizer: when the Rizer is locked (red LED) and refuses to tilt, its page and the Ride tab now say so, instead of claiming it follows the gradient.
 - (Base) Elite Rizer: a locked Rizer now shows as locked as soon as it connects, not only once a gradient arrives.
 
