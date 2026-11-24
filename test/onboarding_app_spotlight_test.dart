@@ -4,6 +4,7 @@ import 'package:bike_control/main.dart' show debugAnimatesInScreenshotMode;
 import 'package:bike_control/pages/onboarding/steps/step_app.dart' show OnboardingAppTile, TrainerAppGrid, onboardingAppBody;
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_viewport.dart';
+import 'package:bike_control/utils/keymap/apps/grimpa.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
@@ -122,5 +123,29 @@ Future<void> main() async {
     expect(flight, findsNothing);
     final back = tester.widget<Opacity>(find.ancestor(of: tile<MyWhoosh>(), matching: find.byType(Opacity)).first);
     expect(back.opacity, 1, reason: 'the tile shows again once landed');
+  });
+
+  testWidgets('the spotlight links the app on smarttrainerapps.com; only Grimpa shows its rider deal', (tester) async {
+    await captureWidget(
+      tester,
+      name: 'onboarding_step_app_spotlight_grimpa',
+      width: 380,
+      builder: (_) => body(targets: const [Target.otherDevice]),
+      beforeCapture: (tester) async {
+        await tester.ensureVisible(tile<Grimpa>());
+        await tester.tap(tile<Grimpa>());
+        await tester.pumpAndSettle();
+      },
+    );
+    expect(find.byKey(const ValueKey('onboarding-app-directory-link')), findsOneWidget);
+    expect(find.byKey(const ValueKey('onboarding-rider-deal')), findsOneWidget);
+    expect(find.text('BIKECONTROL'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('onboarding-change-app')));
+    await tester.pumpAndSettle();
+    await tester.tap(tile<MyWhoosh>());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('onboarding-app-directory-link')), findsOneWidget);
+    expect(find.byKey(const ValueKey('onboarding-rider-deal')), findsNothing);
   });
 }

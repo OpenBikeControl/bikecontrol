@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:bike_control/main.dart' show screenshotMotionPinned;
+import 'package:bike_control/main.dart' show recordError, screenshotMotionPinned;
 import 'package:bike_control/utils/reduced_motion.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_headline.dart';
@@ -14,6 +14,10 @@ import 'package:bike_control/utils/requirements/multi.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
+import 'package:bike_control/utils/keymap/apps/smart_trainer_apps.dart';
+import 'package:bike_control/widgets/ui/toast.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart' show RenderProxyBox;
 import 'package:bike_control/widgets/ui/trainer_app_logo.dart';
 import 'package:bike_control/widgets/ui/openbikecontrol_logo.dart';
@@ -34,8 +38,8 @@ const _tileHeight = 108.0;
 /// One app tile per the design: white card, logo (or monogram), dark caption,
 /// blue 1.5px border + top-right blue check dot when selected. Public so the
 /// grid-uniformity test can measure the rendered tiles. [showOfficialBadge]
-/// puts the OpenBikeControl mark in the top-left corner, for official apps
-/// shown outside the "Officially supported" group.
+/// puts the official seal in the top-left corner, for official apps shown
+/// outside the "Officially supported" group.
 class OnboardingAppTile extends StatelessWidget {
   const OnboardingAppTile({
     super.key,
@@ -93,13 +97,11 @@ class OnboardingAppTile extends StatelessWidget {
               ],
             ),
           ),
-          if (showOfficialBadge) Positioned(top: 5, right: 5, child: const _OfficialBadge()),
+          if (showOfficialBadge) Positioned(top: 5, left: 5, child: const _OfficialBadge()),
           if (selected)
             Positioned(
-              // The seal holds the top-right corner; the check takes the other.
               top: 7,
-              left: showOfficialBadge ? 7 : null,
-              right: showOfficialBadge ? null : 7,
+              right: 7,
               child: Container(
                 width: 18,
                 height: 18,
@@ -114,26 +116,25 @@ class OnboardingAppTile extends StatelessWidget {
   }
 }
 
-/// The OpenBikeControl mark in an accent-washed circle: "this app is an
-/// official BikeControl integration".
+/// The OpenBikeControl mark on a white seal with a black outline: "this app is
+/// an official BikeControl integration". Same colours in light and dark mode.
 class _OfficialBadge extends StatelessWidget {
   const _OfficialBadge({this.size = 28});
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final accent = onboardingAccent(context);
     return Tooltip(
       tooltip: (context) => TooltipContainer(child: Text(context.i18n.onboardingOfficialBadge)),
       child: Semantics(
         label: context.i18n.onboardingOfficialBadge,
         child: CustomPaint(
           size: Size.square(size),
-          painter: _SealPainter(accent),
+          painter: const _SealPainter(),
           child: SizedBox.square(
             dimension: size,
             child: Center(
-              child: OpenBikeControlLogo(size: size * 0.48, color: onboardingOnAccent(context)),
+              child: OpenBikeControlLogo(size: size * 0.48, color: _SealPainter.ink),
             ),
           ),
         ),
@@ -143,17 +144,20 @@ class _OfficialBadge extends StatelessWidget {
 }
 
 /// A zig-zag edged seal, like a "certified" rosette: [_points] teeth around a
-/// circle, with a thin inner ring.
+/// circle, with a thin inner ring. White inside, outlined in [ink].
 class _SealPainter extends CustomPainter {
-  const _SealPainter(this.color);
+  const _SealPainter();
 
-  final Color color;
+  static const ink = Color(0xFF000000);
+  static const _fill = Color(0xFFFFFFFF);
   static const _points = 14;
 
   @override
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
-    final outer = size.shortestSide / 2;
+    // Inset by half the outline, so the stroke stays inside the box.
+    final stroke = (size.shortestSide / 28).clamp(0.8, 1.4);
+    final outer = size.shortestSide / 2 - stroke / 2;
     final inner = outer * 0.84;
     final path = Path();
     for (var i = 0; i < _points * 2; i++) {
@@ -163,19 +167,27 @@ class _SealPainter extends CustomPainter {
       i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
     }
     path.close();
-    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawPath(path, Paint()..color = _fill);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeJoin = StrokeJoin.round
+        ..strokeWidth = stroke
+        ..color = ink,
+    );
     canvas.drawCircle(
       c,
       outer * 0.66,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8
-        ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.55),
+        ..strokeWidth = stroke * 0.6
+        ..color = ink,
     );
   }
 
   @override
-  bool shouldRepaint(_SealPainter old) => old.color != color;
+  bool shouldRepaint(_SealPainter old) => false;
 }
 
 /// A tile's app name: up to two lines, broken only between words. A single
@@ -292,7 +304,12 @@ class TrainerAppGrid extends StatelessWidget {
     final bigApps = SupportedApp.supportedApps.where(_isBigPlatform);
     final big = [...bigApps.where((a) => a.officialIntegration), ...bigApps.where((a) => !a.officialIntegration)];
     final rest = SupportedApp.supportedApps.where((a) => !_isBigPlatform(a));
-    final official = rest.where((a) => a.officialIntegration).toList();
+    // Apps with a rider deal (Grimpa) lead the group.
+    final officialRest = rest.where((a) => a.officialIntegration);
+    final official = [
+      ...officialRest.where((a) => riderDealFor(a) != null),
+      ...officialRest.where((a) => riderDealFor(a) == null),
+    ];
     final other = rest.where((a) => !a.officialIntegration).toList();
 
     Widget grid(List<SupportedApp> apps, {bool badgeOfficial = false}) => LayoutBuilder(
@@ -805,6 +822,8 @@ class _SelectedAppSpotlight extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final accent = onboardingAccent(context);
     final hasChoice = targets.length > 1 && onSelectTarget != null;
+    final directoryUrl = smartTrainerAppsUrl(app);
+    final deal = riderDealFor(app);
 
     final card = Container(
       key: cardKey,
@@ -873,6 +892,30 @@ class _SelectedAppSpotlight extends StatelessWidget {
             ),
           ),
         ),
+        if (directoryUrl != null || deal != null) ...[
+          Gap(4),
+          arriving(
+            const Duration(milliseconds: 168),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (deal != null) ...[
+                  Center(child: _RiderDealCard(app: app, deal: deal)),
+                  Gap(6),
+                ],
+                if (directoryUrl != null)
+                  Center(
+                    child: Button.link(
+                      key: const ValueKey('onboarding-app-directory-link'),
+                      onPressed: () => _openExternal(directoryUrl),
+                      trailing: const Icon(LucideIcons.externalLink, size: 13),
+                      child: Text(context.i18n.onboardingAppDirectoryLink(app.name)).xSmall.muted,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
         if (hasChoice) ...[
           Gap(22),
           arriving(
@@ -897,6 +940,67 @@ class _SelectedAppSpotlight extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+Future<void> _openExternal(Uri url) async {
+  try {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  } catch (e, s) {
+    recordError(e, s, context: 'Onboarding.openAppDirectory');
+  }
+}
+
+/// A trainer app's discount code for BikeControl riders, with a button that
+/// copies it.
+class _RiderDealCard extends StatelessWidget {
+  const _RiderDealCard({required this.app, required this.deal});
+
+  final SupportedApp app;
+  final RiderDeal deal;
+
+  Future<void> _copy(BuildContext context) async {
+    final copied = context.i18n.onboardingDealCodeCopied;
+    try {
+      await Clipboard.setData(ClipboardData(text: deal.code));
+      buildToast(title: copied);
+    } catch (e, s) {
+      recordError(e, s, context: 'Onboarding.copyDealCode');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: const ValueKey('onboarding-rider-deal'),
+      constraints: const BoxConstraints(maxWidth: 320),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: scheme.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.ticketPercent, size: 16, color: onboardingAccent(context)),
+              Gap(8),
+              Expanded(child: Text(context.i18n.onboardingGrimpaDeal(deal.percentOff)).small.semiBold),
+            ],
+          ),
+          Gap(10),
+          Button.outline(
+            key: const ValueKey('onboarding-rider-deal-copy'),
+            onPressed: () => _copy(context),
+            trailing: const Icon(LucideIcons.copy, size: 14),
+            child: Text(deal.code, style: const TextStyle(letterSpacing: 1.2)).semiBold,
+          ),
+        ],
+      ),
     );
   }
 }

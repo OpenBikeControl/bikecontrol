@@ -3204,6 +3204,9 @@
   "couldNotEnableBluetoothWindows": "Bluetooth ließ sich nicht einschalten. Bitte schalte es in den Windows-Einstellungen ein.",
   "bridgeBluetoothPermissionMissing": "{trainer} kann nicht über Bluetooth erscheinen: BikeControl darf „Geräte in der Nähe“ nicht nutzen. Öffne den Trainer und wähle Virtual Shifting, um es zu erlauben.",
   "warningMacBridgeUnnamed": "{app} findet BikeControl auf einem Mac nicht: macOS meldet den Trainer über Bluetooth ohne Namen, und {app} überspringt Trainer ohne Namen. Nutze BikeControl stattdessen auf einem Android-Gerät oder Windows-PC.",
+  "onboardingAppDirectoryLink": "{app} auf smarttrainerapps.com",
+  "onboardingGrimpaDeal": "{percent} % auf deinen ersten Grimpa-Plus-Kauf",
+  "onboardingDealCodeCopied": "Code kopiert",
   "rideOverlayOfferOverOtherApps": "Behalte deinen Gang über jeder App auf diesem Handy im Blick",
   "onboardingOverlayOverOtherAppsTitle": "Nutz dein Handy, dein Gang bleibt im Blick",
   "onboardingOverlayOverOtherAppsNote": "{app} läuft auf einem anderen Gerät, dieses Handy ist also frei. Das Overlay zeigt deinen Gang über jeder App, die du hier öffnest."

@@ -3204,6 +3204,9 @@
   "couldNotEnableBluetoothWindows": "Impossible d'activer le Bluetooth. Active-le dans les Paramètres Windows.",
   "bridgeBluetoothPermissionMissing": "{trainer} ne peut pas apparaître en Bluetooth : BikeControl n'a pas accès aux « Appareils à proximité ». Ouvre le home trainer et choisis Virtual Shifting pour l'autoriser.",
   "warningMacBridgeUnnamed": "{app} ne trouve pas BikeControl sur un Mac : macOS annonce le home trainer en Bluetooth sans nom, et {app} ignore les home trainers sans nom. Utilise plutôt BikeControl sur un appareil Android ou un PC Windows.",
+  "onboardingAppDirectoryLink": "{app} sur smarttrainerapps.com",
+  "onboardingGrimpaDeal": "{percent} % de réduction sur ton premier achat Grimpa Plus",
+  "onboardingDealCodeCopied": "Code copié",
   "rideOverlayOfferOverOtherApps": "Garde ton braquet en vue par-dessus n'importe quelle app de ce téléphone",
   "onboardingOverlayOverOtherAppsTitle": "Utilise ton téléphone, ton braquet reste en vue",
   "onboardingOverlayOverOtherAppsNote": "{app} tourne sur un autre appareil, ce téléphone est donc libre. La superposition affiche ton braquet par-dessus toute app que tu ouvres ici."
