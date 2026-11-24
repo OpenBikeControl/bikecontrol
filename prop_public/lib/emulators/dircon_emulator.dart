@@ -87,7 +87,13 @@ class DirconEmulator {
   /// trainer-app / trial / device-name callbacks.
   String get advertisementName => 'BikeControl';
 
-  bool processCharacteristic(String characteristic, Uint8List bytes) => false;
+  /// The name the Bluetooth bridge advertises under, once it advertises.
+  ValueListenable<String?> get bluetoothLocalName => _bluetoothLocalName;
+  final ValueNotifier<String?> _bluetoothLocalName = ValueNotifier(null);
+
+  /// [from] is the definition the frame came from, when several trainers
+  /// share the bridge.
+  bool processCharacteristic(String characteristic, Uint8List bytes, {FitnessBikeDefinition? from}) => false;
 
   Future<void> startServer({
     required RetrofitMode mode,

@@ -28,3 +28,12 @@ class BluetoothTransporter extends Transporter {
   @override
   void dispose() {}
 }
+
+/// The platform refuses the BLE peripheral role (on Android: no
+/// BLUETOOTH_ADVERTISE permission).
+class BluetoothPeripheralUnauthorizedException implements Exception {
+  const BluetoothPeripheralUnauthorizedException();
+
+  @override
+  String toString() => 'Bluetooth advertise permission not granted';
+}
