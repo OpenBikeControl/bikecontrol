@@ -1,7 +1,10 @@
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/local_network_access.dart';
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:bike_control/services/mdns_query_privacy.dart';
+import 'package:bike_control/services/network_recovery.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_network_permission/local_network_permission.dart';
 import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
@@ -75,6 +78,19 @@ class DebugDiagnostics {
   /// OS responder handles queries and never tells us about them.
   final List<MdnsQueryLogEntry> recentQueries;
 
+  /// What clients did on our TCP ports lately: who connected, and whether
+  /// they hung up before sending anything.
+  final List<TcpConnectionLogEntry> connections;
+
+  /// When the app last left and returned, whether the process stood still
+  /// and what was repaired afterwards. Empty where that is not tracked.
+  final List<String> lifecycle;
+
+  /// Host name OpenBikeControl is published under when it goes out through
+  /// the operating system's responder instead of [backend]. Null when it
+  /// shares [backend] or is not running.
+  final String? obcOsResponderHost;
+
   const DebugDiagnostics({
     required this.advertised,
     required this.backend,
@@ -86,6 +102,9 @@ class DebugDiagnostics {
     required this.servers,
     required this.permissions,
     this.recentQueries = const [],
+    this.connections = const [],
+    this.lifecycle = const [],
+    this.obcOsResponderHost,
   });
 
   static Future<DebugDiagnostics> gather({
@@ -150,7 +169,16 @@ class DebugDiagnostics {
       servers: servers,
       permissions: permissions,
       recentQueries: isResponder ? advertiser.recentQueries : const [],
+      connections: ResilientTcpServer.connectionLog,
+      lifecycle: NetworkRecovery.instance.diagnosticLines(),
+      obcOsResponderHost: _obcOsResponderHost(),
     );
+  }
+
+  static String? _obcOsResponderHost() {
+    final emulator = core.obpMdnsEmulator;
+    if (!emulator.isStarted.value || emulator.activeBackend != ObpMdnsBackend.osResponder) return null;
+    return emulator.advertisedHostname ?? '?';
   }
 
   /// Name fragments that mean "VPN tunnel" — the VPN subset of the address
@@ -236,6 +264,9 @@ class DebugDiagnostics {
       '${hostLabel != null ? ' · host: $hostLabel.local' : ''}'
       '${backend == 'responder' ? ' · multicast-lock: ${holdsMulticastLock ? 'held' : 'not held'}' : ''}',
     );
+    if (obcOsResponderHost != null) {
+      b.writeln('    _openbikecontrol._tcp: OS responder · host: $obcOsResponderHost');
+    }
 
     b.writeln('  Discovered on network:');
     if (!discoveryRan) {
@@ -321,6 +352,24 @@ class DebugDiagnostics {
           '    ${s.label ?? 'tcp'} :${s.port ?? '-'} '
           '${s.listening ? 'listening' : 'down'} · ${s.hasClient ? '1 client' : 'no client'}',
         );
+      }
+    }
+
+    // Without this a "no client" row cannot tell an app that never dialled
+    // from one that connected and hung up at once.
+    b.writeln('  TCP connections:');
+    if (connections.isEmpty) {
+      b.writeln('    (none since the app started)');
+    } else {
+      for (final c in connections) {
+        b.writeln('    ${c.at.toIso8601String().split('T').last.split('.').first} $c');
+      }
+    }
+
+    if (lifecycle.isNotEmpty) {
+      b.writeln('  Lifecycle:');
+      for (final line in lifecycle) {
+        b.writeln('    $line');
       }
     }
 

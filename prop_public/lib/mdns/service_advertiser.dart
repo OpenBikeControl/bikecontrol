@@ -62,6 +62,21 @@ abstract class ServiceAdvertiser {
   static final ValueListenable<String?> untrackedAddress = ValueNotifier<String?>(null);
 }
 
+/// An advertiser that can check its advertisement and publish it again.
+abstract interface class RecoverableAdvertiser {
+  Future<void> recover({bool force = false});
+
+  String? get recoveryStatus;
+
+  /// [recover] on [ServiceAdvertiser.instance] when it supports it.
+  static Future<void> recoverInstance({bool force = false}) async {
+    final advertiser = ServiceAdvertiser.instance;
+    if (advertiser is RecoverableAdvertiser) {
+      await (advertiser as RecoverableAdvertiser).recover(force: force);
+    }
+  }
+}
+
 /// Hostname-label rules shared by the backends that publish their own host
 /// record. Stubbed here.
 abstract final class MdnsHostLabel {

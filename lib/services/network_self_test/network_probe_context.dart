@@ -87,6 +87,12 @@ class NetworkProbeContext {
   /// above it means a leaked previous instance walked it up.
   final int methodPreferredPort;
 
+  /// Whether the trainer app runs on this very device, when the rider told
+  /// us; null when unknown. A same-device app searches through the same
+  /// system mDNS service as BikeControl's own scans, so its search cannot be
+  /// told from ours by where it came from.
+  final bool? trainerAppOnThisDevice;
+
   /// `Platform.operatingSystem`-shaped: 'windows' | 'macos' | 'linux' |
   /// 'android' | 'ios' | 'web'.
   final String platform;
@@ -132,5 +138,6 @@ class NetworkProbeContext {
     required this.onWatchProgress,
     this.methodServerLabel = 'OpenBikeControl',
     this.methodPreferredPort = OpenBikeControlConstants.TCP_PORT,
+    this.trainerAppOnThisDevice,
   });
 }

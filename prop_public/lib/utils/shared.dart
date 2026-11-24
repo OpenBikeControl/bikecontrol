@@ -13,6 +13,10 @@ class SharedLogic {
   static void keepAlive() {}
 
   static void stopKeepAlive() {}
+
+  static void refreshKeepAlive() {}
+
+  static String get keepAliveStatus => 'not available in this build';
 }
 
 class Logger {

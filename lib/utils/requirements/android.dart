@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
+import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
@@ -263,6 +264,12 @@ class NotificationRequirement extends PlatformRequirement {
     UniversalBle.onAvailabilityChange = null;
     // A disconnect that hangs or throws must not keep the app and its
     // notification alive: each step gets a deadline, and quitting goes on.
+    //
+    // The gear overlay first: it runs in a service of its own and outlived
+    // the notification's "Close", floating over other apps with nothing
+    // behind it. Only closed, not switched off — it comes back on the next
+    // ride, as after swiping the app away.
+    await _quitStep('hide overlay', () => TrainerOverlayService.forCurrentPlatform().hide());
     await _quitStep('disconnect all', core.connection.disconnectAll);
     await _quitStep('action cleanup', () async => core.actionHandler.cleanup());
     await _quitStep('stop connection', core.connection.stop);

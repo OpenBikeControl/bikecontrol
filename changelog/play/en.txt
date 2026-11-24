@@ -1,4 +1,7 @@
-7.6.1
-New:
-• MyWhoosh over Bluetooth: pair BikeControl as a steering device to shift and choose your way at junctions
-• Sensors: see where each value comes from and replace trainer values with your own sensor
+7.7.0
+New: Wahoo app as trainer app (Pro)
+New: gear overlay with Bluetooth-only apps like Grimpa (Pro)
+New: nine more apps via OpenBikeControl, incl. PedalCraft, Sueur and SaddleOut
+Fixed:
+• "Close" in the notification removes the gear overlay
+• Custom mappings kept after a restart

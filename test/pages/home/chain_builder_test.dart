@@ -59,8 +59,12 @@ TrainerInput trainer({
   bool overlayDeclined = false,
   String? rawTrainerName,
   bool staleBluetoothLink = false,
+  BridgeBlock? bridgeBlock,
+  bool appMayNeedBluetoothBridge = false,
 }) {
   return TrainerInput(
+    bridgeBlock: bridgeBlock,
+    appMayNeedBluetoothBridge: appMayNeedBluetoothBridge,
     deviceId: 'trainer-1',
     name: 'Wahoo KICKR CORE',
     presence: presence,
@@ -1385,6 +1389,10 @@ void main() {
           expect(stepFor(AddressWarningKind.twoNetworks).variant, SetupStepVariant.networkTwoNetworks);
         });
 
+        test('advertisement not found on the network: its own wording', () {
+          expect(stepFor(AddressWarningKind.notVisible).variant, SetupStepVariant.networkNotVisible);
+        });
+
         test('a VPN or bridge keeps the standard wording', () {
           expect(stepFor(AddressWarningKind.unreachable).variant, SetupStepVariant.standard);
           expect(stepFor(null).variant, SetupStepVariant.standard);
@@ -1763,6 +1771,119 @@ void main() {
   // to it: keystrokes and clicks the button editor only offers once it is on. A
   // rider on the same device who never turns it on never learns those actions
   // exist, so the app card says so — as an offer, never as work.
+  group('a trainer bridge the app may never find', () {
+    SetupStep bridgeStep(TrainerInput t, {AppInput app = const AppInput(name: 'MyWhoosh')}) => buildChain(
+      ChainInputs(controllers: [controller()], trainer: t, app: app),
+    ).byKey(ChainLinkKey.trainer).steps.firstWhere((s) => s.id == SetupStepId.trainerAppBridged);
+
+    test('an app on this device that only pairs over Bluetooth is told so, not asked to pick the bridge', () {
+      final step = bridgeStep(trainer(appHoldsBridge: false, bridgeBlock: BridgeBlock.bluetoothOnly));
+      expect(step.done, isFalse);
+      expect(step.variant, SetupStepVariant.bridgeBlockedBluetoothOnly);
+    });
+
+    test('a Store app on this PC gets its own explanation', () {
+      final step = bridgeStep(trainer(appHoldsBridge: false, bridgeBlock: BridgeBlock.storeApp));
+      expect(step.variant, SetupStepVariant.bridgeBlockedStoreApp);
+    });
+
+    test('the block outranks a suspected stale Bluetooth link', () {
+      final step = bridgeStep(
+        trainer(appHoldsBridge: false, bridgeBlock: BridgeBlock.bluetoothOnly, staleBluetoothLink: true),
+      );
+      expect(step.variant, SetupStepVariant.bridgeBlockedBluetoothOnly);
+    });
+
+    test('an app on another device that may be Android gets the Bluetooth hint', () {
+      final step = bridgeStep(trainer(appHoldsBridge: false, appMayNeedBluetoothBridge: true));
+      expect(step.variant, SetupStepVariant.bridgeMaybeAndroidApp);
+    });
+
+    test('nothing is said once the app holds the bridge', () {
+      final step = bridgeStep(
+        trainer(appHoldsBridge: true, bridgeBlock: BridgeBlock.bluetoothOnly, appMayNeedBluetoothBridge: true),
+      );
+      expect(step.done, isTrue);
+      expect(step.variant, SetupStepVariant.standard);
+    });
+  });
+
+  group('no Wi-Fi with the app on this device', () {
+    SetupStep step({required bool onThisDevice}) => buildChain(
+      ChainInputs(
+        controllers: [controller()],
+        app: AppInput(
+          name: 'MyWhoosh',
+          hasEnabledConnection: true,
+          advertisedAddressWarning: '10.206.120.218',
+          advertisedAddressWarningKind: AddressWarningKind.noWifi,
+          onThisDevice: onThisDevice,
+        ),
+      ),
+    ).byKey(ChainLinkKey.app).steps.firstWhere((s) => s.id == SetupStepId.appNetworkAddress);
+
+    test('the advice is any Wi-Fi or Local, not "the same Wi-Fi as the app"', () {
+      expect(step(onThisDevice: true).variant, SetupStepVariant.networkNoWifiSameDevice);
+    });
+
+    test('an app elsewhere keeps the join-its-Wi-Fi advice', () {
+      expect(step(onThisDevice: false).variant, SetupStepVariant.networkNoWifi);
+    });
+  });
+
+  group('the Bluetooth fallback step', () {
+    ChainLink appLink(AppInput app) => buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+
+    const waiting = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, bluetoothFallbackOffered: true);
+
+    test('an app that keeps the rider waiting on the network is offered Bluetooth', () {
+      final link = appLink(waiting);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.appBluetoothFallback);
+      expect(step.done, isFalse);
+      // An offer: the network may still connect, and the card must not look
+      // any more broken for it.
+      expect(step.optional, isTrue);
+      expect(link.requiredSteps, isNot(contains(step)));
+    });
+
+    test('is absent while nothing says to offer it', () {
+      final link = appLink(const AppInput(name: 'MyWhoosh', hasEnabledConnection: true));
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+
+    test('is gone once the app is connected', () {
+      final link = appLink(
+        const AppInput(
+          name: 'MyWhoosh',
+          hasEnabledConnection: true,
+          isConnected: true,
+          wasConnectedThisSession: true,
+          bluetoothFallbackOffered: true,
+        ),
+      );
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+
+    // Its network path worked in this session; an app that was closed is no
+    // reason to change the method.
+    test('is not offered to an app that connected earlier and dropped', () {
+      final link = appLink(
+        const AppInput(
+          name: 'MyWhoosh',
+          hasEnabledConnection: true,
+          wasConnectedThisSession: true,
+          bluetoothFallbackOffered: true,
+        ),
+      );
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+
+    test('is not offered with no connection method switched on', () {
+      final link = appLink(const AppInput(name: 'MyWhoosh', bluetoothFallbackOffered: true));
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+  });
+
   group('the local control step', () {
     const offered = AppInput(
       name: 'MyWhoosh',

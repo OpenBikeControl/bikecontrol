@@ -237,6 +237,11 @@ class _WhatsNewPageState extends State<WhatsNewPage> {
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // First, so riders see the plea without scrolling past the notes.
+                    if (WhatsNewPage.canRate()) ...[
+                      _HelpCard(onRate: _rate),
+                      const Gap(28),
+                    ],
                     for (final (i, r) in releases.indexed) ...[
                       if (i > 0)
                         const Padding(
@@ -265,10 +270,6 @@ class _WhatsNewPageState extends State<WhatsNewPage> {
                         context,
                       ).pushReplacement(MaterialPageRoute(builder: (_) => const ChangelogPage())),
                     ),
-                    if (WhatsNewPage.canRate()) ...[
-                      const Gap(28),
-                      _HelpCard(onRate: _rate),
-                    ],
                   ],
                 ),
         ),

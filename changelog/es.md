@@ -1,8 +1,48 @@
+### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: con BikeControl en un dispositivo Android o un PC con Windows, aparece en la app Wahoo como rodillo inteligente Bluetooth y se encarga del cambio virtual.
+- (Pro) Android con una app de entrenamiento solo Bluetooth como Grimpa: la pestaña Rodar y la configuración ahora ofrecen la superposición de marcha. La app se ejecuta en otro dispositivo, así que puedes usar el móvil para lo que quieras y seguir viendo tu marcha encima.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser y SaddleOut ahora son compatibles oficialmente mediante OpenBikeControl.
+
+**Fixes**:
+- (Base) Android: «Cerrar» en la notificación de BikeControl ahora también quita la superposición de marcha. Antes, la superposición seguía en pantalla después de cerrar BikeControl.
+- (Base) iPhone / iPad: BikeControl ahora sigue activo en segundo plano mientras espera a tu app de entrenamiento (hasta 15 minutos) y durante 5 minutos después de que la app se desconecte. Antes, iOS podía suspender BikeControl antes de que MyWhoosh y otras apps lo encontraran, y la app no encontraba nada o no podía conectarse.
+- (Base) iPhone / iPad: si iOS llega a suspender BikeControl, vuelve a ser visible en la red por sí solo en cuanto regresas a él. Antes había que reiniciar el método de red.
+- (Base) iPhone / iPad: BikeControl sigue de inmediato un cambio de Wi-Fi o de punto de acceso en lugar de anunciar la dirección anterior.
+- (Base) iPhone, iPad y Mac: la pantalla de inicio te avisa cuando BikeControl no se encuentra en la red, con la comprobación de red a un toque.
+- (Base) Mac: BikeControl vuelve a encontrarse después de que el Mac salga del reposo, sin reiniciar el método de red.
+- (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
+- (Base) Windows: las capturas de pantalla con un botón del mando tienen los colores correctos. Antes el rojo y el azul estaban intercambiados.
+- (Base) Las asignaciones propias de botones que se llaman igual que un botón de otro mando (p. ej. los botones de dirección de la KICKR BIKE) se conservan tras reiniciar. Antes volvían cada vez a la asignación por defecto.
+
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro e inclinar hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual de la palanca se aplica a ambos.
+- (Base) Elite Rizer y Sterzo: la zona muerta de la dirección ahora se ajusta en la página del dispositivo.
+- (Base) Las acciones de accesorios (p. ej. subir / bajar la inclinación del Rizer) se asignan ahora directamente a un botón de tu mando conectado desde la página del accesorio: toca el botón en la imagen del mando y elige pulsación simple, doble o larga.
+- (Base) Everycol ahora es compatible oficialmente mediante OpenBikeControl.
+
+**Fixes**:
+- (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla, también con un escalado de pantalla superior al 100 %. Antes podían cortarse por la derecha y por abajo.
+- (Base) Elite Rizer: cuando el Rizer está bloqueado (LED rojo) y no se inclina, su página y la pestaña Rodar ahora lo indican, en lugar de decir que sigue la pendiente.
+- (Base) Elite Rizer: un Rizer bloqueado ahora se muestra como bloqueado en cuanto se conecta, no solo cuando llega una pendiente.
+- (Pro) MyWhoosh por Bluetooth, Grimpa y otras apps OpenBikeControl por Bluetooth: la app ahora encuentra tanto el mando de BikeControl como el rodillo puenteado. Antes Android solo mostraba el mando.
+- (Base) Zwift Click V2 con Rouvy: el desbloqueo de Rouvy ahora llega al Click V2 a través de BikeControl.
+- (Base) Zwift Click V2: se acabó el mensaje «No se pudo conectar» cada minuto mientras el mando se reinicia solo.
+- (Base) Windows, Mac y Linux: las pulsaciones de teclas simuladas se mantienen 50 ms. Antes, las apps que leen el teclado una vez por fotograma perdían muchas pulsaciones sueltas.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh por Bluetooth: empareja BikeControl en MyWhoosh como dispositivo de dirección; luego cambia de marcha y elige tu camino en los cruces (pulsación larga). Si la conexión por red no funciona, BikeControl te ofrece Bluetooth en su lugar.
 - (Pro) Sensores: una lista muestra de dónde vienen la potencia, el pulso, la cadencia y la velocidad, rodillo incluido, y te deja sustituir cualquiera por tu propio sensor. «Enviar a la app de entrenamiento» solo aparece sin rodillo conectado, ya que el rodillo ya los transmite.
 - (Pro) Protocolo de control: en Auto, la página del rodillo muestra qué protocolo eligió Auto (p. ej. «Auto: FTMS»).
+
+**Fixes**:
+- (Base) Shimano Di2: la configuración de los canales D-Fly ahora reconoce qué maneta es la izquierda y cuál la derecha, y ningún botón que cambia sigue cambiando de marcha en la bici.
+- (Pro) Overlay de marchas: sigue mostrando las marchas de tu rodillo después de que el rodillo se vuelva a conectar.
+- (Base) Elite Square: las asignaciones propias de los botones Y, A, B y Z se conservan tras reiniciar.
+- (Base) Un segundo rodillo guardado ya no se conecta solo junto al que usas. Antes podía conectarse sin que lo vieras y mezclar valores y órdenes.
+- (Base) Puente del rodillo: con dos rodillos conectados, la potencia del que usas ya no cae a 0 a ratos.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

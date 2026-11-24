@@ -398,7 +398,6 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       owner: this,
       label: 'OpenBikeControl',
       onClientConnected: (socket) {
-        SharedLogic.keepAlive();
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
@@ -424,7 +423,6 @@ class OpenBikeControlMdnsEmulator extends TrainerConnection implements OnMessage
       },
       onClientDisconnected: () {
         _dirCon = null;
-        SharedLogic.stopKeepAlive();
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_INFO, 'Disconnected from app: ${connectedApp.value?.appId}'),
         );

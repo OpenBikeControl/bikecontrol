@@ -425,6 +425,7 @@ class ShellTopBar extends StatelessWidget {
     required this.section,
     required this.compact,
     this.showPlanAndHelp = false,
+    this.showHelp = false,
     this.shell,
     this.scrolled,
   });
@@ -446,6 +447,9 @@ class ShellTopBar extends StatelessWidget {
   /// The plan badge and the (?) Help icon — below 840, where there is no
   /// sidebar to carry them.
   final bool showPlanAndHelp;
+
+  /// The (?) Help icon alone, for tabs that don't carry the plan badge.
+  final bool showHelp;
 
   /// The phone bar's content height: one 44 dp touch target, the tallest
   /// thing any tab puts beside the title.
@@ -484,7 +488,7 @@ class ShellTopBar extends StatelessWidget {
         if (shell != null) ShellDeviceChips(shell: shell!),
         if (!compact) const AppUpdateButton(),
         if (showPlanAndHelp) const PlanBadge(),
-        if (showPlanAndHelp) const HelpButton(),
+        if (showPlanAndHelp || showHelp) const HelpButton(),
         // The bar's ⋮: in debug builds, the developer tools. Activity's own
         // actions sit on its sections' titles (Clear, the rides' ⋮).
         const DebugMenuButton(),

@@ -124,19 +124,22 @@ class _SupportChatPageState extends State<SupportChatPage> with WidgetsBindingOb
     // outgoing message.
     _intakeAnswers = widget.initialIntake ?? _intakeAnswers;
     WidgetsBinding.instance.addObserver(this);
-    _authSub = _client.auth.onAuthStateChange.listen((_) {
-      if (!mounted) return;
-      setState(() {});
-      // Catches a session appearing from outside this page's own _send()
-      // flow (e.g. the rider signs in elsewhere while the chat is open).
-      // _sending guards against the race _send() would otherwise cause with
-      // itself: ensureSession() signing in anonymously fires this same
-      // event, and without the guard both this listener and _send() would
-      // call openChat() concurrently.
-      if (_client.auth.currentSession != null && _chat == null && !_loading && !_sending) {
-        _bootstrap();
-      }
-    });
+    _authSub = _client.auth.onAuthStateChange.listen(
+      (_) {
+        if (!mounted) return;
+        setState(() {});
+        // Catches a session appearing from outside this page's own _send()
+        // flow (e.g. the rider signs in elsewhere while the chat is open).
+        // _sending guards against the race _send() would otherwise cause with
+        // itself: ensureSession() signing in anonymously fires this same
+        // event, and without the guard both this listener and _send() would
+        // call openChat() concurrently.
+        if (_client.auth.currentSession != null && _chat == null && !_loading && !_sending) {
+          _bootstrap();
+        }
+      },
+      onError: (Object e, StackTrace s) => recordError(e, s, context: 'Support chat: auth state'),
+    );
     // A session (anonymous or otherwise) may already exist from a previous
     // visit — bootstrap eagerly so returning riders see their history. A
     // brand-new rider has no session yet; _send() creates one (and the chat)

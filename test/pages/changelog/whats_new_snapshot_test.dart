@@ -56,7 +56,7 @@ Future<void> main() async {
             builder: (context) => WhatsNewPage(currentVersion: version, sinceVersion: '7.4.0', releases: releases),
             beforeCapture: scrolled
                 ? (tester) async {
-                    await tester.ensureVisible(find.byKey(const ValueKey('whats-new-rate')));
+                    await tester.ensureVisible(find.byKey(const ValueKey('whats-new-all')));
                     await tester.pumpAndSettle();
                   }
                 : null,

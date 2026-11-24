@@ -189,7 +189,13 @@ class _ConnectionCardState extends State<ConnectionCard> {
     }
 
     if (connected) {
-      if (device.retrofitMode.value == next) return;
+      if (device.retrofitMode.value == next) {
+        // Same mode, but the bridge never came up (e.g. the Bluetooth
+        // permission was missing and has just been granted): picking it
+        // again is the rider's retry, so bring it up.
+        if (!device.isStartedListenable.value) await device.reconnectUpstream();
+        return;
+      }
       await core.settings.setRetrofitMode(device.trainerKey, next);
       try {
         await device.switchRetrofitMode(next);
@@ -344,17 +350,24 @@ class _ConnectionCardState extends State<ConnectionCard> {
     }
     // "No connection" selected → nothing is advertising, so the
     // "Choose BikeControl …" instruction doesn't apply; say "Not connected".
-    final String subtitle = selection == _ConnectSelection.none
-        ? l10n.notConnected
-        : l10n.chooseBikeControlInConnectionScreen.replaceAll(
-            screenshotMode ? '1337' : 'BikeControl',
-            widget.device.advertisementName,
-          );
     final title = 'Bridge (${widget.device.toString()})';
     return Basic(
       leading: StatusIcon(icon: icon, status: connected, started: started || connecting),
       title: connected ? Text(title).small.semiBold : Text(title).small.muted,
-      subtitle: Text(subtitle).xSmall.textMuted,
+      // The Bluetooth name is only known once advertising runs (Android cuts
+      // it to fit the packet), so follow it.
+      subtitle: ValueListenableBuilder<String?>(
+        valueListenable: widget.device.bluetoothLocalName,
+        builder: (context, _, _) {
+          final String subtitle = selection == _ConnectSelection.none
+              ? l10n.notConnected
+              : l10n.chooseBikeControlInConnectionScreen.replaceAll(
+                  screenshotMode ? '1337' : 'BikeControl',
+                  widget.device.advertisementName,
+                );
+          return Text(subtitle).xSmall.textMuted;
+        },
+      ),
     );
   }
 

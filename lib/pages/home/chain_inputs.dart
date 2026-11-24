@@ -148,6 +148,17 @@ class ControllerInput {
   final bool clickV2NeedsLeftSide;
 }
 
+/// Why the trainer app, running on this same device, can never pick up the
+/// trainer BikeControl bridges. Mirrors `VsSameDeviceBlock` as plain data.
+enum BridgeBlock {
+  /// This platform's build of the app pairs trainers over Bluetooth only, and
+  /// Bluetooth cannot reach an app on the device that advertises it.
+  bluetoothOnly,
+
+  /// A Microsoft Store app, which Windows keeps from connecting to this PC.
+  storeApp,
+}
+
 class TrainerInput {
   const TrainerInput({
     required this.deviceId,
@@ -162,7 +173,19 @@ class TrainerInput {
     this.overlayDeclined = false,
     this.rawTrainerName,
     this.staleBluetoothLink = false,
+    this.bridgeBlock,
+    this.appMayNeedBluetoothBridge = false,
   });
+
+  /// Set when the trainer app runs on this device and cannot reach the bridge
+  /// at all. Waiting for it to pick the trainer up would never end.
+  final BridgeBlock? bridgeBlock;
+
+  /// The bridge is offered over the network to an app on another device, and
+  /// that app's Android build only finds trainers over Bluetooth. BikeControl
+  /// cannot see what the other device runs, so the step says what to do if it
+  /// is Android.
+  final bool appMayNeedBluetoothBridge;
 
   final String deviceId;
   final String name;
@@ -240,6 +263,8 @@ class AppInput {
     this.connectionSummary,
     this.localControlOffered = false,
     this.localControlEnabled = false,
+    this.bluetoothFallbackOffered = false,
+    this.onThisDevice = false,
     this.localNetworkGranted,
     this.trainerBridgedByApp = false,
     this.trainerBridgedOverNetwork = false,
@@ -284,6 +309,16 @@ class AppInput {
 
   /// Whether Local is already on, which is what ticks the optional step off.
   final bool localControlEnabled;
+
+  /// Whether to offer Bluetooth in place of a network connection that is not
+  /// coming up: the app runs on another device, also takes BikeControl over
+  /// Bluetooth, and has kept the rider waiting (or BikeControl cannot be
+  /// found on the network at all). The network checks page makes the same
+  /// offer, but only to a rider who thought to open it.
+  final bool bluetoothFallbackOffered;
+
+  /// Whether the rider said the trainer app runs on this same device.
+  final bool onThisDevice;
 
   /// Apple's Local Network permission, or null when it does not apply: no
   /// network method is switched on, the platform has no such permission, or it

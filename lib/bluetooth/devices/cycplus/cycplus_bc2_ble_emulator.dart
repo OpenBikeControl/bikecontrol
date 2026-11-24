@@ -146,14 +146,23 @@ class CycplusBc2BluetoothEmulator extends TrainerConnection with PeripheralAdver
     await restartAdvertising();
   }
 
+  /// This role's key in [SharedPeripheral]'s one advertisement.
+  static const _advertisingRole = 'cycplus-bc2';
+
   @override
-  Future<void> startServiceAdvertising() => _server.startAdvertising(
-    services: [CycplusBc2Emulator.SERVICE_UUID],
-    localName: 'BikeControl',
-    // The 128-bit service UUID plus the name overflows the 31-byte primary
-    // advertisement on Android.
-    servicesInScanResponse: true,
-  );
+  Future<void> startServiceAdvertising() {
+    const own = [CycplusBc2Emulator.SERVICE_UUID];
+    // The phone has one advertisement: keep the trainer bridge's services in
+    // it, or MyWhoosh finds only the shifter and no trainer.
+    SharedPeripheral.setAdvertisedServices(_advertisingRole, own, readvertise: restartAdvertising);
+    return _server.startAdvertising(
+      services: SharedPeripheral.fitPacket(SharedPeripheral.advertisedServices(_advertisingRole, own)),
+      localName: 'BikeControl',
+      // The 128-bit service UUID plus the name overflows the 31-byte primary
+      // advertisement on Android.
+      servicesInScanResponse: true,
+    );
+  }
 
   Future<void> stopServer() async {
     SharedPeripheral.unprotectServices([CycplusBc2Emulator.SERVICE_UUID]);
@@ -161,7 +170,11 @@ class CycplusBc2BluetoothEmulator extends TrainerConnection with PeripheralAdver
       await _server.removeService(service);
     }
     _isServiceAdded = false;
+    SharedPeripheral.removeAdvertisedServices(_advertisingRole);
     await _server.stopAdvertising();
+    // That ended the one shared advertisement: the trainer bridge, if still
+    // serving, advertises again on its own.
+    await SharedPeripheral.readvertiseOthers(_advertisingRole);
     isStarted.value = false;
     isConnected.value = false;
     _currentDeviceId = null;

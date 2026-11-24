@@ -100,15 +100,17 @@ void main() {
       expect(find.text(InGameAction.headwindHeartRateMode.title), findsOneWidget);
     });
 
-    testWidgets('points at the connected controller that can carry them', (tester) async {
+    testWidgets('with a controller connected each action can go on one of its buttons', (tester) async {
       core.connection.devices.add(GamepadDevice('Pro Controller', id: 'pad-1')..isConnected = true);
 
       await pumpSettings(tester, headwind());
 
+      final row = find.byKey(const ValueKey('accessory-action-headwindSpeed'));
       expect(
-        find.text(AppLocalizations.current.accessorySetUpOnController('Pro Controller')),
+        find.descendant(of: row, matching: find.text(AppLocalizations.current.accessoryActionNoButton)),
         findsOneWidget,
       );
+      expect(find.textContaining(AppLocalizations.current.accessoryNoControllerYet), findsNothing);
     });
 
     testWidgets('names the actions even with no controller to send them to', (tester) async {

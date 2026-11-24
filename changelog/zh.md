@@ -1,8 +1,48 @@
+### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) 现在可以选择 Wahoo App 作为骑行软件：在安卓设备或 Windows 电脑上运行 BikeControl，它会在 Wahoo App 中作为蓝牙智能骑行台出现，并负责虚拟变速。
+- (Pro) Android 搭配仅支持蓝牙的训练应用（如 Grimpa）：骑行页和设置流程现在会提供档位悬浮窗。该应用运行在另一台设备上，你可以用手机做其他事，同时仍能看到档位。
+- (Base) PedalCraft、suffer.online、Kardiacs、Sueur、TrainerKit、Pedal Mania、Warp、hupser 和 SaddleOut 现已通过 OpenBikeControl 获得官方支持。
+
+**Fixes**:
+- (Base) Android：点击 BikeControl 通知中的“关闭”现在也会移除档位悬浮窗。此前 BikeControl 退出后悬浮窗仍留在屏幕上。
+- (Base) iPhone / iPad：BikeControl 现在在后台等待训练应用时会保持运行（最长 15 分钟），并在应用断开后继续保持 5 分钟。以前 iOS 可能在 MyWhoosh 等应用找到 BikeControl 之前就让它休眠，导致应用找不到或无法连接。
+- (Base) iPhone / iPad：如果 iOS 仍然让 BikeControl 休眠，回到 BikeControl 后它会自动重新出现在网络上。以前需要重启网络方式。
+- (Base) iPhone / iPad：切换 Wi-Fi 或热点后，BikeControl 会立即跟随，而不是继续广播旧地址。
+- (Base) iPhone、iPad 和 Mac：当网络上找不到 BikeControl 时，主屏幕会提示你，并可一键打开网络检查。
+- (Base) Mac：Mac 从睡眠中唤醒后，无需重启网络方式即可再次找到 BikeControl。
+- (Base) 网络检查：当 BikeControl 自己正在搜索网络时，或你只使用骑行台桥接并关闭了控制器连接时，不再报告失败。
+- (Base) Windows：用控制器按键截取的截图颜色正确了。此前红色和蓝色互换。
+- (Base) 与其他控制器按键同名的按键（例如 KICKR BIKE 的转向键），其自定义设置在重启后会保留。此前每次重启都会恢复为默认设置。
+
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Zwift Play / Zwift Ride 拨片：向内拨和向外拨现在是两个独立的按键，可分别设置各自的操作。原有的拨片设置会同时应用到两者。
+- (Base) Elite Rizer 和 Sterzo：现在可以在设备页面设置转向死区。
+- (Base) 配件操作（例如 Rizer 的坡度增加 / 减少）现在可以直接在配件页面分配到已连接控制器的按键上：在控制器图片上点按按键，再选择单击、双击或长按。
+- (Base) Everycol 现已通过 OpenBikeControl 获得官方支持。
+
+**Fixes**:
+- (Base) Windows：用控制器按键截取的截图现在会包含整个屏幕（显示缩放大于 100% 时也是如此）。此前右侧和底部可能被裁掉。
+- (Base) Elite Rizer：当 Rizer 被锁定（红色 LED）而无法调整坡度时，其页面和骑行页现在会显示这一点，而不再显示正在跟随坡度。
+- (Base) Elite Rizer：被锁定的 Rizer 现在一连接就会显示为已锁定，而不必等到收到坡度。
+- (Pro) 通过蓝牙使用 MyWhoosh、Grimpa 及其他 OpenBikeControl 应用：应用现在能同时找到 BikeControl 的控制器和桥接的骑行台。此前 Android 上只显示控制器。
+- (Base) Zwift Click V2 配合 Rouvy：Rouvy 的解锁现在会通过 BikeControl 传到 Click V2。
+- (Base) Zwift Click V2：控制器自行重启时，不再每分钟弹出「无法连接」提示。
+- (Base) Windows、Mac 和 Linux：模拟按键现在会按住 50 毫秒。此前每帧只读取一次键盘的应用会漏掉许多单次按键。
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) 通过蓝牙连接 MyWhoosh：在 MyWhoosh 中将 BikeControl 配对为转向设备，即可换挡，并在路口选择路线（长按）。如果网络连接不上，BikeControl 会改为提供蓝牙连接。
 - (Pro) 传感器：一个列表显示功率、心率、踏频和速度的来源（包括骑行台），并可用你自己的传感器替换其中任意一项。只有在未连接骑行台时才显示「发送到训练应用」，因为骑行台已经在传输这些数值。
 - (Pro) 控制协议：选择自动时，骑行台页面会显示自动选用的协议（例如「自动：FTMS」）。
+
+**Fixes**:
+- (Base) Shimano Di2：D-Fly 通道设置现在能识别哪个变速手柄在左、哪个在右，它更改的按键也不会再让自行车换挡。
+- (Pro) 档位悬浮窗：骑行台重新连接后，仍会显示你骑行台的档位。
+- (Base) Elite Square：Y、A、B、Z 键的自定义设置在重启后会保留。
+- (Base) 第二台已记住的骑行台不再在你正在骑的骑行台旁自动连接。此前它可能在你看不到的情况下连接，导致数值和指令混乱。
+- (Base) 骑行台桥接：同时连接两台骑行台时，正在骑的那台的功率不再忽然跳到 0。
 
 ### 7.6.0 (17-11-2026)
 **Features**:

@@ -20,7 +20,8 @@ class ZwiftPlay extends ZwiftDevice {
             ZwiftButtons.navigationDown,
             ZwiftButtons.onOffLeft,
             ZwiftButtons.sideButtonLeft,
-            ZwiftButtons.paddleLeft,
+            ZwiftButtons.paddleLeftInward,
+            ZwiftButtons.paddleLeftOutward,
           ],
           if (deviceType == ZwiftDeviceType.playRight) ...[
             ZwiftButtons.y,
@@ -29,7 +30,8 @@ class ZwiftPlay extends ZwiftDevice {
             ZwiftButtons.b,
             ZwiftButtons.onOffRight,
             ZwiftButtons.sideButtonRight,
-            ZwiftButtons.paddleRight,
+            ZwiftButtons.paddleRightInward,
+            ZwiftButtons.paddleRightOutward,
           ],
         ],
       );
@@ -55,7 +57,7 @@ class ZwiftPlay extends ZwiftDevice {
         if (status.buttonBDown == PlayButtonStatus.ON) ZwiftButtons.b,
         if (status.buttonOn == PlayButtonStatus.ON) ZwiftButtons.onOffRight,
         if (status.buttonShift == PlayButtonStatus.ON) ZwiftButtons.sideButtonRight,
-        if (status.analogLR.abs() == 100) ZwiftButtons.paddleRight,
+        if (status.analogLR.abs() == ZwiftPaddle.full) ZwiftPaddle.button(right: true, value: status.analogLR),
       ],
       if (status.rightPad == PlayButtonStatus.OFF) ...[
         if (status.buttonYUp == PlayButtonStatus.ON) ZwiftButtons.navigationUp,
@@ -64,7 +66,7 @@ class ZwiftPlay extends ZwiftDevice {
         if (status.buttonBDown == PlayButtonStatus.ON) ZwiftButtons.navigationDown,
         if (status.buttonOn == PlayButtonStatus.ON) ZwiftButtons.onOffLeft,
         if (status.buttonShift == PlayButtonStatus.ON) ZwiftButtons.sideButtonLeft,
-        if (status.analogLR.abs() == 100) ZwiftButtons.paddleLeft,
+        if (status.analogLR.abs() == ZwiftPaddle.full) ZwiftPaddle.button(right: false, value: status.analogLR),
       ],
     ];
   }
@@ -88,8 +90,11 @@ class ZwiftPlay extends ZwiftDevice {
           ZwiftButtons.navigationLeft: const Offset(0.54, 0.40),
           ZwiftButtons.navigationRight: const Offset(0.84, 0.40),
           ZwiftButtons.navigationDown: const Offset(0.69, 0.56),
-          // Paddle on top of the drop, side button to its LEFT on the left controller.
-          ZwiftButtons.paddleLeft: const Offset(0.32, 0.19),
+          // Paddle on top of the drop, side button to its LEFT on the left
+          // controller. Outward keeps the paddle's spot; inward sits below it,
+          // in toward the grip (no room for both side by side).
+          ZwiftButtons.paddleLeftOutward: const Offset(0.32, 0.19),
+          ZwiftButtons.paddleLeftInward: const Offset(0.29, 0.50),
           ZwiftButtons.sideButtonLeft: const Offset(0.08, 0.19),
         },
       );
@@ -110,7 +115,9 @@ class ZwiftPlay extends ZwiftDevice {
         ZwiftButtons.a: const Offset(0.416, 0.40),
         ZwiftButtons.z: const Offset(0.108, 0.40),
         ZwiftButtons.b: const Offset(0.262, 0.56),
-        ZwiftButtons.paddleRight: const Offset(0.677, 0.19),
+        // Outward keeps the paddle's spot; inward sits below it, toward the grip.
+        ZwiftButtons.paddleRightOutward: const Offset(0.677, 0.19),
+        ZwiftButtons.paddleRightInward: const Offset(0.70, 0.50),
         ZwiftButtons.sideButtonRight: const Offset(0.892, 0.19),
       },
     );

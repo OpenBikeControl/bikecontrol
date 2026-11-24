@@ -1,8 +1,48 @@
+### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: Läuft BikeControl auf einem Android-Gerät oder Windows-PC, erscheint es in der Wahoo App als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
+- (Pro) Android mit einer reinen Bluetooth-Trainer-App wie Grimpa: Der Fahren-Tab und die Einrichtung bieten jetzt das Gang-Overlay an. Die App läuft auf einem anderen Gerät, du kannst dein Handy also für alles andere nutzen und siehst deinen Gang trotzdem obendrauf.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser und SaddleOut werden jetzt offiziell über OpenBikeControl unterstützt.
+
+**Fixes**:
+- (Base) Android: „Schließen“ in der Benachrichtigung von BikeControl entfernt jetzt auch das Gang-Overlay. Bisher blieb das Overlay auf dem Bildschirm, nachdem BikeControl beendet war.
+- (Base) iPhone / iPad: BikeControl bleibt jetzt im Hintergrund wach, solange es auf deine Trainer-App wartet (bis zu 15 Minuten), und noch 5 Minuten, nachdem die App die Verbindung getrennt hat. Bisher konnte iOS BikeControl schlafen legen, bevor MyWhoosh und andere Apps es gefunden hatten – die App fand dann nichts oder konnte sich nicht verbinden.
+- (Base) iPhone / iPad: Hat iOS BikeControl doch schlafen gelegt, ist es von selbst wieder im Netzwerk zu finden, sobald du zurückkehrst. Bisher musste die Netzwerkmethode neu gestartet werden.
+- (Base) iPhone / iPad: BikeControl folgt einem Wechsel des WLANs oder Hotspots sofort, statt weiter die alte Adresse anzukündigen.
+- (Base) iPhone, iPad und Mac: Die Startseite zeigt dir, wenn BikeControl im Netzwerk nicht zu finden ist – die Netzwerkprüfung ist nur einen Tipp entfernt.
+- (Base) Mac: BikeControl wird nach dem Aufwachen des Mac wieder gefunden, ohne die Netzwerkmethode neu zu starten.
+- (Base) Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast.
+- (Base) Windows: Screenshots per Controller-Taste haben die richtigen Farben. Bisher waren Rot und Blau vertauscht.
+- (Base) Eigene Belegungen von Tasten, die so heißen wie eine Taste eines anderen Controllers (z. B. die Lenktasten des KICKR BIKE), bleiben nach einem Neustart erhalten. Bisher fielen sie jedes Mal auf die Standardbelegung zurück.
+
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.
+- (Base) Elite Rizer und Sterzo: Die Totzone der Lenkung lässt sich jetzt auf der Geräteseite einstellen.
+- (Base) Zubehör-Aktionen (z. B. Steigung hoch / runter am Rizer) legst du jetzt direkt auf der Zubehörseite auf eine Taste deines verbundenen Controllers: Tippe die Taste im Bild des Controllers an und wähle einfachen, doppelten oder langen Druck.
+- (Base) Everycol wird jetzt offiziell über OpenBikeControl unterstützt.
+
+**Fixes**:
+- (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher konnten rechts und unten Teile fehlen.
+- (Base) Elite Rizer: Ist der Rizer gesperrt (rote LED) und lässt sich nicht neigen, zeigen seine Seite und der Fahren-Tab das jetzt an, statt zu behaupten, er folge der Steigung.
+- (Base) Elite Rizer: Ein gesperrter Rizer wird jetzt schon beim Verbinden als gesperrt angezeigt, nicht erst, wenn eine Steigung ankommt.
+- (Pro) MyWhoosh über Bluetooth, Grimpa und andere OpenBikeControl-Apps über Bluetooth: Die App findet jetzt sowohl den Controller von BikeControl als auch den weitergeleiteten Trainer. Bisher zeigte Android nur den Controller.
+- (Base) Zwift Click V2 mit Rouvy: Das Entsperren durch Rouvy kommt jetzt über BikeControl beim Click V2 an.
+- (Base) Zwift Click V2: Keine Meldung „Verbindung fehlgeschlagen“ mehr jede Minute, während sich der Controller selbst neu startet.
+- (Base) Windows, Mac und Linux: Simulierte Tastendrücke werden 50 ms gehalten. Bisher verpassten Apps, die die Tastatur einmal pro Frame abfragen, viele einzelne Drücke.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh über Bluetooth: Kopple BikeControl in MyWhoosh als Lenkgerät, dann schaltest du Gänge und wählst an Kreuzungen deinen Weg (langer Druck). Klappt die Verbindung übers Netzwerk nicht, bietet BikeControl stattdessen Bluetooth an.
 - (Pro) Sensoren: Eine Liste zeigt, woher Leistung, Herzfrequenz, Trittfrequenz und Geschwindigkeit kommen – dein Trainer eingeschlossen – und du kannst jeden Wert durch einen eigenen Sensor ersetzen. „An Trainer-App senden“ erscheint nur noch ohne verbundenen Trainer, denn mit Trainer laufen die Werte ohnehin über ihn.
 - (Pro) Steuerungsprotokoll: Bei Automatisch zeigt die Trainerseite jetzt, welches Protokoll gewählt wurde (z. B. „Automatisch: FTMS“).
+
+**Fixes**:
+- (Base) Shimano Di2: Die Einrichtung der D-Fly-Kanäle erkennt jetzt, welcher Schalthebel links und welcher rechts ist, und keine Taste, die sie ändert, schaltet noch am Rad.
+- (Pro) Gang-Overlay: Zeigt nach einem erneuten Verbinden des Trainers weiter die Gänge deines Trainers.
+- (Base) Elite Square: Eigene Belegungen der Tasten Y, A, B und Z bleiben nach einem Neustart erhalten.
+- (Base) Ein zweiter gespeicherter Trainer verbindet sich nicht mehr von selbst neben dem, den du fährst. Bisher konnte er sich unbemerkt verbinden und Werte und Befehle durcheinanderbringen.
+- (Base) Trainer-Bridge: Mit zwei verbundenen Trainern springt die Leistung des gefahrenen nicht mehr kurz auf 0.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

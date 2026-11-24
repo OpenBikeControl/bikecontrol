@@ -239,9 +239,21 @@ ChainLink _trainerLink(ChainInputs inputs) {
               // A trainer app stuck on a connection from before BikeControl
               // restarted can't be fixed by picking the entry: it already
               // shows it as connected. The hint says to re-pair instead.
-              variant: trainer.staleBluetoothLink && !trainer.appHoldsBridge
-                  ? SetupStepVariant.bridgeStaleLink
-                  : SetupStepVariant.standard,
+              //
+              // An app that can never reach the bridge comes first: no hint
+              // about picking or re-pairing an entry applies to it.
+              variant: trainer.appHoldsBridge
+                  ? SetupStepVariant.standard
+                  : switch (trainer.bridgeBlock) {
+                      BridgeBlock.bluetoothOnly => SetupStepVariant.bridgeBlockedBluetoothOnly,
+                      BridgeBlock.storeApp => SetupStepVariant.bridgeBlockedStoreApp,
+                      null =>
+                        trainer.staleBluetoothLink
+                            ? SetupStepVariant.bridgeStaleLink
+                            : trainer.appMayNeedBluetoothBridge
+                            ? SetupStepVariant.bridgeMaybeAndroidApp
+                            : SetupStepVariant.standard,
+                    },
             ),
           // Last, and required until answered once: the trainer app shows its
           // own gear, not the one BikeControl computes, so a bridged rider who
@@ -356,8 +368,10 @@ ChainLink _appLink(ChainInputs inputs) {
         done: false,
         hintArg: app.advertisedAddressWarning,
         variant: switch (app.advertisedAddressWarningKind) {
-          AddressWarningKind.noWifi => SetupStepVariant.networkNoWifi,
+          AddressWarningKind.noWifi =>
+            app.onThisDevice ? SetupStepVariant.networkNoWifiSameDevice : SetupStepVariant.networkNoWifi,
           AddressWarningKind.twoNetworks => SetupStepVariant.networkTwoNetworks,
+          AddressWarningKind.notVisible => SetupStepVariant.networkNotVisible,
           AddressWarningKind.unreachable || null => SetupStepVariant.standard,
         },
       ),
@@ -387,6 +401,16 @@ ChainLink _appLink(ChainInputs inputs) {
       SetupStep(
         id: SetupStepId.appLocalControl,
         done: app.localControlEnabled,
+        optional: true,
+      ),
+    // A way round a network connection that is not coming up. An offer, not
+    // work: the network may still connect, and then this is gone. Never once
+    // the app has connected in this session — its network path works, and a
+    // closed app is no reason to change the method.
+    if (selected && app.bluetoothFallbackOffered && app.hasEnabledConnection && !connected && !connectedEarlier)
+      const SetupStep(
+        id: SetupStepId.appBluetoothFallback,
+        done: false,
         optional: true,
       ),
   ];

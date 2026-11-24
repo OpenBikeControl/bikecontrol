@@ -1,4 +1,4 @@
-import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
+import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry, OwnMdnsBrowsing;
 
 import '../../../bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import '../network_check.dart';
@@ -18,7 +18,9 @@ Future<NetworkCheck> guidedWatchCheck(
   Duration window = const Duration(seconds: 60),
   Duration tick = const Duration(milliseconds: 500),
   bool Function()? isCancelled,
+  bool Function()? ownBrowseActive,
 }) async {
+  final ownBrowsing = ownBrowseActive ?? () => OwnMdnsBrowsing.active;
   final osResponder = ctx.backend == ObpMdnsBackend.osResponder;
   final start = ctx.now();
 
@@ -46,11 +48,31 @@ Future<NetworkCheck> guidedWatchCheck(
   var resolved = false;
   var addressAsks = 0;
 
+  // BikeControl browsed the network itself at some point of the watch. A
+  // trainer app on this device searches through the same system service: its
+  // search arrives from our own address, or does not arrive at all because
+  // the system already has that question open for us. Either way "no query
+  // arrived" would be a statement about our own scan, not about the app.
+  var ownBrowseSeen = false;
+
+  // This device's own addresses, to tell our scan from another device's
+  // search that happened to arrive while we were scanning. Empty when the
+  // snapshot is missing: every entry then counts as possibly ours.
+  final ownAddresses = {
+    '127.0.0.1',
+    ...?ctx.snapshot?.addressReport.candidates.map((c) => c.address),
+  };
+  final knowsOwnAddresses = ctx.snapshot != null;
+
   void classify(MdnsQueryLogEntry entry) {
     // Possibly BikeControl's own scan (the self-test's discovery snapshot, the
     // Wi-Fi trainer scan): counting it would report a trainer app that never
-    // asked as having browsed and resolved us.
-    if (entry.duringOwnBrowse) return;
+    // asked as having browsed and resolved us. A query from another device's
+    // address is never our scan, whatever was running here at the time.
+    if (entry.duringOwnBrowse && (!knowsOwnAddresses || ownAddresses.contains(entry.source))) {
+      ownBrowseSeen = true;
+      return;
+    }
     for (final question in entry.questions) {
       if (question.startsWith('PTR _openbikecontrol') || question.startsWith('PTR _wahoo-fitness-tnp')) {
         browsed = true;
@@ -87,6 +109,8 @@ Future<NetworkCheck> guidedWatchCheck(
         }
       }
     }
+
+    if (!osResponder && ownBrowsing()) ownBrowseSeen = true;
 
     final connected = ctx.trainerAppConnectedNow();
     final elapsed = ctx.now().difference(start);
@@ -134,6 +158,17 @@ Future<NetworkCheck> guidedWatchCheck(
       verdict: NetworkVerdict.fail,
       detail: {'addressAsks': '$addressAsks'},
       fixes: [if (ctx.backend == ObpMdnsBackend.platformDefault) NetworkFixId.useOsResponderForObc],
+    );
+  }
+
+  if (!browsed && ownBrowseSeen && ctx.trainerAppOnThisDevice != false) {
+    // Nothing to conclude: a search by a trainer app on this device cannot be
+    // told from our own scan. Failing here told riders with a working link
+    // that their app is not allowed on the local network.
+    return const NetworkCheck(
+      id: NetworkCheckId.guidedWatch,
+      verdict: NetworkVerdict.warn,
+      detail: {'note': 'inconclusive: BikeControl was scanning the network itself', 'connected': 'false'},
     );
   }
 

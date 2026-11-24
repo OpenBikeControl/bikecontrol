@@ -319,7 +319,8 @@ Future<void> main() async {
     addTearDown(() => core.settings.setObpMdnsEnabled(false));
     await _pumpDevices(tester);
 
-    expect(_inRow(ChainLinkKey.app, find.text(l.chainStepLocalControl)), findsOneWidget);
+    // The title carries the "Optional:" label in front of it.
+    expect(_inRow(ChainLinkKey.app, find.textContaining(l.chainStepLocalControl, findRichText: true)), findsWidgets);
     final action = _inRow(ChainLinkKey.app, find.text(l.chainStepLocalControlAction));
     expect(action, findsOneWidget);
     final button = find.ancestor(of: action, matching: find.byWidgetPredicate((w) => w is Button));

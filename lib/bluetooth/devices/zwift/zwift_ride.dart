@@ -4,7 +4,7 @@ import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_unlock.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/utils/core.dart';
-import 'package:bike_control/main.dart' show screenshotMode;
+import 'package:bike_control/main.dart' show recordError, screenshotMode;
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:bike_control/widgets/zwift_ride_v2_unlock.dart';
@@ -45,8 +45,10 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
               ZwiftButtons.powerUpRight,
               ZwiftButtons.onOffLeft,
               ZwiftButtons.onOffRight,
-              ZwiftButtons.paddleLeft,
-              ZwiftButtons.paddleRight,
+              ZwiftButtons.paddleLeftInward,
+              ZwiftButtons.paddleLeftOutward,
+              ZwiftButtons.paddleRightInward,
+              ZwiftButtons.paddleRightOutward,
             ],
       );
 
@@ -125,7 +127,9 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
       ZwiftButtons.navigationRight: const Offset(0.44, 0.40),
       ZwiftButtons.navigationDown: const Offset(0.345, 0.56),
       ZwiftButtons.onOffLeft: const Offset(0.345, 0.76),
-      ZwiftButtons.paddleLeft: const Offset(0.13, 0.1),
+      // Inward toward the centre, outward toward the drop.
+      ZwiftButtons.paddleLeftInward: const Offset(0.18, 0.1),
+      ZwiftButtons.paddleLeftOutward: const Offset(0.08, 0.1),
       // Ride-only extras laid out down the left drop column.
       ZwiftButtons.shiftUpLeft: const Offset(0.03, 0.32),
       ZwiftButtons.shiftDownLeft: const Offset(0.03, 0.55),
@@ -136,7 +140,8 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
       ZwiftButtons.a: const Offset(0.77, 0.40),
       ZwiftButtons.b: const Offset(0.67, 0.56),
       ZwiftButtons.onOffRight: const Offset(0.67, 0.76),
-      ZwiftButtons.paddleRight: const Offset(0.89, 0.1),
+      ZwiftButtons.paddleRightInward: const Offset(0.84, 0.1),
+      ZwiftButtons.paddleRightOutward: const Offset(0.94, 0.1),
       // Ride-only extras laid out down the right drop column.
       ZwiftButtons.shiftUpRight: const Offset(0.97, 0.32),
       ZwiftButtons.shiftDownRight: const Offset(0.97, 0.55),
@@ -272,8 +277,8 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
         if (paddle.hasLocation() && paddle.hasAnalogValue()) {
           if (paddle.analogValue.abs() >= analogPaddleThreshold) {
             final button = switch (paddle.location.value) {
-              0 => ZwiftButtons.paddleLeft, // L0 = left paddle
-              1 => ZwiftButtons.paddleRight, // L1 = right paddle
+              0 => ZwiftPaddle.button(right: false, value: paddle.analogValue), // L0 = left paddle
+              1 => ZwiftPaddle.button(right: true, value: paddle.analogValue), // L1 = right paddle
               _ => null, // L2, L3 unused
             };
 
@@ -284,10 +289,8 @@ class ZwiftRide extends ZwiftDevice with ZwiftUnlock {
           }
         }
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error parsing analog paddle data: $e');
-      }
+    } catch (e, s) {
+      recordError(e, s, context: 'ZwiftRide - analog paddles');
     }
     return buttonsClicked;
   }

@@ -1,8 +1,48 @@
+### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : avec BikeControl sur un appareil Android ou un PC Windows, il apparaît dans l'app Wahoo comme home trainer Bluetooth et assure les vitesses virtuelles.
+- (Pro) Android avec une app d'entraînement uniquement Bluetooth comme Grimpa : l'onglet Rouler et la configuration proposent désormais la superposition du braquet. L'app tourne sur un autre appareil, tu peux donc utiliser ton téléphone pour autre chose tout en voyant ton braquet par-dessus.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser et SaddleOut sont maintenant officiellement pris en charge via OpenBikeControl.
+
+**Fixes**:
+- (Base) Android : « Fermer » dans la notification de BikeControl retire maintenant aussi la superposition du braquet. Avant, elle restait à l'écran après la fermeture de BikeControl.
+- (Base) iPhone / iPad : BikeControl reste désormais actif en arrière-plan tant qu'il attend ton app d'entraînement (jusqu'à 15 minutes), et pendant 5 minutes après la déconnexion de l'app. Auparavant, iOS pouvait suspendre BikeControl avant que MyWhoosh et d'autres apps ne l'aient trouvé : l'app ne trouvait rien ou ne pouvait pas se connecter.
+- (Base) iPhone / iPad : si iOS suspend malgré tout BikeControl, il redevient visible sur le réseau de lui-même dès que tu y reviens. Auparavant, il fallait redémarrer la méthode réseau.
+- (Base) iPhone / iPad : BikeControl suit immédiatement un changement de Wi-Fi ou de partage de connexion au lieu d'annoncer l'ancienne adresse.
+- (Base) iPhone, iPad et Mac : l'écran d'accueil t'indique quand BikeControl est introuvable sur le réseau, avec la vérification du réseau à portée de main.
+- (Base) Mac : BikeControl est de nouveau trouvé après la sortie de veille du Mac, sans redémarrer la méthode réseau.
+- (Base) Vérification du réseau : ne signale plus d'échec pendant que BikeControl parcourt lui-même le réseau, ni quand tu utilises seulement le pont du home trainer avec la connexion de la manette désactivée.
+- (Base) Windows : les captures d'écran prises avec un bouton de la manette ont les bonnes couleurs. Avant, le rouge et le bleu étaient inversés.
+- (Base) Les assignations personnalisées des boutons qui portent le même nom qu'un bouton d'une autre manette (p. ex. les boutons de direction du KICKR BIKE) sont conservées après un redémarrage. Avant, elles revenaient chaque fois à l'assignation par défaut.
+
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Palettes Zwift Play / Zwift Ride : incliner vers l'intérieur et vers l'extérieur sont maintenant deux boutons distincts, chacun avec sa propre action. Ton assignation actuelle de la palette s'applique aux deux.
+- (Base) Elite Rizer et Sterzo : la zone morte de la direction se règle maintenant sur la page de l'appareil.
+- (Base) Les actions d'accessoire (p. ex. monter / descendre l'inclinaison du Rizer) s'assignent maintenant directement à un bouton de ta manette connectée depuis la page de l'accessoire : touche le bouton sur l'image de la manette, puis choisis appui simple, double ou long.
+- (Base) Everycol est maintenant officiellement pris en charge via OpenBikeControl.
+
+**Fixes**:
+- (Base) Windows : les captures d'écran prises avec un bouton de la manette couvrent maintenant tout l'écran, même avec une mise à l'échelle supérieure à 100 %. Avant, la droite et le bas pouvaient être coupés.
+- (Base) Elite Rizer : quand le Rizer est verrouillé (LED rouge) et refuse de s'incliner, sa page et l'onglet Rouler l'indiquent maintenant, au lieu d'affirmer qu'il suit la pente.
+- (Base) Elite Rizer : un Rizer verrouillé s'affiche maintenant comme verrouillé dès sa connexion, pas seulement quand une pente arrive.
+- (Pro) MyWhoosh en Bluetooth, Grimpa et les autres apps OpenBikeControl en Bluetooth : l'app trouve maintenant à la fois la manette BikeControl et le home trainer relayé. Avant, Android ne montrait que la manette.
+- (Base) Zwift Click V2 avec Rouvy : le déverrouillage de Rouvy atteint maintenant le Click V2 via BikeControl.
+- (Base) Zwift Click V2 : plus de message « Connexion impossible » chaque minute pendant que la manette redémarre d'elle-même.
+- (Base) Windows, Mac et Linux : les appuis de touches simulés sont maintenus 50 ms. Avant, les apps qui lisent le clavier une fois par image manquaient beaucoup d'appuis isolés.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh en Bluetooth : associe BikeControl dans MyWhoosh comme appareil de direction, puis change de vitesse et choisis ta route aux intersections (appui long). Si la connexion réseau ne marche pas, BikeControl te propose le Bluetooth à la place.
 - (Pro) Capteurs : une liste montre d'où viennent la puissance, la fréquence cardiaque, la cadence et la vitesse, home trainer compris, et te permet de remplacer chacune par ton propre capteur. « Envoyer à l'app d'entraînement » n'apparaît plus que sans home trainer connecté, puisque celui-ci les transmet déjà.
 - (Pro) Protocole de contrôle : en Auto, la page du home trainer indique le protocole choisi (p. ex. « Auto : FTMS »).
+
+**Fixes**:
+- (Base) Shimano Di2 : la configuration des canaux D-Fly reconnaît maintenant quelle manette est à gauche et laquelle à droite, et aucun bouton qu'elle modifie ne passe encore les vitesses du vélo.
+- (Pro) Overlay des vitesses : continue d'afficher les vitesses de ton home trainer après sa reconnexion.
+- (Base) Elite Square : les assignations personnalisées des boutons Y, A, B et Z sont conservées après un redémarrage.
+- (Base) Un deuxième home trainer mémorisé ne se connecte plus tout seul à côté de celui que tu utilises. Avant, il pouvait se connecter sans que tu le voies et mélanger valeurs et commandes.
+- (Base) Pont du home trainer : avec deux home trainers connectés, la puissance de celui que tu utilises ne retombe plus par moments à 0.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

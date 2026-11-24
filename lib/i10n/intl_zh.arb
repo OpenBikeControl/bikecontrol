@@ -36,6 +36,7 @@
   "inclineFollowsGradient": "跟随骑行应用中的坡度",
   "inclineWaitingForGradient": "正在等待骑行应用发送坡度",
   "inclineHeldByHand": "保持在你设置的位置",
+  "inclineLocked": "已锁定（红色 LED）。请解锁 Rizer，BikeControl 才能调整它的坡度。",
   "inclineFollowGradient": "跟随坡度",
   "inclineFollowGradientBody": "随骑行应用中的上坡和下坡倾斜。只有当骑行应用通过 BikeControl 的骑行台桥接连接时，坡度才会传到 BikeControl。",
   "inclineSetByHand": "手动设置",
@@ -1548,6 +1549,9 @@
   "otherActions": "其他动作",
   "takeScreenshot": "截图",
   "accessoryNoControllerYet": "连接一个控制器，以便将这些动作分配到它的按键。",
+  "accessoryActionNoButton": "无按键",
+  "accessoryActionPickButton": "点按要放置的按键，然后选择按法。",
+  "accessoryActionRemove": "从 {button} 移除",
   "accessorySetUpOnController": "在 {device} 上设置",
   "accessoryActions": "配件动作",
   "kickrHeadwind": "KICKR Headwind",
@@ -2000,6 +2004,7 @@
     }
   },
   "rideShiftWithBikeControl": "用 BikeControl 换挡",
+  "rideVsHandledBody": "使用 BikeControl：自定义档位、前拨换挡，骑行台上立即感受到。",
   "chainControllerTitle": "控制器",
   "chainTrainerTitle": "智能骑行台",
   "sensorsChainEyebrow": "传感器",
@@ -2831,6 +2836,15 @@
       }
     }
   },
+  "chainStepTrainerBridgeBlocked": "虚拟变速在此设备上无法连接到 {app}",
+  "@chainStepTrainerBridgeBlocked": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedAndroidHint": "如果 {app} 运行在 Android 设备上，请在此骑行台的页面将其切换为蓝牙：Android 版 {app} 只能通过蓝牙找到骑行台。",
+  "@chainStepTrainerBridgedAndroidHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressNoWifiSameDeviceHint": "此设备未连接 Wi-Fi，而 {app} 只能通过 Wi-Fi 找到 BikeControl，即使在同一设备上也是如此。请连接任意 Wi-Fi（无需互联网）或使用本地方式。",
+  "@chainStepNetworkAddressNoWifiSameDeviceHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkNotVisiblePending": "网络上看不到 BikeControl",
+  "chainStepNetworkNotVisibleHint": "{app} 目前在网络上找不到 BikeControl。请运行网络检查，并在其中重启网络方式。",
+  "@chainStepNetworkNotVisibleHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepNetworkAddressTwoNetworksHint": "此设备同时连接了两个网络（{address}）。请让它和 {app} 连接同一个 Wi-Fi。",
   "@chainStepNetworkAddressTwoNetworksHint": {
     "placeholders": {
@@ -4291,6 +4305,7 @@
   "onboardingGearTitle": "连接你的设备",
   "onboardingGearSubtitle": "按一个按键，然后踩踏板唤醒你的骑行台。",
   "onboardingRunsOn": "{app} 运行在",
+  "onboardingChangeApp": "更换应用",
   "onboardingTrainerWakeHint": "踩一下踏板唤醒它。",
   "onboardingTrainerVsByBikeControl": "由 BikeControl 进行虚拟变速",
   "onboardingConnectTrainer": "连接 {trainer}",
@@ -4356,5 +4371,11 @@
   "bluetoothFallbackTitle": "无法通过网络连接？",
   "bluetoothFallbackBody": "{app} 也可以通过蓝牙连接 BikeControl，作为转向设备。换挡和路口转弯同样可用。",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "改用蓝牙"
+  "bluetoothFallbackAction": "改用蓝牙",
+  "onboardingAppDirectoryLink": "在 smarttrainerapps.com 查看 {app}",
+  "onboardingGrimpaDeal": "首次购买 Grimpa Plus 立减 {percent}%",
+  "onboardingDealCodeCopied": "代码已复制",
+  "rideOverlayOfferOverOtherApps": "在任何应用上方显示档位",
+  "onboardingOverlayOverOtherAppsTitle": "使用手机时也能看到档位",
+  "onboardingOverlayOverOtherAppsNote": "{app} 运行在另一台设备上，因此这台手机可以自由使用。悬浮窗会在你打开的任何应用上方显示你的档位。"
 }

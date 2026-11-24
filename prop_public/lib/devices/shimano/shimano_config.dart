@@ -70,6 +70,7 @@ class ShimanoConfig {
     void Function(ShimanoWiredSwitchEvent event)? onWiredSwitch,
     void Function(Uint8List frame)? onUnknownFrame,
     required void Function(String step, Object error, StackTrace stack) onStepError,
+    ShimanoShifterSides? sides,
   }) =>
       throw UnsupportedError('Shimano Di2 button mode is not available in this build');
 
@@ -91,7 +92,7 @@ class ShimanoConfig {
 
 /// Decodes the paddle presses a Di2 relays. The stub never finds any.
 class ShimanoButtons {
-  static List<ShimanoPaddleEvent> decode(Uint8List frame) => const [];
+  static List<ShimanoPaddleEvent> decode(Uint8List frame, {ShimanoShifterSides? sides}) => const [];
 }
 
 /// A press of a wired switch, reported by the Di2.
@@ -139,6 +140,18 @@ enum ShimanoSwitchFunction {
   }
 }
 
+/// Which shifter is on which pairing slot. The stub learns nothing: slot 0 is
+/// the left.
+class ShimanoShifterSides {
+  ShimanoShifter of(int slot) => slot == 0 ? ShimanoShifter.left : ShimanoShifter.right;
+
+  void learn(ShimanoShifterSwitches switches) {}
+
+  void learnAll(Iterable<ShimanoShifterSwitches> switches) {}
+
+  void learnFrame(Uint8List frame) {}
+}
+
 /// The four switches of one wireless shifter, by its pairing [slot].
 class ShimanoShifterSwitches {
   const ShimanoShifterSwitches({
@@ -164,7 +177,7 @@ class ShimanoShifterSwitches {
 
   bool get paddlesOnDfly => (a, b) == dflyPaddles;
 
-  ShimanoShifterSwitches withDflyPaddles() {
+  ShimanoShifterSwitches withDflyPaddles({ShimanoShifter? side}) {
     final (pa, pb) = dflyPaddles;
     return ShimanoShifterSwitches(slot: slot, a: pa, b: pb, c: c, s: s);
   }

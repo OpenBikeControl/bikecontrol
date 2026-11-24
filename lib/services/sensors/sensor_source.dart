@@ -23,6 +23,11 @@ abstract class SensorSource {
   /// per source kind rather than a single global constant.
   Duration get ttl => SensorHub.bleSensorTtl;
 
+  /// Whether the hub serves this source's readings only with Pro. Real
+  /// sensors are a Pro feature; a debug source (the pedalling simulation)
+  /// isn't one, and must work on a trial or Base install too.
+  bool get requiresPro => true;
+
   Future<void> start();
 
   Future<void> stop();

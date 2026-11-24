@@ -1,4 +1,7 @@
-7.6.1
-Novedades:
-• MyWhoosh por Bluetooth: empareja BikeControl como dispositivo de dirección para cambiar y elegir camino en los cruces
-• Sensores: ve de dónde viene cada valor y sustituye los del rodillo por tu propio sensor
+7.7.0
+Nuevo: la app de Wahoo como app de entrenamiento (Pro)
+Nuevo: overlay de marchas con apps solo Bluetooth como Grimpa (Pro)
+Nuevo: nueve apps más vía OpenBikeControl, como PedalCraft, Sueur y SaddleOut
+Corregido:
+• «Cerrar» en la notificación quita el overlay
+• Asignaciones propias tras reiniciar

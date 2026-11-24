@@ -15,6 +15,7 @@ import 'package:prop/prop.dart' show LogLevel;
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_theme.dart';
+import 'package:bike_control/pages/onboarding/widgets/onboarding_viewport.dart';
 import 'dart:async';
 
 import 'package:bike_control/bluetooth/devices/base_device.dart';
@@ -48,7 +49,9 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/android.dart' show LocationRequirement;
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
 import 'package:bike_control/widgets/keymap/trainer_app_keymap_prompt.dart';
@@ -272,8 +275,11 @@ Widget onboardingShell(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: kOnboardingBodyMaxWidth),
                       child: _PillFooter(
+                        // One row, always: Back left, the primary action
+                        // rightmost, and a secondary action that doesn't fit
+                        // wraps onto a second line rather than dropping
+                        // under the pill.
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (onBack != null)
                               BkTouchTarget(
@@ -284,18 +290,22 @@ Widget onboardingShell(
                                 ),
                               ),
                             const Gap(10),
-                            // One row, the primary action rightmost — or, when
-                            // a translation doesn't fit, stacked with the
-                            // primary action on top, all flush right.
                             Expanded(
-                              child: OverflowBar(
-                                alignment: MainAxisAlignment.end,
-                                spacing: 10,
-                                overflowSpacing: 4,
-                                overflowAlignment: OverflowBarAlignment.end,
-                                overflowDirection: VerticalDirection.up,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  for (final action in footerActions.reversed) BkTouchTarget(child: action),
+                                  for (final action in footerActions.skip(1).toList().reversed) ...[
+                                    Flexible(
+                                      child: DefaultTextStyle.merge(
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        child: BkTouchTarget(child: action),
+                                      ),
+                                    ),
+                                    const Gap(10),
+                                  ],
+                                  if (footerActions.isNotEmpty) BkTouchTarget(child: footerActions.first),
                                 ],
                               ),
                             ),
@@ -390,7 +400,12 @@ class _OnboardingScrollAreaState extends State<OnboardingScrollArea> {
                   colors: [const Color(0xFFFFFFFF), _fade ? const Color(0x00FFFFFF) : const Color(0xFFFFFFFF)],
                   stops: [0.0, 1.0],
                 ).createShader(Rect.fromLTRB(0, rect.height - 32, rect.width, rect.height)),
-                child: SingleChildScrollView(controller: _controller, padding: widget.padding, child: widget.child),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => OnboardingViewport(
+                    bodyHeight: (constraints.maxHeight - widget.padding.vertical).clamp(0, double.infinity),
+                    child: SingleChildScrollView(controller: _controller, padding: widget.padding, child: widget.child),
+                  ),
+                ),
               ),
             ),
           ),
@@ -573,9 +588,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
   OnboardingStep _step = OnboardingStep.app;
   SupportedApp? _selectedApp;
   Target? _selectedTarget;
-  // Once an app is picked the step scrolls to the end, where the "runs on"
-  // choice under the grid is easy to miss below the fold.
-  final _targetChoiceKey = GlobalKey();
 
   ControllerPhase _controllerPhase = ControllerPhase.permission;
   // Set once the permission sheet has been shown, so a declined notification
@@ -795,6 +807,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _enterConnectionStep() async {
     final app = _selectedApp;
     if (app == null) return;
+    // A Bluetooth method the app step switched on (Grimpa) was held back while
+    // the wizard owns the screen; with its permission granted, bring it up.
+    // It checks the permission itself and stays down without it.
+    if (onboardingMethodVisible(OnboardingMethod.bluetooth, app) &&
+        onboardingMethodEnabled(OnboardingMethod.bluetooth, app) &&
+        !onboardingMethodEnabled(OnboardingMethod.network, app)) {
+      core.logic.startEnabledConnectionMethod(userInitiated: true);
+    }
     try {
       await verifyEnabledNetworkMethod(
         _sheetContext,
@@ -837,9 +857,26 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _back() => _goTo(onboardingPreviousStep(_step));
 
+  /// Whether this step asks for Android's Bluetooth advertise permission too:
+  /// the picked app is reached over Bluetooth alone (Grimpa), so the Bluetooth
+  /// connection method — switched on by the app step — can't start without it.
+  bool get _asksBluetoothAdvertise {
+    final app = _selectedApp;
+    return HostPlatform.isAndroid && app != null && !_selfHosted && app.reachedOverBluetoothOnly;
+  }
+
+  /// The scan permissions, plus [_asksBluetoothAdvertise]'s when it is
+  /// missing — one sheet for everything Bluetooth.
+  Future<List<PlatformRequirement>> _controllerStepRequirements() async {
+    final requirements = await core.permissions.getScanRequirements();
+    if (!_asksBluetoothAdvertise) return requirements;
+    final advertise = BluetoothAdvertiseRequirement();
+    return [...requirements, if (!await advertise.getStatus()) advertise];
+  }
+
   Future<void> _enterControllerStep() async {
     try {
-      final requirements = await core.permissions.getScanRequirements();
+      final requirements = await _controllerStepRequirements();
       if (!mounted) return;
       _scanNeedsLocation = requirements.any((r) => r is LocationRequirement);
       // Only notifications missing and already asked once: look for the
@@ -877,7 +914,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _onAllowBluetooth() async {
     try {
-      final requirements = await core.permissions.getScanRequirements();
+      final requirements = await _controllerStepRequirements();
       if (!mounted) return;
       if (requirements.isEmpty) {
         _startScanPhase();
@@ -886,7 +923,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
       _askedScanPermissions = true;
       await openPermissionSheet(_sheetContext, requirements);
       if (!mounted) return;
-      final recheck = await core.permissions.getScanRequirements();
+      // The Bluetooth method the app step switched on waited for this grant.
+      if (requirements.any((r) => r is BluetoothAdvertiseRequirement)) {
+        core.logic.startEnabledConnectionMethod(userInitiated: true);
+      }
+      final recheck = await _controllerStepRequirements();
       if (!mounted) return;
       // Declining notifications must not leave "Allow Bluetooth" doing nothing.
       if (Permissions.blockingScan(recheck).isEmpty) _startScanPhase();
@@ -951,7 +992,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   /// The overlay is on for a setup that needs it: a checklist row, where the
-  /// offer stood.
+  /// offer stood. Only for apps that show a gear of their own — for a
+  /// Bluetooth-only app (see overlayOverOtherApps) the overlay is optional,
+  /// and an optional thing is no setup step.
   bool get _doneOverlayOn {
     final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
     final app = _selectedApp;
@@ -1010,23 +1053,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _onSelectApp(SupportedApp app) {
     setState(() => _selectedApp = app);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // All the way down, not just far enough to show the choice: the bottom
-      // fade would otherwise still sit on top of it.
-      final target = _targetChoiceKey.currentContext;
-      if (target == null || !target.mounted) return;
-      final position = Scrollable.maybeOf(target)?.position;
-      if (position == null) return;
-      if (prefersReducedMotion(context)) {
-        position.jumpTo(position.maxScrollExtent);
-      } else {
-        position.animateTo(
-          position.maxScrollExtent,
-          duration: const Duration(milliseconds: 450),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
   }
 
   Widget _body(BuildContext context) => switch (_step) {
@@ -1039,7 +1065,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
       targets: _targetChoices,
       selectedTarget: _effectiveTarget,
       onSelectTarget: (t) => setState(() => _selectedTarget = t),
-      targetChoiceKey: _targetChoiceKey,
     ),
     OnboardingStep.gear => _controllerPhase == ControllerPhase.permission
         ? onboardingControllerBody(

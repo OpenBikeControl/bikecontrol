@@ -23,6 +23,7 @@ import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/logviewer.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
@@ -70,6 +71,11 @@ NetworkProbeContext buildProductionContext({DebugDiagnostics? snapshot, Object? 
     advertisedHostname: target.advertisedHostname,
     methodServerLabel: target.serverLabel,
     methodPreferredPort: target.preferredPort,
+    trainerAppOnThisDevice: switch (core.settings.getLastTarget()) {
+      Target.thisDevice => true,
+      Target.otherDevice => false,
+      null => null,
+    },
     platform: platformString(),
     resolve: defaultResolve,
     tcpProbe: (address, port) => defaultTcpProbe(address, port, label: target.serverLabel),
@@ -104,7 +110,9 @@ String networkPassBody(
       app,
       OpenBikeControlMdnsEmulator.controllerTileNameFor(core.settings.getTrainerApp()),
     ),
-    NetworkMethodKind.rouvyMdns || NetworkMethodKind.zwiftMdns => l10n.networkNextStepPairingScreen(app),
+    NetworkMethodKind.rouvyMdns ||
+    NetworkMethodKind.zwiftMdns ||
+    NetworkMethodKind.trainerBridge => l10n.networkNextStepPairingScreen(app),
   };
 }
 

@@ -186,6 +186,7 @@ class NetworkSelfTestEngine {
       // — and then checks every app against the OpenBikeControl server.
       methodServerLabel: built.methodServerLabel,
       methodPreferredPort: built.methodPreferredPort,
+      trainerAppOnThisDevice: built.trainerAppOnThisDevice,
       onWatchProgress: (progress) {
         built.onWatchProgress(progress);
         // A tick that arrives after the guided-watch probe's own timeout

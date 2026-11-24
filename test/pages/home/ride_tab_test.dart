@@ -1,4 +1,6 @@
 // The Ride tab: the ready banner, the virtual shifting card and "Your
+import 'package:bike_control/pages/activity/activity_preview.dart' show RideActivityPreview;
+import 'package:bike_control/widgets/home/ready_banner.dart' show ReadyBanner;
 // buttons". The setup chain's cards live on Devices now (HomeView.setup); Ride
 // keeps the banner that points at them.
 import 'package:bike_control/widgets/drivetrain/drivetrain_view.dart';
@@ -34,6 +36,7 @@ import 'dart:ui' show Tristate;
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter/services.dart' show StandardMessageCodec;
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
+import 'package:bike_control/widgets/ui/controller_mark.dart' show TrainerGlyph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart' show loadAppFonts;
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
@@ -438,6 +441,10 @@ Future<void> main() async {
 
       expect(find.byType(VirtualShiftingCard), findsNothing);
       expect(find.text(l.rideVsInviteBody), findsOneWidget);
+      expect(
+        find.descendant(of: find.byKey(const ValueKey('ride-vs-invite')), matching: find.byType(TrainerGlyph)),
+        findsOneWidget,
+      );
     });
 
     // MyWhoosh shifts by itself; with its connection set up, inviting the
@@ -449,7 +456,13 @@ Future<void> main() async {
       await pumpRide(tester);
 
       expect(find.text(l.rideVsInviteBody), findsNothing);
-      expect(find.byKey(const ValueKey('ride-vs-handled')), findsOneWidget);
+      final handled = find.byKey(const ValueKey('ride-vs-handled'));
+      expect(handled, findsOneWidget);
+      // A card with the trainer's mark that names what BikeControl's own
+      // shifting offers instead.
+      expect(tester.widget(handled), isA<RidePromptCard>());
+      expect(find.descendant(of: handled, matching: find.byType(TrainerGlyph)), findsOneWidget);
+      expect(find.descendant(of: handled, matching: find.text(l.rideVsHandledBody)), findsOneWidget);
       // The way to BikeControl's own shifting says what it is, not "Connect".
       expect(
         find.descendant(
@@ -758,6 +771,23 @@ Future<void> main() async {
       final vs = rectOf(tester, find.byType(VirtualShiftingCard));
       final buttons = rectOf(tester, find.text(l.rideYourButtons.toUpperCase()));
       expect(buttons.left, greaterThan(vs.right), reason: 'two columns');
+      await disposeShell(tester);
+    });
+
+    testWidgets('1440 wide without a trainer: the buttons move left under the banner, activity stays right', (
+      tester,
+    ) async {
+      connectedPlay();
+      await pumpShell(tester, const Size(1440, 900));
+      expect(tester.takeException(), isNull);
+
+      final banner = rectOf(tester, find.byType(ReadyBanner));
+      final buttons = rectOf(tester, find.byType(ControllerButtonsCard));
+      expect(buttons.left, closeTo(banner.left, 1), reason: 'same column as the banner');
+      expect(buttons.top, greaterThan(banner.bottom));
+      final activity = rectOf(tester, find.byType(RideActivityPreview));
+      expect(activity.left, greaterThan(buttons.right), reason: 'the activity stays in the right column');
+      expect(activity.top, closeTo(banner.top, 1), reason: 'at the top of the right column');
       await disposeShell(tester);
     });
 

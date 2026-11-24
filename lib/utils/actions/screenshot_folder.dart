@@ -1,4 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as image_lib;
 
 typedef DirectoryPicker = Future<String?> Function({String? initialDirectory, String? dialogTitle});
 
@@ -42,4 +46,22 @@ Future<File> saveScreenshotFile(String directoryPath, List<int> bytes, DateTime 
   final file = File('$directoryPath${separator}BikeControl $timestamp.jpg');
   await file.writeAsBytes(bytes, flush: true);
   return file;
+}
+
+/// Builds the image from raw screen-capture bytes. Windows (GetDIBits) and
+/// macOS deliver BGRA; flutter_screen_capture's own toImage() assumes RGBA on
+/// Windows, which swapped red and blue in every Windows screenshot.
+image_lib.Image screenshotImage({
+  required List<int> bytes,
+  required int width,
+  required int height,
+  required TargetPlatform platform,
+}) {
+  final bgra = platform == TargetPlatform.windows || platform == TargetPlatform.macOS;
+  return image_lib.Image.fromBytes(
+    width: width,
+    height: height,
+    bytes: Uint8List.fromList(bytes).buffer,
+    order: bgra ? image_lib.ChannelOrder.bgra : image_lib.ChannelOrder.rgba,
+  );
 }

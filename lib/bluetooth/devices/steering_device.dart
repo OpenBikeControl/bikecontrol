@@ -22,6 +22,15 @@ abstract interface class SteeringDevice {
   ControllerButton get steerRightButton;
 }
 
+/// A [SteeringDevice] whose dead zone the rider sets on its page.
+abstract interface class AdjustableDeadZone {
+  /// The dead zones the rider can pick from, in degrees.
+  List<int> get deadZoneChoices;
+
+  /// Sets the dead zone (degrees) and keeps it for the next session.
+  void setSteeringThreshold(int degrees);
+}
+
 /// A [SteeringDevice] whose straight-ahead reference the rider can set again:
 /// it clears the current centre and re-learns it from live input (phone
 /// steering drifts; Elite Sterzo / Rizer re-sample while the bars are still).

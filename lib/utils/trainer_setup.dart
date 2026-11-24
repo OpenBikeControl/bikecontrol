@@ -92,6 +92,20 @@ Future<void> applyTrainerAppSelection(
   }
 }
 
+/// Turns on the Bluetooth method of [app] when it has no network method at
+/// all: OpenBikeControl first, then the BC2 and Zwift ones — the order the
+/// onboarding's Bluetooth tile picks them in.
+void _enableBluetoothOnlyMethod(SupportedApp app) {
+  if (!app.connections.every((c) => c.$1.isBluetooth)) return;
+  if (app.supports(AppConnectionMethod.obpBle)) {
+    core.settings.setObpBleEnabled(true);
+  } else if (app.supports(AppConnectionMethod.cycplusBc2Ble)) {
+    core.settings.setBc2BleEnabled(true);
+  } else if (app.supports(AppConnectionMethod.zwiftBle)) {
+    core.settings.setZwiftBleEmulatorEnabled(true);
+  }
+}
+
 /// Applies the target selection, enabling the recommended network method or local connection
 /// as appropriate, and starting the enabled connection method.
 ///
@@ -99,10 +113,18 @@ Future<void> applyTrainerAppSelection(
 Future<void> applyTargetSelection(Target target) async {
   await core.settings.setLastTarget(target);
 
-  if ((core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpBle) == true ||
-          core.settings.getTrainerApp()?.supports(AppConnectionMethod.obpMdns) == true) &&
-      !core.logic.emulatorEnabled) {
+  final picked = core.settings.getTrainerApp();
+  final supportsObpNetwork =
+      picked != null &&
+      (picked.supports(AppConnectionMethod.obpMdns) || picked.supports(AppConnectionMethod.obpDirCon));
+  if (supportsObpNetwork && !core.logic.emulatorEnabled) {
     core.settings.setObpMdnsEnabled(true);
+  } else if (picked != null && target != Target.thisDevice && !core.logic.emulatorEnabled) {
+    // An app with no network method (Grimpa, Biketerra) finds BikeControl
+    // over Bluetooth alone — that is the method to turn on, not the OBP
+    // network one it can't use. It starts once Android's advertise
+    // permission is granted (asked for on the controller step).
+    _enableBluetoothOnlyMethod(picked);
   }
 
   // Zwift and Rouvy find BikeControl over the network too — the method the

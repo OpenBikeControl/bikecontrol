@@ -225,15 +225,25 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
     return PeripheralWriteRequestResult();
   }
 
+  /// This role's key in [SharedPeripheral]'s one advertisement.
+  static const _advertisingRole = 'openbikecontrol';
+
   @override
-  Future<void> startServiceAdvertising() => _server.startAdvertising(
-    services: [OpenBikeControlConstants.SERVICE_UUID],
-    localName: 'BikeControl',
-    // The 128-bit service UUID plus the name overflows the 31-byte primary
-    // advertisement (Android "Data too large"); move the service UUID to the
-    // scan response. Only affects Android; active scanners still see both.
-    servicesInScanResponse: true,
-  );
+  Future<void> startServiceAdvertising() {
+    const own = [OpenBikeControlConstants.SERVICE_UUID];
+    // The phone has one advertisement: keep the trainer bridge's services in
+    // it, or a trainer app taking both (Grimpa: buttons + trainer over
+    // Bluetooth) finds only this controller and no trainer.
+    SharedPeripheral.setAdvertisedServices(_advertisingRole, own, readvertise: restartAdvertising);
+    return _server.startAdvertising(
+      services: SharedPeripheral.fitPacket(SharedPeripheral.advertisedServices(_advertisingRole, own)),
+      localName: 'BikeControl',
+      // The 128-bit service UUID plus the name overflows the 31-byte primary
+      // advertisement (Android "Data too large"); move the service UUIDs to the
+      // scan response. Only affects Android; active scanners still see both.
+      servicesInScanResponse: true,
+    );
+  }
 
   Future<void> stopServer() async {
     if (kDebugMode) {
@@ -246,7 +256,11 @@ class OpenBikeControlBluetoothEmulator extends TrainerConnection
       await _server.removeService(service);
     }
     _isServiceAdded = false;
+    SharedPeripheral.removeAdvertisedServices(_advertisingRole);
     await _server.stopAdvertising();
+    // That ended the one shared advertisement: the trainer bridge, if still
+    // serving, advertises again on its own.
+    await SharedPeripheral.readvertiseOthers(_advertisingRole);
     isStarted.value = false;
     isConnected.value = false;
     connectedApp.value = null;

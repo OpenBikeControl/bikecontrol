@@ -1,4 +1,7 @@
-7.6.1
-Nowości:
-• MyWhoosh przez Bluetooth: sparuj BikeControl jako urządzenie do skrętu, by zmieniać biegi i wybierać drogę na skrzyżowaniach
-• Czujniki: zobacz, skąd pochodzi każda wartość, i zastąp wartości trenażera własnym czujnikiem
+7.7.0
+Nowość: aplikacja Wahoo jako aplikacja treningowa (Pro)
+Nowość: nakładka z biegami z aplikacjami Bluetooth jak Grimpa (Pro)
+Nowość: dziewięć kolejnych aplikacji przez OpenBikeControl, m.in. PedalCraft, Sueur i SaddleOut
+Poprawki:
+• „Zamknij” w powiadomieniu usuwa nakładkę
+• Własne przypisania po restarcie

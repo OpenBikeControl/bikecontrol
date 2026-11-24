@@ -212,6 +212,11 @@ mixin ZwiftUnlock on ZwiftDevice {
   /// [ProxyDevice.onTrainerAppChanged] — the caller re-advertises the shared
   /// emulator once after reconciling every device.
   void onTrainerAppChanged() {
+    if (_relaysUnlockThroughRouvy) {
+      _offerChallengeToRouvy();
+    } else {
+      core.rouvyMdnsEmulator.clearUnlockChallenge(_onRouvyUnlockReply);
+    }
     final def = _clickDef;
     if (def == null) return;
     final attached = ftmsEmulator.composite.children.contains(def);
@@ -220,6 +225,40 @@ mixin ZwiftUnlock on ZwiftDevice {
     } else if (!_clickDefBelongsOnBridge && attached) {
       ftmsEmulator.composite.detach(def);
     }
+  }
+
+  /// Whether the unlock runs through the trainer app's controller endpoint
+  /// instead of the bridge: Rouvy unlocks the controller itself, but talks to
+  /// BikeControl's controller endpoint, not to the controller. So the
+  /// controller's challenge is relayed there and Rouvy's answer back.
+  bool get _relaysUnlockThroughRouvy => usesZwiftUnlock && !attachesClickDefToBridge;
+
+  /// Hands the captured challenge to the Rouvy endpoint while still locked.
+  void _offerChallengeToRouvy() {
+    final challenge = _vendorMessage;
+    if (challenge == null || isUnlocked.value || !_relaysUnlockThroughRouvy) return;
+    core.rouvyMdnsEmulator.relayUnlockChallenge(challenge, onReply: _onRouvyUnlockReply);
+  }
+
+  /// Rouvy's answer to the relayed challenge (`ff 04 …`): written to the
+  /// controller as the bridge writes Zwift's. The long form unlocks it — the
+  /// same rule [ZwiftClickDefinition] applies to Zwift's answer — and the
+  /// controller is then started as on a connect while unlocked.
+  void _onRouvyUnlockReply(Uint8List reply) {
+    _forwardRouvyUnlockReply(reply).catchError((Object e, StackTrace s) {
+      recordError(e, s, context: '$runtimeType.rouvyUnlockReply');
+    });
+  }
+
+  Future<void> _forwardRouvyUnlockReply(Uint8List reply) async {
+    await sendCommandBuffer(reply);
+    // Opcode, then at least 10 bytes of vendor message.
+    if (reply.length < 11 || isUnlocked.value) return;
+    isUnlocked.value = true;
+    propPrefs.setZwiftClickV2LastUnlock(scanResult.deviceId, DateTime.now(), keyPrefix: unlockKeyPrefix);
+    propPrefs.setNotSureIfUnlocked(scanResult.deviceId, false, keyPrefix: unlockKeyPrefix);
+    core.rouvyMdnsEmulator.clearUnlockChallenge(_onRouvyUnlockReply);
+    await sendRideOn();
   }
 
   /// Whether the controller was successfully unlocked within the last 24
@@ -339,6 +378,7 @@ mixin ZwiftUnlock on ZwiftDevice {
       // The challenge comes a few seconds into the connection, after the
       // definition was built; Zwift connects later still and needs it replayed.
       _clickDef?.vendorMessage = _vendorMessage;
+      _offerChallengeToRouvy();
     }
 
     final def = _clickDef;
@@ -375,6 +415,7 @@ mixin ZwiftUnlock on ZwiftDevice {
 
   @override
   Future<void> disconnect() async {
+    core.rouvyMdnsEmulator.clearUnlockChallenge(_onRouvyUnlockReply);
     if (usesZwiftUnlock || _clickDef != null) {
       if (_clickDef != null) {
         await ftmsEmulator.detachDefinition(_clickDef!).catchError((Object e, StackTrace s) {

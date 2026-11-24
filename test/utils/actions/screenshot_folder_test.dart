@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bike_control/utils/actions/screenshot_folder.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -95,6 +96,28 @@ void main() {
         saveScreenshotFile(blocker.path, [1], DateTime(2026)),
         throwsA(isA<FileSystemException>()),
       );
+    });
+  });
+
+  group('screenshotImage', () {
+    // One blue pixel as Windows GetDIBits / macOS return it: B, G, R, A.
+    final bluePixelBgra = [255, 0, 0, 255];
+
+    for (final platform in [TargetPlatform.windows, TargetPlatform.macOS]) {
+      test('$platform reads the capture as BGRA, so blue stays blue', () {
+        final pixel = screenshotImage(bytes: bluePixelBgra, width: 1, height: 1, platform: platform).getPixel(0, 0);
+        expect((pixel.r, pixel.g, pixel.b), (0, 0, 255));
+      });
+    }
+
+    test('Linux reads the capture as RGBA', () {
+      final pixel = screenshotImage(
+        bytes: [0, 0, 255, 255],
+        width: 1,
+        height: 1,
+        platform: TargetPlatform.linux,
+      ).getPixel(0, 0);
+      expect((pixel.r, pixel.g, pixel.b), (0, 0, 255));
     });
   });
 }

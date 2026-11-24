@@ -47,6 +47,11 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/services/local_network_access.dart';
+import 'package:bike_control/pages/onboarding/onboarding_methods.dart' show offersBluetoothFallback, useBluetoothInstead;
+import 'package:bike_control/services/mdns_discovery_scan.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart'
+    show SupportedApp, TrainerConnectionType, VsSameDeviceBlock, vsSameDeviceBlock;
+import 'package:bike_control/services/network_recovery.dart';
 import 'package:bike_control/services/network_self_test/probes/passive_probes.dart'
     show AddressWarningKind, advertisedAddressWarning, advertisedAddressWarningKind;
 import 'package:bike_control/utils/requirements/local_network.dart';
@@ -76,6 +81,7 @@ import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:prop/utils/advertised_service_registry.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
 import 'package:prop/mdns/service_advertiser.dart' show ServiceAdvertiser;
@@ -253,15 +259,68 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Why [_advertisedAddressWarning] was raised — see [AppInput.advertisedAddressWarningKind].
   AddressWarningKind? _advertisedAddressWarningKind;
 
-  Future<void> _refreshAdvertisedAddress() async {
+  /// The own advertisement was not found on the network, even after it was
+  /// published again. Set by the look [_refreshAdvertisedAddress] takes when
+  /// asked to; kept across the cheaper refreshes in between.
+  bool _advertisementInvisible = false;
+
+  /// The visibility look in flight, so overlapping triggers share one browse.
+  Future<void>? _visibilityLook;
+
+  /// When the last look started. A Mac window regains focus many times a
+  /// minute with the trainer app next to it; one browse per pause is plenty.
+  DateTime? _lastVisibilityLookAt;
+  static const _visibilityLookPause = Duration(minutes: 2);
+
+  /// Stands in for the address when the advertisement itself is missing.
+  static const _notVisibleMarker = 'not visible';
+
+  Future<void> _lookForOwnAdvertisement() async {
+    final visible = await NetworkRecovery.instance.ensureAdvertisementVisible(
+      advertising: () =>
+          core.logic.hasNetworkMethodEnabled &&
+          AdvertisedServiceRegistry.instance.records.isNotEmpty &&
+          !_trainerAppConnectedOverNetwork,
+      ownAdvertisementSeen: () async => (await MdnsDiscoveryScan().run()).any((service) => service.isSelf),
+    );
+    _advertisementInvisible = !visible;
+  }
+
+  bool get _trainerAppConnectedOverNetwork =>
+      core.obpMdnsEmulator.isConnected.value ||
+      core.zwiftMdnsEmulator.isConnected.value ||
+      core.rouvyMdnsEmulator.isConnected.value ||
+      core.whooshLink.isConnected.value;
+
+  /// [lookForAdvertisement] also browses for our own advertisement (a few
+  /// seconds, and it may publish everything again): on start, on return to
+  /// the foreground, and while it is flagged missing.
+  Future<void> _refreshAdvertisedAddress({bool lookForAdvertisement = false}) async {
     // The store board sells a finished setup, and a VPN on the screenshot
     // machine must not end up in a listing. The web has no interfaces to
     // list, and without a network method nothing is advertised at all.
     final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
     try {
       final report = applies ? await AdvertisedAddressPicker.report() : null;
-      final warning = report == null ? null : advertisedAddressWarning(report);
-      final kind = report == null ? null : advertisedAddressWarningKind(report);
+      var warning = report == null ? null : advertisedAddressWarning(report);
+      var kind = report == null ? null : advertisedAddressWarningKind(report);
+      if (!applies) {
+        _advertisementInvisible = false;
+      } else if (lookForAdvertisement && warning == null) {
+        final last = _lastVisibilityLookAt;
+        // Flagged missing: look again sooner, a restart may have fixed it.
+        final pause = _advertisementInvisible ? const Duration(seconds: 20) : _visibilityLookPause;
+        final due = last == null || DateTime.now().difference(last) >= pause;
+        if (_visibilityLook != null || due) {
+          _lastVisibilityLookAt = DateTime.now();
+          await (_visibilityLook ??= _lookForOwnAdvertisement().whenComplete(() => _visibilityLook = null));
+        }
+      }
+      // An address problem explains a missing advertisement, so it wins.
+      if (warning == null && applies && _advertisementInvisible && !_trainerAppConnectedOverNetwork) {
+        warning = _notVisibleMarker;
+        kind = AddressWarningKind.notVisible;
+      }
       // The session keeps the reading an app connected through, whether or
       // not this page is still around to show it.
       core.appConnectionLatch.noteAddressWarning(warning);
@@ -294,8 +353,66 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ],
   ];
 
+  /// Why [app], on this same device, can never pick up the bridged trainer,
+  /// or null when it can or runs elsewhere.
+  BridgeBlock? _bridgeBlock(SupportedApp? app) {
+    if (app == null || core.settings.getLastTarget() != Target.thisDevice) return null;
+    return switch (vsSameDeviceBlock(app)) {
+      VsSameDeviceBlock.bluetoothOnly => BridgeBlock.bluetoothOnly,
+      VsSameDeviceBlock.storeAppIsolation => BridgeBlock.storeApp,
+      null => null,
+    };
+  }
+
+  /// Since when a network method has been on with no trainer app connected.
+  DateTime? _waitingForAppSince;
+  Timer? _bluetoothOfferTimer;
+
+  /// How long the rider waits on the network before Bluetooth is offered.
+  static const _bluetoothOfferAfter = Duration(seconds: 90);
+
+  /// Whether the wait has been long enough to offer Bluetooth, or BikeControl
+  /// cannot be found on the network at all. Whether the app takes Bluetooth
+  /// is the caller's question.
+  bool get _bluetoothFallbackDue {
+    if (_advertisementInvisible) return true;
+    final since = _waitingForAppSince;
+    return since != null && DateTime.now().difference(since) >= _bluetoothOfferAfter;
+  }
+
+  /// Swaps the network method for Bluetooth and shows how to pair.
+  Future<void> _useBluetoothFallback() async {
+    final app = core.settings.getTrainerApp();
+    if (app == null) return;
+    await useBluetoothInstead(context, app, onUpdate: _update);
+    // Refused the Bluetooth permission: the network method stays.
+    if (!core.settings.getBc2BleEnabled() || !mounted) return;
+    _update();
+    // Pairing over Bluetooth happens in the trainer app.
+    unawaited(openAppGuideSheet(context));
+  }
+
+  /// Starts or ends the wait as network methods and the app come and go.
+  void _syncWaitingForApp() {
+    final waiting = core.logic.hasNetworkMethodEnabled && !_trainerAppConnectedOverNetwork;
+    if (!waiting) {
+      _waitingForAppSince = null;
+      _bluetoothOfferTimer?.cancel();
+      _bluetoothOfferTimer = null;
+      return;
+    }
+    if (_waitingForAppSince != null) return;
+    _waitingForAppSince = DateTime.now();
+    _bluetoothOfferTimer?.cancel();
+    _bluetoothOfferTimer = Timer(_bluetoothOfferAfter, () {
+      if (mounted) setState(() {});
+    });
+  }
+
   void _onAdvertisedAddressChanged() {
-    unawaited(_refreshAdvertisedAddress());
+    _syncWaitingForApp();
+    // A method that was restarted may be visible again: look once more.
+    unawaited(_refreshAdvertisedAddress(lookForAdvertisement: _advertisementInvisible));
   }
 
   @override
@@ -303,7 +420,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     super.initState();
 
     unawaited(_refreshLocalNetwork());
-    unawaited(_refreshAdvertisedAddress());
+    unawaited(_refreshAdvertisedAddress(lookForAdvertisement: true));
+    _syncWaitingForApp();
     for (final listenable in _advertisedAddressListenables) {
       listenable.addListener(_onAdvertisedAddressChanged);
     }
@@ -527,13 +645,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       listenable.removeListener(_onAdvertisedAddressChanged);
     }
     WidgetsBinding.instance.removeObserver(this);
+    _bluetoothOfferTimer?.cancel();
     _highlights.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) unawaited(_refreshAdvertisedAddress());
+    if (state == AppLifecycleState.resumed) unawaited(_refreshAdvertisedAddress(lookForAdvertisement: true));
   }
 
   void _onPurchaseChanged() {
@@ -659,12 +778,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // actually holds the virtual trainer, not just "the bridge is running".
         appHoldsBridge: proxy.isConnectedListenable.value,
         staleBluetoothLink: proxy.staleBluetoothLinkSuspected.value,
+        bridgeBlock: _bridgeBlock(trainerApp),
+        // BikeControl cannot see what the other device runs; the step says
+        // what to switch if it is Android.
+        appMayNeedBluetoothBridge:
+            trainerApp != null &&
+            core.settings.getLastTarget() == Target.otherDevice &&
+            !trainerApp.virtualShiftingTransportsOnAndroid.contains(TrainerConnectionType.wifi) &&
+            proxy.retrofitMode.value == RetrofitMode.wifi,
         // The exact entry to look for in the trainer app's device list.
         bridgeName: proxy.advertisementName,
         // And the one beside it not to pick: the trainer under its own name.
         rawTrainerName: rawName == null || rawName.isEmpty ? null : rawName,
         metrics: proxy.liveReadout,
-        overlayOffered: _overlayOffered(proxy),
+        // Only as a step for an app on this screen: the overlay over other
+        // apps (see overlayOverOtherApps) is an offer on Ride, not setup work.
+        overlayOffered: _overlayOffered(proxy) && core.settings.getLastTarget() == Target.thisDevice,
         overlayEnabled: core.settings.getOverlayEnabled(),
         overlayAnswered: core.settings.getOverlayAnswered(),
         overlayDeclined: core.settings.getOverlayDeclined(),
@@ -744,6 +873,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // this platform can drive it" — see CoreLogic.
         localControlOffered: core.logic.showLocalControl,
         localControlEnabled: core.settings.getLocalEnabled(),
+        bluetoothFallbackOffered: _bluetoothFallbackDue && offersBluetoothFallback(trainerApp),
+        onThisDevice: core.settings.getLastTarget() == Target.thisDevice,
         localNetworkGranted: _localNetworkGranted,
         // The trainer link's own answer, so the two cards can never disagree
         // about whether the app has picked the trainer up.
@@ -1034,6 +1165,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             // column puts it under the pods (see [ControllerButtonsCard]).
             showButtonList: twoColumns || constraints.maxWidth >= Breakpoints.compact,
           );
+          // Without a trainer card the left column is the banner and a line at
+          // most — your buttons move up under it instead of leaving the left
+          // side empty; the rides stay on the right.
+          final buttonsLeft = twoColumns && buttons != null && !_vsSlotIsCard(inputs);
+          // Ride's second column: your buttons, then the ride being recorded
+          // or the last one.
+          final rideColumn = <Widget>[
+            if (!buttonsLeft) ?buttons,
+            // While a ride records: where the record card was;
+            // the finished ride's card takes its place.
+            RideRecordingSlot(
+              key: const ValueKey('ride-recording-slot'),
+              textActions: true,
+              spacing: buttonsLeft ? 0 : 20,
+            ),
+            if (widget.activityPreview case final preview?) ...[
+              if (buttons != null && !buttonsLeft) const Gap(20) else const _GapWhenRecording(),
+              preview,
+            ],
+          ];
           if (twoColumns) {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1044,6 +1195,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     children: [
                       ...status,
                       ?vs,
+                      if (buttonsLeft) ...[if (vs != null) const Gap(20), buttons],
                     ],
                   ),
                 ),
@@ -1051,13 +1203,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ?buttons,
-                      // While a ride records: where the record card was;
-                      // the finished ride's card takes its place.
-                      const RideRecordingSlot(key: ValueKey('ride-recording-slot'), textActions: true, spacing: 20),
-                      if (widget.activityPreview case final preview?) ...[if (buttons != null) const Gap(20), preview],
-                    ],
+                    children: rideColumn,
                   ),
                 ),
               ],
@@ -1197,6 +1343,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             : null;
       case ChainLinkKey.trainer:
         if (inputs.trainer == null) return l.chainSetUp;
+        // Nothing to be shown how to do: the app can't reach the bridge here.
+        // The button opens the trainer's page, where the connection is set.
+        final blocked =
+            link.activeStep?.variant == SetupStepVariant.bridgeBlockedBluetoothOnly ||
+            link.activeStep?.variant == SetupStepVariant.bridgeBlockedStoreApp;
+        if (active == SetupStepId.trainerAppBridged && blocked) return l.chainEdit;
         return active == SetupStepId.trainerGearOverlay ? l.chainStepOverlayAction : null;
       case ChainLinkKey.sensors:
         return null;
@@ -1209,6 +1361,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final l = context.i18n;
     return link.activeStep?.id == SetupStepId.appLocalControl
         ? l.chainStepLocalControlAction
+        : link.activeStep?.id == SetupStepId.appBluetoothFallback
+        ? l.bluetoothFallbackAction
         : link.activeStep?.id == SetupStepId.appNetworkAddress
         ? l.chainStepNetworkAddressAction
         : appLinkOpensConnectionSettings(link)
@@ -1246,6 +1400,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ///
   /// Nothing in sensors-only mode: that rider has said there is no smart
   /// trainer to connect.
+  /// Whether [_vsSlot] shows a trainer card — live, or on its way — rather
+  /// than a line or an invitation.
+  bool _vsSlotIsCard(ChainInputs inputs) {
+    if (inputs.trainer == null && inputs.sensors != null) return false;
+    final proxy = chainProxy();
+    if (proxy != null && proxy.fitnessBike != null) return true;
+    final trainer = inputs.trainer;
+    return trainer != null &&
+        (trainer.presence == DevicePresence.connecting ||
+            (trainer.presence == DevicePresence.remembered &&
+                core.connection.startupReconnecting.value.contains(trainer.deviceId)));
+  }
+
   Widget? _vsSlot(ChainInputs inputs, List<ChainLink> links, {required bool stacked}) {
     if (inputs.trainer == null && inputs.sensors != null) return null;
     final proxy = chainProxy();
@@ -1302,19 +1469,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // A trainer app with its connection set up does its own shifting —
       // connected or not yet, an invitation to BikeControl's shifting would
       // only raise the question whether the rider needs it.
-      slot = RideStatusLine(
+      slot = RidePromptCard(
         key: const ValueKey('ride-vs-handled'),
         icon: LucideIcons.bike,
-        text: l.chainStatusHandledByApp(inputs.app.name!),
-        // What connecting a trainer would get you, not "Connect" with no
-        // object: BikeControl's own shifting instead of the app's.
-        actionLabel: l.rideShiftWithBikeControl,
-        onAction: () => _openTrainer(proxy, bridged: false),
+        glyph: const TrainerGlyph(),
+        title: l.chainStatusHandledByApp(inputs.app.name!),
+        // Names, in a few words, what BikeControl's own shifting offers
+        // instead of the app's.
+        body: l.rideVsHandledBody,
+        // A quiet link, not a button: the app's own shifting works fine.
+        // It says what connecting a trainer gets you, not "Connect".
+        secondaryLabel: l.rideShiftWithBikeControl,
+        onSecondary: () => _openTrainer(proxy, bridged: false),
       );
     } else {
       slot = RidePromptCard(
         key: const ValueKey('ride-vs-invite'),
         icon: LucideIcons.bike,
+        glyph: const TrainerGlyph(),
         title: l.rideVirtualShifting,
         body: l.rideVsInviteBody,
         actionLabel: l.connect,
@@ -1383,10 +1555,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Only where the overlay can be offered at all (see [_overlayOffered]).
   Widget? _overlayNotice(ProxyDevice proxy) {
     final app = core.settings.getTrainerApp();
-    if (app == null || !app.showsOwnGear) return null;
+    if (app == null) return null;
+    // A Bluetooth-only app (Grimpa) runs on another device and leaves this
+    // phone free: the overlay keeps the gear in view over any app here.
+    final overOtherApps = overlayOverOtherApps(app);
+    if (!app.showsOwnGear && !overOtherApps) return null;
     // The trainer app on another device (MyWhoosh or Rouvy on an Apple TV):
     // no overlay can appear there, so say where the gear is instead.
-    if (!screenshotMode && proxy.fitnessBike != null && core.settings.getLastTarget() == Target.otherDevice) {
+    if (!overOtherApps &&
+        !screenshotMode &&
+        proxy.fitnessBike != null &&
+        core.settings.getLastTarget() == Target.otherDevice) {
       return RideOverlayNotice(
         state: RideOverlayState.otherScreen,
         appName: app.name,
@@ -1404,6 +1583,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return RideOverlayNotice(
       state: state,
       appName: app.name,
+      offerNote: overOtherApps ? context.i18n.rideOverlayOfferOverOtherApps : null,
       onEnable: () => _enableOverlayFromRide(proxy),
       onDecline: _declineOverlay,
       onOpen: () async {
@@ -2099,8 +2279,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // it is the step in front.
       // The step's own wording is already the action ("Add keyboard and
       // mouse actions"), so the line offers itself.
-      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControl : null,
+      offerLabel: (step) => switch (step.id) {
+        SetupStepId.appLocalControl => l.chainStepLocalControl,
+        SetupStepId.appBluetoothFallback => l.bluetoothFallbackAction,
+        _ => null,
+      },
       onOffer: (step) async {
+        if (step.id == SetupStepId.appBluetoothFallback) {
+          await _useBluetoothFallback();
+          return;
+        }
         if (step.id != SetupStepId.appLocalControl) return;
         await enableLocalControl(context);
         _update();
@@ -2176,6 +2364,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final activeStep = link.activeStep?.id;
         if (activeStep == SetupStepId.trainerGearOverlay) {
           await _enableOverlay();
+        } else if (activeStep == SetupStepId.trainerAppBridged &&
+            (link.activeStep?.variant == SetupStepVariant.bridgeBlockedBluetoothOnly ||
+                link.activeStep?.variant == SetupStepVariant.bridgeBlockedStoreApp)) {
+          // The app can never pick the bridge up on this device. The
+          // trainer's page is where the connection is changed.
+          final proxy = _bridgedTrainer;
+          if (proxy != null) await context.push(ProxyDeviceDetailsPage(device: proxy));
         } else if (activeStep == SetupStepId.trainerAppBridged) {
           // The bridge is up and the app hasn't picked it up: show how to pair
           // BikeControl as the trainer, not how to connect a trainer.
@@ -2197,6 +2392,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // The card has already said what looks wrong; the self-test is
           // where the rider sees every interface, the verdict, and the fixes.
           await context.push(const NetworkTroubleshootingPage());
+        } else if (link.activeStep?.id == SetupStepId.appBluetoothFallback) {
+          // The step in front when nothing else is outstanding on the card:
+          // its button is the offer itself, not the troubleshooter.
+          await _useBluetoothFallback();
         } else if (link.activeStep?.id == SetupStepId.appLocalControl) {
           // enableLocalControl runs the permission sheet itself when the
           // accessibility service or the keyboard grant is still missing, and

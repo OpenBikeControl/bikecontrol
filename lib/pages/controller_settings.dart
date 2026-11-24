@@ -1,6 +1,8 @@
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/window_size.dart';
 import 'package:bike_control/widgets/keymap/button_detail.dart';
+import 'package:bike_control/pages/button_edit.dart' show openActionPicker;
+import 'package:bike_control/widgets/controller/accessory_action_picker.dart';
 import 'package:bike_control/widgets/keymap/mapping.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart';
 import 'package:bike_control/widgets/ui/bk_grouped_section.dart';
@@ -15,12 +17,14 @@ import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_device.dart';
 import 'package:bike_control/gen/l10n.dart';
-import 'package:bike_control/main.dart' show screenshotMode, shownKeymapName;
+import 'package:bike_control/main.dart' show recordError, screenshotMode, shownKeymapName;
 import 'package:bike_control/pages/customize.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/help_article.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/keymap/buttons.dart';
+import 'package:dartx/dartx.dart';
 import 'package:bike_control/utils/keymap/keymap.dart';
 import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_headwind.dart';
 import 'package:bike_control/widgets/controller/headwind_section.dart';
@@ -32,7 +36,6 @@ import 'package:bike_control/widgets/ui/loading_widget.dart';
 import 'package:bike_control/widgets/ui/pro_badge.dart';
 import 'package:bike_control/widgets/ui/small_progress_indicator.dart';
 import 'package:bike_control/widgets/ui/type_scale.dart';
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -327,54 +330,129 @@ class _ControllerSettingsPageState extends State<ControllerSettingsPage> {
   /// live on a *controller's* button. The page therefore names them and hands
   /// over to the controller that can carry them — the connected one, since
   /// that is the one the rider can test a mapping on right away.
+  /// The connected controllers whose buttons can carry an accessory's actions.
+  List<BaseDevice> _accessoryControllers() => core.connection.controllerDevices.where((d) => d.isConnected).toList();
+
+  /// The controller button and press [action] is on, if any.
+  AccessoryActionSlot? _accessoryActionSlot(InGameAction action, List<BaseDevice> controllers) {
+    final keymap = core.actionHandler.supportedApp?.keymap;
+    if (keymap == null) return null;
+    for (final controller in controllers) {
+      for (final button in controller.availableButtons) {
+        for (final trigger in ButtonTrigger.values) {
+          if (keymap.getKeyPair(button, trigger: trigger)?.inGameAction == action) {
+            return (controller: controller, button: button, trigger: trigger);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Puts [action] on [trigger] of [button] of [controller], taking it off
+  /// whichever button had it; a null [button] only takes it off.
+  Future<void> _assignAccessoryAction(
+    InGameAction action,
+    BaseDevice controller,
+    ControllerButton? button,
+    ButtonTrigger? trigger,
+  ) async {
+    try {
+      final current = core.actionHandler.supportedApp?.keymap;
+      if (current == null) return;
+      final assigned = _accessoryActionSlot(action, _accessoryControllers());
+      final editButton = button ?? assigned?.button;
+      if (editButton == null) return;
+      final editTrigger = button == null ? assigned!.trigger : (trigger ?? ButtonTrigger.singleClick);
+      final keymap = await resolveTriggerEdit(
+        context,
+        keymap: current,
+        device: button == null ? assigned!.controller : controller,
+        button: editButton,
+        trigger: editTrigger,
+      );
+      if (!mounted || keymap == null) return;
+      // A fan speed is a value: keep the one it had, else full speed.
+      final previousValue = keymap.keyPairs.firstOrNullWhere((k) => k.inGameAction == action)?.inGameActionValue;
+      final value = action == InGameAction.headwindSpeed ? (previousValue ?? 100) : null;
+      for (final keyPair in keymap.keyPairs.where((k) => k.inGameAction == action)) {
+        keyPair
+          ..inGameAction = null
+          ..inGameActionValue = null;
+      }
+      if (button != null) {
+        keymap.getOrCreateKeyPair(button, trigger: editTrigger)
+          ..physicalKey = null
+          ..logicalKey = null
+          ..modifiers = []
+          ..touchPosition = Offset.zero
+          ..androidAction = null
+          ..androidIntentAction = null
+          ..command = null
+          ..screenshotPath = null
+          ..inGameAction = action
+          ..inGameActionValue = value;
+      }
+      keymap.signalUpdate();
+      persistMappingEdit();
+    } catch (e, s) {
+      recordError(e, s, context: 'ControllerSettings: assign accessory action $action');
+    }
+    if (mounted) setState(() {});
+  }
+
   Widget _buildAssignableActions(BaseDevice device) {
-    final theme = Theme.of(context);
-    final controller =
-        core.connection.controllerDevices.firstOrNullWhere((d) => d.isConnected) ??
-        core.connection.controllerDevices.firstOrNull;
+    final l = AppLocalizations.of(context);
+    final controllers = _accessoryControllers();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.card,
-            borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final action in device.assignableActions)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    children: [
-                      Icon(action.icon ?? LucideIcons.circleDot, size: 16, color: theme.colorScheme.mutedForeground),
-                      const Gap(10),
-                      Expanded(child: Text(action.title).small),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const Gap(12),
-        if (controller != null)
-          BkGroupedSection(
-            children: [
-              _buildActionButton(
-                icon: LucideIcons.gamepad2,
-                label: AppLocalizations.of(context).accessorySetUpOnController(controller.displayName(context)),
-                onTap: () async {
-                  await context.push(ControllerSettingsPage(device: controller));
-                  if (mounted) setState(() {});
+        BkGroupedSection(
+          children: [
+            for (final action in device.assignableActions)
+              Builder(
+                key: ValueKey('accessory-action-${action.name}'),
+                builder: (rowContext) {
+                  final slot = _accessoryActionSlot(action, controllers);
+                  final value = slot == null || action != InGameAction.headwindSpeed
+                      ? null
+                      : core.actionHandler.supportedApp?.keymap
+                            .getKeyPair(slot.button, trigger: slot.trigger)
+                            ?.inGameActionValue;
+                  return BkGroupedRow(
+                    icon: action.icon ?? LucideIcons.circleDot,
+                    title: action.title,
+                    trailing: Text(
+                      slot == null
+                          ? l.accessoryActionNoButton
+                          : [slot.button.displayName, slot.trigger.title, if (value != null) '$value%'].join(' · '),
+                    ).small.muted,
+                    chevron: controllers.isNotEmpty,
+                    onPressed: controllers.isEmpty
+                        ? null
+                        : () async {
+                            await openActionPicker(
+                              context: rowContext,
+                              builder: (_) => AccessoryActionPicker(
+                                action: action,
+                                controllers: controllers,
+                                assigned: slot,
+                                onAssign: (controller, button, trigger) =>
+                                    _assignAccessoryAction(action, controller, button, trigger),
+                              ),
+                            );
+                            if (mounted) setState(() {});
+                          },
+                  );
                 },
               ),
-            ],
-          )
-        else
-          Text(AppLocalizations.of(context).accessoryNoControllerYet).xSmall.muted,
+          ],
+        ),
+        if (controllers.isEmpty) ...[
+          const Gap(12),
+          Text(l.accessoryNoControllerYet).xSmall.muted,
+        ],
       ],
     );
   }

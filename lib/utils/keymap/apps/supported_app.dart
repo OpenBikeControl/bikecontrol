@@ -3,6 +3,7 @@ import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
+import 'package:bike_control/utils/keymap/apps/wahoo.dart';
 import 'package:bike_control/utils/keymap/apps/grimpa.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol_trainer_apps.dart';
@@ -33,7 +34,13 @@ enum AppConnectionMethod {
   myWhooshLink,
   local,
   remoteMouse,
-  remoteKeyboard,
+  remoteKeyboard;
+
+  /// Whether this method reaches the app over Bluetooth.
+  bool get isBluetooth => switch (this) {
+    zwiftBle || obpBle || cycplusBc2Ble => true,
+    _ => false,
+  };
 }
 
 enum ConnectionSupport {
@@ -190,7 +197,21 @@ abstract class SupportedApp {
   /// BikeControl runs on sees them — what counts when both run on this same
   /// device. The same unless one platform's build differs (MyWhoosh on
   /// Android pairs trainers over Bluetooth only).
-  Set<TrainerConnectionType> get virtualShiftingTransportsHere => virtualShiftingTransports;
+  Set<TrainerConnectionType> get virtualShiftingTransportsHere =>
+      HostPlatform.isAndroid ? virtualShiftingTransportsOnAndroid : virtualShiftingTransports;
+
+  /// [virtualShiftingTransports] of this app's Android build, wherever
+  /// BikeControl runs: the trainer app may be on an Android device next to a
+  /// BikeControl on something else.
+  Set<TrainerConnectionType> get virtualShiftingTransportsOnAndroid => virtualShiftingTransports;
+
+  /// Whether BikeControl reaches this app over Bluetooth alone — its buttons
+  /// (every one of [connections]) and its trainer ([virtualShiftingTransports])
+  /// — like Grimpa. A Bluetooth peripheral is invisible to a central on the
+  /// same device, so such an app always runs on another one.
+  bool get reachedOverBluetoothOnly =>
+      connections.every((c) => c.$1.isBluetooth) &&
+      !virtualShiftingTransports.contains(TrainerConnectionType.wifi);
 
   /// Whether this app, on Windows, ships through the Microsoft Store as a
   /// sandboxed (UWP) app. Windows blocks those from connecting to a network
@@ -206,6 +227,10 @@ abstract class SupportedApp {
   /// only where the app reads no key and no pointer input at all, so we stop
   /// offering methods that provably cannot reach it.
   bool get acceptsSimulatedInput => true;
+
+  /// Whether the app skips Bluetooth trainers whose advertisement carries no
+  /// name. A Mac bridge sends none, so such an app never lists it there.
+  bool get needsNamedBluetoothTrainer => false;
 
   /// Whether button presses can reach this app at all — over a controller
   /// protocol it speaks, or as simulated input we type or click.
@@ -265,6 +290,7 @@ abstract class SupportedApp {
     ...OpenBikeControlTrainerApp.all,
     Tacx(),
     FulGaz(),
+    WahooApp(),
     BikeControl(),
     OpenBikeControl(),
     CustomApp(),

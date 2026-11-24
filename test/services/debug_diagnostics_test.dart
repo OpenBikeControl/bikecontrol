@@ -6,8 +6,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
 import 'package:prop/utils/advertised_service_registry.dart';
 import 'package:prop/utils/network_address.dart';
+import 'package:prop/utils/resilient_tcp_server.dart';
 
 void main() {
+  test('toText names the OS responder when OpenBikeControl is published through it', () {
+    DebugDiagnostics diag({String? host}) => DebugDiagnostics(
+      advertised: const [],
+      backend: 'responder',
+      hostLabel: 'bikecontrol-88b0',
+      holdsMulticastLock: false,
+      discovered: const [],
+      discoveryRan: false,
+      addressReport: const AddressPickReport(chosen: null, candidates: []),
+      servers: const [],
+      permissions: const PermissionsSnapshot(localNetwork: null),
+      obcOsResponderHost: host,
+    );
+
+    expect(
+      diag(host: 'my-pc.local').toText(),
+      contains('    _openbikecontrol._tcp: OS responder · host: my-pc.local'),
+    );
+    expect(diag().toText(), isNot(contains('OS responder')));
+  });
+
   test('toText renders every section with the expected markers', () {
     final diag = DebugDiagnostics(
       advertised: [
@@ -418,6 +440,50 @@ void main() {
       expect(text, contains('(+2 other questions)'));
       expect(text, isNot(contains('airplay')));
       expect(text, isNot(contains('neighbour')));
+    });
+  });
+
+  group('TCP connections and lifecycle', () {
+    DebugDiagnostics diagnostics({
+      List<TcpConnectionLogEntry> connections = const [],
+      List<String> lifecycle = const [],
+    }) => DebugDiagnostics(
+      advertised: const [],
+      backend: 'dnssd',
+      hostLabel: 'BikeControl',
+      holdsMulticastLock: false,
+      discovered: const [],
+      discoveryRan: false,
+      addressReport: const AddressPickReport(chosen: null, candidates: []),
+      servers: const [],
+      permissions: const PermissionsSnapshot(localNetwork: null),
+      connections: connections,
+      lifecycle: lifecycle,
+    );
+
+    test('says so when no client ever dialled', () {
+      final text = diagnostics().toText();
+      expect(text, contains('TCP connections:\n    (none since the app started)'));
+    });
+
+    test('shows a client that hung up before sending anything', () {
+      final entry = TcpConnectionLogEntry(
+        at: DateTime(2026, 11, 24, 10, 31, 2),
+        server: 'DirCon',
+        port: 36868,
+        remote: '192.168.178.92',
+      )..closedAt = DateTime(2026, 11, 24, 10, 31, 2, 12);
+
+      final text = diagnostics(connections: [entry]).toText();
+
+      expect(text, contains('10:31:02 DirCon:36868 ← 192.168.178.92 closed after 12 ms before the first byte'));
+      expect(text.indexOf('TCP servers:'), lessThan(text.indexOf('TCP connections:')));
+    });
+
+    test('prints the lifecycle lines when there are any, and no heading otherwise', () {
+      expect(diagnostics().toText(), isNot(contains('Lifecycle:')));
+      final text = diagnostics(lifecycle: const ['standstill: 1 standstill(s), last 360 s']).toText();
+      expect(text, contains('  Lifecycle:\n    standstill: 1 standstill(s), last 360 s'));
     });
   });
 }

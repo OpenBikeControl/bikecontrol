@@ -59,6 +59,7 @@ enum SetupStepId {
   appNetworkAddress,
   appConnected,
   appLocalControl,
+  appBluetoothFallback,
 }
 
 /// What the banner's action button does. The banner never invents a target: it
@@ -108,10 +109,32 @@ enum SetupStepVariant {
   /// second real network could be the one the trainer app is on.
   networkTwoNetworks,
 
+  /// [SetupStepId.appNetworkAddress] when the address is fine but
+  /// BikeControl's own advertisement cannot be found on the network.
+  networkNotVisible,
+
   /// [SetupStepId.trainerAppBridged] when the trainer app probably still holds
   /// a Bluetooth connection from before BikeControl restarted (Windows): the
   /// hint says to remove the entry in the app and pair it again.
   bridgeStaleLink,
+
+  /// [SetupStepId.trainerAppBridged] when the trainer app runs on this device
+  /// and its build here pairs trainers over Bluetooth only: it can never pick
+  /// the bridge up, and the step says which setups work instead.
+  bridgeBlockedBluetoothOnly,
+
+  /// The same for a Microsoft Store app on this PC.
+  bridgeBlockedStoreApp,
+
+  /// [SetupStepId.trainerAppBridged] over the network to an app on another
+  /// device whose Android build only finds Bluetooth trainers: the hint adds
+  /// what to switch if that device is Android.
+  bridgeMaybeAndroidApp,
+
+  /// [SetupStepId.appNetworkAddress] when this device is on mobile data only
+  /// and the trainer app runs on this same device: the advice is any Wi-Fi,
+  /// or Local.
+  networkNoWifiSameDevice,
 }
 
 /// One line of a card's checklist.

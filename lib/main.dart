@@ -30,6 +30,7 @@ import 'package:prop/utils/shared.dart' show Logger;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:universal_ble/universal_ble.dart';
 import 'package:window_manager/window_manager.dart' as wm;
+import 'package:bike_control/services/network_recovery.dart';
 import 'package:bike_control/services/app_update.dart';
 import 'package:bike_control/widgets/title.dart' show packageInfoValue;
 import 'package:path_provider/path_provider.dart';
@@ -194,6 +195,7 @@ Future<void> main(List<String> args) async {
       // shape through Bonjour's dns_sd API instead.
       if (!kIsWeb) {
         ServiceAdvertiser.instance = ServiceAdvertiser.platformDefault();
+        NetworkRecovery.instance.start();
       }
 
       // Catch Flutter framework errors (build/layout/paint)
@@ -958,6 +960,7 @@ class _StarterState extends State<_Starter> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       unawaited(IAPManager.instance.refreshEntitlementsOnResume());
     }
+    NetworkRecovery.instance.onLifecycleState(state);
     // The process can outlive this engine on Android (foreground service);
     // release the server ports so the next launch gets them back.
     if (!kIsWeb && Platform.isAndroid) unawaited(stopNetworkServersOnLifecycleChange(state));

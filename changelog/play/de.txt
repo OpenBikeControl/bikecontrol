@@ -1,4 +1,7 @@
-7.6.1
-Neu:
-• MyWhoosh über Bluetooth: BikeControl als Lenkgerät koppeln, um zu schalten und an Kreuzungen den Weg zu wählen
-• Sensoren: sehen, woher jeder Wert kommt, und Trainerwerte durch eigene Sensoren ersetzen
+7.7.0
+Neu: Wahoo App als Trainer-App (Pro)
+Neu: Gang-Overlay mit Bluetooth-Apps wie Grimpa (Pro)
+Neu: neun weitere Apps über OpenBikeControl, u. a. PedalCraft, Sueur und SaddleOut
+Behoben:
+• „Schließen“ in der Benachrichtigung entfernt das Gang-Overlay
+• Eigene Belegungen bleiben nach Neustart

@@ -178,9 +178,14 @@ Future<void> main() async {
       expect(find.byKey(const ValueKey('whats-new-7.0.0')), findsOneWidget);
       expect(find.byKey(const ValueKey('whats-new-5.5.0')), findsOneWidget);
       expect(find.byKey(const ValueKey('whats-new-4.7.0')), findsNothing);
-      await tester.scrollUntilVisible(find.byKey(const ValueKey('whats-new-rate')), 200);
-      expect(find.byKey(const ValueKey('whats-new-blog')), findsOneWidget);
+      // The rating plea comes first: on screen without scrolling, above the notes.
       expect(find.text(l.whatsNewHelpTitle), findsOneWidget);
+      find.byKey(const ValueKey('whats-new-rate')).hitTestable().evaluate().single;
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('whats-new-help'))).dy,
+        lessThan(tester.getTopLeft(find.byKey(const ValueKey('whats-new-7.0.0'))).dy),
+      );
+      expect(find.byKey(const ValueKey('whats-new-blog')), findsOneWidget);
 
       // Opened is seen: the banner is gone, also after a restart.
       expect(WhatsNew.pending.value, isNull);

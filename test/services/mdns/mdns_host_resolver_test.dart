@@ -74,4 +74,48 @@ void main() {
     expect(address, isNull);
     expect(questions, isNotEmpty);
   });
+
+  group('system resolver (iOS)', () {
+    setUp(() async => startResponder((_) => const []));
+
+    test('asks the system and sends no multicast query of its own', () async {
+      final asked = <String>[];
+      final address = await MdnsHostResolver.resolveIPv4(
+        'KICKR-CORE-A5D9.local',
+        target: InternetAddress.loopbackIPv4,
+        port: responder.port,
+        useSystemResolver: true,
+        systemLookup: (host) async {
+          asked.add(host);
+          return [InternetAddress('fe80::1'), InternetAddress('192.168.1.40')];
+        },
+      );
+
+      expect(address, '192.168.1.40');
+      expect(asked, ['KICKR-CORE-A5D9.local']);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(questions, isEmpty);
+    });
+
+    test('a name the system cannot resolve gives null, not an error', () async {
+      final address = await MdnsHostResolver.resolveIPv4(
+        'gone.local',
+        useSystemResolver: true,
+        systemLookup: (host) async => throw const SocketException('Failed host lookup'),
+      );
+
+      expect(address, isNull);
+    });
+
+    test('a lookup that never answers gives null after the timeout', () async {
+      final address = await MdnsHostResolver.resolveIPv4(
+        'slow.local',
+        timeout: const Duration(milliseconds: 50),
+        useSystemResolver: true,
+        systemLookup: (host) => Future<List<InternetAddress>>.delayed(const Duration(seconds: 5), () => const []),
+      );
+
+      expect(address, isNull);
+    });
+  });
 }

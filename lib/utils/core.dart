@@ -247,11 +247,15 @@ class Core {
 
 class Permissions {
   /// The part of [getScanRequirements] a scan can't run without. Notifications
-  /// are asked for in the same breath, but a rider who declines them must
+  /// (and, in onboarding, Bluetooth advertising for a Bluetooth-only app) are
+  /// asked for in the same breath, but a rider who declines them must
   /// still find their controller — every scan gate reads this, not the full
-  /// list.
+  /// list. Informational rows (a PC without a Bluetooth adapter) don't block
+  /// either: Wi-Fi trainers and gamepads are found without Bluetooth.
   static List<PlatformRequirement> blockingScan(List<PlatformRequirement> missing) =>
-      missing.where((r) => r is! NotificationRequirement).toList();
+      missing
+          .where((r) => r is! NotificationRequirement && r is! BluetoothAdvertiseRequirement && !r.isInformational)
+          .toList();
 
   /// Permissions to ask for before *scanning for Bluetooth devices*.
   ///

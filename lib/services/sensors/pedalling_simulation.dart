@@ -33,6 +33,9 @@ class PedallingSimulation {
     id: sourceId,
     displayName: 'Pedalling simulation',
     provides: _quantities.toSet(),
+    // A debug tool: it has to drive the bridge on a trial install too, where
+    // the hub otherwise hides external power and cadence (a Pro feature).
+    requiresPro: false,
   );
   final _random = math.Random();
   final Map<SensorQuantity, String?> _previousSelection = {};

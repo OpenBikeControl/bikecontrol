@@ -53,6 +53,7 @@ class RouvyMdnsEmulator extends TrainerConnection {
           InGameAction.rideOnBomb,
         ],
       ) {
+    this.clickEmulator.onAuthResponse = (reply) => _unlockReplyTarget?.call(reply);
     this.clickEmulator.isStarted.addListener(() {
       isStarted.value = this.clickEmulator.isStarted.value;
     });
@@ -67,6 +68,26 @@ class RouvyMdnsEmulator extends TrainerConnection {
         ),
       );
     });
+  }
+
+  /// Where the trainer app's answer to the relayed unlock challenge goes: the
+  /// physical controller that sent the challenge.
+  void Function(Uint8List reply)? _unlockReplyTarget;
+
+  /// Relays a physical controller's unlock [challenge] to the trainer app on
+  /// this endpoint (now, or once it connects), and routes the app's answer to
+  /// [onReply]. A later challenge, from this or another controller, replaces it.
+  void relayUnlockChallenge(Uint8List challenge, {required void Function(Uint8List reply) onReply}) {
+    _unlockReplyTarget = onReply;
+    clickEmulator.sendChallenge(challenge);
+  }
+
+  /// Withdraws the challenge relayed with [onReply], if it is still the
+  /// current one.
+  void clearUnlockChallenge(void Function(Uint8List reply) onReply) {
+    if (_unlockReplyTarget != onReply) return;
+    _unlockReplyTarget = null;
+    clickEmulator.clearChallenge();
   }
 
   /// Runs the keepalive while [connected], stops it otherwise.

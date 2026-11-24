@@ -1,8 +1,48 @@
+### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) The Wahoo app is now selectable as a trainer app: run BikeControl on an Android device or a Windows PC, and it shows up in the Wahoo app as a Bluetooth smart trainer and does the virtual shifting.
+- (Pro) Android with a Bluetooth-only trainer app like Grimpa: the Ride tab and setup now offer the gear overlay. The app runs on another device, so you can use your phone for anything else and still see your gear on top.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser and SaddleOut are now officially supported via OpenBikeControl.
+
+**Fixes**:
+- (Base) Android: "Close" in BikeControl's notification now also removes the gear overlay. Before, the overlay stayed on screen after BikeControl had quit.
+- (Base) iPhone / iPad: BikeControl now stays awake in the background while it waits for your trainer app (up to 15 minutes), and for 5 minutes after the app disconnects. Before, iOS could put BikeControl to sleep before MyWhoosh and other apps had found it, so the app found nothing or could not connect.
+- (Base) iPhone / iPad: when iOS did put BikeControl to sleep, it is found on the network again by itself once you return to it. Before, the network method had to be restarted.
+- (Base) iPhone / iPad: BikeControl follows a change of Wi-Fi or hotspot right away instead of advertising the old address.
+- (Base) iPhone, iPad and Mac: the home screen tells you when BikeControl cannot be found on the network, with the network check one tap away.
+- (Base) Mac: BikeControl is found again after the Mac wakes from sleep, without restarting the network method.
+- (Base) Network check: no longer reports a failure while BikeControl is searching the network itself, or when you only use the trainer bridge and have the controller connection switched off.
+- (Base) Windows: screenshots taken with a controller button have the right colours. Before, red and blue were swapped.
+- (Base) Custom mappings on buttons that share their name with another controller's button (e.g. the KICKR BIKE's steering buttons) are kept after a restart. Before, they went back to the default every time.
+
+### 7.6.2 (23-11-2026)
+**Features**:
+- (Base) Zwift Play / Zwift Ride paddles: tilting inward and tilting outward are now two separate buttons, each mappable to its own action. Your existing paddle mapping applies to both.
+- (Base) Elite Rizer and Sterzo: the steering dead zone can now be set on the device's page.
+- (Base) Accessory actions (e.g. the Rizer's incline up / down) go straight onto a button of your connected controller from the accessory's page: tap the button on the controller's picture, then choose single, double or long press.
+- (Base) Everycol is now officially supported via OpenBikeControl.
+
+**Fixes**:
+- (Base) Windows: screenshots taken with a controller button now capture the whole screen, also with display scaling above 100 %. Before, the right and bottom could be cut off.
+- (Base) Elite Rizer: when the Rizer is locked (red LED) and refuses to tilt, its page and the Ride tab now say so, instead of claiming it follows the gradient.
+- (Base) Elite Rizer: a locked Rizer now shows as locked as soon as it connects, not only once a gradient arrives.
+- (Pro) MyWhoosh over Bluetooth, Grimpa and other OpenBikeControl apps over Bluetooth: the app now finds both BikeControl's controller and the bridged trainer. Before, Android only showed the controller.
+- (Base) Zwift Click V2 with Rouvy: Rouvy's unlock now reaches the Click V2 through BikeControl.
+- (Base) Zwift Click V2: no more "Couldn't connect" message every minute while the controller restarts itself.
+- (Base) Windows, Mac and Linux: simulated key presses are held for 50 ms. Before, apps that check the keyboard once per frame missed many single presses.
+
 ### 7.6.1 (20-11-2026)
 **Features**:
 - (Base) MyWhoosh over Bluetooth: pair BikeControl in MyWhoosh as a steering device, then shift gears and choose your way at junctions (long press). If the network connection doesn't come up, BikeControl offers Bluetooth instead.
 - (Pro) Sensors: one list shows where power, heart rate, cadence and speed come from, your trainer included, and lets you replace any of them with your own sensor. Sending sensors to the trainer app only shows up when no trainer is connected, since the trainer already carries them.
 - (Pro) Control protocol: on Auto, the trainer page now shows which protocol Auto picked (e.g. "Auto: FTMS").
+
+**Fixes**:
+- (Base) Shimano Di2: the D-Fly channel setup now recognises which shifter is left and which is right, and no button it changes keeps shifting the bike.
+- (Pro) Gear overlay: keeps showing your trainer's gears after the trainer reconnects.
+- (Base) Elite Square: custom mappings for the Y, A, B and Z buttons are kept after a restart.
+- (Base) A second remembered trainer no longer connects by itself next to the one you ride. Before, it could connect unseen and mix up readings and commands.
+- (Base) Trainer bridge: with two trainers connected, the power of the one you ride no longer flickers to 0.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

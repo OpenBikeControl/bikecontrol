@@ -382,6 +382,7 @@ class ShimanoDi2 extends BluetoothDevice {
         onPaddle: onPaddle,
         onWiredSwitch: onWiredSwitch,
         onUnknownFrame: onUnknownFrame,
+        sides: _sides,
         onStepError: (step, e, st) {
           actionStreamInternal.add(LogNotification('ShimanoDi2 button mode step $step failed: $e'));
           unawaited(recordError(e, st, context: 'ShimanoDi2: button mode step $step'));
@@ -503,6 +504,10 @@ class ShimanoDi2 extends BluetoothDevice {
   /// channels; empty when BikeControl changed nothing.
   List<ShimanoShifterSwitches> get switchBackup => core.settings.getShimanoSwitchBackup(_serialKey);
 
+  /// Which shifter is on which slot: what the paddles shift tells, from the
+  /// saved setting and every button frame (the slot alone doesn't).
+  late final ShimanoShifterSides _sides = ShimanoShifterSides()..learnAll(switchBackup);
+
   /// While channel setup or restore waits for the rider to press a button on
   /// each shifter: which press it waits for, and the shifters done so far.
   /// Null otherwise.
@@ -544,7 +549,7 @@ class ShimanoDi2 extends BluetoothDevice {
         // setup never saw (it answered alone) gets its original added now.
         final added = [for (final s in changed) if (before.none((b) => b.slot == s.slot)) s];
         if (added.isNotEmpty) await core.settings.setShimanoSwitchBackup(_serialKey, [...before, ...added]);
-        return [for (final s in changed) s.withDflyPaddles()];
+        return [for (final s in changed) s.withDflyPaddles(side: target._sides.of(s.slot))];
       }, onWritten: written.add));
       await core.settings.setShimanoPasskey(_serialKey, passkey);
       await core.settings.setShimanoButtonMode(_serialKey, false);
@@ -649,6 +654,7 @@ class ShimanoDi2 extends BluetoothDevice {
     final sub = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
       final switches = ShimanoShifterSwitches.fromTelemetry(frame);
       if (switches == null || !slots.contains(switches.slot)) return;
+      _sides.learn(switches);
       if (shifterAsk.value == null || shifterAsk.value!.saving) return;
       seen[switches.slot] = switches;
       shifterAsk.value = ShimanoShifterAsk({for (final slot in seen.keys) _shifterIn(slot)}, single: slots.length == 1);
@@ -692,7 +698,8 @@ class ShimanoDi2 extends BluetoothDevice {
       final cancel = _shifterWaitCancel = Completer<void>();
       shifterAsk.value = ShimanoShifterAsk(const {}, single: slots.length == 1);
       await Future.any([allSeen.future.timeout(const Duration(minutes: 2)), cancel.future, wired.future]);
-      final writes = [...await plan(seen.values.toList())]..sort((a, b) => a.slot.compareTo(b.slot));
+      final writes = [...await plan(seen.values.toList())]
+        ..sort((a, b) => _shifterIn(a.slot).index.compareTo(_shifterIn(b.slot).index));
       if (writes.isNotEmpty) {
         // Only shifters that answered: a Di2 with one shifter never reports
         // the other, which must not show as saved.
@@ -768,7 +775,7 @@ class ShimanoDi2 extends BluetoothDevice {
     _linkResetting = false;
   }
 
-  static ShimanoShifter _shifterIn(int slot) => slot == 0 ? ShimanoShifter.left : ShimanoShifter.right;
+  ShimanoShifter _shifterIn(int slot) => _sides.of(slot);
 
   /// Shortens how long the setup waits for a second shifter in tests.
   @visibleForTesting
@@ -868,7 +875,7 @@ class ShimanoDi2 extends BluetoothDevice {
     var logged = 0;
     late final StreamSubscription<Uint8List> sub;
     sub = t.notifications(ShimanoDi2Config.pceResponseChar).listen((frame) {
-      final events = ShimanoButtons.decode(frame);
+      final events = ShimanoButtons.decode(frame, sides: _sides);
       if (!events.any((e) => e.paddle == ShimanoPaddle.hood || e.paddle == ShimanoPaddle.satellite)) return;
       final hex = frame.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
       if (hex == last) return;

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bike_control/bluetooth/devices/zwift/constants.dart' show ZwiftPaddle;
 import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart' show RideButtonMask;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
@@ -8,7 +9,7 @@ import 'package:prop/prop.dart' hide RideButtonMask;
 /// What an action presses on the emulated Zwift controller: buttons and/or paddles.
 class RideControllerPress {
   /// Analog value of a fully pulled paddle.
-  static const int fullPaddle = 100;
+  static const int fullPaddle = ZwiftPaddle.full;
 
   final int buttonMask;
   final List<RideAnalogLocation> paddles;
@@ -86,9 +87,11 @@ class RideControllerPress {
   List<int> _status(int mask, int paddleValue) {
     final status = RideKeyPadStatus()..buttonMap = (~mask) & 0xFFFFFFFF;
     for (final paddle in paddles) {
-      // Outward: the left paddle goes negative, the right positive. Inward is the opposite.
-      final outward = paddle == RideAnalogLocation.LEFT ? -paddleValue : paddleValue;
-      final value = inward ? -outward : outward;
+      final value = ZwiftPaddle.value(
+        right: paddle == RideAnalogLocation.RIGHT,
+        inward: inward,
+        magnitude: paddleValue,
+      );
       status.analogPaddles.add(RideAnalogKeyPress(location: paddle, analogValue: value));
     }
     return status.writeToBuffer();

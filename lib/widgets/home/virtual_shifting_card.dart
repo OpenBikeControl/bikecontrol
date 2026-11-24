@@ -1038,9 +1038,16 @@ class RidePromptCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: context.typography.base.copyWith(fontWeight: FontWeight.w600)),
+                // The same sizes as the steps in the ready banner above it.
+                Text(
+                  title,
+                  style: context.typography.small.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
+                ),
                 const Gap(2),
-                Text(body, style: context.typography.small.copyWith(color: bodyColor ?? cs.mutedForeground)),
+                Text(
+                  body,
+                  style: context.typography.xSmall.copyWith(height: 1.35, color: bodyColor ?? cs.mutedForeground),
+                ),
                 if (secondaryLabel != null && onSecondary != null) ...[
                   const Gap(4),
                   // Its text lines up with the body above it.
@@ -1056,7 +1063,7 @@ class RidePromptCard extends StatelessWidget {
                         secondaryLabel!,
                         style: context.typography.small.copyWith(
                           color: bkAccentText(context),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

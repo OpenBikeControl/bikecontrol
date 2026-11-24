@@ -1,4 +1,7 @@
-7.6.1
-Nouveautés :
-• MyWhoosh en Bluetooth : associe BikeControl comme appareil de direction pour changer de vitesse et choisir ta route aux intersections
-• Capteurs : vois d'où vient chaque valeur et remplace celles du home trainer par ton capteur
+7.7.0
+Nouveau : l'app Wahoo comme app d'entraînement (Pro)
+Nouveau : overlay des vitesses avec les apps Bluetooth comme Grimpa (Pro)
+Nouveau : neuf apps de plus via OpenBikeControl, dont PedalCraft, Sueur et SaddleOut
+Corrigé :
+• « Fermer » dans la notification retire l'overlay
+• Assignations gardées au redémarrage

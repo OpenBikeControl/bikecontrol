@@ -11,14 +11,16 @@ class ZwiftPlayFw2 extends ZwiftRide {
           ZwiftButtons.navigationDown,
           ZwiftButtons.onOffLeft,
           ZwiftButtons.shiftUpLeft,
-          ZwiftButtons.paddleLeft,
+          ZwiftButtons.paddleLeftInward,
+          ZwiftButtons.paddleLeftOutward,
           ZwiftButtons.y,
           ZwiftButtons.z,
           ZwiftButtons.a,
           ZwiftButtons.b,
           ZwiftButtons.onOffRight,
           ZwiftButtons.shiftUpRight,
-          ZwiftButtons.paddleRight,
+          ZwiftButtons.paddleRightInward,
+          ZwiftButtons.paddleRightOutward,
         ],
       );
 

@@ -1532,8 +1532,15 @@ class Connection {
     }
   }
 
+  /// The last [performScanning] found no Bluetooth adapter and skipped the
+  /// BLE scan while gamepads and Wi-Fi trainers are still being looked for.
+  bool _bleScanSkippedNoAdapter = false;
+
   Future<void> performScanning() async {
     if (isScanning.value) {
+      // An adapter that shows up later (a USB dongle, or Windows reporting
+      // the radio after its driver loaded) still gets its BLE scan.
+      if (_bleScanSkippedNoAdapter) await _startBleScanIfAdapter();
       return;
     }
     isScanning.value = true;
@@ -1566,6 +1573,19 @@ class Connection {
     // Before the Bluetooth scan: a machine without a usable adapter makes it
     // throw, and gamepads and Wi-Fi trainers don't need one.
     startNonBluetoothDiscovery();
+
+    await _startBleScanIfAdapter();
+  }
+
+  Future<void> _startBleScanIfAdapter() async {
+    // No adapter at all (common on Windows desktops): the scan gate lets this
+    // through on purpose, so don't start a BLE scan that can only throw.
+    if (!kIsWeb && await UniversalBle.getBluetoothAvailabilityState() == AvailabilityState.unsupported) {
+      _bleScanSkippedNoAdapter = true;
+      _actionStreams.add(LogNotification('No Bluetooth adapter: skipping the Bluetooth scan'));
+      return;
+    }
+    _bleScanSkippedNoAdapter = false;
 
     await _startBleScan();
 
@@ -1854,7 +1874,11 @@ class Connection {
             } else if (_recordConnectFailure(device)) {
               // Backoff engaged — _recordConnectFailure emitted the guidance alert
               // (or the silent per-round log) in place of the generic toast.
-            } else if (isRetry) {
+            } else if (isRetry || device.isResetting) {
+              // A device restarted on purpose (ClickLogic's unlock cycle) is
+              // often found again from its last advertisement while it is
+              // still rebooting, so this attempt fails every cycle. The
+              // reconnect after it is silent; the failure is too.
               _actionStreams.add(LogNotification('${device.toString()}: connect attempt failed ($e)'));
             } else if (e is TimeoutException) {
               _actionStreams.add(
@@ -2414,6 +2438,7 @@ class Connection {
     _gamePadSearchTimer?.cancel();
     _gamePadSearchTimer = null;
     isScanning.value = false;
+    _bleScanSkippedNoAdapter = false;
     _lastScanResult.clear();
     _androidNotificationsSetup = false;
   }

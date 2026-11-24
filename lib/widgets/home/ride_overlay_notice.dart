@@ -1,6 +1,5 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
-import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -42,15 +41,24 @@ class RideOverlayNotice extends StatelessWidget {
     required this.onEnable,
     required this.onDecline,
     required this.onOpen,
+    this.offerNote,
   });
 
   final RideOverlayState state;
   final String appName;
+
+  /// The offer's line in place of "{app} shows its own gear" — for an app on
+  /// another device, where the overlay is about this phone's other apps.
+  final String? offerNote;
   final VoidCallback onEnable;
   final VoidCallback onDecline;
 
   /// Opens Settings → Overlay.
   final VoidCallback onOpen;
+
+  /// How far the offer's close target reaches past the row's end, into the
+  /// card's padding (see [_offer]).
+  static const double _closeOverhang = 16;
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +107,7 @@ class RideOverlayNotice extends StatelessWidget {
         const Gap(8),
         Expanded(
           child: Text(
-            l.rideOverlayOfferNote(appName),
+            offerNote ?? l.rideOverlayOfferNote(appName),
             style: context.typography.small.copyWith(color: cs.foreground, height: 1.3),
           ),
         ),
@@ -133,11 +141,28 @@ class RideOverlayNotice extends StatelessWidget {
             ),
           ),
         ),
-        BkTouchTarget(
-          child: BkIconButton.ghost(
-            icon: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground),
-            label: l.chainStepOverlayDecline,
-            onPressed: onDecline,
+        // The x ends at the card's content edge, like the settings line's
+        // icon above it, ~14 dp after "Show overlay". A 48 dp target inside
+        // the row can't do both (gap + inset always made 30 dp), so the row
+        // keeps a 32 dp slot and the 48 dp target reaches 16 dp past it into
+        // the card's padding, with the glyph centred in it.
+        SizedBox(
+          width: BkTouchTarget.minSize - _closeOverhang,
+          height: BkTouchTarget.minSize,
+          child: OverflowBox(
+            alignment: AlignmentDirectional.centerStart,
+            minWidth: BkTouchTarget.minSize,
+            maxWidth: BkTouchTarget.minSize,
+            child: BkTappable(
+              key: const ValueKey('ride-overlay-decline'),
+              onPressed: onDecline,
+              label: l.chainStepOverlayDecline,
+              borderRadius: BorderRadius.circular(24),
+              child: SizedBox.square(
+                dimension: BkTouchTarget.minSize,
+                child: Center(child: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground)),
+              ),
+            ),
           ),
         ),
       ],

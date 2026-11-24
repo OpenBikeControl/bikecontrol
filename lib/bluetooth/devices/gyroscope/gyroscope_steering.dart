@@ -14,7 +14,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// Gyroscope and Accelerometer based steering device
 /// Detects handlebar movement when the phone is mounted on the handlebar
-class GyroscopeSteering extends BaseDevice implements SteeringDevice, RecalibratableSteering {
+class GyroscopeSteering extends BaseDevice implements SteeringDevice, RecalibratableSteering, AdjustableDeadZone {
   GyroscopeSteering()
     : super(
         'Phone Steering',
@@ -67,6 +67,10 @@ class GyroscopeSteering extends BaseDevice implements SteeringDevice, Recalibrat
   ValueListenable<bool> get steeringCalibrated => isCalibratedNotifier;
   @override
   double get steeringThreshold => core.settings.getPhoneSteeringThreshold();
+  @override
+  List<int> get deadZoneChoices => [for (var v = 3; v <= 12; v++) v];
+  @override
+  void setSteeringThreshold(int degrees) => core.settings.setPhoneSteeringThreshold(degrees);
   @override
   ControllerButton get steerLeftButton => GyroscopeSteeringButtons.leftSteer;
   @override

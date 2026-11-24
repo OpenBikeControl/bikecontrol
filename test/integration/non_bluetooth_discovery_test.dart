@@ -73,6 +73,31 @@ void main() async {
     expect(env.ble.scanning, isFalse);
   });
 
+  test('scanning on a PC without a Bluetooth adapter skips the BLE scan and still lists the rest', () async {
+    env.ble.availability = AvailabilityState.unsupported;
+    // What the Windows plugin does when there is no radio.
+    env.ble.startScanError = PlatformException(code: 'NoAdapter', message: 'No Bluetooth adapter');
+    env.mdns.addForeignService(kickr);
+
+    await core.connection.performScanning();
+
+    await waitForGamepadAndTrainer();
+    expect(env.ble.startScanCalls, 0);
+  });
+
+  test('an adapter that shows up after a skipped Bluetooth scan gets scanned', () async {
+    env.ble.availability = AvailabilityState.unsupported;
+    await core.connection.performScanning();
+    expect(env.ble.startScanCalls, 0);
+    expect(core.connection.isScanning.value, isTrue, reason: 'gamepads and Wi-Fi trainers are still being looked for');
+
+    // A USB dongle plugged in, or Windows reporting the radio late.
+    env.ble.availability = AvailabilityState.poweredOn;
+    await core.connection.performScanning();
+
+    expect(env.ble.startScanCalls, 1);
+  });
+
   test('a Bluetooth scan that fails to start does not stop gamepad and Wi-Fi discovery', () async {
     env.ble.startScanError = PlatformException(code: 'NoAdapter', message: 'No Bluetooth adapter');
     env.mdns.addForeignService(kickr);

@@ -96,8 +96,8 @@ void main() {
       // out above the footer.
       'lib/pages/onboarding/onboarding_page.dart': {'Color(0xFFFFFFFF)', 'Color(0x00FFFFFF)'},
       // The engraved rings of the OpenBikeControl seal, painted on the brand
-      // badge in both themes.
-      'lib/pages/onboarding/steps/step_app.dart': {'Color(0xFFFFFFFF)'},
+      // badge in both themes; the seal itself is black on white.
+      'lib/pages/onboarding/steps/step_app.dart': {'Color(0xFFFFFFFF)', 'Color(0xFF000000)'},
     };
     final literal = RegExp(
       r'Color\(0x(?!00000000\))[0-9A-Fa-f]{8}\)|(?<![A-Za-z_])Colors\.(?!transparent\b)[A-Za-z]+|BKColor\.[A-Za-z]+',

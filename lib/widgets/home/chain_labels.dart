@@ -89,15 +89,27 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     // the exact entry to look for, which is the thing riders miss — and, when
     // the trainer's own name is known, the entry right beside it that they
     // pick instead, which bypasses BikeControl altogether.
+    // An app on this device that can never reach the bridge: telling the
+    // rider to pick an entry it will never list sent them hunting for it. The
+    // explanation and the setups that work are the ones the trainer's page
+    // and onboarding already give.
+    SetupStepId.trainerAppBridged
+        when !step.done &&
+            (step.variant == SetupStepVariant.bridgeBlockedBluetoothOnly ||
+                step.variant == SetupStepVariant.bridgeBlockedStoreApp) =>
+      ChainStepText(
+        l.chainStepTrainerBridgeBlocked(app),
+        '${step.variant == SetupStepVariant.bridgeBlockedStoreApp ? l.onboardingVsBlockedExplainerStoreApp(app) : l.onboardingVsBlockedExplainer(app)} '
+        '${l.vsSameDeviceBlockedFix(app)}',
+      ),
     SetupStepId.trainerAppBridged => step.done
         ? ChainStepText(l.chainStepTrainerBridged(app))
         : ChainStepText(
             l.chainStepTrainerBridgedPending(app, step.hintArg ?? 'BikeControl'),
             step.variant == SetupStepVariant.bridgeStaleLink
                 ? l.chainStepTrainerBridgedStaleLinkHint(app, step.hintArg ?? 'BikeControl')
-                : step.secondaryHintArg != null
-                ? l.chainStepTrainerBridgedHint2(app, step.hintArg ?? 'BikeControl', step.secondaryHintArg!)
-                : l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app),
+                : '${step.secondaryHintArg != null ? l.chainStepTrainerBridgedHint2(app, step.hintArg ?? 'BikeControl', step.secondaryHintArg!) : l.chainStepTrainerBridgedHint(step.hintArg ?? 'BikeControl', app)}'
+                      '${step.variant == SetupStepVariant.bridgeMaybeAndroidApp ? ' ${l.chainStepTrainerBridgedAndroidHint(app)}' : ''}',
           ),
     // The label names the consequence rather than the feature — "MyWhoosh
     // will keep showing its own gear" — because "show your gear on screen" was
@@ -127,10 +139,15 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     // because that is the one thing the rider can check against their VPN app.
     // Each reason gets its own advice: "turn the VPN off" means nothing to a
     // phone that is simply not on Wi-Fi.
+    SetupStepId.appNetworkAddress when step.variant == SetupStepVariant.networkNotVisible => ChainStepText(
+      l.chainStepNetworkNotVisiblePending,
+      l.chainStepNetworkNotVisibleHint(app),
+    ),
     SetupStepId.appNetworkAddress => ChainStepText(
       l.chainStepNetworkAddressPending,
       switch (step.variant) {
         SetupStepVariant.networkNoWifi => l.chainStepNetworkAddressNoWifiHint(app),
+        SetupStepVariant.networkNoWifiSameDevice => l.chainStepNetworkAddressNoWifiSameDeviceHint(app),
         SetupStepVariant.networkTwoNetworks => l.chainStepNetworkAddressTwoNetworksHint(step.hintArg ?? '', app),
         _ => l.chainStepNetworkAddressHint(step.hintArg ?? '', app),
       },
@@ -158,6 +175,7 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.appLocalControl => step.done
         ? ChainStepText(l.chainStepLocalControlDone)
         : ChainStepText(l.chainStepLocalControl, l.chainStepLocalControlHint(app)),
+    SetupStepId.appBluetoothFallback => ChainStepText(l.bluetoothFallbackTitle, l.bluetoothFallbackBody(app)),
   };
 }
 

@@ -101,13 +101,13 @@ class Zwift extends SupportedApp {
               inGameAction: InGameAction.shiftUp,
             ),
             KeyPair(
-              buttons: [ZwiftButtons.paddleLeft],
+              buttons: [ZwiftButtons.paddleLeftInward, ZwiftButtons.paddleLeftOutward],
               physicalKey: null,
               logicalKey: null,
               inGameAction: InGameAction.shiftDown,
             ),
             KeyPair(
-              buttons: [ZwiftButtons.paddleRight],
+              buttons: [ZwiftButtons.paddleRightInward, ZwiftButtons.paddleRightOutward],
               physicalKey: null,
               logicalKey: null,
               inGameAction: InGameAction.shiftUp,

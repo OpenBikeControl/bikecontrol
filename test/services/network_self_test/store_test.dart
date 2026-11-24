@@ -79,6 +79,36 @@ void main() {
     expect(section, contains(NetworkSelfTestStore.load()!.toBundleString()));
   });
 
+  group('age line', () {
+    final at = DateTime.utc(2026, 10, 5, 9, 30);
+
+    test('a result from minutes ago is given its age and nothing more', () {
+      expect(NetworkSelfTestStore.ageLine(at, at.add(const Duration(minutes: 12))), 'age=12min');
+      expect(NetworkSelfTestStore.ageLine(at, at.add(const Duration(hours: 5, minutes: 7))), 'age=5h 7min');
+    });
+
+    test('a result older than a day is marked stale', () {
+      // A result from weeks ago says nothing about the device today.
+      final line = NetworkSelfTestStore.ageLine(at, DateTime.utc(2026, 11, 3, 13, 30));
+      expect(line, startsWith('age=29d 4h STALE'));
+    });
+
+    test('a clock that moved backwards does not print a negative age', () {
+      expect(NetworkSelfTestStore.ageLine(at, at.subtract(const Duration(hours: 1))), 'age=0min');
+    });
+
+    test('bundleSection puts the age between the heading and the result', () async {
+      await NetworkSelfTestStore.save(_result());
+      final stored = NetworkSelfTestStore.load()!;
+      final section = NetworkSelfTestStore.bundleSection(now: () => stored.at.add(const Duration(days: 3)));
+
+      final lines = section.split('\n');
+      expect(lines[0], 'Network self-test:');
+      expect(lines[1], startsWith('age=3d 0h STALE'));
+      expect(lines[2], startsWith('NETWORK '));
+    });
+  });
+
   test(
     'menu.dart interpolation helper avoids a double blank line: '
     'empty section adds nothing, non-empty section adds exactly one trailing newline',

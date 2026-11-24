@@ -57,7 +57,6 @@ class WhooshLink extends TrainerConnection {
         if (kDebugMode) {
           print('Client connected: ${socket.remoteAddress.address}:${socket.remotePort}');
         }
-        SharedLogic.keepAlive();
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_INFO, AppLocalizations.current.myWhooshLinkConnected),
         );
@@ -76,7 +75,6 @@ class WhooshLink extends TrainerConnection {
         if (kDebugMode) {
           print('Client disconnected');
         }
-        SharedLogic.stopKeepAlive();
         isConnected.value = false;
         core.connection.signalNotification(
           AlertNotification(LogLevel.LOGLEVEL_WARNING, 'MyWhoosh Link disconnected'),

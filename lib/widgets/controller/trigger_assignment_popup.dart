@@ -64,13 +64,14 @@ Widget buildTriggerAssignmentMenu({
               onUpdate: onUpdate,
             );
           },
-          child: _TriggerLabel(trigger: trigger, keymap: keymap, button: button),
+          child: TriggerAssignmentLabel(trigger: trigger, keymap: keymap, button: button),
         ),
     ],
   );
 }
 
-class _TriggerLabel extends StatelessWidget {
+/// One trigger row of the assignment menu: the press, then what it does now.
+class TriggerAssignmentLabel extends StatelessWidget {
   final ButtonTrigger trigger;
   final Keymap keymap;
   final ControllerButton button;
@@ -78,7 +79,7 @@ class _TriggerLabel extends StatelessWidget {
   static const double _titleWidth = 110;
   static const double _rowHeight = 44;
 
-  const _TriggerLabel({required this.trigger, required this.keymap, required this.button});
+  const TriggerAssignmentLabel({super.key, required this.trigger, required this.keymap, required this.button});
 
   @override
   Widget build(BuildContext context) {

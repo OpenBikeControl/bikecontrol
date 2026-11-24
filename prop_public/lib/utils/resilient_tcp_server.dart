@@ -6,6 +6,20 @@
 
 import 'dart:io';
 
+/// One client connection, for the support diagnostics. The stub records none.
+class TcpConnectionLogEntry {
+  TcpConnectionLogEntry({required this.at, required this.server, required this.port, required this.remote});
+
+  final DateTime at;
+  final String server;
+  final int port;
+  final String remote;
+
+  DateTime? closedAt;
+  int bytesReceived = 0;
+  String? note;
+}
+
 class ResilientTcpServer {
   ResilientTcpServer({
     required this.preferredPort,
@@ -35,6 +49,12 @@ class ResilientTcpServer {
 
   /// Every currently-running server, for the diagnostics block.
   static final List<ResilientTcpServer> activeServers = [];
+
+  /// Recent client connections. Always empty in the stub.
+  static List<TcpConnectionLogEntry> get connectionLog => const [];
+
+  /// Binds every running server's listeners again. No-op in the stub.
+  static Future<void> rebindAllListeners() async {}
 
   final void Function(Socket socket) onClientConnected;
   final void Function(Socket socket, List<int> data) onData;

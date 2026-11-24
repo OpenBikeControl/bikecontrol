@@ -6,6 +6,7 @@ import 'package:bike_control/bluetooth/devices/steering_device.dart';
 import 'package:bike_control/bluetooth/incline/manual_incline_device.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/main.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/buttons.dart';
 import 'package:bike_control/widgets/controller/controller_layout.dart';
 import 'package:dartx/dartx.dart';
@@ -31,8 +32,8 @@ class RizerSteer {
   final int levels;
 }
 
-RizerSteer? rizerSteerDecision(int roundedAngle) {
-  if (roundedAngle.abs() <= _rizerSteerThreshold) return null;
+RizerSteer? rizerSteerDecision(int roundedAngle, {double threshold = _rizerSteerThreshold}) {
+  if (roundedAngle.abs() <= threshold) return null;
   final levels = (roundedAngle.abs() / _rizerLevelDegreeStep).floor().clamp(1, _rizerMaxLevels);
   return RizerSteer(roundedAngle > 0, levels);
 }
@@ -49,7 +50,7 @@ class RizerButtons {
 /// with any trainer.
 class EliteRizer extends BluetoothDevice
     with Accessory, ManualInclineDevice
-    implements SteeringDevice, RecalibratableSteering {
+    implements SteeringDevice, RecalibratableSteering, AdjustableDeadZone {
   EliteRizer(super.scanResult) : super(availableButtons: RizerButtons.values);
 
   @visibleForTesting
@@ -57,6 +58,12 @@ class EliteRizer extends BluetoothDevice
 
   /// The status reply the in-flight incline write waits for.
   Completer<int?>? _pendingAck;
+
+  /// Whether an incline went out since this connection started. Until one
+  /// does, the first incline the Rizer reports is written back to it: that
+  /// does not move it, and its reply shows whether it is locked even while
+  /// no trainer app sends a gradient.
+  bool _wroteSinceConnect = false;
 
   @override
   ControllerLayout get controllerLayout => ControllerLayout(
@@ -84,7 +91,11 @@ class EliteRizer extends BluetoothDevice
   @override
   ValueListenable<bool> get steeringCalibrated => steeringCalibratedN;
   @override
-  double get steeringThreshold => _rizerSteerThreshold;
+  double get steeringThreshold => core.settings.getSteeringThreshold('rizer', _rizerSteerThreshold);
+  @override
+  List<int> get deadZoneChoices => [for (var v = 3; v <= 20; v++) v];
+  @override
+  void setSteeringThreshold(int degrees) => core.settings.setSteeringThreshold('rizer', degrees);
   @override
   ControllerButton get steerLeftButton => RizerButtons.leftSteer;
   @override
@@ -105,6 +116,7 @@ class EliteRizer extends BluetoothDevice
 
   @override
   Future<void> handleServices(List<BleService> services) async {
+    _wroteSinceConnect = false;
     for (final s in services) {
       debugPrint('[Rizer] service ${s.uuid} chars=${s.characteristics.map((c) => c.uuid).toList()}');
     }
@@ -154,7 +166,10 @@ class EliteRizer extends BluetoothDevice
       if (pending != null && !pending.isCompleted) pending.complete(code);
     } else if (characteristic == eliteRizerInclineCharacteristicUuid) {
       final reported = rizerReportedIncline001(bytes);
-      if (reported != null) inclineReported.value = reported;
+      if (reported != null) {
+        inclineReported.value = reported;
+        if (!_wroteSinceConnect) unawaited(writeInclineRaw(reported));
+      }
     } else if (characteristic == eliteRizerSteeringCharacteristicUuid) {
       _handleSteering(bytes);
     } else {
@@ -182,7 +197,7 @@ class EliteRizer extends BluetoothDevice
     final rounded = calibrated.round();
     if (_lastRoundedAngle == rounded) return;
     _lastRoundedAngle = rounded;
-    final decision = rizerSteerDecision(rounded);
+    final decision = rizerSteerDecision(rounded, threshold: steeringThreshold);
     if (decision == null) {
       handleButtonsClicked([]);
     } else {
@@ -214,6 +229,7 @@ class EliteRizer extends BluetoothDevice
   /// [_rizerAckTimeout] counts as written, as the command went out.
   @override
   Future<bool> writeInclineToDevice(int grade001Pct) async {
+    _wroteSinceConnect = true;
     final bytes = rizerInclineToBytes(grade001Pct);
     _pendingAck?.complete(null);
     final ack = _pendingAck = Completer<int?>();
@@ -241,7 +257,22 @@ class EliteRizer extends BluetoothDevice
     }
     final code = await ack.future.timeout(_rizerAckTimeout, onTimeout: () => null);
     if (identical(_pendingAck, ack)) _pendingAck = null;
-    if (code == null || code == kEliteRizerAckSuccess) return true;
+    if (code == null || code == kEliteRizerAckSuccess) {
+      if (code == kEliteRizerAckSuccess && inclineLocked.value) {
+        inclineLocked.value = false;
+        actionStreamInternal.add(LogNotification('Elite Rizer unlocked, incline follows again'));
+      }
+      return true;
+    }
+    if (code == kEliteRizerAckNotAccessible) {
+      // Locked (red LED): every write is refused until the rider unlocks it,
+      // so say it once instead of once per write.
+      if (!inclineLocked.value) {
+        inclineLocked.value = true;
+        actionStreamInternal.add(LogNotification('Elite Rizer is locked (red LED): incline commands are refused'));
+      }
+      return false;
+    }
     actionStreamInternal.add(
       LogNotification('Elite Rizer refused incline ${(grade001Pct / 100).toStringAsFixed(1)}%: ${rizerAckName(code)}'),
     );

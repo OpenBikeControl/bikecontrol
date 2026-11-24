@@ -27,6 +27,10 @@ Uint8List rizerInclineToBytes(int grade001Pct) {
 /// the status characteristic).
 const int kEliteRizerAckSuccess = 0x02;
 
+/// "Command not accessible": the Rizer is locked (red LED) and refuses
+/// incline commands until it is unlocked.
+const int kEliteRizerAckNotAccessible = 0x05;
+
 /// The status code the Rizer sent for [opcode], or null when [bytes] is not
 /// its reply to that command.
 int? rizerAckCode(Uint8List bytes, {int opcode = eliteRizerSetInclineOpcode}) {
