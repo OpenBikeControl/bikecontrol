@@ -3188,5 +3188,9 @@
   "bluetoothFallbackTitle": "Klappt die Verbindung übers Netzwerk nicht?",
   "bluetoothFallbackBody": "{app} nimmt BikeControl auch über Bluetooth an, als Lenkgerät. Schalten und Abbiegen an Kreuzungen funktionieren genauso.",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "Stattdessen Bluetooth nutzen"
+  "bluetoothFallbackAction": "Stattdessen Bluetooth nutzen",
+  "noBluetoothAdapterFound": "Kein Bluetooth-Adapter gefunden",
+  "noBluetoothAdapterDescription": "Windows meldet kein Bluetooth auf diesem PC. Desktop-PCs haben oft keins – ein USB-Bluetooth-Adapter (Bluetooth 5.0 oder neuer) behebt das. WLAN-Trainer und Gamepads funktionieren auch ohne Bluetooth.",
+  "openBluetoothSettings": "Bluetooth-Einstellungen öffnen",
+  "couldNotEnableBluetoothWindows": "Bluetooth ließ sich nicht einschalten. Bitte schalte es in den Windows-Einstellungen ein."
 }

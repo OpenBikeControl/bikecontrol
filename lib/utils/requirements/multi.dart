@@ -59,29 +59,61 @@ class BluetoothAdvertiseRequirement extends PlatformRequirement {
 class BluetoothTurnedOn extends PlatformRequirement {
   BluetoothTurnedOn() : super(AppLocalizations.current.bluetoothTurnedOn, icon: LucideIcons.bluetooth);
 
+  static const _windowsBluetoothSettings = 'ms-settings:bluetooth';
+
+  /// Windows reports no Bluetooth radio at all (universal_ble `unsupported`):
+  /// common on desktop PCs. Nothing in the app can fix that, and Wi-Fi
+  /// trainers and gamepads work without one, so it doesn't block the scan.
+  bool adapterMissing = false;
+
+  @override
+  String? get actionLabel => adapterMissing ? AppLocalizations.current.openBluetoothSettings : null;
+
+  @override
+  bool get isInformational => adapterMissing;
+
   @override
   Future<void> call(BuildContext context, VoidCallback onUpdate) async {
     final currentState = await UniversalBle.getBluetoothAvailabilityState();
-    if (!kIsWeb && Platform.isIOS) {
+    if (HostPlatform.isIOS) {
       // on iOS we cannot programmatically enable Bluetooth, just open settings
       await UniversalBle.requestPermissions();
-    } else if (!kIsWeb && Platform.isMacOS && currentState == AvailabilityState.unauthorized) {
+    } else if (HostPlatform.isMacOS && currentState == AvailabilityState.unauthorized) {
       // The radio is on, but this app is not authorized for Bluetooth (macOS
       // gates Bluetooth per-app). Toggling the radio won't help — send the user
       // to the Bluetooth privacy pane where they can grant BikeControl access.
       await launchUrlString('x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth');
       await UniversalBle.requestPermissions();
+    } else if (HostPlatform.isWindows &&
+        (currentState == AvailabilityState.unsupported || currentState == AvailabilityState.unknown)) {
+      // No radio (or the plugin hasn't found one yet): there is nothing to
+      // switch on, Windows' Bluetooth page is the only place to look.
+      await launchUrlString(_windowsBluetoothSettings);
     } else if (currentState == AvailabilityState.poweredOff) {
-      if (Platform.isMacOS) {
+      if (HostPlatform.isMacOS) {
         buildToast(title: name);
       } else {
-        await UniversalBle.enableBluetooth();
+        await _switchOn();
       }
+    }
+    await getStatus();
+    onUpdate();
+  }
+
+  /// Switches the radio on, or — when the system refuses (Windows: access
+  /// denied) — says so and, on Windows, opens the Bluetooth settings.
+  Future<void> _switchOn() async {
+    try {
+      final enabled = await UniversalBle.enableBluetooth();
+      if (enabled || !HostPlatform.isWindows) return;
+    } catch (e, s) {
+      recordError(e, s, context: 'BluetoothTurnedOn.enableBluetooth');
+    }
+    if (HostPlatform.isWindows) {
+      buildToast(title: AppLocalizations.current.couldNotEnableBluetoothWindows);
+      await launchUrlString(_windowsBluetoothSettings);
     } else {
-      // I guess bluetooth is on now
-      // TODO move UniversalBle.onAvailabilityChange
-      getStatus();
-      onUpdate();
+      buildToast(title: AppLocalizations.current.enableBluetooth);
     }
   }
 
@@ -91,7 +123,7 @@ class BluetoothTurnedOn extends PlatformRequirement {
       onPressed: () {
         call(context, onUpdate);
       },
-      child: Text(context.i18n.enableBluetooth),
+      child: Text(actionLabel ?? context.i18n.enableBluetooth),
     );
   }
 
@@ -101,11 +133,16 @@ class BluetoothTurnedOn extends PlatformRequirement {
         ? AvailabilityState.poweredOn
         : await UniversalBle.getBluetoothAvailabilityState();
     status = currentState == AvailabilityState.poweredOn || screenshotMode;
+    adapterMissing = HostPlatform.isWindows && currentState == AvailabilityState.unsupported;
+    description = null;
     // Distinguish "radio off" from "app not authorized" on macOS: when the
     // radio is on but this app lacks Bluetooth permission, relabel so the
     // requirement (and its action) point at System Settings, not a radio toggle.
-    if (!kIsWeb && Platform.isMacOS && currentState == AvailabilityState.unauthorized) {
+    if (HostPlatform.isMacOS && currentState == AvailabilityState.unauthorized) {
       name = AppLocalizations.current.bluetoothPermissionRequired;
+    } else if (adapterMissing) {
+      name = AppLocalizations.current.noBluetoothAdapterFound;
+      description = AppLocalizations.current.noBluetoothAdapterDescription;
     } else {
       name = AppLocalizations.current.bluetoothTurnedOn;
     }

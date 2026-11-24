@@ -3719,5 +3719,9 @@
   "bluetoothFallbackTitle": "Not connecting over the network?",
   "bluetoothFallbackBody": "{app} also takes BikeControl over Bluetooth, as a steering device. Shifting and turns at junctions work the same.",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "Use Bluetooth instead"
+  "bluetoothFallbackAction": "Use Bluetooth instead",
+  "noBluetoothAdapterFound": "No Bluetooth adapter found",
+  "noBluetoothAdapterDescription": "Windows reports no Bluetooth on this PC. Desktop PCs often have none – a USB Bluetooth adapter (Bluetooth 5.0 or newer) fixes it. Wi-Fi trainers and gamepads work without Bluetooth.",
+  "openBluetoothSettings": "Open Bluetooth settings",
+  "couldNotEnableBluetoothWindows": "Couldn't turn on Bluetooth. Please switch it on in Windows Settings."
 }

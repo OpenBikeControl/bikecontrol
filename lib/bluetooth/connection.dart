@@ -1567,6 +1567,13 @@ class Connection {
     // throw, and gamepads and Wi-Fi trainers don't need one.
     startNonBluetoothDiscovery();
 
+    // No adapter at all (common on Windows desktops): the scan gate lets this
+    // through on purpose, so don't start a BLE scan that can only throw.
+    if (!kIsWeb && await UniversalBle.getBluetoothAvailabilityState() == AvailabilityState.unsupported) {
+      _actionStreams.add(LogNotification('No Bluetooth adapter: skipping the Bluetooth scan'));
+      return;
+    }
+
     await _startBleScan();
 
     if (kIsWeb) {

@@ -31,7 +31,7 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
     if (widget.requirements.isNotEmpty) {
       if (state == AppLifecycleState.resumed) {
         Future.wait(widget.requirements.map((e) => e.getStatus())).then((_) {
-          final allDone = widget.requirements.every((e) => e.status);
+          final allDone = widget.requirements.every(_isSettled);
           if (allDone && mounted) {
             closeSheet(context);
           } else if (mounted) {
@@ -41,6 +41,10 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
       }
     }
   }
+
+  /// Granted, or informational — nothing to wait for (see
+  /// [PlatformRequirement.isInformational]).
+  static bool _isSettled(PlatformRequirement e) => e.status || e.isInformational;
 
   @override
   void dispose() {
@@ -73,12 +77,13 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
                         })
                         .then((_) {
                           setState(() {});
-                          if (widget.requirements.all((e) => e.status)) {
+                          if (widget.requirements.all(_isSettled)) {
                             widget.onDone();
                           }
                         });
                   };
-            final optional = e is NotificationRequirement && (Platform.isMacOS || Platform.isIOS);
+            final optional =
+                (e is NotificationRequirement && (Platform.isMacOS || Platform.isIOS)) || e.isInformational;
             return SizedBox(
               width: double.infinity,
               child: Button(
@@ -109,7 +114,7 @@ class _PermissionListState extends State<PermissionList> with WidgetsBindingObse
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            e.status ? Text(context.i18n.granted) : Text(context.i18n.grant),
+                            e.status ? Text(context.i18n.granted) : Text(e.actionLabel ?? context.i18n.grant),
                             if (optional)
                               Text(AppLocalizations.of(context).chainOptional, style: context.typography.caption).muted,
                           ],

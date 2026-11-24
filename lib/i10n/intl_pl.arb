@@ -3188,5 +3188,9 @@
   "bluetoothFallbackTitle": "Nie łączy się przez sieć?",
   "bluetoothFallbackBody": "{app} przyjmuje BikeControl także przez Bluetooth, jako urządzenie do skrętu. Zmiana biegów i skręty na skrzyżowaniach działają tak samo.",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "Użyj Bluetooth zamiast tego"
+  "bluetoothFallbackAction": "Użyj Bluetooth zamiast tego",
+  "noBluetoothAdapterFound": "Nie znaleziono adaptera Bluetooth",
+  "noBluetoothAdapterDescription": "Windows nie wykrywa Bluetooth na tym komputerze. Komputery stacjonarne często go nie mają – pomoże adapter Bluetooth USB (Bluetooth 5.0 lub nowszy). Trenażery Wi-Fi i gamepady działają bez Bluetooth.",
+  "openBluetoothSettings": "Otwórz ustawienia Bluetooth",
+  "couldNotEnableBluetoothWindows": "Nie udało się włączyć Bluetooth. Włącz go w Ustawieniach systemu Windows."
 }

@@ -9,6 +9,7 @@
 - (Base) Windows: screenshots taken with a controller button now capture the whole screen, also with display scaling above 100 %, and with the right colours. Before, the right and bottom could be cut off and red and blue were swapped.
 - (Base) Elite Rizer: when the Rizer is locked (red LED) and refuses to tilt, its page and the Ride tab now say so, instead of claiming it follows the gradient.
 - (Base) Elite Rizer: a locked Rizer now shows as locked as soon as it connects, not only once a gradient arrives.
+- (Base) Windows: on a PC without a Bluetooth adapter, the Bluetooth permission now says so and opens the Bluetooth settings instead of doing nothing, and Wi-Fi trainers and gamepads are found without it. If Windows refuses to switch Bluetooth on, BikeControl tells you and opens the settings.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

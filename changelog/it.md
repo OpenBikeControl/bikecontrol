@@ -9,6 +9,7 @@
 - (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo con i colori giusti, anche con un ridimensionamento dello schermo oltre il 100 %. Prima potevano essere tagliati a destra e in basso, e rosso e blu erano invertiti.
 - (Base) Elite Rizer: quando il Rizer è bloccato (LED rosso) e non si inclina, la sua pagina e la scheda Pedala ora lo indicano, invece di dire che segue la pendenza.
 - (Base) Elite Rizer: un Rizer bloccato ora viene mostrato come bloccato appena si collega, non solo quando arriva una pendenza.
+- (Base) Windows: su un PC senza adattatore Bluetooth, il permesso Bluetooth ora lo segnala e apre le impostazioni Bluetooth invece di non fare nulla, e i rulli Wi-Fi e i gamepad vengono trovati anche senza. Se Windows non permette di attivare il Bluetooth, BikeControl te lo dice e apre le impostazioni.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

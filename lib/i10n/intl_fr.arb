@@ -3188,5 +3188,9 @@
   "bluetoothFallbackTitle": "Ça ne se connecte pas par le réseau ?",
   "bluetoothFallbackBody": "{app} accepte aussi BikeControl en Bluetooth, comme appareil de direction. Les changements de vitesse et les virages aux intersections fonctionnent pareil.",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "Utiliser le Bluetooth à la place"
+  "bluetoothFallbackAction": "Utiliser le Bluetooth à la place",
+  "noBluetoothAdapterFound": "Aucun adaptateur Bluetooth trouvé",
+  "noBluetoothAdapterDescription": "Windows ne détecte pas de Bluetooth sur ce PC. Les PC de bureau n'en ont souvent pas – un adaptateur Bluetooth USB (Bluetooth 5.0 ou plus récent) règle le problème. Les home trainers Wi-Fi et les manettes fonctionnent sans Bluetooth.",
+  "openBluetoothSettings": "Ouvrir les paramètres Bluetooth",
+  "couldNotEnableBluetoothWindows": "Impossible d'activer le Bluetooth. Active-le dans les Paramètres Windows."
 }

@@ -9,6 +9,7 @@
 - (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran we właściwych kolorach, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część mogły być ucinane, a czerwony i niebieski były zamienione.
 - (Base) Elite Rizer: gdy Rizer jest zablokowany (czerwona dioda) i nie chce się pochylać, jego strona i karta Jazda pokazują to teraz, zamiast twierdzić, że podąża za nachyleniem.
 - (Base) Elite Rizer: zablokowany Rizer jest teraz pokazywany jako zablokowany zaraz po połączeniu, a nie dopiero gdy przyjdzie nachylenie.
+- (Base) Windows: na komputerze bez adaptera Bluetooth uprawnienie Bluetooth mówi to teraz i otwiera ustawienia Bluetooth zamiast nic nie robić, a trenażery Wi-Fi i gamepady są znajdowane bez niego. Jeśli Windows nie pozwala włączyć Bluetooth, BikeControl o tym informuje i otwiera ustawienia.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

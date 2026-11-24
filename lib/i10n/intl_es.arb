@@ -3188,5 +3188,9 @@
   "bluetoothFallbackTitle": "¿No conecta por la red?",
   "bluetoothFallbackBody": "{app} también acepta BikeControl por Bluetooth, como dispositivo de dirección. Los cambios y los giros en los cruces funcionan igual.",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "Usar Bluetooth en su lugar"
+  "bluetoothFallbackAction": "Usar Bluetooth en su lugar",
+  "noBluetoothAdapterFound": "No se encontró ningún adaptador Bluetooth",
+  "noBluetoothAdapterDescription": "Windows indica que este PC no tiene Bluetooth. Muchos PC de sobremesa no lo tienen: un adaptador Bluetooth USB (Bluetooth 5.0 o superior) lo soluciona. Los rodillos Wi-Fi y los mandos funcionan sin Bluetooth.",
+  "openBluetoothSettings": "Abrir ajustes de Bluetooth",
+  "couldNotEnableBluetoothWindows": "No se pudo activar el Bluetooth. Actívalo en la Configuración de Windows."
 }

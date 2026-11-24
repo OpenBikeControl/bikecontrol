@@ -3188,5 +3188,9 @@
   "bluetoothFallbackTitle": "Non si connette tramite la rete?",
   "bluetoothFallbackBody": "{app} accetta BikeControl anche via Bluetooth, come dispositivo di sterzo. Cambi e svolte agli incroci funzionano allo stesso modo.",
   "@bluetoothFallbackBody": {"placeholders": {"app": {"type": "String"}}},
-  "bluetoothFallbackAction": "Usa il Bluetooth invece"
+  "bluetoothFallbackAction": "Usa il Bluetooth invece",
+  "noBluetoothAdapterFound": "Nessun adattatore Bluetooth trovato",
+  "noBluetoothAdapterDescription": "Windows non rileva il Bluetooth su questo PC. I PC desktop spesso non ce l'hanno: un adattatore Bluetooth USB (Bluetooth 5.0 o successivo) risolve il problema. I rulli Wi-Fi e i gamepad funzionano senza Bluetooth.",
+  "openBluetoothSettings": "Apri impostazioni Bluetooth",
+  "couldNotEnableBluetoothWindows": "Impossibile attivare il Bluetooth. Attivalo nelle Impostazioni di Windows."
 }

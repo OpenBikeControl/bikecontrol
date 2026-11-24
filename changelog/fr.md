@@ -9,6 +9,7 @@
 - (Base) Windows : les captures d'écran prises avec un bouton de la manette couvrent maintenant tout l'écran avec les bonnes couleurs, même avec une mise à l'échelle supérieure à 100 %. Avant, la droite et le bas pouvaient être coupés, et le rouge et le bleu étaient inversés.
 - (Base) Elite Rizer : quand le Rizer est verrouillé (LED rouge) et refuse de s'incliner, sa page et l'onglet Rouler l'indiquent maintenant, au lieu d'affirmer qu'il suit la pente.
 - (Base) Elite Rizer : un Rizer verrouillé s'affiche maintenant comme verrouillé dès sa connexion, pas seulement quand une pente arrive.
+- (Base) Windows : sur un PC sans adaptateur Bluetooth, l'autorisation Bluetooth l'indique maintenant et ouvre les paramètres Bluetooth au lieu de ne rien faire, et les home trainers Wi-Fi et les manettes sont trouvés sans lui. Si Windows refuse d'activer le Bluetooth, BikeControl te le dit et ouvre les paramètres.
 
 ### 7.6.1 (20-11-2026)
 **Features**:

@@ -9,6 +9,7 @@
 - (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm in den richtigen Farben auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher konnten rechts und unten Teile fehlen, und Rot und Blau waren vertauscht.
 - (Base) Elite Rizer: Ist der Rizer gesperrt (rote LED) und lässt sich nicht neigen, zeigen seine Seite und der Fahren-Tab das jetzt an, statt zu behaupten, er folge der Steigung.
 - (Base) Elite Rizer: Ein gesperrter Rizer wird jetzt schon beim Verbinden als gesperrt angezeigt, nicht erst, wenn eine Steigung ankommt.
+- (Base) Windows: Auf einem PC ohne Bluetooth-Adapter sagt die Bluetooth-Berechtigung das jetzt und öffnet die Bluetooth-Einstellungen, statt nichts zu tun – WLAN-Trainer und Gamepads werden auch ohne gefunden. Lässt Windows Bluetooth nicht einschalten, sagt BikeControl dir das und öffnet die Einstellungen.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
