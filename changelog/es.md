@@ -7,6 +7,10 @@
 - (Base) iPhone, iPad y Mac: la pantalla de inicio te avisa cuando BikeControl no se encuentra en la red, con la comprobación de red a un toque.
 - (Base) Mac: BikeControl vuelve a encontrarse después de que el Mac salga del reposo, sin reiniciar el método de red.
 - (Base) MyWhoosh en otro dispositivo: si tras un minuto y medio no se ha conectado por la red, la pantalla de inicio ahora ofrece Bluetooth en su lugar. Antes esa opción solo aparecía en la página de comprobación de red.
+- (Base) MyWhoosh en el mismo dispositivo Android: la pantalla de inicio ahora dice que el cambio virtual no llega a MyWhoosh ahí y qué configuraciones funcionan, en lugar de esperar a que MyWhoosh encuentre un rodillo que nunca mostrará.
+- (Base) MyWhoosh en otro dispositivo Android: el paso del rodillo en la pantalla de inicio ahora te indica que cambies el rodillo a Bluetooth, porque MyWhoosh para Android solo encuentra rodillos por Bluetooth.
+- (Base) Móvil Android sin Wi-Fi y la app de entrenamiento en el mismo móvil: el consejo ahora es conectarte a cualquier Wi-Fi o usar Local, en vez de «la misma Wi-Fi que la app».
+- (Base) Estar sin conexión con la sesión iniciada ya no llena el registro de entradas «App crashed».
 - (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
 
 ### 7.6.2 (23-11-2026)

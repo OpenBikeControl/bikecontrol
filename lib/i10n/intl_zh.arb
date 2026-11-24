@@ -2836,6 +2836,12 @@
       }
     }
   },
+  "chainStepTrainerBridgeBlocked": "虚拟变速在此设备上无法连接到 {app}",
+  "@chainStepTrainerBridgeBlocked": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepTrainerBridgedAndroidHint": "如果 {app} 运行在 Android 设备上，请在此骑行台的页面将其切换为蓝牙：Android 版 {app} 只能通过蓝牙找到骑行台。",
+  "@chainStepTrainerBridgedAndroidHint": {"placeholders": {"app": {"type": "String"}}},
+  "chainStepNetworkAddressNoWifiSameDeviceHint": "此设备未连接 Wi-Fi，而 {app} 只能通过 Wi-Fi 找到 BikeControl，即使在同一设备上也是如此。请连接任意 Wi-Fi（无需互联网）或使用本地方式。",
+  "@chainStepNetworkAddressNoWifiSameDeviceHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepNetworkNotVisiblePending": "网络上看不到 BikeControl",
   "chainStepNetworkNotVisibleHint": "{app} 目前在网络上找不到 BikeControl。请运行网络检查，并在其中重启网络方式。",
   "@chainStepNetworkNotVisibleHint": {"placeholders": {"app": {"type": "String"}}},

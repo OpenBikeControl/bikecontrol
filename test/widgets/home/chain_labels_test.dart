@@ -52,4 +52,65 @@ void main() {
     final l = AppLocalizations.of(tester.element(find.byType(Text).first));
     expect(find.text(l.chainStepAppConnectedHint), findsOneWidget);
   });
+
+  Future<String> label(WidgetTester tester, SetupStep step) async {
+    late ChainStepText text;
+    await tester.pumpWidget(
+      ShadcnApp(
+        localizationsDelegates: const [AppLocalizations.delegate],
+        supportedLocales: AppLocalizations.delegate.supportedLocales,
+        theme: ThemeData(colorScheme: ColorSchemes.lightSlate, radius: 0.5),
+        home: Builder(
+          builder: (context) {
+            text = chainStepText(context, step, appName: 'MyWhoosh');
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    return '${text.label}\n${text.hint ?? ''}';
+  }
+
+  testWidgets('a bridge the app on this device can never reach says so and what works', (tester) async {
+    final text = await label(
+      tester,
+      const SetupStep(
+        id: SetupStepId.trainerAppBridged,
+        done: false,
+        hintArg: 'KICKR CORE - BikeControl',
+        variant: SetupStepVariant.bridgeBlockedBluetoothOnly,
+      ),
+    );
+    expect(text, contains("Virtual shifting can't reach MyWhoosh on this device"));
+    expect(text, contains('Bluetooth only'));
+    expect(text, contains('What works'));
+    expect(text, isNot(contains('KICKR CORE - BikeControl')), reason: 'no entry to pick: the app will never list it');
+  });
+
+  testWidgets('a bridge to an app that may run on Android adds the Bluetooth advice to the usual hint', (tester) async {
+    final text = await label(
+      tester,
+      const SetupStep(
+        id: SetupStepId.trainerAppBridged,
+        done: false,
+        hintArg: 'KICKR CORE - BikeControl',
+        variant: SetupStepVariant.bridgeMaybeAndroidApp,
+      ),
+    );
+    expect(text, contains('KICKR CORE - BikeControl'));
+    expect(text, contains('switch this trainer to Bluetooth'));
+  });
+
+  testWidgets('no Wi-Fi with the app on this device: any Wi-Fi or Local', (tester) async {
+    final text = await label(
+      tester,
+      const SetupStep(
+        id: SetupStepId.appNetworkAddress,
+        done: false,
+        variant: SetupStepVariant.networkNoWifiSameDevice,
+      ),
+    );
+    expect(text, contains('Join any Wi-Fi'));
+    expect(text, contains('Local'));
+  });
 }

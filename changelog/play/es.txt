@@ -1,4 +1,7 @@
 7.7.0
 Corregido:
-• MyWhoosh en otro dispositivo: si tras un minuto y medio no se ha conectado por la red, la pantalla de inicio ahora ofrece Bluetooth en su lugar
-• Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando
+• MyWhoosh en el mismo dispositivo: la pantalla de inicio dice que el cambio virtual no llega ahí y qué funciona
+• MyWhoosh en otro dispositivo Android: cambia el rodillo a Bluetooth, la pantalla de inicio ahora lo indica
+• Sin Wi-Fi: consejo más claro
+• Se ofrece Bluetooth cuando la conexión de red no llega
+• Comprobación de red: menos falsos fallos

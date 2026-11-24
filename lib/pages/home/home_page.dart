@@ -49,6 +49,8 @@ import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/services/local_network_access.dart';
 import 'package:bike_control/pages/onboarding/onboarding_methods.dart' show offersBluetoothFallback, useBluetoothInstead;
 import 'package:bike_control/services/mdns_discovery_scan.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart'
+    show SupportedApp, TrainerConnectionType, VsSameDeviceBlock, vsSameDeviceBlock;
 import 'package:bike_control/services/network_recovery.dart';
 import 'package:bike_control/services/network_self_test/probes/passive_probes.dart'
     show AddressWarningKind, advertisedAddressWarning, advertisedAddressWarningKind;
@@ -350,6 +352,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       connection.isConnected,
     ],
   ];
+
+  /// Why [app], on this same device, can never pick up the bridged trainer,
+  /// or null when it can or runs elsewhere.
+  BridgeBlock? _bridgeBlock(SupportedApp? app) {
+    if (app == null || core.settings.getLastTarget() != Target.thisDevice) return null;
+    return switch (vsSameDeviceBlock(app)) {
+      VsSameDeviceBlock.bluetoothOnly => BridgeBlock.bluetoothOnly,
+      VsSameDeviceBlock.storeAppIsolation => BridgeBlock.storeApp,
+      null => null,
+    };
+  }
 
   /// Since when a network method has been on with no trainer app connected.
   DateTime? _waitingForAppSince;
@@ -765,6 +778,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // actually holds the virtual trainer, not just "the bridge is running".
         appHoldsBridge: proxy.isConnectedListenable.value,
         staleBluetoothLink: proxy.staleBluetoothLinkSuspected.value,
+        bridgeBlock: _bridgeBlock(trainerApp),
+        // BikeControl cannot see what the other device runs; the step says
+        // what to switch if it is Android.
+        appMayNeedBluetoothBridge:
+            trainerApp != null &&
+            core.settings.getLastTarget() == Target.otherDevice &&
+            !trainerApp.virtualShiftingTransportsOnAndroid.contains(TrainerConnectionType.wifi) &&
+            proxy.retrofitMode.value == RetrofitMode.wifi,
         // The exact entry to look for in the trainer app's device list.
         bridgeName: proxy.advertisementName,
         // And the one beside it not to pick: the trainer under its own name.
@@ -851,6 +872,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         localControlOffered: core.logic.showLocalControl,
         localControlEnabled: core.settings.getLocalEnabled(),
         bluetoothFallbackOffered: _bluetoothFallbackDue && offersBluetoothFallback(trainerApp),
+        onThisDevice: core.settings.getLastTarget() == Target.thisDevice,
         localNetworkGranted: _localNetworkGranted,
         // The trainer link's own answer, so the two cards can never disagree
         // about whether the app has picked the trainer up.
@@ -1319,6 +1341,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             : null;
       case ChainLinkKey.trainer:
         if (inputs.trainer == null) return l.chainSetUp;
+        // Nothing to be shown how to do: the app can't reach the bridge here.
+        // The button opens the trainer's page, where the connection is set.
+        final blocked =
+            link.activeStep?.variant == SetupStepVariant.bridgeBlockedBluetoothOnly ||
+            link.activeStep?.variant == SetupStepVariant.bridgeBlockedStoreApp;
+        if (active == SetupStepId.trainerAppBridged && blocked) return l.chainEdit;
         return active == SetupStepId.trainerGearOverlay ? l.chainStepOverlayAction : null;
       case ChainLinkKey.sensors:
         return null;
@@ -2326,6 +2354,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final activeStep = link.activeStep?.id;
         if (activeStep == SetupStepId.trainerGearOverlay) {
           await _enableOverlay();
+        } else if (activeStep == SetupStepId.trainerAppBridged &&
+            (link.activeStep?.variant == SetupStepVariant.bridgeBlockedBluetoothOnly ||
+                link.activeStep?.variant == SetupStepVariant.bridgeBlockedStoreApp)) {
+          // The app can never pick the bridge up on this device. The
+          // trainer's page is where the connection is changed.
+          final proxy = _bridgedTrainer;
+          if (proxy != null) await context.push(ProxyDeviceDetailsPage(device: proxy));
         } else if (activeStep == SetupStepId.trainerAppBridged) {
           // The bridge is up and the app hasn't picked it up: show how to pair
           // BikeControl as the trainer, not how to connect a trainer.

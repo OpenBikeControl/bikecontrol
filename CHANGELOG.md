@@ -7,6 +7,10 @@
 - (Base) iPhone, iPad and Mac: the home screen tells you when BikeControl cannot be found on the network, with the network check one tap away.
 - (Base) Mac: BikeControl is found again after the Mac wakes from sleep, without restarting the network method.
 - (Base) MyWhoosh on another device: if it has not connected over the network after a minute and a half, the home screen now offers Bluetooth instead. Before, that offer only showed on the network check page.
+- (Base) MyWhoosh on the same Android device: the home screen now says that virtual shifting can't reach MyWhoosh there and which setups work, instead of waiting for MyWhoosh to find a trainer it will never list.
+- (Base) MyWhoosh on another Android device: the trainer step on the home screen now tells you to switch the trainer to Bluetooth, since MyWhoosh for Android only finds trainers over Bluetooth.
+- (Base) Android phone without Wi-Fi and the trainer app on the same phone: the advice is now to join any Wi-Fi or use Local, instead of "the same Wi-Fi as the app".
+- (Base) Being offline while signed in no longer fills the log with "App crashed" entries.
 - (Base) Network check: no longer reports a failure while BikeControl is searching the network itself, or when you only use the trainer bridge and have the controller connection switched off.
 
 ### 7.6.2 (23-11-2026)

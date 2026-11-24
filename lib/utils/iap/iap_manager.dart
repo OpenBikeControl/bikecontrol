@@ -624,9 +624,14 @@ class IAPManager {
   }
 
   void _bindAuthLifecycle() {
-    _authSubscription ??= core.supabase.auth.onAuthStateChange.listen((data) {
-      unawaited(_handleAuthStateChange(data.event, data.session));
-    });
+    _authSubscription ??= core.supabase.auth.onAuthStateChange.listen(
+      (data) {
+        unawaited(_handleAuthStateChange(data.event, data.session));
+      },
+      // A token refresh that fails offline arrives here as a stream error.
+      // Unhandled, every listener logged it as an app crash.
+      onError: (Object e, StackTrace s) => recordError(e, s, context: 'IAP: auth state'),
+    );
   }
 
   Future<void> _handleAuthStateChange(AuthChangeEvent event, Session? session) async {

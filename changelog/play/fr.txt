@@ -1,4 +1,7 @@
 7.7.0
 Corrigé :
-• MyWhoosh sur un autre appareil : s'il ne s'est pas connecté par le réseau au bout d'une minute et demie, l'écran d'accueil propose désormais le Bluetooth à la place
-• Vérification du réseau : ne signale plus d'échec pendant que BikeControl parcourt lui-même le réseau, ni quand tu utilises seulement le pont du home trainer avec la connexion de la manette désactivée
+• MyWhoosh sur le même appareil : l'écran d'accueil dit que le changement de vitesse virtuel ne l'atteint pas et ce qui fonctionne
+• MyWhoosh sur un autre appareil Android : passe le home trainer en Bluetooth, l'écran d'accueil le dit
+• Sans Wi-Fi : conseil plus clair
+• Le Bluetooth est proposé quand la connexion réseau n'aboutit pas
+• Vérification du réseau : moins de faux échecs

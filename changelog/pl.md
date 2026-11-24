@@ -7,6 +7,10 @@
 - (Base) iPhone, iPad i Mac: ekran główny informuje, gdy BikeControl nie można znaleźć w sieci, a sprawdzanie sieci jest o jedno stuknięcie dalej.
 - (Base) Mac: BikeControl jest ponownie znajdowany po wybudzeniu Maca, bez restartowania metody sieciowej.
 - (Base) MyWhoosh na innym urządzeniu: jeśli po półtorej minuty nie połączy się przez sieć, ekran główny proponuje teraz zamiast tego Bluetooth. Wcześniej ta propozycja pojawiała się tylko na stronie sprawdzania sieci.
+- (Base) MyWhoosh na tym samym urządzeniu z Androidem: ekran główny informuje teraz, że wirtualna zmiana biegów nie dociera tam do MyWhoosh i które konfiguracje działają, zamiast czekać, aż MyWhoosh znajdzie trenażer, którego nigdy nie pokaże.
+- (Base) MyWhoosh na innym urządzeniu z Androidem: krok trenażera na ekranie głównym podpowiada teraz, aby przełączyć trenażer na Bluetooth, bo MyWhoosh dla Androida znajduje trenażery tylko przez Bluetooth.
+- (Base) Telefon z Androidem bez Wi-Fi i aplikacja treningowa na tym samym telefonie: rada brzmi teraz, by połączyć się z dowolną siecią Wi-Fi albo użyć trybu Lokalnie, zamiast „tej samej sieci Wi-Fi co aplikacja”.
+- (Base) Brak połączenia z internetem po zalogowaniu nie zapełnia już dziennika wpisami „App crashed”.
 - (Base) Sprawdzanie sieci: nie zgłasza już błędu, gdy BikeControl sam przeszukuje sieć, ani gdy używasz tylko mostka trenażera i masz wyłączone połączenie kontrolera.
 
 ### 7.6.2 (23-11-2026)

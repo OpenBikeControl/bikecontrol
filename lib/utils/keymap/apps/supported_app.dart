@@ -190,7 +190,13 @@ abstract class SupportedApp {
   /// BikeControl runs on sees them — what counts when both run on this same
   /// device. The same unless one platform's build differs (MyWhoosh on
   /// Android pairs trainers over Bluetooth only).
-  Set<TrainerConnectionType> get virtualShiftingTransportsHere => virtualShiftingTransports;
+  Set<TrainerConnectionType> get virtualShiftingTransportsHere =>
+      HostPlatform.isAndroid ? virtualShiftingTransportsOnAndroid : virtualShiftingTransports;
+
+  /// [virtualShiftingTransports] of this app's Android build, wherever
+  /// BikeControl runs: the trainer app may be on an Android device next to a
+  /// BikeControl on something else.
+  Set<TrainerConnectionType> get virtualShiftingTransportsOnAndroid => virtualShiftingTransports;
 
   /// Whether this app, on Windows, ships through the Microsoft Store as a
   /// sandboxed (UWP) app. Windows blocks those from connecting to a network

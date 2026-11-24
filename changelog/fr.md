@@ -7,6 +7,10 @@
 - (Base) iPhone, iPad et Mac : l'écran d'accueil t'indique quand BikeControl est introuvable sur le réseau, avec la vérification du réseau à portée de main.
 - (Base) Mac : BikeControl est de nouveau trouvé après la sortie de veille du Mac, sans redémarrer la méthode réseau.
 - (Base) MyWhoosh sur un autre appareil : s'il ne s'est pas connecté par le réseau au bout d'une minute et demie, l'écran d'accueil propose désormais le Bluetooth à la place. Auparavant, cette proposition n'apparaissait que sur la page de vérification du réseau.
+- (Base) MyWhoosh sur le même appareil Android : l'écran d'accueil indique désormais que le changement de vitesse virtuel n'y atteint pas MyWhoosh et quelles configurations fonctionnent, au lieu d'attendre que MyWhoosh trouve un home trainer qu'il n'affichera jamais.
+- (Base) MyWhoosh sur un autre appareil Android : l'étape du home trainer sur l'écran d'accueil te dit désormais de passer le home trainer en Bluetooth, car MyWhoosh pour Android ne trouve les home trainers qu'en Bluetooth.
+- (Base) Téléphone Android sans Wi-Fi et app d'entraînement sur le même téléphone : le conseil est désormais de rejoindre n'importe quel Wi-Fi ou d'utiliser Local, au lieu de « le même Wi-Fi que l'app ».
+- (Base) Être hors ligne en étant connecté à ton compte ne remplit plus le journal d'entrées « App crashed ».
 - (Base) Vérification du réseau : ne signale plus d'échec pendant que BikeControl parcourt lui-même le réseau, ni quand tu utilises seulement le pont du home trainer avec la connexion de la manette désactivée.
 
 ### 7.6.2 (23-11-2026)

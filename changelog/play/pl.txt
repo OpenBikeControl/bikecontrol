@@ -1,4 +1,7 @@
 7.7.0
 Poprawki:
-• MyWhoosh na innym urządzeniu: jeśli po półtorej minuty nie połączy się przez sieć, ekran główny proponuje teraz zamiast tego Bluetooth
-• Sprawdzanie sieci: nie zgłasza już błędu, gdy BikeControl sam przeszukuje sieć, ani gdy używasz tylko mostka trenażera i masz wyłączone połączenie kontrolera
+• MyWhoosh na tym samym urządzeniu: ekran główny informuje, że wirtualna zmiana biegów tam nie dociera i co działa
+• MyWhoosh na innym urządzeniu z Androidem: przełącz trenażer na Bluetooth, ekran główny teraz to podpowiada
+• Brak Wi-Fi: jaśniejsza rada
+• Bluetooth jest proponowany, gdy połączenie sieciowe się nie udaje
+• Sprawdzanie sieci: mniej fałszywych błędów

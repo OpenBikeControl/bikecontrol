@@ -7,6 +7,10 @@
 - (Base) iPhone, iPad e Mac: la schermata principale ti avvisa quando BikeControl non si trova sulla rete, con il controllo di rete a un tocco.
 - (Base) Mac: BikeControl viene trovato di nuovo dopo che il Mac esce dallo stop, senza riavviare il metodo di rete.
 - (Base) MyWhoosh su un altro dispositivo: se dopo un minuto e mezzo non si è connesso tramite la rete, la schermata principale ora propone il Bluetooth al suo posto. Prima la proposta compariva solo nella pagina del controllo di rete.
+- (Base) MyWhoosh sullo stesso dispositivo Android: la schermata principale ora dice che il cambio virtuale lì non raggiunge MyWhoosh e quali configurazioni funzionano, invece di aspettare che MyWhoosh trovi un rullo che non mostrerà mai.
+- (Base) MyWhoosh su un altro dispositivo Android: il passaggio del rullo nella schermata principale ora ti dice di passare il rullo a Bluetooth, perché MyWhoosh per Android trova i rulli solo via Bluetooth.
+- (Base) Telefono Android senza Wi-Fi e app di allenamento sullo stesso telefono: il consiglio ora è collegarti a una Wi-Fi qualsiasi o usare Locale, invece di «la stessa Wi-Fi dell'app».
+- (Base) Essere offline con l'accesso effettuato non riempie più il registro di voci «App crashed».
 - (Base) Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller.
 
 ### 7.6.2 (23-11-2026)

@@ -1,4 +1,7 @@
 7.7.0
 Corretto:
-• MyWhoosh su un altro dispositivo: se dopo un minuto e mezzo non si è connesso tramite la rete, la schermata principale ora propone il Bluetooth al suo posto
-• Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller
+• MyWhoosh sullo stesso dispositivo: la schermata principale dice che il cambio virtuale lì non lo raggiunge e cosa funziona
+• MyWhoosh su un altro dispositivo Android: passa il rullo a Bluetooth, ora la schermata principale lo dice
+• Senza Wi-Fi: consiglio più chiaro
+• Viene proposto il Bluetooth quando la connessione di rete non arriva
+• Controllo di rete: meno falsi errori

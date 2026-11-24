@@ -7,6 +7,10 @@
 - (Base) iPhone、iPad 和 Mac：当网络上找不到 BikeControl 时，主屏幕会提示你，并可一键打开网络检查。
 - (Base) Mac：Mac 从睡眠中唤醒后，无需重启网络方式即可再次找到 BikeControl。
 - (Base) 另一台设备上的 MyWhoosh：如果一分半钟后仍未通过网络连接，主屏幕现在会提供改用蓝牙的选项。以前只有网络检查页面才有这个选项。
+- (Base) 同一台 Android 设备上的 MyWhoosh：主屏幕现在会说明虚拟变速在该设备上无法连接到 MyWhoosh 以及哪些搭配可行，而不是一直等待 MyWhoosh 找到它永远不会列出的骑行台。
+- (Base) 另一台 Android 设备上的 MyWhoosh：主屏幕上的骑行台步骤现在会提示把骑行台切换为蓝牙，因为 Android 版 MyWhoosh 只能通过蓝牙找到骑行台。
+- (Base) 没有 Wi-Fi 的 Android 手机且训练应用在同一部手机上：现在建议连接任意 Wi-Fi 或使用本地方式，而不是“与应用相同的 Wi-Fi”。
+- (Base) 登录后处于离线状态不再让日志充满“App crashed”条目。
 - (Base) 网络检查：当 BikeControl 自己正在搜索网络时，或你只使用骑行台桥接并关闭了控制器连接时，不再报告失败。
 
 ### 7.6.2 (23-11-2026)

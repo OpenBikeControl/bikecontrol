@@ -32,8 +32,7 @@ class MyWhoosh extends SupportedApp {
 
   /// MyWhoosh for Android can't pair a network virtual bike — only Bluetooth.
   @override
-  Set<TrainerConnectionType> get virtualShiftingTransportsHere =>
-      HostPlatform.isAndroid ? const {TrainerConnectionType.bluetooth} : virtualShiftingTransports;
+  Set<TrainerConnectionType> get virtualShiftingTransportsOnAndroid => const {TrainerConnectionType.bluetooth};
 
   @override
   List<ControllerButton> get defaultObpSupportedButtons => const [

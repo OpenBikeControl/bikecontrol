@@ -119,7 +119,10 @@ class _SupportAccountLinkCardState extends State<SupportAccountLinkCard> {
   @override
   void initState() {
     super.initState();
-    _authStateSub = widget.accountService.authStateChanges.listen(_onAuthStateChange);
+    _authStateSub = widget.accountService.authStateChanges.listen(
+      _onAuthStateChange,
+      onError: (Object e, StackTrace s) => recordError(e, s, context: 'Support account link: auth state'),
+    );
   }
 
   @override
