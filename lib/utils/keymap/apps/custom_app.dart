@@ -35,7 +35,9 @@ class CustomApp extends SupportedApp {
       return;
     }
 
-    final keyPairs = data.map((e) => KeyPair.decode(e)).whereNotNull().toList();
+    // A pair copied onto another controller's same-named button (see
+    // Keymap.addNewButtons) is saved exactly like the original; one is enough.
+    final keyPairs = data.distinct().map((e) => KeyPair.decode(e)).whereNotNull().toList();
     if (keyPairs.isEmpty) {
       return;
     }
