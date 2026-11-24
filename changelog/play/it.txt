@@ -1,3 +1,4 @@
 7.7.0
 Corretto:
+• MyWhoosh su un altro dispositivo: se dopo un minuto e mezzo non si è connesso tramite la rete, la schermata principale ora propone il Bluetooth al suo posto
 • Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller

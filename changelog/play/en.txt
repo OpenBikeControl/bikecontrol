@@ -1,3 +1,4 @@
 7.7.0
 Fixed:
+• MyWhoosh on another device: if it has not connected over the network after a minute and a half, the home screen now offers Bluetooth instead
 • Network check: no longer reports a failure while BikeControl is searching the network itself, or when you only use the trainer bridge and have the controller connection switched off

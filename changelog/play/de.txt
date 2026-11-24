@@ -1,3 +1,4 @@
 7.7.0
 Behoben:
+• MyWhoosh auf einem anderen Gerät: Hat es sich nach anderthalb Minuten nicht übers Netzwerk verbunden, bietet die Startseite jetzt stattdessen Bluetooth an
 • Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast

@@ -6,6 +6,7 @@
 - (Base) iPhone / iPad: Die Suche nach WLAN-Trainern füllt das Protokoll nicht mehr mit „App crashed“-Einträgen.
 - (Base) iPhone, iPad und Mac: Die Startseite zeigt dir, wenn BikeControl im Netzwerk nicht zu finden ist – die Netzwerkprüfung ist nur einen Tipp entfernt.
 - (Base) Mac: BikeControl wird nach dem Aufwachen des Mac wieder gefunden, ohne die Netzwerkmethode neu zu starten.
+- (Base) MyWhoosh auf einem anderen Gerät: Hat es sich nach anderthalb Minuten nicht übers Netzwerk verbunden, bietet die Startseite jetzt stattdessen Bluetooth an. Bisher gab es das Angebot nur auf der Seite der Netzwerkprüfung.
 - (Base) Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast.
 
 ### 7.6.2 (23-11-2026)

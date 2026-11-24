@@ -6,6 +6,7 @@
 - (Base) iPhone / iPad: la ricerca dei rulli Wi-Fi non riempie più il registro di voci «App crashed».
 - (Base) iPhone, iPad e Mac: la schermata principale ti avvisa quando BikeControl non si trova sulla rete, con il controllo di rete a un tocco.
 - (Base) Mac: BikeControl viene trovato di nuovo dopo che il Mac esce dallo stop, senza riavviare il metodo di rete.
+- (Base) MyWhoosh su un altro dispositivo: se dopo un minuto e mezzo non si è connesso tramite la rete, la schermata principale ora propone il Bluetooth al suo posto. Prima la proposta compariva solo nella pagina del controllo di rete.
 - (Base) Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller.
 
 ### 7.6.2 (23-11-2026)

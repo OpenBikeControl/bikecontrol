@@ -162,6 +162,7 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     SetupStepId.appLocalControl => step.done
         ? ChainStepText(l.chainStepLocalControlDone)
         : ChainStepText(l.chainStepLocalControl, l.chainStepLocalControlHint(app)),
+    SetupStepId.appBluetoothFallback => ChainStepText(l.bluetoothFallbackTitle, l.bluetoothFallbackBody(app)),
   };
 }
 

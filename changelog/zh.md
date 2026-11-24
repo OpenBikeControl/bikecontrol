@@ -6,6 +6,7 @@
 - (Base) iPhone / iPad：搜索 Wi-Fi 骑行台不再让日志充满“App crashed”条目。
 - (Base) iPhone、iPad 和 Mac：当网络上找不到 BikeControl 时，主屏幕会提示你，并可一键打开网络检查。
 - (Base) Mac：Mac 从睡眠中唤醒后，无需重启网络方式即可再次找到 BikeControl。
+- (Base) 另一台设备上的 MyWhoosh：如果一分半钟后仍未通过网络连接，主屏幕现在会提供改用蓝牙的选项。以前只有网络检查页面才有这个选项。
 - (Base) 网络检查：当 BikeControl 自己正在搜索网络时，或你只使用骑行台桥接并关闭了控制器连接时，不再报告失败。
 
 ### 7.6.2 (23-11-2026)

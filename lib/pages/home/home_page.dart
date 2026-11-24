@@ -47,6 +47,7 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/services/local_network_access.dart';
+import 'package:bike_control/pages/onboarding/onboarding_methods.dart' show offersBluetoothFallback, useBluetoothInstead;
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:bike_control/services/network_recovery.dart';
 import 'package:bike_control/services/network_self_test/probes/passive_probes.dart'
@@ -350,7 +351,41 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     ],
   ];
 
+  /// Since when a network method has been on with no trainer app connected.
+  DateTime? _waitingForAppSince;
+  Timer? _bluetoothOfferTimer;
+
+  /// How long the rider waits on the network before Bluetooth is offered.
+  static const _bluetoothOfferAfter = Duration(seconds: 90);
+
+  /// Whether the wait has been long enough to offer Bluetooth, or BikeControl
+  /// cannot be found on the network at all. Whether the app takes Bluetooth
+  /// is the caller's question.
+  bool get _bluetoothFallbackDue {
+    if (_advertisementInvisible) return true;
+    final since = _waitingForAppSince;
+    return since != null && DateTime.now().difference(since) >= _bluetoothOfferAfter;
+  }
+
+  /// Starts or ends the wait as network methods and the app come and go.
+  void _syncWaitingForApp() {
+    final waiting = core.logic.hasNetworkMethodEnabled && !_trainerAppConnectedOverNetwork;
+    if (!waiting) {
+      _waitingForAppSince = null;
+      _bluetoothOfferTimer?.cancel();
+      _bluetoothOfferTimer = null;
+      return;
+    }
+    if (_waitingForAppSince != null) return;
+    _waitingForAppSince = DateTime.now();
+    _bluetoothOfferTimer?.cancel();
+    _bluetoothOfferTimer = Timer(_bluetoothOfferAfter, () {
+      if (mounted) setState(() {});
+    });
+  }
+
   void _onAdvertisedAddressChanged() {
+    _syncWaitingForApp();
     // A method that was restarted may be visible again: look once more.
     unawaited(_refreshAdvertisedAddress(lookForAdvertisement: _advertisementInvisible));
   }
@@ -361,6 +396,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     unawaited(_refreshLocalNetwork());
     unawaited(_refreshAdvertisedAddress(lookForAdvertisement: true));
+    _syncWaitingForApp();
     for (final listenable in _advertisedAddressListenables) {
       listenable.addListener(_onAdvertisedAddressChanged);
     }
@@ -584,6 +620,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       listenable.removeListener(_onAdvertisedAddressChanged);
     }
     WidgetsBinding.instance.removeObserver(this);
+    _bluetoothOfferTimer?.cancel();
     _highlights.dispose();
     super.dispose();
   }
@@ -801,6 +838,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // this platform can drive it" — see CoreLogic.
         localControlOffered: core.logic.showLocalControl,
         localControlEnabled: core.settings.getLocalEnabled(),
+        bluetoothFallbackOffered: _bluetoothFallbackDue && offersBluetoothFallback(trainerApp),
         localNetworkGranted: _localNetworkGranted,
         // The trainer link's own answer, so the two cards can never disagree
         // about whether the app has picked the trainer up.
@@ -2189,8 +2227,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // it is the step in front.
       // The step's own wording is already the action ("Add keyboard and
       // mouse actions"), so the line offers itself.
-      offerLabel: (step) => step.id == SetupStepId.appLocalControl ? l.chainStepLocalControl : null,
+      offerLabel: (step) => switch (step.id) {
+        SetupStepId.appLocalControl => l.chainStepLocalControl,
+        SetupStepId.appBluetoothFallback => l.bluetoothFallbackAction,
+        _ => null,
+      },
       onOffer: (step) async {
+        if (step.id == SetupStepId.appBluetoothFallback) {
+          final app = core.settings.getTrainerApp();
+          if (app == null) return;
+          await useBluetoothInstead(context, app, onUpdate: _update);
+          // Refused the Bluetooth permission: the network method stays.
+          if (!core.settings.getBc2BleEnabled() || !mounted) return;
+          _update();
+          // Pairing over Bluetooth happens in the trainer app; show how.
+          unawaited(openAppGuideSheet(context));
+          return;
+        }
         if (step.id != SetupStepId.appLocalControl) return;
         await enableLocalControl(context);
         _update();

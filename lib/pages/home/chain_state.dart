@@ -59,6 +59,7 @@ enum SetupStepId {
   appNetworkAddress,
   appConnected,
   appLocalControl,
+  appBluetoothFallback,
 }
 
 /// What the banner's action button does. The banner never invents a target: it

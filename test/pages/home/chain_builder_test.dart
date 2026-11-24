@@ -1767,6 +1767,59 @@ void main() {
   // to it: keystrokes and clicks the button editor only offers once it is on. A
   // rider on the same device who never turns it on never learns those actions
   // exist, so the app card says so — as an offer, never as work.
+  group('the Bluetooth fallback step', () {
+    ChainLink appLink(AppInput app) => buildChain(ChainInputs(app: app)).byKey(ChainLinkKey.app);
+
+    const waiting = AppInput(name: 'MyWhoosh', hasEnabledConnection: true, bluetoothFallbackOffered: true);
+
+    test('an app that keeps the rider waiting on the network is offered Bluetooth', () {
+      final link = appLink(waiting);
+      final step = link.steps.firstWhere((s) => s.id == SetupStepId.appBluetoothFallback);
+      expect(step.done, isFalse);
+      // An offer: the network may still connect, and the card must not look
+      // any more broken for it.
+      expect(step.optional, isTrue);
+      expect(link.requiredSteps, isNot(contains(step)));
+    });
+
+    test('is absent while nothing says to offer it', () {
+      final link = appLink(const AppInput(name: 'MyWhoosh', hasEnabledConnection: true));
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+
+    test('is gone once the app is connected', () {
+      final link = appLink(
+        const AppInput(
+          name: 'MyWhoosh',
+          hasEnabledConnection: true,
+          isConnected: true,
+          wasConnectedThisSession: true,
+          bluetoothFallbackOffered: true,
+        ),
+      );
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+
+    // Its network path worked in this session; an app that was closed is no
+    // reason to change the method.
+    test('is not offered to an app that connected earlier and dropped', () {
+      final link = appLink(
+        const AppInput(
+          name: 'MyWhoosh',
+          hasEnabledConnection: true,
+          wasConnectedThisSession: true,
+          bluetoothFallbackOffered: true,
+        ),
+      );
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+
+    test('is not offered with no connection method switched on', () {
+      final link = appLink(const AppInput(name: 'MyWhoosh', bluetoothFallbackOffered: true));
+      expect(_hasStep(link, SetupStepId.appBluetoothFallback), isFalse);
+    });
+  });
+
   group('the local control step', () {
     const offered = AppInput(
       name: 'MyWhoosh',

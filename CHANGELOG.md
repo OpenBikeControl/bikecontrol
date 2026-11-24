@@ -6,6 +6,7 @@
 - (Base) iPhone / iPad: searching for Wi-Fi trainers no longer fills the log with "App crashed" entries.
 - (Base) iPhone, iPad and Mac: the home screen tells you when BikeControl cannot be found on the network, with the network check one tap away.
 - (Base) Mac: BikeControl is found again after the Mac wakes from sleep, without restarting the network method.
+- (Base) MyWhoosh on another device: if it has not connected over the network after a minute and a half, the home screen now offers Bluetooth instead. Before, that offer only showed on the network check page.
 - (Base) Network check: no longer reports a failure while BikeControl is searching the network itself, or when you only use the trainer bridge and have the controller connection switched off.
 
 ### 7.6.2 (23-11-2026)

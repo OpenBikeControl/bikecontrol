@@ -6,6 +6,7 @@
 - (Base) iPhone / iPad: buscar entrenadores Wi-Fi ya no llena el registro de entradas «App crashed».
 - (Base) iPhone, iPad y Mac: la pantalla de inicio te avisa cuando BikeControl no se encuentra en la red, con la comprobación de red a un toque.
 - (Base) Mac: BikeControl vuelve a encontrarse después de que el Mac salga del reposo, sin reiniciar el método de red.
+- (Base) MyWhoosh en otro dispositivo: si tras un minuto y medio no se ha conectado por la red, la pantalla de inicio ahora ofrece Bluetooth en su lugar. Antes esa opción solo aparecía en la página de comprobación de red.
 - (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
 
 ### 7.6.2 (23-11-2026)

@@ -390,6 +390,16 @@ ChainLink _appLink(ChainInputs inputs) {
         done: app.localControlEnabled,
         optional: true,
       ),
+    // A way round a network connection that is not coming up. An offer, not
+    // work: the network may still connect, and then this is gone. Never once
+    // the app has connected in this session — its network path works, and a
+    // closed app is no reason to change the method.
+    if (selected && app.bluetoothFallbackOffered && app.hasEnabledConnection && !connected && !connectedEarlier)
+      const SetupStep(
+        id: SetupStepId.appBluetoothFallback,
+        done: false,
+        optional: true,
+      ),
   ];
 
   // It was carrying commands earlier in this session and has stopped. Unlike a
