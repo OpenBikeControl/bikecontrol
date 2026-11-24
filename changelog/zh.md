@@ -5,22 +5,13 @@
 - (Base) PedalCraft、suffer.online、Kardiacs、Sueur、TrainerKit、Pedal Mania、Warp、hupser 和 SaddleOut 现已通过 OpenBikeControl 获得官方支持。
 
 **Fixes**:
-- (Base) Grimpa、Biketerra 和 Ride Cave：设置流程现在会开启蓝牙连接方式，并在 Android 上于控制器步骤中请求所需的蓝牙权限。此前会开启这些应用无法使用的网络方式。
 - (Base) Android：点击 BikeControl 通知中的“关闭”现在也会移除档位悬浮窗。此前 BikeControl 退出后悬浮窗仍留在屏幕上。
-- (Base) 安卓上使用 FulGaz 或 Biketerra：连接骑行台时，BikeControl 现在会请求以骑行台身份出现所需的蓝牙权限。此前桥接会一直转圈，应用也始终看不到它。骑行台页面还会显示应用中列出的名称（安卓会缩短它，例如“KICKR CORE 1234 - Bik”）。
 - (Base) iPhone / iPad：BikeControl 现在在后台等待训练应用时会保持运行（最长 15 分钟），并在应用断开后继续保持 5 分钟。以前 iOS 可能在 MyWhoosh 等应用找到 BikeControl 之前就让它休眠，导致应用找不到或无法连接。
 - (Base) iPhone / iPad：如果 iOS 仍然让 BikeControl 休眠，回到 BikeControl 后它会自动重新出现在网络上。以前需要重启网络方式。
 - (Base) iPhone / iPad：切换 Wi-Fi 或热点后，BikeControl 会立即跟随，而不是继续广播旧地址。
-- (Base) iPhone / iPad：搜索 Wi-Fi 骑行台不再让日志充满“App crashed”条目。
 - (Base) iPhone、iPad 和 Mac：当网络上找不到 BikeControl 时，主屏幕会提示你，并可一键打开网络检查。
 - (Base) Mac：Mac 从睡眠中唤醒后，无需重启网络方式即可再次找到 BikeControl。
-- (Base) 另一台设备上的 MyWhoosh：如果一分半钟后仍未通过网络连接，主屏幕现在会提供改用蓝牙的选项。以前只有网络检查页面才有这个选项。
-- (Base) 同一台 Android 设备上的 MyWhoosh：主屏幕现在会说明虚拟变速在该设备上无法连接到 MyWhoosh 以及哪些搭配可行，而不是一直等待 MyWhoosh 找到它永远不会列出的骑行台。
-- (Base) 另一台 Android 设备上的 MyWhoosh：主屏幕上的骑行台步骤现在会提示把骑行台切换为蓝牙，因为 Android 版 MyWhoosh 只能通过蓝牙找到骑行台。
-- (Base) 没有 Wi-Fi 的 Android 手机且训练应用在同一部手机上：现在建议连接任意 Wi-Fi 或使用本地方式，而不是“与应用相同的 Wi-Fi”。
-- (Base) 登录后处于离线状态不再让日志充满“App crashed”条目。
 - (Base) 网络检查：当 BikeControl 自己正在搜索网络时，或你只使用骑行台桥接并关闭了控制器连接时，不再报告失败。
-- (Base) Windows：在没有蓝牙适配器的电脑上，蓝牙权限现在会明确提示并打开蓝牙设置，而不是毫无反应；Wi-Fi 骑行台和游戏手柄无需蓝牙也能被找到。如果 Windows 拒绝开启蓝牙，BikeControl 会提示你并打开设置。
 - (Base) Windows：用控制器按键截取的截图颜色正确了。此前红色和蓝色互换。
 - (Base) 与其他控制器按键同名的按键（例如 KICKR BIKE 的转向键），其自定义设置在重启后会保留。此前每次重启都会恢复为默认设置。
 

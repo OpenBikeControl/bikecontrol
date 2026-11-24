@@ -5,22 +5,13 @@
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser und SaddleOut werden jetzt offiziell über OpenBikeControl unterstützt.
 
 **Fixes**:
-- (Base) Grimpa, Biketerra und Ride Cave: Die Einrichtung schaltet jetzt die Bluetooth-Verbindungsmethode ein und fragt auf Android schon im Controller-Schritt nach der nötigen Bluetooth-Berechtigung. Bisher wurde eine Netzwerkmethode eingeschaltet, die diese Apps nicht nutzen können.
 - (Base) Android: „Schließen“ in der Benachrichtigung von BikeControl entfernt jetzt auch das Gang-Overlay. Bisher blieb das Overlay auf dem Bildschirm, nachdem BikeControl beendet war.
-- (Base) Android mit FulGaz oder Biketerra: Beim Verbinden des Trainers fragt BikeControl jetzt nach der Bluetooth-Berechtigung, die es braucht, um als Trainer zu erscheinen. Bisher drehte sich die Bridge endlos und die App zeigte sie nie an. Die Trainer-Seite zeigt außerdem den Namen, unter dem die App sie listet (Android kürzt ihn, z. B. „KICKR CORE 1234 - Bik“).
 - (Base) iPhone / iPad: BikeControl bleibt jetzt im Hintergrund wach, solange es auf deine Trainer-App wartet (bis zu 15 Minuten), und noch 5 Minuten, nachdem die App die Verbindung getrennt hat. Bisher konnte iOS BikeControl schlafen legen, bevor MyWhoosh und andere Apps es gefunden hatten – die App fand dann nichts oder konnte sich nicht verbinden.
 - (Base) iPhone / iPad: Hat iOS BikeControl doch schlafen gelegt, ist es von selbst wieder im Netzwerk zu finden, sobald du zurückkehrst. Bisher musste die Netzwerkmethode neu gestartet werden.
 - (Base) iPhone / iPad: BikeControl folgt einem Wechsel des WLANs oder Hotspots sofort, statt weiter die alte Adresse anzukündigen.
-- (Base) iPhone / iPad: Die Suche nach WLAN-Trainern füllt das Protokoll nicht mehr mit „App crashed“-Einträgen.
 - (Base) iPhone, iPad und Mac: Die Startseite zeigt dir, wenn BikeControl im Netzwerk nicht zu finden ist – die Netzwerkprüfung ist nur einen Tipp entfernt.
 - (Base) Mac: BikeControl wird nach dem Aufwachen des Mac wieder gefunden, ohne die Netzwerkmethode neu zu starten.
-- (Base) MyWhoosh auf einem anderen Gerät: Hat es sich nach anderthalb Minuten nicht übers Netzwerk verbunden, bietet die Startseite jetzt stattdessen Bluetooth an. Bisher gab es das Angebot nur auf der Seite der Netzwerkprüfung.
-- (Base) MyWhoosh auf demselben Android-Gerät: Die Startseite sagt jetzt, dass virtuelles Schalten MyWhoosh dort nicht erreicht und welche Aufbauten funktionieren, statt darauf zu warten, dass MyWhoosh einen Trainer findet, den es nie anzeigen wird.
-- (Base) MyWhoosh auf einem anderen Android-Gerät: Der Trainer-Schritt auf der Startseite sagt dir jetzt, dass du den Trainer auf Bluetooth umstellen sollst – MyWhoosh für Android findet Trainer nur über Bluetooth.
-- (Base) Android-Handy ohne WLAN und Trainer-App auf demselben Handy: Der Hinweis lautet jetzt, ein beliebiges WLAN zu nutzen oder Lokal, statt „dasselbe WLAN wie die App“.
-- (Base) Offline zu sein, während du angemeldet bist, füllt das Protokoll nicht mehr mit „App crashed“-Einträgen.
 - (Base) Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast.
-- (Base) Windows: Auf einem PC ohne Bluetooth-Adapter sagt die Bluetooth-Berechtigung das jetzt und öffnet die Bluetooth-Einstellungen, statt nichts zu tun – WLAN-Trainer und Gamepads werden auch ohne gefunden. Lässt Windows Bluetooth nicht einschalten, sagt BikeControl dir das und öffnet die Einstellungen.
 - (Base) Windows: Screenshots per Controller-Taste haben die richtigen Farben. Bisher waren Rot und Blau vertauscht.
 - (Base) Eigene Belegungen von Tasten, die so heißen wie eine Taste eines anderen Controllers (z. B. die Lenktasten des KICKR BIKE), bleiben nach einem Neustart erhalten. Bisher fielen sie jedes Mal auf die Standardbelegung zurück.
 

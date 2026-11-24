@@ -5,22 +5,13 @@
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser e SaddleOut sono ora supportati ufficialmente tramite OpenBikeControl.
 
 **Fixes**:
-- (Base) Grimpa, Biketerra e Ride Cave: la configurazione ora attiva il metodo di connessione Bluetooth e, su Android, chiede già nel passaggio del controller l'autorizzazione Bluetooth necessaria. Prima attivava un metodo di rete che queste app non possono usare.
 - (Base) Android: «Chiudi» nella notifica di BikeControl ora rimuove anche l'overlay del rapporto. Prima l'overlay restava sullo schermo dopo la chiusura di BikeControl.
-- (Base) Android con FulGaz o Biketerra: collegando il rullo, BikeControl ora chiede il permesso Bluetooth che gli serve per comparire come rullo. Prima il bridge restava in caricamento e l'app non lo mostrava mai. La pagina del rullo mostra anche il nome con cui l'app lo elenca (Android lo accorcia, ad es. «KICKR CORE 1234 - Bik»).
 - (Base) iPhone / iPad: BikeControl ora resta attivo in background mentre aspetta la tua app di allenamento (fino a 15 minuti) e per 5 minuti dopo che l'app si è disconnessa. Prima iOS poteva sospendere BikeControl prima che MyWhoosh e altre app lo trovassero, e l'app non trovava nulla o non riusciva a connettersi.
 - (Base) iPhone / iPad: se iOS sospende comunque BikeControl, torna visibile sulla rete da solo appena ci ritorni. Prima bisognava riavviare il metodo di rete.
 - (Base) iPhone / iPad: BikeControl segue subito un cambio di Wi-Fi o di hotspot invece di annunciare il vecchio indirizzo.
-- (Base) iPhone / iPad: la ricerca dei rulli Wi-Fi non riempie più il registro di voci «App crashed».
 - (Base) iPhone, iPad e Mac: la schermata principale ti avvisa quando BikeControl non si trova sulla rete, con il controllo di rete a un tocco.
 - (Base) Mac: BikeControl viene trovato di nuovo dopo che il Mac esce dallo stop, senza riavviare il metodo di rete.
-- (Base) MyWhoosh su un altro dispositivo: se dopo un minuto e mezzo non si è connesso tramite la rete, la schermata principale ora propone il Bluetooth al suo posto. Prima la proposta compariva solo nella pagina del controllo di rete.
-- (Base) MyWhoosh sullo stesso dispositivo Android: la schermata principale ora dice che il cambio virtuale lì non raggiunge MyWhoosh e quali configurazioni funzionano, invece di aspettare che MyWhoosh trovi un rullo che non mostrerà mai.
-- (Base) MyWhoosh su un altro dispositivo Android: il passaggio del rullo nella schermata principale ora ti dice di passare il rullo a Bluetooth, perché MyWhoosh per Android trova i rulli solo via Bluetooth.
-- (Base) Telefono Android senza Wi-Fi e app di allenamento sullo stesso telefono: il consiglio ora è collegarti a una Wi-Fi qualsiasi o usare Locale, invece di «la stessa Wi-Fi dell'app».
-- (Base) Essere offline con l'accesso effettuato non riempie più il registro di voci «App crashed».
 - (Base) Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller.
-- (Base) Windows: su un PC senza adattatore Bluetooth, il permesso Bluetooth ora lo segnala e apre le impostazioni Bluetooth invece di non fare nulla, e i rulli Wi-Fi e i gamepad vengono trovati anche senza. Se Windows non permette di attivare il Bluetooth, BikeControl te lo dice e apre le impostazioni.
 - (Base) Windows: gli screenshot fatti con un pulsante del controller hanno i colori giusti. Prima rosso e blu erano invertiti.
 - (Base) Le assegnazioni personalizzate dei pulsanti che hanno lo stesso nome di un pulsante di un altro controller (ad es. i pulsanti di sterzo della KICKR BIKE) restano dopo un riavvio. Prima tornavano ogni volta all'assegnazione predefinita.
 

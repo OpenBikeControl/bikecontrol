@@ -5,22 +5,13 @@
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser et SaddleOut sont maintenant officiellement pris en charge via OpenBikeControl.
 
 **Fixes**:
-- (Base) Grimpa, Biketerra et Ride Cave : la configuration active maintenant la méthode de connexion Bluetooth et, sur Android, demande dès l'étape de la manette l'autorisation Bluetooth nécessaire. Avant, elle activait une méthode réseau que ces apps ne peuvent pas utiliser.
 - (Base) Android : « Fermer » dans la notification de BikeControl retire maintenant aussi la superposition du braquet. Avant, elle restait à l'écran après la fermeture de BikeControl.
-- (Base) Android avec FulGaz ou Biketerra : en connectant le home trainer, BikeControl demande maintenant l'autorisation Bluetooth dont il a besoin pour apparaître comme home trainer. Avant, le pont tournait sans fin et l'app ne l'affichait jamais. La page du home trainer affiche aussi le nom sous lequel l'app le liste (Android le raccourcit, p. ex. « KICKR CORE 1234 - Bik »).
 - (Base) iPhone / iPad : BikeControl reste désormais actif en arrière-plan tant qu'il attend ton app d'entraînement (jusqu'à 15 minutes), et pendant 5 minutes après la déconnexion de l'app. Auparavant, iOS pouvait suspendre BikeControl avant que MyWhoosh et d'autres apps ne l'aient trouvé : l'app ne trouvait rien ou ne pouvait pas se connecter.
 - (Base) iPhone / iPad : si iOS suspend malgré tout BikeControl, il redevient visible sur le réseau de lui-même dès que tu y reviens. Auparavant, il fallait redémarrer la méthode réseau.
 - (Base) iPhone / iPad : BikeControl suit immédiatement un changement de Wi-Fi ou de partage de connexion au lieu d'annoncer l'ancienne adresse.
-- (Base) iPhone / iPad : la recherche de home trainers Wi-Fi ne remplit plus le journal d'entrées « App crashed ».
 - (Base) iPhone, iPad et Mac : l'écran d'accueil t'indique quand BikeControl est introuvable sur le réseau, avec la vérification du réseau à portée de main.
 - (Base) Mac : BikeControl est de nouveau trouvé après la sortie de veille du Mac, sans redémarrer la méthode réseau.
-- (Base) MyWhoosh sur un autre appareil : s'il ne s'est pas connecté par le réseau au bout d'une minute et demie, l'écran d'accueil propose désormais le Bluetooth à la place. Auparavant, cette proposition n'apparaissait que sur la page de vérification du réseau.
-- (Base) MyWhoosh sur le même appareil Android : l'écran d'accueil indique désormais que le changement de vitesse virtuel n'y atteint pas MyWhoosh et quelles configurations fonctionnent, au lieu d'attendre que MyWhoosh trouve un home trainer qu'il n'affichera jamais.
-- (Base) MyWhoosh sur un autre appareil Android : l'étape du home trainer sur l'écran d'accueil te dit désormais de passer le home trainer en Bluetooth, car MyWhoosh pour Android ne trouve les home trainers qu'en Bluetooth.
-- (Base) Téléphone Android sans Wi-Fi et app d'entraînement sur le même téléphone : le conseil est désormais de rejoindre n'importe quel Wi-Fi ou d'utiliser Local, au lieu de « le même Wi-Fi que l'app ».
-- (Base) Être hors ligne en étant connecté à ton compte ne remplit plus le journal d'entrées « App crashed ».
 - (Base) Vérification du réseau : ne signale plus d'échec pendant que BikeControl parcourt lui-même le réseau, ni quand tu utilises seulement le pont du home trainer avec la connexion de la manette désactivée.
-- (Base) Windows : sur un PC sans adaptateur Bluetooth, l'autorisation Bluetooth l'indique maintenant et ouvre les paramètres Bluetooth au lieu de ne rien faire, et les home trainers Wi-Fi et les manettes sont trouvés sans lui. Si Windows refuse d'activer le Bluetooth, BikeControl te le dit et ouvre les paramètres.
 - (Base) Windows : les captures d'écran prises avec un bouton de la manette ont les bonnes couleurs. Avant, le rouge et le bleu étaient inversés.
 - (Base) Les assignations personnalisées des boutons qui portent le même nom qu'un bouton d'une autre manette (p. ex. les boutons de direction du KICKR BIKE) sont conservées après un redémarrage. Avant, elles revenaient chaque fois à l'assignation par défaut.
 

@@ -1,9 +1,7 @@
 7.7.0
 Nowość: aplikacja Wahoo jako aplikacja treningowa (Pro)
 Nowość: nakładka z biegami z aplikacjami Bluetooth jak Grimpa (Pro)
+Nowość: dziewięć kolejnych aplikacji przez OpenBikeControl, m.in. PedalCraft, Sueur i SaddleOut
 Poprawki:
-• MyWhoosh na tym samym urządzeniu: ekran główny mówi, co działa
-• MyWhoosh na innym Androidzie: ekran główny mówi, by przełączyć trenażer na Bluetooth
-• FulGaz / Biketerra: most prosi o potrzebne uprawnienie Bluetooth
 • „Zamknij” w powiadomieniu usuwa nakładkę
 • Własne przypisania po restarcie

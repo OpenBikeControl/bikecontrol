@@ -1,9 +1,7 @@
 7.7.0
 New: Wahoo app as trainer app (Pro)
 New: gear overlay with Bluetooth-only apps like Grimpa (Pro)
+New: nine more apps via OpenBikeControl, incl. PedalCraft, Sueur and SaddleOut
 Fixed:
-• MyWhoosh on the same device: the home screen says what works there
-• MyWhoosh on another Android device: the home screen says to switch the trainer to Bluetooth
-• FulGaz / Biketerra: the bridge asks for the Bluetooth permission it needs
 • "Close" in the notification removes the gear overlay
 • Custom mappings kept after a restart

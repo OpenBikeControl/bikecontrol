@@ -1,9 +1,7 @@
 7.7.0
 Nouveau : l'app Wahoo comme app d'entraînement (Pro)
 Nouveau : overlay des vitesses avec les apps Bluetooth comme Grimpa (Pro)
+Nouveau : neuf apps de plus via OpenBikeControl, dont PedalCraft, Sueur et SaddleOut
 Corrigé :
-• MyWhoosh sur le même appareil : l'accueil dit ce qui marche
-• MyWhoosh sur un autre Android : l'accueil dit de passer le home trainer en Bluetooth
-• FulGaz / Biketerra : le pont demande l'autorisation Bluetooth nécessaire
 • « Fermer » dans la notification retire l'overlay
 • Assignations gardées au redémarrage

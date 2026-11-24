@@ -5,22 +5,13 @@
 - (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser y SaddleOut ahora son compatibles oficialmente mediante OpenBikeControl.
 
 **Fixes**:
-- (Base) Grimpa, Biketerra y Ride Cave: la configuración ahora activa el método de conexión Bluetooth y, en Android, pide en el paso del mando el permiso de Bluetooth que necesita. Antes activaba un método de red que estas apps no pueden usar.
 - (Base) Android: «Cerrar» en la notificación de BikeControl ahora también quita la superposición de marcha. Antes, la superposición seguía en pantalla después de cerrar BikeControl.
-- (Base) Android con FulGaz o Biketerra: al conectar el rodillo, BikeControl pide ahora el permiso de Bluetooth que necesita para aparecer como rodillo. Antes, el puente se quedaba cargando y la app nunca lo mostraba. La página del rodillo muestra además el nombre con el que la app lo lista (Android lo acorta, p. ej. «KICKR CORE 1234 - Bik»).
 - (Base) iPhone / iPad: BikeControl ahora sigue activo en segundo plano mientras espera a tu app de entrenamiento (hasta 15 minutos) y durante 5 minutos después de que la app se desconecte. Antes, iOS podía suspender BikeControl antes de que MyWhoosh y otras apps lo encontraran, y la app no encontraba nada o no podía conectarse.
 - (Base) iPhone / iPad: si iOS llega a suspender BikeControl, vuelve a ser visible en la red por sí solo en cuanto regresas a él. Antes había que reiniciar el método de red.
 - (Base) iPhone / iPad: BikeControl sigue de inmediato un cambio de Wi-Fi o de punto de acceso en lugar de anunciar la dirección anterior.
-- (Base) iPhone / iPad: buscar entrenadores Wi-Fi ya no llena el registro de entradas «App crashed».
 - (Base) iPhone, iPad y Mac: la pantalla de inicio te avisa cuando BikeControl no se encuentra en la red, con la comprobación de red a un toque.
 - (Base) Mac: BikeControl vuelve a encontrarse después de que el Mac salga del reposo, sin reiniciar el método de red.
-- (Base) MyWhoosh en otro dispositivo: si tras un minuto y medio no se ha conectado por la red, la pantalla de inicio ahora ofrece Bluetooth en su lugar. Antes esa opción solo aparecía en la página de comprobación de red.
-- (Base) MyWhoosh en el mismo dispositivo Android: la pantalla de inicio ahora dice que el cambio virtual no llega a MyWhoosh ahí y qué configuraciones funcionan, en lugar de esperar a que MyWhoosh encuentre un rodillo que nunca mostrará.
-- (Base) MyWhoosh en otro dispositivo Android: el paso del rodillo en la pantalla de inicio ahora te indica que cambies el rodillo a Bluetooth, porque MyWhoosh para Android solo encuentra rodillos por Bluetooth.
-- (Base) Móvil Android sin Wi-Fi y la app de entrenamiento en el mismo móvil: el consejo ahora es conectarte a cualquier Wi-Fi o usar Local, en vez de «la misma Wi-Fi que la app».
-- (Base) Estar sin conexión con la sesión iniciada ya no llena el registro de entradas «App crashed».
 - (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
-- (Base) Windows: en un PC sin adaptador Bluetooth, el permiso de Bluetooth ahora lo indica y abre los ajustes de Bluetooth en lugar de no hacer nada, y los rodillos Wi-Fi y los mandos se encuentran sin él. Si Windows no deja activar el Bluetooth, BikeControl te lo dice y abre los ajustes.
 - (Base) Windows: las capturas de pantalla con un botón del mando tienen los colores correctos. Antes el rojo y el azul estaban intercambiados.
 - (Base) Las asignaciones propias de botones que se llaman igual que un botón de otro mando (p. ej. los botones de dirección de la KICKR BIKE) se conservan tras reiniciar. Antes volvían cada vez a la asignación por defecto.
 
