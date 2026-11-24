@@ -1,12 +1,15 @@
 import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/bluetooth/devices/openbikecontrol/openbikecontrol_device.dart' show OpenBikeControlConstants;
 import 'package:bike_control/services/network_self_test/network_method_target.dart';
+import 'package:bike_control/utils/actions/base_actions.dart' show StubActions;
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prop/emulators/dircon_emulator.dart' show DirconEmulator, kWahooDirconStandardPort;
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:prop/emulators/dircon_emulator.dart' show DirconEmulator, RetrofitMode, kWahooDirconStandardPort;
+import 'package:universal_ble/universal_ble.dart' show BleDevice;
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,6 +108,17 @@ void main() {
 
         expect(target.kind, NetworkMethodKind.openBikeControl);
       });
+    });
+
+    test('a trainer bridged over Bluetooth is not a network bridge to check', () {
+      core.actionHandler = StubActions();
+      final wifi = ProxyDevice(BleDevice(deviceId: 'kickr-wifi', name: 'KICKR CORE'))
+        ..setRetrofitMode(RetrofitMode.wifi);
+      final bluetooth = ProxyDevice(BleDevice(deviceId: 'kickr-bt', name: 'KICKR CORE'))
+        ..setRetrofitMode(RetrofitMode.bluetooth);
+
+      expect(networkTrainerBridges([bluetooth]), isEmpty);
+      expect(networkTrainerBridges([bluetooth, wifi]).single, same(wifi.emulator));
     });
 
     test('no trainer app selected falls back to OpenBikeControl', () {

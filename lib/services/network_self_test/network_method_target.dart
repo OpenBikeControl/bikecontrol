@@ -6,7 +6,8 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:flutter/foundation.dart' show ValueListenable;
-import 'package:prop/emulators/dircon_emulator.dart' show DirconEmulator;
+import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:prop/emulators/dircon_emulator.dart' show DirconEmulator, RetrofitMode;
 import 'package:prop/mdns/service_advertiser.dart';
 import 'package:prop/utils/resilient_tcp_server.dart';
 
@@ -195,7 +196,13 @@ NetworkMethodTarget get _openBikeControl => NetworkMethodTarget(
   isConnected: core.obpMdnsEmulator.isConnected,
 );
 
-Iterable<DirconEmulator> _proxyBridges() => core.connection.proxyDevices.map((d) => d.emulator);
+Iterable<DirconEmulator> _proxyBridges() => networkTrainerBridges(core.connection.proxyDevices);
+
+/// The bridges of [devices] that serve the trainer over the network. A
+/// Bluetooth bridge also reports itself started, but has no mDNS
+/// advertisement or DirCon port to check.
+Iterable<DirconEmulator> networkTrainerBridges(Iterable<ProxyDevice> devices) =>
+    devices.where((d) => d.retrofitMode.value != RetrofitMode.bluetooth).map((d) => d.emulator);
 
 NetworkMethodTarget _trainerBridge(DirconEmulator bridge) => NetworkMethodTarget(
   kind: NetworkMethodKind.trainerBridge,
