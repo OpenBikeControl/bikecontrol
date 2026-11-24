@@ -37,6 +37,11 @@ final class DnsSdAdvertiser: NSObject {
   private var services: [Int: DNSServiceRef] = [:]
   private var nextHandle = 1
 
+  /// Set once Bonjour reports the host record or a service gone after it was
+  /// published (iOS defuncts a suspended app's mDNSResponder connection).
+  /// `updateHost` then fails so the Dart side registers everything again.
+  private var registrationLost = false
+
   func register(with registry: FlutterPluginRegistry) {
     guard let registrar = registry.registrar(forPlugin: "BikeControlDnsSd") else { return }
     let channel = FlutterMethodChannel(name: Self.channelName, binaryMessenger: registrar.messenger())
@@ -76,6 +81,7 @@ final class DnsSdAdvertiser: NSObject {
 
   private func registerHost(label: String, ipv4: String, result: @escaping FlutterResult) {
     unregisterHost()
+    registrationLost = false
     guard var address = Self.parseIPv4(ipv4) else {
       return Self.reply(result, FlutterError(code: "address", message: "not an IPv4: \(ipv4)", details: nil))
     }
@@ -129,6 +135,7 @@ final class DnsSdAdvertiser: NSObject {
     guard let result = pendingHostResult else {
       if errorCode != dnsNoError {
         NSLog("DnsSdAdvertiser: host record \(hostLabel ?? "?") lost after registration: \(errorCode)")
+        registrationLost = true
       }
       return
     }
@@ -146,6 +153,9 @@ final class DnsSdAdvertiser: NSObject {
   private func updateHost(ipv4: String, result: @escaping FlutterResult) {
     guard let connection = hostConnection, let record = hostRecord, let label = hostLabel else {
       return Self.reply(result, FlutterError(code: "state", message: "no host registered", details: nil))
+    }
+    if registrationLost {
+      return Self.reply(result, FlutterError(code: "lost", message: "registration lost", details: nil))
     }
     guard var address = Self.parseIPv4(ipv4) else {
       return Self.reply(result, FlutterError(code: "address", message: "not an IPv4: \(ipv4)", details: nil))
@@ -199,12 +209,14 @@ final class DnsSdAdvertiser: NSObject {
         UInt16(port).bigEndian,
         UInt16(bytes.count),
         bytes.baseAddress,
-        { _, _, errorCode, name, _, _, _ in
-          if errorCode != dnsNoError {
-            NSLog("DnsSdAdvertiser: service \(name.map { String(cString: $0) } ?? "?") failed: \(errorCode)")
-          }
+        { _, _, errorCode, name, _, _, context in
+          guard errorCode != dnsNoError else { return }
+          NSLog("DnsSdAdvertiser: service \(name.map { String(cString: $0) } ?? "?") failed: \(errorCode)")
+          guard let context else { return }
+          // Callbacks run on `queue`, like every other access to this flag.
+          Unmanaged<DnsSdAdvertiser>.fromOpaque(context).takeUnretainedValue().registrationLost = true
         },
-        nil
+        Unmanaged.passUnretained(self).toOpaque()
       )
     }
     guard err == dnsNoError, let ref else {
