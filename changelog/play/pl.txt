@@ -1,7 +1,3 @@
-7.6.2
-Nowości:
-• Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Dotychczasowe przypisanie działa dla obu
-• Aplikacja Wahoo: BikeControl pojawia się jako trenażer smart Bluetooth na drugim urządzeniu i zmienia wirtualne biegi
-• Elite Rizer / Sterzo: regulowana martwa strefa
+7.7.0
 Poprawki:
-• Elite Rizer: zablokowany Rizer (czerwona dioda) jest teraz pokazywany jako zablokowany
+• Sprawdzanie sieci: nie zgłasza już błędu, gdy BikeControl sam przeszukuje sieć, ani gdy używasz tylko mostka trenażera i masz wyłączone połączenie kontrolera

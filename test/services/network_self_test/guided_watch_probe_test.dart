@@ -5,7 +5,9 @@ import 'package:bike_control/services/network_self_test/network_check.dart';
 import 'package:bike_control/services/network_self_test/network_probe_context.dart';
 import 'package:bike_control/services/network_self_test/probes/guided_watch_probe.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bike_control/services/debug_diagnostics.dart';
 import 'package:prop/mdns/mdns_responder.dart';
+import 'package:prop/utils/network_address.dart';
 
 const _defaultWindow = Duration(seconds: 3);
 const _defaultTick = Duration(seconds: 1);
@@ -23,11 +25,14 @@ NetworkProbeContext ctx({
   bool Function()? trainerAppConnectedNow,
   WatchProgressCallback? onWatchProgress,
   String platform = 'macos',
+  bool? trainerAppOnThisDevice,
+  DebugDiagnostics? snapshot,
 }) {
   var nowCalls = 0;
   final base = DateTime(2026, 8, 21);
   return NetworkProbeContext(
-    snapshot: null,
+    snapshot: snapshot,
+    trainerAppOnThisDevice: trainerAppOnThisDevice,
     snapshotError: null,
     emulatorStarted: true,
     trainerAppConnected: false,
@@ -46,9 +51,30 @@ NetworkProbeContext ctx({
   );
 }
 
-MdnsQueryLogEntry _entry(List<String> questions, {int count = 1, bool duringOwnBrowse = false}) => MdnsQueryLogEntry(
+/// A snapshot whose only job is to say which addresses are this device's.
+DebugDiagnostics _snapshotWithAddress(String address) => DebugDiagnostics(
+  advertised: const [],
+  backend: 'responder',
+  hostLabel: 'BikeControl',
+  holdsMulticastLock: false,
+  discovered: const [],
+  discoveryRan: false,
+  addressReport: AddressPickReport(
+    chosen: InternetAddress(address),
+    candidates: [AddressCandidate(interfaceName: 'en0', address: address, score: 100, isVirtual: false)],
+  ),
+  servers: const [],
+  permissions: const PermissionsSnapshot(localNetwork: null),
+);
+
+MdnsQueryLogEntry _entry(
+  List<String> questions, {
+  int count = 1,
+  bool duringOwnBrowse = false,
+  String source = '192.168.1.50',
+}) => MdnsQueryLogEntry(
   at: DateTime(2026, 8, 21),
-  source: '192.168.1.50',
+  source: source,
   sourcePort: 5353,
   wantsUnicast: false,
   questions: questions,
@@ -142,8 +168,81 @@ void main() {
         window: _defaultWindow,
         tick: _defaultTick,
       );
-      expect(check.verdict, NetworkVerdict.fail);
-      expect(check.detail['hint'], 'no query arrived');
+      expect(check.detail['hint'], isNot('no query arrived'));
+      expect(check.verdict, NetworkVerdict.warn);
+      expect(check.detail['note'], startsWith('inconclusive'));
+    });
+
+    // The Wi-Fi trainer scan runs for as long as the page is open, a trainer app on the
+    // same Mac searches through the same system service, and the watch
+    // blamed the app for a silence our own scan caused.
+    group('while BikeControl scans the network itself', () {
+      test('silence is inconclusive, not a failure', () async {
+        final check = await guidedWatchCheck(
+          ctx(),
+          window: _defaultWindow,
+          tick: _defaultTick,
+          ownBrowseActive: () => true,
+        );
+        expect(check.verdict, NetworkVerdict.warn);
+        expect(check.detail['note'], startsWith('inconclusive'));
+        expect(check.fixes, isEmpty, reason: 'no Local Network lecture for a link that may be fine');
+      });
+
+      test('a connecting trainer app still passes', () async {
+        final check = await guidedWatchCheck(
+          ctx(trainerAppConnectedNow: () => true),
+          window: _defaultWindow,
+          tick: _defaultTick,
+          ownBrowseActive: () => true,
+        );
+        expect(check.verdict, NetworkVerdict.pass);
+      });
+
+      test('a trainer app known to run on another device still fails on silence', () async {
+        // Its search comes over the network from another address; our scan
+        // cannot hide it.
+        final check = await guidedWatchCheck(
+          ctx(trainerAppOnThisDevice: false),
+          window: _defaultWindow,
+          tick: _defaultTick,
+          ownBrowseActive: () => true,
+        );
+        expect(check.verdict, NetworkVerdict.fail);
+        expect(check.detail['hint'], 'no query arrived');
+      });
+
+      test("another device's search counts even though it arrived during our scan", () async {
+        final browse = _entry(
+          const ['PTR _openbikecontrol._tcp.local'],
+          duringOwnBrowse: true,
+          source: '192.168.1.77',
+        );
+        final check = await guidedWatchCheck(
+          ctx(
+            snapshot: _snapshotWithAddress('192.168.1.50'),
+            trainerAppOnThisDevice: false,
+            queryLog: _scriptedLog([const [], [browse]]),
+          ),
+          window: _defaultWindow,
+          tick: _defaultTick,
+          ownBrowseActive: () => true,
+        );
+        expect(check.verdict, NetworkVerdict.warn);
+        expect(check.detail['note'], isNot(startsWith('inconclusive')), reason: 'it browsed; it just never resolved');
+      });
+
+      test('a search from our own address during the scan stays uncounted', () async {
+        final browse = _entry(const ['PTR _openbikecontrol._tcp.local'], duringOwnBrowse: true);
+        final check = await guidedWatchCheck(
+          ctx(snapshot: _snapshotWithAddress('192.168.1.50'), queryLog: _scriptedLog([const [], [browse]])),
+          window: _defaultWindow,
+          tick: _defaultTick,
+          ownBrowseActive: () => false,
+        );
+        expect(check.verdict, NetworkVerdict.warn);
+        expect(check.detail['note'], startsWith('inconclusive'));
+      });
     });
 
     test('warn: browsed but never resolved', () async {

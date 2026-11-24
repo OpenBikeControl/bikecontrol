@@ -1,3 +1,13 @@
+### 7.7.0 (24-11-2026)
+**Fixes**:
+- (Base) iPhone / iPad：BikeControl 现在在后台等待训练应用时会保持运行（最长 15 分钟），并在应用断开后继续保持 5 分钟。以前 iOS 可能在 MyWhoosh 等应用找到 BikeControl 之前就让它休眠，导致应用找不到或无法连接。
+- (Base) iPhone / iPad：如果 iOS 仍然让 BikeControl 休眠，回到 BikeControl 后它会自动重新出现在网络上。以前需要重启网络方式。
+- (Base) iPhone / iPad：切换 Wi-Fi 或热点后，BikeControl 会立即跟随，而不是继续广播旧地址。
+- (Base) iPhone / iPad：搜索 Wi-Fi 骑行台不再让日志充满“App crashed”条目。
+- (Base) iPhone、iPad 和 Mac：当网络上找不到 BikeControl 时，主屏幕会提示你，并可一键打开网络检查。
+- (Base) Mac：Mac 从睡眠中唤醒后，无需重启网络方式即可再次找到 BikeControl。
+- (Base) 网络检查：当 BikeControl 自己正在搜索网络时，或你只使用骑行台桥接并关闭了控制器连接时，不再报告失败。
+
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Zwift Play / Zwift Ride 拨片：向内拨和向外拨现在是两个独立的按键，可分别设置各自的操作。原有的拨片设置会同时应用到两者。

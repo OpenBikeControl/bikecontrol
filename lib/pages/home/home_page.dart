@@ -47,6 +47,8 @@ import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/services/local_network_access.dart';
+import 'package:bike_control/services/mdns_discovery_scan.dart';
+import 'package:bike_control/services/network_recovery.dart';
 import 'package:bike_control/services/network_self_test/probes/passive_probes.dart'
     show AddressWarningKind, advertisedAddressWarning, advertisedAddressWarningKind;
 import 'package:bike_control/utils/requirements/local_network.dart';
@@ -76,6 +78,7 @@ import 'package:bike_control/widgets/ui/colors.dart' show bkAccentText;
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:prop/utils/advertised_service_registry.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart' show RetrofitMode;
 import 'package:prop/mdns/service_advertiser.dart' show ServiceAdvertiser;
@@ -253,15 +256,68 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Why [_advertisedAddressWarning] was raised — see [AppInput.advertisedAddressWarningKind].
   AddressWarningKind? _advertisedAddressWarningKind;
 
-  Future<void> _refreshAdvertisedAddress() async {
+  /// The own advertisement was not found on the network, even after it was
+  /// published again. Set by the look [_refreshAdvertisedAddress] takes when
+  /// asked to; kept across the cheaper refreshes in between.
+  bool _advertisementInvisible = false;
+
+  /// The visibility look in flight, so overlapping triggers share one browse.
+  Future<void>? _visibilityLook;
+
+  /// When the last look started. A Mac window regains focus many times a
+  /// minute with the trainer app next to it; one browse per pause is plenty.
+  DateTime? _lastVisibilityLookAt;
+  static const _visibilityLookPause = Duration(minutes: 2);
+
+  /// Stands in for the address when the advertisement itself is missing.
+  static const _notVisibleMarker = 'not visible';
+
+  Future<void> _lookForOwnAdvertisement() async {
+    final visible = await NetworkRecovery.instance.ensureAdvertisementVisible(
+      advertising: () =>
+          core.logic.hasNetworkMethodEnabled &&
+          AdvertisedServiceRegistry.instance.records.isNotEmpty &&
+          !_trainerAppConnectedOverNetwork,
+      ownAdvertisementSeen: () async => (await MdnsDiscoveryScan().run()).any((service) => service.isSelf),
+    );
+    _advertisementInvisible = !visible;
+  }
+
+  bool get _trainerAppConnectedOverNetwork =>
+      core.obpMdnsEmulator.isConnected.value ||
+      core.zwiftMdnsEmulator.isConnected.value ||
+      core.rouvyMdnsEmulator.isConnected.value ||
+      core.whooshLink.isConnected.value;
+
+  /// [lookForAdvertisement] also browses for our own advertisement (a few
+  /// seconds, and it may publish everything again): on start, on return to
+  /// the foreground, and while it is flagged missing.
+  Future<void> _refreshAdvertisedAddress({bool lookForAdvertisement = false}) async {
     // The store board sells a finished setup, and a VPN on the screenshot
     // machine must not end up in a listing. The web has no interfaces to
     // list, and without a network method nothing is advertised at all.
     final applies = !kIsWeb && !screenshotMode && core.logic.hasNetworkMethodEnabled;
     try {
       final report = applies ? await AdvertisedAddressPicker.report() : null;
-      final warning = report == null ? null : advertisedAddressWarning(report);
-      final kind = report == null ? null : advertisedAddressWarningKind(report);
+      var warning = report == null ? null : advertisedAddressWarning(report);
+      var kind = report == null ? null : advertisedAddressWarningKind(report);
+      if (!applies) {
+        _advertisementInvisible = false;
+      } else if (lookForAdvertisement && warning == null) {
+        final last = _lastVisibilityLookAt;
+        // Flagged missing: look again sooner, a restart may have fixed it.
+        final pause = _advertisementInvisible ? const Duration(seconds: 20) : _visibilityLookPause;
+        final due = last == null || DateTime.now().difference(last) >= pause;
+        if (_visibilityLook != null || due) {
+          _lastVisibilityLookAt = DateTime.now();
+          await (_visibilityLook ??= _lookForOwnAdvertisement().whenComplete(() => _visibilityLook = null));
+        }
+      }
+      // An address problem explains a missing advertisement, so it wins.
+      if (warning == null && applies && _advertisementInvisible && !_trainerAppConnectedOverNetwork) {
+        warning = _notVisibleMarker;
+        kind = AddressWarningKind.notVisible;
+      }
       // The session keeps the reading an app connected through, whether or
       // not this page is still around to show it.
       core.appConnectionLatch.noteAddressWarning(warning);
@@ -295,7 +351,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ];
 
   void _onAdvertisedAddressChanged() {
-    unawaited(_refreshAdvertisedAddress());
+    // A method that was restarted may be visible again: look once more.
+    unawaited(_refreshAdvertisedAddress(lookForAdvertisement: _advertisementInvisible));
   }
 
   @override
@@ -303,7 +360,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     super.initState();
 
     unawaited(_refreshLocalNetwork());
-    unawaited(_refreshAdvertisedAddress());
+    unawaited(_refreshAdvertisedAddress(lookForAdvertisement: true));
     for (final listenable in _advertisedAddressListenables) {
       listenable.addListener(_onAdvertisedAddressChanged);
     }
@@ -533,7 +590,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) unawaited(_refreshAdvertisedAddress());
+    if (state == AppLifecycleState.resumed) unawaited(_refreshAdvertisedAddress(lookForAdvertisement: true));
   }
 
   void _onPurchaseChanged() {

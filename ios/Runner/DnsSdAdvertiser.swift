@@ -1,5 +1,6 @@
 import Flutter
 import Foundation
+import Network
 import dnssd
 
 // dns_sd error constants import as Int.
@@ -38,13 +39,22 @@ final class DnsSdAdvertiser: NSObject {
   private var nextHandle = 1
 
   /// Set once Bonjour reports the host record or a service gone after it was
-  /// published (iOS defuncts a suspended app's mDNSResponder connection).
-  /// `updateHost` then fails so the Dart side registers everything again.
-  private var registrationLost = false
+  /// published (iOS defuncts a suspended app's mDNSResponder connection):
+  /// what was lost and the dns_sd error code. `updateHost` then fails and
+  /// `lostReason` reports it, so the Dart side registers everything again.
+  private var lostReason: String?
+
+  private var channel: FlutterMethodChannel?
+
+  /// Tells the Dart side when the device's network path changes, so the
+  /// advertised address follows at once instead of at the next timer tick.
+  private var pathMonitor: NWPathMonitor?
+  private var pathReported = false
 
   func register(with registry: FlutterPluginRegistry) {
     guard let registrar = registry.registrar(forPlugin: "BikeControlDnsSd") else { return }
     let channel = FlutterMethodChannel(name: Self.channelName, binaryMessenger: registrar.messenger())
+    self.channel = channel
     channel.setMethodCallHandler { [weak self] call, result in
       guard let self else { return result(nil) }
       let args = call.arguments as? [String: Any] ?? [:]
@@ -63,6 +73,8 @@ final class DnsSdAdvertiser: NSObject {
         case "unregisterHost":
           self.unregisterHost()
           Self.reply(result, nil)
+        case "lostReason":
+          Self.reply(result, self.lostReason)
         case "registerService":
           self.registerService(args, result: result)
         case "unregisterService":
@@ -81,7 +93,8 @@ final class DnsSdAdvertiser: NSObject {
 
   private func registerHost(label: String, ipv4: String, result: @escaping FlutterResult) {
     unregisterHost()
-    registrationLost = false
+    lostReason = nil
+    startPathMonitor()
     guard var address = Self.parseIPv4(ipv4) else {
       return Self.reply(result, FlutterError(code: "address", message: "not an IPv4: \(ipv4)", details: nil))
     }
@@ -135,7 +148,7 @@ final class DnsSdAdvertiser: NSObject {
     guard let result = pendingHostResult else {
       if errorCode != dnsNoError {
         NSLog("DnsSdAdvertiser: host record \(hostLabel ?? "?") lost after registration: \(errorCode)")
-        registrationLost = true
+        markLost("host record lost: \(errorCode)")
       }
       return
     }
@@ -151,23 +164,54 @@ final class DnsSdAdvertiser: NSObject {
   }
 
   private func updateHost(ipv4: String, result: @escaping FlutterResult) {
-    guard let connection = hostConnection, let record = hostRecord, let label = hostLabel else {
+    guard let connection = hostConnection, let record = hostRecord, hostLabel != nil else {
       return Self.reply(result, FlutterError(code: "state", message: "no host registered", details: nil))
     }
-    if registrationLost {
-      return Self.reply(result, FlutterError(code: "lost", message: "registration lost", details: nil))
+    if let lostReason {
+      return Self.reply(result, FlutterError(code: "lost", message: lostReason, details: nil))
     }
     guard var address = Self.parseIPv4(ipv4) else {
       return Self.reply(result, FlutterError(code: "address", message: "not an IPv4: \(ipv4)", details: nil))
     }
-    // A record pinned to the old interface cannot just change its rdata.
+    // A record pinned to the old interface cannot just change its rdata, and
+    // the services are registered on that interface too. The Dart side
+    // registers the host and every service again.
     if Self.interfaceIndex(for: ipv4) != hostInterface {
-      return registerHost(label: label, ipv4: ipv4, result: result)
+      return Self.reply(result, FlutterError(code: "interface", message: "address is on another interface", details: nil))
     }
     let err = withUnsafeBytes(of: &address) { bytes in
       DNSServiceUpdateRecord(connection, record, 0, UInt16(bytes.count), bytes.baseAddress, Self.recordTtl)
     }
     Self.reply(result, err == dnsNoError ? nil : Self.dnsError("DNSServiceUpdateRecord", err))
+  }
+
+  private func markLost(_ reason: String) {
+    let first = lostReason == nil
+    lostReason = reason
+    if first { sendEvent("lost") }
+  }
+
+  private func sendEvent(_ event: String) {
+    DispatchQueue.main.async { [weak self] in
+      self?.channel?.invokeMethod("event", arguments: event)
+    }
+  }
+
+  /// Runs while a host is registered. The first update only reports the
+  /// current path, so it is skipped.
+  private func startPathMonitor() {
+    guard pathMonitor == nil else { return }
+    let monitor = NWPathMonitor()
+    monitor.pathUpdateHandler = { [weak self] _ in
+      guard let self else { return }
+      if !self.pathReported {
+        self.pathReported = true
+        return
+      }
+      self.sendEvent("pathChanged")
+    }
+    monitor.start(queue: queue)
+    pathMonitor = monitor
   }
 
   /// Deallocating the connection withdraws its records (goodbye packets).
@@ -213,8 +257,8 @@ final class DnsSdAdvertiser: NSObject {
           guard errorCode != dnsNoError else { return }
           NSLog("DnsSdAdvertiser: service \(name.map { String(cString: $0) } ?? "?") failed: \(errorCode)")
           guard let context else { return }
-          // Callbacks run on `queue`, like every other access to this flag.
-          Unmanaged<DnsSdAdvertiser>.fromOpaque(context).takeUnretainedValue().registrationLost = true
+          // Callbacks run on `queue`, like every other access to this state.
+          Unmanaged<DnsSdAdvertiser>.fromOpaque(context).takeUnretainedValue().markLost("service lost: \(errorCode)")
         },
         Unmanaged.passUnretained(self).toOpaque()
       )

@@ -1,7 +1,3 @@
-7.6.2
-Novità:
-• Levette di Zwift Play / Zwift Ride: inclinare verso l'interno e verso l'esterno sono ora due pulsanti separati, ognuno con la sua azione. La tua assegnazione attuale vale per entrambi
-• App Wahoo: BikeControl vi compare come rullo smart Bluetooth su un secondo dispositivo e gestisce il cambio virtuale
-• Elite Rizer / Sterzo: zona morta regolabile
+7.7.0
 Corretto:
-• Elite Rizer: un Rizer bloccato (LED rosso) ora viene mostrato come bloccato
+• Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller

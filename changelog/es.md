@@ -1,3 +1,13 @@
+### 7.7.0 (24-11-2026)
+**Fixes**:
+- (Base) iPhone / iPad: BikeControl ahora sigue activo en segundo plano mientras espera a tu app de entrenamiento (hasta 15 minutos) y durante 5 minutos después de que la app se desconecte. Antes, iOS podía suspender BikeControl antes de que MyWhoosh y otras apps lo encontraran, y la app no encontraba nada o no podía conectarse.
+- (Base) iPhone / iPad: si iOS llega a suspender BikeControl, vuelve a ser visible en la red por sí solo en cuanto regresas a él. Antes había que reiniciar el método de red.
+- (Base) iPhone / iPad: BikeControl sigue de inmediato un cambio de Wi-Fi o de punto de acceso en lugar de anunciar la dirección anterior.
+- (Base) iPhone / iPad: buscar entrenadores Wi-Fi ya no llena el registro de entradas «App crashed».
+- (Base) iPhone, iPad y Mac: la pantalla de inicio te avisa cuando BikeControl no se encuentra en la red, con la comprobación de red a un toque.
+- (Base) Mac: BikeControl vuelve a encontrarse después de que el Mac salga del reposo, sin reiniciar el método de red.
+- (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
+
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro e inclinar hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual de la palanca se aplica a ambos.

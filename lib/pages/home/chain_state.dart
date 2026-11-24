@@ -108,6 +108,10 @@ enum SetupStepVariant {
   /// second real network could be the one the trainer app is on.
   networkTwoNetworks,
 
+  /// [SetupStepId.appNetworkAddress] when the address is fine but
+  /// BikeControl's own advertisement cannot be found on the network.
+  networkNotVisible,
+
   /// [SetupStepId.trainerAppBridged] when the trainer app probably still holds
   /// a Bluetooth connection from before BikeControl restarted (Windows): the
   /// hint says to remove the entry in the app and pair it again.

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:bike_control/main.dart' show recordError;
+import 'package:flutter/foundation.dart';
 import 'package:prop/mdns/dns_message.dart';
 
 /// Resolves a `.local` hostname to an IPv4 address with a one-shot mDNS
@@ -14,6 +16,11 @@ import 'package:prop/mdns/dns_message.dart';
 ///
 /// Sends a legacy-unicast query (RFC 6762 §6.7) from an ephemeral port, so no
 /// socket on 5353 is needed and the responder answers straight back to us.
+///
+/// Not on iOS: an app may not send multicast there without an entitlement
+/// BikeControl does not have, so every query failed with "No route to host"
+/// (errno 65). iOS resolves `.local` names through the system resolver, which
+/// is used instead.
 class MdnsHostResolver {
   static final mdnsGroup = InternetAddress('224.0.0.251');
   static const mdnsPort = 5353;
@@ -25,9 +32,24 @@ class MdnsHostResolver {
     Duration timeout = const Duration(seconds: 2),
     InternetAddress? target,
     int port = mdnsPort,
+    bool? useSystemResolver,
+    Future<List<InternetAddress>> Function(String host)? systemLookup,
   }) async {
     final name = DnsName.fromString(host);
     if (name.labels.isEmpty) return null;
+
+    if (useSystemResolver ?? (!kIsWeb && target == null && Platform.isIOS)) {
+      try {
+        final lookup = systemLookup ?? ((h) => InternetAddress.lookup(h, type: InternetAddressType.IPv4));
+        final addresses = await lookup(host).timeout(timeout);
+        return addresses.where((a) => a.type == InternetAddressType.IPv4).firstOrNull?.address;
+      } on SocketException {
+        // The name does not resolve (yet); the caller falls back to the host.
+        return null;
+      } on TimeoutException {
+        return null;
+      }
+    }
 
     final RawDatagramSocket socket;
     try {
@@ -55,6 +77,12 @@ class MdnsHostResolver {
           return;
         }
       }
+    }, onError: (Object e, StackTrace s) {
+      // dart:io reports a failed send here, not from send(), and closes the
+      // socket. Without a handler it reached the root zone and was logged as
+      // an app crash on every attempt.
+      recordError(e, s, context: 'MdnsHostResolver $host');
+      if (!result.isCompleted) result.complete(null);
     });
 
     // Multicast is lossy; repeat the question a couple of times.

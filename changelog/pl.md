@@ -1,3 +1,13 @@
+### 7.7.0 (24-11-2026)
+**Fixes**:
+- (Base) iPhone / iPad: BikeControl pozostaje teraz aktywny w tle, gdy czeka na twoją aplikację treningową (do 15 minut), oraz przez 5 minut po rozłączeniu aplikacji. Wcześniej iOS mógł uśpić BikeControl, zanim MyWhoosh i inne aplikacje go znalazły, więc aplikacja nic nie znajdowała albo nie mogła się połączyć.
+- (Base) iPhone / iPad: jeśli iOS mimo to uśpi BikeControl, po powrocie do niego sam znów staje się widoczny w sieci. Wcześniej trzeba było zrestartować metodę sieciową.
+- (Base) iPhone / iPad: BikeControl od razu podąża za zmianą Wi-Fi lub hotspotu, zamiast ogłaszać stary adres.
+- (Base) iPhone / iPad: wyszukiwanie trenażerów Wi-Fi nie zapełnia już dziennika wpisami „App crashed”.
+- (Base) iPhone, iPad i Mac: ekran główny informuje, gdy BikeControl nie można znaleźć w sieci, a sprawdzanie sieci jest o jedno stuknięcie dalej.
+- (Base) Mac: BikeControl jest ponownie znajdowany po wybudzeniu Maca, bez restartowania metody sieciowej.
+- (Base) Sprawdzanie sieci: nie zgłasza już błędu, gdy BikeControl sam przeszukuje sieć, ani gdy używasz tylko mostka trenażera i masz wyłączone połączenie kontrolera.
+
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Twoje dotychczasowe przypisanie łopatki działa dla obu.

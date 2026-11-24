@@ -1,7 +1,3 @@
-7.6.2
-Neu:
-• Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten mit je eigener Aktion. Deine bisherige Paddel-Belegung gilt für beide
-• Wahoo App: BikeControl erscheint darin auf einem zweiten Gerät als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten
-• Elite Rizer / Sterzo: Totzone einstellbar
+7.7.0
 Behoben:
-• Elite Rizer: Ein gesperrter Rizer (rote LED) wird jetzt als gesperrt angezeigt
+• Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast

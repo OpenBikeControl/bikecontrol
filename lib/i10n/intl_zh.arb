@@ -2836,6 +2836,9 @@
       }
     }
   },
+  "chainStepNetworkNotVisiblePending": "网络上看不到 BikeControl",
+  "chainStepNetworkNotVisibleHint": "{app} 目前在网络上找不到 BikeControl。请运行网络检查，并在其中重启网络方式。",
+  "@chainStepNetworkNotVisibleHint": {"placeholders": {"app": {"type": "String"}}},
   "chainStepNetworkAddressTwoNetworksHint": "此设备同时连接了两个网络（{address}）。请让它和 {app} 连接同一个 Wi-Fi。",
   "@chainStepNetworkAddressTwoNetworksHint": {
     "placeholders": {

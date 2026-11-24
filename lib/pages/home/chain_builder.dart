@@ -358,6 +358,7 @@ ChainLink _appLink(ChainInputs inputs) {
         variant: switch (app.advertisedAddressWarningKind) {
           AddressWarningKind.noWifi => SetupStepVariant.networkNoWifi,
           AddressWarningKind.twoNetworks => SetupStepVariant.networkTwoNetworks,
+          AddressWarningKind.notVisible => SetupStepVariant.networkNotVisible,
           AddressWarningKind.unreachable || null => SetupStepVariant.standard,
         },
       ),

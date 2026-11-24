@@ -1,3 +1,13 @@
+### 7.7.0 (24-11-2026)
+**Fixes**:
+- (Base) iPhone / iPad: BikeControl bleibt jetzt im Hintergrund wach, solange es auf deine Trainer-App wartet (bis zu 15 Minuten), und noch 5 Minuten, nachdem die App die Verbindung getrennt hat. Bisher konnte iOS BikeControl schlafen legen, bevor MyWhoosh und andere Apps es gefunden hatten – die App fand dann nichts oder konnte sich nicht verbinden.
+- (Base) iPhone / iPad: Hat iOS BikeControl doch schlafen gelegt, ist es von selbst wieder im Netzwerk zu finden, sobald du zurückkehrst. Bisher musste die Netzwerkmethode neu gestartet werden.
+- (Base) iPhone / iPad: BikeControl folgt einem Wechsel des WLANs oder Hotspots sofort, statt weiter die alte Adresse anzukündigen.
+- (Base) iPhone / iPad: Die Suche nach WLAN-Trainern füllt das Protokoll nicht mehr mit „App crashed“-Einträgen.
+- (Base) iPhone, iPad und Mac: Die Startseite zeigt dir, wenn BikeControl im Netzwerk nicht zu finden ist – die Netzwerkprüfung ist nur einen Tipp entfernt.
+- (Base) Mac: BikeControl wird nach dem Aufwachen des Mac wieder gefunden, ohne die Netzwerkmethode neu zu starten.
+- (Base) Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast.
+
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.

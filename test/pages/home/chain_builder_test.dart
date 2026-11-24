@@ -1385,6 +1385,10 @@ void main() {
           expect(stepFor(AddressWarningKind.twoNetworks).variant, SetupStepVariant.networkTwoNetworks);
         });
 
+        test('advertisement not found on the network: its own wording', () {
+          expect(stepFor(AddressWarningKind.notVisible).variant, SetupStepVariant.networkNotVisible);
+        });
+
         test('a VPN or bridge keeps the standard wording', () {
           expect(stepFor(AddressWarningKind.unreachable).variant, SetupStepVariant.standard);
           expect(stepFor(null).variant, SetupStepVariant.standard);

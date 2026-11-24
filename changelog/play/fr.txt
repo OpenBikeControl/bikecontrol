@@ -1,7 +1,3 @@
-7.6.2
-Nouveautés :
-• Palettes Zwift Play / Zwift Ride : incliner vers l'intérieur et vers l'extérieur sont maintenant deux boutons distincts, chacun avec sa propre action. Ton assignation actuelle s'applique aux deux
-• App Wahoo : BikeControl y apparaît comme home trainer Bluetooth sur un second appareil et assure les vitesses virtuelles
-• Elite Rizer / Sterzo : zone morte réglable
+7.7.0
 Corrigé :
-• Elite Rizer : un Rizer verrouillé (LED rouge) s'affiche maintenant comme verrouillé
+• Vérification du réseau : ne signale plus d'échec pendant que BikeControl parcourt lui-même le réseau, ni quand tu utilises seulement le pont du home trainer avec la connexion de la manette désactivée

@@ -127,6 +127,10 @@ ChainStepText chainStepText(BuildContext context, SetupStep step, {String? appNa
     // because that is the one thing the rider can check against their VPN app.
     // Each reason gets its own advice: "turn the VPN off" means nothing to a
     // phone that is simply not on Wi-Fi.
+    SetupStepId.appNetworkAddress when step.variant == SetupStepVariant.networkNotVisible => ChainStepText(
+      l.chainStepNetworkNotVisiblePending,
+      l.chainStepNetworkNotVisibleHint(app),
+    ),
     SetupStepId.appNetworkAddress => ChainStepText(
       l.chainStepNetworkAddressPending,
       switch (step.variant) {

@@ -13,4 +13,8 @@ enum AddressWarningKind {
 
   /// The pick is fine, but a second real network could be the app's.
   twoNetworks,
+
+  /// The address is fine, but BikeControl's advertisement cannot be found on
+  /// the network, even after publishing it again.
+  notVisible,
 }
