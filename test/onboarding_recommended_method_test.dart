@@ -7,6 +7,8 @@ import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/onboarding/steps/step_connection.dart';
 import 'package:bike_control/utils/actions/remote.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/keymap/apps/biketerra.dart';
+import 'package:bike_control/utils/keymap/apps/grimpa.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/keymap/apps/zwift.dart';
@@ -44,6 +46,22 @@ void main() {
       expect(core.logic.hasNoConnectionMethod, isFalse);
     });
   }
+
+  for (final SupportedApp app in [Grimpa(), Biketerra()]) {
+    test('${app.name} on another device: Bluetooth is on, not the network method it has none of', () async {
+      await applyTrainerAppSelection(app);
+      await applyTargetSelection(Target.otherDevice);
+
+      expect(core.settings.getObpBleEnabled(), isTrue);
+      expect(core.settings.getObpMdnsEnabled(), isFalse);
+      expect(core.logic.hasNoConnectionMethod, isFalse);
+    });
+  }
+
+  test('a declined advertise permission never holds the controller scan', () async {
+    await AppLocalizations.load(const Locale('en'));
+    expect(Permissions.blockingScan([BluetoothAdvertiseRequirement()]), isEmpty);
+  });
 
   test('a method the rider already turned on is left alone', () async {
     await applyTrainerAppSelection(Zwift());

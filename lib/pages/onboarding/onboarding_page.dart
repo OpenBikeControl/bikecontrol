@@ -49,7 +49,9 @@ import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/android.dart' show LocationRequirement;
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/utils/settings/settings.dart';
 import 'package:bike_control/utils/trainer_setup.dart';
 import 'package:bike_control/widgets/keymap/trainer_app_keymap_prompt.dart';
@@ -805,6 +807,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
   Future<void> _enterConnectionStep() async {
     final app = _selectedApp;
     if (app == null) return;
+    // A Bluetooth method the app step switched on (Grimpa) was held back while
+    // the wizard owns the screen; with its permission granted, bring it up.
+    // It checks the permission itself and stays down without it.
+    if (onboardingMethodVisible(OnboardingMethod.bluetooth, app) &&
+        onboardingMethodEnabled(OnboardingMethod.bluetooth, app) &&
+        !onboardingMethodEnabled(OnboardingMethod.network, app)) {
+      core.logic.startEnabledConnectionMethod(userInitiated: true);
+    }
     try {
       await verifyEnabledNetworkMethod(
         _sheetContext,
@@ -847,9 +857,26 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   void _back() => _goTo(onboardingPreviousStep(_step));
 
+  /// Whether this step asks for Android's Bluetooth advertise permission too:
+  /// the picked app is reached over Bluetooth alone (Grimpa), so the Bluetooth
+  /// connection method — switched on by the app step — can't start without it.
+  bool get _asksBluetoothAdvertise {
+    final app = _selectedApp;
+    return HostPlatform.isAndroid && app != null && !_selfHosted && app.reachedOverBluetoothOnly;
+  }
+
+  /// The scan permissions, plus [_asksBluetoothAdvertise]'s when it is
+  /// missing — one sheet for everything Bluetooth.
+  Future<List<PlatformRequirement>> _controllerStepRequirements() async {
+    final requirements = await core.permissions.getScanRequirements();
+    if (!_asksBluetoothAdvertise) return requirements;
+    final advertise = BluetoothAdvertiseRequirement();
+    return [...requirements, if (!await advertise.getStatus()) advertise];
+  }
+
   Future<void> _enterControllerStep() async {
     try {
-      final requirements = await core.permissions.getScanRequirements();
+      final requirements = await _controllerStepRequirements();
       if (!mounted) return;
       _scanNeedsLocation = requirements.any((r) => r is LocationRequirement);
       // Only notifications missing and already asked once: look for the
@@ -887,7 +914,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Future<void> _onAllowBluetooth() async {
     try {
-      final requirements = await core.permissions.getScanRequirements();
+      final requirements = await _controllerStepRequirements();
       if (!mounted) return;
       if (requirements.isEmpty) {
         _startScanPhase();
@@ -896,7 +923,11 @@ class _OnboardingPageState extends State<OnboardingPage> {
       _askedScanPermissions = true;
       await openPermissionSheet(_sheetContext, requirements);
       if (!mounted) return;
-      final recheck = await core.permissions.getScanRequirements();
+      // The Bluetooth method the app step switched on waited for this grant.
+      if (requirements.any((r) => r is BluetoothAdvertiseRequirement)) {
+        core.logic.startEnabledConnectionMethod(userInitiated: true);
+      }
+      final recheck = await _controllerStepRequirements();
       if (!mounted) return;
       // Declining notifications must not leave "Allow Bluetooth" doing nothing.
       if (Permissions.blockingScan(recheck).isEmpty) _startScanPhase();

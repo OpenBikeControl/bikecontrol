@@ -4,6 +4,7 @@
 - (Pro) Android with a Bluetooth-only trainer app like Grimpa: the Ride tab and setup now offer the gear overlay. The app runs on another device, so you can use your phone for anything else and still see your gear on top.
 
 **Fixes**:
+- (Base) Grimpa, Biketerra and Ride Cave: setup now switches on the Bluetooth connection method, and on Android asks for the Bluetooth permission it needs on the controller step. Before, it switched on a network method these apps can't use.
 - (Base) Android: "Close" in BikeControl's notification now also removes the gear overlay. Before, the overlay stayed on screen after BikeControl had quit.
 - (Base) Android with FulGaz or Biketerra: connecting the trainer now asks for the Bluetooth permission BikeControl needs to show up as a trainer. Before, the bridge kept spinning and the app never listed it. The trainer page also shows the name the app lists it under (Android shortens it, e.g. "KICKR CORE 1234 - Bik").
 - (Base) iPhone / iPad: BikeControl now stays awake in the background while it waits for your trainer app (up to 15 minutes), and for 5 minutes after the app disconnects. Before, iOS could put BikeControl to sleep before MyWhoosh and other apps had found it, so the app found nothing or could not connect.
