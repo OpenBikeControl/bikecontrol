@@ -94,5 +94,14 @@ class OpenBikeControlTrainerApp extends SupportedApp {
     ),
     OpenBikeControlTrainerApp(name: 'Rampida', logo: 'rampida.png', officialUrl: 'https://rampida.com'),
     OpenBikeControlTrainerApp(name: 'Everycol', logo: 'everycol.png', officialUrl: 'https://everycol.com'),
+    OpenBikeControlTrainerApp(name: 'PedalCraft', logo: 'pedalcraft.png', officialUrl: 'https://pedalcraft.online'),
+    OpenBikeControlTrainerApp(name: 'suffer.online', logo: 'suffer-online.png', officialUrl: 'https://suffer.online'),
+    OpenBikeControlTrainerApp(name: 'Kardiacs', logo: 'kardiacs.png', officialUrl: 'https://kardiacs.com'),
+    OpenBikeControlTrainerApp(name: 'Sueur', logo: 'sueur.png', officialUrl: 'https://sueur.app', mdns: true),
+    OpenBikeControlTrainerApp(name: 'TrainerKit', logo: 'trainerkit.png', officialUrl: 'https://trainerkitapp.com'),
+    OpenBikeControlTrainerApp(name: 'Pedal Mania', logo: 'pedal-mania.png', officialUrl: 'https://pedalmania.cc'),
+    OpenBikeControlTrainerApp(name: 'Warp', logo: 'warp.png', officialUrl: 'https://ridewarp.cc'),
+    OpenBikeControlTrainerApp(name: 'hupser', logo: 'hupser.png', officialUrl: 'https://hupser.app'),
+    OpenBikeControlTrainerApp(name: 'SaddleOut', logo: 'saddleout.png', officialUrl: 'https://saddleout.com'),
   ];
 }
