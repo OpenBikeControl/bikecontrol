@@ -103,8 +103,21 @@ class NetworkRecovery {
     Duration settle = const Duration(seconds: 2),
   }) async {
     if (!_applies || !advertising()) return true;
-    if (await ownAdvertisementSeen()) return true;
-    lastRecoveryAt = _now();
+    if (await ownAdvertisementSeen()) {
+      lastInvisibleAt = null;
+      return true;
+    }
+    // A forced repair unregisters and publishes everything again. Looks come
+    // every 20 s while the advertisement is flagged missing, and a browse can
+    // miss our own records (macOS) — repairing on each of them would churn
+    // the very records a trainer app is resolving. Once per pause; in
+    // between, only look. A standstill still repairs at once.
+    final lastRepair = _lastForcedRepairAt;
+    if (lastRepair != null && _now().difference(lastRepair) < forcedRepairPause) {
+      lastInvisibleAt = _now();
+      return false;
+    }
+    _lastForcedRepairAt = lastRecoveryAt = _now();
     if (_target == TargetPlatform.iOS) {
       await _rebindListeners();
     }
@@ -119,6 +132,11 @@ class NetworkRecovery {
 
   /// When the advertisement was last found missing even after a repair.
   DateTime? lastInvisibleAt;
+
+  /// The shortest time between two forced repairs from
+  /// [ensureAdvertisementVisible].
+  static const forcedRepairPause = Duration(minutes: 10);
+  DateTime? _lastForcedRepairAt;
 
   void _guard(Future<void> future, String context) {
     unawaited(future.catchError((Object e, StackTrace s) => recordError(e, s, context: context)));

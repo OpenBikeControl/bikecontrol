@@ -118,6 +118,29 @@ void main() {
       expect(r.diagnosticLines().join('\n'), contains('own advertisement not found after a repair'));
     });
 
+    test('a miss soon after a forced repair only looks again, it does not republish again', () async {
+      final r = recovery(TargetPlatform.macOS);
+      Future<bool> look() => r.ensureAdvertisementVisible(
+        advertising: () => true,
+        ownAdvertisementSeen: () async => false,
+        settle: Duration.zero,
+      );
+
+      await look();
+      expect(calls, ['recover(force)']);
+
+      // The home page looks again every 20 s while it is flagged missing.
+      now = now.add(const Duration(seconds: 20));
+      expect(await look(), isFalse);
+      now = now.add(const Duration(minutes: 5));
+      expect(await look(), isFalse);
+      expect(calls, ['recover(force)'], reason: 'unregistering and publishing again every look churns the records a trainer app is resolving');
+
+      now = now.add(const Duration(minutes: 6));
+      await look();
+      expect(calls, ['recover(force)', 'recover(force)'], reason: 'after the pause it is repaired again');
+    });
+
     test('nothing advertised means nothing to look for', () async {
       final r = recovery(TargetPlatform.iOS);
       var looked = false;
