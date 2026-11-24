@@ -227,15 +227,18 @@ class Keymap {
     }
   }
 
-  /// A custom keymap saved before a button was renamed still holds its
-  /// mapping under the old name. Copies the first saved pair per trigger —
-  /// the rider's own, any later ones being defaults appended on restarts.
+  /// A custom keymap stores a button by name only, so a reloaded mapping can
+  /// hold a different controller's button of the same name: decoding picks
+  /// the first known button called `leftSteer` (the Elite Sterzo's), not the
+  /// KICKR BIKE's. A keymap saved before a button was renamed holds its
+  /// mapping under the old name. Either way the rider's mapping is copied
+  /// onto [button] — the first saved pair per trigger, the rider's own, any
+  /// later ones being defaults appended on restarts.
   bool _adoptLegacyMapping(ControllerButton button) {
     if (!isCustom) return false;
-    final legacyName = EliteSquareButtons.legacyNames[button.name];
-    if (legacyName == null) return false;
+    final savedName = EliteSquareButtons.legacyNames[button.name] ?? button.name;
     final legacyPairs = keyPairs
-        .where((kp) => kp.buttons.any((b) => b.name == legacyName && b.sourceDeviceId == button.sourceDeviceId))
+        .where((kp) => kp.buttons.any((b) => b.name == savedName && b.sourceDeviceId == button.sourceDeviceId))
         .toList();
     if (legacyPairs.isEmpty) return false;
     for (final legacy in legacyPairs.distinctBy((kp) => kp.trigger)) {
