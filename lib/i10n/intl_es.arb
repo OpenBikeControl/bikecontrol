@@ -3203,5 +3203,8 @@
   "openBluetoothSettings": "Abrir ajustes de Bluetooth",
   "couldNotEnableBluetoothWindows": "No se pudo activar el Bluetooth. Actívalo en la Configuración de Windows.",
   "bridgeBluetoothPermissionMissing": "{trainer} no puede aparecer por Bluetooth: BikeControl no tiene permiso para «Dispositivos cercanos». Abre el rodillo y elige Virtual Shifting para permitirlo.",
-  "warningMacBridgeUnnamed": "{app} no encuentra BikeControl en un Mac: macOS anuncia el rodillo por Bluetooth sin nombre y {app} ignora los rodillos sin nombre. Usa BikeControl en un dispositivo Android o un PC con Windows."
+  "warningMacBridgeUnnamed": "{app} no encuentra BikeControl en un Mac: macOS anuncia el rodillo por Bluetooth sin nombre y {app} ignora los rodillos sin nombre. Usa BikeControl en un dispositivo Android o un PC con Windows.",
+  "rideOverlayOfferOverOtherApps": "Ten tu marcha a la vista sobre cualquier app de este móvil",
+  "onboardingOverlayOverOtherAppsTitle": "Usa tu móvil sin perder de vista tu marcha",
+  "onboardingOverlayOverOtherAppsNote": "{app} se ejecuta en otro dispositivo, así que este móvil queda libre. La superposición muestra tu marcha encima de cualquier app que abras aquí."
 }

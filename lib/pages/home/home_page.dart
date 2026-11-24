@@ -791,7 +791,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // And the one beside it not to pick: the trainer under its own name.
         rawTrainerName: rawName == null || rawName.isEmpty ? null : rawName,
         metrics: proxy.liveReadout,
-        overlayOffered: _overlayOffered(proxy),
+        // Only as a step for an app on this screen: the overlay over other
+        // apps (see overlayOverOtherApps) is an offer on Ride, not setup work.
+        overlayOffered: _overlayOffered(proxy) && core.settings.getLastTarget() == Target.thisDevice,
         overlayEnabled: core.settings.getOverlayEnabled(),
         overlayAnswered: core.settings.getOverlayAnswered(),
         overlayDeclined: core.settings.getOverlayDeclined(),
@@ -1553,10 +1555,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Only where the overlay can be offered at all (see [_overlayOffered]).
   Widget? _overlayNotice(ProxyDevice proxy) {
     final app = core.settings.getTrainerApp();
-    if (app == null || !app.showsOwnGear) return null;
+    if (app == null) return null;
+    // A Bluetooth-only app (Grimpa) runs on another device and leaves this
+    // phone free: the overlay keeps the gear in view over any app here.
+    final overOtherApps = overlayOverOtherApps(app);
+    if (!app.showsOwnGear && !overOtherApps) return null;
     // The trainer app on another device (MyWhoosh or Rouvy on an Apple TV):
     // no overlay can appear there, so say where the gear is instead.
-    if (!screenshotMode && proxy.fitnessBike != null && core.settings.getLastTarget() == Target.otherDevice) {
+    if (!overOtherApps &&
+        !screenshotMode &&
+        proxy.fitnessBike != null &&
+        core.settings.getLastTarget() == Target.otherDevice) {
       return RideOverlayNotice(
         state: RideOverlayState.otherScreen,
         appName: app.name,
@@ -1574,6 +1583,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return RideOverlayNotice(
       state: state,
       appName: app.name,
+      offerNote: overOtherApps ? context.i18n.rideOverlayOfferOverOtherApps : null,
       onEnable: () => _enableOverlayFromRide(proxy),
       onDecline: _declineOverlay,
       onOpen: () async {

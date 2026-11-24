@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:bike_control/pages/onboarding/onboarding_app_guides.dart';
 import 'package:bike_control/pages/onboarding/widgets/overlay_offer.dart';
+import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/pages/onboarding/widgets/onboarding_reveal.dart';
@@ -107,7 +108,7 @@ bool onboardingDoneOffersOverlay({
   required bool trainerBridged,
   required bool overlayOffered,
   required bool overlayEnabled,
-}) => app.showsOwnGear && trainerBridged && overlayOffered && !overlayEnabled;
+}) => (app.showsOwnGear || overlayOverOtherApps(app)) && trainerBridged && overlayOffered && !overlayEnabled;
 
 Widget onboardingDoneBody(
   BuildContext context, {

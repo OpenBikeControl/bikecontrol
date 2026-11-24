@@ -1,6 +1,9 @@
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
+import 'package:bike_control/utils/keymap/apps/grimpa.dart';
+import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,7 +24,10 @@ void main() {
     TrainerOverlayService.debugSupportedPlatform = true;
   });
 
-  tearDown(() => TrainerOverlayService.debugSupportedPlatform = null);
+  tearDown(() {
+    TrainerOverlayService.debugSupportedPlatform = null;
+    debugHostPlatformOverride = null;
+  });
 
   ProxyDevice makeTrainer({List<String> advertised = const [], bool shifting = true, bool connected = true}) {
     final device = ProxyDevice(BleDevice(deviceId: 'd100', name: 'VANRYSEL-HT-d8ef', services: advertised))
@@ -57,5 +63,36 @@ void main() {
   test('not while the trainer app runs on another device', () async {
     await core.settings.setLastTarget(Target.otherDevice);
     expect(trainerOverlayAutoShowReady(makeTrainer()), isFalse);
+  });
+
+  group('a Bluetooth-only app on another device leaves the phone free', () {
+    setUp(() async {
+      await core.settings.setLastTarget(Target.otherDevice);
+      core.settings.setTrainerApp(Grimpa());
+    });
+
+    test('Android offers the overlay over its other apps', () {
+      debugHostPlatformOverride = TargetPlatform.android;
+      expect(overlayOverOtherApps(Grimpa()), isTrue);
+      expect(trainerOverlayOffered(makeTrainer()), isTrue);
+      expect(trainerOverlayAutoShowReady(makeTrainer()), isTrue);
+    });
+
+    test('not on iOS', () {
+      debugHostPlatformOverride = TargetPlatform.iOS;
+      expect(trainerOverlayOffered(makeTrainer()), isFalse);
+    });
+
+    test('not for an app also reached over the network', () {
+      debugHostPlatformOverride = TargetPlatform.android;
+      core.settings.setTrainerApp(MyWhoosh());
+      expect(overlayOverOtherApps(MyWhoosh()), isFalse);
+      expect(trainerOverlayOffered(makeTrainer()), isFalse);
+    });
+
+    test('not without a shifting session', () {
+      debugHostPlatformOverride = TargetPlatform.android;
+      expect(trainerOverlayOffered(makeTrainer(shifting: false)), isFalse);
+    });
   });
 }

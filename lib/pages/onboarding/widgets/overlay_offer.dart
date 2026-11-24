@@ -1,4 +1,5 @@
 import 'package:bike_control/services/overlay/overlay_state.dart';
+import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
@@ -46,6 +47,9 @@ class _OnboardingOverlayOfferState extends State<OnboardingOverlayOffer> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final app = widget.app;
+    // A Bluetooth-only app runs on another device: the overlay is for this
+    // phone's other apps, not for a gear number the app gets wrong.
+    final overOtherApps = overlayOverOtherApps(app);
     return Container(
       key: const ValueKey('onboarding-overlay-offer'),
       width: double.infinity,
@@ -92,9 +96,17 @@ class _OnboardingOverlayOfferState extends State<OnboardingOverlayOffer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(context.i18n.onboardingOverlayTitle(app.name)).small.semiBold,
+                Text(
+                  overOtherApps
+                      ? context.i18n.onboardingOverlayOverOtherAppsTitle
+                      : context.i18n.onboardingOverlayTitle(app.name),
+                ).small.semiBold,
                 const Gap(4),
-                Text(context.i18n.onboardingDoneOverlayNote(app.name)).small.muted,
+                Text(
+                  overOtherApps
+                      ? context.i18n.onboardingOverlayOverOtherAppsNote(app.name)
+                      : context.i18n.onboardingDoneOverlayNote(app.name),
+                ).small.muted,
                 const Gap(12),
                 BkPillButton(
                   key: const ValueKey('onboarding-done-show-overlay'),

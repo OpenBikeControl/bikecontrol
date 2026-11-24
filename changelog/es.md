@@ -1,6 +1,7 @@
 ### 7.7.0 (24-11-2026)
 **Features**:
 - (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: con BikeControl en un dispositivo Android o un PC con Windows, aparece en la app Wahoo como rodillo inteligente Bluetooth y se encarga del cambio virtual.
+- (Pro) Android con una app de entrenamiento solo Bluetooth como Grimpa: la pestaña Rodar y la configuración ahora ofrecen la superposición de marcha. La app se ejecuta en otro dispositivo, así que puedes usar el móvil para lo que quieras y seguir viendo tu marcha encima.
 
 **Fixes**:
 - (Base) Android con FulGaz o Biketerra: al conectar el rodillo, BikeControl pide ahora el permiso de Bluetooth que necesita para aparecer como rodillo. Antes, el puente se quedaba cargando y la app nunca lo mostraba. La página del rodillo muestra además el nombre con el que la app lo lista (Android lo acorta, p. ej. «KICKR CORE 1234 - Bik»).

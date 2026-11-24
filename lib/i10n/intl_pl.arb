@@ -3203,5 +3203,8 @@
   "openBluetoothSettings": "Otwórz ustawienia Bluetooth",
   "couldNotEnableBluetoothWindows": "Nie udało się włączyć Bluetooth. Włącz go w Ustawieniach systemu Windows.",
   "bridgeBluetoothPermissionMissing": "{trainer} nie może pojawić się przez Bluetooth: BikeControl nie ma uprawnienia „Urządzenia w pobliżu”. Otwórz trenażer i wybierz Virtual Shifting, aby na to zezwolić.",
-  "warningMacBridgeUnnamed": "{app} nie znajdzie BikeControl na Macu: macOS ogłasza trenażer przez Bluetooth bez nazwy, a {app} pomija trenażery bez nazwy. Uruchom BikeControl na urządzeniu z Androidem lub komputerze z Windows."
+  "warningMacBridgeUnnamed": "{app} nie znajdzie BikeControl na Macu: macOS ogłasza trenażer przez Bluetooth bez nazwy, a {app} pomija trenażery bez nazwy. Uruchom BikeControl na urządzeniu z Androidem lub komputerze z Windows.",
+  "rideOverlayOfferOverOtherApps": "Miej bieg na oku nad każdą aplikacją na tym telefonie",
+  "onboardingOverlayOverOtherAppsTitle": "Korzystaj z telefonu, bieg zostaje na widoku",
+  "onboardingOverlayOverOtherAppsNote": "{app} działa na innym urządzeniu, więc ten telefon jest wolny. Nakładka pokazuje Twój bieg nad każdą aplikacją, którą tu otworzysz."
 }

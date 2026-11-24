@@ -7,6 +7,8 @@ import 'package:bike_control/services/overlay/desktop_overlay_controller.dart';
 import 'package:bike_control/services/overlay/ios_overlay_controller.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_controller.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
+import 'package:bike_control/utils/keymap/apps/supported_app.dart';
 import 'package:bike_control/utils/requirements/multi.dart' show Target;
 import 'package:flutter/foundation.dart';
 
@@ -57,13 +59,23 @@ class TrainerOverlayService {
 
 /// Whether the gear overlay can be offered for [device] at all: the platform
 /// can draw one, the trainer app runs on this device (an overlay cannot be
-/// drawn over an app on another device), and BikeControl is computing gears
-/// (a virtual-shifting session).
+/// drawn over an app on another device) or [overlayOverOtherApps] holds, and
+/// BikeControl is computing gears (a virtual-shifting session).
 bool trainerOverlayOffered(ProxyDevice device) {
   if (!TrainerOverlayService.isSupportedPlatform) return false;
-  if (core.settings.getLastTarget() != Target.thisDevice) return false;
+  if (core.settings.getLastTarget() != Target.thisDevice && !overlayOverOtherApps(core.settings.getTrainerApp())) {
+    return false;
+  }
   return device.fitnessBike != null;
 }
+
+/// Whether the overlay is worth offering to keep the ride's numbers in view
+/// over whatever else runs on this phone: on Android, with a trainer app
+/// BikeControl reaches over Bluetooth alone (Grimpa, say). That app runs on
+/// another device, so this phone is free for other apps while BikeControl
+/// shifts in the background — and the overlay draws over any of them.
+bool overlayOverOtherApps(SupportedApp? app) =>
+    HostPlatform.isAndroid && app != null && app.reachedOverBluetoothOnly;
 
 /// Whether the overlay, switched on in an earlier session, should open by
 /// itself for [device] now: whenever the switch is offered for it and the

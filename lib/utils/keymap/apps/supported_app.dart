@@ -34,7 +34,13 @@ enum AppConnectionMethod {
   myWhooshLink,
   local,
   remoteMouse,
-  remoteKeyboard,
+  remoteKeyboard;
+
+  /// Whether this method reaches the app over Bluetooth.
+  bool get isBluetooth => switch (this) {
+    zwiftBle || obpBle || cycplusBc2Ble => true,
+    _ => false,
+  };
 }
 
 enum ConnectionSupport {
@@ -198,6 +204,14 @@ abstract class SupportedApp {
   /// BikeControl runs: the trainer app may be on an Android device next to a
   /// BikeControl on something else.
   Set<TrainerConnectionType> get virtualShiftingTransportsOnAndroid => virtualShiftingTransports;
+
+  /// Whether BikeControl reaches this app over Bluetooth alone — its buttons
+  /// (every one of [connections]) and its trainer ([virtualShiftingTransports])
+  /// — like Grimpa. A Bluetooth peripheral is invisible to a central on the
+  /// same device, so such an app always runs on another one.
+  bool get reachedOverBluetoothOnly =>
+      connections.every((c) => c.$1.isBluetooth) &&
+      !virtualShiftingTransports.contains(TrainerConnectionType.wifi);
 
   /// Whether this app, on Windows, ships through the Microsoft Store as a
   /// sandboxed (UWP) app. Windows blocks those from connecting to a network

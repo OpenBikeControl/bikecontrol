@@ -42,10 +42,15 @@ class RideOverlayNotice extends StatelessWidget {
     required this.onEnable,
     required this.onDecline,
     required this.onOpen,
+    this.offerNote,
   });
 
   final RideOverlayState state;
   final String appName;
+
+  /// The offer's line in place of "{app} shows its own gear" — for an app on
+  /// another device, where the overlay is about this phone's other apps.
+  final String? offerNote;
   final VoidCallback onEnable;
   final VoidCallback onDecline;
 
@@ -99,7 +104,7 @@ class RideOverlayNotice extends StatelessWidget {
         const Gap(8),
         Expanded(
           child: Text(
-            l.rideOverlayOfferNote(appName),
+            offerNote ?? l.rideOverlayOfferNote(appName),
             style: context.typography.small.copyWith(color: cs.foreground, height: 1.3),
           ),
         ),

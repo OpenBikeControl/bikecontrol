@@ -1,6 +1,7 @@
 ### 7.7.0 (24-11-2026)
 **Features**:
 - (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: Läuft BikeControl auf einem Android-Gerät oder Windows-PC, erscheint es in der Wahoo App als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
+- (Pro) Android mit einer reinen Bluetooth-Trainer-App wie Grimpa: Der Fahren-Tab und die Einrichtung bieten jetzt das Gang-Overlay an. Die App läuft auf einem anderen Gerät, du kannst dein Handy also für alles andere nutzen und siehst deinen Gang trotzdem obendrauf.
 
 **Fixes**:
 - (Base) Android mit FulGaz oder Biketerra: Beim Verbinden des Trainers fragt BikeControl jetzt nach der Bluetooth-Berechtigung, die es braucht, um als Trainer zu erscheinen. Bisher drehte sich die Bridge endlos und die App zeigte sie nie an. Die Trainer-Seite zeigt außerdem den Namen, unter dem die App sie listet (Android kürzt ihn, z. B. „KICKR CORE 1234 - Bik“).

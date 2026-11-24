@@ -3736,5 +3736,10 @@
   "bridgeBluetoothPermissionMissing": "{trainer} can't show up over Bluetooth: BikeControl isn't allowed to use Nearby devices. Open the trainer and pick Virtual Shifting to allow it.",
   "@bridgeBluetoothPermissionMissing": {"placeholders": {"trainer": {"type": "String"}}},
   "warningMacBridgeUnnamed": "{app} can't find BikeControl on a Mac: macOS advertises the trainer over Bluetooth without a name, and {app} skips unnamed trainers. Run BikeControl on an Android device or a Windows PC instead.",
-  "@warningMacBridgeUnnamed": {"placeholders": {"app": {"type": "String"}}}
+  "@warningMacBridgeUnnamed": {"placeholders": {"app": {"type": "String"}}},
+  "rideOverlayOfferOverOtherApps": "Keep your gear in view over any app on this phone",
+  "@rideOverlayOfferOverOtherApps": {"description": "Ride tab: offer to show the gear overlay on Android when the trainer app is reached over Bluetooth only and therefore runs on another device, so the phone is free for other apps."},
+  "onboardingOverlayOverOtherAppsTitle": "Use your phone, keep your gear in view",
+  "onboardingOverlayOverOtherAppsNote": "{app} runs on another device, so this phone is free. The overlay keeps your gear on top of any app you open here.",
+  "@onboardingOverlayOverOtherAppsNote": {"description": "Onboarding step 3: overlay offer body when the trainer app runs on another device (Bluetooth-only app) and the phone is free for other apps.", "placeholders": {"app": {"type": "String"}}}
 }

@@ -1,6 +1,7 @@
 ### 7.7.0 (24-11-2026)
 **Features**:
 - (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: gdy BikeControl działa na urządzeniu z Androidem lub komputerze z Windows, pojawia się w aplikacji Wahoo jako trenażer smart Bluetooth i sam zajmuje się wirtualną zmianą biegów.
+- (Pro) Android z aplikacją treningową tylko przez Bluetooth, np. Grimpa: zakładka Jazda i konfiguracja proponują teraz nakładkę z biegiem. Aplikacja działa na innym urządzeniu, więc możesz używać telefonu do czegokolwiek i nadal widzieć swój bieg na wierzchu.
 
 **Fixes**:
 - (Base) Android z FulGaz lub Biketerra: przy łączeniu trenażera BikeControl prosi teraz o uprawnienie Bluetooth, którego potrzebuje, by pojawić się jako trenażer. Wcześniej mostek kręcił się bez końca, a aplikacja nigdy go nie pokazywała. Strona trenażera pokazuje też nazwę, pod którą widzi go aplikacja (Android ją skraca, np. „KICKR CORE 1234 - Bik”).

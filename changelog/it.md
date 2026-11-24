@@ -1,6 +1,7 @@
 ### 7.7.0 (24-11-2026)
 **Features**:
 - (Pro) L'app Wahoo ora è selezionabile come app di allenamento: con BikeControl su un dispositivo Android o un PC Windows, compare nell'app Wahoo come rullo smart Bluetooth e gestisce il cambio virtuale.
+- (Pro) Android con un'app di allenamento solo Bluetooth come Grimpa: la scheda Pedala e la configurazione ora propongono l'overlay del rapporto. L'app gira su un altro dispositivo, quindi puoi usare il telefono per altro e vedere comunque il tuo rapporto in sovrimpressione.
 
 **Fixes**:
 - (Base) Android con FulGaz o Biketerra: collegando il rullo, BikeControl ora chiede il permesso Bluetooth che gli serve per comparire come rullo. Prima il bridge restava in caricamento e l'app non lo mostrava mai. La pagina del rullo mostra anche il nome con cui l'app lo elenca (Android lo accorcia, ad es. «KICKR CORE 1234 - Bik»).

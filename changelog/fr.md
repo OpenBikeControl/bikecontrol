@@ -1,6 +1,7 @@
 ### 7.7.0 (24-11-2026)
 **Features**:
 - (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : avec BikeControl sur un appareil Android ou un PC Windows, il apparaît dans l'app Wahoo comme home trainer Bluetooth et assure les vitesses virtuelles.
+- (Pro) Android avec une app d'entraînement uniquement Bluetooth comme Grimpa : l'onglet Rouler et la configuration proposent désormais la superposition du braquet. L'app tourne sur un autre appareil, tu peux donc utiliser ton téléphone pour autre chose tout en voyant ton braquet par-dessus.
 
 **Fixes**:
 - (Base) Android avec FulGaz ou Biketerra : en connectant le home trainer, BikeControl demande maintenant l'autorisation Bluetooth dont il a besoin pour apparaître comme home trainer. Avant, le pont tournait sans fin et l'app ne l'affichait jamais. La page du home trainer affiche aussi le nom sous lequel l'app le liste (Android le raccourcit, p. ex. « KICKR CORE 1234 - Bik »).

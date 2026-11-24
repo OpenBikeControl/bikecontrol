@@ -965,7 +965,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   bool get _doneOverlayOn {
     final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
     final app = _selectedApp;
-    if (trainer == null || app == null || !app.showsOwnGear) return false;
+    if (trainer == null || app == null || !(app.showsOwnGear || overlayOverOtherApps(app))) return false;
     return trainerOverlayOffered(trainer) && core.settings.getOverlayEnabled();
   }
 
