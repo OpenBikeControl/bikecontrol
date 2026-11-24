@@ -3207,7 +3207,7 @@
   "onboardingAppDirectoryLink": "{app} na smarttrainerapps.com",
   "onboardingGrimpaDeal": "{percent}% zniżki na pierwszy zakup Grimpa Plus",
   "onboardingDealCodeCopied": "Kod skopiowany",
-  "rideOverlayOfferOverOtherApps": "Miej bieg na oku nad każdą aplikacją na tym telefonie",
+  "rideOverlayOfferOverOtherApps": "Bieg nad każdą aplikacją",
   "onboardingOverlayOverOtherAppsTitle": "Korzystaj z telefonu, bieg zostaje na widoku",
   "onboardingOverlayOverOtherAppsNote": "{app} działa na innym urządzeniu, więc ten telefon jest wolny. Nakładka pokazuje Twój bieg nad każdą aplikacją, którą tu otworzysz."
 }

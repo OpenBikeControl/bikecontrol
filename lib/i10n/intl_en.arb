@@ -3743,7 +3743,7 @@
   "@onboardingGrimpaDeal": {"description": "Onboarding step 1: Grimpa's discount offer shown above the copyable code BIKECONTROL.", "placeholders": {"percent": {"type": "int"}}},
   "onboardingDealCodeCopied": "Code copied",
   "@onboardingDealCodeCopied": {"description": "Toast after copying the discount code."},
-  "rideOverlayOfferOverOtherApps": "Keep your gear in view over any app on this phone",
+  "rideOverlayOfferOverOtherApps": "See your gear over any app",
   "@rideOverlayOfferOverOtherApps": {"description": "Ride tab: offer to show the gear overlay on Android when the trainer app is reached over Bluetooth only and therefore runs on another device, so the phone is free for other apps."},
   "onboardingOverlayOverOtherAppsTitle": "Use your phone, keep your gear in view",
   "onboardingOverlayOverOtherAppsNote": "{app} runs on another device, so this phone is free. The overlay keeps your gear on top of any app you open here.",

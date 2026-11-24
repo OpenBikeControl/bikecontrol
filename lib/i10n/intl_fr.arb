@@ -3207,7 +3207,7 @@
   "onboardingAppDirectoryLink": "{app} sur smarttrainerapps.com",
   "onboardingGrimpaDeal": "{percent} % de réduction sur ton premier achat Grimpa Plus",
   "onboardingDealCodeCopied": "Code copié",
-  "rideOverlayOfferOverOtherApps": "Garde ton braquet en vue par-dessus n'importe quelle app de ce téléphone",
+  "rideOverlayOfferOverOtherApps": "Ton braquet sur toutes les apps",
   "onboardingOverlayOverOtherAppsTitle": "Utilise ton téléphone, ton braquet reste en vue",
   "onboardingOverlayOverOtherAppsNote": "{app} tourne sur un autre appareil, ce téléphone est donc libre. La superposition affiche ton braquet par-dessus toute app que tu ouvres ici."
 }

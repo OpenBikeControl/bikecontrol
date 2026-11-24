@@ -1,6 +1,5 @@
 import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/widgets/ui/app_theme.dart' show BkStatusColors;
-import 'package:bike_control/widgets/ui/bk_icon_button.dart';
 import 'package:bike_control/widgets/ui/bk_tappable.dart';
 import 'package:bike_control/widgets/ui/bk_touch_target.dart';
 import 'package:bike_control/widgets/ui/colors.dart';
@@ -138,11 +137,20 @@ class RideOverlayNotice extends StatelessWidget {
             ),
           ),
         ),
-        BkTouchTarget(
-          child: BkIconButton.ghost(
-            icon: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground),
-            label: l.chainStepOverlayDecline,
-            onPressed: onDecline,
+        // Flush with the card's right edge, like the settings line's icon
+        // above it: a centred glyph in a 48 dp button sat ~15 dp short of it.
+        BkTappable(
+          key: const ValueKey('ride-overlay-decline'),
+          onPressed: onDecline,
+          label: l.chainStepOverlayDecline,
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: BkTouchTarget.minSize,
+            height: BkTouchTarget.minSize,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground),
+            ),
           ),
         ),
       ],

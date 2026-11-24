@@ -4375,7 +4375,7 @@
   "onboardingAppDirectoryLink": "在 smarttrainerapps.com 查看 {app}",
   "onboardingGrimpaDeal": "首次购买 Grimpa Plus 立减 {percent}%",
   "onboardingDealCodeCopied": "代码已复制",
-  "rideOverlayOfferOverOtherApps": "在本手机的任何应用上方显示你的档位",
+  "rideOverlayOfferOverOtherApps": "在任何应用上方显示档位",
   "onboardingOverlayOverOtherAppsTitle": "使用手机时也能看到档位",
   "onboardingOverlayOverOtherAppsNote": "{app} 运行在另一台设备上，因此这台手机可以自由使用。悬浮窗会在你打开的任何应用上方显示你的档位。"
 }

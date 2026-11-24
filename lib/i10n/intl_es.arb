@@ -3207,7 +3207,7 @@
   "onboardingAppDirectoryLink": "{app} en smarttrainerapps.com",
   "onboardingGrimpaDeal": "{percent} % en tu primera compra de Grimpa Plus",
   "onboardingDealCodeCopied": "Código copiado",
-  "rideOverlayOfferOverOtherApps": "Ten tu marcha a la vista sobre cualquier app de este móvil",
+  "rideOverlayOfferOverOtherApps": "Tu marcha sobre cualquier app",
   "onboardingOverlayOverOtherAppsTitle": "Usa tu móvil sin perder de vista tu marcha",
   "onboardingOverlayOverOtherAppsNote": "{app} se ejecuta en otro dispositivo, así que este móvil queda libre. La superposición muestra tu marcha encima de cualquier app que abras aquí."
 }

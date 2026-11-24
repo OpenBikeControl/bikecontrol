@@ -222,6 +222,8 @@ class _NavigationState extends State<Navigation> {
                   section: section,
                   compact: true,
                   showPlanAndHelp: section == AppSection.ride,
+                  // Help is one tap away on every tab, not only on Ride.
+                  showHelp: true,
                   scrolled: _contentScrolled,
                 ),
               ],
