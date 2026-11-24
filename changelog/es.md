@@ -4,6 +4,7 @@
 - (Pro) Android con una app de entrenamiento solo Bluetooth como Grimpa: la pestaña Rodar y la configuración ahora ofrecen la superposición de marcha. La app se ejecuta en otro dispositivo, así que puedes usar el móvil para lo que quieras y seguir viendo tu marcha encima.
 
 **Fixes**:
+- (Base) Android: «Cerrar» en la notificación de BikeControl ahora también quita la superposición de marcha. Antes, la superposición seguía en pantalla después de cerrar BikeControl.
 - (Base) Android con FulGaz o Biketerra: al conectar el rodillo, BikeControl pide ahora el permiso de Bluetooth que necesita para aparecer como rodillo. Antes, el puente se quedaba cargando y la app nunca lo mostraba. La página del rodillo muestra además el nombre con el que la app lo lista (Android lo acorta, p. ej. «KICKR CORE 1234 - Bik»).
 - (Base) iPhone / iPad: BikeControl ahora sigue activo en segundo plano mientras espera a tu app de entrenamiento (hasta 15 minutos) y durante 5 minutos después de que la app se desconecte. Antes, iOS podía suspender BikeControl antes de que MyWhoosh y otras apps lo encontraran, y la app no encontraba nada o no podía conectarse.
 - (Base) iPhone / iPad: si iOS llega a suspender BikeControl, vuelve a ser visible en la red por sí solo en cuanto regresas a él. Antes había que reiniciar el método de red.

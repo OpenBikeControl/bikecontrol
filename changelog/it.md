@@ -4,6 +4,7 @@
 - (Pro) Android con un'app di allenamento solo Bluetooth come Grimpa: la scheda Pedala e la configurazione ora propongono l'overlay del rapporto. L'app gira su un altro dispositivo, quindi puoi usare il telefono per altro e vedere comunque il tuo rapporto in sovrimpressione.
 
 **Fixes**:
+- (Base) Android: «Chiudi» nella notifica di BikeControl ora rimuove anche l'overlay del rapporto. Prima l'overlay restava sullo schermo dopo la chiusura di BikeControl.
 - (Base) Android con FulGaz o Biketerra: collegando il rullo, BikeControl ora chiede il permesso Bluetooth che gli serve per comparire come rullo. Prima il bridge restava in caricamento e l'app non lo mostrava mai. La pagina del rullo mostra anche il nome con cui l'app lo elenca (Android lo accorcia, ad es. «KICKR CORE 1234 - Bik»).
 - (Base) iPhone / iPad: BikeControl ora resta attivo in background mentre aspetta la tua app di allenamento (fino a 15 minuti) e per 5 minuti dopo che l'app si è disconnessa. Prima iOS poteva sospendere BikeControl prima che MyWhoosh e altre app lo trovassero, e l'app non trovava nulla o non riusciva a connettersi.
 - (Base) iPhone / iPad: se iOS sospende comunque BikeControl, torna visibile sulla rete da solo appena ci ritorni. Prima bisognava riavviare il metodo di rete.

@@ -4,6 +4,7 @@
 - (Pro) Android 搭配仅支持蓝牙的训练应用（如 Grimpa）：骑行页和设置流程现在会提供档位悬浮窗。该应用运行在另一台设备上，你可以用手机做其他事，同时仍能看到档位。
 
 **Fixes**:
+- (Base) Android：点击 BikeControl 通知中的“关闭”现在也会移除档位悬浮窗。此前 BikeControl 退出后悬浮窗仍留在屏幕上。
 - (Base) 安卓上使用 FulGaz 或 Biketerra：连接骑行台时，BikeControl 现在会请求以骑行台身份出现所需的蓝牙权限。此前桥接会一直转圈，应用也始终看不到它。骑行台页面还会显示应用中列出的名称（安卓会缩短它，例如“KICKR CORE 1234 - Bik”）。
 - (Base) iPhone / iPad：BikeControl 现在在后台等待训练应用时会保持运行（最长 15 分钟），并在应用断开后继续保持 5 分钟。以前 iOS 可能在 MyWhoosh 等应用找到 BikeControl 之前就让它休眠，导致应用找不到或无法连接。
 - (Base) iPhone / iPad：如果 iOS 仍然让 BikeControl 休眠，回到 BikeControl 后它会自动重新出现在网络上。以前需要重启网络方式。

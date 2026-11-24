@@ -4,6 +4,7 @@
 - (Pro) Android z aplikacją treningową tylko przez Bluetooth, np. Grimpa: zakładka Jazda i konfiguracja proponują teraz nakładkę z biegiem. Aplikacja działa na innym urządzeniu, więc możesz używać telefonu do czegokolwiek i nadal widzieć swój bieg na wierzchu.
 
 **Fixes**:
+- (Base) Android: „Zamknij” w powiadomieniu BikeControl usuwa teraz także nakładkę z biegiem. Wcześniej nakładka zostawała na ekranie po zamknięciu BikeControl.
 - (Base) Android z FulGaz lub Biketerra: przy łączeniu trenażera BikeControl prosi teraz o uprawnienie Bluetooth, którego potrzebuje, by pojawić się jako trenażer. Wcześniej mostek kręcił się bez końca, a aplikacja nigdy go nie pokazywała. Strona trenażera pokazuje też nazwę, pod którą widzi go aplikacja (Android ją skraca, np. „KICKR CORE 1234 - Bik”).
 - (Base) iPhone / iPad: BikeControl pozostaje teraz aktywny w tle, gdy czeka na twoją aplikację treningową (do 15 minut), oraz przez 5 minut po rozłączeniu aplikacji. Wcześniej iOS mógł uśpić BikeControl, zanim MyWhoosh i inne aplikacje go znalazły, więc aplikacja nic nie znajdowała albo nie mogła się połączyć.
 - (Base) iPhone / iPad: jeśli iOS mimo to uśpi BikeControl, po powrocie do niego sam znów staje się widoczny w sieci. Wcześniej trzeba było zrestartować metodę sieciową.

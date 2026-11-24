@@ -4,6 +4,7 @@
 - (Pro) Android mit einer reinen Bluetooth-Trainer-App wie Grimpa: Der Fahren-Tab und die Einrichtung bieten jetzt das Gang-Overlay an. Die App läuft auf einem anderen Gerät, du kannst dein Handy also für alles andere nutzen und siehst deinen Gang trotzdem obendrauf.
 
 **Fixes**:
+- (Base) Android: „Schließen“ in der Benachrichtigung von BikeControl entfernt jetzt auch das Gang-Overlay. Bisher blieb das Overlay auf dem Bildschirm, nachdem BikeControl beendet war.
 - (Base) Android mit FulGaz oder Biketerra: Beim Verbinden des Trainers fragt BikeControl jetzt nach der Bluetooth-Berechtigung, die es braucht, um als Trainer zu erscheinen. Bisher drehte sich die Bridge endlos und die App zeigte sie nie an. Die Trainer-Seite zeigt außerdem den Namen, unter dem die App sie listet (Android kürzt ihn, z. B. „KICKR CORE 1234 - Bik“).
 - (Base) iPhone / iPad: BikeControl bleibt jetzt im Hintergrund wach, solange es auf deine Trainer-App wartet (bis zu 15 Minuten), und noch 5 Minuten, nachdem die App die Verbindung getrennt hat. Bisher konnte iOS BikeControl schlafen legen, bevor MyWhoosh und andere Apps es gefunden hatten – die App fand dann nichts oder konnte sich nicht verbinden.
 - (Base) iPhone / iPad: Hat iOS BikeControl doch schlafen gelegt, ist es von selbst wieder im Netzwerk zu finden, sobald du zurückkehrst. Bisher musste die Netzwerkmethode neu gestartet werden.
