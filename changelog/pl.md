@@ -19,18 +19,25 @@
 - (Base) Telefon z Androidem bez Wi-Fi i aplikacja treningowa na tym samym telefonie: rada brzmi teraz, by połączyć się z dowolną siecią Wi-Fi albo użyć trybu Lokalnie, zamiast „tej samej sieci Wi-Fi co aplikacja”.
 - (Base) Brak połączenia z internetem po zalogowaniu nie zapełnia już dziennika wpisami „App crashed”.
 - (Base) Sprawdzanie sieci: nie zgłasza już błędu, gdy BikeControl sam przeszukuje sieć, ani gdy używasz tylko mostka trenażera i masz wyłączone połączenie kontrolera.
+- (Base) Windows: na komputerze bez adaptera Bluetooth uprawnienie Bluetooth mówi to teraz i otwiera ustawienia Bluetooth zamiast nic nie robić, a trenażery Wi-Fi i gamepady są znajdowane bez niego. Jeśli Windows nie pozwala włączyć Bluetooth, BikeControl o tym informuje i otwiera ustawienia.
+- (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera mają właściwe kolory. Wcześniej czerwony i niebieski były zamienione.
+- (Base) Własne przypisania przycisków, które nazywają się tak samo jak przycisk innego kontrolera (np. przyciski skrętu KICKR BIKE), zostają po ponownym uruchomieniu. Wcześniej za każdym razem wracały do domyślnych.
 
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Twoje dotychczasowe przypisanie łopatki działa dla obu.
 - (Base) Elite Rizer i Sterzo: martwą strefę skrętu można teraz ustawić na stronie urządzenia.
 - (Base) Akcje akcesoriów (np. zwiększanie / zmniejszanie nachylenia Rizera) przypiszesz teraz bezpośrednio do przycisku połączonego kontrolera na stronie akcesorium: dotknij przycisku na obrazku kontrolera i wybierz pojedyncze, podwójne lub długie naciśnięcie.
+- (Base) Everycol jest teraz oficjalnie obsługiwany przez OpenBikeControl.
 
 **Fixes**:
-- (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran we właściwych kolorach, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część mogły być ucinane, a czerwony i niebieski były zamienione.
+- (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera obejmują teraz cały ekran, także przy skalowaniu ekranu powyżej 100 %. Wcześniej prawa i dolna część mogły być ucinane.
 - (Base) Elite Rizer: gdy Rizer jest zablokowany (czerwona dioda) i nie chce się pochylać, jego strona i karta Jazda pokazują to teraz, zamiast twierdzić, że podąża za nachyleniem.
 - (Base) Elite Rizer: zablokowany Rizer jest teraz pokazywany jako zablokowany zaraz po połączeniu, a nie dopiero gdy przyjdzie nachylenie.
-- (Base) Windows: na komputerze bez adaptera Bluetooth uprawnienie Bluetooth mówi to teraz i otwiera ustawienia Bluetooth zamiast nic nie robić, a trenażery Wi-Fi i gamepady są znajdowane bez niego. Jeśli Windows nie pozwala włączyć Bluetooth, BikeControl o tym informuje i otwiera ustawienia.
+- (Pro) MyWhoosh przez Bluetooth, Grimpa i inne aplikacje OpenBikeControl przez Bluetooth: aplikacja znajduje teraz zarówno kontroler BikeControl, jak i przekazywany trenażer. Wcześniej Android pokazywał tylko kontroler.
+- (Base) Zwift Click V2 z Rouvy: odblokowanie przez Rouvy dociera teraz do Click V2 przez BikeControl.
+- (Base) Zwift Click V2: koniec z komunikatem „Nie udało się połączyć” co minutę, gdy kontroler sam się restartuje.
+- (Base) Windows, Mac i Linux: symulowane naciśnięcia klawiszy są przytrzymywane przez 50 ms. Wcześniej aplikacje, które sprawdzają klawiaturę raz na klatkę, gubiły wiele pojedynczych naciśnięć.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
@@ -40,6 +47,10 @@
 
 **Fixes**:
 - (Base) Shimano Di2: konfiguracja kanałów D-Fly rozpoznaje teraz, która manetka jest lewa, a która prawa, i żaden zmieniony przez nią przycisk nie zmienia już biegów w rowerze.
+- (Pro) Nakładka z biegami: po ponownym połączeniu trenażera dalej pokazuje biegi twojego trenażera.
+- (Base) Elite Square: własne przypisania przycisków Y, A, B i Z zostają po ponownym uruchomieniu.
+- (Base) Drugi zapamiętany trenażer nie łączy się już sam obok tego, na którym jeździsz. Wcześniej mógł połączyć się niezauważony i mieszać odczyty i polecenia.
+- (Base) Most trenażera: przy dwóch połączonych trenażerach moc tego, na którym jeździsz, nie spada już chwilami do 0.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

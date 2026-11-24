@@ -1,8 +1,9 @@
 7.7.0
 Neu: Wahoo App als Trainer-App (Pro)
+Neu: Gang-Overlay mit Bluetooth-Apps wie Grimpa (Pro)
 Behoben:
-• MyWhoosh auf demselben Gerät: Die Startseite sagt, dass virtuelles Schalten es dort nicht erreicht und was funktioniert
-• MyWhoosh auf einem anderen Android-Gerät: Trainer auf Bluetooth umstellen, die Startseite sagt es jetzt
-• Kein WLAN: klarerer Hinweis
-• Bluetooth wird angeboten, wenn die Netzwerkverbindung nicht zustande kommt
-• Netzwerkprüfung: weniger Fehlalarme
+• MyWhoosh auf demselben Gerät: Die Startseite sagt, was dort funktioniert
+• MyWhoosh auf einem anderen Android-Gerät: Die Startseite sagt, dass du den Trainer auf Bluetooth stellst
+• FulGaz / Biketerra: Die Bridge fragt nach der nötigen Bluetooth-Berechtigung
+• „Schließen“ in der Benachrichtigung entfernt das Gang-Overlay
+• Eigene Belegungen bleiben nach Neustart

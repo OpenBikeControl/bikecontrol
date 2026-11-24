@@ -19,18 +19,25 @@
 - (Base) Telefono Android senza Wi-Fi e app di allenamento sullo stesso telefono: il consiglio ora è collegarti a una Wi-Fi qualsiasi o usare Locale, invece di «la stessa Wi-Fi dell'app».
 - (Base) Essere offline con l'accesso effettuato non riempie più il registro di voci «App crashed».
 - (Base) Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller.
+- (Base) Windows: su un PC senza adattatore Bluetooth, il permesso Bluetooth ora lo segnala e apre le impostazioni Bluetooth invece di non fare nulla, e i rulli Wi-Fi e i gamepad vengono trovati anche senza. Se Windows non permette di attivare il Bluetooth, BikeControl te lo dice e apre le impostazioni.
+- (Base) Windows: gli screenshot fatti con un pulsante del controller hanno i colori giusti. Prima rosso e blu erano invertiti.
+- (Base) Le assegnazioni personalizzate dei pulsanti che hanno lo stesso nome di un pulsante di un altro controller (ad es. i pulsanti di sterzo della KICKR BIKE) restano dopo un riavvio. Prima tornavano ogni volta all'assegnazione predefinita.
 
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Levette di Zwift Play / Zwift Ride: inclinare verso l'interno e verso l'esterno sono ora due pulsanti separati, ognuno con la sua azione. La tua assegnazione attuale della levetta vale per entrambi.
 - (Base) Elite Rizer e Sterzo: la zona morta dello sterzo ora si imposta nella pagina del dispositivo.
 - (Base) Le azioni degli accessori (ad es. aumentare / diminuire la pendenza del Rizer) si assegnano ora direttamente a un pulsante del controller collegato dalla pagina dell'accessorio: tocca il pulsante nell'immagine del controller e scegli pressione singola, doppia o lunga.
+- (Base) Everycol è ora supportato ufficialmente tramite OpenBikeControl.
 
 **Fixes**:
-- (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo con i colori giusti, anche con un ridimensionamento dello schermo oltre il 100 %. Prima potevano essere tagliati a destra e in basso, e rosso e blu erano invertiti.
+- (Base) Windows: gli screenshot fatti con un pulsante del controller ora catturano tutto lo schermo, anche con un ridimensionamento dello schermo oltre il 100 %. Prima potevano essere tagliati a destra e in basso.
 - (Base) Elite Rizer: quando il Rizer è bloccato (LED rosso) e non si inclina, la sua pagina e la scheda Pedala ora lo indicano, invece di dire che segue la pendenza.
 - (Base) Elite Rizer: un Rizer bloccato ora viene mostrato come bloccato appena si collega, non solo quando arriva una pendenza.
-- (Base) Windows: su un PC senza adattatore Bluetooth, il permesso Bluetooth ora lo segnala e apre le impostazioni Bluetooth invece di non fare nulla, e i rulli Wi-Fi e i gamepad vengono trovati anche senza. Se Windows non permette di attivare il Bluetooth, BikeControl te lo dice e apre le impostazioni.
+- (Pro) MyWhoosh via Bluetooth, Grimpa e altre app OpenBikeControl via Bluetooth: l'app ora trova sia il controller di BikeControl sia il rullo inoltrato. Prima Android mostrava solo il controller.
+- (Base) Zwift Click V2 con Rouvy: lo sblocco di Rouvy ora arriva al Click V2 tramite BikeControl.
+- (Base) Zwift Click V2: niente più messaggio «Connessione non riuscita» ogni minuto mentre il controller si riavvia da solo.
+- (Base) Windows, Mac e Linux: le pressioni dei tasti simulate vengono tenute per 50 ms. Prima le app che leggono la tastiera una volta per fotogramma perdevano molte pressioni singole.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
@@ -40,6 +47,10 @@
 
 **Fixes**:
 - (Base) Shimano Di2: la configurazione dei canali D-Fly ora riconosce quale comando è il sinistro e quale il destro, e nessun pulsante che modifica cambia ancora marcia sulla bici.
+- (Pro) Overlay delle marce: continua a mostrare le marce del tuo rullo dopo che il rullo si ricollega.
+- (Base) Elite Square: le assegnazioni personalizzate dei pulsanti Y, A, B e Z restano dopo un riavvio.
+- (Base) Un secondo rullo memorizzato non si collega più da solo accanto a quello che usi. Prima poteva collegarsi senza che lo vedessi e mescolare valori e comandi.
+- (Base) Ponte del rullo: con due rulli collegati, la potenza di quello che usi non scende più a tratti a 0.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

@@ -1,8 +1,9 @@
 7.7.0
-Nouveau : app Wahoo comme app d'entraînement (Pro)
+Nouveau : l'app Wahoo comme app d'entraînement (Pro)
+Nouveau : overlay des vitesses avec les apps Bluetooth comme Grimpa (Pro)
 Corrigé :
-• MyWhoosh sur le même appareil : l'écran d'accueil dit que le changement de vitesse virtuel ne l'atteint pas et ce qui fonctionne
-• MyWhoosh sur un autre appareil Android : passe le home trainer en Bluetooth, l'écran d'accueil le dit
-• Sans Wi-Fi : conseil plus clair
-• Le Bluetooth est proposé quand la connexion réseau n'aboutit pas
-• Vérification du réseau : moins de faux échecs
+• MyWhoosh sur le même appareil : l'accueil dit ce qui marche
+• MyWhoosh sur un autre Android : l'accueil dit de passer le home trainer en Bluetooth
+• FulGaz / Biketerra : le pont demande l'autorisation Bluetooth nécessaire
+• « Fermer » dans la notification retire l'overlay
+• Assignations gardées au redémarrage

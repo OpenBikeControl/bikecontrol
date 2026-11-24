@@ -19,18 +19,25 @@
 - (Base) Móvil Android sin Wi-Fi y la app de entrenamiento en el mismo móvil: el consejo ahora es conectarte a cualquier Wi-Fi o usar Local, en vez de «la misma Wi-Fi que la app».
 - (Base) Estar sin conexión con la sesión iniciada ya no llena el registro de entradas «App crashed».
 - (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
+- (Base) Windows: en un PC sin adaptador Bluetooth, el permiso de Bluetooth ahora lo indica y abre los ajustes de Bluetooth en lugar de no hacer nada, y los rodillos Wi-Fi y los mandos se encuentran sin él. Si Windows no deja activar el Bluetooth, BikeControl te lo dice y abre los ajustes.
+- (Base) Windows: las capturas de pantalla con un botón del mando tienen los colores correctos. Antes el rojo y el azul estaban intercambiados.
+- (Base) Las asignaciones propias de botones que se llaman igual que un botón de otro mando (p. ej. los botones de dirección de la KICKR BIKE) se conservan tras reiniciar. Antes volvían cada vez a la asignación por defecto.
 
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro e inclinar hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual de la palanca se aplica a ambos.
 - (Base) Elite Rizer y Sterzo: la zona muerta de la dirección ahora se ajusta en la página del dispositivo.
 - (Base) Las acciones de accesorios (p. ej. subir / bajar la inclinación del Rizer) se asignan ahora directamente a un botón de tu mando conectado desde la página del accesorio: toca el botón en la imagen del mando y elige pulsación simple, doble o larga.
+- (Base) Everycol ahora es compatible oficialmente mediante OpenBikeControl.
 
 **Fixes**:
-- (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla con los colores correctos, también con un escalado de pantalla superior al 100 %. Antes podían cortarse por la derecha y por abajo, y el rojo y el azul estaban intercambiados.
+- (Base) Windows: las capturas de pantalla con un botón del mando ahora recogen toda la pantalla, también con un escalado de pantalla superior al 100 %. Antes podían cortarse por la derecha y por abajo.
 - (Base) Elite Rizer: cuando el Rizer está bloqueado (LED rojo) y no se inclina, su página y la pestaña Rodar ahora lo indican, en lugar de decir que sigue la pendiente.
 - (Base) Elite Rizer: un Rizer bloqueado ahora se muestra como bloqueado en cuanto se conecta, no solo cuando llega una pendiente.
-- (Base) Windows: en un PC sin adaptador Bluetooth, el permiso de Bluetooth ahora lo indica y abre los ajustes de Bluetooth en lugar de no hacer nada, y los rodillos Wi-Fi y los mandos se encuentran sin él. Si Windows no deja activar el Bluetooth, BikeControl te lo dice y abre los ajustes.
+- (Pro) MyWhoosh por Bluetooth, Grimpa y otras apps OpenBikeControl por Bluetooth: la app ahora encuentra tanto el mando de BikeControl como el rodillo puenteado. Antes Android solo mostraba el mando.
+- (Base) Zwift Click V2 con Rouvy: el desbloqueo de Rouvy ahora llega al Click V2 a través de BikeControl.
+- (Base) Zwift Click V2: se acabó el mensaje «No se pudo conectar» cada minuto mientras el mando se reinicia solo.
+- (Base) Windows, Mac y Linux: las pulsaciones de teclas simuladas se mantienen 50 ms. Antes, las apps que leen el teclado una vez por fotograma perdían muchas pulsaciones sueltas.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
@@ -40,6 +47,10 @@
 
 **Fixes**:
 - (Base) Shimano Di2: la configuración de los canales D-Fly ahora reconoce qué maneta es la izquierda y cuál la derecha, y ningún botón que cambia sigue cambiando de marcha en la bici.
+- (Pro) Overlay de marchas: sigue mostrando las marchas de tu rodillo después de que el rodillo se vuelva a conectar.
+- (Base) Elite Square: las asignaciones propias de los botones Y, A, B y Z se conservan tras reiniciar.
+- (Base) Un segundo rodillo guardado ya no se conecta solo junto al que usas. Antes podía conectarse sin que lo vieras y mezclar valores y órdenes.
+- (Base) Puente del rodillo: con dos rodillos conectados, la potencia del que usas ya no cae a 0 a ratos.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

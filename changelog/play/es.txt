@@ -1,8 +1,9 @@
 7.7.0
-Nuevo: app Wahoo como app de entreno (Pro)
+Nuevo: la app de Wahoo como app de entrenamiento (Pro)
+Nuevo: overlay de marchas con apps solo Bluetooth como Grimpa (Pro)
 Corregido:
-• MyWhoosh en el mismo dispositivo: la pantalla de inicio dice que el cambio virtual no llega ahí y qué funciona
-• MyWhoosh en otro dispositivo Android: cambia el rodillo a Bluetooth, la pantalla de inicio ahora lo indica
-• Sin Wi-Fi: consejo más claro
-• Se ofrece Bluetooth cuando la conexión de red no llega
-• Comprobación de red: menos falsos fallos
+• MyWhoosh en el mismo dispositivo: la pantalla de inicio dice qué funciona
+• MyWhoosh en otro Android: la pantalla de inicio dice que pongas el rodillo en Bluetooth
+• FulGaz / Biketerra: el puente pide el permiso de Bluetooth que necesita
+• «Cerrar» en la notificación quita el overlay
+• Asignaciones propias tras reiniciar

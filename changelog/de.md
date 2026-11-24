@@ -19,18 +19,25 @@
 - (Base) Android-Handy ohne WLAN und Trainer-App auf demselben Handy: Der Hinweis lautet jetzt, ein beliebiges WLAN zu nutzen oder Lokal, statt „dasselbe WLAN wie die App“.
 - (Base) Offline zu sein, während du angemeldet bist, füllt das Protokoll nicht mehr mit „App crashed“-Einträgen.
 - (Base) Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast.
+- (Base) Windows: Auf einem PC ohne Bluetooth-Adapter sagt die Bluetooth-Berechtigung das jetzt und öffnet die Bluetooth-Einstellungen, statt nichts zu tun – WLAN-Trainer und Gamepads werden auch ohne gefunden. Lässt Windows Bluetooth nicht einschalten, sagt BikeControl dir das und öffnet die Einstellungen.
+- (Base) Windows: Screenshots per Controller-Taste haben die richtigen Farben. Bisher waren Rot und Blau vertauscht.
+- (Base) Eigene Belegungen von Tasten, die so heißen wie eine Taste eines anderen Controllers (z. B. die Lenktasten des KICKR BIKE), bleiben nach einem Neustart erhalten. Bisher fielen sie jedes Mal auf die Standardbelegung zurück.
 
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.
 - (Base) Elite Rizer und Sterzo: Die Totzone der Lenkung lässt sich jetzt auf der Geräteseite einstellen.
 - (Base) Zubehör-Aktionen (z. B. Steigung hoch / runter am Rizer) legst du jetzt direkt auf der Zubehörseite auf eine Taste deines verbundenen Controllers: Tippe die Taste im Bild des Controllers an und wähle einfachen, doppelten oder langen Druck.
+- (Base) Everycol wird jetzt offiziell über OpenBikeControl unterstützt.
 
 **Fixes**:
-- (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm in den richtigen Farben auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher konnten rechts und unten Teile fehlen, und Rot und Blau waren vertauscht.
+- (Base) Windows: Screenshots per Controller-Taste nehmen jetzt den ganzen Bildschirm auf, auch wenn die Anzeigeskalierung über 100 % liegt. Bisher konnten rechts und unten Teile fehlen.
 - (Base) Elite Rizer: Ist der Rizer gesperrt (rote LED) und lässt sich nicht neigen, zeigen seine Seite und der Fahren-Tab das jetzt an, statt zu behaupten, er folge der Steigung.
 - (Base) Elite Rizer: Ein gesperrter Rizer wird jetzt schon beim Verbinden als gesperrt angezeigt, nicht erst, wenn eine Steigung ankommt.
-- (Base) Windows: Auf einem PC ohne Bluetooth-Adapter sagt die Bluetooth-Berechtigung das jetzt und öffnet die Bluetooth-Einstellungen, statt nichts zu tun – WLAN-Trainer und Gamepads werden auch ohne gefunden. Lässt Windows Bluetooth nicht einschalten, sagt BikeControl dir das und öffnet die Einstellungen.
+- (Pro) MyWhoosh über Bluetooth, Grimpa und andere OpenBikeControl-Apps über Bluetooth: Die App findet jetzt sowohl den Controller von BikeControl als auch den weitergeleiteten Trainer. Bisher zeigte Android nur den Controller.
+- (Base) Zwift Click V2 mit Rouvy: Das Entsperren durch Rouvy kommt jetzt über BikeControl beim Click V2 an.
+- (Base) Zwift Click V2: Keine Meldung „Verbindung fehlgeschlagen“ mehr jede Minute, während sich der Controller selbst neu startet.
+- (Base) Windows, Mac und Linux: Simulierte Tastendrücke werden 50 ms gehalten. Bisher verpassten Apps, die die Tastatur einmal pro Frame abfragen, viele einzelne Drücke.
 
 ### 7.6.1 (20-11-2026)
 **Features**:
@@ -40,6 +47,10 @@
 
 **Fixes**:
 - (Base) Shimano Di2: Die Einrichtung der D-Fly-Kanäle erkennt jetzt, welcher Schalthebel links und welcher rechts ist, und keine Taste, die sie ändert, schaltet noch am Rad.
+- (Pro) Gang-Overlay: Zeigt nach einem erneuten Verbinden des Trainers weiter die Gänge deines Trainers.
+- (Base) Elite Square: Eigene Belegungen der Tasten Y, A, B und Z bleiben nach einem Neustart erhalten.
+- (Base) Ein zweiter gespeicherter Trainer verbindet sich nicht mehr von selbst neben dem, den du fährst. Bisher konnte er sich unbemerkt verbinden und Werte und Befehle durcheinanderbringen.
+- (Base) Trainer-Bridge: Mit zwei verbundenen Trainern springt die Leistung des gefahrenen nicht mehr kurz auf 0.
 
 ### 7.6.0 (17-11-2026)
 **Features**:

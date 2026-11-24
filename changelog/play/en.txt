@@ -1,8 +1,9 @@
 7.7.0
 New: Wahoo app as trainer app (Pro)
+New: gear overlay with Bluetooth-only apps like Grimpa (Pro)
 Fixed:
-• MyWhoosh on the same device: the home screen says virtual shifting can't reach it there and what works
-• MyWhoosh on another Android device: switch the trainer to Bluetooth, the home screen now says so
-• No Wi-Fi: clearer advice
-• Bluetooth is offered when the network connection doesn't come up
-• Network check: fewer false failures
+• MyWhoosh on the same device: the home screen says what works there
+• MyWhoosh on another Android device: the home screen says to switch the trainer to Bluetooth
+• FulGaz / Biketerra: the bridge asks for the Bluetooth permission it needs
+• "Close" in the notification removes the gear overlay
+• Custom mappings kept after a restart
