@@ -2,6 +2,7 @@
 **Features**:
 - (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : avec BikeControl sur un appareil Android ou un PC Windows, il apparaît dans l'app Wahoo comme home trainer Bluetooth et assure les vitesses virtuelles.
 - (Pro) Android avec une app d'entraînement uniquement Bluetooth comme Grimpa : l'onglet Rouler et la configuration proposent désormais la superposition du braquet. L'app tourne sur un autre appareil, tu peux donc utiliser ton téléphone pour autre chose tout en voyant ton braquet par-dessus.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser et SaddleOut sont maintenant officiellement pris en charge via OpenBikeControl.
 
 **Fixes**:
 - (Base) Grimpa, Biketerra et Ride Cave : la configuration active maintenant la méthode de connexion Bluetooth et, sur Android, demande dès l'étape de la manette l'autorisation Bluetooth nécessaire. Avant, elle activait une méthode réseau que ces apps ne peuvent pas utiliser.

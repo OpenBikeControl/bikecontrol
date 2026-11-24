@@ -2,6 +2,7 @@
 **Features**:
 - (Pro) The Wahoo app is now selectable as a trainer app: run BikeControl on an Android device or a Windows PC, and it shows up in the Wahoo app as a Bluetooth smart trainer and does the virtual shifting.
 - (Pro) Android with a Bluetooth-only trainer app like Grimpa: the Ride tab and setup now offer the gear overlay. The app runs on another device, so you can use your phone for anything else and still see your gear on top.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser and SaddleOut are now officially supported via OpenBikeControl.
 
 **Fixes**:
 - (Base) Grimpa, Biketerra and Ride Cave: setup now switches on the Bluetooth connection method, and on Android asks for the Bluetooth permission it needs on the controller step. Before, it switched on a network method these apps can't use.

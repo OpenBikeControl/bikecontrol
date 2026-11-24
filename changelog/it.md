@@ -2,6 +2,7 @@
 **Features**:
 - (Pro) L'app Wahoo ora è selezionabile come app di allenamento: con BikeControl su un dispositivo Android o un PC Windows, compare nell'app Wahoo come rullo smart Bluetooth e gestisce il cambio virtuale.
 - (Pro) Android con un'app di allenamento solo Bluetooth come Grimpa: la scheda Pedala e la configurazione ora propongono l'overlay del rapporto. L'app gira su un altro dispositivo, quindi puoi usare il telefono per altro e vedere comunque il tuo rapporto in sovrimpressione.
+- (Base) PedalCraft, suffer.online, Kardiacs, Sueur, TrainerKit, Pedal Mania, Warp, hupser e SaddleOut sono ora supportati ufficialmente tramite OpenBikeControl.
 
 **Fixes**:
 - (Base) Grimpa, Biketerra e Ride Cave: la configurazione ora attiva il metodo di connessione Bluetooth e, su Android, chiede già nel passaggio del controller l'autorizzazione Bluetooth necessaria. Prima attivava un metodo di rete che queste app non possono usare.

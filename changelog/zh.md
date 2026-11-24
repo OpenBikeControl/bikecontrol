@@ -2,6 +2,7 @@
 **Features**:
 - (Pro) 现在可以选择 Wahoo App 作为骑行软件：在安卓设备或 Windows 电脑上运行 BikeControl，它会在 Wahoo App 中作为蓝牙智能骑行台出现，并负责虚拟变速。
 - (Pro) Android 搭配仅支持蓝牙的训练应用（如 Grimpa）：骑行页和设置流程现在会提供档位悬浮窗。该应用运行在另一台设备上，你可以用手机做其他事，同时仍能看到档位。
+- (Base) PedalCraft、suffer.online、Kardiacs、Sueur、TrainerKit、Pedal Mania、Warp、hupser 和 SaddleOut 现已通过 OpenBikeControl 获得官方支持。
 
 **Fixes**:
 - (Base) Grimpa、Biketerra 和 Ride Cave：设置流程现在会开启蓝牙连接方式，并在 Android 上于控制器步骤中请求所需的蓝牙权限。此前会开启这些应用无法使用的网络方式。
