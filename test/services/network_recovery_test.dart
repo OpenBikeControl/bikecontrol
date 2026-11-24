@@ -65,7 +65,7 @@ void main() {
   });
 
   test('macOS: waking from sleep publishes again but leaves the listeners alone', () async {
-    final r = recovery(TargetPlatform.macOS)..start();
+    recovery(TargetPlatform.macOS).start();
 
     now = now.add(const Duration(hours: 2));
     watch.check();

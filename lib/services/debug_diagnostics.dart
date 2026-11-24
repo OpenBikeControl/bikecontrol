@@ -1,8 +1,10 @@
+import 'package:bike_control/bluetooth/devices/openbikecontrol/obp_mdns_backend.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/local_network_access.dart';
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:bike_control/services/mdns_query_privacy.dart';
 import 'package:bike_control/services/network_recovery.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:local_network_permission/local_network_permission.dart';
 import 'package:prop/mdns/mdns_responder.dart' show MdnsQueryLogEntry;
@@ -84,6 +86,11 @@ class DebugDiagnostics {
   /// and what was repaired afterwards. Empty where that is not tracked.
   final List<String> lifecycle;
 
+  /// Host name OpenBikeControl is published under when it goes out through
+  /// the operating system's responder instead of [backend]. Null when it
+  /// shares [backend] or is not running.
+  final String? obcOsResponderHost;
+
   const DebugDiagnostics({
     required this.advertised,
     required this.backend,
@@ -97,6 +104,7 @@ class DebugDiagnostics {
     this.recentQueries = const [],
     this.connections = const [],
     this.lifecycle = const [],
+    this.obcOsResponderHost,
   });
 
   static Future<DebugDiagnostics> gather({
@@ -163,7 +171,14 @@ class DebugDiagnostics {
       recentQueries: isResponder ? advertiser.recentQueries : const [],
       connections: ResilientTcpServer.connectionLog,
       lifecycle: NetworkRecovery.instance.diagnosticLines(),
+      obcOsResponderHost: _obcOsResponderHost(),
     );
+  }
+
+  static String? _obcOsResponderHost() {
+    final emulator = core.obpMdnsEmulator;
+    if (!emulator.isStarted.value || emulator.activeBackend != ObpMdnsBackend.osResponder) return null;
+    return emulator.advertisedHostname ?? '?';
   }
 
   /// Name fragments that mean "VPN tunnel" — the VPN subset of the address
@@ -249,6 +264,9 @@ class DebugDiagnostics {
       '${hostLabel != null ? ' · host: $hostLabel.local' : ''}'
       '${backend == 'responder' ? ' · multicast-lock: ${holdsMulticastLock ? 'held' : 'not held'}' : ''}',
     );
+    if (obcOsResponderHost != null) {
+      b.writeln('    _openbikecontrol._tcp: OS responder · host: $obcOsResponderHost');
+    }
 
     b.writeln('  Discovered on network:');
     if (!discoveryRan) {

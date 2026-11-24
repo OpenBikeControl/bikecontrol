@@ -9,6 +9,27 @@ import 'package:prop/utils/network_address.dart';
 import 'package:prop/utils/resilient_tcp_server.dart';
 
 void main() {
+  test('toText names the OS responder when OpenBikeControl is published through it', () {
+    DebugDiagnostics diag({String? host}) => DebugDiagnostics(
+      advertised: const [],
+      backend: 'responder',
+      hostLabel: 'bikecontrol-88b0',
+      holdsMulticastLock: false,
+      discovered: const [],
+      discoveryRan: false,
+      addressReport: const AddressPickReport(chosen: null, candidates: []),
+      servers: const [],
+      permissions: const PermissionsSnapshot(localNetwork: null),
+      obcOsResponderHost: host,
+    );
+
+    expect(
+      diag(host: 'my-pc.local').toText(),
+      contains('    _openbikecontrol._tcp: OS responder · host: my-pc.local'),
+    );
+    expect(diag().toText(), isNot(contains('OS responder')));
+  });
+
   test('toText renders every section with the expected markers', () {
     final diag = DebugDiagnostics(
       advertised: [
