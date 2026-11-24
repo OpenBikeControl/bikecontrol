@@ -56,6 +56,10 @@ class RideOverlayNotice extends StatelessWidget {
   /// Opens Settings → Overlay.
   final VoidCallback onOpen;
 
+  /// How far the offer's close target reaches past the row's end, into the
+  /// card's padding (see [_offer]).
+  static const double _closeOverhang = 16;
+
   @override
   Widget build(BuildContext context) {
     return switch (state) {
@@ -137,19 +141,27 @@ class RideOverlayNotice extends StatelessWidget {
             ),
           ),
         ),
-        // Flush with the card's right edge, like the settings line's icon
-        // above it: a centred glyph in a 48 dp button sat ~15 dp short of it.
-        BkTappable(
-          key: const ValueKey('ride-overlay-decline'),
-          onPressed: onDecline,
-          label: l.chainStepOverlayDecline,
-          borderRadius: BorderRadius.circular(12),
-          child: SizedBox(
-            width: BkTouchTarget.minSize,
-            height: BkTouchTarget.minSize,
-            child: Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground),
+        // The x ends at the card's content edge, like the settings line's
+        // icon above it, ~14 dp after "Show overlay". A 48 dp target inside
+        // the row can't do both (gap + inset always made 30 dp), so the row
+        // keeps a 32 dp slot and the 48 dp target reaches 16 dp past it into
+        // the card's padding, with the glyph centred in it.
+        SizedBox(
+          width: BkTouchTarget.minSize - _closeOverhang,
+          height: BkTouchTarget.minSize,
+          child: OverflowBox(
+            alignment: AlignmentDirectional.centerStart,
+            minWidth: BkTouchTarget.minSize,
+            maxWidth: BkTouchTarget.minSize,
+            child: BkTappable(
+              key: const ValueKey('ride-overlay-decline'),
+              onPressed: onDecline,
+              label: l.chainStepOverlayDecline,
+              borderRadius: BorderRadius.circular(24),
+              child: SizedBox.square(
+                dimension: BkTouchTarget.minSize,
+                child: Center(child: Icon(LucideIcons.x, size: 18, color: cs.mutedForeground)),
+              ),
             ),
           ),
         ),
