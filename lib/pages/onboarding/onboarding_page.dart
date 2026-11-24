@@ -961,11 +961,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
   }
 
   /// The overlay is on for a setup that needs it: a checklist row, where the
-  /// offer stood.
+  /// offer stood. Only for apps that show a gear of their own — for a
+  /// Bluetooth-only app (see overlayOverOtherApps) the overlay is optional,
+  /// and an optional thing is no setup step.
   bool get _doneOverlayOn {
     final trainer = core.connection.proxyDevices.where((t) => t.isBridged).firstOrNull;
     final app = _selectedApp;
-    if (trainer == null || app == null || !(app.showsOwnGear || overlayOverOtherApps(app))) return false;
+    if (trainer == null || app == null || !app.showsOwnGear) return false;
     return trainerOverlayOffered(trainer) && core.settings.getOverlayEnabled();
   }
 
