@@ -367,6 +367,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return since != null && DateTime.now().difference(since) >= _bluetoothOfferAfter;
   }
 
+  /// Swaps the network method for Bluetooth and shows how to pair.
+  Future<void> _useBluetoothFallback() async {
+    final app = core.settings.getTrainerApp();
+    if (app == null) return;
+    await useBluetoothInstead(context, app, onUpdate: _update);
+    // Refused the Bluetooth permission: the network method stays.
+    if (!core.settings.getBc2BleEnabled() || !mounted) return;
+    _update();
+    // Pairing over Bluetooth happens in the trainer app.
+    unawaited(openAppGuideSheet(context));
+  }
+
   /// Starts or ends the wait as network methods and the app come and go.
   void _syncWaitingForApp() {
     final waiting = core.logic.hasNetworkMethodEnabled && !_trainerAppConnectedOverNetwork;
@@ -1319,6 +1331,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final l = context.i18n;
     return link.activeStep?.id == SetupStepId.appLocalControl
         ? l.chainStepLocalControlAction
+        : link.activeStep?.id == SetupStepId.appBluetoothFallback
+        ? l.bluetoothFallbackAction
         : link.activeStep?.id == SetupStepId.appNetworkAddress
         ? l.chainStepNetworkAddressAction
         : appLinkOpensConnectionSettings(link)
@@ -2234,14 +2248,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       },
       onOffer: (step) async {
         if (step.id == SetupStepId.appBluetoothFallback) {
-          final app = core.settings.getTrainerApp();
-          if (app == null) return;
-          await useBluetoothInstead(context, app, onUpdate: _update);
-          // Refused the Bluetooth permission: the network method stays.
-          if (!core.settings.getBc2BleEnabled() || !mounted) return;
-          _update();
-          // Pairing over Bluetooth happens in the trainer app; show how.
-          unawaited(openAppGuideSheet(context));
+          await _useBluetoothFallback();
           return;
         }
         if (step.id != SetupStepId.appLocalControl) return;
@@ -2340,6 +2347,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           // The card has already said what looks wrong; the self-test is
           // where the rider sees every interface, the verdict, and the fixes.
           await context.push(const NetworkTroubleshootingPage());
+        } else if (link.activeStep?.id == SetupStepId.appBluetoothFallback) {
+          // The step in front when nothing else is outstanding on the card:
+          // its button is the offer itself, not the troubleshooter.
+          await _useBluetoothFallback();
         } else if (link.activeStep?.id == SetupStepId.appLocalControl) {
           // enableLocalControl runs the permission sheet itself when the
           // accessibility service or the keyboard grant is still missing, and
