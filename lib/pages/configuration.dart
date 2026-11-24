@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/pages/button_edit.dart';
 import 'package:bike_control/utils/core.dart';
@@ -101,6 +102,10 @@ class _ConfigurationPageState extends State<ConfigurationPage> {
                           app is! BikeControl) ...[
                     SizedBox(height: 8),
                     installOnTargetDeviceWarning(context, app),
+                  ],
+                  if (core.settings.getTrainerApp() case final app? when showsMacBridgeUnnamedNote(app)) ...[
+                    SizedBox(height: 8),
+                    macBridgeUnnamedNote(context, app),
                   ],
                   if (core.settings.getTrainerApp()?.star == true && !screenshotMode && !widget.onboardingMode)
                     Row(
@@ -279,6 +284,14 @@ class TrainerAppCard extends StatelessWidget {
 /// what the other device is, so rather than leave an iPad rider chasing a
 /// method their device will never show, the second line names the platforms and
 /// points at what still does work there — the Bridge and its virtual shifting.
+/// [app] skips unnamed Bluetooth trainers and this Mac's bridge advertises
+/// without a name — the bridge has to run on another device.
+bool showsMacBridgeUnnamedNote(SupportedApp app) => HostPlatform.isMacOS && app.needsNamedBluetoothTrainer;
+
+Widget macBridgeUnnamedNote(BuildContext context, SupportedApp app) {
+  return Warning(children: [Text(context.i18n.warningMacBridgeUnnamed(app.name)).small]);
+}
+
 Widget installOnTargetDeviceWarning(BuildContext context, SupportedApp app) {
   return Warning(
     children: [

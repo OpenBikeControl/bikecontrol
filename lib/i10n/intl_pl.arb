@@ -3201,5 +3201,7 @@
   "noBluetoothAdapterFound": "Nie znaleziono adaptera Bluetooth",
   "noBluetoothAdapterDescription": "Windows nie wykrywa Bluetooth na tym komputerze. Komputery stacjonarne często go nie mają – pomoże adapter Bluetooth USB (Bluetooth 5.0 lub nowszy). Trenażery Wi-Fi i gamepady działają bez Bluetooth.",
   "openBluetoothSettings": "Otwórz ustawienia Bluetooth",
-  "couldNotEnableBluetoothWindows": "Nie udało się włączyć Bluetooth. Włącz go w Ustawieniach systemu Windows."
+  "couldNotEnableBluetoothWindows": "Nie udało się włączyć Bluetooth. Włącz go w Ustawieniach systemu Windows.",
+  "bridgeBluetoothPermissionMissing": "{trainer} nie może pojawić się przez Bluetooth: BikeControl nie ma uprawnienia „Urządzenia w pobliżu”. Otwórz trenażer i wybierz Virtual Shifting, aby na to zezwolić.",
+  "warningMacBridgeUnnamed": "{app} nie znajdzie BikeControl na Macu: macOS ogłasza trenażer przez Bluetooth bez nazwy, a {app} pomija trenażery bez nazwy. Uruchom BikeControl na urządzeniu z Androidem lub komputerze z Windows."
 }

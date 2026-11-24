@@ -213,6 +213,10 @@ abstract class SupportedApp {
   /// offering methods that provably cannot reach it.
   bool get acceptsSimulatedInput => true;
 
+  /// Whether the app skips Bluetooth trainers whose advertisement carries no
+  /// name. A Mac bridge sends none, so such an app never lists it there.
+  bool get needsNamedBluetoothTrainer => false;
+
   /// Whether button presses can reach this app at all — over a controller
   /// protocol it speaks, or as simulated input we type or click.
   ///

@@ -5,3 +5,4 @@ Corregido:
 • Sin Wi-Fi: consejo más claro
 • Se ofrece Bluetooth cuando la conexión de red no llega
 • Comprobación de red: menos falsos fallos
+• FulGaz / Biketerra en Android: pide el permiso de Bluetooth para que aparezca el rodillo

@@ -1,5 +1,6 @@
 ### 7.7.0 (24-11-2026)
 **Fixes**:
+- (Base) Android with FulGaz or Biketerra: connecting the trainer now asks for the Bluetooth permission BikeControl needs to show up as a trainer. Before, the bridge kept spinning and the app never listed it. The trainer page also shows the name the app lists it under (Android shortens it, e.g. "KICKR CORE 1234 - Bik").
 - (Base) iPhone / iPad: BikeControl now stays awake in the background while it waits for your trainer app (up to 15 minutes), and for 5 minutes after the app disconnects. Before, iOS could put BikeControl to sleep before MyWhoosh and other apps had found it, so the app found nothing or could not connect.
 - (Base) iPhone / iPad: when iOS did put BikeControl to sleep, it is found on the network again by itself once you return to it. Before, the network method had to be restarted.
 - (Base) iPhone / iPad: BikeControl follows a change of Wi-Fi or hotspot right away instead of advertising the old address.

@@ -37,6 +37,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:prop/dircon/dircon_trainer_transport.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/definitions/proxy_bike_definition.dart';
+import 'package:prop/emulators/transporter/bluetooth_transporter.dart' show BluetoothPeripheralUnauthorizedException;
 import 'package:prop/prop.dart' hide TrainerMode;
 import 'package:prop/transports/ble_trainer_transport.dart';
 import 'package:prop/transports/trainer_transport.dart';
@@ -615,20 +616,31 @@ class ProxyDevice extends BluetoothDevice {
     mode: _retrofitModeN.value,
     isWindows: HostPlatform.isWindows,
     computerName: HostPlatform.isWindows ? Platform.localHostname : null,
+    bluetoothLocalName: emulator.bluetoothLocalName.value,
   );
+
+  /// Changes when the Bluetooth bridge starts or stops advertising, which can
+  /// change [advertisementName] — rebuild on it.
+  ValueListenable<String?> get bluetoothLocalName => emulator.bluetoothLocalName;
 
   /// What the trainer app lists the bridge as. Windows can't put a name in a
   /// Bluetooth advertisement, so over Bluetooth a phone lists the PC under its
   /// own name — the computer name unless the rider renamed it — never
-  /// `<trainer> - BikeControl` (GH #451). Over WiFi the advertised name holds.
+  /// `<trainer> - BikeControl` (GH #451). Elsewhere a Bluetooth advertisement
+  /// carries [bluetoothLocalName] — the name cut to fit the 31-byte packet
+  /// ("Wahoo KICKR 1EB7 - Bik"). Over WiFi the advertised name holds.
   @visibleForTesting
   static String listedNameFor({
     required String advertised,
     required RetrofitMode mode,
     required bool isWindows,
     required String? computerName,
+    String? bluetoothLocalName,
   }) {
-    if (!isWindows || mode != RetrofitMode.bluetooth) return advertised;
+    if (mode != RetrofitMode.bluetooth) return advertised;
+    if (!isWindows) {
+      return bluetoothLocalName == null || bluetoothLocalName.isEmpty ? advertised : bluetoothLocalName;
+    }
     if (computerName == null || computerName.trim().isEmpty) return advertised;
     return computerName.trim();
   }
@@ -986,10 +998,13 @@ class ProxyDevice extends BluetoothDevice {
       }
     } catch (e, s) {
       recordError(e, s, context: 'Emulator start');
-      core.connection.signalNotification(
-        AlertNotification(LogLevel.LOGLEVEL_ERROR, 'Failed to start emulator: $e'),
-      );
-      onChange.value = 'Failed to start emulator: $e';
+      // A refused Bluetooth permission is the rider's to fix, not a crash:
+      // say what to do, not the raw exception.
+      final message = e is BluetoothPeripheralUnauthorizedException
+          ? AppLocalizations.current.bridgeBluetoothPermissionMissing(scanResult.name ?? toString())
+          : 'Failed to start emulator: $e';
+      core.connection.signalNotification(AlertNotification(LogLevel.LOGLEVEL_ERROR, message));
+      onChange.value = message;
       if (mode == RetrofitMode.proxy) {
         if (_proxyDef != null) {
           await _detachLogged(_proxyEmulator.detachDefinition(_proxyDef!), 'detach proxy def after start failure');

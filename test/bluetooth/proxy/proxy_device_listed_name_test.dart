@@ -59,4 +59,32 @@ void main() {
       );
     }
   });
+
+  test('off Windows over Bluetooth it is the name the advertisement carries', () {
+    // Android cuts "<trainer> - BikeControl" to fit the 31-byte packet; the
+    // Wahoo app lists "Wahoo KICKR 1EB7 - Bik", so that is what to look for.
+    expect(
+      ProxyDevice.listedNameFor(
+        advertised: 'Wahoo KICKR 1EB7 - BikeControl',
+        mode: RetrofitMode.bluetooth,
+        isWindows: false,
+        computerName: null,
+        bluetoothLocalName: 'Wahoo KICKR 1EB7 - Bik',
+      ),
+      'Wahoo KICKR 1EB7 - Bik',
+    );
+  });
+
+  test('over WiFi a Bluetooth name left from before does not leak in', () {
+    expect(
+      ProxyDevice.listedNameFor(
+        advertised: advertised,
+        mode: RetrofitMode.wifi,
+        isWindows: false,
+        computerName: null,
+        bluetoothLocalName: 'KICKR CORE AF81 - Bik',
+      ),
+      advertised,
+    );
+  });
 }

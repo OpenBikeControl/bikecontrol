@@ -5,6 +5,10 @@ import 'package:bike_control/bluetooth/devices/proxy/vs_trial_rules.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
+import 'package:bike_control/utils/requirements/multi.dart';
+import 'package:bike_control/utils/requirements/platform.dart';
+import 'package:bike_control/widgets/ui/connection_method.dart' show satisfyRequirements;
 import 'package:bike_control/widgets/go_pro_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:bike_control/utils/vs_trial_copy.dart';
@@ -14,6 +18,17 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 /// Stands in for [connectTrainerFromPicker] in tests.
 @visibleForTesting
 Future<bool> Function(BuildContext context, ProxyDevice device)? debugConnectTrainerOverride;
+
+/// Stands in for [satisfyRequirements] in [connectTrainerFromPicker] in tests.
+@visibleForTesting
+Future<bool> Function(BuildContext context, List<PlatformRequirement> requirements)? debugSatisfyBridgeRequirements;
+
+/// What a bridge in [mode] needs granted before it can be found: Android
+/// gates a Bluetooth advertisement behind BLUETOOTH_ADVERTISE. Without it the
+/// bridge never shows up in the trainer app.
+List<PlatformRequirement> bridgeTransportRequirements(RetrofitMode mode) => [
+  if (mode == RetrofitMode.bluetooth && HostPlatform.isAndroid) BluetoothAdvertiseRequirement(),
+];
 
 /// Connects a smart trainer the way the onboarding wizard does: pick it from a
 /// list, and it bridges over WiFi.
@@ -34,6 +49,15 @@ Future<bool> connectTrainerFromPicker(BuildContext context, ProxyDevice device) 
     // network, and no BLE-advertise permission prompt interrupts the flow.
     device.setRetrofitMode(RetrofitMode.wifi);
     await core.settings.setRetrofitMode(device.trainerKey, RetrofitMode.wifi);
+    // An app that finds trainers over Bluetooth only gets a Bluetooth bridge
+    // instead ([ProxyDevice.savedRetrofitMode]) — ask for what that needs now,
+    // while the rider is here to answer.
+    final requirements = bridgeTransportRequirements(device.savedRetrofitMode);
+    if (requirements.isNotEmpty) {
+      if (!context.mounted) return false;
+      final satisfy = debugSatisfyBridgeRequirements ?? satisfyRequirements;
+      if (!await satisfy(context, requirements)) return false;
+    }
     await core.settings.setAutoConnect(device.trainerKey, true);
     // Route through the connection manager (not device.startProxy directly) so
     // the action / connection-state listeners are attached — same rationale as

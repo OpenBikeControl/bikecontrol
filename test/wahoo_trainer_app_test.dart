@@ -23,7 +23,7 @@ void main() {
 
   test('is offered in the trainer-app chooser', () {
     expect(SupportedApp.supportedApps.whereType<WahooApp>(), hasLength(1));
-  });
+  }, skip: 'The Wahoo app is hidden from the chooser for now (c010a2c63 "wahoo not yet"); re-enable with it');
 
   test('delivers no button events to the app', () {
     final app = WahooApp();
@@ -49,7 +49,7 @@ void main() {
 
     expect(core.settings.getLastTarget(), Target.otherDevice);
     expect(core.logic.hasNoConnectionMethod, isFalse);
-  });
+  }, skip: 'The Wahoo app is hidden from the chooser for now (c010a2c63 "wahoo not yet"); re-enable with it');
 
   test('the bridge keeps its usual name', () {
     core.settings.setTrainerApp(WahooApp());

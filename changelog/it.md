@@ -1,5 +1,6 @@
 ### 7.7.0 (24-11-2026)
 **Fixes**:
+- (Base) Android con FulGaz o Biketerra: collegando il rullo, BikeControl ora chiede il permesso Bluetooth che gli serve per comparire come rullo. Prima il bridge restava in caricamento e l'app non lo mostrava mai. La pagina del rullo mostra anche il nome con cui l'app lo elenca (Android lo accorcia, ad es. «KICKR CORE 1234 - Bik»).
 - (Base) iPhone / iPad: BikeControl ora resta attivo in background mentre aspetta la tua app di allenamento (fino a 15 minuti) e per 5 minuti dopo che l'app si è disconnessa. Prima iOS poteva sospendere BikeControl prima che MyWhoosh e altre app lo trovassero, e l'app non trovava nulla o non riusciva a connettersi.
 - (Base) iPhone / iPad: se iOS sospende comunque BikeControl, torna visibile sulla rete da solo appena ci ritorni. Prima bisognava riavviare il metodo di rete.
 - (Base) iPhone / iPad: BikeControl segue subito un cambio di Wi-Fi o di hotspot invece di annunciare il vecchio indirizzo.

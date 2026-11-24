@@ -1,5 +1,6 @@
 ### 7.7.0 (24-11-2026)
 **Fixes**:
+- (Base) Android avec FulGaz ou Biketerra : en connectant le home trainer, BikeControl demande maintenant l'autorisation Bluetooth dont il a besoin pour apparaître comme home trainer. Avant, le pont tournait sans fin et l'app ne l'affichait jamais. La page du home trainer affiche aussi le nom sous lequel l'app le liste (Android le raccourcit, p. ex. « KICKR CORE 1234 - Bik »).
 - (Base) iPhone / iPad : BikeControl reste désormais actif en arrière-plan tant qu'il attend ton app d'entraînement (jusqu'à 15 minutes), et pendant 5 minutes après la déconnexion de l'app. Auparavant, iOS pouvait suspendre BikeControl avant que MyWhoosh et d'autres apps ne l'aient trouvé : l'app ne trouvait rien ou ne pouvait pas se connecter.
 - (Base) iPhone / iPad : si iOS suspend malgré tout BikeControl, il redevient visible sur le réseau de lui-même dès que tu y reviens. Auparavant, il fallait redémarrer la méthode réseau.
 - (Base) iPhone / iPad : BikeControl suit immédiatement un changement de Wi-Fi ou de partage de connexion au lieu d'annoncer l'ancienne adresse.

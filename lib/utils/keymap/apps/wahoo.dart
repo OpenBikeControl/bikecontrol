@@ -17,6 +17,11 @@ class WahooApp extends SupportedApp {
   @override
   bool get acceptsSimulatedInput => false;
 
+  /// Its scanner drops adverts without a local name before looking at the
+  /// services.
+  @override
+  bool get needsNamedBluetoothTrainer => true;
+
   @override
   String? get officialUrl => 'https://www.wahoofitness.com/wahoo-app';
 

@@ -5,3 +5,4 @@ Fixed:
 • No Wi-Fi: clearer advice
 • Bluetooth is offered when the network connection doesn't come up
 • Network check: fewer false failures
+• FulGaz / Biketerra on Android: asks for the Bluetooth permission so the trainer shows up

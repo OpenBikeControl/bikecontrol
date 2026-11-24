@@ -1,5 +1,6 @@
 ### 7.7.0 (24-11-2026)
 **Fixes**:
+- (Base) 安卓上使用 FulGaz 或 Biketerra：连接骑行台时，BikeControl 现在会请求以骑行台身份出现所需的蓝牙权限。此前桥接会一直转圈，应用也始终看不到它。骑行台页面还会显示应用中列出的名称（安卓会缩短它，例如“KICKR CORE 1234 - Bik”）。
 - (Base) iPhone / iPad：BikeControl 现在在后台等待训练应用时会保持运行（最长 15 分钟），并在应用断开后继续保持 5 分钟。以前 iOS 可能在 MyWhoosh 等应用找到 BikeControl 之前就让它休眠，导致应用找不到或无法连接。
 - (Base) iPhone / iPad：如果 iOS 仍然让 BikeControl 休眠，回到 BikeControl 后它会自动重新出现在网络上。以前需要重启网络方式。
 - (Base) iPhone / iPad：切换 Wi-Fi 或热点后，BikeControl 会立即跟随，而不是继续广播旧地址。

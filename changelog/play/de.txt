@@ -5,3 +5,4 @@ Behoben:
 • Kein WLAN: klarerer Hinweis
 • Bluetooth wird angeboten, wenn die Netzwerkverbindung nicht zustande kommt
 • Netzwerkprüfung: weniger Fehlalarme
+• FulGaz / Biketerra auf Android: fragt nach der Bluetooth-Berechtigung, damit der Trainer erscheint

@@ -5,3 +5,4 @@ Poprawki:
 • Brak Wi-Fi: jaśniejsza rada
 • Bluetooth jest proponowany, gdy połączenie sieciowe się nie udaje
 • Sprawdzanie sieci: mniej fałszywych błędów
+• FulGaz / Biketerra na Androidzie: prosi o uprawnienie Bluetooth, by trenażer się pojawił

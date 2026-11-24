@@ -5,3 +5,4 @@ Corrigé :
 • Sans Wi-Fi : conseil plus clair
 • Le Bluetooth est proposé quand la connexion réseau n'aboutit pas
 • Vérification du réseau : moins de faux échecs
+• FulGaz / Biketerra sur Android : demande l'autorisation Bluetooth pour voir le home trainer

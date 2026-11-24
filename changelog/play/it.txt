@@ -5,3 +5,4 @@ Corretto:
 • Senza Wi-Fi: consiglio più chiaro
 • Viene proposto il Bluetooth quando la connessione di rete non arriva
 • Controllo di rete: meno falsi errori
+• FulGaz / Biketerra su Android: chiede il permesso Bluetooth così il rullo compare

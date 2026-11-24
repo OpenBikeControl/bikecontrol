@@ -3201,5 +3201,7 @@
   "noBluetoothAdapterFound": "Nessun adattatore Bluetooth trovato",
   "noBluetoothAdapterDescription": "Windows non rileva il Bluetooth su questo PC. I PC desktop spesso non ce l'hanno: un adattatore Bluetooth USB (Bluetooth 5.0 o successivo) risolve il problema. I rulli Wi-Fi e i gamepad funzionano senza Bluetooth.",
   "openBluetoothSettings": "Apri impostazioni Bluetooth",
-  "couldNotEnableBluetoothWindows": "Impossibile attivare il Bluetooth. Attivalo nelle Impostazioni di Windows."
+  "couldNotEnableBluetoothWindows": "Impossibile attivare il Bluetooth. Attivalo nelle Impostazioni di Windows.",
+  "bridgeBluetoothPermissionMissing": "{trainer} non può comparire via Bluetooth: BikeControl non ha il permesso «Dispositivi nelle vicinanze». Apri il rullo e scegli Virtual Shifting per consentirlo.",
+  "warningMacBridgeUnnamed": "{app} non trova BikeControl su un Mac: macOS annuncia il rullo via Bluetooth senza nome e {app} ignora i rulli senza nome. Usa BikeControl su un dispositivo Android o un PC Windows."
 }
