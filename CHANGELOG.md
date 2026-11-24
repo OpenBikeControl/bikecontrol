@@ -1,4 +1,7 @@
 ### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) The Wahoo app is now selectable as a trainer app: run BikeControl on an Android device or a Windows PC, and it shows up in the Wahoo app as a Bluetooth smart trainer and does the virtual shifting.
+
 **Fixes**:
 - (Base) Android with FulGaz or Biketerra: connecting the trainer now asks for the Bluetooth permission BikeControl needs to show up as a trainer. Before, the bridge kept spinning and the app never listed it. The trainer page also shows the name the app lists it under (Android shortens it, e.g. "KICKR CORE 1234 - Bik").
 - (Base) iPhone / iPad: BikeControl now stays awake in the background while it waits for your trainer app (up to 15 minutes), and for 5 minutes after the app disconnects. Before, iOS could put BikeControl to sleep before MyWhoosh and other apps had found it, so the app found nothing or could not connect.
@@ -17,7 +20,6 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Zwift Play / Zwift Ride paddles: tilting inward and tilting outward are now two separate buttons, each mappable to its own action. Your existing paddle mapping applies to both.
-- (Pro) Wahoo app is now selectable as a trainer app: BikeControl shows up in it as a Bluetooth smart trainer on a second device and does the virtual shifting.
 - (Base) Elite Rizer and Sterzo: the steering dead zone can now be set on the device's page.
 - (Base) Accessory actions (e.g. the Rizer's incline up / down) go straight onto a button of your connected controller from the accessory's page: tap the button on the controller's picture, then choose single, double or long press.
 

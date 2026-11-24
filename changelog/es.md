@@ -1,4 +1,7 @@
 ### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: con BikeControl en un dispositivo Android o un PC con Windows, aparece en la app Wahoo como rodillo inteligente Bluetooth y se encarga del cambio virtual.
+
 **Fixes**:
 - (Base) Android con FulGaz o Biketerra: al conectar el rodillo, BikeControl pide ahora el permiso de Bluetooth que necesita para aparecer como rodillo. Antes, el puente se quedaba cargando y la app nunca lo mostraba. La página del rodillo muestra además el nombre con el que la app lo lista (Android lo acorta, p. ej. «KICKR CORE 1234 - Bik»).
 - (Base) iPhone / iPad: BikeControl ahora sigue activo en segundo plano mientras espera a tu app de entrenamiento (hasta 15 minutos) y durante 5 minutos después de que la app se desconecte. Antes, iOS podía suspender BikeControl antes de que MyWhoosh y otras apps lo encontraran, y la app no encontraba nada o no podía conectarse.
@@ -17,7 +20,6 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Palancas de Zwift Play / Zwift Ride: inclinar hacia dentro e inclinar hacia fuera son ahora dos botones distintos, cada uno con su propia acción. Tu asignación actual de la palanca se aplica a ambos.
-- (Pro) La app Wahoo ya se puede elegir como app de entrenamiento: BikeControl aparece en ella como rodillo inteligente Bluetooth en un segundo dispositivo y se encarga del cambio virtual.
 - (Base) Elite Rizer y Sterzo: la zona muerta de la dirección ahora se ajusta en la página del dispositivo.
 - (Base) Las acciones de accesorios (p. ej. subir / bajar la inclinación del Rizer) se asignan ahora directamente a un botón de tu mando conectado desde la página del accesorio: toca el botón en la imagen del mando y elige pulsación simple, doble o larga.
 

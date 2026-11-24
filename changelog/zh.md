@@ -1,4 +1,7 @@
 ### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) 现在可以选择 Wahoo App 作为骑行软件：在安卓设备或 Windows 电脑上运行 BikeControl，它会在 Wahoo App 中作为蓝牙智能骑行台出现，并负责虚拟变速。
+
 **Fixes**:
 - (Base) 安卓上使用 FulGaz 或 Biketerra：连接骑行台时，BikeControl 现在会请求以骑行台身份出现所需的蓝牙权限。此前桥接会一直转圈，应用也始终看不到它。骑行台页面还会显示应用中列出的名称（安卓会缩短它，例如“KICKR CORE 1234 - Bik”）。
 - (Base) iPhone / iPad：BikeControl 现在在后台等待训练应用时会保持运行（最长 15 分钟），并在应用断开后继续保持 5 分钟。以前 iOS 可能在 MyWhoosh 等应用找到 BikeControl 之前就让它休眠，导致应用找不到或无法连接。
@@ -17,7 +20,6 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Zwift Play / Zwift Ride 拨片：向内拨和向外拨现在是两个独立的按键，可分别设置各自的操作。原有的拨片设置会同时应用到两者。
-- (Pro) 现在可以选择 Wahoo App 作为骑行软件：BikeControl 会在另一台设备上作为蓝牙智能骑行台出现在其中，并负责虚拟变速。
 - (Base) Elite Rizer 和 Sterzo：现在可以在设备页面设置转向死区。
 - (Base) 配件操作（例如 Rizer 的坡度增加 / 减少）现在可以直接在配件页面分配到已连接控制器的按键上：在控制器图片上点按按键，再选择单击、双击或长按。
 

@@ -1,8 +1,8 @@
 7.7.0
+Neu: Wahoo App als Trainer-App (Pro)
 Behoben:
 • MyWhoosh auf demselben Gerät: Die Startseite sagt, dass virtuelles Schalten es dort nicht erreicht und was funktioniert
 • MyWhoosh auf einem anderen Android-Gerät: Trainer auf Bluetooth umstellen, die Startseite sagt es jetzt
 • Kein WLAN: klarerer Hinweis
 • Bluetooth wird angeboten, wenn die Netzwerkverbindung nicht zustande kommt
 • Netzwerkprüfung: weniger Fehlalarme
-• FulGaz / Biketerra auf Android: fragt nach der Bluetooth-Berechtigung, damit der Trainer erscheint

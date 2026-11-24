@@ -1,8 +1,8 @@
 7.7.0
+Nuevo: app Wahoo como app de entreno (Pro)
 Corregido:
 • MyWhoosh en el mismo dispositivo: la pantalla de inicio dice que el cambio virtual no llega ahí y qué funciona
 • MyWhoosh en otro dispositivo Android: cambia el rodillo a Bluetooth, la pantalla de inicio ahora lo indica
 • Sin Wi-Fi: consejo más claro
 • Se ofrece Bluetooth cuando la conexión de red no llega
 • Comprobación de red: menos falsos fallos
-• FulGaz / Biketerra en Android: pide el permiso de Bluetooth para que aparezca el rodillo

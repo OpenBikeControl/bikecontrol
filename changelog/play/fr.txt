@@ -1,8 +1,8 @@
 7.7.0
+Nouveau : app Wahoo comme app d'entraînement (Pro)
 Corrigé :
 • MyWhoosh sur le même appareil : l'écran d'accueil dit que le changement de vitesse virtuel ne l'atteint pas et ce qui fonctionne
 • MyWhoosh sur un autre appareil Android : passe le home trainer en Bluetooth, l'écran d'accueil le dit
 • Sans Wi-Fi : conseil plus clair
 • Le Bluetooth est proposé quand la connexion réseau n'aboutit pas
 • Vérification du réseau : moins de faux échecs
-• FulGaz / Biketerra sur Android : demande l'autorisation Bluetooth pour voir le home trainer

@@ -3,6 +3,7 @@ import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/biketerra.dart';
 import 'package:bike_control/utils/keymap/apps/fulgaz.dart';
+import 'package:bike_control/utils/keymap/apps/wahoo.dart';
 import 'package:bike_control/utils/keymap/apps/grimpa.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol.dart';
 import 'package:bike_control/utils/keymap/apps/openbikecontrol_trainer_apps.dart';
@@ -275,7 +276,7 @@ abstract class SupportedApp {
     ...OpenBikeControlTrainerApp.all,
     Tacx(),
     FulGaz(),
-    //WahooApp(),
+    WahooApp(),
     BikeControl(),
     OpenBikeControl(),
     CustomApp(),

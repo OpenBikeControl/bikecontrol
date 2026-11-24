@@ -1,4 +1,7 @@
 ### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: gdy BikeControl działa na urządzeniu z Androidem lub komputerze z Windows, pojawia się w aplikacji Wahoo jako trenażer smart Bluetooth i sam zajmuje się wirtualną zmianą biegów.
+
 **Fixes**:
 - (Base) Android z FulGaz lub Biketerra: przy łączeniu trenażera BikeControl prosi teraz o uprawnienie Bluetooth, którego potrzebuje, by pojawić się jako trenażer. Wcześniej mostek kręcił się bez końca, a aplikacja nigdy go nie pokazywała. Strona trenażera pokazuje też nazwę, pod którą widzi go aplikacja (Android ją skraca, np. „KICKR CORE 1234 - Bik”).
 - (Base) iPhone / iPad: BikeControl pozostaje teraz aktywny w tle, gdy czeka na twoją aplikację treningową (do 15 minut), oraz przez 5 minut po rozłączeniu aplikacji. Wcześniej iOS mógł uśpić BikeControl, zanim MyWhoosh i inne aplikacje go znalazły, więc aplikacja nic nie znajdowała albo nie mogła się połączyć.
@@ -17,7 +20,6 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Łopatki Zwift Play / Zwift Ride: przechylenie do środka i na zewnątrz to teraz dwa osobne przyciski, każdy z własną akcją. Twoje dotychczasowe przypisanie łopatki działa dla obu.
-- (Pro) Aplikację Wahoo można teraz wybrać jako aplikację treningową: BikeControl pojawia się w niej jako trenażer smart Bluetooth na drugim urządzeniu i sam zajmuje się wirtualną zmianą biegów.
 - (Base) Elite Rizer i Sterzo: martwą strefę skrętu można teraz ustawić na stronie urządzenia.
 - (Base) Akcje akcesoriów (np. zwiększanie / zmniejszanie nachylenia Rizera) przypiszesz teraz bezpośrednio do przycisku połączonego kontrolera na stronie akcesorium: dotknij przycisku na obrazku kontrolera i wybierz pojedyncze, podwójne lub długie naciśnięcie.
 

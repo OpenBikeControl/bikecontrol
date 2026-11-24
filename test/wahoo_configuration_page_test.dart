@@ -63,7 +63,5 @@ void main() {
     // One target card: "Other Device".
     expect(find.byType(SelectableCard), findsOneWidget);
     expect(core.settings.getLastTarget(), Target.otherDevice);
-    // The Wahoo app is hidden from the chooser for now (c010a2c63 "wahoo not
-    // yet"), so it can't be selected here; re-enable with it.
-  }, skip: true);
+  });
 }

@@ -1,4 +1,7 @@
 ### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : avec BikeControl sur un appareil Android ou un PC Windows, il apparaît dans l'app Wahoo comme home trainer Bluetooth et assure les vitesses virtuelles.
+
 **Fixes**:
 - (Base) Android avec FulGaz ou Biketerra : en connectant le home trainer, BikeControl demande maintenant l'autorisation Bluetooth dont il a besoin pour apparaître comme home trainer. Avant, le pont tournait sans fin et l'app ne l'affichait jamais. La page du home trainer affiche aussi le nom sous lequel l'app le liste (Android le raccourcit, p. ex. « KICKR CORE 1234 - Bik »).
 - (Base) iPhone / iPad : BikeControl reste désormais actif en arrière-plan tant qu'il attend ton app d'entraînement (jusqu'à 15 minutes), et pendant 5 minutes après la déconnexion de l'app. Auparavant, iOS pouvait suspendre BikeControl avant que MyWhoosh et d'autres apps ne l'aient trouvé : l'app ne trouvait rien ou ne pouvait pas se connecter.
@@ -17,7 +20,6 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Palettes Zwift Play / Zwift Ride : incliner vers l'intérieur et vers l'extérieur sont maintenant deux boutons distincts, chacun avec sa propre action. Ton assignation actuelle de la palette s'applique aux deux.
-- (Pro) L'app Wahoo peut maintenant être choisie comme app d'entraînement : BikeControl y apparaît comme home trainer Bluetooth sur un second appareil et assure les vitesses virtuelles.
 - (Base) Elite Rizer et Sterzo : la zone morte de la direction se règle maintenant sur la page de l'appareil.
 - (Base) Les actions d'accessoire (p. ex. monter / descendre l'inclinaison du Rizer) s'assignent maintenant directement à un bouton de ta manette connectée depuis la page de l'accessoire : touche le bouton sur l'image de la manette, puis choisis appui simple, double ou long.
 

@@ -1,4 +1,7 @@
 ### 7.7.0 (24-11-2026)
+**Features**:
+- (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: Läuft BikeControl auf einem Android-Gerät oder Windows-PC, erscheint es in der Wahoo App als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
+
 **Fixes**:
 - (Base) Android mit FulGaz oder Biketerra: Beim Verbinden des Trainers fragt BikeControl jetzt nach der Bluetooth-Berechtigung, die es braucht, um als Trainer zu erscheinen. Bisher drehte sich die Bridge endlos und die App zeigte sie nie an. Die Trainer-Seite zeigt außerdem den Namen, unter dem die App sie listet (Android kürzt ihn, z. B. „KICKR CORE 1234 - Bik“).
 - (Base) iPhone / iPad: BikeControl bleibt jetzt im Hintergrund wach, solange es auf deine Trainer-App wartet (bis zu 15 Minuten), und noch 5 Minuten, nachdem die App die Verbindung getrennt hat. Bisher konnte iOS BikeControl schlafen legen, bevor MyWhoosh und andere Apps es gefunden hatten – die App fand dann nichts oder konnte sich nicht verbinden.
@@ -17,7 +20,6 @@
 ### 7.6.2 (23-11-2026)
 **Features**:
 - (Base) Paddel von Zwift Play / Zwift Ride: Nach innen und nach außen kippen sind jetzt zwei eigene Tasten, und du kannst jeder eine eigene Aktion zuweisen. Deine bisherige Paddel-Belegung gilt für beide.
-- (Pro) Die Wahoo App ist jetzt als Trainer-App wählbar: BikeControl erscheint darin auf einem zweiten Gerät als Bluetooth-Smart-Trainer und übernimmt das virtuelle Schalten.
 - (Base) Elite Rizer und Sterzo: Die Totzone der Lenkung lässt sich jetzt auf der Geräteseite einstellen.
 - (Base) Zubehör-Aktionen (z. B. Steigung hoch / runter am Rizer) legst du jetzt direkt auf der Zubehörseite auf eine Taste deines verbundenen Controllers: Tippe die Taste im Bild des Controllers an und wähle einfachen, doppelten oder langen Druck.
 
