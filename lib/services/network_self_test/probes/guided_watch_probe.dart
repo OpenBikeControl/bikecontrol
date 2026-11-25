@@ -12,15 +12,17 @@ import '../network_probe_context.dart';
 /// [NetworkProbeContext.trainerAppConnectedNow] (sampled fresh every tick,
 /// not the fixed snapshot on [NetworkProbeContext.trainerAppConnected]) and
 /// [NetworkProbeContext.sleep]/[NetworkProbeContext.now] so tests can drive
-/// it without a real clock.
+/// it without a real clock. [ownBrowseTypes] stands in for
+/// [OwnMdnsBrowsing.activeTypes], the service types BikeControl is browsing
+/// itself right now.
 Future<NetworkCheck> guidedWatchCheck(
   NetworkProbeContext ctx, {
   Duration window = const Duration(seconds: 60),
   Duration tick = const Duration(milliseconds: 500),
   bool Function()? isCancelled,
-  bool Function()? ownBrowseActive,
+  Set<String> Function()? ownBrowseTypes,
 }) async {
-  final ownBrowsing = ownBrowseActive ?? () => OwnMdnsBrowsing.active;
+  final ownBrowsing = ownBrowseTypes ?? () => OwnMdnsBrowsing.activeTypes;
   final osResponder = ctx.backend == ObpMdnsBackend.osResponder;
   final start = ctx.now();
 
@@ -48,11 +50,12 @@ Future<NetworkCheck> guidedWatchCheck(
   var resolved = false;
   var addressAsks = 0;
 
-  // BikeControl browsed the network itself at some point of the watch. A
-  // trainer app on this device searches through the same system service: its
-  // search arrives from our own address, or does not arrive at all because
-  // the system already has that question open for us. Either way "no query
-  // arrived" would be a statement about our own scan, not about the app.
+  // BikeControl browsed, at some point of the watch, a service type this
+  // watch looks for. A trainer app on this device searches through the same
+  // system service: its search for that type arrives from our own address, or
+  // does not arrive at all because the system already has that question open
+  // for us. Either way "no query arrived" would be a statement about our own
+  // scan, not about the app. An own browse of any other type hides nothing.
   var ownBrowseSeen = false;
 
   // This device's own addresses, to tell our scan from another device's
@@ -69,11 +72,22 @@ Future<NetworkCheck> guidedWatchCheck(
     // Wi-Fi trainer scan): counting it would report a trainer app that never
     // asked as having browsed and resolved us. A query from another device's
     // address is never our scan, whatever was running here at the time.
-    if (entry.duringOwnBrowse && (!knowsOwnAddresses || ownAddresses.contains(entry.source))) {
-      ownBrowseSeen = true;
-      return;
-    }
+    final maybeOurs =
+        entry.duringOwnBrowse && (!knowsOwnAddresses || entry.fromThisHost || ownAddresses.contains(entry.source));
     for (final question in entry.questions) {
+      // Only a question about a type we were browsing can be ours — PTR for
+      // the type, SRV/TXT for an instance of it. The Wi-Fi trainer scan
+      // browses Wahoo for as long as Bluetooth scans; a trainer app on this
+      // machine asking for OpenBikeControl meanwhile is still the app.
+      //
+      // Address questions (A/AAAA) are counted even then: they name a host,
+      // not a type, so they cannot be pinned on a browse, and dropping them
+      // would hide the same-host resolution failure (the host asked for over
+      // and over) whenever the trainer scan runs.
+      if (maybeOurs && OwnMdnsBrowsing.questionMatches(question, entry.ownBrowseTypes)) {
+        ownBrowseSeen = true;
+        continue;
+      }
       if (question.startsWith('PTR _openbikecontrol') || question.startsWith('PTR _wahoo-fitness-tnp')) {
         browsed = true;
       } else if ((question.startsWith('SRV ') || question.startsWith('TXT ')) && question.contains('BikeControl')) {
@@ -110,7 +124,7 @@ Future<NetworkCheck> guidedWatchCheck(
       }
     }
 
-    if (!osResponder && ownBrowsing()) ownBrowseSeen = true;
+    if (!osResponder && ownBrowsing().any(_watchedTypes.contains)) ownBrowseSeen = true;
 
     final connected = ctx.trainerAppConnectedNow();
     final elapsed = ctx.now().difference(start);
@@ -199,6 +213,10 @@ Future<NetworkCheck> guidedWatchCheck(
     detail: {'note': 'found and resolved, never connected'},
   );
 }
+
+/// The service types a trainer app browses for that this watch counts (see
+/// `classify`), normalised like [OwnMdnsBrowsing.activeTypes].
+const _watchedTypes = {'_openbikecontrol._tcp', '_wahoo-fitness-tnp._tcp'};
 
 /// True when [question] (e.g. `'A BikeControl.local'`) asks for an A/AAAA
 /// record matching [hostname] (e.g. `'BikeControl.local'`), comparing with

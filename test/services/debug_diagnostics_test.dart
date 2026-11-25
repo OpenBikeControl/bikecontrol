@@ -441,6 +441,147 @@ void main() {
       expect(text, isNot(contains('airplay')));
       expect(text, isNot(contains('neighbour')));
     });
+
+    // BikeControl's own scans query from this device's addresses like a
+    // same-host trainer app. Listed verbatim, a multi-homed host's own scan
+    // (one copy per adapter) drowned what the trainer app had asked and read
+    // as the trainer app asking.
+    group("this device's own scan", () {
+      const wahoo = {'_wahoo-fitness-tnp._tcp'};
+      final ownAddress = AddressPickReport(
+        chosen: InternetAddress('192.168.1.9'),
+        candidates: const [
+          AddressCandidate(interfaceName: 'Ethernet', address: '192.168.1.9', score: 100, isVirtual: false),
+          AddressCandidate(interfaceName: 'VirtualBox Host-Only', address: '192.168.56.1', score: 10, isVirtual: true),
+        ],
+      );
+
+      DebugDiagnostics withOwnAddresses(List<MdnsQueryLogEntry> queries) => DebugDiagnostics(
+        advertised: ourAdvertised,
+        backend: 'responder',
+        hostLabel: 'BikeControl',
+        holdsMulticastLock: false,
+        discovered: const [],
+        discoveryRan: false,
+        addressReport: ownAddress,
+        servers: const [],
+        permissions: const PermissionsSnapshot(localNetwork: null),
+        recentQueries: queries,
+      );
+
+      MdnsQueryLogEntry query(
+        String question, {
+        required String source,
+        Set<String> ownBrowseTypes = const {},
+        bool fromThisHost = false,
+        int count = 1,
+      }) => MdnsQueryLogEntry(
+        at: DateTime(2026, 11, 24, 18, 2, 7),
+        source: source,
+        sourcePort: 5353,
+        wantsUnicast: false,
+        questions: [question],
+        answeredUnicast: false,
+        answeredMulticast: true,
+        ownBrowseTypes: ownBrowseTypes,
+        fromThisHost: fromThisHost,
+        count: count,
+      );
+
+      test('is summarised in one line, not listed', () {
+        final folded = query(
+          'PTR _wahoo-fitness-tnp._tcp.local',
+          source: '192.168.1.9',
+          ownBrowseTypes: wahoo,
+          fromThisHost: true,
+          count: 21,
+        )..sources.addAll(['192.168.56.1', '10.0.75.1']);
+        final resolve = query(
+          'SRV BikeControl._wahoo-fitness-tnp._tcp.local',
+          source: '192.168.56.1',
+          ownBrowseTypes: wahoo,
+          count: 3,
+        );
+        final text = withOwnAddresses([folded, resolve]).toText();
+
+        expect(text, contains('(own scan: 24 queries from 3 local addresses, not listed)'));
+        expect(text, isNot(contains('PTR _wahoo-fitness-tnp._tcp.local')));
+        expect(text, isNot(contains('SRV BikeControl._wahoo-fitness-tnp._tcp.local')));
+      });
+
+      test('a same-host query for a type the scan was not browsing is still listed', () {
+        final text = withOwnAddresses([
+          query('PTR _openbikecontrol._tcp.local', source: '192.168.1.9', ownBrowseTypes: wahoo, fromThisHost: true),
+        ]).toText();
+
+        expect(text, contains('192.168.1.9:5353 QM PTR _openbikecontrol._tcp.local'));
+        expect(text, isNot(contains('own scan')));
+      });
+
+      test("another device's query during the scan is still listed", () {
+        final text = withOwnAddresses([
+          query('PTR _wahoo-fitness-tnp._tcp.local', source: '192.168.1.77', ownBrowseTypes: wahoo),
+        ]).toText();
+
+        expect(text, contains('192.168.1.77:5353 QM PTR _wahoo-fitness-tnp._tcp.local'));
+        expect(text, isNot(contains('own scan')));
+      });
+
+      test('the trainer app is listed before the own-scan line, which comes before the unrelated summary', () {
+        final text = withOwnAddresses([
+          query('PTR _openbikecontrol._tcp.local', source: '192.168.1.9'),
+          query('PTR _wahoo-fitness-tnp._tcp.local', source: '192.168.1.9', ownBrowseTypes: wahoo),
+          query('PTR _airplay._tcp.local', source: '192.168.1.40'),
+        ]).toText();
+
+        final trainerApp = text.indexOf('PTR _openbikecontrol._tcp.local');
+        final ownScan = text.indexOf('(own scan: 1 queries from 1 local addresses, not listed)');
+        final unrelated = text.indexOf('unrelated queries');
+        expect(trainerApp, greaterThan(-1));
+        expect(ownScan, greaterThan(trainerApp));
+        expect(unrelated, greaterThan(ownScan));
+      });
+    });
+  });
+
+  // The bundle runs a discovery scan of its own. Read after it, the query log
+  // held mostly that scan: on a host with many adapters it evicted everything
+  // the trainer app had asked before the bundle was taken.
+  test('gather reads the query log before running its own discovery scan', () async {
+    final events = <String>[];
+    final before = [
+      MdnsQueryLogEntry(
+        at: DateTime(2026, 11, 24),
+        source: '192.168.1.9',
+        sourcePort: 5353,
+        wantsUnicast: true,
+        questions: const ['PTR _openbikecontrol._tcp.local'],
+        answeredUnicast: true,
+        answeredMulticast: true,
+      ),
+    ];
+    final result = await DebugDiagnostics.readQueriesThenDiscover(
+      readQueries: () {
+        events.add('read');
+        return events.contains('scan') ? const [] : before;
+      },
+      discover: () async {
+        events.add('scan');
+        return const [];
+      },
+    );
+
+    expect(events, ['read', 'scan']);
+    expect(result.queries, before);
+    expect(result.discovered, isEmpty);
+  });
+
+  test('a failed discovery scan still reports the query log', () async {
+    final result = await DebugDiagnostics.readQueriesThenDiscover(
+      readQueries: () => const [],
+      discover: () async => throw StateError('no browser'),
+    );
+    expect(result.discovered, isNull);
   });
 
   group('TCP connections and lifecycle', () {
