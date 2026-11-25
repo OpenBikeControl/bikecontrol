@@ -71,5 +71,19 @@ class MsStoreSubmissionTest(unittest.TestCase):
         self.assertIn("package PendingDelete: old.msix 7.6.2.0", lines)
 
 
+    def test_update_leaves_out_the_advanced_base_price_only(self):
+        s = submission()
+        s["pricing"] = {"priceId": "Base", "isAdvancedPricingModel": True, "trialPeriod": "SevenDays"}
+        self.assertEqual(ms.update_body(s)["pricing"], {"isAdvancedPricingModel": True, "trialPeriod": "SevenDays"})
+        self.assertIn("pricing", s, "the submission itself keeps it for the check")
+        s["pricing"] = {"priceId": "Tier5"}
+        self.assertEqual(ms.update_body(s)["pricing"], {"priceId": "Tier5"})
+
+    def test_pricing_check(self):
+        p = {"priceId": "Base", "trialPeriod": "SevenDays"}
+        self.assertTrue(ms.same_pricing({"pricing": p}, {"pricing": dict(p)}))
+        self.assertFalse(ms.same_pricing({"pricing": p}, {"pricing": {"priceId": "Free"}}))
+
+
 if __name__ == "__main__":
     unittest.main()

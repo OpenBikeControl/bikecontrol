@@ -34,9 +34,9 @@ on:
         default: true
         type: boolean
       msstore_submit:
-        description: 'Windows: submit the MSIX + release notes to the Microsoft Store for certification'
+        description: 'Windows: submit the MSIX + release notes to the Microsoft Store (fails while the app uses the advanced Base price, see scripts/msstore_submission.py)'
         required: false
-        default: true
+        default: false
         type: boolean
 
 env:
@@ -351,28 +351,6 @@ jobs:
           name: BikeControl Store
           path: build/windows/x64/runner/Release/bike_control.store.msix
 
-      # Partner Center submission API (scripts/msstore_submission.py): a copy of
-      # the last published submission with the new MSIX and the Windows release
-      # notes (entries about other platforms left out, 1500-char Store limit),
-      # committed for certification. Credentials: Entra app "uploadmsix" in the
-      # openbikecontrol.onmicrosoft.com tenant, Manager role in Partner Center.
-      - name: Submit to Microsoft Store
-        if: inputs.msstore_submit
-        shell: bash
-        env:
-          MSSTORE_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
-          MSSTORE_CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
-          MSSTORE_CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
-        run: |
-          # get_latest_changelog.sh runs python3; the Windows image only has python.
-          command -v python3 >/dev/null || cp "$(command -v python)" "$(dirname "$(command -v python)")/python3.exe"
-          mkdir -p store_notes
-          ./scripts/get_latest_changelog.sh en --windows | ./scripts/truncate_release_notes.sh 1500 > store_notes/msstore.txt
-          cat store_notes/msstore.txt
-          python scripts/msstore_submission.py \
-            --msix build/windows/x64/runner/Release/bike_control.store.msix \
-            --release-notes store_notes/msstore.txt
-
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
@@ -402,6 +380,30 @@ jobs:
           replacesArtifacts: false
           tag: v${{ env.VERSION }}
           token: ${{ github.token }}
+
+      # Partner Center submission API (scripts/msstore_submission.py): a copy of
+      # the last published submission with the new MSIX and the Windows release
+      # notes (entries about other platforms left out, 1500-char Store limit),
+      # committed for certification. Credentials: Entra app "uploadmsix" in the
+      # openbikecontrol.onmicrosoft.com tenant, Manager role in Partner Center.
+      - name: Submit to Microsoft Store
+        if: inputs.msstore_submit
+        shell: bash
+        env:
+          # The changelog bullets are UTF-8; Windows Python defaults to cp1252.
+          PYTHONUTF8: "1"
+          MSSTORE_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+          MSSTORE_CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+          MSSTORE_CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+        run: |
+          # get_latest_changelog.sh runs python3; the Windows image only has python.
+          command -v python3 >/dev/null || cp "$(command -v python)" "$(dirname "$(command -v python)")/python3.exe"
+          mkdir -p store_notes
+          ./scripts/get_latest_changelog.sh en --windows | ./scripts/truncate_release_notes.sh 1500 > store_notes/msstore.txt
+          cat store_notes/msstore.txt
+          python scripts/msstore_submission.py \
+            --msix build/windows/x64/runner/Release/bike_control.store.msix \
+            --release-notes store_notes/msstore.txt
 
   linux:
     if: inputs.build_linux
