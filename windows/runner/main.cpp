@@ -6,9 +6,11 @@
 #include <windows.h>
 #include <appmodel.h>
 
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -94,9 +96,51 @@ bool SendAppLinkToInstance(const std::wstring& title) {
 // example/windows/runner/main.cpp.
 // ---------------------------------------------------------------------------
 
+// The overlay's top-level window. Like FlutterWindow, it offers every message
+// to the sub-engine's plugins first: window_manager learns about moves (its
+// "moved" event, which saves the overlay position) and the close button only
+// through HandleTopLevelWindowProc.
+class OverlayWindow : public Win32Window {
+ public:
+  // Set to nullptr before the controller is destroyed.
+  void SetController(flutter::FlutterViewController* controller) {
+    controller_ = controller;
+  }
+
+ protected:
+  LRESULT MessageHandler(HWND hwnd, UINT const message, WPARAM const wparam,
+                         LPARAM const lparam) noexcept override {
+    if (controller_) {
+      std::optional<LRESULT> result =
+          controller_->HandleTopLevelWindowProc(hwnd, message, wparam, lparam);
+      if (result) {
+        return *result;
+      }
+      if (message == WM_CLOSE) {
+        // window_manager has passed the close on to the overlay's Dart, which
+        // reports the position and the close to the main window, then asks
+        // for the window to be closed (see CloseWindowSoon). Until then the
+        // window is only hidden: destroying it here would leave the engine
+        // running without its window.
+        ShowWindow(hwnd, SW_HIDE);
+        return 0;
+      }
+    }
+    return Win32Window::MessageHandler(hwnd, message, wparam, lparam);
+  }
+
+  void OnDestroy() override {
+    controller_ = nullptr;
+    Win32Window::OnDestroy();
+  }
+
+ private:
+  flutter::FlutterViewController* controller_ = nullptr;
+};
+
 struct SecondaryWindowContext {
   std::string windowId;
-  std::unique_ptr<Win32Window> window;
+  std::unique_ptr<OverlayWindow> window;
   std::unique_ptr<flutter::FlutterViewController> controller;
   // The handler-owning MethodChannel must outlive the engine that uses it.
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>>
@@ -104,6 +148,26 @@ struct SecondaryWindowContext {
 };
 
 static std::vector<std::unique_ptr<SecondaryWindowContext>> g_secondary_windows;
+
+static void CloseWindow(bool isMainWindow, const std::string& windowId);
+
+// Secondary windows whose own Dart asked to be closed.
+static std::vector<std::string> g_pending_closes;
+
+// Closes the secondary window |windowId| from the message loop. The request
+// comes in on that window's own engine, which must not be shut down from
+// inside one of its own channel handlers.
+static void CloseWindowSoon(const std::string& windowId) {
+  g_pending_closes.push_back(windowId);
+  SetTimer(nullptr, 0, 0, [](HWND, UINT, UINT_PTR timer_id, DWORD) {
+    KillTimer(nullptr, timer_id);
+    std::vector<std::string> ids;
+    ids.swap(g_pending_closes);
+    for (const auto& id : ids) {
+      CloseWindow(false, id);
+    }
+  });
+}
 
 static void CreateNewWindow(const std::vector<std::string>& args) {
   flutter::DartProject project(L"data");
@@ -124,7 +188,7 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
   auto* sub_messenger = controller->engine()->messenger();
   MultiWindowNativePlugin::RegisterMessenger(sub_messenger);
 
-  auto window = std::make_unique<Win32Window>();
+  auto window = std::make_unique<OverlayWindow>();
   Win32Window::Point origin(50, 50);
   Win32Window::Size size(220, 100);
   if (!window->Create(L"BikeControl Overlay", origin, size)) {
@@ -173,6 +237,19 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
           result->Success(flutter::EncodableValue(true));
         } else if (method == "notifyUiReady") {
           result->Success(flutter::EncodableValue(true));
+        } else if (method == "closeWindow") {
+          // The overlay closing itself (its close button). Never the main
+          // window: that one is closed only from its own engine.
+          const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
+          if (args) {
+            auto it = args->find(flutter::EncodableValue("windowId"));
+            if (it != args->end()) {
+              if (auto p = std::get_if<std::string>(&it->second)) {
+                CloseWindowSoon(*p);
+              }
+            }
+          }
+          result->Success(flutter::EncodableValue(true));
         } else {
           // Any other call (e.g. notifyAllWindows from this sub-window's
           // Dart) is a broadcast — fan out to every registered messenger
@@ -183,6 +260,7 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
       });
 
   window->SetQuitOnClose(false);
+  window->SetController(controller.get());
   window->SetChildContent(controller->view()->GetNativeWindow());
 
   HWND hwnd = GetAncestor(controller->view()->GetNativeWindow(), GA_ROOT);
@@ -205,6 +283,10 @@ static void CreateNewWindow(const std::vector<std::string>& args) {
   raw_controller->ForceRedraw();
 
   auto ctx = std::make_unique<SecondaryWindowContext>();
+  // The id the window's Dart knows it by: window_manager's getId(), which is
+  // this top-level HWND as a number.
+  ctx->windowId = std::to_string(
+      reinterpret_cast<std::intptr_t>(window->GetHandle()));
   ctx->window = std::move(window);
   ctx->controller = std::move(controller);
   ctx->plugin_channel = std::move(sub_channel);
@@ -219,6 +301,9 @@ static void DestroySecondaryWindows() {
   for (auto& ctx : g_secondary_windows) {
     MultiWindowNativePlugin::UnregisterMessenger(
         ctx->controller->engine()->messenger());
+    // The window outlives the controller below; it must not hand messages
+    // to a destroyed one.
+    ctx->window->SetController(nullptr);
   }
   g_secondary_windows.clear();
 }
@@ -254,14 +339,17 @@ static void CloseWindow(bool isMainWindow, const std::string& windowId) {
       });
   if (it == g_secondary_windows.end()) return;
 
-  auto& ctx = *it;
-  auto* messenger = ctx->controller->engine()->messenger();
-  MultiWindowNativePlugin::UnregisterMessenger(messenger);
-
-  HWND hwnd = GetAncestor(ctx->controller->view()->GetNativeWindow(), GA_ROOT);
-  if (hwnd) DestroyWindow(hwnd);
-
+  // Taken out of the list first, so a second close for the same window (the
+  // overlay's own close button and the overlay switch in the main window can
+  // both ask) finds nothing to do.
+  std::unique_ptr<SecondaryWindowContext> ctx = std::move(*it);
   g_secondary_windows.erase(it);
+
+  MultiWindowNativePlugin::UnregisterMessenger(
+      ctx->controller->engine()->messenger());
+  ctx->window->SetController(nullptr);
+  HWND hwnd = ctx->window->GetHandle();
+  if (hwnd && IsWindow(hwnd)) DestroyWindow(hwnd);
 }
 
 static void SetMainWindowMethodHandler(flutter::FlutterViewController* controller) {
@@ -368,12 +456,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
       [](bool isMainWindow, const std::string& windowId) {
         CloseWindow(isMainWindow, windowId);
       });
-  MultiWindowNativePlugin::SetWindowIdCallback(
-      [](const std::string& windowId) {
-        if (!g_secondary_windows.empty()) {
-          g_secondary_windows.back()->windowId = windowId;
-        }
-      });
+  // No SetWindowIdCallback: CreateNewWindow knows each window's id itself.
+  // Taking it from setWindowId named whichever window was created last, and
+  // the call can arrive before that window is in the list, or come from the
+  // main window.
 
   flutter::DartProject project(L"data");
   std::vector<std::string> command_line_arguments = GetCommandLineArguments();
