@@ -2343,6 +2343,7 @@
   "paywall_storeDirectDownload": "Direktdownload",
   "purchaseBaseDoneTitle": "Du hast jetzt die Basis-Version",
   "purchaseBaseDoneBody": "Unbegrenzt viele Tastendrücke in deiner Trainer-App. Das virtuelle Schalten von BikeControl selbst gehört zu Pro – du kannst es weiter 30 Min. am Tag testen.",
+  "purchaseBaseDoneTrainerHandedBack": "Dein Smart Trainer ist jetzt von BikeControl getrennt. So verbindet sich deine Trainer-App direkt mit ihm und schaltet ohne Limit. In den Einstellungen des Trainers kannst du ihn wieder einschalten.",
   "purchaseProDoneTitle": "Pro ist auf deinem Konto aktiv",
   "purchaseProSignInTitle": "Pro ist auf diesem Gerät aktiv",
   "purchaseProSignInBody": "Melde dich an, damit Pro auch auf deinen anderen Geräten funktioniert. Das geht auch später unter Einstellungen → Plan & Konto.",

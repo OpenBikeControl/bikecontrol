@@ -220,6 +220,48 @@ Future<void> main() async {
     });
   });
 
+  // Buying Base: the trainer goes back to the trainer app, which then
+  // connects to it directly and shifts without BikeControl's daily limit.
+  group('handTrainersBackToApp', () {
+    test('disconnects a bridged trainer in place and stops it auto-connecting', () async {
+      final trainer = buildFtmsTrainer();
+      env.ble.addPeripheral(trainer);
+      await core.settings.setAutoConnect('KICKR CORE 1234', true);
+      await core.connection.performScanning();
+      await IntegrationEnv.waitFor(
+        () => core.connection.proxyDevices.isNotEmpty && core.connection.proxyDevices.single.isConnected,
+        description: 'trainer connected',
+      );
+      final device = core.connection.proxyDevices.single;
+      await IntegrationEnv.waitFor(() => env.mdns.registrations.isNotEmpty, description: 'advertising');
+
+      expect(await core.connection.handTrainersBackToApp(), 1);
+
+      expect(core.connection.devices, contains(device), reason: 'still listed, so the rider can turn it back on');
+      expect(device.isConnected, isFalse);
+      expect(env.mdns.registrations, isEmpty);
+      expect(core.settings.getAutoConnect(device.trainerKey), isFalse);
+
+      // A rescan (or the next app start) does not bring it back.
+      await core.connection.performScanning();
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(device.isConnected, isFalse);
+    });
+
+    test('leaves a trainer that is only discovered alone', () async {
+      final trainer = buildFtmsTrainer();
+      env.ble.addPeripheral(trainer);
+      await core.connection.performScanning();
+      await IntegrationEnv.waitFor(
+        () => core.connection.proxyDevices.isNotEmpty,
+        description: 'trainer in device list',
+      );
+
+      expect(await core.connection.handTrainersBackToApp(), 0);
+      expect(core.connection.proxyDevices.single.isConnected, isFalse);
+    });
+  });
+
   group('controller → virtual shifting reaction chain', () {
     test('a Zwift Click shift press changes gear on the connected bridge (real action pipeline)', () async {
       // Real keymap/action pipeline instead of the stub.

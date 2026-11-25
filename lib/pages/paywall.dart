@@ -402,7 +402,7 @@ class _PaywallState extends State<Paywall> {
     if (confirmation == null || rootContext == null || !rootContext.mounted) return;
     _confirmed = true;
     unawaited(switch (confirmation) {
-      PaywallConfirmation.baseDone => showPurchaseBaseDoneDialog(rootContext),
+      PaywallConfirmation.baseDone => confirmBasePurchase(rootContext),
       PaywallConfirmation.proUnregistered => showPurchaseProUnregisteredDialog(rootContext),
       PaywallConfirmation.proDeviceLimit => _showDeviceLimit(rootContext),
       PaywallConfirmation.proSignIn => showPurchaseProSignInDialog(rootContext),

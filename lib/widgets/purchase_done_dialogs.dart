@@ -6,6 +6,7 @@ import 'package:bike_control/models/device_limit_reached_error.dart';
 import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
+import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/menu.dart' show debugText;
@@ -15,10 +16,28 @@ import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:prop/prop.dart' show LogLevel;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+/// After a Base purchase: hands the smart trainer back to the trainer app
+/// first, then confirms. Base doesn't include BikeControl's virtual shifting,
+/// so a trainer left bridged would run into the daily trial — the trainer
+/// app's own shifting has no limit. [handTrainersBack] is a test seam for
+/// [Connection.handTrainersBackToApp].
+Future<void> confirmBasePurchase(BuildContext context, {Future<int> Function()? handTrainersBack}) async {
+  var handedBack = 0;
+  try {
+    handedBack = await (handTrainersBack ?? core.connection.handTrainersBackToApp)();
+  } catch (e, s) {
+    recordError(e, s, context: 'Base purchase hand trainers back');
+  }
+  if (!context.mounted) return;
+  await showPurchaseBaseDoneDialog(context, trainerHandedBack: handedBack > 0);
+}
+
 /// After a Base purchase: what Base covers and, above all, what it doesn't.
 /// Riders who bought Base for BikeControl-driven virtual shifting found out
 /// about the daily limit the hard way — say it at the moment of purchase.
-Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
+/// [trainerHandedBack]: the smart trainer was just disconnected from
+/// BikeControl ([confirmBasePurchase]); say why it is no longer connected.
+Future<void> showPurchaseBaseDoneDialog(BuildContext context, {bool trainerHandedBack = false}) {
   return showDialog<void>(
     context: context,
     builder: (c) {
@@ -33,7 +52,20 @@ Future<void> showPurchaseBaseDoneDialog(BuildContext context) {
               Expanded(child: Text(l10n.purchaseBaseDoneTitle)),
             ],
           ),
-          content: Text(l10n.purchaseBaseDoneBody),
+          content: trainerHandedBack
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.purchaseBaseDoneBody),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.purchaseBaseDoneTrainerHandedBack,
+                      key: const ValueKey('purchase-base-trainer-handed-back'),
+                    ),
+                  ],
+                )
+              : Text(l10n.purchaseBaseDoneBody),
           actions: [
             PrimaryButton(
               onPressed: () => Navigator.of(c).pop(),

@@ -2341,6 +2341,7 @@
   "paywall_storeDirectDownload": "descarga directa",
   "purchaseBaseDoneTitle": "Ya tienes Base",
   "purchaseBaseDoneBody": "Pulsaciones de botón ilimitadas en tu app de entrenamiento. El cambio virtual propio de BikeControl es parte de Pro; puedes seguir probándolo 30 min al día.",
+  "purchaseBaseDoneTrainerHandedBack": "Tu rodillo inteligente se ha desconectado de BikeControl, así tu app de entrenamiento se conecta directamente a él y cambia sin límite. Puedes volver a activarlo en los ajustes del rodillo.",
   "purchaseProDoneTitle": "Pro está activo en tu cuenta",
   "purchaseProSignInTitle": "Pro está activo en este dispositivo",
   "purchaseProSignInBody": "Inicia sesión para que Pro también funcione en tus otros dispositivos. También puedes hacerlo más tarde en Ajustes → Plan y cuenta.",

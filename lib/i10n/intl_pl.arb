@@ -2341,6 +2341,7 @@
   "paywall_storeDirectDownload": "z bezpośredniego pobrania",
   "purchaseBaseDoneTitle": "Masz teraz wersję Base",
   "purchaseBaseDoneBody": "Nieograniczone naciśnięcia przycisków w aplikacji treningowej. Wirtualna zmiana biegów BikeControl jest częścią Pro – nadal możesz ją testować 30 min dziennie.",
+  "purchaseBaseDoneTrainerHandedBack": "Twój trenażer jest teraz odłączony od BikeControl, więc aplikacja treningowa łączy się z nim bezpośrednio i zmienia biegi bez limitu. Możesz go ponownie włączyć w ustawieniach trenażera.",
   "purchaseProDoneTitle": "Pro jest aktywne na Twoim koncie",
   "purchaseProSignInTitle": "Pro jest aktywne na tym urządzeniu",
   "purchaseProSignInBody": "Zaloguj się, aby Pro działało też na Twoich innych urządzeniach. Możesz to zrobić także później w Ustawienia → Plan i konto.",

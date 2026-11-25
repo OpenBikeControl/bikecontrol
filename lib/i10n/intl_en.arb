@@ -2581,6 +2581,7 @@
   "paywall_storeDirectDownload": "direct download",
   "purchaseBaseDoneTitle": "You now have Base",
   "purchaseBaseDoneBody": "Unlimited button presses in your trainer app. BikeControl's own virtual shifting is part of Pro — you can keep trying it 30 min a day.",
+  "purchaseBaseDoneTrainerHandedBack": "Your smart trainer is now disconnected from BikeControl, so your trainer app connects to it directly and shifts without a limit. You can turn it back on in the trainer's settings.",
   "purchaseProDoneTitle": "Pro is active on your account",
   "purchaseProSignInTitle": "Pro is active on this device",
   "purchaseProSignInBody": "Sign in so Pro works on your other devices too. You can also do this later in Settings → Plan & account.",

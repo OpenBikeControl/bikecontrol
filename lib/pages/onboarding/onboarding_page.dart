@@ -1039,12 +1039,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   /// before moving on. keepInList so going back re-offers them.
   Future<void> _onSkipVirtualShifting() async {
     try {
-      for (final t in core.connection.proxyDevices.toList()) {
-        if (t.isStarting.value || t.isStartedListenable.value || t.isConnectedListenable.value || t.isConnected) {
-          await core.settings.setAutoConnect(t.trainerKey, false);
-          await core.connection.disconnect(t, forget: false, persistForget: false, keepInList: true);
-        }
-      }
+      await core.connection.handTrainersBackToApp();
     } catch (e, s) {
       recordError(e, s, context: 'onboarding skip virtual shifting');
     }
