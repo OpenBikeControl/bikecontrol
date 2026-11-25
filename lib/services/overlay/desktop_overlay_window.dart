@@ -193,18 +193,21 @@ class _OverlayWindowListener extends wm.WindowListener {
 
   @override
   void onWindowMoved() {
-    () async {
-      try {
-        final pos = await wm.windowManager.getPosition();
-        await MultiWindowNative.notifyAllWindows(kOverlayPositionMethod, {
-          'windowId': _windowId,
-          'x': pos.dx,
-          'y': pos.dy,
-        });
-      } catch (e, s) {
-        recordError(e, s, context: 'overlay.window.moved');
-      }
-    }();
+    _reportPosition(context: 'overlay.window.moved');
+  }
+
+  /// Sends the window's position to main, which saves it for the next show.
+  Future<void> _reportPosition({required String context}) async {
+    try {
+      final pos = await wm.windowManager.getPosition();
+      await MultiWindowNative.notifyAllWindows(kOverlayPositionMethod, {
+        'windowId': _windowId,
+        'x': pos.dx,
+        'y': pos.dy,
+      });
+    } catch (e, s) {
+      recordError(e, s, context: context);
+    }
   }
 
   /// User clicked the close button (or otherwise closed the window
@@ -214,6 +217,8 @@ class _OverlayWindowListener extends wm.WindowListener {
   @override
   void onWindowClose() {
     () async {
+      // Once more on the way out, in case a move was not reported.
+      await _reportPosition(context: 'overlay.window.close.position');
       try {
         await MultiWindowNative.notifyAllWindows(kOverlayClosedMethod, {
           'windowId': _windowId,
