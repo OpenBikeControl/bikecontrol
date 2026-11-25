@@ -19,6 +19,12 @@ replaces what was passed, uploads the files and commits it for certification:
   --dry-run        reads the last published submission and prints what would
                    change; creates nothing.
 
+Limitation: with Partner Center's advanced pricing model (BikeControl: base
+price "Base" + 7-day trial) the v1 API cannot save a submission without
+resetting the price to Free; the script detects that and deletes its
+submission before committing. Until the API supports it, submit packages
+through Partner Center (Start update -> Packages -> upload -> Save -> Submit).
+
 Credentials (an Entra ID app with the Manager role in Partner Center, here
 "uploadmsix" in the openbikecontrol.onmicrosoft.com tenant) come from
 MSSTORE_TENANT_ID, MSSTORE_CLIENT_ID and MSSTORE_CLIENT_SECRET.
@@ -89,6 +95,23 @@ def screenshot_files(directory: Path) -> list[Path]:
     if len(files) > 10:
         raise ValueError(f"{len(files)} screenshots in {directory}, the Store takes 10")
     return files
+
+
+def update_body(submission: dict) -> dict:
+    """The submission as the update (PUT) takes it. With the advanced pricing
+    model the copy reports the price as priceId "Base", which the update
+    rejects ("'Base' is not a valid PriceId"), while leaving pricing out is
+    rejected too. So pricing goes back without priceId; the price stays as it
+    is in Partner Center (checked after the update, see [same_pricing])."""
+    body = dict(submission)
+    pricing = body.get("pricing", {})
+    if pricing.get("priceId") == "Base":
+        body["pricing"] = {k: v for k, v in pricing.items() if k != "priceId"}
+    return body
+
+
+def same_pricing(before: dict, after: dict) -> bool:
+    return before.get("pricing") == after.get("pricing")
 
 
 def summary(submission: dict) -> list[str]:
@@ -207,7 +230,10 @@ def main(argv: list[str] | None = None) -> int:
                     z.writestr(name, data)
             upload_zip(submission["fileUploadUrl"], buffer.getvalue())
             print(f"uploaded {len(files)} file(s), {buffer.tell() // 1024} KB")
-        store.call("PUT", f"/submissions/{submission_id}", submission)
+        store.call("PUT", f"/submissions/{submission_id}", update_body(submission))
+        saved = store.call("GET", f"/submissions/{submission_id}")
+        if not same_pricing(submission, saved):
+            raise RuntimeError(f"pricing changed by the update: {submission.get('pricing')} -> {saved.get('pricing')}")
         store.call("POST", f"/submissions/{submission_id}/commit")
     except Exception:
         print(f"failed; deleting submission {submission_id} so the next run can start clean", file=sys.stderr)
