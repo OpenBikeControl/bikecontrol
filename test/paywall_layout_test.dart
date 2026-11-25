@@ -6,6 +6,7 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart' show OtherLocalizationsDelegate;
 import 'package:bike_control/pages/button_edit.dart' show SelectableCard;
 import 'package:bike_control/pages/paywall.dart';
+import 'package:bike_control/utils/iap/cross_platform_base_promo.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
@@ -280,5 +281,38 @@ Future<void> main() async {
         reason: link,
       );
     }
+  });
+
+  group('Black Friday cross-platform Base deal', () {
+    const deal = ValueKey('paywall-base-cross-platform-deal');
+
+    Future<void> pumpAt(WidgetTester tester, DateTime now, PurchaseChannel channel) async {
+      IAPManager.instance.isPurchased.value = false;
+      IAPManager.instance.purchaseChannelForTesting = channel;
+      CrossPlatformBasePromo.now = () => now;
+      addTearDown(() {
+        IAPManager.instance.isPurchased.value = true;
+        IAPManager.instance.purchaseChannelForTesting = null;
+        CrossPlatformBasePromo.now = DateTime.now;
+      });
+      await pumpInScrollView(tester, Paywall(debugNativeTrainer: () => null));
+      expect(tester.takeException(), isNull);
+    }
+
+    testWidgets('replaces the store-bound note on Friday', (tester) async {
+      await pumpAt(tester, DateTime.utc(2026, 11, 27, 12), PurchaseChannel.appStore);
+      expect(find.byKey(deal), findsOneWidget);
+      expect(find.text(AppLocalizations.current.paywall_blackFridayBaseNote), findsOneWidget);
+    });
+
+    testWidgets('is not shown before Friday', (tester) async {
+      await pumpAt(tester, DateTime.utc(2026, 11, 25, 12), PurchaseChannel.appStore);
+      expect(find.byKey(deal), findsNothing);
+    });
+
+    testWidgets('is not shown in the Microsoft Store build, whose purchase never reaches the account', (tester) async {
+      await pumpAt(tester, DateTime.utc(2026, 11, 27, 12), PurchaseChannel.microsoftStore);
+      expect(find.byKey(deal), findsNothing);
+    });
   });
 }
