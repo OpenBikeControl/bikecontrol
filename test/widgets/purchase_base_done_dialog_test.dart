@@ -85,4 +85,57 @@ Future<void> main() async {
 
     expect(find.textContaining('MyWhoosh'), findsNWidgets(2));
   });
+
+  group('Black Friday: Base bought today travels to the other devices', () {
+    const signInLine = ValueKey('purchase-base-cross-platform-sign-in');
+    const signedInLine = ValueKey('purchase-base-cross-platform-signed-in');
+    const signInButton = ValueKey('purchase-base-sign-in');
+
+    Future<void> confirm(WidgetTester tester, BuildContext ctx, {required bool deal, required bool signedIn, Future<void> Function(BuildContext)? openSignIn}) async {
+      unawaited(
+        confirmBasePurchase(
+          ctx,
+          handTrainersBack: () async => 0,
+          crossPlatformDeal: deal,
+          isSignedIn: signedIn,
+          openSignIn: openSignIn,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('signed out: asks to sign in, and Sign in opens sign-in', (tester) async {
+      tester.view.physicalSize = const Size(390, 900) * 3.0;
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final ctx = await pump(tester);
+      var opened = 0;
+      await confirm(tester, ctx, deal: true, signedIn: false, openSignIn: (_) async => opened++);
+
+      expect(find.byKey(signInLine), findsOneWidget);
+      await tester.tap(find.byKey(signInButton));
+      await tester.pumpAndSettle();
+
+      expect(opened, 1);
+      expect(find.byKey(signInLine), findsNothing, reason: 'the dialog closes');
+    });
+
+    testWidgets('signed in: says it is already on the account, no sign-in button', (tester) async {
+      final ctx = await pump(tester);
+      await confirm(tester, ctx, deal: true, signedIn: true);
+
+      expect(find.byKey(signedInLine), findsOneWidget);
+      expect(find.byKey(signInButton), findsNothing);
+    });
+
+    testWidgets('outside the deal: neither line', (tester) async {
+      final ctx = await pump(tester);
+      await confirm(tester, ctx, deal: false, signedIn: false);
+
+      expect(find.byKey(signInLine), findsNothing);
+      expect(find.byKey(signedInLine), findsNothing);
+      expect(find.byKey(signInButton), findsNothing);
+    });
+  });
 }

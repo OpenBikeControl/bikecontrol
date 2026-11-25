@@ -2338,6 +2338,8 @@
   "paywall_blackFridayBadge": "Black Friday",
   "paywall_blackFridayBaseNote": "Achète Base aujourd'hui et il fonctionne sur tous tes appareils : iPhone, iPad, Android, Mac et Windows. Uniquement pour les achats effectués le vendredi 27 novembre.",
   "paywall_blackFridaySignIn": "Connecte-toi avec le même compte sur chaque appareil pour le débloquer.",
+  "purchaseBaseDoneCrossPlatformOnAccount": "Black Friday : c'est aussi sur ton compte. Connecte-toi avec le même compte sur tes autres appareils et Base y fonctionnera aussi.",
+  "purchaseBaseDoneCrossPlatformSignIn": "Black Friday : connecte-toi maintenant et Base fonctionnera aussi sur tes autres appareils : iPhone, iPad, Android, Mac et Windows.",
   "paywall_baseStoreNote": "Achat unique pour la version {store}. Il n'est pas transférable vers d'autres stores ou plateformes – Pro l'est.",
   "paywall_baseFreeOnLinux": "Base est gratuit sous Linux : aucun achat nécessaire.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
