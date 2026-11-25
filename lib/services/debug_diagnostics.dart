@@ -133,16 +133,10 @@ class DebugDiagnostics {
         )
         .toList();
 
-    var discovered = <DiscoveredMdnsService>[];
-    var discoveryRan = false;
-    if (includeDiscovery && !kIsWeb) {
-      try {
-        discovered = await MdnsDiscoveryScan().run(timeout: discoveryTimeout);
-        discoveryRan = true;
-      } catch (e, s) {
-        recordError(e, s, context: 'DebugDiagnostics.discovery');
-      }
-    }
+    final (:queries, :discovered) = await readQueriesThenDiscover(
+      readQueries: () => isResponder ? advertiser.recentQueries : const [],
+      discover: includeDiscovery && !kIsWeb ? () => MdnsDiscoveryScan().run(timeout: discoveryTimeout) : null,
+    );
 
     // includeDiscovery is the existing "may do live network work" seam — the
     // crash handler passes false. The permission probe belongs to it.
@@ -163,16 +157,41 @@ class DebugDiagnostics {
         _ => null,
       },
       holdsMulticastLock: isResponder ? advertiser.holdsMulticastLock : false,
-      discovered: discovered,
-      discoveryRan: discoveryRan,
+      discovered: discovered ?? const [],
+      discoveryRan: discovered != null,
       addressReport: addressReport,
       servers: servers,
       permissions: permissions,
-      recentQueries: isResponder ? advertiser.recentQueries : const [],
+      recentQueries: queries,
       connections: ResilientTcpServer.connectionLog,
       lifecycle: NetworkRecovery.instance.diagnosticLines(),
       obcOsResponderHost: _obcOsResponderHost(),
     );
+  }
+
+  /// Reads the mDNS query log, THEN runs the bundle's own discovery scan.
+  ///
+  /// The order is the point. The scan queries from this device's addresses
+  /// once per interface, and on a host with many adapters (a Windows PC with a
+  /// stack of VirtualBox/VMware host-only ones) a single scan wrote enough
+  /// entries to evict everything the trainer app had asked before the bundle
+  /// was taken — the bundle then showed only our own scan. [discover] null
+  /// skips the scan; a scan that fails leaves `discovered` null.
+  @visibleForTesting
+  static Future<({List<MdnsQueryLogEntry> queries, List<DiscoveredMdnsService>? discovered})> readQueriesThenDiscover({
+    required List<MdnsQueryLogEntry> Function() readQueries,
+    required Future<List<DiscoveredMdnsService>> Function()? discover,
+  }) async {
+    final queries = readQueries();
+    List<DiscoveredMdnsService>? discovered;
+    if (discover != null) {
+      try {
+        discovered = await discover();
+      } catch (e, s) {
+        recordError(e, s, context: 'DebugDiagnostics.discovery');
+      }
+    }
+    return (queries: queries, discovered: discovered);
   }
 
   static String? _obcOsResponderHost() {
@@ -317,11 +336,31 @@ class DebugDiagnostics {
     if (recentQueries.isEmpty) {
       b.writeln('    (none)');
     } else {
+      // BikeControl's own scans (the Wi-Fi trainer scan, a discovery scan)
+      // query from this device's addresses exactly like a same-host trainer
+      // app, once per interface. Listed, they drowned the trainer app's lines
+      // and read as the trainer app asking; one count line is enough to show
+      // they happened. Only entries whose every question is about a type we
+      // were browsing qualify — the trainer app asking for anything else
+      // meanwhile stays listed.
+      final ownAddresses = {
+        '127.0.0.1',
+        ...addressReport.candidates.map((c) => c.address),
+        ...advertised.map((a) => a.address),
+      };
+      bool isOwnScan(MdnsQueryLogEntry q) =>
+          q.isOwnScanQuery && (q.fromThisHost || ownAddresses.contains(q.source));
+      final ownScan = recentQueries.where(isOwnScan).toList();
+
       // Support bundles leave the device, so third-party hostnames/IPs a
       // neighbouring device's browse happened to log are not ours to send —
       // only queries naming something BikeControl itself advertises are
       // listed verbatim; the rest is summarised as counts, no identifiers.
-      final relevant = relevantMdnsQueries(recentQueries, advertised: advertised, hostLabel: hostLabel);
+      final relevant = relevantMdnsQueries(
+        recentQueries.where((q) => !isOwnScan(q)).toList(),
+        advertised: advertised,
+        hostLabel: hostLabel,
+      );
       for (final q in relevant.kept) {
         final at = q.at.toIso8601String().split('T').last.split('.').first;
         // Repeats are folded; the count keeps a continuous poller visible as
@@ -337,6 +376,11 @@ class DebugDiagnostics {
           '    $at ${q.source}:${q.sourcePort} ${q.wantsUnicast ? 'QU' : 'QM'} '
           '${shown.join(', ')}$hiddenNote → ${q.reply}$repeats',
         );
+      }
+      if (ownScan.isNotEmpty) {
+        final count = ownScan.fold(0, (sum, q) => sum + q.count);
+        final addresses = {for (final q in ownScan) ...q.sources}.length;
+        b.writeln('    (own scan: $count queries from $addresses local addresses, not listed)');
       }
       if (relevant.droppedQueries > 0) {
         b.writeln('    (+${relevant.droppedQueries} unrelated queries from ${relevant.droppedHosts} hosts, not listed)');

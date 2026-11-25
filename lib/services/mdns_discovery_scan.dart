@@ -89,7 +89,11 @@ class MdnsDiscoveryScan {
     }
 
     final browsers = <MdnsServiceBrowser>[];
-    OwnMdnsBrowsing.begin();
+    // Marked per type, up front: a browser asks the moment it starts, and
+    // all of [types] are open for the whole scan.
+    for (final type in types) {
+      OwnMdnsBrowsing.begin(type);
+    }
     try {
       for (final type in types) {
         final browser = _createBrowser();
@@ -105,7 +109,9 @@ class MdnsDiscoveryScan {
           recordError(e, s, context: 'MdnsDiscoveryScan.stop');
         }
       }
-      OwnMdnsBrowsing.end();
+      for (final type in types) {
+        OwnMdnsBrowsing.end(type);
+      }
     }
     return found.values.toList();
   }

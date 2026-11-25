@@ -80,7 +80,7 @@ class WifiTrainerScanner {
       return;
     }
     _browser = browser;
-    OwnMdnsBrowsing.begin();
+    OwnMdnsBrowsing.begin(serviceType);
   }
 
   Future<void> stop() async {
@@ -90,7 +90,7 @@ class WifiTrainerScanner {
     _known.clear();
     _resolving.clear();
     if (browser != null) {
-      OwnMdnsBrowsing.end();
+      OwnMdnsBrowsing.end(serviceType);
       try {
         await browser.stop();
       } catch (e, s) {

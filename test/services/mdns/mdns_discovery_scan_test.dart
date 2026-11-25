@@ -7,14 +7,18 @@ import 'package:bike_control/services/mdns/mdns_service_browser.dart';
 import 'package:bike_control/services/mdns_discovery_scan.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsd/nsd.dart' as nsd;
+import 'package:prop/mdns/mdns_responder.dart' show OwnMdnsBrowsing;
 
 class _FakeBrowser implements MdnsServiceBrowser {
+  _FakeBrowser({this.onStart});
+  final void Function()? onStart;
   String? type;
   var stopped = false;
 
   @override
   Future<void> start(String type, MdnsServiceListener listener) async {
     this.type = type;
+    onStart?.call();
     listener(
       nsd.Service(name: 'Seen on $type', type: type, port: 36866, addresses: [InternetAddress('192.168.1.50')]),
       nsd.ServiceStatus.found,
@@ -38,6 +42,18 @@ void main() {
     expect(browsers.every((b) => b.stopped), isTrue);
     expect(found.map((s) => s.name), MdnsDiscoveryScan.types.map((t) => 'Seen on $t'));
     expect(found.first.host, '192.168.1.50');
+  });
+
+  // The query log tells our own scan from a trainer app by the types we
+  // browse; this scan browses every one of [MdnsDiscoveryScan.types].
+  test('marks each browsed type as an own browse while it runs', () async {
+    addTearDown(OwnMdnsBrowsing.debugReset);
+    Set<String>? duringScan;
+    await MdnsDiscoveryScan(
+      createBrowser: () => _FakeBrowser(onStart: () => duringScan = OwnMdnsBrowsing.activeTypes),
+    ).run(timeout: Duration.zero);
+
+    expect(duringScan, MdnsDiscoveryScan.types.toSet());
   });
 }
 

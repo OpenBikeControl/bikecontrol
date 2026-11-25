@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nsd/nsd.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
+import 'package:prop/mdns/mdns_responder.dart' show OwnMdnsBrowsing;
 import 'package:prop/utils/constants.dart';
 import 'package:prop/utils/self_advertisement_registry.dart';
 
@@ -271,6 +272,17 @@ void main() {
       );
       await scanner.start();
       await expectLater(scanner.stop(), completes);
+    });
+
+    // The query log tells our own scan from a same-host trainer app by the
+    // types we browse. This scan runs for as long as Bluetooth scans, so it
+    // must claim the Wahoo type only — never OpenBikeControl.
+    test('marks only the Wahoo type as browsed by BikeControl while it runs', () async {
+      addTearDown(OwnMdnsBrowsing.debugReset);
+      final scanner = WifiTrainerScanner(onFound: (_) {}, onLost: (_) {}, createBrowser: _FakeBrowser.new);
+      await scanner.start();
+      expect(OwnMdnsBrowsing.activeTypes, {WifiTrainerScanner.serviceType});
+      await scanner.stop();
     });
   });
 }
