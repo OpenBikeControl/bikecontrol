@@ -3,13 +3,18 @@ import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/main.dart';
 import 'package:bike_control/services/entitlements_service.dart';
 import 'package:bike_control/utils/core.dart';
+import 'dart:async';
+
+import 'package:bike_control/utils/auth/account_session.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/ms_store_collections_sync.dart';
 import 'package:bike_control/utils/iap/stripe_checkout_flow.dart';
 import 'package:bike_control/utils/iap/windows_stripe_service.dart';
 import 'package:bike_control/utils/windows_store_environment.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show HttpMethod;
 import 'package:windows_iap/windows_iap.dart';
 
 /// Windows-specific IAP service for Microsoft Store purchases and server-side sync.
@@ -32,6 +37,33 @@ class WindowsIAPService {
     loginRequiredBody: (l10n) => l10n.loginRequiredWindowsBody,
     storeId: _windowsIapPlugin.getStoreId,
   );
+
+  /// Records a Base bought in the Microsoft Store on the account, dated by
+  /// the Store (Microsoft Store build only), for cross-platform promotions.
+  late final MsStoreCollectionsSync storeCollections = MsStoreCollectionsSync(
+    currentUserId: () {
+      final user = core.supabase.auth.currentSession?.user;
+      return hasAccount(user) ? user!.id : null;
+    },
+    requestTicket: () async {
+      final data = await _invokeStoreSync({'action': 'ticket'});
+      return (serviceTicket: data['serviceTicket'] as String, publisherUserId: data['publisherUserId'] as String);
+    },
+    collectionsIdKey: _windowsIapPlugin.getCustomerCollectionsIdKey,
+    submitKey: (key) async {
+      final data = await _invokeStoreSync({'action': 'sync', 'collectionsIdKey': key});
+      core.connection.signalNotification(LogNotification('Microsoft Store Base on account: ${data['base']}'));
+      return data['base'] as String? ?? 'none';
+    },
+    refreshEntitlements: () => _entitlementsService.refresh(force: true),
+    readFlag: (key) => _prefs.read(key: key),
+    writeFlag: (key, value) => _prefs.write(key: key, value: value),
+  );
+
+  Future<Map<String, dynamic>> _invokeStoreSync(Map<String, dynamic> body) async {
+    final response = await core.supabase.functions.invoke('ms-store-sync', method: HttpMethod.post, body: body);
+    return Map<String, dynamic>.from(response.data as Map);
+  }
 
   bool _isInitialized = false;
 
@@ -117,6 +149,7 @@ class WindowsIAPService {
       final status = await _windowsIapPlugin.makePurchase(productId);
       if (status == StorePurchaseStatus.succeeded || status == StorePurchaseStatus.alreadyPurchased) {
         IAPManager.instance.isPurchased.value = true;
+        if (!IAPManager.instance.isOutsideStoreWindowsBuild) unawaited(storeCollections.sync());
         buildToast(
           title: AppLocalizations.current.purchaseSuccessfulTitle,
           subtitle: AppLocalizations.current.purchaseSuccessfulBody,

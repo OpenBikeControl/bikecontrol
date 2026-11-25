@@ -79,6 +79,18 @@ class WindowsIap {
     );
   }
 
+  /// A Microsoft Store ID key the publisher's server passes to the
+  /// collections API to read what this Store user owns.
+  Future<String> getCustomerCollectionsIdKey({
+    required String serviceTicket,
+    required String publisherUserId,
+  }) {
+    return WindowsIapPlatform.instance.getCustomerCollectionsIdKey(
+      serviceTicket: serviceTicket,
+      publisherUserId: publisherUserId,
+    );
+  }
+
   Future<String?> getStoreId() {
     return WindowsIapPlatform.instance.getStoreId();
   }

@@ -8,6 +8,11 @@ name: "Store Metadata"
 #                submodule pointer is not auto-bumped; do that separately.
 #  - "upload":   push the txt files from prop/store_metadata to the stores
 #                (texts only, never the binary, screenshots or release notes).
+#  - platform "windows" + "upload": replace the Microsoft Store listing's
+#                screenshots with screenshots/store/en/androidTablet10 through
+#                the Partner Center submission API (scripts/msstore_submission.py),
+#                committed for certification. The listing is English only; its
+#                texts stay in Partner Center. "download" does nothing for it.
 on:
   workflow_dispatch:
     inputs:
@@ -16,7 +21,7 @@ on:
         required: true
         default: both
         type: choice
-        options: [both, android, ios]
+        options: [both, android, ios, windows]
       action:
         description: "download (store -> repo) or upload (repo -> store)"
         required: true
@@ -181,3 +186,27 @@ jobs:
             echo "prop push contended; retry $i"; sleep 4
           done
           echo "prop push failed after retries"; exit 1
+
+  windows:
+    if: ${{ inputs.platform == 'windows' && inputs.action == 'upload' }}
+    name: Windows (Microsoft Store screenshots)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Submit screenshots to Microsoft Store
+        env:
+          MSSTORE_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+          MSSTORE_CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+          MSSTORE_CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+        run: |
+          pip install --quiet pillow
+          python scripts/msstore_submission.py --screenshots screenshots/store/en/androidTablet10

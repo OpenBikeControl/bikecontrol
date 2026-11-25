@@ -65,7 +65,7 @@ class IAPManager {
 
   static const String premiumMonthlyProductKey = 'premium_monthly';
   static const String premiumYearlyProductKey = 'premium_yearly';
-  static const String fullVersionProductKey = 'full_version';
+  static const String fullVersionProductKey = Entitlement.fullVersionProductKey;
   static const String betaAccessProductKey = 'beta_access';
   /// Button presses a day during the trial period.
   static const int trialDailyCommandLimit = 120;
@@ -649,6 +649,11 @@ class IAPManager {
         await _revenueCatService?.setAttributes();
         await entitlements.refresh(force: true);
         await _syncPurchaseFlagFromEntitlements();
+        // A Base bought in the Microsoft Store reaches the account only
+        // through this sync (no store webhook), once per account.
+        if (purchaseChannel == PurchaseChannel.microsoftStore && isPurchased.value) {
+          unawaited(_windowsIapService?.storeCollections.syncOnce());
+        }
         // A rider who tapped Buy on the Windows Stripe build while logged out was
         // sent to the login gate; a genuine `signedIn` is our cue to finish the
         // checkout they started. Skip token refreshes / the initial session,
@@ -683,7 +688,13 @@ class IAPManager {
   }
 
   Future<void> _syncPurchaseFlagFromEntitlements() => _entitlementPurchase.sync(
-    entitled: isProEnabled || (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)),
+    entitled:
+        isProEnabled ||
+        entitlementsGrantBase(
+          entitlements: entitlements.current,
+          isLoggedIn: isLoggedIn,
+          isOutsideStoreWindowsBuild: isOutsideStoreWindowsBuild,
+        ),
   );
 
   /// Registers this device for the account's Pro subscription and refreshes

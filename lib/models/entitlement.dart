@@ -19,6 +19,14 @@ class Entitlement {
   /// The one-time Pro purchase, same id on every store and Stripe.
   static const String proLifetimeProductKey = 'pro_lifetime';
 
+  /// Base bought through Stripe (Windows download).
+  static const String fullVersionProductKey = 'full_version';
+
+  /// Granted by the backend (never stored) for a Base bought during a
+  /// cross-platform promotion: unlocks Base on every platform the rider
+  /// signs in on, not only the store it was bought in.
+  static const String baseAnyPlatformProductKey = 'base_any_platform';
+
   /// Whether a row with [productKey] unlocks Pro: a monthly or yearly
   /// subscription, the one-time [proLifetimeProductKey], or a promotional Pro
   /// grant from RevenueCat (`rc_promo_pro_weekly`, `rc_promo_pro_lifetime`, ...).

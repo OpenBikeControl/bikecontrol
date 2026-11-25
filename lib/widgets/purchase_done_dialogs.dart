@@ -7,6 +7,7 @@ import 'package:bike_control/pages/plan/plan_account_page.dart';
 import 'package:bike_control/pages/support_chat/support_chat_page.dart';
 import 'package:bike_control/services/telemetry_snapshot.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/iap/cross_platform_base_promo.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/support/intake_options.dart';
 import 'package:bike_control/widgets/purchase_hero.dart';
@@ -25,10 +26,18 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 ///
 /// [appName]: the selected trainer app to name in the text, or null for the
 /// generic wording (see [paywallShiftAppName]).
+///
+/// During a cross-platform promotion ([CrossPlatformBasePromo]) the dialog
+/// also says Base travels to the rider's other devices, and offers sign-in
+/// when signed out, since that is how it gets there. [crossPlatformDeal],
+/// [isSignedIn] and [openSignIn] are test seams.
 Future<void> confirmBasePurchase(
   BuildContext context, {
   String? appName,
   Future<int> Function()? handTrainersBack,
+  bool? crossPlatformDeal,
+  bool? isSignedIn,
+  Future<void> Function(BuildContext context)? openSignIn,
 }) async {
   var handedBack = 0;
   try {
@@ -37,7 +46,31 @@ Future<void> confirmBasePurchase(
     recordError(e, s, context: 'Base purchase hand trainers back');
   }
   if (!context.mounted) return;
-  await showPurchaseBaseDoneDialog(context, trainerHandedBack: handedBack > 0, appName: appName);
+  final iap = IAPManager.instance;
+  final deal = crossPlatformDeal ?? CrossPlatformBasePromo.isOfferedOn(iap.purchaseChannel);
+  await showPurchaseBaseDoneDialog(
+    context,
+    trainerHandedBack: handedBack > 0,
+    appName: appName,
+    crossPlatform: !deal
+        ? BaseCrossPlatform.none
+        : (isSignedIn ?? iap.isLoggedIn)
+        ? BaseCrossPlatform.onAccount
+        : BaseCrossPlatform.signInToCarry,
+    openSignIn: openSignIn,
+  );
+}
+
+/// What the Base confirmation says about using Base on other devices.
+enum BaseCrossPlatform {
+  /// Base stays with this store: nothing to say.
+  none,
+
+  /// Bought signed in during a cross-platform promotion: already on the account.
+  onAccount,
+
+  /// Bought signed out during a cross-platform promotion: sign in to carry it.
+  signInToCarry,
 }
 
 /// After a Base purchase: what Base covers and, above all, what it doesn't.
@@ -45,18 +78,44 @@ Future<void> confirmBasePurchase(
 /// about the daily limit the hard way — say it at the moment of purchase.
 /// [trainerHandedBack]: the smart trainer was just disconnected from
 /// BikeControl ([confirmBasePurchase]); say why it is no longer connected.
-Future<void> showPurchaseBaseDoneDialog(BuildContext context, {bool trainerHandedBack = false, String? appName}) {
+Future<void> showPurchaseBaseDoneDialog(
+  BuildContext context, {
+  bool trainerHandedBack = false,
+  String? appName,
+  BaseCrossPlatform crossPlatform = BaseCrossPlatform.none,
+  Future<void> Function(BuildContext context)? openSignIn,
+}) {
   return showDialog<void>(
     context: context,
-    builder: (c) => PurchaseBaseDoneDialog(trainerHandedBack: trainerHandedBack, appName: appName),
+    builder: (c) => PurchaseBaseDoneDialog(
+      trainerHandedBack: trainerHandedBack,
+      appName: appName,
+      crossPlatform: crossPlatform,
+      onSignIn: () {
+        Navigator.of(c).pop();
+        if (!context.mounted) return;
+        unawaited((openSignIn ?? openPlanAccount)(context));
+      },
+    ),
   );
 }
 
 /// The dialog [showPurchaseBaseDoneDialog] shows.
 class PurchaseBaseDoneDialog extends StatelessWidget {
-  const PurchaseBaseDoneDialog({super.key, this.trainerHandedBack = false, this.appName});
+  const PurchaseBaseDoneDialog({
+    super.key,
+    this.trainerHandedBack = false,
+    this.appName,
+    this.crossPlatform = BaseCrossPlatform.none,
+    this.onSignIn,
+  });
 
   final bool trainerHandedBack;
+
+  final BaseCrossPlatform crossPlatform;
+
+  /// Closes the dialog and opens sign-in ([BaseCrossPlatform.signInToCarry]).
+  final VoidCallback? onSignIn;
 
   /// The trainer app named in the text; null for the generic wording.
   final String? appName;
@@ -81,13 +140,38 @@ class PurchaseBaseDoneDialog extends StatelessWidget {
               key: const ValueKey('purchase-base-trainer-handed-back'),
             ),
           ],
+          if (crossPlatform == BaseCrossPlatform.onAccount) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.purchaseBaseDoneCrossPlatformOnAccount,
+              key: const ValueKey('purchase-base-cross-platform-signed-in'),
+            ),
+          ],
+          if (crossPlatform == BaseCrossPlatform.signInToCarry) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.purchaseBaseDoneCrossPlatformSignIn,
+              key: const ValueKey('purchase-base-cross-platform-sign-in'),
+            ),
+          ],
         ],
       ),
       actions: [
-        PrimaryButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(l10n.gotIt),
-        ),
+        if (crossPlatform == BaseCrossPlatform.signInToCarry) ...[
+          Button.ghost(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.onboardingNotNow),
+          ),
+          PrimaryButton(
+            key: const ValueKey('purchase-base-sign-in'),
+            onPressed: onSignIn,
+            child: Text(l10n.signIn),
+          ),
+        ] else
+          PrimaryButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.gotIt),
+          ),
       ],
     );
   }
