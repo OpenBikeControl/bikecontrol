@@ -54,6 +54,15 @@ abstract class WindowsIapPlatform extends PlatformInterface {
     throw UnimplementedError('getCustomerPurchaseIdKey() has not been implemented.');
   }
 
+  /// A Microsoft Store ID key for the collections API, from a service ticket
+  /// the publisher's server issued (StoreContext.GetCustomerCollectionsIdAsync).
+  Future<String> getCustomerCollectionsIdKey({
+    required String serviceTicket,
+    required String publisherUserId,
+  }) {
+    throw UnimplementedError('getCustomerCollectionsIdKey() has not been implemented.');
+  }
+
   Future<String?> getStoreId() {
     throw UnimplementedError('getStoreId() has not been implemented.');
   }

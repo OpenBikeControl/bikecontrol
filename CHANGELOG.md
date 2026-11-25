@@ -14,6 +14,7 @@
 - (Base) Network check: no longer reports a failure while BikeControl is searching the network itself, or when you only use the trainer bridge and have the controller connection switched off.
 - (Base) Windows: screenshots taken with a controller button have the right colours. Before, red and blue were swapped.
 - (Base) Custom mappings on buttons that share their name with another controller's button (e.g. the KICKR BIKE's steering buttons) are kept after a restart. Before, they went back to the default every time.
+- (Pro) Virtual front derailleur: opening the Virtual shifting settings keeps you on the big ring. Before, it dropped you to the small ring.
 
 ### 7.6.2 (23-11-2026)
 **Features**:

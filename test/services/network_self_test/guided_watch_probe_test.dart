@@ -10,6 +10,12 @@ import 'package:prop/mdns/mdns_responder.dart';
 import 'package:prop/utils/network_address.dart';
 
 const _defaultWindow = Duration(seconds: 3);
+
+/// What the Wi-Fi trainer scan browses for as long as Bluetooth scans.
+const _wahooOnly = {'_wahoo-fitness-tnp._tcp'};
+
+/// What the diagnostics discovery scan browses.
+const _bothTypes = {'_openbikecontrol._tcp', '_wahoo-fitness-tnp._tcp'};
 const _defaultTick = Duration(seconds: 1);
 
 /// A context with no-op seams; every field can be overridden per test.
@@ -70,17 +76,18 @@ DebugDiagnostics _snapshotWithAddress(String address) => DebugDiagnostics(
 MdnsQueryLogEntry _entry(
   List<String> questions, {
   int count = 1,
-  bool duringOwnBrowse = false,
+  Set<String> ownBrowseTypes = const {},
   String source = '192.168.1.50',
+  bool wantsUnicast = false,
 }) => MdnsQueryLogEntry(
   at: DateTime(2026, 8, 21),
   source: source,
   sourcePort: 5353,
-  wantsUnicast: false,
+  wantsUnicast: wantsUnicast,
   questions: questions,
   answeredUnicast: false,
   answeredMulticast: true,
-  duringOwnBrowse: duringOwnBrowse,
+  ownBrowseTypes: ownBrowseTypes,
   count: count,
 );
 
@@ -161,8 +168,8 @@ void main() {
     });
 
     test('our own scan browsing and resolving does not count as the trainer app asking', () async {
-      final browse = _entry(const ['PTR _openbikecontrol._tcp.local'], duringOwnBrowse: true);
-      final resolve = _entry(const ['SRV BikeControl._openbikecontrol._tcp.local'], duringOwnBrowse: true);
+      final browse = _entry(const ['PTR _openbikecontrol._tcp.local'], ownBrowseTypes: _bothTypes);
+      final resolve = _entry(const ['SRV BikeControl._openbikecontrol._tcp.local'], ownBrowseTypes: _bothTypes);
       final check = await guidedWatchCheck(
         ctx(queryLog: _scriptedLog([const [], [browse, resolve]])),
         window: _defaultWindow,
@@ -182,7 +189,7 @@ void main() {
           ctx(),
           window: _defaultWindow,
           tick: _defaultTick,
-          ownBrowseActive: () => true,
+          ownBrowseTypes: () => _wahooOnly,
         );
         expect(check.verdict, NetworkVerdict.warn);
         expect(check.detail['note'], startsWith('inconclusive'));
@@ -194,7 +201,7 @@ void main() {
           ctx(trainerAppConnectedNow: () => true),
           window: _defaultWindow,
           tick: _defaultTick,
-          ownBrowseActive: () => true,
+          ownBrowseTypes: () => _wahooOnly,
         );
         expect(check.verdict, NetworkVerdict.pass);
       });
@@ -206,7 +213,7 @@ void main() {
           ctx(trainerAppOnThisDevice: false),
           window: _defaultWindow,
           tick: _defaultTick,
-          ownBrowseActive: () => true,
+          ownBrowseTypes: () => _wahooOnly,
         );
         expect(check.verdict, NetworkVerdict.fail);
         expect(check.detail['hint'], 'no query arrived');
@@ -215,7 +222,7 @@ void main() {
       test("another device's search counts even though it arrived during our scan", () async {
         final browse = _entry(
           const ['PTR _openbikecontrol._tcp.local'],
-          duringOwnBrowse: true,
+          ownBrowseTypes: _bothTypes,
           source: '192.168.1.77',
         );
         final check = await guidedWatchCheck(
@@ -226,22 +233,94 @@ void main() {
           ),
           window: _defaultWindow,
           tick: _defaultTick,
-          ownBrowseActive: () => true,
+          ownBrowseTypes: () => _wahooOnly,
         );
         expect(check.verdict, NetworkVerdict.warn);
         expect(check.detail['note'], isNot(startsWith('inconclusive')), reason: 'it browsed; it just never resolved');
       });
 
       test('a search from our own address during the scan stays uncounted', () async {
-        final browse = _entry(const ['PTR _openbikecontrol._tcp.local'], duringOwnBrowse: true);
+        final browse = _entry(const ['PTR _openbikecontrol._tcp.local'], ownBrowseTypes: _bothTypes);
         final check = await guidedWatchCheck(
           ctx(snapshot: _snapshotWithAddress('192.168.1.50'), queryLog: _scriptedLog([const [], [browse]])),
           window: _defaultWindow,
           tick: _defaultTick,
-          ownBrowseActive: () => false,
+          ownBrowseTypes: () => const {},
         );
         expect(check.verdict, NetworkVerdict.warn);
         expect(check.detail['note'], startsWith('inconclusive'));
+      });
+
+      // The Wi-Fi trainer scan browses only the Wahoo type, for as long as
+      // Bluetooth scans. Throwing away every same-host query meanwhile threw
+      // away a trainer app on this machine looking for OpenBikeControl, and
+      // the watch could never conclude anything but "inconclusive".
+      group('only questions about a type we browse are ours', () {
+        test('a same-host OpenBikeControl browse and resolve during a Wahoo-only scan counts', () async {
+          final browse = _entry(
+            const ['PTR _openbikecontrol._tcp.local'],
+            ownBrowseTypes: _wahooOnly,
+            wantsUnicast: true,
+          );
+          final resolve = _entry(
+            const ['SRV BikeControl._openbikecontrol._tcp.local', 'TXT BikeControl._openbikecontrol._tcp.local'],
+            ownBrowseTypes: _wahooOnly,
+          );
+          final check = await guidedWatchCheck(
+            ctx(
+              snapshot: _snapshotWithAddress('192.168.1.50'),
+              queryLog: _scriptedLog([const [], [browse], [browse, resolve]]),
+            ),
+            window: _defaultWindow,
+            tick: _defaultTick,
+            ownBrowseTypes: () => _wahooOnly,
+          );
+          expect(check.verdict, NetworkVerdict.warn);
+          expect(check.detail['note'], 'found and resolved, never connected');
+        });
+
+        test('a same-host Wahoo browse during that scan is still discarded', () async {
+          final browse = _entry(const ['PTR _wahoo-fitness-tnp._tcp.local'], ownBrowseTypes: _wahooOnly);
+          final resolve = _entry(const ['SRV KICKR._wahoo-fitness-tnp._tcp.local'], ownBrowseTypes: _wahooOnly);
+          final check = await guidedWatchCheck(
+            ctx(
+              snapshot: _snapshotWithAddress('192.168.1.50'),
+              queryLog: _scriptedLog([const [], [browse, resolve]]),
+            ),
+            window: _defaultWindow,
+            tick: _defaultTick,
+            ownBrowseTypes: () => _wahooOnly,
+          );
+          expect(check.verdict, NetworkVerdict.warn);
+          expect(check.detail['note'], startsWith('inconclusive'));
+        });
+
+        test('one packet asking for both types: the OpenBikeControl question still counts', () async {
+          final browse = _entry(
+            const ['PTR _wahoo-fitness-tnp._tcp.local', 'PTR _openbikecontrol._tcp.local'],
+            ownBrowseTypes: _wahooOnly,
+          );
+          final check = await guidedWatchCheck(
+            ctx(snapshot: _snapshotWithAddress('192.168.1.50'), queryLog: _scriptedLog([const [], [browse]])),
+            window: _defaultWindow,
+            tick: _defaultTick,
+            ownBrowseTypes: () => _wahooOnly,
+          );
+          expect(check.verdict, NetworkVerdict.warn);
+          expect(check.detail['note'], isNot(startsWith('inconclusive')));
+          expect(check.detail['hint'], isNot('no query arrived'));
+        });
+
+        test('an own browse of a type the watch does not look for does not excuse silence', () async {
+          final check = await guidedWatchCheck(
+            ctx(),
+            window: _defaultWindow,
+            tick: _defaultTick,
+            ownBrowseTypes: () => const {'_airplay._tcp'},
+          );
+          expect(check.verdict, NetworkVerdict.fail);
+          expect(check.detail['hint'], 'no query arrived');
+        });
       });
     });
 

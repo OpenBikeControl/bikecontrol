@@ -2792,6 +2792,11 @@
     }
   },
   "paywall_bikeControlShifts": "BikeControl 自己为你的骑行台换挡 — 自定义挡位、前拨、任意骑行台",
+  "paywall_blackFridayBadge": "黑色星期五",
+  "paywall_blackFridayBaseNote": "今天购买基础版，即可在你的所有设备上使用：iPhone、iPad、Android、Mac 和 Windows。仅限 11 月 27 日星期五的购买。",
+  "paywall_blackFridaySignIn": "在每台设备上登录同一账户即可解锁。",
+  "purchaseBaseDoneCrossPlatformOnAccount": "黑色星期五：它也在你的账户中。在其他设备上登录同一账户，基础版也能在那里使用。",
+  "purchaseBaseDoneCrossPlatformSignIn": "黑色星期五：立即登录，基础版也能在你的其他设备上使用：iPhone、iPad、Android、Mac 和 Windows。",
   "paywall_baseStoreNote": "{store} 版本的一次性购买。它不会转移到其他商店或平台 — Pro 可以。",
   "@paywall_baseStoreNote": {
     "placeholders": {
@@ -2804,7 +2809,12 @@
   "paywall_storeDirectDownload": "直接下载",
   "purchaseBaseDoneTitle": "你现在拥有基础版",
   "purchaseBaseDoneBody": "在骑行软件中不限次数的按键操作。BikeControl 自己的虚拟换挡属于 Pro — 你每天仍可以试用 30 分钟。",
+  "purchaseBaseDoneTrainerHandedBack": "你的智能骑行台已与 BikeControl 断开，骑行软件会直接连接它并无限制地换挡。你可以在骑行台设置中重新开启。",
+  "purchaseBaseDoneBodyNamed": "在 {app} 中不限次数的按键操作。BikeControl 自己的虚拟换挡属于 Pro — 你每天仍可以试用 30 分钟。",
+  "purchaseBaseDoneTrainerHandedBackNamed": "你的智能骑行台已与 BikeControl 断开，{app} 会直接连接它并无限制地换挡。你可以在骑行台设置中重新开启。",
   "purchaseProDoneTitle": "Pro 已在你的账户上生效",
+  "purchaseProDoneBody": "BikeControl 的虚拟换挡和其他所有 Pro 功能均已解锁，没有每日限制。",
+  "purchaseThanks": "感谢你支持 BikeControl！",
   "purchaseProSignInTitle": "Pro 已在此设备上生效",
   "purchaseProSignInBody": "请登录，这样 Pro 也能在你的其他设备上使用。你也可以稍后在设置 → 方案与账户中登录。",
   "purchaseProUnregisteredBody": "此设备尚未注册，因此 Pro 功能在这里保持关闭。",

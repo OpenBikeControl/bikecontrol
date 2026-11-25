@@ -5,3 +5,4 @@ Novità: altre nove app via OpenBikeControl, tra cui PedalCraft, Sueur e SaddleO
 Corretto:
 • «Chiudi» nella notifica toglie l'overlay
 • Assegnazioni mantenute al riavvio
+• Aprire le impostazioni del cambio virtuale ti lascia sulla corona grande

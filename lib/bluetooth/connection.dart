@@ -584,6 +584,27 @@ class Connection {
     if (startupReconnecting.value.isNotEmpty) startupReconnecting.value = const [];
   }
 
+  /// Lets the trainer app have the smart trainer to itself: every trainer
+  /// BikeControl is bridging (or still starting) is disconnected in place and
+  /// taken off auto-connect, so the trainer app connects to it directly and
+  /// does its own shifting. It stays listed, and picking a connection on its
+  /// page turns it back on. Returns how many trainers were handed back.
+  ///
+  /// Used by onboarding's "Let {app} handle Virtual Shifting" and after a
+  /// Base purchase, which doesn't include BikeControl's virtual shifting.
+  Future<int> handTrainersBackToApp() async {
+    var handedBack = 0;
+    for (final t in proxyDevices.toList()) {
+      if (t.isStarting.value || t.isStartedListenable.value || t.isConnectedListenable.value || t.isConnected) {
+        await core.settings.setAutoConnect(t.trainerKey, false);
+        await disconnect(t, forget: false, persistForget: false, keepInList: true);
+        handedBack++;
+      }
+    }
+    if (handedBack > 0) _appendLogEntry('Handed $handedBack trainer(s) back to the trainer app');
+    return handedBack;
+  }
+
   /// Drops a remembered device and returns the index it sat at, so an Undo can
   /// put it back exactly where the rider saw it. Bindings in the keymap are
   /// left alone and the device is NOT ignored, so switching it on nearby still

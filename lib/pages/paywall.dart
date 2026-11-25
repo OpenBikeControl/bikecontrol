@@ -9,6 +9,7 @@ import 'package:bike_control/pages/paywall_feature_clip.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
+import 'package:bike_control/utils/iap/cross_platform_base_promo.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart' show RevenueCatService;
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
@@ -63,6 +64,9 @@ enum PaywallConfirmation {
   /// Base went through: say what Base covers and what it doesn't.
   baseDone,
 
+  /// Pro arrived on the account and on this device: nothing left to do.
+  proDone,
+
   /// Pro is on the account but this device isn't registered for it.
   proUnregistered,
 
@@ -100,6 +104,7 @@ PaywallConfirmation? paywallConfirmationFor({
   // has Pro should not be told Base's limits.
   if (!wasPro && isPro && !isProForDevice) return PaywallConfirmation.proUnregistered;
   if (isBasePurchase && !wasPurchased && isPurchased && !isPro) return PaywallConfirmation.baseDone;
+  if (!wasPro && isPro && isProForDevice) return PaywallConfirmation.proDone;
   return null;
 }
 
@@ -402,7 +407,11 @@ class _PaywallState extends State<Paywall> {
     if (confirmation == null || rootContext == null || !rootContext.mounted) return;
     _confirmed = true;
     unawaited(switch (confirmation) {
-      PaywallConfirmation.baseDone => showPurchaseBaseDoneDialog(rootContext),
+      PaywallConfirmation.baseDone => confirmBasePurchase(
+        rootContext,
+        appName: paywallShiftAppName(core.settings.getTrainerApp()),
+      ),
+      PaywallConfirmation.proDone => showPurchaseProDoneDialog(rootContext),
       PaywallConfirmation.proUnregistered => showPurchaseProUnregisteredDialog(rootContext),
       PaywallConfirmation.proDeviceLimit => _showDeviceLimit(rootContext),
       PaywallConfirmation.proSignIn => showPurchaseProSignInDialog(rootContext),
@@ -1083,11 +1092,16 @@ class _PaywallState extends State<Paywall> {
               overflow: TextOverflow.ellipsis,
               style: context.typography.large.copyWith(fontWeight: FontWeight.w600, color: cs.foreground),
             ),
+          // During a cross-platform promotion a Base bought here travels to
+          // the rider's other platforms, so the store-bound note would lie.
+          if (!owned && CrossPlatformBasePromo.isOfferedOn(_iapManager.purchaseChannel))
+            _crossPlatformBaseDeal(context)
           // Base is a store receipt, not an account: riders who bought it on
           // one store and installed from another wrote in asking where their
           // purchase went. Say so before they buy. On Linux there is no
           // receipt: Base is free.
-          Text(
+          else
+            Text(
             _iapManager.purchaseChannel == PurchaseChannel.linuxDirect
                 ? l10n.paywall_baseFreeOnLinux
                 : l10n.paywall_baseStoreNote(_storeName(context)),
@@ -1102,6 +1116,53 @@ class _PaywallState extends State<Paywall> {
               primary: false,
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// The cross-platform Base deal, in place of the store-bound note.
+  Widget _crossPlatformBaseDeal(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final accent = bkAccentText(context);
+    return Container(
+      key: const ValueKey('paywall-base-cross-platform-deal'),
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 6,
+        children: [
+          Row(
+            spacing: 6,
+            children: [
+              Icon(LucideIcons.monitorSmartphone, size: 16, color: accent),
+              Flexible(
+                child: Text(
+                  l10n.paywall_blackFridayBadge.toUpperCase(),
+                  style: context.typography.xSmall.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Text(
+            l10n.paywall_blackFridayBaseNote,
+            style: context.typography.small.copyWith(height: 1.35, color: cs.foreground),
+          ),
+          if (!_iapManager.isLoggedIn)
+            Text(
+              l10n.paywall_blackFridaySignIn,
+              style: context.typography.caption.copyWith(height: 1.3, color: cs.mutedForeground),
+            ),
         ],
       ),
     );

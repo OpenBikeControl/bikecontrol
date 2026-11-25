@@ -2575,13 +2575,37 @@
   "trainerTwinStillConnecting": "{trainer} is still connecting over {transport}. Wait a moment, then try again.",
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
   "paywall_bikeControlShifts": "BikeControl shifts your trainer itself — custom gears, front shifting, any trainer",
+  "paywall_blackFridayBadge": "Black Friday",
+  "paywall_blackFridayBaseNote": "Buy Base today and it works on all your devices: iPhone, iPad, Android, Mac and Windows. Only for purchases made on Friday, 27 November.",
+  "paywall_blackFridaySignIn": "Sign in with the same account on each device to unlock it there.",
+  "purchaseBaseDoneCrossPlatformOnAccount": "Black Friday: it's on your account too. Sign in with the same account on your other devices and Base works there as well.",
+  "purchaseBaseDoneCrossPlatformSignIn": "Black Friday: sign in now and Base also works on your other devices: iPhone, iPad, Android, Mac and Windows.",
   "paywall_baseStoreNote": "One-time purchase for the {store} version. It doesn't transfer to other stores or platforms — Pro does.",
   "paywall_baseFreeOnLinux": "Base is free on Linux — no purchase needed.",
   "@paywall_baseStoreNote": {"placeholders": {"store": {"type": "String"}}},
   "paywall_storeDirectDownload": "direct download",
   "purchaseBaseDoneTitle": "You now have Base",
   "purchaseBaseDoneBody": "Unlimited button presses in your trainer app. BikeControl's own virtual shifting is part of Pro — you can keep trying it 30 min a day.",
+  "purchaseBaseDoneTrainerHandedBack": "Your smart trainer is now disconnected from BikeControl, so your trainer app connects to it directly and shifts without a limit. You can turn it back on in the trainer's settings.",
+  "purchaseBaseDoneBodyNamed": "Unlimited button presses in {app}. BikeControl's own virtual shifting is part of Pro — you can keep trying it 30 min a day.",
+  "@purchaseBaseDoneBodyNamed": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "purchaseBaseDoneTrainerHandedBackNamed": "Your smart trainer is now disconnected from BikeControl, so {app} connects to it directly and shifts without a limit. You can turn it back on in the trainer's settings.",
+  "@purchaseBaseDoneTrainerHandedBackNamed": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseProDoneTitle": "Pro is active on your account",
+  "purchaseProDoneBody": "BikeControl's virtual shifting and every other Pro feature are unlocked, with no daily limit.",
+  "purchaseThanks": "Thanks for supporting BikeControl!",
   "purchaseProSignInTitle": "Pro is active on this device",
   "purchaseProSignInBody": "Sign in so Pro works on your other devices too. You can also do this later in Settings → Plan & account.",
   "purchaseProUnregisteredBody": "This device isn't registered yet, so Pro features stay off here.",

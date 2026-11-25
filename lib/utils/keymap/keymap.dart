@@ -199,32 +199,36 @@ class Keymap {
     if (newButtons.isEmpty) return;
     final offered = core.settings.getTrainerApp()?.offeredInGameActions;
     for (final button in newButtons) {
-      if (_adoptLegacyMapping(button)) continue;
-      final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
-        button,
-        trigger: ButtonTrigger.singleClick,
-      );
-      // The button's built-in default only if the app can perform it — left
-      // unassigned otherwise, rather than bound to an action that goes nowhere.
-      final action = offered == null || offered.contains(button.action) ? button.action : null;
-      addKeyPair(
-        KeyPair(
-          touchPosition: buttonFromBase?.touchPosition ?? Offset.zero,
-          buttons: [button],
-          inGameAction: action,
-          physicalKey: buttonFromBase?.physicalKey,
-          logicalKey: buttonFromBase?.logicalKey,
-          trigger:
-              buttonFromBase?.trigger ??
-              (action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
-          inGameActionValue: buttonFromBase?.inGameActionValue,
-          androidAction: buttonFromBase?.androidAction,
-          androidIntentAction: buttonFromBase?.androidIntentAction,
-          command: buttonFromBase?.command,
-          screenshotPath: buttonFromBase?.screenshotPath,
-        ),
-      );
+      if (_adoptLegacyMapping(button, offered)) continue;
+      addKeyPair(_defaultKeyPair(button, offered));
     }
+  }
+
+  /// What a start gives a button the mapping knows nothing about: the
+  /// trainer app's key or touch for a similar button, and the button's
+  /// built-in action only if the app can perform it — left unassigned
+  /// otherwise, rather than bound to an action that goes nowhere.
+  KeyPair _defaultKeyPair(ControllerButton button, Set<InGameAction>? offered) {
+    final buttonFromBase = core.settings.getTrainerApp()?.keymap.findSimilarKeyPair(
+      button,
+      trigger: ButtonTrigger.singleClick,
+    );
+    final action = offered == null || offered.contains(button.action) ? button.action : null;
+    return KeyPair(
+      touchPosition: buttonFromBase?.touchPosition ?? Offset.zero,
+      buttons: [button],
+      inGameAction: action,
+      physicalKey: buttonFromBase?.physicalKey,
+      logicalKey: buttonFromBase?.logicalKey,
+      trigger:
+          buttonFromBase?.trigger ??
+          (action?.isLongPress == true ? ButtonTrigger.longPress : ButtonTrigger.singleClick),
+      inGameActionValue: buttonFromBase?.inGameActionValue,
+      androidAction: buttonFromBase?.androidAction,
+      androidIntentAction: buttonFromBase?.androidIntentAction,
+      command: buttonFromBase?.command,
+      screenshotPath: buttonFromBase?.screenshotPath,
+    );
   }
 
   /// A custom keymap stores a button by name only, so a reloaded mapping can
@@ -232,16 +236,41 @@ class Keymap {
   /// the first known button called `leftSteer` (the Elite Sterzo's), not the
   /// KICKR BIKE's. A keymap saved before a button was renamed holds its
   /// mapping under the old name. Either way the rider's mapping is copied
-  /// onto [button] — the first saved pair per trigger, the rider's own, any
-  /// later ones being defaults appended on restarts.
-  bool _adoptLegacyMapping(ControllerButton button) {
+  /// onto [button].
+  ///
+  /// Renamed: the first saved pair per trigger is the rider's own, later
+  /// ones are defaults appended on restarts.
+  ///
+  /// Same name: older builds couldn't reach those pairs from [button], so
+  /// each start appended fresh ones behind them and only those took the
+  /// rider's edits — the saved pairs are snapshots, oldest first. The last
+  /// pair per trigger is the rider's latest, skipping the button's default a
+  /// start appended; the older snapshots are dropped, or they'd come back.
+  bool _adoptLegacyMapping(ControllerButton button, Set<InGameAction>? offered) {
     if (!isCustom) return false;
     final savedName = EliteSquareButtons.legacyNames[button.name] ?? button.name;
     final legacyPairs = keyPairs
         .where((kp) => kp.buttons.any((b) => b.name == savedName && b.sourceDeviceId == button.sourceDeviceId))
         .toList();
-    if (legacyPairs.isEmpty) return false;
-    for (final legacy in legacyPairs.distinctBy((kp) => kp.trigger)) {
+    final Map<ButtonTrigger, KeyPair> adopted;
+    if (savedName != button.name) {
+      if (legacyPairs.isEmpty) return false;
+      adopted = {for (final kp in legacyPairs.reversed) kp.trigger: kp};
+    } else {
+      final fallback = _defaultKeyPair(button, offered);
+      adopted = {
+        for (final kp in legacyPairs)
+          if (!_isAppendedDefault(kp, button, fallback)) kp.trigger: kp,
+      };
+      if (adopted.isEmpty) return false;
+      final kept = Set<KeyPair>.identity()..addAll(adopted.values);
+      final dropped = Set<KeyPair>.identity()
+        ..addAll(legacyPairs.where((kp) => !kept.contains(kp) && kp.buttons.every((b) => b.name == savedName)));
+      keyPairs.removeWhere(dropped.contains);
+    }
+    for (final trigger in ButtonTrigger.values) {
+      final legacy = adopted[trigger];
+      if (legacy == null) continue;
       addKeyPair(
         KeyPair(
           buttons: [button],
@@ -261,6 +290,24 @@ class Keymap {
     }
     return true;
   }
+
+  /// [pair] is what a start gave [button] by default ([fallback], built the
+  /// same way, or with the button's own action where an older build still
+  /// offered it), not something the rider picked. A rider who picked that
+  /// very assignment looks the same.
+  static bool _isAppendedDefault(KeyPair pair, ControllerButton button, KeyPair fallback) =>
+      pair.inGameAction != null &&
+      (pair.inGameAction == fallback.inGameAction || pair.inGameAction == button.action) &&
+      pair.trigger == fallback.trigger &&
+      pair.inGameActionValue == fallback.inGameActionValue &&
+      pair.physicalKey == fallback.physicalKey &&
+      pair.logicalKey == fallback.logicalKey &&
+      pair.modifiers.isEmpty &&
+      pair.touchPosition == fallback.touchPosition &&
+      pair.androidAction == fallback.androidAction &&
+      pair.androidIntentAction == fallback.androidIntentAction &&
+      pair.command == fallback.command &&
+      pair.screenshotPath == fallback.screenshotPath;
 
   void signalUpdate() {
     _updateStream.add(null);

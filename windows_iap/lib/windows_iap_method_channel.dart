@@ -131,6 +131,21 @@ class MethodChannelWindowsIap extends WindowsIapPlatform {
   }
 
   @override
+  Future<String> getCustomerCollectionsIdKey({
+    required String serviceTicket,
+    required String publisherUserId,
+  }) async {
+    final result = await methodChannel.invokeMethod<String>(
+      'getCustomerCollectionsIdKey',
+      {
+        'serviceTicket': serviceTicket,
+        'publisherUserId': publisherUserId,
+      },
+    );
+    return result ?? '';
+  }
+
+  @override
   Future<String?> getStoreId() async {
     final result = await methodChannel.invokeMethod<String>('getStoreId');
     return result;

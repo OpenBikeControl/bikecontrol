@@ -56,6 +56,42 @@ void main() {
     expect(isPurchased.value, isTrue);
   });
 
+  test('a store check that finds no purchase does not take back what the entitlements still grant', () async {
+    await sync.sync(entitled: true);
+
+    // RevenueCat / the Microsoft Store answering "not bought here".
+    isPurchased.value = false;
+
+    expect(isPurchased.value, isTrue);
+  });
+
+  test('once the entitlements stop granting, a store check may clear the purchase again', () async {
+    await sync.sync(entitled: true);
+    await sync.sync(entitled: false);
+
+    isPurchased.value = true;
+    isPurchased.value = false;
+
+    expect(isPurchased.value, isFalse);
+  });
+
+  test('base_any_platform unlocks Base on every build once signed in', () {
+    const grant = Entitlement(productKey: 'base_any_platform', status: 'active', activeUntil: null, source: 'promo');
+    expect(entitlementsGrantBase(entitlements: const [grant], isLoggedIn: true, isOutsideStoreWindowsBuild: false), isTrue);
+    expect(entitlementsGrantBase(entitlements: const [grant], isLoggedIn: false, isOutsideStoreWindowsBuild: false), isFalse);
+  });
+
+  test('full_version from the account unlocks Base only on the Windows download', () {
+    const row = Entitlement(productKey: 'full_version', status: 'active', activeUntil: null, source: 'stripe');
+    expect(entitlementsGrantBase(entitlements: const [row], isLoggedIn: true, isOutsideStoreWindowsBuild: true), isTrue);
+    expect(entitlementsGrantBase(entitlements: const [row], isLoggedIn: true, isOutsideStoreWindowsBuild: false), isFalse);
+  });
+
+  test('a store Base row on the account stays store-bound', () {
+    const row = Entitlement(productKey: 'full_access_unlock', status: 'active', activeUntil: null, source: 'revenuecat');
+    expect(entitlementsGrantBase(entitlements: const [row], isLoggedIn: true, isOutsideStoreWindowsBuild: false), isFalse);
+  });
+
   test('a manual full_version grant without an end date keeps the purchase', () async {
     final now = DateTime.utc(2026, 11, 6);
     SharedPreferences.setMockInitialValues({
