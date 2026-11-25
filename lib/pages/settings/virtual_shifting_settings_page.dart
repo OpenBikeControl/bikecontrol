@@ -185,9 +185,16 @@ class _VirtualShiftingSettingsPageState extends State<VirtualShiftingSettingsPag
       def.useDefaultVirtualShiftingMode();
     }
     // The front derailleur belongs to the config too: picking another config
-    // brings its rings with it, and the drivetrain above draws them.
-    def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
-    def.setFrontShiftEnabled(cfg.frontShiftEnabled);
+    // brings its rings with it, and the drivetrain above draws them. Only a
+    // real change is applied: both setters drop the ring to the small one,
+    // and the ring the rider is on is not part of the config — just opening
+    // this page must not shift them off the big ring.
+    if (def.smallChainringTeeth != cfg.smallChainringTeeth || def.largeChainringTeeth != cfg.largeChainringTeeth) {
+      def.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
+    }
+    if (def.frontShiftEnabled != cfg.frontShiftEnabled) {
+      def.setFrontShiftEnabled(cfg.frontShiftEnabled);
+    }
     def.setGearRatios(cfg.gearRatios ?? FitnessBikeDefinition.defaultGearRatiosFor(def.maxGear));
   }
 

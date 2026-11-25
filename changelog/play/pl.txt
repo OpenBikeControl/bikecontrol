@@ -5,3 +5,4 @@ Nowość: dziewięć kolejnych aplikacji przez OpenBikeControl, m.in. PedalCraft
 Poprawki:
 • „Zamknij” w powiadomieniu usuwa nakładkę
 • Własne przypisania po restarcie
+• Otwarcie ustawień wirtualnej zmiany biegów zostawia cię na dużej tarczy

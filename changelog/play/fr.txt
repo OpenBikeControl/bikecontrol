@@ -5,3 +5,4 @@ Nouveau : neuf apps de plus via OpenBikeControl, dont PedalCraft, Sueur et Saddl
 Corrigé :
 • « Fermer » dans la notification retire l'overlay
 • Assignations gardées au redémarrage
+• Ouvrir les réglages du changement virtuel vous laisse sur le grand plateau
