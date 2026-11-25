@@ -46,6 +46,9 @@ class MsStoreCollectionsSync {
         serviceTicket: ticket.serviceTicket,
         publisherUserId: ticket.publisherUserId,
       );
+      // The Store answers an empty key instead of an error when it can't
+      // make one (e.g. an unpackaged build).
+      if (key.isEmpty) throw StateError('Microsoft Store returned no collections ID key');
       final base = await submitKey(key);
       if (base != 'none') await writeFlag(_flagFor(userId), base);
       await refreshEntitlements();

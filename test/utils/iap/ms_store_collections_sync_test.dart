@@ -74,4 +74,24 @@ void main() {
     await sync.sync();
     expect(errors.single, isA<StateError>());
   });
+
+  test('an empty Store key (unpackaged build, Store unavailable) is never sent', () async {
+    final errors = <Object>[];
+    final sync = MsStoreCollectionsSync(
+      currentUserId: () => 'user-1',
+      requestTicket: () async => (serviceTicket: 'T', publisherUserId: 'user-1'),
+      collectionsIdKey: ({required serviceTicket, required publisherUserId}) async => '',
+      submitKey: (_) async {
+        calls.add('sync');
+        return 'active';
+      },
+      refreshEntitlements: () async {},
+      readFlag: (_) async => null,
+      writeFlag: (_, _) async {},
+      onError: (e, s) => errors.add(e),
+    );
+    await sync.sync();
+    expect(calls, isEmpty);
+    expect(errors.single, isA<StateError>());
+  });
 }
