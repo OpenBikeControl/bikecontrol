@@ -65,7 +65,7 @@ class IAPManager {
 
   static const String premiumMonthlyProductKey = 'premium_monthly';
   static const String premiumYearlyProductKey = 'premium_yearly';
-  static const String fullVersionProductKey = 'full_version';
+  static const String fullVersionProductKey = Entitlement.fullVersionProductKey;
   static const String betaAccessProductKey = 'beta_access';
   /// Button presses a day during the trial period.
   static const int trialDailyCommandLimit = 120;
@@ -683,7 +683,13 @@ class IAPManager {
   }
 
   Future<void> _syncPurchaseFlagFromEntitlements() => _entitlementPurchase.sync(
-    entitled: isProEnabled || (isOutsideStoreWindowsBuild && entitlements.hasActive(fullVersionProductKey)),
+    entitled:
+        isProEnabled ||
+        entitlementsGrantBase(
+          entitlements: entitlements.current,
+          isLoggedIn: isLoggedIn,
+          isOutsideStoreWindowsBuild: isOutsideStoreWindowsBuild,
+        ),
   );
 
   /// Registers this device for the account's Pro subscription and refreshes
