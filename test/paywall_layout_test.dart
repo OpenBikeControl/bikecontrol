@@ -161,7 +161,7 @@ Future<void> main() async {
 
     test('the device limit is not reported for a Base purchase, or once Pro works here', () {
       expect(outcome(basePurchase: true, isPurchased: true, deviceLimitReached: true), PaywallConfirmation.baseDone);
-      expect(outcome(isPro: true, isProForDevice: true, deviceLimitReached: true), isNull);
+      expect(outcome(isPro: true, isProForDevice: true, deviceLimitReached: true), PaywallConfirmation.proDone);
       expect(outcome(wasPro: true, deviceLimitReached: true), isNull);
     });
 
@@ -181,8 +181,8 @@ Future<void> main() async {
       expect(outcome(isPurchased: true, isPro: true, wasPurchased: true), PaywallConfirmation.proUnregistered);
     });
 
-    test('a Pro purchase that works on this device needs no dialog', () {
-      expect(outcome(isPurchased: true, isPro: true, isProForDevice: true), isNull);
+    test('a Pro purchase that works on this device is celebrated', () {
+      expect(outcome(isPurchased: true, isPro: true, isProForDevice: true), PaywallConfirmation.proDone);
     });
 
     test('Pro that was already on the account before the attempt is not news', () {

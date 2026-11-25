@@ -2582,7 +2582,25 @@
   "purchaseBaseDoneTitle": "You now have Base",
   "purchaseBaseDoneBody": "Unlimited button presses in your trainer app. BikeControl's own virtual shifting is part of Pro — you can keep trying it 30 min a day.",
   "purchaseBaseDoneTrainerHandedBack": "Your smart trainer is now disconnected from BikeControl, so your trainer app connects to it directly and shifts without a limit. You can turn it back on in the trainer's settings.",
+  "purchaseBaseDoneBodyNamed": "Unlimited button presses in {app}. BikeControl's own virtual shifting is part of Pro — you can keep trying it 30 min a day.",
+  "@purchaseBaseDoneBodyNamed": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "purchaseBaseDoneTrainerHandedBackNamed": "Your smart trainer is now disconnected from BikeControl, so {app} connects to it directly and shifts without a limit. You can turn it back on in the trainer's settings.",
+  "@purchaseBaseDoneTrainerHandedBackNamed": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "purchaseProDoneTitle": "Pro is active on your account",
+  "purchaseProDoneBody": "BikeControl's virtual shifting and every other Pro feature are unlocked, with no daily limit.",
+  "purchaseThanks": "Thanks for supporting BikeControl!",
   "purchaseProSignInTitle": "Pro is active on this device",
   "purchaseProSignInBody": "Sign in so Pro works on your other devices too. You can also do this later in Settings → Plan & account.",
   "purchaseProUnregisteredBody": "This device isn't registered yet, so Pro features stay off here.",

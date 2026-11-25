@@ -63,6 +63,9 @@ enum PaywallConfirmation {
   /// Base went through: say what Base covers and what it doesn't.
   baseDone,
 
+  /// Pro arrived on the account and on this device: nothing left to do.
+  proDone,
+
   /// Pro is on the account but this device isn't registered for it.
   proUnregistered,
 
@@ -100,6 +103,7 @@ PaywallConfirmation? paywallConfirmationFor({
   // has Pro should not be told Base's limits.
   if (!wasPro && isPro && !isProForDevice) return PaywallConfirmation.proUnregistered;
   if (isBasePurchase && !wasPurchased && isPurchased && !isPro) return PaywallConfirmation.baseDone;
+  if (!wasPro && isPro && isProForDevice) return PaywallConfirmation.proDone;
   return null;
 }
 
@@ -402,7 +406,11 @@ class _PaywallState extends State<Paywall> {
     if (confirmation == null || rootContext == null || !rootContext.mounted) return;
     _confirmed = true;
     unawaited(switch (confirmation) {
-      PaywallConfirmation.baseDone => confirmBasePurchase(rootContext),
+      PaywallConfirmation.baseDone => confirmBasePurchase(
+        rootContext,
+        appName: paywallShiftAppName(core.settings.getTrainerApp()),
+      ),
+      PaywallConfirmation.proDone => showPurchaseProDoneDialog(rootContext),
       PaywallConfirmation.proUnregistered => showPurchaseProUnregisteredDialog(rootContext),
       PaywallConfirmation.proDeviceLimit => _showDeviceLimit(rootContext),
       PaywallConfirmation.proSignIn => showPurchaseProSignInDialog(rootContext),

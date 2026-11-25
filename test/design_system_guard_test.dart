@@ -129,6 +129,7 @@ void main() {
       'lib/pages/settings/settings_page.dart',
       'lib/pages/shell/app_shell.dart',
       'lib/pages/activity/news_view.dart',
+      'lib/widgets/purchase_hero.dart',
     };
     // Where the band's colours are defined, and the mark's disc, which is the
     // app icon's own gradient (not a band).

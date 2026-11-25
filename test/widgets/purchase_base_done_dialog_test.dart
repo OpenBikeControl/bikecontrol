@@ -77,4 +77,12 @@ Future<void> main() async {
     expect(find.text(l.purchaseBaseDoneTitle), findsOneWidget);
     expect(find.byKey(handedBackLine), findsNothing);
   });
+
+  testWidgets('names the selected trainer app', (tester) async {
+    final ctx = await pump(tester);
+    unawaited(confirmBasePurchase(ctx, appName: 'MyWhoosh', handTrainersBack: () async => 1));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('MyWhoosh'), findsNWidgets(2));
+  });
 }
