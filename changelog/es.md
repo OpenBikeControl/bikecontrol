@@ -14,6 +14,7 @@
 - (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
 - (Base) Windows: las capturas de pantalla con un botón del mando tienen los colores correctos. Antes el rojo y el azul estaban intercambiados.
 - (Base) Las asignaciones propias de botones que se llaman igual que un botón de otro mando (p. ej. los botones de dirección de la KICKR BIKE) se conservan tras reiniciar. Antes volvían cada vez a la asignación por defecto.
+- (Pro) Desviador delantero virtual: abrir los ajustes de cambio virtual te mantiene en el plato grande. Antes te pasaba al plato pequeño.
 
 ### 7.6.2 (23-11-2026)
 **Features**:

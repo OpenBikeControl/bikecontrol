@@ -14,6 +14,7 @@
 - (Base) Netzwerkprüfung: meldet keinen Fehler mehr, während BikeControl selbst das Netzwerk durchsucht oder wenn du nur die Trainer-Brücke nutzt und die Controller-Verbindung ausgeschaltet hast.
 - (Base) Windows: Screenshots per Controller-Taste haben die richtigen Farben. Bisher waren Rot und Blau vertauscht.
 - (Base) Eigene Belegungen von Tasten, die so heißen wie eine Taste eines anderen Controllers (z. B. die Lenktasten des KICKR BIKE), bleiben nach einem Neustart erhalten. Bisher fielen sie jedes Mal auf die Standardbelegung zurück.
+- (Pro) Virtueller Umwerfer: Das Öffnen der Einstellungen für virtuelles Schalten lässt dich jetzt auf dem großen Kettenblatt. Bisher bist du dabei aufs kleine Kettenblatt gefallen.
 
 ### 7.6.2 (23-11-2026)
 **Features**:

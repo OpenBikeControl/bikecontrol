@@ -5,3 +5,4 @@ New: nine more apps via OpenBikeControl, incl. PedalCraft, Sueur and SaddleOut
 Fixed:
 • "Close" in the notification removes the gear overlay
 • Custom mappings kept after a restart
+• Opening the Virtual shifting settings keeps you on the big ring

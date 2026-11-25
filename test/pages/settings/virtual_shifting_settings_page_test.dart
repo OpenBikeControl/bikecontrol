@@ -208,6 +208,34 @@ Future<void> main() async {
       expect(definition.frontRing.value, FrontRing.large);
     });
 
+    testWidgets('opening the page and editing the config keep the rider on the big ring', (tester) async {
+      final (:proxy, :definition) = attachLiveTrainer();
+      await core.shiftingConfigs.upsert(
+        core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(frontShiftEnabled: true),
+      );
+      addTearDown(
+        () => core.shiftingConfigs.upsert(
+          core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(frontShiftEnabled: false),
+        ),
+      );
+      // The Ride tab already runs this config: the rider shifted onto the big ring there.
+      final cfg = core.shiftingConfigs.activeFor(proxy.trainerKey);
+      definition.setChainringTeeth(cfg.smallChainringTeeth, cfg.largeChainringTeeth);
+      definition.setFrontShiftEnabled(true);
+      definition.toggleFrontChainring();
+      expect(definition.frontRing.value, FrontRing.large);
+
+      await _pump(tester, VirtualShiftingSettingsPage(definition: definition, device: proxy));
+      await tester.pump();
+      expect(definition.frontRing.value, FrontRing.large, reason: 'opening the page changes no ring');
+
+      await core.shiftingConfigs.upsert(
+        core.shiftingConfigs.activeFor(proxy.trainerKey).copyWith(gradeSmoothing: false),
+      );
+      await tester.pump();
+      expect(definition.frontRing.value, FrontRing.large, reason: 'an edit that leaves the rings alone');
+    });
+
     Future<void> flipFrontDerailleur(WidgetTester tester) async {
       final row = find.ancestor(of: find.text(l.frontShiftEnableLabel), matching: find.byType(Row)).first;
       await tester.tap(find.descendant(of: row, matching: find.byType(Switch)));
