@@ -310,8 +310,8 @@ Future<void> main() async {
       expect(find.byKey(deal), findsNothing);
     });
 
-    testWidgets('is not shown in the Microsoft Store build, whose purchase never reaches the account', (tester) async {
-      await pumpAt(tester, DateTime.utc(2026, 11, 27, 12), PurchaseChannel.microsoftStore);
+    testWidgets('is not shown on Linux, where Base is free', (tester) async {
+      await pumpAt(tester, DateTime.utc(2026, 11, 27, 12), PurchaseChannel.linuxDirect);
       expect(find.byKey(deal), findsNothing);
     });
   });

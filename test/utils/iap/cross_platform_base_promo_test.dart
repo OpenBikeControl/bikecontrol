@@ -24,7 +24,7 @@ void main() {
     expect(CrossPlatformBasePromo.isOfferedOn(PurchaseChannel.macAppStore), isTrue);
     expect(CrossPlatformBasePromo.isOfferedOn(PurchaseChannel.playStore), isTrue);
     expect(CrossPlatformBasePromo.isOfferedOn(PurchaseChannel.windowsDirect), isTrue);
-    expect(CrossPlatformBasePromo.isOfferedOn(PurchaseChannel.microsoftStore), isFalse);
+    expect(CrossPlatformBasePromo.isOfferedOn(PurchaseChannel.microsoftStore), isTrue);
     expect(CrossPlatformBasePromo.isOfferedOn(PurchaseChannel.linuxDirect), isFalse);
   });
 }

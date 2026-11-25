@@ -21,12 +21,15 @@ class CrossPlatformBasePromo {
   }
 
   /// Where a Base bought now reaches the account, so the backend can carry it
-  /// to other platforms. The Microsoft Store licence never does, and Linux has
-  /// no Base to buy.
+  /// to other platforms (the Microsoft Store through MsStoreCollectionsSync).
+  /// Linux has no Base to buy.
   static bool appliesTo(PurchaseChannel channel) => switch (channel) {
-    PurchaseChannel.appStore || PurchaseChannel.macAppStore || PurchaseChannel.playStore || PurchaseChannel.windowsDirect =>
-      true,
-    PurchaseChannel.microsoftStore || PurchaseChannel.linuxDirect || PurchaseChannel.none => false,
+    PurchaseChannel.appStore ||
+    PurchaseChannel.macAppStore ||
+    PurchaseChannel.playStore ||
+    PurchaseChannel.windowsDirect ||
+    PurchaseChannel.microsoftStore => true,
+    PurchaseChannel.linuxDirect || PurchaseChannel.none => false,
   };
 
   static bool isOfferedOn(PurchaseChannel channel) => isRunning && appliesTo(channel);

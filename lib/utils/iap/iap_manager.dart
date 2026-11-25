@@ -649,6 +649,11 @@ class IAPManager {
         await _revenueCatService?.setAttributes();
         await entitlements.refresh(force: true);
         await _syncPurchaseFlagFromEntitlements();
+        // A Base bought in the Microsoft Store reaches the account only
+        // through this sync (no store webhook), once per account.
+        if (purchaseChannel == PurchaseChannel.microsoftStore && isPurchased.value) {
+          unawaited(_windowsIapService?.storeCollections.syncOnce());
+        }
         // A rider who tapped Buy on the Windows Stripe build while logged out was
         // sent to the login gate; a genuine `signedIn` is our cue to finish the
         // checkout they started. Skip token refreshes / the initial session,
