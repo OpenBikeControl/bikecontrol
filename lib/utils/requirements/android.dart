@@ -8,6 +8,7 @@ import 'package:bike_control/main.dart' show recordError;
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/utils/actions/android.dart';
 import 'package:bike_control/utils/core.dart';
+import 'package:bike_control/utils/host_platform.dart';
 import 'package:bike_control/utils/requirements/platform.dart';
 import 'package:bike_control/widgets/accessibility_disclosure_dialog.dart';
 import 'package:bike_control/widgets/ui/toast.dart';
@@ -277,6 +278,23 @@ class NotificationRequirement extends PlatformRequirement {
       final android = AndroidFlutterLocalNotificationsPlugin();
       await _quitStep('stop foreground service', android.stopForegroundService);
       await _quitStep('cancel notifications', android.cancelAll);
+    }
+    await leaveApp();
+  }
+
+  /// Stands in for dart:io's [exit] so a test can see the iOS quit without
+  /// ending the test run.
+  @visibleForTesting
+  static void Function(int code) exitProcess = exit;
+
+  /// The last step of [closeAndQuit]. Flutter ignores SystemNavigator.pop()
+  /// on iOS, so the row there tore everything down and then left the app
+  /// open; the rider explicitly asked to quit, so end the process.
+  @visibleForTesting
+  static Future<void> leaveApp() async {
+    if (HostPlatform.isIOS) {
+      exitProcess(0);
+      return;
     }
     await SystemNavigator.pop();
   }

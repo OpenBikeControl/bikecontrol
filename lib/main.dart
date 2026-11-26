@@ -8,6 +8,7 @@ import 'package:bike_control/bluetooth/emulation/real_ble_platform.dart';
 import 'package:bike_control/bluetooth/emulation/routing_ble_platform.dart';
 import 'package:bike_control/bluetooth/messages/notification.dart';
 import 'package:bike_control/gen/l10n.dart';
+import 'package:bike_control/services/overlay/ios_overlay_controller.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/services/overlay/desktop_overlay_window.dart';
 import 'package:bike_control/services/overlay/overlay_entry_point.dart' as overlay_entry;
@@ -785,6 +786,20 @@ class _BikeControlAppState extends State<BikeControlApp> {
       // from before this screen was recreated — so create it now, not on the
       // first show.
       if (!kIsWeb && Platform.isAndroid) TrainerOverlayService.forCurrentPlatform();
+      // A gear island can outlive the app that started it (swipe-kill), with
+      // nothing feeding it and every tap reopening the app: end it now, before
+      // this launch shows its own. Awaited (briefly) so the sweep cannot race
+      // the first show() of a trainer that connects right away.
+      if (!kIsWeb && Platform.isIOS) {
+        final overlay = TrainerOverlayService.forCurrentPlatform();
+        if (overlay is IosOverlayController) {
+          try {
+            await overlay.clearLeftovers().timeout(const Duration(seconds: 2));
+          } catch (e, s) {
+            recordError(e, s, context: 'overlay.ios.clearLeftovers');
+          }
+        }
+      }
 
       if (mounted) setState(() => _ready = true);
     } catch (e, s) {
