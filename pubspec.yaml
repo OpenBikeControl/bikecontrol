@@ -144,11 +144,14 @@ dependency_overrides:
   # app when a client's link drops mid-callback (#451), and native errors and warnings
   # reach Dart in release builds (UniversalBle.nativeLogHandler).
   # + Windows: peripheral error replies no longer crash the app (strlen(NULL)).
+  # + Windows: connect attempts run off the UI thread, so a stalled Bluetooth
+  # service while a controller reboots (Click V2 left side) no longer hangs the
+  # window (MoAppHangXProc waiting on svchost).
   # Drop once a release contains all of them.
   universal_ble:
     git:
       url: https://github.com/jonasbark/universal_ble.git
-      ref: 14a8c73f88f50cb4196e5e55e682aa76b718b694
+      ref: b87bf636cb04ab37ca3dad1f3a3e30fdf8c9d9c3
   path_provider_foundation: ">=2.3.0 <2.6.0"
   # Vendored: GameInput v2 with background input, so gamepads keep working
   # while the trainer app has focus. Keep in sync with pubspec_overrides*.yaml, which

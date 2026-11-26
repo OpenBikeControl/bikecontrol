@@ -13,6 +13,7 @@
 - (Base) Mac: BikeControl is found again after the Mac wakes from sleep, without restarting the network method.
 - (Base) Network check: no longer reports a failure while BikeControl is searching the network itself, or when you only use the trainer bridge and have the controller connection switched off.
 - (Base) Windows: screenshots taken with a controller button have the right colours. Before, red and blue were swapped.
+- (Base) Windows: BikeControl no longer freezes while a controller reconnects, e.g. the left Zwift Click V2 in the mode where it restarts about once a minute. Before, the window could stop responding after a while and had to be closed in Task Manager.
 - (Base) Custom mappings on buttons that share their name with another controller's button (e.g. the KICKR BIKE's steering buttons) are kept after a restart. Before, they went back to the default every time.
 - (Pro) Virtual front derailleur: opening the Virtual shifting settings keeps you on the big ring. Before, it dropped you to the small ring.
 
