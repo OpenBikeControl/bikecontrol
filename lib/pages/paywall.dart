@@ -1008,7 +1008,13 @@ class _PaywallState extends State<Paywall> {
             const SizedBox(height: 8),
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: _trialBadge(context, l10n.paywall_trialBadge(trialLength)),
+              // The same window as the stores' and Stripe's Black Friday offer.
+              child: _trialBadge(
+                context,
+                StripeYearlyTrialPromo.isRunning
+                    ? '${l10n.paywall_blackFridayBadge.toUpperCase()} · ${l10n.paywall_trialBadge(trialLength)}'
+                    : l10n.paywall_trialBadge(trialLength),
+              ),
             ),
           ],
           if (billed.isNotEmpty || badge != null) ...[

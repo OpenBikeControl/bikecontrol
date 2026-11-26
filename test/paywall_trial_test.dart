@@ -12,6 +12,8 @@ import 'widget_snapshot.dart';
 
 Future<void> main() async {
   await ensureSnapshotHarness();
+  // Outside the Black Friday window unless a test opens it.
+  setUp(() => StripeYearlyTrialPromo.now = () => DateTime.utc(2026, 12, 1));
 
   const badge = ValueKey('paywall-yearly-trial-badge');
   const terms = ValueKey('paywall-yearly-trial-terms');
@@ -99,13 +101,20 @@ Future<void> main() async {
     expect(find.text('Try Pro free for 1 week'), findsOneWidget);
   });
 
-  group('Stripe builds', () {
-    tearDown(() => StripeYearlyTrialPromo.now = DateTime.now);
+  testWidgets('during Black Friday the store trial says it is the Black Friday offer', (tester) async {
+    StripeYearlyTrialPromo.now = () => DateTime.utc(2026, 11, 27, 12);
+    await pump(
+      tester,
+      Paywall(debugYearlyStorePrice: '22,99 €', debugYearlyTrial: twoMonths, debugNativeTrainer: () => null),
+    );
+    expect(find.text('BLACK FRIDAY · 2 months free'), findsOneWidget);
+  });
 
+  group('Stripe builds', () {
     testWidgets('show two months free on yearly inside the window', (tester) async {
       StripeYearlyTrialPromo.now = () => DateTime.utc(2026, 11, 27, 12);
       await pump(tester, Paywall(debugNativeTrainer: () => null), channel: PurchaseChannel.windowsDirect);
-      expect(find.text('2 months free'), findsOneWidget);
+      expect(find.text('BLACK FRIDAY · 2 months free'), findsOneWidget);
       expect(find.text('Try Pro free for 2 months'), findsOneWidget);
       expect(find.text(AppLocalizations.current.paywall_trialThenBilledYearly('2 months')), findsOneWidget);
     });
