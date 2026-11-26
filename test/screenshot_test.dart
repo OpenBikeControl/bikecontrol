@@ -6,9 +6,18 @@ import 'dart:io';
 import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/bluetooth_device.dart';
 import 'package:bike_control/bluetooth/devices/cycplus/cycplus_bc2.dart';
+import 'package:bike_control/bluetooth/devices/cycplus/cycplus_t7h.dart';
+import 'package:bike_control/bluetooth/devices/elite/elite_rizer.dart';
 import 'package:bike_control/bluetooth/devices/elite/elite_sterzo.dart';
 import 'package:bike_control/bluetooth/devices/gyroscope/gyroscope_steering.dart';
+import 'package:bike_control/bluetooth/devices/muov/muov_bike.dart';
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
+import 'package:bike_control/bluetooth/devices/shimano/shimano_ble_transport.dart';
+import 'package:bike_control/bluetooth/devices/shimano/shimano_di2.dart';
+import 'package:bike_control/bluetooth/devices/shimano/shimano_setup_sheet.dart';
+import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
+import 'package:bike_control/bluetooth/devices/tacx/tacx_neo_bike.dart';
+import 'package:bike_control/bluetooth/devices/wahoo/wahoo_kickr_climb.dart';
 import 'package:bike_control/bluetooth/devices/thinkrider/thinkrider_vs200.dart';
 import 'package:bike_control/bluetooth/devices/zwift/constants.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
@@ -36,6 +45,7 @@ import 'package:bike_control/models/shifting_config.dart';
 import 'package:bike_control/services/overlay/trainer_overlay_service.dart';
 import 'package:bike_control/pages/trainer_connection_settings.dart';
 import 'package:bike_control/utils/core.dart' show core;
+import 'package:bike_control/utils/i18n_extension.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/keymap/apps/my_whoosh.dart';
 import 'package:bike_control/utils/keymap/apps/rouvy.dart';
@@ -52,12 +62,12 @@ import 'package:bike_control/widgets/apps/openbikecontrol_ble_tile.dart';
 import 'package:bike_control/widgets/apps/openbikecontrol_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_mdns_tile.dart';
 import 'package:bike_control/widgets/apps/zwift_tile.dart';
-import 'package:bike_control/widgets/controller/controller_canvas.dart';
+import 'package:bike_control/widgets/home/your_buttons.dart' show ControllerPress, controllerButtonsPicture;
 import 'package:bike_control/widgets/overlay/trainer_overlay_view.dart';
-import 'package:bike_control/widgets/ui/animated_button_widget.dart';
+import 'package:bike_control/widgets/ui/app_theme.dart' show BkComponentThemes;
 import 'package:bike_control/widgets/ui/type_scale.dart' show BkNumerals;
 import 'package:flutter/material.dart' as ma;
-import 'package:flutter/services.dart' show MethodChannel;
+import 'package:flutter/services.dart' show FontLoader, MethodChannel, rootBundle;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_screenshot/golden_screenshot.dart' hide testGoldens;
@@ -66,6 +76,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:prop/emulators/definitions/fitness_bike_definition.dart';
 import 'package:prop/emulators/dircon_emulator.dart';
 import 'package:prop/emulators/transporter/network_transporter.dart';
+import 'package:prop/prop.dart' show ShimanoShifter, SramDeviceInfo, SramShifterButtons;
 import 'package:prop/utils/prefs.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,6 +133,13 @@ Future<void> main() async {
   IAPManager.instance.isPurchased.value = true;
 
   screenshotMode = true;
+
+  // shadcn's inline-code style (a device card's "FW" chip) names 'GeistMono'
+  // without its package: on a device that falls back to the platform font, in
+  // a test to the block font. Register the bundled GeistMono under that name.
+  await (FontLoader(
+    'GeistMono',
+  )..addFont(rootBundle.load('packages/shadcn_flutter/lib/fonts/GeistMono-SemiBold.otf'))).load();
 
   // Some setup (e.g. core.whooshLink) reads AppLocalizations.current before any
   // app widget has loaded the delegate, so load it up front. Without this, a
@@ -192,12 +210,58 @@ Future<void> main() async {
   final zwiftPlay = connectedBle(
     ZwiftPlay(scan('Zwift Play'), deviceType: ZwiftDeviceType.playLeft),
   );
+  // On the current firmware, so its card carries no "update available" note.
+  zwiftPlay.firmwareVersion = zwiftPlay.latestFirmwareVersion;
   final cycplusBc2 = connectedBle(CycplusBc2(scan('CYCPLUS BC2')));
   final thinkriderVs200 = connectedBle(ThinkRiderVs200(scan('THINK VS200')));
   final eliteSterzo = connectedBle(EliteSterzo(scan('STERZO')));
   // GyroscopeSteering extends BaseDevice directly (no BLE), so it has no
   // battery/rssi/firmware — just mark it connected.
   final gyroSteering = GyroscopeSteering()..isConnected = true;
+
+  // A wireless Di2 in button mode: it has the E-TUBE config service and the
+  // rider turned button mode on, so the app draws the L1/L2/R1/R2 contour.
+  // The paddles are added straight to availableButtons, as button mode
+  // registers them, but without getOrAddButton — that would fork the MyWhoosh
+  // profile into a "(Copy)" for every later scene.
+  final shimanoDi2 = connectedBle(ShimanoDi2(scan('RDR8150')));
+  shimanoDi2.debugUseConfigTransport(ShimanoBleTransport(shimanoDi2.device.deviceId, const []));
+  await core.settings.setShimanoButtonMode(shimanoDi2.device.deviceId, true);
+  shimanoDi2.availableButtons.addAll(
+    ShimanoDi2Buttons.paddles.map((b) => b.copyWith(sourceDeviceId: shimanoDi2.device.deviceId)),
+  );
+
+  // A SRAM AXS derailleur after its guided setup: shifting handed to
+  // BikeControl and the paddle + auxiliary button of both drop-bar shifters
+  // discovered, named and given their default actions exactly as the device
+  // does for nearby shifter adverts.
+  final sramAxs = connectedBle(SramAxs(scan('SRAM Rival AXS')));
+  await core.settings.setSramShiftingDisabled(sramAxs.device.deviceId, true);
+  for (final info in const [
+    SramDeviceInfo(serial: 100, model: 1007, deviceType: 0),
+    SramDeviceInfo(serial: 200, model: 1007, deviceType: 1),
+  ]) {
+    for (final mask in SramShifterButtons.masksFor(info.deviceType, info.model)) {
+      sramAxs.availableButtons.add(
+        ControllerButton(
+          sramAxs.buttonNameFor(info, info.serial, mask),
+          action: sramAxs.defaultAction(info.deviceType, mask),
+          sourceDeviceId: sramAxs.device.deviceId,
+        ),
+      );
+    }
+  }
+
+  final eliteRizer = connectedBle(EliteRizer(scan('RIZER')));
+  // Calibrated, as a steering input is a moment after it connects — the gauge
+  // otherwise reads "Calibrating…".
+  eliteRizer.steeringCalibratedN.value = true;
+  eliteSterzo.steeringCalibratedN.value = true;
+  gyroSteering.isCalibratedNotifier.value = true;
+  final tacxNeoBike = connectedBle(TacxNeoBike(scan('Tacx NEO Bike')));
+  final muovBike = connectedBle(MuovBike(scan('MUOV')));
+  final cycplusT7h = connectedBle(CycplusT7h(scan('T7H-R')));
+  final kickrClimb = connectedBle(WahooKickrClimb(scan('KICKR CLIMB')));
 
   // All controllers must live in core.connection.devices so the MyWhoosh
   // action handler (initialized below) seeds each button's default in-game
@@ -210,6 +274,13 @@ Future<void> main() async {
     thinkriderVs200,
     eliteSterzo,
     gyroSteering,
+    shimanoDi2,
+    sramAxs,
+    eliteRizer,
+    tacxNeoBike,
+    muovBike,
+    cycplusT7h,
+    kickrClimb,
   ]);
 
   // core.actionHandler is `late` (assigned in the app's main(), which the test
@@ -434,46 +505,64 @@ Future<void> main() async {
     Finder Function()? capture,
     Future<void> Function(WidgetTester tester)? afterPump,
     TargetPlatform platform = TargetPlatform.android,
+    // Override the (frameless) render resolution, e.g. a sheet as wide as on
+    // a phone held upright rather than the narrower noFrame width.
+    Size? size,
+    // 100 ms frames pumped after the fonts are in, so entrance animations
+    // (a sheet's stage badge, checklist ticks) have finished.
+    int settleFrames = 0,
   }) async {
     const widgetLocales = ['en', 'de', 'es', 'fr', 'it'];
     final nf = sizes.firstWhere((s) => s.type == DeviceType.noFrame);
-    for (final loc in widgetLocales) {
-      await AppLocalizations.load(Locale(loc));
-      screenshotLocale = Locale(loc);
-      await tester.pumpWidget(
-        ScreenshotApp(
-          locale: Locale(loc),
-          device: ScreenshotDevice(
-            // Default Android, never the entry's Windows platform: shadcn's theme
-            // queries the Windows accent colour via advapi32.dll, which can't load
-            // on a macOS test host.
-            platform: platform,
-            resolution: nf.size,
-            pixelRatio: 3,
-            goldenSubFolder: 'iphoneScreenshots/',
-            frameBuilder:
-                ({
-                  required ScreenshotDevice device,
-                  required ScreenshotFrameColors? frameColors,
-                  required Widget child,
-                }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+    // A setup guide names the rider's real app and controller ("Lets MyWhoosh
+    // connect…"), not the store boards' generic "Trainer app".
+    debugKeepsTrainerAppNamesInScreenshotMode = true;
+    debugKeepsControllerNamesInScreenshotMode = true;
+    try {
+      for (final loc in widgetLocales) {
+        await AppLocalizations.load(Locale(loc));
+        screenshotLocale = Locale(loc);
+        await tester.pumpWidget(
+          ScreenshotApp(
+            locale: Locale(loc),
+            device: ScreenshotDevice(
+              // Default Android, never the entry's Windows platform: shadcn's theme
+              // queries the Windows accent colour via advapi32.dll, which can't load
+              // on a macOS test host.
+              platform: platform,
+              resolution: size ?? nf.size,
+              pixelRatio: 3,
+              goldenSubFolder: 'iphoneScreenshots/',
+              frameBuilder:
+                  ({
+                    required ScreenshotDevice device,
+                    required ScreenshotFrameColors? frameColors,
+                    required Widget child,
+                  }) => CustomFrame(platform: DeviceType.noFrame, title: '', device: device, child: child),
+            ),
+            home: home(),
           ),
-          home: home(),
-        ),
-      );
-      await tester.pump();
-      if (afterPump != null) await afterPump(tester);
-      await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
-      // Fonts arriving after the first layout leave intrinsic sizes measured
-      // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
-      // clips descenders). The app loads its fonts before the first frame, so
-      // re-measure everything as it would have been.
-      await tester.binding.reassembleApplication();
-      await tester.pump();
-      await expectLater(
-        capture?.call() ?? find.byType(ma.Scaffold),
-        matchesGoldenFile('../screenshots/$loc/$scene.png'),
-      );
+        );
+        await tester.pump();
+        if (afterPump != null) await afterPump(tester);
+        await tester.loadAssets(alsoLoadTheseFonts: const [BkNumerals.family]);
+        // Fonts arriving after the first layout leave intrinsic sizes measured
+        // against the placeholder font cached (e.g. shadcn Tabs' IntrinsicHeight
+        // clips descenders). The app loads its fonts before the first frame, so
+        // re-measure everything as it would have been.
+        await tester.binding.reassembleApplication();
+        await tester.pump();
+        for (var i = 0; i < settleFrames; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await expectLater(
+          capture?.call() ?? find.byType(ma.Scaffold),
+          matchesGoldenFile('../screenshots/$loc/$scene.png'),
+        );
+      }
+    } finally {
+      debugKeepsTrainerAppNamesInScreenshotMode = false;
+      debugKeepsControllerNamesInScreenshotMode = false;
     }
   }
 
@@ -868,24 +957,32 @@ Future<void> main() async {
       'mywhoosh-network-connection',
       () => BikeControlApp(
         customChild: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: RepaintBoundary(
-              key: k,
-              child: OpenBikeControlMdnsTile(small: false),
+          child: Center(
+            // The same phone width as the connection-methods scenes: narrower,
+            // the French tile's two links ran into each other.
+            child: SizedBox(
+              width: 400,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: RepaintBoundary(
+                  key: k,
+                  child: OpenBikeControlMdnsTile(small: false),
+                ),
+              ),
             ),
           ),
         ),
       ),
       capture: () => find.byKey(k),
+      size: const Size(1500, 2390),
     );
   });
 
   // --- Full connection card (connected-controller list entry) ---
   // The complete card the overview's Controllers list renders for a connected
   // controller: `device.showInformation` draws the header Row (StatusIcon +
-  // name + Beta pill + status meta) and, below it, the footer — the
-  // `ControllerCanvas` contour with its buttons. Two deviations from the live
+  // name + Beta pill + status meta) and, below it, the footer — the picture
+  // Ride's "Your buttons" card draws for it. Two deviations from the live
   // app, both deliberate so the image is chrome-free:
   //   * `showSettingsIcon: false` hides the small header gear (settings live on
   //     a separate page, not in this card).
@@ -908,9 +1005,19 @@ Future<void> main() async {
   // Rendered inside `BikeControlApp` so the card has the real theme and an
   // `i18n` context, standalone in a keyed RepaintBoundary (captured tight) at a
   // fixed list-card width.
-  Future<void> shootCard(WidgetTester tester, String scene, BaseDevice cardDevice) async {
+  Future<void> shootCard(
+    WidgetTester tester,
+    String scene,
+    BaseDevice cardDevice, {
+    // The Zwift Ride outline (and a MUOV bike, which reuses it) carries many
+    // buttons: a wider card keeps them from crowding each other.
+    double width = 340,
+  }) async {
     const k = ValueKey('shot');
     final savedScreenshotMode = screenshotMode;
+    // The website shows the real product name ("Zwift Click V2"), not the
+    // store boards' anonymised "Controller".
+    debugKeepsControllerNamesInScreenshotMode = true;
     try {
       await shootOne(
         tester,
@@ -919,29 +1026,23 @@ Future<void> main() async {
           customChild: SingleChildScrollView(
             child: Center(
               child: SizedBox(
-                width: 340,
+                width: width,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Builder(
                     builder: (context) {
-                      // Footer mirrors overview.dart's footerBuilder: the
-                      // active app's keymap drives the per-button action badges.
-                      final keymap = core.actionHandler.supportedApp?.keymap;
-                      final size = 56 / Theme.of(context).scaling;
-                      Widget btnFor(ControllerButton btn) => AnimatedButtonWidget(
-                        key: ValueKey(btn.name),
-                        button: btn,
-                        pressGeneration: 0,
-                        keymap: keymap,
+                      // The same picture Ride's "Your buttons" card draws
+                      // (controllerButtonsPicture): the contour with its
+                      // buttons, a steering gauge for a steering device, or
+                      // the bare buttons for a controller without an outline.
+                      // The active app's keymap drives the per-button action
+                      // badges.
+                      final footer = controllerButtonsPicture(
                         device: cardDevice,
-                        size: size,
+                        keymap: core.actionHandler.supportedApp?.keymap,
+                        presses: ValueNotifier<ControllerPress>((button: null, generation: 0, trigger: null)),
+                        buttonSize: 56 / Theme.of(context).scaling,
                         onUpdate: () {},
-                      );
-                      final footer = ControllerCanvas(
-                        layout: cardDevice.controllerLayout!,
-                        availableButtons: cardDevice.availableButtons,
-                        buttonBuilder: btnFor,
-                        buttonSize: size,
                       );
                       // screenshotMode stays on, so the Click V2 is shown as a
                       // generic "Controller".
@@ -950,7 +1051,12 @@ Future<void> main() async {
                         showFull: false,
                         showSettingsIcon: false,
                         showAdditionalInfo: false,
-                        footer: footer,
+                        // The outline's edge buttons hang over its bounds, into
+                        // the padding of the card it sits in on Ride; inset it
+                        // the same so they are not cut off at the image edge.
+                        footer: footer == null
+                            ? null
+                            : Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: footer),
                       );
                       return RepaintBoundary(key: k, child: card);
                     },
@@ -964,6 +1070,7 @@ Future<void> main() async {
       );
     } finally {
       screenshotMode = savedScreenshotMode;
+      debugKeepsControllerNamesInScreenshotMode = false;
     }
   }
 
@@ -976,7 +1083,7 @@ Future<void> main() async {
   });
 
   testGoldens('controller-zwift-ride', (WidgetTester tester) async {
-    await shootCard(tester, 'controller-zwift-ride', zwiftRide);
+    await shootCard(tester, 'controller-zwift-ride', zwiftRide, width: 420);
   });
 
   testGoldens('controller-zwift-play', (WidgetTester tester) async {
@@ -997,6 +1104,211 @@ Future<void> main() async {
 
   testGoldens('controller-phone-steering', (WidgetTester tester) async {
     await shootCard(tester, 'controller-phone-steering', gyroSteering);
+  });
+
+  testGoldens('controller-shimano-di2', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-shimano-di2', shimanoDi2);
+  });
+
+  testGoldens('controller-sram-axs', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-sram-axs', sramAxs);
+  });
+
+  testGoldens('controller-elite-rizer', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-elite-rizer', eliteRizer);
+  });
+
+  testGoldens('controller-tacx-neo-bike', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-tacx-neo-bike', tacxNeoBike);
+  });
+
+  testGoldens('controller-muov-bike', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-muov-bike', muovBike, width: 420);
+  });
+
+  testGoldens('controller-cycplus-t7h', (WidgetTester tester) async {
+    await shootCard(tester, 'controller-cycplus-t7h', cycplusT7h);
+  });
+
+  // --- Shimano Di2 & SRAM AXS setup-guide snapshots (website setup guides) ---
+  // The frames of each guided setup a rider walks through, rendered through
+  // the same builders the live sheets and device card use
+  // (shimanoModeChoiceBody / shimanoGuidedBody / shimanoSetupPanel and
+  // SramAxs.debugGuidedSheetBody). A sheet is shown on the card surface with
+  // the bottom sheet's padding, at a phone's width; the Di2 card states are
+  // the device card the controller page shows. One shot per website locale.
+  Future<void> shootSetupFrame(WidgetTester tester, String scene, Widget Function(BuildContext context) builder) async {
+    const k = ValueKey('shot');
+    await shootLocalized(
+      tester,
+      scene,
+      () => BikeControlApp(
+        customChild: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: RepaintBoundary(
+              key: k,
+              child: Builder(builder: builder),
+            ),
+          ),
+        ),
+      ),
+      capture: () => find.byKey(k),
+      // 420 logical px wide: a phone held upright, which the sheets are laid
+      // out for (they cap at 480).
+      size: const Size(1260, 6000),
+      settleFrames: 12,
+    );
+  }
+
+  Widget sheetSurface(Widget body) => Card(
+    child: Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16), child: body),
+  );
+
+  // The E-TUBE channel setup, with the parameters the Di2 passes to its sheet.
+  Widget di2ChannelsSheet(BuildContext c, ShimanoSetupStage stage, {ShimanoShifterAsk? ask}) => sheetSurface(
+    shimanoGuidedBody(
+      c,
+      stage: stage,
+      confirmIcon: LucideIcons.radio,
+      title: c.i18n.shimanoChannelsTitle,
+      intro: c.i18n.shimanoChannelsIntro,
+      successMessage: c.i18n.shimanoChannelsSuccess,
+      runningTitle: c.i18n.shimanoSettingUp,
+      successTitle: c.i18n.shimanoAllSet,
+      checklistItems: [
+        c.i18n.shimanoChecklistAuthenticating,
+        c.i18n.shimanoChecklistReadingButtons,
+        c.i18n.shimanoChecklistAssigning,
+      ],
+      passkeyField: const SizedBox(),
+      onClose: () {},
+      onProceed: () {},
+      shifterAsk: ask,
+      onCancelShifters: () {},
+      afterChooser: true,
+      checklistAutoAdvance: false,
+    ),
+  );
+
+  // The Di2's card on its controller page: header plus the setup panel in the
+  // given state.
+  Widget di2Card(BuildContext c, {bool buttonMode = false, bool channels = false, bool canRestore = false}) =>
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Theme.of(c).colorScheme.card,
+          borderRadius: BorderRadius.circular(BkComponentThemes.cardRadius),
+        ),
+        child: shimanoDi2.showInformation(
+          c,
+          showFull: true,
+          showAdditionalInfo: false,
+          footer: shimanoSetupPanel(
+            c,
+            buttonMode: buttonMode,
+            channels: channels,
+            canRestore: canRestore,
+            showButtonModeWarning: buttonMode,
+            onSetup: () {},
+            onRestore: () {},
+            onTurnOff: () {},
+            onSwitchToChannels: () {},
+            onDismissWarning: () {},
+          ),
+        ),
+      );
+
+  testGoldens('di2-01-choose-mode', (WidgetTester tester) async {
+    await shootSetupFrame(
+      tester,
+      'di2-01-choose-mode',
+      (c) => sheetSurface(
+        shimanoModeChoiceBody(
+          c,
+          selected: ShimanoSetupMode.channels,
+          onSelect: (_) {},
+          onClose: () {},
+          onContinue: () {},
+        ),
+      ),
+    );
+  });
+
+  testGoldens('di2-02-press-shifters', (WidgetTester tester) async {
+    await shootSetupFrame(
+      tester,
+      'di2-02-press-shifters',
+      (c) => di2ChannelsSheet(c, ShimanoSetupStage.running, ask: const ShimanoShifterAsk({ShimanoShifter.left})),
+    );
+  });
+
+  testGoldens('di2-03-save-shifters', (WidgetTester tester) async {
+    await shootSetupFrame(
+      tester,
+      'di2-03-save-shifters',
+      (c) => di2ChannelsSheet(
+        c,
+        ShimanoSetupStage.running,
+        ask: const ShimanoShifterAsk({ShimanoShifter.left}, saving: true, next: ShimanoShifter.right),
+      ),
+    );
+  });
+
+  testGoldens('di2-04-channels-active', (WidgetTester tester) async {
+    await shootSetupFrame(tester, 'di2-04-channels-active', (c) => di2Card(c, channels: true, canRestore: true));
+  });
+
+  testGoldens('di2-05-button-mode-active', (WidgetTester tester) async {
+    await shootSetupFrame(tester, 'di2-05-button-mode-active', (c) => di2Card(c, buttonMode: true));
+  });
+
+  // The SRAM setup and restore sheets, with the parameters the device passes.
+  Widget sramSetupSheet(BuildContext c, int stage) => sheetSurface(
+    sramAxs.debugGuidedSheetBody(
+      c,
+      stage: stage,
+      confirmIcon: LucideIcons.slidersHorizontal,
+      title: c.i18n.sramSetup,
+      intro: c.i18n.sramSetupIntro,
+      successMessage: c.i18n.sramSetupSuccess,
+      runningTitle: c.i18n.sramSettingUp,
+      successTitle: c.i18n.sramAllSet,
+      checklistItems: [c.i18n.sramChecklistPairing, c.i18n.sramChecklistBackingUp, c.i18n.sramChecklistDisabling],
+    ),
+  );
+
+  testGoldens('sram-01-setup-intro', (WidgetTester tester) async {
+    await shootSetupFrame(tester, 'sram-01-setup-intro', (c) => sramSetupSheet(c, SramAxs.debugStageConfirm));
+  });
+
+  testGoldens('sram-02-authorize', (WidgetTester tester) async {
+    await shootSetupFrame(tester, 'sram-02-authorize', (c) => sramSetupSheet(c, SramAxs.debugStageAuthorize));
+  });
+
+  testGoldens('sram-03-all-set', (WidgetTester tester) async {
+    await shootSetupFrame(tester, 'sram-03-all-set', (c) => sramSetupSheet(c, SramAxs.debugStageSuccess));
+  });
+
+  testGoldens('sram-04-restore', (WidgetTester tester) async {
+    await shootSetupFrame(
+      tester,
+      'sram-04-restore',
+      (c) => sheetSurface(
+        sramAxs.debugGuidedSheetBody(
+          c,
+          stage: SramAxs.debugStageConfirm,
+          confirmIcon: LucideIcons.rotateCcw,
+          title: c.i18n.sramRestore,
+          intro: c.i18n.sramRestoreIntro,
+          successMessage: c.i18n.sramRestoreSuccess,
+          runningTitle: c.i18n.sramRestoringShifting,
+          successTitle: c.i18n.sramRestoredTitle,
+          checklistItems: [c.i18n.sramChecklistPairing, c.i18n.sramChecklistRestoring],
+        ),
+      ),
+    );
   });
 
   // --- Rouvy & TrainingPeaks setup-guide widget snapshots (website setup guide) ---
@@ -1098,8 +1410,10 @@ Future<void> main() async {
       () => BikeControlApp(
         customChild: SingleChildScrollView(
           child: Center(
+            // A phone's width (the trainer page's tiles at ~390 px less its
+            // padding): at 340 the German tile's two links ran into each other.
             child: SizedBox(
-              width: 340,
+              width: 400,
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: RepaintBoundary(
@@ -1122,6 +1436,7 @@ Future<void> main() async {
         ),
       ),
       capture: () => find.byKey(k),
+      size: const Size(1500, 2390),
     );
   }
 
@@ -1228,8 +1543,11 @@ Future<void> main() async {
   Future<void> shootOverview(
     WidgetTester tester,
     String scene,
-    BaseDevice overviewDevice,
-  ) async {
+    BaseDevice overviewDevice, {
+    // An accessory (Rizer, KICKR CLIMB) is no controller: Ride only says "No
+    // controller connected". It is listed on Devices, beside the controllers.
+    AppSection section = AppSection.ride,
+  }) async {
     const overviewLocales = ['en', 'de', 'es', 'fr', 'it'];
 
     // Only the given controller + the smart-trainer proxy.
@@ -1241,6 +1559,17 @@ Future<void> main() async {
     // core.settings.reset() (in main) clears this, so re-assert the Base version
     // is active — otherwise the overview shows the "trial available" IAP banner.
     IAPManager.instance.isPurchased.value = true;
+    IAPManager.instance.setProForTesting(enabled: false);
+
+    // The same overview serves every trainer app's guide, so no app is chosen
+    // yet: the checklist starts at "Choose your trainer app" instead of naming
+    // whichever app an earlier scene selected. The action handler keeps the
+    // MyWhoosh keymap, which is what puts the action badges on the buttons.
+    final savedApp = core.settings.getTrainerApp();
+    final savedTarget = core.settings.getLastTarget();
+    await core.settings.prefs.remove('trainer_app');
+    core.settings.trainerAppListenable.value = null;
+    await core.settings.setLastTarget(Target.thisDevice);
 
     final savedScreenshotMode = screenshotMode;
     try {
@@ -1267,7 +1596,7 @@ Future<void> main() async {
             // Full overview Scaffold (header + Controllers card + Trainer
             // Connection). screenshotMode is still true here, so initState does
             // not start any connection method.
-            home: BikeControlApp(customChild: Navigation()),
+            home: BikeControlApp(customChild: Navigation(initialSection: section)),
           ),
         );
         await tester.pump();
@@ -1298,6 +1627,8 @@ Future<void> main() async {
       }
     } finally {
       screenshotMode = savedScreenshotMode;
+      if (savedApp != null) core.settings.setTrainerApp(savedApp);
+      if (savedTarget != null) await core.settings.setLastTarget(savedTarget);
       core.connection.devices
         ..clear()
         ..addAll(savedDevices);
@@ -1310,6 +1641,11 @@ Future<void> main() async {
   });
 
   testGoldens('overview-zwift-click-v2', (WidgetTester tester) async {
+    // Set up as the store's home board has it (the explainer seen, the
+    // controller working), so the checklist starts at the trainer app like
+    // every other controller's.
+    await core.settings.setClickV2OnboardingDone(true);
+    propPrefs.setZwiftClickV2LastUnlock(device.scanResult.deviceId, DateTime.now());
     await shootOverview(tester, 'overview-zwift-click-v2', device);
   });
 
@@ -1327,6 +1663,42 @@ Future<void> main() async {
 
   testGoldens('overview-thinkrider-vs200', (WidgetTester tester) async {
     await shootOverview(tester, 'overview-thinkrider-vs200', thinkriderVs200);
+  });
+
+  testGoldens('overview-shimano-di2', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-shimano-di2', shimanoDi2);
+  });
+
+  testGoldens('overview-sram-axs', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-sram-axs', sramAxs);
+  });
+
+  testGoldens('overview-elite-rizer', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-elite-rizer', eliteRizer, section: AppSection.devices);
+  });
+
+  testGoldens('overview-tacx-neo-bike', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-tacx-neo-bike', tacxNeoBike);
+  });
+
+  testGoldens('overview-muov-bike', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-muov-bike', muovBike);
+  });
+
+  testGoldens('overview-cycplus-t7h', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-cycplus-t7h', cycplusT7h);
+  });
+
+  testGoldens('overview-wahoo-kickr-climb', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-wahoo-kickr-climb', kickrClimb, section: AppSection.devices);
+  });
+
+  testGoldens('overview-elite-sterzo', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-elite-sterzo', eliteSterzo);
+  });
+
+  testGoldens('overview-phone-steering', (WidgetTester tester) async {
+    await shootOverview(tester, 'overview-phone-steering', gyroSteering);
   });
 
   // --- Virtual-shifting settings widget snapshots (settings video) -------------
