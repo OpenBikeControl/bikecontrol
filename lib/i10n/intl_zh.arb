@@ -2792,7 +2792,7 @@
     }
   },
   "paywall_bikeControlShifts": "BikeControl 自己为你的骑行台换挡 — 自定义挡位、前拨、任意骑行台",
-  "paywall_blackFridayBadge": "黑色星期五优惠",
+  "paywall_blackFridayBadge": "黑色星期五",
   "paywall_blackFridayBaseNote": "今天购买基础版，即可在你的所有设备上使用：iPhone、iPad、Android、Mac 和 Windows。仅限 11 月 27 日星期五的购买。",
   "paywall_blackFridaySignIn": "在每台设备上登录同一账户即可解锁。",
   "paywall_trialDays": "{count, plural, other{{count} 天}}",
