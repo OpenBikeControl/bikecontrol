@@ -10,6 +10,7 @@ import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/utils/core.dart';
 import 'package:bike_control/utils/iap/iap_manager.dart';
 import 'package:bike_control/utils/iap/cross_platform_base_promo.dart';
+import 'package:bike_control/utils/iap/pro_trial.dart';
 import 'package:bike_control/utils/iap/revenuecat_service.dart' show RevenueCatService;
 import 'package:bike_control/utils/keymap/apps/bike_control.dart';
 import 'package:bike_control/utils/keymap/apps/custom_app.dart';
@@ -175,6 +176,14 @@ class _PaywallPricing {
   final String fullVersionSubtitle;
   final String? discountBadge;
 
+  /// The free trial the yearly plan starts with for this rider, read from the
+  /// store product it buys. Null for none.
+  final ProTrial? yearlyTrial;
+
+  /// What the yearly plan charges once [yearlyTrial] ends, as the store
+  /// formats it.
+  final String? yearlyRenewalPrice;
+
   const _PaywallPricing({
     required this.yearlyPrice,
     required this.yearlyBilled,
@@ -182,7 +191,20 @@ class _PaywallPricing {
     required this.monthlyBilled,
     required this.fullVersionSubtitle,
     required this.discountBadge,
+    this.yearlyTrial,
+    this.yearlyRenewalPrice,
   });
+
+  _PaywallPricing withYearlyTrial(ProTrial? trial, String? renewalPrice) => _PaywallPricing(
+    yearlyPrice: yearlyPrice,
+    yearlyBilled: yearlyBilled,
+    monthlyPrice: monthlyPrice,
+    monthlyBilled: monthlyBilled,
+    fullVersionSubtitle: fullVersionSubtitle,
+    discountBadge: discountBadge,
+    yearlyTrial: trial,
+    yearlyRenewalPrice: renewalPrice,
+  );
 
   // Only the Windows/Stripe build falls back to these — keep them short
   // enough to fit the cards on one line each.
@@ -221,6 +243,11 @@ class Paywall extends StatefulWidget {
   @visibleForTesting
   final String? debugYearlyStorePrice;
 
+  /// Test seam: the free trial the store's yearly product starts with, next
+  /// to [debugYearlyStorePrice] (charged after it).
+  @visibleForTesting
+  final ProTrial? debugYearlyTrial;
+
   /// Test seam: told which plan ("yearly", "monthly", "base") a purchase
   /// button asked for, before the store is.
   @visibleForTesting
@@ -249,6 +276,7 @@ class Paywall extends StatefulWidget {
     super.key,
     this.defaultToFullVersion = false,
     this.debugYearlyStorePrice,
+    this.debugYearlyTrial,
     this.debugOnPurchase,
     this.debugClipPoster,
     this.debugNativeTrainer,
@@ -291,7 +319,24 @@ class _PaywallState extends State<Paywall> {
       monthlyBilled: '',
       fullVersionSubtitle: fallback.fullVersionSubtitle,
       discountBadge: fallback.discountBadge,
+      yearlyTrial: widget.debugYearlyTrial,
+      yearlyRenewalPrice: price,
     );
+  }
+
+  /// The free trial shown on the yearly plan: the store product's own (see
+  /// [_loadYearlyTrial]), or on the Stripe builds the backend's Black Friday
+  /// window. [renewalPrice] is what is charged after it; null on Stripe, which
+  /// has no product data and says "billed yearly". Not for riders who already
+  /// have Pro.
+  ({ProTrial trial, String? renewalPrice})? get _yearlyTrial {
+    if (_iapManager.isProEnabled && !(kDebugMode && widget.debugShowAllPlans)) return null;
+    final pricing = _pricing;
+    if (pricing.yearlyTrial case final trial?) return (trial: trial, renewalPrice: pricing.yearlyRenewalPrice);
+    if (StripeYearlyTrialPromo.trialOn(_iapManager.purchaseChannel) case final trial?) {
+      return (trial: trial, renewalPrice: null);
+    }
+    return null;
   }
 
   /// The one-time Pro price from the store's `pro_lifetime` package. Null
@@ -529,7 +574,11 @@ class _PaywallState extends State<Paywall> {
 
     try {
       final offerings = await Purchases.getOfferings();
-      final pricing = _buildPricingFromOfferings(offerings);
+      var pricing = _buildPricingFromOfferings(offerings);
+      if (pricing != null) {
+        final trial = await _loadYearlyTrial(offerings);
+        pricing = pricing.withYearlyTrial(trial?.trial, trial?.renewalPrice);
+      }
       final lifetimePrice = RevenueCatService.proLifetimePackage(offerings)?.storeProduct.priceString;
       if ((pricing != null || lifetimePrice != null) && mounted) {
         setState(() {
@@ -540,6 +589,35 @@ class _PaywallState extends State<Paywall> {
     } catch (e, s) {
       recordError(e, s, context: 'Loading RevenueCat offerings for paywall');
     }
+  }
+
+  /// The free trial on the yearly package the Pro button buys (the same
+  /// offering [RevenueCatService.purchaseSubscription] picks), and its price
+  /// after the trial. Never hardcoded: the store product says how long. On
+  /// the App Store a rider who already had an intro offer gets none, so ask.
+  Future<({ProTrial trial, String renewalPrice})?> _loadYearlyTrial(Offerings offerings) async {
+    final package =
+        offerings.all[_purchased ? 'proonly-freemonth' : 'proonly']?.annual ??
+        offerings.all[_purchased ? 'proonly-freemonth' : 'pro']?.annual ??
+        offerings.current?.annual;
+    final product = package?.storeProduct;
+    if (product == null) return null;
+    final android = defaultTargetPlatform == TargetPlatform.android;
+    IntroEligibilityStatus? eligibility;
+    if (!android) {
+      if (product.introductoryPrice == null) return null;
+      try {
+        final result = await Purchases.checkTrialOrIntroductoryPriceEligibility([product.identifier]);
+        eligibility = result[product.identifier]?.status;
+      } catch (e, s) {
+        recordError(e, s, context: 'Paywall trial eligibility');
+        // Unsure whether this rider gets it: promise nothing.
+        return null;
+      }
+    }
+    final trial = ProTrial.fromStoreProduct(product, android: android, eligibility: eligibility);
+    if (trial == null) return null;
+    return (trial: trial, renewalPrice: product.priceString);
   }
 
   _PaywallPricing? _buildPricingFromOfferings(Offerings offerings) {
@@ -883,6 +961,8 @@ class _PaywallState extends State<Paywall> {
     final billed = yearly ? _pricing.yearlyBilled : _pricing.monthlyBilled;
     final badge = yearly ? _pricing.discountBadge : null;
     final plan = yearly ? _PaywallPlan.yearly : _PaywallPlan.monthly;
+    final trial = yearly ? _yearlyTrial : null;
+    final trialLength = trial?.trial.label(l10n);
     return Container(
       key: const ValueKey('paywall-pro-card'),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -924,6 +1004,13 @@ class _PaywallState extends State<Paywall> {
               ),
             ],
           ),
+          if (trialLength != null) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: _trialBadge(context, l10n.paywall_trialBadge(trialLength)),
+            ),
+          ],
           if (billed.isNotEmpty || badge != null) ...[
             const SizedBox(height: 8),
             Row(
@@ -961,12 +1048,63 @@ class _PaywallState extends State<Paywall> {
           const SizedBox(height: 14),
           _momentList(context, _proMoments(l10n), accent: true),
           const SizedBox(height: 16),
-          _purchaseButton(context, plan: plan, label: _purchaseLabel(l10n, plan), primary: true),
+          _purchaseButton(
+            context,
+            plan: plan,
+            label: trialLength != null ? l10n.paywall_startTrial(trialLength) : _purchaseLabel(l10n, plan),
+            primary: true,
+          ),
+          // Apple 3.1.2: the trial's length and the price after it, at the
+          // button that starts it.
+          if (trial != null && trialLength != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              switch (trial.renewalPrice) {
+                final price? => l10n.paywall_trialThenYearly(trialLength, price),
+                null => l10n.paywall_trialThenBilledYearly(trialLength),
+              },
+              key: const ValueKey('paywall-yearly-trial-terms'),
+              textAlign: TextAlign.center,
+              style: context.typography.xSmall.copyWith(color: cs.mutedForeground, height: 1.35),
+            ),
+          ],
           // Not offered to riders who already have Pro.
           if (_lifetimePrice case final lifetimePrice? when !_iapManager.isProEnabled) ...[
             const SizedBox(height: 4),
             _lifetimeLink(context, lifetimePrice),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// "2 months free": the yearly plan's trial, tinted like the Black Friday
+  /// callout so it doesn't read as the discount.
+  Widget _trialBadge(BuildContext context, String text) {
+    final cs = Theme.of(context).colorScheme;
+    final accent = bkAccentText(context);
+    return Container(
+      key: const ValueKey('paywall-yearly-trial-badge'),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: cs.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4,
+        children: [
+          Icon(LucideIcons.gift, size: 13, color: accent),
+          Flexible(
+            child: Text(
+              text,
+              style: context.typography.caption.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1102,11 +1240,11 @@ class _PaywallState extends State<Paywall> {
           // receipt: Base is free.
           else
             Text(
-            _iapManager.purchaseChannel == PurchaseChannel.linuxDirect
-                ? l10n.paywall_baseFreeOnLinux
-                : l10n.paywall_baseStoreNote(_storeName(context)),
-            style: context.typography.caption.copyWith(height: 1.3, color: cs.mutedForeground),
-          ),
+              _iapManager.purchaseChannel == PurchaseChannel.linuxDirect
+                  ? l10n.paywall_baseFreeOnLinux
+                  : l10n.paywall_baseStoreNote(_storeName(context)),
+              style: context.typography.caption.copyWith(height: 1.3, color: cs.mutedForeground),
+            ),
           if (!owned) ...[
             const SizedBox(height: 12),
             _purchaseButton(
