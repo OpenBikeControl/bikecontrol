@@ -13,6 +13,7 @@
 - (Base) Mac: BikeControl jest ponownie znajdowany po wybudzeniu Maca, bez restartowania metody sieciowej.
 - (Base) Sprawdzanie sieci: nie zgłasza już błędu, gdy BikeControl sam przeszukuje sieć, ani gdy używasz tylko mostka trenażera i masz wyłączone połączenie kontrolera.
 - (Base) Windows: zrzuty ekranu robione przyciskiem kontrolera mają właściwe kolory. Wcześniej czerwony i niebieski były zamienione.
+- (Base) Windows: BikeControl nie zawiesza się już, gdy kontroler łączy się ponownie, np. lewy Zwift Click V2 w trybie, w którym restartuje się mniej więcej raz na minutę. Wcześniej okno mogło po pewnym czasie przestać odpowiadać i trzeba było je zamknąć w Menedżerze zadań.
 - (Base) Własne przypisania przycisków, które nazywają się tak samo jak przycisk innego kontrolera (np. przyciski skrętu KICKR BIKE), zostają po ponownym uruchomieniu. Wcześniej za każdym razem wracały do domyślnych.
 - (Pro) Wirtualna przerzutka przednia: otwarcie ustawień wirtualnej zmiany biegów zostawia cię na dużej tarczy. Wcześniej przełączało cię na małą tarczę.
 

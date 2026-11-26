@@ -13,6 +13,7 @@
 - (Base) Mac : BikeControl est de nouveau trouvé après la sortie de veille du Mac, sans redémarrer la méthode réseau.
 - (Base) Vérification du réseau : ne signale plus d'échec pendant que BikeControl parcourt lui-même le réseau, ni quand tu utilises seulement le pont du home trainer avec la connexion de la manette désactivée.
 - (Base) Windows : les captures d'écran prises avec un bouton de la manette ont les bonnes couleurs. Avant, le rouge et le bleu étaient inversés.
+- (Base) Windows : BikeControl ne se fige plus pendant qu'une manette se reconnecte, p. ex. le Zwift Click V2 gauche dans le mode où il redémarre environ une fois par minute. Avant, la fenêtre pouvait cesser de répondre au bout d'un moment et devait être fermée dans le Gestionnaire des tâches.
 - (Base) Les assignations personnalisées des boutons qui portent le même nom qu'un bouton d'une autre manette (p. ex. les boutons de direction du KICKR BIKE) sont conservées après un redémarrage. Avant, elles revenaient chaque fois à l'assignation par défaut.
 - (Pro) Dérailleur avant virtuel : ouvrir les réglages du changement de vitesse virtuel vous laisse sur le grand plateau. Avant, vous repassiez sur le petit plateau.
 

@@ -4,11 +4,15 @@ dependency_overrides:
   # off the UI thread (GattDeviceService::Close hang in Store crash reports).
   # + Apple: queues notifications CoreBluetooth refuses (transmit queue full) and
   # resends them when it is ready, so a release sent right after its press is not
-  # lost (#417). Drop once a release contains all of them.
+  # lost (#417).
+  # + Windows: connect attempts run off the UI thread, so a stalled Bluetooth
+  # service while a controller reboots (Click V2 left side) no longer hangs the
+  # window (MoAppHangXProc waiting on svchost).
+  # Drop once a release contains all of them.
   universal_ble:
     git:
       url: https://github.com/jonasbark/universal_ble.git
-      ref: 14a8c73f88f50cb4196e5e55e682aa76b718b694
+      ref: b87bf636cb04ab37ca3dad1f3a3e30fdf8c9d9c3
   path_provider_foundation: ">=2.3.0 <2.6.0"
   gamepads_windows:
     path: packages/gamepads_windows
