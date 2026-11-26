@@ -4,7 +4,9 @@ library;
 import 'package:bike_control/bluetooth/devices/proxy/proxy_device.dart';
 import 'package:bike_control/gen/l10n.dart';
 import 'package:bike_control/bluetooth/devices/sram/sram_axs.dart';
+import 'package:bike_control/bluetooth/devices/base_device.dart';
 import 'package:bike_control/bluetooth/devices/zwift/zwift_click.dart';
+import 'package:bike_control/bluetooth/devices/zwift/zwift_ride.dart';
 import 'package:bike_control/pages/onboarding/onboarding_models.dart';
 import 'package:bike_control/pages/onboarding/onboarding_page.dart';
 import 'package:bike_control/pages/onboarding/onboarding_sheets.dart';
@@ -215,7 +217,9 @@ Future<void> main() async {
 
   // ── Step 2: controller + trainer on one screen ────────────────────────
   final gearClick = ZwiftClick(BleDevice(deviceId: 'gear-click', name: 'Zwift Click'))..isConnected = true;
-  Widget gear(BuildContext c, {required List<ProxyDevice> trainers, List<ZwiftClick>? controllers, bool pressed = false}) => SizedBox(
+  Widget gear(BuildContext c, {required List<ProxyDevice> trainers, List<BaseDevice>? controllers, bool pressed = false}) {
+    final pressDevice = (controllers ?? [gearClick]).firstOrNull ?? gearClick;
+    return SizedBox(
         height: 800,
         child: onboardingShell(
           c,
@@ -231,8 +235,8 @@ Future<void> main() async {
             vsDailyMinutesWithoutPro: 30,
             presses: pressed
                 ? {
-                    gearClick.uniqueId: ValueNotifier(
-                      (button: gearClick.availableButtons.first, generation: 1, trigger: ButtonTrigger.singleClick),
+                    pressDevice.uniqueId: ValueNotifier(
+                      (button: pressDevice.availableButtons.first, generation: 1, trigger: ButtonTrigger.singleClick),
                     ),
                   }
                 : const {},
@@ -253,6 +257,7 @@ Future<void> main() async {
           onHelp: () {},
         ),
       );
+  }
 
   testWidgets('step gear searching', (tester) async {
     await captureWidget(tester, name: 'onboarding_step_gear_searching', width: 390, settle: false,
@@ -284,6 +289,15 @@ Future<void> main() async {
     );
     await captureWidget(tester, name: 'onboarding_step_gear_connected', width: 390, settle: false,
         builder: (c) => gear(c, trainers: [trainer], pressed: true));
+  });
+
+  // A many-button controller on a narrow phone: the picture must get the card's
+  // full width, not a thumbnail box that heaps the Ride's buttons on each other.
+  testWidgets('step gear zwift ride', (tester) async {
+    final ride = ZwiftRide(BleDevice(deviceId: 'gear-ride', name: 'Zwift Ride'))..isConnected = true;
+    final trainer = ProxyDevice(BleDevice(deviceId: 'gear-trainer-3', name: 'KICKR CORE 1EB7'));
+    await captureWidget(tester, name: 'onboarding_step_gear_zwift_ride', width: 380, settle: false,
+        builder: (c) => gear(c, trainers: [trainer], controllers: [ride], pressed: true));
   });
 
   for (var i = 0; i < 4; i++) {

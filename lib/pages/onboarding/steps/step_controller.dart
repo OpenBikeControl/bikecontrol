@@ -235,9 +235,13 @@ List<Widget> onboardingControllerTips(BuildContext context) => [
         ),
 ];
 
-/// A connected controller as one compact row: the picture of its buttons on
-/// the left (a press lights the button up), its name and status on the right,
-/// and what the last press did under them.
+/// A connected controller, compact: its name and status on one line, the
+/// picture of its buttons across the card's full width under them (a press
+/// lights the button up), and what the last press did below.
+///
+/// The picture used to sit in a fixed 120×96 box beside the name, which
+/// squeezed a many-button controller such as the Zwift Ride into a heap of
+/// overlapping buttons and cut the last-press strip to "Shi…".
 Widget onboardingControllerCompactCard(
   BuildContext context,
   BaseDevice device, {
@@ -250,54 +254,51 @@ Widget onboardingControllerCompactCard(
   final pressed = pressedButtons[device.uniqueId];
   final generation = pressGenerations[device.uniqueId] ?? 0;
   final keymap = core.actionHandler.supportedApp?.keymap;
-  final size = 34 / Theme.of(context).scaling;
+  final size = 40 / Theme.of(context).scaling;
   return Container(
     key: ValueKey('onboarding-controller-${device.uniqueId}'),
     width: double.infinity,
     margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
+    padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
     decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: scheme.card),
-    child: Row(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          width: 120,
-          height: 96,
-          child: ControllerCanvas(
-            layout: device.controllerLayout!,
-            availableButtons: device.availableButtons,
-            buttonSize: size,
-            buttonBuilder: (btn) => AnimatedButtonWidget(
-              key: ValueKey(btn.name),
-              button: btn,
-              pressGeneration: pressed?.name == btn.name ? generation : 0,
-              keymap: keymap,
-              device: device,
-              size: size,
-              onUpdate: onUpdate ?? () {},
+        Row(
+          children: [
+            Expanded(
+              child: Text(device.displayName(context), maxLines: 1, overflow: TextOverflow.ellipsis).small.semiBold,
             ),
+            Gap(8),
+            BkStatusDot(label: context.i18n.onboardingDeviceConnected),
+          ],
+        ),
+        Gap(4),
+        ControllerCanvas(
+          layout: device.controllerLayout!,
+          availableButtons: device.availableButtons,
+          buttonSize: size,
+          maxHeight: 160,
+          buttonBuilder: (btn) => AnimatedButtonWidget(
+            key: ValueKey(btn.name),
+            button: btn,
+            pressGeneration: pressed?.name == btn.name ? generation : 0,
+            keymap: keymap,
+            device: device,
+            size: size,
+            onUpdate: onUpdate ?? () {},
           ),
         ),
-        Gap(12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(device.displayName(context), maxLines: 2, overflow: TextOverflow.ellipsis).small.semiBold,
-              Gap(2),
-              BkStatusDot(label: context.i18n.onboardingDeviceConnected),
-              Gap(6),
-              if (presses == null)
-                Text(context.i18n.onboardingControllerReadySubtitle).xSmall.muted
-              else
-                ValueListenableBuilder<ControllerPress>(
-                  valueListenable: presses,
-                  builder: (context, press, _) => press.button == null
-                      ? Text(context.i18n.onboardingControllerReadySubtitle).xSmall.muted
-                      : LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate ?? () {}),
-                ),
-            ],
+        Gap(6),
+        if (presses == null)
+          Text(context.i18n.onboardingControllerReadySubtitle).xSmall.muted
+        else
+          ValueListenableBuilder<ControllerPress>(
+            valueListenable: presses,
+            builder: (context, press, _) => press.button == null
+                ? Text(context.i18n.onboardingControllerReadySubtitle).xSmall.muted
+                : LastPressStrip(device: device, keymap: keymap, presses: presses, onUpdate: onUpdate ?? () {}),
           ),
-        ),
       ],
     ),
   );
