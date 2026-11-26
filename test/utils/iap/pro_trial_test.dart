@@ -151,12 +151,12 @@ void main() {
       expect(StripeYearlyTrialPromo.isRunning, isFalse);
     });
 
-    test('offers two months on the Stripe builds only', () {
+    test('offers a month on the Stripe builds only', () {
       at(DateTime.utc(2026, 11, 27, 12));
-      const twoMonths = ProTrial(ProTrialUnit.month, 2);
-      expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.windowsDirect), twoMonths);
-      expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.microsoftStore), twoMonths);
-      expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.linuxDirect), twoMonths);
+      const oneMonth = ProTrial(ProTrialUnit.month, 1);
+      expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.windowsDirect), oneMonth);
+      expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.microsoftStore), oneMonth);
+      expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.linuxDirect), oneMonth);
       // The stores carry their own trial on the product.
       expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.appStore), isNull);
       expect(StripeYearlyTrialPromo.trialOn(PurchaseChannel.macAppStore), isNull);

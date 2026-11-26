@@ -111,12 +111,12 @@ Future<void> main() async {
   });
 
   group('Stripe builds', () {
-    testWidgets('show two months free on yearly inside the window', (tester) async {
+    testWidgets('show a month free on yearly inside the window', (tester) async {
       StripeYearlyTrialPromo.now = () => DateTime.utc(2026, 11, 27, 12);
       await pump(tester, Paywall(debugNativeTrainer: () => null), channel: PurchaseChannel.windowsDirect);
-      expect(find.text('BLACK FRIDAY · 2 months free'), findsOneWidget);
-      expect(find.text('Try Pro free for 2 months'), findsOneWidget);
-      expect(find.text(AppLocalizations.current.paywall_trialThenBilledYearly('2 months')), findsOneWidget);
+      expect(find.text('BLACK FRIDAY · 1 month free'), findsOneWidget);
+      expect(find.text('Try Pro free for 1 month'), findsOneWidget);
+      expect(find.text(AppLocalizations.current.paywall_trialThenBilledYearly('1 month')), findsOneWidget);
     });
 
     testWidgets('show no trial outside the window', (tester) async {

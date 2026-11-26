@@ -76,7 +76,7 @@ class ProTrial {
 
 /// The Stripe builds (Windows outside the store, Microsoft Store Pro, Linux)
 /// have no product to read a trial from. During this window the backend's
-/// `stripe-checkout` adds a 60-day trial to yearly checkouts; this copy only
+/// `stripe-checkout` adds a 30-day trial to yearly checkouts; this copy only
 /// decides when the paywall says so, and must match the backend.
 class StripeYearlyTrialPromo {
   const StripeYearlyTrialPromo._();
@@ -85,7 +85,7 @@ class StripeYearlyTrialPromo {
   static final DateTime startsAt = DateTime.utc(2026, 11, 26, 10);
   static final DateTime endsAt = DateTime.utc(2026, 11, 28, 12);
 
-  static const ProTrial trial = ProTrial(ProTrialUnit.month, 2);
+  static const ProTrial trial = ProTrial(ProTrialUnit.month, 1);
 
   @visibleForTesting
   static DateTime Function() now = DateTime.now;
