@@ -13,6 +13,7 @@
 - (Base) Mac: BikeControl vuelve a encontrarse después de que el Mac salga del reposo, sin reiniciar el método de red.
 - (Base) Comprobación de red: ya no informa de un fallo mientras BikeControl está buscando en la red, ni cuando solo usas el puente del entrenador y tienes desactivada la conexión del mando.
 - (Base) Windows: las capturas de pantalla con un botón del mando tienen los colores correctos. Antes el rojo y el azul estaban intercambiados.
+- (Base) Windows: BikeControl ya no se congela mientras un mando se vuelve a conectar, p. ej. el Zwift Click V2 izquierdo en el modo en que se reinicia aproximadamente una vez por minuto. Antes la ventana podía dejar de responder al cabo de un rato y había que cerrarla en el Administrador de tareas.
 - (Base) Las asignaciones propias de botones que se llaman igual que un botón de otro mando (p. ej. los botones de dirección de la KICKR BIKE) se conservan tras reiniciar. Antes volvían cada vez a la asignación por defecto.
 - (Pro) Desviador delantero virtual: abrir los ajustes de cambio virtual te mantiene en el plato grande. Antes te pasaba al plato pequeño.
 

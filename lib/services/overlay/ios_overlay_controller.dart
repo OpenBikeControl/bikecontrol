@@ -18,7 +18,11 @@ class IosOverlayController implements TrainerOverlayController {
   /// the PiP channel; production always takes the defaults.
   IosOverlayController({LiveActivities? liveActivities, IosPipController? pip})
     : _la = liveActivities ?? LiveActivities(),
-      _pip = pip ?? IosPipController();
+      _pip = pip ?? IosPipController() {
+    // An island from an earlier launch can still be on screen; its stop button
+    // has to work before this launch shows anything.
+    _installActionHandler();
+  }
 
   static const _appGroupId = 'group.de.jonasbark.swiftcontrol.overlay';
   static const _minPushIntervalMs = 500; // ~2 Hz
@@ -150,6 +154,17 @@ class IosOverlayController implements TrainerOverlayController {
     return const OverlayShowResult.ok();
   }
 
+  /// Ends every gear activity an earlier launch left on screen. Run once at
+  /// startup: a swipe-kill only ends the activities the plugin created in that
+  /// same process (never one adopted from a launch before it), so an island can
+  /// outlive the app with nothing feeding it, reopening BikeControl on each tap.
+  /// Also wires the island's buttons, so its stop works before any show().
+  Future<void> clearLeftovers() async {
+    _installActionHandler();
+    if (_activityId != null || _showInFlight != null) return;
+    await _endAllActivities();
+  }
+
   @override
   Future<void> hide() async {
     _binding.detach();
@@ -165,6 +180,10 @@ class IosOverlayController implements TrainerOverlayController {
       }
       _activityId = null;
     }
+    // BikeControl only ever wants one activity, so hidden means none at all —
+    // including one an earlier launch left behind, which this launch never
+    // tracked and so could not end by id.
+    await _endAllActivities();
     _showing.value = false;
     if (_pipActive) {
       try {

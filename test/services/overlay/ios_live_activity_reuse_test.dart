@@ -314,6 +314,50 @@ void main() {
     });
   });
 
+  // A Live Activity survives the app that started it: a swipe-kill only ends
+  // the ones the plugin created in that same process, never one adopted from
+  // an earlier launch. The rider then had a gear island nothing fed, which
+  // reopened the app on every tap, and neither the island's stop button nor
+  // Settings > Close and quit could end it — that launch never showed the
+  // overlay, so it tracked no activity and had no button handler installed
+  // (support d103d226).
+  group('an activity left behind by an earlier launch', () {
+    Future<void> sendAction(String action) =>
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
+          'bike_control/overlay_actions_ios',
+          const StandardMethodCodec().encodeMethodCall(MethodCall('action', action)),
+          (_) {},
+        );
+
+    test('is cleared at startup', () async {
+      final la = _FakeLiveActivities()..seed(1, LiveActivityState.active);
+      final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
+
+      await controller.clearLeftovers();
+
+      expect(la.live, isEmpty);
+      expect(controller.isShowing.value, isFalse);
+    });
+
+    test('is ended by hide() although this launch never showed one', () async {
+      final la = _FakeLiveActivities()..seed(1, LiveActivityState.active);
+      final controller = IosOverlayController(liveActivities: la, pip: _NoPip());
+
+      await controller.hide();
+
+      expect(la.live, isEmpty);
+    });
+
+    test('is ended by its own stop button although this launch never showed one', () async {
+      final la = _FakeLiveActivities()..seed(1, LiveActivityState.active);
+      IosOverlayController(liveActivities: la, pip: _NoPip());
+
+      await sendAction('stop');
+
+      expect(la.live, isEmpty);
+    });
+  });
+
   // Every trainer (re)connect builds a fresh FitnessBikeDefinition. A trainer
   // that drops and reconnects at the start of a ride left the overlay showing
   // the old, now silent definition: the rider kept shifting, the gear readout

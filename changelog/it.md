@@ -13,6 +13,7 @@
 - (Base) Mac: BikeControl viene trovato di nuovo dopo che il Mac esce dallo stop, senza riavviare il metodo di rete.
 - (Base) Controllo di rete: non segnala più un errore mentre BikeControl sta cercando sulla rete, né quando usi solo il ponte del rullo e hai disattivato la connessione del controller.
 - (Base) Windows: gli screenshot fatti con un pulsante del controller hanno i colori giusti. Prima rosso e blu erano invertiti.
+- (Base) Windows: BikeControl non si blocca più mentre un controller si riconnette, ad es. lo Zwift Click V2 sinistro nella modalità in cui si riavvia circa una volta al minuto. Prima la finestra poteva smettere di rispondere dopo un po' e andava chiusa dal Task Manager.
 - (Base) Le assegnazioni personalizzate dei pulsanti che hanno lo stesso nome di un pulsante di un altro controller (ad es. i pulsanti di sterzo della KICKR BIKE) restano dopo un riavvio. Prima tornavano ogni volta all'assegnazione predefinita.
 - (Pro) Deragliatore anteriore virtuale: aprire le impostazioni del cambio virtuale ti lascia sulla corona grande. Prima ti riportava sulla corona piccola.
 
