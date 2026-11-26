@@ -2335,7 +2335,7 @@
   "trainerTwinStillConnecting": "{trainer} si sta ancora connettendo via {transport}. Attendi un momento, poi riprova.",
   "@trainerTwinStillConnecting": {"placeholders": {"trainer": {"type": "String"}, "transport": {"type": "String"}}},
   "paywall_bikeControlShifts": "BikeControl cambia da solo le marce del tuo rullo: rapporti personalizzati, cambio anteriore, qualsiasi rullo",
-  "paywall_blackFridayBadge": "Offerta Black Friday",
+  "paywall_blackFridayBadge": "Black Friday",
   "paywall_blackFridayBaseNote": "Acquista Base oggi e funziona su tutti i tuoi dispositivi: iPhone, iPad, Android, Mac e Windows. Solo per gli acquisti di venerdì 27 novembre.",
   "paywall_blackFridaySignIn": "Accedi con lo stesso account su ogni dispositivo per sbloccarlo.",
   "paywall_trialDays": "{count, plural, =1{1 giorno} other{{count} giorni}}",
