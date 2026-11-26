@@ -146,6 +146,27 @@ final class _OfflineIOOverrides extends IOOverrides {
     bool shared = false,
   }) async =>
       _UnboundServerSocket(address is InternetAddress ? address : InternetAddress.anyIPv4, port);
+
+  /// A connect to a port the app has a server bound on succeeds, as the OS
+  /// would accept it — what the network self-test's reachability probe needs
+  /// to see on a working network. The connection is not handed to the app's
+  /// server (it would count as a trainer app connecting); tests that want a
+  /// client the app talks to use [OfflineMachine.connectTcpClient]. Any other
+  /// port is refused.
+  @override
+  Future<Socket> socketConnect(
+    dynamic host,
+    int port, {
+    dynamic sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) async {
+    final listening = _UnboundServerSocket.bound.any((s) => s.port == port && !s.isClosed);
+    if (!listening) throw SocketException('Connection refused (offline machine)', port: port);
+    // The app's server destroys a probe socket as soon as it accepts it: the
+    // connection arrives already closed.
+    return _FakeSocket(sourcePort)..hangUp();
+  }
 }
 
 /// A server socket bound to nothing: it accepts only the in-memory clients of

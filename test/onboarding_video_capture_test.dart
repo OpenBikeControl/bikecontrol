@@ -15,7 +15,10 @@
 //   trainer     step 2: the Virtual Shifting stage plays under the trainer
 //               card, then the KICKR CORE is connected and bridged over the
 //               real picker path; Continue.
-//   link-app    step 3: "Almost there" — the guide is scrolled to and back,
+//   link-app    step 3: "Almost there" (with its background network check,
+//               which passes on the offline machine as on a working network:
+//               its self-connect reaches the port the app bound) — the guide
+//               is scrolled to and back,
 //               then the app connects (through its connection method's own
 //               entry point).
 //   done        step 3: the app picks up the bridged trainer and the step
